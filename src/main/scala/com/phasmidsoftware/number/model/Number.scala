@@ -516,7 +516,7 @@ object Number {
     * @return a Number.
     */
   def parse(w: String): Try[Number] = {
-    val ny: Try[Number] = numberParser.parse(numberParser.number, w) map (_.specialize)
+    val ny: Try[Number] = numberParser.parseNumber(w) map (_.specialize)
     ny flatMap (n => if (n.isValid) Success(n) else Failure(NumberException(s"parse: cannot parse $w as a Number")))
   }
 
