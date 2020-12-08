@@ -83,8 +83,31 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "fail with x" in {
     Number.parse("1x") should matchPattern { case Failure(_) => }
   }
+  it should """fail for """"" in {
+    Number.parse("") should matchPattern { case Failure(_) => }
+  }
 
   behavior of "apply"
+  it should """fail for """"" in {
+    an[NumberExceptionWithCause] should be thrownBy Number("")
+  }
+  it should """work for "1"""" in {
+    val target = Number("1")
+    target.value shouldBe Right(1)
+  }
+  it should """work for "2147483648"""" in {
+    val target = Number("2147483648")
+    target.value shouldBe Left(Right(bigBigInt))
+  }
+  it should """work for "3.1415927"""" in {
+    val target = Number("3.1415927")
+    target.value shouldBe Left(Left(Right(Rational(31415927, 10000000))))
+  }
+  it should """work for "\uD835\uDED1""""" in {
+    val target = Number("\uD835\uDED1")
+    target.value shouldBe Right(1)
+    target.factor shouldBe Pi
+  }
   it should "work for 1" in {
     val target = numberOne
     target.value shouldBe Right(1)
@@ -108,6 +131,14 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for BigDecimal(3.1415927)" in {
     val target = Number(BigDecimal(3.1415927))
     target.value shouldBe Left(Left(Right(Rational(31415927, 10000000))))
+  }
+  it should "work for 3.1415927" in {
+    val target = Number(3.1415927)
+    target.value shouldBe Left(Left(Left(Some(3.1415927))))
+  }
+  it should """work for 3.1415926535897932384626433""" in {
+    val target = Number(3.1415926535897932384626433)
+    target.value shouldBe Left(Left(Left(Some(3.1415926535897932384626433))))
   }
   it should "work for 0.5" in {
     val target = Number(0.5)

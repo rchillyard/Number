@@ -205,6 +205,9 @@ case class Number(value: Either[Either[Either[Option[Double], Rational], BigInt]
       }
     // Double case
     case Left(Left(Left(Some(x)))) =>
+      // NOTE: if we can represent x as a Rational whose value is identical with x, then we use it.
+      // Keep in mind that, when we specify a Double such as 3.1415927, its binary representation
+      // may not be exactly what we expect. Such a number is best defined through parsing a String.
       val r = Rational(x)
       if (r.toDouble == x) Number(r, factor).specialize else this
     // Invalid case
@@ -351,6 +354,18 @@ object Number {
   type DyadicFunctions = ((Int, Int) => Int, (BigInt, BigInt) => BigInt, (Rational, Rational) => Rational, (Double, Double) => Double)
 
   type MonadicFunctions = (Int => Int, BigInt => BigInt, Rational => Rational, Double => Double)
+
+  /**
+    * Method to construct a Number from a String.
+    * This is by far the best way of creating the number that you really want.
+    *
+    * @param x the String representation of the value.
+    * @return a Number based on x.
+    */
+  def apply(x: String): Number = Number.parse(x) match {
+    case Success(n) => n
+    case Failure(e) => throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
+  }
 
   /**
     * Method to construct a Number from an Int.
@@ -502,7 +517,7 @@ object Number {
     */
   def parse(w: String): Try[Number] = {
     val ny: Try[Number] = numberParser.parse(numberParser.number, w) map (_.specialize)
-    ny flatMap (n => if (n.isValid) Success(n) else Failure(NumberException(s"cannot parse $w as a Number")))
+    ny flatMap (n => if (n.isValid) Success(n) else Failure(NumberException(s"parse: cannot parse $w as a Number")))
   }
 
   /**
@@ -723,4 +738,6 @@ object Factor {
 }
 
 case class NumberException(str: String) extends Exception(str)
+
+case class NumberExceptionWithCause(str: String, e: Throwable) extends Exception(str, e)
 
