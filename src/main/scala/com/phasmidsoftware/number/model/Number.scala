@@ -184,7 +184,7 @@ case class Number(value: Either[Either[Either[Option[Double], Rational], BigInt]
 
   /**
     * Return a Number which uses the most restricted type possible.
-    * A Number based on a Double will yield a Number based on a BigInt (if there is no fractional part).
+    * A Number based on a Double will yield a Number based on a Rational (if the conversion is exact).
     * A Number based on a Rational will yield a Number based on a BigInt (if there is a unit denominator).
     * A Number based on a BigInt will yield a Number based on a Int (if it is sufficiently small).
     *
@@ -205,11 +205,8 @@ case class Number(value: Either[Either[Either[Option[Double], Rational], BigInt]
       }
     // Double case
     case Left(Left(Left(Some(x)))) =>
-      // NOTE we do not convert Double to Rational because any Double
-      // can be approximated by a Rational to within some arbitrary tolerance.
-      // If we can, without loss of information, we upgrade Double to BigInt then normalize the result.
-      val y: Long = Math.round(x)
-      if (y.toDouble == x) Number(y, factor).specialize else this
+      val r = Rational(x)
+      if (r.toDouble == x) Number(r, factor).specialize else this
     // Invalid case
     case _ => this
   }
@@ -305,13 +302,14 @@ case class Number(value: Either[Either[Either[Option[Double], Rational], BigInt]
 
   /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the factor).
+    * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
     */
   private lazy val maybeRational: Option[Rational] = {
-    val result: Try[Rational] = Number.tryMap(value)(Rational(_), x => Number.tryMap(x)(Rational(_), y => Number.tryMap(y)(x => x, {
-      case Some(n) => Success(Rational.doubleToRational(n))
-      case None => Failure(new NoSuchElementException())
-    })))
-    result.toOption
+    val ry = Number.tryMap(value)(Rational(_), x =>
+      Number.tryMap(x)(Rational(_), y =>
+        Number.tryMap(y)(identity, _ =>
+          Failure(new NoSuchElementException()))))
+    ry.toOption
   }
 
   /**
@@ -379,7 +377,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: BigInt, factor: Factor): Number = Number(Left(Right(x)), factor)
+  def apply(x: BigInt, factor: Factor): Number = Number(Left(Right(x)), factor).specialize
 
   /**
     * Method to construct a Number from a Rational.
@@ -388,7 +386,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Rational, factor: Factor): Number = Number(Left(Left(Right(x))), factor)
+  def apply(x: Rational, factor: Factor): Number = Number(Left(Left(Right(x))), factor).specialize
 
   /**
     * Method to construct a Number from a BigDecimal.
@@ -399,7 +397,7 @@ object Number {
     */
   def apply(x: BigDecimal, factor: Factor): Number = {
     val r = Rational(x)
-    Number(r, factor)
+    Number(r, factor).specialize
   }
 
   /**
@@ -409,7 +407,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on xo.
     */
-  def apply(xo: Option[Double], factor: Factor): Number = Number(Left(Left(Left(xo))), factor)
+  def apply(xo: Option[Double], factor: Factor): Number = Number(Left(Left(Left(xo))), factor).specialize
 
   /**
     * Method to construct a Number from a Double.
