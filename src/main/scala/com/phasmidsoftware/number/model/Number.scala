@@ -1,9 +1,7 @@
 package com.phasmidsoftware.number.model
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.parse.NumberParser
-
+import java.util.NoSuchElementException
 import scala.util._
 
 /**
@@ -123,6 +121,23 @@ case class Number(value: Either[Either[Either[Option[Double], Rational], BigInt]
   lazy val signum: Int = Number.signum(this)
 
   /**
+    * Evaluate a dyadic operator on this and other, using either plus or times according to the value of which.
+    * NOTE: this and other must have been aligned by type so that they have the same structure.
+    *
+    * @param other the other operand, a Number.
+    * @param f     the factor to apply to the result.
+    * @param which whether to use plus or times.
+    * @return a new Number which is result of applying the appropriate function to the operands this and other.
+    */
+  def composeDyadicX(other: Number, f: Factor)(which: Boolean): Option[Number] = {
+    val fDouble: (Double, Double) => Double = if (which) implicitly[Numeric[Double]].plus else implicitly[Numeric[Double]].times
+    val fRational: (Rational, Rational) => Rational = if (which) implicitly[Numeric[Rational]].plus else implicitly[Numeric[Rational]].times
+    val fBigInt: (BigInt, BigInt) => BigInt = if (which) implicitly[Numeric[BigInt]].plus else implicitly[Numeric[BigInt]].times
+    val fInt: (Int, Int) => Int = if (which) implicitly[Numeric[Int]].plus else implicitly[Numeric[Int]].times
+    doComposeDyadic(other, f)(fInt, fBigInt, fRational, fDouble)
+  }
+
+  /**
     * Render this Number in String form, including the factor.
     *
     * @return
@@ -185,7 +200,7 @@ case class Number(value: Either[Either[Either[Option[Double], Rational], BigInt]
     // Double case
     case Left(Left(Left(Some(x)))) =>
       // NOTE we do not convert Double to Rational because any Double
-      // can be approximated by a Double to within some arbitrary tolerance.
+      // can be approximated by a Rational to within some arbitrary tolerance.
       // If we can, without loss of information, we upgrade Double to BigInt then normalize the result.
       val y: Long = Math.round(x)
       if (y.toDouble == x) Number(y, factor).specialize else this
@@ -256,7 +271,7 @@ case class Number(value: Either[Either[Either[Option[Double], Rational], BigInt]
     * @param fDouble   the function to combine two Doubles.
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  private def composeDyadic(other: Number, f: Factor)(fInt: (Int, Int) => Int, fBigInt: (BigInt, BigInt) => BigInt, fRational: (Rational, Rational) => Rational, fDouble: (Double, Double) => Double): Option[Number] = {
+  private def doComposeDyadic(other: Number, f: Factor)(fInt: (Int, Int) => Int, fBigInt: (BigInt, BigInt) => BigInt, fRational: (Rational, Rational) => Rational, fDouble: (Double, Double) => Double): Option[Number] = {
     val xToZy0: Option[Double] => Try[Number] = {
       case Some(n) => Try(Number(fDouble(n, other.maybeDouble.get), f))
       case None => Failure(new NoSuchElementException())
@@ -275,7 +290,7 @@ case class Number(value: Either[Either[Either[Option[Double], Rational], BigInt]
     * @param fDouble   the function to combine transform a Double.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  private def composeMonadic(f: Factor)(fInt: Int => Int, fBigInt: BigInt => BigInt, fRational: Rational => Rational, fDouble: Double => Double): Option[Number] = {
+  private def doComposeMonadic(f: Factor)(fInt: Int => Int, fBigInt: BigInt => BigInt, fRational: Rational => Rational, fDouble: Double => Double): Option[Number] = {
     val xToZy0: Option[Double] => Try[Number] = {
       case Some(n) => Try(Number(fDouble(n), f))
       case None => Failure(new NoSuchElementException())
@@ -567,16 +582,16 @@ object Number {
   private def plus(x: Number, y: Number): Number = {
     val (a, b) = x.alignFactors(y)
     val (p, q) = a.alignTypes(b)
-    p.composeDyadic(q, p.factor)(_ + _, _ + _, _ + _, _ + _).getOrElse(Number()).specialize
+    p.composeDyadicX(q, p.factor)(which = true).getOrElse(Number()).specialize
   }
 
   private def times(x: Number, y: Number): Number = {
     val (p, q) = x.alignTypes(y)
     val factor = p.factor + q.factor
-    p.composeDyadic(q, factor)(_ * _, _ * _, _ * _, _ * _).getOrElse(Number()).specialize
+    p.composeDyadicX(q, factor)(which = false).getOrElse(Number()).specialize
   }
 
-  private def negate(x: Number): Number = x.composeMonadic(x.factor)(-_, _.unary_-, _.negate, -_).getOrElse(Number())
+  private def negate(x: Number): Number = x.doComposeMonadic(x.factor)(-_, _.unary_-, _.negate, -_).getOrElse(Number())
 
   private def inverse(x: Number): Number = {
     val maybeNumber = x.value match {
@@ -590,9 +605,9 @@ object Number {
   }
 
   // NOTE: This may throw an exception
-  private def signum(x: Number): Int = x.composeMonadic(x.factor)(identity, _.signum, _.signum, Math.signum).flatMap(_.toInt).get
+  private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identity, _.signum, _.signum, Math.signum).flatMap(_.toInt).get
 
-  private def sin(n: Number): Number = n.scale(Pi).composeMonadic(Scalar)(_ => 0, _ => 0, sinRat, sinDouble).getOrElse(Number()).specialize
+  private def sin(n: Number): Number = n.scale(Pi).doComposeMonadic(Scalar)(_ => 0, _ => 0, sinRat, sinDouble).getOrElse(Number()).specialize
 
   private val sinRat: Rational => Rational = x =>
     if (!x.invert.isWhole) sinDouble(x.toDouble)
