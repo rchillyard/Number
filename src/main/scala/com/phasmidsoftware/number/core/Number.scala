@@ -1,8 +1,8 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
 
-import com.phasmidsoftware.number.model.Number.{DyadicFunctions, MonadicFunctions}
+import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions}
 import com.phasmidsoftware.number.parse.NumberParser
 
 import scala.util._

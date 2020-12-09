@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.core
 
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
@@ -10,7 +10,7 @@ import scala.util.control.NonFatal
   */
 class RationalPropertySpec extends Properties("Rational") {
 
-  import Rational.RationalHelper
+  import com.phasmidsoftware.number.core.Rational.RationalHelper
 
   property("FromString") = forAll { (a: Int, b: Short) =>
     val r = r"$a/$b"

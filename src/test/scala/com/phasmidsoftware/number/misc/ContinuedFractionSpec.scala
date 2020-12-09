@@ -1,8 +1,9 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.misc
 
-import ConFrac.LongLazyListFrom
-import ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
-import Rational.RationalHelper
+import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.misc.ConFrac.LongLazyListFrom
+import com.phasmidsoftware.number.misc.ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 

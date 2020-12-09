@@ -1,6 +1,6 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.core
 
-import Rational.RationalHelper
+import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
 

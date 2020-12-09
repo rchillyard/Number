@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.core
 
 import java.lang.Math._
 
