@@ -37,9 +37,9 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val target = ConFrac.simple(one)
     val epsilon = 1E-6
 
-    def unprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
+    def imprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
 
-    val cf = target.takeWhile(unprecise)
+    val cf = target.takeWhile(imprecise)
     cf.reverseCoefficients.length shouldBe 16
     cf.toRational.toDouble shouldBe goldenRatio +- epsilon
   }
@@ -49,9 +49,9 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val target = ConFrac.simple(one).take(5)
     val epsilon = 1E-6
 
-    def unprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
+    def imprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
 
-    val cf = target.takeWhile(unprecise)
+    val cf = target.takeWhile(imprecise)
     a[ConFracException] should be thrownBy cf.reverseCoefficients
   }
 

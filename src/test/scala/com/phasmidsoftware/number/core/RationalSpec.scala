@@ -117,8 +117,8 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "apply(Double)"
   it should "convert Avagadro's number" in {
-    val avagadro = Rational("6.02214076E23")
-    avagadro shouldBe Rational(6.02214076E23) +- 1E9
+    val target = Rational("6.02214076E23")
+    target shouldBe Rational(6.02214076E23) +- 1E9
   }
   it should "convert a very small number" in {
     val verySmall = Rational(-4.076956044934884E-134)

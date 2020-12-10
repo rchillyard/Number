@@ -5,7 +5,7 @@ import com.phasmidsoftware.number.core.Rational
 import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 
-trait RationalNumber {
+trait ValuableNumber {
 
   /**
     * Evaluate this RationalNumber as a Try[Rational].
@@ -23,7 +23,7 @@ class RationalParser extends JavaTokenParsers {
     case Error(m, _) => scala.util.Failure(RationalParserException(m))
   }
 
-  case class WholeNumber(sign: Boolean, digits: String) extends RationalNumber {
+  case class WholeNumber(sign: Boolean, digits: String) extends ValuableNumber {
     override def value: Try[Rational] = scala.util.Success(Rational(BigInt(digits)).applySign(sign))
   }
 
@@ -31,11 +31,11 @@ class RationalParser extends JavaTokenParsers {
     val one: WholeNumber = WholeNumber(sign = false, "1")
   }
 
-  case class RatioNumber(numerator: WholeNumber, denominator: WholeNumber) extends RationalNumber {
+  case class RatioNumber(numerator: WholeNumber, denominator: WholeNumber) extends ValuableNumber {
     override def value: Try[Rational] = for (n <- numerator.value; d <- denominator.value) yield n / d
   }
 
-  case class RealNumber(sign: Boolean, integerPart: String, fractionalPart: String, exponent: Option[String]) extends RationalNumber {
+  case class RealNumber(sign: Boolean, integerPart: String, fractionalPart: String, exponent: Option[String]) extends ValuableNumber {
     override def value: Try[Rational] = {
       val bigInt = BigInt(integerPart + fractionalPart)
       val exp = exponent.getOrElse("0").toInt
@@ -43,7 +43,7 @@ class RationalParser extends JavaTokenParsers {
     }
   }
 
-  def rationalNumber: Parser[RationalNumber] = realNumber | ratioNumber
+  def rationalNumber: Parser[ValuableNumber] = realNumber | ratioNumber
 
   def ratioNumber: Parser[RatioNumber] = simpleNumber ~ opt("/" ~> simpleNumber) ^^ { case n ~ maybeD => RatioNumber(n, maybeD.getOrElse(WholeNumber.one)) }
 
