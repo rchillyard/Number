@@ -12,10 +12,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   private val ratOne = Rational.one
   private val doubleOne = 1.0
   private val bigBigInt = BigInt(2147483648L)
-  private val standardFuzz = new AbsoluteFuzz[Double] {
-    override val magnitude: Double = 1E-7
-    override val shape: Shape = Gaussian
-  }
+  private val standardFuzz = AbsoluteFuzz[Double](1E-7, Gaussian)
 
   behavior of "create"
   it should "yield Right(1)" in {

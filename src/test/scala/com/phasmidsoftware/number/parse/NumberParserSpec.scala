@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.{FuzzyNumber, Rational}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, FuzzyNumber, Rational}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 
@@ -29,11 +29,12 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     ry.get shouldBe Rational(BigDecimal.valueOf(3.1415927))
   }
   it should "parse 3.1415927E1" in {
-    val r = parser.parseAll(parser.numberWithFuzziness, "3.1415927*E1")
-    r should matchPattern { case parser.Success(_, _) => }
-    val ry: Try[Rational] = r.get.value
-    ry should matchPattern { case scala.util.Success(_) => }
-    ry.get shouldBe Rational(31.415927)
+    val np: parser.ParseResult[parser.NumberWithFuzziness] = parser.parseAll(parser.numberWithFuzziness, "3.1415927*E1")
+    np should matchPattern { case parser.Success(_, _) => }
+    val n: parser.NumberWithFuzziness = np.get
+    n should matchPattern { case parser.NumberWithFuzziness(parser.RealNumber(false, "3", "1415927", None), None, Some("1")) => }
+    n.value.get shouldBe Rational(31.415927)
+    n.fuzz should matchPattern { case Some(AbsoluteFuzz(_, Box)) => }
   }
   behavior of "generalNumber"
   it should "parse 1" in {
@@ -67,14 +68,14 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   behavior of "fuzz"
   it should "parse (17)" in {
-    val r: parser.ParseResult[Option[Int]] = parser.parseAll(parser.fuzz, "(17)")
+    val r: parser.ParseResult[Option[String]] = parser.parseAll(parser.fuzz, "(17)")
     r should matchPattern { case parser.Success(_, _) => }
-    r.get should matchPattern { case Some(17) => }
+    r.get should matchPattern { case Some("17") => }
   }
   it should "parse *" in {
-    val r: parser.ParseResult[Option[Int]] = parser.parseAll(parser.fuzz, "*")
+    val r: parser.ParseResult[Option[String]] = parser.parseAll(parser.fuzz, "*")
     r should matchPattern { case parser.Success(_, _) => }
-    r.get should matchPattern { case Some(50) => }
+    r.get should matchPattern { case None => }
   }
   behavior of "number"
   it should "parse 3.141592653589793*" in {

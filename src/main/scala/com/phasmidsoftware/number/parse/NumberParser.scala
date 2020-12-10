@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Factor, Fuzz, FuzzyNumber, Number, Rational, Scalar, Shape}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Factor, Fuzz, FuzzyNumber, Gaussian, Number, Rational, Scalar}
 
 import scala.util.Try
 
@@ -21,39 +21,44 @@ class NumberParser extends RationalParser {
   def parseNumber(w: String): Try[Number] = parse(number, w)
 
   trait WithFuzziness {
-    def fuzz: Fuzz[Double]
+    def fuzz: Option[Fuzz[Double]]
   }
 
-  case class NumberWithFuzziness(realNumber: RealNumber, fuzziness: Option[Int], maybeExponent: Option[String]) extends ValuableNumber with WithFuzziness {
+  /**
+    * Parser class to represent a number with fuzziness.
+    *
+    * @param realNumber    a representation of a real (decimal) number in String form.
+    * @param fuzziness     optional Gaussian fuzziness (as a String)--from a parenthetical number; if None, we have Box fuzziness (corresponding to "*").
+    * @param maybeExponent optional exponent (as a String).
+    */
+  case class NumberWithFuzziness(realNumber: RealNumber, fuzziness: Option[String], maybeExponent: Option[String]) extends ValuableNumber with WithFuzziness {
 
     def value: Try[Rational] = realNumber.value.map(r => r.applyExponent(getExponent))
 
-    def fuzz: Fuzz[Double] = measureFuzziness()
-
-    private def getExponent = maybeExponent.getOrElse("0").toInt
-
-    private def measureFuzziness() = new AbsoluteFuzz[Double] {
-      override val magnitude: Double = Rational.one.applyExponent(getExponent - realNumber.fractionalPart.length - 2).toDouble
-      override val shape: Shape = com.phasmidsoftware.number.core.Gaussian // TODO deal with the "*" case as a Box
+    def fuzz: Option[Fuzz[Double]] = fuzziness match {
+      // TODO clean this up
+      case None => Some(AbsoluteFuzz[Double](Rational(5).applyExponent(getExponent - realNumber.fractionalPart.length - 1).toDouble, Box))
+      case Some(w) =>
+        val zo: Option[Int] = w match {
+          case w if w.length >= 2 => w.substring(0, 2).toIntOption
+          case s => s.toIntOption map (_ * 10)
+        }
+        zo map (x => AbsoluteFuzz[Double](Rational(x).applyExponent(getExponent - realNumber.fractionalPart.length - 2).toDouble, Gaussian))
     }
 
+    private def getExponent = maybeExponent.getOrElse("0").toInt
   }
 
   def number: Parser[Number] = opt(generalNumber) ~ opt(factor) ^^ { case ro ~ fo => optionalNumber(ro, fo).getOrElse(FuzzyNumber()) }
 
-  def fuzz: Parser[Option[Int]] = ("""\*""".r | "(" ~> """\d\d""".r <~ ")") ^^ {
-    case "*" => Some(50)
-    case w if w.length >= 2 => w.substring(0, 2).toIntOption
-    case s => s.toIntOption map (_ * 10)
+  def fuzz: Parser[Option[String]] = ("""\*""".r | "(" ~> """\d\d""".r <~ ")") ^^ {
+    case "*" => None
+    case w => Some(w)
   }
 
   def generalNumber: Parser[ValuableNumber] = numberWithFuzziness | rationalNumber
 
   def numberWithFuzziness: Parser[NumberWithFuzziness] = realNumber ~ fuzz ~ opt(rE ~> wholeNumber) ^^ { case rn ~ f ~ expo => NumberWithFuzziness(rn, f, expo) }
-
-  //  def realNumber: Parser[Option[String] ~ String ~ Option[String]] = {
-  //    opt("-") ~ wholeNumber ~ opt("." ~> wholeNumber)
-  //  }
 
   private val rE = "[eE]".r
 
@@ -63,7 +68,7 @@ class NumberParser extends RationalParser {
       v <- r.value.toOption;
       f <- fo.orElse(Some(Scalar))) yield {
       val z: Option[Fuzz[Double]] = r match {
-        case n@NumberWithFuzziness(_, _, _) => Some(n.fuzz)
+        case n@NumberWithFuzziness(_, _, _) => n.fuzz
         case _ => None
       }
       Number.apply(v, f, z)

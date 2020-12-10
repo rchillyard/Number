@@ -8,8 +8,8 @@ import com.phasmidsoftware.number.parse.NumberParser
 import scala.util._
 
 /**
-  * This class is designed to model a Numerical value of various possible different types.
-  * These types are: Int, BigInt, Rational, Double.
+  * This class is designed to model a fuzzy Numeral.
+  * See Number for more details on the actual representation.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
@@ -25,12 +25,12 @@ case class FuzzyNumber(override val value: Either[Either[Either[Option[Double], 
     */
   def this(v: Either[Either[Either[Option[Double], Rational], BigInt], Int], fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
 
-  protected def makeNumber(v: Either[Either[Either[Option[Double], Rational], BigInt], Int], f: Factor, z: Option[Fuzz[Double]]): Unit = new FuzzyNumber(v, f, z)
+  protected def makeNumber(v: Either[Either[Either[Option[Double], Rational], BigInt], Int], f: Factor, z: Option[Fuzz[Double]]): Number = new FuzzyNumber(v, f, z)
 }
 
 /**
-  * This class is designed to model a Numerical value of various possible different types.
-  * These types are: Int, BigInt, Rational, Double.
+  * This class is designed to model an exact Numeral.
+  * See Number for more details on the actual representation.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
@@ -44,7 +44,7 @@ case class ExactNumber(override val value: Either[Either[Either[Option[Double], 
     */
   def this(v: Either[Either[Either[Option[Double], Rational], BigInt], Int]) = this(v, Scalar)
 
-  override protected def makeNumber(value: Either[Either[Either[Option[Double], Rational], BigInt], Int], factor: Factor, fuzz: Option[Fuzz[Double]]): Unit = fuzz match {
+  override protected def makeNumber(value: Either[Either[Either[Option[Double], Rational], BigInt], Int], factor: Factor, fuzz: Option[Fuzz[Double]]): Number = fuzz match {
     case None => ExactNumber(value, factor)
     case _ => FuzzyNumber(value, factor, fuzz)
   }
@@ -58,8 +58,6 @@ case class ExactNumber(override val value: Either[Either[Either[Option[Double], 
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
 abstract class Number(val value: Either[Either[Either[Option[Double], Rational], BigInt], Int], val factor: Factor) {
-
-  protected def makeNumber(value: Either[Either[Either[Option[Double], Rational], BigInt], Int], factor: Factor, fuzz: Option[Fuzz[Double]])
 
   /**
     * Auxiliary constructor for the usual situation with the default factor.
@@ -203,13 +201,22 @@ abstract class Number(val value: Either[Either[Either[Option[Double], Rational],
     sb.toString
   }
 
-  // Following are methods which should be private
+  /**
+    * NOTE: Currently unused.
+    *
+    * @param value  the value.
+    * @param factor the factor.
+    * @param fuzz   the fuzz.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(value: Either[Either[Either[Option[Double], Rational], BigInt], Int], factor: Factor, fuzz: Option[Fuzz[Double]]): Number
 
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
     *
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
+  //protected
   def normalize: Number = factor match {
     case Scalar => this
     case Pi | E => (maybeDouble map (x => Number(x * factor.value))).getOrElse(Number())
@@ -222,6 +229,7 @@ abstract class Number(val value: Either[Either[Either[Option[Double], Rational],
     * @param f the new factor for the result.
     * @return a Number based on this and factor.
     */
+  //protected
   def scale(f: Factor): Number = factor match {
     case `f` => this
     case _ => Number(maybeDouble map (_ * factor.value / f.value), f)
@@ -235,6 +243,7 @@ abstract class Number(val value: Either[Either[Either[Option[Double], Rational],
     *
     * @return a Number with the same magnitude as this.
     */
+  //protected
   lazy val specialize: Number = value match {
     // Int case
     case Right(_) => this
@@ -265,6 +274,7 @@ abstract class Number(val value: Either[Either[Either[Option[Double], Rational],
     * @param x the Number to be aligned with this.
     * @return a tuple of two Numbers with the same factor.
     */
+  //protected
   def alignFactors(x: Number): (Number, Number) = factor match {
     case Scalar => (this, x.scale(factor))
     case _ => (scale(x.factor), x)
@@ -277,6 +287,7 @@ abstract class Number(val value: Either[Either[Either[Option[Double], Rational],
     * @return a tuple of two Numbers, the first of which will be the more general type:
     *         (Invalid vs. Double, Double vs. Rational, Rational vs. BigInt, BigInt vs. Int).
     */
+  //protected
   def alignTypes(x: Number): (Number, Number) = value match {
     // this is an invalid Number: return a pair of invalid numbers
     case Left(Left(Left(None))) => (this, this)

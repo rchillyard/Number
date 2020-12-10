@@ -10,13 +10,11 @@ trait Fuzz[T] {
   val shape: Shape
 }
 
-trait RelativeFuzz[T] extends Fuzz[T] {
-  val tolerance: Double
+case class RelativeFuzz[T](tolerance: Double, shape: Shape) extends Fuzz[T] {
   //  def magnitude(t: T): T
 }
 
-trait AbsoluteFuzz[T] extends Fuzz[T] {
-  val magnitude: T
+case class AbsoluteFuzz[T](magnitude: T, shape: Shape) extends Fuzz[T] {
   //  def tolerance(t: T): Double
 }
 
