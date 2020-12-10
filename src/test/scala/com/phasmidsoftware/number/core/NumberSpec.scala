@@ -20,10 +20,10 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target should matchPattern { case ExactNumber(_, _) => }
     target.value should matchPattern { case Right(_) => }
   }
-  it should "yield Left(Right(1))" in {
-    val target = Number.create(Left(Right(bigOne)))
+  it should "yield Left(Right(bigBigInt))" in {
+    val target = Number.create(Left(Right(bigBigInt)))
     target should matchPattern { case ExactNumber(_, _) => }
-    target.value shouldBe Left(Right(bigOne))
+    target.value shouldBe Left(Right(bigBigInt))
   }
   it should "yield Right(1, Fuzz)" in {
     val target = Number.create(Right(1), standardFuzz)
@@ -48,9 +48,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number.create(Right(1))
     target.value shouldBe Right(1)
   }
-  it should "yield Left(Right(1))" in {
-    val target = Number.create(Left(Right(bigOne)))
-    target.value shouldBe Left(Right(bigOne))
+  it should "yield Left(Right(bigBigInt))" in {
+    val target = Number.create(Left(Right(bigBigInt)))
+    target.value shouldBe Left(Right(bigBigInt))
   }
 
   behavior of "toRational"

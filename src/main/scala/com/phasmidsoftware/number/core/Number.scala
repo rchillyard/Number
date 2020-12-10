@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import java.util.NoSuchElementException
 
 import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions}
+import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
 
 import scala.util._
@@ -15,7 +16,7 @@ import scala.util._
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   * @param fuzz   the fuzziness of this Number.
   */
-case class FuzzyNumber(override val value: Either[Either[Either[Option[Double], Rational], BigInt], Int], override val factor: Factor, fuzz: Option[Fuzz[Double]]) extends Number(value, factor) with Fuzzy[Double] {
+case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzz[Double]]) extends Number(value, factor) with Fuzzy[Double] {
 
   /**
     * Auxiliary constructor for an exact number.
@@ -23,9 +24,29 @@ case class FuzzyNumber(override val value: Either[Either[Either[Option[Double], 
     * @param v    the value for the new Number.
     * @param fuzz the fuzz for the new Number.
     */
-  def this(v: Either[Either[Either[Option[Double], Rational], BigInt], Int], fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
+  def this(v: Value, fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
 
-  protected def makeNumber(v: Either[Either[Either[Option[Double], Rational], BigInt], Int], f: Factor, z: Option[Fuzz[Double]]): Number = new FuzzyNumber(v, f, z)
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Both the value and the factor will be changed.
+    *
+    * @param v the value.
+    * @param f the factor.
+    * @return a FuzzyNumber.
+    */
+  protected def makeNumber(v: Value, f: Factor): Number = makeNumber(v, f, fuzz)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Both the value and the factor will be changed.
+    * CONSIDER: not entirely sure we need this method.
+    *
+    * @param v the value.
+    * @param f the factor.
+    * @param z the new fuzziness.
+    * @return a FuzzyNumber.
+    */
+  protected def makeNumber(v: Value, f: Factor, z: Option[Fuzz[Double]]): Number = FuzzyNumber(v, f, z)
 }
 
 /**
@@ -35,19 +56,24 @@ case class FuzzyNumber(override val value: Either[Either[Either[Option[Double], 
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
-case class ExactNumber(override val value: Either[Either[Either[Option[Double], Rational], BigInt], Int], override val factor: Factor) extends Number(value, factor) {
+case class ExactNumber(override val value: Value, override val factor: Factor) extends Number(value, factor) {
 
   /**
     * Auxiliary constructor for the usual situation with the default factor.
     *
     * @param v the value for the new Number.
     */
-  def this(v: Either[Either[Either[Option[Double], Rational], BigInt], Int]) = this(v, Scalar)
+  def this(v: Value) = this(v, Scalar)
 
-  override protected def makeNumber(value: Either[Either[Either[Option[Double], Rational], BigInt], Int], factor: Factor, fuzz: Option[Fuzz[Double]]): Number = fuzz match {
-    case None => ExactNumber(value, factor)
-    case _ => FuzzyNumber(value, factor, fuzz)
-  }
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Both the value and the factor will be changed.
+    *
+    * @param v the value.
+    * @param f the factor.
+    * @return an ExactNumber.
+    */
+  protected def makeNumber(v: Value, f: Factor): Number = ExactNumber(v, f)
 }
 
 /**
@@ -57,14 +83,16 @@ case class ExactNumber(override val value: Either[Either[Either[Option[Double], 
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
-abstract class Number(val value: Either[Either[Either[Option[Double], Rational], BigInt], Int], val factor: Factor) {
+abstract class Number(val value: Value, val factor: Factor) {
+
+  self =>
 
   /**
     * Auxiliary constructor for the usual situation with the default factor.
     *
     * @param v the value for the new Number.
     */
-  def this(v: Either[Either[Either[Option[Double], Rational], BigInt], Int]) = this(v, Scalar)
+  def this(v: Value) = this(v, Scalar)
 
   /**
     * Method to determine if this is a valid Number.
@@ -202,14 +230,74 @@ abstract class Number(val value: Either[Either[Either[Option[Double], Rational],
   }
 
   /**
-    * NOTE: Currently unused.
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Both the value and the factor will be changed.
     *
-    * @param value  the value.
-    * @param factor the factor.
-    * @param fuzz   the fuzz.
+    * @param v the value.
+    * @param f the factor.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(value: Either[Either[Either[Option[Double], Rational], BigInt], Int], factor: Factor, fuzz: Option[Fuzz[Double]]): Number
+  protected def makeNumber(v: Value, f: Factor): Number
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the factor will change.
+    * This method does not need to be followed by a call to specialize.
+    *
+    * @param f the factor.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(f: Factor): Number = makeNumber(value, f)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(v: Value): Number = makeNumber(v, factor)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(v: Int): Number = makeNumber(Value.fromInt(v), factor)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(v: BigInt): Number = makeNumber(Value.fromBigInt(v), factor)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(v: Rational): Number = makeNumber(Value.fromRational(v), factor)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(v: Double): Number = makeNumber(Value.fromDouble(Some(v)), factor)
 
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
@@ -219,7 +307,7 @@ abstract class Number(val value: Either[Either[Either[Option[Double], Rational],
   //protected
   def normalize: Number = factor match {
     case Scalar => this
-    case Pi | E => (maybeDouble map (x => Number(x * factor.value))).getOrElse(Number())
+    case Pi | E => (maybeDouble map (x => self.makeNumber(x * factor.value).specialize.makeNumber(Scalar))).getOrElse(Number())
   }
 
   /**
@@ -250,11 +338,11 @@ abstract class Number(val value: Either[Either[Either[Option[Double], Rational],
     // BigInt case
     case Left(Right(b)) =>
       val intValue = b.intValue
-      if (BigInt(intValue) == b) Number(intValue, factor) else this
+      if (BigInt(intValue) == b) makeNumber(intValue) else this
     // Rational case
     case Left(Left(Right(r))) =>
       Try(r.toBigInt) match {
-        case Success(b) => Number(b, factor).specialize
+        case Success(b) => makeNumber(b).specialize
         case _ => this
       }
     // Double case
@@ -263,7 +351,7 @@ abstract class Number(val value: Either[Either[Either[Option[Double], Rational],
       // Keep in mind that, when we specify a Double such as 3.1415927, its binary representation
       // may not be exactly what we expect. Such a number is best defined through parsing a String.
       val r = Rational(x)
-      if (r.toDouble == x) Number(r, factor).specialize else this
+      if (r.toDouble == x) makeNumber(r).specialize else this
     // Invalid case
     case _ => this
   }
@@ -419,10 +507,10 @@ object Number {
     * @param fuzz   the fuzziness of this Number, wrapped in Option.
     * @return a Number.
     */
-  def create(value: Either[Either[Either[Option[Double], Rational], BigInt], Int], factor: Factor, fuzz: Option[Fuzz[Double]]): Number = fuzz match {
+  def create(value: Value, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = (fuzz match {
     case None => ExactNumber(value, factor)
     case _ => FuzzyNumber(value, factor, fuzz)
-  }
+  }).specialize
 
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
@@ -431,7 +519,7 @@ object Number {
     * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
     * @return a Number.
     */
-  def create(value: Either[Either[Either[Option[Double], Rational], BigInt], Int], factor: Factor): Number = ExactNumber(value, factor)
+  def create(value: Value, factor: Factor): Number = create(value, factor, None)
 
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
@@ -440,7 +528,15 @@ object Number {
     * @param actualFuzz the fuzziness of this Number.
     * @return a Number.
     */
-  def create(value: Either[Either[Either[Option[Double], Rational], BigInt], Int], actualFuzz: Fuzz[Double]): Number = create(value, Scalar, Some(actualFuzz))
+  def create(value: Value, actualFuzz: Fuzz[Double]): Number = create(value, Scalar, Some(actualFuzz))
+
+  /**
+    * Method to construct a new Number from 1, factor and fuzz, according to whether there is any fuzziness.
+    *
+    * @param actualFuzz the fuzziness of this Number.
+    * @return a Number.
+    */
+  def create(factor: Factor, actualFuzz: Fuzz[Double]): Number = create(Value.fromInt(1), factor, Some(actualFuzz))
 
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
@@ -448,7 +544,7 @@ object Number {
     * @param value the value of the Number, expressed as a nested Either type.
     * @return a Number.
     */
-  def create(value: Either[Either[Either[Option[Double], Rational], BigInt], Int]): Number = ExactNumber(value, Scalar)
+  def create(value: Value): Number = create(value, Scalar)
 
   /**
     * Method to construct a Number from a String.
@@ -469,16 +565,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Int, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(Right(x), factor, fuzz)
-
-  /**
-    * Method to construct a Number from a Long.
-    *
-    * @param x      the Long value.
-    * @param factor the appropriate factor
-    * @return a Number based on the value of x converted to BigInt.
-    */
-  def apply(x: Long, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = apply(BigInt(x), factor, fuzz)
+  def apply(x: Int, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(fromInt(x), factor, fuzz)
 
   /**
     * Method to construct a Number from a BigInt.
@@ -487,7 +574,16 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: BigInt, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(Left(Right(x)), factor, fuzz).specialize
+  def apply(x: BigInt, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(fromBigInt(x), factor, fuzz)
+
+  /**
+    * Method to construct a Number from a Long.
+    *
+    * @param x      the Long value.
+    * @param factor the appropriate factor
+    * @return a Number based on the value of x converted to BigInt.
+    */
+  def apply(x: Long, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = Number(BigInt(x), factor, fuzz)
 
   /**
     * Method to construct a Number from a Rational.
@@ -496,7 +592,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Rational, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(Left(Left(Right(x))), factor, fuzz).specialize
+  def apply(x: Rational, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(fromRational(x), factor, fuzz)
 
   /**
     * Method to construct a Number from a BigDecimal.
@@ -505,10 +601,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: BigDecimal, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = {
-    val r = Rational(x)
-    Number(r, factor, fuzz).specialize
-  }
+  def apply(x: BigDecimal, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = Number(Rational(x), factor, fuzz)
 
   /**
     * Method to construct a Number from an optional Double.
@@ -517,7 +610,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on xo.
     */
-  def apply(xo: Option[Double], factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(Left(Left(Left(xo))), factor, fuzz).specialize
+  def apply(xo: Option[Double], factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(fromDouble(xo), factor, fuzz)
 
   /**
     * Method to construct a Number from a Double.
@@ -526,7 +619,10 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Double, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = if (x == Double.NaN) apply(factor) else apply(Some(x), factor, fuzz)
+  def apply(x: Double, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = x match {
+    case Double.NaN => Number(None, factor, fuzz)
+    case _ => Number(Some(x), factor, fuzz)
+  }
 
   /**
     * Method to construct a Number from an Int.
@@ -535,7 +631,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Int, factor: Factor): Number = ExactNumber(Right(x), factor)
+  def apply(x: Int, factor: Factor): Number = Number(x, factor, None)
 
   /**
     * Method to construct a Number from a Long.
@@ -544,7 +640,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on the value of x converted to BigInt.
     */
-  def apply(x: Long, factor: Factor): Number = apply(BigInt(x), factor)
+  def apply(x: Long, factor: Factor): Number = Number(x, factor, None)
 
   /**
     * Method to construct a Number from a BigInt.
@@ -553,7 +649,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: BigInt, factor: Factor): Number = ExactNumber(Left(Right(x)), factor).specialize
+  def apply(x: BigInt, factor: Factor): Number = Number(x, factor, None)
 
   /**
     * Method to construct a Number from a Rational.
@@ -562,7 +658,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Rational, factor: Factor): Number = ExactNumber(Left(Left(Right(x))), factor).specialize
+  def apply(x: Rational, factor: Factor): Number = Number(x, factor, None)
 
   /**
     * Method to construct a Number from a BigDecimal.
@@ -571,10 +667,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: BigDecimal, factor: Factor): Number = {
-    val r = Rational(x)
-    Number(r, factor).specialize
-  }
+  def apply(x: BigDecimal, factor: Factor): Number = Number(x, factor, None)
 
   /**
     * Method to construct a Number from an optional Double.
@@ -583,7 +676,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on xo.
     */
-  def apply(xo: Option[Double], factor: Factor): Number = ExactNumber(Left(Left(Left(xo))), factor).specialize
+  def apply(xo: Option[Double], factor: Factor): Number = Number(xo, factor, None)
 
   /**
     * Method to construct a Number from a Double.
@@ -592,7 +685,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Double, factor: Factor): Number = if (x == Double.NaN) apply(factor) else apply(Some(x), factor)
+  def apply(x: Double, factor: Factor): Number = Number(x, factor, None)
 
   /**
     * Method to construct an invalid (fuzzy) Number.
@@ -600,7 +693,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a invalid Number.
     */
-  def apply(factor: Factor): Number = apply(None, factor, None)
+  def apply(factor: Factor): Number = Number(None, factor)
 
   /**
     * Method to construct a Number from an Int.
@@ -640,10 +733,7 @@ object Number {
     * @param x the BigDecimal value.
     * @return a Number based on x.
     */
-  def apply(x: BigDecimal): Number = {
-    val r = Rational(x)
-    Number(r, Scalar)
-  }
+  def apply(x: BigDecimal): Number = Number(x, Scalar)
 
   /**
     * Method to construct a Number from an optional Double.
@@ -659,14 +749,14 @@ object Number {
     * @param x the Double value.
     * @return a Number based on x.
     */
-  def apply(x: Double): Number = apply(x, Scalar)
+  def apply(x: Double): Number = Number(x, Scalar)
 
   /**
     * Method to construct an invalid Number.
     *
     * @return a invalid Number.
     */
-  def apply(): Number = apply(Scalar)
+  def apply(): Number = Number(Scalar)
 
   val numberParser = new NumberParser()
 
@@ -806,6 +896,51 @@ object Number {
     val range = (BigInt(Int.MinValue), BigInt(Int.MaxValue))
     if (range._1 <= x && x <= range._2) Success(x.toInt) else Failure(NumberException(s"bigIntToInt: $x is too large"))
   }
+}
+
+/**
+  * This object provides methods related to the type Value.
+  */
+object Value {
+
+  /**
+    * Convert an Int to a Value.
+    *
+    * @param x an Int.
+    * @return a Value.
+    */
+  def fromInt(x: Int): Value = Right(x)
+
+  /**
+    * Convert a BigInt to a Value.
+    *
+    * @param x a BigInt.
+    * @return a Value.
+    */
+  def fromBigInt(x: BigInt): Value = Left(Right(x))
+
+  /**
+    * Convert a Rational to a Value.
+    *
+    * @param x a Rational.
+    * @return a Value.
+    */
+  def fromRational(x: Rational): Value = Left(Left(Right(x)))
+
+  /**
+    * Convert an Option[Double] to a Value.
+    *
+    * @param xo a Double.
+    * @return a Value.
+    */
+  def fromDouble(xo: Option[Double]): Value = Left(Left(Left(xo)))
+
+  /**
+    * Convert nothing to an invalid Value.
+    *
+    * @return a Value.
+    */
+  def fromNothing(): Value = Left(Left(Left(None)))
 }
 
 object FuzzyNumber {

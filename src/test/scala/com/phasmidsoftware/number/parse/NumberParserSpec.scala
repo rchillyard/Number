@@ -80,11 +80,11 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
   }
 
   behavior of "number"
-  // FIXME this is getting specialized into an ExactNumber
-  ignore should "parse 1*" in {
+  it should "parse 1*" in {
     val np: parser.ParseResult[core.Number] = parser.parseAll(parser.number, "1.0*")
     np should matchPattern { case parser.Success(_, _) => }
     val n: core.Number = np.get
+    println(n.getClass)
     n shouldBe FuzzyNumber(Right(1), Scalar, Some(AbsoluteFuzz(0.05, Box)))
   }
   it should "parse 3.1415927*" in {
