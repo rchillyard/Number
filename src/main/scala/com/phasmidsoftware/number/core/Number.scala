@@ -9,47 +9,6 @@ import com.phasmidsoftware.number.parse.NumberParser
 import scala.util._
 
 /**
-  * This class is designed to model a fuzzy Numeral.
-  * See Number for more details on the actual representation.
-  *
-  * @param value  the value of the Number, expressed as a nested Either type.
-  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
-  * @param fuzz   the fuzziness of this Number.
-  */
-case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzz[Double]]) extends Number(value, factor) with Fuzzy[Double] {
-
-  /**
-    * Auxiliary constructor for an exact number.
-    *
-    * @param v    the value for the new Number.
-    * @param fuzz the fuzz for the new Number.
-    */
-  def this(v: Value, fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
-
-  /**
-    * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Both the value and the factor will be changed.
-    *
-    * @param v the value.
-    * @param f the factor.
-    * @return a FuzzyNumber.
-    */
-  protected def makeNumber(v: Value, f: Factor): Number = makeNumber(v, f, fuzz)
-
-  /**
-    * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Both the value and the factor will be changed.
-    * CONSIDER: not entirely sure we need this method.
-    *
-    * @param v the value.
-    * @param f the factor.
-    * @param z the new fuzziness.
-    * @return a FuzzyNumber.
-    */
-  protected def makeNumber(v: Value, f: Factor, z: Option[Fuzz[Double]]): Number = FuzzyNumber(v, f, z)
-}
-
-/**
   * This class is designed to model an exact Numeral.
   * See Number for more details on the actual representation.
   *
@@ -688,12 +647,12 @@ object Number {
   def apply(x: Double, factor: Factor): Number = Number(x, factor, None)
 
   /**
-    * Method to construct an invalid (fuzzy) Number.
+    * Method to construct a unit Number.
     *
     * @param factor the appropriate factor
-    * @return a invalid Number.
+    * @return a unit Number with the given factor.
     */
-  def apply(factor: Factor): Number = Number(None, factor)
+  def apply(factor: Factor): Number = Number(1, factor)
 
   /**
     * Method to construct a Number from an Int.
@@ -756,7 +715,7 @@ object Number {
     *
     * @return a invalid Number.
     */
-  def apply(): Number = Number(Scalar)
+  def apply(): Number = Number(None)
 
   val numberParser = new NumberParser()
 
@@ -941,10 +900,6 @@ object Value {
     * @return a Value.
     */
   def fromNothing(): Value = Left(Left(Left(None)))
-}
-
-object FuzzyNumber {
-  def apply(): Number = Number.apply()
 }
 
 sealed trait MonadicOperation {

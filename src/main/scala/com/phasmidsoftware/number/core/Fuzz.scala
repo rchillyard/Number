@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-
 /**
   * Type constructor which will give fuzzy behavior to a type T.
   *
