@@ -431,6 +431,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational.parse("0.1")
     r shouldBe Success(Rational(1, 10))
   }
+  it should "work for 1." in {
+    val r = Rational.parse("1.")
+    r shouldBe Success(Rational(1))
+  }
   it should "work for 1.0e6" in {
     val r = Rational.parse("1.0e6")
     r shouldBe Success(Rational(10).power(6))

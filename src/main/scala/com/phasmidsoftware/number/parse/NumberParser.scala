@@ -40,10 +40,13 @@ class NumberParser extends RationalParser {
       case None => Some(AbsoluteFuzz[Double](Rational(5).applyExponent(getExponent - realNumber.fractionalPart.length - 1).toDouble, Box))
       case Some(w) =>
         val zo: Option[Int] = w match {
-          case w if w.length >= 2 => w.substring(0, 2).toIntOption
-          case s => s.toIntOption map (_ * 10)
+          case s if s.length >= 2 => s.substring(0, 2).toIntOption
+          case s => s.toIntOption
         }
-        zo map (x => AbsoluteFuzz[Double](Rational(x).applyExponent(getExponent - realNumber.fractionalPart.length - 2).toDouble, Gaussian))
+        zo map (x => {
+          val i = getExponent - realNumber.fractionalPart.length
+          AbsoluteFuzz[Double](Rational(x).applyExponent(i).toDouble, Gaussian)
+        })
     }
 
     private def getExponent = maybeExponent.getOrElse("0").toInt
@@ -51,7 +54,7 @@ class NumberParser extends RationalParser {
 
   def number: Parser[Number] = opt(generalNumber) ~ opt(factor) ^^ { case ro ~ fo => optionalNumber(ro, fo).getOrElse(FuzzyNumber()) }
 
-  def fuzz: Parser[Option[String]] = ("""\*""".r | "(" ~> """\d\d""".r <~ ")") ^^ {
+  def fuzz: Parser[Option[String]] = ("""\*""".r | "(" ~> """\d+""".r <~ ")") ^^ {
     case "*" => None
     case w => Some(w)
   }

@@ -12,6 +12,8 @@ import scala.util._
   * This class is designed to model an exact Numeral.
   * See Number for more details on the actual representation.
   *
+  * TODO implement scientific notation by having factors such os 10^3, 10^6, etc. (alternatively, add a separate parameter)
+  *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
@@ -25,6 +27,13 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def this(v: Value) = this(v, Scalar)
 
   /**
+    * Method to get this fuzziness of this Number.
+    *
+    * @return None
+    */
+  def fuzz: Option[Fuzz[Double]] = None
+
+  /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Both the value and the factor will be changed.
     *
@@ -32,7 +41,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @param f the factor.
     * @return an ExactNumber.
     */
-  protected def makeNumber(v: Value, f: Factor): Number = ExactNumber(v, f)
+  def makeNumber(v: Value, f: Factor): Number = ExactNumber(v, f)
 }
 
 /**
@@ -60,6 +69,13 @@ abstract class Number(val value: Value, val factor: Factor) {
     * @return true if this is a valid Number
     */
   def isValid: Boolean = maybeDouble.isDefined
+
+  /**
+    * Method to get this fuzziness of this Number.
+    *
+    * @return for an Exact number, this will be None, otherwise the actual fuzz.
+    */
+  def fuzz: Option[Fuzz[Double]]
 
   /**
     * Method to get the value of this Number as a Double.
@@ -180,13 +196,16 @@ abstract class Number(val value: Value, val factor: Factor) {
     */
   override def toString: String = {
     val sb = new StringBuilder()
-    sb.append(Number.optionMap(value)(_.toString, x => Number.optionMap(x)(_.toString, y => Number.optionMap(y)(_.toString, {
-      case Some(n) => Some(n.toString)
-      case None => None
-    }))).getOrElse("<undefined>"))
+    sb.append(valueToString)
     sb.append(factor.toString)
     sb.toString
   }
+
+  protected def valueToString: String =
+    Number.optionMap(value)(_.toString, x => Number.optionMap(x)(_.toString, y => Number.optionMap(y)(_.toString, {
+      case Some(n) => Some(n.toString)
+      case None => None
+    }))).getOrElse("<undefined>")
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
