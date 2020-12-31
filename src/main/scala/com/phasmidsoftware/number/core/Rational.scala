@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import java.lang.Math._
 
+import com.phasmidsoftware.number.core.Rational.bigZero
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
 
 import scala.annotation.tailrec
@@ -27,10 +28,10 @@ case class Rational(n: BigInt, d: BigInt) {
   // Pre-conditions
 
   // NOTE: ensure that the denominator is positive.
-  require(d >= 0L, s"Rational denominator is negative: $d")
+  require(d.signum >= 0, s"Rational denominator is negative: $d")
 
   // NOTE: ensure that the numerator and denominator are relatively prime.
-  require(n == 0L && d == 0L || Rational.gcd(n.abs, d.abs) == 1, s"Rational($n,$d): arguments have common factor: ${Rational.gcd(n, d)}")
+  require(n == bigZero && d == bigZero || Rational.gcd(n.abs, d.abs) == 1, s"Rational($n,$d): arguments have common factor: ${Rational.gcd(n, d)}")
 
   // Operators
   def +(that: Rational): Rational = Rational.plus(this, that)

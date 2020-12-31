@@ -24,7 +24,7 @@ class RationalParser extends JavaTokenParsers {
   }
 
   case class WholeNumber(sign: Boolean, digits: String) extends ValuableNumber {
-    override def value: Try[Rational] = scala.util.Success(Rational(BigInt(digits)).applySign(sign))
+    def value: Try[Rational] = scala.util.Success(Rational(BigInt(digits)).applySign(sign))
   }
 
   object WholeNumber {
@@ -32,13 +32,13 @@ class RationalParser extends JavaTokenParsers {
   }
 
   case class RatioNumber(numerator: WholeNumber, denominator: WholeNumber) extends ValuableNumber {
-    override def value: Try[Rational] = for (n <- numerator.value; d <- denominator.value) yield n / d
+    def value: Try[Rational] = for (n <- numerator.value; d <- denominator.value) yield n / d
   }
 
   case class RealNumber(sign: Boolean, integerPart: String, maybeFractionalPart: Option[String], exponent: Option[String]) extends ValuableNumber {
     val fractionalPart: String = maybeFractionalPart.getOrElse("")
 
-    override def value: Try[Rational] = {
+    def value: Try[Rational] = {
       val bigInt = BigInt(integerPart + fractionalPart)
       val exp = exponent.getOrElse("0").toInt
       Try(Rational(bigInt).applySign(sign).applyExponent(exp - fractionalPart.length))
@@ -49,14 +49,12 @@ class RationalParser extends JavaTokenParsers {
 
   def ratioNumber: Parser[RatioNumber] = simpleNumber ~ opt("/" ~> simpleNumber) ^^ { case n ~ maybeD => RatioNumber(n, maybeD.getOrElse(WholeNumber.one)) }
 
-  // TODO this would allow two consecutive - signs. Need to fix it.
   def simpleNumber: Parser[WholeNumber] = opt("-") ~ unsignedWholeNumber ^^ { case so ~ n => WholeNumber(so.isDefined, n) }
 
   def realNumber: Parser[RealNumber] = opt("-") ~ unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> wholeNumber) ^^ { case so ~ integerPart ~ fractionalPart ~ expo => RealNumber(so.isDefined, integerPart, fractionalPart, expo) }
 
   /** An integer, without sign. */
-  def unsignedWholeNumber: Parser[String] =
-    """\d+""".r
+  def unsignedWholeNumber: Parser[String] = """\d+""".r
 
   private val E = "[eE]".r
 }

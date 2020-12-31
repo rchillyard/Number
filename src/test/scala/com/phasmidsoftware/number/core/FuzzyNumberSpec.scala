@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
@@ -64,9 +64,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "plus"
   it should "add 1 and 2" in {
-    val x = numberOne
-    val y = Number(2)
-    (x + y) shouldBe Number(3)
+    val xy: Try[Number] = Number.parse("1.*")
+    val yy = Success(Number(2))
+    val zy = for (x <- xy; y <- yy) yield x + y
+    zy should matchPattern { case Success(_) => }
+    zy.get.value shouldBe Right(3)
+    zy.get.factor shouldBe Scalar
+    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
   it should "add BigInt 1 and 2" in {
     val x = Number(bigOne)

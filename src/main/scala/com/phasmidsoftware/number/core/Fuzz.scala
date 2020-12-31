@@ -12,7 +12,16 @@ import scala.util.Try
 trait Fuzz[T] {
   val shape: Shape
 
-  def normalize(z: Double): Fuzz[T]
+  /**
+    * Method to convert this Fuzz[T] into a Fuzz[T] with Gaussian shape.
+    *
+    * @param z ignored.
+    * @return the equivalent Fuzz[T] with Gaussian shape.
+    */
+  def normalizeShape(z: Double): Fuzz[T]
+
+  // CONSIDER eliminating this if possible
+  def normalizeMagnitude(t: T, absolute: Boolean): Fuzz[T]
 
   def toString(t: T): String
 }
@@ -30,12 +39,15 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
   }
 
   // TODO z is never used
-  def normalize(z: Double): Fuzz[T] = shape match {
+  def normalizeShape(z: Double): Fuzz[T] = shape match {
     case Gaussian => this
     case Box => RelativeFuzz(Box.toGaussianRelative(tolerance), Gaussian)
   }
 
   def toString(t: T): String = absolute(t).map(_.toString(t)).getOrElse("")
+
+  override def normalizeMagnitude(t: T, abs: Boolean): Fuzz[T] = if (abs) absolute(t).get else this // TODO fix me
+
 }
 
 case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T] {
@@ -52,11 +64,14 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
   }
 
   // TODO z is never used
-  def normalize(z: Double): Fuzz[T] = shape match {
+  def normalizeShape(z: Double): Fuzz[T] = shape match {
     case Gaussian => this
     case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
   }
 
+  override def normalizeMagnitude(t: T, abs: Boolean): Fuzz[T] = if (abs) this else relative(t).get // TODO fix me
+
+  // CONSIDER why is this here?
   def zipStrings(v: String, t: String): String = {
     val q: LazyList[Char] = LazyList.from(v.toCharArray.toList) :++ LazyList.continually('0')
     val r: LazyList[Char] = q zip t map { case (a, b) => if ('b' == '0') a else b }

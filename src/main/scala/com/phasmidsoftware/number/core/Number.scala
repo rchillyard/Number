@@ -734,7 +734,12 @@ object Number {
     *
     * @return a invalid Number.
     */
-  def apply(): Number = Number(None)
+  def apply(): Number = NaN
+
+  /**
+    * Invalid number.
+    */
+  val NaN: Number = Number(None)
 
   val numberParser = new NumberParser()
 

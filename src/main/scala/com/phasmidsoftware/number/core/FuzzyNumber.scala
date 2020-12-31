@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.core
 
 /**
-  * This class is designed to model a fuzzy Numeral.
+  * This class is designed to model a fuzzy Number.
   * See Number for more details on the actual representation.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
@@ -17,6 +17,10 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param fuzz the fuzz for the new Number.
     */
   def this(v: Value, fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
+
+  override def +(x: Number): Number = FuzzyNumber.plus(this, x)
+
+  override def *(x: Number): Number = FuzzyNumber.times(this, x)
 
   /**
     * Calculate the convolution of two probability density functions (for this and other).
@@ -67,6 +71,30 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     */
   def makeNumberFuzzy(z: Option[Fuzz[Double]]): FuzzyNumber = FuzzyNumber(value, factor, z)
 
+  // CONSIDER use getConvolutedFuzz
+  def computeFuzz(t: Double, fo1: Option[Fuzz[Double]], fo2: Option[Fuzz[Double]])(fuzzOp: (Double, Double) => Double, absolute: Boolean): Option[Fuzz[Double]] =
+    (fo1, fo2) match {
+      case (Some(f1), Some(f2)) => Some(computeFuzz2(t, f1, f2)(fuzzOp, absolute))
+      case (Some(_), None) => fo1
+      case (None, Some(_)) => fo2
+      case (None, None) => None
+    }
+
+  // CONSIDER use getConvolutedFuzz
+  def computeFuzz2(t: Double, f1: Fuzz[Double], f2: Fuzz[Double])(fuzzOp: (Double, Double) => Double, absolute: Boolean): Fuzz[Double] = {
+    val (z1, z2) = (f1.normalizeMagnitude(t, absolute), f2.normalizeMagnitude(t, absolute))
+    z1 match {
+      case AbsoluteFuzz(m1, sh1) => z2 match {
+        case AbsoluteFuzz(m2, sh2) if sh2 == sh1 => AbsoluteFuzz(fuzzOp(m1, m2), sh1)
+        case AbsoluteFuzz(_, _) => throw new Exception("shapes don't match")
+      }
+      case RelativeFuzz(m1, sh1) => z2 match {
+        case RelativeFuzz(m2, sh2) if sh2 == sh1 => RelativeFuzz(fuzzOp(m1, m2), sh1)
+        case RelativeFuzz(_, _) => throw new Exception("shapes don't match")
+      }
+    }
+  }
+
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
     * NOTE: this and other must have been aligned by type so that they have the same structure.
@@ -76,8 +104,10 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param op    the appropriate DyadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, fuzzOp: (Double, Double) => Double, absolute: Boolean): Option[Number] =
-    composeDyadic(other, f)(op).map { case n: FuzzyNumber => n.makeNumberFuzzy(getConvolutedFuzz(other.fuzz)(fuzzOp, absolute)) }
+  def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, fuzzOp: (Double, Double) => Double, absolute: Boolean): Option[Number] = {
+    val no = composeDyadic(other, f)(op)
+    no.map(n => FuzzyNumber(n.value, n.factor, computeFuzz(n.toDouble.get, fuzz, other.fuzz)(fuzzOp, absolute))) // FIXME
+  }
 
   /**
     * Evaluate a monadic operator on this, using either negate or... according to the value of op.
@@ -130,4 +160,42 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
 
 object FuzzyNumber {
   def apply(): Number = Number.apply()
+
+  private def plus(x: FuzzyNumber, y: Number): Number = {
+    val (a, b) = x.alignFactors(y)
+    val (p, q) = a.alignTypes(b)
+    // CONSIDER matching on (p, q)
+    p match {
+      case n: FuzzyNumber =>
+        n.composeDyadicFuzzy(q, p.factor)(DyadicOperationPlus, _ + _, absolute = true).getOrElse(Number()).specialize
+      case _ => q match {
+        // NOTE: we assume that the operators commute.
+        case n2: FuzzyNumber =>
+          // CONSIDER simply invoking plus with parameters reversed
+          n2.composeDyadicFuzzy(p, p.factor)(DyadicOperationPlus, _ + _, absolute = true).getOrElse(Number()).specialize
+        case _ =>
+          p + q
+      }
+    }
+
+
+  }
+
+  private def times(x: FuzzyNumber, y: Number): Number = {
+    val (p, q) = x.alignTypes(y)
+    val factor = p.factor + q.factor
+
+    def doMultiplication(n: FuzzyNumber, q1: Number, factor1: Factor) =
+      n.composeDyadicFuzzy(q1, factor1)(DyadicOperationPlus, _ * _, absolute = false).getOrElse(Number()).specialize
+
+    p match {
+      case n: FuzzyNumber => doMultiplication(n, q, p.factor)
+      case _ => q match {
+        // NOTE: we assume that the operators commute.
+        case n2: FuzzyNumber => doMultiplication(n2, q, p.factor)
+        case _ => p + q
+      }
+    }
+  }
+
 }
