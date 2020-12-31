@@ -23,30 +23,20 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   override def *(x: Number): Number = FuzzyNumber.times(this, x)
 
   /**
-    * Calculate the convolution of two probability density functions (for this and other).
+    * Calculate the convolution of two probability density functions (for this and that).
     *
-    * @param other    the other Number.
+    * @param that     the other fuzz.
+    * @param t        the magnitude of the resulting Number.
     * @param fuzzOp   the convolution function.
     * @param relative if true, then fuzzOp expects to be given two relative fuzzy values (i.e. tolerances).
     * @return an optional fuzz value.
     */
-  private def getConvolutedFuzz(other: Option[Fuzz[Double]])(fuzzOp: (Double, Double) => Double, relative: Boolean): Option[Fuzz[Double]] = fuzz.map(Fuzz.normalizeFuzz).flatMap {
-    case r@RelativeFuzz(t1, _) =>
-      if (relative) {
-        other.map(Fuzz.normalizeFuzz) flatMap {
-          case RelativeFuzz(t2, _) => Some(RelativeFuzz(fuzzOp(t1, t2), Gaussian))
-          case a@AbsoluteFuzz(_, _) => a.relative(toDouble.getOrElse(0))
-        }
-      } else makeNumberFuzzy(r.absolute(t1)).getConvolutedFuzz(other)(fuzzOp, relative)
-    case a@AbsoluteFuzz(m1, _) =>
-      if (relative) makeNumberFuzzy(a.relative(m1)).getConvolutedFuzz(other)(fuzzOp, relative)
-      else {
-        other.map(Fuzz.normalizeFuzz) flatMap {
-          case RelativeFuzz(_, _) => a.relative(toDouble.getOrElse(0))
-          case AbsoluteFuzz(m2, _) => Some(RelativeFuzz(fuzzOp(m1, m2), Gaussian))
-        }
-      }
-  }
+  private def getConvolutedFuzz(t: Double, that: Option[Fuzz[Double]])(fuzzOp: (Double, Double) => Double, relative: Boolean): Option[Fuzz[Double]] =
+    (Fuzz.normalizeFuzz(fuzz, t, relative), Fuzz.normalizeFuzz(that, t, relative)) match {
+      case (Some(f1), Some(f2)) => Some(Fuzz.convoluteFuzzies(f1, f2)(t, fuzzOp, relative))
+      case (Some(f1), None) => Some(f1)
+      case _ => throw FuzzyNumberException(s"logic error: this is not fuzzy")
+    }
 
   /**
     * Apply a mapping to this Number's fuzz.
@@ -71,29 +61,17 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     */
   def makeNumberFuzzy(z: Option[Fuzz[Double]]): FuzzyNumber = FuzzyNumber(value, factor, z)
 
-  // CONSIDER use getConvolutedFuzz
-  def computeFuzz(t: Double, fo1: Option[Fuzz[Double]], fo2: Option[Fuzz[Double]])(fuzzOp: (Double, Double) => Double, absolute: Boolean): Option[Fuzz[Double]] =
-    (fo1, fo2) match {
-      case (Some(f1), Some(f2)) => Some(computeFuzz2(t, f1, f2)(fuzzOp, absolute))
-      case (Some(_), None) => fo1
-      case (None, Some(_)) => fo2
-      case (None, None) => None
-    }
-
-  // CONSIDER use getConvolutedFuzz
-  def computeFuzz2(t: Double, f1: Fuzz[Double], f2: Fuzz[Double])(fuzzOp: (Double, Double) => Double, absolute: Boolean): Fuzz[Double] = {
-    val (z1, z2) = (f1.normalizeMagnitude(t, absolute), f2.normalizeMagnitude(t, absolute))
-    z1 match {
-      case AbsoluteFuzz(m1, sh1) => z2 match {
-        case AbsoluteFuzz(m2, sh2) if sh2 == sh1 => AbsoluteFuzz(fuzzOp(m1, m2), sh1)
-        case AbsoluteFuzz(_, _) => throw new Exception("shapes don't match")
-      }
-      case RelativeFuzz(m1, sh1) => z2 match {
-        case RelativeFuzz(m2, sh2) if sh2 == sh1 => RelativeFuzz(fuzzOp(m1, m2), sh1)
-        case RelativeFuzz(_, _) => throw new Exception("shapes don't match")
-      }
-    }
-  }
+  /**
+    * Compute the convoluted fuzziness, given this fuzz and fo (the optional other fuzz), as well as fuzzOp, t and absolute.
+    *
+    * @param t        the magnitude of the resulting FuzzyNumber.
+    * @param fo       the optional other fuzz.
+    * @param fuzzOp   the convolution function.
+    * @param absolute true if the convolution is based on absolute values.
+    * @return the convolution of fuzz and fo.
+    */
+  def computeFuzz(t: Double, fo: Option[Fuzz[Double]])(fuzzOp: (Double, Double) => Double, absolute: Boolean): Option[Fuzz[Double]] =
+    getConvolutedFuzz(t, fo)(fuzzOp, !absolute)
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -106,7 +84,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     */
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, fuzzOp: (Double, Double) => Double, absolute: Boolean): Option[Number] = {
     val no = composeDyadic(other, f)(op)
-    no.map(n => FuzzyNumber(n.value, n.factor, computeFuzz(n.toDouble.get, fuzz, other.fuzz)(fuzzOp, absolute))) // FIXME
+    no.map(n => FuzzyNumber(n.value, n.factor, computeFuzz(n.toDouble.get, other.fuzz)(fuzzOp, absolute))) // FIXME
   }
 
   /**
@@ -177,8 +155,6 @@ object FuzzyNumber {
           p + q
       }
     }
-
-
   }
 
   private def times(x: FuzzyNumber, y: Number): Number = {
@@ -197,5 +173,6 @@ object FuzzyNumber {
       }
     }
   }
-
 }
+
+case class FuzzyNumberException(str: String) extends Exception(str)
