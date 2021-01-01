@@ -27,13 +27,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "Fuzz.toString"
-  ignore should "work for 1/0.5/Box" in {
+  it should "work for 1/0.5/Box" in {
     val target = AbsoluteFuzz(0.5, Box)
-    target.toString(1) shouldBe "1.*"
+    target.toString(1) shouldBe "1.00[50]"
   }
-  ignore should "work for 1/0.005/Box" in {
+  it should "work for 1/0.005/Box" in {
     val target = AbsoluteFuzz(0.005, Box)
-    target.toString(1) shouldBe "1.00*"
+    target.toString(1) shouldBe "1.0000[50]"
   }
   it should "work for 1/0.5/Gaussian" in {
     val target = AbsoluteFuzz(0.5, Gaussian)
@@ -89,7 +89,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5773502691896258, Gaussian)) => }
-    println(zy.get)
+    zy.get.toString shouldBe "3.00(58)"
   }
   it should "add BigInt 1 and 2" in {
     val x = Number(bigOne)

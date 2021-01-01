@@ -108,22 +108,17 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
   }
 
-  // CONSIDER why is this here?
-  def zipStrings(v: String, t: String): String = {
-    val q: LazyList[Char] = LazyList.from(v.toCharArray.toList) :++ LazyList.continually('0')
-    val r: LazyList[Char] = q zip t map { case (a, b) => if ('b' == '0') a else b }
-    new String(r.toArray)
-  }
-
   def toString(t: T): String = {
     val tv = implicitly[Valuable[T]]
-    val q = tv.toDouble(magnitude).toString.substring(2) // drop the "0."
-    val (qPrefix, qSuffix) = q.toCharArray.span(_ == '0')
-    val qq = new String(qPrefix) + "00" + '(' + new String(qSuffix).padTo(2, '0') + ')'
-    val z = f"${tv.toDouble(t)}%f"
-    // CONSIDER why is zSuffix not used?
-    val (zPrefix, zSuffix) = z.toCharArray.span(_ != '.')
-    new String(zPrefix) + "." + zipStrings(new String(zPrefix).substring(1), qq)
+    val x = tv.toDouble(magnitude)
+    val q = x.toString.substring(2) // drop the "0."
+    val (qPrefix, _) = q.toCharArray.span(_ == '0')
+    val yq = (math.round(x * math.pow(10, qPrefix.length + 2)) * math.pow(10, -2)).toString.padTo(4, '0').substring(2, 4)
+    val brackets = if (shape == Gaussian) "()" else "[]"
+    val qq = new String(qPrefix) + "00" + brackets.head + yq + brackets.tail.head
+    val z = f"${tv.toDouble(t)}%.99f"
+    val (zPrefix, _) = z.toCharArray.span(_ != '.')
+    new String(zPrefix) + "." + Fuzz.zipStrings(new String(zPrefix).substring(1), qq)
   }
 }
 
@@ -167,6 +162,14 @@ object Fuzz {
     case a@AbsoluteFuzz(_, _) => if (relative) a.relative(t) else Some(f)
     case r@RelativeFuzz(_, _) => if (relative) Some(f) else r.absolute(t)
   }
+
+  // CONSIDER why is this here?
+  def zipStrings(v: String, t: String): String = {
+    val q: LazyList[Char] = LazyList.from(v.toCharArray.toList) :++ LazyList.continually('0')
+    val r: LazyList[Char] = q zip t map { case (a, b) => if ('b' == '0') a else b }
+    new String(r.toArray)
+  }
+
 }
 
 trait Shape
