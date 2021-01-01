@@ -112,40 +112,29 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
 object FuzzyNumber {
   def apply(): Number = Number.apply()
 
+  private def composeDyadic(n: FuzzyNumber, q1: Number, p1: Number, plus1: DyadicOperation, absolute: Boolean) =
+    n.composeDyadicFuzzy(q1, p1.factor)(plus1, absolute).getOrElse(Number()).specialize
+
   private def plus(x: FuzzyNumber, y: Number): Number = {
     val (a, b) = x.alignFactors(y)
     val (p, q) = a.alignTypes(b)
-    // CONSIDER matching on (p, q)
-    p match {
-      case n: FuzzyNumber =>
-        n.composeDyadicFuzzy(q, p.factor)(DyadicOperationPlus, absolute = true).getOrElse(Number()).specialize
-      case _ => q match {
-        // NOTE: we assume that the operators commute.
-        case n2: FuzzyNumber =>
-          // CONSIDER simply invoking plus with parameters reversed
-          n2.composeDyadicFuzzy(p, p.factor)(DyadicOperationPlus, absolute = true).getOrElse(Number()).specialize
-        case _ =>
-          p + q
-      }
+    (p, q) match {
+      case (n: FuzzyNumber, _) => composeDyadic(n, q, p, DyadicOperationPlus, absolute = true)
+      case (_, n: FuzzyNumber) => composeDyadic(n, p, q, DyadicOperationPlus, absolute = true)
+      case (_, _) => p + q
     }
   }
 
   private def times(x: FuzzyNumber, y: Number): Number = {
-    val (p, q) = x.alignTypes(y)
-    val factor = p.factor + q.factor
-
-    def doMultiplication(n: FuzzyNumber, q1: Number, factor1: Factor) =
-      n.composeDyadicFuzzy(q1, factor1)(DyadicOperationPlus, absolute = false).getOrElse(Number()).specialize
-
-    p match {
-      case n: FuzzyNumber => doMultiplication(n, q, p.factor)
-      case _ => q match {
-        // NOTE: we assume that the operators commute.
-        case n2: FuzzyNumber => doMultiplication(n2, q, p.factor)
-        case _ => p + q
-      }
+    val (a, b) = x.alignFactors(y)
+    val (p, q) = a.alignTypes(b)
+    (p, q) match {
+      case (n: FuzzyNumber, _) => composeDyadic(n, q, p, DyadicOperationTimes, absolute = false)
+      case (_, n: FuzzyNumber) => composeDyadic(n, p, q, DyadicOperationTimes, absolute = false)
+      case (_, _) => p * q
     }
   }
+
 }
 
 case class FuzzyNumberException(str: String) extends Exception(str)

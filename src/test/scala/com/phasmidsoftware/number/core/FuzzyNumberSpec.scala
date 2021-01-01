@@ -63,6 +63,14 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "plus"
+  it should "add 1 and 2" in {
+    val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
+    val y = Number(2)
+    val z = x + y
+    z.value shouldBe Right(3)
+    z.factor shouldBe Scalar
+    z.fuzz should matchPattern { case None => }
+  }
   it should "add 1.* and 2" in {
     val xy: Try[Number] = Number.parse("1.*")
     val yy = Success(Number(2))
@@ -91,80 +99,43 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5773502691896258, Gaussian)) => }
     zy.get.toString shouldBe "3.00(58)"
   }
-  it should "add BigInt 1 and 2" in {
-    val x = Number(bigOne)
-    val y = Number(2)
-    (x + y) shouldBe Number(3)
-  }
-  it should "add Rational 1 and 2" in {
-    val x = Number(ratOne)
-    val y = Number(2)
-    (x + y) shouldBe Number(3)
-  }
-  it should "add Double 1 and 2" in {
-    val x = Number(doubleOne)
-    val y = Number(2)
-    (x + y) shouldBe Number(3)
-  }
-  it should "add Double 1 and Pi" in {
-    val x = Number(doubleOne)
-    val y = Number(1, Pi)
-    (x + y) shouldBe Number(Math.PI + 1)
-  }
-  it should "add Pi and 2Pi" in {
-    val x = Number(1, Pi)
-    val y = Number(2, Pi)
-    (x + y) shouldBe Number(3, Pi)
-  }
 
-  behavior of "minus"
-  it should "negate 1" in {
-    val x = numberOne
-    -x shouldBe Number(-1)
-  }
-  it should "negate BigInt 1" in {
-    val x = Number(bigOne)
-    -x shouldBe Number(BigInt(-1))
-  }
-  it should "negate Rational 1" in {
-    val x = Number(ratOne)
-    -x shouldBe Number(Rational(-1))
-  }
-  it should "negate Double 1" in {
-    val x = Number(doubleOne)
-    -x shouldBe Number(-doubleOne)
-  }
 
   behavior of "times"
   it should "multiply 1 and 2" in {
-    val x = numberOne
+    val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
     val y = Number(2)
-    (x * y) shouldBe Number(2)
+    val z = x * y
+    z.value shouldBe Right(2)
+    z.factor shouldBe Scalar
+    z.fuzz should matchPattern { case None => }
   }
-  it should "multiply BigInt 1 and 2" in {
-    val x = Number(bigOne)
-    val y = Number(2)
-    (x * y) shouldBe Number(2)
+  it should "multiply 1.* and 2" in {
+    val xy: Try[Number] = Number.parse("1.*")
+    val yy = Success(Number(2))
+    val zy = for (x <- xy; y <- yy) yield x * y
+    zy should matchPattern { case Success(_) => }
+    zy.get.value shouldBe Right(2)
+    zy.get.factor shouldBe Scalar
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
   }
-  it should "multiply Rational 1 and 2" in {
-    val x = Number(Rational(1))
-    val y = Number(2)
-    (x * y) shouldBe Number(2)
+  it should "multiply 1 and 2.*" in {
+    val xy = Number.parse("2.*")
+    val yy = Success(Number(1))
+    val zy = for (x <- xy; y <- yy) yield x * y
+    zy should matchPattern { case Success(_) => }
+    zy.get.value shouldBe Right(2)
+    zy.get.factor shouldBe Scalar
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
   }
-  it should "multiply Double 1 and 2" in {
-    val x = Number(doubleOne)
-    val y = Number(2)
-    (x * y) shouldBe Number(2)
-  }
-  it should "multiply 2 and Pi" in {
-    val x = Number(2)
-    val y = Number(1, Pi)
-    (x * y) shouldBe Number(2, Pi)
-  }
-  it should "multiply Pi and 2" in {
-    val x = Number(1, Pi)
-    val y = Number(2)
-    (x * y) shouldBe Number(2, Pi)
+  it should "multiply 1.* and 2.*" in {
+    val xy: Try[Number] = Number.parse("1.*")
+    val yy = Number.parse("2.*")
+    val zy = for (x <- xy; y <- yy) yield x * y
+    zy should matchPattern { case Success(_) => }
+    zy.get.value shouldBe Right(2)
+    zy.get.factor shouldBe Scalar
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.20412414523193154, Gaussian)) => }
   }
 
   behavior of "invert"

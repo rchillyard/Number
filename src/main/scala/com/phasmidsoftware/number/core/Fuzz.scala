@@ -141,7 +141,8 @@ object Fuzz {
     (normalizeFuzz(fuzz1, t, relative), normalizeFuzz(fuzz2, t, relative)) match {
       case (Some(f1), Some(f2)) => Some(f1.normalizeShape * f2.normalizeShape)
       case (Some(f1), None) => Some(f1)
-      case _ => throw FuzzyNumberException(s"logic error: this is not fuzzy")
+      case (None, Some(f2)) => Some(f2)
+      case _ => None
     }
 
   /**
