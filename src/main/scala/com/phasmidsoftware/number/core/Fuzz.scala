@@ -13,6 +13,20 @@ trait Fuzz[T] {
   val shape: Shape
 
   /**
+    * Perform a convolution on this Fuzz[T] with the given addend.
+    * There are two different Fuzz[T] shapes, and they clearly have different effects.
+    * When the shapes are absolute, this operation is suitable for addition of Numbers.
+    * When the shapes are relative, this operation is suitable for multiplication of Numbers.
+    *
+    * Whether or not this is a true convolution, I'm not sure.
+    * But is an operation to combine two probability density functions and, as such, f * g = g * f.
+    *
+    * @param convolute the convolute, which must have the same shape as this.
+    * @return the convolution of this and the convolute.
+    */
+  def *(convolute: Fuzz[T]): Fuzz[T]
+
+  /**
     * Method to convert this Fuzz[T] into a Fuzz[T] with Gaussian shape.
     *
     * @param z ignored.
@@ -41,6 +55,20 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     Try(AbsoluteFuzz(tf.times(tf.fromDouble(tolerance), t), shape)).toOption
   }
 
+
+  /**
+    * Perform a convolution on this Fuzz[T] with the given addend.
+    * This operation is suitable for multiplication of Numbers.
+    *
+    * @param convolute the convolute, which must have the same shape as this.
+    * @return the convolution of this and the convolute.
+    */
+  def *(convolute: Fuzz[T]): Fuzz[T] = if (this.shape == convolute.shape)
+    convolute match {
+      case RelativeFuzz(t, _) => RelativeFuzz(tolerance + t, shape)
+      case _ => throw FuzzyNumberException("* operation on different styles")
+    } else throw FuzzyNumberException("* operation on different shapes")
+
   // TODO z is never used
   def normalizeShape(z: Double): Fuzz[T] = shape match {
     case Gaussian => this
@@ -48,7 +76,6 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
   }
 
   def toString(t: T): String = absolute(t).map(_.toString(t)).getOrElse("")
-
 }
 
 case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T] {
@@ -63,6 +90,20 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     val tf = implicitly[Fractional[T]]
     Try(RelativeFuzz(tf.toDouble(tf.div(magnitude, t)), shape)).toOption
   }
+
+  /**
+    * Perform a convolution on this Fuzz[T] with the given addend.
+    * There are two different Fuzz[T] shapes, and they clearly have different effects.
+    * This operation is suitable for addition of Numbers.
+    *
+    * @param convolute the convolute, which must have the same shape as this.
+    * @return the convolution of this and the convolute.
+    */
+  def *(convolute: Fuzz[T]): Fuzz[T] = if (this.shape == convolute.shape)
+    convolute match {
+      case AbsoluteFuzz(m, _) => AbsoluteFuzz(implicitly[Valuable[T]].plus(magnitude, m), shape)
+      case _ => throw FuzzyNumberException("* operation on different styles")
+    } else throw FuzzyNumberException("* operation on different shapes")
 
   // TODO z is never used
   def normalizeShape(z: Double): Fuzz[T] = shape match {
@@ -118,24 +159,6 @@ object Fuzz {
     */
   def normalizeFuzz[T: Valuable](fuzz: Option[Fuzz[T]], t: T, relative: Boolean): Option[Fuzz[T]] =
     fuzz.flatMap(f => normalizeFuzz(t, relative, f))
-
-  /**
-    * Calculate the convolution of two probability density functions (for this and that).
-    *
-    * @param f1       first fuzz.
-    * @param f2       second fuzz.
-    * @param t        the magnitude of the resulting Number.
-    * @param fuzzOp   the convolution function.
-    * @param relative if true, then fuzzOp expects to be given two relative fuzzy values (i.e. tolerances).
-    * @return an optional fuzz value.
-    */
-  def convoluteFuzzies(f1: Fuzz[Double], f2: Fuzz[Double])(t: Double, fuzzOp: (Double, Double) => Double, relative: Boolean)(implicit xv: Valuable[Double]): Fuzz[Double] = f1 match {
-    case AbsoluteFuzz(m1, sh1) => f2 match {
-      case AbsoluteFuzz(m2, `sh1`) => AbsoluteFuzz(fuzzOp(m1, m2), sh1)
-      case RelativeFuzz(m2, `sh1`) => AbsoluteFuzz(fuzzOp(m1, m2), sh1)
-      case _ => throw FuzzyNumberException(s"logic error: magnitude styles or shapes don't match")
-    }
-  }
 
   private def normalizeFuzz[T: Valuable](t: T, relative: Boolean, f: Fuzz[T]) = f match {
     case a@AbsoluteFuzz(_, _) => if (relative) a.relative(t) else Some(f)

@@ -1,9 +1,11 @@
 package com.phasmidsoftware.number.core
 
+import java.util.NoSuchElementException
+
 import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions}
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-import java.util.NoSuchElementException
+
 import scala.util._
 
 /**
@@ -412,21 +414,21 @@ abstract class Number(val value: Value, val factor: Factor) {
       // x's value is a real Number: swap the order so that the first element is the real number
       case Left(Left(Left(_))) => x.alignTypes(this)
       // otherwise: return this and x re-cast as a Rational
-      case _ => (this, makeNumber(x.maybeRational.getOrElse(Rational.NaN), x.factor).specialize)
+      case _ => (this, x.makeNumber(x.maybeRational.getOrElse(Rational.NaN), x.factor).specialize)
     }
     // this value is a BigInt:
     case Left(Right(_)) => x.value match {
       // x's value is a Rational or real Number: swap the order so that the first element is the Rational/real number
       case Left(Left(_)) => x.alignTypes(this)
       // otherwise: return this and x re-cast as a BigInt
-      case _ => (this, makeNumber(x.maybeBigInt.getOrElse(BigInt(0)), x.factor).specialize) // FIXME Need to fix this
+      case _ => (this, x.makeNumber(x.maybeBigInt.getOrElse(BigInt(0)), x.factor).specialize)
     }
     // this value is an Int:
     case Right(_) => x.value match {
       // x's value is a BigInt, Rational or real Number: swap the order so that the first element is the BigInt/Rational/real number
       case Left(_) => x.alignTypes(this)
       // otherwise: return this and x re-cast as an Int
-      case _ => (this, makeNumber(x.maybeInt.getOrElse(0), x.factor).specialize) // FIXME Need to fix this
+      case _ => (this, x.makeNumber(x.maybeInt.getOrElse(0), x.factor).specialize)
     }
   }
 
