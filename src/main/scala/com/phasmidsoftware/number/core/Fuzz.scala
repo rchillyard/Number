@@ -29,10 +29,9 @@ trait Fuzz[T] {
   /**
     * Method to convert this Fuzz[T] into a Fuzz[T] with Gaussian shape.
     *
-    * @param z ignored.
     * @return the equivalent Fuzz[T] with Gaussian shape.
     */
-  def normalizeShape(z: Double): Fuzz[T]
+  def normalizeShape: Fuzz[T]
 
   /**
     * Method to yield a String to render the given T value.
@@ -65,12 +64,11 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     */
   def *(convolute: Fuzz[T]): Fuzz[T] = if (this.shape == convolute.shape)
     convolute match {
-      case RelativeFuzz(t, _) => RelativeFuzz(tolerance + t, shape)
+      case RelativeFuzz(t, Gaussian) => RelativeFuzz(Gaussian.convolution(tolerance, t), shape)
       case _ => throw FuzzyNumberException("* operation on different styles")
     } else throw FuzzyNumberException("* operation on different shapes")
 
-  // TODO z is never used
-  def normalizeShape(z: Double): Fuzz[T] = shape match {
+  lazy val normalizeShape: Fuzz[T] = shape match {
     case Gaussian => this
     case Box => RelativeFuzz(Box.toGaussianRelative(tolerance), Gaussian)
   }
@@ -105,8 +103,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
       case _ => throw FuzzyNumberException("* operation on different styles")
     } else throw FuzzyNumberException("* operation on different shapes")
 
-  // TODO z is never used
-  def normalizeShape(z: Double): Fuzz[T] = shape match {
+  lazy val normalizeShape: Fuzz[T] = shape match {
     case Gaussian => this
     case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
   }
@@ -128,23 +125,29 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     val (zPrefix, zSuffix) = z.toCharArray.span(_ != '.')
     new String(zPrefix) + "." + zipStrings(new String(zPrefix).substring(1), qq)
   }
-
 }
 
 object Fuzz {
   /**
-    * Converts all shapes into Gaussian.
+    * Combine the fuzz values using a convolution.
+    * The order of fuzz1 and fuzz2 is not significant.
+    * Note that we normalize the style of each fuzz according to the value of relative.
+    * Note also that we normalize the shape of each fuzz to ensure Gaussian, since we cannot combine Box shapes into Box
+    * (we could combine Box shapes into trapezoids but who needs that?).
     *
-    * @return either RelativeFuzz or AbsoluteFuzz but always with Gaussian shape.
+    * @param t        the magnitude of the resulting Number.
+    * @param relative true if we are multiplying, false if we are adding.
+    * @param fuzz1    one of the (optional) Fuzz values.
+    * @param fuzz2    the other of the (optional) Fuzz values.
+    * @tparam T the underlying type of the Fuzz.
+    * @return an Option of Fuzz[T].
     */
-  def normalizeFuzz[T: Valuable]: Fuzz[T] => Fuzz[T] = {
-    case f@RelativeFuzz(_, Gaussian) => f
-    case f@AbsoluteFuzz(_, Gaussian) => f
-    case RelativeFuzz(t, _) =>
-      RelativeFuzz[T](Box.toGaussianRelative(t), Gaussian)
-    case AbsoluteFuzz(m, _) =>
-      AbsoluteFuzz(Box.toGaussianAbsolute(m), Gaussian)
-  }
+  def combine[T: Valuable](t: T, relative: Boolean, fuzz1: Option[Fuzz[T]], fuzz2: Option[Fuzz[T]]): Option[Fuzz[T]] =
+    (normalizeFuzz(fuzz1, t, relative), normalizeFuzz(fuzz2, t, relative)) match {
+      case (Some(f1), Some(f2)) => Some(f1.normalizeShape * f2.normalizeShape)
+      case (Some(f1), None) => Some(f1)
+      case _ => throw FuzzyNumberException(s"logic error: this is not fuzzy")
+    }
 
   /**
     * Normalize the magnitude qualifier of the given fuzz according to relative.
@@ -170,13 +173,18 @@ trait Shape
 
 case object Box extends Shape {
   /**
+    * See, for example, https://www.unf.edu/~cwinton/html/cop4300/s09/class.notes/Distributions1.pdf
+    */
+  private val uniformToGaussian = 1.0 / math.sqrt(3)
+
+  /**
     * This method is to simulate a uniform distribution
     * with a normal distribution.
     *
     * @param x half the length of the basis of the uniform distribution.
     * @return x/2 which will be used as the standard deviation.
     */
-  def toGaussianRelative(x: Double): Double = x / 2
+  def toGaussianRelative(x: Double): Double = x * uniformToGaussian
 
   /**
     * This method is to simulate a uniform distribution
@@ -185,10 +193,12 @@ case object Box extends Shape {
     * @param t the magnitude of the Box distribution.
     * @return t/2 which will be used as the standard deviation.
     */
-  def toGaussianAbsolute[T: Valuable](t: T): T = implicitly[Valuable[T]].scale(t, 0.5)
+  def toGaussianAbsolute[T: Valuable](t: T): T = implicitly[Valuable[T]].scale(t, uniformToGaussian)
 }
 
-case object Gaussian extends Shape
+case object Gaussian extends Shape {
+  def convolution(sigma1: Double, sigma2: Double): Double = math.sqrt(sigma1 * sigma1 + sigma2 * sigma2)
+}
 
 trait Fuzzy[T] {
   val fuzz: Option[Fuzz[T]]

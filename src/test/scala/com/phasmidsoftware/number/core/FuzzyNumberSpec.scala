@@ -88,7 +88,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(1.0, Box)) => }
+    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5773502691896258, Gaussian)) => }
+    println(zy.get)
   }
   it should "add BigInt 1 and 2" in {
     val x = Number(bigOne)

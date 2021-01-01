@@ -23,21 +23,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   override def *(x: Number): Number = FuzzyNumber.times(this, x)
 
   /**
-    * Calculate the convolution of two probability density functions (for this and that).
-    *
-    * @param that     the other fuzz.
-    * @param t        the magnitude of the resulting Number.
-    * @param relative if true, then fuzzOp expects to be given two relative fuzzy values (i.e. tolerances).
-    * @return an optional fuzz value.
-    */
-  private def getConvolutedFuzz(t: Double, that: Option[Fuzz[Double]])(relative: Boolean): Option[Fuzz[Double]] =
-    (Fuzz.normalizeFuzz(fuzz, t, relative), Fuzz.normalizeFuzz(that, t, relative)) match {
-      case (Some(f1), Some(f2)) => Some(f1 * f2)
-      case (Some(f1), None) => Some(f1)
-      case _ => throw FuzzyNumberException(s"logic error: this is not fuzzy")
-    }
-
-  /**
     * Apply a mapping to this Number's fuzz.
     *
     * @param fuzzOp   the mapping function.
@@ -61,29 +46,18 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   def makeNumberFuzzy(z: Option[Fuzz[Double]]): FuzzyNumber = FuzzyNumber(value, factor, z)
 
   /**
-    * Compute the convoluted fuzziness, given this fuzz and fo (the optional other fuzz), as well as fuzzOp, t and absolute.
-    *
-    * @param t        the magnitude of the resulting FuzzyNumber.
-    * @param fo       the optional other fuzz.
-    * @param absolute true if the convolution is based on absolute values.
-    * @return the convolution of fuzz and fo.
-    */
-  def computeFuzz(t: Double, fo: Option[Fuzz[Double]])(absolute: Boolean): Option[Fuzz[Double]] =
-    getConvolutedFuzz(t, fo)(!absolute)
-
-  /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
     * @param other    the other operand, a Number.
     * @param f        the factor to apply to the result.
     * @param op       the appropriate DyadicOperation.
-    * @param absolute true if the convolution of Fuzz values should be absolute vs. relative.
+    * @param absolute true if the convolution of Fuzz values should be absolute (addition) vs. relative (multiplication).
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, absolute: Boolean): Option[Number] = {
     val no = composeDyadic(other, f)(op)
-    no.map(n => FuzzyNumber(n.value, n.factor, computeFuzz(n.toDouble.get, other.fuzz)(absolute))) // FIXME
+    no.map(n => FuzzyNumber(n.value, n.factor, Fuzz.combine(n.toDouble.get, !absolute, fuzz, other.fuzz))) // FIXME
   }
 
   /**
