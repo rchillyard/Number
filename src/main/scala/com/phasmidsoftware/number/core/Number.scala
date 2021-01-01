@@ -1,11 +1,9 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions}
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
+import java.util.NoSuchElementException
 import scala.util._
 
 /**
@@ -243,9 +241,10 @@ abstract class Number(val value: Value, val factor: Factor) {
     * This method should be followed by a call to specialize.
     *
     * @param v the value.
+    * @param f Factor.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: Int): Number = makeNumber(Value.fromInt(v), factor)
+  protected def makeNumber(v: Int, f: Factor): Number = makeNumber(Value.fromInt(v), f)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -255,7 +254,18 @@ abstract class Number(val value: Value, val factor: Factor) {
     * @param v the value.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: BigInt): Number = makeNumber(Value.fromBigInt(v), factor)
+  protected def makeNumber(v: Int): Number = makeNumber(v, factor)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value.
+    * @param f Factor.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(v: BigInt, f: Factor): Number = makeNumber(Value.fromBigInt(v), f)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -265,7 +275,18 @@ abstract class Number(val value: Value, val factor: Factor) {
     * @param v the value.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: Rational): Number = makeNumber(Value.fromRational(v), factor)
+  protected def makeNumber(v: BigInt): Number = makeNumber(v, factor)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value and the factor will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param r a Rational.
+    * @param f Factor.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(r: Rational, f: Factor): Number = makeNumber(Value.fromRational(r), f)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -275,7 +296,29 @@ abstract class Number(val value: Value, val factor: Factor) {
     * @param v the value.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: Double): Number = makeNumber(Value.fromDouble(Some(v)), factor)
+  protected def makeNumber(v: Rational): Number = makeNumber(v, factor)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value and factor will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value (a Double).
+    * @param f Factor.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(v: Double, f: Factor): Number = makeNumber(Value.fromDouble(Some(v)), f)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value (a Double).
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def makeNumber(v: Double): Number = makeNumber(v, factor)
+
 
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
@@ -362,28 +405,28 @@ abstract class Number(val value: Value, val factor: Factor) {
       // x's value is invalid: swap the order so the the first element is invalid
       case Left(Left(Left(None))) => x.alignTypes(this)
       // otherwise: return this and x re-cast as a Double
-      case _ => (this, x.maybeDouble.map(y => Number(y, x.factor)).getOrElse(Number()))
+      case _ => (this, x.maybeDouble.map(y => makeNumber(y, x.factor).specialize).getOrElse(Number()))
     }
     // this value is a Rational:
     case Left(Left(Right(_))) => x.value match {
       // x's value is a real Number: swap the order so that the first element is the real number
       case Left(Left(Left(_))) => x.alignTypes(this)
       // otherwise: return this and x re-cast as a Rational
-      case _ => (this, Number(x.maybeRational.getOrElse(Rational.NaN), x.factor))
+      case _ => (this, makeNumber(x.maybeRational.getOrElse(Rational.NaN), x.factor).specialize)
     }
     // this value is a BigInt:
     case Left(Right(_)) => x.value match {
       // x's value is a Rational or real Number: swap the order so that the first element is the Rational/real number
       case Left(Left(_)) => x.alignTypes(this)
       // otherwise: return this and x re-cast as a BigInt
-      case _ => (this, Number(x.maybeBigInt.getOrElse(BigInt(0)), x.factor)) // FIXME Need to fix this
+      case _ => (this, makeNumber(x.maybeBigInt.getOrElse(BigInt(0)), x.factor).specialize) // FIXME Need to fix this
     }
     // this value is an Int:
     case Right(_) => x.value match {
       // x's value is a BigInt, Rational or real Number: swap the order so that the first element is the BigInt/Rational/real number
       case Left(_) => x.alignTypes(this)
       // otherwise: return this and x re-cast as an Int
-      case _ => (this, Number(x.maybeInt.getOrElse(0), x.factor)) // FIXME Need to fix this
+      case _ => (this, makeNumber(x.maybeInt.getOrElse(0), x.factor).specialize) // FIXME Need to fix this
     }
   }
 
@@ -402,9 +445,12 @@ abstract class Number(val value: Value, val factor: Factor) {
       case Some(n) => Try(Number(fDouble(n, other.maybeDouble.get), f))
       case None => Failure(new NoSuchElementException())
     }
-    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => Number.tryMap(y)(x => Number(fRational(x, other.maybeRational.get), f), xToZy0)
+    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => Number.tryMap(y)(x => {
+      val rational = fRational(x, other.maybeRational.get)
+      makeNumber(rational, f)
+    }, xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => Number.tryMap(x)(x => Number(fBigInt(x, other.toBigInt.get), f), xToZy1)
-    Number.tryMap(value)(x => Number(fInt(x, other.maybeInt.get), f), xToZy2).toOption
+    Number.tryMap(value)(x => makeNumber(fInt(x, other.maybeInt.get), f), xToZy2).toOption
   }
 
   /**
@@ -422,7 +468,7 @@ abstract class Number(val value: Value, val factor: Factor) {
     }
     val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => Number.tryMap(y)(x => Number(fRational(x), f), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => Number.tryMap(x)(x => Number(fBigInt(x), f), xToZy1)
-    Number.tryMap(value)(x => Number(fInt(x), f), xToZy2).toOption
+    Number.tryMap(value)(x => makeNumber(fInt(x), f), xToZy2).toOption
   }
 
   /**
@@ -833,17 +879,22 @@ object Number {
       case None => Failure(new NoSuchElementException)
     }
 
-  private def plus(x: Number, y: Number): Number = {
-    val (a, b) = x.alignFactors(y)
-    val (p, q) = a.alignTypes(b)
-    p.composeDyadic(q, p.factor)(DyadicOperationPlus).getOrElse(Number()).specialize
+  private def plus(x: Number, y: Number): Number = y match {
+    case n@FuzzyNumber(_, _, _) => n + x
+    case _ =>
+      val (a, b) = x.alignFactors(y)
+      val (p, q) = a.alignTypes(b)
+      p.composeDyadic(q, p.factor)(DyadicOperationPlus).getOrElse(Number()).specialize
   }
 
-  private def times(x: Number, y: Number): Number = {
-    val (p, q) = x.alignTypes(y)
-    val factor = p.factor + q.factor
-    p.composeDyadic(q, factor)(DyadicOperationTimes).getOrElse(Number()).specialize
-  }
+  private def times(x: Number, y: Number): Number =
+    y match {
+      case n@FuzzyNumber(_, _, _) => n * x
+      case _ =>
+        val (p, q) = x.alignTypes(y)
+        val factor = p.factor + q.factor
+        p.composeDyadic(q, factor)(DyadicOperationTimes).getOrElse(Number()).specialize
+    }
 
   private def negate(x: Number): Number = x.composeMonadic(x.factor)(MonadicOperationNegate).getOrElse(Number())
 

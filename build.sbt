@@ -4,12 +4,11 @@ name := "Number"
 
 version := "1.0.0"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.4"
 
-val scalaTestVersion = "3.1.1"
+val scalaTestVersion = "3.2.3"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion % "test"
-
 
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
 

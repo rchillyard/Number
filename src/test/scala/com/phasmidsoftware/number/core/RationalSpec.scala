@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
-
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -100,7 +99,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   it should "fail to convert to BigInt" in {
     val r = Rational(-1, 0)
-    val decorateToBigInt = PrivateMethod[Try[BigInt]]('toBigInt)
+    val decorateToBigInt = PrivateMethod[Try[BigInt]](Symbol("toBigInt"))
     val z: Try[BigInt] = Rational invokePrivate decorateToBigInt(r)
     a[RationalException] should be thrownBy z.get
   }
@@ -488,13 +487,13 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "narrow(BigInt)"
   it should "work for Int.MaxValue" in {
     val b = BigInt(Int.MaxValue)
-    val decorateNarrow = PrivateMethod[Try[BigInt]]('narrow)
+    val decorateNarrow = PrivateMethod[Try[BigInt]](Symbol("narrow"))
     val z: Try[BigInt] = Rational invokePrivate decorateNarrow(b, BigInt(Int.MaxValue))
     z should matchPattern { case Success(x) if x == Int.MaxValue => }
   }
   it should "not work for Int.MaxValue+1" in {
     val b = BigInt(Int.MaxValue) + 1
-    val decorateNarrow = PrivateMethod[Try[BigInt]]('narrow)
+    val decorateNarrow = PrivateMethod[Try[BigInt]](Symbol("narrow"))
     val z: Try[BigInt] = Rational invokePrivate decorateNarrow(b, BigInt(Int.MaxValue))
     z should matchPattern { case Failure(_) => }
   }
@@ -502,13 +501,13 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "narrow(Rational)"
   it should "work for Int.MaxValue" in {
     val r = Rational(Int.MaxValue)
-    val decorateNarrow = PrivateMethod[Try[BigInt]]('narrow)
+    val decorateNarrow = PrivateMethod[Try[BigInt]](Symbol("narrow"))
     val z: Try[BigInt] = Rational invokePrivate decorateNarrow(r, BigInt(Int.MaxValue))
     z should matchPattern { case Success(x) if x == Int.MaxValue => }
   }
   it should "work for Int.MaxValue+1" in {
     val r = Rational(Int.MaxValue) + 1
-    val decorateNarrow = PrivateMethod[Try[BigInt]]('narrow)
+    val decorateNarrow = PrivateMethod[Try[BigInt]](Symbol("narrow"))
     val z: Try[BigInt] = Rational invokePrivate decorateNarrow(r, BigInt(Int.MaxValue))
     z should matchPattern { case Failure(_) => }
   }
