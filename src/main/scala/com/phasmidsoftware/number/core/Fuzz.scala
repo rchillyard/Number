@@ -118,6 +118,8 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
 }
 
 case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T] {
+  private val tf = implicitly[Valuable[T]]
+
   /**
     * This method takes a value of T on which to base a relative fuzz value.
     * NOTE: if t is zero, we will return None, which corresponds to an Exact number.
@@ -126,7 +128,6 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     * @return an optional RelativeFuzz[T]
     */
   def relative(t: T): Option[RelativeFuzz[T]] = {
-    val tf = implicitly[Valuable[T]]
     Try(RelativeFuzz(tf.toDouble(tf.normalize(tf.div(magnitude, t))), shape)).toOption
   }
 
@@ -158,9 +159,13 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     */
   def *(convolute: Fuzz[T]): Fuzz[T] = if (this.shape == convolute.shape)
     convolute match {
-      case AbsoluteFuzz(m, _) => AbsoluteFuzz(implicitly[Valuable[T]].plus(magnitude, m), shape)
-      case _ => throw FuzzyNumberException("* operation on different styles")
-    } else throw FuzzyNumberException("* operation on different shapes")
+      case AbsoluteFuzz(m, _) =>
+        AbsoluteFuzz(tf.fromDouble(Gaussian.convolutionSum(tf.toDouble(magnitude), tf.toDouble(m))), shape)
+      case _ =>
+        throw FuzzyNumberException("* operation on different styles")
+    }
+  else
+    throw FuzzyNumberException("* operation on different shapes")
 
   lazy val normalizeShape: Fuzz[T] = shape match {
     case Gaussian => this
@@ -168,14 +173,13 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
   }
 
   def toString(t: T): String = {
-    val tv = implicitly[Valuable[T]]
-    val x = tv.toDouble(magnitude)
+    val x = tf.toDouble(magnitude)
     val q = x.toString.substring(2) // drop the "0."
     val (qPrefix, _) = q.toCharArray.span(_ == '0')
     val yq = (math.round(x * math.pow(10, qPrefix.length + 2)) * math.pow(10, -2)).toString.padTo(4, '0').substring(2, 4)
     val brackets = if (shape == Gaussian) "()" else "[]"
     val qq = new String(qPrefix) + "00" + brackets.head + yq + brackets.tail.head
-    val z = f"${tv.toDouble(t)}%.99f"
+    val z = f"${tf.toDouble(t)}%.99f"
     val (zPrefix, _) = z.toCharArray.span(_ != '.')
     new String(zPrefix) + "." + Fuzz.zipStrings(new String(zPrefix).substring(1), qq)
   }

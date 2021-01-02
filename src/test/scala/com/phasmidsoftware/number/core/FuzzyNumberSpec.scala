@@ -88,13 +88,16 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "add 1.* and 2.*" in {
     val xy = Number.parse("1.*")
+    xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
+    xy.get.fuzz.get.normalizeShape should matchPattern { case AbsoluteFuzz(0.2886751345948129, Gaussian) => }
     val yy = Number.parse("2.*")
+    yy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
     val zy = for (x <- xy; y <- yy) yield x + y
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5773502691896258, Gaussian)) => }
-    zy.get.toString shouldBe "3.00(58)"
+    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.4082482904638631, Gaussian)) => }
+    zy.get.toString shouldBe "3.00(41)"
   }
 
   behavior of "times"
