@@ -528,7 +528,29 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     (x / y) shouldBe Number(1 / Math.PI)
   }
 
+  behavior of "**"
+  it should "work for 2**2" in {
+    val target = Number(2)
+    target ** 2 shouldBe Number(4)
+  }
+
   // Following are the tests of Ordering[Number]
+  behavior of "sin"
+  it should "work for 0" in {
+    val target = Number(0, Pi)
+    target.sin shouldBe Number(0, Scalar)
+  }
+  it should "work for 1/2" in {
+    val target = Number(Rational.half, Pi)
+    val sin = target.sin
+    sin shouldBe Number(1, Scalar)
+  }
+  it should "work for 1/6" in {
+    val target = Number(Rational(6).invert, Pi)
+    target.sin shouldBe Number(Rational(1, 2), Scalar)
+  }
+
+  // NOTE: Following are the tests of Ordering[Number]
 
   behavior of "compare"
   it should "work for 1, 1" in {
@@ -591,6 +613,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val y = Number(doubleOne)
     implicitly[Numeric[Number]].compare(x, y) shouldBe 1
   }
+
+  // NOTE: Following are the tests of Numeric[Number]
 
   behavior of "toInt"
   it should "work for 1" in {
@@ -690,20 +714,5 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 1.0" in {
     val target = Number(doubleOne)
     implicitly[Numeric[Number]].toDouble(target) shouldBe 1.0
-  }
-
-  behavior of "sin"
-  it should "work for 0" in {
-    val target = Number(0, Pi)
-    target.sin shouldBe Number(0, Scalar)
-  }
-  it should "work for 1/2" in {
-    val target = Number(Rational.half, Pi)
-    val sin = target.sin
-    sin shouldBe Number(1, Scalar)
-  }
-  it should "work for 1/6" in {
-    val target = Number(Rational(6).invert, Pi)
-    target.sin shouldBe Number(Rational(1, 2), Scalar)
   }
 }

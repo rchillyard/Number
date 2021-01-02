@@ -23,19 +23,11 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   override def *(x: Number): Number = FuzzyNumber.times(this, x)
 
   /**
-    * Apply a mapping to this Number's fuzz.
+    * Change the sign of this Number.
     *
-    * @param fuzzOp   the mapping function.
-    * @param absolute if true, then the result will be absolute.
-    * @return an optional fuzz value.
+    * NOTE: don't think we really need this, do we?
     */
-  private def mapFuzz(fuzzOp: Double => Double, absolute: Boolean): Option[Fuzz[Double]] = fuzz.map {
-    case AbsoluteFuzz(mag, shape) if absolute => AbsoluteFuzz(fuzzOp(mag), shape)
-    case RelativeFuzz(tolerance, shape) if absolute =>
-      AbsoluteFuzz(fuzzOp(toDouble.getOrElse(0.0) * tolerance), shape)
-    case RelativeFuzz(tolerance, shape) =>
-      RelativeFuzz(fuzzOp(tolerance), shape)
-  }
+  override lazy val unary_- : Number = FuzzyNumber.negate(this)
 
   /**
     * Make a copy of this Number, but with different fuzziness.
@@ -57,7 +49,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     */
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, absolute: Boolean): Option[Number] = {
     val no = composeDyadic(other, f)(op)
-    no.map(n => FuzzyNumber(n.value, n.factor, Fuzz.combine(n.toDouble.get, !absolute, fuzz, other.fuzz))) // FIXME
+    no.map(n => FuzzyNumber(n.value, n.factor, Fuzz.combine(n.toDouble.get, !absolute, fuzz, other.fuzz))) // FIXME don't use get
   }
 
   /**
@@ -67,8 +59,10 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def composeMonadicFuzzy(f: Factor)(op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean): Option[Number] =
-    composeMonadic(f)(op).map { case n: FuzzyNumber => n.makeNumberFuzzy(mapFuzz(fuzzOp, absolute)) }
+  def composeMonadicFuzzy(f: Factor)(op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean): Option[Number] = {
+    val no = composeMonadic(f)(op)
+    no.map { case n: FuzzyNumber => n.makeNumberFuzzy(Fuzz.map(n.toDouble.get, !absolute, fuzzOp, fuzz)) } // FIXME don't use get
+  }
 
   /**
     * Render this FuzzyNumber in String form, including the factor, and the fuzz.
@@ -112,15 +106,15 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
 object FuzzyNumber {
   def apply(): Number = Number.apply()
 
-  private def composeDyadic(n: FuzzyNumber, q1: Number, p1: Number, plus1: DyadicOperation, absolute: Boolean) =
-    n.composeDyadicFuzzy(q1, p1.factor)(plus1, absolute).getOrElse(Number()).specialize
+  private def composeDyadic(n: FuzzyNumber, p: Number, q: Number, op: DyadicOperation, absolute: Boolean) =
+    n.composeDyadicFuzzy(q, p.factor)(op, absolute).getOrElse(Number()).specialize
 
   private def plus(x: FuzzyNumber, y: Number): Number = {
     val (a, b) = x.alignFactors(y)
     val (p, q) = a.alignTypes(b)
     (p, q) match {
-      case (n: FuzzyNumber, _) => composeDyadic(n, q, p, DyadicOperationPlus, absolute = true)
-      case (_, n: FuzzyNumber) => composeDyadic(n, p, q, DyadicOperationPlus, absolute = true)
+      case (n: FuzzyNumber, _) => composeDyadic(n, p, q, DyadicOperationPlus, absolute = true)
+      case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationPlus, absolute = true)
       case (_, _) => p + q
     }
   }
@@ -129,11 +123,23 @@ object FuzzyNumber {
     val (a, b) = x.alignFactors(y)
     val (p, q) = a.alignTypes(b)
     (p, q) match {
-      case (n: FuzzyNumber, _) => composeDyadic(n, q, p, DyadicOperationTimes, absolute = false)
-      case (_, n: FuzzyNumber) => composeDyadic(n, p, q, DyadicOperationTimes, absolute = false)
+      case (n: FuzzyNumber, _) => composeDyadic(n, p, q, DyadicOperationTimes, absolute = false)
+      case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationTimes, absolute = false)
       case (_, _) => p * q
     }
   }
+
+  private def negate(x: FuzzyNumber): Number = {
+    composeMonadic(x, MonadicOperationNegate, identity, absolute = false)
+  }
+
+  private def scale(x: FuzzyNumber, c: Int): Number = {
+    composeMonadic(x, MonadicOperationScale(c), identity, absolute = false)
+  }
+
+  private def composeMonadic(n: FuzzyNumber, op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean) =
+    n.composeMonadicFuzzy(n.factor)(op, fuzzOp, absolute).getOrElse(Number()).specialize
+
 
 }
 

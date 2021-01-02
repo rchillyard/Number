@@ -132,6 +132,14 @@ abstract class Number(val value: Value, val factor: Factor) {
   lazy val unary_- : Number = Number.negate(this)
 
   /**
+    * Multiply this Number by an Int.
+    *
+    * @param x the scale factor (an Int).
+    * @return this * x.
+    */
+  def *(x: Int): Number = Number.scale(this, x)
+
+  /**
     * Multiply this Number by x and return the result.
     * See Number.times for more detail.
     *
@@ -148,6 +156,14 @@ abstract class Number(val value: Value, val factor: Factor) {
     * @return the quotient.
     */
   def /(x: Number): Number = this * x.invert
+
+  /**
+    * Raise this Number to the power p.
+    *
+    * @param p an integer.
+    * @return this Number raised to power p.
+    */
+  def **(p: Int): Number = Number.power(this, p)
 
   /**
     * Yields the inverse of this Number.
@@ -863,6 +879,7 @@ object Number {
     case None => xYe.left.toOption.flatMap(xToZy)
   }
 
+  // CONSIDER having yToZ return Option[Z] or Try[Z] or they could just use TryFlatMap
   private def tryMap[X, Y, Z](xYe: Either[X, Y])(yToZ: Y => Z, xToZy: X => Try[Z]): Try[Z] =
     xYe.toOption.map(yToZ) match {
       case Some(z) => Success(z)
@@ -897,6 +914,14 @@ object Number {
         val factor = p.factor + q.factor
         p.composeDyadic(q, factor)(DyadicOperationTimes).getOrElse(Number()).specialize
     }
+
+  private def power(n: Number, y: Int): Number = y match {
+    case 0 => Number(1)
+    case x if x > 0 => LazyList.continually(n).take(x).product
+    case x => LazyList.continually(inverse(n)).take(-x).product
+  }
+
+  private def scale(x: Number, f: Int): Number = x.composeMonadic(x.factor)(MonadicOperationScale(f)).getOrElse(Number())
 
   private def negate(x: Number): Number = x.composeMonadic(x.factor)(MonadicOperationNegate).getOrElse(Number())
 
@@ -989,6 +1014,16 @@ case object MonadicOperationNegate extends MonadicOperation {
     val fBigInt: BigInt => BigInt = implicitly[Numeric[BigInt]].negate
     val fRational: Rational => Rational = implicitly[Numeric[Rational]].negate
     val fDouble: Double => Double = implicitly[Numeric[Double]].negate
+    (fInt, fBigInt, fRational, fDouble)
+  }
+}
+
+case class MonadicOperationScale(f: Int) extends MonadicOperation {
+  def getFunctions: MonadicFunctions = {
+    val fInt: Int => Int = x => x * f
+    val fBigInt: BigInt => BigInt = x => x * f
+    val fRational: Rational => Rational = x => x * f
+    val fDouble: Double => Double = x => x * f
     (fInt, fBigInt, fRational, fDouble)
   }
 }

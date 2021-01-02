@@ -10,7 +10,21 @@ import scala.util.Try
   * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics.
   */
 trait Fuzz[T] {
+  /**
+    * One of two shapes for the probability density function:
+    * Gaussian (normal distribution);
+    * Box (uniform distribution).
+    */
   val shape: Shape
+
+  /**
+    * Transform this Fuzz[T] according to func.
+    * Typically, func will be the derivative of the relevant Number function.
+    *
+    * @param func the function to apply to this Fuzz[T].
+    * @return an (optional) transformed version of Fuzz[T].
+    */
+  def transform(func: T => T): Fuzz[T]
 
   /**
     * Perform a convolution on this Fuzz[T] with the given addend.
@@ -27,6 +41,15 @@ trait Fuzz[T] {
   def *(convolute: Fuzz[T]): Fuzz[T]
 
   /**
+    * Method to possibly change the style of this Fuzz[T}.
+    *
+    * @param t        the magnitude of the relevant Number.
+    * @param relative if true then change to Relative (if Absolute).
+    * @return the (optional) Fuzz as a Relative or Absolute Fuzz, according to relative.
+    */
+  def normalize(t: T, relative: Boolean): Option[Fuzz[T]]
+
+  /**
     * Method to convert this Fuzz[T] into a Fuzz[T] with Gaussian shape.
     *
     * @return the equivalent Fuzz[T] with Gaussian shape.
@@ -37,12 +60,22 @@ trait Fuzz[T] {
     * Method to yield a String to render the given T value.
     *
     * @param t a T value.
-    * @return a String which is the textual rendering of t.
+    * @return a String which is the textual rendering of t with this Fuzz applied.
     */
   def toString(t: T): String
 }
 
 case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fuzz[T] {
+
+  /**
+    * Transform this Fuzz[T] according to func.
+    * Typically, func will be the derivative of the relevant Number function.
+    *
+    * @param func the function to apply to this Fuzz[T].
+    * @return a transformed version of Fuzz[T].
+    */
+  def transform(func: T => T): Fuzz[T] = RelativeFuzz(implicitly[Valuable[T]].toDouble(func(implicitly[Valuable[T]].fromDouble(tolerance))), shape)
+
   /**
     * This method takes a value of T on which to base a relative fuzz value.
     *
@@ -51,9 +84,17 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     */
   def absolute(t: T): Option[AbsoluteFuzz[T]] = {
     val tf = implicitly[Valuable[T]]
-    Try(AbsoluteFuzz(tf.times(tf.fromDouble(tolerance), t), shape)).toOption
+    Try(AbsoluteFuzz(tf.normalize(tf.times(tf.fromDouble(tolerance), t)), shape)).toOption
   }
 
+  /**
+    * Return either a AbsoluteFuzz equivalent or this, according to relative.
+    *
+    * @param t        the magnitude of the relevant Number.
+    * @param relative if true then convert to RelativeFuzz otherwise wrap this in Some().
+    * @return the (optional) Fuzz as a Relative or Absolute Fuzz, according to relative.
+    */
+  def normalize(t: T, relative: Boolean): Option[Fuzz[T]] = if (relative) Some(this) else absolute(t)
 
   /**
     * Perform a convolution on this Fuzz[T] with the given addend.
@@ -64,7 +105,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     */
   def *(convolute: Fuzz[T]): Fuzz[T] = if (this.shape == convolute.shape)
     convolute match {
-      case RelativeFuzz(t, Gaussian) => RelativeFuzz(Gaussian.convolution(tolerance, t), shape)
+      case RelativeFuzz(t, Gaussian) => RelativeFuzz(Gaussian.convolutionProduct(tolerance, t), shape)
       case _ => throw FuzzyNumberException("* operation on different styles")
     } else throw FuzzyNumberException("* operation on different shapes")
 
@@ -85,9 +126,27 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     * @return an optional RelativeFuzz[T]
     */
   def relative(t: T): Option[RelativeFuzz[T]] = {
-    val tf = implicitly[Fractional[T]]
-    Try(RelativeFuzz(tf.toDouble(tf.div(magnitude, t)), shape)).toOption
+    val tf = implicitly[Valuable[T]]
+    Try(RelativeFuzz(tf.toDouble(tf.normalize(tf.div(magnitude, t))), shape)).toOption
   }
+
+  /**
+    * Transform this Fuzz[T] according to func.
+    * Typically, func will be the derivative of the relevant Number function.
+    *
+    * @param func the function to apply to this Fuzz[T].
+    * @return an (optional) transformed version of Fuzz[T].
+    */
+  def transform(func: T => T): Fuzz[T] = AbsoluteFuzz(func(magnitude), shape)
+
+  /**
+    * Return either a RelativeFuzz equivalent or this, according to relativeStyle.
+    *
+    * @param t             the magnitude of the relevant Number.
+    * @param relativeStyle if true then convert to Absolute otherwise wrap this in Some().
+    * @return the (optional) Fuzz as a Relative or Absolute Fuzz, according to relative.
+    */
+  def normalize(t: T, relativeStyle: Boolean): Option[Fuzz[T]] = if (relativeStyle) relative(t) else Some(this)
 
   /**
     * Perform a convolution on this Fuzz[T] with the given addend.
@@ -123,6 +182,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
 }
 
 object Fuzz {
+
   /**
     * Combine the fuzz values using a convolution.
     * The order of fuzz1 and fuzz2 is not significant.
@@ -142,6 +202,25 @@ object Fuzz {
       case (Some(f1), Some(f2)) => Some(f1.normalizeShape * f2.normalizeShape)
       case (Some(f1), None) => Some(f1)
       case (None, Some(f2)) => Some(f2)
+      case _ => None
+    }
+
+  /**
+    * Map the fuzz value with a function (typically the derivative of the function being applied to the Fuzzy quantity).
+    * Note that we normalize the style of each fuzz according to the value of relative.
+    * Note also that we normalize the shape of each fuzz to ensure Gaussian, since we cannot combine Box shapes into Box
+    * (we could combine Box shapes into trapezoids but who needs that?).
+    *
+    * @param t        the magnitude of the resulting Number.
+    * @param relative true if we are multiplying, false if we are adding.
+    * @param g        the function with which to transform the given Fuzz value
+    * @param fuzz     one of the (optional) Fuzz values.
+    * @tparam T the underlying type of the Fuzz.
+    * @return an Option of Fuzz[T].
+    */
+  def map[T: Valuable](t: T, relative: Boolean, g: T => T, fuzz: Option[Fuzz[T]]): Option[Fuzz[T]] =
+    normalizeFuzz(fuzz, t, relative) match {
+      case Some(f1) => Some(f1.transform(g))
       case _ => None
     }
 
@@ -201,7 +280,31 @@ case object Box extends Shape {
 }
 
 case object Gaussian extends Shape {
-  def convolution(sigma1: Double, sigma2: Double): Double = math.sqrt(sigma1 * sigma1 + sigma2 * sigma2)
+  /**
+    * Get the convolution of sum of two Gaussian distributions.
+    *
+    * This follows the fact that Var(X + Y) = Var(X) + Var(Y)
+    *
+    * See https://en.wikipedia.org/wiki/Variance
+    *
+    * @param sigma1 the first standard deviation.
+    * @param sigma2 the second standard deviation.
+    * @return a double which is the root mean square of the sigmas.
+    */
+  def convolutionSum(sigma1: Double, sigma2: Double): Double = math.sqrt(sigma1 * sigma1 + sigma2 * sigma2)
+
+  /**
+    * For the convolution of the product of two (independent) Gaussian distributions (see https://en.wikipedia.org/wiki/Variance):
+    *
+    * Var(X Y) = mux mux Var(Y) + muy muy Var(X) + Var(X) Var(Y)
+    *
+    * Therefore, (sigma(x*y))**2 = (mux sigma(y))**2 + (muy sigma(x))**2 + (sigma(x) sigma(y))**2
+    *
+    * Or, dividing by (mux muy)**2 (i.e. using relative variations)
+    *
+    * sigma(x/mux 8 y/muy)**2 = sigma(x/mux)**2 + sigma(y/muy)**2 + (sigma(x/mux) sigma(y/muy))**2
+    */
+  def convolutionProduct(sigma1: Double, sigma2: Double): Double = math.sqrt(sigma1 * sigma1 + sigma2 * sigma2 + sigma1 * sigma2)
 }
 
 trait Fuzzy[T] {
@@ -212,12 +315,30 @@ trait Valuable[T] extends Fractional[T] {
   def fromDouble(x: Double): T
 
   def scale(x: T, f: Double): T
+
+  /**
+    * Method to yield a "normalized" version of x.
+    * For a Numeric object, this implies the absolute value, i.e. with no sign.
+    *
+    * @param x the value.
+    * @return the value, without any sign.
+    */
+  def normalize(x: T): T
 }
 
 trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Ordering.Double.IeeeOrdering {
   def fromDouble(x: Double): Double = x
 
   def scale(x: Double, f: Double): Double = x * f
+
+  /**
+    * Method to yield a "normalized" version of x.
+    * For a Numeric object, this implies the absolute value, i.e. with no sign.
+    *
+    * @param x the value.
+    * @return the value, without any sign.
+    */
+  def normalize(x: Double): Double = math.abs(x)
 }
 
 object Valuable {

@@ -8,9 +8,6 @@ import scala.util.{Success, Try}
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   private val numberOne = Number(1)
-  private val bigOne = BigInt(1)
-  private val ratOne = Rational.one
-  private val doubleOne = 1.0
 
   behavior of "create"
   it should "yield 1 with absolute fuzz" in {
@@ -100,7 +97,6 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy.get.toString shouldBe "3.00(58)"
   }
 
-
   behavior of "times"
   it should "multiply 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
@@ -130,60 +126,45 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "multiply 1.* and 2.*" in {
     val xy: Try[Number] = Number.parse("1.*")
+    xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.2886751345948129, Gaussian)) => }
     val yy = Number.parse("2.*")
+    yy.get.fuzz.get.normalizeShape.normalize(2, relative = true) should matchPattern { case Some(RelativeFuzz(0.14433756729740646, Gaussian)) => }
     val zy = for (x <- xy; y <- yy) yield x * y
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(2)
     zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.20412414523193154, Gaussian)) => }
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Gaussian)) => }
   }
 
-  behavior of "invert"
-  it should "invert 1" in {
-    val x = numberOne
-    x.invert shouldBe numberOne
-  }
-  it should "invert BigInt 1" in {
-    val x = Number(bigOne)
-    x.invert shouldBe numberOne
-  }
-  it should "invert 2" in {
-    val x = Number(2)
-    x.invert shouldBe Number(Rational.half)
-  }
-  it should "invert BigInt 2" in {
-    val x = Number(BigInt(2))
-    x.invert shouldBe Number(Rational.half)
-  }
-  it should "invert Rational 2" in {
-    val x = Number(Rational.two)
-    x.invert shouldBe Number(Rational.half)
-  }
-  it should "invert Double 2" in {
-    val x = Number(Math.PI)
-    x.invert shouldBe Number(1 / Math.PI)
+  behavior of "-"
+  it should "work for 1.*" in {
+    val xy: Try[Number] = Number.parse("1.*")
+    val zy = for (x <- xy) yield -x
+    zy should matchPattern { case Success(_) => }
+    zy.get.value shouldBe Right(-1)
+    zy.get.factor shouldBe Scalar
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
   }
 
-  behavior of "division"
-  it should "divide 1 by 2" in {
-    val x = numberOne
-    val y = Number(2)
-    (x / y) shouldBe Number(Rational.half)
+  behavior of "**"
+  it should "work for 2**2" in {
+    val xy: Try[Number] = Number.parse("2.0*")
+    xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
+    xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
+    val zy = for (x <- xy) yield x ** 2
+    zy should matchPattern { case Success(_) => }
+    zy.get.value shouldBe Right(4)
+    zy.get.factor shouldBe Scalar
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
+    zy.get.fuzz.get match {
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.0125 +- 0.00000000000000001
+    }
   }
-  it should "divide BigInt 1 by 2" in {
-    val x = Number(bigOne)
-    val y = Number(2)
-    (x / y) shouldBe Number(Rational.half)
-  }
-  it should "divide Rational 1 by 2" in {
-    val x = Number(Rational(1))
-    val y = Number(2)
-    (x / y) shouldBe Number(Rational.half)
-  }
-  it should "divide Double 1 by 2" in {
-    val x = Number(doubleOne)
-    val y = Number(Math.PI)
-    (x / y) shouldBe Number(1 / Math.PI)
+
+  behavior of "sin"
+  it should "work for 0" in {
+    val target = Number(0, Pi)
+    target.sin shouldBe Number(0, Scalar)
   }
 
   // Following are the tests of Ordering[Number]
@@ -193,75 +174,5 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val x = numberOne
     val y = numberOne
     implicitly[Numeric[Number]].compare(x, y) shouldBe 0
-  }
-  it should "work for 1, 2" in {
-    val x = numberOne
-    val y = Number(2)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe -1
-  }
-  it should "work for 2, 1" in {
-    val x = Number(2)
-    val y = numberOne
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 1
-  }
-  it should "work for BigInt 1, 1" in {
-    val x = Number(bigOne)
-    val y = Number(bigOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 0
-  }
-  it should "work for BigInt 1, 2" in {
-    val x = Number(bigOne)
-    val y = Number(BigInt(2))
-    implicitly[Numeric[Number]].compare(x, y) shouldBe -1
-  }
-  it should "work for BigInt 2, 1" in {
-    val x = Number(BigInt(2))
-    val y = Number(bigOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 1
-  }
-  it should "work for Rational 1, 1" in {
-    val x = Number(ratOne)
-    val y = Number(ratOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 0
-  }
-  it should "work for Rational 1, 2" in {
-    val x = Number(ratOne)
-    val y = Number(Rational.two)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe -1
-  }
-  it should "work for Rational 2, 1" in {
-    val x = Number(Rational.two)
-    val y = Number(ratOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 1
-  }
-  it should "work for Double 1, 1" in {
-    val x = Number(doubleOne)
-    val y = Number(doubleOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 0
-  }
-  it should "work for Double 1, 2" in {
-    val x = Number(doubleOne)
-    val y = Number(2.0)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe -1
-  }
-  it should "work for Double 2, 1" in {
-    val x = Number(2.0)
-    val y = Number(doubleOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 1
-  }
-
-  behavior of "sin"
-  it should "work for 0" in {
-    val target = Number(0, Pi)
-    target.sin shouldBe Number(0, Scalar)
-  }
-  it should "work for 1/2" in {
-    val target = Number(Rational.half, Pi)
-    val sin = target.sin
-    sin shouldBe Number(1, Scalar)
-  }
-  it should "work for 1/6" in {
-    val target = Number(Rational(6).invert, Pi)
-    target.sin shouldBe Number(Rational(1, 2), Scalar)
   }
 }
