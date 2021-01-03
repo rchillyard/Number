@@ -110,7 +110,6 @@ class FuzzSpec extends AnyFlatSpec with should.Matchers {
         q should matchPattern { case Some("3.1415927") => }
     }
 
-
     behavior of "parse"
     it should "work for 2.*" in {
         val xy = Number.parse("2.*")
