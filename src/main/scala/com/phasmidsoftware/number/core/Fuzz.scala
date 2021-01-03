@@ -173,15 +173,18 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
   }
 
   def toString(t: T): String = {
-    val x = tf.toDouble(magnitude)
-    val q = x.toString.substring(2) // drop the "0."
-    val (qPrefix, _) = q.toCharArray.span(_ == '0')
-    val yq = (math.round(x * math.pow(10, qPrefix.length + 2)) * math.pow(10, -2)).toString.padTo(4, '0').substring(2, 4)
-    val brackets = if (shape == Gaussian) "()" else "[]"
-    val qq = new String(qPrefix) + "00" + brackets.head + yq + brackets.tail.head
-    val z = f"${tf.toDouble(t)}%.99f"
-    val (zPrefix, _) = z.toCharArray.span(_ != '.')
-    new String(zPrefix) + "." + Fuzz.zipStrings(new String(zPrefix).substring(1), qq)
+      val x = tf.toDouble(magnitude)
+      val s = tf.render(t)
+      val q = x.toString.substring(2) // drop the "0."
+      val (qPrefix, _) = q.toCharArray.span(_ == '0')
+      val yq = (math.round(x * math.pow(10, qPrefix.length + 2)) * math.pow(10, -2)).toString.padTo(4, '0').substring(2, 4)
+      val brackets = if (shape == Gaussian) "()" else "[]"
+      val qq = new String(qPrefix) + "00" + brackets.head + yq + brackets.tail.head
+      val z = f"${tf.toDouble(t)}%.99f"
+      val (zPrefix, zSuffix) = z.toCharArray.span(_ != '.')
+      val str = new String(zSuffix).substring(1)
+      val result = new String(zPrefix) + "." + Fuzz.zipStrings(str, qq)
+      result
   }
 }
 
@@ -240,20 +243,21 @@ object Fuzz {
     * @return the optional Fuzz value which is equivalent (or identical) to fuzz, according to the value of relative.
     */
   def normalizeFuzz[T: Valuable](fuzz: Option[Fuzz[T]], t: T, relative: Boolean): Option[Fuzz[T]] =
-    fuzz.flatMap(f => normalizeFuzz(t, relative, f))
+      fuzz.flatMap(f => normalizeFuzz(t, relative, f))
 
-  private def normalizeFuzz[T: Valuable](t: T, relative: Boolean, f: Fuzz[T]) = f match {
-    case a@AbsoluteFuzz(_, _) => if (relative) a.relative(t) else Some(f)
-    case r@RelativeFuzz(_, _) => if (relative) Some(f) else r.absolute(t)
-  }
+    def zipStrings(v: String, t: String): String = {
+        val cCs = ((LazyList.from(v.toCharArray.toList) :++ LazyList.continually('0')) zip t.toCharArray.toList).toList
+        val r: List[Char] = cCs map {
+            case (a, b) => if ('b' == '0') a else b
+        }
+        new String(r.toArray)
+    }
 
-  // CONSIDER why is this here?
-  def zipStrings(v: String, t: String): String = {
-    val q: LazyList[Char] = LazyList.from(v.toCharArray.toList) :++ LazyList.continually('0')
-    val r: LazyList[Char] = q zip t map { case (a, b) => if ('b' == '0') a else b }
-    new String(r.toArray)
-  }
-
+    private def normalizeFuzz[T: Valuable](t: T, relative: Boolean, f: Fuzz[T]) =
+        f match {
+            case a@AbsoluteFuzz(_, _) => if (relative) a.relative(t) else Some(f)
+            case r@RelativeFuzz(_, _) => if (relative) Some(f) else r.absolute(t)
+        }
 }
 
 trait Shape
@@ -316,33 +320,38 @@ trait Fuzzy[T] {
 }
 
 trait Valuable[T] extends Fractional[T] {
-  def fromDouble(x: Double): T
+    // CONSIDER do we need this?
+    def render(t: T): String
 
-  def scale(x: T, f: Double): T
+    def fromDouble(x: Double): T
 
-  /**
-    * Method to yield a "normalized" version of x.
-    * For a Numeric object, this implies the absolute value, i.e. with no sign.
-    *
-    * @param x the value.
-    * @return the value, without any sign.
-    */
-  def normalize(x: T): T
+    def scale(x: T, f: Double): T
+
+    /**
+      * Method to yield a "normalized" version of x.
+      * For a Numeric object, this implies the absolute value, i.e. with no sign.
+      *
+      * @param x the value.
+      * @return the value, without any sign.
+      */
+    def normalize(x: T): T
 }
 
 trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Ordering.Double.IeeeOrdering {
-  def fromDouble(x: Double): Double = x
+    def render(t: Double): String = t.toString
 
-  def scale(x: Double, f: Double): Double = x * f
+    def fromDouble(x: Double): Double = x
 
-  /**
-    * Method to yield a "normalized" version of x.
-    * For a Numeric object, this implies the absolute value, i.e. with no sign.
-    *
-    * @param x the value.
-    * @return the value, without any sign.
-    */
-  def normalize(x: Double): Double = math.abs(x)
+    def scale(x: Double, f: Double): Double = x * f
+
+    /**
+      * Method to yield a "normalized" version of x.
+      * For a Numeric object, this implies the absolute value, i.e. with no sign.
+      *
+      * @param x the value.
+      * @return the value, without any sign.
+      */
+    def normalize(x: Double): Double = math.abs(x)
 }
 
 object Valuable {

@@ -1,11 +1,9 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions}
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
+import java.util.NoSuchElementException
 import scala.util._
 
 /**
@@ -217,11 +215,10 @@ abstract class Number(val value: Value, val factor: Factor) {
     sb.toString
   }
 
-  protected def valueToString: String =
-    Number.optionMap(value)(_.toString, x => Number.optionMap(x)(_.toString, y => Number.optionMap(y)(_.toString, {
-      case Some(n) => Some(n.toString)
-      case None => None
-    }))).getOrElse("<undefined>")
+  protected def valueToString: String = Number.renderValue(value) match {
+    case (x, true) => x
+    case (x, false) => x + "..."
+  }
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -504,7 +501,7 @@ abstract class Number(val value: Value, val factor: Factor) {
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).
     */
-  private lazy val maybeDouble: Option[Double] = Number.optionMap(value)(_.toDouble, x => Number.optionMap(x)(_.toDouble, y => Number.optionMap(y)(_.toDouble, identity)))
+  private lazy val maybeDouble: Option[Double] = Number.optionMap(value)(_.toDouble, x => Number.optionMap(x)(_.toDouble, x => Number.optionMap(x)(_.toDouble, identity)))
 
   /**
     * An optional BigInt that corresponds to the value of this Number (but ignoring the factor).
@@ -536,6 +533,21 @@ abstract class Number(val value: Value, val factor: Factor) {
 }
 
 object Number {
+  def renderInt(x: Int): (String, Boolean) = (x.toString, true)
+
+  def renderBigInt(x: BigInt): (String, Boolean) = (x.toString, true)
+
+  def renderRational(x: Rational): (String, Boolean) = (x.toString, true)
+
+  def renderDouble(x: Double): (String, Boolean) = (x.toString, true)
+
+  def renderValue(v: Value): (String, Boolean) = {
+    Number.optionMap[Either[Either[Option[Double], Rational], BigInt], Int, (String, Boolean)](v)(y => renderInt(y), x => Number.optionMap[Either[Option[Double], Rational], BigInt, (String, Boolean)](x)(y => renderBigInt(y), x => Number.optionMap[Option[Double], Rational, (String, Boolean)](x)(y => renderRational(y), {
+      case Some(n) => Some(renderDouble(n))
+      case None => None
+    }))).getOrElse(("<undefined>", true))
+  }
+
 
   type DyadicFunctions = ((Int, Int) => Int, (BigInt, BigInt) => BigInt, (Rational, Rational) => Rational, (Double, Double) => Double)
 
