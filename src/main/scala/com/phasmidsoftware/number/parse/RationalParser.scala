@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core.Rational
-
 import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 

@@ -1,10 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import java.lang.Math._
-
 import com.phasmidsoftware.number.core.Rational.bigZero
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-
+import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.control.NonFatal

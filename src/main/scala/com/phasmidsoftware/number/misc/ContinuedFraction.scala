@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.Rational
-
 import scala.annotation.tailrec
 import scala.util.Try
 

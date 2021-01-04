@@ -80,11 +80,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.isValid shouldBe false
   }
 
-    behavior of "parse"
-    it should "work for 1" in {
-        val xy: Try[Number] = Number.parse("1")
-        xy.get shouldBe Number.create(Right(1))
-    }
+  behavior of "parse"
+  it should "work for 1" in {
+    val xy: Try[Number] = Number.parse("1")
+    xy.get shouldBe Number.create(Right(1))
+  }
   it should "work for 3/2" in {
     val xy: Try[Number] = Number.parse("3/2")
     xy.get shouldBe Number.create(Left(Left(Right(Rational(3, 2)))))
@@ -97,9 +97,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val xy: Try[Number] = Number.parse("2147483648")
     xy.get shouldBe Number.create(Left(Right(bigBigInt)))
   }
-    it should "work for Pi" in {
-        val xy: Try[Number] = Number.parse("1" + Factor.sPi)
-        xy.get shouldBe Number(1, Pi)
+  it should "work for Pi" in {
+    val xy: Try[Number] = Number.parse("1" + Factor.sPi)
+    xy.get shouldBe Number(1, Pi)
   }
   it should "work for pi" in {
     val xy: Try[Number] = Number.parse("1pi")
