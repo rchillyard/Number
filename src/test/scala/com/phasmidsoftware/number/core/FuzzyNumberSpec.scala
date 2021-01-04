@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -26,19 +25,19 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Fuzz.toString"
   it should "work for 1/0.5/Box" in {
     val target = AbsoluteFuzz(0.5, Box)
-    target.toString(1) shouldBe "1.00[50]"
+    target.toString(1) shouldBe "1.0[5]"
   }
   it should "work for 1/0.005/Box" in {
     val target = AbsoluteFuzz(0.005, Box)
-    target.toString(1) shouldBe "1.0000[50]"
+    target.toString(1) shouldBe "1.000[5]"
   }
   it should "work for 1/0.5/Gaussian" in {
     val target = AbsoluteFuzz(0.5, Gaussian)
-    target.toString(1) shouldBe "1.00(50)"
+    target.toString(1) shouldBe "1.0(5)"
   }
   it should "work for 1/0.005/Gaussian" in {
     val target = AbsoluteFuzz(0.005, Gaussian)
-    target.toString(1) shouldBe "1.0000(50)"
+    target.toString(1) shouldBe "1.000(5)"
   }
 
   behavior of "parse"

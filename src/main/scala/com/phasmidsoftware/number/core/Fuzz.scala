@@ -162,30 +162,55 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
       case AbsoluteFuzz(m, _) =>
         AbsoluteFuzz(tf.fromDouble(Gaussian.convolutionSum(tf.toDouble(magnitude), tf.toDouble(m))), shape)
       case _ =>
-        throw FuzzyNumberException("* operation on different styles")
+          throw FuzzyNumberException("* operation on different styles")
     }
   else
-    throw FuzzyNumberException("* operation on different shapes")
+      throw FuzzyNumberException("* operation on different shapes")
 
-  lazy val normalizeShape: Fuzz[T] = shape match {
-    case Gaussian => this
-    case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
-  }
+    lazy val normalizeShape: Fuzz[T] = shape match {
+        case Gaussian => this
+        case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
+    }
 
-  def toString(t: T): String = {
-      val x = tf.toDouble(magnitude)
-      val s = tf.render(t)
-      val q = x.toString.substring(2) // drop the "0."
-      val (qPrefix, _) = q.toCharArray.span(_ == '0')
-      val yq = (math.round(x * math.pow(10, qPrefix.length + 2)) * math.pow(10, -2)).toString.padTo(4, '0').substring(2, 4)
-      val brackets = if (shape == Gaussian) "()" else "[]"
-      val qq = new String(qPrefix) + "00" + brackets.head + yq + brackets.tail.head
-      val z = f"${tf.toDouble(t)}%.99f"
-      val (zPrefix, zSuffix) = z.toCharArray.span(_ != '.')
-      val str = new String(zSuffix).substring(1)
-      val result = new String(zPrefix) + "." + Fuzz.zipStrings(str, qq)
-      result
-  }
+    private def round(d: Double, i: Int) = math.round(d * math.pow(10, i)) * math.pow(10, -i)
+
+    def toString(t: T): String = {
+        val z = tf.render(t)
+        val numberR = """-?\d+\.\d+E([\-+]?\d+)""".r
+        val eString = z match {
+            case numberR(e) => e
+            case _ => "+00"
+        }
+        val exponent = Integer.parseInt(eString)
+        val scientificSuffix = eString match {
+            case "+00" => ""
+            case x => s"E$x"
+        }
+        val x = tf.toDouble(magnitude)
+        val scaledM = x * math.pow(10, -exponent)
+        val logScaledM = math.log10(scaledM).toInt
+        val roundedM = round(scaledM, 2 - logScaledM)
+        //      if (scaledM > 0.01) // TODO let's do this unusual adjustment later
+        val scaledT = tf.scale(t, math.pow(10, -exponent))
+        val z2 = tf.render(scaledT)
+        val r = f"$roundedM%.99f"
+        val q = r.substring(2) // drop the "0."
+        val (qPrefix, qSuffix) = q.toCharArray.span(_ == '0')
+        val (qPreSuffix, _) = qSuffix.span(_ != '0')
+        val adjust = qPreSuffix.length - 2
+        val pad = "0" * (2 + adjust)
+        // CONSIDER use method round
+        val mScaledAndRounded = round(scaledM, qPrefix.length + 2 + adjust) * math.pow(10, qPrefix.length)
+        val string = mScaledAndRounded.toString
+        val str1 = string.substring(2)
+        val yq = str1.toString.padTo(2 + adjust, '0').substring(0, 2 + adjust)
+        val brackets = if (shape == Gaussian) "()" else "[]"
+        val mask = new String(qPrefix) + pad + brackets.head + yq + brackets.tail.head
+        val (zPrefix, zSuffix) = z2.toCharArray.span(_ != '.')
+        val str = new String(zSuffix).substring(1)
+        val result = new String(zPrefix) + "." + Fuzz.zipStrings(str, mask)
+        result + scientificSuffix
+    }
 }
 
 object Fuzz {
@@ -248,7 +273,7 @@ object Fuzz {
     def zipStrings(v: String, t: String): String = {
         val cCs = ((LazyList.from(v.toCharArray.toList) :++ LazyList.continually('0')) zip t.toCharArray.toList).toList
         val r: List[Char] = cCs map {
-            case (a, b) => if ('b' == '0') a else b
+            case (a, b) => if (b == '0') a else b
         }
         new String(r.toArray)
     }
@@ -320,7 +345,6 @@ trait Fuzzy[T] {
 }
 
 trait Valuable[T] extends Fractional[T] {
-    // CONSIDER do we need this?
     def render(t: T): String
 
     def fromDouble(x: Double): T
@@ -338,7 +362,15 @@ trait Valuable[T] extends Fractional[T] {
 }
 
 trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Ordering.Double.IeeeOrdering {
-    def render(t: Double): String = t.toString
+    def render(t: Double): String = {
+        lazy val asScientific: String = f"$t%.20E"
+        val z = f"${t.toDouble}%.99f"
+        val (prefix, suffix) = z.toCharArray.span(x => x != '.')
+        val sevenZeroes = "0000000".toCharArray
+        if (prefix.endsWith(sevenZeroes)) asScientific
+        else if (suffix.tail.startsWith(sevenZeroes)) asScientific
+        else z
+    }
 
     def fromDouble(x: Double): Double = x
 
