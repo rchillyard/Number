@@ -80,7 +80,7 @@ class NumberParser extends RationalParser {
         f <- fo.orElse(Some(Scalar))) yield {
         val z: Option[Fuzz[Double]] = r match {
           case n@NumberWithFuzziness(_, _, _) => n.fuzz
-          case n@RealNumber(_, _, Some(f), _) if f.length > DPExact => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
+          case n@RealNumber(_, _, Some(f), _) if f.length > DPExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
           case _ => None
         }
         Number.apply(v, f, z)

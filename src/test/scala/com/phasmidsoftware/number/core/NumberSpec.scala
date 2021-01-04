@@ -570,7 +570,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(Rational(6).invert, Pi)
     target.sin shouldBe Number(Rational(1, 2), Scalar)
   }
-  // TODO fix this -- it is just a question of tolerance
   it should "work for Pi/3" in {
     val target = Number(Rational(1, 3), Pi)
     val sin = target.sin

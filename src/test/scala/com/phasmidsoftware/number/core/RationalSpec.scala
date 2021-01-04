@@ -130,6 +130,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(x)
     r.toDouble shouldBe x +- epsilon
   }
+  it should "pick up a float" in {
+    val target = Rational(1.5f)
+    target shouldBe Rational(3, 2)
+  }
 
   behavior of "apply(BigDecimal)"
   it should "convert 0.5 to Rational" in {

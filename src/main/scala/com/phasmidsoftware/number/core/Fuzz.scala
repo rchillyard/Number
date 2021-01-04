@@ -240,6 +240,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     val mScaledAndRounded = round(scaledM, qPrefix.length + 2 + adjust) * math.pow(10, qPrefix.length)
     val yq = mScaledAndRounded.toString.substring(2).padTo(2 + adjust, '0').substring(0, 2 + adjust)
     val brackets = if (shape == Gaussian) "()" else "[]"
+    // CONSIDER changing the padding "0" value to be "5".
     val mask = new String(qPrefix) + "0" * (2 + adjust) + brackets.head + yq + brackets.tail.head
     val (zPrefix, zSuffix) = tv.render(scaledT).toCharArray.span(_ != '.')
     new String(zPrefix) + "." + Fuzz.zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix

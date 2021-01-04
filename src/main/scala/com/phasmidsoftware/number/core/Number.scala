@@ -1,12 +1,11 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions, QueryFunctions, bigIntToInt, identityTry, sinDouble, toTry, tryF, tryMap}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
+import java.util.NoSuchElementException
+import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
 
@@ -66,6 +65,8 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
 /**
   * This class is designed to model a Numerical value of various possible different types.
   * These types are: Int, BigInt, Rational, Double.
+  *
+  * CONSIDER including the fuzziness in Number and simply having ExactNumber always have fuzz of None.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
@@ -957,7 +958,6 @@ object Number {
     def toFloat(x: Number): Float = toDouble(x).toFloat
   }
 
-  // TODO figure out why we are not picking up implicit here
   def compare(x: Number, y: Number): Int = NumberIsOrdering.compare(x, y)
 
   /**
@@ -1075,8 +1075,7 @@ object Number {
     x.doQuery(x.factor)(intToTriedBoolean, bigIntToTriedBoolean, rationalToTriedBoolean, doubleToTriedBoolean).get
   }
 
-  // NOTE: This may throw an exception
-  private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).get
+  private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
 
   def sin(x: Number): Number = x.scale(Pi).composeMonadic(Scalar)(MonadicOperationSin).getOrElse(Number()).specialize
 

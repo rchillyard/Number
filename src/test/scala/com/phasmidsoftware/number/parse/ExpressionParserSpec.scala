@@ -16,7 +16,6 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val parser = DoubleExpressionParser
     parser.parseAll(parser.factor, "3.1415927") should matchPattern { case parser.Success(_, _) => }
   }
-
   "DoubleExpressionParser(1)" should "be 1.0" in {
     val parser = DoubleExpressionParser
     parser.parseAll(parser.factor, "3.1415927") should matchPattern { case parser.Success(_, _) => }
@@ -106,7 +105,7 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
   it should "fail to parse (1?2)" in {
     val parser = DoubleExpressionParser
     val r = parser.parseAll(parser.expr, "(1?2)")
-    r should matchPattern { case parser.Failure(m, _) => }
+    r should matchPattern { case parser.Failure(_, _) => }
     r match {
       case parser.Failure(m, _) => m shouldBe "')' expected but '?' found"
     }
@@ -150,9 +149,8 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val r = parser.parseAll(parser.expr, "1+2=2")
     r should matchPattern { case parser.Failure(_, _) => }
     r match {
-      case parser.Failure(m, _) => m shouldBe "end of input expected"
+      case parser.Failure(m, _) => m shouldBe "'/' expected but '=' found"
     }
-
   }
   "IntExpressionParser(3/2)" should "fail" in {
     val parser = IntExpressionParser

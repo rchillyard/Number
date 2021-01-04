@@ -34,6 +34,13 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     ry should matchPattern { case scala.util.Success(_) => }
     ry.get shouldBe Rational(BigDecimal.valueOf(3.1415927))
   }
+  it should "parse 3.1415927..." in {
+    val r = p.parseAll(p.numberWithFuzziness, "3.1415927...")
+    r should matchPattern { case p.Success(_, _) => }
+    val ry: Try[Rational] = r.get.value
+    ry should matchPattern { case scala.util.Success(_) => }
+    ry.get shouldBe Rational(BigDecimal.valueOf(3.1415927))
+  }
   it should "parse 3.1415927*E1" in {
     val np: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, "3.1415927*E1")
     np should matchPattern { case p.Success(_, _) => }
@@ -84,6 +91,13 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val ry: Try[Rational] = r.get.value
     ry should matchPattern { case scala.util.Success(_) => }
     ry.get shouldBe Rational(BigDecimal.valueOf(3.1415927))
+  }
+  it should "parse 2.9979245800E8" in {
+    val r = p.parseAll(p.generalNumber, "2.9979245800E8")
+    r should matchPattern { case p.Success(_, _) => }
+    val ry: Try[Rational] = r.get.value
+    ry should matchPattern { case scala.util.Success(_) => }
+    ry.get shouldBe Rational(BigDecimal.valueOf(299792458))
   }
   it should "parse 3.1415927*E1" in {
     val r = p.parseAll(p.generalNumber, "3.1415927*E1")
@@ -161,4 +175,14 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val n = np.get
     n should matchPattern { case FuzzyNumber(_, _, _) => }
   }
+
+  behavior of "realNumber"
+  it should "parse 2.9979245800E8" in {
+    val r = p.parseAll(p.realNumber, "2.9979245800E8")
+    r should matchPattern { case p.Success(_, _) => }
+    val ry: Try[Rational] = r.get.value
+    ry should matchPattern { case scala.util.Success(_) => }
+    ry.get shouldBe Rational(BigDecimal.valueOf(299792458))
+  }
+
 }
