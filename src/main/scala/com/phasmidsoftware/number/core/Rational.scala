@@ -1,8 +1,10 @@
 package com.phasmidsoftware.number.core
 
+import java.lang.Math._
+
 import com.phasmidsoftware.number.core.Rational.bigZero
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-import java.lang.Math._
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.control.NonFatal
@@ -60,6 +62,8 @@ case class Rational(n: BigInt, d: BigInt) {
 
   def ^(that: Int): Rational = power(that)
 
+  lazy val sqrt: Rational = Rational.sqrt(this)
+
   // Other methods appropriate to Rational
   lazy val signum: Int = n.signum
 
@@ -75,9 +79,9 @@ case class Rational(n: BigInt, d: BigInt) {
 
   lazy val isNaN: Boolean = isZero && isInfinity
 
-  lazy val toInt: Int = Rational.toInt(this)
+  lazy val toInt: Int = Rational.toInt(this).get
 
-  lazy val toLong: Long = Rational.toLong(this)
+  lazy val toLong: Long = Rational.toLong(this).get
 
   lazy val toBigInt: BigInt = Rational.toBigInt(this).get
 
@@ -414,6 +418,23 @@ object Rational {
   }
 
   /**
+    * Compute the square root of a Rational, exactly if possible.
+    *
+    * @param r the Rational.
+    * @return the square root of the Rational.
+    */
+  def sqrt(r: Rational): Rational = r match {
+    case Rational(n, d) =>
+      val ro = for {
+        p <- toInt(n).toOption.flatMap(x => squareRoots.get(x).map(BigInt(_)))
+        q <- toInt(d).toOption.flatMap(x => squareRoots.get(x).map(BigInt(_)))
+      } yield Rational(p, q)
+      ro.getOrElse(Rational(math.sqrt(r.toDouble)))
+  }
+
+  val squareRoots = Map(1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)
+
+  /**
     * Method to process the numerator and denominator to ensure that the denominator is never zero and never shares a common factor with the numerator.
     *
     * @param n the numerator
@@ -448,15 +469,16 @@ object Rational {
 
   private def toFloat(x: Rational): Float = toDouble(x).toFloat
 
-  private def narrow(x: Rational, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, max)) yield z
+  private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z
 
-  private def narrow(x: BigInt, max: BigInt): Try[BigInt] =
-    if (x.abs <= max) Success(x)
+  private def narrow(x: BigInt, min: BigInt, max: BigInt) =
+    if (min <= x && x <= max) Success(x)
     else Failure(RationalException("narrow: loss of precision"))
 
-  private def toLong(x: Rational): Long = (narrow(x, Long.MaxValue) map (_.toLong)).get
+  private def toLong(x: Rational): Try[Long] = narrow(x, Long.MinValue, Long.MaxValue) map (_.toLong)
 
-  private def toInt(x: Rational): Int = (narrow(x, Int.MaxValue) map (_.toInt)).get
+  // Needs to be public for testing
+  def toInt(x: Rational): Try[Int] = narrow(x, Int.MinValue, Int.MaxValue) map (_.toInt)
 
   // CONSIDER making this public
   private def toBigInt(x: Rational): Try[BigInt] = if (x.isWhole) Success(x.n) else Failure(RationalException(s"toBigInt: $x is " + (if (x.d == 0L)

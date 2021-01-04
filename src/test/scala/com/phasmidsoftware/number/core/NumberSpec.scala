@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -530,7 +531,21 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "**"
   it should "work for 2**2" in {
     val target = Number(2)
-    target ** 2 shouldBe Number(4)
+    target ^ 2 shouldBe Number(4)
+  }
+
+  behavior of "sqrt"
+  it should "work for easy ints" in {
+    Number(1).sqrt shouldBe Number(1)
+    Number(4).sqrt shouldBe Number(2)
+    Number(9).sqrt shouldBe Number(3)
+  }
+  // TODO fix this -- it is just a question of tolerance
+  ignore should "work for BigInt" in {
+    Number(bigBigInt).sqrt shouldBe Number(46340.95001184157)
+  }
+  it should "work for easy Rational" in {
+    Number(Rational(9, 4)).sqrt shouldBe Number(Rational(3, 2))
   }
 
   // Following are the tests of Ordering[Number]
@@ -539,14 +554,21 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(0, Pi)
     target.sin shouldBe Number(0, Scalar)
   }
-  it should "work for 1/2" in {
+  it should "work for Pi/2" in {
     val target = Number(Rational.half, Pi)
     val sin = target.sin
     sin shouldBe Number(1, Scalar)
   }
-  it should "work for 1/6" in {
+  it should "work for Pi/6" in {
     val target = Number(Rational(6).invert, Pi)
     target.sin shouldBe Number(Rational(1, 2), Scalar)
+  }
+  // TODO fix this -- it is just a question of tolerance
+  ignore should "work for Pi/3" in {
+    val target = Number(Rational(1, 3), Pi)
+    val sin = target.sin
+    val expected = Number(3).sqrt / 2
+    sin shouldBe expected
   }
 
   // NOTE: Following are the tests of Ordering[Number]
@@ -630,7 +652,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for too big" in {
     val target = Number(bigBigInt)
-    target.toInt shouldBe None
+    val xo: Option[Int] = target.toInt
+    xo shouldBe None
   }
   it should "work for 3.14..." in {
     val target = Number(3.1415927)

@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -153,7 +154,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val xy: Try[Number] = Number.parse("2.0*")
     xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
     xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
-    val zy = for (x <- xy) yield x ** 2
+    val zy = for (x <- xy) yield x ^ 2
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(4)
     zy.get.factor shouldBe Scalar
