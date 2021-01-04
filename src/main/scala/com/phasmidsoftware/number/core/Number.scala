@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
 
-import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions, QueryFunctions, bigIntToInt, identityTry, tryF, tryMap}
+import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions, QueryFunctions, bigIntToInt, identityTry, sinDouble, toTry, tryF, tryMap}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
@@ -46,6 +46,21 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def makeNumber(v: Value, f: Factor): Number = ExactNumber(v, f)
 
   def compare(x: Number, y: Number): Int = Number.compare(x, y)
+
+  /**
+    * If the result of invoking f on this is a Double, then there will inevitably be some loss of precision.
+    *
+    * CONSIDER passing in the fuzziness value as it may differ for different functions.
+    *
+    * @return a Number which is the square toot of this, possibly fuzzy, Number.
+    */
+  def makeFuzzyIfAppropriate(f: Number => Number): Number = {
+    val z: Number = f(this)
+    z.value match {
+      case v@Left(Left(Left(Some(_)))) => FuzzyNumber(v, Scalar, Some(RelativeFuzz(1E-15, Box)))
+      case v => z.makeNumber(v)
+    }
+  }
 }
 
 /**
@@ -55,7 +70,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
-abstract class Number(val value: Value, val factor: Factor) extends Ordering[Number] {
+abstract class Number(val value: Value, val factor: Factor) extends Ordered[Number] {
 
   self =>
 
@@ -175,26 +190,26 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordering[Num
     * @param p an integer.
     * @return this Number raised to power p.
     */
-  def ^(p: Int): Number = Number.power(this, Rational(p))
+  def ^(p: Rational): Number = Number.power(this, p)
 
   /**
     * Yields the inverse of this Number.
     * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
     * factors.
     */
-  lazy val invert: Number = Number.inverse(normalize)
+  def invert: Number = Number.inverse(normalize)
 
   /**
     * Yields the square root of this Number.
     * If possible, the result will be exact.
     */
-  lazy val sqrt: Number = Number.power(this, r"1/2")
+  def sqrt: Number = Number.power(this, r"1/2")
 
   /**
     * Method to determine the sine of this Number.
     * The result will be a Number with Scalar factor.
     */
-  lazy val sin: Number = Number.sin(this)
+  def sin: Number = makeFuzzyIfAppropriate(Number.sin)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
@@ -202,6 +217,22 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordering[Num
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   def signum: Int = Number.signum(this)
+
+  /**
+    * Method to compare this with another Number.
+    * The difference between this method and that of ExactNumber is that the signum method is implemented differently.
+    *
+    * @param other the other Number.
+    * @return -1, 0, or 1 according to whether x is <, =, or > y.
+    */
+  override def compare(other: Number): Int = Number.compare(this, other)
+
+  /**
+    * Be careful when implementing this method that you do not invoke a method recursively.
+    *
+    * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
+    */
+  def makeFuzzyIfAppropriate(f: Number => Number): Number
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -268,7 +299,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordering[Num
     * @param v the value.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: Value): Number = makeNumber(v, factor)
+  def makeNumber(v: Value): Number = makeNumber(v, factor)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -483,7 +514,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordering[Num
   private def doComposeDyadic(other: Number, f: Factor)(functions: DyadicFunctions): Option[Number] = {
     val (fInt, fBigInt, fRational, fDouble) = functions
     val xToZy0: Option[Double] => Try[Number] = {
-      case Some(n) => fDouble(n, other.maybeDouble.get) map (x => Number(x, f))
+      case Some(n) => fDouble(n, other.maybeDouble.get) map (x => makeNumber(x, f))
       case None => Failure(new NoSuchElementException())
     }
     import Converters._
@@ -598,6 +629,8 @@ object Number {
   type DyadicFunctions = ((Int, Int) => Try[Int], (BigInt, BigInt) => Try[BigInt], (Rational, Rational) => Try[Rational], (Double, Double) => Try[Double])
 
   type MonadicFunctions = (Int => Try[Int], BigInt => Try[BigInt], Rational => Try[Rational], Double => Try[Double])
+
+  //  type MonadicTransformations = (Int => Try[Double], BigInt => Try[Double], Rational => Try[Double], Double => Try[Double])
 
   type QueryFunctions = (Int => Try[Boolean], BigInt => Try[Boolean], Rational => Try[Boolean], Double => Try[Boolean])
 
@@ -924,7 +957,8 @@ object Number {
     def toFloat(x: Number): Float = toDouble(x).toFloat
   }
 
-  def compare(x: Number, y: Number): Int = implicitly[Ordering[Number]].compare(x, y)
+  // TODO figure out why we are not picking up implicit here
+  def compare(x: Number, y: Number): Int = NumberIsOrdering.compare(x, y)
 
   /**
     * Following are the definitions required by Fractional[Number]
@@ -934,7 +968,6 @@ object Number {
   }
 
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering
-
 
   //noinspection ScalaUnusedSymbol
   private def optionToEither[X, Y](x: Option[X], y: => Y): Either[Y, X] = x.map(Right(_)).getOrElse(Left(y))
@@ -994,8 +1027,6 @@ object Number {
         p.composeDyadic(q, factor)(DyadicOperationTimes).getOrElse(Number()).specialize
     }
 
-  val sqrtInt: Int => Try[Int] = x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
-
   def toTry[X](xo: Option[X], default: Try[X]): Try[X] = xo match {
     case Some(x) => Success(x)
     case None => default
@@ -1007,13 +1038,7 @@ object Number {
 
   def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
 
-  def sqrt(n: Number): Number =
-    n.scale(Scalar).doComposeMonadic(Scalar)(
-      sqrtInt,
-      _ => Failure(NumberException("Cannot create BigInt from Double")),
-      tryF(x => Rational.sqrt(x)),
-      tryF(x => math.sqrt(x))
-    ).getOrElse(Number()).specialize
+  def sqrt(n: Number): Number = n.scale(Scalar).composeMonadic(Scalar)(MonadicOperationSqrt).getOrElse(Number()).specialize
 
   private def power(n: Number, y: Rational): Number = y match {
     case r if r.isZero => Number(1)
@@ -1021,7 +1046,7 @@ object Number {
       case x if x > 0 => LazyList.continually(n).take(x).product
       case x => LazyList.continually(inverse(n)).take(-x).product
     }
-    case r if r.n == 1 && r.d == 2 => sqrt(n)
+    case r if r.n == 1 && r.d == 2 => n.makeFuzzyIfAppropriate(Number.sqrt)
     case r => Number.power(n, r.toDouble)
   }
 
@@ -1053,17 +1078,7 @@ object Number {
   // NOTE: This may throw an exception
   private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).get
 
-  private def sin(n: Number): Number = n.scale(Pi).doComposeMonadic(Scalar)(_ => Success(0), _ => Success(0), sinRat, sinDouble).getOrElse(Number()).specialize
-
-  private val sinRat: Rational => Try[Rational] = x =>
-    if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational(_))
-    else
-      x.invert.toInt match {
-        case 6 => Success(Rational(1, 2))
-        case 4 => Success(Rational(Math.sqrt(2) / 2))
-        case 2 => Success(Rational(1))
-        case _ => sinDouble(x.toDouble).map(Rational(_))
-      }
+  def sin(x: Number): Number = x.scale(Pi).composeMonadic(Scalar)(MonadicOperationSin).getOrElse(Number()).specialize
 
   def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))
 
@@ -1115,6 +1130,10 @@ object Value {
   def fromNothing(): Value = Left(Left(Left(None)))
 }
 
+/**
+  * Definitions of MonadicOperations.
+  * CONSIDER splitting these operation classes into a separate module.
+  */
 sealed trait MonadicOperation {
   def getFunctions: MonadicFunctions
 }
@@ -1127,6 +1146,27 @@ case object MonadicOperationNegate extends MonadicOperation {
     val fDouble = tryF[Double, Double](implicitly[Numeric[Double]].negate)
     (fInt, fBigInt, fRational, fDouble)
   }
+}
+
+case object MonadicOperationSin extends MonadicOperation {
+  val sinRat: Rational => Try[Rational] = x =>
+    if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational(_))
+    else x.invert.toInt match {
+      case 6 => Success(Rational.half)
+      case 4 => Success(Rational.half.sqrt)
+      case 3 => Success(Rational(3).sqrt / 2)
+      case 2 => Success(Rational.one)
+      case _ => Failure(NumberException("sine cannot be Rational"))
+    }
+
+  def getFunctions: MonadicFunctions = (tryF[Int, Int](_ => 0), tryF[BigInt, BigInt](_ => 0), sinRat, sinDouble)
+}
+
+case object MonadicOperationSqrt extends MonadicOperation {
+  val sqrtInt: Int => Try[Int] = x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
+
+  def getFunctions: MonadicFunctions =
+    (sqrtInt, _ => Failure(NumberException("Can't sqrt on BigInt")), tryF(x => Rational.sqrt(x)), tryF(x => math.sqrt(x)))
 }
 
 case class MonadicOperationScale(f: Int) extends MonadicOperation {

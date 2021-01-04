@@ -1,11 +1,19 @@
 package com.phasmidsoftware.number.core
 
+import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
+
+  implicit object FuzzyNumberEquality extends Equality[FuzzyNumber] {
+    def areEqual(a: FuzzyNumber, b: Any): Boolean = b match {
+      case n: Number => a.compare(n) == 0
+      case _ => false
+    }
+  }
 
   private val numberOne = Number(1)
 

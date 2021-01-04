@@ -1,11 +1,19 @@
 package com.phasmidsoftware.number.core
 
+import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
+
+  implicit object NumberEquality extends Equality[Number] {
+    def areEqual(a: Number, b: Any): Boolean = b match {
+      case n: Number => a.compare(n) == 0
+      case _ => false
+    }
+  }
 
   private val numberOne = Number(1)
   private val bigOne = BigInt(1)
@@ -540,9 +548,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     Number(4).sqrt shouldBe Number(2)
     Number(9).sqrt shouldBe Number(3)
   }
-  // TODO fix this -- it is just a question of tolerance
-  ignore should "work for BigInt" in {
-    Number(bigBigInt).sqrt shouldBe Number(46340.95001184157)
+  it should "work for BigInt" in {
+    Number(bigBigInt).sqrt should ===(Number(46340.95001184157))
   }
   it should "work for easy Rational" in {
     Number(Rational(9, 4)).sqrt shouldBe Number(Rational(3, 2))
@@ -564,11 +571,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.sin shouldBe Number(Rational(1, 2), Scalar)
   }
   // TODO fix this -- it is just a question of tolerance
-  ignore should "work for Pi/3" in {
+  it should "work for Pi/3" in {
     val target = Number(Rational(1, 3), Pi)
     val sin = target.sin
     val expected = Number(3).sqrt / 2
-    sin shouldBe expected
+    sin should ===(expected)
   }
 
   // NOTE: Following are the tests of Ordering[Number]

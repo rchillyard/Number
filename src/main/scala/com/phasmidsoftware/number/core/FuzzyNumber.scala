@@ -18,9 +18,33 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     */
   def this(v: Value, fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
 
+  /**
+    * Add a Number to this FuzzyNumber.
+    *
+    * @param x the addend.
+    * @return the sum.
+    */
   override def +(x: Number): Number = FuzzyNumber.plus(this, x)
 
+  /**
+    * Multiply a Number by this FuzzyNumber.
+    *
+    * @param x the multiplicand.
+    * @return the product.
+    */
   override def *(x: Number): Number = FuzzyNumber.times(this, x)
+
+  /**
+    * Yields the square root of this FuzzyNumber.
+    * If possible, the result will be exact.
+    */
+  override def sqrt: Number = FuzzyNumber.sqrt(this)
+
+  /**
+    * Method to determine the sine of this Number.
+    * The result will be a Number with Scalar factor.
+    */
+  override def sin: Number = FuzzyNumber.sin(this)
 
   /**
     * Change the sign of this Number.
@@ -28,7 +52,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * NOTE: don't think we really need this, do we?
     */
   override lazy val unary_- : Number = FuzzyNumber.negate(this)
-
 
   /**
     * @return true if this Number is equivalent to zero.
@@ -42,6 +65,16 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   override lazy val signum: Int = if (isZero) 0 else super.signum
+
+  /**
+    * This method is invoked by power so do NOT invoke sqrt or power in implementations.
+    *
+    * NOTE: we do not add any extra degree of imprecision here because it's assumed that
+    * any existing fuzziness will outweigh the double-precision-induced fuzziness.
+    *
+    * @return a Number which is the square toot of this, possibly fuzzy, Number.
+    */
+  def makeFuzzyIfAppropriate(f: Number => Number): Number = f(this)
 
   /**
     * Make a copy of this Number, but with different fuzziness.
@@ -115,23 +148,18 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @return a FuzzyNumber.
     */
   protected def makeNumber(v: Value, f: Factor, z: Option[Fuzz[Double]]): Number = FuzzyNumber(v, f, z)
-
-  /**
-    * Method to compare x with y.
-    * The difference between this method and that of ExactNumber is that the signum method is implemented differently.
-    *
-    * @param x one Number.
-    * @param y the other Number.
-    * @return -1, 0, or 1 according to whether x is <, =, or > y.
-    */
-  def compare(x: Number, y: Number): Int = Number.compare(x, y)
 }
 
 object FuzzyNumber {
   def apply(): Number = Number.apply()
 
-  private def composeDyadic(n: FuzzyNumber, p: Number, q: Number, op: DyadicOperation, absolute: Boolean) =
-    n.composeDyadicFuzzy(q, p.factor)(op, absolute).getOrElse(Number()).specialize
+  def sin(x: FuzzyNumber): Number = composeMonadic(x, MonadicOperationSin, x => math.cos(x), absolute = false)
+
+  def sqrt(x: FuzzyNumber): Number = composeMonadic(x, MonadicOperationSqrt, x => x / 2, absolute = false)
+
+  def negate(x: FuzzyNumber): Number = composeMonadic(x, MonadicOperationNegate, identity, absolute = false)
+
+  def scale(x: FuzzyNumber, c: Int): Number = composeMonadic(x, MonadicOperationScale(c), identity, absolute = false)
 
   private def plus(x: FuzzyNumber, y: Number): Number = {
     val (a, b) = x.alignFactors(y)
@@ -153,18 +181,11 @@ object FuzzyNumber {
     }
   }
 
-  private def negate(x: FuzzyNumber): Number = {
-    composeMonadic(x, MonadicOperationNegate, identity, absolute = false)
-  }
-
-  private def scale(x: FuzzyNumber, c: Int): Number = {
-    composeMonadic(x, MonadicOperationScale(c), identity, absolute = false)
-  }
+  private def composeDyadic(n: FuzzyNumber, p: Number, q: Number, op: DyadicOperation, absolute: Boolean) =
+    n.composeDyadicFuzzy(q, p.factor)(op, absolute).getOrElse(Number()).specialize
 
   private def composeMonadic(n: FuzzyNumber, op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean) =
     n.composeMonadicFuzzy(n.factor)(op, fuzzOp, absolute).getOrElse(Number()).specialize
-
-
 }
 
 case class FuzzyNumberException(str: String) extends Exception(str)
