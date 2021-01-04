@@ -55,6 +55,7 @@ Thus, an integer which is in range will always be represented by _Right(Int)_.
 
 Versions
 ========
+Current version is 1.0.1
 Initial version is 1.0.0
 
 Future Upgrades
