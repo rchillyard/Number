@@ -63,9 +63,27 @@ trait Fuzz[T] {
     * @return a String which is the textual rendering of t with this Fuzz applied.
     */
   def toString(t: T): String
+
+  /**
+    * Yields the actual probability density for the value t.
+    *
+    * @param t a particular T value, for which we want the probability density.
+    * @return the probability density.
+    */
+  def probabilityDensity(t: T): Double
+
+  /**
+    * Determine the range +- t within which a deviation is considered within tolerance and where
+    * l signifies the extent of the PDF.
+    *
+    * @return the value of t at which the probability density is exactly transitions from likely to not likely.
+    */
+  def likely: T
 }
 
 case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fuzz[T] {
+
+  private val tv: Valuable[T] = implicitly[Valuable[T]]
 
   /**
     * Transform this Fuzz[T] according to func.
@@ -74,7 +92,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * @param func the function to apply to this Fuzz[T].
     * @return a transformed version of Fuzz[T].
     */
-  def transform(func: T => T): Fuzz[T] = RelativeFuzz(implicitly[Valuable[T]].toDouble(func(implicitly[Valuable[T]].fromDouble(tolerance))), shape)
+  def transform(func: T => T): Fuzz[T] = RelativeFuzz(tv.toDouble(func(tv.fromDouble(tolerance))), shape)
 
   /**
     * This method takes a value of T on which to base a relative fuzz value.
@@ -83,7 +101,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * @return an optional RelativeFuzz[T]
     */
   def absolute(t: T): Option[AbsoluteFuzz[T]] = {
-    val tf = implicitly[Valuable[T]]
+    val tf = tv
     Try(AbsoluteFuzz(tf.normalize(tf.times(tf.fromDouble(tolerance), t)), shape)).toOption
   }
 
@@ -115,10 +133,26 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
   }
 
   def toString(t: T): String = absolute(t).map(_.toString(t)).getOrElse("")
+
+  /**
+    * Yields the actual probability density for the value t.
+    *
+    * @param t a particular T value, for which we want the probability density.
+    * @return the probability density.
+    */
+  def probabilityDensity(t: T): Double = shape.probabilityDensity(tv.toDouble(t), tolerance)
+
+  /**
+    * Determine the range +- t within which a deviation is considered within tolerance and where
+    * l signifies the extent of the PDF.
+    *
+    * @return the value of t at which the probability density is exactly transitions from likely to not likely.
+    */
+  def likely: T = tv.fromDouble(shape.likely(tolerance))
 }
 
 case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T] {
-  private val tf = implicitly[Valuable[T]]
+  private val tv = implicitly[Valuable[T]]
 
   /**
     * This method takes a value of T on which to base a relative fuzz value.
@@ -128,7 +162,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     * @return an optional RelativeFuzz[T]
     */
   def relative(t: T): Option[RelativeFuzz[T]] = {
-    Try(RelativeFuzz(tf.toDouble(tf.normalize(tf.div(magnitude, t))), shape)).toOption
+    Try(RelativeFuzz(tv.toDouble(tv.normalize(tv.div(magnitude, t))), shape)).toOption
   }
 
   /**
@@ -160,7 +194,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
   def *(convolute: Fuzz[T]): Fuzz[T] = if (this.shape == convolute.shape)
     convolute match {
       case AbsoluteFuzz(m, _) =>
-        AbsoluteFuzz(tf.fromDouble(Gaussian.convolutionSum(tf.toDouble(magnitude), tf.toDouble(m))), shape)
+        AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(tv.toDouble(magnitude), tv.toDouble(m))), shape)
       case _ =>
         throw FuzzyNumberException("* operation on different styles")
     }
@@ -186,7 +220,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     *  @return a String which is the textual rendering of t with this Fuzz applied.
     */
   def toString(t: T): String = {
-    val eString = tf.render(t) match {
+    val eString = tv.render(t) match {
       case numberR(e) => e
       case _ => noExponent
     }
@@ -195,10 +229,10 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
       case `noExponent` => ""
       case x => s"E$x"
     }
-    val scaledM = tf.toDouble(magnitude) * math.pow(10, -exponent)
+    val scaledM = tv.toDouble(magnitude) * math.pow(10, -exponent)
     val roundedM = round(scaledM, 2 - math.log10(scaledM).toInt)
     //      if (scaledM > 0.01) // TODO let's do this unusual adjustment later
-    val scaledT = tf.scale(t, math.pow(10, -exponent))
+    val scaledT = tv.scale(t, math.pow(10, -exponent))
     val q = f"$roundedM%.99f".substring(2) // drop the "0."
     val (qPrefix, qSuffix) = q.toCharArray.span(_ == '0')
     val (qPreSuffix, _) = qSuffix.span(_ != '0')
@@ -207,12 +241,29 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     val yq = mScaledAndRounded.toString.substring(2).padTo(2 + adjust, '0').substring(0, 2 + adjust)
     val brackets = if (shape == Gaussian) "()" else "[]"
     val mask = new String(qPrefix) + "0" * (2 + adjust) + brackets.head + yq + brackets.tail.head
-    val (zPrefix, zSuffix) = tf.render(scaledT).toCharArray.span(_ != '.')
+    val (zPrefix, zSuffix) = tv.render(scaledT).toCharArray.span(_ != '.')
     new String(zPrefix) + "." + Fuzz.zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix
   }
+
+  /**
+    * Yields the actual probability density for the value t.
+    *
+    * @param t a particular T value, for which we want the probability density.
+    * @return the probability density.
+    */
+  def probabilityDensity(t: T): Double = shape.probabilityDensity(tv.toDouble(t), tv.toDouble(magnitude))
+
+  /**
+    * Determine the range +- x within which a deviation is considered within tolerance and where
+    * l signifies the extent of the PDF.
+    *
+    * @return the value of x at which the probability density is exactly transitions from likely to not likely.
+    */
+  def likely: T = tv.fromDouble(shape.likely(tv.toDouble(magnitude)))
 }
 
 object Fuzz {
+
 
   /**
     * Combine the fuzz values using a convolution.
@@ -284,7 +335,28 @@ object Fuzz {
     }
 }
 
-trait Shape
+/**
+  * Describes a probability density function for a continuous distribution.
+  * NOTE: this isn't suitable for discrete distributions, obviously.
+  */
+trait Shape {
+  /**
+    * Determine the approximate probability density for this shape at the point x where l signifies the extent of the PDF.
+    *
+    * @param x the x value.
+    * @param l the extent of the PDF (for example, the standard deviation, for a Gaussian).
+    * @return the value of the probability density at x.
+    */
+  def probabilityDensity(x: Double, l: Double): Double
+
+  /**
+    * Determine the range +- x within which a deviation is considered within tolerance.
+    *
+    * @param l the extent of the PDF (for example, the standard deviation, for a Gaussian).
+    * @return the value of x at which the probability density is exactly transitions from likely to not likely.
+    */
+  def likely(l: Double): Double
+}
 
 case object Box extends Shape {
   /**
@@ -309,6 +381,23 @@ case object Box extends Shape {
     * @return t/2 which will be used as the standard deviation.
     */
   def toGaussianAbsolute[T: Valuable](t: T): T = implicitly[Valuable[T]].scale(t, uniformToGaussian)
+
+  /**
+    * Determine the probability density for this shape at the point x where l signifies the extent of the PDF.
+    *
+    * @param x the x value (ignored)
+    * @param l the half-width of a Box.
+    */
+  def probabilityDensity(x: Double, l: Double): Double = 0.5 / l
+
+  /**
+    * Determine the range +- x within which a deviation is considered within tolerance and where
+    * l signifies the extent of the PDF.
+    *
+    * @param l the half-width of a Box.
+    * @return the value of x at which the probability density transitions from possible to impossible.
+    */
+  def likely(l: Double): Double = l /2
 }
 
 case object Gaussian extends Shape {
@@ -337,6 +426,32 @@ case object Gaussian extends Shape {
     * sigma(x/mux 8 y/muy)**2 = sigma(x/mux)**2 + sigma(y/muy)**2 + (sigma(x/mux) sigma(y/muy))**2
     */
   def convolutionProduct(sigma1: Double, sigma2: Double): Double = math.sqrt(sigma1 * sigma1 + sigma2 * sigma2 + sigma1 * sigma2)
+
+  /**
+    * Determine the APPROXIMATE probability density for this shape at the point x where l signifies the extent of the PDF.
+    * This is not intended for precision.
+    *
+    * @param x     the x value.
+    * @param sigma the standard deviation of a Box.
+    */
+  def probabilityDensity(x: Double, sigma: Double): Double = {
+    val y = math.abs(x)
+    if (y < 1E-1) 1
+    else if (y < 0.47) 0.51
+    else if (y < 1) 0.32
+    else if (y < 2) 0.05
+    else if (y < 3) 0.0025
+    else 0
+  }
+
+  /**
+    * Determine the range +- x within which a deviation is considered within tolerance and where
+    * l signifies the extent of the PDF.
+    *
+    * @param l the standard deviation.
+    * @return the value of x at which the probability density is exactly 0.5.
+    */
+  def likely(l: Double): Double = l * 0.475
 }
 
 trait Fuzzy[T] {

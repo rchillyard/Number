@@ -149,6 +149,17 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
   }
 
+  behavior of "negate"
+  it should "work for 1.*" in {
+    val xy: Try[Number] = Number.parse("1.*")
+    val zy = for (x <- xy) yield Number.negate(x)
+    zy should matchPattern { case Success(_) => }
+    zy.get.value shouldBe Right(-1)
+    zy.get.factor shouldBe Scalar
+    // TODO understand why this matches AbsoluteFuzz whereas "-" (above) matches RelativeFuzz.
+    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
+  }
+
   behavior of "**"
   it should "work for 2**2" in {
     val xy: Try[Number] = Number.parse("2.0*")
@@ -162,6 +173,20 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy.get.fuzz.get match {
       case RelativeFuzz(m, Gaussian) => m shouldBe 0.0125 +- 0.00000000000000001
     }
+  }
+
+  behavior of "compare"
+  it should "find 1.* equivalent to 1.*" in {
+    val xy: Try[Number] = Number.parse("1.*")
+    val yy: Try[Number] = Number.parse("1.05*")
+    val zy = for (x <- xy; y <- yy) yield Number.compare(x, y)
+    zy should matchPattern { case Success(0) => }
+  }
+  it should "find 1 smaller than 2" in {
+    val xy: Try[Number] = Number.parse("1.*")
+    val yy: Try[Number] = Number.parse("2.*")
+    val zy = for (x <- xy; y <- yy) yield Number.compare(x, y)
+    zy should matchPattern { case Success(-1) => }
   }
 
   behavior of "sin"

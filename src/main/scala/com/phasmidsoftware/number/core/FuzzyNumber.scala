@@ -29,6 +29,20 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     */
   override lazy val unary_- : Number = FuzzyNumber.negate(this)
 
+
+  /**
+    * @return true if this Number is equivalent to zero.
+    */
+  override lazy val isZero: Boolean = super.isZero || (for (f <- fuzz; x <- toDouble) yield f.normalizeShape.likely > math.abs(x)).getOrElse(false)
+
+  /**
+    * Method to determine the sense of this number: negative, zero, or positive.
+    * If this FuzzyNumber cannot be distinguished from zero, then
+    *
+    * @return an Int which is negative, zero, or positive according to the magnitude of this.
+    */
+  override lazy val signum: Int = if (isZero) 0 else super.signum
+
   /**
     * Make a copy of this Number, but with different fuzziness.
     *
@@ -101,6 +115,16 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @return a FuzzyNumber.
     */
   protected def makeNumber(v: Value, f: Factor, z: Option[Fuzz[Double]]): Number = FuzzyNumber(v, f, z)
+
+  /**
+    * Method to compare x with y.
+    * The difference between this method and that of ExactNumber is that the signum method is implemented differently.
+    *
+    * @param x one Number.
+    * @param y the other Number.
+    * @return -1, 0, or 1 according to whether x is <, =, or > y.
+    */
+  def compare(x: Number, y: Number): Int = Number.compare(x, y)
 }
 
 object FuzzyNumber {
