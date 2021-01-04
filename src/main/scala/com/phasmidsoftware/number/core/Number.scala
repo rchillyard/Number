@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
 
-import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions, identityTry}
+import com.phasmidsoftware.number.core.Number.{DyadicFunctions, MonadicFunctions, bigIntToInt, identityTry, tryF, tryMap}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
@@ -56,7 +56,6 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
 abstract class Number(val value: Value, val factor: Factor) {
 
   self =>
-
 
   /**
     * Auxiliary constructor for the usual situation with the default factor.
@@ -183,6 +182,10 @@ abstract class Number(val value: Value, val factor: Factor) {
     */
   lazy val invert: Number = Number.inverse(normalize)
 
+  /**
+    * Yields the square root of this Number.
+    * If possible, the result will be exact.
+    */
   lazy val sqrt: Number = Number.power(this, r"1/2")
 
   /**
@@ -349,7 +352,6 @@ abstract class Number(val value: Value, val factor: Factor) {
     */
   protected def makeNumber(v: Double): Number = makeNumber(v, factor)
 
-
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
     *
@@ -478,9 +480,9 @@ abstract class Number(val value: Value, val factor: Factor) {
       case None => Failure(new NoSuchElementException())
     }
     import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => Number.tryMap(y)(x => {fRational(x, other.maybeRational.get) map (makeNumber(_, f))}, xToZy0)
-    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => Number.tryMap(x)(x => fBigInt(x, other.toBigInt.get) map (Number(_, f)), xToZy1)
-    Number.tryMap(value)(x => fInt(x, other.maybeInt.get) map (makeNumber(_, f)), xToZy2).toOption
+    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x, other.maybeRational.get) map (makeNumber(_, f)), xToZy0)
+    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x, other.toBigInt.get) map (Number(_, f)), xToZy1)
+    tryMap(value)(x => fInt(x, other.maybeInt.get) map (makeNumber(_, f)), xToZy2).toOption
   }
 
   /**
@@ -497,9 +499,9 @@ abstract class Number(val value: Value, val factor: Factor) {
       case None => Failure(new NoSuchElementException())
     }
     import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => Number.tryMap(y)(x => fRational(x) map (Number(_, f)), xToZy0)
-    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => Number.tryMap(x)(x => fBigInt(x) map (Number(_, f)), xToZy1)
-    Number.tryMap(value)(x => fInt(x) map (y => makeNumber(y, f)), xToZy2).toOption
+    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x) map (Number(_, f)), xToZy0)
+    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x) map (Number(_, f)), xToZy1)
+    tryMap(value)(x => fInt(x) map (y => makeNumber(y, f)), xToZy2).toOption
   }
 
   /**
@@ -508,9 +510,9 @@ abstract class Number(val value: Value, val factor: Factor) {
     */
   private lazy val maybeRational: Option[Rational] = {
     import Converters._
-    val ry = Number.tryMap(value)(y => Try(Rational(y)), x =>
-      Number.tryMap(x)(y => Try(Rational(y)), x =>
-        Number.tryMap(x)(x => Success(x), _ =>
+    val ry = tryMap(value)(tryF(Rational.apply), x =>
+      tryMap(x)(tryF(Rational.apply), x =>
+        tryMap(x)(identityTry, _ =>
           Failure(new NoSuchElementException()))))
     ry.toOption
   }
@@ -530,9 +532,9 @@ abstract class Number(val value: Value, val factor: Factor) {
       case None => Failure(new NoSuchElementException())
     }
     import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[BigInt] = y => Number.tryMap(y)(y => Try(y.toBigInt), xToZy0)
-    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[BigInt] = x => Number.tryMap(x)(identityTry, xToZy1)
-    Number.tryMap(value)(y => Try(BigInt(y)), xToZy2).toOption
+    val xToZy1: Either[Option[Double], Rational] => Try[BigInt] = y => tryMap(y)(tryF(y => y.toBigInt), xToZy0)
+    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[BigInt] = x => tryMap(x)(identityTry, xToZy1)
+    tryMap(value)(tryF(BigInt.apply), xToZy2).toOption
   }
 
   /**
@@ -546,9 +548,9 @@ abstract class Number(val value: Value, val factor: Factor) {
       case None => Failure(new NoSuchElementException())
     }
     import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => Number.tryMap(y)(y => Try(y.toInt), xToZy0)
-    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Int] = x => Number.tryMap(x)(Number.bigIntToInt, xToZy1)
-    Number.tryMap(value)(identityTry, xToZy2).toOption
+    val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
+    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Int] = x => tryMap(x)(bigIntToInt, xToZy1)
+    tryMap(value)(identityTry, xToZy2).toOption
   }
 }
 
@@ -561,13 +563,11 @@ object Number {
 
   def renderDouble(x: Double): (String, Boolean) = (x.toString, true)
 
-  def renderValue(v: Value): (String, Boolean) = {
-    Number.optionMap[Either[Either[Option[Double], Rational], BigInt], Int, (String, Boolean)](v)(y => renderInt(y), x => Number.optionMap[Either[Option[Double], Rational], BigInt, (String, Boolean)](x)(y => renderBigInt(y), x => Number.optionMap[Option[Double], Rational, (String, Boolean)](x)(y => renderRational(y), {
+  def renderValue(v: Value): (String, Boolean) =
+    optionMap[Either[Either[Option[Double], Rational], BigInt], Int, (String, Boolean)](v)(y => renderInt(y), x => optionMap[Either[Option[Double], Rational], BigInt, (String, Boolean)](x)(y => renderBigInt(y), x => optionMap[Option[Double], Rational, (String, Boolean)](x)(y => renderRational(y), {
       case Some(n) => Some(renderDouble(n))
       case None => None
     }))).getOrElse(("<undefined>", true))
-  }
-
 
   type DyadicFunctions = ((Int, Int) => Try[Int], (BigInt, BigInt) => Try[BigInt], (Rational, Rational) => Try[Rational], (Double, Double) => Try[Double])
 
@@ -627,7 +627,7 @@ object Number {
     * @param x the String representation of the value.
     * @return a Number based on x.
     */
-  def apply(x: String): Number = Number.parse(x) match {
+  def apply(x: String): Number = parse(x) match {
     case Success(n) => n
     case Failure(e) => throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
   }
@@ -871,7 +871,7 @@ object Number {
 
     def fromInt(x: Int): Number = Number(x)
 
-    def parseString(str: String): Option[Number] = Number.parse(str).toOption
+    def parseString(str: String): Option[Number] = parse(str).toOption
 
     def toInt(x: Number): Int = toLong(x).toInt
 
@@ -970,12 +970,16 @@ object Number {
 
   def identityTry[X](x: X): Try[X] = Success(x)
 
+  def tryF[X, Y](f: X => Y): X => Try[Y] = x => Try(f(x))
+
+  def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
+
   def sqrt(n: Number): Number =
     n.scale(Scalar).doComposeMonadic(Scalar)(
       sqrtInt,
       _ => Failure(NumberException("Cannot create BigInt from Double")),
-      x => Try(Rational.sqrt(x)),
-      x => Try(math.sqrt(x))
+      tryF(x => Rational.sqrt(x)),
+      tryF(x => math.sqrt(x))
     ).getOrElse(Number()).specialize
 
   private def power(n: Number, y: Rational): Number = y match {
@@ -1006,7 +1010,7 @@ object Number {
   }
 
   // NOTE: This may throw an exception
-  private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identityTry, x => Try(x.signum), x => Try(x.signum), x => Try(math.signum(x))).flatMap(_.toInt).get
+  private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).get
 
   private def sin(n: Number): Number = n.scale(Pi).doComposeMonadic(Scalar)(_ => Success(0), _ => Success(0), sinRat, sinDouble).getOrElse(Number()).specialize
 
@@ -1076,20 +1080,20 @@ sealed trait MonadicOperation {
 
 case object MonadicOperationNegate extends MonadicOperation {
   def getFunctions: MonadicFunctions = {
-    val fInt: Int => Try[Int] = x => Success(implicitly[Numeric[Int]].negate(x))
-    val fBigInt: BigInt => Try[BigInt] = x => Success(implicitly[Numeric[BigInt]].negate(x))
-    val fRational: Rational => Try[Rational] = x => Success(implicitly[Numeric[Rational]].negate(x))
-    val fDouble: Double => Try[Double] = x => Success(implicitly[Numeric[Double]].negate(x))
+    val fInt = tryF[Int, Int](implicitly[Numeric[Int]].negate)
+    val fBigInt = tryF[BigInt, BigInt](implicitly[Numeric[BigInt]].negate)
+    val fRational = tryF[Rational, Rational](implicitly[Numeric[Rational]].negate)
+    val fDouble = tryF[Double, Double](implicitly[Numeric[Double]].negate)
     (fInt, fBigInt, fRational, fDouble)
   }
 }
 
 case class MonadicOperationScale(f: Int) extends MonadicOperation {
   def getFunctions: MonadicFunctions = {
-    val fInt: Int => Try[Int] = x => Try(x * f)
-    val fBigInt: BigInt => Try[BigInt] = x => Try(x * f)
-    val fRational: Rational => Try[Rational] = x => Try(x * f)
-    val fDouble: Double => Try[Double] = x => Try(x * f)
+    val fInt = tryF[Int, Int](_ * f)
+    val fBigInt = tryF[BigInt, BigInt](_ * f)
+    val fRational = tryF[Rational, Rational](_ * f)
+    val fDouble = tryF[Double, Double](_ * f)
     (fInt, fBigInt, fRational, fDouble)
   }
 }
@@ -1100,20 +1104,20 @@ sealed trait DyadicOperation {
 
 case object DyadicOperationPlus extends DyadicOperation {
   def getFunctions: DyadicFunctions = {
-    val fInt: (Int, Int) => Try[Int] = (x, y) => Try(implicitly[Numeric[Int]].plus(x, y))
-    val fBigInt: (BigInt, BigInt) => Try[BigInt] = (x, y) => Try(implicitly[Numeric[BigInt]].plus(x, y))
-    val fRational: (Rational, Rational) => Try[Rational] = (x, y) => Try(implicitly[Numeric[Rational]].plus(x, y))
-    val fDouble: (Double, Double) => Try[Double] = (x, y) => Try(implicitly[Numeric[Double]].plus(x, y))
+    val fInt = tryF[Int, Int, Int](implicitly[Numeric[Int]].plus)
+    val fBigInt = tryF[BigInt, BigInt, BigInt](implicitly[Numeric[BigInt]].plus)
+    val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].plus)
+    val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].plus)
     (fInt, fBigInt, fRational, fDouble)
   }
 }
 
 case object DyadicOperationTimes extends DyadicOperation {
   def getFunctions: DyadicFunctions = {
-    val fInt: (Int, Int) => Try[Int] = (x, y) => Try(implicitly[Numeric[Int]].times(x, y))
-    val fBigInt: (BigInt, BigInt) => Try[BigInt] = (x, y) => Try(implicitly[Numeric[BigInt]].times(x, y))
-    val fRational: (Rational, Rational) => Try[Rational] = (x, y) => Try(implicitly[Numeric[Rational]].times(x, y))
-    val fDouble: (Double, Double) => Try[Double] = (x, y) => Try(implicitly[Numeric[Double]].times(x, y))
+    val fInt = tryF[Int, Int, Int](implicitly[Numeric[Int]].times)
+    val fBigInt = tryF[BigInt, BigInt, BigInt](implicitly[Numeric[BigInt]].times)
+    val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].times)
+    val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].times)
     (fInt, fBigInt, fRational, fDouble)
   }
 }
