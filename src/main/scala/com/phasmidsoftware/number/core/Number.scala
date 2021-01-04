@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core.Number.bigIntToInt
 import com.phasmidsoftware.number.core.Operations._
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Value._
+import com.phasmidsoftware.number.misc.FP.{identityTry, optionMap, tryF, tryMap}
 import com.phasmidsoftware.number.parse.NumberParser
 import java.util.NoSuchElementException
 import scala.language.implicitConversions
