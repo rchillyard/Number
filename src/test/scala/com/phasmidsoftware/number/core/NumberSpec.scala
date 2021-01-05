@@ -1,9 +1,10 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Number.pi
+import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -627,13 +628,24 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "atan"
-  it should "be 0Pi for 1/0" in {
+  it should "be 0Pi for 0/1" in {
     val target = Number.one
     target.atan(Number.zero) shouldBe Number(0, Pi)
   }
   it should "be pi/4 for 1/1" in {
     val target = Number.one
-    target.atan(Number.one) shouldBe Number.pi / 4
+    target.atan(Number.one) === (Number.pi / 4)
+  }
+  it should "be 0Pi for 0/-1" in {
+    val target = negate(Number.one)
+    target.atan(Number.zero) shouldBe Number(1, Pi)
+  }
+  it should "be pi/4 for 1/-1" in {
+    val target = negate(Number.one)
+    val actual = target.atan(Number.one)
+    val expected = Number.pi * 5 / 4
+    // CONSIDER Need to convert expected to lowest common denominator form when doing equals
+    actual should ===(expected)
   }
 
   // NOTE: Following are the tests of Ordering[Number]

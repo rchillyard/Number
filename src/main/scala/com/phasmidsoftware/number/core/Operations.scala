@@ -1,7 +1,9 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Number.forceIntoRange
 import com.phasmidsoftware.number.core.Operations.{DyadicFunctions, MonadicFunctions}
 import com.phasmidsoftware.number.misc.FP.{toTry, tryF}
+
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
@@ -58,11 +60,13 @@ case object MonadicOperationSin extends MonadicOperation {
 
 case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   def atan(x: Double): Try[Double] =
-    Try(math.atan2(x, sign))
+    Try(math.atan2(x, sign) / math.Pi) // TODO use scale
 
   val atanRat: Rational => Try[Rational] = x =>
     if (!x.isWhole) atan(x.toDouble).map(Rational(_))
     else x.toInt match {
+      case -1 => Success(Rational.one * 3 / 4 + (if (sign < 0) Rational.one else Rational.zero))
+      case 0 => Success(Rational.zero + (if (sign < 0) Rational.one else Rational.zero))
       case 1 => Success(Rational.one / 4 + (if (sign < 0) Rational.one else Rational.zero))
       case _ => Failure(NumberException("atan cannot be Rational"))
     }
@@ -70,6 +74,14 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   def getFunctions: MonadicFunctions = (_ =>
     Failure(NumberException("atan cannot be Rational")), _ =>
     Failure(NumberException("atan cannot be Rational")), atanRat, atan)
+}
+
+case object MonadicOperationModulate extends MonadicOperation {
+  def getFunctions: MonadicFunctions = (
+    tryF(z => math.floorMod(z, 2)),
+    _ => Failure(NumberException("Can't modulate on BigInt")),
+    _ => Failure(NumberException("Can't modulate on Rational")),
+    tryF(z => forceIntoRange(z, 0, 2)))
 }
 
 case object MonadicOperationSqrt extends MonadicOperation {

@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.core
 
+import java.util.NoSuchElementException
+
 import com.phasmidsoftware.number.core.Number.{bigIntToInt, negate}
 import com.phasmidsoftware.number.core.Operations._
 import com.phasmidsoftware.number.core.Rational.RationalHelper
@@ -7,7 +9,7 @@ import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.misc.FP.{identityTry, optionMap, tryF, tryMap}
 import com.phasmidsoftware.number.parse.NumberParser
-import java.util.NoSuchElementException
+
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
@@ -534,6 +536,11 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
     }
   }
 
+  def modulate: Number = factor match {
+    case Pi => Number.modulate(this)
+    case _ => this
+  }
+
   /**
     * Evaluate a dyadic operator on this and other, using the various functions passed in.
     * NOTE: this and other must have been aligned by type so that they have the same structure.
@@ -1038,11 +1045,21 @@ object Number {
       // First we take care of the special cases
       case Right(1) => Some(x)
       case Left(Right(_)) if x.toBigInt.get == BigInt(1) => Some(x)
-      case Left(Left(Left(_))) => x.maybeDouble.map(1 / _).map(Number(_))
-      case _ => x.maybeRational.map(_.invert).map(Number(_))
+      case Left(Left(Left(_))) => x.maybeDouble.map(1 / _).map(x.makeNumber)
+      case _ => x.maybeRational.map(_.invert).map(x.makeNumber)
     }
     maybeNumber.getOrElse(Number()).specialize
   }
+
+  // CONSIDER moving into Operations
+  def forceIntoRange(z: Double, min: Double, max: Double): Double = {
+    // NOTE: using a var here!!
+    var result = z
+    while (result < min) result += (max - min)
+    while (result > max) result += (min - max)
+    result
+  }
+
 
   private def isZero(x: Number): Boolean = {
     val intToTriedBoolean = tryF[Int, Boolean](x => x == 0)
@@ -1067,8 +1084,13 @@ object Number {
   def atan(x: Number, y: Number): Number = {
     val s = x.signum
     val z = y / x
-    z.composeMonadic(Pi)(MonadicOperationAtan(s)).getOrElse(Number()).specialize
+    z.composeMonadic(Pi)(MonadicOperationAtan(s)).getOrElse(Number()).specialize.modulate
   }
+
+  private def modulate(x: Number): Number = {
+    x.composeMonadic(x.factor)(MonadicOperationModulate).getOrElse(Number())
+  }
+
 
   private def bigIntToInt(x: BigInt): Try[Int] = Rational.toInt(x)
 }
