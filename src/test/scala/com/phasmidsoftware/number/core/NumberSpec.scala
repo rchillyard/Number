@@ -1,9 +1,9 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Number.pi
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -39,7 +39,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.value should matchPattern { case Right(_) => }
   }
   it should "yield Right(1, Pi)" in {
-    val target = Number.create(Right(1), Pi)
+    val target = pi
     target should matchPattern { case ExactNumber(_, _) => }
     target.value should matchPattern { case Right(_) => }
     target.factor shouldBe Pi
@@ -555,8 +555,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     Number(Rational(9, 4)).sqrt shouldBe Number(Rational(3, 2))
   }
 
-  // Following are the tests of Ordering[Number]
   behavior of "sin"
+  it should "be zero for pi" in {
+    val target = Number.pi
+    target.sin shouldBe Number(0, Scalar)
+  }
   it should "work for 0" in {
     val target = Number(0, Pi)
     target.sin shouldBe Number(0, Scalar)
@@ -575,6 +578,62 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val sin = target.sin
     val expected = Number(3).sqrt / 2
     sin should ===(expected)
+  }
+
+  behavior of "cos"
+  it should "be zero for pi" in {
+    val target = Number.pi
+    target.cos shouldBe Number(-1)
+  }
+  it should "work for 0" in {
+    val target = Number(0, Pi)
+    target.cos shouldBe Number(1)
+  }
+  it should "work for Pi/2" in {
+    val target = Number(Rational.half, Pi)
+    target.cos.isZero shouldBe true
+  }
+  it should "work for Pi/3" in {
+    val target = Number.pi / 3
+    target.cos shouldBe Number(Rational(1, 2), Scalar)
+  }
+  it should "work for Pi/6" in {
+    val target = Number.pi / 6
+    val expected = Number(3).sqrt / 2
+    target.cos should ===(expected)
+  }
+
+  behavior of "tan"
+  it should "be zero for 0" in {
+    val target = Number(0, Pi)
+    target.tan.isZero shouldBe true
+  }
+  it should "be zero for pi" in {
+    val target = Number.pi
+    target.tan.isZero shouldBe true
+  }
+  it should "work for Pi/2" in {
+    val target = Number(Rational.half, Pi)
+    target.tan.isInfinite shouldBe true
+  }
+  it should "work for Pi/3" in {
+    val target = Number.pi / 3
+    target.tan shouldBe Number(3).sqrt
+  }
+  it should "work for Pi/6" in {
+    val target = Number.pi / 6
+    val expected = Number(3).sqrt.invert
+    target.tan should ===(expected)
+  }
+
+  behavior of "atan"
+  it should "be 0Pi for 1/0" in {
+    val target = Number.one
+    target.atan(Number.zero) shouldBe Number(0, Pi)
+  }
+  it should "be pi/4 for 1/1" in {
+    val target = Number.one
+    target.atan(Number.one) shouldBe Number.pi / 4
   }
 
   // NOTE: Following are the tests of Ordering[Number]

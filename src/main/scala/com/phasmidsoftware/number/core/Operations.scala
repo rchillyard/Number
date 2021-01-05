@@ -32,7 +32,7 @@ sealed trait MonadicOperation {
 
 case object MonadicOperationNegate extends MonadicOperation {
   def getFunctions: MonadicFunctions = {
-    val fInt = tryF[Int, Int](implicitly[Numeric[Int]].negate)
+    val fInt = tryF[Int, Int](math.negateExact)
     val fBigInt = tryF[BigInt, BigInt](implicitly[Numeric[BigInt]].negate)
     val fRational = tryF[Rational, Rational](implicitly[Numeric[Rational]].negate)
     val fDouble = tryF[Double, Double](implicitly[Numeric[Double]].negate)
@@ -56,6 +56,22 @@ case object MonadicOperationSin extends MonadicOperation {
   def getFunctions: MonadicFunctions = (tryF[Int, Int](_ => 0), tryF[BigInt, BigInt](_ => 0), sinRat, sinDouble)
 }
 
+case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
+  def atan(x: Double): Try[Double] =
+    Try(math.atan2(x, sign))
+
+  val atanRat: Rational => Try[Rational] = x =>
+    if (!x.isWhole) atan(x.toDouble).map(Rational(_))
+    else x.toInt match {
+      case 1 => Success(Rational.one / 4 + (if (sign < 0) Rational.one else Rational.zero))
+      case _ => Failure(NumberException("atan cannot be Rational"))
+    }
+
+  def getFunctions: MonadicFunctions = (_ =>
+    Failure(NumberException("atan cannot be Rational")), _ =>
+    Failure(NumberException("atan cannot be Rational")), atanRat, atan)
+}
+
 case object MonadicOperationSqrt extends MonadicOperation {
   val sqrtInt: Int => Try[Int] = x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
 
@@ -65,7 +81,7 @@ case object MonadicOperationSqrt extends MonadicOperation {
 
 case class MonadicOperationScale(f: Int) extends MonadicOperation {
   def getFunctions: MonadicFunctions = {
-    val fInt = tryF[Int, Int](_ * f)
+    val fInt = tryF[Int, Int](math.multiplyExact(_, f))
     val fBigInt = tryF[BigInt, BigInt](_ * f)
     val fRational = tryF[Rational, Rational](_ * f)
     val fDouble = tryF[Double, Double](_ * f)
@@ -79,7 +95,7 @@ sealed trait DyadicOperation {
 
 case object DyadicOperationPlus extends DyadicOperation {
   def getFunctions: DyadicFunctions = {
-    val fInt = tryF[Int, Int, Int](implicitly[Numeric[Int]].plus)
+    val fInt = tryF[Int, Int, Int](math.addExact)
     val fBigInt = tryF[BigInt, BigInt, BigInt](implicitly[Numeric[BigInt]].plus)
     val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].plus)
     val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].plus)
@@ -89,7 +105,7 @@ case object DyadicOperationPlus extends DyadicOperation {
 
 case object DyadicOperationTimes extends DyadicOperation {
   def getFunctions: DyadicFunctions = {
-    val fInt = tryF[Int, Int, Int](implicitly[Numeric[Int]].times)
+    val fInt = tryF[Int, Int, Int](math.multiplyExact)
     val fBigInt = tryF[BigInt, BigInt, BigInt](implicitly[Numeric[BigInt]].times)
     val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].times)
     val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].times)

@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Number.bigIntToInt
+import com.phasmidsoftware.number.core.Number.{bigIntToInt, negate}
 import com.phasmidsoftware.number.core.Operations._
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Render.renderValue
@@ -212,8 +212,33 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
   /**
     * Method to determine the sine of this Number.
     * The result will be a Number with Scalar factor.
+    *
+    * @return the sine of this.
     */
   def sin: Number = makeFuzzyIfAppropriate(Number.sin)
+
+  /**
+    * Method to determine the cosine of this Number.
+    * The result will be a Number with Scalar factor.
+    *
+    * @return the cosine.
+    */
+  def cos: Number = negate(scale(Pi) - Number(Rational.half, Pi)).sin
+
+  /**
+    * The tangent of this Number.
+    *
+    * @return the tangent.
+    */
+  def tan: Number = sin / cos
+
+  /**
+    * Calculate the angle whose opposite length is y and whose adjacent length is this.
+    *
+    * @param y the opposite length
+    * @return the angle defined by x = this, y = y
+    */
+  def atan(y: Number): Number = Number.atan(this, y)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
@@ -221,6 +246,29 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   def signum: Int = Number.signum(this)
+
+  /**
+    * Method to create a new version of this, but with factor f.
+    * NOTE: the result will have the same absolute magnitude as this.
+    *
+    * @param f the new factor for the result.
+    * @return a Number based on this and factor.
+    */
+  //protected
+  def scale(f: Factor): Number = factor match {
+    case `f` => this
+    case _ => Number(maybeDouble map (x => scaleDouble(x, f)), f)
+  }
+
+  /**
+    * @return true if this Number is equal to zero.
+    */
+  def isZero: Boolean = Number.isZero(this)
+
+  /**
+    * @return true if this Number is equal to zero.
+    */
+  def isInfinite: Boolean = Number.isInfinite(this)
 
   /**
     * Method to compare this with another Number.
@@ -399,26 +447,6 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
     case Scalar => this
     case Pi | E => (maybeDouble map (x => self.makeNumber(x * factor.value).specialize.makeNumber(Scalar))).getOrElse(Number())
   }
-
-  /**
-    * Method to create a new version of this, but with factor f.
-    * NOTE: the result will have the same absolute magnitude as this.
-    *
-    * @param f the new factor for the result.
-    * @return a Number based on this and factor.
-    */
-  //protected
-  def scale(f: Factor): Number = factor match {
-    case `f` => this
-    case _ => Number(maybeDouble map (x => scaleDouble(x, f)), f)
-  }
-
-  def scaleDouble(x: Double, f: Factor): Double = x * factor.value / f.value
-
-  /**
-    * @return true if this Number is equal to zero.
-    */
-  def isZero: Boolean = Number.isZero(this)
 
   /**
     * Return a Number which uses the most restricted type possible.
@@ -613,9 +641,28 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Int] = x => tryMap(x)(bigIntToInt, xToZy1)
     tryMap(value)(identityTry, xToZy2).toOption
   }
+
+  private def scaleDouble(x: Double, f: Factor): Double = x * factor.value / f.value
 }
 
 object Number {
+  /**
+    * Exact value of 1
+    */
+  val zero: Number = Number(0)
+  /**
+    * Exact value of 1
+    */
+  val one: Number = Number(1)
+  /**
+    * Exact value of pi
+    */
+  val pi: Number = Number.create(Right(1), Pi)
+
+  /**
+    * Exact value of e
+    */
+  val e: Number = Number.create(Right(1), E)
 
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
@@ -1005,9 +1052,23 @@ object Number {
     x.doQuery(x.factor)(intToTriedBoolean, bigIntToTriedBoolean, rationalToTriedBoolean, doubleToTriedBoolean).get
   }
 
+  private def isInfinite(x: Number): Boolean = {
+    val intToTriedBoolean = tryF[Int, Boolean](_ => false)
+    val bigIntToTriedBoolean = tryF[BigInt, Boolean](_ => false)
+    val rationalToTriedBoolean = tryF[Rational, Boolean](x => x.isInfinity)
+    val doubleToTriedBoolean = tryF[Double, Boolean](x => x == Double.PositiveInfinity || x == Double.NegativeInfinity)
+    x.doQuery(x.factor)(intToTriedBoolean, bigIntToTriedBoolean, rationalToTriedBoolean, doubleToTriedBoolean).get
+  }
+
   private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
 
   def sin(x: Number): Number = x.scale(Pi).composeMonadic(Scalar)(MonadicOperationSin).getOrElse(Number()).specialize
+
+  def atan(x: Number, y: Number): Number = {
+    val s = x.signum
+    val z = y / x
+    z.composeMonadic(Pi)(MonadicOperationAtan(s)).getOrElse(Number()).specialize
+  }
 
   private def bigIntToInt(x: BigInt): Try[Int] = Rational.toInt(x)
 }
