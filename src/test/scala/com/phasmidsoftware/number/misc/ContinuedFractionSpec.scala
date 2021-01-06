@@ -215,6 +215,8 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     ConFrac.phi.toDouble(1E-9, Hurwitz).get shouldBe goldenRatio +- 1E-4
   }
 
+  import Ordering.Double.TotalOrdering
+
   it should "implement toDouble(Double)" in {
     def checkValue(epsilon: Double): Unit = {
       // NOTE: we need a fairly large power because phi converges so slowly.
