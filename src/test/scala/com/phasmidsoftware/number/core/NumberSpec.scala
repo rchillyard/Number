@@ -279,12 +279,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = numberOne
     target.alignFactors(Number(2)) shouldBe(numberOne, Number(2))
   }
-  // NOTE: can't really expect this to work
-  ignore should "work for Scalar, Pi" in {
+  it should "work for Scalar, Pi" in {
     val target = numberOne
-    target.alignFactors(Number(2, Pi)) shouldBe(numberOne, Number(2 * Math.PI))
+    val (p, q) = target.alignFactors(Number(2, Pi))
+    p shouldBe numberOne
+    q shouldEqual Number(2 * Math.PI)
   }
-  // NOTE: can't really expect this to work
   ignore should "work for Pi, Scalar" in {
     val target = Number(2, Pi)
     target.alignFactors(numberOne) shouldBe(Number(2 * Math.PI), numberOne)
