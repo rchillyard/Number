@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Fuzz.toDecimalPower
+
 import scala.math.Numeric.DoubleIsFractional
 import scala.math.Ordering
 import scala.util.Try
@@ -238,7 +240,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
   }
 
-  private def round(d: Double, i: Int) = math.round(d * math.pow(10, i)) * math.pow(10, -i)
+  private def round(d: Double, i: Int) = math.round(toDecimalPower(d, i)) * math.pow(10, -i)
 
   private val numberR = """-?\d+\.\d+E([\-+]?\d+)""".r
   private val noExponent = "+00"
@@ -261,15 +263,15 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
       case `noExponent` => ""
       case x => s"E$x"
     }
-    val scaledM = tv.toDouble(magnitude) * math.pow(10, -exponent)
+    val scaledM = toDecimalPower(tv.toDouble(magnitude), -exponent)
     val roundedM = round(scaledM, 2 - math.log10(scaledM).toInt)
     //      if (scaledM > 0.01) // TODO let's do this unusual adjustment later
-    val scaledT = tv.scale(t, math.pow(10, -exponent))
+    val scaledT = tv.scale(t, toDecimalPower(1, -exponent))
     val q = f"$roundedM%.99f".substring(2) // drop the "0."
     val (qPrefix, qSuffix) = q.toCharArray.span(_ == '0')
     val (qPreSuffix, _) = qSuffix.span(_ != '0')
     val adjust = qPreSuffix.length - 2
-    val mScaledAndRounded = round(scaledM, qPrefix.length + 2 + adjust) * math.pow(10, qPrefix.length)
+    val mScaledAndRounded = toDecimalPower(round(scaledM, qPrefix.length + 2 + adjust), qPrefix.length)
     val yq = mScaledAndRounded.toString.substring(2).padTo(2 + adjust, '0').substring(0, 2 + adjust)
     val brackets = if (shape == Gaussian) "()" else "[]"
     // CONSIDER changing the padding "0" value to be "5".
@@ -364,6 +366,8 @@ object Fuzz {
     }
     new String(r.toArray)
   }
+
+  def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
   private def normalizeFuzz[T: Valuable](t: T, relative: Boolean, f: Fuzz[T]) =
     f match {

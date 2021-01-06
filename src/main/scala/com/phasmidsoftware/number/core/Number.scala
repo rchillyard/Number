@@ -494,12 +494,18 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
         case _ => this
       }
     // Double case
-    case Left(Left(Left(Some(x)))) =>
-      // NOTE: if we can represent x as a Rational whose value is identical with x, then we use it.
-      // Keep in mind that, when we specify a Double such as 3.1415927, its binary representation
-      // may not be exactly what we expect. Such a number is best defined through parsing a String.
+    case d@Left(Left(Left(Some(x)))) =>
+      // NOTE: here we attempt to deal with Doubles.
+      // If a double can be represented by a BigDecimal with scale 0, 1, or 2 then we treat it as exact.
+      // Otherwise, we will give it appropriate fuzziness.
+      // In general, if you wish to have more control over this, then define your input using a String.
+      // CONSIDER will this handle numbers correctly which are not close to 1?
       val r = Rational(x)
-      if (r.toDouble == x) makeNumber(r).specialize else this
+      r.toBigDecimal.scale match {
+        case 0 | 1 | 2 => makeNumber(r).specialize
+          // CONSIDER in following line adding fuzz only if this Number is exact.
+        case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzz.toDecimalPower(5, n), Box))
+      }
     // Invalid case
     case _ => this
   }

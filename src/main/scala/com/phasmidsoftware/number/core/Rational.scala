@@ -1,8 +1,10 @@
 package com.phasmidsoftware.number.core
 
+import java.lang.Math._
+
 import com.phasmidsoftware.number.core.Rational.bigZero
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-import java.lang.Math._
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.control.NonFatal
@@ -135,8 +137,14 @@ case class Rational(n: BigInt, d: BigInt) {
 object Rational {
 
   /**
-    * Method to approximate a Double as a Rational, regardless of the value of the Double.
-    * Application code should always call this method, or Rational.apply(Double).
+    * Method to approximate an irrational number as a Rational.
+    * Application code should always call this method or, preferably, Rational.apply(Double).
+    *
+    * NOTE: this method is designed for true Doubles, not floating-point representations of decimal numbers.
+    * Such decimal numbers should be converted to BigDecimal first using BigDecimal.valueOf(x).
+    *
+    * TODO what we need here is to pass in a function and a desired Rational result,
+    * and perhaps even the first derivative of the function, so that we can approximate the solution (root) of the function.
     *
     * @param x       the value to approximate.
     * @param epsilon (implicit) the tolerance.
@@ -153,6 +161,10 @@ object Rational {
     * Method to take a Double in the range 0 thru 1 and approximate it by a Rational number
     * to within the given tolerance (epsilon).
     *
+    * NOTE: this Farey sequence converges very slowly. In order to put an absolute limit on the recursion
+    * (which otherwise might never terminate), we limit the size of the denominator of r1 to be 10E12.
+    * It shouldn't matter much whether we test r1 or r2 in this context.
+    *
     * @param x       the value to approximate (should be between 0 and 1).
     * @param epsilon (implicit) the tolerance.
     * @return a Rational such that the difference between the result and x is less than epsilon.
@@ -162,13 +174,13 @@ object Rational {
     require(x >= 0 && x <= 1, "Call doubleToRational instead of approximate")
 
     @scala.annotation.tailrec
-    def inner(r1: Rational, r2: Rational): Rational = {
-      if (math.abs(r1.toDouble - x) < epsilon.x) r1
+    def inner(r1: Rational, r2: Rational): Rational =
+      if (r1.d > epsilon.maxDenom || math.abs(r1.toDouble - x) < epsilon.x) r1
       else {
         val mediant: Rational = r1 mediant r2
-        if (mediant.toDouble > x) inner(r1, mediant) else inner(mediant, r2)
+        if (mediant.toDouble > x) inner(r1, mediant)
+        else inner(mediant, r2)
       }
-    }
 
     inner(Rational.zero, Rational.one)
   }
@@ -260,17 +272,18 @@ object Rational {
   def apply(n: Int): Rational = apply(n.toLong)
 
   /**
-    * Method to construct a Rational based on an irrational Double.
-    * The tolerance (epsilon) is determined by the implicit value defined in Tolerance.
-    * NOTE: if you want to specify the epsilon yourself, then invoke approximateAny directly.
+    * Method to construct a Rational based on a Double.
+    * Since expressing a Double with a literal requires a decimal representation,
+    * our first option is to convert the Double to a BigDecimal and use that.
+    * If that fails for some reason, we try instead to use approximateAny.
     *
-    * NOTE: this method is designed for true Doubles, not floating-point representations of decimal numbers.
-    * Such decimal numbers should be converted to BigDecimal first using BigDecimal.valueOf(x).
+    * The tolerance (epsilon) for approximateAny is determined by the implicit value defined in Tolerance.
+    * NOTE: if you want to specify the epsilon yourself, then invoke approximateAny directly.
     *
     * @param x the Double value.
     * @return a Rational which closely approximates x.
     */
-  def apply(x: Double): Rational = approximateAny(x)
+  def apply(x: Double): Rational = Try(apply(BigDecimal.valueOf(x))).getOrElse(approximateAny(x))
 
   /**
     * Method to construct a Rational based on a BigDecimal.
@@ -502,9 +515,11 @@ case class RationalException(s: String) extends Exception(s)
 /**
   * Value class to define Tolerance.
   *
-  * @param x the tolerance (epsilon) value.
+  * @param x        the tolerance (epsilon) value.
+  * @param maxDenom used in the approximation of an irrational number --
+  *                 whereby the denominator is limited to approximately this value.
   */
-case class Tolerance(x: Double) extends AnyVal
+case class Tolerance(x: Double, maxDenom: BigInt)
 
 /**
   * Companion object to Tolerance.
@@ -513,5 +528,5 @@ object Tolerance {
   /**
     * Standard tolerance (epsilon) of 10 to the power of -15.
     */
-  implicit val standardTolerance: Tolerance = Tolerance(1E-15)
+  implicit val standardTolerance: Tolerance = Tolerance(1E-14, BigInt(1000000000L))
 }
