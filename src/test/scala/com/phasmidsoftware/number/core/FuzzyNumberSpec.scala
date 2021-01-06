@@ -15,8 +15,6 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     }
   }
 
-  private val numberOne = Number(1)
-
   behavior of "create"
   it should "yield 1 with absolute fuzz" in {
     val target = Number.create(Right(1), AbsoluteFuzz(0.01, Box))
@@ -154,7 +152,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(-1)
     zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
+    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
 
   behavior of "negate"
@@ -164,7 +162,6 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(-1)
     zy.get.factor shouldBe Scalar
-    // TODO understand why this matches AbsoluteFuzz whereas "-" (above) matches RelativeFuzz.
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
 
@@ -202,13 +199,23 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(0, Pi)
     target.sin shouldBe Number(0, Scalar)
   }
+  it should "work for 3.141592653589793" in {
+    val target = Number("3.1415926535897932384626433")
+    val result = target.sin
+    result.fuzzyCompare(Number.zero, 0.1) shouldBe 0
+  }
+  it should "work for 3.141592653589793 backwards" in {
+    val target = Number("3.1415926535897932384626433")
+    val result = target.sin
+    Number.zero.fuzzyCompare(result, 0.1) shouldBe 0
+  }
 
   // Following are the tests of Ordering[Number]
 
   behavior of "compare"
   it should "work for 1, 1" in {
-    val x = numberOne
-    val y = numberOne
+    val x = Number.one
+    val y = Number.one
     implicitly[Numeric[Number]].compare(x, y) shouldBe 0
   }
 }

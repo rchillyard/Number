@@ -18,6 +18,11 @@ trait Fuzz[T] {
   val shape: Shape
 
   /**
+    * True if this is relative Fuzz as opposed to absolute fuzz.
+    */
+  val style: Boolean
+
+  /**
     * Transform this Fuzz[T] according to func.
     * Typically, func will be the derivative of the relevant Number function.
     *
@@ -78,9 +83,16 @@ trait Fuzz[T] {
     *
     * @return the value of t at which the probability density is exactly transitions from likely to not likely.
     */
-  def likely: T
+  def likely(p: Double): T
 }
 
+/**
+  * Relative fuzziness.
+  *
+  * @param tolerance the error bound.
+  * @param shape the shape (Uniform, Gaussian, etc.)
+  * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics [must have Valuable].
+  */
 case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fuzz[T] {
 
   private val tv: Valuable[T] = implicitly[Valuable[T]]
@@ -127,11 +139,19 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
       case _ => throw FuzzyNumberException("* operation on different styles")
     } else throw FuzzyNumberException("* operation on different shapes")
 
+  /**
+    * Yield a Fuzz[T] that is Gaussian (either this or derivative of this).
+    */
   lazy val normalizeShape: Fuzz[T] = shape match {
     case Gaussian => this
     case Box => RelativeFuzz(Box.toGaussianRelative(tolerance), Gaussian)
   }
 
+  /**
+    * Render this Fuzz as with a given T value.
+    * @param t the T value.
+    *  @return a String which is the textual rendering of t with this Fuzz applied.
+    */
   def toString(t: T): String = absolute(t).map(_.toString(t)).getOrElse("")
 
   /**
@@ -146,11 +166,24 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * Determine the range +- t within which a deviation is considered within tolerance and where
     * l signifies the extent of the PDF.
     *
+    * @param p the confidence we wish to have in the likelihood: typical value: 0.5
     * @return the value of t at which the probability density is exactly transitions from likely to not likely.
     */
-  def likely: T = tv.fromDouble(shape.likely(tolerance))
+  def likely(p: Double): T = tv.fromDouble(shape.likely(tolerance, p))
+
+  /**
+    * True.
+    */
+  val style: Boolean = true
 }
 
+/**
+  * Absolute Fuzziness.
+  *
+  * @param magnitude the magnitude of the fuzz.
+  * @param shape the shape of the fuzz.
+  * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics.
+  */
 case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T] {
   private val tv = implicitly[Valuable[T]]
 
@@ -161,9 +194,8 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     * @param t the nominal value of the fuzzy number.
     * @return an optional RelativeFuzz[T]
     */
-  def relative(t: T): Option[RelativeFuzz[T]] = {
+  def relative(t: T): Option[RelativeFuzz[T]] =
     Try(RelativeFuzz(tv.toDouble(tv.normalize(tv.div(magnitude, t))), shape)).toOption
-  }
 
   /**
     * Transform this Fuzz[T] according to func.
@@ -260,11 +292,15 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     *
     * @return the value of x at which the probability density is exactly transitions from likely to not likely.
     */
-  def likely: T = tv.fromDouble(shape.likely(tv.toDouble(magnitude)))
+  def likely(p: Double): T = tv.fromDouble(shape.likely(tv.toDouble(magnitude), 0.5))
+
+  /**
+    * False.
+    */
+  val style: Boolean = false
 }
 
 object Fuzz {
-
 
   /**
     * Combine the fuzz values using a convolution.
@@ -354,11 +390,15 @@ trait Shape {
     * Determine the range +- x within which a deviation is considered within tolerance.
     *
     * @param l the extent of the PDF (for example, the standard deviation, for a Gaussian).
+    * @param p the confidence that we wish to place on the likelihood: typical value is 0.5.
     * @return the value of x at which the probability density is exactly transitions from likely to not likely.
     */
-  def likely(l: Double): Double
+  def likely(l: Double, p: Double): Double
 }
 
+/**
+  * Uniform probability density over a specific range, otherwise zero.
+  */
 case object Box extends Shape {
   /**
     * See, for example, https://www.unf.edu/~cwinton/html/cop4300/s09/class.notes/Distributions1.pdf
@@ -396,11 +436,15 @@ case object Box extends Shape {
     * l signifies the extent of the PDF.
     *
     * @param l the half-width of a Box.
+    * @param p ignored
     * @return the value of x at which the probability density transitions from possible to impossible.
     */
-  def likely(l: Double): Double = l /2
+  def likely(l: Double, p: Double): Double = l / 2
 }
 
+/**
+  * A "normal" probability distribution function.
+  */
 case object Gaussian extends Shape {
   /**
     * Get the convolution of sum of two Gaussian distributions.
@@ -449,16 +493,33 @@ case object Gaussian extends Shape {
     * Determine the range +- x within which a deviation is considered within tolerance and where
     * l signifies the extent of the PDF.
     *
+    * This is based on the table of erfc(p) value.
+    *
     * @param l the standard deviation.
-    * @return the value of x at which the probability density is exactly 0.5.
+    * @param p the confidence desired for the likelihood.
+    *          NOTE: only certain values are supported: 0.05, 0.1, 0.25 0.5, 0.75, 0.95.
+    * @return the value of x at which the cumulative probability is p.
     */
-  def likely(l: Double): Double = l * 0.475
+  def likely(l: Double, p: Double): Double = l * p match {
+    case 0.05 => 1.38
+    case 0.1 => 1.16
+    case 0.25 => 0.815
+    case 0.5 => 0.475
+    case 0.75 => 0.225
+    case 0.95 => 0.045
+    case _ => 0.475
+  }
 }
 
 trait Fuzzy[T] {
   val fuzz: Option[Fuzz[T]]
 }
 
+/**
+  * Type class Valuable[T].
+  *
+  * @tparam T the underlying type of this Valuable.
+  */
 trait Valuable[T] extends Fractional[T] {
   def render(t: T): String
 
@@ -489,6 +550,13 @@ trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Order
 
   def fromDouble(x: Double): Double = x
 
+  /**
+    * Scale the parameter x by the constant factor f.
+    *
+    * @param x a value.
+    * @param f a factor.
+    * @return x * f.
+    */
   def scale(x: Double, f: Double): Double = x * f
 
   /**

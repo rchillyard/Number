@@ -1,6 +1,11 @@
 package com.phasmidsoftware.number.misc
 
 import java.util.NoSuchElementException
+
+import com.phasmidsoftware.number.core.Rational
+
+import scala.language.implicitConversions
+import scala.math.BigInt
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
 /**
@@ -61,4 +66,15 @@ object FP {
 
   def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
 
+}
+
+/**
+  * These converters are used by the tryMap and tryAlt
+  */
+object Converters {
+  implicit def convertIntToBigInt(x: Int): Either[Either[Option[Double], Rational], BigInt] = Right(BigInt(x))
+
+  implicit def convertBigIntToRational(x: BigInt): Either[Option[Double], Rational] = Right(Rational(x))
+
+  implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] = Try(x.toDouble).toOption
 }

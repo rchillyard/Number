@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Left, Try}
 
 class FuzzSpec extends AnyFlatSpec with should.Matchers {
@@ -116,6 +117,12 @@ class FuzzSpec extends AnyFlatSpec with should.Matchers {
     val z: Number = xy.get
     val q: Option[String] = z.fuzz.map(f => f.toString(3.1415927))
     q should matchPattern { case Some("3.14159270[5]") => }
+  }
+  // TODO fix this (rounding is supposed to take care of this)
+  ignore should "work for 3.1416" in {
+    val target = Number("3.1416")
+    // TODO we must not get 3.141600000000000000000[49999999999999994]
+    target.toString shouldBe "3.14160[5]"
   }
 
   behavior of "parse"

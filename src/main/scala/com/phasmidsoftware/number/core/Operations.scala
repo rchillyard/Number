@@ -1,29 +1,11 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Number.forceIntoRange
-import com.phasmidsoftware.number.core.Operations.{DyadicFunctions, MonadicFunctions}
 import com.phasmidsoftware.number.misc.FP.{toTry, tryF}
 
 import scala.language.implicitConversions
 import scala.math.BigInt
+import scala.math.Ordered.orderingToOrdered
 import scala.util._
-
-/**
-  * This module is concerned with the generic operations for operating on Numbers.
-  *
-  * Most of the code is generic.
-  * Some of the code is specific to particular operations.
-  */
-object Operations {
-
-  type DyadicFunctions = ((Int, Int) => Try[Int], (BigInt, BigInt) => Try[BigInt], (Rational, Rational) => Try[Rational], (Double, Double) => Try[Double])
-
-  type MonadicFunctions = (Int => Try[Int], BigInt => Try[BigInt], Rational => Try[Rational], Double => Try[Double])
-
-  //  type MonadicTransformations = (Int => Try[Double], BigInt => Try[Double], Rational => Try[Double], Double => Try[Double])
-
-  type QueryFunctions = (Int => Try[Boolean], BigInt => Try[Boolean], Rational => Try[Boolean], Double => Try[Boolean])
-}
 
 /**
   * Definitions of MonadicOperations.
@@ -77,11 +59,28 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 }
 
 case object MonadicOperationModulate extends MonadicOperation {
+  private def forceIntoRange(z: Double, min: Double, max: Double): Double = {
+    // NOTE: using a var here!!
+    var result = z
+    while (result < min) result += (max - min)
+    while (result > max) result += (min - max)
+    result
+  }
+
+  private def forceIntoRange(z: Rational, min: Rational, max: Rational): Rational = {
+    // NOTE: using a var here!!
+    var result = z
+    while (result < min) result += (max - min)
+    while (result > max) result += (min - max)
+    result
+  }
+
   def getFunctions: MonadicFunctions = (
     tryF(z => math.floorMod(z, 2)),
-    _ => Failure(NumberException("Can't modulate on BigInt")),
-    _ => Failure(NumberException("Can't modulate on Rational")),
-    tryF(z => forceIntoRange(z, 0, 2)))
+    _ => Failure(NumberException("No need to modulate on BigInt")),
+    tryF(z => forceIntoRange(z, 0, 2)),
+    tryF(z => forceIntoRange(z, 0, 2))
+  )
 }
 
 case object MonadicOperationSqrt extends MonadicOperation {
