@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
-
 import scala.util.control.NonFatal
 
 /**
