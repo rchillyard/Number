@@ -117,6 +117,10 @@ class FuzzSpec extends AnyFlatSpec with should.Matchers {
     val q: Option[String] = z.fuzz.map(f => f.toString(3.1415927))
     q should matchPattern { case Some("3.14159270[5]") => }
   }
+  it should "work for 3.1416" in {
+    val target = Number("3.1416")
+    target.toString shouldBe "3.14160[5]"
+  }
 
   behavior of "parse"
   it should "work for 2.*" in {

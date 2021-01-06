@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.misc.FP.optionMap
+
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
@@ -72,20 +73,15 @@ case object Scalar extends Factor {
 }
 
 case object Pi extends NonScalarFactor {
-  override def value: Double = Math.PI
+  def value: Double = Math.PI
 
   override def toString: String = Factor.sPi
 }
 
-case object E extends Factor {
-  override def value: Double = Math.E
+case object E extends NonScalarFactor {
+  def value: Double = Math.E
 
-  override def toString: String = "e"
-
-  override def +(other: Factor): Factor = other match {
-    case Scalar => this
-    case _ => throw NumberException("cannot add non-Scalar factors together")
-  }
+  override def toString: String = Factor.sE
 }
 
 object Factor {
@@ -109,7 +105,7 @@ object Render {
 
   def renderRational(x: Rational): (String, Boolean) = (x.toString, true)
 
-  def renderDouble(x: Double): (String, Boolean) = (x.toString, true)
+  def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 
   def renderValue(v: Value): (String, Boolean) =
     optionMap[Either[Either[Option[Double], Rational], BigInt], Int, (String, Boolean)](v)(y => renderInt(y), x => optionMap[Either[Option[Double], Rational], BigInt, (String, Boolean)](x)(y => renderBigInt(y), x => optionMap[Option[Double], Rational, (String, Boolean)](x)(y => renderRational(y), {

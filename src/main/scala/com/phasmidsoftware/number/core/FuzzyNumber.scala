@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.core
 
+import scala.util.Left
+
 /**
   * This class is designed to model a fuzzy Number.
   * See Number for more details on the actual representation.
@@ -47,24 +49,32 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   override def sin: Number = FuzzyNumber.sin(this)
 
   /**
-    * Change the sign of this Number.
-    *
-    * NOTE: don't think we really need this, do we?
+    * @return true if this Number is equivalent to zero with at least 50% confidence.
     */
-  override lazy val unary_- : Number = FuzzyNumber.negate(this)
+  override lazy val isZero: Boolean = isProbablyZero(0.5)
 
   /**
-    * @return true if this Number is equivalent to zero.
+    * @param p the confidence desired.
+    * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  override lazy val isZero: Boolean = super.isZero || (for (f <- fuzz; x <- toDouble) yield f.normalizeShape.likely > math.abs(x)).getOrElse(false)
+  def isProbablyZero(p: Double): Boolean = super.isZero || (for (f <- fuzz; x <- toDouble) yield f.normalizeShape.likely(p) > math.abs(x)).getOrElse(false)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
-    * If this FuzzyNumber cannot be distinguished from zero, then
+    * If this FuzzyNumber cannot be distinguished from zero with better than evens confidence, then
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  override lazy val signum: Int = if (isZero) 0 else super.signum
+  override lazy val signum: Int = signum(0.5)
+
+  /**
+    * Method to determine the sense of this number: negative, zero, or positive.
+    * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
+    *
+    * @param p the confidence desired.
+    * @return an Int which is negative, zero, or positive according to the magnitude of this.
+    */
+  def signum(p: Double): Int = if (isProbablyZero(p)) 0 else super.signum
 
   /**
     * This method is invoked by power so do NOT invoke sqrt or power in implementations.
@@ -74,7 +84,15 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     *
     * @return a Number which is the square toot of this, possibly fuzzy, Number.
     */
-  def makeFuzzyIfAppropriate(f: Number => Number): Number = f(this)
+  def makeFuzzyIfAppropriate(f: Number => Number): Number = f(this).asInstanceOf[FuzzyNumber].addFuzz(RelativeFuzz[Double](DoublePrecisionTolerance, Box))
+
+  /**
+    * Make a copy of this FuzzyNumber but with additional fuzz given by f.
+    *
+    * @param f the additional fuzz.
+    * @return this but with fuzziness which is the convolution of fuzz and f.
+    */
+  def addFuzz(f: Fuzz[Double]): Number = FuzzyNumber.addFuzz(this, f)
 
   /**
     * Make a copy of this Number, but with different fuzziness.
@@ -153,13 +171,9 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
 object FuzzyNumber {
   def apply(): Number = Number.apply()
 
-  def sin(x: FuzzyNumber): Number = composeMonadic(x, MonadicOperationSin, x => math.cos(x), absolute = false)
+  def sin(x: FuzzyNumber): Number = composeMonadic(x.scale(Pi).asInstanceOf[FuzzyNumber], Scalar, MonadicOperationSin, x => math.cos(x), absolute = false)
 
-  def sqrt(x: FuzzyNumber): Number = composeMonadic(x, MonadicOperationSqrt, x => x / 2, absolute = false)
-
-  def negate(x: FuzzyNumber): Number = composeMonadic(x, MonadicOperationNegate, identity, absolute = false)
-
-  def scale(x: FuzzyNumber, c: Int): Number = composeMonadic(x, MonadicOperationScale(c), identity, absolute = false)
+  def sqrt(x: FuzzyNumber): Number = composeMonadic(x, Scalar, MonadicOperationSqrt, x => x / 2, absolute = false)
 
   private def plus(x: FuzzyNumber, y: Number): Number = {
     val (a, b) = x.alignFactors(y)
@@ -181,11 +195,21 @@ object FuzzyNumber {
     }
   }
 
+  private def addFuzz(n: Number, f: Fuzz[Double]): Number = (n.value, n.fuzz) match {
+    case (v@Left(Left(Left(Some(_)))), fo) => addFuzz(n, v, fo, f)
+    case _ => n
+  }
+
+  private def addFuzz(number: Number, v: Value, fo: Option[Fuzz[Double]], fAdditional: Fuzz[Double]) = {
+    val combinedFuzz = for (f <- fo; p <- number.toDouble; g <- Fuzz.combine(p, f.style, fo, fAdditional.normalize(p, f.style))) yield g
+    FuzzyNumber(v, number.factor, combinedFuzz)
+  }
+
   private def composeDyadic(n: FuzzyNumber, p: Number, q: Number, op: DyadicOperation, absolute: Boolean) =
     n.composeDyadicFuzzy(q, p.factor)(op, absolute).getOrElse(Number()).specialize
 
-  private def composeMonadic(n: FuzzyNumber, op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean) =
-    n.composeMonadicFuzzy(n.factor)(op, fuzzOp, absolute).getOrElse(Number()).specialize
+  private def composeMonadic(n: FuzzyNumber, factor: Factor, op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean) =
+    n.composeMonadicFuzzy(factor)(op, fuzzOp, absolute).getOrElse(Number()).specialize
 }
 
 case class FuzzyNumberException(str: String) extends Exception(str)
