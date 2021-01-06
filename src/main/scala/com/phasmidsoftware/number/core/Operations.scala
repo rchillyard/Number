@@ -59,6 +59,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 }
 
 case object MonadicOperationModulate extends MonadicOperation {
+  // CONSIDER combining these into something which works on Numeric values.
   private def forceIntoRange(z: Double, min: Double, max: Double): Double = {
     // NOTE: using a var here!!
     var result = z
@@ -84,7 +85,8 @@ case object MonadicOperationModulate extends MonadicOperation {
 }
 
 case object MonadicOperationSqrt extends MonadicOperation {
-  val sqrtInt: Int => Try[Int] = x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
+  val sqrtInt: Int => Try[Int] =
+    x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
 
   def getFunctions: MonadicFunctions =
     (sqrtInt, _ => Failure(NumberException("Can't sqrt on BigInt")), tryF(x => Rational.sqrt(x)), tryF(x => math.sqrt(x)))

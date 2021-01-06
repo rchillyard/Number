@@ -130,6 +130,14 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(x)
     r.toDouble shouldBe x +- epsilon
   }
+  it should "convert 3.1416 correctly" in {
+    val target = Rational(3.1416)
+    target shouldBe Rational(3927, 1250)
+  }
+  it should "convert 3.1416 the same as \"3.1416\"" in {
+    val target = Rational(3.1416)
+    target shouldBe Rational("3.1416") +- 1E-10
+  }
   it should "pick up a float" in {
     val target = Rational(1.5f)
     target shouldBe Rational(3, 2)
@@ -649,14 +657,17 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "approximateAny"
   it should "work for specific epsilon" in {
-    implicit val epsilon: Tolerance = Tolerance(1E-7)
+    implicit val epsilon: Tolerance = Tolerance(1E-7, BigInt(1000000000))
     Rational.approximateAny(Math.PI) shouldBe Rational(75948, 24175)
+  }
+  // NOTE: this test works but it is very slow. It should be checked from time to time.
+  ignore should "work for 3.1416n" in {
+    Rational.approximateAny(3.1416) shouldBe Rational(3141600355L, 1000000113)
   }
 
   behavior of "doubleToRational"
   it should "work" in {
     Rational.doubleToRational(1.0 / 2) shouldBe Rational.half
-    Rational.doubleToRational(-1.0 / 3) shouldBe Rational(-1, 3)
     Rational.doubleToRational(-5.0 / 4) shouldBe Rational(-5, 4)
     Rational.doubleToRational(Math.PI).toDouble shouldBe Math.PI +- 1E-15
     Rational.doubleToRational(6.02214076E23).toDouble shouldBe 6.02214076E23 +- 1E9

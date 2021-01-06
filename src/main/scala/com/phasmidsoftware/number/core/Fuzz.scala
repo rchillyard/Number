@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Fuzz.toDecimalPower
+
 import scala.math.Numeric.DoubleIsFractional
 import scala.math.Ordering
 import scala.util.Try
@@ -238,10 +240,14 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
   }
 
-  private def round(d: Double, i: Int) = math.round(d * math.pow(10, i)) * math.pow(10, -i)
-
-  private val numberR = """-?\d+\.\d+E([\-+]?\d+)""".r
-  private val noExponent = "+00"
+  /**
+    * Method to do accurate rounding of Double.
+    *
+    * @param x the double value to be rounded.
+    * @param n the number of places to be rounded to.
+    * @return the rounded value of x.
+    */
+  def round(x: Double, n: Int): Double = BigDecimal(BigDecimal(math.round(toDecimalPower(x, n)).toInt).bigDecimal.movePointLeft(n)).toDouble
 
   /**
     * Method to render this Fuzz according to the nominal value t.
@@ -249,7 +255,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     * CONSIDER cleaning this method up a bit.
     *
     * @param t a T value.
-    *  @return a String which is the textual rendering of t with this Fuzz applied.
+    * @return a String which is the textual rendering of t with this Fuzz applied.
     */
   def toString(t: T): String = {
     val eString = tv.render(t) match {
@@ -261,15 +267,16 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
       case `noExponent` => ""
       case x => s"E$x"
     }
-    val scaledM = tv.toDouble(magnitude) * math.pow(10, -exponent)
-    val roundedM = round(scaledM, 2 - math.log10(scaledM).toInt)
+    val scaledM = toDecimalPower(tv.toDouble(magnitude), -exponent)
+    val d = math.log10(scaledM).toInt
+    val roundedM = round(scaledM, 2 - d)
     //      if (scaledM > 0.01) // TODO let's do this unusual adjustment later
-    val scaledT = tv.scale(t, math.pow(10, -exponent))
+    val scaledT = tv.scale(t, toDecimalPower(1, -exponent))
     val q = f"$roundedM%.99f".substring(2) // drop the "0."
     val (qPrefix, qSuffix) = q.toCharArray.span(_ == '0')
     val (qPreSuffix, _) = qSuffix.span(_ != '0')
     val adjust = qPreSuffix.length - 2
-    val mScaledAndRounded = round(scaledM, qPrefix.length + 2 + adjust) * math.pow(10, qPrefix.length)
+    val mScaledAndRounded = toDecimalPower(round(scaledM, qPrefix.length + 2 + adjust), qPrefix.length)
     val yq = mScaledAndRounded.toString.substring(2).padTo(2 + adjust, '0').substring(0, 2 + adjust)
     val brackets = if (shape == Gaussian) "()" else "[]"
     // CONSIDER changing the padding "0" value to be "5".
@@ -298,6 +305,9 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     * False.
     */
   val style: Boolean = false
+
+  private val numberR = """-?\d+\.\d+E([\-+]?\d+)""".r
+  private val noExponent = "+00"
 }
 
 object Fuzz {
@@ -364,6 +374,16 @@ object Fuzz {
     }
     new String(r.toArray)
   }
+
+  /**
+    * Apply a decimal exponent of n to x and return the new value.
+    * CONSIDER using BigDecimal for more precision (see AbsoluteFuzz.round)
+    *
+    * @param x a Double.
+    * @param n the size of the exponent.
+    * @return the result.
+    */
+  def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
   private def normalizeFuzz[T: Valuable](t: T, relative: Boolean, f: Fuzz[T]) =
     f match {

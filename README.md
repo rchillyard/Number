@@ -41,6 +41,18 @@ Numbers followed by "(xx)" show standard scientific notation where xx represents
 with respect to the last two digits (sometimes there is only one x which corresponds to the last digit).
 If a Number is followed by "[xx]," this corresponds to a "box" (i.e. truncated uniform) error distribution.
 
+Comparison
+==========
+Comparison between _Numbers_ is based on, first, equality of value.
+If, after any scaling for the factors is taken into account, the two values compare equal, then the Numbers are equal.
+For _ExactNumber_, comparison ends there.
+However, for _FuzzyNumber_, it is then determined whether there is significant overlap
+between the fuzz of the two numbers.
+If the overlap is sufficient that there is demmed a 50% probability that the numbers are really the same,
+then the comparison yields 0 (equal).
+Additionally, each of the methods involved has a signature which includes a p value (the confidence probability).
+These features were introduced in V1.0.1 but not documented until V1.0.2.
+  
 Representation
 ==============
 There are two kinds of _Number_: _ExactNumber_ and _FuzzyNumber_.
@@ -55,7 +67,14 @@ Thus, an integer which is in range will always be represented by _Right(Int)_.
 
 Versions
 ========
-Current version is 1.0.1
+Current version is 1.0.2
+
+Version 1.0.1 Fixed many issues with minor inconsistencies.
+Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_.
+Each of these has, significantly, a signature with a confidence value (the default value is 0.5).
+
+**However**, there remains a particularly serious bug which causes a deadlock situation in the runtime (who knew that was even possible?).
+
 Initial version is 1.0.0
 
 Future Upgrades

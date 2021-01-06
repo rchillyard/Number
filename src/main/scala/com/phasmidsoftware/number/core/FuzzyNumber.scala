@@ -84,17 +84,15 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     *
     * @return a Number which is the square toot of this, possibly fuzzy, Number.
     */
-  def makeFuzzyIfAppropriate(f: Number => Number): Number = {
-    def doublePrecisionFuzz: RelativeFuzz[Double] = RelativeFuzz[Double](DoublePrecisionTolerance, Box)
+  def makeFuzzyIfAppropriate(f: Number => Number): Number = f(this).asInstanceOf[FuzzyNumber].addFuzz(RelativeFuzz[Double](DoublePrecisionTolerance, Box))
 
-    val z: Number = f(this)
-    (z.value, z.fuzz) match {
-      case (v@Left(Left(Left(Some(_)))), fo) =>
-        val q = for (f <- fo; p <- z.toDouble; g <- Fuzz.combine(p, f.style, fo, doublePrecisionFuzz.normalize(p, f.style))) yield g
-        FuzzyNumber(v, z.factor, q)
-      case _ => z
-    }
-  }
+  /**
+    * Make a copy of this FuzzyNumber but with additional fuzz given by f.
+    *
+    * @param f the additional fuzz.
+    * @return this but with fuzziness which is the convolution of fuzz and f.
+    */
+  def addFuzz(f: Fuzz[Double]): Number = FuzzyNumber.addFuzz(this, f)
 
   /**
     * Make a copy of this Number, but with different fuzziness.
@@ -195,6 +193,16 @@ object FuzzyNumber {
       case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationTimes, absolute = false)
       case (_, _) => p * q
     }
+  }
+
+  private def addFuzz(n: Number, f: Fuzz[Double]): Number = (n.value, n.fuzz) match {
+    case (v@Left(Left(Left(Some(_)))), fo) => addFuzz(n, v, fo, f)
+    case _ => n
+  }
+
+  private def addFuzz(number: Number, v: Value, fo: Option[Fuzz[Double]], fAdditional: Fuzz[Double]) = {
+    val combinedFuzz = for (f <- fo; p <- number.toDouble; g <- Fuzz.combine(p, f.style, fo, fAdditional.normalize(p, f.style))) yield g
+    FuzzyNumber(v, number.factor, combinedFuzz)
   }
 
   private def composeDyadic(n: FuzzyNumber, p: Number, q: Number, op: DyadicOperation, absolute: Boolean) =

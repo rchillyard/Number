@@ -159,10 +159,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number("3.1415927")
     target.value shouldBe Left(Left(Right(Rational(31415927, 10000000))))
   }
-  // FIXME serious error here
-  ignore should "work for 3.1416" in {
+  it should "work for 3.1416" in {
     val target = Number(3.1416)
-    target.value shouldBe Number(0, Scalar)
+    target shouldEqual Number(Rational(3927, 1250))
   }
   it should """work for "\uD835\uDED1""""" in {
     val target = Number("\uD835\uDED1")
@@ -181,9 +180,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(Rational(1, 2))
     target.value shouldBe Left(Left(Right(Rational(1, 2))))
   }
-  it should "work for pi" in {
+  it should "work for math.pi" in {
     val target = Number(Math.PI)
-    target.value shouldBe Left(Left(Left(Some(Math.PI))))
+    target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
   }
   it should "work for nothing" in {
     val target = Number()
@@ -195,11 +194,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for 3.1415927" in {
     val target = Number(3.1415927)
-    target.value shouldBe Left(Left(Left(Some(3.1415927))))
+    target shouldEqual Number(Rational(31415927, 10000000))
   }
   it should """work for 3.1415926535897932384626433""" in {
     val target = Number(3.1415926535897932384626433)
-    target.value shouldBe Left(Left(Left(Some(3.1415926535897932384626433))))
+    target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
   }
   it should "work for 0.5" in {
     val target = Number(0.5)
@@ -236,10 +235,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(doubleOne)
     target.specialize.value shouldBe Right(1)
   }
-  it should "work for pi" in {
-    val target = Number(Math.PI)
-    target.specialize.value shouldBe Left(Left(Left(Some(Math.PI))))
-  }
   it should "work for nothing" in {
     val target = Number()
     target.specialize.value shouldBe Left(Left(Left(None)))
@@ -256,9 +251,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for Scalar, Pi" in {
     val target = numberOne
-    val actual = target.scale(Pi)
-    val expected = Number(1 / Math.PI, Pi)
-    actual should ===(expected)
+    target.scale(Pi) should ===(Number(1 / Math.PI, Pi))
   }
   it should "work for Pi, Scalar" in {
     val target = Number(1, Pi)
@@ -286,12 +279,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = numberOne
     target.alignFactors(Number(2)) shouldBe(numberOne, Number(2))
   }
-  // NOTE: can't really expect this to work
-  ignore should "work for Scalar, Pi" in {
+  it should "work for Scalar, Pi" in {
     val target = numberOne
-    target.alignFactors(Number(2, Pi)) shouldBe(numberOne, Number(2 * Math.PI))
+    val (p, q) = target.alignFactors(Number(2, Pi))
+    p shouldBe numberOne
+    q shouldEqual Number(2 * Math.PI)
   }
-  // NOTE: can't really expect this to work
   ignore should "work for Pi, Scalar" in {
     val target = Number(2, Pi)
     target.alignFactors(numberOne) shouldBe(Number(2 * Math.PI), numberOne)
@@ -566,7 +559,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "divide Double 1 by Double Pi" in {
     val x = Number(doubleOne)
     val y = Number(Math.PI)
-    (x / y) should ===(Number(1 / Math.PI))
+    x / y should ===(Number(1 / Math.PI))
   }
 
   behavior of "**"
@@ -582,7 +575,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     Number(9).sqrt shouldBe Number(3)
   }
   it should "work for BigInt" in {
-    Number(bigBigInt).sqrt should ===(Number(46340.95001184157))
+    Number(bigBigInt).sqrt should ===(Number(Rational(2317047500592079L, 50000000000L)))
   }
   it should "work for easy Rational" in {
     Number(Rational(9, 4)).sqrt shouldBe Number(Rational(3, 2))
@@ -609,8 +602,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for Pi/3" in {
     val target = Number(Rational(1, 3), Pi)
     val sin = target.sin
-    val expected = Number(3).sqrt / 2
-    sin should ===(expected)
+    sin should ===(Number(3).sqrt / 2)
   }
 
   behavior of "cos"
@@ -632,8 +624,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for Pi/6" in {
     val target = Number.pi / 6
-    val expected = Number(3).sqrt / 2
-    target.cos should ===(expected)
+    target.cos should ===(Number(3).sqrt / 2)
   }
 
   behavior of "tan"
@@ -655,8 +646,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for Pi/6" in {
     val target = Number.pi / 6
-    val expected = Number(3).sqrt.invert
-    target.tan should ===(expected)
+    target.tan should ===(Number(3).sqrt.invert)
   }
 
   behavior of "atan"
