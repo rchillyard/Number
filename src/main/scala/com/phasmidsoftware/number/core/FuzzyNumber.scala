@@ -40,7 +40,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the addend.
     * @return the sum.
     */
-  override def +(x: Number): Number = FuzzyNumber.plus(this, x)
+  override def add(x: Number): Number = FuzzyNumber.plus(this, x)
 
   /**
     * Multiply a Number by this FuzzyNumber.
@@ -195,7 +195,7 @@ object FuzzyNumber {
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, p, q, DyadicOperationPlus, absolute = true)
       case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationPlus, absolute = true)
-      case (_, _) => p + q
+      case (_, _) => p add q
     }
   }
 

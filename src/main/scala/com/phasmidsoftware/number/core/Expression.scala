@@ -36,6 +36,39 @@ object Expression {
       * @param y another Number.
       * @return an Expression which is the lazy product of x and y.
       */
+    def +(y: Number): Expression = Sum(x, y)
+
+    /**
+      * Method to lazily multiply the Number x by y.
+      *
+      * @param y another Number.
+      * @return an Expression which is the lazy product of x and y.
+      */
+    def +(y: Int): Expression = this.+(Number(y))
+
+    /**
+      * Method to lazily subtract the Number y from x.
+      * TODO replace negate by lazy expression
+      *
+      * @param y another Number.
+      * @return an Expression which is the lazy product of x and y.
+      */
+    def -(y: Number): Expression = Sum(x, -y)
+
+    /**
+      * Method to lazily subtract the Number y from x.
+      *
+      * @param y another Number.
+      * @return an Expression which is the lazy product of x and y.
+      */
+    def -(y: Int): Expression = this.-(Number(y))
+
+    /**
+      * Method to lazily multiply the Number x by y.
+      *
+      * @param y another Number.
+      * @return an Expression which is the lazy product of x and y.
+      */
     def *(y: Number): Expression = Product(x, y)
 
     /**
@@ -80,7 +113,7 @@ case class Sum(a: Expression, b: Expression) extends Expression {
     *
     * @return the materialized Number.
     */
-  def materialize: Number = a.materialize + b.materialize
+  def materialize: Number = a.materialize add b.materialize
 
   /**
     * Action to materialize this Expression and render it as a String.

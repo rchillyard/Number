@@ -156,20 +156,22 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   /**
     * Add x to this Number and return the result.
     * See Number.plus for more detail.
+    * CONSIDER inlining this method.
     *
     * @param x the addend.
     * @return the sum.
     */
-  def +(x: Number): Number = Number.plus(this, x)
+  def add(x: Number): Number = Number.plus(this, x)
 
   /**
     * Subtract x from this Number and return the result.
     * See + and unary_ for more detail.
+    * CONSIDER inlining this method.
     *
     * @param x the subtrahend.
     * @return the difference.
     */
-  def -(x: Number): Number = this + -x
+  def subtract(x: Number): Number = this add -x
 
   /**
     * Change the sign of this Number.
@@ -249,7 +251,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     *
     * @return the cosine.
     */
-  def cos: Number = negate(scale(Pi) - Number(Rational.half, Pi)).sin
+  def cos: Number = negate(scale(Pi) subtract Number(Rational.half, Pi)).sin
 
   /**
     * The tangent of this Number.
@@ -1066,7 +1068,7 @@ object Number {
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering
 
   private def plus(x: Number, y: Number): Number = y match {
-    case n@FuzzyNumber(_, _, _) => n + x
+    case n@FuzzyNumber(_, _, _) => n add x
     case _ =>
       val (a, b) = x.alignFactors(y)
       val (p, q) = a.alignTypes(b)

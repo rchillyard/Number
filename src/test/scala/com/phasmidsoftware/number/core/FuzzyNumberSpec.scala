@@ -70,7 +70,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
     val y = Number(2)
-    val z = x + y
+    val z = x add y
     z.value shouldBe Right(3)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case None => }
@@ -78,7 +78,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1.* and 2" in {
     val xy: Try[Number] = Number.parse("1.*")
     val yy = Success(Number(2))
-    val zy = for (x <- xy; y <- yy) yield x + y
+    val zy = for (x <- xy; y <- yy) yield x add y
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar
@@ -87,7 +87,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 and 2.*" in {
     val xy = Number.parse("2.*")
     val yy = Success(Number(1))
-    val zy = for (x <- xy; y <- yy) yield y + x
+    val zy = for (x <- xy; y <- yy) yield y add x
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar
@@ -99,7 +99,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     xy.get.fuzz.get.normalizeShape should matchPattern { case AbsoluteFuzz(0.2886751345948129, Gaussian) => }
     val yy = Number.parse("2.*")
     yy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
-    val zy = for (x <- xy; y <- yy) yield x + y
+    val zy = for (x <- xy; y <- yy) yield x add y
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar

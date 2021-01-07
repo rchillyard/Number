@@ -429,37 +429,37 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 and 2" in {
     val x = numberOne
     val y = Number(2)
-    (x + y) shouldBe Number(3)
+    (x add y) shouldBe Number(3)
   }
   it should "add BigInt 1 and 2" in {
     val x = Number(bigOne)
     val y = Number(2)
-    (x + y) shouldBe Number(3)
+    (x add y) shouldBe Number(3)
   }
   it should "add Rational 1 and 2" in {
     val x = Number(ratOne)
     val y = Number(2)
-    (x + y) shouldBe Number(3)
+    (x add y) shouldBe Number(3)
   }
   it should "add Double 1 and 2" in {
     val x = Number(doubleOne)
     val y = Number(2)
-    (x + y) shouldBe Number(3)
+    (x add y) shouldBe Number(3)
   }
   it should "add Double 1 and Pi" in {
     val x = Number(doubleOne)
     val y = Number(1, Pi)
-    (x + y) should ===(Number(Math.PI + 1))
+    (x add y) should ===(Number(Math.PI + 1))
   }
   it should "add Pi and 2Pi" in {
     val x = Number(1, Pi)
     val y = Number(2, Pi)
-    (x + y) shouldBe Number(3, Pi)
+    (x add y) shouldBe Number(3, Pi)
   }
   it should "add 1 to pi" in {
     val x1 = Number.one
     val x2 = Number.pi
-    (x1 + x2).toString shouldBe "4.1415926535897930(61)"
+    (x1 add x2).toString shouldBe "4.1415926535897930(61)"
   }
 
 
@@ -485,22 +485,22 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "subtract 1 from 2" in {
     val x = Number(2)
     val y = numberOne
-    (x - y) shouldBe numberOne
+    (x subtract y) shouldBe numberOne
   }
   it should "subtract BigInt 1 from 2" in {
     val x = Number(BigInt(2))
     val y = numberOne
-    (x - y) shouldBe numberOne
+    (x subtract y) shouldBe numberOne
   }
   it should "subtract Rational 1 from 2" in {
     val x = Number(Rational(2))
     val y = numberOne
-    (x - y) shouldBe numberOne
+    (x subtract y) shouldBe numberOne
   }
   it should "subtract Double 1 from 2" in {
     val x = Number(2.0)
     val y = numberOne
-    (x - y) shouldBe numberOne
+    (x subtract y) shouldBe numberOne
   }
 
   behavior of "times"
