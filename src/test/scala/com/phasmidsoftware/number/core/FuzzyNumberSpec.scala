@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -110,7 +111,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "multiply 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
     val y = Number(2)
-    val z = x * y
+    val z = (x * y).materialize
     z.value shouldBe Right(2)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case None => }
@@ -120,18 +121,20 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val yy = Success(Number(2))
     val zy = for (x <- xy; y <- yy) yield x * y
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(2)
-    zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
+    val result = zy.get.materialize
+    result.value shouldBe Right(2)
+    result.factor shouldBe Scalar
+    result.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
   }
   it should "multiply 1 and 2.*" in {
     val xy = Number.parse("2.*")
     val yy = Success(Number(1))
     val zy = for (x <- xy; y <- yy) yield x * y
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(2)
-    zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
+    val result = zy.get.materialize
+    result.value shouldBe Right(2)
+    result.factor shouldBe Scalar
+    result.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
   }
   it should "multiply 1.* and 2.*" in {
     val xy: Try[Number] = Number.parse("1.*")
@@ -140,9 +143,10 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     yy.get.fuzz.get.normalizeShape.normalize(2, relative = true) should matchPattern { case Some(RelativeFuzz(0.14433756729740646, Gaussian)) => }
     val zy = for (x <- xy; y <- yy) yield x * y
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(2)
-    zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Gaussian)) => }
+    val result = zy.get.materialize
+    result.value shouldBe Right(2)
+    result.factor shouldBe Scalar
+    result.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Gaussian)) => }
   }
 
   behavior of "-"

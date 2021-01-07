@@ -71,6 +71,20 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   def signum(p: Double): Int = signum
+
+  /**
+    * Action to render this ExactNumber as a String.
+    *
+    * @return a String.
+    */
+  def render: String = toString
+
+  /**
+    * Action to materialize this Expression.
+    *
+    * @return this ExactNumber.
+    */
+  def materialize: Number = this
 }
 
 /**
@@ -82,7 +96,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
-abstract class Number(val value: Value, val factor: Factor) extends Ordered[Number] {
+abstract class Number(val value: Value, val factor: Factor) extends Expression with Ordered[Number] {
 
   self =>
 
@@ -163,38 +177,42 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
   lazy val unary_- : Number = Number.negate(this)
 
   /**
-    * Multiply this Number by an Int.
-    *
-    * @param x the scale factor (an Int).
-    * @return this * x.
-    */
-  def *(x: Int): Number = Number.scale(this, x)
-
-  /**
     * Multiply this Number by x and return the result.
     * See Number.times for more detail.
+    * CONSIDER inlining this method.
     *
     * * @param x the multiplicand.
     * * @return the product.
     */
-  def *(x: Number): Number = Number.times(this, x)
+  def multiply(x: Number): Number = Number.times(this, x)
+
+  /**
+    * Eagerly multiply this Number by an Int.
+    * CONSIDER inlining this method.
+    *
+    * @param x the scale factor (an Int).
+    * @return this * x.
+    */
+  def multiply(x: Int): Number = Number.scale(this, x)
 
   /**
     * Divide this Number by x and return the result.
     * See * and invert for more detail.
+    * CONSIDER inlining this method.
     *
     * @param x the divisor.
     * @return the quotient.
     */
-  def /(x: Number): Number = this * x.invert
+  def divide(x: Number): Number = this multiply x.invert
 
   /**
     * Divide this Number by a scalar x and return the result.
+    * CONSIDER inlining this method.
     *
     * @param x the divisor (an Int).
     * @return the quotient.
     */
-  def /(x: Int): Number = this / Number(x)
+  def divide(x: Int): Number = this divide Number(x)
 
   /**
     * Raise this Number to the power p.
@@ -238,7 +256,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
     *
     * @return the tangent.
     */
-  def tan: Number = sin / cos
+  def tan: Number = sin divide cos
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -295,7 +313,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
   override def compare(other: Number): Int = Number.compare(this, other)
 
   /**
-    * Peform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
+    * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
     *
     * @param other the Number to be compared with.
     * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
@@ -504,7 +522,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
       r.toBigDecimal.scale match {
         case 0 | 1 | 2 => makeNumber(r).specialize
           // CONSIDER in following line adding fuzz only if this Number is exact.
-        case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzz.toDecimalPower(5, n), Box))
+        case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzz.toDecimalPower(5, -n), Box))
       }
     // Invalid case
     case _ => this
@@ -1057,7 +1075,7 @@ object Number {
 
   private def times(x: Number, y: Number): Number =
     y match {
-      case n@FuzzyNumber(_, _, _) => n * x
+      case n@FuzzyNumber(_, _, _) => n multiply x
       case _ =>
         val (p, q) = x.alignTypes(y)
         val factor = p.factor + q.factor
@@ -1124,7 +1142,7 @@ object Number {
 
   private def sin(x: Number): Number = x.scale(Pi).composeMonadic(Scalar)(MonadicOperationSin).getOrElse(Number()).specialize
 
-  private def atan(x: Number, y: Number): Number = (y / x).composeMonadic(Pi)(MonadicOperationAtan(x.signum)).getOrElse(Number()).specialize.modulate
+  private def atan(x: Number, y: Number): Number = (y divide x).composeMonadic(Pi)(MonadicOperationAtan(x.signum)).getOrElse(Number()).specialize.modulate
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.

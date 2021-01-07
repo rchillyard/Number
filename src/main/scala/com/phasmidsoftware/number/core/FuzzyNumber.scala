@@ -13,6 +13,20 @@ import scala.util.Left
 case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzz[Double]]) extends Number(value, factor) with Fuzzy[Double] {
 
   /**
+    * Action to render this ExactNumber as a String.
+    *
+    * @return a String.
+    */
+  def render: String = toString
+
+  /**
+    * Action to materialize this Expression.
+    *
+    * @return this ExactNumber.
+    */
+  def materialize: Number = this
+
+  /**
     * Auxiliary constructor for an exact number.
     *
     * @param v    the value for the new Number.
@@ -34,7 +48,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the multiplicand.
     * @return the product.
     */
-  override def *(x: Number): Number = FuzzyNumber.times(this, x)
+  override def multiply(x: Number): Number = FuzzyNumber.times(this, x)
 
   /**
     * Yields the square root of this FuzzyNumber.
@@ -191,7 +205,7 @@ object FuzzyNumber {
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, p, q, DyadicOperationTimes, absolute = false)
       case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationTimes, absolute = false)
-      case (_, _) => p * q
+      case (_, _) => p multiply q
     }
   }
 
