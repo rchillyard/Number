@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/rchillyard/Number.svg?style=svg)](https://circleci.com/gh/rchillyard/Number)
+
+
 # Number
 This project is about numbers and their mathematics
 
