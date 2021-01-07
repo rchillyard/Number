@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -202,11 +203,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 0.5" in {
     val target = Number(0.5)
     target.value shouldBe Left(Left(Right(Rational(1, 2))))
-  }
-  it should "support exact strings" in {
-    val target = Number("3.141592700")
-    target should matchPattern { case ExactNumber(_, _) => }
-    target.value shouldBe Left(Left(Right(Rational(31415927, 10000000))))
   }
 
   behavior of "normalize"
@@ -593,10 +589,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 0" in {
     val target = Number(0, Pi)
     target.sin shouldBe Number(0, Scalar)
-  }
-  it should "be one for pi/2" in {
-    val target = (Number.pi / 2).sin
-    target shouldBe Number.one
   }
   it should "work for Pi/2" in {
     val target = Number(Rational.half, Pi)
