@@ -586,7 +586,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "**"
   it should "work for 2**2" in {
     val target = Number(2)
-    target ^ 2 shouldBe Number(4)
+    target power 2 shouldBe Number(4)
   }
 
   behavior of "sqrt"
