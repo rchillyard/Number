@@ -108,6 +108,13 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   def this(v: Value) = this(v, Scalar)
 
   /**
+    * Numbers cannot (for now) be simplified.
+    *
+    * @return this.
+    */
+  def simplify: Expression = this
+
+  /**
     * Method to determine if this is a valid Number.
     * An invalid number is of the has a value of form Left(Left(Left(None)))
     *
@@ -156,20 +163,22 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   /**
     * Add x to this Number and return the result.
     * See Number.plus for more detail.
+    * CONSIDER inlining this method.
     *
     * @param x the addend.
     * @return the sum.
     */
-  def +(x: Number): Number = Number.plus(this, x)
+  def add(x: Number): Number = Number.plus(this, x)
 
   /**
     * Subtract x from this Number and return the result.
     * See + and unary_ for more detail.
+    * CONSIDER inlining this method.
     *
     * @param x the subtrahend.
     * @return the difference.
     */
-  def -(x: Number): Number = this + -x
+  def subtract(x: Number): Number = this add -x
 
   /**
     * Change the sign of this Number.
@@ -216,11 +225,21 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
 
   /**
     * Raise this Number to the power p.
+    * CONSIDER inlining this method.
+    *
+    * @param p a Number.
+    * @return this Number raised to power p.
+    */
+  def power(p: Number): Number = Number.power(this, p)
+
+  /**
+    * Raise this Number to the power p.
+    * CONSIDER inlining this method.
     *
     * @param p an integer.
     * @return this Number raised to power p.
     */
-  def ^(p: Rational): Number = Number.power(this, p)
+  def power(p: Int): Number = Number.power(this, p)
 
   /**
     * Yields the inverse of this Number.
@@ -233,7 +252,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * Yields the square root of this Number.
     * If possible, the result will be exact.
     */
-  def sqrt: Number = Number.power(this, r"1/2")
+  def sqrt: Number = Number.power(this, Number(r"1/2"))
 
   /**
     * Method to determine the sine of this Number.
@@ -249,7 +268,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     *
     * @return the cosine.
     */
-  def cos: Number = negate(scale(Pi) - Number(Rational.half, Pi)).sin
+  def cos: Number = negate(scale(Pi) subtract Number(Rational.half, Pi)).sin
 
   /**
     * The tangent of this Number.
@@ -1066,7 +1085,7 @@ object Number {
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering
 
   private def plus(x: Number, y: Number): Number = y match {
-    case n@FuzzyNumber(_, _, _) => n + x
+    case n@FuzzyNumber(_, _, _) => n add x
     case _ =>
       val (a, b) = x.alignFactors(y)
       val (p, q) = a.alignTypes(b)
@@ -1085,14 +1104,31 @@ object Number {
   // TODO wrap this (and all the others)
   private def sqrt(n: Number): Number = n.scale(Scalar).composeMonadic(Scalar)(MonadicOperationSqrt).getOrElse(Number()).specialize
 
-  private def power(n: Number, y: Rational): Number = y match {
-    case r if r.isZero => Number(1)
-    case r if r.isWhole => r.toInt match {
-      case x if x > 0 => LazyList.continually(n).take(x).product
-      case x => LazyList.continually(inverse(n)).take(-x).product
+  // CONSIDER dealing with non-Scalar x values up-front
+  private def power(x: Number, y: Number): Number = y.normalize.toInt match {
+    case Some(i) => power(x, i)
+    case _ => y.toRational match {
+      // TODO this may lose precision
+      case Some(Rational(n, d)) =>
+        root(power(x, n.toInt), d.toInt) match {
+          case Some(q) => q
+          case None => y.toDouble map x.makeNumber getOrElse Number()
+        }
+      case None => y.toDouble match {
+        case Some(d) => power(x, d)
+        case _ => throw NumberException("invalid power")
+      }
     }
-    case r if r.n == 1 && r.d == 2 => n.makeFuzzyIfAppropriate(Number.sqrt)
-    case r => Number.power(n, r.toDouble)
+  }
+
+  private def power(n: Number, i: Int) = i match {
+    case x if x > 0 => LazyList.continually(n).take(x).product
+    case x => LazyList.continually(inverse(n)).take(-x).product
+  }
+
+  private def root(n: Number, i: Int): Option[Number] = i match {
+    case 2 => Some(n.makeFuzzyIfAppropriate(Number.sqrt))
+    case _ => None
   }
 
   private def power(n: Number, y: Double): Number = n.toDouble.map(x => math.pow(x, y)).map(n.makeNumber).getOrElse(Number())
@@ -1108,7 +1144,7 @@ object Number {
 
   def negate(x: Number): Number = x.composeMonadic(x.factor)(MonadicOperationNegate).getOrElse(Number())
 
-  private def inverse(x: Number): Number = {
+  def inverse(x: Number): Number = {
     // CONSIDER use composeMonadic
     val maybeNumber = x.value match {
       // First we take care of the special cases
