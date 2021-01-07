@@ -109,8 +109,8 @@ Versions
 The Current version is 1.0.3
 This version implements lazy evaluation.
 
-Version 1.0.2 Was more of similar changes, including fixing the bug of 1.0.1 and implementing, inter alia,
-the :/ operator for Rational.
+Version 1.0.2 Included fixing the bug mentioned in 1.0.1 (actually a Rational bug), as well as adding the :/ operator
+and many other fixes/features.
 
 Version 1.0.1 Fixed many issues with minor inconsistencies.
 Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_.
