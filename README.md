@@ -31,10 +31,36 @@ In general, the form of a number to be parsed is:
     fuzz ::= "..." | "*" | "(" digits ")"
     exponent ::= E sign? digits
 
-Note that the e and pi symbols are, respectively, (in unicode):   \uD835\uDF00 and \uD835\uDED1
+Note that the __e__ and __pi__ symbols are, respectively,
+(in unicode):   \uD835\uDF00 and \uD835\uDED1 (&#xD835;&#xDF00; and &#xD835;&#xDED1;)  
 A number must have at least one of the value or factor components.
 If no explicit factor is specified, then the number will be a _Scalar_ (an ordinary number).
 If you want to get exact trigonometric values, then it's important to specify the factor as pi (or e).
+
+Number creation
+===============
+Parsing, described above is really the most precise way of specifying numerical values.
+But, of course, it's a lot easier to write code that uses numerical literals.
+For _Int_ and _Long_, these give us no problems, of course.
+Neither is there any issue with _Rational_, _BigDecimal_, and _BigInt_.
+_BigDecimal_ values are represented internally by _Rational_.
+There are two ways to specify _Rational_ numbers:
+
+* one is to create a _String_ of the form r"n/d" where n and d represent the numerator and the denominator;
+* the other way is simply to write n:/d (again n and d are as above).
+
+Either of these methods will require importing the appropriate implicit classes from _Rational_.
+It's probably the simplest just to include:
+
+    import Rational._
+
+_Doubles_ are where the trickiest conversions apply.
+Writing something like _Number(3.1415927)_ will result in a _FuzzyNumber_ with error bounds of 5 * 10^-7.
+To be consistent with the _String_ representation, _Number(1.25)_ will result in an _ExactNumber_ represented internally
+by a _Rational_ of 5/4.
+However, if you want to force a number like 3.1415927 to be exact, then you will need to write
+
+    Number("3.141592700")
 
 Rendering
 =========
@@ -51,10 +77,9 @@ If, after any scaling for the factors is taken into account, the two values comp
 For _ExactNumber_, comparison ends there.
 However, for _FuzzyNumber_, it is then determined whether there is significant overlap
 between the fuzz of the two numbers.
-If the overlap is sufficient that there is demmed a 50% probability that the numbers are really the same,
+If the overlap is sufficient that there is deemed to be a 50% probability that the numbers are really the same,
 then the comparison yields 0 (equal).
 Additionally, each of the methods involved has a signature which includes a p value (the confidence probability).
-These features were introduced in V1.0.1 but not documented until V1.0.2.
   
 Representation
 ==============
@@ -67,10 +92,23 @@ The "value" of a _Number_ is represented by the following type:
 This _Value_ is always of the rightmost type possible.
 Thus, an integer which is in range will always be represented by _Right(Int)_.
 
+Factors
+=======
+There are three "factors:" Scalar (for ordinary dimensionless numbers), __Pi__ (used to represent radians or any multiple of pi),
+and __E__ (for multiples of the Euler constant).
+Trigonometrical functions are designed to work with __Pi__.
+For example, if you want to check that the sine of pi/2 is equal to 1 exactly, then you should write the following:
+
+    val target = (Number.pi/2).sin
+    target shouldBe Number.one
+
+Similarly, if you use the _atan_ method on a Scalar number, the result will be a number (possibly exact) whose factor is __Pi__.
 
 Versions
 ========
-Current version is 1.0.2
+The Current version is 1.0.3
+
+Version 1.0.2 Was more of similar changes.
 
 Version 1.0.1 Fixed many issues with minor inconsistencies.
 Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_.

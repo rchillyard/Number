@@ -1,10 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import java.lang.Math._
-
 import com.phasmidsoftware.number.core.Rational.bigZero
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-
+import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.control.NonFatal
@@ -137,6 +135,51 @@ case class Rational(n: BigInt, d: BigInt) {
 object Rational {
 
   /**
+    * Implicit class RationalOps to allow definition and use of the division operator.
+    * We cannot just use "/" as that will bind to Int and result in 0.
+    * Therefore, we use the special ":/" operator which will work as long as RationalOps is imported.
+    *
+    * @param numerator an Int
+    */
+  implicit class RationalOps(numerator: Int) {
+    /**
+      * Method to define a Rational.
+      *
+      * @param denominator the denominator of the Rational. Any Int will be implicitly converted to a Long.
+      * @return the Rational whose value is x/y
+      */
+    def :/(denominator: Long): Rational = Rational(numerator, denominator)
+  }
+
+  /**
+    * Implicit class RationalHelper to allow definition of Rationals by Strings of the form r"n/d".
+    *
+    * @param sc a StringContext.
+    */
+  implicit class RationalHelper(val sc: StringContext) extends AnyVal {
+    def r(args: Any*): Rational = {
+      val strings = sc.parts.iterator
+      val expressions = args.iterator
+      val sb = new StringBuffer()
+      while (strings.hasNext) {
+        val s = strings.next
+        if (s.isEmpty) {
+          if (expressions.hasNext)
+            sb.append(expressions.next)
+          else
+            throw RationalException("r: logic error: missing expression")
+        }
+        else
+          sb.append(s)
+      }
+      if (expressions.hasNext)
+        throw RationalException(s"r: ignored: ${expressions.next}")
+      else
+        Rational(sb.toString)
+    }
+  }
+
+  /**
     * Method to approximate an irrational number as a Rational.
     * Application code should always call this method or, preferably, Rational.apply(Double).
     *
@@ -183,29 +226,6 @@ object Rational {
       }
 
     inner(Rational.zero, Rational.one)
-  }
-
-  implicit class RationalHelper(val sc: StringContext) extends AnyVal {
-    def r(args: Any*): Rational = {
-      val strings = sc.parts.iterator
-      val expressions = args.iterator
-      val sb = new StringBuffer()
-      while (strings.hasNext) {
-        val s = strings.next
-        if (s.isEmpty) {
-          if (expressions.hasNext)
-            sb.append(expressions.next)
-          else
-            throw RationalException("r: logic error: missing expression")
-        }
-        else
-          sb.append(s)
-      }
-      if (expressions.hasNext)
-        throw RationalException(s"r: ignored: ${expressions.next}")
-      else
-        Rational(sb.toString)
-    }
   }
 
   val bigZero: BigInt = BigInt(0)
