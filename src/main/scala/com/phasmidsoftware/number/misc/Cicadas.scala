@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.misc
 
 /**
   * Periodic Cicadas: https://en.wikipedia.org/wiki/Periodical_cicadas

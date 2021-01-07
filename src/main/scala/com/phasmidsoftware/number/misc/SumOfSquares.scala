@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.misc
 
 import scala.language.postfixOps
 

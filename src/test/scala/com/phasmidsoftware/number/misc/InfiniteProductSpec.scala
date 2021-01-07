@@ -1,6 +1,7 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.misc
 
-import Rational.RationalHelper
+import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

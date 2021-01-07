@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.model.Fuzzy
-
+import com.phasmidsoftware.number.misc.Fuzzy
 import scala.util.parsing.combinator._
 
 /**

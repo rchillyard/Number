@@ -1,5 +1,6 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.misc
 
+import com.phasmidsoftware.number.core.Rational
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 
@@ -39,7 +40,7 @@ class LazyFunctionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     doubleHalf.apply(Rational.one) shouldBe Rational.one
   }
 
-  ignore should "form Identity when complementary functions provided" in {
+  it should "form Identity when complementary functions provided" in {
     val doubleHalf = double.compose(half)
     doubleHalf shouldBe Identity[Rational]()
   }

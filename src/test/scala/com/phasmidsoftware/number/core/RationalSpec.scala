@@ -1,9 +1,8 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.core
 
-import Rational.RationalHelper
+import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
-
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -11,6 +10,16 @@ import scala.util.{Failure, Success, Try}
   * @author scalaprof
   */
 class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with PrivateMethodTester {
+
+  private val zeroSymbol = Symbol("zero")
+  private val toBigIntSymbol = Symbol("toBigInt")
+  private val wholeSymbol = Symbol("whole")
+  private val infinitySymbol = Symbol("infinity")
+  private val unitySymbol = Symbol("unity")
+  private val narrowSymbol = Symbol("narrow")
+  private val normalizeSymbol = Symbol("normalize")
+  private val gcdSymbol = Symbol("gcd")
+  private val compareSymbol = Symbol("compare")
 
   behavior of "new Rational(BigInt,Long)"
 
@@ -100,7 +109,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   it should "fail to convert to BigInt" in {
     val r = Rational(-1, 0)
-    val decorateToBigInt = PrivateMethod[Try[BigInt]]('toBigInt)
+    val decorateToBigInt = PrivateMethod[Try[BigInt]](Symbol("toBigInt"))
     val z: Try[BigInt] = Rational invokePrivate decorateToBigInt(r)
     a[RationalException] should be thrownBy z.get
   }
@@ -117,8 +126,8 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "apply(Double)"
   it should "convert Avagadro's number" in {
-    val avagadro = Rational("6.02214076E23")
-    avagadro shouldBe Rational(6.02214076E23) +- 1E9
+    val target = Rational("6.02214076E23")
+    target shouldBe Rational(6.02214076E23) +- 1E9
   }
   it should "convert a very small number" in {
     val verySmall = Rational(-4.076956044934884E-134)
@@ -129,6 +138,18 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val epsilon: Double = 1E-305
     val r = Rational(x)
     r.toDouble shouldBe x +- epsilon
+  }
+  it should "convert 3.1416 correctly" in {
+    val target = Rational(3.1416)
+    target shouldBe Rational(3927, 1250)
+  }
+  it should "convert 3.1416 the same as \"3.1416\"" in {
+    val target = Rational(3.1416)
+    target shouldBe Rational("3.1416") +- 1E-10
+  }
+  it should "pick up a float" in {
+    val target = Rational(1.5f)
+    target shouldBe Rational(3, 2)
   }
 
   behavior of "apply(BigDecimal)"
@@ -165,16 +186,16 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "equals"
   it should "equate 0 and zero" in {
     Rational(0) shouldBe Rational.zero
-    Rational.zero shouldBe 'zero
+    Rational.zero shouldBe zeroSymbol
   }
   it should "be whole" in {
-    Rational.zero shouldBe 'whole
+    Rational.zero shouldBe wholeSymbol
   }
   it should "equal 0" in {
     Rational.zero.toInt shouldBe 0
   }
   it should "equal infinity when inverted" in {
-    Rational.zero.invert shouldBe 'infinity
+    Rational.zero.invert shouldBe infinitySymbol
   }
   it should "equal BigDecimal.ZERO" in {
     Rational.zero.toBigDecimal shouldBe BigDecimal(0)
@@ -184,7 +205,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     (Rational.zero + r) shouldBe r
   }
   it should "equal infinity when r-interpolator has 0 denominator" in {
-    r"1/0" shouldBe 'infinity
+    r"1/0" shouldBe infinitySymbol
   }
 
   behavior of "+"
@@ -262,16 +283,16 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.one.signum shouldBe 1
   }
   it should "be whole" in {
-    Rational.one shouldBe 'whole
+    Rational.one shouldBe wholeSymbol
   }
   it should "be unity" in {
-    Rational.one shouldBe 'unity
+    Rational.one shouldBe unitySymbol
   }
   it should "equal 1" in {
     Rational.one.toInt shouldBe 1
   }
   it should "not equal infinity when inverted" in {
-    Rational.one.invert should not be 'infinity
+    Rational.one.invert should not be infinitySymbol
   }
   it should "equal itself when inverted" in {
     Rational.one.invert shouldBe Rational.one
@@ -317,10 +338,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational(10) shouldBe Rational.ten
   }
   it should "be whole" in {
-    Rational.ten shouldBe 'whole
+    Rational.ten shouldBe wholeSymbol
   }
   it should "not be zero" in {
-    Rational.ten should not be 'zero
+    Rational.ten should not be zeroSymbol
   }
   it should "equal 10" in {
     Rational.ten.toInt shouldBe 10
@@ -349,7 +370,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational(2, 3).compare(Rational.one) shouldBe (-1)
   }
   it should "not be whole" in {
-    Rational(2, 3) should not be 'whole
+    Rational(2, 3) should not be wholeSymbol
   }
   it should "equal 2 when multiplied by 3" in {
     (Rational(2, 3) * 3 toInt) shouldBe 2
@@ -369,6 +390,9 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "barf when toInt invoked" in {
     an[RationalException] should be thrownBy Rational(2, 3).toInt
+  }
+  it should "barf when Rational.toInt invoked" in {
+    an[RationalException] should be thrownBy Rational.toInt(Rational(2, 3)).get
     val thrown = the[Exception] thrownBy Rational(2, 3).toInt
     thrown.getMessage should equal("toBigInt: 2/3 is not whole")
   }
@@ -386,7 +410,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "be OK" in {
     val x = Rational(1, 10) + Rational(2, 10)
     val y = x * 10 / 3
-    y shouldBe 'unity
+    y shouldBe unitySymbol
   }
 
   behavior of "toString"
@@ -430,6 +454,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for 0.1" in {
     val r = Rational.parse("0.1")
     r shouldBe Success(Rational(1, 10))
+  }
+  it should "work for 1." in {
+    val r = Rational.parse("1.")
+    r shouldBe Success(Rational(1))
   }
   it should "work for 1.0e6" in {
     val r = Rational.parse("1.0e6")
@@ -480,117 +508,135 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     r.signum shouldBe 1
   }
 
+  behavior of "toInt"
+  it should "work for Int.MaxValue" in {
+    val target = Rational(Int.MaxValue)
+    target.toInt shouldBe Int.MaxValue
+  }
+  it should "work for Int.MinValue" in {
+    val target = Rational(Int.MinValue)
+    target.toInt shouldBe Int.MinValue
+  }
+  it should "fail for Int.MaxValue+1" in {
+    val target = Rational(Int.MaxValue) + 1
+    a[RationalException] shouldBe thrownBy(target.toInt)
+  }
+  it should "fail for Int.MinValue-1" in {
+    val target = Rational(Int.MinValue) - 1
+    a[RationalException] shouldBe thrownBy(target.toInt)
+  }
+
   // Test Private Methods...
   behavior of "narrow(BigInt)"
   it should "work for Int.MaxValue" in {
     val b = BigInt(Int.MaxValue)
-    val decorateNarrow = PrivateMethod[Try[BigInt]]('narrow)
-    val z: Try[BigInt] = Rational invokePrivate decorateNarrow(b, BigInt(Int.MaxValue))
+    val decorateNarrow = PrivateMethod[Try[BigInt]](Symbol("narrow"))
+    val z: Try[BigInt] = Rational invokePrivate decorateNarrow(b, BigInt(Int.MinValue), BigInt(Int.MaxValue))
     z should matchPattern { case Success(x) if x == Int.MaxValue => }
   }
   it should "not work for Int.MaxValue+1" in {
     val b = BigInt(Int.MaxValue) + 1
-    val decorateNarrow = PrivateMethod[Try[BigInt]]('narrow)
-    val z: Try[BigInt] = Rational invokePrivate decorateNarrow(b, BigInt(Int.MaxValue))
+    val decorateNarrow = PrivateMethod[Try[BigInt]](Symbol("narrow"))
+    val z: Try[BigInt] = Rational invokePrivate decorateNarrow(b, BigInt(Int.MinValue), BigInt(Int.MaxValue))
     z should matchPattern { case Failure(_) => }
   }
 
   behavior of "narrow(Rational)"
   it should "work for Int.MaxValue" in {
     val r = Rational(Int.MaxValue)
-    val decorateNarrow = PrivateMethod[Try[BigInt]]('narrow)
-    val z: Try[BigInt] = Rational invokePrivate decorateNarrow(r, BigInt(Int.MaxValue))
+    val decorateNarrow = PrivateMethod[Try[BigInt]](Symbol("narrow"))
+    val z: Try[BigInt] = Rational invokePrivate decorateNarrow(r, BigInt(Int.MinValue), BigInt(Int.MaxValue))
     z should matchPattern { case Success(x) if x == Int.MaxValue => }
   }
   it should "work for Int.MaxValue+1" in {
     val r = Rational(Int.MaxValue) + 1
-    val decorateNarrow = PrivateMethod[Try[BigInt]]('narrow)
-    val z: Try[BigInt] = Rational invokePrivate decorateNarrow(r, BigInt(Int.MaxValue))
+    val decorateNarrow = PrivateMethod[Try[BigInt]](Symbol("narrow"))
+    val z: Try[BigInt] = Rational invokePrivate decorateNarrow(r, BigInt(Int.MinValue), BigInt(Int.MaxValue))
     z should matchPattern { case Failure(_) => }
   }
 
   behavior of "normalize"
   it should "work for 0,0" in {
-    val decorateNormalize = PrivateMethod[Rational]('normalize)
+    val decorateNormalize = PrivateMethod[Rational](normalizeSymbol)
     val z = Rational invokePrivate decorateNormalize(Rational.bigZero, Rational.bigZero)
     z should matchPattern { case Rational(x, y) if x == Rational.bigZero && y == 0L => }
   }
   it should "work for 1,0" in {
-    val decorateNormalize = PrivateMethod[Rational]('normalize)
+    val decorateNormalize = PrivateMethod[Rational](normalizeSymbol)
     val z = Rational invokePrivate decorateNormalize(Rational.bigOne, Rational.bigZero)
     z should matchPattern { case Rational(x, y) if x == Rational.bigOne && y == 0L => }
   }
   it should "work for 1,1" in {
-    val decorateNormalize = PrivateMethod[Rational]('normalize)
+    val decorateNormalize = PrivateMethod[Rational](normalizeSymbol)
     val z = Rational invokePrivate decorateNormalize(Rational.bigOne, Rational.bigOne)
     z should matchPattern { case Rational(x, y) if x == Rational.bigOne && y == 1L => }
   }
   it should "work for 2,2" in {
-    val decorateNormalize = PrivateMethod[Rational]('normalize)
+    val decorateNormalize = PrivateMethod[Rational](normalizeSymbol)
     val z = Rational invokePrivate decorateNormalize(Rational.bigOne * 2, BigInt(2))
     z should matchPattern { case Rational(x, y) if x == Rational.bigOne && y == 1L => }
   }
   it should "work for 3,5" in {
-    val decorateNormalize = PrivateMethod[Rational]('normalize)
+    val decorateNormalize = PrivateMethod[Rational](normalizeSymbol)
     val z = Rational invokePrivate decorateNormalize(Rational.bigOne * 3, BigInt(5))
     z should matchPattern { case Rational(x, y) if x == BigInt(3) && y == 5L => }
   }
 
   behavior of "gcd"
   it should "work for 0,0" in {
-    val decorateGcd = PrivateMethod[BigInt]('gcd)
+    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
     val z = Rational invokePrivate decorateGcd(Rational.bigZero, Rational.bigZero)
     z should matchPattern { case Rational.bigZero => }
   }
   it should "work for 1,0" in {
-    val decorateGcd = PrivateMethod[BigInt]('gcd)
+    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
     val z = Rational invokePrivate decorateGcd(Rational.bigOne, Rational.bigZero)
     z should matchPattern { case Rational.bigOne => }
   }
   it should "work for 1,1" in {
-    val decorateGcd = PrivateMethod[BigInt]('gcd)
+    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
     val z = Rational invokePrivate decorateGcd(Rational.bigOne, Rational.bigOne)
     z should matchPattern { case Rational.bigOne => }
   }
   it should "work for 2,2" in {
-    val decorateGcd = PrivateMethod[BigInt]('gcd)
+    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
     val z = Rational invokePrivate decorateGcd(Rational.bigOne * 2, Rational.bigOne * 2)
     z should matchPattern { case b: BigInt if b.toInt == 2 => }
   }
   it should "work for 3,5" in {
-    val decorateGcd = PrivateMethod[BigInt]('gcd)
+    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
     val z = Rational invokePrivate decorateGcd(Rational.bigOne * 3, Rational.bigOne * 5)
     z should matchPattern { case Rational.bigOne => }
   }
 
   behavior of "compare"
   it should "work for 0,0" in {
-    val decorateCompare = PrivateMethod[Int]('compare)
+    val decorateCompare = PrivateMethod[Int](compareSymbol)
     val z = Rational invokePrivate decorateCompare(Rational.zero, Rational.zero)
     z should matchPattern { case 0 => }
   }
   it should "work for 0,1" in {
-    val decorateCompare = PrivateMethod[Int]('compare)
+    val decorateCompare = PrivateMethod[Int](compareSymbol)
     val z = Rational invokePrivate decorateCompare(Rational.zero, Rational.one)
     z should matchPattern { case -1 => }
   }
   it should "work for 1,0" in {
-    val decorateCompare = PrivateMethod[Int]('compare)
+    val decorateCompare = PrivateMethod[Int](compareSymbol)
     val z = Rational invokePrivate decorateCompare(Rational.one, Rational.zero)
     z should matchPattern { case 1 => }
   }
   it should "work for 1,1" in {
-    val decorateCompare = PrivateMethod[Int]('compare)
+    val decorateCompare = PrivateMethod[Int](compareSymbol)
     val z = Rational invokePrivate decorateCompare(Rational.one, Rational.one)
     z should matchPattern { case 0 => }
   }
   it should "work for inf,inf" in {
-    val decorateCompare = PrivateMethod[Int]('compare)
+    val decorateCompare = PrivateMethod[Int](compareSymbol)
     val z = Rational invokePrivate decorateCompare(Rational.infinity, Rational.infinity)
     z should matchPattern { case 0 => }
   }
   it should "work for -inf,inf" in {
-    val decorateCompare = PrivateMethod[Int]('compare)
+    val decorateCompare = PrivateMethod[Int](compareSymbol)
     val z = Rational invokePrivate decorateCompare(Rational.infinity.unary_-, Rational.infinity)
     z should matchPattern { case 0 => }
   }
@@ -620,17 +666,27 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "approximateAny"
   it should "work for specific epsilon" in {
-    implicit val epsilon: Tolerance = Tolerance(1E-7)
+    implicit val epsilon: Tolerance = Tolerance(1E-7, BigInt(1000000000))
     Rational.approximateAny(Math.PI) shouldBe Rational(75948, 24175)
+  }
+  // NOTE: this test works but it is very slow. It should be checked from time to time.
+  ignore should "work for 3.1416n" in {
+    Rational.approximateAny(3.1416) shouldBe Rational(3141600355L, 1000000113)
   }
 
   behavior of "doubleToRational"
   it should "work" in {
     Rational.doubleToRational(1.0 / 2) shouldBe Rational.half
-    Rational.doubleToRational(-1.0 / 3) shouldBe Rational(-1, 3)
     Rational.doubleToRational(-5.0 / 4) shouldBe Rational(-5, 4)
     Rational.doubleToRational(Math.PI).toDouble shouldBe Math.PI +- 1E-15
     Rational.doubleToRational(6.02214076E23).toDouble shouldBe 6.02214076E23 +- 1E9
+  }
+
+  behavior of "sqrt"
+  it should "work correctly" in {
+    Rational.one.sqrt shouldBe Rational.one
+    Rational(4).sqrt shouldBe Rational.two
+    Rational(9, 4).sqrt shouldBe Rational(3, 2)
   }
 }
 

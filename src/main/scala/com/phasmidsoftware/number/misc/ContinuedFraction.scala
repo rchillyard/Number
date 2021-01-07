@@ -1,5 +1,6 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.misc
 
+import com.phasmidsoftware.number.core.Rational
 import scala.annotation.tailrec
 import scala.util.Try
 
@@ -251,6 +252,12 @@ object ContinuedFraction {
   private val fPi: LazyList[Pair] = Pair.zip(0L +: LazyList.from(0).map(2L * _ + 1), 4L +: LazyList.from(1).map(x => 1L * x * x))
   val PiA: ContinuedFraction = ContinuedFraction(fPi, infinite = true, Hurwitz)
 
+  /**
+    * NOTE: match may not be exhaustive.
+    *
+    * @param xs a list of pairs.
+    * @return a list of pairs.
+    */
   private def eFunction(xs: List[Pair]): List[Pair] = xs match {
     case List(x, y, z) => List(x, Pair(y.b + 2, y.a), z)
   }

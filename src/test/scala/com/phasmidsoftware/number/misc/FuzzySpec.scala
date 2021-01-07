@@ -1,8 +1,7 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.misc
 
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
-
 import scala.util.Success
 
 /**
@@ -10,7 +9,7 @@ import scala.util.Success
   */
 class FuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
 
-  def checkDouble(actual: Double, expected: Double) {
+  def checkDouble(actual: Double, expected: Double): Unit = {
     assert(math.abs(actual - expected) < 1E7)
   }
 

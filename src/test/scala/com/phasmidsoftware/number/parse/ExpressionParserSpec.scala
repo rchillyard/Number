@@ -1,9 +1,8 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.model.Rational
+import com.phasmidsoftware.number.core.Rational
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
-
 import scala.util._
 
 
@@ -17,7 +16,6 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val parser = DoubleExpressionParser
     parser.parseAll(parser.factor, "3.1415927") should matchPattern { case parser.Success(_, _) => }
   }
-
   "DoubleExpressionParser(1)" should "be 1.0" in {
     val parser = DoubleExpressionParser
     parser.parseAll(parser.factor, "3.1415927") should matchPattern { case parser.Success(_, _) => }
@@ -93,7 +91,7 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     r should matchPattern { case parser.Success(_, _) => }
     r.get.value should matchPattern { case Success(1.5) => }
   }
-  ignore should "fail DoubleExpressionParser(1*2+1-pi/2)" in {
+  ignore should "fail DoubleExpressionParser(2*(2+1-3/2)/3)" in {
     val parser = DoubleExpressionParser
     val r = parser.parseAll(parser.expr, "2*(2+1-3/2)/3")
     r should matchPattern { case parser.Success(_, _) => }
@@ -104,10 +102,13 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val r = parser.parseAll(parser.expr, "1*2+1-pi/2")
     r should matchPattern { case parser.Failure(_, _) => }
   }
-  ignore should "fail to parse (1?2)" in {
+  it should "fail to parse (1?2)" in {
     val parser = DoubleExpressionParser
     val r = parser.parseAll(parser.expr, "(1?2)")
-    r should matchPattern { case parser.Failure("`)' expected but `?' found", _) => }
+    r should matchPattern { case parser.Failure(_, _) => }
+    r match {
+      case parser.Failure(m, _) => m shouldBe "')' expected but '?' found"
+    }
   }
   "RationalExpressionParser(1)" should "be 1" in {
     val parser = RationalExpressionParser
@@ -143,10 +144,13 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val r = parser.parseAll(parser.expr, "(")
     r should matchPattern { case parser.Failure("factor", _) => }
   }
-  ignore should "fail 1+2=2" in {
+  it should "fail 1+2=2" in {
     val parser = DoubleExpressionParser
     val r = parser.parseAll(parser.expr, "1+2=2")
-    r should matchPattern { case parser.Failure("expr", _) => }
+    r should matchPattern { case parser.Failure(_, _) => }
+    r match {
+      case parser.Failure(m, _) => m shouldBe "'/' expected but '=' found"
+    }
   }
   "IntExpressionParser(3/2)" should "fail" in {
     val parser = IntExpressionParser

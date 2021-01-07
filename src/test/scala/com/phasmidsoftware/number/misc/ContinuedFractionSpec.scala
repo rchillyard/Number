@@ -1,8 +1,9 @@
-package com.phasmidsoftware.number.model
+package com.phasmidsoftware.number.misc
 
-import ConFrac.LongLazyListFrom
-import ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
-import Rational.RationalHelper
+import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.misc.ConFrac.LongLazyListFrom
+import com.phasmidsoftware.number.misc.ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 
@@ -36,9 +37,9 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val target = ConFrac.simple(one)
     val epsilon = 1E-6
 
-    def unprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
+    def imprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
 
-    val cf = target.takeWhile(unprecise)
+    val cf = target.takeWhile(imprecise)
     cf.reverseCoefficients.length shouldBe 16
     cf.toRational.toDouble shouldBe goldenRatio +- epsilon
   }
@@ -48,9 +49,9 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val target = ConFrac.simple(one).take(5)
     val epsilon = 1E-6
 
-    def unprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
+    def imprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
 
-    val cf = target.takeWhile(unprecise)
+    val cf = target.takeWhile(imprecise)
     a[ConFracException] should be thrownBy cf.reverseCoefficients
   }
 
@@ -213,6 +214,8 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
   it should "toDouble" in {
     ConFrac.phi.toDouble(1E-9, Hurwitz).get shouldBe goldenRatio +- 1E-4
   }
+
+  import Ordering.Double.TotalOrdering
 
   it should "implement toDouble(Double)" in {
     def checkValue(epsilon: Double): Unit = {
