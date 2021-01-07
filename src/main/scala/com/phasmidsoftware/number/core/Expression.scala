@@ -49,7 +49,7 @@ object Expression {
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
       */
-    def +(y: Expression): Expression = BiFunction(x, y, Sum)
+    def +(y: Expression): Expression = BiFunction(x, y, Sum).simplify
 
     /**
       * Method to lazily multiply the Number x by y.
@@ -73,14 +73,14 @@ object Expression {
       * @param y another Number.
       * @return an Expression which is the lazy product of x and y.
       */
-    def -(y: Number): Expression = BiFunction(x, Expression(y).unary_-, Sum)
+    def -(y: Number): Expression = BiFunction(x, Expression(y).unary_-, Sum).simplify
 
     /**
       * Method to lazily change the sign of this expression.
       *
       * @return an Expression which is this negated.
       */
-    def unary_- : Expression = BiFunction(x, MinusOne, Product)
+    def unary_- : Expression = BiFunction(x, MinusOne, Product).simplify
 
     /**
       * Method to lazily subtract the Number y from x.
@@ -96,7 +96,7 @@ object Expression {
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
       */
-    def *(y: Expression): Expression = BiFunction(x, y, Product)
+    def *(y: Expression): Expression = BiFunction(x, y, Product).simplify
 
     /**
       * Method to lazily multiply the Number x by y.
@@ -114,7 +114,7 @@ object Expression {
       */
     def *(y: Int): Expression = *(Number(y))
 
-    def reciprocal: Expression = BiFunction(x, MinusOne, Power)
+    def reciprocal: Expression = BiFunction(x, MinusOne, Power).simplify
 
     /**
       * Method to lazily divide the Number x by y.
@@ -122,7 +122,7 @@ object Expression {
       * @param y another Number.
       * @return an Expression which is the lazy quotient of x and y.
       */
-    def /(y: Number): Expression = this.*(Expression(y).reciprocal)
+    def /(y: Number): Expression = *(Expression(y).reciprocal)
 
     /**
       * Method to lazily multiply the Number x by y.
@@ -132,6 +132,13 @@ object Expression {
       */
     def /(y: Int): Expression = /(Number(y))
 
+    /**
+      * Method to lazily raise x to the power of y.
+      *
+      * @param y the power to which x should be raised.
+      * @return an Expression representing x to the power of y.
+      */
+    def ^(y: Expression): Expression = BiFunction(x, y, Power).simplify
 
     /**
       * Method to lazily raise x to the power of y.
@@ -139,7 +146,7 @@ object Expression {
       * @param y the power to which x should be raised.
       * @return an Expression representing x to the power of y.
       */
-    def ^(y: Number): Expression = BiFunction(x, Expression(y), Power)
+    def ^(y: Number): Expression = ^(Expression(y))
 
     /**
       * Method to lazily raise the Number x to the power of y.
@@ -154,7 +161,7 @@ object Expression {
       *
       * @return an Expression representing the square root of x.
       */
-    def sqrt: Expression = ^(Number(Rational.half))
+    def sqrt: Expression = this ^ Number(2).reciprocal
 
     /**
       * Eagerly compare this expression with y.
@@ -199,7 +206,7 @@ case class Literal(x: Number) extends Expression {
   def simplify: Expression = this
 }
 
-case object Zero extends Expression {
+abstract class Constant extends Expression {
   /**
     * If it is possible to simplify this Expression, then we do so.
     *
@@ -207,6 +214,10 @@ case object Zero extends Expression {
     */
   def simplify: Expression = this
 
+  override def toString: String = render
+}
+
+case object Zero extends Constant {
   /**
     * Action to materialize this Expression as a Number,
     * that is to say we eagerly evaluate this Expression as a Number.
@@ -224,14 +235,7 @@ case object Zero extends Expression {
   def render: String = "0"
 }
 
-case object One extends Expression {
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * @return this.
-    */
-  def simplify: Expression = this
-
+case object One extends Constant {
   /**
     * Action to materialize this Expression as a Number,
     * that is to say we eagerly evaluate this Expression as a Number.
@@ -249,14 +253,7 @@ case object One extends Expression {
   def render: String = "1"
 }
 
-case object MinusOne extends Expression {
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * @return this.
-    */
-  def simplify: Expression = this
-
+case object MinusOne extends Constant {
   /**
     * Action to materialize this Expression as a Number,
     * that is to say we eagerly evaluate this Expression as a Number.
@@ -301,6 +298,8 @@ case class Function(x: Expression, f: ExpressionFunction) extends Expression {
     * @return an Expression tree which is the equivalent of this.
     */
   def simplify: Expression = this // TODO implement me
+
+  override def toString: String = s"$f($x)"
 }
 
 /**
@@ -325,21 +324,47 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def render: String = materialize.toString
 
-  def inverter(name: String): Option[(ExpressionBiFunction, Expression)] = name match {
-    case "+" => Some((Product, MinusOne))
-    case "*" => Some((Power, MinusOne))
+  override def toString: String = s"($a $f $b)"
+
+  private def inverter(name: String): Option[(ExpressionBiFunction, Expression, Expression)] = name match {
+    case "+" => Some((Product, MinusOne, Zero))
+    case "*" => Some((Power, MinusOne, One))
     case _ => None
   }
 
-  def cancel(l: Expression, r: Expression, name: String): Option[Expression] = {
-    inverter(name) match {
-      case Some((op, exp)) => r match {
-        case BiFunction(`l`, `exp`, `op`) => Some(Zero)
-        case BiFunction(`exp`, `l`, `op`) => Some(Zero)
-        case _ => None
-      }
-      case None => None
+  private def cancel(l: Expression, r: Expression, name: String): Option[Expression] = inverter(name) match {
+    case Some((op, exp, result)) => r match {
+      case BiFunction(a, b, f) if same(l, a) && b == exp && f == op => Some(result)
+      case BiFunction(a, b, f) if a == exp && same(l, b) && f == op => Some(result)
+      case _ => None
     }
+    case None => None
+  }
+
+  /**
+    * NOTE: we do a materialize here, which isn't right.
+    * TODO fix it.
+    */
+  private def same(l: Expression, a: Expression) = a == l || a == l.materialize
+
+  private def grouper(name: String): Option[(ExpressionBiFunction, ExpressionBiFunction)] = name match {
+//    case "+" => Some((Product, MinusOne, Zero))
+//    case "*" => Some((Power, MinusOne, One))
+    case "^" => Some((Power, Product))
+    case _ => None
+  }
+
+  def gatherer(l: Expression, r: Expression, name: String): Option[Expression] = grouper(name) match {
+    case Some((op, f)) => l match {
+      case BiFunction(a, b, `op`) =>
+        val function1 = BiFunction(b, r, f)
+        val simplify1 = function1.simplify
+        val function2 = BiFunction(a, simplify1, op)
+        val simplify2 = function2.simplify
+        Some(simplify2)
+      case _ => None
+    }
+    case None => None
   }
 
   /**
@@ -350,15 +375,22 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   def simplify: Expression = {
     val left = a.simplify
     val right = b.simplify
-    f.name match {
+    val result = f.name match {
       case "+" if left == Zero => right
       case "*" if left == One => right
       case "+" if right == Zero => left
       case "*" if right == One => left
       case "^" if right == One => left
       case "^" if right == Zero => One
-      case _ => cancel(left, right, f.name) orElse cancel(right, left, f.name) getOrElse this
+      case _ =>
+        // NOTE: we check only for gatherer left, right
+        cancel(left, right, f.name) orElse
+                cancel(right, left, f.name) orElse
+                gatherer(left, right, f.name) getOrElse
+                this
     }
+//    if (result != this) println(s"simplified $this to $result")
+    result
   }
 }
 
@@ -393,7 +425,7 @@ class ExpressionFunction(f: Number => Number, name: String) extends (Number => N
     *
     * @return a String.
     */
-  override def toString: String = s"function: $name"
+  override def toString: String = s"$name"
 }
 
 /**
@@ -418,5 +450,5 @@ class ExpressionBiFunction(val f: (Number, Number) => Number, val name: String) 
     *
     * @return a String.
     */
-  override def toString: String = s"bifunction: $name"
+  override def toString: String = s"$name"
 }

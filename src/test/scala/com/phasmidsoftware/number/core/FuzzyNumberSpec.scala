@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -129,12 +128,12 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "multiply 1 and 2.*" in {
     val xy = Number.parse("2.*")
     val yy = Success(Number(1))
-    val zy = for (x <- xy; y <- yy) yield x * y
+    val zy: Try[Expression] = for (x <- xy; y <- yy) yield x * y
     zy should matchPattern { case Success(_) => }
     val result = zy.get.materialize
     result.value shouldBe Right(2)
     result.factor shouldBe Scalar
-    result.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
+    result.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
   it should "multiply 1.* and 2.*" in {
     val xy: Try[Number] = Number.parse("1.*")

@@ -66,20 +66,40 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     x shouldEqual Number(6)
   }
 
-  behavior of "canceling operations"
-  // TODO fix me
-  ignore should "cancel 1 and - -1" in {
-    val x: Expression = Number.one
+  behavior of "gathering operations"
+  it should "gather 2 and * 1/2" in {
+    val x: Expression = Number(7)
     println(x)
-    val y = -x
+    val y = x.sqrt
     println(y)
-    val z = x + y
+    val z = y ^ 2
     println(z)
+    z shouldBe Number(7)
+  }
+
+
+  behavior of "canceling operations"
+  it should "cancel 1 and - -1" in {
+    val x: Expression = Number.one
+    val y = -x
+    val z = x + y
     z shouldBe Zero
   }
-  // TODO fix me
-  ignore should "cancel ^2 and sqrt" in {
-    val x: Expression = Number(7).sqrt
+  it should "cancel 2 and * 1/2" in {
+    val x: Expression = Number.one * 2
+    val y = x.reciprocal
+    val z = x * y
+    z shouldBe One
+  }
+  it should "cancel 2 * 1/2" in {
+    val x: Expression = Number.one * 2
+    val y = x.reciprocal
+    val z = y * x
+    z shouldBe One
+  }
+  it should "cancel ^2 and sqrt" in {
+    val seven: Expression = Number(7)
+    val x: Expression = seven.sqrt
     val y = x ^ 2
     y shouldEqual Number(7)
     y.materialize should matchPattern { case ExactNumber(_, _) => }
