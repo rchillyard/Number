@@ -359,13 +359,21 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   def composeDyadic(other: Number, f: Factor)(op: DyadicOperation): Option[Number] = doComposeDyadic(other, f)(op.getFunctions)
 
   /**
-    * Evaluate a monadic operator on this, using either negate or... according to the value of op.
+    * Evaluate a monadic operator on this.
     *
     * @param f  the factor to apply to the result.
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
   def composeMonadic(f: Factor)(op: MonadicOperation): Option[Number] = doComposeMonadic(f)(op.getFunctions)
+
+  /**
+    * Evaluate a query operator on this.
+    *
+    * @param op the appropriate QueryOperation.
+    * @return a Boolean.
+    */
+  def query(op: QueryOperation): Boolean = doQuery(op.getFunctions).getOrElse(false)
 
   /**
     * Render this Number in String form, including the factor.
@@ -637,7 +645,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(tryRational, tryDouble)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(tryBigInt, xToZy1)
-    
+
     tryMap(value)(tryInt, xToZy2).toOption
   }
 
@@ -663,11 +671,10 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   /**
     * Evaluate a query operator on this, using the various functions passed in.
     *
-    * @param f         the factor to be used for the result.
     * @param functions the tuple of four conversion functions.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  private def doQuery(f: Factor)(functions: QueryFunctions): Option[Boolean] = {
+  private def doQuery(functions: QueryFunctions): Option[Boolean] = {
     val (fInt, fBigInt, fRational, fDouble) = functions
     val xToZy0: Option[Double] => Try[Boolean] = {
       case Some(n) => fDouble(n)
@@ -1156,35 +1163,11 @@ object Number {
 
   def negate(x: Number): Number = x.composeMonadic(x.factor)(MonadicOperationNegate).getOrElse(Number())
 
-  def inverse(x: Number): Number = {
-    // CONSIDER use composeMonadic
-    val maybeNumber = x.value match {
-      // First we take care of the special cases
-      case Right(1) => Some(x)
-      case Left(Right(_)) if x.toBigInt.get == BigInt(1) => Some(x)
-      case Left(Left(Left(_))) => x.maybeDouble.map(1 / _).map(x.make)
-      case _ => x.maybeRational.map(_.invert).map(x.make)
-    }
-    maybeNumber.getOrElse(Number()).specialize
-  }
+  def inverse(x: Number): Number = x.composeMonadic(x.factor)(MonadicOperationInvert).getOrElse(Number())
 
-  private def isZero(x: Number): Boolean = {
-    // CONSIDER use composeMonadic
-    val intToTriedBoolean = tryF[Int, Boolean](x => x == 0)
-    val bigIntToTriedBoolean = tryF[BigInt, Boolean](x => x.sign == 0)
-    val rationalToTriedBoolean = tryF[Rational, Boolean](x => x.signum == 0)
-    val doubleToTriedBoolean = tryF[Double, Boolean](x => x.sign == 0 || x.sign == -0)
-    x.doQuery(x.factor)(intToTriedBoolean, bigIntToTriedBoolean, rationalToTriedBoolean, doubleToTriedBoolean).get
-  }
+  private def isZero(x: Number): Boolean = x.query(QueryOperationIsZero)
 
-  private def isInfinite(x: Number): Boolean = {
-    // CONSIDER use composeMonadic
-    val intToTriedBoolean = tryF[Int, Boolean](_ => false)
-    val bigIntToTriedBoolean = tryF[BigInt, Boolean](_ => false)
-    val rationalToTriedBoolean = tryF[Rational, Boolean](x => x.isInfinity)
-    val doubleToTriedBoolean = tryF[Double, Boolean](x => x == Double.PositiveInfinity || x == Double.NegativeInfinity)
-    x.doQuery(x.factor)(intToTriedBoolean, bigIntToTriedBoolean, rationalToTriedBoolean, doubleToTriedBoolean).get
-  }
+  private def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite)
 
   private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
 

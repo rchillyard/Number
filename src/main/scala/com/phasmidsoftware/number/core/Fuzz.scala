@@ -327,7 +327,7 @@ object Fuzz {
     * @return an Option of Fuzz[T].
     */
   def combine[T: Valuable](t: T, relative: Boolean, fuzz1: Option[Fuzz[T]], fuzz2: Option[Fuzz[T]]): Option[Fuzz[T]] =
-    (normalizeFuzz(fuzz1, t, relative), normalizeFuzz(fuzz2, t, relative)) match {
+    (doNormalize(fuzz1, t, relative), doNormalize(fuzz2, t, relative)) match {
       case (Some(f1), Some(f2)) => Some(f1.normalizeShape * f2.normalizeShape)
       case (Some(f1), None) => Some(f1)
       case (None, Some(f2)) => Some(f2)
@@ -348,7 +348,7 @@ object Fuzz {
     * @return an Option of Fuzz[T].
     */
   def map[T: Valuable](t: T, relative: Boolean, g: T => T, fuzz: Option[Fuzz[T]]): Option[Fuzz[T]] =
-    normalizeFuzz(fuzz, t, relative) match {
+    doNormalize(fuzz, t, relative) match {
       case Some(f1) => Some(f1.transform(g))
       case _ => None
     }
@@ -364,8 +364,8 @@ object Fuzz {
     * @tparam T the underlying type of the Fuzz.
     * @return the optional Fuzz value which is equivalent (or identical) to fuzz, according to the value of relative.
     */
-  def normalizeFuzz[T: Valuable](fuzz: Option[Fuzz[T]], t: T, relative: Boolean): Option[Fuzz[T]] =
-    fuzz.flatMap(f => normalizeFuzz(t, relative, f))
+  def doNormalize[T: Valuable](fuzz: Option[Fuzz[T]], t: T, relative: Boolean): Option[Fuzz[T]] =
+    fuzz.flatMap(f => doNormalize(t, relative, f))
 
   def zipStrings(v: String, t: String): String = {
     val cCs = ((LazyList.from(v.toCharArray.toList) :++ LazyList.continually('0')) zip t.toCharArray.toList).toList
@@ -385,7 +385,7 @@ object Fuzz {
     */
   def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
-  private def normalizeFuzz[T: Valuable](t: T, relative: Boolean, f: Fuzz[T]) =
+  private def doNormalize[T: Valuable](t: T, relative: Boolean, f: Fuzz[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) => if (relative) a.relative(t) else Some(f)
       case r@RelativeFuzz(_, _) => if (relative) Some(f) else r.absolute(t)
