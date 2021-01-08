@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
 
-import com.phasmidsoftware.number.core.FP.{identityTry, optionMap, tryF, tryMap}
+import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{bigIntToInt, negate}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Render.renderValue
@@ -46,7 +46,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @param f the factor.
     * @return an ExactNumber.
     */
-  def makeNumber(v: Value, f: Factor): Number = ExactNumber(v, f)
+  def make(v: Value, f: Factor): Number = ExactNumber(v, f)
 
   /**
     * If the result of invoking f on this is a Double, then there will inevitably be some loss of precision.
@@ -59,7 +59,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     val z: Number = f(this)
     z.value match {
       case v@Left(Left(Left(Some(_)))) => FuzzyNumber(v, z.factor, Some(RelativeFuzz(DoublePrecisionTolerance, Box)))
-      case v => z.makeNumber(v)
+      case v => z.make(v)
     }
   }
 
@@ -392,7 +392,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param f the factor.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: Value, f: Factor): Number
+  protected def make(v: Value, f: Factor): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -402,7 +402,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param f the factor.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(f: Factor): Number = makeNumber(value, f)
+  protected def make(f: Factor): Number = make(value, f)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -412,28 +412,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param v the value.
     * @return either a Fuzzy or Exact Number.
     */
-  def makeNumber(v: Value): Number = makeNumber(v, factor)
-
-  /**
-    * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value will change.
-    * This method should be followed by a call to specialize.
-    *
-    * @param v the value.
-    * @param f Factor.
-    * @return either a Fuzzy or Exact Number.
-    */
-  protected def makeNumber(v: Int, f: Factor): Number = makeNumber(Value.fromInt(v), f)
-
-  /**
-    * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value will change.
-    * This method should be followed by a call to specialize.
-    *
-    * @param v the value.
-    * @return either a Fuzzy or Exact Number.
-    */
-  protected def makeNumber(v: Int): Number = makeNumber(v, factor)
+  def make(v: Value): Number = make(v, factor)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -444,7 +423,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param f Factor.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: BigInt, f: Factor): Number = makeNumber(Value.fromBigInt(v), f)
+  protected def make(v: Int, f: Factor): Number = make(Value.fromInt(v), f)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -454,7 +433,28 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param v the value.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: BigInt): Number = makeNumber(v, factor)
+  protected def make(v: Int): Number = make(v, factor)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value.
+    * @param f Factor.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def make(v: BigInt, f: Factor): Number = make(Value.fromBigInt(v), f)
+
+  /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value will change.
+    * This method should be followed by a call to specialize.
+    *
+    * @param v the value.
+    * @return either a Fuzzy or Exact Number.
+    */
+  protected def make(v: BigInt): Number = make(v, factor)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -465,7 +465,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param f Factor.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(r: Rational, f: Factor): Number = makeNumber(Value.fromRational(r), f)
+  protected def make(r: Rational, f: Factor): Number = make(Value.fromRational(r), f)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -475,7 +475,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param v the value.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: Rational): Number = makeNumber(v, factor)
+  protected def make(v: Rational): Number = make(v, factor)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -486,7 +486,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param f Factor.
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: Double, f: Factor): Number = makeFuzzyIfAppropriate(x => x.makeNumber(Value.fromDouble(Some(v)), f))
+  protected def make(v: Double, f: Factor): Number = makeFuzzyIfAppropriate(x => x.make(Value.fromDouble(Some(v)), f))
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -496,7 +496,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param v the value (a Double).
     * @return either a Fuzzy or Exact Number.
     */
-  protected def makeNumber(v: Double): Number = makeNumber(v, factor)
+  protected def make(v: Double): Number = make(v, factor)
 
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
@@ -505,7 +505,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     */
   def normalize: Number = factor match {
     case Scalar => this
-    case Pi | E => (maybeDouble map (x => self.makeNumber(x * factor.value).specialize.makeNumber(Scalar))).getOrElse(Number())
+    case Pi | E => (maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar))).getOrElse(Number())
   }
 
   /**
@@ -523,11 +523,11 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     // BigInt case
     case Left(Right(b)) =>
       val intValue = b.intValue
-      if (BigInt(intValue) == b) makeNumber(intValue) else this
+      if (BigInt(intValue) == b) make(intValue) else this
     // Rational case
     case Left(Left(Right(r))) =>
       Try(r.toBigInt) match {
-        case Success(b) => makeNumber(b).specialize
+        case Success(b) => make(b).specialize
         case _ => this
       }
     // Double case
@@ -539,7 +539,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
       // CONSIDER will this handle numbers correctly which are not close to 1?
       val r = Rational(x)
       r.toBigDecimal.scale match {
-        case 0 | 1 | 2 => makeNumber(r).specialize
+        case 0 | 1 | 2 => make(r).specialize
           // CONSIDER in following line adding fuzz only if this Number is exact.
         case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzz.toDecimalPower(5, -n), Box))
       }
@@ -575,28 +575,28 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
       // x's value is invalid: swap the order so the the first element is invalid
       case Left(Left(Left(None))) => x.alignTypes(this)
       // otherwise: return this and x re-cast as a Double
-      case _ => (this, x.maybeDouble.map(y => makeNumber(y, x.factor).specialize).getOrElse(Number()))
+      case _ => (this, x.maybeDouble.map(y => make(y, x.factor).specialize).getOrElse(Number()))
     }
     // this value is a Rational:
     case Left(Left(Right(_))) => x.value match {
       // x's value is a real Number: swap the order so that the first element is the real number
       case Left(Left(Left(_))) => x.alignTypes(this)
       // otherwise: return this and x re-cast as a Rational
-      case _ => (this, x.makeNumber(x.maybeRational.getOrElse(Rational.NaN), x.factor).specialize)
+      case _ => (this, x.make(x.maybeRational.getOrElse(Rational.NaN), x.factor).specialize)
     }
     // this value is a BigInt:
     case Left(Right(_)) => x.value match {
       // x's value is a Rational or real Number: swap the order so that the first element is the Rational/real number
       case Left(Left(_)) => x.alignTypes(this)
       // otherwise: return this and x re-cast as a BigInt
-      case _ => (this, x.makeNumber(x.maybeBigInt.getOrElse(BigInt(0)), x.factor).specialize)
+      case _ => (this, x.make(x.maybeBigInt.getOrElse(BigInt(0)), x.factor).specialize)
     }
     // this value is an Int:
     case Right(_) => x.value match {
       // x's value is a BigInt, Rational or real Number: swap the order so that the first element is the BigInt/Rational/real number
       case Left(_) => x.alignTypes(this)
       // otherwise: return this and x re-cast as an Int
-      case _ => (this, x.makeNumber(x.maybeInt.getOrElse(0), x.factor).specialize)
+      case _ => (this, x.make(x.maybeInt.getOrElse(0), x.factor).specialize)
     }
   }
 
@@ -619,14 +619,26 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     */
   private def doComposeDyadic(other: Number, f: Factor)(functions: DyadicFunctions): Option[Number] = {
     val (fInt, fBigInt, fRational, fDouble) = functions
-    val xToZy0: Option[Double] => Try[Number] = {
-      case Some(n) => fDouble(n, other.maybeDouble.get) map (x => makeNumber(x, f))
-      case None => Failure(new NoSuchElementException())
+
+    def tryDouble(xo: Option[Double]): Try[Number] = xo match {
+      case Some(n) => toTry(for (y <- other.maybeDouble) yield fDouble(n, y) map (x => make(x, f)), Failure(NumberException("other is not a Double"))).flatten
+      case None => Failure(NumberException("number is invalid"))
     }
+
+    def tryConvert[X](x: X, msg: String)(extract: Number => Option[X], func: (X, X) => Try[X], g: (X, Factor) => Number): Try[Number] =
+      toTry(for (y <- extract(other)) yield func(x, y) map (g(_, f)), Failure(NumberException(s"other is not a $msg"))).flatten
+
+    def tryRational(x: Rational): Try[Number] = tryConvert(x, "Rational")(n => n.maybeRational, fRational, make)
+
+    def tryBigInt(x: BigInt): Try[Number] = tryConvert(x, "BigInt")(n => n.toBigInt, fBigInt, make)
+
+    def tryInt(x: Int): Try[Number] = tryConvert(x, "Int")(n => n.maybeInt, fInt, make)
+
     import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x, other.maybeRational.get) map (makeNumber(_, f)), xToZy0)
-    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x, other.toBigInt.get) map (makeNumber(_, f)), xToZy1)
-    tryMap(value)(x => fInt(x, other.maybeInt.get) map (makeNumber(_, f)), xToZy2).toOption
+    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(tryRational, tryDouble)
+    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(tryBigInt, xToZy1)
+    
+    tryMap(value)(tryInt, xToZy2).toOption
   }
 
   /**
@@ -639,13 +651,13 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   private def doComposeMonadic(f: Factor)(functions: MonadicFunctions): Option[Number] = {
     val (fInt, fBigInt, fRational, fDouble) = functions
     val xToZy0: Option[Double] => Try[Number] = {
-      case Some(n) => fDouble(n) map (makeNumber(_, f))
+      case Some(n) => fDouble(n) map (make(_, f))
       case None => Failure(new NoSuchElementException())
     }
     import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x) map (makeNumber(_, f)), xToZy0)
-    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x) map (makeNumber(_, f)), xToZy1)
-    tryMap(value)(x => fInt(x) map (y => makeNumber(y, f)), xToZy2).toOption
+    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x) map (make(_, f)), xToZy0)
+    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x) map (make(_, f)), xToZy1)
+    tryMap(value)(x => fInt(x) map (y => make(y, f)), xToZy2).toOption
   }
 
   /**
@@ -1112,7 +1124,7 @@ object Number {
       case Some(Rational(n, d)) =>
         root(power(x, n.toInt), d.toInt) match {
           case Some(q) => q
-          case None => y.toDouble map x.makeNumber getOrElse Number()
+          case None => y.toDouble map x.make getOrElse Number()
         }
       case None => y.toDouble match {
         case Some(d) => power(x, d)
@@ -1131,11 +1143,11 @@ object Number {
     case _ => None
   }
 
-  private def power(n: Number, y: Double): Number = n.toDouble.map(x => math.pow(x, y)).map(n.makeNumber).getOrElse(Number())
+  private def power(n: Number, y: Double): Number = n.toDouble.map(x => math.pow(x, y)).map(n.make).getOrElse(Number())
 
   def scale(n: Number, f: Factor): Number = n.factor match {
     case `f` => n
-    case _ => n.maybeDouble.map(x => n.makeNumber(scaleDouble(x, n.factor, f), f)).getOrElse(Number())
+    case _ => n.maybeDouble.map(x => n.make(scaleDouble(x, n.factor, f), f)).getOrElse(Number())
   }
 
   private def scaleDouble(x: Double, fThis: Factor, fResult: Factor) = x * fThis.value / fResult.value
@@ -1150,8 +1162,8 @@ object Number {
       // First we take care of the special cases
       case Right(1) => Some(x)
       case Left(Right(_)) if x.toBigInt.get == BigInt(1) => Some(x)
-      case Left(Left(Left(_))) => x.maybeDouble.map(1 / _).map(x.makeNumber)
-      case _ => x.maybeRational.map(_.invert).map(x.makeNumber)
+      case Left(Left(Left(_))) => x.maybeDouble.map(1 / _).map(x.make)
+      case _ => x.maybeRational.map(_.invert).map(x.make)
     }
     maybeNumber.getOrElse(Number()).specialize
   }

@@ -141,8 +141,9 @@ The current set of expression optimizations is somewhat limited, but it catches 
 
 Versions
 ========
-The Current version is 1.0.3
-This version implements lazy evaluation.
+The Current version is 1.0.4
+
+Version 1.0.3 implements lazy evaluation.
 
 Version 1.0.2 Included fixing the bug mentioned in 1.0.1 (actually a Rational bug), as well as adding the :/ operator
 and many other fixes/features.
@@ -157,4 +158,4 @@ Initial version is 1.0.0
 
 Future Upgrades
 ===============
-We expect to provide lazy Numbers in the near future.
+To remove the BigInt option of Value.

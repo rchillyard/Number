@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{toTry, tryF}
 
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.math.Ordered.orderingToOrdered
@@ -59,20 +60,23 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 }
 
 case object MonadicOperationModulate extends MonadicOperation {
-  private def forceIntoRange[X: Numeric](z: X, min: X, max: X): X = {
+  private def modulate[X: Numeric](z: X, min: X, max: X): X = {
     val nx = implicitly[Numeric[X]]
-    // NOTE: using a var here!!
-    var result = z
-    while (result < min) result = nx.plus(result, nx.plus(max, nx.negate(min)))
-    while (result > max) result = nx.plus(result, nx.plus(min, nx.negate(max)))
-    result
+
+    @tailrec
+    def inner(result: X): X =
+      if (result < min) inner(nx.plus(result, nx.plus(max, nx.negate(min))))
+      else if (result > max) inner(nx.plus(result, nx.plus(min, nx.negate(max))))
+      else result
+
+    inner(z)
   }
 
   def getFunctions: MonadicFunctions = (
     tryF(z => math.floorMod(z, 2)),
     _ => Failure(NumberException("No need to modulate on BigInt")),
-    tryF(z => forceIntoRange(z, Rational.zero, Rational.two)),
-    tryF(z => forceIntoRange(z, 0, 2))
+    tryF(z => modulate(z, Rational.zero, Rational.two)),
+    tryF(z => modulate(z, 0, 2))
   )
 }
 

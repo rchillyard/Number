@@ -2,7 +2,7 @@ organization := "com.phasmidsoftware"
 
 name := "Number"
 
-version := "1.0.3"
+version := "1.0.4"
 
 scalaVersion := "2.13.4"
 
