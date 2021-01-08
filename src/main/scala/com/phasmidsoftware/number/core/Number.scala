@@ -620,24 +620,25 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   private def doComposeDyadic(other: Number, f: Factor)(functions: DyadicFunctions): Option[Number] = {
     val (fInt, fBigInt, fRational, fDouble) = functions
 
-    def doubleToTryNumber(xo: Option[Double]): Try[Number] = xo match {
+    def tryDouble(xo: Option[Double]): Try[Number] = xo match {
       case Some(n) => toTry(for (y <- other.maybeDouble) yield fDouble(n, y) map (x => make(x, f)), Failure(NumberException("other is not a Double"))).flatten
       case None => Failure(NumberException("number is invalid"))
     }
 
-    def rationalToTryNumber(x: Rational): Try[Number] =
-      toTry(for (y <- other.maybeRational) yield fRational(x, y) map (make(_, f)), Failure(NumberException("other is not a Rational"))).flatten
+    def tryConvert[X](x: X, msg: String)(extract: Number => Option[X], func: (X, X) => Try[X], g: (X, Factor) => Number): Try[Number] =
+      toTry(for (y <- extract(other)) yield func(x, y) map (g(_, f)), Failure(NumberException(s"other is not a $msg"))).flatten
 
-    def bigIntToTryNumber(x: BigInt): Try[Number] =
-      toTry(for (y <- other.toBigInt) yield fBigInt(x, y) map (make(_, f)), Failure(NumberException("other is not a BigInt"))).flatten
+    def tryRational(x: Rational): Try[Number] = tryConvert(x, "Rational")(n => n.maybeRational, fRational, make)
 
-    def intToTryNumber(x: Int): Try[Number] =
-      toTry(for (y <- other.maybeInt) yield fInt(x, y) map (make(_, f)), Failure(NumberException("other is not a Int"))).flatten
+    def tryBigInt(x: BigInt): Try[Number] = tryConvert(x, "BigInt")(n => n.toBigInt, fBigInt, make)
+
+    def tryInt(x: Int): Try[Number] = tryConvert(x, "Int")(n => n.maybeInt, fInt, make)
 
     import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(rationalToTryNumber, doubleToTryNumber)
-    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(bigIntToTryNumber, xToZy1)
-    tryMap(value)(intToTryNumber, xToZy2).toOption
+    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(tryRational, tryDouble)
+    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(tryBigInt, xToZy1)
+    
+    tryMap(value)(tryInt, xToZy2).toOption
   }
 
   /**
