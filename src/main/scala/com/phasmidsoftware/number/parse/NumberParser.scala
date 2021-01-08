@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Factor, Fuzz, FuzzyNumber, Gaussian, Number, Rational, Scalar}
+import com.phasmidsoftware.number.core._
+
 import scala.util.Try
 
 /**

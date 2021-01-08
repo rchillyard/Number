@@ -38,9 +38,11 @@ trait Expression {
 
 object Expression {
 
-  def apply(x: Number): Expression = if (x == Number.zero) Zero
-  else if (x == Number.one) One
-  else Literal(x)
+  def apply(x: Number): Expression = x match {
+    case Number.zero => Zero
+    case Number.one => One
+    case _ => Literal(x)
+  }
 
   implicit class ExpressionOps(x: Expression) {
     /**
@@ -295,9 +297,14 @@ case class Function(x: Expression, f: ExpressionFunction) extends Expression {
   /**
     * If it is possible to simplify this Expression, then we do so.
     *
+    * NOTE: currently, we do not do any simplification of monadic functions.
+    * Possibilities: swapping the order of commutative operators (are there any?)
+    * Also, pairing inverse trigonometric functions like atan (a dyadic operator) with sin/cos.
+    * Also, distributing monadic functions to the branches of an addition, etc.
+    *
     * @return an Expression tree which is the equivalent of this.
     */
-  def simplify: Expression = this // TODO implement me
+  def simplify: Expression = this
 
   override def toString: String = s"$f($x)"
 }

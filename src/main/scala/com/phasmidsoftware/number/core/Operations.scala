@@ -9,6 +9,10 @@ import scala.math.Ordered.orderingToOrdered
 import scala.util._
 
 /**
+  * This module relates primarily to operations on Value (a type defined in package.scala).
+  */
+
+/**
   * Definitions of MonadicOperations.
   */
 sealed trait MonadicOperation {
@@ -23,6 +27,22 @@ case object MonadicOperationNegate extends MonadicOperation {
     val fDouble = tryF[Double, Double](implicitly[Numeric[Double]].negate)
     (fInt, fBigInt, fRational, fDouble)
   }
+}
+
+case object MonadicOperationInvert extends MonadicOperation {
+  def invertInt(x: Int): Try[Int] = x match {
+    case 1 => Success(1)
+    case _ => Failure(NumberException("can't invert Int"))
+  }
+
+  val invertBigInt: BigInt => Try[BigInt] = _ => Failure(NumberException("can't invert BigInt"))
+
+  private val xf: Fractional[Double] = implicitly[Fractional[Double]]
+
+  def invertDouble(x: Double): Try[Double] = Try(xf.div(xf.one, x))
+
+  def getFunctions: MonadicFunctions =
+    (invertInt, invertBigInt, tryF[Rational, Rational](x => x.invert), invertDouble)
 }
 
 case object MonadicOperationSin extends MonadicOperation {
@@ -118,6 +138,33 @@ case object DyadicOperationTimes extends DyadicOperation {
     val fBigInt = tryF[BigInt, BigInt, BigInt](implicitly[Numeric[BigInt]].times)
     val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].times)
     val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].times)
+    (fInt, fBigInt, fRational, fDouble)
+  }
+}
+
+/**
+  * Definitions of QueryOperations.
+  */
+sealed trait QueryOperation {
+  def getFunctions: QueryFunctions
+}
+
+case object QueryOperationIsZero extends QueryOperation {
+  def getFunctions: QueryFunctions = {
+    val fInt = tryF[Int, Boolean](x => x == 0)
+    val fBigInt = tryF[BigInt, Boolean](x => x.sign == 0)
+    val fRational = tryF[Rational, Boolean](x => x.signum == 0)
+    val fDouble = tryF[Double, Boolean](x => x.sign == 0 || x.sign == -0)
+    (fInt, fBigInt, fRational, fDouble)
+  }
+}
+
+case object QueryOperationIsInfinite extends QueryOperation {
+  def getFunctions: QueryFunctions = {
+    val fInt = tryF[Int, Boolean](_ => false)
+    val fBigInt = tryF[BigInt, Boolean](_ => false)
+    val fRational = tryF[Rational, Boolean](x => x.isInfinity)
+    val fDouble = tryF[Double, Boolean](x => x == Double.PositiveInfinity || x == Double.NegativeInfinity)
     (fInt, fBigInt, fRational, fDouble)
   }
 }

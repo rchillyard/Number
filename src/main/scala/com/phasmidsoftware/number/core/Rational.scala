@@ -7,7 +7,6 @@ import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
-import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -79,10 +78,13 @@ case class Rational(n: BigInt, d: BigInt) {
 
   lazy val isNaN: Boolean = isZero && isInfinity
 
+  // TODO eliminate get
   lazy val toInt: Int = Rational.toInt(this).get
 
+  // TODO eliminate get
   lazy val toLong: Long = Rational.toLong(this).get
 
+  // TODO eliminate get
   lazy val toBigInt: BigInt = Rational.toBigInt(this).get
 
   lazy val toFloat: Float = Rational.toFloat(this)
@@ -483,11 +485,7 @@ object Rational {
 
   private def toDoubleViaString(x: BigInt) = x.toString().toDouble
 
-  private def toDouble(x: Rational): Double = try {
-    (BigDecimal(x.n) / BigDecimal(x.d)).toDouble
-  } catch {
-    case NonFatal(_) => toDoubleViaString(x.n) / toDoubleViaString(x.d)
-  }
+  private def toDouble(x: Rational): Double = Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
 
   private def toFloat(x: Rational): Float = toDouble(x).toFloat
 
