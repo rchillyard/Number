@@ -2,11 +2,11 @@ package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
 
+import com.phasmidsoftware.number.core.FP.{identityTry, optionMap, tryF, tryMap}
 import com.phasmidsoftware.number.core.Number.{bigIntToInt, negate}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
-import com.phasmidsoftware.number.misc.FP.{identityTry, optionMap, tryF, tryMap}
 import com.phasmidsoftware.number.parse.NumberParser
 
 import scala.language.implicitConversions
@@ -623,7 +623,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
       case Some(n) => fDouble(n, other.maybeDouble.get) map (x => makeNumber(x, f))
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x, other.maybeRational.get) map (makeNumber(_, f)), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x, other.toBigInt.get) map (makeNumber(_, f)), xToZy1)
     tryMap(value)(x => fInt(x, other.maybeInt.get) map (makeNumber(_, f)), xToZy2).toOption
@@ -642,7 +642,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
       case Some(n) => fDouble(n) map (makeNumber(_, f))
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x) map (makeNumber(_, f)), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x) map (makeNumber(_, f)), xToZy1)
     tryMap(value)(x => fInt(x) map (y => makeNumber(y, f)), xToZy2).toOption
@@ -661,7 +661,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
       case Some(n) => fDouble(n)
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Boolean] = y => tryMap(y)(x => fRational(x), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Boolean] = x => tryMap(x)(x => fBigInt(x), xToZy1)
     tryMap(value)(x => fInt(x), xToZy2).toOption
@@ -673,7 +673,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * CONSIDER using MonadicTransformations
     */
   private lazy val maybeRational: Option[Rational] = {
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val ry = tryMap(value)(tryF(Rational.apply), x =>
       tryMap(x)(tryF(Rational.apply), x =>
         tryMap(x)(identityTry, _ =>
@@ -697,7 +697,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
       case Some(n) => Failure(NumberException(s"toBigInt: $n is not integral"))
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[BigInt] = y => tryMap(y)(tryF(y => y.toBigInt), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[BigInt] = x => tryMap(x)(identityTry, xToZy1)
     tryMap(value)(tryF(BigInt.apply), xToZy2).toOption
@@ -715,7 +715,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
       case Some(n) => Failure(NumberException(s"toInt: $n is not integral"))
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Int] = x => tryMap(x)(bigIntToInt, xToZy1)
     tryMap(value)(identityTry, xToZy2).toOption

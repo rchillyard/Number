@@ -1,8 +1,9 @@
-package com.phasmidsoftware.number.parse
+package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.Rational
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
+
 import scala.util._
 
 

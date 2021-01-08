@@ -1,8 +1,6 @@
-package com.phasmidsoftware.number.misc
+package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
-
-import com.phasmidsoftware.number.core.Rational
 
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -15,6 +13,7 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
 object FP {
 
   //noinspection ScalaUnusedSymbol
+  // TODO not used directly
   private def optionToEither[X, Y](x: Option[X], y: => Y): Either[Y, X] = x.map(Right(_)).getOrElse(Left(y))
 
   def optionMap[X, Y, Z](xYe: Either[X, Y])(yToZ: Y => Z, xToZy: X => Option[Z]): Option[Z] = xYe.toOption.map(yToZ) match {

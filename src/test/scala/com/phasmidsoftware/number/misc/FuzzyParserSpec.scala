@@ -1,6 +1,5 @@
-package com.phasmidsoftware.number.parse
+package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.misc.{Exact, Gaussian}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 

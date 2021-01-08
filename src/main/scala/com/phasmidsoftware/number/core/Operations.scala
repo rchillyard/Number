@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.misc.FP.{toTry, tryF}
+import com.phasmidsoftware.number.core.FP.{toTry, tryF}
 
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -59,27 +59,19 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 }
 
 case object MonadicOperationModulate extends MonadicOperation {
-  // CONSIDER combining these into something which works on Numeric values.
-  private def forceIntoRange(z: Double, min: Double, max: Double): Double = {
+  private def forceIntoRange[X: Numeric](z: X, min: X, max: X): X = {
+    val nx = implicitly[Numeric[X]]
     // NOTE: using a var here!!
     var result = z
-    while (result < min) result += (max - min)
-    while (result > max) result += (min - max)
-    result
-  }
-
-  private def forceIntoRange(z: Rational, min: Rational, max: Rational): Rational = {
-    // NOTE: using a var here!!
-    var result = z
-    while (result < min) result += (max - min)
-    while (result > max) result += (min - max)
+    while (result < min) result = nx.plus(result, nx.plus(max, nx.negate(min)))
+    while (result > max) result = nx.plus(result, nx.plus(min, nx.negate(max)))
     result
   }
 
   def getFunctions: MonadicFunctions = (
     tryF(z => math.floorMod(z, 2)),
     _ => Failure(NumberException("No need to modulate on BigInt")),
-    tryF(z => forceIntoRange(z, 0, 2)),
+    tryF(z => forceIntoRange(z, Rational.zero, Rational.two)),
     tryF(z => forceIntoRange(z, 0, 2))
   )
 }
