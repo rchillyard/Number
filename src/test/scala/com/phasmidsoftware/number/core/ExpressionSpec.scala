@@ -88,28 +88,29 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "canceling operations"
   it should "cancel 1 and - -1" in {
-    val x: Expression = Number.one
+    val x: Expression = Expression.one
     val y = -x
     val z = x + y
     z.simplify shouldBe Zero
   }
   it should "cancel 2 and * 1/2" in {
-    val x: Expression = Number.one * 2
+    val x = Expression.one * 2
     val y = x.reciprocal
     val z = x * y
     z.simplify shouldBe One
   }
   it should "cancel 2 * 1/2" in {
-    val x: Expression = Number.one * 2
+    val x = Expression.one * 2
     val y = x.reciprocal
     val z = y * x
     z.simplify shouldBe One
   }
   it should "cancel ^2 and sqrt" in {
-    val seven: Expression = Number(7)
+    val seven = Expression(7)
     val x: Expression = seven.sqrt
     val y = x ^ 2
-    y.simplify shouldBe Number(7)
+    val z = y.simplify
+    z shouldBe Expression(7)
     y.simplify.materialize should matchPattern { case ExactNumber(_, _) => }
   }
   it should "show that lazy evaluation only works when you use it" in {

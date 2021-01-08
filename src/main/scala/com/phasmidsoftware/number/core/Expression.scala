@@ -38,11 +38,36 @@ trait Expression {
 
 object Expression {
 
+  /**
+    * The following method is helpful in getting an expression started.
+    */
   def apply(x: Number): Expression = x match {
     case Number.zero => Zero
     case Number.one => One
     case _ => Literal(x)
   }
+
+  /**
+    * The following method is helpful in getting an expression started.
+    */
+  def apply(x: Int): Expression = x match {
+    case 0 => Zero
+    case 1 => One
+    case _ => Expression(Number(x))
+  }
+
+  /**
+    * The following method is helpful in getting an expression started.
+    */
+  def apply(x: String): Expression = Expression(Number(x))
+
+  /**
+    * The following constants are helpful in getting an expression started.
+    */
+  val zero: Expression = Zero
+  val one: Expression = One
+  val pi: Expression = Expression(Number.pi)
+  val e: Expression = Expression(Number.e)
 
   implicit class ExpressionOps(x: Expression) {
     /**
@@ -119,7 +144,7 @@ object Expression {
     /**
       * Method to lazily yield the reciprocal of this Expression.
       *
-      * @return an Expression representing the reciprocol of this.
+      * @return an Expression representing the reciprocal of this.
       */
     def reciprocal: Expression = BiFunction(x, MinusOne, Power)
 
@@ -389,6 +414,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case None => None
   }
 
+  def cancelOperands(l: Expression, r: Expression, name: String): Option[Expression] = (l, r, name) match {
+    case (MinusOne, One, "+") | (One, MinusOne, "+") => Some(Zero)
+    case _ => None
+  }
+
   /**
     * If it is possible to simplify this Expression, then we do so.
     *
@@ -406,10 +436,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case "^" if right == Zero => One
       case _ =>
         // NOTE: we check only for gatherer left, right
-        cancel(left, right, f.name) orElse
+        cancelOperands(left, right, f.name) orElse
+                cancel(left, right, f.name) orElse
                 cancel(right, left, f.name) orElse
                 gatherer(left, right, f.name) getOrElse
-                this
+                BiFunction(left, right, f)
     }
     if (result != this) println(s"simplified $this to $result")
     result
