@@ -104,6 +104,40 @@ For example, if you want to check that the sine of pi/2 is equal to 1 exactly, t
 
 Similarly, if you use the _atan_ method on a Scalar number, the result will be a number (possibly exact) whose factor is __Pi__.
 
+Lazy Evaluation
+===============
+Version 1.0.3 supports lazy evaluation via a trait called _Expression_.
+The advantage of lazy evaluation is not so much performance.
+That's going to be neither here nor there.
+But it is in avoiding precision loss in some circumstances.
+
+For example, suppose an expression you are working on involves the square root of, say, 7.
+However, you don't particularly pay attention to the fact that later on in the calculation, you square everything.
+If you don't use lazy evaluation, your final result will have an error bound, even though the true value should be
+proportional to exactly 7.
+
+It's important to realize of course that you have to use the Expression mechanism.
+
+      it should "give precise result for sqrt(7)^2" in {
+        val seven: Expression = Number(7)
+        val x = seven.sqrt
+        val y = x ^ 2
+        y shouldBe Number(7)
+        y.materialize should matchPattern { case ExactNumber(_, _) => }
+      }
+      it should "show ^2 and sqrt for illustrative purposes" in {
+        val seven = Number(7)
+        val x = seven.sqrt
+        val y = x power 2
+        y shouldEqual Number(7)
+        y shouldBe Number(7)
+      }
+
+The second test fails with "7.000000000000001 was not equal to 7," although if we do a fuzzy compare,
+using a custom equality test, we can at least make y shouldEqual 7 work.
+
+The current set of expression optimizations is somewhat limited, but it catches the most important cases. 
+
 Versions
 ========
 The Current version is 1.0.3

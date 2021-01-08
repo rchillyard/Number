@@ -667,7 +667,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for Pi/3" in {
     val target = Number.pi divide 3
-    target.tan shouldBe Number(3).sqrt
+    target.tan shouldEqual Number(3).sqrt
   }
   it should "work for Pi/6" in {
     val target = Number.pi divide 6

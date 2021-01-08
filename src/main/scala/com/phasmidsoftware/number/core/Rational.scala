@@ -1,8 +1,10 @@
 package com.phasmidsoftware.number.core
 
+import java.lang.Math._
+
 import com.phasmidsoftware.number.core.Rational.bigZero
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-import java.lang.Math._
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.control.NonFatal
@@ -60,7 +62,7 @@ case class Rational(n: BigInt, d: BigInt) {
 
   def ^(that: Int): Rational = power(that)
 
-  lazy val sqrt: Rational = Rational.sqrt(this)
+  lazy val sqrt: Rational = Rational.sqrt(this).getOrElse(Rational(math.sqrt(toDouble)))
 
   // Other methods appropriate to Rational
   lazy val signum: Int = n.signum
@@ -442,15 +444,14 @@ object Rational {
     * Compute the square root of a Rational, exactly if possible.
     *
     * @param r the Rational.
-    * @return the square root of the Rational.
+    * @return optionally the square root of the Rational, else None if a Rational result couldn't be returned.
     */
-  def sqrt(r: Rational): Rational = r match {
+  def sqrt(r: Rational): Option[Rational] = r match {
     case Rational(n, d) =>
-      val ro = for {
+      for {
         p <- toInt(n).toOption.flatMap(x => squareRoots.get(x).map(BigInt(_)))
         q <- toInt(d).toOption.flatMap(x => squareRoots.get(x).map(BigInt(_)))
       } yield Rational(p, q)
-      ro.getOrElse(Rational(math.sqrt(r.toDouble)))
   }
 
   val squareRoots = Map(1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)

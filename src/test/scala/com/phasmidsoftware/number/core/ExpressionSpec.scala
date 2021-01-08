@@ -69,11 +69,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "gathering operations"
   it should "gather 2 and * 1/2" in {
     val x: Expression = Number(7)
-    println(x)
     val y = x.sqrt
-    println(y)
     val z = y ^ 2
-    println(z)
     z shouldBe Number(7)
   }
 
@@ -101,8 +98,22 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val seven: Expression = Number(7)
     val x: Expression = seven.sqrt
     val y = x ^ 2
-    y shouldEqual Number(7)
+    y shouldBe Number(7)
     y.materialize should matchPattern { case ExactNumber(_, _) => }
+  }
+  it should "show that lazy evaluation only works when you use it" in {
+    val seven = Number(7)
+    val x: Number = seven.sqrt
+    val y = x ^ 2
+    y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
+  }
+
+  it should "show ^2 and sqrt for illustrative purposes" in {
+    val seven = Number(7)
+    val x = seven.sqrt
+    val y = x power 2
+    y should matchPattern { case FuzzyNumber(_, _, _) => }
+    y shouldEqual Number(7)
   }
 
 }

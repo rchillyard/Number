@@ -89,7 +89,7 @@ case object MonadicOperationSqrt extends MonadicOperation {
     x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
 
   def getFunctions: MonadicFunctions =
-    (sqrtInt, _ => Failure(NumberException("Can't sqrt on BigInt")), tryF(x => Rational.sqrt(x)), tryF(x => math.sqrt(x)))
+    (sqrtInt, _ => Failure(NumberException("Can't sqrt on BigInt")), tryF(x => Rational.sqrt(x).get), tryF(x => math.sqrt(x)))
 }
 
 case class MonadicOperationScale(f: Int) extends MonadicOperation {
