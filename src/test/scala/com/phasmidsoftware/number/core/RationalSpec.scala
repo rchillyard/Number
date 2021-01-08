@@ -674,12 +674,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.approximateAny(3.1416) shouldBe Rational(3141600355L, 1000000113)
   }
 
-  behavior of "doubleToRational"
+  behavior of "convertDouble"
   it should "work" in {
-    Rational.doubleToRational(1.0 / 2) shouldBe Rational.half
-    Rational.doubleToRational(-5.0 / 4) shouldBe Rational(-5, 4)
-    Rational.doubleToRational(Math.PI).toDouble shouldBe Math.PI +- 1E-15
-    Rational.doubleToRational(6.02214076E23).toDouble shouldBe 6.02214076E23 +- 1E9
+    Rational.convertDouble(1.0 / 2) shouldBe Rational.half
+    Rational.convertDouble(-5.0 / 4) shouldBe Rational(-5, 4)
+    Rational.convertDouble(Math.PI).toDouble shouldBe Math.PI +- 1E-15
+    Rational.convertDouble(6.02214076E23).toDouble shouldBe 6.02214076E23 +- 1E9
   }
 
   behavior of "sqrt"

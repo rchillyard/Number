@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
-
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util.{Either, Failure, Left, Right, Success, Try}
@@ -98,6 +97,17 @@ object FP {
     case Some(x) => Success(x)
     case None => default
   }
+
+  /**
+    * This method fills a gap in the Scala library.
+    * It converts an Option[X] to a Try[X] with the benefit of a default value.
+    *
+    * @param xo      an Option[X].
+    * @param default a Throwable to be returned as a Failure in the event that xo is empty.
+    * @tparam X the underlying type of input and output.
+    * @return a Try[X]
+    */
+  def toTryWithThrowable[X](xo: Option[X], default: => Throwable): Try[X] = toTry(xo, Failure(default))
 
   /**
     * This method is a substitute for Try.apply in the case that we want it as a function

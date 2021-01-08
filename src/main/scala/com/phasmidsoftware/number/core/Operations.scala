@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.{toTry, tryF}
-
+import com.phasmidsoftware.number.core.FP.{toTry, toTryWithThrowable, tryF}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -105,7 +104,7 @@ case object MonadicOperationSqrt extends MonadicOperation {
     x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
 
   def getFunctions: MonadicFunctions =
-    (sqrtInt, _ => Failure(NumberException("Can't sqrt on BigInt")), tryF(x => Rational.sqrt(x).get), tryF(x => math.sqrt(x)))
+    (sqrtInt, _ => Failure(NumberException("Can't sqrt on BigInt")), x => toTryWithThrowable(Rational.sqrt(x), NumberException("cannot get square root")), tryF(x => math.sqrt(x)))
 }
 
 case class MonadicOperationScale(f: Int) extends MonadicOperation {

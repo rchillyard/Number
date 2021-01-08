@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
 import scala.util.Left
 
 /**
@@ -221,10 +222,10 @@ object FuzzyNumber {
   }
 
   private def composeDyadic(n: FuzzyNumber, p: Number, q: Number, op: DyadicOperation, absolute: Boolean) =
-    n.composeDyadicFuzzy(q, p.factor)(op, absolute).getOrElse(Number()).specialize
+    prepareWithSpecialize(n.composeDyadicFuzzy(q, p.factor)(op, absolute))
 
   private def composeMonadic(n: FuzzyNumber, factor: Factor, op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean) =
-    n.composeMonadicFuzzy(factor)(op, fuzzOp, absolute).getOrElse(Number()).specialize
+    prepareWithSpecialize(n.composeMonadicFuzzy(factor)(op, fuzzOp, absolute))
 }
 
 case class FuzzyNumberException(str: String) extends Exception(str)

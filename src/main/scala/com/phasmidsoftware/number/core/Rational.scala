@@ -1,10 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import java.lang.Math._
-
 import com.phasmidsoftware.number.core.Rational.bigZero
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-
+import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -78,13 +76,13 @@ case class Rational(n: BigInt, d: BigInt) {
 
   lazy val isNaN: Boolean = isZero && isInfinity
 
-  // TODO eliminate get
+  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
   lazy val toInt: Int = Rational.toInt(this).get
 
-  // TODO eliminate get
+  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
   lazy val toLong: Long = Rational.toLong(this).get
 
-  // TODO eliminate get
+  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)Õ
   lazy val toBigInt: BigInt = Rational.toBigInt(this).get
 
   lazy val toFloat: Float = Rational.toFloat(this)
@@ -218,7 +216,7 @@ object Rational {
     * @throws IllegalArgumentException if x is not between 0 and 1.
     */
   def approximate(x: Double)(implicit epsilon: Tolerance): Rational = {
-    require(x >= 0 && x <= 1, "Call doubleToRational instead of approximate")
+    require(x >= 0 && x <= 1, "Call convertDouble instead of approximate")
 
     @scala.annotation.tailrec
     def inner(r1: Rational, r2: Rational): Rational =
@@ -377,7 +375,7 @@ object Rational {
     * @param x the value.
     * @return a Rational equal to or approximately equal to x.
     */
-  implicit def doubleToRational(x: Double): Rational = Rational(x)
+  implicit def convertDouble(x: Double): Rational = Rational(x)
 
   /**
     * Implicit converter from Long to Rational.
@@ -385,7 +383,7 @@ object Rational {
     * @param x the value.
     * @return a Rational equal to x.
     */
-  implicit def longToRational(x: Long): Rational = Rational(x)
+  implicit def convertLong(x: Long): Rational = Rational(x)
 
   /**
     * Implicit converter from BigInt to Rational.
@@ -393,7 +391,7 @@ object Rational {
     * @param x the value.
     * @return a Rational equal to x.
     */
-  implicit def bigIntToRational(x: BigInt): Rational = Rational(x)
+  implicit def convertBigInt(x: BigInt): Rational = Rational(x)
 
   /**
     * Trait defined to support the methods of Ordering[Rational].
@@ -497,8 +495,33 @@ object Rational {
 
   private def toLong(x: Rational): Try[Long] = narrow(x, Long.MinValue, Long.MaxValue) map (_.toLong)
 
-  // Needs to be public for testing
+  /**
+    * This method gets an Int from a Rational.
+    *
+    * XXX: Needs to be public for testing
+    *
+    * @param x a Rational.
+    * @return an Try[Int]
+    */
   def toInt(x: Rational): Try[Int] = narrow(x, Int.MinValue, Int.MaxValue) map (_.toInt)
+
+  /**
+    * Get Rational x as a pair of Longs (if possible).
+    * The result will be at full precision or an exception will be thrown.
+    *
+    * @param x a Rational.
+    * @return an optional tuple of Longs.
+    */
+  def toLongs(x: Rational): Option[(Long, Long)] = (for (n <- narrow(x.n.toLong, Long.MinValue, Long.MaxValue); d <- narrow(x.d.toLong, Long.MinValue, Long.MaxValue)) yield (n.toLong, d.toLong)).toOption
+
+  /**
+    * Get Rational x as a pair of Ints (if possible).
+    * The result will be at full precision or an exception will be thrown.
+    *
+    * @param x a Rational.
+    * @return an optional tuple of Ints.
+    */
+  def toInts(x: Rational): Option[(Int, Int)] = toLongs(x) map { case (n, d) => (math.toIntExact(n), math.toIntExact(d)) }
 
   // CONSIDER making this public
   private def toBigInt(x: Rational): Try[BigInt] = if (x.isWhole) Success(x.n) else Failure(RationalException(s"toBigInt: $x is " + (if (x.d == 0L)

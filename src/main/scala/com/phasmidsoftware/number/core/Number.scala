@@ -1,14 +1,12 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.core.FP._
-import com.phasmidsoftware.number.core.Number.{bigIntToInt, negate}
-import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.core.Number.{bigIntToInt, negate, prepare}
+import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
+import java.util.NoSuchElementException
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
@@ -140,7 +138,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   /**
     * Method to get the value of this Number as a Rational.
     * If this is actually a Double, it will be converted to a Rational according to the implicit conversion from Double to Rational.
-    * See Rational.doubleToRational(x).
+    * See Rational.convertDouble(x).
     *
     * @return an Option of Rational.
     */
@@ -513,7 +511,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     */
   def normalize: Number = factor match {
     case Scalar => this
-    case Pi | E => (maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar))).getOrElse(Number())
+    case Pi | E => prepare(maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar)))
   }
 
   /**
@@ -583,7 +581,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
       // x's value is invalid: swap the order so the the first element is invalid
       case Left(Left(Left(None))) => x.alignTypes(this)
       // otherwise: return this and x re-cast as a Double
-      case _ => (this, x.maybeDouble.map(y => make(y, x.factor).specialize).getOrElse(Number()))
+      case _ => (this, prepare(x.maybeDouble.map(y => make(y, x.factor).specialize)))
     }
     // this value is a Rational:
     case Left(Left(Right(_))) => x.value match {
@@ -629,12 +627,12 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     val (fInt, fBigInt, fRational, fDouble) = functions
 
     def tryDouble(xo: Option[Double]): Try[Number] = xo match {
-      case Some(n) => toTry(for (y <- other.maybeDouble) yield fDouble(n, y) map (x => make(x, f)), Failure(NumberException("other is not a Double"))).flatten
+      case Some(n) => toTryWithThrowable(for (y <- other.maybeDouble) yield fDouble(n, y) map (x => make(x, f)), NumberException("other is not a Double")).flatten
       case None => Failure(NumberException("number is invalid"))
     }
 
     def tryConvert[X](x: X, msg: String)(extract: Number => Option[X], func: (X, X) => Try[X], g: (X, Factor) => Number): Try[Number] =
-      toTry(for (y <- extract(other)) yield func(x, y) map (g(_, f)), Failure(NumberException(s"other is not a $msg"))).flatten
+      toTryWithThrowable(for (y <- extract(other)) yield func(x, y) map (g(_, f)), NumberException(s"other is not a $msg")).flatten
 
     def tryRational(x: Rational): Try[Number] = tryConvert(x, "Rational")(n => n.maybeRational, fRational, make)
 
@@ -1108,7 +1106,7 @@ object Number {
     case _ =>
       val (a, b) = x.alignFactors(y)
       val (p, q) = a.alignTypes(b)
-      p.composeDyadic(q, p.factor)(DyadicOperationPlus).getOrElse(Number()).specialize
+      prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
   }
 
   private def times(x: Number, y: Number): Number =
@@ -1117,21 +1115,28 @@ object Number {
       case _ =>
         val (p, q) = x.alignTypes(y)
         val factor = p.factor + q.factor
-        p.composeDyadic(q, factor)(DyadicOperationTimes).getOrElse(Number()).specialize
+        prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
     }
 
-  // TODO wrap this (and all the others)
-  private def sqrt(n: Number): Number = n.scale(Scalar).composeMonadic(Scalar)(MonadicOperationSqrt).getOrElse(Number()).specialize
+  def prepare(no: Option[Number]): Number = no.getOrElse(Number())
+
+  def prepareWithSpecialize(no: Option[Number]): Number = prepare(no).specialize
+
+  private def sqrt(n: Number): Number = prepareWithSpecialize(n.scale(Scalar).composeMonadic(Scalar)(MonadicOperationSqrt))
 
   // CONSIDER dealing with non-Scalar x values up-front
   private def power(x: Number, y: Number): Number = y.normalize.toInt match {
     case Some(i) => power(x, i)
     case _ => y.toRational match {
-      // TODO this may lose precision
-      case Some(Rational(n, d)) =>
-        root(power(x, n.toInt), d.toInt) match {
-          case Some(q) => q
-          case None => y.toDouble map x.make getOrElse Number()
+      case Some(r) =>
+        toInts(r) match {
+          case Some((n, d)) =>
+            root(power(x, n), d) match {
+              case Some(q) => q
+              case None => y.toDouble map x.make getOrElse Number()
+            }
+          case _ =>
+            throw NumberException("rational power cannot be represented as two Ints")
         }
       case None => y.toDouble match {
         case Some(d) => power(x, d)
@@ -1145,25 +1150,23 @@ object Number {
     case x => LazyList.continually(inverse(n)).take(-x).product
   }
 
+  private def power(n: Number, y: Double): Number = prepare(n.toDouble.map(x => math.pow(x, y)).map(n.make))
+
   private def root(n: Number, i: Int): Option[Number] = i match {
     case 2 => Some(n.makeFuzzyIfAppropriate(Number.sqrt))
     case _ => None
   }
 
-  private def power(n: Number, y: Double): Number = n.toDouble.map(x => math.pow(x, y)).map(n.make).getOrElse(Number())
-
   def scale(n: Number, f: Factor): Number = n.factor match {
     case `f` => n
-    case _ => n.maybeDouble.map(x => n.make(scaleDouble(x, n.factor, f), f)).getOrElse(Number())
+    case _ => prepare(n.maybeDouble.map(x => n.make(scaleDouble(x, n.factor, f), f)))
   }
 
-  private def scaleDouble(x: Double, fThis: Factor, fResult: Factor) = x * fThis.value / fResult.value
+  private def scale(x: Number, f: Int): Number = prepare(x.composeMonadic(x.factor)(MonadicOperationScale(f)))
 
-  private def scale(x: Number, f: Int): Number = x.composeMonadic(x.factor)(MonadicOperationScale(f)).getOrElse(Number())
+  def negate(x: Number): Number = prepare(x.composeMonadic(x.factor)(MonadicOperationNegate))
 
-  def negate(x: Number): Number = x.composeMonadic(x.factor)(MonadicOperationNegate).getOrElse(Number())
-
-  def inverse(x: Number): Number = x.composeMonadic(x.factor)(MonadicOperationInvert).getOrElse(Number())
+  def inverse(x: Number): Number = prepare(x.composeMonadic(x.factor)(MonadicOperationInvert))
 
   private def isZero(x: Number): Boolean = x.query(QueryOperationIsZero)
 
@@ -1171,9 +1174,11 @@ object Number {
 
   private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
 
-  private def sin(x: Number): Number = x.scale(Pi).composeMonadic(Scalar)(MonadicOperationSin).getOrElse(Number()).specialize
+  private def sin(x: Number): Number = prepareWithSpecialize(x.scale(Pi).composeMonadic(Scalar)(MonadicOperationSin))
 
-  private def atan(x: Number, y: Number): Number = (y divide x).composeMonadic(Pi)(MonadicOperationAtan(x.signum)).getOrElse(Number()).specialize.modulate
+  private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y divide x).composeMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
+
+  private def scaleDouble(x: Double, fThis: Factor, fResult: Factor) = x * fThis.value / fResult.value
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.
@@ -1183,7 +1188,7 @@ object Number {
     * @return either x or a number equivalent to x with value in defined range.
     */
   private def modulate(x: Number): Number = x.factor match {
-    case f@Pi => x.composeMonadic(f)(MonadicOperationModulate).getOrElse(Number())
+    case f@Pi => prepare(x.composeMonadic(f)(MonadicOperationModulate))
     case _ => x
   }
 
