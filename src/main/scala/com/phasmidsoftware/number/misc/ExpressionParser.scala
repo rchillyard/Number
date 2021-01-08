@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.parse
+package com.phasmidsoftware.number.misc
 
 import scala.util.Try
 import scala.util.parsing.combinator._

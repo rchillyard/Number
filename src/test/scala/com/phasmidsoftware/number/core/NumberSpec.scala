@@ -1,9 +1,11 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -11,6 +13,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   implicit object NumberEquality extends Equality[Number] {
     def areEqual(a: Number, b: Any): Boolean = b match {
       case n: Number => a.compare(n) == 0
+      case n: Expression => a.compare(n) == 0
+      case _ => false
+    }
+  }
+
+  implicit object ExpressionEquality extends Equality[Expression] {
+    def areEqual(a: Expression, b: Any): Boolean = b match {
+      case n: Number => new ExpressionOps(a).compare(n) == 0
+      case n: Expression => a.compare(n) == 0
       case _ => false
     }
   }
@@ -418,33 +429,39 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 and 2" in {
     val x = numberOne
     val y = Number(2)
-    (x + y) shouldBe Number(3)
+    (x add y) shouldBe Number(3)
   }
   it should "add BigInt 1 and 2" in {
     val x = Number(bigOne)
     val y = Number(2)
-    (x + y) shouldBe Number(3)
+    (x add y) shouldBe Number(3)
   }
   it should "add Rational 1 and 2" in {
     val x = Number(ratOne)
     val y = Number(2)
-    (x + y) shouldBe Number(3)
+    (x add y) shouldBe Number(3)
   }
   it should "add Double 1 and 2" in {
     val x = Number(doubleOne)
     val y = Number(2)
-    (x + y) shouldBe Number(3)
+    (x add y) shouldBe Number(3)
   }
   it should "add Double 1 and Pi" in {
     val x = Number(doubleOne)
     val y = Number(1, Pi)
-    (x + y) should ===(Number(Math.PI + 1))
+    (x add y) should ===(Number(Math.PI + 1))
   }
   it should "add Pi and 2Pi" in {
     val x = Number(1, Pi)
     val y = Number(2, Pi)
-    (x + y) shouldBe Number(3, Pi)
+    (x add y) shouldBe Number(3, Pi)
   }
+  it should "add 1 to pi" in {
+    val x1 = Number.one
+    val x2 = Number.pi
+    (x1 add x2).toString shouldBe "4.1415926535897930(61)"
+  }
+
 
   behavior of "minus"
   it should "negate 1" in {
@@ -468,54 +485,54 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "subtract 1 from 2" in {
     val x = Number(2)
     val y = numberOne
-    (x - y) shouldBe numberOne
+    (x subtract y) shouldBe numberOne
   }
   it should "subtract BigInt 1 from 2" in {
     val x = Number(BigInt(2))
     val y = numberOne
-    (x - y) shouldBe numberOne
+    (x subtract y) shouldBe numberOne
   }
   it should "subtract Rational 1 from 2" in {
     val x = Number(Rational(2))
     val y = numberOne
-    (x - y) shouldBe numberOne
+    (x subtract y) shouldBe numberOne
   }
   it should "subtract Double 1 from 2" in {
     val x = Number(2.0)
     val y = numberOne
-    (x - y) shouldBe numberOne
+    (x subtract y) shouldBe numberOne
   }
 
   behavior of "times"
   it should "multiply 1 and 2" in {
     val x = numberOne
     val y = Number(2)
-    (x * y) shouldBe Number(2)
+    (x multiply y) shouldBe Number(2)
   }
   it should "multiply BigInt 1 and 2" in {
     val x = Number(bigOne)
     val y = Number(2)
-    (x * y) shouldBe Number(2)
+    (x multiply y) shouldBe Number(2)
   }
   it should "multiply Rational 1 and 2" in {
     val x = Number(Rational(1))
     val y = Number(2)
-    (x * y) shouldBe Number(2)
+    (x multiply y) shouldBe Number(2)
   }
   it should "multiply Double 1 and 2" in {
     val x = Number(doubleOne)
     val y = Number(2)
-    (x * y) shouldBe Number(2)
+    (x multiply y) shouldBe Number(2)
   }
   it should "multiply 2 and Pi" in {
     val x = Number(2)
     val y = Number(1, Pi)
-    (x * y) shouldBe Number(2, Pi)
+    (x multiply y) shouldBe Number(2, Pi)
   }
   it should "multiply Pi and 2" in {
     val x = Number(1, Pi)
     val y = Number(2)
-    (x * y) shouldBe Number(2, Pi)
+    (x multiply y) shouldBe Number(2, Pi)
   }
 
   behavior of "invert"
@@ -548,28 +565,28 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "divide 1 by 2" in {
     val x = numberOne
     val y = Number(2)
-    (x / y) shouldBe Number(Rational.half)
+    (x divide y) shouldBe Number(Rational.half)
   }
   it should "divide BigInt 1 by 2" in {
     val x = Number(bigOne)
     val y = Number(2)
-    (x / y) shouldBe Number(Rational.half)
+    (x divide y) shouldBe Number(Rational.half)
   }
   it should "divide Rational 1 by 2" in {
     val x = Number(Rational(1))
     val y = Number(2)
-    (x / y) shouldBe Number(Rational.half)
+    (x divide y) shouldBe Number(Rational.half)
   }
   it should "divide Double 1 by Double Pi" in {
     val x = Number(doubleOne)
     val y = Number(Math.PI)
-    x / y should ===(Number(1 / Math.PI))
+    x divide y should ===(Number(1 / Math.PI))
   }
 
   behavior of "**"
   it should "work for 2**2" in {
     val target = Number(2)
-    target ^ 2 shouldBe Number(4)
+    target power 2 shouldBe Number(4)
   }
 
   behavior of "sqrt"
@@ -595,7 +612,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.sin shouldBe Number(0, Scalar)
   }
   it should "be one for pi/2" in {
-    val target = (Number.pi / 2).sin
+    val target = (Number.pi divide 2).sin
     target shouldBe Number.one
   }
   it should "work for Pi/2" in {
@@ -610,7 +627,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for Pi/3" in {
     val target = Number(Rational(1, 3), Pi)
     val sin = target.sin
-    sin should ===(Number(3).sqrt / 2)
+    sin should ===(Number(3).sqrt divide 2)
   }
 
   behavior of "cos"
@@ -627,12 +644,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.cos.isZero shouldBe true
   }
   it should "work for Pi/3" in {
-    val target = Number.pi / 3
+    val target = Number.pi divide 3
     target.cos shouldBe Number(Rational(1, 2), Scalar)
   }
   it should "work for Pi/6" in {
-    val target = Number.pi / 6
-    target.cos should ===(Number(3).sqrt / 2)
+    val target = Number.pi divide 6
+    target.cos should ===(Number(3).sqrt divide 2)
   }
 
   behavior of "tan"
@@ -649,11 +666,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.tan.isInfinite shouldBe true
   }
   it should "work for Pi/3" in {
-    val target = Number.pi / 3
-    target.tan shouldBe Number(3).sqrt
+    val target = Number.pi divide 3
+    target.tan shouldEqual Number(3).sqrt
   }
   it should "work for Pi/6" in {
-    val target = Number.pi / 6
+    val target = Number.pi divide 6
     target.tan should ===(Number(3).sqrt.invert)
   }
 
@@ -664,7 +681,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "be pi/4 for 1/1" in {
     val target = Number.one
-    target.atan(Number.one) === (Number.pi / 4)
+    target.atan(Number.one) === (Number.pi divide 4)
   }
   it should "be 0Pi for 0/-1" in {
     val target = negate(Number.one)
@@ -673,9 +690,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "be pi/4 for 1/-1" in {
     val target = negate(Number.one)
     val actual = target.atan(Number.one)
-    val expected = Number.pi * 7 / 4
-    // CONSIDER Need to convert expected to lowest common denominator form when doing equals
-    actual should ===(expected)
+    import Expression.ExpressionOps
+    val expected: Expression = Number.pi * 7 / 4
+    // TODO revert this so that it reads actual ... expected
+    //    actual should ===(expected)
+    expected should ===(actual)
   }
 
   // NOTE: Following are the tests of Ordering[Number]

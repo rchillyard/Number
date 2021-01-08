@@ -2,11 +2,11 @@ package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
 
+import com.phasmidsoftware.number.core.FP.{identityTry, optionMap, tryF, tryMap}
 import com.phasmidsoftware.number.core.Number.{bigIntToInt, negate}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
-import com.phasmidsoftware.number.misc.FP.{identityTry, optionMap, tryF, tryMap}
 import com.phasmidsoftware.number.parse.NumberParser
 
 import scala.language.implicitConversions
@@ -71,6 +71,20 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   def signum(p: Double): Int = signum
+
+  /**
+    * Action to render this ExactNumber as a String.
+    *
+    * @return a String.
+    */
+  def render: String = toString
+
+  /**
+    * Action to materialize this Expression.
+    *
+    * @return this ExactNumber.
+    */
+  def materialize: Number = this
 }
 
 /**
@@ -82,7 +96,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
-abstract class Number(val value: Value, val factor: Factor) extends Ordered[Number] {
+abstract class Number(val value: Value, val factor: Factor) extends Expression with Ordered[Number] {
 
   self =>
 
@@ -92,6 +106,13 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
     * @param v the value for the new Number.
     */
   def this(v: Value) = this(v, Scalar)
+
+  /**
+    * Numbers cannot (for now) be simplified.
+    *
+    * @return this.
+    */
+  def simplify: Expression = this
 
   /**
     * Method to determine if this is a valid Number.
@@ -142,20 +163,22 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
   /**
     * Add x to this Number and return the result.
     * See Number.plus for more detail.
+    * CONSIDER inlining this method.
     *
     * @param x the addend.
     * @return the sum.
     */
-  def +(x: Number): Number = Number.plus(this, x)
+  def add(x: Number): Number = Number.plus(this, x)
 
   /**
     * Subtract x from this Number and return the result.
     * See + and unary_ for more detail.
+    * CONSIDER inlining this method.
     *
     * @param x the subtrahend.
     * @return the difference.
     */
-  def -(x: Number): Number = this + -x
+  def subtract(x: Number): Number = this add -x
 
   /**
     * Change the sign of this Number.
@@ -163,46 +186,60 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
   lazy val unary_- : Number = Number.negate(this)
 
   /**
-    * Multiply this Number by an Int.
-    *
-    * @param x the scale factor (an Int).
-    * @return this * x.
-    */
-  def *(x: Int): Number = Number.scale(this, x)
-
-  /**
     * Multiply this Number by x and return the result.
     * See Number.times for more detail.
+    * CONSIDER inlining this method.
     *
     * * @param x the multiplicand.
     * * @return the product.
     */
-  def *(x: Number): Number = Number.times(this, x)
+  def multiply(x: Number): Number = Number.times(this, x)
+
+  /**
+    * Eagerly multiply this Number by an Int.
+    * CONSIDER inlining this method.
+    *
+    * @param x the scale factor (an Int).
+    * @return this * x.
+    */
+  def multiply(x: Int): Number = Number.scale(this, x)
 
   /**
     * Divide this Number by x and return the result.
     * See * and invert for more detail.
+    * CONSIDER inlining this method.
     *
     * @param x the divisor.
     * @return the quotient.
     */
-  def /(x: Number): Number = this * x.invert
+  def divide(x: Number): Number = this multiply x.invert
 
   /**
     * Divide this Number by a scalar x and return the result.
+    * CONSIDER inlining this method.
     *
     * @param x the divisor (an Int).
     * @return the quotient.
     */
-  def /(x: Int): Number = this / Number(x)
+  def divide(x: Int): Number = this divide Number(x)
 
   /**
     * Raise this Number to the power p.
+    * CONSIDER inlining this method.
+    *
+    * @param p a Number.
+    * @return this Number raised to power p.
+    */
+  def power(p: Number): Number = Number.power(this, p)
+
+  /**
+    * Raise this Number to the power p.
+    * CONSIDER inlining this method.
     *
     * @param p an integer.
     * @return this Number raised to power p.
     */
-  def ^(p: Rational): Number = Number.power(this, p)
+  def power(p: Int): Number = Number.power(this, p)
 
   /**
     * Yields the inverse of this Number.
@@ -215,7 +252,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
     * Yields the square root of this Number.
     * If possible, the result will be exact.
     */
-  def sqrt: Number = Number.power(this, r"1/2")
+  def sqrt: Number = Number.power(this, Number(r"1/2"))
 
   /**
     * Method to determine the sine of this Number.
@@ -231,14 +268,14 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
     *
     * @return the cosine.
     */
-  def cos: Number = negate(scale(Pi) - Number(Rational.half, Pi)).sin
+  def cos: Number = negate(scale(Pi) subtract Number(Rational.half, Pi)).sin
 
   /**
     * The tangent of this Number.
     *
     * @return the tangent.
     */
-  def tan: Number = sin / cos
+  def tan: Number = sin divide cos
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -295,7 +332,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
   override def compare(other: Number): Int = Number.compare(this, other)
 
   /**
-    * Peform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
+    * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
     *
     * @param other the Number to be compared with.
     * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
@@ -504,7 +541,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
       r.toBigDecimal.scale match {
         case 0 | 1 | 2 => makeNumber(r).specialize
           // CONSIDER in following line adding fuzz only if this Number is exact.
-        case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzz.toDecimalPower(5, n), Box))
+        case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzz.toDecimalPower(5, -n), Box))
       }
     // Invalid case
     case _ => this
@@ -586,7 +623,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
       case Some(n) => fDouble(n, other.maybeDouble.get) map (x => makeNumber(x, f))
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x, other.maybeRational.get) map (makeNumber(_, f)), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x, other.toBigInt.get) map (makeNumber(_, f)), xToZy1)
     tryMap(value)(x => fInt(x, other.maybeInt.get) map (makeNumber(_, f)), xToZy2).toOption
@@ -605,7 +642,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
       case Some(n) => fDouble(n) map (makeNumber(_, f))
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x) map (makeNumber(_, f)), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x) map (makeNumber(_, f)), xToZy1)
     tryMap(value)(x => fInt(x) map (y => makeNumber(y, f)), xToZy2).toOption
@@ -624,7 +661,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
       case Some(n) => fDouble(n)
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Boolean] = y => tryMap(y)(x => fRational(x), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Boolean] = x => tryMap(x)(x => fBigInt(x), xToZy1)
     tryMap(value)(x => fInt(x), xToZy2).toOption
@@ -636,7 +673,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
     * CONSIDER using MonadicTransformations
     */
   private lazy val maybeRational: Option[Rational] = {
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val ry = tryMap(value)(tryF(Rational.apply), x =>
       tryMap(x)(tryF(Rational.apply), x =>
         tryMap(x)(identityTry, _ =>
@@ -660,7 +697,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
       case Some(n) => Failure(NumberException(s"toBigInt: $n is not integral"))
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[BigInt] = y => tryMap(y)(tryF(y => y.toBigInt), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[BigInt] = x => tryMap(x)(identityTry, xToZy1)
     tryMap(value)(tryF(BigInt.apply), xToZy2).toOption
@@ -678,7 +715,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Ordered[Numb
       case Some(n) => Failure(NumberException(s"toInt: $n is not integral"))
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.misc.Converters._
+    import Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
     val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Int] = x => tryMap(x)(bigIntToInt, xToZy1)
     tryMap(value)(identityTry, xToZy2).toOption
@@ -1048,7 +1085,7 @@ object Number {
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering
 
   private def plus(x: Number, y: Number): Number = y match {
-    case n@FuzzyNumber(_, _, _) => n + x
+    case n@FuzzyNumber(_, _, _) => n add x
     case _ =>
       val (a, b) = x.alignFactors(y)
       val (p, q) = a.alignTypes(b)
@@ -1057,7 +1094,7 @@ object Number {
 
   private def times(x: Number, y: Number): Number =
     y match {
-      case n@FuzzyNumber(_, _, _) => n * x
+      case n@FuzzyNumber(_, _, _) => n multiply x
       case _ =>
         val (p, q) = x.alignTypes(y)
         val factor = p.factor + q.factor
@@ -1067,14 +1104,31 @@ object Number {
   // TODO wrap this (and all the others)
   private def sqrt(n: Number): Number = n.scale(Scalar).composeMonadic(Scalar)(MonadicOperationSqrt).getOrElse(Number()).specialize
 
-  private def power(n: Number, y: Rational): Number = y match {
-    case r if r.isZero => Number(1)
-    case r if r.isWhole => r.toInt match {
-      case x if x > 0 => LazyList.continually(n).take(x).product
-      case x => LazyList.continually(inverse(n)).take(-x).product
+  // CONSIDER dealing with non-Scalar x values up-front
+  private def power(x: Number, y: Number): Number = y.normalize.toInt match {
+    case Some(i) => power(x, i)
+    case _ => y.toRational match {
+      // TODO this may lose precision
+      case Some(Rational(n, d)) =>
+        root(power(x, n.toInt), d.toInt) match {
+          case Some(q) => q
+          case None => y.toDouble map x.makeNumber getOrElse Number()
+        }
+      case None => y.toDouble match {
+        case Some(d) => power(x, d)
+        case _ => throw NumberException("invalid power")
+      }
     }
-    case r if r.n == 1 && r.d == 2 => n.makeFuzzyIfAppropriate(Number.sqrt)
-    case r => Number.power(n, r.toDouble)
+  }
+
+  private def power(n: Number, i: Int) = i match {
+    case x if x > 0 => LazyList.continually(n).take(x).product
+    case x => LazyList.continually(inverse(n)).take(-x).product
+  }
+
+  private def root(n: Number, i: Int): Option[Number] = i match {
+    case 2 => Some(n.makeFuzzyIfAppropriate(Number.sqrt))
+    case _ => None
   }
 
   private def power(n: Number, y: Double): Number = n.toDouble.map(x => math.pow(x, y)).map(n.makeNumber).getOrElse(Number())
@@ -1090,7 +1144,7 @@ object Number {
 
   def negate(x: Number): Number = x.composeMonadic(x.factor)(MonadicOperationNegate).getOrElse(Number())
 
-  private def inverse(x: Number): Number = {
+  def inverse(x: Number): Number = {
     // CONSIDER use composeMonadic
     val maybeNumber = x.value match {
       // First we take care of the special cases
@@ -1124,7 +1178,7 @@ object Number {
 
   private def sin(x: Number): Number = x.scale(Pi).composeMonadic(Scalar)(MonadicOperationSin).getOrElse(Number()).specialize
 
-  private def atan(x: Number, y: Number): Number = (y / x).composeMonadic(Pi)(MonadicOperationAtan(x.signum)).getOrElse(Number()).specialize.modulate
+  private def atan(x: Number, y: Number): Number = (y divide x).composeMonadic(Pi)(MonadicOperationAtan(x.signum)).getOrElse(Number()).specialize.modulate
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.
