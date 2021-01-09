@@ -1,8 +1,10 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.bigZero
-import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
 import java.lang.Math._
+
+import com.phasmidsoftware.number.core.Rational.{bigZero, narrow}
+import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -59,7 +61,9 @@ case class Rational(n: BigInt, d: BigInt) {
 
   def ^(that: Int): Rational = power(that)
 
-  lazy val sqrt: Rational = Rational.sqrt(this).getOrElse(Rational(math.sqrt(toDouble)))
+  def ^(that: Rational): Try[Rational] = power(that)
+
+  lazy val sqrt: Try[Rational] = power(Rational.half)
 
   // Other methods appropriate to Rational
   lazy val signum: Int = n.signum
@@ -89,6 +93,12 @@ case class Rational(n: BigInt, d: BigInt) {
 
   lazy val toDouble: Double = Rational.toDouble(this)
 
+  def power(x: Rational): Try[Rational] = {
+    val maybeNum: Try[Int] = narrow(x.n, Int.MinValue, Int.MaxValue) map (_.toInt)
+    val maybeDenom: Try[Int] = narrow(x.d, Int.MinValue, Int.MaxValue) map (_.toInt)
+    for (p <- maybeNum; r <- maybeDenom; z <- FP.toTryWithThrowable(this.power(p).root(r), RationalException("can't get exact root"))) yield z
+  }
+
   def power(x: Int): Rational = {
     @tailrec def inner(r: Rational, x: Int): Rational = if (x == 0) r else inner(r * this, x - 1)
 
@@ -99,6 +109,25 @@ case class Rational(n: BigInt, d: BigInt) {
       else rational.invert
     }
   }
+
+  /**
+    * This method will always given an approximation of the result.
+    *
+    * @param x the power to which we want to raise this Rational.
+    * @return this to the power of x.
+    */
+  def power(x: Double): Rational = math.pow(toDouble, x)
+
+  /**
+    * Method to get the xth root of this Rational.
+    * Note that it is not guaranteed to result in an exact value.
+    *
+    * @param x the root to be taken, for example, for the cube root, we set x = 3.
+    * @return an (optional) Rational result which is the exact root.
+    *         In the event that it's not possible to get the exact root, then None is returned.
+    */
+  def root(x: Int): Option[Rational] =
+    for (a <- Rational.root(n, x); b <- Rational.root(d, x)) yield Rational(a, b)
 
   lazy val toBigDecimal: BigDecimal = BigDecimal(n) / BigDecimal(d)
 
@@ -137,20 +166,40 @@ case class Rational(n: BigInt, d: BigInt) {
 object Rational {
 
   /**
-    * Implicit class RationalOps to allow definition and use of the division operator.
-    * We cannot just use "/" as that will bind to Int and result in 0.
-    * Therefore, we use the special ":/" operator which will work as long as RationalOps is imported.
+    * Implicit class RationalOps to allow an Int to be treated as a Rational for the purpose
+    * of allowing operations with right-hand Rational arguments or for division by an Int.
+    * A particular case is rational division where we must convert the numerator to Rational so that
+    * we don't end up with 0 as the result of an Int division.
     *
-    * @param numerator an Int
+    * @param x an Int
     */
-  implicit class RationalOps(numerator: Int) {
+  implicit class RationalOps(x: Int) {
+
     /**
-      * Method to define a Rational.
+      * Method to increment x by r.
       *
-      * @param denominator the denominator of the Rational. Any Int will be implicitly converted to a Long.
+      * @param r the addend.
+      * @return the result of x + r.
+      */
+    def +(r: Rational): Rational = Rational(x) + r
+
+    /**
+      * Method to multiply x by r.
+      *
+      * @param r the multiplicand.
+      * @return the result of x * r.
+      */
+    def *(r: Rational): Rational = Rational(x) * r
+
+    /**
+      * Method to divide by Rational.
+      * We cannot just use "/" as that will bind to Int and result in 0.
+      * Therefore, we use the special ":/" operator which will work as long as RationalOps is imported.
+      *
+      * @param denominator the denominator of the resulting Rational. Any Int will be implicitly converted to a Long.
       * @return the Rational whose value is x/y
       */
-    def :/(denominator: Long): Rational = Rational(numerator, denominator)
+    def :/(denominator: Long): Rational = Rational(x, denominator)
   }
 
   /**
@@ -453,6 +502,19 @@ object Rational {
         q <- toInt(d).toOption.flatMap(x => squareRoots.get(x).map(BigInt(_)))
       } yield Rational(p, q)
   }
+
+  /**
+    * Method to get the (integral) xth root of b.
+    *
+    * @param b a BigInt.
+    * @param x an Int.
+    * @return an optional BigInt which, when raised to the power of x, equals b.
+    */
+  def root(b: BigInt, x: Int): Option[BigInt] =
+    Try(BigInt(math.round(math.pow(b.toDouble, 1.0 / x)))) match {
+      case Success(z) if z.pow(x) == b => Some(z)
+      case _ => None
+    }
 
   val squareRoots = Map(1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)
 

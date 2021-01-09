@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
 
-import com.phasmidsoftware.number.core.FP.{toTry, toTryWithThrowable, tryF, tryMap}
+import com.phasmidsoftware.number.core.FP.{toTry, tryF, tryMap}
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -54,8 +54,8 @@ case object MonadicOperationSin extends MonadicOperation {
     if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational(_))
     else x.invert.toInt match {
       case 6 => Success(Rational.half)
-      case 4 => Success(Rational.half.sqrt)
-      case 3 => Success(Rational(3).sqrt / 2)
+      case 4 => Rational.half.sqrt
+      case 3 => Rational(3).sqrt map (_ / 2)
       case 2 => Success(Rational.one)
       case _ => Failure(NumberException("sine cannot be Rational"))
     }
@@ -107,7 +107,7 @@ case object MonadicOperationSqrt extends MonadicOperation {
     x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
 
   def getFunctions: MonadicFunctions =
-    (sqrtInt, _ => Failure(NumberException("Can't sqrt on BigInt")), x => toTryWithThrowable(Rational.sqrt(x), NumberException("cannot get square root")), tryF(x => math.sqrt(x)))
+    (sqrtInt, _ => Failure(NumberException("Can't sqrt on BigInt")), x => x.sqrt, tryF(x => math.sqrt(x)))
 }
 
 case class MonadicOperationScale(f: Int) extends MonadicOperation {

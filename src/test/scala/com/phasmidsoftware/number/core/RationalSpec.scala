@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.{RationalHelper, RationalOps}
+import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
+
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -311,12 +312,32 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
 
   behavior of "power"
-  it should "work" in {
+  it should "work for Int power" in {
     val ten = Rational.ten
     ten.power(2) shouldBe Rational(100)
     ten.power(10) shouldBe Rational(10000000000L)
     ten.power(0) shouldBe Rational.one
     ten.power(-1) shouldBe ten.invert
+  }
+
+  it should "work for Rational power (1)" in {
+    val ten = Rational.ten
+    ten.power(Rational(2)) shouldBe Success(Rational(100))
+    ten.power(Rational(10)) shouldBe Success(Rational(10000000000L))
+    ten.power(Rational.zero) shouldBe Success(Rational.one)
+    ten.power(Rational(-1)) shouldBe Success(ten.invert)
+  }
+
+  it should "work for Rational power (2)" in {
+    val target = Rational(9, 16)
+    target.power(Rational.two) shouldBe Success(Rational(81, 256))
+    target.power(Rational.half).flatMap(r => r.power(Rational.two)) shouldBe Success(target)
+    target.power(Rational(-1)) shouldBe Success(target.invert)
+  }
+
+  it should "work for Rational power (3)" in {
+    val target = Rational(8, 27)
+    target.power(Rational(2, 3)) shouldBe Success(Rational(4, 9))
   }
 
   behavior of "exponent"
@@ -684,19 +705,54 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "sqrt"
   it should "work correctly" in {
-    Rational.one.sqrt shouldBe Rational.one
-    Rational(4).sqrt shouldBe Rational.two
-    Rational(9, 4).sqrt shouldBe Rational(3, 2)
+    Rational.one.sqrt shouldBe Success(Rational.one)
+    Rational(4).sqrt shouldBe Success(Rational.two)
+    Rational(9, 4).sqrt shouldBe Success(Rational(3, 2))
   }
 
-  behavior of ":/"
+  behavior of "root"
+  it should "work for sqrt(4)" in {
+    val b = BigInt(4)
+    Rational.root(b, 2) shouldBe Some(2)
+  }
+
+  behavior of "RationalOps"
+
+  import com.phasmidsoftware.number.core.Rational.RationalOps
+
+  it should "work correctly for 2 + 3" in {
+    // NOTE: here we perform integer + on 2 and 3 and then implicitly convert 5 to a Rational
+    val r: Rational = 2 + 3
+    r shouldBe Rational(5)
+  }
+
+  it should "work correctly for 2 + Rational(3)" in {
+    // NOTE: here we convert 2 to RationalOps and then invoke the RationalOps.+ operator.
+    // NOTE: because we have imported RationalOps, we do not need to provide a type annotation of Rational for r.
+    val r = 2 + Rational(3)
+    r shouldBe Rational(5)
+  }
+
+  it should "work correctly for 2 * 3" in {
+    val r: Rational = 2 * 3
+    r shouldBe Rational(6)
+  }
+
+  it should "work correctly for 2 * Rational(3)" in {
+    val r = 2 * Rational(3)
+    r shouldBe Rational(6)
+  }
+
   it should "work correctly for 2:/3" in {
-    val r: Rational = 2 :/ 3
+    // NOTE: here we convert 2 to RationalOps and then invoke the RationalOps.:/ operator.
+    // NOTE: because we have imported RationalOps, we do not need to provide a type annotation of Rational for r.
+    val r = 2 :/ 3
     r shouldBe Rational(2, 3)
   }
-}
 
-object RationalSpec {
-
-
+  it should "work correctly (but somewhat counter-intuitively) for 2/3" in {
+    // NOTE: here we perform integer / on 2 and 3 and then implicitly convert 0 to a Rational
+    val r: Rational = 2 / 3
+    r shouldBe Rational.zero
+  }
 }
