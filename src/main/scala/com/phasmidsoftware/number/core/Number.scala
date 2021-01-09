@@ -665,17 +665,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param functions the tuple of four conversion functions.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  private def doQuery(functions: QueryFunctions): Option[Boolean] = {
-    val (fInt, fBigInt, fRational, fDouble) = functions
-    val xToZy0: Option[Double] => Try[Boolean] = {
-      case Some(n) => fDouble(n)
-      case None => Failure(new NoSuchElementException())
-    }
-    import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Boolean] = y => tryMap(y)(x => fRational(x), xToZy0)
-    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Boolean] = x => tryMap(x)(x => fBigInt(x), xToZy1)
-    tryMap(value)(x => fInt(x), xToZy2).toOption
-  }
+  private def doQuery(functions: QueryFunctions): Option[Boolean] = Operations.doQuery(value, functions)
 
   /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the factor).
