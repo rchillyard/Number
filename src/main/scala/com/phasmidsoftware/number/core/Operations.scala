@@ -1,6 +1,9 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.{toTry, toTryWithThrowable, tryF}
+import java.util.NoSuchElementException
+
+import com.phasmidsoftware.number.core.FP.{toTry, toTryWithThrowable, tryF, tryMap}
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -92,7 +95,7 @@ case object MonadicOperationModulate extends MonadicOperation {
   }
 
   def getFunctions: MonadicFunctions = (
-    tryF(z => math.floorMod(z, 2)),
+    tryF(z => modulate(z, 0, 2)),
     _ => Failure(NumberException("No need to modulate on BigInt")),
     tryF(z => modulate(z, Rational.zero, Rational.two)),
     tryF(z => modulate(z, 0, 2))
@@ -165,5 +168,26 @@ case object QueryOperationIsInfinite extends QueryOperation {
     val fRational = tryF[Rational, Boolean](x => x.isInfinity)
     val fDouble = tryF[Double, Boolean](x => x == Double.PositiveInfinity || x == Double.NegativeInfinity)
     (fInt, fBigInt, fRational, fDouble)
+  }
+}
+
+object Operations {
+  /**
+    * Evaluate a monadic operator on this, using the various functions passed in.
+    * The result is an Option[Value] rather than a Number, as in Number's doComposeMonadic.
+    *
+    * @param functions the tuple of four conversion functions.
+    * @return an Option[Value] which is result of applying the appropriate function to the given value.
+    */
+  def doTransformValueMonadic(value: Value)(functions: MonadicFunctions): Option[Value] = {
+    val (fInt, fBigInt, fRational, fDouble) = functions
+    val xToZy0: Option[Double] => Try[Value] = {
+      case Some(x) => Try(Value.fromDouble(fDouble(x).toOption))
+      case None => Failure(new NoSuchElementException())
+    }
+    import Converters._
+    val xToZy1: Either[Option[Double], Rational] => Try[Value] = e => tryMap(e)(x => for (r <- fRational(x)) yield Value.fromRational(r), xToZy0)
+    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Value] = e => tryMap(e)(x => for (b <- fBigInt(x)) yield Value.fromBigInt(b), xToZy1)
+    tryMap(value)(x => for (i <- fInt(x)) yield Value.fromInt(i), xToZy2).toOption
   }
 }

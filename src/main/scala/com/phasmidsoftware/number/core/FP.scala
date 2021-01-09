@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
+
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util.{Either, Failure, Left, Right, Success, Try}
@@ -30,6 +31,29 @@ object FP {
 
   /**
     * This method and optionMap are (almost) twins (working for Try and Option respectively).
+    * To yield the (tried) result, we map the right-hand member of the input (lRe) with a function rToZ.
+    * The result of this is then pattern-matched:
+    * In the Some(z) case, we return the Success(z).
+    * In the None case, we return the result of tryMapLeft applied to the lRe with the function l2Zy.
+    *
+    * NOTE: in practice, this does not seem to be used, but it should remain here.
+    *
+    * @param lRe  the input, an Either[L,R].
+    * @param r2Z  a function R => Z.
+    * @param l2Zy a function L => Try[Z]
+    * @tparam L the type of the left-side of the Either.
+    * @tparam R the type of the right-side of the Either.
+    * @tparam Z the underlying type of the result.
+    * @return a Try[Z]
+    */
+  def doMap[L, R, Z](lRe: Either[L, R])(r2Z: R => Z, l2Zy: L => Try[Z]): Try[Z] =
+    lRe.toOption.map(r2Z) match {
+      case Some(z) => Success(z)
+      case None => tryMapLeft(lRe, l2Zy)
+    }
+
+  /**
+    * This method is similar to doMap but with some important differences.
     * To yield the (tried) result, we map the right-hand member of the input (lRe) with a function rToZy.
     * The result of this is then pattern-matched:
     * In the Some(Success(z)) case, we return the Success(z).

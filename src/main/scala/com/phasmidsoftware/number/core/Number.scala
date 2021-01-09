@@ -1,12 +1,14 @@
 package com.phasmidsoftware.number.core
 
+import java.util.NoSuchElementException
+
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{bigIntToInt, negate, prepare}
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-import java.util.NoSuchElementException
+
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
@@ -363,7 +365,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def composeMonadic(f: Factor)(op: MonadicOperation): Option[Number] = doComposeMonadic(f)(op.getFunctions)
+  def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] = doTransformMonadic(f)(op.getFunctions)
 
   /**
     * Evaluate a query operator on this.
@@ -654,17 +656,8 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param functions the tuple of four conversion functions.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  private def doComposeMonadic(f: Factor)(functions: MonadicFunctions): Option[Number] = {
-    val (fInt, fBigInt, fRational, fDouble) = functions
-    val xToZy0: Option[Double] => Try[Number] = {
-      case Some(n) => fDouble(n) map (make(_, f))
-      case None => Failure(new NoSuchElementException())
-    }
-    import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(x => fRational(x) map (make(_, f)), xToZy0)
-    val xToZy2: Either[Either[Option[Double], Rational], BigInt] => Try[Number] = x => tryMap(x)(x => fBigInt(x) map (make(_, f)), xToZy1)
-    tryMap(value)(x => fInt(x) map (y => make(y, f)), xToZy2).toOption
-  }
+  private def doTransformMonadic(f: Factor)(functions: MonadicFunctions): Option[Number] =
+    Operations.doTransformValueMonadic(value)(functions) map (make(_, f))
 
   /**
     * Evaluate a query operator on this, using the various functions passed in.
@@ -760,6 +753,9 @@ object Number {
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
     *
+    * CONSIDER modulate the result so that, in the case of a multiple of Pi, we restrict the range to 0 to 2pi immediately.
+    * However, note that this will change the behavior such that it is no longer possible to have the constant 2pi.
+    *
     * @param value  the value of the Number, expressed as a nested Either type.
     * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
     * @param fuzz   the fuzziness of this Number, wrapped in Option.
@@ -814,6 +810,7 @@ object Number {
     * @return a Number based on x.
     */
   def apply(x: String): Number = parse(x) match {
+    // CONSIDER we should perhaps process n (e.g. to modulate a Pi value)
     case Success(n) => n
     case Failure(e) => throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
   }
@@ -1122,7 +1119,7 @@ object Number {
 
   def prepareWithSpecialize(no: Option[Number]): Number = prepare(no).specialize
 
-  private def sqrt(n: Number): Number = prepareWithSpecialize(n.scale(Scalar).composeMonadic(Scalar)(MonadicOperationSqrt))
+  private def sqrt(n: Number): Number = prepareWithSpecialize(n.scale(Scalar).transformMonadic(Scalar)(MonadicOperationSqrt))
 
   // CONSIDER dealing with non-Scalar x values up-front
   private def power(x: Number, y: Number): Number = y.normalize.toInt match {
@@ -1162,21 +1159,21 @@ object Number {
     case _ => prepare(n.maybeDouble.map(x => n.make(scaleDouble(x, n.factor, f), f)))
   }
 
-  private def scale(x: Number, f: Int): Number = prepare(x.composeMonadic(x.factor)(MonadicOperationScale(f)))
+  private def scale(x: Number, f: Int): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationScale(f)))
 
-  def negate(x: Number): Number = prepare(x.composeMonadic(x.factor)(MonadicOperationNegate))
+  def negate(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationNegate))
 
-  def inverse(x: Number): Number = prepare(x.composeMonadic(x.factor)(MonadicOperationInvert))
+  def inverse(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationInvert))
 
   private def isZero(x: Number): Boolean = x.query(QueryOperationIsZero)
 
   private def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite)
 
-  private def signum(x: Number): Int = x.doComposeMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
+  private def signum(x: Number): Int = x.doTransformMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
 
-  private def sin(x: Number): Number = prepareWithSpecialize(x.scale(Pi).composeMonadic(Scalar)(MonadicOperationSin))
+  private def sin(x: Number): Number = prepareWithSpecialize(x.scale(Pi).transformMonadic(Scalar)(MonadicOperationSin))
 
-  private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y divide x).composeMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
+  private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y divide x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
 
   private def scaleDouble(x: Double, fThis: Factor, fResult: Factor) = x * fThis.value / fResult.value
 
@@ -1188,7 +1185,7 @@ object Number {
     * @return either x or a number equivalent to x with value in defined range.
     */
   private def modulate(x: Number): Number = x.factor match {
-    case f@Pi => prepare(x.composeMonadic(f)(MonadicOperationModulate))
+    case f@Pi => prepare(x.transformMonadic(f)(MonadicOperationModulate))
     case _ => x
   }
 

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import scala.util.Left
 
 /**
@@ -139,7 +140,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
   def composeMonadicFuzzy(f: Factor)(op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean): Option[Number] = {
-    composeMonadic(f)(op).flatMap {
+    transformMonadic(f)(op).flatMap {
       case n: FuzzyNumber =>
         for (x <- n.toDouble) yield n.makeFuzzy(Fuzz.map(x, !absolute, fuzzOp, fuzz))
     }
