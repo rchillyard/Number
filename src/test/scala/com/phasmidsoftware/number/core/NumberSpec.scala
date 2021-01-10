@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -862,5 +861,22 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 1.0" in {
     val target = Number(doubleOne)
     implicitly[Numeric[Number]].toDouble(target) shouldBe 1.0
+  }
+
+  behavior of "NumberOps"
+
+  import com.phasmidsoftware.number.core.Number.NumberOps
+
+  it should "work for 2 + Number(3)" in {
+    val x: Number = 2 + Number(3)
+    x shouldBe Number(5)
+  }
+  it should "work for 2 * Number(3)" in {
+    val x: Number = 2 * Number(3)
+    x shouldBe Number(6)
+  }
+  it should "work for 1 :/ 2" in {
+    val x: Number = 1 :/ 2
+    x shouldBe Number(Rational.half)
   }
 }

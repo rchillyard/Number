@@ -1,14 +1,12 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{bigIntToInt, negate, prepare}
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
+import java.util.NoSuchElementException
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
@@ -740,6 +738,42 @@ object Number {
     */
   val e: Number = ExactNumber(Right(1), E)
 
+  implicit class NumberOps(x: Int) {
+
+    /**
+      * Add this x (a Number) and yield a Number.
+      *
+      * @param y the addend, a Number.
+      * @return a Number whose value is x + y.
+      */
+    def +(y: Number): Number = (Number(x) add y).materialize
+
+    /**
+      * Multiply x by y (a Number) and yield a Number.
+      *
+      * @param y the multiplicand, a Number.
+      * @return a Number whose value is x * y.
+      */
+    def *(y: Number): Number = (Number(x) multiply y).materialize
+
+    /**
+      * Divide x by y (a Number) and yield a Number.
+      *
+      * @param y the divisor, a Number.
+      * @return a Number whose value is x / y.
+      */
+    def /(y: Number): Number = (Number(x) / y).materialize
+
+    /**
+      * Divide x by y (a Number) and yield a Number.
+      * NOTE: the colon is necessary in order to coerce the left hand operand to be a Number.
+      *
+      * @param y the divisor, an Int.
+      * @return a Number whose value is x / y.
+      */
+    def :/(y: Int): Number = /(Number(y))
+  }
+
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
     *
@@ -836,6 +870,7 @@ object Number {
 
   /**
     * Method to construct a Number from a Rational.
+    * NOTE: this method is invoked indirectly by parse(String).
     *
     * @param x      the BigInt value.
     * @param factor the appropriate factor
@@ -1020,6 +1055,8 @@ object Number {
 
   /**
     * Method to parse a String and yield a Try[Number].
+    *
+    * NOTE: this method indirectly invokes apply(Rational, Factor, Option of Fuzz[Double] )
     *
     * @param w the String to be parsed.
     * @return a Number.
