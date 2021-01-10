@@ -133,14 +133,20 @@ of the _Rational_ representation.
 Factors
 =======
 There are three "factors:" Scalar (for ordinary dimensionless numbers), __Pi__ (used to represent radians or any multiple of pi),
-and __E__ (for multiples of the Euler constant).
+and __E__ (for powers of the Euler constant).
 Trigonometrical functions are designed to work with __Pi__.
+Such values are limited (modulated) to be in the range 0..2pi.
+However, this happens as the result of operations, so it is still possible to define a value of 2pi.
 For example, if you want to check that the sine of pi/2 is equal to 1 exactly, then you should write the following:
 
     val target = (Number.pi/2).sin
     target shouldBe Number.one
 
 Similarly, if you use the _atan_ method on a Scalar number, the result will be a number (possibly exact) whose factor is __Pi__.
+
+The e factor works quite differently.
+It is not a simple matter of scaling.
+A Number of the form Number(x, e) actually evaluates to e^x rather than e x.
 
 Lazy Evaluation
 ===============
@@ -178,7 +184,10 @@ The current set of expression optimizations is somewhat limited, but it catches 
 
 Versions
 ========
-The Current version is 1.0.4
+The Current version is 1.0.5: reimplement the e factor.
+
+Version 1.0.4 Made improvements to Rational, removed BigInt from Value,
+and effected many refactorings.
 
 Version 1.0.3 implements lazy evaluation.
 

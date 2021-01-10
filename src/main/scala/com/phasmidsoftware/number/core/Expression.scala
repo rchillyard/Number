@@ -210,7 +210,6 @@ object Expression {
       */
     def compare(comparand: Number): Int = x compare comparand
   }
-
 }
 
 case class Literal(x: Number) extends Expression {
@@ -442,6 +441,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
                 gatherer(left, right, f.name) getOrElse
                 BiFunction(left, right, f)
     }
+    // TODO remove this debugging aid
     if (result != this) println(s"simplified $this to $result")
     result
   }

@@ -143,6 +143,24 @@ object FP {
   def identityTry[X](x: X): Try[X] = Success(x)
 
   /**
+    * Method to yield a Failure.
+    *
+    * @param e a Throwable
+    * @tparam Z the underlying type of the result.
+    * @return a function of Z => Failure[Z] based on e
+    */
+  def fail[X, Z](e: Throwable): X => Try[Z] = _ => Failure(e)
+
+  /**
+    * Method to yield a Failure.
+    *
+    * @param s a String
+    * @tparam Z the underlying type of the result.
+    * @return a function of Z => Failure[Z] based on NumberException(s)
+    */
+  def fail[X, Z](s: String): X => Try[Z] = fail(NumberException(s))
+
+  /**
     * Method to yield a partially lifted version of a Function1 as a function.
     *
     * @param f an X => Z.

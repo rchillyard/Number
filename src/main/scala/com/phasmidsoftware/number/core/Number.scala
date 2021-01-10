@@ -1,12 +1,14 @@
 package com.phasmidsoftware.number.core
 
+import java.util.NoSuchElementException
+
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{negate, prepare}
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-import java.util.NoSuchElementException
+
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
@@ -651,7 +653,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     */
   private lazy val maybeRational: Option[Rational] = {
     import Converters._
-    val ry = tryMap(value)(tryF(Rational.apply), x => tryMap(x)(identityTry, _ => Failure(new NoSuchElementException())))
+    val ry = tryMap(value)(tryF(Rational.apply), x => tryMap(x)(identityTry, fail("no Double=>Rational conversion")))
     ry.toOption
   }
 
@@ -1136,9 +1138,22 @@ object Number {
     case _ => None
   }
 
-  def scale(n: Number, f: Factor): Number = n.factor match {
-    case `f` => n
-    case _ => prepare(n.maybeDouble.map(x => n.make(scaleDouble(x, n.factor, f), f)))
+  /**
+    * Method to deal with a Scale factor change.
+    *
+    * NOTE: currently, direct conversion between E and Pi is not supported.
+    * CONSIDER: re-implementing the Pi/Scalar and Scalar/Pi cases using MonadicOperationScale.
+    *
+    * @param n the Number to be scaled.
+    * @param factor the factor to which it should be converted.
+    * @return the resulting Number (equivalent in value, but with a potentially different scale factor).
+    */
+  def scale(n: Number, factor: Factor): Number = (n.factor, factor) match {
+    case (a, b) if a == b => n
+    case (Pi, Scalar) | (Scalar, Pi) => prepare(n.maybeDouble.map(x => n.make(scaleDouble(x, n.factor, factor), factor)))
+    case (E, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
+    case (Scalar, E) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
+    case _ => throw NumberException("scaling between e and Pi factors is not supported")
   }
 
   private def scale(x: Number, f: Int): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationScale(f)))
