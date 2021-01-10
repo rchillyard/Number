@@ -109,6 +109,7 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     r should matchPattern { case parser.Failure(_, _) => }
     r match {
       case parser.Failure(m, _) => m shouldBe "')' expected but '?' found"
+      case _ => fail("should fail")
     }
   }
   "RationalExpressionParser(1)" should "be 1" in {
@@ -151,6 +152,7 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     r should matchPattern { case parser.Failure(_, _) => }
     r match {
       case parser.Failure(m, _) => m shouldBe "'/' expected but '=' found"
+      case _ => fail("should fail")
     }
   }
   "IntExpressionParser(3/2)" should "fail" in {

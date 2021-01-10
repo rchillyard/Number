@@ -213,7 +213,7 @@ object FuzzyNumber {
   }
 
   private def addFuzz(n: Number, f: Fuzz[Double]): Number = (n.value, n.fuzz) match {
-    case (v@Left(Left(Left(Some(_)))), fo) => addFuzz(n, v, fo, f)
+    case (v@Left(Left(Some(_))), fo) => addFuzz(n, v, fo, f)
     case _ => n
   }
 

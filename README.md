@@ -111,7 +111,7 @@ There are two kinds of _Number_: _ExactNumber_ and _FuzzyNumber_.
 A _FuzzyNumber_ has a fuzz quantity which is an optional _Fuzz[Double]_.
 The "value" of a _Number_ is represented by the following type:
 
-    type Value = Either[Either[Either[Option[Double], Rational], BigInt], Int]
+    type Value = Either[Either[Option[Double], Rational], Int]
 
 Thus, an integer x is represented by _Right(x)_.
 A _BigInt_ x is represented by _Left(Right(x))_.
@@ -189,10 +189,7 @@ Version 1.0.1 Fixed many issues with minor inconsistencies.
 Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_.
 Each of these has, significantly, a signature with a confidence value (the default value is 0.5).
 
-**However**, there remains a particularly serious bug which causes a deadlock situation in the runtime (who knew that was even possible?).
-
 Initial version is 1.0.0
 
 Future Upgrades
 ===============
-To remove the BigInt option of Value.
