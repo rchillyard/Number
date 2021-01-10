@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Left, Try}
 
 class FuzzSpec extends AnyFlatSpec with should.Matchers {
@@ -112,7 +113,7 @@ class FuzzSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for 3.1415927" in {
     val xy: Try[Number] = Number.parse("3.1415927")
-    xy.get shouldBe FuzzyNumber(Left(Left(Right(Rational(31415927, 10000000)))), Scalar, Some(AbsoluteFuzz(0.00000005, Box)))
+    xy.get shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), Scalar, Some(AbsoluteFuzz(0.00000005, Box)))
     val z: Number = xy.get
     val q: Option[String] = z.fuzz.map(f => f.toString(3.1415927))
     q should matchPattern { case Some("3.14159270[5]") => }

@@ -42,7 +42,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "yield Left(Right(bigBigInt))" in {
     val target = Number.create(Left(Right(bigBigInt)))
     target should matchPattern { case ExactNumber(_, _) => }
-    target.value shouldBe Left(Right(bigBigInt))
+    target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should "yield Right(1, Fuzz)" in {
     val target = Number.create(Right(1), standardFuzz)
@@ -69,7 +69,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "yield Left(Right(bigBigInt))" in {
     val target = Number.create(Left(Right(bigBigInt)))
-    target.value shouldBe Left(Right(bigBigInt))
+    target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
 
   behavior of "toRational"
@@ -113,7 +113,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.isValid shouldBe true
   }
   it should "yield false for None" in {
-    val target = Number.create(Left(Left(Left(None))))
+    val target = Number.create(Left(Left(None)))
     target.isValid shouldBe false
   }
 
@@ -124,11 +124,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for 3/2" in {
     val xy: Try[Number] = Number.parse("3/2")
-    xy.get shouldBe Number.create(Left(Left(Right(Rational(3, 2)))))
+    xy.get shouldBe Number.create(Left(Right(Rational(3, 2))))
   }
   it should "work for 3.1415927" in {
     val xy: Try[Number] = Number.parse("3.1415927")
-    xy.get shouldBe FuzzyNumber(Left(Left(Right(Rational(31415927, 10000000)))), Scalar, Some(AbsoluteFuzz(0.00000005, Box)))
+    xy.get shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), Scalar, Some(AbsoluteFuzz(0.00000005, Box)))
   }
   it should "work for BigInt" in {
     val xy: Try[Number] = Number.parse("2147483648")
@@ -163,11 +163,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should """work for "2147483648"""" in {
     val target = Number("2147483648")
-    target.value shouldBe Left(Right(bigBigInt))
+    target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should """work for "3.1415927"""" in {
     val target = Number("3.1415927")
-    target.value shouldBe Left(Left(Right(Rational(31415927, 10000000))))
+    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1416" in {
     val target = Number(3.1416)
@@ -184,11 +184,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for bigBigInt" in {
     val target = Number(bigBigInt)
-    target.value shouldBe Left(Right(bigBigInt))
+    target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should "work for Rational(1,2)" in {
     val target = Number(Rational(1, 2))
-    target.value shouldBe Left(Left(Right(Rational(1, 2))))
+    target.value shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for math.pi" in {
     val target = Number(Math.PI)
@@ -196,11 +196,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for nothing" in {
     val target = Number()
-    target.value shouldBe Left(Left(Left(None)))
+    target.value shouldBe Left(Left(None))
   }
   it should "work for BigDecimal(3.1415927)" in {
     val target = Number(BigDecimal(3.1415927))
-    target.value shouldBe Left(Left(Right(Rational(31415927, 10000000))))
+    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1415927" in {
     val target = Number(3.1415927)
@@ -212,12 +212,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for 0.5" in {
     val target = Number(0.5)
-    target.value shouldBe Left(Left(Right(Rational(1, 2))))
+    target.value shouldBe Left(Right(Rational(1, 2)))
   }
   it should "support exact strings" in {
     val target = Number("3.141592700")
     target should matchPattern { case ExactNumber(_, _) => }
-    target.value shouldBe Left(Left(Right(Rational(31415927, 10000000))))
+    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
 
   behavior of "normalize"
@@ -226,25 +226,25 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.specialize.value shouldBe Right(1)
   }
   it should "work for BigInt 1" in {
-    val target = Number.create(Left(Right(bigOne)), Scalar)
+    val target = Number.create(Left(Right(Rational(bigOne))), Scalar)
     target.specialize.value shouldBe Right(1)
   }
   it should "work for BigInt(1+Int.MaxValue)" in {
     val bigInt = BigInt(1L + Int.MaxValue)
     val target = Number(bigInt)
-    target.specialize.value shouldBe Left(Right(bigInt))
+    target.specialize.value shouldBe Left(Right(Rational(bigInt)))
   }
   it should "work for Rational(1)" in {
-    val target = Number.create(Left(Left(Right(ratOne))), Scalar)
+    val target = Number.create(Left(Right(ratOne)), Scalar)
     target.specialize.value shouldBe Right(1)
   }
   it should "work for Rational.half" in {
     val target = Number(Rational.half)
-    target.specialize.value shouldBe Left(Left(Right(Rational(1, 2))))
+    target.specialize.value shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for 0.5" in {
     val target = Number(0.5)
-    target.specialize.value shouldBe Left(Left(Right(Rational(1, 2))))
+    target.specialize.value shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for 1.0" in {
     val target = Number(doubleOne)
@@ -252,7 +252,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for nothing" in {
     val target = Number()
-    target.specialize.value shouldBe Left(Left(Left(None)))
+    target.specialize.value shouldBe Left(Left(None))
   }
 
   behavior of "scale"
@@ -788,24 +788,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for pi" in {
     val target = Number(1, Pi)
     target.toInt shouldBe Some(1)
-  }
-
-  behavior of "toBigInt"
-  it should "work for 1" in {
-    val target = numberOne
-    target.toBigInt shouldBe Some(BigInt(1L))
-  }
-  it should "work for BigInt 1" in {
-    val target = Number(bigOne)
-    target.toBigInt shouldBe Some(BigInt(1L))
-  }
-  it should "work for Rational 1" in {
-    val target = Number(ratOne)
-    target.toBigInt shouldBe Some(BigInt(1L))
-  }
-  it should "work for pi" in {
-    val target = Number(Math.PI)
-    target.toBigInt shouldBe None
   }
 
   // Following are the tests of Numeric[Number]

@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import java.util.NoSuchElementException
 
 import scala.language.implicitConversions
-import scala.math.BigInt
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
 /**
@@ -169,9 +168,7 @@ object FP {
   * These converters are used by the tryMap and transpose.
   */
 object Converters {
-  implicit def convertIntToBigInt(x: Int): Either[Either[Option[Double], Rational], BigInt] = Right(BigInt(x))
-
-  implicit def convertBigIntToRational(x: BigInt): Either[Option[Double], Rational] = Right(Rational(x))
+  implicit def convertIntToRational(x: Int): Either[Option[Double], Rational] = Right(Rational(x))
 
   implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] = Try(x.toDouble).toOption
 }
