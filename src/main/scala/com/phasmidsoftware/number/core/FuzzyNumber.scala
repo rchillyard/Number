@@ -188,9 +188,11 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
 object FuzzyNumber {
   def apply(): Number = Number.apply()
 
-  def sin(x: FuzzyNumber): Number = composeMonadic(x.scale(Pi).asInstanceOf[FuzzyNumber], Scalar, MonadicOperationSin, x => math.cos(x), absolute = false)
+  def sin(x: FuzzyNumber): Number = transformMonadic(x.scale(Pi), Scalar, MonadicOperationSin, x => math.cos(x), absolute = false)
 
-  def sqrt(x: FuzzyNumber): Number = composeMonadic(x, Scalar, MonadicOperationSqrt, x => x / 2, absolute = false)
+  def sqrt(x: FuzzyNumber): Number = transformMonadic(x, Scalar, MonadicOperationSqrt, x => x / 2, absolute = false)
+
+  def exp(x: FuzzyNumber): Number = transformMonadic(x.scale(E), Scalar, MonadicOperationExp, identity, absolute = false)
 
   private def plus(x: FuzzyNumber, y: Number): Number = {
     val (a, b) = x.alignFactors(y)
@@ -218,15 +220,21 @@ object FuzzyNumber {
   }
 
   private def addFuzz(number: Number, v: Value, fo: Option[Fuzz[Double]], fAdditional: Fuzz[Double]) = {
-    val combinedFuzz = for (f <- fo; p <- number.toDouble; g <- Fuzz.combine(p, f.style, fo, fAdditional.normalize(p, f.style))) yield g
+    val combinedFuzz = for (f <- fo.orElse(Some(AbsoluteFuzz(0.0, Box))); p <- number.toDouble; g <- Fuzz.combine(p, f.style, fo, fAdditional.normalize(p, f.style))) yield g
     FuzzyNumber(v, number.factor, combinedFuzz)
   }
 
-  private def composeDyadic(n: FuzzyNumber, p: Number, q: Number, op: DyadicOperation, absolute: Boolean) =
-    prepareWithSpecialize(n.composeDyadicFuzzy(q, p.factor)(op, absolute))
+  private def composeDyadic(n: Number, p: Number, q: Number, op: DyadicOperation, absolute: Boolean) = n match {
+    case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, p.factor)(op, absolute))
+    case _: Number => prepareWithSpecialize(n.composeDyadic(n, p.factor)(op))
+  }
 
-  private def composeMonadic(n: FuzzyNumber, factor: Factor, op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean) =
-    prepareWithSpecialize(n.composeMonadicFuzzy(factor)(op, fuzzOp, absolute))
+
+  private def transformMonadic(n: Number, factor: Factor, op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean) = n match {
+    case x: FuzzyNumber => prepareWithSpecialize(x.composeMonadicFuzzy(factor)(op, fuzzOp, absolute))
+    case _: Number => prepareWithSpecialize(n.transformMonadic(factor)(op))
+  }
+
 }
 
 case class FuzzyNumberException(str: String) extends Exception(str)

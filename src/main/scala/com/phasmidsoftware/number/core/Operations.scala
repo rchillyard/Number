@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
 
-import com.phasmidsoftware.number.core.FP.{toTry, tryF, tryMap}
+import com.phasmidsoftware.number.core.FP.{fail, toTry, toTryWithThrowable, tryF, tryMap}
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -43,6 +43,37 @@ case object MonadicOperationInvert extends MonadicOperation {
     (invertInt, tryF[Rational, Rational](x => x.invert), invertDouble)
 }
 
+case object MonadicOperationExp extends MonadicOperation {
+  def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
+
+  val expRat: Rational => Try[Rational] = x =>
+    Rational.toInt(x) map {
+      case 0 => Rational.one
+      case 1 => Rational(math.E)
+      case y => Rational(Math.exp(y))
+    }
+
+  def getFunctions: MonadicFunctions = (
+    fail("can't do exp Int=>Int"),
+    fail("can't do exp Rational=>Rational"),
+    expDouble)
+}
+
+case object MonadicOperationLog extends MonadicOperation {
+  def expDouble(x: Double): Try[Double] = Try(Math.log(x))
+
+  val expRat: Rational => Try[Rational] = x =>
+    Rational.toInt(x) map {
+      case 0 => Rational(-1, 0)
+      case y => Rational(Math.log(y))
+    }
+
+  def getFunctions: MonadicFunctions = (
+    fail("can't do exp Int=>Int"),
+    expRat,
+    expDouble)
+}
+
 case object MonadicOperationSin extends MonadicOperation {
   def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))
 
@@ -72,7 +103,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
       case _ => Failure(NumberException("atan cannot be Rational"))
     }
 
-  def getFunctions: MonadicFunctions = (_ => Failure(NumberException("atan cannot be Rational")), atanRat, atan)
+  def getFunctions: MonadicFunctions = (fail("atan cannot be Rational"), atanRat, atan)
 }
 
 case object MonadicOperationModulate extends MonadicOperation {
@@ -97,12 +128,18 @@ case object MonadicOperationModulate extends MonadicOperation {
 
 case object MonadicOperationSqrt extends MonadicOperation {
   val sqrtInt: Int => Try[Int] =
-    x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
+    x => toTryWithThrowable(Rational.squareRoots.get(x), NumberException("Cannot create Int from Double"))
 
   def getFunctions: MonadicFunctions =
     (sqrtInt, x => x.sqrt, tryF(x => math.sqrt(x)))
 }
 
+/**
+  * This monadic operation is used to scale a Value by an Int.
+  * CONSIDER changing parameter to Rational.
+  *
+  * @param f the scale factor.
+  */
 case class MonadicOperationScale(f: Int) extends MonadicOperation {
   def getFunctions: MonadicFunctions = {
     val fInt = tryF[Int, Int](math.multiplyExact(_, f))

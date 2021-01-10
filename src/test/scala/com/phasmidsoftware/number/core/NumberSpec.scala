@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -273,17 +274,24 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for Scalar, E" in {
     val target = numberOne
-    target.scale(E) should ===(Number(1 / Math.E, E))
+    target.scale(E) should ===(Number(math.log(1), E))
   }
   it should "work for E, Scalar" in {
     val target = Number(1, E)
     target.scale(Scalar) should ===(Number(Math.E))
   }
-  it should "work for Pi, E" in {
+  it should "work for 2E, Scalar" in {
+    val target = Number(2, E)
+    val actual: Number = target.scale(Scalar)
+    val expected: Number = (Number(Math.E) ^ 2).materialize
+    actual should ===(expected)
+  }
+  // TODO we should implement conversions between E and Pi
+  ignore should "work for Pi, E" in {
     val target = Number(1, Pi)
     target.scale(E) should ===(Number(Math.PI / Math.E, E))
   }
-  it should "work for E, Pi" in {
+  ignore should "work for E, Pi" in {
     val target = Number(1, E)
     target.scale(Pi) should ===(Number(Math.E / Math.PI, Pi))
   }
