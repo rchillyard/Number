@@ -65,41 +65,53 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val x: Expression = Number(36).sqrt
     x shouldEqual Number(6)
   }
+  it should "evaluate sin pi/2" in {
+    val x: Expression = Number.pi / 2
+    val y: Expression = x.sin
+    y.materialize shouldBe Number.one
+  }
+
+  behavior of "toString"
+  it should "work for (sqrt 2)^2" in {
+    val seven: Expression = Number(7)
+    val result: Expression = seven.sqrt ^ 2
+    result.toString shouldBe "((7 ^ (2 ^ -1)) ^ 2)"
+  }
 
   behavior of "gathering operations"
   it should "gather 2 and * 1/2" in {
     val x: Expression = Number(7)
     val y = x.sqrt
     val z = y ^ 2
-    z shouldBe Number(7)
+    z.simplify shouldBe Number(7)
   }
-
 
   behavior of "canceling operations"
   it should "cancel 1 and - -1" in {
-    val x: Expression = Number.one
+    val x: Expression = Expression.one
     val y = -x
     val z = x + y
-    z shouldBe Zero
+    z.simplify shouldBe Zero
   }
   it should "cancel 2 and * 1/2" in {
-    val x: Expression = Number.one * 2
+    val x = Expression.one * 2
     val y = x.reciprocal
     val z = x * y
-    z shouldBe One
+    z.simplify shouldBe One
   }
   it should "cancel 2 * 1/2" in {
-    val x: Expression = Number.one * 2
+    val x = Expression.one * 2
     val y = x.reciprocal
     val z = y * x
-    z shouldBe One
+    z.simplify shouldBe One
   }
   it should "cancel ^2 and sqrt" in {
-    val seven: Expression = Number(7)
+    val seven = Expression(7)
     val x: Expression = seven.sqrt
     val y = x ^ 2
-    y shouldBe Number(7)
-    y.materialize should matchPattern { case ExactNumber(_, _) => }
+    val z = y.simplify
+    z shouldBe Expression(7)
+    y.simplify.materialize should matchPattern { case ExactNumber(_, _) => }
   }
   it should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)

@@ -20,20 +20,12 @@ object Value {
   def fromInt(x: Int): Value = Right(x)
 
   /**
-    * Convert a BigInt to a Value.
-    *
-    * @param x a BigInt.
-    * @return a Value.
-    */
-  def fromBigInt(x: BigInt): Value = Left(Right(x))
-
-  /**
     * Convert a Rational to a Value.
     *
     * @param x a Rational.
     * @return a Value.
     */
-  def fromRational(x: Rational): Value = Left(Left(Right(x)))
+  def fromRational(x: Rational): Value = Left(Right(x))
 
   /**
     * Convert an Option[Double] to a Value.
@@ -41,14 +33,14 @@ object Value {
     * @param xo a Double.
     * @return a Value.
     */
-  def fromDouble(xo: Option[Double]): Value = Left(Left(Left(xo)))
+  def fromDouble(xo: Option[Double]): Value = Left(Left(xo))
 
   /**
     * Convert nothing to an invalid Value.
     *
     * @return a Value.
     */
-  def fromNothing(): Value = Left(Left(Left(None)))
+  def fromNothing(): Value = Left(Left(None))
 }
 
 sealed trait Factor {
@@ -108,9 +100,9 @@ object Render {
   def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 
   def renderValue(v: Value): (String, Boolean) =
-    optionMap[Either[Either[Option[Double], Rational], BigInt], Int, (String, Boolean)](v)(y => renderInt(y), x => optionMap[Either[Option[Double], Rational], BigInt, (String, Boolean)](x)(y => renderBigInt(y), x => optionMap[Option[Double], Rational, (String, Boolean)](x)(y => renderRational(y), {
+    optionMap[Either[Option[Double], Rational], Int, (String, Boolean)](v)(y => renderInt(y), x => optionMap[Option[Double], Rational, (String, Boolean)](x)(y => renderRational(y), {
       case Some(n) => Some(renderDouble(n))
       case None => None
-    }))).getOrElse(("<undefined>", true))
+    })).getOrElse(("<undefined>", true))
 }
 

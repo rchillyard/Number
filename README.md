@@ -3,7 +3,25 @@
 
 
 # Number
-This project is about numbers and their mathematics
+This project is about numbers and their mathematics.
+The chief features of this library are:
+* all numbers are exact wherever it is possible;
+* inexact numbers are represented along with their error bounds;
+* lazy evaluation to help avoid temporary inexact values which become part of a result;
+* there are several domains of Number (expressed with different "factors") to support angles, logarithms. 
+
+There is no such thing as accidental loss of precision (at least, provided that code follows the recommendations).
+For example, if you write:
+
+    val x = 1 / 2
+
+your x will be an Int of value 0.
+
+However, if you write:
+
+    val x: Number = 1 / 2
+
+then x will be a Number with value exactly one half.
 
 Introduction
 ============
@@ -12,6 +30,11 @@ All functions handle the transformation or convolution of error bounds appropria
 When the error bound is sufficiently large compared to a number, that number is considered to be zero.
 This implies that when comparing numbers, any significant overlap of their error bounds will result in them testing
 as equal (according to the _compare_ function, but not the _equals_ function).
+
+Numbers are represented internally as either _Int_, _BigInt_, _Rational_, or _Double_.
+For more detail, see Representation below.
+
+It is of course perfectly possible to use the _Rational_ classes directly, without using the _Number_ (or _Expression_) classes.
 
 Parsing
 =======
@@ -85,13 +108,27 @@ Additionally, each of the methods involved has a signature which includes a p va
 Representation
 ==============
 There are two kinds of _Number_: _ExactNumber_ and _FuzzyNumber_.
-A FuzzyNumber has a fuzz quantity which is an optional _Fuzz[Double]_.
+A _FuzzyNumber_ has a fuzz quantity which is an optional _Fuzz[Double]_.
 The "value" of a _Number_ is represented by the following type:
 
-    type Value = Either[Either[Either[Option[Double], Rational], BigInt], Int]
+    type Value = Either[Either[Option[Double], Rational], Int]
 
-This _Value_ is always of the rightmost type possible.
-Thus, an integer which is in range will always be represented by _Right(Int)_.
+Thus, an integer x is represented by _Right(x)_.
+A _BigInt_ x is represented by _Left(Right(x))_.
+A _Rational_ x is represented by a _Left(Left(Right(x)))_.
+A _Double_ x is represented by a _Left(Left(Left(Some(x))))_.
+There is also an invalid _Number_ case which is represented by _Left(Left(Left(None)))_.
+
+This _Value_ is always of the rightmost type possible: given the various possible specializations.
+Thus, an _Int_ x which is in range will be represented by _Right(x)_.
+Thus, an _BigInt_ x outside the Int range will be represented by _Left(Right(x))_.
+Similarly, a _Rational_ with numerator x and unit denominator will be represented by _Left(Right(x))_
+(unless it can be further specialized as a _Right(x)_).
+It is also possible that a _Double_ x will be represented by a _Left(Left(Right(x)))_.
+For this to happen, the value in question must have fewer than three decimal places (similar to the parsing scheme).
+
+NOTE: It is expected that we will remove the possibility of a _BigInt_ representation since this is just a special case
+of the _Rational_ representation.
 
 Factors
 =======
@@ -152,10 +189,7 @@ Version 1.0.1 Fixed many issues with minor inconsistencies.
 Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_.
 Each of these has, significantly, a signature with a confidence value (the default value is 0.5).
 
-**However**, there remains a particularly serious bug which causes a deadlock situation in the runtime (who knew that was even possible?).
-
 Initial version is 1.0.0
 
 Future Upgrades
 ===============
-To remove the BigInt option of Value.

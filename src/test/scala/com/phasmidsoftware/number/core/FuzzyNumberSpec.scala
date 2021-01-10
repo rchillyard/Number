@@ -133,7 +133,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val result = zy.get.materialize
     result.value shouldBe Right(2)
     result.factor shouldBe Scalar
-    result.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
+    result.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
   }
   it should "multiply 1.* and 2.*" in {
     val xy: Try[Number] = Number.parse("1.*")

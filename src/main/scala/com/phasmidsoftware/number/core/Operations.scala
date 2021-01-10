@@ -1,10 +1,11 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.{toTry, tryF}
+import java.util.NoSuchElementException
+
+import com.phasmidsoftware.number.core.FP.{toTry, tryF, tryMap}
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
-import scala.math.BigInt
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
 
@@ -22,10 +23,9 @@ sealed trait MonadicOperation {
 case object MonadicOperationNegate extends MonadicOperation {
   def getFunctions: MonadicFunctions = {
     val fInt = tryF[Int, Int](math.negateExact)
-    val fBigInt = tryF[BigInt, BigInt](implicitly[Numeric[BigInt]].negate)
     val fRational = tryF[Rational, Rational](implicitly[Numeric[Rational]].negate)
     val fDouble = tryF[Double, Double](implicitly[Numeric[Double]].negate)
-    (fInt, fBigInt, fRational, fDouble)
+    (fInt, fRational, fDouble)
   }
 }
 
@@ -35,14 +35,12 @@ case object MonadicOperationInvert extends MonadicOperation {
     case _ => Failure(NumberException("can't invert Int"))
   }
 
-  val invertBigInt: BigInt => Try[BigInt] = _ => Failure(NumberException("can't invert BigInt"))
-
   private val xf: Fractional[Double] = implicitly[Fractional[Double]]
 
   def invertDouble(x: Double): Try[Double] = Try(xf.div(xf.one, x))
 
   def getFunctions: MonadicFunctions =
-    (invertInt, invertBigInt, tryF[Rational, Rational](x => x.invert), invertDouble)
+    (invertInt, tryF[Rational, Rational](x => x.invert), invertDouble)
 }
 
 case object MonadicOperationSin extends MonadicOperation {
@@ -52,13 +50,13 @@ case object MonadicOperationSin extends MonadicOperation {
     if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational(_))
     else x.invert.toInt match {
       case 6 => Success(Rational.half)
-      case 4 => Success(Rational.half.sqrt)
-      case 3 => Success(Rational(3).sqrt / 2)
+      case 4 => Rational.half.sqrt
+      case 3 => Rational(3).sqrt map (_ / 2)
       case 2 => Success(Rational.one)
       case _ => Failure(NumberException("sine cannot be Rational"))
     }
 
-  def getFunctions: MonadicFunctions = (tryF[Int, Int](_ => 0), tryF[BigInt, BigInt](_ => 0), sinRat, sinDouble)
+  def getFunctions: MonadicFunctions = (tryF[Int, Int](_ => 0), sinRat, sinDouble)
 }
 
 case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
@@ -74,9 +72,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
       case _ => Failure(NumberException("atan cannot be Rational"))
     }
 
-  def getFunctions: MonadicFunctions = (_ =>
-    Failure(NumberException("atan cannot be Rational")), _ =>
-    Failure(NumberException("atan cannot be Rational")), atanRat, atan)
+  def getFunctions: MonadicFunctions = (_ => Failure(NumberException("atan cannot be Rational")), atanRat, atan)
 }
 
 case object MonadicOperationModulate extends MonadicOperation {
@@ -93,8 +89,7 @@ case object MonadicOperationModulate extends MonadicOperation {
   }
 
   def getFunctions: MonadicFunctions = (
-    tryF(z => math.floorMod(z, 2)),
-    _ => Failure(NumberException("No need to modulate on BigInt")),
+    tryF(z => modulate(z, 0, 2)),
     tryF(z => modulate(z, Rational.zero, Rational.two)),
     tryF(z => modulate(z, 0, 2))
   )
@@ -105,16 +100,15 @@ case object MonadicOperationSqrt extends MonadicOperation {
     x => toTry(Rational.squareRoots.get(x), Failure[Int](NumberException("Cannot create Int from Double")))
 
   def getFunctions: MonadicFunctions =
-    (sqrtInt, _ => Failure(NumberException("Can't sqrt on BigInt")), tryF(x => Rational.sqrt(x).get), tryF(x => math.sqrt(x)))
+    (sqrtInt, x => x.sqrt, tryF(x => math.sqrt(x)))
 }
 
 case class MonadicOperationScale(f: Int) extends MonadicOperation {
   def getFunctions: MonadicFunctions = {
     val fInt = tryF[Int, Int](math.multiplyExact(_, f))
-    val fBigInt = tryF[BigInt, BigInt](_ * f)
     val fRational = tryF[Rational, Rational](_ * f)
     val fDouble = tryF[Double, Double](_ * f)
-    (fInt, fBigInt, fRational, fDouble)
+    (fInt, fRational, fDouble)
   }
 }
 
@@ -125,20 +119,18 @@ sealed trait DyadicOperation {
 case object DyadicOperationPlus extends DyadicOperation {
   def getFunctions: DyadicFunctions = {
     val fInt = tryF[Int, Int, Int](math.addExact)
-    val fBigInt = tryF[BigInt, BigInt, BigInt](implicitly[Numeric[BigInt]].plus)
     val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].plus)
     val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].plus)
-    (fInt, fBigInt, fRational, fDouble)
+    (fInt, fRational, fDouble)
   }
 }
 
 case object DyadicOperationTimes extends DyadicOperation {
   def getFunctions: DyadicFunctions = {
     val fInt = tryF[Int, Int, Int](math.multiplyExact)
-    val fBigInt = tryF[BigInt, BigInt, BigInt](implicitly[Numeric[BigInt]].times)
     val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].times)
     val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].times)
-    (fInt, fBigInt, fRational, fDouble)
+    (fInt, fRational, fDouble)
   }
 }
 
@@ -152,19 +144,49 @@ sealed trait QueryOperation {
 case object QueryOperationIsZero extends QueryOperation {
   def getFunctions: QueryFunctions = {
     val fInt = tryF[Int, Boolean](x => x == 0)
-    val fBigInt = tryF[BigInt, Boolean](x => x.sign == 0)
     val fRational = tryF[Rational, Boolean](x => x.signum == 0)
     val fDouble = tryF[Double, Boolean](x => x.sign == 0 || x.sign == -0)
-    (fInt, fBigInt, fRational, fDouble)
+    (fInt, fRational, fDouble)
   }
 }
 
 case object QueryOperationIsInfinite extends QueryOperation {
   def getFunctions: QueryFunctions = {
     val fInt = tryF[Int, Boolean](_ => false)
-    val fBigInt = tryF[BigInt, Boolean](_ => false)
     val fRational = tryF[Rational, Boolean](x => x.isInfinity)
     val fDouble = tryF[Double, Boolean](x => x == Double.PositiveInfinity || x == Double.NegativeInfinity)
-    (fInt, fBigInt, fRational, fDouble)
+    (fInt, fRational, fDouble)
   }
+}
+
+object Operations {
+  /**
+    * Evaluate a monadic operator on this, using the various functions passed in.
+    * The result is an Option[Value] rather than a Number, as in Number's doComposeMonadic.
+    *
+    * @param functions the tuple of four conversion functions.
+    * @return an Option[Value] which is result of applying the appropriate function to the given value.
+    */
+  def doTransformValueMonadic(value: Value)(functions: MonadicFunctions): Option[Value] = {
+    val (fInt, fRational, fDouble) = functions
+    val xToZy0: Option[Double] => Try[Value] = {
+      case Some(x) => Try(Value.fromDouble(fDouble(x).toOption))
+      case None => Failure(new NoSuchElementException())
+    }
+    import Converters._
+    val xToZy1: Either[Option[Double], Rational] => Try[Value] = e => tryMap(e)(x => for (r <- fRational(x)) yield Value.fromRational(r), xToZy0)
+    tryMap(value)(x => for (i <- fInt(x)) yield Value.fromInt(i), xToZy1).toOption
+  }
+
+  def doQuery(v: Value, functions: QueryFunctions): Option[Boolean] = {
+    val (fInt, fRational, fDouble) = functions
+    val xToZy0: Option[Double] => Try[Boolean] = {
+      case Some(n) => fDouble(n)
+      case None => Failure(new NoSuchElementException())
+    }
+    import Converters._
+    val xToZy1: Either[Option[Double], Rational] => Try[Boolean] = y => tryMap(y)(x => fRational(x), xToZy0)
+    tryMap(v)(x => fInt(x), xToZy1).toOption
+  }
+
 }
