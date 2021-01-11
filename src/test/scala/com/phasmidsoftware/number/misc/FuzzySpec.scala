@@ -21,7 +21,7 @@ class FuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     }
     dist2 match {
       case Gaussian(_, s) => checkDouble(s, 2 * math.sqrt(2))
-      case _ => fail
+      case _ => fail()
     }
   }
   it should "not multiply with self" in {
@@ -37,7 +37,7 @@ class FuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     }
     dist2 match {
       case Bounded(_, s) => checkDouble(s, 0.2)
-      case _ => fail
+      case _ => fail()
     }
   }
   it should "multiply with self" in {
@@ -48,7 +48,7 @@ class FuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     }
     dist2 match {
       case Bounded(_, s) => checkDouble(s, 0.4)
-      case _ => fail
+      case _ => fail()
     }
   }
   it should "implement negate" in {
@@ -73,7 +73,7 @@ class FuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     }
     dist2 match {
       case Bounded(_, s) => checkDouble(s, 2 * 2 * 0.1)
-      case _ => fail
+      case _ => fail()
     }
   }
   it should "implement power(Double)" in {
@@ -84,7 +84,7 @@ class FuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     }
     dist2 match {
       case Bounded(_, s) => checkDouble(s, 2 * 2 * 0.1)
-      case _ => fail
+      case _ => fail()
     }
   }
   it should "implement power(Fuzzy)" in {
@@ -95,7 +95,7 @@ class FuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     }
     dist2 match {
       case Bounded(_, s) => checkDouble(s, (math.log(2) + 1) * 2 * 2 * 0.1)
-      case _ => fail
+      case _ => fail()
     }
   }
   "fuzzy(String)" should "parse 1" in {

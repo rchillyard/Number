@@ -1,10 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import java.lang.Math._
-
 import com.phasmidsoftware.number.core.Rational.{bigZero, narrow}
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-
+import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -86,7 +84,7 @@ case class Rational(n: BigInt, d: BigInt) {
   // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
   lazy val toLong: Long = Rational.toLong(this).get
 
-  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)Õ
+  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
   lazy val toBigInt: BigInt = Rational.toBigInt(this).get
 
   lazy val toFloat: Float = Rational.toFloat(this)
@@ -109,14 +107,6 @@ case class Rational(n: BigInt, d: BigInt) {
       else rational.invert
     }
   }
-
-  /**
-    * This method will always given an approximation of the result.
-    *
-    * @param x the power to which we want to raise this Rational.
-    * @return this to the power of x.
-    */
-  def power(x: Double): Rational = math.pow(toDouble, x)
 
   /**
     * Method to get the xth root of this Rational.
@@ -213,10 +203,10 @@ object Rational {
       val expressions = args.iterator
       val sb = new StringBuffer()
       while (strings.hasNext) {
-        val s = strings.next
+        val s = strings.next()
         if (s.isEmpty) {
           if (expressions.hasNext)
-            sb.append(expressions.next)
+            sb.append(expressions.next())
           else
             throw RationalException("r: logic error: missing expression")
         }
@@ -224,7 +214,7 @@ object Rational {
           sb.append(s)
       }
       if (expressions.hasNext)
-        throw RationalException(s"r: ignored: ${expressions.next}")
+        throw RationalException(s"r: ignored: ${expressions.next()}")
       else
         Rational(sb.toString)
     }
@@ -490,20 +480,6 @@ object Rational {
   }
 
   /**
-    * Compute the square root of a Rational, exactly if possible.
-    *
-    * @param r the Rational.
-    * @return optionally the square root of the Rational, else None if a Rational result couldn't be returned.
-    */
-  def sqrt(r: Rational): Option[Rational] = r match {
-    case Rational(n, d) =>
-      for {
-        p <- toInt(n).toOption.flatMap(x => squareRoots.get(x).map(BigInt(_)))
-        q <- toInt(d).toOption.flatMap(x => squareRoots.get(x).map(BigInt(_)))
-      } yield Rational(p, q)
-  }
-
-  /**
     * Method to get the (integral) xth root of b.
     *
     * @param b a BigInt.
@@ -516,6 +492,7 @@ object Rational {
       case _ => None
     }
 
+  // CONSIDER eliminating this, but it is currently employed by Operations.
   val squareRoots = Map(1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)
 
   /**
@@ -551,7 +528,7 @@ object Rational {
 
   private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z
 
-  private def narrow(x: BigInt, min: BigInt, max: BigInt) =
+  def narrow(x: BigInt, min: BigInt, max: BigInt): Try[BigInt] =
     if (min <= x && x <= max) Success(x)
     else Failure(RationalException("narrow: loss of precision"))
 

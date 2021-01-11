@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.core.{NumberException, Rational}
 import scala.annotation.tailrec
 import scala.util.Try
 
@@ -260,6 +260,7 @@ object ContinuedFraction {
     */
   private def eFunction(xs: List[Pair]): List[Pair] = xs match {
     case List(x, y, z) => List(x, Pair(y.b + 2, y.a), z)
+    case _ => throw NumberException("logic error")
   }
 }
 

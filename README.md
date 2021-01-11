@@ -8,20 +8,20 @@ The chief features of this library are:
 * all numbers are exact wherever it is possible;
 * inexact numbers are represented along with their error bounds;
 * lazy evaluation to help avoid temporary inexact values which become part of a result;
-* there are several domains of Number (expressed with different "factors") to support angles, logarithms. 
+* there are several domains of _Number_ (expressed with different "factors") to support angles, logarithms. 
 
 There is no such thing as accidental loss of precision (at least, provided that code follows the recommendations).
 For example, if you write:
 
     val x = 1 / 2
 
-your x will be an Int of value 0.
+your _x_ will be an _Int_ of value 0.
 
-However, if you write:
+However, if you write the idiomatically correct form:
 
     val x: Number = 1 / 2
 
-then x will be a Number with value exactly one half.
+then _x_ will be a _Number_ with value __exactly__ one half.
 
 Introduction
 ============
@@ -31,7 +31,7 @@ When the error bound is sufficiently large compared to a number, that number is 
 This implies that when comparing numbers, any significant overlap of their error bounds will result in them testing
 as equal (according to the _compare_ function, but not the _equals_ function).
 
-Numbers are represented internally as either _Int_, _BigInt_, _Rational_, or _Double_.
+Numbers are represented internally as either _Int_, _Rational_, or _Double_.
 For more detail, see Representation below.
 
 It is of course perfectly possible to use the _Rational_ classes directly, without using the _Number_ (or _Expression_) classes.
@@ -92,7 +92,7 @@ Generally speaking, the output String corresponding to a Number will be the same
 although at this stage of the software, that is not guaranteed.
 Numbers followed by "(xx)" show standard scientific notation where xx represents the standard deviation of the error
 with respect to the last two digits (sometimes there is only one x which corresponds to the last digit).
-If a Number is followed by "[xx]," this corresponds to a "box" (i.e. truncated uniform) error distribution.
+If a Number is followed by "[xx]," this corresponds to a "box" (i.e. truncated uniform) probability density function.
 
 Comparison
 ==========
@@ -113,27 +113,22 @@ The "value" of a _Number_ is represented by the following type:
 
     type Value = Either[Either[Option[Double], Rational], Int]
 
-Thus, an integer x is represented by _Right(x)_.
-A _BigInt_ x is represented by _Left(Right(x))_.
-A _Rational_ x is represented by a _Left(Left(Right(x)))_.
-A _Double_ x is represented by a _Left(Left(Left(Some(x))))_.
+Thus, an integer _x_ is represented by _Right(x)_.
+A _Rational_ _x_ is represented by a _Left(Right(x))_.
+A _Double_ _x_ is represented by a _Left(Left(Some(x)))_.
 There is also an invalid _Number_ case which is represented by _Left(Left(Left(None)))_.
 
 This _Value_ is always of the rightmost type possible: given the various possible specializations.
 Thus, an _Int_ x which is in range will be represented by _Right(x)_.
-Thus, an _BigInt_ x outside the Int range will be represented by _Left(Right(x))_.
-Similarly, a _Rational_ with numerator x and unit denominator will be represented by _Left(Right(x))_
-(unless it can be further specialized as a _Right(x)_).
-It is also possible that a _Double_ x will be represented by a _Left(Left(Right(x)))_.
+Thus, a _BigInt_ x outside the _Int_ range will be represented by _Left(Right(Rational(x)))_.
+Similarly, a _Rational_ with numerator _x_ and unit denominator, where _x_ is in the range of an _Int_, will be represented by _Right(x)_.
+It is also possible that a _Double_ _x_ will be represented by a _Left(Right(Rational(x)))_.
 For this to happen, the value in question must have fewer than three decimal places (similar to the parsing scheme).
-
-NOTE: It is expected that we will remove the possibility of a _BigInt_ representation since this is just a special case
-of the _Rational_ representation.
 
 Factors
 =======
 There are three "factors:" Scalar (for ordinary dimensionless numbers), __Pi__ (used to represent radians or any multiple of pi),
-and __E__ (for powers of the Euler constant).
+and __E__ (for powers of the Euler number).
 Trigonometrical functions are designed to work with __Pi__.
 Such values are limited (modulated) to be in the range 0..2pi.
 However, this happens as the result of operations, so it is still possible to define a value of 2pi.
@@ -181,6 +176,64 @@ The second test fails with "7.000000000000001 was not equal to 7," although if w
 using a custom equality test, we can at least make y shouldEqual 7 work.
 
 The current set of expression optimizations is somewhat limited, but it catches the most important cases. 
+
+Error Bounds
+============
+The error bounds are represented by the _Fuzz[Double]_ class.
+A _Number_ with _None_ for the _fuzz_ is an _ExactNumber_, otherwise, _FuzzyNumber_.
+The are three major attributes of fuzz: shape, style (either relative or absolute), and the value
+(called _magnitude_ when absolute, and _tolerance_ when relative).
+Shape describes the probability density function (PDF) of values compared to the nominal value.
+There are currently only two types of shape:
+* _Box_: a truncated uniform probability density function--magnitude/tolerance relate to half the width of the non-zero probability section.
+* _Gaussian_: a normal probability density function: the nominal value is at the mean, and _magnitude/tolerance_ is the standard deviation.
+
+It's easy to convert between these four different possibilities.
+Generally speaking, when doing addition (or when a _Number_ is first defined), it's convenient for the fuzz to be absolute.
+When performing any other operation, it's most convenient for the fuzz to be relative.
+It's not possible to combine two _Box_-shaped fuzzes: it would be possible if we allowed for trapezoids as well as rectangles,
+but that's far too complicated.
+So, whenever we combine fuzz (using convolution), we operate on _Gaussian_ PDFs which can easily be combined.
+
+So, why is relative fuzz usually the best? Well consider scaling--multiplying by a constant.
+The relative fuzz doesn't change at all.
+In the following, _f_ is a constant factor.
+Let's assume that _y = f x._
+
+Differentiating, we get,
+
+    Δy = f Δx
+    
+Dividing both sides by _f_, yields
+
+    Δy / y = Δx / x
+    
+Thus, the relative fuzz of _y_ is equal to the relative fuzz of _x_.
+    
+The same will be true, more or less, when we multiply two fuzzy numbers together.
+This time, _z = x y_.
+Therefore,
+
+    Δz = y Δx + x Δy
+    
+Dividing both sides by _z_:
+
+    Δz / z = Δx / x + Δy / y
+    
+Thus, the relative fuzz of _z_ is equal to the sum of the relative fuzzes of _x_ and _y_.
+    
+But, when _Δx_ and _Δy_ are taken from a _Gaussian_ probability density function, the convolution of those two PDFs,
+is given by slightly different expressions depending on whether the PDFs are independent or correlated.
+See the code (_Fuzz_) for details.
+
+Things get only slightly more complex when applying monadic (single operand) functions or applying a function such
+as _z = x ^ y._
+Again, these formulas can be looked up in the code.
+
+Comparing two fuzzy numbers involves subtracting the two numbers and then determining if the probability
+at zero is sufficiently high to consider the difference to be zero.
+If the probability is greater than 50% (the default--although there are method signatures that allow for different values),
+then we consider that the different is zero (method isZero) or that it has a signum of 0.
 
 Versions
 ========

@@ -36,7 +36,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(x1, x2, Sum)
-    e.render shouldBe "4.1415926535897930(61)"
+    e.render shouldBe "4.1415926535897930(77)"
   }
 
   behavior of "ExpressionOps"

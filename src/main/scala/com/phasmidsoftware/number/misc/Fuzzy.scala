@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.misc
 
 import org.apache.commons.math3.distribution._
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._
@@ -97,21 +96,21 @@ abstract class FuzzyBase(nominal: Double, delta: Double, distribution: AbstractR
   // Operators
   def +(that: Fuzzy): Fuzzy = plus(this, that)
 
-  def +(that: Long): Fuzzy = this + Exact(that)
+  def +(that: Long): Fuzzy = this + Exact(that.toDouble)
 
   def -(that: Fuzzy): Fuzzy = minus(this, that)
 
-  def -(that: Long): Fuzzy = this - Exact(that)
+  def -(that: Long): Fuzzy = this - Exact(that.toDouble)
 
   def unary_-: : Fuzzy = negate(this)
 
   def *(that: Fuzzy): Fuzzy = times(this, that)
 
-  def *(that: Long): Fuzzy = this * Exact(that)
+  def *(that: Long): Fuzzy = this * Exact(that.toDouble)
 
   def /(that: Fuzzy): Fuzzy = this * Fuzzy.invert(that)
 
-  def /(that: Long): Fuzzy = this / Exact(that)
+  def /(that: Long): Fuzzy = this / Exact(that.toDouble)
 
   def ^(that: Int): Fuzzy = power(that)
 

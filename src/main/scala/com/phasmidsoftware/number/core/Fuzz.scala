@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzz.toDecimalPower
-
 import scala.math.Numeric.DoubleIsFractional
 import scala.math.Ordering
 import scala.util.Try
@@ -43,9 +42,10 @@ trait Fuzz[T] {
     * But is an operation to combine two probability density functions and, as such, f * g = g * f.
     *
     * @param convolute the convolute, which must have the same shape as this.
+    * @param independent true if the fuzz distributions are independent.
     * @return the convolution of this and the convolute.
     */
-  def *(convolute: Fuzz[T]): Fuzz[T]
+  def *(convolute: Fuzz[T], independent: Boolean): Fuzz[T]
 
   /**
     * Method to possibly change the style of this Fuzz[T}.
@@ -132,12 +132,13 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * Perform a convolution on this Fuzz[T] with the given addend.
     * This operation is suitable for multiplication of Numbers.
     *
-    * @param convolute the convolute, which must have the same shape as this.
+    * @param convolute   the convolute, which must have the same shape as this.
+    * @param independent true if the distributions are independent.
     * @return the convolution of this and the convolute.
     */
-  def *(convolute: Fuzz[T]): Fuzz[T] = if (this.shape == convolute.shape)
+  def *(convolute: Fuzz[T], independent: Boolean): Fuzz[T] = if (this.shape == convolute.shape)
     convolute match {
-      case RelativeFuzz(t, Gaussian) => RelativeFuzz(Gaussian.convolutionProduct(tolerance, t), shape)
+      case RelativeFuzz(t, Gaussian) => RelativeFuzz(Gaussian.convolutionProduct(tolerance, t, independent), shape)
       case _ => throw FuzzyNumberException("* operation on different styles")
     } else throw FuzzyNumberException("* operation on different shapes")
 
@@ -222,18 +223,20 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     * There are two different Fuzz[T] shapes, and they clearly have different effects.
     * This operation is suitable for addition of Numbers.
     *
-    * @param convolute the convolute, which must have the same shape as this.
+    * @param convolute   the convolute, which must have the same shape as this.
+    * @param independent ignored.
     * @return the convolution of this and the convolute.
     */
-  def *(convolute: Fuzz[T]): Fuzz[T] = if (this.shape == convolute.shape)
-    convolute match {
-      case AbsoluteFuzz(m, _) =>
-        AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(tv.toDouble(magnitude), tv.toDouble(m))), shape)
-      case _ =>
-        throw FuzzyNumberException("* operation on different styles")
-    }
-  else
-    throw FuzzyNumberException("* operation on different shapes")
+  def *(convolute: Fuzz[T], independent: Boolean): Fuzz[T] =
+    if (this.shape == convolute.shape)
+      convolute match {
+        case AbsoluteFuzz(m, _) =>
+          AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(tv.toDouble(magnitude), tv.toDouble(m))), shape)
+        case _ =>
+          throw FuzzyNumberException("* operation on different styles")
+      }
+    else
+      throw FuzzyNumberException("* operation on different shapes")
 
   lazy val normalizeShape: Fuzz[T] = shape match {
     case Gaussian => this
@@ -259,7 +262,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     */
   def toString(t: T): String = {
     val eString = tv.render(t) match {
-      case numberR(e) => e
+      case AbsoluteFuzz.numberR(e) => e
       case _ => noExponent
     }
     val exponent = Integer.parseInt(eString)
@@ -306,11 +309,48 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     */
   val style: Boolean = false
 
-  private val numberR = """-?\d+\.\d+E([\-+]?\d+)""".r
   private val noExponent = "+00"
 }
 
+object AbsoluteFuzz {
+  private val numberR = """-?\d+\.\d+E([\-+]?\d+)""".r
+}
+
 object Fuzz {
+
+  /**
+    * Method to return a transform function which multiplies a T value by another T value.
+    *
+    * @param k a constant T value (the scale factor).
+    * @tparam T the underlying type of the input and output.
+    * @return a function which can be used by transform.
+    */
+  def scale[T: Valuable](k: T): T => T = implicitly[Valuable[T]].times(_, k)
+
+  /**
+    * Method to yield a transformation (i.e. a Fuzz[T] => Fuzz[T]) based on a scale constant k.
+    *
+    * @param k the scale constant.
+    * @tparam T the underlying type.
+    * @return a function which will transform a Fuzzy[T] into a Fuzzy[T].
+    */
+  def scaleTransform[T: Valuable](k: T): Fuzz[T] => Fuzz[T] = _.transform(scale(k))
+
+  /**
+    * Scale the fuzz values by the two given coefficients.
+    *
+    * @param fuzz         the fuzz values (a Tuple).
+    * @param coefficients the coefficients (a Tuple).
+    * @return the scaled fuzz values (a Tuple).
+    */
+  def applyCoefficients[T: Valuable](fuzz: (Option[Fuzz[T]], Option[Fuzz[T]]), coefficients: Option[(T, T)]): (Option[Fuzz[T]], Option[Fuzz[T]]) =
+    coefficients match {
+      case Some((a, b)) =>
+        val f1o = fuzz._1 map scaleTransform(a)
+        val f2o = fuzz._2 map scaleTransform(b)
+        (f1o, f2o)
+      case _ => fuzz
+    }
 
   /**
     * Combine the fuzz values using a convolution.
@@ -319,20 +359,23 @@ object Fuzz {
     * Note also that we normalize the shape of each fuzz to ensure Gaussian, since we cannot combine Box shapes into Box
     * (we could combine Box shapes into trapezoids but who needs that?).
     *
-    * @param t        the magnitude of the resulting Number.
+    * @param t1       the magnitude of the first operand.
+    * @param t2       the magnitude of the second operand.
     * @param relative true if we are multiplying, false if we are adding.
-    * @param fuzz1    one of the (optional) Fuzz values.
-    * @param fuzz2    the other of the (optional) Fuzz values.
+    * @param fuzz     a Tuple of the two optional Fuzz values.
     * @tparam T the underlying type of the Fuzz.
     * @return an Option of Fuzz[T].
     */
-  def combine[T: Valuable](t: T, relative: Boolean, fuzz1: Option[Fuzz[T]], fuzz2: Option[Fuzz[T]]): Option[Fuzz[T]] =
-    (doNormalize(fuzz1, t, relative), doNormalize(fuzz2, t, relative)) match {
-      case (Some(f1), Some(f2)) => Some(f1.normalizeShape * f2.normalizeShape)
+  def combine[T: Valuable](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzz[T]], Option[Fuzz[T]])): Option[Fuzz[T]] = {
+    val f1o = doNormalize(fuzz._1, t1, relative)
+    val f2o = doNormalize(fuzz._2, t2, relative)
+    (f1o, f2o) match {
+      case (Some(f1), Some(f2)) => Some(f1.normalizeShape.*(f2.normalizeShape, independent))
       case (Some(f1), None) => Some(f1)
       case (None, Some(f2)) => Some(f2)
       case _ => None
     }
+  }
 
   /**
     * Map the fuzz value with a function (typically the derivative of the function being applied to the Fuzzy quantity).
@@ -480,7 +523,8 @@ case object Gaussian extends Shape {
   def convolutionSum(sigma1: Double, sigma2: Double): Double = math.sqrt(sigma1 * sigma1 + sigma2 * sigma2)
 
   /**
-    * For the convolution of the product of two (independent) Gaussian distributions (see https://en.wikipedia.org/wiki/Variance):
+    * For the convolution of the product of two (independent) Gaussian distributions (see https://en.wikipedia.org/wiki/Variance).
+    * You must not use this expression when multiplying a fuzzy number by itself, for example, because then they are not independent.
     *
     * Var(X Y) = mux mux Var(Y) + muy muy Var(X) + Var(X) Var(Y)
     *
@@ -489,8 +533,15 @@ case object Gaussian extends Shape {
     * Or, dividing by (mux muy)**2 (i.e. using relative variations)
     *
     * sigma(x/mux 8 y/muy)**2 = sigma(x/mux)**2 + sigma(y/muy)**2 + (sigma(x/mux) sigma(y/muy))**2
+    *
+    * @param sigma1      the first standard deviation.
+    * @param sigma2      the second standard deviation.
+    * @param independent whether or not the distributions are independent.
+    * @return
     */
-  def convolutionProduct(sigma1: Double, sigma2: Double): Double = math.sqrt(sigma1 * sigma1 + sigma2 * sigma2 + sigma1 * sigma2)
+  def convolutionProduct(sigma1: Double, sigma2: Double, independent: Boolean): Double =
+    if (independent) math.sqrt(sigma1 * sigma1 + sigma2 * sigma2 + sigma1 * sigma2)
+    else sigma1 + sigma2
 
   /**
     * Determine the APPROXIMATE probability density for this shape at the point x where l signifies the extent of the PDF.

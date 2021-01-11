@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -123,7 +124,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val result = zy.get.materialize
     result.value shouldBe Right(2)
     result.factor shouldBe Scalar
-    result.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
+    result.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
   }
   it should "multiply 1 and 2.*" in {
     val xy = Number.parse("2.*")
@@ -145,7 +146,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val result = zy.get.materialize
     result.value shouldBe Right(2)
     result.factor shouldBe Scalar
-    result.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Gaussian)) => }
+    result.fuzz should matchPattern { case Some(RelativeFuzz(0.3818813079129867, Gaussian)) => }
   }
 
   behavior of "-"
@@ -168,8 +169,18 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
 
-  behavior of "**"
-  it should "work for 2**2" in {
+  behavior of "power"
+  it should "work for (fuzzy 3)^2 (i.e. an constant Int power)" in {
+    val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), Scalar, Some(RelativeFuzz(0.1, Gaussian)))
+    val z: Number = x power 2
+    z.value shouldBe Right(9)
+    z.factor shouldBe Scalar
+    z.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
+    z.fuzz.get match {
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.2
+    }
+  }
+  it should "work for 2**2 (i.e. an constant Int power)" in {
     val xy: Try[Number] = Number.parse("2.0*")
     xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
     xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
@@ -179,7 +190,21 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy.get.factor shouldBe Scalar
     zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
     zy.get.fuzz.get match {
-      case RelativeFuzz(m, Gaussian) => m shouldBe 0.0125 +- 0.00000000000000001
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.028867513459481294 +- 0.00000000000000001
+    }
+  }
+  it should "work for 2**2 (i.e. a fuzzy Number power)" in {
+    val xy: Try[Number] = Number.parse("2.0*")
+    xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
+    xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
+    val exponent = xy.get
+    val zy = for (x <- xy) yield x power exponent
+    zy should matchPattern { case Success(_) => }
+    zy.get.value shouldBe Right(4)
+    zy.get.factor shouldBe Scalar
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
+    zy.get.fuzz.get match {
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.02443847451184851 +- 0.00000000000000001
     }
   }
 
