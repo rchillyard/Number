@@ -466,7 +466,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 to pi" in {
     val x1 = Number.one
     val x2 = Number.pi
-    (x1 add x2).toString shouldBe "4.1415926535897930(61)"
+    (x1 add x2).toString shouldBe "4.1415926535897930(77)"
   }
 
 

@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
 
-import com.phasmidsoftware.number.core.FP.{fail, toTry, toTryWithThrowable, tryF, tryMap}
+import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -167,6 +167,15 @@ case object DyadicOperationTimes extends DyadicOperation {
     val fInt = tryF[Int, Int, Int](math.multiplyExact)
     val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].times)
     val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].times)
+    (fInt, fRational, fDouble)
+  }
+}
+
+case object DyadicOperationPower extends DyadicOperation {
+  def getFunctions: DyadicFunctions = {
+    val fInt = (x: Int, p: Int) => Rational.narrow(BigInt(x).pow(p), Int.MinValue, Int.MaxValue).map(_.toInt)
+    val fRational = (x: Rational, p: Rational) => x.power(p)
+    val fDouble = tryF[Double, Double, Double]((x, p) => math.pow(x, p))
     (fInt, fRational, fDouble)
   }
 }

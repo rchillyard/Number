@@ -1143,6 +1143,7 @@ object Number {
     *
     * NOTE: currently, direct conversion between E and Pi is not supported.
     * CONSIDER: re-implementing the Pi/Scalar and Scalar/Pi cases using MonadicOperationScale.
+    * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then not for E conversions.
     *
     * @param n the Number to be scaled.
     * @param factor the factor to which it should be converted.

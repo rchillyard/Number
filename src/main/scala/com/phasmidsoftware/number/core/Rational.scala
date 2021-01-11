@@ -551,7 +551,7 @@ object Rational {
 
   private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z
 
-  private def narrow(x: BigInt, min: BigInt, max: BigInt) =
+  def narrow(x: BigInt, min: BigInt, max: BigInt): Try[BigInt] =
     if (min <= x && x <= max) Success(x)
     else Failure(RationalException("narrow: loss of precision"))
 
