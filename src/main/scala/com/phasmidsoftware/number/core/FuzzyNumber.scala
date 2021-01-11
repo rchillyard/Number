@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.util.Left
 
 /**
@@ -159,7 +158,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     */
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, absolute: Boolean, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
     for (n <- composeDyadic(other, f)(op); t1 <- this.toDouble; t2 <- other.toDouble) yield
-      FuzzyNumber(n.value, n.factor, Fuzz.combine(t1, t2, !absolute, independent)(FuzzyNumber.applyCoefficients((fuzz, other.fuzz), coefficients)))
+      FuzzyNumber(n.value, n.factor, Fuzz.combine(t1, t2, !absolute, independent)(Fuzz.applyCoefficients((fuzz, other.fuzz), coefficients)))
 
   /**
     * Evaluate a monadic operator on this, using either negate or... according to the value of op.
@@ -269,22 +268,6 @@ object FuzzyNumber {
   }
 
   /**
-    * Scale the fuzz values by the two given coefficients.
-    *
-    * @param fuzz         the fuzz values (a Tuple).
-    * @param coefficients the coefficients (a Tuple).
-    * @return the scaled fuzz values (a Tuple).
-    */
-  private def applyCoefficients(fuzz: (Option[Fuzz[Double]], Option[Fuzz[Double]]), coefficients: Option[(Double, Double)]): (Option[Fuzz[Double]], Option[Fuzz[Double]]) =
-    coefficients match {
-      case Some((a, b)) =>
-        val f1o = fuzz._1 map (_.transform(Fuzz.scale(a)))
-        val f2o = fuzz._2 map (_.transform(Fuzz.scale(b)))
-        (f1o, f2o)
-      case _ => fuzz
-    }
-
-  /**
     * Evaluate a dyadic operator, defined by op, on n and q.
     * Parameters absolute and power relate to the calculation of the error bounds of the result.
     * CONSIDER changing the definition of p.
@@ -303,7 +286,6 @@ object FuzzyNumber {
     case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, p.factor)(op, absolute, independent, coefficients))
     case _: Number => prepareWithSpecialize(n.composeDyadic(n, p.factor)(op))
   }
-
 
   private def transformMonadic(n: Number, factor: Factor, op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean) = n match {
     case x: FuzzyNumber => prepareWithSpecialize(x.transformMonadicFuzzy(factor)(op, fuzzOp, absolute))

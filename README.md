@@ -198,33 +198,33 @@ So, whenever we combine fuzz (using convolution), we operate on _Gaussian_ PDFs 
 So, why is relative fuzz usually the best? Well consider scaling--multiplying by a constant.
 The relative fuzz doesn't change at all.
 In the following, _f_ is a constant factor.
-Let's assume that _y = f * x._
+Let's assume that _y = f x._
 
-Thus,
+Differentiating, we get,
 
-    delta_y = f * delta_x
+    Δy = f Δx
     
-Therefore, deviding both sides by _f_, gives
+Dividing both sides by _f_, yields
 
-    delta_y / y = delta_x / x
+    Δy / y = Δx / x
     
-So, the relative fuzz of y is equal to the relative fuzz of x.
+Thus, the relative fuzz of _y_ is equal to the relative fuzz of _x_.
     
 The same will be true, more or less, when we multiply two fuzzy numbers together.
-This time, _z = x * y_.
+This time, _z = x y_.
 Therefore,
 
-    delta_z = y * delta_x + x * delta_y
+    Δz = y Δx + x Δy
     
 Dividing both sides by _z_:
 
-    delta_z / z = delta_x / x + delta_y / y
+    Δz / z = Δx / x + Δy / y
     
-Thus, the relative fuzz of z is equal to the sum of the relative fuzzes of x and y.
+Thus, the relative fuzz of _z_ is equal to the sum of the relative fuzzes of _x_ and _y_.
     
-But, when _delta_x_ and _delta_y_ are taken from a _Gaussian_ probability density function, the convolution of those two PDFs,
+But, when _Δx_ and _Δy_ are taken from a _Gaussian_ probability density function, the convolution of those two PDFs,
 is given by slightly different expressions depending on whether the PDFs are independent or correlated.
-Sede the code (_Fuzz_) for details.
+See the code (_Fuzz_) for details.
 
 Things get only slightly more complex when applying monadic (single operand) functions or applying a function such
 as _z = x ^ y._

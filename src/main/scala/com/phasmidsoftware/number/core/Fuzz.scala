@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzz.toDecimalPower
-
 import scala.math.Numeric.DoubleIsFractional
 import scala.math.Ordering
 import scala.util.Try
@@ -263,7 +262,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     */
   def toString(t: T): String = {
     val eString = tv.render(t) match {
-      case numberR(e) => e
+      case AbsoluteFuzz.numberR(e) => e
       case _ => noExponent
     }
     val exponent = Integer.parseInt(eString)
@@ -310,8 +309,11 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     */
   val style: Boolean = false
 
-  private val numberR = """-?\d+\.\d+E([\-+]?\d+)""".r
   private val noExponent = "+00"
+}
+
+object AbsoluteFuzz {
+  private val numberR = """-?\d+\.\d+E([\-+]?\d+)""".r
 }
 
 object Fuzz {
@@ -324,6 +326,31 @@ object Fuzz {
     * @return a function which can be used by transform.
     */
   def scale[T: Valuable](k: T): T => T = implicitly[Valuable[T]].times(_, k)
+
+  /**
+    * Method to yield a transformation (i.e. a Fuzz[T] => Fuzz[T]) based on a scale constant k.
+    *
+    * @param k the scale constant.
+    * @tparam T the underlying type.
+    * @return a function which will transform a Fuzzy[T] into a Fuzzy[T].
+    */
+  def scaleTransform[T: Valuable](k: T): Fuzz[T] => Fuzz[T] = _.transform(scale(k))
+
+  /**
+    * Scale the fuzz values by the two given coefficients.
+    *
+    * @param fuzz         the fuzz values (a Tuple).
+    * @param coefficients the coefficients (a Tuple).
+    * @return the scaled fuzz values (a Tuple).
+    */
+  def applyCoefficients[T: Valuable](fuzz: (Option[Fuzz[T]], Option[Fuzz[T]]), coefficients: Option[(T, T)]): (Option[Fuzz[T]], Option[Fuzz[T]]) =
+    coefficients match {
+      case Some((a, b)) =>
+        val f1o = fuzz._1 map scaleTransform(a)
+        val f2o = fuzz._2 map scaleTransform(b)
+        (f1o, f2o)
+      case _ => fuzz
+    }
 
   /**
     * Combine the fuzz values using a convolution.
@@ -340,7 +367,8 @@ object Fuzz {
     * @return an Option of Fuzz[T].
     */
   def combine[T: Valuable](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzz[T]], Option[Fuzz[T]])): Option[Fuzz[T]] = {
-    val (f1o, f2o) = (doNormalize(fuzz._1, t1, relative), doNormalize(fuzz._2, t2, relative))
+    val f1o = doNormalize(fuzz._1, t1, relative)
+    val f2o = doNormalize(fuzz._2, t2, relative)
     (f1o, f2o) match {
       case (Some(f1), Some(f2)) => Some(f1.normalizeShape.*(f2.normalizeShape, independent))
       case (Some(f1), None) => Some(f1)

@@ -1,10 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import java.lang.Math._
-
 import com.phasmidsoftware.number.core.Rational.{bigZero, narrow}
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-
+import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -205,10 +203,10 @@ object Rational {
       val expressions = args.iterator
       val sb = new StringBuffer()
       while (strings.hasNext) {
-        val s = strings.next
+        val s = strings.next()
         if (s.isEmpty) {
           if (expressions.hasNext)
-            sb.append(expressions.next)
+            sb.append(expressions.next())
           else
             throw RationalException("r: logic error: missing expression")
         }
@@ -216,7 +214,7 @@ object Rational {
           sb.append(s)
       }
       if (expressions.hasNext)
-        throw RationalException(s"r: ignored: ${expressions.next}")
+        throw RationalException(s"r: ignored: ${expressions.next()}")
       else
         Rational(sb.toString)
     }
