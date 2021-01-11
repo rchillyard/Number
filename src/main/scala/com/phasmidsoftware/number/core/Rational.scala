@@ -84,7 +84,7 @@ case class Rational(n: BigInt, d: BigInt) {
   // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
   lazy val toLong: Long = Rational.toLong(this).get
 
-  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)Õ
+  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
   lazy val toBigInt: BigInt = Rational.toBigInt(this).get
 
   lazy val toFloat: Float = Rational.toFloat(this)
