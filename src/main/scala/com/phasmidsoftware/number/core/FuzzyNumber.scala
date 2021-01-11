@@ -10,7 +10,7 @@ import scala.util.Left
   *
   * TODO implement scale, atan.
   * TODO FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz.
-  * TODO ensure that every Double calculation contibutes fuzziness.
+  * TODO ensure that every Double calculation contributes fuzziness.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
@@ -277,7 +277,10 @@ object FuzzyNumber {
     */
   private def applyCoefficients(fuzz: (Option[Fuzz[Double]], Option[Fuzz[Double]]), coefficients: Option[(Double, Double)]): (Option[Fuzz[Double]], Option[Fuzz[Double]]) =
     coefficients match {
-      case Some((a, b)) => (fuzz._1 map (f => f.transform(_ * a)), fuzz._2 map (f => f.transform(_ * b)))
+      case Some((a, b)) =>
+        val f1o = fuzz._1 map (_.transform(Fuzz.scale(a)))
+        val f2o = fuzz._2 map (_.transform(Fuzz.scale(b)))
+        (f1o, f2o)
       case _ => fuzz
     }
 

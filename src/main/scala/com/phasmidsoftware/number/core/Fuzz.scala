@@ -317,6 +317,15 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
 object Fuzz {
 
   /**
+    * Method to return a transform function which multiplies a T value by another T value.
+    *
+    * @param k a constant T value (the scale factor).
+    * @tparam T the underlying type of the input and output.
+    * @return a function which can be used by transform.
+    */
+  def scale[T: Valuable](k: T): T => T = implicitly[Valuable[T]].times(_, k)
+
+  /**
     * Combine the fuzz values using a convolution.
     * The order of fuzz1 and fuzz2 is not significant.
     * Note that we normalize the style of each fuzz according to the value of relative.
@@ -330,13 +339,15 @@ object Fuzz {
     * @tparam T the underlying type of the Fuzz.
     * @return an Option of Fuzz[T].
     */
-  def combine[T: Valuable](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzz[T]], Option[Fuzz[T]])): Option[Fuzz[T]] =
-    (doNormalize(fuzz._1, t1, relative), doNormalize(fuzz._2, t2, relative)) match {
+  def combine[T: Valuable](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzz[T]], Option[Fuzz[T]])): Option[Fuzz[T]] = {
+    val (f1o, f2o) = (doNormalize(fuzz._1, t1, relative), doNormalize(fuzz._2, t2, relative))
+    (f1o, f2o) match {
       case (Some(f1), Some(f2)) => Some(f1.normalizeShape.*(f2.normalizeShape, independent))
       case (Some(f1), None) => Some(f1)
       case (None, Some(f2)) => Some(f2)
       case _ => None
     }
+  }
 
   /**
     * Map the fuzz value with a function (typically the derivative of the function being applied to the Fuzzy quantity).
