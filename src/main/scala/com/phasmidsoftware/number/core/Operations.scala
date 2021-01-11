@@ -92,7 +92,7 @@ case object MonadicOperationSin extends MonadicOperation {
 
 case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   def atan(x: Double): Try[Double] =
-    Try(math.atan2(x, sign) / math.Pi) // TODO use scale
+    Try(math.atan2(x, sign) / math.Pi) // TODO use scale // TEST me
 
   val atanRat: Rational => Try[Rational] = x =>
     if (!x.isWhole) atan(x.toDouble).map(Rational(_))
@@ -126,6 +126,7 @@ case object MonadicOperationModulate extends MonadicOperation {
   )
 }
 
+// CONSIDER eliminating this and using power only.
 case object MonadicOperationSqrt extends MonadicOperation {
   val sqrtInt: Int => Try[Int] =
     x => toTryWithThrowable(Rational.squareRoots.get(x), NumberException("Cannot create Int from Double"))
@@ -137,6 +138,8 @@ case object MonadicOperationSqrt extends MonadicOperation {
 /**
   * This monadic operation is used to scale a Value by an Int.
   * CONSIDER changing parameter to Rational.
+  *
+  * TODO this is not currently used--but should be.
   *
   * @param f the scale factor.
   */

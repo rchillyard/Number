@@ -8,11 +8,23 @@ import scala.util.Left
   * This class is designed to model a fuzzy Number.
   * See Number for more details on the actual representation.
   *
+  * TODO implement scale, atan.
+  * TODO FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz.
+  * TODO ensure that every Double calculation contibutes fuzziness.
+  *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   * @param fuzz   the fuzziness of this Number.
   */
 case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzz[Double]]) extends Number(value, factor) with Fuzzy[Double] {
+
+  /**
+    * Auxiliary constructor for an exact number.
+    *
+    * @param v    the value for the new Number.
+    * @param fuzz the fuzz for the new Number.
+    */
+  def this(v: Value, fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
 
   /**
     * Action to render this ExactNumber as a String.
@@ -27,14 +39,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @return this ExactNumber.
     */
   def materialize: Number = this
-
-  /**
-    * Auxiliary constructor for an exact number.
-    *
-    * @param v    the value for the new Number.
-    * @param fuzz the fuzz for the new Number.
-    */
-  def this(v: Value, fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
 
   /**
     * Add a Number to this FuzzyNumber.

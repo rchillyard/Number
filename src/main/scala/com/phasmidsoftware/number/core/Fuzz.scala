@@ -228,15 +228,16 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     * @param independent ignored.
     * @return the convolution of this and the convolute.
     */
-  def *(convolute: Fuzz[T], independent: Boolean): Fuzz[T] = if (this.shape == convolute.shape)
-    convolute match {
-      case AbsoluteFuzz(m, _) =>
-        AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(tv.toDouble(magnitude), tv.toDouble(m))), shape)
-      case _ =>
-        throw FuzzyNumberException("* operation on different styles")
-    }
-  else
-    throw FuzzyNumberException("* operation on different shapes")
+  def *(convolute: Fuzz[T], independent: Boolean): Fuzz[T] =
+    if (this.shape == convolute.shape)
+      convolute match {
+        case AbsoluteFuzz(m, _) =>
+          AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(tv.toDouble(magnitude), tv.toDouble(m))), shape)
+        case _ =>
+          throw FuzzyNumberException("* operation on different styles")
+      }
+    else
+      throw FuzzyNumberException("* operation on different shapes")
 
   lazy val normalizeShape: Fuzz[T] = shape match {
     case Gaussian => this

@@ -66,6 +66,9 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
     * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
+    * the result will be zero.
+    *
+    * TEST me
     *
     * @param p the confidence desired (ignored).
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
@@ -74,6 +77,8 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
 
   /**
     * Action to render this ExactNumber as a String.
+    *
+    * TEST me
     *
     * @return a String.
     */
@@ -191,6 +196,8 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   /**
     * Eagerly multiply this Number by an Int.
     * CONSIDER inlining this method.
+    *
+    * TEST me
     *
     * @param x the scale factor (an Int).
     * @return this * x.
@@ -400,6 +407,8 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * Only the factor will change.
     * This method does not need to be followed by a call to specialize.
     *
+    * TEST me
+    *
     * @param f the factor.
     * @return either a Fuzzy or Exact Number.
     */
@@ -438,27 +447,6 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value will change.
-    * This method should be followed by a call to specialize.
-    *
-    * @param v the value.
-    * @param f Factor.
-    * @return either a Fuzzy or Exact Number.
-    */
-  protected def make(v: BigInt, f: Factor): Number = make(Rational(v), f)
-
-  /**
-    * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value will change.
-    * This method should be followed by a call to specialize.
-    *
-    * @param v the value.
-    * @return either a Fuzzy or Exact Number.
-    */
-  protected def make(v: BigInt): Number = make(v, factor)
-
-  /**
-    * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Only the value and the factor will change.
     * This method should be followed by a call to specialize.
     *
@@ -494,6 +482,8 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * Only the value will change.
     * This method should be followed by a call to specialize.
     *
+    * TEST me
+    *
     * @param v the value (a Double).
     * @return either a Fuzzy or Exact Number.
     */
@@ -506,6 +496,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     */
   def normalize: Number = factor match {
     case Scalar => this
+      // TEST me
     case Pi | E => prepare(maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar)))
   }
 
@@ -769,16 +760,6 @@ object Number {
   def create(value: Value, actualFuzz: Fuzz[Double]): Number = create(value, Scalar, Some(actualFuzz))
 
   /**
-    * Method to construct a new Number from 1, factor and fuzz, according to whether there is any fuzziness.
-    *
-    * NOTE: not currently used.
-    *
-    * @param actualFuzz the fuzziness of this Number.
-    * @return a Number.
-    */
-  def create(factor: Factor, actualFuzz: Fuzz[Double]): Number = create(Value.fromInt(1), factor, Some(actualFuzz))
-
-  /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
     *
     * @param value the value of the Number, expressed as a nested Either type.
@@ -816,17 +797,6 @@ object Number {
     * @return a Number based on x.
     */
   def apply(x: BigInt, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = apply(Rational(x), factor, fuzz)
-
-  /**
-    * Method to construct a Number from a Long with an explicit factor.
-    *
-    * NOTE: not currently used.
-    *
-    * @param x      the Long value.
-    * @param factor the appropriate factor
-    * @return a Number based on the value of x converted to BigInt.
-    */
-  def apply(x: Long, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = Number(BigInt(x), factor, fuzz)
 
   /**
     * Method to construct a Number from a Rational.
@@ -878,17 +848,6 @@ object Number {
   def apply(x: Int, factor: Factor): Number = Number(x, factor, None)
 
   /**
-    * Method to construct a Number from a Long with an explicit factor.
-    *
-    * NOTE: not currently used.
-    *
-    * @param x      the Long value.
-    * @param factor the appropriate factor
-    * @return a Number based on the value of x converted to BigInt.
-    */
-  def apply(x: Long, factor: Factor): Number = Number(x, factor, None)
-
-  /**
     * Method to construct a Number from a BigInt.
     *
     * @param x      the BigInt value.
@@ -936,8 +895,6 @@ object Number {
   /**
     * Method to construct a unit Number with explicit factor.
     *
-    * NOTE: not currently used.
-    *
     * @param factor the appropriate factor
     * @return a unit Number with the given factor.
     */
@@ -952,17 +909,9 @@ object Number {
   def apply(x: Int): Number = Number(x, Scalar)
 
   /**
-    * Method to construct a Number from a Long.
-    *
-    * @param x the Long value.
-    * @return a Number based on the value of x converted to BigInt.
-    */
-  def apply(x: Long): Number = Number(x, Scalar)
-
-  /**
     * Method to construct a Number from a BigInt.
     *
-    * @param x the BigInt value.
+    * @param x a BigInt value.
     * @return a Number based on x.
     */
   def apply(x: BigInt): Number = Number(x, Scalar)
@@ -970,7 +919,7 @@ object Number {
   /**
     * Method to construct a Number from a Rational.
     *
-    * @param x the BigInt value.
+    * @param x a Rational value.
     * @return a Number based on x.
     */
   def apply(x: Rational): Number = Number(x, Scalar)
@@ -1157,6 +1106,7 @@ object Number {
     case _ => throw NumberException("scaling between e and Pi factors is not supported")
   }
 
+  // TEST me
   private def scale(x: Number, f: Int): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationScale(f)))
 
   def negate(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationNegate))

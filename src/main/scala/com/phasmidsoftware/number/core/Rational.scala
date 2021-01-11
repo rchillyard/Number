@@ -111,14 +111,6 @@ case class Rational(n: BigInt, d: BigInt) {
   }
 
   /**
-    * This method will always given an approximation of the result.
-    *
-    * @param x the power to which we want to raise this Rational.
-    * @return this to the power of x.
-    */
-  def power(x: Double): Rational = math.pow(toDouble, x)
-
-  /**
     * Method to get the xth root of this Rational.
     * Note that it is not guaranteed to result in an exact value.
     *
@@ -490,20 +482,6 @@ object Rational {
   }
 
   /**
-    * Compute the square root of a Rational, exactly if possible.
-    *
-    * @param r the Rational.
-    * @return optionally the square root of the Rational, else None if a Rational result couldn't be returned.
-    */
-  def sqrt(r: Rational): Option[Rational] = r match {
-    case Rational(n, d) =>
-      for {
-        p <- toInt(n).toOption.flatMap(x => squareRoots.get(x).map(BigInt(_)))
-        q <- toInt(d).toOption.flatMap(x => squareRoots.get(x).map(BigInt(_)))
-      } yield Rational(p, q)
-  }
-
-  /**
     * Method to get the (integral) xth root of b.
     *
     * @param b a BigInt.
@@ -516,6 +494,7 @@ object Rational {
       case _ => None
     }
 
+  // CONSIDER eliminating this, but it is currently employed by Operations.
   val squareRoots = Map(1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)
 
   /**

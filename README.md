@@ -92,7 +92,7 @@ Generally speaking, the output String corresponding to a Number will be the same
 although at this stage of the software, that is not guaranteed.
 Numbers followed by "(xx)" show standard scientific notation where xx represents the standard deviation of the error
 with respect to the last two digits (sometimes there is only one x which corresponds to the last digit).
-If a Number is followed by "[xx]," this corresponds to a "box" (i.e. truncated uniform) error distribution.
+If a Number is followed by "[xx]," this corresponds to a "box" (i.e. truncated uniform) probability density function.
 
 Comparison
 ==========
@@ -176,6 +176,64 @@ The second test fails with "7.000000000000001 was not equal to 7," although if w
 using a custom equality test, we can at least make y shouldEqual 7 work.
 
 The current set of expression optimizations is somewhat limited, but it catches the most important cases. 
+
+Error Bounds
+============
+The error bounds are represented by the _Fuzz[Double]_ class.
+A _Number_ with _None_ for the _fuzz_ is an _ExactNumber_, otherwise, _FuzzyNumber_.
+The are three major attributes of fuzz: shape, style (either relative or absolute), and the value
+(called _magnitude_ when absolute, and _tolerance_ when relative).
+Shape describes the probability density function (PDF) of values compared to the nominal value.
+There are currently only two types of shape:
+* _Box_: a truncated uniform probability density function--magnitude/tolerance relate to half the width of the non-zero probability section.
+* _Gaussian_: a normal probability density function: the nominal value is at the mean, and _magnitude/tolerance_ is the standard deviation.
+
+It's easy to convert between these four different possibilities.
+Generally speaking, when doing addition (or when a _Number_ is first defined), it's convenient for the fuzz to be absolute.
+When performing any other operation, it's most convenient for the fuzz to be relative.
+It's not possible to combine two _Box_-shaped fuzzes: it would be possible if we allowed for trapezoids as well as rectangles,
+but that's far too complicated.
+So, whenever we combine fuzz (using convolution), we operate on _Gaussian_ PDFs which can easily be combined.
+
+So, why is relative fuzz usually the best? Well consider scaling--multiplying by a constant.
+The relative fuzz doesn't change at all.
+In the following, _f_ is a constant factor.
+Let's assume that _y = f * x._
+
+Thus,
+
+    delta_y = f * delta_x
+    
+Therefore, deviding both sides by _f_, gives
+
+    delta_y / y = delta_x / x
+    
+So, the relative fuzz of y is equal to the relative fuzz of x.
+    
+The same will be true, more or less, when we multiply two fuzzy numbers together.
+This time, _z = x * y_.
+Therefore,
+
+    delta_z = y * delta_x + x * delta_y
+    
+Dividing both sides by _z_:
+
+    delta_z / z = delta_x / x + delta_y / y
+    
+Thus, the relative fuzz of z is equal to the sum of the relative fuzzes of x and y.
+    
+But, when _delta_x_ and _delta_y_ are taken from a _Gaussian_ probability density function, the convolution of those two PDFs,
+is given by slightly different expressions depending on whether the PDFs are independent or correlated.
+Sede the code (_Fuzz_) for details.
+
+Things get only slightly more complex when applying monadic (single operand) functions or applying a function such
+as _z = x ^ y._
+Again, these formulas can be looked up in the code.
+
+Comparing two fuzzy numbers involves subtracting the two numbers and then determining if the probability
+at zero is sufficiently high to consider the difference to be zero.
+If the probability is greater than 50% (the default--although there are method signatures that allow for different values),
+then we consider that the different is zero (method isZero) or that it has a signum of 0.
 
 Versions
 ========

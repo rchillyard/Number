@@ -136,11 +136,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for Pi" in {
     val xy: Try[Number] = Number.parse("1" + Factor.sPi)
-    xy.get shouldBe Number(1, Pi)
+    xy.get shouldBe Number(Pi)
   }
   it should "work for pi" in {
     val xy: Try[Number] = Number.parse("1pi")
-    xy.get shouldBe Number(1, Pi)
+    xy.get shouldBe Number(Pi)
   }
   it should "work for e" in {
     val xy: Try[Number] = Number.parse("1" + Factor.sE)
