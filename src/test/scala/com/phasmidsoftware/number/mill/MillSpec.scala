@@ -26,20 +26,24 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     mill.isEmpty shouldBe true
   }
 
-  it should "process list of Items" in {
-    val list = List("42", "37", "+")
+  it should "process list of Items: 42, 37, *" in {
+    checkMill(List("42", "37", "+"), Number(79))
+  }
+
+  it should "process list of Items: 7, -" in {
+    checkMill(List("7", "-"), Number(-7))
+  }
+
+  private def checkMill(list: List[String], expected: Number) = {
     val items = list map (Item(_))
     val mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
     val (zo, m) = mill.evaluate
     zo should matchPattern { case None => }
     m.isEmpty shouldBe false
-    val (result, emptyMill) = m.pop
-    m.pop should matchPattern { case (Some(_), `emptyMill`) => }
-    emptyMill.isEmpty shouldBe true
-    result.get match {
-      case Constant(e) => e.materialize shouldBe Number(79)
-      case x => fail(s"logic error: $x")
-    }
+    val result = m.pop
+    result should matchPattern { case (Some(_), Empty) => }
+    val (z, _) = result
+    val y = z map { case x: Constant => x.x.materialize }
+    y shouldBe Some(expected)
   }
-
 }
