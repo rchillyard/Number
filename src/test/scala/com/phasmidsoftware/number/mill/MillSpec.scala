@@ -10,40 +10,49 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
 
   it should "pop" in {
     val mill = Mill.empty
-    a[MillException] shouldBe thrownBy(mill.pop)
+    mill.pop should matchPattern { case (None, Empty) => }
   }
-
   it should "push" in {
-    val mill = Mill.empty.push(Constant(Number.one))
+    val mill = Mill.empty.push(Expr(Number.one))
     mill.pop match {
       case (None, _) => fail("logic error")
-      case (Some(x), _) => x shouldBe Constant(Number.one)
+      case (Some(x), _) => x shouldBe Expr(Number.one)
     }
   }
-
-  it should "apply" in {
+  it should "empty" in {
     val mill = Mill.empty
     mill.isEmpty shouldBe true
   }
-
-  it should "process list of Items: 42, 37, *" in {
+  it should "apply()" in {
+    val mill = Mill()
+    mill.isEmpty shouldBe true
+  }
+  it should "apply(1)" in {
+    val mill = Mill(Item("1"))
+    mill.isEmpty shouldBe false
+    mill.evaluate should matchPattern { case (Some(Number.one), Empty) => }
+  }
+  it should "process empty list of Items" in {
+    val mill = Mill()
+    an[MillException] shouldBe thrownBy(mill.evaluate)
+  }
+  it should "process list of Items: 42, 37, +" in {
     checkMill(List("42", "37", "+"), Number(79))
   }
-
   it should "process list of Items: 7, -" in {
     checkMill(List("7", "-"), Number(-7))
+  }
+  it should "process list of Items: 42, 37, +, 2, *" in {
+    checkMill(List("42", "37", "+", "2", "*"), Number(158))
   }
 
   private def checkMill(list: List[String], expected: Number) = {
     val items = list map (Item(_))
     val mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
     val (zo, m) = mill.evaluate
-    zo should matchPattern { case None => }
-    m.isEmpty shouldBe false
-    val result = m.pop
-    result should matchPattern { case (Some(_), Empty) => }
-    val (z, _) = result
-    val y = z map { case x: Constant => x.x.materialize }
+    m.isEmpty shouldBe true
+    zo should matchPattern { case Some(_) => }
+    val y = zo map (_.materialize)
     y shouldBe Some(expected)
   }
 }

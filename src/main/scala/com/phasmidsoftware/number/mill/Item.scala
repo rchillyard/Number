@@ -19,10 +19,12 @@ case object Chs extends Monadic
 
 case object Swap extends Item
 
-case class Constant(x: Expression) extends Item {
-  def +(other: Constant): Expression = x.+(other.x)
+case class Expr(x: Expression) extends Item {
+  def +(other: Expr): Expression = x.+(other.x)
 
-  def *(other: Constant): Expression = x.*(other.x)
+  def *(other: Expr): Expression = x.*(other.x)
+
+  override def toString: String = x.toString
 }
 
 object Item {
@@ -30,6 +32,6 @@ object Item {
     case "+" => Add
     case "-" => Chs
     case "*" => Multiply
-    case x => Constant(Number(x))
+    case x => Expr(Number(x))
   }
 }
