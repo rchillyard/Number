@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.mill
 
-import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.{Expression, Number, Rational}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -30,7 +30,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "apply(1)" in {
     val mill = Mill(Item("1"))
     mill.isEmpty shouldBe false
-    mill.evaluate should matchPattern { case (Some(Number.one), Empty) => }
+    mill.evaluate shouldBe Number.one
   }
   it should "process empty list of Items" in {
     val mill = Mill()
@@ -48,14 +48,18 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "process list of Items: 42, 37, +, 2, *" in {
     checkMill(List("42", "37", "+", "2", "*"), Number(158))
   }
+  it should "process list of Items: 2, inv" in {
+    checkMill(List("2", "inv"), Number(Rational.half))
+  }
+  it should "process a String: 42 37 + 2 *" in {
+    val value: Expression = Mill.parse("42 37 + 2 *").evaluate
+    value.materialize shouldBe Number(158)
+  }
 
   private def checkMill(list: List[String], expected: Number) = {
     val items = list map (Item(_))
     val mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
-    val (zo, m) = mill.evaluate
-    m.isEmpty shouldBe true
-    zo should matchPattern { case Some(_) => }
-    val y = zo map (_.materialize)
-    y shouldBe Some(expected)
+    val z = mill.evaluate
+    z.materialize shouldBe expected
   }
 }

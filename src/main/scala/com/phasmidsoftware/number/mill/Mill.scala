@@ -3,6 +3,8 @@ package com.phasmidsoftware.number.mill
 import com.phasmidsoftware.number.core.Expression
 import com.phasmidsoftware.number.core.Expression._
 
+import scala.language.postfixOps
+
 trait Mill {
   /**
     * Method to create a new Mill with x on the "top".
@@ -29,7 +31,7 @@ trait Mill {
     *
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     */
-  def evaluate: (Option[Expression], Mill)
+  def evaluate: Expression
 }
 
 case class Stack(stack: List[Item]) extends Mill {
@@ -57,6 +59,18 @@ case class Stack(stack: List[Item]) extends Mill {
     */
   def isEmpty: Boolean = false
 
+
+  /**
+    * Method to evaluate this Mill.
+    *
+    * @return an Expression.
+    * @throws MillException logic error when the Mill is not fully consumed or the optional expression is None.
+    */
+  def evaluate: Expression = evaluateInternal match {
+    case (Some(x), Empty) => x
+    case (_, _) => throw MillException("evaluate: logic error: $this")
+  }
+
   /**
     * Evaluate this Stack recursively.
     * We pop the top element from this Mill.
@@ -69,7 +83,7 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     * @throws MillException this Mill is empty or some other logic error occurred.
     */
-  def evaluate: (Option[Expression], Mill) = pop match {
+  def evaluateInternal: (Option[Expression], Mill) = pop match {
     case (Some(Expr(e)), Empty) => (Some(e), Empty)
     case (Some(x), m: Stack) => m.evaluate1(x)
     case (None, _) => throw MillException(s"evaluate: this stack is empty")
@@ -101,10 +115,10 @@ case class Stack(stack: List[Item]) extends Mill {
     *         item replaced by the f(top).
     * @throws MillException this Mill is empty.
     */
-  private def evaluateMonadic(f: Monadic): (Option[Expression], Mill) = evaluate match {
+  private def evaluateMonadic(f: Monadic): (Option[Expression], Mill) = evaluateInternal match {
     case (Some(e), m) =>
       val expression = calculateMonadic(f, e)
-      m.push(Expr(expression)).evaluate
+      m.push(Expr(expression)).asInstanceOf[Stack].evaluateInternal
     case (None, _) => throw MillException(s"evaluateMonadic: $this is empty")
   }
 
@@ -139,10 +153,10 @@ case class Stack(stack: List[Item]) extends Mill {
     * @throws MillException this did not evaluate to an expression.
     */
   private def evaluate2(f: Dyadic, x: Expression): (Option[Expression], Mill) =
-    evaluate match {
+    evaluateInternal match {
       case (Some(e), m) =>
         val expression = calculateDyadic(f, x, e)
-        m.push(Expr(expression)).evaluate
+        m.push(Expr(expression)).asInstanceOf[Stack].evaluateInternal
       case (None, _) =>
         throw MillException(s"evaluate2: logic error: $this did not evaluate to an expression")
     }
@@ -157,6 +171,7 @@ case class Stack(stack: List[Item]) extends Mill {
     */
   private def calculateMonadic(f: Monadic, x: Expression) = f match {
     case Chs => x * Expression(-1)
+    case Inv => x reciprocal
     case _ => throw MillException(s"calculateMonadic: $f not supported")
   }
 
@@ -202,7 +217,7 @@ case object Empty extends Mill {
   /**
     * @throws MillException logic error: empty Mill.
     */
-  def evaluate: (Option[Expression], Mill) = throw MillException(s"evaluate: logic error: empty Mill")
+  def evaluate: Expression = throw MillException(s"evaluate: logic error: empty Mill")
 }
 
 object Mill {
@@ -219,7 +234,17 @@ object Mill {
     * @param xs a comma-separated sequence of Item.
     * @return an appropriate Mill.
     */
-  def apply(xs: Item*): Mill = if (xs.isEmpty) Empty else Stack(xs.to(List))
+  def apply(xs: Item*): Mill = if (xs.isEmpty) Empty else Stack(xs.reverse.to(List))
+
+  def parse(ws: Seq[String]): Mill = apply(ws map (Item(_)): _*)
+
+  /**
+    * Method to take a String of Items and create the appropriate Mill.
+    *
+    * @param w a String.
+    * @return a Mill.
+    */
+  def parse(w: String): Mill = parse(w.split(" ").to(Seq))
 }
 
 case class MillException(s: String) extends Exception(s)

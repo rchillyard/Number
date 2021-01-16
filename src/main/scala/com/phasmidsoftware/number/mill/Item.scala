@@ -19,6 +19,8 @@ case object Power extends Dyadic
 
 case object Chs extends Monadic
 
+case object Inv extends Monadic
+
 case object Swap extends Item
 
 case class Expr(x: Expression) extends Item {
@@ -35,6 +37,7 @@ object Item {
     case "+" => Add
     case "-" => Chs
     case "*" => Multiply
+    case "inv" => Inv
     case x => Expr(Number(x))
   }
 }
