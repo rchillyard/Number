@@ -166,11 +166,12 @@ case class Stack(stack: List[Item]) extends Mill {
     * @param f  the dyadic operator.
     * @param x1 the first expression to be operated on.
     * @param x2 the second expression to be operated on.
-    * @return an Expression which is f(x1, x2)
+    * @return an Expression which is f(x2, x1)
     */
   private def calculateDyadic(f: Dyadic, x1: Expression, x2: Expression) = f match {
-    case Multiply => x2.*(x1)
-    case Add => x2.+(x1)
+    case Multiply => x2 * x1
+    case Add => x2 + x1
+    case Power => x2 ^ x1
   }
 
   override def toString: String = s"""Stack(${stack.mkString(", ")})"""

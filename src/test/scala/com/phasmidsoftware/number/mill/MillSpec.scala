@@ -39,6 +39,9 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "process list of Items: 42, 37, +" in {
     checkMill(List("42", "37", "+"), Number(79))
   }
+  it should "process list of Items: 3, 2, ^" in {
+    checkMill(List("3", "2", "^"), Number(9))
+  }
   it should "process list of Items: 7, -" in {
     checkMill(List("7", "-"), Number(-7))
   }

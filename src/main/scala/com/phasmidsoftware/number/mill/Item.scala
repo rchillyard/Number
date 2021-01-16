@@ -15,6 +15,8 @@ case object Multiply extends Dyadic
 
 case object Add extends Dyadic
 
+case object Power extends Dyadic
+
 case object Chs extends Monadic
 
 case object Swap extends Item
@@ -29,6 +31,7 @@ case class Expr(x: Expression) extends Item {
 
 object Item {
   def apply(s: String): Item = s match {
+    case "^" => Power
     case "+" => Add
     case "-" => Chs
     case "*" => Multiply
