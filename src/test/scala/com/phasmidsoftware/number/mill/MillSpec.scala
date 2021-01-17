@@ -30,11 +30,11 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "apply(1)" in {
     val mill = Mill(Item("1"))
     mill.isEmpty shouldBe false
-    mill.evaluate shouldBe Number.one
+    mill.evaluate shouldBe Some(Number.one)
   }
   it should "process empty list of Items" in {
     val mill = Mill()
-    an[MillException] shouldBe thrownBy(mill.evaluate)
+    mill.evaluate shouldBe None
   }
   it should "process list of Items: 42, 37, +" in {
     checkMill(List("42", "37", "+"), Number(79))
@@ -52,14 +52,14 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     checkMill(List("2", "inv"), Number(Rational.half))
   }
   it should "process a String: 42 37 + 2 *" in {
-    val value: Expression = Mill.parse("42 37 + 2 *").evaluate
-    value.materialize shouldBe Number(158)
+    val value: Option[Expression] = Mill.parse("42 37 + 2 *").evaluate
+    value map (_.materialize) shouldBe Some(Number(158))
   }
 
   private def checkMill(list: List[String], expected: Number) = {
     val items = list map (Item(_))
     val mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
     val z = mill.evaluate
-    z.materialize shouldBe expected
+    z map (_.materialize) shouldBe Some(expected)
   }
 }

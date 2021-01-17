@@ -31,7 +31,7 @@ trait Mill {
     *
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     */
-  def evaluate: Expression
+  def evaluate: Option[Expression]
 }
 
 case class Stack(stack: List[Item]) extends Mill {
@@ -63,11 +63,11 @@ case class Stack(stack: List[Item]) extends Mill {
   /**
     * Method to evaluate this Mill.
     *
-    * @return an Expression.
+    * @return an Option[Expression]: Some(x) assuming this Mill is not empty and that there are no irregularities.
     * @throws MillException logic error when the Mill is not fully consumed or the optional expression is None.
     */
-  def evaluate: Expression = evaluateInternal match {
-    case (Some(x), Empty) => x
+  def evaluate: Option[Expression] = evaluateInternal match {
+    case (Some(x), Empty) => Some(x)
     case (_, _) => throw MillException("evaluate: logic error: $this")
   }
 
@@ -215,9 +215,9 @@ case object Empty extends Mill {
   def isEmpty: Boolean = true
 
   /**
-    * @throws MillException logic error: empty Mill.
+    * @return None.
     */
-  def evaluate: Expression = throw MillException(s"evaluate: logic error: empty Mill")
+  def evaluate: Option[Expression] = None
 }
 
 object Mill {
