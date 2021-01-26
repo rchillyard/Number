@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core.Rational
+
 import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 
@@ -15,6 +16,8 @@ trait ValuableNumber {
 }
 
 class RationalParser extends JavaTokenParsers {
+
+  override def skipWhitespace: Boolean = false
 
   def parse[R](p: Parser[R], w: String): Try[R] = parseAll(p, w) match {
     case Success(t, _) => scala.util.Success(t)

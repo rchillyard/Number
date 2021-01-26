@@ -1,9 +1,11 @@
 package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.Expression
-import com.phasmidsoftware.number.core.Expression._
+import com.phasmidsoftware.number.core.Expression.ExpressionOps
+import com.phasmidsoftware.number.parse.MillParser
 
 import scala.language.postfixOps
+import scala.util.Try
 
 trait Mill {
   /**
@@ -31,7 +33,7 @@ trait Mill {
     *
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     */
-  def evaluate: Expression
+  def evaluate: Option[Expression]
 }
 
 case class Stack(stack: List[Item]) extends Mill {
@@ -63,12 +65,12 @@ case class Stack(stack: List[Item]) extends Mill {
   /**
     * Method to evaluate this Mill.
     *
-    * @return an Expression.
+    * @return an Option[Expression]: Some(x) assuming this Mill is not empty and that there are no irregularities.
     * @throws MillException logic error when the Mill is not fully consumed or the optional expression is None.
     */
-  def evaluate: Expression = evaluateInternal match {
-    case (Some(x), Empty) => x
-    case (_, _) => throw MillException("evaluate: logic error: $this")
+  def evaluate: Option[Expression] = evaluateInternal match {
+    case (Some(x), Empty) => Some(x)
+    case (_, _) => throw MillException(s"evaluate: logic error: $this")
   }
 
   /**
@@ -186,6 +188,7 @@ case class Stack(stack: List[Item]) extends Mill {
   private def calculateDyadic(f: Dyadic, x1: Expression, x2: Expression) = f match {
     case Multiply => x2 * x1
     case Add => x2 + x1
+    case Subtract => x2 + x1.unary_-
     case Power => x2 ^ x1
   }
 
@@ -215,9 +218,9 @@ case object Empty extends Mill {
   def isEmpty: Boolean = true
 
   /**
-    * @throws MillException logic error: empty Mill.
+    * @return None.
     */
-  def evaluate: Expression = throw MillException(s"evaluate: logic error: empty Mill")
+  def evaluate: Option[Expression] = None
 }
 
 object Mill {
@@ -236,15 +239,13 @@ object Mill {
     */
   def apply(xs: Item*): Mill = if (xs.isEmpty) Empty else Stack(xs.reverse.to(List))
 
-  def parse(ws: Seq[String]): Mill = apply(ws map (Item(_)): _*)
-
   /**
-    * Method to take a String of Items and create the appropriate Mill.
+    * Method to parse a String (may extend over multiple lines) into a Mill.
     *
-    * @param w a String.
-    * @return a Mill.
+    * @param w the input String.
+    * @return a Mill, wrapped in Try.
     */
-  def parse(w: String): Mill = parse(w.split(" ").to(Seq))
+  def parse(w: String): Try[Mill] = (new MillParser).parseMill(w)
 }
 
 case class MillException(s: String) extends Exception(s)
