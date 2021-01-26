@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.parse
 import com.phasmidsoftware.number.core.Rational
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
+
 import scala.util.Try
 
 /**
@@ -17,6 +18,11 @@ class RationalParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val ry: Try[Rational] = r.get.value
     ry should matchPattern { case scala.util.Success(_) => }
     ry.get shouldBe Rational.one
+  }
+  it should "reject 1 " in {
+    val parser = new RationalParser
+    val r = parser.parseAll(parser.simpleNumber, "1 ")
+    r should matchPattern { case parser.Failure(_, _) => }
   }
   behavior of "rational"
   it should "parse 1/2" in {

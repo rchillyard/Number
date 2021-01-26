@@ -32,10 +32,10 @@ case class Expr(x: Expression) extends Item {
 }
 
 object Item {
-  def apply(s: String): Item = s match {
+  def apply(s: String): Item = s.toLowerCase match {
     case "^" => Power
     case "+" => Add
-    case "-" => Chs
+    case "chs" => Chs
     case "*" => Multiply
     case "inv" => Inv
     case x => Expr(Number(x))

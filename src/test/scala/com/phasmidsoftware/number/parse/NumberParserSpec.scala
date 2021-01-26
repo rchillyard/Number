@@ -21,12 +21,20 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     ry should matchPattern { case scala.util.Success(_) => }
     ry.get shouldBe Rational.one
   }
+  it should "reject 1.0 *" in {
+    val r = p.parseAll(p.numberWithFuzziness, "1.0 *")
+    r should matchPattern { case p.Failure(_, _) => }
+  }
   it should "parse 1.*" in {
     val r = p.parseAll(p.numberWithFuzziness, "1.*")
     r should matchPattern { case p.Success(_, _) => }
     val ry: Try[Rational] = r.get.value
     ry should matchPattern { case scala.util.Success(_) => }
     ry.get shouldBe Rational.one
+  }
+  it should "reject 1.* " in {
+    val r = p.parseAll(p.numberWithFuzziness, "1.* ")
+    r should matchPattern { case p.Failure(_, _) => }
   }
   it should "parse 3.1415927*" in {
     val r = p.parseAll(p.numberWithFuzziness, "3.1415927*")
@@ -50,12 +58,20 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     n.value.get shouldBe Rational(31.415927)
     n.fuzz should matchPattern { case Some(AbsoluteFuzz(_, Box)) => }
   }
+  it should "reject 3.1415927* E1" in {
+    val np: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, "3.1415927* E1")
+    np should matchPattern { case p.Failure(_, _) => }
+  }
   it should "parse 1.00(5)" in {
     val r = p.parseAll(p.numberWithFuzziness, "1.00(5)")
     r should matchPattern { case p.Success(_, _) => }
     val ry: Try[Rational] = r.get.value
     ry should matchPattern { case scala.util.Success(_) => }
     ry.get shouldBe Rational.one
+  }
+  it should "reject 1.00 (5)" in {
+    val r = p.parseAll(p.numberWithFuzziness, "1.00 (5)")
+    r should matchPattern { case p.Failure(_, _) => }
   }
 
 
@@ -175,6 +191,24 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     np should matchPattern { case p.Success(_, _) => }
     val n = np.get
     n should matchPattern { case FuzzyNumber(_, _, _) => }
+  }
+  it should "parse \uD835\uDED1" in {
+    val np: p.ParseResult[core.Number] = p.parseAll(p.number, "\uD835\uDED1")
+    np should matchPattern { case p.Success(_, _) => }
+    val n = np.get
+    n should matchPattern { case ExactNumber(_, Pi) => }
+    n.value shouldBe Right(1)
+  }
+  it should "parse 1\uD835\uDED1" in {
+    val np: p.ParseResult[core.Number] = p.parseAll(p.number, "1\uD835\uDED1")
+    np should matchPattern { case p.Success(_, _) => }
+    val n = np.get
+    n should matchPattern { case ExactNumber(_, Pi) => }
+    n.value shouldBe Right(1)
+  }
+  it should "reject 1 \uD835\uDED1" in {
+    val np: p.ParseResult[core.Number] = p.parseAll(p.number, "1 \uD835\uDED1")
+    np should matchPattern { case p.Failure(_, _) => }
   }
 
   behavior of "realNumber"
