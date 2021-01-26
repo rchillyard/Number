@@ -1,15 +1,12 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{negate, prepare}
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
-import scala.language.implicitConversions
+import java.util.NoSuchElementException
 import scala.math.BigInt
 import scala.util._
 

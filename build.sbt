@@ -2,9 +2,11 @@ organization := "com.phasmidsoftware"
 
 name := "Number"
 
-version := "1.0.5"
+version := "1.0.6"
 
 scalaVersion := "2.13.4"
+
+scalacOptions ++= Seq( "-target:jvm-1.8", "-encoding", "UTF-8", "-unchecked", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused" )
 
 val scalaTestVersion = "3.2.3"
 

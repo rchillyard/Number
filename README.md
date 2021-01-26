@@ -36,6 +36,16 @@ For more detail, see Representation below.
 
 It is of course perfectly possible to use the _Rational_ classes directly, without using the _Number_ (or _Expression_) classes.
 
+Mill
+====
+The _Mill_ trait allows expressions to be evaluated using RPN (Reverse Polish Notation).
+For example:
+
+    Mill.parse("42 37 + 2 *").evaluate
+
+yields the _Expression_ with a materialized value of 158.
+See the code for other methods for defining Mill operations.
+
 Parsing
 =======
 A number with two or fewer decimal places is considered exact--a number with more than two decimal places is
@@ -237,7 +247,9 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
-The Current version is 1.0.5: reimplement the e factor.
+The Current version is 1.0.6: added Mill (RPN evaluator).
+
+Version 1.0.5: reimplement the e factor.
 
 Version 1.0.4 Made improvements to Rational, removed BigInt from Value,
 and effected many refactorings.
