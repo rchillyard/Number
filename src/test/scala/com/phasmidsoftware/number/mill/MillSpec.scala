@@ -1,8 +1,11 @@
 package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.{Expression, Number, Rational}
+import com.phasmidsoftware.number.parse.MillParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
+import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers {
 
@@ -37,28 +40,60 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     mill.evaluate shouldBe None
   }
   it should "process list of Items: 42, 37, +" in {
-    checkMill(List("42", "37", "+"), Number(79))
+    checkMill(Number(79), List("42", "37", "+"))
   }
   it should "process list of Items: 3, 2, ^" in {
-    checkMill(List("3", "2", "^"), Number(9))
+    checkMill(Number(9), List("3", "2", "^"))
   }
   it should "process list of Items: 7, chs" in {
-    checkMill(List("7", "chs"), Number(-7))
+    checkMill(Number(-7), List("7", "chs"))
   }
   it should "process list of Items: 42, 37, +, 2, *" in {
-    checkMill(List("42", "37", "+", "2", "*"), Number(158))
+    checkMill(Number(158), List("42", "37", "+", "2", "*"))
   }
   it should "process list of Items: 2, inv" in {
-    checkMill(List("2", "inv"), Number(Rational.half))
+    checkMill(Number(Rational.half), List("2", "inv"))
   }
   it should "process a String: 42 37 + 2 *" in {
-    val value: Option[Expression] = Mill.parse("42 37 + 2 *").evaluate
+    val value: Option[Expression] = Mill.parse("42 37 + 2 *").toOption.flatMap(_.evaluate)
     value map (_.materialize) shouldBe Some(Number(158))
   }
 
-  private def checkMill(list: List[String], expected: Number) = {
+  behavior of "parse and evaluate"
+  val p = new MillParser
+
+  it should "parse and evaluate: 2 37 + 2 *" in {
+    val value: Try[Mill] = p.parseMill("42 37 + 2 *")
+    value should matchPattern { case Success(_) => }
+    value foreach (m => println(m.evaluate))
+    value map (checkMill(Number(158), _))
+  }
+  // See https://hansklav.home.xs4all.nl/rpn/
+  it should "parse and evaluate:  12  34  +  56  +  78  -  90  +  12  -  " in {
+    val value: Try[Mill] = p.parseMill("12  34  +  56  +  78  -  90  +  12  -  ")
+    value should matchPattern { case Success(_) => }
+    value map (checkMill(Number(102), _))
+  }
+  // FIXME this should work.
+  ignore should "parse and evaluate:  3696" in {
+    val w =
+      """12 34  *
+        | 56 78  * +
+        | 90  12  * chs """.stripMargin
+    val value: Try[Mill] = p.parseMill(w)
+    value should matchPattern { case Success(_) => }
+    value foreach (m => println(m.evaluate))
+    value map (checkMill(Number(3696), _))
+  }
+
+
+  private def checkMill(expected: Number, list: List[String]): Any = {
     val items = list map (Item(_))
     val mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
+    checkMill(expected, mill)
+  }
+
+  private def checkMill(expected: Number, mill: Mill) = {
     val z = mill.evaluate
     z map (_.materialize) shouldBe Some(expected)
   }

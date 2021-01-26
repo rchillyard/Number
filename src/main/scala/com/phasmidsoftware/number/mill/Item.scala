@@ -15,6 +15,8 @@ case object Multiply extends Dyadic
 
 case object Add extends Dyadic
 
+case object Subtract extends Dyadic
+
 case object Power extends Dyadic
 
 case object Chs extends Monadic
@@ -35,6 +37,7 @@ object Item {
   def apply(s: String): Item = s.toLowerCase match {
     case "^" => Power
     case "+" => Add
+    case "-" => Subtract
     case "chs" => Chs
     case "*" => Multiply
     case "inv" => Inv

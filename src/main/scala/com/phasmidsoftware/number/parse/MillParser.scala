@@ -6,7 +6,12 @@ import com.phasmidsoftware.number.mill.{Expr, Item, Mill}
 import scala.util.Try
 
 /**
-  * Parser for Number.
+  * Parser for a Mill.
+  * The input to this parser is a string of tokens, each separated by any amount of white space.
+  * The input is then converted to an IndexedSeq of Strings which is then reversed and rendered as a single String.
+  * The purpose of this strange little dance is to reverse the order of the tokens without reversing the tokens themselves.
+  *
+  * CONSIDER using a TokenParser instead of a RegexParser.
   */
 class MillParser extends NumberParser {
 
@@ -16,15 +21,15 @@ class MillParser extends NumberParser {
     * the numerator and the factor.
     * Either of these can be missing but not both.
     *
-    * CONSIDER is it possible to simply use the super.parse method?
-    *
     * @param w the String to parse.
     * @return a Mill, wrapped in Try.
     */
-  def parseMill(w: String): Try[Mill] = parseAll(mill, w) match {
-    case Success(t, _) => scala.util.Success(t)
-    case Failure(m, _) => scala.util.Failure(RationalParserException(m))
-    case Error(m, _) => scala.util.Failure(RationalParserException(m))
+  def parseMill(w: String): Try[Mill] = {
+    parseAll(mill, w.split("""\s+""").reverse.mkString(" ")) match {
+      case Success(t, _) => scala.util.Success(t)
+      case Failure(m, _) => scala.util.Failure(RationalParserException(m))
+      case Error(m, _) => scala.util.Failure(RationalParserException(m))
+    }
   }
 
   trait Term {
@@ -51,25 +56,20 @@ class MillParser extends NumberParser {
     */
   type Token = Either[String, Number]
 
-  def mill: Parser[Mill] = repsep(term, """\s+""".r) ^^ ( items => Mill(items: _*) )
+  def mill: Parser[Mill] = repsep(term, whiteSpace) ^^ (items => Mill(items.flatMap(_.toItems): _*))
 
-  def term: Parser[Item] = (operator | number) ^^ {
-    case x: Number => Expr(x)
-    case w: String => Item(w)
-  }
+  def term: Parser[Term] = dyadicTerm | monadicTerm | anadicTerm
 
-  //  // NOTE: currently anadic terms must be numbers. Later we will support other anadic terms.
-  //  def anadicTerm: Parser[AnadicTerm] = number ^^ (x => AnadicTerm(Right(x)))
-  //
-  //  def monadicTerm: Parser[MonadicTerm] = term ~ monadicOperator ^^ {case x ~ y => MonadicTerm(x, y)}
-  //
-  //  def dyadicTerm: Parser[Term] = term ~ term ~ dyadicOperator ^^ { case x ~ y ~ z => DyadicTerm(x, MonadicTerm(y, z)) }
+  // NOTE: currently anadic terms must be numbers. Later we will support other anadic terms.
+  def anadicTerm: Parser[AnadicTerm] = number ^^ (x => AnadicTerm(Right(x)))
 
-  private def operator = dyadicOperator | monadicOperator
+  def monadicTerm: Parser[MonadicTerm] = (monadicOperator <~ whiteSpace) ~ term ^^ { case y ~ x => MonadicTerm(x, y) }
 
-  private def dyadicOperator = "+" | "*" | "^"
+  def dyadicTerm: Parser[Term] = (dyadicOperator <~ whiteSpace) ~ (term <~ whiteSpace) ~ term ^^ { case z ~ y ~ x => DyadicTerm(x, MonadicTerm(y, z)) }
 
-  private def monadicOperator = """(?i)chs|inv""".r
+  def dyadicOperator: Parser[String] = "+" | "*" | "^" | "-"
+
+  def monadicOperator: Parser[String] = """(?i)chs|inv""".r
 
 }
 
