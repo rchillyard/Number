@@ -43,11 +43,20 @@ class MillParser extends NumberParser {
     }
   }
 
-  case class AnadicTerm(x: Token) extends Term
+  case class AnadicTerm(t: Token) extends Term {
+    override def toString: String = t match {
+      case Right(x) => x.toString
+      case Left(x) => x
+    }
+  }
 
-  case class MonadicTerm(x: Term, op: String) extends Term
+  case class MonadicTerm(t: Term, op: String) extends Term {
+    override def toString: String = s"$t $op"
+  }
 
-  case class DyadicTerm(x: Term, op: MonadicTerm) extends Term
+  case class DyadicTerm(t: Term, op: MonadicTerm) extends Term {
+    override def toString: String = s"$t $op"
+  }
 
   /**
     * Token is something that results in a value: either

@@ -135,11 +135,22 @@ case class Stack(stack: List[Item]) extends Mill {
     * @throws MillException malformed stack.
     */
   private def evaluateDyadic(f: Dyadic): (Option[Expression], Mill) = pop match {
+      // TODO DRY this duplicated code
     case (Some(Expr(e)), m) => m match {
       case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
       case m: Stack => m.evaluate2(f, e)
     }
-    case _ => throw MillException(s"evaluateDyadic: empty or malformed stack (dyadic operator must be followed by an expression): $this")
+    case (Some(i), m) => m.push(i) match {
+      case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
+      case n: Stack =>
+        val z: (Option[Expression], Mill) = n.evaluateInternal
+        z match {
+          case (Some(e), m) => m match {
+            case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
+            case m: Stack => m.evaluate2(f, e)
+          }
+        }
+    }
   }
 
   /**
@@ -238,6 +249,14 @@ object Mill {
     * @return an appropriate Mill.
     */
   def apply(xs: Item*): Mill = if (xs.isEmpty) Empty else Stack(xs.reverse.to(List))
+
+  /**
+    * Alternative method of creating a Mill from a list of Items.
+    *
+    * @param items sequence of Item.
+    * @return a new Mill.
+    */
+  def create(items: Seq[Item]): Mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
 
   /**
     * Method to parse a String (may extend over multiple lines) into a Mill.

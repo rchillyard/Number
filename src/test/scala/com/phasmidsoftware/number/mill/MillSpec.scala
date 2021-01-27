@@ -39,6 +39,16 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val mill = Mill()
     mill.evaluate shouldBe None
   }
+  it should "create a Mill from list of Items: 42, 37, +" in {
+    val target = Mill.create(List("42", "37", "+").map(Item(_)))
+    val items: List[Item] = List(Add, Expr(Number(37)), Expr(Number(42)))
+    target shouldBe Stack(items)
+  }
+  it should "accept list of Items: 42, 37, +" in {
+    val target = Mill.apply(List("42", "37", "+").map(Item(_)): _*)
+    val items: List[Item] = List(Add, Expr(Number(37)), Expr(Number(42)))
+    target shouldBe Stack(items)
+  }
   it should "process list of Items: 42, 37, +" in {
     checkMill(Number(79), List("42", "37", "+"))
   }
@@ -75,11 +85,9 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     value map (checkMill(Number(102), _))
   }
   // FIXME this should work.
-  ignore should "parse and evaluate:  3696" in {
+  it should "parse and evaluate:  3696" in {
     val w =
-      """12 34  *
-        | 56 78  * +
-        | 90  12  * chs """.stripMargin
+      """12 34  * 56 78  * + 90  12  * - """
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
     value foreach (m => println(m.evaluate))
@@ -89,9 +97,10 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
 
   private def checkMill(expected: Number, list: List[String]): Any = {
     val items = list map (Item(_))
-    val mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
+    val mill = Mill.create(items)
     checkMill(expected, mill)
   }
+
 
   private def checkMill(expected: Number, mill: Mill) = {
     val z = mill.evaluate
