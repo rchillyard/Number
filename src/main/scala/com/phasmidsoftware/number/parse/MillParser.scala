@@ -25,7 +25,7 @@ class MillParser extends NumberParser {
     * @return a Mill, wrapped in Try.
     */
   def parseMill(w: String): Try[Mill] = {
-    parseAll(mill, w.split("""\s+""").reverse.mkString(" ")) match {
+    parseAll(mill, w.trim.split("""\s+""").reverse.mkString(" ")) match {
       case Success(t, _) => scala.util.Success(t)
       case Failure(m, _) => scala.util.Failure(RationalParserException(m))
       case Error(m, _) => scala.util.Failure(RationalParserException(m))
