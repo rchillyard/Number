@@ -84,16 +84,24 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     value should matchPattern { case Success(_) => }
     value map (checkMill(Number(102), _))
   }
-  // FIXME this should work.
   it should "parse and evaluate:  3696" in {
     val w =
-      """12 34  * 56 78  * + 90  12  * - """
+      """12 34  *
+        |56 78  * +
+        |90  12  * - """.stripMargin
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
     value foreach (m => println(m.evaluate))
     value map (checkMill(Number(3696), _))
   }
-
+  // TODO test strings with leading or trailing white space
+  it should "parse and evaluate:  207" in {
+    val w = "6  7  +  5  *  4  +  3  *"
+    val value: Try[Mill] = p.parseMill(w)
+    value should matchPattern { case Success(_) => }
+    value foreach (m => println(m.evaluate))
+    value map (checkMill(Number(207), _))
+  }
 
   private def checkMill(expected: Number, list: List[String]): Any = {
     val items = list map (Item(_))
