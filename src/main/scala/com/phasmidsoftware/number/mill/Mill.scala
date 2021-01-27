@@ -134,22 +134,22 @@ case class Stack(stack: List[Item]) extends Mill {
     *         replaced by the f(top, next).
     * @throws MillException malformed stack.
     */
-  private def evaluateDyadic(f: Dyadic): (Option[Expression], Mill) = pop match {
-      // TODO DRY this duplicated code
-    case (Some(Expr(e)), m) => m match {
+  private def evaluateDyadic(f: Dyadic): (Option[Expression], Mill) = {
+    def inner(e: Expression, m: Mill) = m match {
       case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
       case m: Stack => m.evaluate2(f, e)
     }
-    case (Some(i), m) => m.push(i) match {
-      case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
-      case n: Stack =>
-        val z: (Option[Expression], Mill) = n.evaluateInternal
-        z match {
-          case (Some(e), m) => m match {
-            case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
-            case m: Stack => m.evaluate2(f, e)
-          }
+
+    pop match {
+      case (Some(Expr(e)), m) => inner(e, m)
+      case (Some(i), m) => m.push(i) match {
+        case n: Stack => n.evaluateInternal match {
+          case (Some(e), m) => inner(e, m)
+          case _ => throw MillException(s"evaluateDyadic: logic error): $f, $n")
         }
+        case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
+      }
+      case _ => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
     }
   }
 
