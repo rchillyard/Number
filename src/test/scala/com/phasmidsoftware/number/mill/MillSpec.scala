@@ -75,8 +75,29 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "parse and evaluate: 2 37 + 2 *" in {
     val value: Try[Mill] = p.parseMill("42 37 + 2 *")
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(158), _))
+  }
+  it should "parse and evaluate: 2 3 ^" in {
+    val value: Try[Mill] = p.parseMill("2 3 ^")
+    value should matchPattern { case Success(_) => }
+    value foreach (m => println(m.evaluate))
+    value map (checkMill(Number(8), _))
+  }
+  it should "parse and evaluate: 2 v" in {
+    val value: Try[Mill] = p.parseMill("2 v")
+    value should matchPattern { case Success(_) => }
+    value foreach (m => println(m.evaluate))
+    value map (checkMill(Number(2).sqrt, _))
+  }
+  it should "parse and evaluate: 73 24 <> +" in {
+    val my: Try[Mill] = p.parseMill("73 24 <> +")
+    my should matchPattern { case Success(_) => }
+    for (m <- my) yield {
+      val (xo, n) = m.pop
+      val (yo, _) = n.pop
+      xo should matchPattern { case Some(2) => }
+      yo should matchPattern { case Some(2) => }
+    }
   }
   // See https://hansklav.home.xs4all.nl/rpn/
   it should "parse and evaluate:  12  34  +  56  +  78  -  90  +  12  -  " in {
@@ -114,6 +135,17 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     value should matchPattern { case Success(_) => }
     value foreach (m => println(m.evaluate))
     value map (checkMill(Number(207), _))
+  }
+  ignore should "parse and evaluate:  220xxxx with trailing space" in {
+    val w =
+      """ 6    5  ^   7    4  ^ +
+        | 8    3  ^   9    2  ^ + ×
+        | 2    9  ^   3    8  ^ +
+        | 4    7  ^   5    6  ^ + × –""".stripMargin
+    val value: Try[Mill] = p.parseMill(w)
+    value should matchPattern { case Success(_) => }
+    value foreach (m => println(m.evaluate))
+    value map (checkMill(Number(220364696), _))
   }
 
   private def checkMill(expected: Number, list: List[String]): Any = {

@@ -23,7 +23,13 @@ case object Chs extends Monadic
 
 case object Inv extends Monadic
 
+case object Sqrt extends Monadic
+
 case object Swap extends Item
+
+case object Clr extends Item
+
+case object Noop extends Item
 
 case class Expr(x: Expression) extends Item {
   def +(other: Expr): Expression = x.+(other.x)
@@ -35,12 +41,19 @@ case class Expr(x: Expression) extends Item {
 
 object Item {
   def apply(s: String): Item = s.toLowerCase match {
+    // Dyadic operators
     case "^" => Power
     case "+" => Add
     case "-" => Subtract
+    case "*" | "×" => Multiply
+    // Monadic operators
     case "chs" => Chs
-    case "*" => Multiply
     case "inv" => Inv
+    case "v" => Sqrt
+    // Anadic operators
+    case "<>" => Swap
+    case "c" => Clr
+    case "" => Noop
     case x => Expr(Number(x))
   }
 }

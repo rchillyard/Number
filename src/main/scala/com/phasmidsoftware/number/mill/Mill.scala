@@ -185,6 +185,7 @@ case class Stack(stack: List[Item]) extends Mill {
   private def calculateMonadic(f: Monadic, x: Expression) = f match {
     case Chs => x * Expression(-1)
     case Inv => x reciprocal
+    case Sqrt => x sqrt
     case _ => throw MillException(s"calculateMonadic: $f not supported")
   }
 

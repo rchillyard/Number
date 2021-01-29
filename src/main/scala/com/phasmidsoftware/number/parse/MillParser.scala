@@ -38,8 +38,8 @@ class MillParser extends NumberParser {
         case Left(w) => Seq(Item(w))
         case Right(n) => Seq(Expr(n))
       }
-      case MonadicTerm(x, op) => x.toItems :+ Item(op)
-      case DyadicTerm(x, op) => x.toItems ++ op.toItems
+      case MonadicTerm(x, os, p) => x.toItems ++ os.map(Item(_)) :+ Item(p)
+      case DyadicTerm(x, p) => x.toItems ++ p.toItems
     }
   }
 
@@ -50,8 +50,8 @@ class MillParser extends NumberParser {
     }
   }
 
-  case class MonadicTerm(t: Term, op: String) extends Term {
-    override def toString: String = s"$t $op"
+  case class MonadicTerm(t: Term, os: List[String], op: String) extends Term {
+    override def toString: String = s"$t $os $op"
   }
 
   case class DyadicTerm(t: Term, op: MonadicTerm) extends Term {
@@ -61,24 +61,49 @@ class MillParser extends NumberParser {
   /**
     * Token is something that results in a value: either
     * a Number (itself); or
-    * a String which is an anadic (no operand) operator.
+    * a non-empty sequence of String each of which is an anadic (no operand) operator.
     */
   type Token = Either[String, Number]
 
-  def mill: Parser[Mill] = repsep(term, whiteSpace) ^^ (items => Mill(items.flatMap(_.toItems): _*))
+  def mill: Parser[Mill] = repsep(term, whiteSpace) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems): _*))
 
-  def term: Parser[Term] = dyadicTerm | monadicTerm | anadicTerm
+  /**
+    * A term is either of the form:
+    * DyadicOp term term (net pop) or:
+    * MonadicOp term (not unchanged) or:
+    * AnadicOp (net push).
+    *
+    * @return a Parser[Term]
+    */
+  def term: Parser[Term] = (dyadicTerm | monadicTerm | anadicTerm) :| "term"
 
-  // NOTE: currently anadic terms must be numbers. Later we will support other anadic terms.
-  def anadicTerm: Parser[AnadicTerm] = number ^^ (x => AnadicTerm(Right(x)))
+  /**
+    * anadicTerm: an operator or Number which increases depth of the stack.
+    *
+    * @return a Parser[AnadicTerm]
+    */
+  def anadicTerm: Parser[AnadicTerm] = (maybeNumber ?| anadicOperator) :| "anadicTerm" ^^ {
+    case Left(x) => AnadicTerm(Right(x))
+    case Right(w) => AnadicTerm(Left(w))
+  }
 
-  def monadicTerm: Parser[MonadicTerm] = (monadicOperator <~ whiteSpace) ~ term ^^ { case y ~ x => MonadicTerm(x, y) }
+  def monadicTerm: Parser[MonadicTerm] = (trim(monadicOperator) ~ trim(repSepSp(neutralOperator1)) ~ term) :| "monadicTerm" ^^ {
+    case y ~ os ~ x => MonadicTerm(x, os, y)
+  }
 
-  def dyadicTerm: Parser[Term] = (dyadicOperator <~ whiteSpace) ~ (term <~ whiteSpace) ~ term ^^ { case z ~ y ~ x => DyadicTerm(x, MonadicTerm(y, z)) }
+  def dyadicTerm: Parser[Term] = (trim(dyadicOperator) ~ trim(repSepSp(neutralOperator2)) ~ trim(term) ~ term) :| "dyadicTerm" ^^ {
+    case z ~ os ~ y ~ x => DyadicTerm(x, MonadicTerm(y, os, z))
+  }
 
-  def dyadicOperator: Parser[String] = "+" | "*" | "^" | "-"
+  def dyadicOperator: Parser[String] = ("+" | "*" | "×" | "^" | "-") :| "dyadicOperator"
 
-  def monadicOperator: Parser[String] = """(?i)chs|inv""".r
+  def monadicOperator: Parser[String] = logit("""(?i)chs|inv|v""".r)("monadicOperator")
+
+  def anadicOperator: Parser[String] = logit("""rcl""".r)("anadicOperator")
+
+  def neutralOperator2: Parser[String] = logit("""<>""".r | neutralOperator1)("neutralOperator2")
+
+  def neutralOperator1: Parser[String] = logit("""clr|sto""".r)("neutralOperator1")
 
 }
 

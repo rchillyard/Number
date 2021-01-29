@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.parse
 import com.phasmidsoftware.number.core.Rational
 
 import scala.util.Try
-import scala.util.parsing.combinator.JavaTokenParsers
 
 trait ValuableNumber {
 
@@ -15,9 +14,7 @@ trait ValuableNumber {
   def value: Try[Rational]
 }
 
-class RationalParser extends JavaTokenParsers {
-
-  override def skipWhitespace: Boolean = false
+class RationalParser extends BaseParsers {
 
   def parse[R](p: Parser[R], w: String): Try[R] = parseAll(p, w) match {
     case Success(t, _) => scala.util.Success(t)
@@ -47,18 +44,25 @@ class RationalParser extends JavaTokenParsers {
     }
   }
 
-  def rationalNumber: Parser[ValuableNumber] = realNumber | ratioNumber
+  def rationalNumber: Parser[ValuableNumber] = (realNumber | ratioNumber) :| "rationalNumber"
 
-  def ratioNumber: Parser[RatioNumber] = simpleNumber ~ opt("/" ~> simpleNumber) ^^ { case n ~ maybeD => RatioNumber(n, maybeD.getOrElse(WholeNumber.one)) }
+  def ratioNumber: Parser[RatioNumber] = (simpleNumber ~ opt("/" ~> simpleNumber)) :| "ratioNumber" ^^ {
+    case n ~ maybeD => RatioNumber(n, maybeD.getOrElse(WholeNumber.one))
+  }
 
-  def simpleNumber: Parser[WholeNumber] = opt("-") ~ unsignedWholeNumber ^^ { case so ~ n => WholeNumber(so.isDefined, n) }
+  def simpleNumber: Parser[WholeNumber] = (opt("-") ~ unsignedWholeNumber) :| "simpleNumber" ^^ {
+    case so ~ n => WholeNumber(so.isDefined, n)
+  }
 
-  def realNumber: Parser[RealNumber] = opt("-") ~ unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> wholeNumber) ^^ { case so ~ integerPart ~ fractionalPart ~ expo => RealNumber(so.isDefined, integerPart, fractionalPart, expo) }
+  def realNumber: Parser[RealNumber] = (opt("-") ~ unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> wholeNumber)) :| "realNumber" ^^ {
+    case so ~ integerPart ~ fractionalPart ~ expo => RealNumber(so.isDefined, integerPart, fractionalPart, expo)
+  }
 
   /** An integer, without sign. */
-  def unsignedWholeNumber: Parser[String] = """\d+""".r
+  def unsignedWholeNumber: Parser[String] = logit("""\d+""".r)("unsignedWholeNumber") //^^ (x => debug(s"unsignedWholeNumber",x))
 
   private val E = "[eE]".r
+
 }
 
 object RationalParser {
