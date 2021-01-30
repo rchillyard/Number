@@ -31,6 +31,10 @@ case object Clr extends Item
 
 case object Noop extends Item
 
+case object Open extends Item
+
+case object Close extends Item
+
 case class Expr(x: Expression) extends Item {
   def +(other: Expr): Expression = x.+(other.x)
 
@@ -54,6 +58,10 @@ object Item {
     case "<>" => Swap
     case "c" => Clr
     case "" => Noop
+    // Parentheses
+    case "(" => Open
+    case ")" => Close
+    // Expressions
     case x => Expr(Number(x))
   }
 }

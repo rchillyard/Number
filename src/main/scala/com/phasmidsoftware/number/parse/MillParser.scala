@@ -16,10 +16,8 @@ import scala.util.Try
 class MillParser extends NumberParser {
 
   /**
-    * Parse the string w as a Number.
-    * The string consists of two optional parts:
-    * the numerator and the factor.
-    * Either of these can be missing but not both.
+    * Parse the string w as a RPN expression.
+    * The elements of the input include numbers, and various operators.
     *
     * @param w the String to parse.
     * @return a Mill, wrapped in Try.
@@ -65,7 +63,7 @@ class MillParser extends NumberParser {
     */
   type Token = Either[String, Number]
 
-  def mill: Parser[Mill] = repsep(term, whiteSpace) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems): _*))
+  def mill: Parser[Mill] = repSepSp(term) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems): _*))
 
   /**
     * A term is either of the form:

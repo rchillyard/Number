@@ -19,7 +19,7 @@ abstract class BaseParsers extends JavaTokenParsers {
         case s@this.Success(Some(_), _) => s map (xo => Left(xo.get))
         case _ => q(in) match {
           case s@this.Success(_, _) => s map (x => Right(x))
-          case _ => this.Failure("combine: failed", in)
+          case _ => this.Failure("compose: failed", in)
         }
       }
   }
