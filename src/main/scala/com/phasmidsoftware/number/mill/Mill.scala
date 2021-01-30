@@ -70,7 +70,7 @@ case class Stack(stack: List[Item]) extends Mill {
     */
   def evaluate: Option[Expression] = evaluateInternal match {
     case (xo, Empty) => xo
-    case (_, _) => throw MillException(s"evaluate: logic error: $this")
+    case (_, m) => throw MillException(s"evaluate: logic error: remaining stack is not empty: $m")
   }
 
   /**

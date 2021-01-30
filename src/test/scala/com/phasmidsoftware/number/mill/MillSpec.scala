@@ -62,9 +62,13 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "process list of Items with Noop: 42, 37, +, Noop" in {
     checkMill(Number(79), List("42", "37", "+", ""))
   }
-  it should "process list of Items with Clr: 42, 37, +, Noop" in {
+  it should "process list of Items with Clr: 42, 37, +, c" in {
     val x: Mill = create(List("42", "37", "+", "c"))
     x.evaluate shouldBe None
+  }
+  it should "process Noop" in {
+    val x: Mill = create(List("+", ""))
+    an[MillException] shouldBe thrownBy(x.evaluate)
   }
   it should "process list of Items: 3, 2, ^" in {
     checkMill(Number(9), List("3", "2", "^"))
