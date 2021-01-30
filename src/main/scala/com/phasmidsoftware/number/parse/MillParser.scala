@@ -97,13 +97,13 @@ class MillParser extends NumberParser {
 
   def dyadicOperator: Parser[String] = ("+" | "*" | "×" | "^" | "-") :| "dyadicOperator"
 
-  def monadicOperator: Parser[String] = logit("""(?i)chs|inv|v""".r)("monadicOperator")
+  def monadicOperator: Parser[String] = """(?i)chs|inv|v""".r :| "monadicOperator"
 
-  def anadicOperator: Parser[String] = logit("""rcl""".r)("anadicOperator")
+  def anadicOperator: Parser[String] = """rcl""".r :| "anadicOperator"
 
-  def neutralOperator2: Parser[String] = logit("""<>""".r | neutralOperator1)("neutralOperator2")
+  def neutralOperator2: Parser[String] = ("""<>""".r | neutralOperator1) :| "neutralOperator2"
 
-  def neutralOperator1: Parser[String] = logit("""clr|sto""".r)("neutralOperator1")
+  def neutralOperator1: Parser[String] = """clr|sto""".r :| "neutralOperator1"
 
 }
 

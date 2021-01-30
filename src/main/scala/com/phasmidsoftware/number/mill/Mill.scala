@@ -102,12 +102,15 @@ case class Stack(stack: List[Item]) extends Mill {
     *         otherwise, we throw an exception.
     * @throws MillException x is not supported.
     */
-  private def evaluate1(x: Item): (Option[Expression], Mill) = x match {
-    case d: Dyadic => evaluateDyadic(d)
-    case o: Monadic => evaluateMonadic(o)
-    case Expr(e) => (Some(e), this)
-    case x => throw MillException(s"evaluate1: $x not a supported Item")
-  }
+  private def evaluate1(x: Item): (Option[Expression], Mill) =
+    x match {
+      case d: Dyadic => evaluateDyadic(d)
+      case o: Monadic => evaluateMonadic(o)
+      case Expr(e) => (Some(e), this)
+      case Clr => (None, Empty)
+      case Swap => evaluateSwap
+      case x => throw MillException(s"evaluate1: $x not a supported Item")
+    }
 
   /**
     * Method to evaluate this Mill by applying the monadic operator f to its value.
@@ -202,6 +205,19 @@ case class Stack(stack: List[Item]) extends Mill {
     case Add => x2 + x1
     case Subtract => x2 + x1.unary_-
     case Power => x2 ^ x1
+  }
+
+  private def evaluateSwap = {
+    val (zo, m) = pop
+    val (yo, n) = m.pop
+    val result: Option[(Option[Expression], Mill)] = (for (z <- zo; y <- yo; x = n.push(z).push(y)) yield x).map {
+      case mill: Stack => mill.evaluateInternal
+      case _ => throw MillException(s"evaluateSwap: logic error")
+    }
+    result match {
+      case Some((eo, m)) => eo -> m
+      case None => throw MillException(s"evaluateSwap: logic error")
+    }
   }
 
   override def toString: String = s"""Stack(${stack.mkString(", ")})"""

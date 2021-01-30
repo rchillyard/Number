@@ -89,15 +89,11 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     value foreach (m => println(m.evaluate))
     value map (checkMill(Number(2).sqrt, _))
   }
-  it should "parse and evaluate: 73 24 <> +" in {
-    val my: Try[Mill] = p.parseMill("73 24 <> +")
+  it should "parse and evaluate: 73 24 <> -" in {
+    val my: Try[Mill] = p.parseMill("73 24 <> -")
     my should matchPattern { case Success(_) => }
-    for (m <- my) yield {
-      val (xo, n) = m.pop
-      val (yo, _) = n.pop
-      xo should matchPattern { case Some(2) => }
-      yo should matchPattern { case Some(2) => }
-    }
+    val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
+    eo shouldBe Some(Number(-49))
   }
   // See https://hansklav.home.xs4all.nl/rpn/
   it should "parse and evaluate:  12  34  +  56  +  78  -  90  +  12  -  " in {

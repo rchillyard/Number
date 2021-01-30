@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.parse
 
+import scala.util.matching.Regex
 import scala.util.parsing.combinator.JavaTokenParsers
 
 abstract class BaseParsers extends JavaTokenParsers {
@@ -7,22 +8,6 @@ abstract class BaseParsers extends JavaTokenParsers {
   self =>
 
   override def skipWhitespace: Boolean = false
-
-  def logit[T](p: => Parser[T])(name: String)(implicit ll: LogLevel): Parser[T] = ll match {
-    case LogDebug => log(p)(name)
-
-    case LogInfo =>
-      Parser { in =>
-        val r = p(in)
-        r match {
-          case this.Success(x, _) => println(s"$name: matched $x")
-          case _ =>
-        }
-        r
-      }
-
-    case _ => p
-  }
 
   def trim[T](p: Parser[T]): Parser[T] = p <~ opt(whiteSpace)
 
@@ -45,6 +30,29 @@ abstract class BaseParsers extends JavaTokenParsers {
 
   implicit class ParserOptionOps[X](p: Parser[Option[X]]) {
     def ?|[Y](q: => Parser[Y]): Parser[Either[X, Y]] = compose(p, q) :| "compose"
+  }
+
+  implicit class RegexOps(p: Regex) {
+    def :|(name: String)(implicit ll: LogLevel): Parser[String] = logit(p)(name)
+  }
+
+  def tee[X](x: X)(f: X => Unit): X = {
+    f(x)
+    x
+  }
+
+  def logit[T](p: => Parser[T])(name: => String)(implicit ll: LogLevel): Parser[T] = ll match {
+    case LogDebug => log(p)(name)
+
+    case LogInfo =>
+      Parser { in =>
+        tee(p(in)) {
+          case this.Success(x, _) => println(s"$name: matched $x")
+          case _ =>
+        }
+      }
+
+    case _ => p
   }
 
   implicit val enabled: Boolean = false

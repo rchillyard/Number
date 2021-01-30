@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core.{ExactNumber, Scalar}
+import com.phasmidsoftware.number.mill.{Add, Swap}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -78,5 +79,15 @@ class MillParserSpec extends AnyFlatSpec with should.Matchers {
         | 56 78  * +
         | 90  12  * chs """.stripMargin
     p.parseMill(w) should matchPattern { case Success(_) => }
+  }
+  it should "parse: 73 24 <> -" in {
+    val result = p.parseMill("73 24 <> -")
+    result should matchPattern { case Success(_) => }
+    for (m <- result) yield {
+      val (xo, n) = m.pop
+      val (yo, _) = n.pop
+      xo.get shouldBe Add
+      yo.get shouldBe Swap
+    }
   }
 }
