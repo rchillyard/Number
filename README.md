@@ -41,7 +41,7 @@ Mill
 The _Mill_ trait allows expressions to be evaluated using RPN (Reverse Polish Notation).
 For example:
 
-    val eo: Option[Expression] = Mill.parse("42 37 + 2 *").toOption.flatMap(_.evaluate)
+    val eo: Option[Expression] = Mill.parseMill("42 37 + 2 *").toOption.flatMap(_.evaluate)
 
 yields the optional _Expression_ with a materialized value of 158.
 See the code for other methods for defining _Mill_ operations.

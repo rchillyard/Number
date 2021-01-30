@@ -22,14 +22,11 @@ class MillParser extends NumberParser {
     * @param w the String to parse.
     * @return a Mill, wrapped in Try.
     */
-  def parseMill(w: String): Try[Mill] = {
-    parseAll(mill, w.trim.split("""\s+""").reverse.mkString(" ")) match {
-      case Success(t, _) => scala.util.Success(t)
-      case Failure(m, _) => scala.util.Failure(RationalParserException(m))
-      case Error(m, _) => scala.util.Failure(RationalParserException(m))
-    }
-  }
+  def parseMill(w: String): Try[Mill] = stringParser(mill, w.trim.split("""\s+""").reverse.mkString(" "))
 
+  /**
+    * Trait Term which represents a dyadic, monadic, anadic term (the latter including a Number).
+    */
   trait Term {
     def toItems: Seq[Item] = this match {
       case AnadicTerm(x) => x match {
@@ -41,6 +38,11 @@ class MillParser extends NumberParser {
     }
   }
 
+  /**
+    * AnadicTerm is a Term defined by a Token, which is either an operator (a String) or a Number.
+    *
+    * @param t the defining token.
+    */
   case class AnadicTerm(t: Token) extends Term {
     override def toString: String = t match {
       case Right(x) => x.toString
@@ -48,10 +50,23 @@ class MillParser extends NumberParser {
     }
   }
 
+  /**
+    * MonadicTerm is a Term defined by a Term t, a list of Strings, and an operator op.
+    *
+    * @param t  a Term, typically a Number or another term.
+    * @param os a possibly empty list of Strings, representing neutral operators such as the swap operator.
+    * @param op an monadic operator, represented by a String.
+    */
   case class MonadicTerm(t: Term, os: List[String], op: String) extends Term {
     override def toString: String = s"$t $os $op"
   }
 
+  /**
+    * DyadicTerm is a Term defined by a Term t, followed by a MonadicTerm.
+    *
+    * @param t  a Term, typically a Number or another term.
+    * @param op a MonadicTerm.
+    */
   case class DyadicTerm(t: Term, op: MonadicTerm) extends Term {
     override def toString: String = s"$t $op"
   }
@@ -63,6 +78,12 @@ class MillParser extends NumberParser {
     */
   type Token = Either[String, Number]
 
+  /**
+    * A Parser[Mill].
+    * This matches on a space-separated list of terms.
+    *
+    * @return a Parser[Mill].
+    */
   def mill: Parser[Mill] = repSepSp(term) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems): _*))
 
   /**
@@ -85,6 +106,12 @@ class MillParser extends NumberParser {
     case Right(w) => AnadicTerm(Left(w))
   }
 
+  /**
+    * MonadicTerm: an operator or Number which maintains the depth of the stack.
+    * It matches on a monadicOperator, a list of neutral operators, followed by a term.
+    *
+    * @return a Parser[MonadicTerm].
+    */
   def monadicTerm: Parser[MonadicTerm] = (trim(monadicOperator) ~ trim(repSepSp(neutralOperator1)) ~ term) :| "monadicTerm" ^^ {
     case y ~ os ~ x => MonadicTerm(x, os, y)
   }

@@ -14,13 +14,10 @@ trait ValuableNumber {
   def value: Try[Rational]
 }
 
-class RationalParser extends BaseParsers {
-
-  def parse[R](p: Parser[R], w: String): Try[R] = parseAll(p, w) match {
-    case Success(t, _) => scala.util.Success(t)
-    case Failure(m, _) => scala.util.Failure(RationalParserException(m))
-    case Error(m, _) => scala.util.Failure(RationalParserException(m))
-  }
+/**
+  * A parser of Rational objects.
+  */
+class RationalParser extends SignificantSpaceParsers {
 
   case class WholeNumber(sign: Boolean, digits: String) extends ValuableNumber {
     def value: Try[Rational] = scala.util.Success(Rational(BigInt(digits)).applySign(sign))
@@ -68,7 +65,7 @@ class RationalParser extends BaseParsers {
 object RationalParser {
   val parser = new RationalParser
 
-  def parse(s: String): Try[Rational] = parser.parse(parser.rationalNumber, s).flatMap(_.value)
+  def parse(s: String): Try[Rational] = parser.stringParser(parser.rationalNumber, s).flatMap(_.value)
 }
 
 case class RationalParserException(m: String) extends Exception(m)

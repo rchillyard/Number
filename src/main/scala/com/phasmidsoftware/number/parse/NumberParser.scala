@@ -18,7 +18,7 @@ class NumberParser extends RationalParser {
     * @param w the String to parse.
     * @return a Number, wrapped in Try.
     */
-  def parseNumber(w: String): Try[Number] = parse(number, w)
+  def parseNumber(w: String): Try[Number] = stringParser(number, w)
 
   trait WithFuzziness {
     def fuzz: Option[Fuzz[Double]]
