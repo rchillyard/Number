@@ -69,7 +69,7 @@ case class Stack(stack: List[Item]) extends Mill {
     * @throws MillException logic error when the Mill is not fully consumed or the optional expression is None.
     */
   def evaluate: Option[Expression] = evaluateInternal match {
-    case (Some(x), Empty) => Some(x)
+    case (xo, Empty) => xo
     case (_, _) => throw MillException(s"evaluate: logic error: $this")
   }
 
@@ -108,6 +108,7 @@ case class Stack(stack: List[Item]) extends Mill {
       case o: Monadic => evaluateMonadic(o)
       case Expr(e) => (Some(e), this)
       case Clr => (None, Empty)
+      case Noop => evaluateInternal
       case Swap => evaluateSwap
       case x => throw MillException(s"evaluate1: $x not a supported Item")
     }

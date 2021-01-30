@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.{Expression, Number, Rational}
 import com.phasmidsoftware.number.parse.MillParser
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -51,6 +52,19 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "process list of Items: 42, 37, +" in {
     checkMill(Number(79), List("42", "37", "+"))
+  }
+  it should "process list of Items: 42, 37, -" in {
+    checkMill(Number(5), List("42", "37", "-"))
+  }
+  it should "process list of Items with Swap: 42, 37, Swap, -" in {
+    checkMill(Number(-5), List("42", "37", "<>", "-"))
+  }
+  it should "process list of Items with Noop: 42, 37, +, Noop" in {
+    checkMill(Number(79), List("42", "37", "+", ""))
+  }
+  it should "process list of Items with Clr: 42, 37, +, Noop" in {
+    val x: Mill = create(List("42", "37", "+", "c"))
+    x.evaluate shouldBe None
   }
   it should "process list of Items: 3, 2, ^" in {
     checkMill(Number(9), List("3", "2", "^"))
@@ -145,13 +159,14 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   }
 
   private def checkMill(expected: Number, list: List[String]): Any = {
-    val items = list map (Item(_))
-    val mill = Mill.create(items)
-    checkMill(expected, mill)
+    checkMill(expected, create(list))
   }
 
+  private def create(list: List[String]): Mill = {
+    Mill.create(list map (Item(_)))
+  }
 
-  private def checkMill(expected: Number, mill: Mill) = {
+  private def checkMill(expected: Number, mill: Mill): Assertion = {
     val z = mill.evaluate
     z map (_.materialize) shouldBe Some(expected)
   }
