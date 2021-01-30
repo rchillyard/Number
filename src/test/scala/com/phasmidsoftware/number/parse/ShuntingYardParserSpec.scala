@@ -1,10 +1,8 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.Success
 
 class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {

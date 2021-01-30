@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.mill._
-
 import scala.util.Try
 
 /**
@@ -116,10 +115,10 @@ class ShuntingYardParser extends MillParser {
     * @return a Parser[InfixToken].
     */
   def infixToken: Parser[InfixToken] = (maybeNumber ?| operator) :| "infixToken" ^^ {
-    case Left(x) => InfixToken(Some(Right(x)), paren = false)
-    case Right("(") => InfixToken(None, paren = true)
-    case Right(")") => InfixToken(None, paren = false)
-    case Right(w) => InfixToken(Some(Left(w)), paren = false)
+    case Right(x) => InfixToken(Some(Right(x)), paren = false)
+    case Left("(") => InfixToken(None, paren = true)
+    case Left(")") => InfixToken(None, paren = false)
+    case Left(w) => InfixToken(Some(Left(w)), paren = false)
   }
 
   /**

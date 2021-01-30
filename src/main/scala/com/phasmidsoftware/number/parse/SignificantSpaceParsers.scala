@@ -53,29 +53,6 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
   def repSepSp[T](p: Parser[T]): Parser[List[T]] = repsep(p, whiteSpace)
 
   /**
-    * A parser which will first try to parse, using p, an optional X.
-    * If that fails or succeeds resulting in None, we try to parse using q to get a Y.
-    *
-    * CONSIDER switching the order of X and Y.
-    *
-    * @param p a Parser of Option[X].
-    * @param q a Parser[Y].
-    * @tparam X the under-underlying type of p.
-    * @tparam Y the underlying type of q.
-    * @return an Either[X, Y]
-    */
-  def compose[X, Y](p: Parser[Option[X]], q: Parser[Y]): Parser[Either[X, Y]] = Parser {
-    in =>
-      p(in) match {
-        case s@this.Success(Some(_), _) => s map (xo => Left(xo.get))
-        case _ => q(in) match {
-          case s@this.Success(_, _) => s map (x => Right(x))
-          case _ => this.Failure("compose: failed", in)
-        }
-      }
-  }
-
-  /**
     * Implicit class ParserOps which allows us to use the method :| on a Parser[X].
     *
     * @param p a Parser[X].
@@ -92,7 +69,9 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam X the under-underlying type of p.
     */
   implicit class ParserOptionOps[X](p: Parser[Option[X]]) {
-    def ?|[Y](q: => Parser[Y]): Parser[Either[X, Y]] = compose(p, q) :| "compose"
+    def ??(q: => Parser[X]): Parser[X] = compose(p, q) :| "compose"
+
+    def ?|[Y](q: => Parser[Y]): Parser[Either[Y, X]] = composeOption(p, q) :| "composeOption"
   }
 
   /**
@@ -131,11 +110,12 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @return a Parser[T].
     */
   def logit[T](p: => Parser[T])(name: => String)(implicit ll: LogLevel): Parser[T] = ll match {
-    case LogDebug => log(p)(name)
+    case LogDebug => log(p | failure(name))(name)
 
     case LogInfo =>
+      val q = p | failure(name)
       Parser { in =>
-        tee(p(in)) {
+        tee(q(in)) {
           case this.Success(x, _) => println(s"$name: matched $x")
           case _ =>
         }
@@ -151,6 +131,47 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
   protected def debug[X](w: => String, x: X)(implicit enabled: Boolean): X = {
     if (enabled) println(s"debug: $w: $x")
     x
+  }
+
+  /**
+    * A parser which will first try to parse, using p, an optional X.
+    * If that fails or succeeds resulting in None, we try to parse using q.
+    *
+    * @param p a Parser of Option[X].
+    * @param q a Parser[X].
+    * @tparam X the under-underlying type of p.
+    * @return a Parser[X]
+    */
+  private def compose[X](p: Parser[Option[X]], q: Parser[X]): Parser[X] = Parser {
+    in =>
+      p(in) match {
+        case s@this.Success(Some(_), _) => s map (xo => xo.get)
+        case _ => q(in) match {
+          case s@this.Success(_, _) => s
+          case _ => this.Failure("compose: failed", in)
+        }
+      }
+  }
+
+  /**
+    * A parser which will first try to parse, using p, an optional X.
+    * If that fails or succeeds resulting in None, we try to parse using q to get a Y.
+    *
+    * @param p a Parser of Option[X].
+    * @param q a Parser[Y].
+    * @tparam X the under-underlying type of p.
+    * @tparam Y the underlying type of q.
+    * @return a Parser of Either[Y, X]
+    */
+  private def composeOption[X, Y](p: Parser[Option[X]], q: Parser[Y]): Parser[Either[Y, X]] = Parser {
+    in =>
+      p(in) match {
+        case s@this.Success(Some(_), _) => s map (xo => Right(xo.get))
+        case _ => q(in) match {
+          case s@this.Success(_, _) => s map (x => Left(x))
+          case _ => this.Failure("composeOption: failed", in)
+        }
+      }
   }
 }
 

@@ -48,6 +48,10 @@ See the code for other methods for defining _Mill_ operations.
 
 The _Mill.parse_ method in turn invokes methods of _MillParser_.
 
+The Mill offers two parsers: one is a pure RPN parser (as described above).
+The other is an infix parser which uses [Dijkstra's Shunting Yard algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
+to build a Mill.
+
 Parsing
 =======
 A number with two or fewer decimal places is considered exact--a number with more than two decimal places is

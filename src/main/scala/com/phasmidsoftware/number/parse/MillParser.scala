@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.mill.{Expr, Item, Mill}
-
 import scala.util.Try
 
 /**
@@ -102,8 +101,8 @@ class MillParser extends NumberParser {
     * @return a Parser[AnadicTerm]
     */
   def anadicTerm: Parser[AnadicTerm] = (maybeNumber ?| anadicOperator) :| "anadicTerm" ^^ {
-    case Left(x) => AnadicTerm(Right(x))
-    case Right(w) => AnadicTerm(Left(w))
+    case Left(x) => AnadicTerm(Left(x))
+    case Right(w) => AnadicTerm(Right(w))
   }
 
   /**
