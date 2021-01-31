@@ -1092,15 +1092,16 @@ object Number {
         prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
     }
 
+  @tailrec
   private def times(x: Number, y: Number): Number =
     y match {
       case n@FuzzyNumber(_, _, _) => n multiply x
       case _ =>
         val (p, q) = x.alignTypes(y)
-        val factor = p.factor + q.factor
-        factor match {
-          case E => prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationPlus))
-          case _ => prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
+        p.factor + q.factor match {
+          case Some(E) => prepareWithSpecialize(p.composeDyadic(q, E)(DyadicOperationPlus))
+          case Some(f) => prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationTimes))
+          case None => times(x.scale(Scalar), y.scale(Scalar))
         }
     }
 

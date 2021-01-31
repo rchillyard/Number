@@ -128,4 +128,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     y shouldEqual Number(7)
   }
 
+  behavior of "various operations"
+  it should "evaluate E * 2" in {
+    (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
+  }
+
 }
