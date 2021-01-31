@@ -180,6 +180,12 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     value map (checkMill(Number(220364696), _))
   }
 
+  behavior of "parseInfix"
+  it should "work" in {
+    val target: Try[Mill] = Mill.parseInfix("12 + 34  +  56  -  78  +  90  -  12")
+    target should matchPattern { case Success(_) => }
+  }
+
   private def checkMill(expected: Number, list: List[String]): Any = {
     checkMill(expected, create(list))
   }

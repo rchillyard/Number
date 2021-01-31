@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.Expression
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
-import com.phasmidsoftware.number.parse.MillParser
+import com.phasmidsoftware.number.parse.{MillParser, ShuntingYardParser}
 import scala.language.postfixOps
 import scala.util.Try
 
@@ -280,12 +280,20 @@ object Mill {
   def create(items: Seq[Item]): Mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
 
   /**
-    * Method to parse a String (may extend over multiple lines) into a Mill.
+    * Method to parse a String in RPN (may extend over multiple lines) into a Mill.
     *
     * @param w the input String.
     * @return a Mill, wrapped in Try.
     */
   def parse(w: String): Try[Mill] = (new MillParser).parseMill(w)
+
+  /**
+    * Method to parse a String in infix notation (may extend over multiple lines) into a Mill.
+    *
+    * @param w the input String.
+    * @return a Mill, wrapped in Try.
+    */
+  def parseInfix(w: String): Try[Mill] = (new ShuntingYardParser).parseInfix(w)
 }
 
 case class MillException(s: String) extends Exception(s)

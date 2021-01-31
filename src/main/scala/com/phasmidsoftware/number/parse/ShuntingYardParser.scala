@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.mill._
+import scala.annotation.tailrec
 import scala.util.Try
 
 /**
@@ -60,17 +61,18 @@ class ShuntingYardParser extends MillParser {
       */
     def toMill: Try[Mill] = switch match {
       case ShuntingYard(values, Nil) => Try(Mill(values: _*))
-      case _ => scala.util.Failure(MillException("toMill: logic error"))
+      case ShuntingYard(_, junk) => scala.util.Failure(MillException(s"toMill: logic error: resulting list of operators is not empty: $junk"))
     }
 
     private def :+(number: Number) = ShuntingYard(Expr(number) +: values, operators)
 
     private def :+(operator: String) = ShuntingYard(values, Item(operator) +: operators)
 
-    private def switch = this match {
+    @tailrec
+    private def switch: ShuntingYard = this match {
       case ShuntingYard(values, Nil) => ShuntingYard(values, Nil)
-      case ShuntingYard(values, Open :: tail) => ShuntingYard(values, tail)
-      case ShuntingYard(values, operator :: operators) => ShuntingYard(values :+ operator, operators)
+      case ShuntingYard(values, Open :: tail) => ShuntingYard(values, tail).switch
+      case ShuntingYard(values, operator :: operators) => ShuntingYard(values :+ operator, operators).switch
       case _ => throw MillException("ShuntingYard.switch: logic error")
     }
   }
