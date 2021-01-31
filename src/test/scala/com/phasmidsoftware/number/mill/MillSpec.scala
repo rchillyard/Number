@@ -124,6 +124,12 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
     eo shouldBe Some(Number(1))
   }
+  it should "parse and evaluate: 2 exp" in {
+    val my: Try[Mill] = p.parseMill("2 exp")
+    my should matchPattern { case Success(_) => }
+    val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
+    eo shouldBe Some((Number.e * Number.e).materialize)
+  }
 
   // See https://hansklav.home.xs4all.nl/rpn/
   it should "parse and evaluate:  12  34  +  56  +  78  -  90  +  12  -  " in {

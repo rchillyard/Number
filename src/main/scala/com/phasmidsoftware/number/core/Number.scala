@@ -286,9 +286,17 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * Method to determine the natural log of this Number.
     * The result will be a Number with Scalar factor.
     *
-    * @return the sine of this.
+    * @return the natural log of this.
     */
   def log: Number = makeFuzzyIfAppropriate(Number.log)
+
+  /**
+    * Method to raise E to the power of this number.
+    * The result will be a Number with E factor.
+    *
+    * @return the e to the power of this.
+    */
+  def exp: Number = makeFuzzyIfAppropriate(Number.exp)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
@@ -1050,7 +1058,10 @@ object Number {
       case _ =>
         val (p, q) = x.alignTypes(y)
         val factor = p.factor + q.factor
-        prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
+        factor match {
+          case E => prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationPlus))
+          case _ => prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
+        }
     }
 
   def prepare(no: Option[Number]): Number = no.getOrElse(Number())
@@ -1129,6 +1140,8 @@ object Number {
   private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y divide x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
 
   private def log(x: Number): Number = x.scale(E).make(Scalar)
+
+  private def exp(x: Number): Number = x.scale(Scalar).make(E)
 
   private def scaleDouble(x: Double, fThis: Factor, fResult: Factor) = x * fThis.value / fResult.value
 

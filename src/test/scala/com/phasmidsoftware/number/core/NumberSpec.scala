@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -96,6 +95,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for E as scalar" in {
     val target = Number.e.scale(Scalar)
     target.toString shouldBe "2.7182818284590450[27]"
+    target.toString shouldBe "2.7182818284590450[27]"
+  }
+  it should "work for E^E" in {
+    val target = Number("2\uD835\uDF00")
+    target.scale(Scalar).toString shouldBe "7.3890560989306500[74]"
   }
   it should "work for 1 scaled as Pi" in {
     numberOne.scale(Pi).toString shouldBe "0.31830988618379070[32]\uD835\uDED1"

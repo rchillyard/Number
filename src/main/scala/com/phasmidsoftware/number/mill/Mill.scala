@@ -190,6 +190,7 @@ case class Stack(stack: List[Item]) extends Mill {
     case Inv => x reciprocal
     case Sqrt => x sqrt
     case Ln => x.log
+    case Exponent => x.exp
     case Sin => x.sin
     case Cos => x.cos
     case _ => throw MillException(s"calculateMonadic: $f not supported")

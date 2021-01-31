@@ -121,7 +121,7 @@ class MillParser extends NumberParser {
 
   def dyadicOperator: Parser[String] = ("+" | "*" | "×" | "^" | "-") :| "dyadicOperator"
 
-  def monadicOperator: Parser[String] = """(?i)chs|inv|v|ln|sin|cos""".r :| "monadicOperator"
+  def monadicOperator: Parser[String] = """(?i)chs|inv|v|ln|exp|sin|cos""".r :| "monadicOperator"
 
   def anadicOperator: Parser[String] = """rcl""".r :| "anadicOperator"
 

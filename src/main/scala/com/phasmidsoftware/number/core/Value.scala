@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.optionMap
-
 import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
@@ -51,8 +50,9 @@ sealed trait Factor {
 
 sealed abstract class NonScalarFactor extends Factor {
   def +(other: Factor): Factor = other match {
-    case Scalar => this
-    case _ => throw NumberException("cannot add non-Scalar factors together")
+    case Scalar => if (this != E) this else throw NumberException("cannot add E and non-E factors together")
+    case E => if (this == E) this else throw NumberException("cannot add E and non-E factors together")
+    case _ => throw NumberException("cannot add Pi factors together")
   }
 }
 
