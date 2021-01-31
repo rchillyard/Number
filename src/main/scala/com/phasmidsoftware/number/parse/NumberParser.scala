@@ -18,7 +18,7 @@ class NumberParser extends RationalParser {
     * @param w the String to parse.
     * @return a Number, wrapped in Try.
     */
-  def parseNumber(w: String): Try[Number] = parse(number, w)
+  def parseNumber(w: String): Try[Number] = stringParser(number, w)
 
   trait WithFuzziness {
     def fuzz: Option[Fuzz[Double]]
@@ -53,19 +53,25 @@ class NumberParser extends RationalParser {
     private def getExponent = maybeExponent.getOrElse("0").toInt
   }
 
-  def number: Parser[Number] = opt(generalNumber) ~ opt(factor) ^^ { case no ~ fo => optionalNumber(no, fo).getOrElse(FuzzyNumber()) }
+  def number: Parser[Number] = maybeNumber :| "number" ^^ { no => no.getOrElse(FuzzyNumber()) }
 
-  def fuzz: Parser[Option[String]] = ("""\*""".r | """\.\.\.""".r | "(" ~> """\d+""".r <~ ")") ^^ {
+  def maybeNumber: Parser[Option[Number]] = (opt(generalNumber) ~ opt(factor)) :| "maybeNumber" ^^ {
+    case no ~ fo => optionalNumber(no, fo)
+  }
+
+  def fuzz: Parser[Option[String]] = ("""\*""".r | """\.\.\.""".r | "(" ~> """\d+""".r <~ ")") :| "fuzz" ^^ {
     case "*" => None
     case "..." => None
     case w => Some(w)
   }
 
-  def generalNumber: Parser[ValuableNumber] = numberWithFuzziness | rationalNumber
+  def generalNumber: Parser[ValuableNumber] = (numberWithFuzziness | rationalNumber) :| "generalNumber"
 
-  def numberWithFuzziness: Parser[NumberWithFuzziness] = realNumber ~ fuzz ~ opt(rE ~> wholeNumber) ^^ { case rn ~ f ~ expo => NumberWithFuzziness(rn, f, expo) }
+  def numberWithFuzziness: Parser[NumberWithFuzziness] = (realNumber ~ fuzz ~ opt(rE ~> wholeNumber)) :| "numberWithFuzziness" ^^ {
+    case rn ~ f ~ expo => NumberWithFuzziness(rn, f, expo)
+  }
 
-  def exponent: Parser[String] = "[eE]".r ~> wholeNumber
+  def exponent: Parser[String] = ("[eE]".r ~> wholeNumber) :| "exponent"
 
   private val rE = "[eE]".r
 
@@ -92,6 +98,6 @@ class NumberParser extends RationalParser {
 
   import com.phasmidsoftware.number.core.Factor._
 
-  def factor: Parser[Factor] = (sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("factor")) ^^ { w => Factor(w) }
+  def factor: Parser[Factor] = (sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("factor")) :| "factor" ^^ { w => Factor(w) }
 }
 

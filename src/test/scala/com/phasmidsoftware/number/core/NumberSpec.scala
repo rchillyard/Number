@@ -91,14 +91,39 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.toString shouldBe "3.1415926535897930[31]"
   }
   it should "work for E" in {
-    Number.e.toString shouldBe "1\uD835\uDF00"
+    Number.e.toString shouldBe "\uD835\uDF00"
   }
   it should "work for E as scalar" in {
     val target = Number.e.scale(Scalar)
     target.toString shouldBe "2.7182818284590450[27]"
+    target.toString shouldBe "2.7182818284590450[27]"
+  }
+  it should "work for E^2 as Real" in {
+    val target = Number("2\uD835\uDF00")
+    target.scale(Scalar).toString shouldBe "7.3890560989306500[74]"
   }
   it should "work for 1 scaled as Pi" in {
     numberOne.scale(Pi).toString shouldBe "0.31830988618379070[32]\uD835\uDED1"
+  }
+  it should "work for E^2" in {
+    val target = Number.e ^ 2
+    target.materialize.toString shouldBe "\uD835\uDF00\u00B2"
+  }
+  it should "work for E^3" in {
+    val target = Number.e ^ 3
+    target.materialize.toString shouldBe "\uD835\uDF00\u00B3"
+  }
+  it should "work for E^4" in {
+    val target = Number.e ^ 4
+    target.materialize.toString shouldBe "\uD835\uDF00\u2074"
+  }
+  it should "work for E^10" in {
+    val target = Number.e ^ 10
+    target.materialize.toString shouldBe "\uD835\uDF00^10"
+  }
+  it should "work for square root E" in {
+    val target = Number.e.sqrt
+    target.materialize.toString shouldBe "√\uD835\uDF00"
   }
 
   behavior of "toDouble"
@@ -466,7 +491,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 to pi" in {
     val x1 = Number.one
     val x2 = Number.pi
-    (x1 add x2).toString shouldBe "4.1415926535897930(77)"
+    (x1 add x2).toString shouldBe "4.1415926535897930(36)"
   }
 
 

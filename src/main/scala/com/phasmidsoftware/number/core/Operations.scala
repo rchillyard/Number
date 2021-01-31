@@ -1,9 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
 
+import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.Ordered.orderingToOrdered
@@ -17,18 +16,49 @@ import scala.util._
   * Definitions of MonadicOperations.
   */
 sealed trait MonadicOperation {
-  def getFunctions: MonadicFunctions
+  /**
+    * Method to yield a set of functions which can be applied to Int, Rational, or Double values
+    * for this MonadicOperation.
+    *
+    * @return a set of three functions: Int=>Try[Int], Rational=>Try[Rational], Double=>Try[Double].
+    */
+  val functions: MonadicFunctions
+
+  /**
+    * Yield a function which provides the derivative of this MonadicOperation with respect to x, at x.
+    *
+    * @return a function Double => Double
+    */
+  val derivative: Double => Double
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean
 }
 
+/**
+  * MonadicOperation to negate a Number.
+  */
 case object MonadicOperationNegate extends MonadicOperation {
-  def getFunctions: MonadicFunctions = {
+  val functions: MonadicFunctions = {
     val fInt = tryF[Int, Int](math.negateExact)
     val fRational = tryF[Rational, Rational](implicitly[Numeric[Rational]].negate)
     val fDouble = tryF[Double, Double](implicitly[Numeric[Double]].negate)
     (fInt, fRational, fDouble)
   }
+
+  val derivative: Double => Double = _ => -1
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean = true // not used
 }
 
+/**
+  * MonadicOperation to invert a Number.
+  */
 case object MonadicOperationInvert extends MonadicOperation {
   def invertInt(x: Int): Try[Int] = x match {
     case 1 => Success(1)
@@ -39,10 +69,19 @@ case object MonadicOperationInvert extends MonadicOperation {
 
   def invertDouble(x: Double): Try[Double] = Try(xf.div(xf.one, x))
 
-  def getFunctions: MonadicFunctions =
-    (invertInt, tryF[Rational, Rational](x => x.invert), invertDouble)
+  val functions: MonadicFunctions = (invertInt, tryF[Rational, Rational](x => x.invert), invertDouble)
+
+  val derivative: Double => Double = x => -1.0 / x / x
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean = true // not used
 }
 
+/**
+  * MonadicOperation to raise e (Euler's number) to the power of a Number.
+  */
 case object MonadicOperationExp extends MonadicOperation {
   def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
 
@@ -53,12 +92,22 @@ case object MonadicOperationExp extends MonadicOperation {
       case y => Rational(Math.exp(y))
     }
 
-  def getFunctions: MonadicFunctions = (
+  val functions: MonadicFunctions = (
     fail("can't do exp Int=>Int"),
     fail("can't do exp Rational=>Rational"),
     expDouble)
+
+  val derivative: Double => Double = x => Math.exp(x)
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean = false
 }
 
+/**
+  * MonadicOperation to yield the natural logarithm of a Number.
+  */
 case object MonadicOperationLog extends MonadicOperation {
   def expDouble(x: Double): Try[Double] = Try(Math.log(x))
 
@@ -68,12 +117,22 @@ case object MonadicOperationLog extends MonadicOperation {
       case y => Rational(Math.log(y))
     }
 
-  def getFunctions: MonadicFunctions = (
+  val functions: MonadicFunctions = (
     fail("can't do exp Int=>Int"),
     expRat,
     expDouble)
+
+  val derivative: Double => Double = x => 1 / x
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean = false //not used
 }
 
+/**
+  * MonadicOperation to calculate the sine of a Number.
+  */
 case object MonadicOperationSin extends MonadicOperation {
   def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))
 
@@ -87,9 +146,21 @@ case object MonadicOperationSin extends MonadicOperation {
       case _ => Failure(NumberException("sine cannot be Rational"))
     }
 
-  def getFunctions: MonadicFunctions = (tryF[Int, Int](_ => 0), sinRat, sinDouble)
+  val functions: MonadicFunctions = (tryF[Int, Int](_ => 0), sinRat, sinDouble)
+
+  val derivative: Double => Double = x => math.cos(x)
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean = false
 }
 
+/**
+  * MonadicOperation to yield the arctangent a Number.
+  *
+  * @param sign an Int which will distinguish between results in the four quadrants.
+  */
 case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   def atan(x: Double): Try[Double] =
     Try(math.atan2(x, sign) / math.Pi) // TODO use scale // TEST me
@@ -103,9 +174,19 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
       case _ => Failure(NumberException("atan cannot be Rational"))
     }
 
-  def getFunctions: MonadicFunctions = (fail("atan cannot be Rational"), atanRat, atan)
+  val functions: MonadicFunctions = (fail("atan cannot be Rational"), atanRat, atan)
+
+  val derivative: Double => Double = x => 1 / (1 + x * x)
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean = false
 }
 
+/**
+  * MonadicOperation to yield the modulus a Number.
+  */
 case object MonadicOperationModulate extends MonadicOperation {
   private def modulate[X: Numeric](z: X, min: X, max: X): X = {
     val nx = implicitly[Numeric[X]]
@@ -119,68 +200,102 @@ case object MonadicOperationModulate extends MonadicOperation {
     inner(z)
   }
 
-  def getFunctions: MonadicFunctions = (
+  val functions: MonadicFunctions = (
     tryF(z => modulate(z, 0, 2)),
     tryF(z => modulate(z, Rational.zero, Rational.two)),
     tryF(z => modulate(z, 0, 2))
   )
+
+  val derivative: Double => Double = _ => 1
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean = true // not used
 }
 
-// CONSIDER eliminating this and using power only.
+/**
+  * MonadicOperation to yield the square root of a Number.
+  *
+  * CONSIDER eliminating this and using power only.
+  */
 case object MonadicOperationSqrt extends MonadicOperation {
   val sqrtInt: Int => Try[Int] =
     x => toTryWithThrowable(Rational.squareRoots.get(x), NumberException("Cannot create Int from Double"))
 
-  def getFunctions: MonadicFunctions =
-    (sqrtInt, x => x.sqrt, tryF(x => math.sqrt(x)))
+  val functions: MonadicFunctions = (sqrtInt, x => x.sqrt, tryF(x => math.sqrt(x)))
+
+  val derivative: Double => Double = x => 1 / math.sqrt(x) / 2
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean = false // not used
 }
 
 /**
   * This monadic operation is used to scale a Value by an Int.
-  * CONSIDER changing parameter to Rational.
   *
-  * TODO this is not currently used--but should be.
-  *
-  * @param f the scale factor.
+  * @param r the scale factor (a Rational).
   */
-case class MonadicOperationScale(f: Int) extends MonadicOperation {
-  def getFunctions: MonadicFunctions = {
-    val fInt = tryF[Int, Int](math.multiplyExact(_, f))
-    val fRational = tryF[Rational, Rational](_ * f)
-    val fDouble = tryF[Double, Double](_ * f)
+case class MonadicOperationScale(r: Rational) extends MonadicOperation {
+  private val c: Double = r.toDouble
+
+  val functions: MonadicFunctions = {
+    val fInt = if (r.isWhole) tryF[Int, Int](math.multiplyExact(_, r.toInt)) else fail("can't do scale function Int=>Int")
+    val fRational = tryF[Rational, Rational](_ * r)
+    val fDouble = tryF[Double, Double](_ * c)
     (fInt, fRational, fDouble)
   }
+
+  val derivative: Double => Double = _ => c
+
+  /**
+    * True if fuzziness is to be considered absolute.
+    */
+  val absolute: Boolean = false // not used
 }
 
+/**
+  * Trait to define a dyadic operation.
+  */
 sealed trait DyadicOperation {
-  def getFunctions: DyadicFunctions
+  val functions: DyadicFunctions
+
+  val absolute: Boolean
 }
 
 case object DyadicOperationPlus extends DyadicOperation {
-  def getFunctions: DyadicFunctions = {
+  val functions: DyadicFunctions = {
     val fInt = tryF[Int, Int, Int](math.addExact)
     val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].plus)
     val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].plus)
     (fInt, fRational, fDouble)
   }
+
+  val absolute: Boolean = true
 }
 
 case object DyadicOperationTimes extends DyadicOperation {
-  def getFunctions: DyadicFunctions = {
+  val functions: DyadicFunctions = {
     val fInt = tryF[Int, Int, Int](math.multiplyExact)
     val fRational = tryF[Rational, Rational, Rational](implicitly[Numeric[Rational]].times)
     val fDouble = tryF[Double, Double, Double](implicitly[Numeric[Double]].times)
     (fInt, fRational, fDouble)
   }
+
+  val absolute: Boolean = false
 }
 
 case object DyadicOperationPower extends DyadicOperation {
-  def getFunctions: DyadicFunctions = {
+  val functions: DyadicFunctions = {
     val fInt = (x: Int, p: Int) => Rational.narrow(BigInt(x).pow(p), Int.MinValue, Int.MaxValue).map(_.toInt)
     val fRational = (x: Rational, p: Rational) => x.power(p)
     val fDouble = tryF[Double, Double, Double]((x, p) => math.pow(x, p))
     (fInt, fRational, fDouble)
   }
+
+  val absolute: Boolean = false
 }
 
 /**

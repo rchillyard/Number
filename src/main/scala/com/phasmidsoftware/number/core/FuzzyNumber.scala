@@ -150,15 +150,15 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param other        the other operand, a Number.
     * @param f            the factor to apply to the result.
     * @param op           the appropriate DyadicOperation.
-    * @param absolute     true if the convolution of Fuzz values should be absolute (addition) vs. relative (multiplication).
+    * @param independent  true if the fuzziness of the operands are independent.
     * @param coefficients an optional Tuple representing the coefficients to scale the fuzz values by.
     *                     For a power operation such as x to the power of y, these will be y/x and ln x respectively.
     *                     For addition or multiplication, they will be 1 and 1.
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, absolute: Boolean, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
+  def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
     for (n <- composeDyadic(other, f)(op); t1 <- this.toDouble; t2 <- other.toDouble) yield
-      FuzzyNumber(n.value, n.factor, Fuzz.combine(t1, t2, !absolute, independent)(Fuzz.applyCoefficients((fuzz, other.fuzz), coefficients)))
+      FuzzyNumber(n.value, n.factor, Fuzz.combine(t1, t2, !op.absolute, independent)(Fuzz.applyCoefficients((fuzz, other.fuzz), coefficients)))
 
   /**
     * Evaluate a monadic operator on this, using either negate or... according to the value of op.
@@ -167,10 +167,10 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def transformMonadicFuzzy(f: Factor)(op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean): Option[Number] = {
+  def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[Number] = {
     transformMonadic(f)(op).flatMap {
       case n: FuzzyNumber =>
-        for (x <- n.toDouble) yield n.makeFuzzy(Fuzz.map(x, !absolute, fuzzOp, fuzz))
+        for (x <- n.toDouble) yield n.makeFuzzy(Fuzz.map(x, !op.absolute, op.derivative, fuzz))
     }
   }
 
@@ -183,7 +183,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     val sb = new StringBuilder()
     val w = fuzz match {
       case Some(f) => f.toString(toDouble.getOrElse(0.0))
-      case None => valueToString
+      case None => Number.valueToString(value)
     }
     sb.append(w)
     sb.append(factor.toString)
@@ -227,22 +227,20 @@ object FuzzyNumber {
   private def getPowerCoefficients(n: Number, p: Number): Option[(Double, Double)] =
     for (z <- n.toDouble; q <- p.toDouble) yield (q / z, math.log(z))
 
-  def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number, p, p, DyadicOperationPower, absolute = false, independent = false, getPowerCoefficients(number, p))
+  def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number, p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
 
   def apply(): Number = Number.apply()
 
-  def sin(x: FuzzyNumber): Number = transformMonadic(x.scale(Pi), Scalar, MonadicOperationSin, x => math.cos(x), absolute = false)
+  def sin(x: FuzzyNumber): Number = transformMonadic(x.scale(Pi), Scalar, MonadicOperationSin)
 
-  def sqrt(x: FuzzyNumber): Number = transformMonadic(x, Scalar, MonadicOperationSqrt, x => x / 2, absolute = false)
-
-  def exp(x: FuzzyNumber): Number = transformMonadic(x.scale(E), Scalar, MonadicOperationExp, identity, absolute = false)
+  // TEST me or eliminate
+  def sqrt(x: FuzzyNumber): Number = transformMonadic(x, Scalar, MonadicOperationSqrt)
 
   private def plus(x: FuzzyNumber, y: Number): Number = {
-    val (a, b) = x.alignFactors(y)
-    val (p, q) = a.alignTypes(b)
+    val (p, q) = x.alignTypes(y)
     (p, q) match {
-      case (n: FuzzyNumber, _) => composeDyadic(n, p, q, DyadicOperationPlus, absolute = true, independent = true, None)
-      case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationPlus, absolute = true, independent = true, None)
+      case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
+      case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
       case (_, _) => p add q
     }
   }
@@ -251,8 +249,8 @@ object FuzzyNumber {
     val (a, b) = x.alignFactors(y)
     val (p, q) = a.alignTypes(b)
     (p, q) match {
-      case (n: FuzzyNumber, _) => composeDyadic(n, p, q, DyadicOperationTimes, absolute = false, independent = x != y, None)
-      case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationTimes, absolute = false, independent = x != y, None)
+      case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
+      case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
       case (_, _) => p multiply q
     }
   }
@@ -269,26 +267,25 @@ object FuzzyNumber {
 
   /**
     * Evaluate a dyadic operator, defined by op, on n and q.
-    * Parameters absolute and power relate to the calculation of the error bounds of the result.
-    * CONSIDER changing the definition of p.
+    * Parameter independent relates to the calculation of the error bounds of the result.
     *
     * @param n            the first operand.
-    * @param p            an operand whose only purpose is to provide a Factor value.
     * @param q            the second operand.
+    * @param f            the Factor to be used for the result.
     * @param op           the dyadic operation.
-    * @param absolute     true if the dyadic operation is addition, false if it's multiplication or power.
+    * @param independent  true if the fuzziness of the inputs is independent..
     * @param coefficients an optional Tuple representing the coefficients to scale the fuzz values by.
     *                     For a power operation such as x to the power of y, these will be y/x and ln x respectively.
     *                     For addition or multiplication, they will be 1 and 1.
     * @return a new Number which is the result of operating on n and q as described above.
     */
-  private def composeDyadic(n: Number, p: Number, q: Number, op: DyadicOperation, absolute: Boolean, independent: Boolean, coefficients: Option[(Double, Double)]) = n match {
-    case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, p.factor)(op, absolute, independent, coefficients))
-    case _: Number => prepareWithSpecialize(n.composeDyadic(n, p.factor)(op))
+  private def composeDyadic(n: Number, q: Number, f: Factor, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]) = n match {
+    case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients))
+    case _: Number => prepareWithSpecialize(n.composeDyadic(n, f)(op))
   }
 
-  private def transformMonadic(n: Number, factor: Factor, op: MonadicOperation, fuzzOp: Double => Double, absolute: Boolean) = n match {
-    case x: FuzzyNumber => prepareWithSpecialize(x.transformMonadicFuzzy(factor)(op, fuzzOp, absolute))
+  private def transformMonadic(n: Number, factor: Factor, op: MonadicOperation) = n match {
+    case x: FuzzyNumber => prepareWithSpecialize(x.transformMonadicFuzzy(factor)(op))
     case _: Number => prepareWithSpecialize(n.transformMonadic(factor)(op))
   }
 

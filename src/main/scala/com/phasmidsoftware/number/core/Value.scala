@@ -46,13 +46,14 @@ object Value {
 sealed trait Factor {
   def value: Double
 
-  def +(other: Factor): Factor
+  def +(other: Factor): Option[Factor]
 }
 
 sealed abstract class NonScalarFactor extends Factor {
-  def +(other: Factor): Factor = other match {
-    case Scalar => this
-    case _ => throw NumberException("cannot add non-Scalar factors together")
+  def +(other: Factor): Option[Factor] = other match {
+    case Scalar => if (this != E) Some(this) else None
+    case E => if (this == E) Some(this) else None
+    case _ => throw NumberException("cannot add Pi factors together")
   }
 }
 
@@ -61,7 +62,7 @@ case object Scalar extends Factor {
 
   override def toString: String = ""
 
-  def +(other: Factor): Factor = other
+  def +(other: Factor): Option[Factor] = Some(other)
 }
 
 case object Pi extends NonScalarFactor {

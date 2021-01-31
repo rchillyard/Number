@@ -36,14 +36,41 @@ For more detail, see Representation below.
 
 It is of course perfectly possible to use the _Rational_ classes directly, without using the _Number_ (or _Expression_) classes.
 
+Mill
+====
+The _Mill_ trait allows expressions to be evaluated using RPN (Reverse Polish Notation).
+For example:
+
+    val eo: Option[Expression] = Mill.parseMill("42 37 + 2 *").toOption.flatMap(_.evaluate)
+
+yields the optional _Expression_ with a materialized value of 158.
+See the code for other methods for defining _Mill_ operations.
+
+The _Mill.parse_ method in turn invokes methods of _MillParser_.
+
+The Mill offers two parsers: one is a pure RPN parser (as described above).
+The other is an infix parser which uses [Dijkstra's Shunting Yard algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
+to build a Mill.
+
 Parsing
 =======
-A number with two or fewer decimal places is considered exact--a number with more than two decimal places is
-considered fuzzy.
-You can always override this by adding "*" or "..." to the end of a number with fewer than two DPs,
+A String representing a number with two or fewer decimal places is considered exact--a number with more than two decimal places is
+considered fuzzy, unless it ends in two zeroes in which case it is considered exact.
+Here are some examples:
+* Number("1.00"): exact
+* Number("1.0100"): exact
+* Number("1.100"): exact
+* Number("1.010"): fuzzy
+
+You can always override this behavior by adding "*" or "..." to the end of a number with fewer than two DPs,
 or by adding two 0s to the end of a number with more than two decimal places.
 
-In general, the form of a number to be parsed is:
+The rules are a little different if you define a number using a floating-point literal such as Number(1.23400),
+the compiler will treat that as an fuzzy number, even though it ends with two zeroes because the compiler essentially ignores them.
+However, Number(1.23) will be considered exact.
+It's best always to use a String if you want to override the default behavior.
+
+In general, the form of a number to be parsed from a String is:
   
     number ::= value? factor?
     factor ::= "Pi" | "pi" | "PI" | 𝛑 | 𝜀
@@ -155,7 +182,7 @@ However, you don't particularly pay attention to the fact that later on in the c
 If you don't use lazy evaluation, your final result will have an error bound, even though the true value should be
 proportional to exactly 7.
 
-It's important to realize of course that you have to use the Expression mechanism.
+It's important to realize that, to get the benefit of this behavior, you have to use the _Expression_ mechanism.
 
       it should "give precise result for sqrt(7)^2" in {
         val seven: Expression = Number(7)
@@ -173,12 +200,17 @@ It's important to realize of course that you have to use the Expression mechanis
       }
 
 The second test fails with "7.000000000000001 was not equal to 7," although if we do a fuzzy compare,
-using a custom equality test, we can at least make y shouldEqual 7 work.
+using a custom equality test, we can at least make _y shouldEqual 7_ work.
+
+There is an implicit class _ExpressionOps_ which provides methods which allow _Number_ operations to behave as expressions.
+So, for example, you can write:
+
+    
 
 The current set of expression optimizations is somewhat limited, but it catches the most important cases. 
 
-Error Bounds
-============
+Error Bounds (Fuzziness)
+========================
 The error bounds are represented by the _Fuzz[Double]_ class.
 A _Number_ with _None_ for the _fuzz_ is an _ExactNumber_, otherwise, _FuzzyNumber_.
 The are three major attributes of fuzz: shape, style (either relative or absolute), and the value
@@ -237,7 +269,9 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
-The Current version is 1.0.5: reimplement the e factor.
+The Current version is 1.0.6: added Mill (RPN evaluator).
+
+Version 1.0.5: reimplement the e factor.
 
 Version 1.0.4 Made improvements to Rational, removed BigInt from Value,
 and effected many refactorings.

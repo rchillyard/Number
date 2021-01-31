@@ -1,7 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{negate, prepare}
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
@@ -9,7 +7,8 @@ import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
 
-import scala.language.implicitConversions
+import java.util.NoSuchElementException
+import scala.annotation.tailrec
 import scala.math.BigInt
 import scala.util._
 
@@ -286,6 +285,22 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   def atan(y: Number): Number = makeFuzzyIfAppropriate(x => Number.atan(x, y))
 
   /**
+    * Method to determine the natural log of this Number.
+    * The result will be a Number with Scalar factor.
+    *
+    * @return the natural log of this.
+    */
+  def log: Number = makeFuzzyIfAppropriate(Number.log)
+
+  /**
+    * Method to raise E to the power of this number.
+    * The result will be a Number with E factor.
+    *
+    * @return the e to the power of this.
+    */
+  def exp: Number = makeFuzzyIfAppropriate(Number.exp)
+
+  /**
     * Method to determine the sense of this number: negative, zero, or positive.
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
@@ -329,7 +344,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param other the other Number.
     * @return -1, 0, or 1 according to whether x is <, =, or > y.
     */
-  override def compare(other: Number): Int = Number.compare(this, other)
+  override def compare(other: Number): Int = Number.doCompare(this, other)
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
@@ -356,7 +371,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param op    the appropriate DyadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  def composeDyadic(other: Number, f: Factor)(op: DyadicOperation): Option[Number] = doComposeDyadic(other, f)(op.getFunctions)
+  def composeDyadic(other: Number, f: Factor)(op: DyadicOperation): Option[Number] = doComposeDyadic(other, f)(op.functions)
 
   /**
     * Evaluate a monadic operator on this.
@@ -365,7 +380,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] = doTransformMonadic(f)(op.getFunctions)
+  def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] = doTransformMonadic(f)(op.functions)
 
   /**
     * Evaluate a query operator on this.
@@ -382,14 +397,14 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     */
   override def toString: String = {
     val sb = new StringBuilder()
-    sb.append(valueToString)
-    sb.append(factor.toString)
+    factor match {
+      case E =>
+        sb.append(Number.asPowerOfE(value))
+      case f =>
+        sb.append(Number.valueToString(value))
+        sb.append(f.toString)
+    }
     sb.toString
-  }
-
-  protected def valueToString: String = renderValue(value) match {
-    case (x, true) => x
-    case (x, false) => x + "..."
   }
 
   /**
@@ -550,9 +565,11 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   /**
     * Method to align the types of this and x such that the resulting Numbers (in the tuple) each have the same structure.
     *
+    * CONSIDER renaming this alignValueTypes
+    *
     * @param x the Number to be aligned with this.
     * @return a tuple of two Numbers, the first of which will be the more general type:
-    *         (Invalid vs. Double, Double vs. Rational, Rational vs. BigInt, BigInt vs. Int).
+    *         (Invalid vs. Double, Double vs. Rational, Rational vs. Int).
     */
   //protected
   def alignTypes(x: Number): (Number, Number) = value match {
@@ -979,7 +996,20 @@ object Number {
     * Following are the definitions required by Ordering[Number]
     */
   trait NumberIsOrdering extends Ordering[Number] {
-    def compare(x: Number, y: Number): Int = plus(x, negate(y)).signum
+    /**
+      * When we do a compare on E numbers, they are in the same order as Scalar numbers.
+      * It's not necessary to convert exact numbers to fuzzy numbers for this purpose, we simply
+      * pretend that the E numbers are Scalar numbers.
+      *
+      * @param x the first Number.
+      * @param y the second Number.
+      * @return an Int representing the order.
+      */
+    def compare(x: Number, y: Number): Int =
+      if (x.factor == E && y.factor == E)
+        compare(x.make(Scalar), y.make(Scalar))
+      else
+        plus(x, negate(y)).signum
   }
 
   implicit object NumberIsOrdering extends NumberIsOrdering
@@ -1018,8 +1048,23 @@ object Number {
     def toFloat(x: Number): Float = toDouble(x).toFloat
   }
 
-  def compare(x: Number, y: Number): Int = NumberIsOrdering.compare(x, y)
+  /**
+    * CONSIDER inlining this method or making it private.
+    *
+    * @param x the first number.
+    * @param y the second number.
+    * @return the order.
+    */
+  def doCompare(x: Number, y: Number): Int = NumberIsOrdering.compare(x, y)
 
+  /**
+    * For fuzzy numbers, it's appropriate to use the the normal mechanism for compare, even for E numbers.
+    *
+    * @param x the first number.
+    * @param y the second number.
+    * @param p the probability criterion.
+    * @return an Int representing the order.
+    */
   def fuzzyCompare(x: Number, y: Number, p: Double): Int = Number.plus(x, Number.negate(y)).signum(p)
 
   /**
@@ -1031,21 +1076,33 @@ object Number {
 
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering
 
-  private def plus(x: Number, y: Number): Number = y match {
-    case n@FuzzyNumber(_, _, _) => n add x
-    case _ =>
-      val (a, b) = x.alignFactors(y)
-      val (p, q) = a.alignTypes(b)
-      prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
+  private def plus(x: Number, y: Number): Number = {
+    val (a, b) = x.alignFactors(y)
+    a.factor match {
+      case E => plusAligned(a.scale(Scalar), b.scale(Scalar))
+      case _ => plusAligned(a, b)
+    }
   }
 
+  private def plusAligned(x: Number, y: Number): Number =
+    y match {
+      case n@FuzzyNumber(_, _, _) => n add x
+      case _ =>
+        val (p, q) = x.alignTypes(y)
+        prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
+    }
+
+  @tailrec
   private def times(x: Number, y: Number): Number =
     y match {
       case n@FuzzyNumber(_, _, _) => n multiply x
       case _ =>
         val (p, q) = x.alignTypes(y)
-        val factor = p.factor + q.factor
-        prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
+        p.factor + q.factor match {
+          case Some(E) => prepareWithSpecialize(p.composeDyadic(q, E)(DyadicOperationPlus))
+          case Some(f) => prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationTimes))
+          case None => times(x.scale(Scalar), y.scale(Scalar))
+        }
     }
 
   def prepare(no: Option[Number]): Number = no.getOrElse(Number())
@@ -1054,35 +1111,56 @@ object Number {
 
   private def sqrt(n: Number): Number = prepareWithSpecialize(n.scale(Scalar).transformMonadic(Scalar)(MonadicOperationSqrt))
 
-  // CONSIDER dealing with non-Scalar x values up-front
-  private def power(x: Number, y: Number): Number = y.normalize.toInt match {
-    case Some(i) => power(x, i)
-    case _ => y.toRational match {
-      case Some(r) =>
+  private def power(x: Number, y: Number): Number =
+    y.scale(Scalar).toRational match {
+      case Some(r) => power(x, r)
+      case None =>
+        val zo = for (p <- x.toDouble; q <- y.toDouble) yield Number(math.pow(p, q))
+        prepareWithSpecialize(zo)
+    }
+
+  @tailrec
+  private def power(x: Number, r: Rational): Number =
+    x.factor match {
+      case E =>
+        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
+        vo match {
+          case Some(v) => x.make(v)
+          case None => throw NumberException("power: logic error")
+        }
+
+      case Pi =>
+        power(x.scale(Scalar), r)
+
+      case Scalar =>
         toInts(r) match {
           case Some((n, d)) =>
             root(power(x, n), d) match {
               case Some(q) => q
-              case None => y.toDouble map x.make getOrElse Number()
+              case None => Number(r.toDouble)
             }
           case _ =>
             throw NumberException("rational power cannot be represented as two Ints")
         }
-      case None => y.toDouble match {
-        case Some(d) => power(x, d)
-        case _ => throw NumberException("invalid power")
-      }
     }
-  }
 
   private def power(n: Number, i: Int) = i match {
     case x if x > 0 => LazyList.continually(n).take(x).product
     case x => LazyList.continually(inverse(n)).take(-x).product
   }
 
-  private def power(n: Number, y: Double): Number = prepare(n.toDouble.map(x => math.pow(x, y)).map(n.make))
+//  private def power(n: Number, y: Double): Number = prepare(n.toDouble.map(x => math.pow(x, y)).map(n.make))
 
+  /**
+    * Method to take the ith root of n.
+    *
+    * @param n the Number whose root is required.
+    * @param i the ordinal of the root (2: square root, etc.).
+    * @return the root.
+    */
   private def root(n: Number, i: Int): Option[Number] = i match {
+    case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
+    case 1 => Some(n)
     case 2 => Some(n.makeFuzzyIfAppropriate(Number.sqrt))
     case _ => None
   }
@@ -1123,6 +1201,10 @@ object Number {
 
   private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y divide x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
 
+  private def log(x: Number): Number = x.scale(E).make(Scalar)
+
+  private def exp(x: Number): Number = x.scale(Scalar).make(E)
+
   private def scaleDouble(x: Double, fThis: Factor, fResult: Factor) = x * fThis.value / fResult.value
 
   /**
@@ -1135,6 +1217,28 @@ object Number {
   private def modulate(x: Number): Number = x.factor match {
     case f@Pi => prepare(x.transformMonadic(f)(MonadicOperationModulate))
     case _ => x
+  }
+
+  def valueToString(v: Value): String = renderValue(v) match {
+    case (x, true) => x
+    case (x, false) => x + "..."
+  }
+
+  private def incrementUnicode(str: String, index: Int, x: Int): String = {
+    val chars: Array[Char] = str.toArray
+    chars.update(index, (chars(index) + x).toChar)
+    new String(chars)
+  }
+
+  private def asPowerOfE(v: Value): String = v match {
+    case Right(1) => Factor.sE
+    case Right(2) => Factor.sE + "\u00B2"
+    case Right(3) => Factor.sE + "\u00B3"
+    case Right(x) if x > 3 & x < 10 => Factor.sE + incrementUnicode("\u2070", 0, x)
+    case Left(Right(r)) if r * 2 == Rational.one => "\u221A" + Factor.sE
+    case Left(Right(r)) if r * 3 == Rational.one => "\u221B" + Factor.sE
+    case Left(Right(r)) if r * 4 == Rational.one => "\u221C" + Factor.sE
+    case _ => Factor.sE + "^" + valueToString(v)
   }
 }
 

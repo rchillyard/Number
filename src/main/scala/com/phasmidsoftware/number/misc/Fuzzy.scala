@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.misc
 
 import org.apache.commons.math3.distribution._
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._
@@ -293,12 +294,14 @@ object Fuzzy {
     }
   }
 
-  def parse(s: String): Try[Fuzzy] =
+  def parse(s: String): Try[Fuzzy] = {
+    // CONSIDER using stringParser in SignificantSpaceParsers
     parser.parseAll(parser.fuzzy, s) match {
       case parser.Success(x, _) => Success(x)
       case parser.Failure(_, z) => Failure(new RuntimeException(s"parser failure: $z"))
       case parser.Error(_, f) => Failure(new RuntimeException(s"parser error: $f"))
     }
+  }
 
   val zero: Exact = Exact(0)
   val one: Exact = Exact(1)

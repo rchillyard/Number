@@ -36,7 +36,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(x1, x2, Sum)
-    e.render shouldBe "4.1415926535897930(77)"
+    e.render shouldBe "4.1415926535897930(36)"
   }
 
   behavior of "ExpressionOps"
@@ -126,6 +126,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val y = x power 2
     y should matchPattern { case FuzzyNumber(_, _, _) => }
     y shouldEqual Number(7)
+  }
+
+  behavior of "various operations"
+  it should "evaluate E * 2" in {
+    (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
   }
 
 }
