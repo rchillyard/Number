@@ -183,7 +183,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     val sb = new StringBuilder()
     val w = fuzz match {
       case Some(f) => f.toString(toDouble.getOrElse(0.0))
-      case None => valueToString
+      case None => Number.valueToString(value)
     }
     sb.append(w)
     sb.append(factor.toString)
