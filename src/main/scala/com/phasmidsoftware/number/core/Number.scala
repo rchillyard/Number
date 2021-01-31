@@ -6,7 +6,9 @@ import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
+
 import java.util.NoSuchElementException
+import scala.annotation.tailrec
 import scala.math.BigInt
 import scala.util._
 
@@ -1070,41 +1072,56 @@ object Number {
 
   private def sqrt(n: Number): Number = prepareWithSpecialize(n.scale(Scalar).transformMonadic(Scalar)(MonadicOperationSqrt))
 
-  // CONSIDER dealing with non-Scalar x values up-front
-  private def power(x: Number, y: Number): Number = {
-//    x.factor match {
-//      case E => Operations.doTransformValueMonadic(x.value)()
-//        x.make(x.value.)
-//    }
-    y.normalize.toInt match {
-      case Some(i) => power(x, i)
-      case _ => y.toRational match {
-        case Some(r) =>
-          toInts(r) match {
-            case Some((n, d)) =>
-              root(power(x, n), d) match {
-                case Some(q) => q
-                case None => y.toDouble map x.make getOrElse Number()
-              }
-            case _ =>
+  private def power(x: Number, y: Number): Number =
+    y.scale(Scalar).toRational match {
+      case Some(r) => power(x, r)
+      case None =>
+        val zo = for (p <- x.toDouble; q <- y.toDouble) yield Number(math.pow(p, q))
+        prepareWithSpecialize(zo)
+    }
+
+  @tailrec
+  private def power(x: Number, r: Rational): Number =
+    x.factor match {
+      case E =>
+        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).getFunctions)
+        vo match {
+          case Some(v) => x.make(v)
+          case None => throw NumberException("power: logic error")
+        }
+
+      case Pi =>
+        power(x.scale(Scalar), r)
+
+      case Scalar =>
+        toInts(r) match {
+          case Some((n, d)) =>
+            root(power(x, n), d) match {
+              case Some(q) => q
+              case None => Number(r.toDouble)
+            }
+          case _ =>
             throw NumberException("rational power cannot be represented as two Ints")
         }
-      case None => y.toDouble match {
-        case Some(d) => power(x, d)
-        case _ => throw NumberException("invalid power")
-      }
     }
-  }
-  }
 
   private def power(n: Number, i: Int) = i match {
     case x if x > 0 => LazyList.continually(n).take(x).product
     case x => LazyList.continually(inverse(n)).take(-x).product
   }
 
-  private def power(n: Number, y: Double): Number = prepare(n.toDouble.map(x => math.pow(x, y)).map(n.make))
+//  private def power(n: Number, y: Double): Number = prepare(n.toDouble.map(x => math.pow(x, y)).map(n.make))
 
+  /**
+    * Method to take the ith root of n.
+    *
+    * @param n the Number whose root is required.
+    * @param i the ordinal of the root (2: square root, etc.).
+    * @return the root.
+    */
   private def root(n: Number, i: Int): Option[Number] = i match {
+    case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
+    case 1 => Some(n)
     case 2 => Some(n.makeFuzzyIfAppropriate(Number.sqrt))
     case _ => None
   }

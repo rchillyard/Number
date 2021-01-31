@@ -1,9 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
-
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
 
+import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.Ordered.orderingToOrdered
@@ -137,17 +136,14 @@ case object MonadicOperationSqrt extends MonadicOperation {
 
 /**
   * This monadic operation is used to scale a Value by an Int.
-  * CONSIDER changing parameter to Rational.
   *
-  * TODO this is not currently used--but should be.
-  *
-  * @param f the scale factor.
+  * @param r the scale factor (a Rational).
   */
-case class MonadicOperationScale(f: Int) extends MonadicOperation {
+case class MonadicOperationScale(r: Rational) extends MonadicOperation {
   def getFunctions: MonadicFunctions = {
-    val fInt = tryF[Int, Int](math.multiplyExact(_, f))
-    val fRational = tryF[Rational, Rational](_ * f)
-    val fDouble = tryF[Double, Double](_ * f)
+    val fInt = if (r.isWhole) tryF[Int, Int](math.multiplyExact(_, r.toInt)) else fail("can't do scale function Int=>Int")
+    val fRational = tryF[Rational, Rational](_ * r)
+    val fDouble = tryF[Double, Double](_ * r.toDouble)
     (fInt, fRational, fDouble)
   }
 }

@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -120,9 +121,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number.e ^ 10
     target.materialize.toString shouldBe "\uD835\uDF00^10"
   }
-  ignore should "work for square root E" in {
+  it should "work for square root E" in {
     val target = Number.e.sqrt
-    target.materialize.toString shouldBe "\uD835\uDF00^10"
+    target.materialize.toString shouldBe "√\uD835\uDF00"
   }
 
   behavior of "toDouble"
