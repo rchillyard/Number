@@ -228,7 +228,7 @@ object FuzzyNumber {
   private def getPowerCoefficients(n: Number, p: Number): Option[(Double, Double)] =
     for (z <- n.toDouble; q <- p.toDouble) yield (q / z, math.log(z))
 
-  def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number, p, p, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
+  def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number, p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
 
   def apply(): Number = Number.apply()
 
@@ -241,8 +241,8 @@ object FuzzyNumber {
   private def plus(x: FuzzyNumber, y: Number): Number = {
     val (p, q) = x.alignTypes(y)
     (p, q) match {
-      case (n: FuzzyNumber, _) => composeDyadic(n, p, q, DyadicOperationPlus, independent = true, None)
-      case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationPlus, independent = true, None)
+      case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
+      case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
       case (_, _) => p add q
     }
   }
@@ -251,8 +251,8 @@ object FuzzyNumber {
     val (a, b) = x.alignFactors(y)
     val (p, q) = a.alignTypes(b)
     (p, q) match {
-      case (n: FuzzyNumber, _) => composeDyadic(n, p, q, DyadicOperationTimes, independent = x != y, None)
-      case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationTimes, independent = x != y, None)
+      case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
+      case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
       case (_, _) => p multiply q
     }
   }
@@ -269,12 +269,11 @@ object FuzzyNumber {
 
   /**
     * Evaluate a dyadic operator, defined by op, on n and q.
-    * Parameters absolute and power relate to the calculation of the error bounds of the result.
-    * CONSIDER changing the definition of p.
+    * Parameter independent relates to the calculation of the error bounds of the result.
     *
     * @param n            the first operand.
-    * @param p            an operand whose only purpose is to provide a Factor value.
     * @param q            the second operand.
+    * @param f            the Factor to be used for the result.
     * @param op           the dyadic operation.
     * @param independent  true if the fuzziness of the inputs is independent..
     * @param coefficients an optional Tuple representing the coefficients to scale the fuzz values by.
@@ -282,9 +281,9 @@ object FuzzyNumber {
     *                     For addition or multiplication, they will be 1 and 1.
     * @return a new Number which is the result of operating on n and q as described above.
     */
-  private def composeDyadic(n: Number, p: Number, q: Number, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]) = n match {
-    case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, p.factor)(op, independent, coefficients))
-    case _: Number => prepareWithSpecialize(n.composeDyadic(n, p.factor)(op))
+  private def composeDyadic(n: Number, q: Number, f: Factor, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]) = n match {
+    case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients))
+    case _: Number => prepareWithSpecialize(n.composeDyadic(n, f)(op))
   }
 
   private def transformMonadic(n: Number, factor: Factor, op: MonadicOperation) = n match {
