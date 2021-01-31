@@ -203,6 +203,20 @@ object Expression {
     def sin: Expression = Function(x, Sine)
 
     /**
+      * Method to lazily get the sin of x.
+      *
+      * @return an Expression representing the sin of x.
+      */
+    def cos: Expression = Function(x, Cosine)
+
+    /**
+      * Method to lazily get the natural log of x.
+      *
+      * @return an Expression representing the log of x.
+      */
+    def log: Expression = Function(x, Log)
+
+    /**
       * Eagerly compare this expression with y.
       *
       * @param comparand the number to be compared.
@@ -448,6 +462,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")
+
+case object Cosine extends ExpressionFunction(x => x.cos, "cos")
+
+case object Log extends ExpressionFunction(x => x.log, "log")
 
 case object Sum extends ExpressionBiFunction((x, y) => x add y, "+")
 

@@ -25,6 +25,12 @@ case object Inv extends Monadic
 
 case object Sqrt extends Monadic
 
+case object Sin extends Monadic
+
+case object Cos extends Monadic
+
+case object Ln extends Monadic
+
 case object Swap extends Item
 
 case object Clr extends Item
@@ -54,6 +60,9 @@ object Item {
     case "chs" => Chs
     case "inv" => Inv
     case "v" => Sqrt
+    case "ln" => Ln
+    case "sin" => Sin
+    case "cos" => Cos
     // Anadic operators
     case "<>" => Swap
     case "c" => Clr

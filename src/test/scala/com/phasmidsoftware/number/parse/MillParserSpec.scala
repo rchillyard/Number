@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.core.{ExactNumber, Scalar}
 import com.phasmidsoftware.number.mill.{Add, Swap}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Success}
 
 class MillParserSpec extends AnyFlatSpec with should.Matchers {
@@ -42,6 +41,8 @@ class MillParserSpec extends AnyFlatSpec with should.Matchers {
 
   it should "parse monadicTerm (2)" in {
     p.parseAll(p.monadicTerm, "2 rlc shc".reverse) should matchPattern { case p.Success(_, _) => }
+    p.parseAll(p.monadicTerm, "\uD835\uDED1 soc".reverse) should matchPattern { case p.Success(_, _) => }
+    p.parseAll(p.monadicTerm, "\uD835\uDF00 nl".reverse) should matchPattern { case p.Success(_, _) => }
   }
 
   it should "parse anadicTerm" in {

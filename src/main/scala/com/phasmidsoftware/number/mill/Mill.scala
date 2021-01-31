@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.mill
 import com.phasmidsoftware.number.core.Expression
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.parse.MillParser
-
 import scala.language.postfixOps
 import scala.util.Try
 
@@ -190,6 +189,9 @@ case class Stack(stack: List[Item]) extends Mill {
     case Chs => x * Expression(-1)
     case Inv => x reciprocal
     case Sqrt => x sqrt
+    case Ln => x.log
+    case Sin => x.sin
+    case Cos => x.cos
     case _ => throw MillException(s"calculateMonadic: $f not supported")
   }
 

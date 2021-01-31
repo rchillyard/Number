@@ -283,6 +283,14 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   def atan(y: Number): Number = makeFuzzyIfAppropriate(x => Number.atan(x, y))
 
   /**
+    * Method to determine the natural log of this Number.
+    * The result will be a Number with Scalar factor.
+    *
+    * @return the sine of this.
+    */
+  def log: Number = makeFuzzyIfAppropriate(Number.log)
+
+  /**
     * Method to determine the sense of this number: negative, zero, or positive.
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
@@ -1119,6 +1127,8 @@ object Number {
   private def sin(x: Number): Number = prepareWithSpecialize(x.scale(Pi).transformMonadic(Scalar)(MonadicOperationSin))
 
   private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y divide x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
+
+  private def log(x: Number): Number = x.scale(E).make(Scalar)
 
   private def scaleDouble(x: Double, fThis: Factor, fResult: Factor) = x * fThis.value / fResult.value
 

@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.parse.MillParser
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers {
@@ -113,6 +112,19 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
     eo shouldBe Some(Number(-49))
   }
+  it should "parse and evaluate: \uD835\uDED1 cos" in {
+    val my: Try[Mill] = p.parseMill("\uD835\uDED1 cos")
+    my should matchPattern { case Success(_) => }
+    val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
+    eo shouldBe Some(Number(-1))
+  }
+  it should "parse and evaluate: \uD835\uDF00 ln" in {
+    val my: Try[Mill] = p.parseMill("\uD835\uDF00 ln")
+    my should matchPattern { case Success(_) => }
+    val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
+    eo shouldBe Some(Number(1))
+  }
+
   // See https://hansklav.home.xs4all.nl/rpn/
   it should "parse and evaluate:  12  34  +  56  +  78  -  90  +  12  -  " in {
     val value: Try[Mill] = p.parseMill("12  34  +  56  +  78  -  90  +  12  -  ")
