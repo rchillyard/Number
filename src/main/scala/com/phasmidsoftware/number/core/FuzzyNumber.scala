@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import scala.util.Left
 
 /**
@@ -238,8 +239,7 @@ object FuzzyNumber {
   def exp(x: FuzzyNumber): Number = transformMonadic(x.scale(E), Scalar, MonadicOperationExp, identity, absolute = false)
 
   private def plus(x: FuzzyNumber, y: Number): Number = {
-    val (a, b) = x.alignFactors(y)
-    val (p, q) = a.alignTypes(b)
+    val (p, q) = x.alignTypes(y)
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, p, q, DyadicOperationPlus, absolute = true, independent = true, None)
       case (_, n: FuzzyNumber) => composeDyadic(n, q, p, DyadicOperationPlus, absolute = true, independent = true, None)

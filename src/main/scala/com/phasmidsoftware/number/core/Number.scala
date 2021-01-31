@@ -565,9 +565,11 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   /**
     * Method to align the types of this and x such that the resulting Numbers (in the tuple) each have the same structure.
     *
+    * CONSIDER renaming this alignValueTypes
+    *
     * @param x the Number to be aligned with this.
     * @return a tuple of two Numbers, the first of which will be the more general type:
-    *         (Invalid vs. Double, Double vs. Rational, Rational vs. BigInt, BigInt vs. Int).
+    *         (Invalid vs. Double, Double vs. Rational, Rational vs. Int).
     */
   //protected
   def alignTypes(x: Number): (Number, Number) = value match {
@@ -994,7 +996,20 @@ object Number {
     * Following are the definitions required by Ordering[Number]
     */
   trait NumberIsOrdering extends Ordering[Number] {
-    def compare(x: Number, y: Number): Int = plus(x, negate(y)).signum
+    /**
+      * When we do a compare on E numbers, they are in the same order as Scalar numbers.
+      * It's not necessary to convert exact numbers to fuzzy numbers for this purpose, we simply
+      * pretend that the E numbers are Scalar numbers.
+      *
+      * @param x the first Number.
+      * @param y the second Number.
+      * @return an Int representing the order.
+      */
+    def compare(x: Number, y: Number): Int =
+      if (x.factor == E && y.factor == E)
+        compare(x.make(Scalar), y.make(Scalar))
+      else
+        plus(x, negate(y)).signum
   }
 
   implicit object NumberIsOrdering extends NumberIsOrdering
@@ -1046,13 +1061,21 @@ object Number {
 
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering
 
-  private def plus(x: Number, y: Number): Number = y match {
-    case n@FuzzyNumber(_, _, _) => n add x
-    case _ =>
-      val (a, b) = x.alignFactors(y)
-      val (p, q) = a.alignTypes(b)
-      prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
+  private def plus(x: Number, y: Number): Number = {
+    val (a, b) = x.alignFactors(y)
+    a.factor match {
+      case E => plusAligned(a.scale(Scalar), b.scale(Scalar))
+      case _ => plusAligned(a, b)
+    }
   }
+
+  private def plusAligned(x: Number, y: Number): Number =
+    y match {
+      case n@FuzzyNumber(_, _, _) => n add x
+      case _ =>
+        val (p, q) = x.alignTypes(y)
+        prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
+    }
 
   private def times(x: Number, y: Number): Number =
     y match {
