@@ -119,13 +119,20 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val y = x ^ 2
     y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
   }
-
   it should "show ^2 and sqrt for illustrative purposes" in {
     val seven = Number(7)
     val x = seven.sqrt
     val y = x power 2
     y should matchPattern { case FuzzyNumber(_, _, _) => }
     y shouldEqual Number(7)
+  }
+  it should "cancel addition and subtraction" in {
+    val x = Number.one + 3 - 3
+    x.simplify shouldBe Expression(Number.one)
+  }
+  it should "cancel multiplication and division" in {
+    val x = Number.e * 2 / 2
+    x.simplify shouldBe Expression(Number.e)
   }
 
   behavior of "various operations"
