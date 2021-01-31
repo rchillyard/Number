@@ -344,7 +344,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param other the other Number.
     * @return -1, 0, or 1 according to whether x is <, =, or > y.
     */
-  override def compare(other: Number): Int = Number.compare(this, other)
+  override def compare(other: Number): Int = Number.doCompare(this, other)
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
@@ -371,7 +371,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param op    the appropriate DyadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  def composeDyadic(other: Number, f: Factor)(op: DyadicOperation): Option[Number] = doComposeDyadic(other, f)(op.getFunctions)
+  def composeDyadic(other: Number, f: Factor)(op: DyadicOperation): Option[Number] = doComposeDyadic(other, f)(op.functions)
 
   /**
     * Evaluate a monadic operator on this.
@@ -380,7 +380,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] = doTransformMonadic(f)(op.getFunctions)
+  def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] = doTransformMonadic(f)(op.functions)
 
   /**
     * Evaluate a query operator on this.
@@ -1048,8 +1048,23 @@ object Number {
     def toFloat(x: Number): Float = toDouble(x).toFloat
   }
 
-  def compare(x: Number, y: Number): Int = NumberIsOrdering.compare(x, y)
+  /**
+    * CONSIDER inlining this method or making it private.
+    *
+    * @param x the first number.
+    * @param y the second number.
+    * @return the order.
+    */
+  def doCompare(x: Number, y: Number): Int = NumberIsOrdering.compare(x, y)
 
+  /**
+    * For fuzzy numbers, it's appropriate to use the the normal mechanism for compare, even for E numbers.
+    *
+    * @param x the first number.
+    * @param y the second number.
+    * @param p the probability criterion.
+    * @return an Int representing the order.
+    */
   def fuzzyCompare(x: Number, y: Number, p: Double): Int = Number.plus(x, Number.negate(y)).signum(p)
 
   /**
@@ -1107,7 +1122,7 @@ object Number {
   private def power(x: Number, r: Rational): Number =
     x.factor match {
       case E =>
-        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).getFunctions)
+        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
         vo match {
           case Some(v) => x.make(v)
           case None => throw NumberException("power: logic error")

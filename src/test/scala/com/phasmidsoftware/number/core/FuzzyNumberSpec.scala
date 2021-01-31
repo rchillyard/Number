@@ -212,13 +212,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "find 1.* equivalent to 1.*" in {
     val xy: Try[Number] = Number.parse("1.*")
     val yy: Try[Number] = Number.parse("1.05*")
-    val zy = for (x <- xy; y <- yy) yield Number.compare(x, y)
+    val zy = for (x <- xy; y <- yy) yield Number.doCompare(x, y)
     zy should matchPattern { case Success(0) => }
   }
   it should "find 1 smaller than 2" in {
     val xy: Try[Number] = Number.parse("1.*")
     val yy: Try[Number] = Number.parse("2.*")
-    val zy = for (x <- xy; y <- yy) yield Number.compare(x, y)
+    val zy = for (x <- xy; y <- yy) yield Number.doCompare(x, y)
     zy should matchPattern { case Success(-1) => }
   }
 
