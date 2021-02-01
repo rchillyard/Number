@@ -6,7 +6,7 @@ import org.scalatest.matchers.should
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
-  private val p = new Matchers {}
+  private val p = new ExpressionMatchers {}
 
   behavior of "Matcher method"
 
