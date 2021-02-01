@@ -530,3 +530,10 @@ class ExpressionBiFunction(val f: (Number, Number) => Number, val name: String) 
     */
   override def toString: String = s"$name"
 }
+
+object ExpressionBiFunction {
+  def unapply(f: ((Number, Number)) => Number): Option[((Number, Number) => Number, String)] = f match {
+    case e: ExpressionBiFunction => Some(e.f, e.name)
+    case _ => None
+  }
+}
