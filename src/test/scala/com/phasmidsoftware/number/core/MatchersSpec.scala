@@ -6,7 +6,7 @@ import org.scalatest.matchers.should
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
-  private val p = new ExpressionMatchers {}
+  private val p = new Matchers {}
 
   behavior of "Matcher method"
 
@@ -33,35 +33,11 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     f(Literal(one)).success shouldBe false
   }
 
-  behavior of "value"
-  it should "work with value on Literal" in {
-    val f = p.value
-    f(Literal(one)).success shouldBe true
-  }
-  it should "work with value on One" in {
-    val f = p.value
-    f(One).success shouldBe true
-  }
-  it should "work with value on Number.one" in {
-    val f = p.value
-    f(one).success shouldBe true
-  }
-  it should "work with value on FuzzyNumber" in {
-    val f = p.value
-    f(FuzzyNumber(Right(1), Scalar, None)).success shouldBe true
-  }
-
-  behavior of "matchValue"
-  it should "work with value 1" in {
-    val f = p.matchValue(one)
-    val e = Literal(one)
-    f(e).success shouldBe true
-  }
-
   behavior of "|"
   it should "work with | 1 or 2" in {
-    val f = p.matchValue(one)
-    val g = f | p.matchValue(Number.pi)
+    val q = new ExpressionMatchers {}
+    val f = q.matchValue(one)
+    val g = f | q.matchValue(Number.pi)
     f(Literal(one)).success shouldBe true
     g(Literal(Number.pi)).success shouldBe true
     g(Literal(Number.e)).success shouldBe false

@@ -2,6 +2,10 @@ package com.phasmidsoftware.number.core
 
 class ExpressionMatchers extends Matchers {
 
+  case class DyadicTriple(f: ExpressionBiFunction, l: Expression, r: Expression)
+
+  case class MonadicDuple(f: ExpressionFunction, x: Expression)
+
   def value: Matcher[Expression, Number] = {
     case Literal(x) => Match(x)
     case x@ExactNumber(_, _) => Match(x)
