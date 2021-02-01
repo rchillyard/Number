@@ -126,11 +126,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     y should matchPattern { case FuzzyNumber(_, _, _) => }
     y shouldEqual Number(7)
   }
-  it should "cancel addition and subtraction" in {
+  // ISSUE 25
+  ignore should "cancel addition and subtraction" in {
     val x = Number.one + 3 - 3
     x.simplify shouldBe Expression(Number.one)
   }
-  it should "cancel multiplication and division" in {
+  // ISSUE 25
+  ignore should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
     x.simplify shouldBe Expression(Number.e)
   }

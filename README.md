@@ -269,7 +269,9 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
-The Current version is 1.0.6: added Mill (RPN evaluator).
+The Current version is 1.0.7
+
+Version 1.0.6: added Mill (RPN evaluator).
 
 Version 1.0.5: reimplement the e factor.
 
