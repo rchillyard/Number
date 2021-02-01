@@ -10,7 +10,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "value"
   it should "work with value on Literal" in {
-    val f = p.value
+    val f: p.ExpressionMatcher[Number] = p.value
     f(Literal(one)).success shouldBe true
   }
   it should "work with value on One" in {
@@ -28,7 +28,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "matchValue"
   it should "work with value 1" in {
-    val f = p.matchValue(one)
+    val f: p.ExpressionMatcher[Number] = p.matchValue(one)
     val e = Literal(one)
     f(e).success shouldBe true
   }
