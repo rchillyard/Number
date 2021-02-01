@@ -117,7 +117,40 @@ trait Matchers {
     * @tparam R  the MatchResult type.
     * @return a Matcher[(T1, T2), R] that matches at least one of the elements of the given tuple.
     */
-  def match2Any[T1, T2, R](m1: Matcher[T1, R], m2: => Matcher[T2, R]): Matcher[(T1, T2), R] = Matcher {
+  def match2Any[T1, T2, R](m1: Matcher[T1, R], m2: => Matcher[T2, R]): Matcher[(T1, T2), R] =
+    Matcher { case (t1, t2) => matchProduct2Any(m1, m2)(->.apply)(t1 -> t2) }
+
+  /**
+    * Method to match any element of a Product with two elements.
+    *
+    * @param m1 the Matcher corresponding to the first element.
+    * @param m2 the Matcher corresponding to the second element.
+    * @param f  a function which takes a (t1, t2) and returns a P.
+    * @tparam T1 the input type for the first Matcher.
+    * @tparam T2 the input type for the second Matcher.
+    * @tparam R  the MatchResult type.
+    * @tparam P  the input type.
+    * @return a Matcher[P, R] that matches at least one of the elements of the given tuple.
+    */
+  def matchProduct2Any[T1, T2, R, P <: Product](m1: Matcher[T1, R], m2: => Matcher[T2, R])(f: (T1, T2) => P): Matcher[P, R] = Matcher {
+    p =>
+      m1(p.productElement(0).asInstanceOf[T1]) match {
+        case result@Match(_) => result
+        case Miss(_) => m2(p.productElement(1).asInstanceOf[T2])
+      }
+  }
+
+  /**
+    * Method to match any element of a Tuple2.
+    *
+    * @param m1 the Matcher corresponding to the first element.
+    * @param m2 the Matcher corresponding to the second element.
+    * @tparam T1 the input type for the first Matcher.
+    * @tparam T2 the input type for the second Matcher.
+    * @tparam R  the MatchResult type.
+    * @return a Matcher[(T1, T2), R] that matches at least one of the elements of the given tuple.
+    */
+  def match3Any[T1, T2, T3, R](m1: Matcher[T1, R], m2: => Matcher[T2, R]): Matcher[(T1, T2), R] = Matcher {
     case (t1, t2) =>
       m1(t1) match {
         case result@Match(_) => result

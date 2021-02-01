@@ -44,6 +44,43 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     g(Literal(Number.e)).success shouldBe false
   }
 
+  behavior of "matchProduct2Any"
+
+  case class StringPair(t1: String, t2: String)
+
+  it should "succeed with toInt and 0" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Int] = m.Matcher(_ => m.Match(0))
+    val f: (String, String) => StringPair = StringPair.apply
+    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(p, q)(f)
+    val tuple = StringPair("1", "")
+    r(tuple).success shouldBe true
+  }
+  it should "succeed with toInt and fail" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Int] = m.fail
+    val f: (String, String) => StringPair = StringPair.apply
+    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(p, q)(f)
+    val tuple = StringPair("1", "")
+    r(tuple).success shouldBe true
+  }
+  it should "succeed with fail and toInt" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Int] = m.fail
+    val f: (String, String) => StringPair = StringPair.apply
+    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(q, p)(f)
+    val tuple = StringPair("", "1")
+    r(tuple).success shouldBe true
+  }
+  it should "fail with fail and fail" in {
+    val p: m.Matcher[String, Int] = m.fail
+    val q: m.Matcher[String, Int] = m.fail
+    val f: (String, String) => StringPair = StringPair.apply
+    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(p, q)(f)
+    val tuple = StringPair("1", "")
+    r(tuple).success shouldBe false
+  }
+
   behavior of "match2Any"
   it should "succeed with toInt and 0" in {
     val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
