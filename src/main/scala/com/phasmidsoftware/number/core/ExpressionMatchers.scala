@@ -6,10 +6,21 @@ class ExpressionMatchers extends Matchers {
 
   case class MonadicDuple(f: ExpressionFunction, x: Expression)
 
-  def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (t: Expression) => f(t)
+  /**
+    * Abstract class ExpressionMatcher which extends Matcher where input is always an Expression.
+    *
+    * @tparam R the MatchResult type.
+    */
+  abstract class ExpressionMatcher[R] extends Matcher[Expression, R]
 
-  abstract class ExpressionMatcher[R] extends Matcher[Expression, R] {
-  }
+  /**
+    * Method to create an ExpressionMatcher.
+    *
+    * @param f a function Expression => MatchResult[R]
+    * @tparam R the MatchResult type.
+    * @return a Matcher[Expression, R] which is also an ExpressionMatcher[R].
+    */
+  def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
   /**
     * Matcher which matches on Expressions that directly represent Numbers.
@@ -48,14 +59,14 @@ class ExpressionMatchers extends Matchers {
     case e => Miss(e)
   }
 
-  //  /**
-  //    * Matcher which matches on Expression that directly represents a specific given Number.
-  //    *
-  //    * @param x the Number to match.
-  //    * @return a Matcher[Expression, Number].
-  //    */
-  //    def complementaryExpressions: Matcher[Expression, Expression] = e => matchBiFunction(e) match {
-  //      case Match(DyadicTriple(f, a, b)) =>
-  //    }
+  //    /**
+  //      * Matcher which matches on Expression that directly represents a specific given Number.
+  //      *
+  //      * @param x the Number to match.
+  //      * @return a Matcher[Expression, Number].
+  //      */
+  //      def complementaryExpressions: Matcher[Expression, Expression] = e => matchBiFunction(e) match {
+  //        case Match(DyadicTriple(f, a, b)) =>f
+  //      }
 
 }
