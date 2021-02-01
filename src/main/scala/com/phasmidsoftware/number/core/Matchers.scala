@@ -11,21 +11,47 @@ import scala.util.{Failure, Success, Try}
 trait Matchers {
 
   sealed trait MatchResult[R] {
-    def success: Boolean
+    def successful: Boolean
 
-    def map[S](f: R => S): MatchResult[S]
+    def isEmpty: Boolean = !successful
+
+    def success[S](s: S): MatchResult[S] = Match(s)
+
+    def get: R
+
+    def map[S](f: R => S): MatchResult[S] = flatMap(r => success(f(r)))
+
+    def flatMap[S](f: R => MatchResult[S]): MatchResult[S]
+
+    def |(m: => Matcher[Any, R]): MatchResult[R]
+
+    def &[S](m: => Matcher[R, S]): MatchResult[S]
   }
 
   case class Match[R](r: R) extends MatchResult[R] {
-    def success: Boolean = true
+    def successful: Boolean = true
 
-    def map[S](f: R => S): MatchResult[S] = Match(f(r))
+    def get: R = r
+
+    def |(m: => Matcher[Any, R]): MatchResult[R] = this
+
+    def &[S](m: => Matcher[R, S]): MatchResult[S] = m(get)
+
+    def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = f(r)
   }
 
   case class Miss[T, R](t: T) extends MatchResult[R] {
-    def success: Boolean = false
+    def successful: Boolean = false
 
-    def map[S](f: R => S): MatchResult[S] = Miss(t)
+    override def map[S](f: R => S): MatchResult[S] = Miss(t)
+
+    def |(m: => Matcher[Any, R]): MatchResult[R] = m(t)
+
+    def &[S](m: => Matcher[R, S]): MatchResult[S] = Miss(t)
+
+    def get: R = throw MatcherException("cannot call get on Miss")
+
+    def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = throw MatcherException("cannot call flatMap on Miss")
   }
 
   def Matcher[T, R](f: T => MatchResult[R]): Matcher[T, R] = (t: T) => f(t)
@@ -43,8 +69,7 @@ trait Matchers {
 
     override def toString = s"Matcher ($name)"
 
-    def map[S](f: R => S): Matcher[T, S] //= flatMap{x => success(f(x))}
-    = Matcher { in => this (in) map f }
+    def map[S](f: R => S): Matcher[T, S] = Matcher { in => this (in) map f }
 
     /**
       * Method to transform a MatchResult.
@@ -79,12 +104,7 @@ trait Matchers {
       * @tparam S the underlying type of the resulting Matcher.
       * @return a Matcher[T, S] which will match in composition on both this and m.
       */
-    def &[S](m: Matcher[R, S]): Matcher[T, S] = Matcher(e =>
-      this (e) match {
-        case Match(x) => m(x)
-        case Miss(t) => Miss(t)
-      }
-    )
+    def &[S](m: Matcher[R, S]): Matcher[T, S] = Matcher(e => this (e) & m)
 
     /**
       * Matcher which always succeeds but whose result is based on a Try[R].
@@ -140,23 +160,51 @@ trait Matchers {
       }
   }
 
-  /**
-    * Method to match any element of a Tuple2.
-    *
-    * @param m1 the Matcher corresponding to the first element.
-    * @param m2 the Matcher corresponding to the second element.
-    * @tparam T1 the input type for the first Matcher.
-    * @tparam T2 the input type for the second Matcher.
-    * @tparam R  the MatchResult type.
-    * @return a Matcher[(T1, T2), R] that matches at least one of the elements of the given tuple.
-    */
-  def match3Any[T1, T2, T3, R](m1: Matcher[T1, R], m2: => Matcher[T2, R]): Matcher[(T1, T2), R] = Matcher {
-    case (t1, t2) =>
-      m1(t1) match {
-        case result@Match(_) => result
-        case Miss(_) => m2(t2)
-      }
-  }
+  //  /**
+  //    * Method to match any element of a Product with two elements.
+  //    *
+  //    * @param m1 the Matcher corresponding to the first element.
+  //    * @param m2 the Matcher corresponding to the second element.
+  //    * @param m3 the Matcher corresponding to the third element.
+  //    * @param f  a function which takes a (t1, t2, t3) and returns a P.
+  //    * @tparam T1 the input type for the first Matcher.
+  //    * @tparam T2 the input type for the second Matcher.
+  //    * @tparam T3 the input type for the third Matcher.
+  //    * @tparam R  the MatchResult type.
+  //    * @tparam P  the input type.
+  //    * @return a Matcher[P, R] that matches at least one of the elements of the given tuple.
+  //    */
+  //  def matchProduct3Any[T1, T2, T3, R, P <: Product](m1: Matcher[T1, R], m2: => Matcher[T2, R], m3: => Matcher[T3, R])(f: (T1, T2, T3) => P): Matcher[P, R] = Matcher {
+  //    p =>
+  //      m1(p.productElement(0).asInstanceOf[T1]) match {
+  //        case result@Match(_) => result
+  //        case Miss(_) => m2(p.productElement(1).asInstanceOf[T2])
+  ////          val tuple: (T2, T3) = (p.productElement(1).asInstanceOf[T2], p.productElement(2).asInstanceOf[T3])
+  ////          matchProduct2Any[T2, T3, R, (T2, T3)](m2, m3)(g)(tuple)
+  //      }
+  //
+  //    //      p1 <- readCell[T, P1](wo, row, columns)(f1)
+  //    //    t <- cellParser1(construct.curried(p1), fs).parse(wo, row, columns)
+  //
+  //  }
+
+  //  /**
+  //    * Method to match any element of a Tuple2.
+  //    *
+  //    * @param m1 the Matcher corresponding to the first element.
+  //    * @param m2 the Matcher corresponding to the second element.
+  //    * @tparam T1 the input type for the first Matcher.
+  //    * @tparam T2 the input type for the second Matcher.
+  //    * @tparam R  the MatchResult type.
+  //    * @return a Matcher[(T1, T2), R] that matches at least one of the elements of the given tuple.
+  //    */
+  //  def match3Any[T1, T2, T3, R](m1: Matcher[T1, R], m2: => Matcher[T2, R]): Matcher[(T1, T2), R] = Matcher {
+  //    case (t1, t2) =>
+  //      m1(t1) match {
+  //        case result@Match(_) => result
+  //        case Miss(_) => m2(t2)
+  //      }
+  //  }
 
   /**
     * Method to match any element of a Tuple2.

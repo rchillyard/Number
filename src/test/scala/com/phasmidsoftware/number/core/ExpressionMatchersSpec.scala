@@ -11,25 +11,25 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers {
   behavior of "value"
   it should "work with value on Literal" in {
     val f: p.ExpressionMatcher[Number] = p.value
-    f(Literal(one)).success shouldBe true
+    f(Literal(one)).successful shouldBe true
   }
   it should "work with value on One" in {
     val f = p.value
-    f(One).success shouldBe true
+    f(One).successful shouldBe true
   }
   it should "work with value on Number.one" in {
     val f = p.value
-    f(one).success shouldBe true
+    f(one).successful shouldBe true
   }
   it should "work with value on FuzzyNumber" in {
     val f = p.value
-    f(FuzzyNumber(Right(1), Scalar, None)).success shouldBe true
+    f(FuzzyNumber(Right(1), Scalar, None)).successful shouldBe true
   }
 
   behavior of "matchValue"
   it should "work with value 1" in {
     val f: p.ExpressionMatcher[Number] = p.matchValue(one)
     val e = Literal(one)
-    f(e).success shouldBe true
+    f(e).successful shouldBe true
   }
 }
