@@ -25,6 +25,10 @@ class ExpressionMatchers extends Matchers {
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
+  def matcherToExpressionMatcher[R](m: Matcher[Expression, R]): ExpressionMatcher[R] = (e: Expression) => m(e)
+
+  def always: ExpressionMatcher[Expression] = ExpressionMatcher(super.always)
+
   /**
     * Matcher which matches on Expressions that directly represent Numbers.
     *
@@ -62,12 +66,22 @@ class ExpressionMatchers extends Matchers {
     case e => Miss(e)
   }
 
-  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction,String], lm: ExpressionMatcher[Number], rm: ExpressionMatcher[Number]): Matcher[DyadicTriple, (String,Number,Number)] =
+  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, String], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (String, Expression, Expression)] =
     matchProduct3All(fm, lm, rm)(DyadicTriple)
 
-  def matchExpressionBiFunction(name: String): Matcher[ExpressionBiFunction,String] = Matcher {
-    f => if (f.name == name) Match(name) else Miss(f)
-  }
+//  def matchBiFunctionByName(name: String): ExpressionMatcher[Number] = {
+//    val matcher1: ExpressionMatcher[DyadicTriple] = matchBiFunction
+//    val functionMatcher: Matcher[ExpressionBiFunction, ExpressionBiFunction] = matchExpressionBiFunctionByName("+")
+//    val expressionMatcher = matcherToExpressionMatcher(matchBiFunctionByName("*") ^^ (Expression(_)))
+//    val matcher2: Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
+//      matchDyadicTriple(functionMatcher, always, expressionMatcher)
+//    val result: ExpressionMatcher[(ExpressionBiFunction, Expression, Expression)] = ExpressionMatcher(matcher1 & matcher2)
+//    ExpressionMatcher(result ^^ { case (f,x,y) => BiFunction(x,y,f) .materialize})
+//  }
+
+//  def matchExpressionBiFunction: Matcher[ExpressionBiFunction,ExpressionBiFunction] = always
+
+//  def matchExpressionBiFunctionByName(name: String): Matcher[ExpressionBiFunction,ExpressionBiFunction] = havingSame[ExpressionBiFunction,String](matches(name))(_.name)
 
   //    /**
   //      * Matcher which matches on Expression that directly represents a specific given Number.

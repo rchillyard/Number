@@ -181,6 +181,14 @@ trait Matchers {
   def fail[T, R]: Matcher[T, R] = Matcher(t => Miss(t))
 
   /**
+    * Matcher which always succeeds and whose input type and result type are the same.
+    *
+    * @tparam R both the input type and the result type.
+    * @return a Matcher[R, R] which always succeeds.
+    */
+  def always[R]: Matcher[R, R] = Matcher(x => Match(x))
+
+  /**
     * Matcher which succeeds if the input is equal to the given t0
     *
     * @param t the value which must be matched.
@@ -205,7 +213,7 @@ trait Matchers {
 
     override def toString = s"Matcher ($name)"
 
-    def map[S](f: R => S): Matcher[T, S] = Matcher { in => this (in) map f }
+    def map[S](f: R => S): Matcher[T, S] = Matcher { t => this (t) map f }
 
     /**
       * Method to transform a MatchResult.
@@ -238,7 +246,7 @@ trait Matchers {
       * @param m the alternative Matcher.
       * @return a Matcher[T, R] which will match either on this or on m.
       */
-    def |(m: Matcher[T, R]): Matcher[T, R] = Matcher(e => match2Any(this, m)((e, e)))
+    def |(m: Matcher[T, R]): Matcher[T, R] = Matcher(t => match2Any(this, m)((t, t)))
 
     /**
       * Method to combine Matchers in the sense that, when this successfully matches a T, resulting in an R,
@@ -248,15 +256,15 @@ trait Matchers {
       * @tparam S the underlying type of the resulting Matcher.
       * @return a Matcher[T, S] which will match in composition on both this and m.
       */
-    def &[S](m: Matcher[R, S]): Matcher[T, S] = Matcher(e => this (e) & m)
+    def &[S](m: Matcher[R, S]): Matcher[T, S] = Matcher(t => this (t) & m)
 
     /**
       * Matcher which always succeeds but whose result is based on a Try[R].
       *
       * @return Matcher[T, Option of R]
       */
-    def trial: Matcher[T, Try[R]] = Matcher(e =>
-      Try(this (e)) match {
+    def trial: Matcher[T, Try[R]] = Matcher(t =>
+      Try(this (t)) match {
         case Success(Match(z)) => Match(Success(z))
         case Success(Miss(_)) => Match(Failure(MatcherException("Miss")))
         case Failure(x) => Match(Failure(x))
@@ -286,7 +294,7 @@ trait Matchers {
     * @tparam R the result type of m.
     * @return Matcher[T, Option of R]
     */
-  def opt[T, R](m: Matcher[T, R]): Matcher[T, Option[R]] = m ^^[Option[R]] (x => Some(x)) | success(None)
+  def opt[T, R](m: Matcher[T, R]): Matcher[T, Option[R]] = m ^^[Option[R]] (r => Some(r)) | success(None)
 
   /**
     * Method to match a T, resulting in an R, where the match is indirectly determined by
@@ -298,6 +306,22 @@ trait Matchers {
     * @return a Matcher[T, R]
     */
   def having[T, U, R](m: Matcher[U, R])(lens: T => U): Matcher[T, R] = Matcher(t => m(lens(t)))
+
+  /**
+    * Method to match a T, resulting in an R, where the match is indirectly determined by
+    * the given lens function.
+    *
+    * @param m    a Matcher[U, R].
+    * @param lens a function T => U.
+    * @tparam U the type of a property that is matched by m.
+    * @return a Matcher[T, R]
+    */
+  def havingSame[T, U, R](m: Matcher[U, T])(lens: T => U): Matcher[T, R] = Matcher(
+    t => {
+      val result: MatchResult[T] = m(lens(t))
+      result map (_ => t.asInstanceOf[R])
+    }
+  )
 
   /**
     * Method to match any element of a Tuple2.

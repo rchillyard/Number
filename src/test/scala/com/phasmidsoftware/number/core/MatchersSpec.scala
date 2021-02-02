@@ -25,6 +25,14 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     m.success(0)("").isEmpty shouldBe false
     m.fail("").isEmpty shouldBe true
   }
+  it should "support always" in {
+    val target = m.always[Unit]
+    target(()).successful shouldBe true
+  }
+  it should "support fail" in {
+    val target = m.fail[Unit, Unit]
+    target(()).successful shouldBe false
+  }
   it should "support |" in {
     val result = m.fail("") | m.success(0)
     result.successful shouldBe true
