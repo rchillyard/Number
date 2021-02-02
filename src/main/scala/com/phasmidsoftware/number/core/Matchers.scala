@@ -15,7 +15,7 @@ trait Matchers {
     *
     * @tparam R the type of the result.
     */
-  sealed trait MatchResult[R] {
+  sealed trait MatchResult[+R] {
     /**
       * @return true if this is a Match
       */
@@ -62,19 +62,21 @@ trait Matchers {
     /**
       * Alternation method which takes a MatchResult as the alternative.
       *
-      * @param r a MatchResult which will be used if this is empty.
-      * @return a MatchResult[R].
+      * @param s a MatchResult which will be used if this is empty.
+      * @tparam S the type of the result and a super-type of R.
+      * @return a MatchResult[S].
       */
-    def ||(r: => MatchResult[R]): MatchResult[R]
+    def ||[S >: R](s: => MatchResult[S]): MatchResult[S]
 
     /**
       * Alternation method which takes a Matcher as the alternative.
       * If this MatchResult is empty then return the value of m applied to the input.
       *
-      * @param m a Matcher of Any to R.
-      * @return a MatchResult[R].
+      * @param m a Matcher of Any to S.
+      * @tparam S the type of the result and a super-type of R.
+      * @return a MatchResult[S].
       */
-    def |(m: => Matcher[Any, R]): MatchResult[R]
+    def |[S >: R](m: => Matcher[Any, S]): MatchResult[S]
 
     /**
       * Composition method.
@@ -90,11 +92,12 @@ trait Matchers {
       * Composition method.
       * If this MatchResult is successful then return the value of m applied to the result.
       *
-      * @param m a Matcher of R to S.
-      * @tparam S the underlying type of the returned value.
-      * @return a MatchResult[S].
+      * @param m a Matcher of S to T.
+      * @tparam S the underlying type of the input to m (S is a super-class of R).
+      * @tparam T the underlying type of the returned value.
+      * @return a MatchResult[T].
       */
-    def &[S](m: => Matcher[R, S]): MatchResult[S]
+    def &[S >: R, T](m: => Matcher[S, T]): MatchResult[T]
   }
 
   /**
@@ -108,18 +111,40 @@ trait Matchers {
 
     def get: R = r
 
-    def ||(r: => MatchResult[R]): MatchResult[R] = this
-
-    def |(m: => Matcher[Any, R]): MatchResult[R] = this
-
     def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = s match {
       case Match(s) => Match(r -> s)
       case Miss(x) => Miss(x)
     }
 
-    def &[S](m: => Matcher[R, S]): MatchResult[S] = m(get)
-
     def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = f(r)
+
+    /**
+      * Alternation method which takes a MatchResult as the alternative.
+      *
+      * @param s a MatchResult (ignored)).
+      * @return this.
+      */
+    def ||[S >: R](s: => MatchResult[S]): MatchResult[S] = this
+
+    /**
+      * Alternation method which takes a Matcher as the alternative.
+      * If this MatchResult is empty then return the value of m applied to the input.
+      *
+      * @param m a Matcher of Any to R (ignored).
+      * @return this.
+      */
+    def |[S >: R](m: => Matcher[Any, S]): MatchResult[S] = this
+
+    /**
+      * Composition method.
+      * If this MatchResult is successful then return the value of m applied to the result.
+      *
+      * @param m a Matcher of S to T.
+      * @tparam S the underlying type of the input to m (S is a super-class of R).
+      * @tparam T the underlying type of the returned value.
+      * @return m(get).
+      */
+    def &[S >: R, T](m: => Matcher[S, T]): MatchResult[T] = m(get)
   }
 
   /**
@@ -134,17 +159,39 @@ trait Matchers {
 
     override def map[S](f: R => S): MatchResult[S] = Miss(t)
 
-    def ||(r: => MatchResult[R]): MatchResult[R] = r
-
-    def |(m: => Matcher[Any, R]): MatchResult[R] = m(t)
-
     def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Miss(t)
-
-    def &[S](m: => Matcher[R, S]): MatchResult[S] = Miss(t)
 
     def get: R = throw MatcherException("cannot call get on Miss")
 
     def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = throw MatcherException("cannot call flatMap on Miss")
+
+    /**
+      * Alternation method which takes a MatchResult as the alternative.
+      *
+      * @param s a MatchResult which will be used if this is empty.
+      * @return s.
+      */
+    def ||[S >: R](s: => MatchResult[S]): MatchResult[S] = s
+
+    /**
+      * Alternation method which takes a Matcher as the alternative.
+      * If this MatchResult is empty then return the value of m applied to the input.
+      *
+      * @param m a Matcher of Any to R.
+      * @return m(t).
+      */
+    def |[S >: R](m: => Matcher[Any, S]): MatchResult[S] = m(t)
+
+    /**
+      * Composition method.
+      * If this MatchResult is successful then return the value of m applied to the result.
+      *
+      * @param m a Matcher of S to T.
+      * @tparam S the underlying type of the input to m (S is a super-class of R).
+      * @tparam U the underlying type of the returned value.
+      * @return a MatchResult[T].
+      */
+    def &[S >: R, U](m: => Matcher[S, U]): MatchResult[U] = Miss(t)
   }
 
   object MatchResult {

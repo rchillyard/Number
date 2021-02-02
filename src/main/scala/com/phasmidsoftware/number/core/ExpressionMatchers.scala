@@ -66,13 +66,13 @@ class ExpressionMatchers extends Matchers {
     case e => Miss(e)
   }
 
-  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, String], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (String, Expression, Expression)] =
+  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, ExpressionBiFunction], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
     matchProduct3All(fm, lm, rm)(DyadicTriple)
 
 //  def matchBiFunctionByName(name: String): ExpressionMatcher[Number] = {
-//    val matcher1: ExpressionMatcher[DyadicTriple] = matchBiFunction
-//    val functionMatcher: Matcher[ExpressionBiFunction, ExpressionBiFunction] = matchExpressionBiFunctionByName("+")
-//    val expressionMatcher = matcherToExpressionMatcher(matchBiFunctionByName("*") ^^ (Expression(_)))
+  //    val matcher1: ExpressionMatcher[DyadicTriple] = matchBiFunction
+  //    val functionMatcher: Matcher[ExpressionBiFunction, ExpressionBiFunction] = matchBiFunctionByName("+")
+  //    val expressionMatcher = matcherToExpressionMatcher(matchBiFunctionByName("*") ^^ (Expression(_)))
 //    val matcher2: Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
 //      matchDyadicTriple(functionMatcher, always, expressionMatcher)
 //    val result: ExpressionMatcher[(ExpressionBiFunction, Expression, Expression)] = ExpressionMatcher(matcher1 & matcher2)

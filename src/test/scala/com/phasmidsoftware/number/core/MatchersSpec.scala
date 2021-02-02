@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.one
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -42,7 +43,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     result.successful shouldBe true
   }
   it should "support &" in {
-    val result = m.success(0)("") & m.success(0)
+    val result = m.success(0)("") & m.success[Any, Int](0)
     result.successful shouldBe true
   }
   it should "support &&" in {
