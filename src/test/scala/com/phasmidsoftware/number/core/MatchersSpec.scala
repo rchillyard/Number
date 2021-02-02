@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.one
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
@@ -27,6 +28,19 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   it should "support |" in {
     val result = m.fail("") | m.success(0)
     result.successful shouldBe true
+  }
+  it should "support ||" in {
+    val result = m.fail("") || m.success(0)("")
+    result.successful shouldBe true
+  }
+  it should "support &" in {
+    val result = m.success(0)("") & m.success(0)
+    result.successful shouldBe true
+  }
+  it should "support &&" in {
+    val result = m.success(0)("") && m.success(1)("")
+    result.successful shouldBe true
+    result.get shouldBe 0 -> 1
   }
   it should "support map" in {
     val result = m.success(0)("").map(_.toString)
@@ -159,10 +173,44 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     r(tuple).successful shouldBe false
   }
 
-  behavior of "match2All"
+  behavior of "match3Any"
   it should "succeed with toInt and 0" in {
     val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
     val q: m.Matcher[String, Int] = m.Matcher(_ => m.Match(0))
+    val z: m.Matcher[String, Int] = m.success(1 / 0)
+    val r: m.Matcher[(String, String, String), Int] = m.match3Any(p, q, z)
+    val tuple = ("1", "", "junk")
+    r(tuple).successful shouldBe true
+  }
+  it should "succeed with toInt and fail" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Int] = m.fail
+    val z: m.Matcher[String, Int] = m.success(1 / 0)
+    val r: m.Matcher[(String, String, String), Int] = m.match3Any(p, q, z)
+    val tuple = ("1", "", "junk")
+    r(tuple).successful shouldBe true
+  }
+  it should "succeed with fail and toInt" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Int] = m.fail
+    val z: m.Matcher[String, Int] = m.success(1 / 0)
+    val r: m.Matcher[(String, String, String), Int] = m.match3Any(p, q, z)
+    val tuple = ("1", "", "junk")
+    r(tuple).successful shouldBe true
+  }
+  it should "fail with fail and fail" in {
+    val p: m.Matcher[String, Int] = m.fail
+    val q: m.Matcher[String, Int] = m.fail
+    val z: m.Matcher[String, Int] = m.success(1 / 0)
+    val r: m.Matcher[(String, String, String), Int] = m.match3Any(p, q, z)
+    val tuple = ("1", "", "junk")
+    an[ArithmeticException] shouldBe thrownBy(r(tuple))
+  }
+
+  behavior of "match2All"
+  it should "succeed with toInt and 0" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Int] = m.success(0)
     val r: m.Matcher[(String, String), (Int, Int)] = m.match2All(p, q)
     val tuple = ("1", "")
     r(tuple).successful shouldBe true
@@ -189,10 +237,42 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     r(tuple).successful shouldBe false
   }
 
+  behavior of "match3All"
+  it should "succeed with toInt and 0" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Int] = m.success(0)
+    val z: m.Matcher[String, Int] = m.success(1)
+    val r: m.Matcher[(String, String, String), (Int, Int, Int)] = m.match3All(p, q, z)
+    val tuple = ("1", "", "junk")
+    r(tuple).successful shouldBe true
+  }
+  it should "fail with toInt and fail" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Int] = m.fail
+    val z: m.Matcher[String, Int] = m.success(1 / 0)
+    val r: m.Matcher[(String, String, String), (Int, Int, Int)] = m.match3All(p, q, z)
+    val tuple = ("1", "", "junk")
+    r(tuple).successful shouldBe false
+  }
+
   behavior of "opt"
   it should "succeed with a match" in {
     val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
     val q = m.opt(p)
     q("1") should matchPattern { case m.Match(Some(1)) => }
+  }
+
+  behavior of "?"
+  it should "succeed with a match" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Option[Int]] = p.?
+    q("1") should matchPattern { case m.Match(Some(1)) => }
+  }
+
+  behavior of "trial"
+  it should "succeed with a match" in {
+    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val q: m.Matcher[String, Try[Int]] = p.trial
+    q("1") should matchPattern { case m.Match(Success(1)) => }
   }
 }

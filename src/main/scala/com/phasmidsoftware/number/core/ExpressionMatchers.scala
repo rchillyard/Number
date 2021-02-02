@@ -1,5 +1,8 @@
 package com.phasmidsoftware.number.core
 
+/**
+  * Matchers whose input is generally an Expression.
+  */
 class ExpressionMatchers extends Matchers {
 
   case class DyadicTriple(f: ExpressionBiFunction, l: Expression, r: Expression)
@@ -58,6 +61,8 @@ class ExpressionMatchers extends Matchers {
     case BiFunction(a, b, f) => Match(DyadicTriple(f, a, b))
     case e => Miss(e)
   }
+
+//  def matchDyadicTriple = match3All
 
   //    /**
   //      * Matcher which matches on Expression that directly represents a specific given Number.
