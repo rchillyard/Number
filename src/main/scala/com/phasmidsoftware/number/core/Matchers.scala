@@ -337,7 +337,7 @@ trait Matchers {
     * @tparam T the input type.
     * @tparam R the result type.
     */
-  abstract class Matcher[T, R] extends (T => MatchResult[R]) {
+  abstract class Matcher[-T, +R] extends (T => MatchResult[R]) {
     private var name: String = ""
 
     /**
@@ -363,10 +363,11 @@ trait Matchers {
     /**
       * Matcher which reverses the sense of this Matcher.
       *
-      * @param r the default result value, only to be used in the even of a Miss.
+      * @param s the default result value, only to be used in the even of a Miss.
+      * @tparam S the type of both s and the result (a super-type of R).
       * @return a Matcher[T, R] which works in the opposite sense to this.
       */
-    def !(r: => R): Matcher[T, R] = not(this, r)
+    def ![S >: R](s: => S): Matcher[T, S] = not(this, s)
 
     /** Returns a matcher that optionally matches what this parser parses.
       *
@@ -380,7 +381,7 @@ trait Matchers {
       * @param m the alternative Matcher.
       * @return a Matcher[T, R] which will match either on this or on m.
       */
-    def |(m: Matcher[T, R]): Matcher[T, R] = Matcher(t => match2Any(this, m)((t, t)))
+    def |[U <: T, S >: R](m: Matcher[U, S]): Matcher[U, S] = Matcher(t => match2Any(this, m)((t, t)))
 
     /**
       * Method to combine Matchers in the sense that, when this successfully matches a T, resulting in an R,
@@ -412,7 +413,7 @@ trait Matchers {
     * @param r the result.
     * @tparam R the type of the result.
     */
-  case class Match[R](r: R) extends MatchResult[R] {
+  case class Match[+R](r: R) extends MatchResult[R] {
     def successful: Boolean = true
 
     def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = s match {
@@ -460,7 +461,7 @@ trait Matchers {
     * @tparam T the underlying type of t.
     * @tparam R the result-type of this.
     */
-  case class Miss[T, R](t: T) extends MatchResult[R] {
+  case class Miss[T, +R](t: T) extends MatchResult[R] {
     def successful: Boolean = false
 
     override def map[S](f: R => S): MatchResult[S] = Miss(t)

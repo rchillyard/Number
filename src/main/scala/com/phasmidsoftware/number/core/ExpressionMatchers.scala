@@ -14,7 +14,7 @@ class ExpressionMatchers extends Matchers {
     *
     * @tparam R the MatchResult type.
     */
-  abstract class ExpressionMatcher[R] extends Matcher[Expression, R]
+  abstract class ExpressionMatcher[+R] extends Matcher[Expression, R]
 
   /**
     * Method to create an ExpressionMatcher.
