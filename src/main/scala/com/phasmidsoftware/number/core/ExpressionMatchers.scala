@@ -62,7 +62,12 @@ class ExpressionMatchers extends Matchers {
     case e => Miss(e)
   }
 
-//  def matchDyadicTriple = match3All
+  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction,String], lm: ExpressionMatcher[Number], rm: ExpressionMatcher[Number]): Matcher[DyadicTriple, (String,Number,Number)] =
+    matchProduct3All(fm, lm, rm)(DyadicTriple)
+
+  def matchExpressionBiFunction(name: String): Matcher[ExpressionBiFunction,String] = Matcher {
+    f => if (f.name == name) Match(name) else Miss(f)
+  }
 
   //    /**
   //      * Matcher which matches on Expression that directly represents a specific given Number.

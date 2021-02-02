@@ -106,6 +106,27 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     g(Literal(Number.e)).successful shouldBe false
   }
 
+  behavior of "not"
+
+  it should "work" in {
+    val p = m.matches(1)
+    val q = m.not(p, 0)
+    p(1).successful shouldBe true
+    q(1).successful shouldBe false
+    q(2).successful shouldBe true
+    q(2).get shouldBe 0
+  }
+
+  behavior of "having"
+
+  case class Wrapper(i: Int)
+
+  it should "work" in {
+    val p = m.matches(1)
+    val q: m.Matcher[Wrapper, Int] = m.having(p)(_.i)
+    q(Wrapper(1)).successful shouldBe true
+  }
+
   behavior of "matchProduct2Any"
 
   case class StringPair(t1: String, t2: String)

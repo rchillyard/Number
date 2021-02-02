@@ -181,6 +181,15 @@ trait Matchers {
   def fail[T, R]: Matcher[T, R] = Matcher(t => Miss(t))
 
   /**
+    * Matcher which succeeds if the input is equal to the given t0
+    *
+    * @param t the value which must be matched.
+    * @tparam T the type of the input and result for Matcher.
+    * @return a Matcher[T, T].
+    */
+  def matches[T](t: T): Matcher[T, T] = Matcher(x => if (x == t) Match(x) else Miss(x))
+
+  /**
     * Abstract class Matcher.
     *
     * @tparam T the input type.
@@ -208,6 +217,14 @@ trait Matchers {
       *         transformed by `f`.
       */
     def ^^[S](f: R => S): Matcher[T, S] = map(f).named(toString + "^^")
+
+    /**
+      * Matcher which reverses the sense of this Matcher.
+      *
+      * @param r the default result value, only to be used in the even of a Miss.
+      * @return a Matcher[T, R] which works in the opposite sense to this.
+      */
+    def !(r: => R): Matcher[T, R] = not(this, r)
 
     /** Returns a matcher that optionally matches what this parser parses.
       *
@@ -248,11 +265,39 @@ trait Matchers {
   }
 
   /**
+    * Matcher which reverses the sense of this Matcher.
+    *
+    * @param m a Matcher[T, R]
+    * @param r the default result value, only to be used in the even of a Miss.
+    * @tparam T the input type of m.
+    * @tparam R the result type of m.
+    * @return a Matcher[T, R] which works in the opposite sense to this.
+    */
+  def not[T, R](m: Matcher[T, R], r: => R): Matcher[T, R] = t => m(t) match {
+    case Match(_) => Miss(t)
+    case Miss(_) => Match(r)
+  }
+
+  /**
     * Matcher which always succeeds but whose result is based on an Option[R].
     *
+    * @param m a Matcher[T, R]
+    * @tparam T the input type of m.
+    * @tparam R the result type of m.
     * @return Matcher[T, Option of R]
     */
   def opt[T, R](m: Matcher[T, R]): Matcher[T, Option[R]] = m ^^[Option[R]] (x => Some(x)) | success(None)
+
+  /**
+    * Method to match a T, resulting in an R, where the match is indirectly determined by
+    * the given lens function.
+    *
+    * @param m    a Matcher[U, R].
+    * @param lens a function T => U.
+    * @tparam U the type of a property that is matched by m.
+    * @return a Matcher[T, R]
+    */
+  def having[T, U, R](m: Matcher[U, R])(lens: T => U): Matcher[T, R] = Matcher(t => m(lens(t)))
 
   /**
     * Method to match any element of a Tuple2.
@@ -308,17 +353,54 @@ trait Matchers {
     *
     * @param m0 the Matcher corresponding to the first element.
     * @param m1 the Matcher corresponding to the second element.
-    * @param m3 the Matcher corresponding to the third element.
+    * @param m2 the Matcher corresponding to the third element.
     * @param f  a function which takes a (t0, t1, t3) and returns a P.
     * @tparam T0 the input type for the first Matcher.
     * @tparam T1 the input type for the second Matcher.
-    * @tparam T3 the input type for the third Matcher.
+    * @tparam T2 the input type for the third Matcher.
     * @tparam R  the MatchResult type.
     * @tparam P  the input type.
     * @return a Matcher[P, R] that matches at least one of the elements of the given tuple.
     */
-  def matchProduct3Any[T0, T1, T3, R, P <: Product](m0: Matcher[T0, R], m1: => Matcher[T1, R], m3: => Matcher[T3, R])(f: (T0, T1, T3) => P): Matcher[P, R] = Matcher {
-    p => m0(p.productElement(0).asInstanceOf[T0]) || m1(p.productElement(1).asInstanceOf[T1]) || m3(p.productElement(2).asInstanceOf[T3])
+  def matchProduct3Any[T0, T1, T2, R, P <: Product](m0: Matcher[T0, R], m1: => Matcher[T1, R], m2: => Matcher[T2, R])(f: (T0, T1, T2) => P): Matcher[P, R] = Matcher {
+    p => m0(p.productElement(0).asInstanceOf[T0]) || m1(p.productElement(1).asInstanceOf[T1]) || m2(p.productElement(2).asInstanceOf[T2])
+  }
+
+  /**
+    * Method to match any element of a Product with two elements.
+    *
+    * @param m0 the Matcher corresponding to the first element.
+    * @param m1 the Matcher corresponding to the second element.
+    * @param f  a function which takes a (t0, t1) and returns a P.
+    * @tparam T0 the input type for the first Matcher.
+    * @tparam T1 the input type for the second Matcher.
+    * @tparam R0 the first MatchResult type.
+    * @tparam R1 the second MatchResult type.
+    * @tparam P  the input type.
+    * @return a Matcher[P, R] that matches at least one of the elements of the given tuple.
+    */
+  def matchProduct2All[T0, T1, R0, R1, P <: Product](m0: Matcher[T0, R0], m1: => Matcher[T1, R1])(f: (T0, T1) => P): Matcher[P, (R0, R1)] = Matcher {
+    p => m0(p.productElement(0).asInstanceOf[T0]) && m1(p.productElement(1).asInstanceOf[T1])
+  }
+
+  /**
+    * Method to match any element of a Product with two elements.
+    *
+    * @param m0 the Matcher corresponding to the first element.
+    * @param m1 the Matcher corresponding to the second element.
+    * @param m2 the Matcher corresponding to the third element.
+    * @param f  a function which takes a (t0, t1, t3) and returns a P.
+    * @tparam T0 the input type for the first Matcher.
+    * @tparam T1 the input type for the second Matcher.
+    * @tparam T2 the input type for the third Matcher.
+    * @tparam R0 the first MatchResult type.
+    * @tparam R1 the second MatchResult type.
+    * @tparam R2 the third MatchResult type.
+    * @tparam P  the input type.
+    * @return a Matcher[P, (R0, R1, R2)] that matches at least one of the elements of the given tuple.
+    */
+  def matchProduct3All[T0, T1, T2, R0, R1, R2, P <: Product](m0: Matcher[T0, R0], m1: => Matcher[T1, R1], m2: => Matcher[T2, R2])(f: (T0, T1, T2) => P): Matcher[P, (R0, R1, R2)] = Matcher {
+    p => m0(p.productElement(0).asInstanceOf[T0]) && m1(p.productElement(1).asInstanceOf[T1]) && m2(p.productElement(2).asInstanceOf[T2]) map MatchResult.unroll3
   }
 
   /**
