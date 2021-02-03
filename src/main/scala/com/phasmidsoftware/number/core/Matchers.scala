@@ -5,8 +5,6 @@ import scala.util.{Failure, Success, Try}
 /**
   * This trait defines a set of Matchers which operate in a parallel fashion to the Parsers of the Scala
   * Parser Combinator library.
-  *
-  * CONSIDER using ^^ in more situations.
   */
 trait Matchers {
 
@@ -44,7 +42,7 @@ trait Matchers {
     * @tparam R both the input type and the result type.
     * @return a Matcher[R, R] which always succeeds.
     */
-  def always[R]: Matcher[R, R] = Matcher(x => Match(x))
+  def always[R]: Matcher[R, R] = lift(identity)
 
   /**
     * Matcher which succeeds if the input is equal to the given t0
@@ -57,6 +55,7 @@ trait Matchers {
 
   /**
     * Matcher which reverses the sense of this Matcher.
+    * However, an Error remains an Error.
     *
     * @param m a Matcher[T, R]
     * @param r the default result value, only to be used in the even of a Miss.
@@ -67,6 +66,7 @@ trait Matchers {
   def not[T, R](m: Matcher[T, R], r: => R): Matcher[T, R] = t => m(t) match {
     case Match(_) => Miss(t)
     case Miss(_) => Match(r)
+    case Error(e) => Error(e)
   }
 
   /**
@@ -100,22 +100,6 @@ trait Matchers {
     */
   def having[T, U, R](m: Matcher[U, R])(lens: T => U): Matcher[T, R] = Matcher(t => m(lens(t)))
 
-  /**
-    * Method to match a T, resulting in an R, where the match is indirectly determined by
-    * the given lens function.
-    *
-    * @param m    a Matcher[U, R].
-    * @param lens a function T => U.
-    * @tparam U the type of a property that is matched by m.
-    * @return a Matcher[T, R]
-    */
-  def havingSame[T, U, R](m: Matcher[U, T])(lens: T => U): Matcher[T, R] = Matcher(
-    t => {
-      val result: MatchResult[T] = m(lens(t))
-      result map (_ => t.asInstanceOf[R])
-    }
-  )
-
   /** A helper method that turns a `Parser` into one that will
     * print debugging information to stdout before and after
     * being applied.
@@ -126,6 +110,41 @@ trait Matchers {
     println(name + " --> " + r)
     r
   }
+
+//  /**
+//    * TODO: implement me
+//    *
+//    * (Internal) log method which expands on the capabilities of Parsers.log.
+//    * If ll is LogOff, p is returned unchanged, other than that on failure of p, the parser failure(name) is invoked.
+//    * If ll is LogInfo, a parser based on p, which on successful parsing logging with println will occur, is returned.
+//    * If ll is LogDebug, then the value of log(p)(name) is returned.
+//    *
+//    * @param p    a parser[T].
+//    * @param name a String to identify this parser.
+//    * @param ll   (implicit) LogLevel.
+//    * @tparam T the underlying type of p and the result.
+//    * @return a Parser[T].
+//    */
+//  def log[T, R](m: => Matcher[T, R])(name: => String)(implicit ll: LogLevel): Matcher[T, R] = ll match {
+//    case LogDebug => Matcher { t =>
+//      println("trying " + name + " at " + t)
+//      val r = m(t)
+//      println(name + " --> " + r)
+//      r
+//    }
+//
+//    case LogInfo =>
+//      val q = m | failure(name)
+//      Matcher { in =>
+//        tee(q(in)) {
+//          case this.Match(x, _) => println(s"$name: matched $x")
+//          case _ =>
+//        }
+//      }
+//
+//    case _ => m | failure(name)
+//  }
+
 
   /**
     * Method to create a Matcher, based on the given function f.
@@ -481,7 +500,7 @@ trait Matchers {
       * @tparam S the result type of m.
       * @return a Matcher[(T,P), S] which is the result of invoking ~ but stripping the first element of the tuple.
       */
-    def ~>[P, S](m: Matcher[P, S]): Matcher[(T, P), S] = this ~ m ^^ (rr => rr._2)
+    def ~>[P, S](m: Matcher[P, S]): Matcher[(T, P), S] = this ~ m ^^ (_._2)
 
     /**
       * Method to combine Matchers this and m such that the resulting Matcher takes a tuple and results in the result from this.
@@ -491,10 +510,10 @@ trait Matchers {
       * @tparam S the result type of m.
       * @return a Matcher[(T,P), R] which is the result of invoking ~ but stripping the second element of the tuple.
       */
-    def <~[P, S](m: Matcher[P, S]): Matcher[(T, P), R] = this ~ m ^^ (rr => rr._1)
+    def <~[P, S](m: Matcher[P, S]): Matcher[(T, P), R] = this ~ m ^^ (_._1)
 
     /**
-      * Matcher which always succeeds but whose result is based on a Try[R].
+      * Matcher which always succeeds (unless this causes an Error) but whose result is based on a Try[R].
       *
       * @return Matcher[T, Option of R]
       */
@@ -503,6 +522,7 @@ trait Matchers {
         case Success(Match(z)) => Match(Success(z))
         case Success(Miss(_)) => Match(Failure(MatcherException("Miss")))
         case Failure(x) => Match(Failure(x))
+        case Success(Error(e)) => Error(e)
       }
     )
   }
@@ -514,13 +534,27 @@ trait Matchers {
     * @tparam R the type of the result.
     */
   case class Match[+R](r: R) extends MatchResult[R] {
+    /**
+      * @return true
+      */
     def successful: Boolean = true
 
-    def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = s match {
-      case Match(s) => Match(r -> s)
-      case Miss(x) => Miss(x)
-    }
+    /**
+      * If s is a Match, then the result will be a Match of the tuple of r and the result of s.
+      *
+      * @param s a MatchResult[S].
+      * @tparam S the underlying type of s.
+      * @return a MatchResult[(R,S)].
+      */
+    def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = s.flatMap(z => Match(r -> z))
 
+    /**
+      * Returns the result of invoking f on r.
+      *
+      * @param f a function of R => MatchResult[S].
+      * @tparam S the underlying type of the returned MatchResult.
+      * @return MatchResult[S].
+      */
     def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = f(r)
 
     /**
@@ -551,6 +585,9 @@ trait Matchers {
       */
     def &[S >: R, T](m: => Matcher[S, T]): MatchResult[T] = m(get)
 
+    /**
+      * @return r.
+      */
     def get: R = r
 
     override def toString: String = s"Match: $r"
@@ -564,15 +601,37 @@ trait Matchers {
     * @tparam R the result-type of this.
     */
   case class Miss[T, +R](t: T) extends MatchResult[R] {
+    /**
+      *
+      * @return false.
+      */
     def successful: Boolean = false
 
+    /**
+      * @param f a function of R => S (ignored)
+      * @tparam S the underlying type of the returned MatchResult.
+      * @return Miss(t).
+      */
     override def map[S](f: R => S): MatchResult[S] = Miss(t)
 
+    /**
+      * @param s a MatchResult[S] (ignored).
+      * @tparam S the underlying type of s.
+      * @return Miss(t).
+      */
     def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Miss(t)
 
+    /**
+      * @throws MatcherException cannot call get on Miss.
+      */
     def get: R = throw MatcherException("cannot call get on Miss")
 
-    def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = throw MatcherException("cannot call flatMap on Miss")
+    /**
+      * @param f a function of R => MatchResult[S] (ignored).
+      * @tparam S the underlying type of the returned MatchResult.
+      * @return Miss(t).
+      */
+    def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = Miss(t)
 
     /**
       * Alternation method which takes a MatchResult as the alternative.
@@ -612,12 +671,29 @@ trait Matchers {
     * @tparam R the result-type of this.
     */
   case class Error[+R](e: Throwable) extends MatchResult[R] {
+    /**
+      *
+      * @return false.
+      */
     def successful: Boolean = false
 
+    /**
+      * @param f a function of R => S (ignored)
+      * @tparam S the underlying type of the returned MatchResult.
+      * @return Error(e).
+      */
     override def map[S](f: R => S): MatchResult[S] = Error(e)
 
+    /**
+      * @param s a MatchResult[S] (ignored).
+      * @tparam S the underlying type of s.
+      * @return Error(t).
+      */
     def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Error(e)
 
+    /**
+      * @throws Exception e.
+      */
     def get: R = throw e
 
     def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = throw e
@@ -664,3 +740,19 @@ trait Matchers {
 }
 
 case class MatcherException(msg: String) extends Exception(msg)
+
+
+/**
+  * Trait which is used to define a logging level for the logit method of SignificantSpaceParsers.
+  */
+trait LogLevel
+
+case object LogDebug extends LogLevel
+
+case object LogInfo extends LogLevel
+
+case object LogOff extends LogLevel
+
+object LogLevel {
+  implicit val ll: LogLevel = LogOff
+}
