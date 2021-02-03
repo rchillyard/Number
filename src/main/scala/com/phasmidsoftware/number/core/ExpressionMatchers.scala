@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.core
 
+import scala.language.implicitConversions
+
 /**
   * Matchers whose input is generally an Expression.
   */
@@ -16,6 +18,8 @@ class ExpressionMatchers extends Matchers {
     */
   abstract class ExpressionMatcher[+R] extends Matcher[Expression, R]
 
+  implicit def matcherConverter[R](x: Matcher[Expression, R]): ExpressionMatcher[R] = ExpressionMatcher(x)
+
   /**
     * Method to create an ExpressionMatcher.
     *
@@ -25,9 +29,21 @@ class ExpressionMatchers extends Matchers {
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
-  def matcherToExpressionMatcher[R](m: Matcher[Expression, R]): ExpressionMatcher[R] = (e: Expression) => m(e)
+  //  def simplifier: ExpressionMatcher[Number] = biFunctionSimplifier("+") | biFunctionSimplifier("*") | biFunctionSimplifier("^") | functionSimplifier("ln") | functionSimplifier("exp") | materializer
 
-  def always: ExpressionMatcher[Expression] = ExpressionMatcher(super.always)
+  //  def biFunctionSimplifier(f: String): ExpressionMatcher[Number] = matchBiFunction & matchDyadicTriple(x,y,z)
+
+  //  def functionSimplifier(f: String): ExpressionMatcher[Number] = matchFunction & matchMonadicDuple(x,y)
+
+  def materializer: ExpressionMatcher[Number] = ExpressionMatcher(e => Match(e.materialize))
+
+  /**
+    * This is the Matcher which should be applied to the root of an Expression in order to yield a numeric value that is,
+    * ideally, optimized.
+    *
+    * @return
+    */
+  //  def evaluator: ExpressionMatcher[Number] = ExpressionMatcher(value | simplifier | materializer)
 
   /**
     * Matcher which matches on Expressions that directly represent Numbers.
@@ -59,29 +75,41 @@ class ExpressionMatchers extends Matchers {
     * @param x the Number to match.
     * @return a Matcher[Expression, Number].
     */
-  def matchValue(x: Number): ExpressionMatcher[Number] = ExpressionMatcher(value & matchNumber(x))
+  def matchValue(x: Number): ExpressionMatcher[Number] = value & matchNumber(x)
+
+  def matchFunction: ExpressionMatcher[MonadicDuple] = {
+    case Function(x, f) => Match(MonadicDuple(f, x))
+    case e => Miss(e)
+  }
 
   def matchBiFunction: ExpressionMatcher[DyadicTriple] = {
     case BiFunction(a, b, f) => Match(DyadicTriple(f, a, b))
     case e => Miss(e)
   }
 
-  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, ExpressionBiFunction], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
-    matchProduct3All(fm, lm, rm)(DyadicTriple)
+  // CONSIDER does this really make sense? We end up extracting just the expression, providing that the function matches OK.
+  def matchMonadicDuple(fm: Matcher[ExpressionFunction, ExpressionFunction], om: ExpressionMatcher[Expression]): Matcher[MonadicDuple, Expression] =
+    from2(fm ~> om)(MonadicDuple)
 
-//  def matchBiFunctionByName(name: String): ExpressionMatcher[Number] = {
-  //    val matcher1: ExpressionMatcher[DyadicTriple] = matchBiFunction
-  //    val functionMatcher: Matcher[ExpressionBiFunction, ExpressionBiFunction] = matchBiFunctionByName("+")
-  //    val expressionMatcher = matcherToExpressionMatcher(matchBiFunctionByName("*") ^^ (Expression(_)))
-//    val matcher2: Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
-//      matchDyadicTriple(functionMatcher, always, expressionMatcher)
-//    val result: ExpressionMatcher[(ExpressionBiFunction, Expression, Expression)] = ExpressionMatcher(matcher1 & matcher2)
-//    ExpressionMatcher(result ^^ { case (f,x,y) => BiFunction(x,y,f) .materialize})
-//  }
+  import MatchResult._
 
-//  def matchExpressionBiFunction: Matcher[ExpressionBiFunction,ExpressionBiFunction] = always
+  // CONSIDER does this really make sense? We end up extracting just the two expressions (inverted), providing that the function matches OK.
+  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, ExpressionBiFunction], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (Expression, Expression)] =
+    matchProduct3All(fm, lm, rm)(DyadicTriple) ^^ (x => roll3(invert3(x))._1)
 
-//  def matchExpressionBiFunctionByName(name: String): Matcher[ExpressionBiFunction,ExpressionBiFunction] = havingSame[ExpressionBiFunction,String](matches(name))(_.name)
+  //  def matchBiFunctionByName(name: String): ExpressionMatcher[Number] = {
+  //      val matcher1: ExpressionMatcher[DyadicTriple] = matchBiFunction
+  //      val functionMatcher: Matcher[ExpressionBiFunction, ExpressionBiFunction] = matchBiFunctionByName("+")
+  //      val expressionMatcher = ExpressionMatcher(matchBiFunctionByName("*") ^^ (Expression(_)))
+  //    val matcher2: Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
+  //      matchDyadicTriple(functionMatcher, ExpressionMatcher(always[Expression]), expressionMatcher)
+  //    val result: ExpressionMatcher[(ExpressionBiFunction, Expression, Expression)] = ExpressionMatcher(matcher1 & matcher2)
+  //    ExpressionMatcher(result ^^ { case (f,x,y) => BiFunction(x,y,f) .materialize})
+  //  }
+
+  //  def matchExpressionBiFunction: Matcher[ExpressionBiFunction,ExpressionBiFunction] = always
+
+  //  def matchExpressionBiFunctionByName(name: String): Matcher[ExpressionBiFunction,ExpressionBiFunction] = havingSame[ExpressionBiFunction,String](matches(name))(_.name)
 
   //    /**
   //      * Matcher which matches on Expression that directly represents a specific given Number.

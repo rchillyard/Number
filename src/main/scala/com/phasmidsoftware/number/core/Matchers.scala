@@ -97,6 +97,19 @@ trait Matchers {
     }
   )
 
+
+  /** A helper method that turns a `Parser` into one that will
+    * print debugging information to stdout before and after
+    * being applied.
+    */
+  def log[T, R](m: => Matcher[T, R])(name: String): Matcher[T, R] = Matcher { t =>
+    println("trying " + name + " at " + t)
+    val r = m(t)
+    println(name + " --> " + r)
+    r
+  }
+
+
   /**
     * Method to create a Matcher, based on the given function f.
     *
@@ -239,6 +252,38 @@ trait Matchers {
     */
   def match3All[T0, T1, T2, R0, R1, R2](m0: Matcher[T0, R0], m1: => Matcher[T1, R1], m2: => Matcher[T2, R2]): Matcher[(T0, T1, T2), (R0, R1, R2)] = Matcher {
     case (t0, t1, t2) => m0(t0) && m1(t1) && m2(t2) map MatchResult.unroll3
+  }
+
+  /**
+    * Method to create a Matcher which operates on an instance of a case class (or other Product) P but which invokes m (which takes a 2-tuple).
+    *
+    * @param m a Matcher[(T0, T1), R].
+    * @param f a function (T0, T1) => P.
+    * @tparam T0 the first element type.
+    * @tparam T1 the second element type.
+    * @tparam P  the Product type.
+    * @tparam R  the result type.
+    * @return a Matcher[P, R]
+    */
+  def from2[T0, T1, P <: Product, R](m: Matcher[(T0, T1), R])(f: (T0, T1) => P): Matcher[P, R] = Matcher {
+    p => m(p.productElement(0).asInstanceOf[T0], p.productElement(1).asInstanceOf[T1])
+  }
+
+  /**
+    * Method to create a Matcher which operates on an instance of a case class (or other Product) P
+    * but which invokes m (which takes a 3-tuple).
+    *
+    * @param m a Matcher[(T0, T1), R].
+    * @param f a function (T0, T1) => P.
+    * @tparam T0 the first element type.
+    * @tparam T1 the second element type.
+    * @tparam T2 the third element type.
+    * @tparam P  the Product type.
+    * @tparam R  the result type.
+    * @return a Matcher[P, R]
+    */
+  def from3[T0, T1, T2, P <: Product, R](m: Matcher[(T0, T1, T2), R])(f: (T0, T1, T2) => P): Matcher[P, R] = Matcher {
+    p => m(p.productElement(0).asInstanceOf[T0], p.productElement(1).asInstanceOf[T1], p.productElement(2).asInstanceOf[T2])
   }
 
   /**
@@ -394,6 +439,36 @@ trait Matchers {
     def &[S](m: Matcher[R, S]): Matcher[T, S] = Matcher(t => this (t) & m)
 
     /**
+      * Method to combine Matchers this and m such that the resulting Matcher takes a tuple and results in a tuple.
+      *
+      * @param m a Matcher[P, S]
+      * @tparam P the input type of m.
+      * @tparam S the result type of m.
+      * @return a Matcher[(T,P), (R,S)] which is the result of invoking match2All(this, m).
+      */
+    def ~[P, S](m: Matcher[P, S]): Matcher[(T, P), (R, S)] = match2All(this, m)
+
+    /**
+      * Method to combine Matchers this and m such that the resulting Matcher takes a tuple and results in the result from m.
+      *
+      * @param m a Matcher[P, S]
+      * @tparam P the input type of m.
+      * @tparam S the result type of m.
+      * @return a Matcher[(T,P), S] which is the result of invoking ~ but stripping the first element of the tuple.
+      */
+    def ~>[P, S](m: Matcher[P, S]): Matcher[(T, P), S] = this ~ m ^^ (rr => rr._2)
+
+    /**
+      * Method to combine Matchers this and m such that the resulting Matcher takes a tuple and results in the result from this.
+      *
+      * @param m a Matcher[P, S]
+      * @tparam P the input type of m.
+      * @tparam S the result type of m.
+      * @return a Matcher[(T,P), R] which is the result of invoking ~ but stripping the second element of the tuple.
+      */
+    def <~[P, S](m: Matcher[P, S]): Matcher[(T, P), R] = this ~ m ^^ (rr => rr._1)
+
+    /**
       * Matcher which always succeeds but whose result is based on a Try[R].
       *
       * @return Matcher[T, Option of R]
@@ -502,7 +577,11 @@ trait Matchers {
   }
 
   object MatchResult {
+    def invert3[R0, R1, R2](t: (R0, R1, R2)): (R2, R1, R0) = (t._3, t._2, t._1)
+
     def unroll3[R0, R1, R2](t: ((R0, R1), R2)): (R0, R1, R2) = (t._1._1, t._1._2, t._2)
+
+    def roll3[R0, R1, R2](t: (R0, R1, R2)): ((R0, R1), R2) = t._1 -> t._2 -> t._3
   }
 }
 

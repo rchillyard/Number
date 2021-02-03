@@ -32,4 +32,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers {
     val e = Literal(one)
     f(e).successful shouldBe true
   }
+
+  behavior of "|"
+  it should "work with | 1 or 2" in {
+    val q = new ExpressionMatchers {}
+    val f = q.matchValue(one)
+    val g = f | q.matchValue(Number.pi)
+    f(Literal(one)).successful shouldBe true
+    g(Literal(Number.pi)).successful shouldBe true
+    g(Literal(Number.e)).successful shouldBe false
+  }
+
 }

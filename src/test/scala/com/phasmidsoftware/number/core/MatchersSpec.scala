@@ -106,13 +106,10 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "|"
   it should "work with | 1 or 2" in {
-    // TODO move this to ExpressionMatchers and replace with Matchers-based test
-    val q = new ExpressionMatchers {}
-    val f = q.matchValue(one)
-    val g = f | q.matchValue(Number.pi)
-    f(Literal(one)).successful shouldBe true
-    g(Literal(Number.pi)).successful shouldBe true
-    g(Literal(Number.e)).successful shouldBe false
+    val f = m.matches(1)
+    val g = f | m.matches(2)
+    g(1).successful shouldBe true
+    g(2).successful shouldBe true
   }
 
   behavior of "not"
@@ -124,6 +121,32 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     q(1).successful shouldBe false
     q(2).successful shouldBe true
     q(2).get shouldBe 0
+  }
+
+  behavior of "~"
+  it should "match (1,2) and result in (1,2)" in {
+    val p = m.matches(1)
+    val q = m.matches(2)
+    val z = p ~ q
+    val result = z(1 -> 2)
+    result.successful shouldBe true
+    result.get shouldBe (1 -> 2)
+  }
+  it should "match (1,2) and result in 2" in {
+    val p = m.matches(1)
+    val q = m.matches(2)
+    val z = p ~> q
+    val result = z(1 -> 2)
+    result.successful shouldBe true
+    result.get shouldBe 2
+  }
+  it should "match (1,2) and result in 1" in {
+    val p = m.matches(1)
+    val q = m.matches(2)
+    val z = p <~ q
+    val result = z(1 -> 2)
+    result.successful shouldBe true
+    result.get shouldBe 1
   }
 
   behavior of "having"
