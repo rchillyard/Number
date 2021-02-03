@@ -11,6 +11,16 @@ import scala.util.{Failure, Success, Try}
 trait Matchers {
 
   /**
+    * Matcher based on the function f.
+    *
+    * @param f a function of T => R
+    * @tparam T the input type to both f and the resulting Matcher.
+    * @tparam R the result type to both f and the resulting Matcher.
+    * @return a Matcher[T, R].
+    */
+  def lift[T, R](f: T => R): Matcher[T, R] = Matcher(t => Match(f(t)))
+
+  /**
     * Matcher which always fails and creates a Miss with the value tried.
     *
     * @tparam T the input type.
@@ -18,6 +28,15 @@ trait Matchers {
     * @return a Matcher[T, R]
     */
   def fail[T, R]: Matcher[T, R] = Matcher(t => Miss(t))
+
+  /**
+    * Matcher which always fails and creates a Miss with the value tried.
+    *
+    * @param e a Throwable.
+    * @tparam R the result type.
+    * @return a Matcher[T, R]
+    */
+  def error[R](e: Throwable): Matcher[Any, R] = Matcher(_ => Error(e))
 
   /**
     * Matcher which always succeeds and whose input type and result type are the same.
@@ -97,7 +116,6 @@ trait Matchers {
     }
   )
 
-
   /** A helper method that turns a `Parser` into one that will
     * print debugging information to stdout before and after
     * being applied.
@@ -108,7 +126,6 @@ trait Matchers {
     println(name + " --> " + r)
     r
   }
-
 
   /**
     * Method to create a Matcher, based on the given function f.
@@ -267,6 +284,14 @@ trait Matchers {
     */
   def from2[T0, T1, P <: Product, R](m: Matcher[(T0, T1), R])(f: (T0, T1) => P): Matcher[P, R] = Matcher {
     p => m(p.productElement(0).asInstanceOf[T0], p.productElement(1).asInstanceOf[T1])
+  }
+
+  def from2Alt[T0, T1, P <: Product, R](m: Matcher[(T0, T1), R])(f: P => Option[(T0, T1)]): Matcher[P, R] = Matcher {
+    p =>
+      f(p) match {
+        case Some((t0, t1)) => m(t0, t1)
+        case _ => Error(MatcherException("logic error"))
+      }
   }
 
   /**
@@ -527,6 +552,8 @@ trait Matchers {
     def &[S >: R, T](m: => Matcher[S, T]): MatchResult[T] = m(get)
 
     def get: R = r
+
+    override def toString: String = s"Match: $r"
   }
 
   /**
@@ -574,6 +601,56 @@ trait Matchers {
       * @return a MatchResult[T].
       */
     def &[S >: R, U](m: => Matcher[S, U]): MatchResult[U] = Miss(t)
+
+    override def toString: String = s"Miss: $t"
+  }
+
+  /**
+    * Error when matching.
+    *
+    * @param e the exception that was thrown.
+    * @tparam R the result-type of this.
+    */
+  case class Error[+R](e: Throwable) extends MatchResult[R] {
+    def successful: Boolean = false
+
+    override def map[S](f: R => S): MatchResult[S] = Error(e)
+
+    def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Error(e)
+
+    def get: R = throw e
+
+    def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = throw e
+
+    /**
+      * Alternation method which takes a MatchResult as the alternative.
+      *
+      * @param s a MatchResult which will be used if this is empty.
+      * @return s.
+      */
+    def ||[S >: R](s: => MatchResult[S]): MatchResult[S] = Error(e)
+
+    /**
+      * Alternation method which takes a Matcher as the alternative.
+      * If this MatchResult is empty then return the value of m applied to the input.
+      *
+      * @param m a Matcher of Any to R.
+      * @return m(t).
+      */
+    def |[S >: R](m: => Matcher[Any, S]): MatchResult[S] = Error(e)
+
+    /**
+      * Composition method.
+      * If this MatchResult is successful then return the value of m applied to the result.
+      *
+      * @param m a Matcher of S to T.
+      * @tparam S the underlying type of the input to m (S is a super-class of R).
+      * @tparam U the underlying type of the returned value.
+      * @return a MatchResult[T].
+      */
+    def &[S >: R, U](m: => Matcher[S, U]): MatchResult[U] = Error(e)
+
+    override def toString: String = s"Error: ${e.getLocalizedMessage}"
   }
 
   object MatchResult {
@@ -583,6 +660,7 @@ trait Matchers {
 
     def roll3[R0, R1, R2](t: (R0, R1, R2)): ((R0, R1), R2) = t._1 -> t._2 -> t._3
   }
+
 }
 
 case class MatcherException(msg: String) extends Exception(msg)

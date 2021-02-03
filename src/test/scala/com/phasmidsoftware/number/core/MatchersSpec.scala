@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core.Number.one
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -32,6 +33,10 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "support fail" in {
     val target = m.fail[Unit, Unit]
+    target(()).successful shouldBe false
+  }
+  it should "support error" in {
+    val target = m.error[Unit](new NoSuchElementException)
     target(()).successful shouldBe false
   }
   it should "support |" in {
@@ -164,55 +169,73 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   case class StringPair(t1: String, t2: String)
 
   it should "succeed with toInt and 0" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
-    val q: m.Matcher[String, Int] = m.Matcher(_ => m.Match(0))
-    val f: (String, String) => StringPair = StringPair.apply
-    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(p, q)(f)
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
+    val q: m.Matcher[String, Int] = m.success(0)
+    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(p, q)(StringPair)
     val tuple = StringPair("1", "")
     r(tuple).successful shouldBe true
   }
   it should "succeed with toInt and fail" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.fail
-    val f: (String, String) => StringPair = StringPair.apply
-    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(p, q)(f)
+    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(p, q)(StringPair)
     val tuple = StringPair("1", "")
     r(tuple).successful shouldBe true
   }
   it should "succeed with fail and toInt" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.fail
-    val f: (String, String) => StringPair = StringPair.apply
-    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(q, p)(f)
+    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(q, p)(StringPair)
     val tuple = StringPair("", "1")
     r(tuple).successful shouldBe true
   }
   it should "fail with fail and fail" in {
     val p: m.Matcher[String, Int] = m.fail
     val q: m.Matcher[String, Int] = m.fail
-    val f: (String, String) => StringPair = StringPair.apply
-    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(p, q)(f)
+    val r: m.Matcher[StringPair, Int] = m.matchProduct2Any(p, q)(StringPair)
     val tuple = StringPair("1", "")
     r(tuple).successful shouldBe false
   }
 
+  behavior of "matchProduct2All"
+  it should "succeed with toInt and 0" in {
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
+    val q: m.Matcher[String, Int] = m.success(0)
+    val r: m.Matcher[StringPair, (Int, Int)] = m.matchProduct2All(p, q)(StringPair)
+    val tuple = StringPair("1", "")
+    r(tuple).successful shouldBe true
+  }
+
+  behavior of "matchProduct3All"
+
+  case class Triple(t1: String, t2: String, t3: Int)
+
+  it should "succeed with toInt and 0 and identity" in {
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
+    val q: m.Matcher[String, Int] = m.success(0)
+    val z: m.Matcher[Int, Int] = m.lift(identity)
+    val r: m.Matcher[Triple, (Int, Int, Int)] = m.matchProduct3All(p, q, z)(Triple.apply)
+    val tuple = Triple("1", "", 0)
+    r(tuple).successful shouldBe true
+  }
+
   behavior of "match2Any"
   it should "succeed with toInt and 0" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
-    val q: m.Matcher[String, Int] = m.Matcher(_ => m.Match(0))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
+    val q: m.Matcher[String, Int] = m.success(0)
     val r: m.Matcher[(String, String), Int] = m.match2Any(p, q)
     val tuple = ("1", "")
     r(tuple).successful shouldBe true
   }
   it should "succeed with toInt and fail" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.fail
     val r: m.Matcher[(String, String), Int] = m.match2Any(p, q)
     val tuple = ("1", "")
     r(tuple).successful shouldBe true
   }
   it should "succeed with fail and toInt" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.fail
     val r: m.Matcher[(String, String), Int] = m.match2Any(q, p)
     val tuple = ("", "1")
@@ -228,15 +251,15 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "match3Any"
   it should "succeed with toInt and 0" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
-    val q: m.Matcher[String, Int] = m.Matcher(_ => m.Match(0))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
+    val q: m.Matcher[String, Int] = m.success(0)
     val z: m.Matcher[String, Int] = m.success(1 / 0)
     val r: m.Matcher[(String, String, String), Int] = m.match3Any(p, q, z)
     val tuple = ("1", "", "junk")
     r(tuple).successful shouldBe true
   }
   it should "succeed with toInt and fail" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.fail
     val z: m.Matcher[String, Int] = m.success(1 / 0)
     val r: m.Matcher[(String, String, String), Int] = m.match3Any(p, q, z)
@@ -244,7 +267,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     r(tuple).successful shouldBe true
   }
   it should "succeed with fail and toInt" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.fail
     val z: m.Matcher[String, Int] = m.success(1 / 0)
     val r: m.Matcher[(String, String, String), Int] = m.match3Any(p, q, z)
@@ -262,21 +285,21 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "match2All"
   it should "succeed with toInt and 0" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.success(0)
     val r: m.Matcher[(String, String), (Int, Int)] = m.match2All(p, q)
     val tuple = ("1", "")
     r(tuple).successful shouldBe true
   }
   it should "fail with toInt and fail" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.fail
     val r: m.Matcher[(String, String), (Int, Int)] = m.match2All(p, q)
     val tuple = ("1", "")
     r(tuple).successful shouldBe false
   }
   it should "fail with fail and toInt" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.fail
     val r: m.Matcher[(String, String), (Int, Int)] = m.match2All(q, p)
     val tuple = ("", "1")
@@ -292,7 +315,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "match3All"
   it should "succeed with toInt and 0" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.success(0)
     val z: m.Matcher[String, Int] = m.success(1)
     val r: m.Matcher[(String, String, String), (Int, Int, Int)] = m.match3All(p, q, z)
@@ -300,7 +323,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     r(tuple).successful shouldBe true
   }
   it should "fail with toInt and fail" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Int] = m.fail
     val z: m.Matcher[String, Int] = m.success(1 / 0)
     val r: m.Matcher[(String, String, String), (Int, Int, Int)] = m.match3All(p, q, z)
@@ -310,21 +333,21 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "opt"
   it should "succeed with a match" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q = m.opt(p)
     q("1") should matchPattern { case m.Match(Some(1)) => }
   }
 
   behavior of "?"
   it should "succeed with a match" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Option[Int]] = p.?
     q("1") should matchPattern { case m.Match(Some(1)) => }
   }
 
   behavior of "trial"
   it should "succeed with a match" in {
-    val p: m.Matcher[String, Int] = m.Matcher(w => m.Match(w.toInt))
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Try[Int]] = p.trial
     q("1") should matchPattern { case m.Match(Success(1)) => }
   }

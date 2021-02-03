@@ -91,6 +91,8 @@ class ExpressionMatchers extends Matchers {
   def matchMonadicDuple(fm: Matcher[ExpressionFunction, ExpressionFunction], om: ExpressionMatcher[Expression]): Matcher[MonadicDuple, Expression] =
     from2(fm ~> om)(MonadicDuple)
 
+  //  from2Alt(fm ~> om)(MonadicDuple.unapply)
+
   import MatchResult._
 
   // CONSIDER does this really make sense? We end up extracting just the two expressions (inverted), providing that the function matches OK.
