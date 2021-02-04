@@ -1,10 +1,9 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.one
+import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
-import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -109,6 +108,32 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     f(Literal(one)).successful shouldBe false
   }
 
+  behavior of "matches"
+  it should "match 1" in {
+    val f = m.matches(1)
+    f(1).successful shouldBe true
+  }
+
+  behavior of "valve"
+  it should "match 1" in {
+    val p: (Int, Int) => Boolean = {
+      case (x, y) => x == y
+    }
+    val f: m.Matcher[(Int, Int), Int] = m.valve(identity, p)
+    f(1, 1).successful shouldBe true
+  }
+  it should "match parity" in {
+    val p: (Int, Int) => Boolean = {
+      case (x, y) => y % 2 == x
+    }
+    val f: m.Matcher[(Int, Int), Int] = m.valve(identity, p)
+    val odd = 1
+    val even = 0
+    f(odd, 3) shouldBe m.Match(3)
+    f(even, 4) shouldBe m.Match(4)
+    f(even, 3) shouldBe m.Miss(3)
+  }
+
   behavior of "|"
   it should "work with | 1 or 2" in {
     val f = m.matches(1)
@@ -118,7 +143,6 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "not"
-
   it should "work" in {
     val p = m.matches(1)
     val q = m.not(p, 0)

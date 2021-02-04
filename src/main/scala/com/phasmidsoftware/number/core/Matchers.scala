@@ -54,6 +54,19 @@ trait Matchers {
   def matches[T](t: T): Matcher[T, T] = Matcher(x => if (x == t) Match(x) else Miss(x))
 
   /**
+    * Matcher whose success depends on the application of a function f to two inputs.
+    *
+    * @param f a (Q, T) => MatchResult[R].
+    * @tparam Q the "control" type.
+    * @tparam T the "input" type.
+    * @tparam R the result type.
+    * @return a Matcher[(Q,R), T].
+    */
+  def valve[Q, T, R](f: T => R, p: (Q, R) => Boolean): Matcher[(Q, T), R] = {
+    case (q, t) => MatchResult(f, p)(q, t)
+  }
+
+  /**
     * Matcher which reverses the sense of this Matcher.
     * However, an Error remains an Error.
     *
@@ -290,6 +303,26 @@ trait Matchers {
     case (t0, t1, t2) => m0(t0) && m1(t1) && m2(t2) map MatchResult.unroll3
   }
 
+//  /**
+//    * Method to match any element of a Product with two elements.
+//    *
+//    * @param m0 the Matcher corresponding to the first element.
+//    * @param m1 the Matcher corresponding to the second element.
+//    * @param m2 the Matcher corresponding to the third element.
+//    * @param f  a function which takes a (t0, t1, t3) and returns a P.
+//    * @tparam T0 the input type for the first Matcher.
+//    * @tparam T1 the input type for the second Matcher.
+//    * @tparam T2 the input type for the third Matcher.
+//    * @tparam R0 the first MatchResult type.
+//    * @tparam R1 the second MatchResult type.
+//    * @tparam R2 the third MatchResult type.
+//    * @tparam P  the input type.
+//    * @return a Matcher[P, (R0, R1, R2)] that matches at least one of the elements of the given tuple.
+//    */
+//  def chainProduct3All[T0, T1, T2, R0, R1, R2, P <: Product](m0: Matcher[T0, R0], m1: => Matcher[T1, R1], m2: => Matcher[T2, R2])(f: (T0, T1, T2) => P): Matcher[P, (R0, R1, R2)] = Matcher {
+//    p => m0(p.productElement(0).asInstanceOf[T0]) chain m1(p.productElement(1).asInstanceOf[T1]) & m2(p.productElement(2).asInstanceOf[T2]) map MatchResult.unroll3
+//  }
+
   /**
     * Method to create a Matcher which operates on an instance of a case class (or other Product) P but which invokes m (which takes a 2-tuple).
     *
@@ -525,6 +558,10 @@ trait Matchers {
         case Success(Error(e)) => Error(e)
       }
     )
+
+//    def chain[Q,S,U](m: Matcher[(R,S),U]): Matcher[(Q,T),U] = Matcher { case (q,t) => this (t) match {
+//      case Match(r) => m(r, )
+//    }}
   }
 
   /**
@@ -730,6 +767,32 @@ trait Matchers {
   }
 
   object MatchResult {
+    /**
+      * Create a MatchResult based on an input value t, a result r, and a predicate p.
+      *
+      * @param p the predicate which determines whether the result is a Match or a Miss.
+      * @param t the input value (ignored for a Match).
+      * @param r the result value.
+      * @tparam Q the control type.
+      * @tparam T the input type.
+      * @tparam R the result type.
+      * @return a MatchResult[R].
+      */
+    def apply[Q, T, R](p: (Q, R) => Boolean)(q: Q, t: T, r: R): MatchResult[R] = if (p(q, r)) Match(r) else Miss(t)
+
+    /**
+      * Create a MatchResult based on an input value t, a T=>R, and a predicate p.
+      *
+      * @param p the predicate which determines whether the result is a Match or a Miss.
+      * @param t the input value.
+      * @param f the function T => R.
+      * @tparam T the input type.
+      * @tparam R the result type.
+      * @return a MatchResult[R].
+      */
+    def apply[Q, T, R](f: T => R, p: (Q, R) => Boolean)(q: Q, t: T): MatchResult[R] = MatchResult(p)(q, t, f(t))
+
+    // CONSIDER move these to a tuple-specific class
     def invert3[R0, R1, R2](t: (R0, R1, R2)): (R2, R1, R0) = (t._3, t._2, t._1)
 
     def unroll3[R0, R1, R2](t: ((R0, R1), R2)): (R0, R1, R2) = (t._1._1, t._1._2, t._2)
