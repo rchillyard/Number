@@ -54,9 +54,11 @@ trait Matchers {
   def matches[T](t: T): Matcher[T, T] = Matcher(x => if (x == t) Match(x) else Miss(x))
 
   /**
-    * Matcher whose success depends on the application of a function f to two inputs.
+    * Matcher whose success depends on the application of a function f to the input,
+    * then the application of a predicate to a control value and the result of f.
     *
-    * @param f a (Q, T) => MatchResult[R].
+    * @param f a T => R.
+    * @param p a predicate based on the tuple (q, r) where r is the result of applying f to t.
     * @tparam Q the "control" type.
     * @tparam T the "input" type.
     * @tparam R the result type.
@@ -64,6 +66,19 @@ trait Matchers {
     */
   def valve[Q, T, R](f: T => R, p: (Q, R) => Boolean): Matcher[(Q, T), R] = {
     case (q, t) => MatchResult(f, p)(q, t)
+  }
+
+  /**
+    * Matcher whose success depends on the application of a function f to the input,
+    * then the application of a predicate to a control value and the result of f.
+    *
+    * @param p a predicate based on the tuple (q, r) where r is the result of applying f to t.
+    * @tparam Q the "control" type.
+    * @tparam T the "input" type.
+    * @return a Matcher[(Q,R), T].
+    */
+  def valve[Q, T](p: (Q, T) => Boolean): Matcher[(Q, T), T] = {
+    case (q, t) => MatchResult.create(p)(q, t, t)
   }
 
   /**
@@ -112,6 +127,16 @@ trait Matchers {
     * @return a Matcher[T, R]
     */
   def having[T, U, R](m: Matcher[U, R])(lens: T => U): Matcher[T, R] = Matcher(t => m(lens(t)))
+
+  /**
+    * Not sure why we need this but it's here.
+    *
+    * @param q a control value.
+    * @param r a result value.
+    * @tparam R the common type.
+    * @return true if they are the same.
+    */
+  def isEqual[R](q: R, r: R): Boolean = q == r
 
   /** A helper method that turns a `Parser` into one that will
     * print debugging information to stdout before and after
@@ -559,9 +584,25 @@ trait Matchers {
       }
     )
 
-//    def chain[Q,S,U](m: Matcher[(R,S),U]): Matcher[(Q,T),U] = Matcher { case (q,t) => this (t) match {
-//      case Match(r) => m(r, )
-//    }}
+    /**
+      * Matcher which succeeds or not, depending on an additional Q value (the control).
+      *
+      * @param m a Matcher[(Q, R),U].
+      * @tparam Q the type of the control value.
+      * @tparam U the result type of m and the returned Matcher.
+      * @return a Matcher[(Q,T),U].
+      */
+    def chain[Q, U](m: Matcher[(Q, R), U]): Matcher[(Q, T), U] = Matcher {
+      case (q, t) => this (t) flatMap (r => m(q, r))
+    }
+
+    //      Matcher {
+    //      case (q, t) => this(t) match {
+    //        case Match(r) => m(q, r)
+    //        case Miss(t) => Miss((q, t))
+    //        case Error(e) => Error(e)
+    //      }
+    //    }
   }
 
   /**
@@ -768,6 +809,32 @@ trait Matchers {
 
   object MatchResult {
     /**
+      * Construct a MatchResult[R] based on a Boolean, a T and an R.
+      * If b is true, then the result is Match(r); otherwise it is Miss(t).
+      *
+      * @param b a Boolean.
+      * @param t a T.
+      * @param r an R.
+      * @tparam T input type.
+      * @tparam R result type.
+      * @return MatchResult[R].
+      */
+    def apply[T, R](b: Boolean, t: T, r: R): MatchResult[R] = if (b) Match(r) else Miss(t)
+
+    /**
+      * Construct a MatchResult[R] based on an Either[T, R].
+      *
+      * @param e either a Left[T] (miss) or a Right[R] (match).
+      * @tparam T the Miss type.
+      * @tparam R the Match type.
+      * @return a MatchResult[R]
+      */
+    def apply[T, R](e: Either[T, R]): MatchResult[R] = e match {
+      case Right(r) => Match(r)
+      case Left(t) => Miss(t)
+    }
+
+    /**
       * Create a MatchResult based on an input value t, a result r, and a predicate p.
       *
       * @param p the predicate which determines whether the result is a Match or a Miss.
@@ -778,19 +845,22 @@ trait Matchers {
       * @tparam R the result type.
       * @return a MatchResult[R].
       */
-    def apply[Q, T, R](p: (Q, R) => Boolean)(q: Q, t: T, r: R): MatchResult[R] = if (p(q, r)) Match(r) else Miss(t)
+    def create[Q, T, R](p: (Q, R) => Boolean)(q: Q, t: T, r: R): MatchResult[R] = if (p(q, r)) Match(r) else Miss(t)
 
     /**
-      * Create a MatchResult based on an input value t, a T=>R, and a predicate p.
+      * Yield a MatchResult[R] based on an input value t, a function f, and a predicate p.
       *
-      * @param p the predicate which determines whether the result is a Match or a Miss.
-      * @param t the input value.
       * @param f the function T => R.
+      * @param p the predicate which is applied to (q, r) to determines whether the result is a Match or a Miss,
+      *          where r is the result of applying f to t.
+      * @param q the control value.
+      * @param t the input value.
+      * @tparam Q the control type.
       * @tparam T the input type.
       * @tparam R the result type.
       * @return a MatchResult[R].
       */
-    def apply[Q, T, R](f: T => R, p: (Q, R) => Boolean)(q: Q, t: T): MatchResult[R] = MatchResult(p)(q, t, f(t))
+    def apply[Q, T, R](f: T => R, p: (Q, R) => Boolean)(q: Q, t: T): MatchResult[R] = MatchResult.create(p)(q, t, f(t))
 
     // CONSIDER move these to a tuple-specific class
     def invert3[R0, R1, R2](t: (R0, R1, R2)): (R2, R1, R0) = (t._3, t._2, t._1)

@@ -1,14 +1,37 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.one
-import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
+import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
   private val m = new Matchers {}
+
+  behavior of "MatchResult"
+  it should "implement apply(Boolean, T, R)" in {
+    m.MatchResult(true, "1", 1) shouldBe m.Match(1)
+    m.MatchResult(false, "1", 1) shouldBe m.Miss("1")
+  }
+  it should "implement apply(Either)" in {
+    val e1: Either[String, Int] = Left("1")
+    val e2: Either[String, Int] = Right(1)
+    m.MatchResult(e2) shouldBe m.Match(1)
+    m.MatchResult(e1) shouldBe m.Miss("1")
+  }
+  it should "implement apply((Q,R) => Boolean)" in {
+    val v1: m.MatchResult[Int] = m.MatchResult.create[Int, String, Int](m.isEqual)(1, "1", 1)
+    v1 shouldBe m.Match(1)
+    m.MatchResult.create[Int, String, Int](m.isEqual)(1, "1", 2) shouldBe m.Miss("1")
+  }
+  it should "implement apply(T=>R, (Q,R) => Boolean))" in {
+    val v1: m.MatchResult[Int] = m.MatchResult[Int, String, Int]({ s: String => s.toInt }, m.isEqual)(1, "1")
+    v1 shouldBe m.Match(1)
+    m.MatchResult.create[Int, String, Int](m.isEqual)(1, "1", 2) shouldBe m.Miss("1")
+  }
 
   behavior of "Match"
 
@@ -114,24 +137,52 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     f(1).successful shouldBe true
   }
 
-  behavior of "valve"
+  behavior of "valve (1)"
   it should "match 1" in {
     val p: (Int, Int) => Boolean = {
       case (x, y) => x == y
     }
-    val f: m.Matcher[(Int, Int), Int] = m.valve(identity, p)
+    val f: m.Matcher[(Int, Int), Int] = m.valve(p)
     f(1, 1).successful shouldBe true
   }
   it should "match parity" in {
     val p: (Int, Int) => Boolean = {
       case (x, y) => y % 2 == x
     }
-    val f: m.Matcher[(Int, Int), Int] = m.valve(identity, p)
+    val f: m.Matcher[(Int, Int), Int] = m.valve(p)
     val odd = 1
     val even = 0
     f(odd, 3) shouldBe m.Match(3)
     f(even, 4) shouldBe m.Match(4)
     f(even, 3) shouldBe m.Miss(3)
+  }
+
+  behavior of "valve (2)"
+  it should "match 1" in {
+    val p: (Int, Int) => Boolean = {
+      case (x, y) => x == y
+    }
+    val z: m.Matcher[(Int, String), Int] = m.valve(_.toInt, p)
+    z(1, "1").successful shouldBe true
+  }
+  it should "match parity" in {
+    val p: (Int, Int) => Boolean = {
+      case (x, y) => y % 2 == x
+    }
+    val z: m.Matcher[(Int, String), Int] = m.valve(_.toInt, p)
+    val odd = 1
+    val even = 0
+    z(odd, "3") shouldBe m.Match(3)
+    z(even, "4") shouldBe m.Match(4)
+    z(even, "3") shouldBe m.Miss("3")
+  }
+
+  behavior of "chain"
+  it should "work" in {
+    val target = m.lift[String, Int](_.toInt)
+    val p = m.valve[Int, Int] { case (q, r) => q == r }
+    val z = target chain p
+    z(1, "1").successful shouldBe true
   }
 
   behavior of "|"
