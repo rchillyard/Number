@@ -1,10 +1,9 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.one
+import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
-import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -13,8 +12,8 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "MatchResult"
   it should "implement apply(Boolean, T, R)" in {
-    m.MatchResult(true, "1", 1) shouldBe m.Match(1)
-    m.MatchResult(false, "1", 1) shouldBe m.Miss("1")
+    m.MatchResult(b = true, "1", 1) shouldBe m.Match(1)
+    m.MatchResult(b = false, "1", 1) shouldBe m.Miss("1")
   }
   it should "implement apply(Either)" in {
     val e1: Either[String, Int] = Left("1")
@@ -178,11 +177,17 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "chain"
-  it should "work" in {
+  it should "work for first form" in {
     val target = m.lift[String, Int](_.toInt)
     val p = m.valve[Int, Int] { case (q, r) => q == r }
     val z = target chain p
     z(1, "1").successful shouldBe true
+  }
+  it should "work for second form" in {
+    val target = m.lift[String, Int](_.toInt)
+    val p = m.matches[(String, Int)](("1", 1))
+    val z = target chain p
+    z("1", "1") shouldBe m.Match(("1", 1))
   }
 
   behavior of "|"

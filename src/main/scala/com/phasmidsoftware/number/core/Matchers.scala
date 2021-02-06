@@ -344,7 +344,9 @@ trait Matchers {
 //    * @tparam P  the input type.
 //    * @return a Matcher[P, (R0, R1, R2)] that matches at least one of the elements of the given tuple.
 //    */
-//  def chainProduct3All[T0, T1, T2, R0, R1, R2, P <: Product](m0: Matcher[T0, R0], m1: => Matcher[T1, R1], m2: => Matcher[T2, R2])(f: (T0, T1, T2) => P): Matcher[P, (R0, R1, R2)] = Matcher {
+//  def chainProduct3All[T0, T1, T2, R0, R1, R2, P <: Product](m0: Matcher[T0, R0], m1: => Matcher[T1, R1], m2: => Matcher[T2, R2])(f: (T0, T1, T2) => P): Matcher[P, (R0, R1, R2)] = ???
+//
+//    Matcher {
 //    p => m0(p.productElement(0).asInstanceOf[T0]) chain m1(p.productElement(1).asInstanceOf[T1]) & m2(p.productElement(2).asInstanceOf[T2]) map MatchResult.unroll3
 //  }
 
@@ -476,6 +478,12 @@ trait Matchers {
       * @return a MatchResult[T].
       */
     def &[S >: R, T](m: => Matcher[S, T]): MatchResult[T]
+
+    def chain[S](m: Matcher[R, S]): MatchResult[S] = this match {
+      case Match(x) => m(x)
+      case Miss(x) => Miss(x)
+      case Error(e) => Error(e)
+    }
   }
 
   /**
@@ -585,6 +593,8 @@ trait Matchers {
     )
 
     /**
+      * CONSIDER maybe doesn't make sense.
+      *
       * Matcher which succeeds or not, depending on an additional Q value (the control).
       *
       * @param m a Matcher[(Q, R),U].
@@ -596,13 +606,17 @@ trait Matchers {
       case (q, t) => this (t) flatMap (r => m(q, r))
     }
 
-    //      Matcher {
-    //      case (q, t) => this(t) match {
-    //        case Match(r) => m(q, r)
-    //        case Miss(t) => Miss((q, t))
-    //        case Error(e) => Error(e)
-    //      }
-    //    }
+    /**
+      * Matcher which succeeds or not, depending on this and an additional S value.
+      *
+      * @param m a Matcher[(R, S), U].
+      * @tparam S the type of the additional parameter.
+      * @tparam U the result type of m and the returned Matcher.
+      * @return a Matcher[T, U].
+      */
+    def chain[S, U](m: Matcher[(R, S), U], s: S): Matcher[T, U] = Matcher {
+      t => this (t) flatMap (r => m(r, s))
+    }
   }
 
   /**
