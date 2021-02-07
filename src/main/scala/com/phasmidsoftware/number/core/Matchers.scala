@@ -195,6 +195,46 @@ trait Matchers {
   def Matcher[T, R](f: T => MatchResult[R]): Matcher[T, R] = (t: T) => f(t)
 
   /**
+    * Method to create a Matcher which operates on a similar, but inverted, tuple as m.
+    *
+    * @param m a Matcher[(T0,T1),R].
+    * @tparam T0 one of the input types.
+    * @tparam T1 the other input type.
+    * @tparam R  the result type.
+    * @return a Matcher[(T1,T0),R].
+    */
+  def flip[T0, T1, R](m: Matcher[(T0, T1), R]): Matcher[(T1, T0), R] = Matcher {
+    case (t1, t0) => m(t0, t1)
+  }
+
+  /**
+    * Method to create a Matcher, which always succeeds, of a Product whose result is a Tuple2.
+    *
+    * @param f method to convert a (T0, T1) into a P.
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam P  the product type.
+    * @return a Matcher[P,(T0,T1)]
+    */
+  def tuple2[T0, T1, P <: Product](f: (T0, T1) => P): Matcher[P, (T0, T1)] = lift(
+    p => (p.productElement(0).asInstanceOf[T0], p.productElement(1).asInstanceOf[T1])
+  )
+
+  /**
+    * Method to create a Matcher, which always succeeds, of a Product whose result is a Tuple3.
+    *
+    * @param f method to convert a (T0, T1, T2) into a P.
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam T2 third of the member types.
+    * @tparam P  the product type.
+    * @return a Matcher[P,(T0,T1,T2)]
+    */
+  def tuple3[T0, T1, T2, P <: Product](f: (T0, T1, T2) => P): Matcher[P, (T0, T1, T2)] = lift(
+    p => (p.productElement(0).asInstanceOf[T0], p.productElement(1).asInstanceOf[T1], p.productElement(2).asInstanceOf[T2])
+  )
+
+  /**
     * Method to match any element of a Tuple2.
     *
     * @param m0 the Matcher corresponding to the first element.
@@ -617,6 +657,19 @@ trait Matchers {
     def chain[S, U](m: Matcher[(R, S), U], s: S): Matcher[T, U] = Matcher {
       t => this (t) flatMap (r => m(r, s))
     }
+
+
+//    /**
+//      * Matcher which succeeds or not, depending on this and an additional S value.
+//      *
+//      * @param m a Matcher[(R, S), U].
+//      * @tparam S the type of the additional parameter.
+//      * @tparam U the result type of m and the returned Matcher.
+//      * @return a Matcher[T, U].
+//      */
+//    def chain[S, U](m: Matcher[(R, S), U], s: S): Matcher[T, U] = Matcher {
+//      t => this (t) flatMap (r => m(r, s))
+//    }
   }
 
   /**

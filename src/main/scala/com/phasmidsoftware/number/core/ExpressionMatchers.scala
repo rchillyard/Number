@@ -29,13 +29,22 @@ class ExpressionMatchers extends Matchers {
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
-  //  def simplifier: ExpressionMatcher[Number] = biFunctionSimplifier("+") | biFunctionSimplifier("*") | biFunctionSimplifier("^") | functionSimplifier("ln") | functionSimplifier("exp") | materializer
-
-  //  def biFunctionSimplifier(f: String): ExpressionMatcher[Number] = matchBiFunction & matchDyadicTriple(x,y,z)
-
-  //  def functionSimplifier(f: String): ExpressionMatcher[Number] = matchFunction & matchMonadicDuple(x,y)
-
-  def materializer: ExpressionMatcher[Number] = ExpressionMatcher(e => Match(e.materialize))
+//    def simplifier: ExpressionMatcher[Number] = biFunctionSimplifier("+") | biFunctionSimplifier("*") | biFunctionSimplifier("^") | functionSimplifier("ln") | functionSimplifier("exp") | materializer
+//
+//    def biFunctionSimplifier(f: String): ExpressionMatcher[Number] = matchBiFunction & optimizeDyadicTriple & materializer
+//
+//  def matchFiveElements(upperOperator: Matcher[ExpressionBiFunction, ExpressionBiFunction], simplifier: ExpressionMatcher[Number], matchDyadicTriple: (Matcher[ExpressionBiFunction, ExpressionBiFunction], ExpressionMatcher[Expression], ExpressionMatcher[Expression]) => Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)]): Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
+//    ???
+//
+//  def optimizeDyadicTriple: Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] = {
+//    val zLR: Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] = matchFiveElements(always, simplifier, matchDyadicTriple)
+//    val zRL: Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] = matchFiveElements(always, matchDyadicTriple, simplifier)
+//    zLR | zRL
+//  }
+//
+//  def functionSimplifier(f: String): ExpressionMatcher[Number] = matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) & materializer
+//
+//  def materializer: ExpressionMatcher[Number] = ExpressionMatcher(e => Match(e.materialize))
 
   /**
     * This is the Matcher which should be applied to the root of an Expression in order to yield a numeric value that is,
@@ -93,13 +102,11 @@ class ExpressionMatchers extends Matchers {
 
   //  from2Alt(fm ~> om)(MonadicDuple.unapply)
 
-  import MatchResult._
+  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, ExpressionBiFunction], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
+    matchProduct3All(fm, lm, rm)(DyadicTriple)
 
-  // CONSIDER does this really make sense? We end up extracting just the two expressions (inverted), providing that the function matches OK.
-  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, ExpressionBiFunction], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (Expression, Expression)] =
-    matchProduct3All(fm, lm, rm)(DyadicTriple) ^^ (x => roll3(invert3(x))._1)
-
-  //  def matchBiFunctionByName(name: String): ExpressionMatcher[Number] = {
+  //  def matchBiFunctionByNa
+  //  me(name: String): ExpressionMatcher[Number] = {
   //      val matcher1: ExpressionMatcher[DyadicTriple] = matchBiFunction
   //      val functionMatcher: Matcher[ExpressionBiFunction, ExpressionBiFunction] = matchBiFunctionByName("+")
   //      val expressionMatcher = ExpressionMatcher(matchBiFunctionByName("*") ^^ (Expression(_)))

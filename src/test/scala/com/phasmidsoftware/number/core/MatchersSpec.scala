@@ -299,6 +299,27 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     r(tuple).successful shouldBe true
   }
 
+  behavior of "flip"
+  it should "work" in {
+    val p: m.Matcher[String, Int] = m.lift(_.toInt)
+    val q: m.Matcher[Int, Double] = m.lift(_.toDouble)
+    val z: m.Matcher[(String, Int), (Int, Double)] = p ~ q
+    z("1", 1) should matchPattern { case m.Match((1, 1.0)) => }
+    m.flip(z)(1, "1") should matchPattern { case m.Match((1, 1.0)) => }
+  }
+
+  behavior of "tuple2"
+  it should "work" in {
+    val p: m.Matcher[StringPair, (String, String)] = m.tuple2(StringPair)
+    p(StringPair("x", "y")) should matchPattern { case m.Match(("x", "y")) => }
+  }
+
+  behavior of "tuple3"
+  it should "work" in {
+    val p: m.Matcher[Triple, (String, String, Int)] = m.tuple3(Triple)
+    p(Triple("x", "y", 1)) should matchPattern { case m.Match(("x", "y", 1)) => }
+  }
+
   behavior of "match2Any"
   it should "succeed with toInt and 0" in {
     val p: m.Matcher[String, Int] = m.lift(_.toInt)
