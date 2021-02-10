@@ -138,6 +138,41 @@ trait Matchers {
     */
   def isEqual[R](q: R, r: R): Boolean = q == r
 
+  /**
+    * Method to swap the order of elements in a Tuple2.
+    *
+    * @tparam T0 the first element type.
+    * @tparam T1 the second element type.
+    * @return a Matcher from (T0,T1) to (T1,T0).
+    */
+  def swap[T0, T1]: Matcher[(T0, T1), (T1, T0)] = lift {
+    case (t0, t1) => (t1, t0)
+  }
+
+  /**
+    * Method to swap the order of elements in a Tuple3.
+    *
+    * @tparam T0 the first element type.
+    * @tparam T1 the second element type.
+    * @tparam T2 the third element type.
+    * @return a Matcher from (T0,T1,T2) to (T1,T2,T0).
+    */
+  def rotate3[T0, T1, T2]: Matcher[(T0, T1, T2), (T1, T2, T0)] = lift {
+    case (t0, t1, t2) => (t1, t2, t0)
+  }
+
+  /**
+    * Method to swap the order of elements in a Tuple3.
+    *
+    * @tparam T0 the first element type.
+    * @tparam T1 the second element type.
+    * @tparam T2 the third element type.
+    * @return a Matcher from (T0,T1,T2) to (T1,T2,T0).
+    */
+  def invert3[T0, T1, T2]: Matcher[(T0, T1, T2), (T2, T1, T0)] = lift {
+    case (t0, t1, t2) => (t2, t1, t0)
+  }
+
   /** A helper method that turns a `Parser` into one that will
     * print debugging information to stdout before and after
     * being applied.
@@ -196,6 +231,8 @@ trait Matchers {
 
   /**
     * Method to create a Matcher which operates on a similar, but inverted, tuple as m.
+    *
+    * CONSIDER maybe we can simply compose m with swap.
     *
     * @param m a Matcher[(T0,T1),R].
     * @tparam T0 one of the input types.
@@ -533,6 +570,7 @@ trait Matchers {
     * @tparam R the result type.
     */
   abstract class Matcher[-T, +R] extends (T => MatchResult[R]) {
+
     private var name: String = ""
 
     /**

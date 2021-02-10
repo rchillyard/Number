@@ -208,6 +208,27 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     q(2).get shouldBe 0
   }
 
+  behavior of "swap"
+  it should "work" in {
+    val t = (1, "1")
+    val u: m.MatchResult[(String, Int)] = m.swap(t)
+    u shouldBe m.Match("1", 1)
+  }
+
+  behavior of "rotate3"
+  it should "work" in {
+    val t = (1, "1", 1.0)
+    val u: m.MatchResult[(String, Double, Int)] = m.rotate3(t)
+    u shouldBe m.Match("1", 1.0, 1)
+  }
+
+  behavior of "invert3"
+  it should "work" in {
+    val t = (1, "1", 1.0)
+    val u: m.MatchResult[(Double, String, Int)] = m.invert3(t)
+    u shouldBe m.Match(1.0, "1", 1)
+  }
+
   behavior of "~"
   it should "match (1,2) and result in (1,2)" in {
     val p = m.matches(1)
