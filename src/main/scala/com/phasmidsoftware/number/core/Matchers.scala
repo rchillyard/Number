@@ -45,13 +45,31 @@ trait Matchers {
   def always[R]: Matcher[R, R] = lift(identity)
 
   /**
+    * Matcher which succeeds only if the predicate p evaluates to true.
+    *
+    * @param p a predicate on type R.
+    * @tparam R both the input type and the result type.
+    * @return a Matcher[R, R] which succeeds only if p(r) is true.
+    */
+  def filter[R](p: R => Boolean): Matcher[R, R] = Matcher(r => if (p(r)) Match(r) else Miss(r))
+
+  /**
+    * Matcher which succeeds only if the predicate p evaluates to true.
+    *
+    * @param b a constant Boolean value.
+    * @tparam R both the input type and the result type.
+    * @return a Matcher[R, R] which succeeds only if p(r) is true.
+    */
+  def maybe[R](b: Boolean): Matcher[R, R] = filter(_ => b)
+
+  /**
     * Matcher which succeeds if the input is equal to the given t0
     *
     * @param t the value which must be matched.
     * @tparam T the type of the input and result for Matcher.
     * @return a Matcher[T, T].
     */
-  def matches[T](t: T): Matcher[T, T] = Matcher(x => if (x == t) Match(x) else Miss(x))
+  def matches[T](t: T): Matcher[T, T] = filter(_ == t)
 
   /**
     * Matcher whose success depends on the application of a function f to the input,
@@ -245,7 +263,7 @@ trait Matchers {
   }
 
   /**
-    * Method to create a Matcher, which always succeeds, of a Product whose result is a Tuple2.
+    * Method to create a Matcher, which always succeeds, of a P whose result is a Tuple2.
     *
     * @param f method to convert a (T0, T1) into a P.
     * @tparam T0 first of the member types.
@@ -258,7 +276,7 @@ trait Matchers {
   )
 
   /**
-    * Method to create a Matcher, which always succeeds, of a Product whose result is a Tuple3.
+    * Method to create a Matcher, which always succeeds, of a P whose result is a Tuple3.
     *
     * @param f method to convert a (T0, T1, T2) into a P.
     * @tparam T0 first of the member types.
@@ -269,6 +287,35 @@ trait Matchers {
     */
   def tuple3[T0, T1, T2, P <: Product](f: (T0, T1, T2) => P): Matcher[P, (T0, T1, T2)] = lift(
     p => (p.productElement(0).asInstanceOf[T0], p.productElement(1).asInstanceOf[T1], p.productElement(2).asInstanceOf[T2])
+  )
+
+
+  /**
+    * Method to create a Matcher, which always succeeds, of a Tuple2 whose result is a P.
+    * This method is the inverse of tuple2.
+    *
+    * @param f method to convert a (T0, T1) into a P.
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam P  the product type.
+    * @return a Matcher[P,(T0,T1)]
+    */
+  def product2[T0, T1, P <: Product](f: (T0, T1) => P): Matcher[(T0, T1), P] = lift(
+    t => f(t._1, t._2) // CONSIDER using tupled or curried here
+  )
+
+  /**
+    * Method to create a Matcher, which always succeeds, of a Tuple2 whose result is a P.
+    * This method is the inverse of tuple2.
+    *
+    * @param f method to convert a (T0, T1) into a P.
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam P  the product type.
+    * @return a Matcher[P,(T0,T1)]
+    */
+  def product3[T0, T1, T2, P <: Product](f: (T0, T1, T2) => P): Matcher[(T0, T1, T2), P] = lift(
+    t => f(t._1, t._2, t._3)
   )
 
   /**
@@ -968,6 +1015,7 @@ trait Matchers {
     def apply[Q, T, R](f: T => R, p: (Q, R) => Boolean)(q: Q, t: T): MatchResult[R] = MatchResult.create(p)(q, t, f(t))
 
     // CONSIDER move these to a tuple-specific class
+    // CONSIDER merging with rotate3 and invert3 from Matchers
     def invert3[R0, R1, R2](t: (R0, R1, R2)): (R2, R1, R0) = (t._3, t._2, t._1)
 
     def unroll3[R0, R1, R2](t: ((R0, R1), R2)): (R0, R1, R2) = (t._1._1, t._1._2, t._2)
@@ -981,7 +1029,7 @@ case class MatcherException(msg: String) extends Exception(msg)
 
 
 /**
-  * Trait which is used to define a logging level for the logit method of SignificantSpaceParsers.
+  * Trait which is used to define a logging level for the log method of SignificantSpaceParsers.
   */
 trait LogLevel
 

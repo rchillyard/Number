@@ -1,9 +1,10 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.one
-import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
+import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -339,6 +340,26 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   it should "work" in {
     val p: m.Matcher[Triple, (String, String, Int)] = m.tuple3(Triple)
     p(Triple("x", "y", 1)) should matchPattern { case m.Match(("x", "y", 1)) => }
+  }
+
+  behavior of "product2"
+  it should "one-way" in {
+    val p: m.Matcher[(String, String), StringPair] = m.product2(StringPair)
+    p(("x", "y")) should matchPattern { case m.Match(StringPair("x", "y")) => }
+  }
+  it should "round-trip" in {
+    val p: m.Matcher[StringPair, StringPair] = m.tuple2(StringPair) & m.product2(StringPair)
+    p(StringPair("x", "y")) should matchPattern { case m.Match(StringPair("x", "y")) => }
+  }
+
+  behavior of "product3"
+  it should "one-way" in {
+    val p: m.Matcher[(String, String, Int), Triple] = m.product3(Triple)
+    p(("x", "y", 1)) should matchPattern { case m.Match(Triple("x", "y", 1)) => }
+  }
+  it should "round-trip" in {
+    val p: m.Matcher[Triple, Triple] = m.tuple3(Triple) & m.product3(Triple)
+    p(Triple("x", "y", 1)) should matchPattern { case m.Match(Triple("x", "y", 1)) => }
   }
 
   behavior of "match2Any"

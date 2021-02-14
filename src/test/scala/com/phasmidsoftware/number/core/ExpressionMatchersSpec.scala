@@ -43,4 +43,72 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers {
     g(Literal(Number.e)).successful shouldBe false
   }
 
+  import com.phasmidsoftware.number.core.Expression.ExpressionOps
+
+  behavior of "gathering operations"
+  ignore should "gather 2 and * 1/2" in {
+    val x: Expression = Number(7)
+    val y = x.sqrt
+    val z = y ^ 2
+    val matchers = new ExpressionMatchers
+    matchers.simplifier(z) should matchPattern { case matchers.Match(ExactNumber(Right(7), Scalar)) => }
+  }
+
+  behavior of "canceling operations"
+  ignore should "cancel 1 and - -1" in {
+    val x: Expression = Expression.one
+    val y = -x
+    val z = x + y
+    val matchers = new ExpressionMatchers
+    matchers.simplifier(z) should matchPattern { case matchers.Match(Zero) => }
+  }
+  it should "cancel 2 and * 1/2" in {
+    val x = Expression.one * 2
+    val y = x.reciprocal
+    val z = x * y
+    z.simplify shouldBe One
+  }
+  it should "cancel 2 * 1/2" in {
+    val x = Expression.one * 2
+    val y = x.reciprocal
+    val z = y * x
+    z.simplify shouldBe One
+  }
+  it should "cancel ^2 and sqrt" in {
+    val seven = Expression(7)
+    val x: Expression = seven.sqrt
+    val y = x ^ 2
+    val z = y.simplify
+    z shouldBe Expression(7)
+    y.simplify.materialize should matchPattern { case ExactNumber(_, _) => }
+  }
+  it should "show that lazy evaluation only works when you use it" in {
+    val seven = Number(7)
+    val x: Number = seven.sqrt
+    val y = x ^ 2
+    y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
+  }
+  ignore should "show ^2 and sqrt for illustrative purposes" in {
+    val seven = Number(7)
+    val x = seven.sqrt
+    val y = x power 2
+    y should matchPattern { case FuzzyNumber(_, _, _) => }
+    y shouldEqual Number(7)
+  }
+  // ISSUE 25
+  ignore should "cancel addition and subtraction" in {
+    val x = Number.one + 3 - 3
+    x.simplify shouldBe Expression(Number.one)
+  }
+  // ISSUE 25
+  ignore should "cancel multiplication and division" in {
+    val x = Number.e * 2 / 2
+    x.simplify shouldBe Expression(Number.e)
+  }
+
+  behavior of "various operations"
+  it should "evaluate E * 2" in {
+    (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
+  }
+
 }
