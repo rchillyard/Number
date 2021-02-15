@@ -33,19 +33,20 @@ class ExpressionMatchers extends Matchers {
 
   def biFunctionSimplifier: ExpressionMatcher[Number] = matchBiFunction & (matchCasePlus | matchCaseTimes) & materializer
 
-  def matchFiveElementsA(f: String, h: String, c: Expression): Matcher[DyadicTriple, Expression] =
+  def matchDyadic(f: String, h: String, c: Expression): Matcher[DyadicTriple, Expression] =
     Matcher {
       case d@DyadicTriple(f1, l1, r1) if f1.name == f =>
         r1 match {
-          case BiFunction(`c`, e, ExpressionBiFunction(_, `h`)) if e.simplify == c => Match(Number.zero)
-          case BiFunction(e, `c`, ExpressionBiFunction(_, `h`)) if e.simplify == c => Match(Number.zero)
-          case _ => Miss(d)
+          case BiFunction(`c`, e, ExpressionBiFunction(_, `h`)) if e.simplify == l1.simplify => Match(Number.zero)
+          case BiFunction(e, `c`, ExpressionBiFunction(_, `h`)) if e.simplify == l1.simplify => Match(Number.zero)
+          case _ => Miss("matchDyadic", d)
         }
+      case x => Miss("matchDyadic", x)
     }
 
-  def matchCasePlus: Matcher[DyadicTriple, Expression] = matchFiveElementsA("+", "*", Number(-1))
+  def matchCasePlus: Matcher[DyadicTriple, Expression] = matchDyadic("+", "*", Number(-1))
 
-  def matchCaseTimes: Matcher[DyadicTriple, Expression] = matchFiveElementsA("*", "^", Number(-1))
+  def matchCaseTimes: Matcher[DyadicTriple, Expression] = matchDyadic("*", "^", Number(-1))
 
   def functionSimplifier: ExpressionMatcher[Number] = matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) & materializer
 
@@ -69,7 +70,7 @@ class ExpressionMatchers extends Matchers {
     case x@ExactNumber(_, _) => Match(x)
     case x@FuzzyNumber(_, _, _) => Match(x)
     case x@(Zero | MinusOne | One) => Match(x.materialize)
-    case x => Miss(x)
+    case x => Miss("value", x)
   }
 
   /**
@@ -80,7 +81,7 @@ class ExpressionMatchers extends Matchers {
     */
   def matchNumber(x: Number): Matcher[Number, Number] = {
     case `x` => Match(x)
-    case e => Miss(e)
+    case e => Miss("matchNumber", e)
   }
 
   /**
@@ -93,12 +94,12 @@ class ExpressionMatchers extends Matchers {
 
   def matchFunction: ExpressionMatcher[MonadicDuple] = {
     case Function(x, f) => Match(MonadicDuple(f, x))
-    case e => Miss(e)
+    case e => Miss("matchFunction", e)
   }
 
   def matchBiFunction: ExpressionMatcher[DyadicTriple] = {
     case BiFunction(a, b, f) => Match(DyadicTriple(f, a, b))
-    case e => Miss(e)
+    case e => Miss("matchBiFunction", e)
   }
 
   // CONSIDER does this really make sense? We end up extracting just the expression, providing that the function matches OK.

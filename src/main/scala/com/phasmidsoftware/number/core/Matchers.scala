@@ -21,11 +21,12 @@ trait Matchers {
   /**
     * Matcher which always fails and creates a Miss with the value tried.
     *
+    * @param msg the message to describe this failure.
     * @tparam T the input type.
     * @tparam R the result type.
     * @return a Matcher[T, R]
     */
-  def fail[T, R]: Matcher[T, R] = Matcher(t => Miss(t))
+  def fail[T, R](msg: String): Matcher[T, R] = Matcher(t => Miss(msg, t))
 
   /**
     * Matcher which always fails and creates a Miss with the value tried.
@@ -51,7 +52,7 @@ trait Matchers {
     * @tparam R both the input type and the result type.
     * @return a Matcher[R, R] which succeeds only if p(r) is true.
     */
-  def filter[R](p: R => Boolean): Matcher[R, R] = Matcher(r => if (p(r)) Match(r) else Miss(r))
+  def filter[R](p: R => Boolean): Matcher[R, R] = Matcher(r => if (p(r)) Match(r) else Miss("filter", r))
 
   /**
     * Matcher which succeeds only if the predicate p evaluates to true.
@@ -110,8 +111,8 @@ trait Matchers {
     * @return a Matcher[T, R] which works in the opposite sense to this.
     */
   def not[T, R](m: Matcher[T, R], r: => R): Matcher[T, R] = t => m(t) match {
-    case Match(_) => Miss(t)
-    case Miss(_) => Match(r)
+    case Match(_) => Miss("not", t)
+    case Miss(_, _) => Match(r)
     case Error(e) => Error(e)
   }
 
@@ -191,50 +192,62 @@ trait Matchers {
     case (t0, t1, t2) => (t2, t1, t0)
   }
 
-  /** A helper method that turns a `Parser` into one that will
-    * print debugging information to stdout before and after
-    * being applied.
+//  /** A helper method that turns a `Parser` into one that will
+//    * print debugging information to stdout before and after
+//    * being applied.
+//    */
+//  def log[T, R](m: => Matcher[T, R])(name: String): Matcher[T, R] = Matcher { t =>
+//    println("trying " + name + " at " + t)
+//    val r = m(t)
+//    println(name + " --> " + r)
+//    r
+//  }
+
+  /**
+    * Tee method.
+    * This method will return its input, however, a side-effect occurs which is to invoke f(x).
+    *
+    * @param x an X value.
+    * @param f a function which takes an X and yields Unit.
+    * @tparam X the underlying type of x.
+    * @return x unchanged.
     */
-  def log[T, R](m: => Matcher[T, R])(name: String): Matcher[T, R] = Matcher { t =>
-    println("trying " + name + " at " + t)
-    val r = m(t)
-    println(name + " --> " + r)
-    r
+  def tee[X](x: MatchResult[X])(f: X => Unit): MatchResult[X] = {
+    x foreach f
+    x
   }
 
-//  /**
-//    * TODO: implement me
-//    *
-//    * (Internal) log method which expands on the capabilities of Parsers.log.
-//    * If ll is LogOff, p is returned unchanged, other than that on failure of p, the parser failure(name) is invoked.
-//    * If ll is LogInfo, a parser based on p, which on successful parsing logging with println will occur, is returned.
-//    * If ll is LogDebug, then the value of log(p)(name) is returned.
-//    *
-//    * @param p    a parser[T].
-//    * @param name a String to identify this parser.
-//    * @param ll   (implicit) LogLevel.
-//    * @tparam T the underlying type of p and the result.
-//    * @return a Parser[T].
-//    */
-//  def log[T, R](m: => Matcher[T, R])(name: => String)(implicit ll: LogLevel): Matcher[T, R] = ll match {
-//    case LogDebug => Matcher { t =>
-//      println("trying " + name + " at " + t)
-//      val r = m(t)
-//      println(name + " --> " + r)
-//      r
-//    }
-//
-//    case LogInfo =>
-//      val q = m | failure(name)
-//      Matcher { in =>
-//        tee(q(in)) {
-//          case this.Match(x, _) => println(s"$name: matched $x")
-//          case _ =>
-//        }
-//      }
-//
-//    case _ => m | failure(name)
-//  }
+
+  /**
+    * (Internal) log method.
+    * If ll is LogOff, p is returned unchanged, other than that on failure of m, the matcher fail(name) is invoked.
+    * If ll is LogInfo, a matcher based on m, which on successful matching, logging with println will occur, is returned.
+    * If ll is LogDebug, then the value of log(m)(name) is returned.
+    *
+    * @param m    a Matcher[T, R].
+    * @param name a String to identify this parser.
+    * @param ll   (implicit) LogLevel.
+    * @tparam T the underlying type of the input to m.
+    * @tparam R the underlying type of the result of m.
+    * @return a Matcher[T, R].
+    */
+  def log[T, R](m: => Matcher[T, R])(name: => String)(implicit ll: LogLevel): Matcher[T, R] = ll match {
+    // TODO use flatMap
+    case LogDebug => Matcher { t =>
+      println("trying " + name + " at " + t)
+      val r = m(t)
+      println(name + " --> " + r)
+      r
+    }
+
+    case LogInfo =>
+      Matcher { t =>
+        val q: Matcher[T, R] = m | fail(name)
+        tee(q(t))(x => println(s"$name: matched $x"))
+      }
+
+    case _ => m | fail(name)
+  }
 
 
   /**
@@ -564,6 +577,14 @@ trait Matchers {
     def flatMap[S](f: R => MatchResult[S]): MatchResult[S]
 
     /**
+      * Foreach method.
+      *
+      * @param f a function of R => Unit.
+      * @return Unit.
+      */
+    def foreach(f: R => Unit): Unit
+
+    /**
       * Alternation method which takes a MatchResult as the alternative.
       *
       * @param s a MatchResult which will be used if this is empty.
@@ -605,7 +626,7 @@ trait Matchers {
 
     def chain[S](m: Matcher[R, S]): MatchResult[S] = this match {
       case Match(x) => m(x)
-      case Miss(x) => Miss(x)
+      case Miss(w, x) => Miss(w, x)
       case Error(e) => Error(e)
     }
   }
@@ -711,7 +732,7 @@ trait Matchers {
     def trial: Matcher[T, Try[R]] = Matcher(t =>
       Try(this (t)) match {
         case Success(Match(z)) => Match(Success(z))
-        case Success(Miss(_)) => Match(Failure(MatcherException("Miss")))
+        case Success(Miss(x, _)) => Match(Failure(MatcherException(x)))
         case Failure(x) => Match(Failure(x))
         case Success(Error(e)) => Error(e)
       }
@@ -788,6 +809,13 @@ trait Matchers {
     def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = f(r)
 
     /**
+      * Apply f to r.
+      *
+      * @param f a function of R => Unit.
+      */
+    def foreach(f: R => Unit): Unit = f(r)
+
+    /**
       * Alternation method which takes a MatchResult as the alternative.
       *
       * @param s a MatchResult (ignored)).
@@ -830,7 +858,7 @@ trait Matchers {
     * @tparam T the underlying type of t.
     * @tparam R the result-type of this.
     */
-  case class Miss[T, +R](t: T) extends MatchResult[R] {
+  case class Miss[T, +R](msg: String, t: T) extends MatchResult[R] {
     /**
       *
       * @return false.
@@ -842,14 +870,14 @@ trait Matchers {
       * @tparam S the underlying type of the returned MatchResult.
       * @return Miss(t).
       */
-    override def map[S](f: R => S): MatchResult[S] = Miss(t)
+    override def map[S](f: R => S): MatchResult[S] = Miss(msg, t)
 
     /**
       * @param s a MatchResult[S] (ignored).
       * @tparam S the underlying type of s.
       * @return Miss(t).
       */
-    def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Miss(t)
+    def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Miss(msg, t)
 
     /**
       * @throws MatcherException cannot call get on Miss.
@@ -861,7 +889,14 @@ trait Matchers {
       * @tparam S the underlying type of the returned MatchResult.
       * @return Miss(t).
       */
-    def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = Miss(t)
+    def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = Miss(msg, t)
+
+    /**
+      * Do nothing.
+      *
+      * @param f a function of R => Unit (ignored).
+      */
+    def foreach(f: R => Unit): Unit = ()
 
     /**
       * Alternation method which takes a MatchResult as the alternative.
@@ -889,13 +924,15 @@ trait Matchers {
       * @tparam U the underlying type of the returned value.
       * @return a MatchResult[T].
       */
-    def &[S >: R, U](m: => Matcher[S, U]): MatchResult[U] = Miss(t)
+    def &[S >: R, U](m: => Matcher[S, U]): MatchResult[U] = Miss(msg, t)
 
-    override def toString: String = s"Miss: $t"
+    override def toString: String = s"Miss: $msg $t"
   }
 
   /**
     * Error when matching.
+    *
+    * TODO create an abstract class called NotSuccess to be extended by Failure and Error.
     *
     * @param e the exception that was thrown.
     * @tparam R the result-type of this.
@@ -927,6 +964,13 @@ trait Matchers {
     def get: R = throw e
 
     def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = throw e
+
+    /**
+      * Do nothing.
+      *
+      * @param f a function of R => Unit (ignored).
+      */
+    def foreach(f: R => Unit): Unit = ()
 
     /**
       * Alternation method which takes a MatchResult as the alternative.
@@ -971,7 +1015,7 @@ trait Matchers {
       * @tparam R result type.
       * @return MatchResult[R].
       */
-    def apply[T, R](b: Boolean, t: T, r: R): MatchResult[R] = if (b) Match(r) else Miss(t)
+    def apply[T, R](b: Boolean, t: T, r: R): MatchResult[R] = if (b) Match(r) else Miss("false", t)
 
     /**
       * Construct a MatchResult[R] based on an Either[T, R].
@@ -983,7 +1027,7 @@ trait Matchers {
       */
     def apply[T, R](e: Either[T, R]): MatchResult[R] = e match {
       case Right(r) => Match(r)
-      case Left(t) => Miss(t)
+      case Left(t) => Miss("left", t)
     }
 
     /**
@@ -997,7 +1041,7 @@ trait Matchers {
       * @tparam R the result type.
       * @return a MatchResult[R].
       */
-    def create[Q, T, R](p: (Q, R) => Boolean)(q: Q, t: T, r: R): MatchResult[R] = if (p(q, r)) Match(r) else Miss(t)
+    def create[Q, T, R](p: (Q, R) => Boolean)(q: Q, t: T, r: R): MatchResult[R] = if (p(q, r)) Match(r) else Miss("create", t)
 
     /**
       * Yield a MatchResult[R] based on an input value t, a function f, and a predicate p.
