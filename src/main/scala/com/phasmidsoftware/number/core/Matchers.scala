@@ -158,6 +158,74 @@ trait Matchers {
   def isEqual[R](q: R, r: R): Boolean = q == r
 
   /**
+    * Method to create a Matcher, which always succeeds, of a P whose result is a T0, based on the first element of P.
+    *
+    * @param f method to convert a (T0, T1) into a P (used at compile-time only).
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam P  the product type.
+    * @return a Matcher[P,T0]
+    */
+  def select2_0[T0, T1, P <: Product](f: (T0, T1) => P): Matcher[P, T0] = lift(
+    p => p.productElement(0).asInstanceOf[T0]
+  )
+
+  /**
+    * Method to create a Matcher, which always succeeds, of a P whose result is a T1, based on the second element of P.
+    *
+    * @param f method to convert a (T0, T1) into a P (used at compile-time only).
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam P  the product type.
+    * @return a Matcher[P,T1]
+    */
+  def select2_1[T0, T1, P <: Product](f: (T0, T1) => P): Matcher[P, T1] = lift(
+    p => p.productElement(1).asInstanceOf[T1]
+  )
+
+  /**
+    * Method to create a Matcher, which always succeeds, of a P whose result is a T0, based on the first element of P.
+    *
+    * @param f method to convert a (T0, T1, T2) into a P (used at compile-time only).
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam T2 third of the member types.
+    * @tparam P  the product type.
+    * @return a Matcher[P,T0]
+    */
+  def select3_0[T0, T1, T2, P <: Product](f: (T0, T1, T2) => P): Matcher[P, T0] = lift(
+    p => p.productElement(0).asInstanceOf[T0]
+  )
+
+  /**
+    * Method to create a Matcher, which always succeeds, of a P whose result is a T1, based on the second element of P.
+    *
+    * @param f method to convert a (T0, T1, T2) into a P (used at compile-time only).
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam T2 third of the member types.
+    * @tparam P  the product type.
+    * @return a Matcher[P,T1]
+    */
+  def select3_1[T0, T1, T2, P <: Product](f: (T0, T1, T2) => P): Matcher[P, T1] = lift(
+    p => p.productElement(1).asInstanceOf[T1]
+  )
+
+  /**
+    * Method to create a Matcher, which always succeeds, of a P whose result is a T2, based on the third element of P.
+    *
+    * @param f method to convert a (T0, T1, T2) into a P (used at compile-time only).
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam T2 third of the member types.
+    * @tparam P  the product type.
+    * @return a Matcher[P,T1]
+    */
+  def select3_2[T0, T1, T2, P <: Product](f: (T0, T1, T2) => P): Matcher[P, T2] = lift(
+    p => p.productElement(2).asInstanceOf[T2]
+  )
+
+  /**
     * Method to swap the order of elements in a Tuple2.
     *
     * @tparam T0 the first element type.
@@ -231,24 +299,34 @@ trait Matchers {
     * @tparam R the underlying type of the result of m.
     * @return a Matcher[T, R].
     */
-  def log[T, R](m: => Matcher[T, R])(name: => String)(implicit ll: LogLevel): Matcher[T, R] = ll match {
+  def log[T, R](m: => Matcher[T, R])(name: => String)(implicit ll: LogLevel, logger: MatchLogger): Matcher[T, R] = ll match {
     // TODO use flatMap
     case LogDebug => Matcher { t =>
-      println("trying " + name + " at " + t)
+      logger("trying " + name + " at " + t)
       val r = m(t)
-      println(name + " --> " + r)
+      logger(name + " --> " + r)
       r
     }
 
     case LogInfo =>
       Matcher { t =>
         val q: Matcher[T, R] = m | fail(name)
-        tee(q(t))(x => println(s"$name: matched $x"))
+        tee(q(t))(x => logger(s"$name: matched $x"))
       }
 
     case _ => m | fail(name)
   }
 
+  /**
+    * Implicit class MatcherOps which allows us to use the method :| on a Matcher[T,R].
+    *
+    * @param p a Matcher[T,R].
+    * @tparam T the input type of p.
+    * @tparam R the result type of p.
+    */
+  implicit class MatcherOps[T, R](p: Matcher[T, R]) {
+    def :|(name: String)(implicit ll: LogLevel, logger: MatchLogger): Matcher[T, R] = log(p)(name)
+  }
 
   /**
     * Method to create a Matcher, based on the given function f.
@@ -259,6 +337,17 @@ trait Matchers {
     * @return a Matcher[T, R] based on f.
     */
   def Matcher[T, R](f: T => MatchResult[R]): Matcher[T, R] = (t: T) => f(t)
+
+  /**
+    * Method to create a Matcher, based on the given function f.
+    *
+    * @param name the name for the logger to mention.
+    * @param f    a T => MatchResult[R].
+    * @tparam T the input type.
+    * @tparam R the result type.
+    * @return a Matcher[T, R] based on f.
+    */
+  def LoggingMatcher[T, R](name: String)(f: T => MatchResult[R])(implicit ll: LogLevel, logger: MatchLogger): Matcher[T, R] = Matcher(f) :| name
 
   /**
     * Method to create a Matcher which operates on a similar, but inverted, tuple as m.
@@ -1084,5 +1173,11 @@ case object LogInfo extends LogLevel
 case object LogOff extends LogLevel
 
 object LogLevel {
-  implicit val ll: LogLevel = LogOff
+  implicit val ll: LogLevel = LogDebug
+}
+
+trait MatchLogger extends ((String => Unit))
+
+object MatchLogger {
+  implicit val defaultMatchLogger: MatchLogger = w => println(w)
 }

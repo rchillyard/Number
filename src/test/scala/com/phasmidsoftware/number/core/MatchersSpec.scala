@@ -1,9 +1,10 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.one
-import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
+import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -116,6 +117,32 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val f: m.Matcher[Expression, Number] = m.Matcher(e => m.Miss("", e))
     val e = Literal(Number.one)
     f(e).successful shouldBe false
+  }
+
+  behavior of "log"
+  it should "log success" in {
+    val sb = new StringBuilder
+    import m.MatcherOps
+    implicit val logger: MatchLogger = w => sb.append(s"$w\n")
+    val p = m.success(1) :| "success(1)"
+    p(1).successful shouldBe true
+    sb.toString() shouldBe
+      """trying success(1) at 1
+        |success(1) --> Match: 1
+        |""".stripMargin
+  }
+
+  behavior of "LoggingMatcher"
+  it should "work with fixed success result" in {
+    val sb = new StringBuilder
+    implicit val logger: MatchLogger = w => sb.append(s"$w\n")
+    val f: m.Matcher[Expression, Number] = m.LoggingMatcher("one")(_ => m.Match(one))
+    val e = Literal(one)
+    f(e).successful shouldBe true
+    sb.toString() shouldBe
+      """trying one at 1
+        |one --> Match: 1
+        |""".stripMargin
   }
 
   behavior of "success"

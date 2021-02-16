@@ -29,28 +29,32 @@ class ExpressionMatchers extends Matchers {
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
-  def simplifier: ExpressionMatcher[Number] = biFunctionSimplifier | functionSimplifier | materializer
+  def simplifier: ExpressionMatcher[Expression] = (biFunctionSimplifier | functionSimplifier) :| "simplifier"
 
-  def biFunctionSimplifier: ExpressionMatcher[Number] = matchBiFunction & (matchCasePlus | matchCaseTimes) & materializer
+  def biFunctionSimplifier: ExpressionMatcher[Expression] = matchBiFunction & (matchCasePlus | matchCaseTimes) :| "biFunctionSimplifier"
 
-  def matchDyadic(f: String, h: String, c: Expression): Matcher[DyadicTriple, Expression] =
-    Matcher {
-      case d@DyadicTriple(f1, l1, r1) if f1.name == f =>
-        r1 match {
-          case BiFunction(`c`, e, ExpressionBiFunction(_, `h`)) if e.simplify == l1.simplify => Match(Number.zero)
-          case BiFunction(e, `c`, ExpressionBiFunction(_, `h`)) if e.simplify == l1.simplify => Match(Number.zero)
-          case _ => Miss("matchDyadic", d)
-        }
-      case x => Miss("matchDyadic", x)
+  case class Branches(l: Expression, r: Expression)
+
+  def matchDyadicBranches(f: String): Matcher[DyadicTriple, (Expression, Expression)] =
+    LoggingMatcher("matchDyadicBranches") {
+      case DyadicTriple(ExpressionBiFunction(_, `f`), l1, r1) => Match((l1, r1))
+      case x => Miss("matchDyadicBranches", x)
     }
 
-  def matchCasePlus: Matcher[DyadicTriple, Expression] = matchDyadic("+", "*", Number(-1))
+  def matchDyadicBranch(h: String, c: Expression): Matcher[(Expression, Expression), Expression] =
+    LoggingMatcher("matchDyadicBranch") {
+      case (b, BiFunction(`c`, e, ExpressionBiFunction(_, `h`))) if e.simplify == b.simplify => Match(Number.zero)
+      case (BiFunction(e, `c`, ExpressionBiFunction(_, `h`)), b) if e.simplify == b.simplify => Match(Number.zero)
+      case x => Miss("matchDyadicBranch", x)
+    }
 
-  def matchCaseTimes: Matcher[DyadicTriple, Expression] = matchDyadic("*", "^", Number(-1))
+  def matchCasePlus: Matcher[DyadicTriple, Expression] = matchDyadicBranches("+") & matchDyadicBranch("*", Number(-1)) :| "matchCasePlus"
 
-  def functionSimplifier: ExpressionMatcher[Number] = matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) & materializer
+  def matchCaseTimes: Matcher[DyadicTriple, Expression] = matchDyadicBranches("*") & matchDyadicBranch("^", Number(-1)) :| "matchCaseTimes"
 
-  def materializer: ExpressionMatcher[Number] = ExpressionMatcher(e => Match(e.materialize))
+  def functionSimplifier: ExpressionMatcher[Expression] = matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) :| "functionSimplifier"
+
+  def materializer: ExpressionMatcher[Number] = ExpressionMatcher(e => Match(e.materialize)) :| "materializer"
 
   /**
     * This is the Matcher which should be applied to the root of an Expression in order to yield a numeric value that is,
@@ -90,7 +94,7 @@ class ExpressionMatchers extends Matchers {
     * @param x the Number to match.
     * @return a Matcher[Expression, Number].
     */
-  def matchValue(x: Number): ExpressionMatcher[Number] = value & matchNumber(x)
+  def matchValue(x: Number): ExpressionMatcher[Number] = value & matchNumber(x) :| "matchValue"
 
   def matchFunction: ExpressionMatcher[MonadicDuple] = {
     case Function(x, f) => Match(MonadicDuple(f, x))
@@ -104,36 +108,10 @@ class ExpressionMatchers extends Matchers {
 
   // CONSIDER does this really make sense? We end up extracting just the expression, providing that the function matches OK.
   def matchMonadicDuple(fm: Matcher[ExpressionFunction, ExpressionFunction], om: ExpressionMatcher[Expression]): Matcher[MonadicDuple, Expression] =
-    from2(fm ~> om)(MonadicDuple)
+    from2(fm ~> om)(MonadicDuple) :| "matchMonadicDuple"
 
   //  from2Alt(fm ~> om)(MonadicDuple.unapply)
 
   def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, ExpressionBiFunction], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
-    matchProduct3All(fm, lm, rm)(DyadicTriple)
-
-  //  def matchBiFunctionByNa
-  //  me(name: String): ExpressionMatcher[Number] = {
-  //      val matcher1: ExpressionMatcher[DyadicTriple] = matchBiFunction
-  //      val functionMatcher: Matcher[ExpressionBiFunction, ExpressionBiFunction] = matchBiFunctionByName("+")
-  //      val expressionMatcher = ExpressionMatcher(matchBiFunctionByName("*") ^^ (Expression(_)))
-  //    val matcher2: Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
-  //      matchDyadicTriple(functionMatcher, ExpressionMatcher(always[Expression]), expressionMatcher)
-  //    val result: ExpressionMatcher[(ExpressionBiFunction, Expression, Expression)] = ExpressionMatcher(matcher1 & matcher2)
-  //    ExpressionMatcher(result ^^ { case (f,x,y) => BiFunction(x,y,f) .materialize})
-  //  }
-
-  //  def matchExpressionBiFunction: Matcher[ExpressionBiFunction,ExpressionBiFunction] = always
-
-  //  def matchExpressionBiFunctionByName(name: String): Matcher[ExpressionBiFunction,ExpressionBiFunction] = havingSame[ExpressionBiFunction,String](matches(name))(_.name)
-
-  //    /**
-  //      * Matcher which matches on Expression that directly represents a specific given Number.
-  //      *
-  //      * @param x the Number to match.
-  //      * @return a Matcher[Expression, Number].
-  //      */
-  //      def complementaryExpressions: Matcher[Expression, Expression] = e => matchBiFunction(e) match {
-  //        case Match(DyadicTriple(f, a, b)) =>f
-  //      }
-
+    matchProduct3All(fm, lm, rm)(DyadicTriple) :| "matchMonadicDuple"
 }
