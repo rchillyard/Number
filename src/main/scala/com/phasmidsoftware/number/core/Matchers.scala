@@ -302,7 +302,7 @@ trait Matchers {
   def log[T, R](m: => Matcher[T, R])(name: => String)(implicit ll: LogLevel, logger: MatchLogger): Matcher[T, R] = ll match {
     // TODO use flatMap
     case LogDebug => Matcher { t =>
-      logger("trying " + name + " at " + t)
+      logger("trying " + name + " on " + t)
       val r = m(t)
       logger(name + " --> " + r)
       r
@@ -325,11 +325,13 @@ trait Matchers {
     * @tparam R the result type of p.
     */
   implicit class MatcherOps[T, R](p: Matcher[T, R]) {
-    def :|(name: String)(implicit ll: LogLevel, logger: MatchLogger): Matcher[T, R] = log(p)(name)
+    def :|(name: => String)(implicit ll: LogLevel, logger: MatchLogger): Matcher[T, R] = log(p)(name)
   }
 
   /**
     * Method to create a Matcher, based on the given function f.
+    *
+    * CONSIDER using flatMap
     *
     * @param f a T => MatchResult[R].
     * @tparam T the input type.
@@ -347,7 +349,7 @@ trait Matchers {
     * @tparam R the result type.
     * @return a Matcher[T, R] based on f.
     */
-  def LoggingMatcher[T, R](name: String)(f: T => MatchResult[R])(implicit ll: LogLevel, logger: MatchLogger): Matcher[T, R] = Matcher(f) :| name
+  def LoggingMatcher[T, R](name: => String)(f: T => MatchResult[R])(implicit ll: LogLevel, logger: MatchLogger): Matcher[T, R] = Matcher(f) :| name
 
   /**
     * Method to create a Matcher which operates on a similar, but inverted, tuple as m.

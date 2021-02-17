@@ -35,22 +35,34 @@ class ExpressionMatchers extends Matchers {
 
   case class Branches(l: Expression, r: Expression)
 
-  def matchDyadicBranches(f: String): Matcher[DyadicTriple, (Expression, Expression)] =
-    LoggingMatcher("matchDyadicBranches") {
-      case DyadicTriple(ExpressionBiFunction(_, `f`), l1, r1) => Match((l1, r1))
+  def matchDyadicBranches(f: ExpressionBiFunction): Matcher[DyadicTriple, (Expression, Expression)] =
+    LoggingMatcher(s"matchDyadicBranches: $f") {
+      case DyadicTriple(`f`, l1, r1) => Match((l1, r1))
       case x => Miss("matchDyadicBranches", x)
     }
 
-  def matchDyadicBranch(h: String, c: Expression): Matcher[(Expression, Expression), Expression] =
-    LoggingMatcher("matchDyadicBranch") {
-      case (b, BiFunction(`c`, e, ExpressionBiFunction(_, `h`))) if e.simplify == b.simplify => Match(Number.zero)
-      case (BiFunction(e, `c`, ExpressionBiFunction(_, `h`)), b) if e.simplify == b.simplify => Match(Number.zero)
-      case x => Miss("matchDyadicBranch", x)
+  def matchDyadicBranch(h: ExpressionBiFunction, c: Expression, r: Expression): Matcher[(Expression, Expression), Expression] =
+    LoggingMatcher(s"matchDyadicBranch: $h") {
+      // TODO clean this up
+      case (b, BiFunction(`c`, e, `h`))
+        if e.simplify == b.simplify =>
+        Match(r)
+      case (BiFunction(`c`, e, `h`), b)
+        if e.simplify == b.simplify =>
+        Match(r)
+      case (b, BiFunction(e, `c`, `h`))
+        if e.simplify == b.simplify =>
+        Match(r)
+      case (BiFunction(e, `c`, `h`), b)
+        if e.simplify == b.simplify =>
+        Match(r)
+      case x =>
+        Miss("matchDyadicBranch", x)
     }
 
-  def matchCasePlus: Matcher[DyadicTriple, Expression] = matchDyadicBranches("+") & matchDyadicBranch("*", Number(-1)) :| "matchCasePlus"
+  def matchCasePlus: Matcher[DyadicTriple, Expression] = matchDyadicBranches(Sum) & matchDyadicBranch(Product, Number(-1), Number.zero) :| "matchCasePlus"
 
-  def matchCaseTimes: Matcher[DyadicTriple, Expression] = matchDyadicBranches("*") & matchDyadicBranch("^", Number(-1)) :| "matchCaseTimes"
+  def matchCaseTimes: Matcher[DyadicTriple, Expression] = matchDyadicBranches(Product) & matchDyadicBranch(Power, Number(-1), Number.zero) :| "matchCaseTimes"
 
   def functionSimplifier: ExpressionMatcher[Expression] = matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) :| "functionSimplifier"
 

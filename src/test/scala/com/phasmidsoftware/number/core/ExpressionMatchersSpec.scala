@@ -54,12 +54,44 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers {
     matchers.simplifier(z) should matchPattern { case matchers.Match(ExactNumber(Right(7), Scalar)) => }
   }
 
+  behavior of "matchDyadicBranch"
+  it should "match 1" in {
+    val matchers = new ExpressionMatchers
+    val one: Expression = Number.one
+    val negativeOne: Number = Number(-1)
+    val p = matchers.matchDyadicBranch(Product, negativeOne, Number.zero)
+    val r: matchers.MatchResult[Expression] = p((one, BiFunction(one, negativeOne, Product)))
+    r.successful shouldBe true
+    r.get shouldBe Number.zero
+  }
   behavior of "canceling operations"
-  // TODO this should be fixed
+  // FIXME this should be fixed
   ignore should "cancel 1 and - -1" in {
     val x: Expression = Expression.one
     val y = -x
     val z = x + y
+    val matchers = new ExpressionMatchers
+    matchers.simplifier(z) should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
+  }
+  // FIXME this should be fixed
+  ignore should "cancel -1 and - 1" in {
+    val x: Expression = Expression.one
+    val y = -x
+    val z = y + x
+    val matchers = new ExpressionMatchers
+    matchers.simplifier(z) should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
+  }
+  it should "cancel 1 and - -1 b" in {
+    val x: Expression = Expression.one
+    val y = Number(-1) * x
+    val z = x + y
+    val matchers = new ExpressionMatchers
+    matchers.simplifier(z) should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
+  }
+  it should "cancel -1 and - 1 b" in {
+    val x: Expression = Expression.one
+    val y = Number(-1) * x
+    val z = y + x
     val matchers = new ExpressionMatchers
     matchers.simplifier(z) should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
   }

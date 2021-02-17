@@ -127,7 +127,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val p = m.success(1) :| "success(1)"
     p(1).successful shouldBe true
     sb.toString() shouldBe
-      """trying success(1) at 1
+      """trying success(1) on 1
         |success(1) --> Match: 1
         |""".stripMargin
   }
@@ -140,7 +140,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val e = Literal(one)
     f(e).successful shouldBe true
     sb.toString() shouldBe
-      """trying one at 1
+      """trying one on 1
         |one --> Match: 1
         |""".stripMargin
   }
