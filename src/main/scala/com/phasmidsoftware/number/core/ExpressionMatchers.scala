@@ -5,7 +5,7 @@ import scala.language.implicitConversions
 /**
   * Matchers whose input is generally an Expression.
   */
-class ExpressionMatchers extends Matchers {
+class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers {
 
   case class DyadicTriple(f: ExpressionBiFunction, l: Expression, r: Expression)
 
