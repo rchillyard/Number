@@ -949,13 +949,38 @@ trait Matchers {
     * @tparam T the underlying type of t.
     * @tparam R the result-type of this.
     */
-  case class Miss[T, +R](msg: String, t: T) extends MatchResult[R] {
+  abstract class Unsuccessful[+R, X](clue: X) extends MatchResult[R] {
     /**
       *
       * @return false.
       */
     def successful: Boolean = false
 
+    /**
+      * @throws MatcherException cannot call get on Miss.
+      */
+    def get: R = clue match {
+      case x: Throwable => throw MatcherException("Unsuccessful: cannot call get", x)
+      case w: String => throw MatcherException(s"Unsuccessful: cannot call get: $w")
+      case x => throw MatcherException(s"Unsuccessful: cannot call get: $x")
+    }
+
+    /**
+      * Do nothing.
+      *
+      * @param f a function of R => Unit (ignored).
+      */
+    def foreach(f: R => Unit): Unit = ()
+  }
+
+  /**
+    * Unsuccessful match.
+    *
+    * @param t the value that was not matched.
+    * @tparam T the underlying type of t.
+    * @tparam R the result-type of this.
+    */
+  case class Miss[T, +R](msg: String, t: T) extends Unsuccessful[R, String](msg) {
     /**
       * @param f a function of R => S (ignored)
       * @tparam S the underlying type of the returned MatchResult.
@@ -971,31 +996,11 @@ trait Matchers {
     def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Miss(msg, t)
 
     /**
-      * @throws MatcherException cannot call get on Miss.
-      */
-    def get: R = throw MatcherException("cannot call get on Miss")
-
-    /**
       * @param f a function of R => MatchResult[S] (ignored).
       * @tparam S the underlying type of the returned MatchResult.
       * @return Miss(t).
       */
     def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = Miss(msg, t)
-
-    /**
-      * Do nothing.
-      *
-      * @param f a function of R => Unit (ignored).
-      */
-    def foreach(f: R => Unit): Unit = ()
-
-    /**
-      * Alternation method which takes a MatchResult as the alternative.
-      *
-      * @param s a MatchResult which will be used if this is empty.
-      * @return s.
-      */
-    def ||[S >: R](s: => MatchResult[S]): MatchResult[S] = s
 
     /**
       * Alternation method which takes a Matcher as the alternative.
@@ -1005,6 +1010,14 @@ trait Matchers {
       * @return m(t).
       */
     def |[S >: R](m: => Matcher[Any, S]): MatchResult[S] = m(t)
+
+    /**
+      * Alternation method which takes a MatchResult as the alternative.
+      *
+      * @param s a MatchResult which will be used if this is empty.
+      * @return s.
+      */
+    def ||[S >: R](s: => MatchResult[S]): MatchResult[S] = s
 
     /**
       * Composition method.
@@ -1028,13 +1041,7 @@ trait Matchers {
     * @param e the exception that was thrown.
     * @tparam R the result-type of this.
     */
-  case class Error[+R](e: Throwable) extends MatchResult[R] {
-    /**
-      *
-      * @return false.
-      */
-    def successful: Boolean = false
-
+  case class Error[+R](e: Throwable) extends Unsuccessful[R, Throwable](e) {
     /**
       * @param f a function of R => S (ignored)
       * @tparam S the underlying type of the returned MatchResult.
@@ -1049,19 +1056,7 @@ trait Matchers {
       */
     def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Error(e)
 
-    /**
-      * @throws Exception e.
-      */
-    def get: R = throw e
-
     def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = throw e
-
-    /**
-      * Do nothing.
-      *
-      * @param f a function of R => Unit (ignored).
-      */
-    def foreach(f: R => Unit): Unit = ()
 
     /**
       * Alternation method which takes a MatchResult as the alternative.
@@ -1160,8 +1155,11 @@ trait Matchers {
 
 }
 
-case class MatcherException(msg: String) extends Exception(msg)
+case class MatcherException(msg: String, x: Throwable) extends Exception(msg, x)
 
+object MatcherException {
+  def apply(msg: String): MatcherException = MatcherException(msg, null)
+}
 
 /**
   * Trait which is used to define a logging level for the log method of SignificantSpaceParsers.
