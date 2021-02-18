@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.matchers.{MatchLogger, Matchers}
 import scala.language.implicitConversions
 
 /**

@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.core
+package com.phasmidsoftware.number.matchers
 
 import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
@@ -119,6 +119,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   it should "log success" in {
     val sb = new StringBuilder
     import m.MatcherOps
+    implicit val ll: LogLevel = LogDebug
     implicit val logger: MatchLogger = w => sb.append(s"$w\n")
     val p = m.success(1) :| "success(1)"
     p(1).successful shouldBe true
@@ -131,6 +132,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   behavior of "LoggingMatcher"
   it should "work with fixed success result" in {
     val sb = new StringBuilder
+    implicit val ll: LogLevel = LogDebug
     implicit val logger: MatchLogger = w => sb.append(s"$w\n")
     val f: m.Matcher[String, Int] = m.LoggingMatcher("one")(_ => m.Match(1))
     f("1").successful shouldBe true

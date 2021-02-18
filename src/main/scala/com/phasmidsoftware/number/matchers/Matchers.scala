@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.core
+package com.phasmidsoftware.number.matchers
 
 import scala.util.{Failure, Success, Try}
 
@@ -226,17 +226,15 @@ trait Matchers {
   )
 
 
-
-
   /**
     * Method to create a Matcher of Tuple2, which succeeds if the first member matches the given Matcher.
     *
     * @tparam T0 first of the member types.
     * @tparam T1 second of the member types.
-    *            @tparam R0 type of result's first member.
+    * @tparam R0 type of result's first member.
     * @return a Matcher[(T0, T1), (R0, T1)].
     */
-  def filter2_0[T0, T1, R0](m: Matcher[T0, R0]): Matcher[(T0, T1), (R0, T1)] = Matcher{
+  def filter2_0[T0, T1, R0](m: Matcher[T0, R0]): Matcher[(T0, T1), (R0, T1)] = Matcher {
     case (t0, t1) => m(t0) && Match(t1)
   }
 
@@ -245,10 +243,10 @@ trait Matchers {
     *
     * @tparam T0 first of the input member types.
     * @tparam T1 second of the input member types.
-    *            @tparam R1 type of result's second member.
+    * @tparam R1 type of result's second member.
     * @return a Matcher[(T0, T1), (T0, R1)].
     */
-  def filter2_1[T0, T1, R1](m: Matcher[T1, R1]): Matcher[(T0, T1), (T0, R1)] = Matcher{
+  def filter2_1[T0, T1, R1](m: Matcher[T1, R1]): Matcher[(T0, T1), (T0, R1)] = Matcher {
     case (t0, t1) => Match(t0) && m(t1)
   }
 
@@ -365,7 +363,9 @@ trait Matchers {
     * @tparam R the result type.
     * @return a Matcher[T, R] based on f.
     */
-  def Matcher[T, R](f: T => MatchResult[R]): Matcher[T, R] = (t: T) => try f(t) catch { case e: MatchError => Miss(s"matchError: $e", t) }
+  def Matcher[T, R](f: T => MatchResult[R]): Matcher[T, R] = (t: T) => try f(t) catch {
+    case e: MatchError => Miss(s"matchError: $e", t)
+  }
 
   /**
     * Method to create a Matcher, based on the given function f.
@@ -1198,7 +1198,7 @@ case object LogInfo extends LogLevel
 case object LogOff extends LogLevel
 
 object LogLevel {
-  implicit val ll: LogLevel = LogDebug
+  implicit val ll: LogLevel = LogOff
 }
 
 trait MatchLogger extends ((String => Unit))
