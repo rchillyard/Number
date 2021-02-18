@@ -41,24 +41,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       case x => Miss("matchDyadicBranches", x)
     }
 
-  def matchDyadicBranch(h: ExpressionBiFunction, c: Expression, r: Expression): Matcher[(Expression, Expression), Expression] =
-    LoggingMatcher(s"matchDyadicBranch: $h") {
-      // TODO clean this up
-      case (b, BiFunction(`c`, e, `h`))
-        if e.simplify == b.simplify =>
-        Match(r)
-      case (BiFunction(`c`, e, `h`), b)
-        if e.simplify == b.simplify =>
-        Match(r)
-      case (b, BiFunction(e, `c`, `h`))
-        if e.simplify == b.simplify =>
-        Match(r)
-      case (BiFunction(e, `c`, `h`), b)
-        if e.simplify == b.simplify =>
-        Match(r)
-      case x =>
-        Miss("matchDyadicBranch", x)
-    }
+  def matchDyadicBranch(h: ExpressionBiFunction, c: Expression, r: Expression): Matcher[(Expression, Expression), Expression] = LoggingMatcher("matchDyadicBranch") {
+    case (b, BiFunction(x, y, z)) if z == h && b.materialize == x.materialize && y.materialize == c.materialize => Match(r)
+    case (BiFunction(x, y, z), b) if z == h && b.materialize == x.materialize && y.materialize == c.materialize => Match(r)
+    case (b, BiFunction(y, x, z)) if z == h && b.materialize == x.materialize && y.materialize == c.materialize => Match(r)
+    case (BiFunction(y, x, z), b) if z == h && b.materialize == x.materialize && y.materialize == c.materialize => Match(r)
+    case t => Miss("matchDyadicBranch", t)
+  }
 
   def matchCasePlus: Matcher[DyadicTriple, Expression] = matchDyadicBranches(Sum) & matchDyadicBranch(Product, Number(-1), Number.zero) :| "matchCasePlus"
 
