@@ -1,10 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Number.one
+import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
-import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -109,14 +107,12 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Matcher method"
 
   it should "work with fixed success result" in {
-    val f: m.Matcher[Expression, Number] = m.Matcher(_ => m.Match(one))
-    val e = Literal(one)
-    f(e).successful shouldBe true
+    val f: m.Matcher[String, Int] = m.Matcher(_ => m.Match(1))
+    f("1").successful shouldBe true
   }
   it should "work with fixed fail result" in {
-    val f: m.Matcher[Expression, Number] = m.Matcher(e => m.Miss("", e))
-    val e = Literal(Number.one)
-    f(e).successful shouldBe false
+    val f: m.Matcher[String, Int] = m.Matcher(e => m.Miss("", e))
+    f("1").successful shouldBe false
   }
 
   behavior of "log"
@@ -127,34 +123,33 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val p = m.success(1) :| "success(1)"
     p(1).successful shouldBe true
     sb.toString() shouldBe
-      """trying success(1) on 1
-        |success(1) --> Match: 1
-        |""".stripMargin
+            """trying success(1) on 1
+              |success(1) --> Match: 1
+              |""".stripMargin
   }
 
   behavior of "LoggingMatcher"
   it should "work with fixed success result" in {
     val sb = new StringBuilder
     implicit val logger: MatchLogger = w => sb.append(s"$w\n")
-    val f: m.Matcher[Expression, Number] = m.LoggingMatcher("one")(_ => m.Match(one))
-    val e = Literal(one)
-    f(e).successful shouldBe true
+    val f: m.Matcher[String, Int] = m.LoggingMatcher("one")(_ => m.Match(1))
+    f("1").successful shouldBe true
     sb.toString() shouldBe
-      """trying one on 1
-        |one --> Match: 1
-        |""".stripMargin
+            """trying one on 1
+              |one --> Match: 1
+              |""".stripMargin
   }
 
   behavior of "success"
-  it should "work with Number.one" in {
-    val f = m.success[Expression, Number](one)
-    f(Literal(one)).successful shouldBe true
+  it should "work with 1" in {
+    val f = m.success[String, Int](1)
+    f("1").successful shouldBe true
   }
 
   behavior of "fail"
   it should "work with fixed fail result" in {
-    val f = m.fail[Expression, Number]("")
-    f(Literal(one)).successful shouldBe false
+    val f = m.fail[String, Int]("")
+    f("").successful shouldBe false
   }
 
   behavior of "matches"

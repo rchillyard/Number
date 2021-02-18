@@ -943,13 +943,13 @@ trait Matchers {
   }
 
   /**
-    * Unsuccessful match.
+    * Unsuccessful match of type dependent on X.
     *
-    * @param t the value that was not matched.
-    * @tparam T the underlying type of t.
+    * @param x either a String or a Throwable.
+    * @tparam X the type of x.
     * @tparam R the result-type of this.
     */
-  abstract class Unsuccessful[+R, X](clue: X) extends MatchResult[R] {
+  abstract class Unsuccessful[+R, X](x: X) extends MatchResult[R] {
     /**
       *
       * @return false.
@@ -957,9 +957,9 @@ trait Matchers {
     def successful: Boolean = false
 
     /**
-      * @throws MatcherException cannot call get on Miss.
+      * @throws MatcherException cannot call get on Unsuccessful.
       */
-    def get: R = clue match {
+    def get: R = x match {
       case x: Throwable => throw MatcherException("Unsuccessful: cannot call get", x)
       case w: String => throw MatcherException(s"Unsuccessful: cannot call get: $w")
       case x => throw MatcherException(s"Unsuccessful: cannot call get: $x")
@@ -974,7 +974,7 @@ trait Matchers {
   }
 
   /**
-    * Unsuccessful match.
+    * Unsuccessful match (Miss).
     *
     * @param t the value that was not matched.
     * @tparam T the underlying type of t.
@@ -1036,8 +1036,6 @@ trait Matchers {
   /**
     * Error when matching.
     *
-    * TODO create an abstract class called NotSuccess to be extended by Failure and Error.
-    *
     * @param e the exception that was thrown.
     * @tparam R the result-type of this.
     */
@@ -1056,7 +1054,7 @@ trait Matchers {
       */
     def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Error(e)
 
-    def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = throw e
+    def flatMap[S](f: R => MatchResult[S]): MatchResult[S] = Error(e)
 
     /**
       * Alternation method which takes a MatchResult as the alternative.
