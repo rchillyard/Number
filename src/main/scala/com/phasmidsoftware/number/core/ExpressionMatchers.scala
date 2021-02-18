@@ -88,7 +88,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     matchDyadicBranches(Sum) & matchDyadicBranch(Product, Number(-1), Number.zero) :| "matchCasePlus"
 
   def matchCaseTimes: Matcher[DyadicTriple, Expression] =
-    matchDyadicBranches(Product) & matchDyadicBranch(Power, Number(-1), Number.zero) :| "matchCaseTimes"
+    matchDyadicBranches(Product) & matchDyadicBranch(Power, Number(-1), Number.one) :| "matchCaseTimes"
 
   def functionSimplifier: ExpressionMatcher[Expression] =
     matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) :| "functionSimplifier"
