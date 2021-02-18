@@ -29,11 +29,19 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
+  /**
+    * Method to match an Expression and replace it with a simplified expression.
+    *
+    * @return an ExpressionMatcher[Expression].
+    */
   def simplifier: ExpressionMatcher[Expression] = (biFunctionSimplifier | functionSimplifier) :| "simplifier"
 
+  /**
+    * Method to match an Expression with is a BiFunction and replace it with a simplified expression.
+    *
+    * @return an ExpressionMatcher[Expression].
+    */
   def biFunctionSimplifier: ExpressionMatcher[Expression] = matchBiFunction & (matchCasePlus | matchCaseTimes) :| "biFunctionSimplifier"
-
-  case class Branches(l: Expression, r: Expression)
 
   def matchDyadicBranches(f: ExpressionBiFunction): Matcher[DyadicTriple, (Expression, Expression)] =
     LoggingMatcher(s"matchDyadicBranches: $f") {
@@ -42,39 +50,52 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     }
 
   def matchDyadicBranch(h: ExpressionBiFunction, c: Expression, r: Expression): Matcher[(Expression, Expression), Expression] =
-    LoggingMatcher(s"matchDyadicBranch: $h") {
-      // TODO clean this up
-      case (b, BiFunction(`c`, e, `h`))
-        if e.simplify == b.simplify =>
-        Match(r)
-      case (BiFunction(`c`, e, `h`), b)
-        if e.simplify == b.simplify =>
-        Match(r)
-      case (b, BiFunction(e, `c`, `h`))
-        if e.simplify == b.simplify =>
-        Match(r)
-      case (BiFunction(e, `c`, `h`), b)
-        if e.simplify == b.simplify =>
-        Match(r)
-      case x =>
-        Miss("matchDyadicBranch", x)
+    matchEitherDyadic & matchExpressionBiFunction(h) & matchAndSubstituteDyadicExpressions(c, r) :| "matchDyadicBranch"
+
+  def matchAndSubstituteDyadicExpressions(c: Expression, r: Expression): Matcher[((Expression, Expression), Expression), Expression] =
+    LoggingMatcher(s"matchAndSubstituteDyadicExpressions: $c, $r") {
+      case ((x, y), b) if b.materialize == x.materialize && y.materialize == c.materialize => Match(r)
+      case ((y, x), b) if b.materialize == x.materialize && y.materialize == c.materialize => Match(r)
     }
 
-  def matchCasePlus: Matcher[DyadicTriple, Expression] = matchDyadicBranches(Sum) & matchDyadicBranch(Product, Number(-1), Number.zero) :| "matchCasePlus"
+  /**
+    * Matcher which takes a tuple of Expressions and matches the first to a BiFunction and leaves the other as is.
+    *
+    * @return a tuple of BiFunction and Expression.
+    */
+  def matchBiFunctionExpression: Matcher[(Expression, Expression), (BiFunction, Expression)] = LoggingMatcher("matchDyadicBranch1") {
+    case (f@BiFunction(_, _, _), x) => Match(f -> x)
+  }
 
-  def matchCaseTimes: Matcher[DyadicTriple, Expression] = matchDyadicBranches(Product) & matchDyadicBranch(Power, Number(-1), Number.zero) :| "matchCaseTimes"
-
-  def functionSimplifier: ExpressionMatcher[Expression] = matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) :| "functionSimplifier"
-
-  def materializer: ExpressionMatcher[Number] = ExpressionMatcher(e => Match(e.materialize)) :| "materializer"
+  def matchExpressionBiFunction(h: ExpressionBiFunction): Matcher[(BiFunction, Expression), ((Expression, Expression), Expression)] =
+    filter2_0(matchDyadicFunction(h)) // CONSIDER why can't we add a logger here?
 
   /**
-    * This is the Matcher which should be applied to the root of an Expression in order to yield a numeric value that is,
-    * ideally, optimized.
+    * Matcher which takes a tuple of Expressions and matches either element to a BiFunction and the remains as is.
     *
-    * @return
+    * @return a tuple of BiFunction and Expression.
     */
-  //  def evaluator: ExpressionMatcher[Number] = ExpressionMatcher(value | simplifier | materializer)
+  def matchEitherDyadic: Matcher[(Expression, Expression), (BiFunction, Expression)] =
+    (matchBiFunctionExpression | swap & matchBiFunctionExpression) :| "matchEitherDyadic"
+
+  def matchDyadicFunction(h: ExpressionBiFunction): Matcher[BiFunction, (Expression, Expression)] =
+    LoggingMatcher("matchDyadicFunction") {
+      case BiFunction(x, y, `h`) => Match(x -> y)
+      case x => Miss(s"matchDyadicFunction: didn't match $h", x)
+    }
+
+  def matchCasePlus: Matcher[DyadicTriple, Expression] =
+    matchDyadicBranches(Sum) & matchDyadicBranch(Product, Number(-1), Number.zero) :| "matchCasePlus"
+
+  def matchCaseTimes: Matcher[DyadicTriple, Expression] =
+    matchDyadicBranches(Product) & matchDyadicBranch(Power, Number(-1), Number.zero) :| "matchCaseTimes"
+
+  def functionSimplifier: ExpressionMatcher[Expression] =
+    matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) :| "functionSimplifier"
+
+  // NOTE: not used.
+  //  def materializer: ExpressionMatcher[Number] =
+  //    ExpressionMatcher(e => Match(e.materialize)) :| "materializer"
 
   /**
     * Matcher which matches on Expressions that directly represent Numbers.
@@ -122,8 +143,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def matchMonadicDuple(fm: Matcher[ExpressionFunction, ExpressionFunction], om: ExpressionMatcher[Expression]): Matcher[MonadicDuple, Expression] =
     from2(fm ~> om)(MonadicDuple) :| "matchMonadicDuple"
 
-  //  from2Alt(fm ~> om)(MonadicDuple.unapply)
-
   def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, ExpressionBiFunction], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
-    matchProduct3All(fm, lm, rm)(DyadicTriple) :| "matchMonadicDuple"
+    matchProduct3All(fm, lm, rm)(DyadicTriple) :| "matchDyadicTriple"
 }

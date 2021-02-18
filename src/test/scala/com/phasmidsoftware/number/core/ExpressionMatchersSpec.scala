@@ -66,7 +66,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers {
   }
   behavior of "simplifier"
   // FIXME this should be fixed
-  ignore should "cancel 1 and - -1" in {
+  it should "cancel 1 and - -1" in {
     val x: Expression = Expression.one
     val y = -x
     val z = x + y
@@ -78,7 +78,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers {
     result should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
   }
   // FIXME this should be fixed
-  ignore should "cancel -1 and - 1" in {
+  it should "cancel -1 and - 1" in {
     val x: Expression = Expression.one
     val y = -x
     val z = y + x
