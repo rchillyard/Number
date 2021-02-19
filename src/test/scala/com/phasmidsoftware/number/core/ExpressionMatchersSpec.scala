@@ -121,14 +121,17 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = x * y
     val matchers = new ExpressionMatchers
     val result = matchers.simplifier(z)
-    result shouldBe One
-    //      z.simplify shouldBe One
+    result.successful shouldBe true
+    result.get shouldBe Number.one
   }
   it should "cancel 2 * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = y * x
-    z.simplify shouldBe One
+    val matchers = new ExpressionMatchers
+    val result = matchers.simplifier(z)
+    result.successful shouldBe true
+    result.get shouldBe Number.one
   }
   it should "cancel ^2 and sqrt" in {
     val seven = Expression(7)

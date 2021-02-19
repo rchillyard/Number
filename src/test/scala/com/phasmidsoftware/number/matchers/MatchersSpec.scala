@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.matchers
 
-import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
+import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -124,9 +125,9 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val p = m.success(1) :| "success(1)"
     p(1).successful shouldBe true
     sb.toString() shouldBe
-            """trying success(1) on 1
-              |success(1) --> Match: 1
-              |""".stripMargin
+      """trying success(1) on 1...
+        |... success(1): Match: 1
+        |""".stripMargin
   }
 
   behavior of "LoggingMatcher"
@@ -137,9 +138,9 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val f: m.Matcher[String, Int] = m.LoggingMatcher("one")(_ => m.Match(1))
     f("1").successful shouldBe true
     sb.toString() shouldBe
-            """trying one on 1
-              |one --> Match: 1
-              |""".stripMargin
+      """trying one on 1...
+        |... one: Match: 1
+        |""".stripMargin
   }
 
   behavior of "success"
@@ -197,7 +198,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val even = 0
     z(odd, "3") shouldBe m.Match(3)
     z(even, "4") shouldBe m.Match(4)
-    z(even, "3") shouldBe m.Miss("create", "3")
+    z(even, "3") shouldBe m.Miss("valve", (0, "3"))
   }
 
   behavior of "chain"
