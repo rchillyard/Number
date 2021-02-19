@@ -881,19 +881,6 @@ trait Matchers {
     def chain[S, U](m: Matcher[(R, S), U], s: S): Matcher[T, U] = Matcher {
       t => this (t) flatMap (r => m(r, s))
     }
-
-
-//    /**
-//      * Matcher which succeeds or not, depending on this and an additional S value.
-//      *
-//      * @param m a Matcher[(R, S), U].
-//      * @tparam S the type of the additional parameter.
-//      * @tparam U the result type of m and the returned Matcher.
-//      * @return a Matcher[T, U].
-//      */
-//    def chain[S, U](m: Matcher[(R, S), U], s: S): Matcher[T, U] = Matcher {
-//      t => this (t) flatMap (r => m(r, s))
-//    }
   }
 
   /**
