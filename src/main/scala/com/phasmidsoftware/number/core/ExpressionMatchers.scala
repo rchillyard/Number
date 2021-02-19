@@ -49,6 +49,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * Matcher of DyadicTriple to (Expression,Expression) which succeeds if the function of the DyadicTriple
     * matches f.
     *
+    * NOTE: the result of this match is a tuple in the same order as the second and third elements of the DyadicTriple.
+    * But, recall, that the ordering of those is essentially totally arbitrary. So, we will want to follow this
+    * matcher with swapIfNecessary.
+    *
     * @param f an ExpressionBiFunction
     * @return a tuple of left expression, right expression (from the DyadicTriple input).
     */
@@ -85,6 +89,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def matchBiFunctionExpression: Matcher[(Expression, Expression), (BiFunction, Expression)] = LoggingMatcher("matchBiFunctionExpression") {
     case (f@BiFunction(_, _, _), x) => Match(f -> x)
+    case z => Miss("matchBiFunctionExpression", z)
   }
 
   /**
@@ -120,10 +125,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     }
 
   def matchCasePlus: Matcher[DyadicTriple, Expression] =
-    matchDyadicBranches(Sum) & matchDyadicBranch(Product, Number(-1), Number.zero) :| "matchCasePlus"
+    matchDyadicBranches(Sum) & swapIfNecessary(matchDyadicBranch(Product, Number(-1), Number.zero)) :| "matchCasePlus"
 
   def matchCaseTimes: Matcher[DyadicTriple, Expression] =
-    matchDyadicBranches(Product) & matchDyadicBranch(Power, Number(-1), Number.one) :| "matchCaseTimes"
+    matchDyadicBranches(Product) & swapIfNecessary(matchDyadicBranch(Power, Number(-1), Number.one)) :| "matchCaseTimes"
 
   def functionSimplifier: ExpressionMatcher[Expression] =
     matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) :| "functionSimplifier"

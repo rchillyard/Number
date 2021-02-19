@@ -198,6 +198,8 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val even = 0
     z(odd, "3") shouldBe m.Match(3)
     z(even, "4") shouldBe m.Match(4)
+    // FIXME this has to do with the setting of LogLevel, I think.
+    //    z(even, "3") shouldBe m.Miss("create", "3")
     z(even, "3") shouldBe m.Miss("valve", (0, "3"))
   }
 

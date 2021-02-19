@@ -84,6 +84,7 @@ trait Matchers {
     * @return a Matcher[(Q,R), T].
     */
   def valve[Q, T, R](f: T => R, p: (Q, R) => Boolean): Matcher[(Q, T), R] = LoggingMatcher("valve") {
+        // TODO redesign this in terms of other Matchers, not MatchResult
     case (q, t) => MatchResult(f, p)(q, t)
   }
 
@@ -156,6 +157,19 @@ trait Matchers {
     * @return true if they are the same.
     */
   def isEqual[R](q: R, r: R): Boolean = q == r
+
+  /**
+    * Matcher which tries m on the given (tuple) input.
+    * If m is unsuccessful, it then tries m on the swapped (inverted) tuple.
+    *
+    * CONSIDER: there is should be a better way to do this.
+    *
+    * @param m a Matcher[(T,T), R].
+    * @tparam T the input type.
+    * @tparam R the result type.
+    * @return a Matcher[(T,T), R].
+    */
+  def swapIfNecessary[T, R](m: Matcher[(T, T), R]): Matcher[(T, T), R] = m | (swap & m)
 
   /**
     * Method to create a Matcher, which always succeeds, of a P whose result is a T0, based on the first element of P.

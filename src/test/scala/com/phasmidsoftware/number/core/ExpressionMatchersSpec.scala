@@ -78,6 +78,25 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
     r.get shouldBe Number.zero
   }
+
+  behavior of "matchEitherDyadic"
+  it should "match (1, biFunction)" in {
+    val matchers = new ExpressionMatchers
+    val one: Expression = Number.one
+    val negativeOne: Number = Number(-1)
+    val p = matchers.matchEitherDyadic
+    val r: matchers.MatchResult[(BiFunction, Expression)] = p((one, BiFunction(one, negativeOne, Product)))
+    r.successful shouldBe true
+  }
+  it should "match (biFunction, 1)" in {
+    val matchers = new ExpressionMatchers
+    val one: Expression = Number.one
+    val negativeOne: Number = Number(-1)
+    val p = matchers.matchEitherDyadic
+    val r: matchers.MatchResult[(BiFunction, Expression)] = p((BiFunction(one, negativeOne, Product), one))
+    r.successful shouldBe true
+  }
+
   behavior of "simplifier"
   it should "cancel 1 and - -1" in {
     sb.append("cancel 1 and - -1:\n")
@@ -115,7 +134,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result = matchers.simplifier(z)
     result should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
   }
-  ignore should "cancel 2 and * 1/2" in {
+  it should "cancel 2 and * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = x * y
