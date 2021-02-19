@@ -1,9 +1,8 @@
 package com.phasmidsoftware.number.matchers
 
+import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
-import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -240,6 +239,22 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val t = (1, "1")
     val u: m.MatchResult[(String, Int)] = m.swap(t)
     u shouldBe m.Match("1", 1)
+  }
+
+  behavior of "*"
+  it should "work" in {
+    val t = (1, 2)
+    val p: m.Matcher[(Int, Int), (Int, Int)] = m.filter2_0(m.matches(2))
+    p(t).successful shouldBe false
+    m.*(p)(t).successful shouldBe true
+  }
+
+  behavior of "**"
+  it should "work" in {
+    val t = (1, 2, 3)
+    val p: m.Matcher[(Int, Int, Int), (Int, Int, Int)] = m.filter3_0(m.matches(2))
+    p(t).successful shouldBe false
+    m.**(p)(t).successful shouldBe true
   }
 
   behavior of "rotate3"

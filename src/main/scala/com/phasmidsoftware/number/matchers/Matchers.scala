@@ -159,17 +159,27 @@ trait Matchers {
   def isEqual[R](q: R, r: R): Boolean = q == r
 
   /**
-    * Matcher which tries m on the given (tuple) input.
+    * Matcher which tries m on the given (Tuple2) input.
     * If m is unsuccessful, it then tries m on the swapped (inverted) tuple.
-    *
-    * CONSIDER: there is should be a better way to do this.
     *
     * @param m a Matcher[(T,T), R].
     * @tparam T the input type.
     * @tparam R the result type.
     * @return a Matcher[(T,T), R].
     */
-  def swapIfNecessary[T, R](m: Matcher[(T, T), R]): Matcher[(T, T), R] = m | (swap & m)
+  def *[T, R](m: Matcher[(T, T), R]): Matcher[(T, T), R] = m | (swap & m)
+
+  /**
+    * Matcher which tries m on the given (Tuple3) input.
+    * If m is unsuccessful, it then tries m on the rotated tuple.
+    * If that's unsuccessful, it then tries m on the inverted tuple.
+    *
+    * @param m a Matcher[(T,T), R].
+    * @tparam T the input type.
+    * @tparam R the result type.
+    * @return a Matcher[(T,T), R].
+    */
+  def **[T, R](m: Matcher[(T, T, T), R]): Matcher[(T, T, T), R] = m | (rotate3 & m) | (invert3 & m)
 
   /**
     * Method to create a Matcher, which always succeeds, of a P whose result is a T0, based on the first element of P.
@@ -264,6 +274,45 @@ trait Matchers {
   }
 
   /**
+    * Method to create a Matcher of Tuple3, which succeeds if the first member matches the given Matcher.
+    *
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam T2 third of the member types.
+    * @tparam R0 type of result's first member.
+    * @return a Matcher[(T0, T1, T2), (R0, T1, T2)].
+    */
+  def filter3_0[T0, T1, T2, R0](m: Matcher[T0, R0]): Matcher[(T0, T1, T2), (R0, T1, T2)] = {
+    case (t0, t1, t2) => m(t0) && Match(t1) && Match(t2) map MatchResult.unroll21
+  }
+
+  /**
+    * Method to create a Matcher of Tuple3, which succeeds if the second member matches the given Matcher.
+    *
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam T2 third of the member types.
+    * @tparam R1 type of result's second member.
+    * @return a Matcher[(T0, T1, T2), (R0, T1, T2)].
+    */
+  def filter3_1[T0, T1, T2, R1](m: Matcher[T1, R1]): Matcher[(T0, T1, T2), (T0, R1, T2)] = {
+    case (t0, t1, t2) => Match(t0) && m(t1) && Match(t2) map MatchResult.unroll21
+  }
+
+  /**
+    * Method to create a Matcher of Tuple3, which succeeds if the third member matches the given Matcher.
+    *
+    * @tparam T0 first of the member types.
+    * @tparam T1 second of the member types.
+    * @tparam T2 third of the member types.
+    * @tparam R2 type of result's third member.
+    * @return a Matcher[(T0, T1, T2), (T0, T1, R2)].
+    */
+  def filter3_2[T0, T1, T2, R2](m: Matcher[T2, R2]): Matcher[(T0, T1, T2), (T0, T1, R2)] = {
+    case (t0, t1, t2) => Match(t0) && Match(t1) && m(t2) map MatchResult.unroll21
+  }
+
+  /**
     * Method to swap the order of elements in a Tuple2.
     *
     * @tparam T0 the first element type.
@@ -272,10 +321,10 @@ trait Matchers {
     */
   def swap[T0, T1]: Matcher[(T0, T1), (T1, T0)] = lift[(T0, T1), (T1, T0)] {
     case (t0, t1) => (t1, t0)
-  } :| "swap"
+  }
 
   /**
-    * Method to swap the order of elements in a Tuple3.
+    * Method to rotate the order of elements in a Tuple3.
     *
     * @tparam T0 the first element type.
     * @tparam T1 the second element type.
@@ -287,7 +336,7 @@ trait Matchers {
   }
 
   /**
-    * Method to swap the order of elements in a Tuple3.
+    * Method to invert the order of elements in a Tuple3.
     *
     * @tparam T0 the first element type.
     * @tparam T1 the second element type.
@@ -546,7 +595,7 @@ trait Matchers {
     * @return a Matcher[P, (R0, R1, R2)] that matches at least one of the elements of the given tuple.
     */
   def matchProduct3All[T0, T1, T2, R0, R1, R2, P <: Product](m0: Matcher[T0, R0], m1: => Matcher[T1, R1], m2: => Matcher[T2, R2])(f: (T0, T1, T2) => P): Matcher[P, (R0, R1, R2)] = p =>
-    m0(p.productElement(0).asInstanceOf[T0]) && m1(p.productElement(1).asInstanceOf[T1]) && m2(p.productElement(2).asInstanceOf[T2]) map MatchResult.unroll3
+    m0(p.productElement(0).asInstanceOf[T0]) && m1(p.productElement(1).asInstanceOf[T1]) && m2(p.productElement(2).asInstanceOf[T2]) map MatchResult.unroll21
 
   /**
     * Method to match all element of a Tuple2.
@@ -576,7 +625,7 @@ trait Matchers {
     * @return a Matcher[(T0, T1), (R0, R1)] that matches at least one of the elements of the given tuple.
     */
   def match3All[T0, T1, T2, R0, R1, R2](m0: Matcher[T0, R0], m1: => Matcher[T1, R1], m2: => Matcher[T2, R2]): Matcher[(T0, T1, T2), (R0, R1, R2)] = {
-    case (t0, t1, t2) => m0(t0) && m1(t1) && m2(t2) map MatchResult.unroll3
+    case (t0, t1, t2) => m0(t0) && m1(t1) && m2(t2) map MatchResult.unroll21
   }
 
   /**
@@ -1159,7 +1208,9 @@ trait Matchers {
     // CONSIDER merging with rotate3 and invert3 from Matchers
     def invert3[R0, R1, R2](t: (R0, R1, R2)): (R2, R1, R0) = (t._3, t._2, t._1)
 
-    def unroll3[R0, R1, R2](t: ((R0, R1), R2)): (R0, R1, R2) = (t._1._1, t._1._2, t._2)
+    def unroll12[R0, R1, R2](t: (R0, (R1, R2))): (R0, R1, R2) = (t._1, t._2._1, t._2._2)
+
+    def unroll21[R0, R1, R2](t: ((R0, R1), R2)): (R0, R1, R2) = (t._1._1, t._1._2, t._2)
 
     def roll3[R0, R1, R2](t: (R0, R1, R2)): ((R0, R1), R2) = t._1 -> t._2 -> t._3
   }
