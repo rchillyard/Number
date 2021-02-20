@@ -114,7 +114,7 @@ trait Matchers {
   def not[T, R](m: Matcher[T, R], r: => R): Matcher[T, R] = t => m(t) match {
     case Match(_) => Miss("not", t)
     case Miss(_, _) => Match(r)
-    case Error(e) => Error(e)
+    case Error(e) => Error(e) // CONSIDER is this possible?
   }
 
   /**
@@ -350,6 +350,8 @@ trait Matchers {
   /**
     * Tee method.
     * This method will return its input, however, a side-effect occurs which is to invoke f(x).
+    *
+    * CONSIDER setting up a MatchResultOps and making tee of method of that.
     *
     * @param x an X value.
     * @param f a function which takes an X and yields Unit.
@@ -631,6 +633,8 @@ trait Matchers {
   /**
     * Method to create a Matcher which operates on an instance of a case class (or other Product) P but which invokes m (which takes a 2-tuple).
     *
+    * TESTME
+    *
     * @param m a Matcher[(T0, T1), R].
     * @param f a function (T0, T1) => P.
     * @tparam T0 the first element type.
@@ -644,6 +648,8 @@ trait Matchers {
 
   /**
     * Method to create a Matcher which operates on an instance of a case class (or other Product) P but which invokes m (which takes a 2-tuple).
+    *
+    * TESTME
     *
     * @param m a Matcher[(T0, T1), R].
     * @param f a function P => Option[(T0, T1)] (in other words, an unapply method).
@@ -662,6 +668,8 @@ trait Matchers {
   /**
     * Method to create a Matcher which operates on an instance of a case class (or other Product) P
     * but which invokes m (which takes a 3-tuple).
+    *
+    * TESTME
     *
     * @param m a Matcher[(T0, T1), R].
     * @param f a function (T0, T1) => P.
@@ -772,6 +780,13 @@ trait Matchers {
       */
     def &[S >: R, T](m: => Matcher[S, T]): MatchResult[T]
 
+    /**
+      * TESTME
+      *
+      * @param m a Matcher[R, S].
+      * @tparam S the result type.
+      * @return a MatchResult[S].
+      */
     def chain[S](m: Matcher[R, S]): MatchResult[S] = this match {
       case Match(x) => m(x)
       case Miss(w, x) => Miss(w, x)
@@ -824,6 +839,8 @@ trait Matchers {
 
     /**
       * Matcher which reverses the sense of this Matcher.
+      *
+      * TESTME
       *
       * @param s the default result value, only to be used in the even of a Miss.
       * @tparam S the type of both s and the result (a super-type of R).
@@ -916,6 +933,8 @@ trait Matchers {
     /**
       * Matcher which succeeds or not, depending on this and an additional S value.
       *
+      * TESTME
+      *
       * @param m a Matcher[(R, S), U].
       * @tparam S the type of the additional parameter.
       * @tparam U the result type of m and the returned Matcher.
@@ -974,6 +993,8 @@ trait Matchers {
       * Alternation method which takes a Matcher as the alternative.
       * If this MatchResult is empty then return the value of m applied to the input.
       *
+      * TESTME
+      *
       * @param m a Matcher of Any to R (ignored).
       * @return this.
       */
@@ -1013,6 +1034,8 @@ trait Matchers {
     def successful: Boolean = false
 
     /**
+      * TESTME
+      *
       * @throws MatcherException cannot call get on Unsuccessful.
       */
     def get: R = x match {
@@ -1079,6 +1102,8 @@ trait Matchers {
       * Composition method.
       * If this MatchResult is successful then return the value of m applied to the result.
       *
+      * TESTME
+      *
       * @param m a Matcher of S to T.
       * @tparam S the underlying type of the input to m (S is a super-class of R).
       * @tparam U the underlying type of the returned value.
@@ -1091,6 +1116,8 @@ trait Matchers {
 
   /**
     * Error when matching.
+    *
+    * TESTME
     *
     * @param e the exception that was thrown.
     * @tparam R the result-type of this.
@@ -1204,6 +1231,7 @@ trait Matchers {
       */
     def apply[Q, T, R](f: T => R, p: (Q, R) => Boolean)(q: Q, t: T): MatchResult[R] = MatchResult.create(p)(q, t, f(t))
 
+    // TESTME
     // CONSIDER move these to a tuple-specific class
     // CONSIDER merging with rotate3 and invert3 from Matchers
     def invert3[R0, R1, R2](t: (R0, R1, R2)): (R2, R1, R0) = (t._3, t._2, t._1)

@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.matchers
 
-import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
+import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -154,6 +155,14 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     f("").successful shouldBe false
   }
 
+  behavior of "maybe"
+  it should "work with fixed fail result" in {
+    val fTrue = m.maybe[String](b = true)
+    fTrue("").successful shouldBe true
+    val fFalse = m.maybe[String](b = false)
+    fFalse("").successful shouldBe false
+  }
+
   behavior of "matches"
   it should "match 1" in {
     val f = m.matches(1)
@@ -257,6 +266,43 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     m.**(p)(t).successful shouldBe true
   }
 
+  behavior of "filter"
+  it should "filter2_0" in {
+    val t = (1, 2)
+    val p1: m.Matcher[(Int, Int), (Int, Int)] = m.filter2_0(m.matches(2))
+    p1(t).successful shouldBe false
+    val p2: m.Matcher[(Int, Int), (Int, Int)] = m.filter2_0(m.matches(1))
+    p2(t).successful shouldBe true
+  }
+  it should "filter2_1" in {
+    val t = ("1", 2)
+    val p1: m.Matcher[(String, Int), (String, Int)] = m.filter2_1(m.matches(2))
+    p1(t).successful shouldBe true
+    val p2: m.Matcher[(String, Int), (String, Int)] = m.filter2_1(m.matches(1))
+    p2(t).successful shouldBe false
+  }
+  it should "filter3_0" in {
+    val t = ("1", 2, 3.0)
+    val p1: m.Matcher[(String, Int, Double), (String, Int, Double)] = m.filter3_0(m.matches("1"))
+    p1(t).successful shouldBe true
+    val p2: m.Matcher[(String, Int, Double), (String, Int, Double)] = m.filter3_0(m.matches("2"))
+    p2(t).successful shouldBe false
+  }
+  it should "filter3_1" in {
+    val t = ("1", 2, 3.0)
+    val p1: m.Matcher[(String, Int, Double), (String, Int, Double)] = m.filter3_1(m.matches(2))
+    p1(t).successful shouldBe true
+    val p2: m.Matcher[(String, Int, Double), (String, Int, Double)] = m.filter3_1(m.matches(1))
+    p2(t).successful shouldBe false
+  }
+  it should "filter3_2" in {
+    val t = ("1", 2, 3.0)
+    val p1: m.Matcher[(String, Int, Double), (String, Int, Double)] = m.filter3_2(m.matches(3.0))
+    p1(t).successful shouldBe true
+    val p2: m.Matcher[(String, Int, Double), (String, Int, Double)] = m.filter3_2(m.matches(0))
+    p2(t).successful shouldBe false
+  }
+
   behavior of "rotate3"
   it should "work" in {
     val t = (1, "1", 1.0)
@@ -295,6 +341,43 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val result = z(1 -> 2)
     result.successful shouldBe true
     result.get shouldBe 1
+  }
+
+  behavior of "select"
+  it should "select2_0" in {
+    case class Complex(r: Double, i: Double)
+    val z: m.Matcher[Complex, Double] = m.select2_0(Complex)
+    val result = z(Complex(1, 0))
+    result.successful shouldBe true
+    result.get shouldBe 1
+  }
+  it should "select2_1" in {
+    case class Complex(r: Double, i: Double)
+    val z: m.Matcher[Complex, Double] = m.select2_1(Complex)
+    val result = z(Complex(1, 0))
+    result.successful shouldBe true
+    result.get shouldBe 0
+  }
+  it should "select3_0" in {
+    case class Vector(x: String, y: Int, z: Double)
+    val z: m.Matcher[Vector, Double] = m.select3_0(Vector)
+    val result = z(Vector("1", 0, 0.5))
+    result.successful shouldBe true
+    result.get shouldBe "1"
+  }
+  it should "select3_1" in {
+    case class Vector(x: String, y: Int, z: Double)
+    val z: m.Matcher[Vector, Int] = m.select3_1(Vector)
+    val result = z(Vector("1", 0, 0.5))
+    result.successful shouldBe true
+    result.get shouldBe 0
+  }
+  it should "select3_2" in {
+    case class Vector(x: String, y: Int, z: Double)
+    val z: m.Matcher[Vector, Double] = m.select3_2(Vector)
+    val result = z(Vector("1", 0, 0.5))
+    result.successful shouldBe true
+    result.get shouldBe 0.5
   }
 
   behavior of "having"
@@ -534,5 +617,13 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val p: m.Matcher[String, Int] = m.lift(_.toInt)
     val q: m.Matcher[String, Try[Int]] = p.trial
     q("1") should matchPattern { case m.Match(Success(1)) => }
+  }
+
+  behavior of "tee"
+  it should "work" in {
+    val r = m.Match(1)
+    val s = new StringBuilder
+    m.tee(r)(x => s.append(x.toString))
+    s.toString() shouldBe "1"
   }
 }
