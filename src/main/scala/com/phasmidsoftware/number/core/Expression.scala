@@ -421,7 +421,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ => None
   }
 
-  def gatherer(l: Expression, r: Expression, name: String): Option[Expression] = grouper(name) match {
+  private def gatherer(l: Expression, r: Expression, name: String): Option[Expression] = grouper(name) match {
     case Some((op, f)) => l match {
       case BiFunction(a, b, `op`) =>
         val function1 = BiFunction(b, r, f)
@@ -434,7 +434,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case None => None
   }
 
-  def cancelOperands(l: Expression, r: Expression, name: String): Option[Expression] = (l, r, name) match {
+  private def cancelOperands(l: Expression, r: Expression, name: String): Option[Expression] = (l, r, name) match {
     case (MinusOne, One, "+") | (One, MinusOne, "+") => Some(Zero)
     case _ => None
   }
@@ -444,7 +444,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return an Expression tree which is the equivalent of this.
     */
-  def simplify: Expression = {
+  def simplify: Expression = new ExpressionMatchers().materializer(this).get
+
+  /**
+    * For now, leaving this old simplify method which has been replaced by the matcher-based method above.
+    *
+    * @return
+    */
+  private def oldSimplify: Expression = {
     val left = a.simplify
     val right = b.simplify
     val result = f.name match {

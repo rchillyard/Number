@@ -57,6 +57,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
+  def materializer: ExpressionMatcher[Expression] = (simplifier | evaluator) :| "materializer"
+
+  def evaluator: ExpressionMatcher[Number] = lift[Expression, Number](t => t.materialize)
+
   /**
     * Method to match an Expression and replace it with a simplified expression.
     *
@@ -69,7 +73,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return an ExpressionMatcher[Expression].
     */
-  def biFunctionSimplifier: ExpressionMatcher[Expression] = matchBiFunction & (matchCasePlus | matchCaseTimes) :| "biFunctionSimplifier"
+  def biFunctionSimplifier: ExpressionMatcher[Expression] = matchBiFunction & (matchSimplifyPlus | matchSimplifyTimes | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power)) :| "biFunctionSimplifier"
 
   /**
     * Method to match an Expression with is a Function and replace it with a simplified expression.
@@ -105,8 +109,18 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param r the result value (to be returned in the appropriate MatchResult).
     * @return a Matcher[(Expression, Expression), Expression].
     */
-  def matchDyadicBranch(f: ExpressionBiFunction, c: Expression, r: Expression): Matcher[(Expression, Expression), Expression] =
-    matchEitherDyadic & matchExpressionBiFunction(f) & matchAndSubstituteDyadicExpressions(c, r) :| s"matchDyadicBranch($f, $c, $r)"
+  def matchBiFunctionConstantResult(f: ExpressionBiFunction, c: Expression, r: Expression): Matcher[(Expression, Expression), Expression] =
+    matchEitherDyadic & matchExpressionBiFunction(f) & matchAndSubstituteDyadicExpressions(c, r) :| s"matchBiFunctionConstantResult($f, $c, $r)"
+
+  /**
+    * Matcher which takes a specific ExpressionBiFunction h (such as Sum, Product, ...), a specific (typically, constant) Expression c,
+    * and a specific result value, r (also an Expression).
+    *
+    * @param f the function to be matched.
+    * @return a Matcher[(Expression, Expression), Expression].
+    */
+  def matchBiFunctionRepeated(f: ExpressionBiFunction): Matcher[(Expression, Expression), ((Expression, Expression), Expression)] =
+    matchEitherDyadic & matchExpressionBiFunction(f) :| s"matchBiFunctionRepeated($f)"
 
   /**
     * Matcher of ((x, y), b) to r where b, x, y, r are all Expressions.
@@ -152,7 +166,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a tuple of BiFunction and Expression.
     */
   def matchEitherDyadic: Matcher[(Expression, Expression), (BiFunction, Expression)] =
-    (matchBiFunctionExpression | (swap & matchBiFunctionExpression)) :| "matchEitherDyadic"
+    *(matchBiFunctionExpression) :| "matchEitherDyadic"
 
   /**
     * Matcher which takes a BiFunction and returns a tuple of two Expressions.
@@ -176,8 +190,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a Matcher[DyadicTriple, Expression]
     */
-  def matchCasePlus: Matcher[DyadicTriple, Expression] =
-    matchDyadicBranches(Sum) & *(matchDyadicBranch(Product, Number(-1), Number.zero)) :| "matchCasePlus"
+  def matchSimplifyPlus: Matcher[DyadicTriple, Expression] =
+    matchDyadicBranches(Sum) & *(matchBiFunctionConstantResult(Product, Number(-1), Number.zero)) :| "matchSimplifyPlus"
 
   /**
     * Matcher which takes a DyadicTriple on * and, if appropriate, simplifies it to an Expression.
@@ -188,8 +202,32 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a Matcher[DyadicTriple, Expression]
     */
-  def matchCaseTimes: Matcher[DyadicTriple, Expression] =
-    matchDyadicBranches(Product) & *(matchDyadicBranch(Power, Number(-1), Number.one)) :| "matchCaseTimes"
+  def matchSimplifyTimes: Matcher[DyadicTriple, Expression] =
+    matchDyadicBranches(Product) & *(matchBiFunctionConstantResult(Power, Number(-1), Number.one)) :| "matchSimplifyTimes"
+
+  /**
+    * Matcher which takes a DyadicTriple on * and, if appropriate, simplifies it to an Expression.
+    * In particular, we simplify this following expression (in RPN) to 1:
+    * x -1 power x *
+    *
+    * NOTE that the * operator in the following will invert the order of the incoming tuple if required.
+    *
+    * @return a Matcher[DyadicTriple, Expression]
+    */
+  def matchGatherer(f: ExpressionBiFunction): Matcher[DyadicTriple, Expression] =
+    matchDyadicBranches(f) & *(matchBiFunctionRepeated(f)) & gatherer(f) :| "matchGatherer"
+
+  /**
+    * Matcher which takes a pair of Expressions and another Expression and combines them according to the parameter f.
+    *
+    * @param f Sum, Product of Power.
+    * @return Matcher[((Expression, Expression), Expression), Expression].
+    */
+  def gatherer(f: ExpressionBiFunction): Matcher[((Expression, Expression), Expression), Expression] = Matcher {
+    case ((x, y), z) =>
+      combineGather(f, x, y, z)
+    case t => Miss("gatherer", t)
+  }
 
   /**
     * Matcher which matches on Expressions that directly represent Numbers.
@@ -249,4 +287,18 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
 //  def matchDyadicTriple(fm: Matcher[ExpressionBiFunction, ExpressionBiFunction], lm: ExpressionMatcher[Expression], rm: ExpressionMatcher[Expression]): Matcher[DyadicTriple, (ExpressionBiFunction, Expression, Expression)] =
 //    matchProduct3All(fm, lm, rm)(DyadicTriple) :| "matchDyadicTriple"
+
+  private def combineGather(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] = f match {
+    case Power =>
+      (y * z).materialize.toInt match {
+        case Some(p) => Match((x ^ p).materialize)
+        case None => Miss(s"combine $f, $x, $y, $z missed", Number.zero) // NOTE this value is artificial
+      }
+    case Product =>
+      Match((x * y * z).materialize)
+    case Sum =>
+      import com.phasmidsoftware.number.core.Expression.ExpressionOps
+      Match((x + y + z).materialize)
+  }
+
 }

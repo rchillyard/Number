@@ -68,12 +68,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     matchers.simplifier(z) should matchPattern { case matchers.Match(ExactNumber(Right(7), Scalar)) => }
   }
 
-  behavior of "matchDyadicBranch"
+  behavior of "matchBiFunctionConstantResult"
   it should "match 1" in {
     val matchers = new ExpressionMatchers
     val one: Expression = Number.one
     val negativeOne: Number = Number(-1)
-    val p = matchers.matchDyadicBranch(Product, negativeOne, Number.zero)
+    val p = matchers.matchBiFunctionConstantResult(Product, negativeOne, Number.zero)
     val r: matchers.MatchResult[Expression] = p((one, BiFunction(one, negativeOne, Product)))
     r.successful shouldBe true
     r.get shouldBe Number.zero
@@ -157,8 +157,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = seven.sqrt
     val y = x ^ 2
     val z = y.simplify
-    z shouldBe Expression(7)
-    y.simplify.materialize should matchPattern { case ExactNumber(_, _) => }
+    z shouldBe Number(7)
   }
   it should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)
@@ -182,6 +181,35 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   ignore should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
     x.simplify shouldBe Expression(Number.e)
+  }
+
+  behavior of "biFunctionSimplifier"
+  it should "work for square of square root" in {
+    val p = new ExpressionMatchers().biFunctionSimplifier
+    val seven = Expression(7)
+    val x: Expression = seven.sqrt
+    val y = x ^ 2
+    val z: ExpressionMatchers#MatchResult[Expression] = p(y)
+    z.successful shouldBe true
+    z.get shouldBe Number(7)
+  }
+  it should "work for products" in {
+    val p = new ExpressionMatchers().biFunctionSimplifier
+    val seven = Expression(7)
+    val x: Expression = seven * 2
+    val y = x * 3
+    val z: ExpressionMatchers#MatchResult[Expression] = p(y)
+    z.successful shouldBe true
+    z.get shouldBe Number(42)
+  }
+  it should "work for sums" in {
+    val p = new ExpressionMatchers().biFunctionSimplifier
+    val seven = Expression(7)
+    val x: Expression = seven + 2
+    val y = x + 3
+    val z: ExpressionMatchers#MatchResult[Expression] = p(y)
+    z.successful shouldBe true
+    z.get shouldBe Number(12)
   }
 
   behavior of "various operations"
