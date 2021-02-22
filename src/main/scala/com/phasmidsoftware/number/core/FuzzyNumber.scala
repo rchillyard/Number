@@ -19,6 +19,11 @@ import scala.util.Left
 case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzz[Double]]) extends Number(value, factor) with Fuzzy[Double] {
 
   /**
+    * @return false.
+    */
+  def isExact: Boolean = false
+
+  /**
     * Auxiliary constructor for an exact number.
     *
     * @param v    the value for the new Number.
