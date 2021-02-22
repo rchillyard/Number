@@ -272,7 +272,7 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
-The Current version is 1.07
+The Current version is 1.0.8
 
 Version 1.0.7: added Matchers.
 
