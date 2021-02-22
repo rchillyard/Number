@@ -382,6 +382,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   def materialize: Number = f(a.simplify.materialize, b.simplify.materialize)
 
   /**
+    * If it is possible to simplify this Expression, then we do so.
+    *
+    * @return an Expression tree which is the equivalent of this.
+    */
+  def simplify: Expression = new ExpressionMatchers().materializer(this).getOrElse(Number())
+
+  /**
     * Action to materialize this Expression and render it as a String.
     *
     * @return a String representing the value of this expression.
@@ -440,18 +447,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * @return an Expression tree which is the equivalent of this.
-    */
-  def simplify: Expression = new ExpressionMatchers().materializer(this).get
-
-  /**
-    * For now, leaving this old simplify method which has been replaced by the matcher-based method above.
+    * For now, leaving this old simplify method which has been replaced by the matcher-based simplify method above.
     *
     * @return
     */
-  private def oldSimplify: Expression = {
+//noinspection ScalaUnusedSymbol
+private def oldSimplify: Expression = {
     val left = a.simplify
     val right = b.simplify
     val result = f.name match {

@@ -114,7 +114,8 @@ trait Matchers {
   def not[T, R](m: Matcher[T, R], r: => R): Matcher[T, R] = t => m(t) match {
     case Match(_) => Miss("not", t)
     case Miss(_, _) => Match(r)
-    case Error(e) => Error(e) // CONSIDER is this possible?
+    case Error(e) => Error(e)
+    case x => throw MatcherException(s"not: logic error: $x")
   }
 
   /**
@@ -706,6 +707,15 @@ trait Matchers {
     def get: R
 
     /**
+      * Alternative form of get such that, in the case of a Miss, the default value given by s will be returned.
+      *
+      * @param s a call-by-name value to be used if this is unsuccessful.
+      * @tparam S a super-class of R.
+      * @return the result of the MatchResult if it's a Match, otherwise return s if it's a Miss.
+      */
+    def getOrElse[S >: R](s: => S): S
+
+    /**
       * Map method.
       *
       * @param f a function of R => S.
@@ -791,6 +801,7 @@ trait Matchers {
       case Match(x) => m(x)
       case Miss(w, x) => Miss(w, x)
       case Error(e) => Error(e)
+      case x => throw MatcherException(s"chain: logic error: $x")
     }
   }
 
@@ -914,6 +925,7 @@ trait Matchers {
         case Success(Miss(x, _)) => Match(Failure(MatcherException(x)))
         case Failure(x) => Match(Failure(x))
         case Success(Error(e)) => Error(e)
+        case x => throw MatcherException(s"trial: logic error: $x")
       }
 
     /**
@@ -1016,6 +1028,20 @@ trait Matchers {
       */
     def get: R = r
 
+    /**
+      * Alternative form of get such that, in the case of a Miss, the default value given by s will be returned.
+      *
+      * @param s a call-by-name value to be used if this is unsuccessful.
+      * @tparam S a super-class of R.
+      * @return r.
+      */
+    def getOrElse[S >: R](s: => S): S = r
+
+    /**
+      * Render this Match as a String.
+      *
+      * @return s"Match: $r"
+      */
     override def toString: String = s"Match: $r"
   }
 
@@ -1066,6 +1092,15 @@ trait Matchers {
       * @return Miss(t).
       */
     override def map[S](f: R => S): MatchResult[S] = Miss(msg, t)
+
+    /**
+      * Method to get the value of this MatchResult, otherwise return the parameter s.
+      *
+      * @param s a call-by-name value to be used if this is unsuccessful.
+      * @tparam S a super-class of R.
+      * @return s.
+      */
+    def getOrElse[S >: R](s: => S): S = s
 
     /**
       * @param s a MatchResult[S] (ignored).
@@ -1129,6 +1164,15 @@ trait Matchers {
       * @return Error(e).
       */
     override def map[S](f: R => S): MatchResult[S] = Error(e)
+
+    /**
+      * Method to get the value of this MatchResult, otherwise return the parameter s.
+      *
+      * @param s a call-by-name value to be used if this is unsuccessful.
+      * @tparam S a super-class of R.
+      * @throws MatcherException corresponding to the error.
+      */
+    def getOrElse[S >: R](s: => S): S = get
 
     /**
       * @param s a MatchResult[S] (ignored).
