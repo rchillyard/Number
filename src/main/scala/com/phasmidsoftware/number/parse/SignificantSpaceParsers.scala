@@ -75,7 +75,7 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
   }
 
   /**
-    * Implicit class ParserOps which allows us to use the method :| on a Regex.
+    * Implicit class RegexOps which allows us to use the method :| on a Regex.
     *
     * @param r a Regex.
     */

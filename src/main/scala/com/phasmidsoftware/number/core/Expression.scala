@@ -382,6 +382,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   def materialize: Number = f(a.simplify.materialize, b.simplify.materialize)
 
   /**
+    * If it is possible to simplify this Expression, then we do so.
+    *
+    * @return an Expression tree which is the equivalent of this.
+    */
+  def simplify: Expression = new ExpressionMatchers().materializer(this).getOrElse(Number())
+
+  /**
     * Action to materialize this Expression and render it as a String.
     *
     * @return a String representing the value of this expression.
@@ -421,7 +428,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ => None
   }
 
-  def gatherer(l: Expression, r: Expression, name: String): Option[Expression] = grouper(name) match {
+  private def gatherer(l: Expression, r: Expression, name: String): Option[Expression] = grouper(name) match {
     case Some((op, f)) => l match {
       case BiFunction(a, b, `op`) =>
         val function1 = BiFunction(b, r, f)
@@ -434,17 +441,18 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case None => None
   }
 
-  def cancelOperands(l: Expression, r: Expression, name: String): Option[Expression] = (l, r, name) match {
+  private def cancelOperands(l: Expression, r: Expression, name: String): Option[Expression] = (l, r, name) match {
     case (MinusOne, One, "+") | (One, MinusOne, "+") => Some(Zero)
     case _ => None
   }
 
   /**
-    * If it is possible to simplify this Expression, then we do so.
+    * For now, leaving this old simplify method which has been replaced by the matcher-based simplify method above.
     *
-    * @return an Expression tree which is the equivalent of this.
+    * @return
     */
-  def simplify: Expression = {
+//noinspection ScalaUnusedSymbol
+private def oldSimplify: Expression = {
     val left = a.simplify
     val right = b.simplify
     val result = f.name match {
@@ -529,4 +537,11 @@ class ExpressionBiFunction(val f: (Number, Number) => Number, val name: String) 
     * @return a String.
     */
   override def toString: String = s"$name"
+}
+
+object ExpressionBiFunction {
+  def unapply(f: ((Number, Number)) => Number): Option[((Number, Number) => Number, String)] = f match {
+    case e: ExpressionBiFunction => Some(e.f, e.name)
+    case _ => None
+  }
 }
