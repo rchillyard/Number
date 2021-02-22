@@ -205,8 +205,11 @@ using a custom equality test, we can at least make _y shouldEqual 7_ work.
 There is an implicit class _ExpressionOps_ which provides methods which allow _Number_ operations to behave as expressions.
 So, for example, you can write:
 
-    
+    val x = Number(1) + 2
 
+For this to compile properly, you will need to import the _ExpressionOps_ class.
+
+From version 1.0.7, the simplification mechanism uses a feature called _Matchers_, in particular, _ExpressionMatchers_.
 The current set of expression optimizations is somewhat limited, but it catches the most important cases. 
 
 Error Bounds (Fuzziness)
@@ -269,7 +272,9 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
-The Current version is 1.0.7
+The Current version is 1.07
+
+Version 1.0.7: added Matchers.
 
 Version 1.0.6: added Mill (RPN evaluator).
 

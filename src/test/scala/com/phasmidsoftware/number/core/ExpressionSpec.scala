@@ -111,7 +111,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val y = x ^ 2
     val z = y.simplify
     z shouldBe Number(7)
-//    y.simplify.materialize should matchPattern { case ExactNumber(_, _) => }
   }
   it should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)
