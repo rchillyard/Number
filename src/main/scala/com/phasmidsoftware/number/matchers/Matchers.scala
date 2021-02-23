@@ -813,7 +813,34 @@ trait Matchers {
     */
   abstract class Matcher[-T, +R] extends (T => MatchResult[R]) {
 
-    private var name: String = ""
+    /**
+      * Unit method which yields a Matcher
+      *
+      * @param s the instance of type S which will be wrapped in Match for the result of the resulting Matcher.
+      * @tparam S the result type for the resulting Matcher.
+      * @return a Matcher[T, S].
+      */
+    def unit[S](s: S): Matcher[T, S] = _ => Match(s)
+
+    /**
+      * Map method which transforms this Matcher[T, R] into a Matcher[T, S].
+      *
+      * @param f a function R => S.
+      * @tparam U the input type for the resulting Matcher (U is a subtype of T).
+      * @tparam S the result type for the resulting Matcher.
+      * @return a Matcher[U, S].
+      */
+    def map[U <: T, S](f: R => S): Matcher[U, S] = this (_) map f
+
+    /**
+      * Map method which transforms this Matcher[T, R] into a Matcher[U, S].
+      *
+      * @param f a function R => S.
+      * @tparam U the input type for the resulting Matcher (U is a subtype of T).
+      * @tparam S the result type for the resulting Matcher.
+      * @return a Matcher[T, S].
+      */
+    def flatMap[U <: T, S](f: R => MatchResult[S]): Matcher[U, S] = this (_) flatMap f
 
     /**
       * Method to transform a MatchResult.
@@ -825,28 +852,6 @@ trait Matchers {
       *         transformed by `f`.
       */
     def ^^[S](f: R => S): Matcher[T, S] = map(f).named(toString + "^^")
-
-    /**
-      * Mutating method which sets the name of this Matcher to n.
-      *
-      * @param n the new name of this Matcher.
-      * @return this.type.
-      */
-    def named(n: String): this.type = {
-      name = n
-      this
-    }
-
-    override def toString = s"Matcher ($name)"
-
-    /**
-      * Map method which transforms this Matcher[T, R] into a Matcher[T, S].
-      *
-      * @param f a function R => S.
-      * @tparam S the result type for the resulting Matcher.
-      * @return a Matcher[T, S].
-      */
-    def map[S](f: R => S): Matcher[T, S] = t => this (t) map f
 
     /**
       * Matcher which reverses the sense of this Matcher.
@@ -954,6 +959,21 @@ trait Matchers {
       */
     def chain[S, U](m: Matcher[(R, S), U], s: S): Matcher[T, U] = t =>
       this (t) flatMap (r => m(r, s))
+
+    /**
+      * Mutating method which sets the name of this Matcher to n.
+      *
+      * @param n the new name of this Matcher.
+      * @return this.type.
+      */
+    def named(n: String): this.type = {
+      name = n
+      this
+    }
+
+    override def toString = s"Matcher ($name)"
+
+    private var name: String = ""
   }
 
   /**

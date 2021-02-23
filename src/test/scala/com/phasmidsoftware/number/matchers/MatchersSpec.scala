@@ -1,9 +1,8 @@
 package com.phasmidsoftware.number.matchers
 
+import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
-import java.util.NoSuchElementException
 import scala.util.{Success, Try}
 
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
@@ -97,6 +96,20 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val q: m.Matcher[String, Double] = target map (_.toDouble)
     q("1") shouldBe m.Match(1.0)
   }
+  it should "support flatMap" in {
+    val target = new m.Matcher[String, Int] {
+      def apply(v1: String): m.MatchResult[Int] = m.Match(v1.toInt)
+    }
+    val q: m.Matcher[String, Double] = target flatMap { x => m.Match(x.toDouble) }
+    q("1") shouldBe m.Match(1.0)
+  }
+  it should "support unit" in {
+    val target = new m.Matcher[String, Int] {
+      def apply(v1: String): m.MatchResult[Int] = m.Match(v1.toInt)
+    }
+    val q: m.Matcher[String, Int] = target.unit[Int](2)
+    q("1") shouldBe m.Match(2)
+  }
   it should "support ^^" in {
     val target = new m.Matcher[String, Int] {
       def apply(v1: String): m.MatchResult[Int] = m.Match(v1.toInt)
@@ -121,7 +134,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val sb = new StringBuilder
     import m.MatcherOps
     implicit val ll: LogLevel = LogDebug
-    implicit val logger: MatchLogger = w => sb.append(s"$w\n")
+    implicit val logger: MatchLogger = { w => sb.append(s"$w\n"); () }
     val p = m.success(1) :| "success(1)"
     p(1).successful shouldBe true
     sb.toString() shouldBe
@@ -134,7 +147,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   it should "work with fixed success result" in {
     val sb = new StringBuilder
     implicit val ll: LogLevel = LogDebug
-    implicit val logger: MatchLogger = w => sb.append(s"$w\n")
+    implicit val logger: MatchLogger = { w => sb.append(s"$w\n"); () }
     val f: m.Matcher[String, Int] = m.LoggingMatcher("one")(_ => m.Match(1))
     f("1").successful shouldBe true
     sb.toString() shouldBe
@@ -623,7 +636,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   it should "work" in {
     val r = m.Match(1)
     val s = new StringBuilder
-    m.tee(r)(x => s.append(x.toString))
+    m.tee(r) { x => s.append(x.toString); () }
     s.toString() shouldBe "1"
   }
 }
