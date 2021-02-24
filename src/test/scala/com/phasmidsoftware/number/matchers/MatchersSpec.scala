@@ -1,10 +1,12 @@
 package com.phasmidsoftware.number.matchers
 
+import com.phasmidsoftware.matchers._
 import java.util.NoSuchElementException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Success, Try}
 
+// TODO remove this Spec as it is redundant.
 class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
   private val m = new Matchers {}
@@ -344,9 +346,7 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val even = 0
     z(odd, "3") shouldBe m.Match(3)
     z(even, "4") shouldBe m.Match(4)
-    // FIXME this has to do with the setting of LogLevel, I think.
-    //    z(even, "3") shouldBe m.Miss("create", "3")
-    z(even, "3") shouldBe m.Miss("valve", (0, "3"))
+    z(even, "3") shouldBe m.Miss("create", "3")
   }
 
   behavior of "chain"
