@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.matchers
 
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -84,7 +85,7 @@ trait Matchers {
     * @return a Matcher[(Q,R), T].
     */
   def valve[Q, T, R](f: T => R, p: (Q, R) => Boolean): Matcher[(Q, T), R] = LoggingMatcher("valve") {
-        // TODO redesign this in terms of other Matchers, not MatchResult
+    // CONSIDER redesign this in terms of other Matchers, not MatchResult
     case (q, t) => MatchResult(f, p)(q, t)
   }
 
@@ -126,7 +127,7 @@ trait Matchers {
     * @tparam R the result type of m.
     * @return Matcher[T, Option of R]
     */
-  def opt[T, R](m: Matcher[T, R]): Matcher[T, Option[R]] = m ^^[Option[R]] (r => Some(r)) | success(None)
+  def opt[T, R](m: Matcher[T, R]): Matcher[T, Option[R]] = m ^^ (r => Some(r)) | success(None)
 
   /**
     * Matcher which always succeeds and creates a Match with value r.
@@ -349,22 +350,6 @@ trait Matchers {
   }
 
   /**
-    * Tee method.
-    * This method will return its input, however, a side-effect occurs which is to invoke f(x).
-    *
-    * CONSIDER setting up a MatchResultOps and making tee of method of that.
-    *
-    * @param x an X value.
-    * @param f a function which takes an X and yields Unit.
-    * @tparam X the underlying type of x.
-    * @return x unchanged.
-    */
-  def tee[X](x: MatchResult[X])(f: X => Unit): MatchResult[X] = {
-    x foreach f
-    x
-  }
-
-  /**
     * (Internal) log method.
     * If ll is LogOff, p is returned unchanged, other than that on failure of m, the matcher fail(name) is invoked.
     * If ll is LogInfo, a matcher based on m, which on successful matching, logging with println will occur, is returned.
@@ -378,7 +363,6 @@ trait Matchers {
     * @return a Matcher[T, R].
     */
   def log[T, R](m: => Matcher[T, R])(name: => String)(implicit ll: LogLevel, logger: MatchLogger): Matcher[T, R] = ll match {
-    // TODO use flatMap
     case LogDebug => Matcher { t =>
       logger(s"trying $name on $t...")
       val r = m(t)
@@ -387,10 +371,10 @@ trait Matchers {
     }
 
     case LogInfo =>
-      Matcher { t =>
-        val q: Matcher[T, R] = m | fail(name)
-        tee(q(t))(x => logger(s"$name: matched $x"))
-      }
+      Matcher(t => {
+        val q = m | fail(name)
+        q(t) :- (x => logger(s"$name: matched $x"))
+      })
 
     case _ => m | fail(name)
   }
@@ -407,9 +391,31 @@ trait Matchers {
   }
 
   /**
+    * Implicit class MatchResultOps which allows us to use the method tee on a MatchResult[R].
+    *
+    * @param rr a MatchResult[R].
+    * @tparam R the result type of m.
+    */
+  implicit class MatchResultOps[R](rr: MatchResult[R]) {
+    /**
+      * This method can be pronounced as "tee" as it's like a tee in a pipe.
+      * The input and the output are identical (so it's like identity) but it has a side-effect:
+      * the function f is invoked on the matched value of r (assuming that it is a Match).
+      *
+      * @param f a R => Unit function.
+      * @return rr unchanged.
+      */
+    def :-(f: R => Unit): MatchResult[R] = {
+      rr foreach f
+      rr
+    }
+  }
+
+  /**
     * Method to create a Matcher, based on the given function f.
     * NOTE: f is a partial function which may throw a MatchError.
     * In such a case, this is simply treated as a Miss.
+    * However, if f throws some other non-fatal exception, then that will result in an Error.
     *
     * @param f a T => MatchResult[R].
     * @tparam T the input type.
@@ -417,7 +423,8 @@ trait Matchers {
     * @return a Matcher[T, R] based on f.
     */
   def Matcher[T, R](f: T => MatchResult[R]): Matcher[T, R] = (t: T) => try f(t) catch {
-    case e: MatchError => Miss(s"matchError: $e", t)
+    case e: MatchError => Miss(s"matchError: ${e.getLocalizedMessage}", t)
+    case NonFatal(e) => Error(e)
   }
 
   /**
@@ -433,8 +440,6 @@ trait Matchers {
 
   /**
     * Method to create a Matcher which operates on a similar, but inverted, tuple as m.
-    *
-    * CONSIDER maybe we can simply compose m with swap.
     *
     * @param m a Matcher[(T0,T1),R].
     * @tparam T0 one of the input types.
@@ -484,7 +489,7 @@ trait Matchers {
     * @return a Matcher[P,(T0,T1)]
     */
   def product2[T0, T1, P <: Product](f: (T0, T1) => P): Matcher[(T0, T1), P] = lift(
-    t => f(t._1, t._2) // CONSIDER using tupled or curried here
+    t => f.tupled(t)
   )
 
   /**
@@ -632,59 +637,6 @@ trait Matchers {
   }
 
   /**
-    * Method to create a Matcher which operates on an instance of a case class (or other Product) P but which invokes m (which takes a 2-tuple).
-    *
-    * TESTME
-    *
-    * @param m a Matcher[(T0, T1), R].
-    * @param f a function (T0, T1) => P.
-    * @tparam T0 the first element type.
-    * @tparam T1 the second element type.
-    * @tparam P  the Product type.
-    * @tparam R  the result type.
-    * @return a Matcher[P, R]
-    */
-  def from2[T0, T1, P <: Product, R](m: Matcher[(T0, T1), R])(f: (T0, T1) => P): Matcher[P, R] = p =>
-    m(p.productElement(0).asInstanceOf[T0], p.productElement(1).asInstanceOf[T1])
-
-  /**
-    * Method to create a Matcher which operates on an instance of a case class (or other Product) P but which invokes m (which takes a 2-tuple).
-    *
-    * TESTME
-    *
-    * @param m a Matcher[(T0, T1), R].
-    * @param f a function P => Option[(T0, T1)] (in other words, an unapply method).
-    * @tparam T0 the first element type.
-    * @tparam T1 the second element type.
-    * @tparam P  the Product type.
-    * @tparam R  the result type.
-    * @return a Matcher[P, R]
-    */
-  def from2Alt[T0, T1, P <: Product, R](m: Matcher[(T0, T1), R])(f: P => Option[(T0, T1)]): Matcher[P, R] = p =>
-    f(p) match {
-      case Some((t0, t1)) => m(t0, t1)
-      case _ => Error(MatcherException("logic error"))
-    }
-
-  /**
-    * Method to create a Matcher which operates on an instance of a case class (or other Product) P
-    * but which invokes m (which takes a 3-tuple).
-    *
-    * TESTME
-    *
-    * @param m a Matcher[(T0, T1), R].
-    * @param f a function (T0, T1) => P.
-    * @tparam T0 the first element type.
-    * @tparam T1 the second element type.
-    * @tparam T2 the third element type.
-    * @tparam P  the Product type.
-    * @tparam R  the result type.
-    * @return a Matcher[P, R]
-    */
-  def from3[T0, T1, T2, P <: Product, R](m: Matcher[(T0, T1, T2), R])(f: (T0, T1, T2) => P): Matcher[P, R] = p =>
-    m(p.productElement(0).asInstanceOf[T0], p.productElement(1).asInstanceOf[T1], p.productElement(2).asInstanceOf[T2])
-
-  /**
     * Trait to define the behavior of the result of a Match.
     *
     * @tparam R the type of the result.
@@ -753,7 +705,7 @@ trait Matchers {
     /**
       * Alternation method which takes a MatchResult as the alternative.
       *
-      * @param s a MatchResult which will be used if this is empty.
+      * @param s a call-by-name MatchResult which will be used if this is empty.
       * @tparam S the type of the result and a super-type of R.
       * @return a MatchResult[S].
       */
@@ -773,7 +725,7 @@ trait Matchers {
       * Composition method.
       * All the results are combined into one result.
       *
-      * @param s a MatchResult[S].
+      * @param s a call-by-name MatchResult[S].
       * @tparam S the underlying type of s.
       * @return a MatchResult[(R,S)].
       */
@@ -783,26 +735,12 @@ trait Matchers {
       * Composition method.
       * If this MatchResult is successful then return the value of m applied to the result.
       *
-      * @param m a Matcher of S to T.
+      * @param m a call-by-name Matcher of S to T.
       * @tparam S the underlying type of the input to m (S is a super-class of R).
       * @tparam T the underlying type of the returned value.
       * @return a MatchResult[T].
       */
     def &[S >: R, T](m: => Matcher[S, T]): MatchResult[T]
-
-    /**
-      * TESTME
-      *
-      * @param m a Matcher[R, S].
-      * @tparam S the result type.
-      * @return a MatchResult[S].
-      */
-    def chain[S](m: Matcher[R, S]): MatchResult[S] = this match {
-      case Match(x) => m(x)
-      case Miss(w, x) => Miss(w, x)
-      case Error(e) => Error(e)
-      case x => throw MatcherException(s"chain: logic error: $x")
-    }
   }
 
   /**
@@ -855,8 +793,6 @@ trait Matchers {
 
     /**
       * Matcher which reverses the sense of this Matcher.
-      *
-      * TESTME
       *
       * @param s the default result value, only to be used in the even of a Miss.
       * @tparam S the type of both s and the result (a super-type of R).
@@ -934,7 +870,7 @@ trait Matchers {
       }
 
     /**
-      * CONSIDER maybe doesn't make sense.
+      * CONSIDER maybe doesn't make sense (compare with valve).
       *
       * Matcher which succeeds or not, depending on an additional Q value (the control).
       *
@@ -946,19 +882,6 @@ trait Matchers {
     def chain[Q, U](m: Matcher[(Q, R), U]): Matcher[(Q, T), U] = {
       case (q, t) => this (t) flatMap (r => m(q, r))
     }
-
-    /**
-      * Matcher which succeeds or not, depending on this and an additional S value.
-      *
-      * TESTME
-      *
-      * @param m a Matcher[(R, S), U].
-      * @tparam S the type of the additional parameter.
-      * @tparam U the result type of m and the returned Matcher.
-      * @return a Matcher[T, U].
-      */
-    def chain[S, U](m: Matcher[(R, S), U], s: S): Matcher[T, U] = t =>
-      this (t) flatMap (r => m(r, s))
 
     /**
       * Mutating method which sets the name of this Matcher to n.
@@ -1025,8 +948,6 @@ trait Matchers {
       * Alternation method which takes a Matcher as the alternative.
       * If this MatchResult is empty then return the value of m applied to the input.
       *
-      * TESTME
-      *
       * @param m a Matcher of Any to R (ignored).
       * @return this.
       */
@@ -1080,12 +1001,12 @@ trait Matchers {
     def successful: Boolean = false
 
     /**
-      * TESTME
+      * get method (will always throw an exception).
       *
-      * @throws MatcherException cannot call get on Unsuccessful.
+      * @throws MatcherException or Throwable (e).
       */
     def get: R = x match {
-      case x: Throwable => throw MatcherException("Unsuccessful: cannot call get", x)
+      case x: Throwable => throw x
       case w: String => throw MatcherException(s"Unsuccessful: cannot call get: $w")
       case x => throw MatcherException(s"Unsuccessful: cannot call get: $x")
     }
@@ -1157,8 +1078,6 @@ trait Matchers {
       * Composition method.
       * If this MatchResult is successful then return the value of m applied to the result.
       *
-      * TESTME
-      *
       * @param m a Matcher of S to T.
       * @tparam S the underlying type of the input to m (S is a super-class of R).
       * @tparam U the underlying type of the returned value.
@@ -1166,19 +1085,21 @@ trait Matchers {
       */
     def &[S >: R, U](m: => Matcher[S, U]): MatchResult[U] = Miss(msg, t)
 
+    /**
+      * @return a String representing this Miss.
+      */
     override def toString: String = s"Miss: $msg: $t"
   }
 
   /**
     * Error when matching.
     *
-    * TESTME
-    *
     * @param e the exception that was thrown.
     * @tparam R the result-type of this.
     */
   case class Error[+R](e: Throwable) extends Unsuccessful[R, Throwable](e) {
     /**
+      *
       * @param f a function of R => S (ignored)
       * @tparam S the underlying type of the returned MatchResult.
       * @return Error(e).
@@ -1190,7 +1111,7 @@ trait Matchers {
       *
       * @param s a call-by-name value to be used if this is unsuccessful.
       * @tparam S a super-class of R.
-      * @throws MatcherException corresponding to the error.
+      * @throws Throwable e
       */
     def getOrElse[S >: R](s: => S): S = get
 
@@ -1202,7 +1123,6 @@ trait Matchers {
     def &&[S](s: => MatchResult[S]): MatchResult[(R, S)] = Error(e)
 
     /**
-      *
       * @param f a function of R => MatchResult[S].
       * @tparam S the underlying type of the returned MatchResult.
       * @return Error(e).
@@ -1295,18 +1215,17 @@ trait Matchers {
       */
     def apply[Q, T, R](f: T => R, p: (Q, R) => Boolean)(q: Q, t: T): MatchResult[R] = MatchResult.create(p)(q, t, f(t))
 
-    // TESTME
-    // CONSIDER move these to a tuple-specific class
-    // CONSIDER merging with rotate3 and invert3 from Matchers
-    def invert3[R0, R1, R2](t: (R0, R1, R2)): (R2, R1, R0) = (t._3, t._2, t._1)
-
-    def unroll12[R0, R1, R2](t: (R0, (R1, R2))): (R0, R1, R2) = (t._1, t._2._1, t._2._2)
-
+    /**
+      * Method to flatten a nested Tuple2 into a Tuple3.
+      *
+      * @param t the input nested tuple of type ((R0, R1), R2).
+      * @tparam R0 the first element type of the resulting tuple.
+      * @tparam R1 the second element type of the resulting tuple.
+      * @tparam R2 the third element type of the resulting tuple.
+      * @return a Tuple3[R0, R1, R2].
+      */
     def unroll21[R0, R1, R2](t: ((R0, R1), R2)): (R0, R1, R2) = (t._1._1, t._1._2, t._2)
-
-    def roll3[R0, R1, R2](t: (R0, R1, R2)): ((R0, R1), R2) = t._1 -> t._2 -> t._3
   }
-
 }
 
 case class MatcherException(msg: String, x: Throwable) extends Exception(msg, x)

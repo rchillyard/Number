@@ -41,30 +41,20 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "support successful" in {
     m.success(0)("").successful shouldBe true
-    m.fail("")("").successful shouldBe false
   }
   it should "support isEmpty" in {
     m.success(0)("").isEmpty shouldBe false
-    m.fail("")("").isEmpty shouldBe true
   }
   it should "support always" in {
     val target = m.always[Unit]
     target(()).successful shouldBe true
   }
-  it should "support fail" in {
-    val target = m.fail[Unit, Unit]("")
-    target(()).successful shouldBe false
-  }
-  it should "support error" in {
-    val target = m.error[Unit](new NoSuchElementException)
-    target(()).successful shouldBe false
-  }
   it should "support |" in {
-    val result = m.fail("")("") | m.success(0)
+    val result = m.success(0)("") | m.fail("")
     result.successful shouldBe true
   }
   it should "support ||" in {
-    val result = m.fail("")("") || m.success(0)("")
+    val result = m.success(0)("") || m.fail("")("")
     result.successful shouldBe true
   }
   it should "support &" in {
@@ -85,6 +75,112 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val result = m.success(0)("").flatMap(x => m.Match(x.toString))
     result.successful shouldBe true
     result.get shouldBe "0"
+  }
+  it should "support getOrElse" in {
+    val result = m.success(0)("").flatMap(x => m.Match(x.toString))
+    result.getOrElse("qq") shouldBe "0"
+  }
+
+  behavior of "Miss"
+
+  it should "support toString" in {
+    val target = m.fail("error")
+    target(1).toString shouldBe "Miss: error: 1"
+  }
+  it should "support successful" in {
+    m.fail("error")("").successful shouldBe false
+  }
+  it should "support isEmpty" in {
+    m.fail("")("").isEmpty shouldBe true
+  }
+  it should "support error" in {
+    val target = m.error[Unit](new NoSuchElementException)
+    target(()).successful shouldBe false
+  }
+  it should "support |" in {
+    val result = m.fail("")("") | m.success(0)
+    result.successful shouldBe true
+  }
+  it should "support ||" in {
+    val result = m.fail("")("") || m.success(0)("")
+    result.successful shouldBe true
+  }
+  it should "support &" in {
+    val result = m.fail("")("") & m.success[Any, Int](0)
+    result.successful shouldBe false
+  }
+  it should "support &&" in {
+    val result = m.fail("")("") && m.success(1)("")
+    result.successful shouldBe false
+  }
+  it should "support map" in {
+    val result = m.fail[String, Int]("")("").map(_.toString)
+    result.successful shouldBe false
+    a[MatcherException] shouldBe thrownBy(result.get)
+  }
+  it should "support flatMap" in {
+    val result = m.fail[String, Int]("")("").flatMap(x => m.Match(x.toString))
+    result.successful shouldBe false
+    a[MatcherException] shouldBe thrownBy(result.get)
+  }
+  it should "support foreach" in {
+    val result = m.fail[String, Int]("")("")
+    val sb = new StringBuilder
+    result.foreach { x => sb.append(x); () }
+    sb.toString().length shouldBe 0
+  }
+  it should "support getOrElse" in {
+    val result = m.fail[String, Int]("")("")
+    result.getOrElse("qq") shouldBe "qq"
+  }
+
+  behavior of "Error"
+
+  it should "support toString" in {
+    val target = m.error[Unit](new NoSuchElementException)
+    target(1).toString shouldBe "Error: null"
+  }
+  it should "support successful" in {
+    m.error[Unit](new NoSuchElementException)(()).successful shouldBe false
+  }
+  it should "support isEmpty" in {
+    m.error[Unit](new NoSuchElementException)(()).isEmpty shouldBe true
+  }
+  it should "support |" in {
+    val result = m.error[Unit](new NoSuchElementException)(()) | m.success(0)
+    result.successful shouldBe false
+  }
+  it should "support ||" in {
+    val result = m.error[Unit](new NoSuchElementException)(()) || m.success(0)(0)
+    result.successful shouldBe false
+  }
+  it should "support &" in {
+    val result = m.error[Unit](new NoSuchElementException)(()) & m.success[Any, Int](0)
+    result.successful shouldBe false
+  }
+  it should "support &&" in {
+    val result = m.error[Unit](new NoSuchElementException)(()) && m.success(1)("")
+    result.successful shouldBe false
+  }
+  it should "support map" in {
+    val result = m.error[Unit](new NoSuchElementException)(()).map(_.toString)
+    result.successful shouldBe false
+    a[NoSuchElementException] shouldBe thrownBy(result.get)
+  }
+  it should "support flatMap" in {
+    val result = m.error[Unit](new NoSuchElementException)(()).flatMap(x => m.Match(x.toString))
+    result.successful shouldBe false
+    a[NoSuchElementException] shouldBe thrownBy(result.get)
+  }
+  it should "support foreach" in {
+    val result = m.error[Unit](new NoSuchElementException)(())
+    val sb = new StringBuilder
+    result.foreach { x => sb.append(x); () }
+    sb.toString().length shouldBe 0
+  }
+  it should "support getOrElse" in {
+    val result = m.error[Unit](new NoSuchElementException)(())
+    a[NoSuchElementException] shouldBe thrownBy(result.getOrElse(1))
   }
 
   behavior of "Matcher class"
@@ -117,6 +213,15 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val q: m.Matcher[String, Double] = target ^^ (_.toDouble)
     q("1") shouldBe m.Match(1.0)
   }
+  it should "support !" in {
+    val target = new m.Matcher[String, Int] {
+      def apply(v1: String): m.MatchResult[Int] = m.Match(v1.toInt)
+    }
+    val q: m.Matcher[String, Int] = target.![Int](1)
+    val result = q("1")
+    result.successful shouldBe false
+    result shouldBe m.Miss("not", "1")
+  }
 
   behavior of "Matcher method"
 
@@ -128,9 +233,18 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val f: m.Matcher[String, Int] = m.Matcher(e => m.Miss("", e))
     f("1").successful shouldBe false
   }
+  it should "result in error when function throws exception" in {
+    def f(x: String): m.MatchResult[Int] = m.Match(x.toInt)
+
+    val p: m.Matcher[String, Int] = m.Matcher(f)
+    val result = p("x")
+    result.successful shouldBe false
+    result should matchPattern { case m.Error(_) => }
+    a[NumberFormatException] shouldBe thrownBy(result.get)
+  }
 
   behavior of "log"
-  it should "log success" in {
+  it should "log success with LogDebug" in {
     val sb = new StringBuilder
     import m.MatcherOps
     implicit val ll: LogLevel = LogDebug
@@ -138,9 +252,20 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val p = m.success(1) :| "success(1)"
     p(1).successful shouldBe true
     sb.toString() shouldBe
-      """trying success(1) on 1...
-        |... success(1): Match: 1
-        |""".stripMargin
+            """trying success(1) on 1...
+              |... success(1): Match: 1
+              |""".stripMargin
+  }
+  it should "log success with LogInfo" in {
+    val sb = new StringBuilder
+    import m.MatcherOps
+    implicit val ll: LogLevel = LogInfo
+    implicit val logger: MatchLogger = { w => sb.append(s"$w\n"); () }
+    val p = m.success(1) :| "success(1)"
+    p(1).successful shouldBe true
+    sb.toString() shouldBe
+            """success(1): matched 1
+              |""".stripMargin
   }
 
   behavior of "LoggingMatcher"
@@ -151,9 +276,9 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
     val f: m.Matcher[String, Int] = m.LoggingMatcher("one")(_ => m.Match(1))
     f("1").successful shouldBe true
     sb.toString() shouldBe
-      """trying one on 1...
-        |... one: Match: 1
-        |""".stripMargin
+            """trying one on 1...
+              |... one: Match: 1
+              |""".stripMargin
   }
 
   behavior of "success"
@@ -247,13 +372,20 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "not"
-  it should "work" in {
+  it should "work for match" in {
     val p = m.matches(1)
     val q = m.not(p, 0)
     p(1).successful shouldBe true
     q(1).successful shouldBe false
     q(2).successful shouldBe true
     q(2).get shouldBe 0
+  }
+  it should "work for error situation" in {
+    val p = m.Matcher[Unit, Unit](_ => m.Error(new NoSuchElementException))
+    val q = m.not(p, 0)
+    p(1).successful shouldBe false
+    q(1).successful shouldBe false
+    q(2).successful shouldBe false
   }
 
   behavior of "swap"
@@ -634,9 +766,10 @@ class MatchersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "tee"
   it should "work" in {
-    val r = m.Match(1)
+    val r: m.MatchResult[Int] = m.Match(1)
     val s = new StringBuilder
-    m.tee(r) { x => s.append(x.toString); () }
+    import m.MatchResultOps
+    (r :- { x => s.append(x.toString); () }).successful shouldBe true
     s.toString() shouldBe "1"
   }
 }

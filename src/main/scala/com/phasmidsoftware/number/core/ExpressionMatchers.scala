@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.matchers.{MatchLogger, Matchers}
+import com.phasmidsoftware.number.matchers.{MatchLogger, MatchersExtras}
 import scala.language.implicitConversions
 
 /**
@@ -9,7 +9,7 @@ import scala.language.implicitConversions
   * These Matchers are used to simplify (lazy) Expressions before those Expressions get evaluated,
   * thus sometimes avoiding loss of precision.
   */
-class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers {
+class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends MatchersExtras {
 
   /**
     * Abstract class ExpressionMatcher which extends Matcher where input is always an Expression.
