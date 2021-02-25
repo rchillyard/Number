@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.matchers.{MatchLogger, Matchers}
+
 import scala.language.implicitConversions
 
 /**
@@ -295,7 +296,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   case class MonadicDuple(f: ExpressionFunction, x: Expression)
 
-  private def combineGather(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] = f match {
+  private def combineGather(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression) = f match {
     case Power =>
       (y * z).materialize.toInt match {
         case Some(p) => Match((x ^ p).materialize)

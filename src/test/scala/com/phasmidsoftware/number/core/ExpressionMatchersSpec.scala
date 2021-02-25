@@ -9,7 +9,7 @@ import org.scalatest.matchers.should
 class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   val sb = new StringBuilder
-  implicit val logger: MatchLogger = w => sb.append(s"$w\n")
+  implicit val logger: MatchLogger = { w => sb.append(s"$w\n"); () }
 
   before {
     sb.clear()
