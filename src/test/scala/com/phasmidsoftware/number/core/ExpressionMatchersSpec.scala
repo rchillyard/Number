@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.matchers.{LogLevel, LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.Number.one
-import com.phasmidsoftware.number.matchers.MatchLogger
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -9,7 +9,8 @@ import org.scalatest.matchers.should
 class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   val sb = new StringBuilder
-  implicit val logger: MatchLogger = { w => sb.append(s"$w\n"); () }
+  implicit val logger: MatchLogger = w => sb.append(s"$w\n")
+  implicit val ll: LogLevel = LogOff
 
   before {
     sb.clear()

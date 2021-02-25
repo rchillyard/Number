@@ -15,6 +15,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion % "test
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= Seq(
+//  "com.phasmidsoftware" %% "matchers" % "1.0.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.2.0-M1",
   "org.apache.commons" % "commons-math3" % "3.6.1", // This is used for the trait Fuzzy (old stuff)
   "org.scalacheck" %% "scalacheck" % "1.14.1" % "test" // This is used for testing Rational
