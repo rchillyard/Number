@@ -4,7 +4,7 @@ name := "Number"
 
 version := "1.0.8"
 
-scalaVersion := "2.13.4"
+scalaVersion := "2.13.6"
 
 scalacOptions ++= Seq( "-target:jvm-1.8", "-encoding", "UTF-8", "-unchecked", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused" )
 
@@ -15,7 +15,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion % "test
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= Seq(
-//  "com.phasmidsoftware" %% "matchers" % "1.0.0",
+//  "com.phasmidsoftware" %% "matchers" % "1.0.2",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.2.0-M1",
   "org.apache.commons" % "commons-math3" % "3.6.1", // This is used for the trait Fuzzy (old stuff)
   "org.scalacheck" %% "scalacheck" % "1.14.1" % "test" // This is used for testing Rational

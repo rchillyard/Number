@@ -1,20 +1,10 @@
-import scala.LazyList._
+val directory = Map("Alice" -> 3, "Bob" -> 1, "Carol" -> 2)
+val names = List("Alice", "Bob", "Carol")
+val phones = List(1, 2, 3)
 
-val f: LazyList[BigDecimal] =
-  BigDecimal(1) #:: f.map(x => 1.0 / (x * x))
+def matchUp(name: String, phone: Int): Option[(String, Int)] = directory.find(d => d._1 == name && d._2 == phone)
 
-LazyList.from(1) zip f take 1000 foreach println
-
-val map1 = Map("a" -> "alpha", "b" -> "bravo", "c" -> "charlie", "d" -> "delta", "e" -> "echo", "f" -> "foxtrot", "g" -> "golf", "h" -> "hotel", "i" -> "india", "j" -> "juliet")
-val map2 = Map("x" -> "xray", "y" -> "yankee", "c" -> "zulu")
-def combine(a: Map[String, String], b: Map[String, String]): Map[String, String] = {
-  (a /: b) {
-    case (map, (k, v)) =>
-      println(k + " " + v)
-      map + (k -> (v + map.getOrElse(k, 0)))
-    case _ =>
-      println("null")
-      null
-  }
-}
-val map3 = combine(map1, map2)
+matchUp("Alice", 3)
+matchUp("Robin", 2)
+matchUp("Alice", 0)
+matchUp("", 0)
