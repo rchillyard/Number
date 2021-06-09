@@ -24,6 +24,11 @@ import scala.util._
 case class ExactNumber(override val value: Value, override val factor: Factor) extends Number(value, factor) {
 
   /**
+    * @return true.
+    */
+  def isExact: Boolean = true
+
+  /**
     * Auxiliary constructor for the usual situation with the default factor.
     *
     * @param v the value for the new Number.

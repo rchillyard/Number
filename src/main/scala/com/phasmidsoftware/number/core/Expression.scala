@@ -5,6 +5,13 @@ import com.phasmidsoftware.number.core.Number.negate
 trait Expression {
 
   /**
+    * Method to determine if this Expression can be evaluated exactly.
+    *
+    * @return true if materialize will result in an ExactNumber, else false.
+    */
+  def isExact: Boolean
+
+  /**
     * If it is possible to simplify this Expression, then we do so.
     *
     * @return an Expression tree which is the equivalent of this.
@@ -234,6 +241,14 @@ object Expression {
 }
 
 case class Literal(x: Number) extends Expression {
+
+  /**
+    * Method to determine if this Expression can be evaluated exactly.
+    *
+    * @return true if materialize will result in an ExactNumber, else false.
+    */
+  def isExact: Boolean = x.isExact
+
   /**
     * Action to materialize this Expression as a Number,
     * that is to say we eagerly evaluate this Expression as a Number.
@@ -266,6 +281,15 @@ case class Literal(x: Number) extends Expression {
 }
 
 abstract class Constant extends Expression {
+
+  /**
+    * Method to determine if this Expression can be evaluated exactly.
+    * NOTE Some constants will be fuzzy in which case this method must be overridden.
+    *
+    * @return true.
+    */
+  def isExact: Boolean = true
+
   /**
     * If it is possible to simplify this Expression, then we do so.
     *
@@ -273,6 +297,19 @@ abstract class Constant extends Expression {
     */
   def simplify: Expression = this
 
+  /**
+    * Action to materialize this Expression and render it as a String,
+    * that is to say we eagerly evaluate this Expression as a String.
+    *
+    * @return String form of this Constant.
+    */
+  def render: String = materialize.render
+
+  /**
+    * Method to yield a String from this Constant.
+    *
+    * @return a String.
+    */
   override def toString: String = render
 }
 
@@ -284,14 +321,6 @@ case object Zero extends Constant {
     * @return Number.zero
     */
   def materialize: Number = Number.zero
-
-  /**
-    * Action to materialize this Expression and render it as a String,
-    * that is to say we eagerly evaluate this Expression as a String.
-    *
-    * @return "0"".
-    */
-  def render: String = "0"
 }
 
 case object One extends Constant {
@@ -302,14 +331,6 @@ case object One extends Constant {
     * @return the materialized Number.
     */
   def materialize: Number = Number.one
-
-  /**
-    * Action to materialize this Expression and render it as a String,
-    * that is to say we eagerly evaluate this Expression as a String.
-    *
-    * @return "1".
-    */
-  def render: String = "1"
 }
 
 case object MinusOne extends Constant {
@@ -325,9 +346,37 @@ case object MinusOne extends Constant {
     * Action to materialize this Expression and render it as a String,
     * that is to say we eagerly evaluate this Expression as a String.
     *
-    * @return "1".
+    * @return "1-".
     */
-  def render: String = "-1"
+  override def render: String = "-1"
+}
+
+/**
+  * The constant Pi.
+  * Yes, this is an exact number.
+  */
+case object ConstPi extends Constant {
+  /**
+    * Action to materialize this Expression as a Number,
+    * that is to say we eagerly evaluate this Expression as a Number.
+    *
+    * @return the materialized Number.
+    */
+  def materialize: Number = Number.pi
+}
+
+/**
+  * The constant e.
+  * Yes, this is an exact number.
+  */
+case object ConstE extends Constant {
+  /**
+    * Action to materialize this Expression as a Number,
+    * that is to say we eagerly evaluate this Expression as a Number.
+    *
+    * @return the materialized Number.
+    */
+  def materialize: Number = Number.e
 }
 
 /**
@@ -337,6 +386,16 @@ case object MinusOne extends Constant {
   * @param f the function to be applied to x.
   */
 case class Function(x: Expression, f: ExpressionFunction) extends Expression {
+
+  /**
+    * Method to determine if this Expression can be evaluated exactly.
+    *
+    * CONSIDER deal with each ExpressionFunction on an individual basis.
+    *
+    * @return false.
+    */
+  def isExact: Boolean = f(x.materialize).isExact
+
   /**
     * Action to materialize this Expression as a Number.
     *
@@ -374,8 +433,20 @@ case class Function(x: Expression, f: ExpressionFunction) extends Expression {
   * @param f the function to be applied to a and b.
   */
 case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends Expression {
+
+  /**
+    * Method to determine if this Expression can be evaluated exactly.
+    *
+    * CONSIDER deal with each ExpressionFunction on an individual basis.
+    *
+    * @return false.
+    */
+  def isExact: Boolean = f(a.materialize, b.materialize).isExact
+
   /**
     * Action to materialize this Expression as a Number.
+    *
+    * CONSIDER do we need to simplify each expression first?
     *
     * @return the materialized Number.
     */
