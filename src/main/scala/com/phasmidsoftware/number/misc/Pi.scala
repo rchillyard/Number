@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.misc
 
-import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
 
 object Pi extends App {
 
@@ -18,15 +18,19 @@ object Pi extends App {
   }
 
   def calculatePi(n: Int)(implicit r: Random): Future[Double] = Future {
-    val points: List[(Double, Double)] = (getPoints(n)).toList
-    4.0 * points.length / n
+    val points: List[(Double, Double)] = getPoints(n).toList
+    val result = 4.0 * points.length / n
+    System.err.println(s"pi: $result")
+    result
   }
 
-  import scala.concurrent.duration.DurationInt
   import com.phasmidsoftware.number.misc.Benchmark._
+  import scala.concurrent.duration.DurationInt
+  import scala.language.postfixOps
+
   implicit val r: Random = Random
   val N = 10000000
-  val p = 1
+  val p = 2
 
   val (result, milliseconds) = 1.times {
     val xfs: Seq[Future[Double]] = Seq.fill(p)(calculatePi(N))

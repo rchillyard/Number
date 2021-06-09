@@ -26,6 +26,7 @@ object Cicadas extends App {
 
   def coemergence(x: Int): Boolean = xix(x) && xiv(x)
 
-  val emergences: List[Int] = LazyList.from(2018).filter(coemergence).take(n).toList
+  val emergences: List[Int] = ???
+
   println(emergences.mkString(","))
 }
