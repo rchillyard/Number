@@ -169,7 +169,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   ignore should "show ^2 and sqrt for illustrative purposes" in {
     val seven = Number(7)
     val x = seven.sqrt
-    val y = x power 2
+    val y = x ^ 2
     y should matchPattern { case FuzzyNumber(_, _, _) => }
     y shouldEqual Number(7)
   }

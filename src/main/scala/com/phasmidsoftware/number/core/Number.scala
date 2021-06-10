@@ -6,7 +6,6 @@ import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.math.BigInt
@@ -166,16 +165,6 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
   def add(x: Number): Number = Number.plus(this, x)
 
   /**
-    * Subtract x from this Number and return the result.
-    * See + and unary_ for more detail.
-    * CONSIDER inlining this method.
-    *
-    * @param x the subtrahend.
-    * @return the difference.
-    */
-  def subtract(x: Number): Number = this add -x
-
-  /**
     * Change the sign of this Number.
     */
   lazy val unary_- : Number = Number.negate(this)
@@ -201,15 +190,6 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
   def divide(x: Number): Number = this multiply x.invert
 
   /**
-    * Divide this Number by a scalar x and return the result.
-    * CONSIDER inlining this method.
-    *
-    * @param x the divisor (an Int).
-    * @return the quotient.
-    */
-  def divide(x: Int): Number = this divide Number(x)
-
-  /**
     * Raise this Number to the power p.
     * CONSIDER inlining this method.
     *
@@ -217,15 +197,6 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @return this Number raised to power p.
     */
   def power(p: Number): Number = Number.power(this, p)
-
-  /**
-    * Raise this Number to the power p.
-    * CONSIDER inlining this method.
-    *
-    * @param p an integer.
-    * @return this Number raised to power p.
-    */
-  def power(p: Int): Number = Number.power(this, p)
 
   /**
     * Yields the inverse of this Number.
@@ -254,14 +225,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @return the cosine.
     */
-  def cos: Number = negate(scale(Pi) subtract Number(Rational.half, Pi)).sin
-
-  /**
-    * The tangent of this Number.
-    *
-    * @return the tangent.
-    */
-  def tan: Number = sin divide cos
+  def cos: Number = negate(scale(Pi) add -Number(Rational.half, Pi)).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -336,6 +300,8 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
     *
+    * CONSIDER do we really need this?
+    *
     * @param other the Number to be compared with.
     * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
     * @return -1, 0, 1 as usual.
@@ -347,7 +313,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
     */
-  def makeFuzzyIfAppropriate(f: Number => Number): Number
+  protected def makeFuzzyIfAppropriate(f: Number => Number): Number
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.

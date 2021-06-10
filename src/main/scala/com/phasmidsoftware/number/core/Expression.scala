@@ -214,18 +214,25 @@ object Expression {
     def sqrt: Expression = this ^ Number(2).reciprocal
 
     /**
-      * Method to lazily get the sin of x.
+      * Method to lazily get the sine of x.
       *
-      * @return an Expression representing the sin of x.
+      * @return an Expression representing the sin(x).
       */
     def sin: Expression = Function(x, Sine)
 
     /**
-      * Method to lazily get the sin of x.
+      * Method to lazily get the cosine of x.
       *
-      * @return an Expression representing the sin of x.
+      * @return an Expression representing the cos(x).
       */
     def cos: Expression = Function(x, Cosine)
+
+    /**
+      * Method to lazily get the tangent of x.
+      *
+      * @return an Expression representing the tan(x).
+      */
+    def tan: Expression = sin * cos.reciprocal
 
     /**
       * Method to lazily get the natural log of x.
@@ -240,6 +247,8 @@ object Expression {
       * @return an Expression representing e raised to the power of x.
       */
     def exp: Expression = Function(x, Exp)
+
+    // TODO add atan method.
 
     /**
       * Eagerly compare this expression with y.

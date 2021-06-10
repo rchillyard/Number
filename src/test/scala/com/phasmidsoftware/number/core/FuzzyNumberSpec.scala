@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -172,25 +171,26 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "power"
   it should "work for (fuzzy 3)^2 (i.e. an constant Int power)" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), Scalar, Some(RelativeFuzz(0.1, Gaussian)))
-    val z: Number = x power 2
+    val z: Number = (x ^ 2).materialize
     z.value shouldBe Right(9)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
     z.fuzz.get match {
-      case RelativeFuzz(m, Gaussian) => m shouldBe 0.2
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.06666666666666667
     }
   }
   it should "work for 2**2 (i.e. an constant Int power)" in {
     val xy: Try[Number] = Number.parse("2.0*")
     xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
     xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
-    val zy = for (x <- xy) yield x power 2
+    val zy = for (x <- xy) yield (x ^ 2).materialize
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(4)
-    zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
-    zy.get.fuzz.get match {
-      case RelativeFuzz(m, Gaussian) => m shouldBe 0.028867513459481294 +- 0.00000000000000001
+    val result: Number = zy.get
+    result.value shouldBe Right(4)
+    result.factor shouldBe Scalar
+    result.fuzz.isDefined shouldBe true
+    result.fuzz.get match {
+      case RelativeFuzz(m, Box) => m shouldBe 0.025
     }
   }
   it should "work for 2**2 (i.e. a fuzzy Number power)" in {

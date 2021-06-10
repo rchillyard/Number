@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -517,22 +516,22 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "subtract 1 from 2" in {
     val x = Number(2)
     val y = numberOne
-    (x subtract y) shouldBe numberOne
+    (x add -y) shouldBe numberOne
   }
   it should "subtract BigInt 1 from 2" in {
     val x = Number(BigInt(2))
     val y = numberOne
-    (x subtract y) shouldBe numberOne
+    (x add -y) shouldBe numberOne
   }
   it should "subtract Rational 1 from 2" in {
     val x = Number(Rational(2))
     val y = numberOne
-    (x subtract y) shouldBe numberOne
+    (x add -y) shouldBe numberOne
   }
   it should "subtract Double 1 from 2" in {
     val x = Number(2.0)
     val y = numberOne
-    (x subtract y) shouldBe numberOne
+    (x add -y) shouldBe numberOne
   }
 
   behavior of "times"
@@ -615,10 +614,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     x divide y should ===(Number(1 / Math.PI))
   }
 
+  // XXX what is this ** operator?
   behavior of "**"
-  it should "work for 2**2" in {
+  it should "work for 2^2" in {
     val target = Number(2)
-    target power 2 shouldBe Number(4)
+    (target ^ 2).materialize shouldBe Number(4)
   }
 
   behavior of "sqrt"
@@ -644,8 +644,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.sin shouldBe Number(0, Scalar)
   }
   it should "be one for pi/2" in {
-    val target = (Number.pi divide 2).sin
-    target shouldBe Number.one
+    val target = (Number.pi / 2).sin
+    target.materialize shouldBe Number.one
   }
   it should "work for Pi/2" in {
     val target = Number(Rational.half, Pi)
@@ -659,7 +659,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for Pi/3" in {
     val target = Number(Rational(1, 3), Pi)
     val sin = target.sin
-    sin should ===(Number(3).sqrt divide 2)
+    sin should ===(Number(3).sqrt / 2)
   }
 
   behavior of "cos"
@@ -676,33 +676,33 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.cos.isZero shouldBe true
   }
   it should "work for Pi/3" in {
-    val target = Number.pi divide 3
-    target.cos shouldBe Number(Rational(1, 2), Scalar)
+    val target = Number.pi / 3
+    target.cos.materialize shouldBe Number(Rational(1, 2), Scalar)
   }
   it should "work for Pi/6" in {
-    val target = Number.pi divide 6
-    target.cos should ===(Number(3).sqrt divide 2)
+    val target: Expression = Number.pi / 6
+    target.cos should ===(Number(3).sqrt / 2)
   }
 
   behavior of "tan"
   it should "be zero for 0" in {
-    val target = Number(0, Pi)
-    target.tan.isZero shouldBe true
+    val target: Expression = Number(0, Pi)
+    target.tan.materialize.isZero shouldBe true
   }
   it should "be zero for pi" in {
-    val target = Number.pi
-    target.tan.isZero shouldBe true
+    val target: Expression = Number.pi
+    target.tan.materialize.isZero shouldBe true
   }
   it should "work for Pi/2" in {
-    val target = Number(Rational.half, Pi)
-    target.tan.isInfinite shouldBe true
+    val target: Expression = Number(Rational.half, Pi)
+    target.tan.materialize.isInfinite shouldBe true
   }
   it should "work for Pi/3" in {
-    val target = Number.pi divide 3
+    val target: Expression = Number.pi / 3
     target.tan shouldEqual Number(3).sqrt
   }
   it should "work for Pi/6" in {
-    val target = Number.pi divide 6
+    val target = Number.pi / 6
     target.tan should ===(Number(3).sqrt.invert)
   }
 
@@ -713,7 +713,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "be pi/4 for 1/1" in {
     val target = Number.one
-    target.atan(Number.one) === (Number.pi divide 4)
+    target.atan(Number.one) === (Number.pi / 4)
   }
   it should "be 0Pi for 0/-1" in {
     val target = negate(Number.one)
