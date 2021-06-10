@@ -105,7 +105,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
-abstract class Number(val value: Value, val factor: Factor) extends Expression with Ordered[Number] {
+abstract class Number(val value: Value, val factor: Factor) extends AtomicExpression with Ordered[Number] {
 
   self =>
 
@@ -115,13 +115,6 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @param v the value for the new Number.
     */
   def this(v: Value) = this(v, Scalar)
-
-  /**
-    * Numbers cannot (for now) be simplified.
-    *
-    * @return this.
-    */
-  def simplify: Expression = this
 
   /**
     * Method to determine if this is a valid Number.

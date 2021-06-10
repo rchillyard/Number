@@ -42,6 +42,8 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * Matcher which either successfully simplifies the input expression, or evaluates it,
     * by means of the evaluator Matcher (below).
     *
+    * TODO reverse the order of simplifier/evaluator. Simplifier should be invoked only if evaluator result is fuzzy.
+    *
     * @return an ExpressionMatcher[Expression].
     */
   def materializer: ExpressionMatcher[Expression] = (simplifier | evaluator) :| "materializer"
@@ -187,10 +189,11 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return a tuple of BiFunction and Expression.
     */
-  def matchBiFunctionExpression: Matcher[(Expression, Expression), (BiFunction, Expression)] = namedMatcher("matchBiFunctionExpression") {
-    case (f@BiFunction(_, _, _), x) => Match(f -> x)
-    case z => Miss("matchBiFunctionExpression", z)
-  }
+  def matchBiFunctionExpression: Matcher[(Expression, Expression), (BiFunction, Expression)] =
+    namedMatcher("matchBiFunctionExpression") {
+      case (f@BiFunction(_, _, _), x) => Match(f -> x)
+      case z => Miss("matchBiFunctionExpression", z)
+    }
 
   /**
     * Matcher of DyadicTriple to (Expression,Expression) which succeeds if the function of the DyadicTriple

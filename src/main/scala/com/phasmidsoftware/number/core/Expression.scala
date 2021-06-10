@@ -2,6 +2,9 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.negate
 
+/**
+  * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
+  */
 trait Expression {
 
   /**
@@ -13,8 +16,10 @@ trait Expression {
 
   /**
     * If it is possible to simplify this Expression, then we do so.
+    * Typically, we simplify non-exact expressions if possible.
+    * There is no compelling need to simplify exact expressions.
     *
-    * @return an Expression tree which is the equivalent of this.
+    * @return an Expression tree which is the simpler equivalent of this.
     */
   def simplify: Expression
 
@@ -44,6 +49,7 @@ trait Expression {
 }
 
 object Expression {
+  implicit val em: ExpressionMatchers = new ExpressionMatchers()
 
   /**
     * The following method is helpful in getting an expression started.
@@ -76,6 +82,11 @@ object Expression {
   val pi: Expression = Expression(Number.pi)
   val e: Expression = Expression(Number.e)
 
+  /**
+    * Implicit class to allow various operations to be performed on an Expression.
+    *
+    * @param x an Expression.
+    */
   implicit class ExpressionOps(x: Expression) {
     /**
       * Method to lazily multiply the Number x by y.
@@ -107,7 +118,7 @@ object Expression {
       * @param y another Number.
       * @return an Expression which is the lazy product of x and y.
       */
-    def -(y: Number): Expression = BiFunction(x, Expression(y).unary_-, Sum)
+    def -(y: Number): Expression = BiFunction(x, -Expression(y), Sum)
 
     /**
       * Method to lazily change the sign of this expression.
@@ -240,7 +251,37 @@ object Expression {
   }
 }
 
-case class Literal(x: Number) extends Expression {
+/**
+  * An Expression which cannot be further simplified.
+  */
+trait AtomicExpression extends Expression {
+  /**
+    * @return this.
+    */
+  def simplify: Expression = this
+
+  /**
+    * CONSIDER a different mechanism here (or different implementation of ExpressionMatchers).
+    *
+    * @return an instance of ExpressionMatchers.
+    */
+  def matchers: ExpressionMatchers = new ExpressionMatchers()
+}
+
+/**
+  * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
+  * with simplification.
+  *
+  * @param matchers an instance of ExpressionMatchers to be used as the context for simplification.
+  */
+abstract class CompositeExpression(val matchers: ExpressionMatchers) extends Expression
+
+/**
+  * A literal number.
+  *
+  * @param x the Number.
+  */
+case class Literal(x: Number) extends AtomicExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -271,16 +312,12 @@ case class Literal(x: Number) extends Expression {
     * @return a String representation of this Literal.
     */
   override def toString: String = s"$x"
-
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * @return an Expression tree which is the equivalent of this.
-    */
-  def simplify: Expression = this
 }
 
-abstract class Constant extends Expression {
+/**
+  * A known constant value, for example π (pi) or e.
+  */
+abstract class Constant extends AtomicExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -289,13 +326,6 @@ abstract class Constant extends Expression {
     * @return true.
     */
   def isExact: Boolean = true
-
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * @return this.
-    */
-  def simplify: Expression = this
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -352,7 +382,7 @@ case object MinusOne extends Constant {
 }
 
 /**
-  * The constant Pi.
+  * The constant π (pi).
   * Yes, this is an exact number.
   */
 case object ConstPi extends Constant {
@@ -385,7 +415,7 @@ case object ConstE extends Constant {
   * @param x the expression being operated on.
   * @param f the function to be applied to x.
   */
-case class Function(x: Expression, f: ExpressionFunction) extends Expression {
+case class Function(x: Expression, f: ExpressionFunction)(implicit em: ExpressionMatchers) extends CompositeExpression(em) {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -432,7 +462,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends Expression {
   * @param b the second expression being operated on.
   * @param f the function to be applied to a and b.
   */
-case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends Expression {
+case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction)(implicit em: ExpressionMatchers) extends CompositeExpression(em) {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -457,7 +487,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return an Expression tree which is the equivalent of this.
     */
-  def simplify: Expression = new ExpressionMatchers().materializer(this).getOrElse(Number())
+  def simplify: Expression = matchers.materializer(this).getOrElse(Number())
 
   /**
     * Action to materialize this Expression and render it as a String.

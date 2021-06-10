@@ -1,11 +1,13 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.matchers.{LogLevel, MatchLogger}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
+import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-class ExpressionSpec extends AnyFlatSpec with should.Matchers {
+class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
@@ -21,6 +23,21 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
       case _ => false
     }
   }
+
+  val sb = new StringBuilder
+  implicit val logger: MatchLogger = w => sb.append(s"$w\n")
+  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogOff
+
+  before {
+    sb.clear()
+  }
+
+  after {
+    if (sb.nonEmpty) println(sb.toString())
+    println("===============================\n")
+  }
+
+  implicit val p: ExpressionMatchers = new ExpressionMatchers {}
 
   behavior of "Expression"
 
@@ -64,6 +81,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
   it should "evaluate sqrt 36" in {
     val x: Expression = Number(36).sqrt
     x shouldEqual Number(6)
+  }
+  ignore should "evaluate (√3 + 1)(√3 - 1) as 2" in {
+    val root3: Expression = Number(3).sqrt
+    val x = (root3 + 1) * (root3 - 1)
+    x.materialize shouldBe Number(2)
   }
   it should "evaluate sin pi/2" in {
     val x: Expression = Number.pi / 2

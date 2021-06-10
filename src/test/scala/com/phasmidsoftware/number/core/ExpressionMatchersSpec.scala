@@ -21,7 +21,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     println("===============================\n")
   }
 
-  private val p = new ExpressionMatchers {}
+  implicit val p: ExpressionMatchers = new ExpressionMatchers {}
 
   behavior of "value"
   it should "work with value on Literal" in {
@@ -71,7 +71,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchBiFunctionConstantResult"
   it should "match 1" in {
-    val matchers = new ExpressionMatchers
+    implicit val matchers: ExpressionMatchers = new ExpressionMatchers
     val one: Expression = Number.one
     val negativeOne: Number = Number(-1)
     val p = matchers.matchBiFunctionConstantResult(Product, negativeOne, Number.zero)
@@ -82,7 +82,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchEitherDyadic"
   it should "match (1, biFunction)" in {
-    val matchers = new ExpressionMatchers
+    implicit val matchers: ExpressionMatchers = new ExpressionMatchers
     val one: Expression = Number.one
     val negativeOne: Number = Number(-1)
     val p = matchers.matchEitherDyadic
@@ -90,7 +90,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
   }
   it should "match (biFunction, 1)" in {
-    val matchers = new ExpressionMatchers
+    implicit val matchers: ExpressionMatchers = new ExpressionMatchers
     val one: Expression = Number.one
     val negativeOne: Number = Number(-1)
     val p = matchers.matchEitherDyadic
