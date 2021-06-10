@@ -283,7 +283,15 @@ trait AtomicExpression extends Expression {
   *
   * @param matchers an instance of ExpressionMatchers to be used as the context for simplification.
   */
-abstract class CompositeExpression(val matchers: ExpressionMatchers) extends Expression
+abstract class CompositeExpression(val matchers: ExpressionMatchers) extends Expression {
+  def simplify: Expression = materialize match {
+    case z if z.isExact =>
+      Expression(z)
+    case _ =>
+      // TODO simplify me if the leaves are all exact
+      matchers.materializer(this).getOrElse(Number())
+  }
+}
 
 /**
   * A literal number.
@@ -330,7 +338,8 @@ abstract class Constant extends AtomicExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
-    * NOTE Some constants will be fuzzy in which case this method must be overridden.
+    *
+    * Important NOTE: Some constants will be fuzzy in which case this method must be overridden.
     *
     * @return true.
     */
@@ -449,18 +458,6 @@ case class Function(x: Expression, f: ExpressionFunction)(implicit em: Expressio
     */
   def render: String = materialize.toString
 
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * NOTE: currently, we do not do any simplification of monadic functions.
-    * Possibilities: swapping the order of commutative operators (are there any?)
-    * Also, pairing inverse trigonometric functions like atan (a dyadic operator) with sin/cos.
-    * Also, distributing monadic functions to the branches of an addition, etc.
-    *
-    * @return an Expression tree which is the equivalent of this.
-    */
-  def simplify: Expression = this
-
   override def toString: String = s"$f($x)"
 }
 
@@ -485,25 +482,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction)(imp
   /**
     * Action to materialize this Expression as a Number.
     *
-    * CONSIDER do we need to simplify each expression first?
-    *
     * @return the materialized Number.
     */
-  def materialize: Number = f(a.simplify.materialize, b.simplify.materialize)
-
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * @return an Expression tree which is the equivalent of this.
-    */
-  def simplify: Expression = matchers.materializer(this).getOrElse(Number())
+  def materialize: Number = f(a.materialize, b.materialize)
 
   /**
     * Action to materialize this Expression and render it as a String.
     *
     * @return a String representing the value of this expression.
     */
-  def render: String = materialize.toString
+  def render: String = materialize.render
 
   /**
     * Render this BiFunction for debugging purposes.

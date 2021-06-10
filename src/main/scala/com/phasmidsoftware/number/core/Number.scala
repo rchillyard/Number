@@ -99,6 +99,9 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   * This class is designed to model a Numerical value of various possible different types.
   * These types are: Int, BigInt, Rational, Double.
   *
+  * TODO try to refactor in such a way that we reduce the number of methods defined here,
+  * especially those which are not implementations of an abstract method.
+  *
   * CONSIDER including the fuzziness in Number and simply having ExactNumber always have fuzz of None.
   *
   * @param value  the value of the Number, expressed as a nested Either type.

@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.util.Left
 
 /**
@@ -24,7 +23,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   def isExact: Boolean = false
 
   /**
-    * Auxiliary constructor for an exact number.
+    * Auxiliary constructor for a FuzzyNumber.
     *
     * @param v    the value for the new Number.
     * @param fuzz the fuzz for the new Number.
@@ -32,7 +31,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   def this(v: Value, fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
 
   /**
-    * Action to render this ExactNumber as a String.
+    * Action to render this FuzzyNumber as a String.
     *
     * @return a String.
     */

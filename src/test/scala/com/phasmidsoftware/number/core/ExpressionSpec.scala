@@ -113,19 +113,19 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: Expression = Expression.one
     val y = -x
     val z = x + y
-    z.simplify shouldBe Number.zero
+    z.simplify shouldBe Zero
   }
   it should "cancel 2 and * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = x * y
-    z.simplify shouldBe Number.one
+    z.simplify shouldBe One
   }
   it should "cancel 2 * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = y * x
-    z.simplify shouldBe Number.one
+    z.simplify shouldBe One
   }
   it should "cancel ^2 and sqrt" in {
     val seven = Expression(7)
