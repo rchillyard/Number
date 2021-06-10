@@ -118,7 +118,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
 
   /**
     * Method to determine if this is a valid Number.
-    * An invalid number is of the has a value of form Left(Left(Left(None)))
+    * An invalid number has a value of form Left(Left(Left(None)))
     *
     * @return true if this is a valid Number
     */
@@ -189,17 +189,6 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * * @return the product.
     */
   def multiply(x: Number): Number = Number.times(this, x)
-
-  /**
-    * Eagerly multiply this Number by an Int.
-    * CONSIDER inlining this method.
-    *
-    * TEST me
-    *
-    * @param x the scale factor (an Int).
-    * @return this * x.
-    */
-  def multiply(x: Int): Number = Number.scale(this, x)
 
   /**
     * Divide this Number by x and return the result.
@@ -1181,9 +1170,6 @@ object Number {
     case (Scalar, E) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
     case _ => throw NumberException("scaling between e and Pi factors is not supported")
   }
-
-  // TEST me
-  private def scale(x: Number, f: Int): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationScale(f)))
 
   def negate(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationNegate))
 

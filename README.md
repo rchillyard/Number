@@ -1,5 +1,10 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Number?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Number&utm_campaign=Badge_Grade)
 [![CircleCI](https://circleci.com/gh/rchillyard/Number.svg?style=svg)](https://circleci.com/gh/rchillyard/Number)
+![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Number)
+![GitHub](https://img.shields.io/github/license/rchillyard/Number)
+![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Number)
+![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Number)
+![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Number/bug)
 
 
 # Number
