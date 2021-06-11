@@ -29,7 +29,7 @@ abstract class KnownDifferentiableFunction[X: Numeric](name: String, g: X => X, 
   override def toString: String = name
 }
 
-abstract class DifferentiableFunction[X: Numeric](g: X => X, ds: X => Double*) extends DiFuncBase[X](g, ds: _*) with (X => X) {
+abstract class DifferentiableFunction[X](g: X => X, ds: X => Double*) extends DiFuncBase[X](g, ds: _*) with (X => X) {
   def apply(x: X): X = g(x)
 }
 

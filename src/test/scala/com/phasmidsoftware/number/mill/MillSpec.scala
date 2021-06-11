@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.parse.MillParser
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers {

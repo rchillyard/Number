@@ -46,10 +46,14 @@ trait Expression {
     * @return the result of comparing materialized this with materialized comparand.
     */
   def compare(comparand: Expression): Int = materialize.compare(comparand.materialize)
+
+  /**
+    * @return an instance of ExpressionMatchers.
+    */
+  def matchers: ExpressionMatchers
 }
 
 object Expression {
-  implicit val em: ExpressionMatchers = new ExpressionMatchers()
 
   /**
     * The following method is helpful in getting an expression started.
@@ -88,6 +92,8 @@ object Expression {
     * @param x an Expression.
     */
   implicit class ExpressionOps(x: Expression) {
+    implicit val em: ExpressionMatchers = x.matchers
+
     /**
       * Method to lazily multiply the Number x by y.
       *

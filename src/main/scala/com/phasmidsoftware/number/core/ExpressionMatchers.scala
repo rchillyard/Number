@@ -67,7 +67,8 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return an ExpressionMatcher[Expression].
     */
-  def biFunctionSimplifier: ExpressionMatcher[Expression] = matchBiFunction & (matchSimplifyPlus | matchSimplifyTimes | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power)) :| "biFunctionSimplifier"
+  def biFunctionSimplifier: ExpressionMatcher[Expression] =
+    matchBiFunction & (matchSimplifyPlus | matchSimplifyTimes | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power)) :| "biFunctionSimplifier"
 
   /**
     * Method to match an Expression with is a Function and replace it with a simplified expression.
@@ -300,17 +301,18 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     */
   case class MonadicDuple(f: ExpressionFunction, x: Expression)
 
-  private def combineGather(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression) = f match {
-    case Power =>
-      (y * z).materialize.toInt match {
-        case Some(p) => Match((x ^ p).materialize)
-        case None => Miss(s"combine $f, $x, $y, $z missed", Number.zero) // NOTE this value is artificial
-      }
-    case Product =>
-      Match((x * y * z).materialize)
-    case Sum =>
-      import com.phasmidsoftware.number.core.Expression.ExpressionOps
-      Match((x + y + z).materialize)
+  private def combineGather(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression) =
+    f match {
+      case Power =>
+        (y * z).materialize.toInt match {
+          case Some(p) => Match((x ^ p).materialize)
+          case None => Miss(s"combine $f, $x, $y, $z missed", Number.zero) // NOTE this value is artificial
+        }
+      case Product =>
+        Match((x * y * z).materialize)
+      case Sum =>
+        import com.phasmidsoftware.number.core.Expression.ExpressionOps
+        Match((x + y + z).materialize)
   }
 
 

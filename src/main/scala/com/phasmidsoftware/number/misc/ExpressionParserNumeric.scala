@@ -7,8 +7,10 @@ import scala.util.Try
 /**
   * @author scalaprof
   */
-abstract class ExpressionParserNumeric[T: Numeric](implicit num: Numeric[T]) extends ExpressionParser[T] {
+abstract class ExpressionParserNumeric[T: Numeric] extends ExpressionParser[T] {
   self =>
+
+  val num: Numeric[T] = implicitly[Numeric[T]]
 
   def div: (T, T) => T = num match {
     case value: Fractional[T] => value.div

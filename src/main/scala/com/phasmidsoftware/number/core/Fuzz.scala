@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzz.toDecimalPower
+
 import scala.math.Numeric.DoubleIsFractional
 import scala.math.Ordering
 import scala.util.Try
@@ -428,7 +429,7 @@ object Fuzz {
     */
   def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
-  private def doNormalize[T: Valuable](t: T, relative: Boolean, f: Fuzz[T]) =
+  private def doNormalize[T](t: T, relative: Boolean, f: Fuzz[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) => if (relative) a.relative(t) else Some(f)
       case r@RelativeFuzz(_, _) => if (relative) Some(f) else r.absolute(t)
@@ -611,7 +612,7 @@ trait Valuable[T] extends Fractional[T] {
 trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Ordering.Double.IeeeOrdering {
   def render(t: Double): String = {
     lazy val asScientific: String = f"$t%.20E"
-    val z = f"${t.toDouble}%.99f"
+    val z = f"$t%.99f"
     val (prefix, suffix) = z.toCharArray.span(x => x != '.')
     val sevenZeroes = "0000000".toCharArray
     if (prefix.endsWith(sevenZeroes)) asScientific

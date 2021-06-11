@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.math.BigInt
@@ -686,7 +687,7 @@ object Number {
       * @param y the divisor, a Number.
       * @return a Number whose value is x / y.
       */
-    def /(y: Number): Number = (Number(x) / y).materialize
+    def /(y: Number): Number = (Number(x) multiply y.invert).materialize
 
     /**
       * Divide x by y (a Number) and yield a Number.

@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -110,7 +111,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "multiply 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
     val y = Number(2)
-    val z = (x * y).materialize
+    val z: Number = (x * y).materialize
     z.value shouldBe Right(2)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case None => }

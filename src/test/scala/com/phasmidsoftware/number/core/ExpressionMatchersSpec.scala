@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.{LogLevel, LogOff, MatchLogger}
+import com.phasmidsoftware.matchers.{LogDebug, LogLevel, MatchLogger}
 import com.phasmidsoftware.number.core.Number.one
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,7 +10,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   val sb = new StringBuilder
   implicit val logger: MatchLogger = w => sb.append(s"$w\n")
-  implicit val ll: LogLevel = LogOff
+  implicit val ll: LogLevel = LogDebug
 
   before {
     sb.clear()
@@ -186,29 +186,29 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "biFunctionSimplifier"
   it should "work for square of square root" in {
-    val p = new ExpressionMatchers().biFunctionSimplifier
+    val q = p.biFunctionSimplifier
     val seven = Expression(7)
     val x: Expression = seven.sqrt
     val y = x ^ 2
-    val z: ExpressionMatchers#MatchResult[Expression] = p(y)
+    val z: ExpressionMatchers#MatchResult[Expression] = q(y)
     z.successful shouldBe true
     z.get shouldBe Number(7)
   }
   it should "work for products" in {
-    val p = new ExpressionMatchers().biFunctionSimplifier
+    val q = new ExpressionMatchers().biFunctionSimplifier
     val seven = Expression(7)
     val x: Expression = seven * 2
     val y = x * 3
-    val z: ExpressionMatchers#MatchResult[Expression] = p(y)
+    val z: ExpressionMatchers#MatchResult[Expression] = q(y)
     z.successful shouldBe true
     z.get shouldBe Number(42)
   }
   it should "work for sums" in {
-    val p = new ExpressionMatchers().biFunctionSimplifier
+    val q = new ExpressionMatchers().biFunctionSimplifier
     val seven = Expression(7)
     val x: Expression = seven + 2
     val y = x + 3
-    val z: ExpressionMatchers#MatchResult[Expression] = p(y)
+    val z: ExpressionMatchers#MatchResult[Expression] = q(y)
     z.successful shouldBe true
     z.get shouldBe Number(12)
   }
