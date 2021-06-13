@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.matchers.LogLevel
 import com.phasmidsoftware.number.core.Number.negate
 
 /**
@@ -46,14 +47,12 @@ trait Expression {
     * @return the result of comparing materialized this with materialized comparand.
     */
   def compare(comparand: Expression): Int = materialize.compare(comparand.materialize)
-
-  /**
-    * @return an instance of ExpressionMatchers.
-    */
-  def matchers: ExpressionMatchers
 }
 
 object Expression {
+
+  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogDebug
+  implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
   /**
     * The following method is helpful in getting an expression started.
@@ -92,7 +91,8 @@ object Expression {
     * @param x an Expression.
     */
   implicit class ExpressionOps(x: Expression) {
-    implicit val em: ExpressionMatchers = x.matchers
+
+    import Expression._
 
     /**
       * Method to lazily multiply the Number x by y.
@@ -287,15 +287,13 @@ trait AtomicExpression extends Expression {
   * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
   * with simplification.
   *
-  * @param matchers an instance of ExpressionMatchers to be used as the context for simplification.
   */
-abstract class CompositeExpression(val matchers: ExpressionMatchers) extends Expression {
-  def simplify: Expression = materialize match {
-    case z if z.isExact =>
-      Expression(z)
-    case _ =>
-      // TODO simplify me if the leaves are all exact
-      matchers.materializer(this).getOrElse(Number())
+abstract class CompositeExpression extends Expression {
+  def simplify: Expression = {
+    // TODO simplify me if the leaves are all exact
+    import Expression._
+    //      val em = implicitly[ExpressionMatchers]
+    em.materializer(this).getOrElse(Number())
   }
 }
 
@@ -439,7 +437,7 @@ case object ConstE extends Constant {
   * @param x the expression being operated on.
   * @param f the function to be applied to x.
   */
-case class Function(x: Expression, f: ExpressionFunction)(implicit em: ExpressionMatchers) extends CompositeExpression(em) {
+case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -474,7 +472,7 @@ case class Function(x: Expression, f: ExpressionFunction)(implicit em: Expressio
   * @param b the second expression being operated on.
   * @param f the function to be applied to a and b.
   */
-case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction)(implicit em: ExpressionMatchers) extends CompositeExpression(em) {
+case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends CompositeExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -483,14 +481,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction)(imp
     *
     * @return false.
     */
-  def isExact: Boolean = f(a.materialize, b.materialize).isExact
+  def isExact: Boolean = value.isExact
 
   /**
     * Action to materialize this Expression as a Number.
     *
     * @return the materialized Number.
     */
-  def materialize: Number = f(a.materialize, b.materialize)
+  def materialize: Number = if (isExact) value else simplify.materialize
+
+  private lazy val value = f(a.materialize, b.materialize)
 
   /**
     * Action to materialize this Expression and render it as a String.
