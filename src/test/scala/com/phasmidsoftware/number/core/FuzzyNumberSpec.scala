@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -180,7 +179,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
       case RelativeFuzz(m, Gaussian) => m shouldBe 0.06666666666666667
     }
   }
-  ignore should "work for 2**2 (i.e. an constant Int power)" in {
+  it should "work for 2**2 (i.e. an constant Int power)" in {
     val xy: Try[Number] = Number.parse("2.0*")
     xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
     xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }

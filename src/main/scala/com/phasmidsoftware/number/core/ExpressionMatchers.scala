@@ -2,11 +2,12 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogLevel, MatchLogger}
 import com.phasmidsoftware.number.matchers._
-
 import scala.language.implicitConversions
 
 /**
   * Matchers whose input is generally an Expression.
+  *
+  * CONSIDER replacing all (Expression, Expression) types with Expression ~ Expression
   *
   * These Matchers are used to simplify (lazy) Expressions before those Expressions get evaluated,
   * thus sometimes avoiding loss of precision.
@@ -42,11 +43,9 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * Matcher which either successfully simplifies the input expression, or evaluates it,
     * by means of the evaluator Matcher (below).
     *
-    * TODO reverse the order of simplifier/evaluator. Simplifier should be invoked only if evaluator result is fuzzy.
-    *
     * @return an ExpressionMatcher[Expression].
     */
-  def materializer: ExpressionMatcher[Expression] = (simplifier | evaluator) :| "materializer"
+  def materializer: ExpressionMatcher[Expression] = simplifier :| "simplifier"
 
   /**
     * Matcher which materializes (in the expression sense) the given Expression.

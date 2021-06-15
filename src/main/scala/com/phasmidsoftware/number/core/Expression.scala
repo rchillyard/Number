@@ -292,8 +292,7 @@ abstract class CompositeExpression extends Expression {
   def simplify: Expression = {
     // TODO simplify me if the leaves are all exact
     import Expression._
-    //      val em = implicitly[ExpressionMatchers]
-    em.materializer(this).getOrElse(Number())
+    em.materializer(this).getOrElse(this)
   }
 }
 
@@ -488,9 +487,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the materialized Number.
     */
-  def materialize: Number = if (isExact) value else simplify.materialize
-
-  private lazy val value = f(a.materialize, b.materialize)
+  def materialize: Number =
+    if (isExact) value else {
+      val simplified = simplify
+      if (simplified == this) value
+      else simplified.materialize
+    }
 
   /**
     * Action to materialize this Expression and render it as a String.
@@ -578,6 +580,8 @@ private def oldSimplify: Expression = {
     if (result != this) println(s"simplified $this to $result")
     result
   }
+
+  private lazy val value: Number = f(a.materialize, b.materialize)
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")
