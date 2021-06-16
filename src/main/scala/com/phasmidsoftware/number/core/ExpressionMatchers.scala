@@ -23,11 +23,28 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   /**
     * Implicit method to convert a Matcher[Expression, R] into an ExpressionMatcher[R].
     *
+    * CONSIDER if we used a type alias for ExpressionMatcher, would we still need this?
+    *
     * @param m a Matcher[Expression, R].
     * @tparam R the result type.
     * @return ExpressionMatcher[R]
     */
   implicit def matcherConverter[R](m: Matcher[Expression, R]): ExpressionMatcher[R] = ExpressionMatcher(m)
+
+  /**
+    * Type alias for the kind of ExpressionMatcher which results in a possibly different Expression.
+    */
+  type Transformer = ExpressionMatcher[Expression]
+
+  /**
+    * Type alias for a pair of expressions (purpose of this is solely for brevity).
+    */
+  type Expressions = Expression ~ Expression
+
+  /**
+    * Type alias for a monadic duple (purpose of this is solely for brevity).
+    */
+  type MonadicDuple = ExpressionFunction ~ Expression
 
   /**
     * Method to create an ExpressionMatcher.
@@ -42,9 +59,9 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * Matcher which either successfully simplifies the input expression, or evaluates it,
     * by means of the evaluator Matcher (below).
     *
-    * @return an ExpressionMatcher[Expression].
+    * @return an Transformer.
     */
-  def materializer: ExpressionMatcher[Expression] = simplifier :| "simplifier"
+  def materializer: Transformer = simplifier :| "simplifier"
 
   /**
     * Matcher which materializes (in the expression sense) the given Expression.
@@ -56,35 +73,25 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   /**
     * Method to match an Expression and replace it with a simplified expression.
     *
-    * @return an ExpressionMatcher[Expression].
+    * @return an Transformer.
     */
-  def simplifier: ExpressionMatcher[Expression] = (biFunctionSimplifier | functionSimplifier) :| "simplifier"
+  def simplifier: Transformer = (biFunctionSimplifier | functionSimplifier) :| "simplifier"
 
   /**
     * Method to match an Expression with is a BiFunction and replace it with a simplified expression.
     *
-    * @return an ExpressionMatcher[Expression].
+    * @return an Transformer.
     */
-  def biFunctionSimplifier: ExpressionMatcher[Expression] =
+  def biFunctionSimplifier: Transformer =
     matchBiFunction & (matchSimplifyPlus | matchSimplifyTimes | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power)) :| "biFunctionSimplifier"
 
   /**
     * Method to match an Expression with is a Function and replace it with a simplified expression.
     *
-    * @return an ExpressionMatcher[Expression].
+    * @return an Transformer.
     */
-  def functionSimplifier: ExpressionMatcher[Expression] =
+  def functionSimplifier: Transformer =
     matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) :| "functionSimplifier"
-
-  /**
-    * Type alias for a pair of expressions (purpose of this is solely for brevity).
-    */
-  type Expressions = Expression ~ Expression
-
-  /**
-    * Type alias for a monadic duple (purpose of this is solely for brevity).
-    */
-  type MonadicDuple = ExpressionFunction ~ Expression
 
   /**
     * Type alias for a dyadic triple (purpose of this is solely for brevity).
@@ -242,7 +249,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   /**
     * Matcher which matches on Expressions that directly represent Numbers.
     *
-    * @return a Matcher[Expression, Number].
+    * @return a ExpressionMatcher[Number].
     */
   def value: ExpressionMatcher[Number] = {
     case Literal(x) => Match(x)
@@ -292,7 +299,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   }
 
   // CONSIDER does this really make sense? We end up extracting just the expression, providing that the function matches OK.
-  def matchMonadicDuple(fm: Matcher[ExpressionFunction, ExpressionFunction], om: ExpressionMatcher[Expression]): Matcher[MonadicDuple, Expression] =
+  def matchMonadicDuple(fm: Matcher[ExpressionFunction, ExpressionFunction], om: Transformer): Matcher[MonadicDuple, Expression] =
     fm ~> om :| "matchMonadicDuple"
 
   /**
