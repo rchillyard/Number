@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.{LogDebug, LogLevel, MatchLogger}
+import com.phasmidsoftware.matchers.{LogDebug, LogLevel, MatchLogger, ~}
 import com.phasmidsoftware.number.core.Number.one
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -71,12 +71,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchBiFunctionConstantResult"
   it should "match 1" in {
-    //    implicit val matchers: ExpressionMatchers = new ExpressionMatchers
     val matchers = implicitly[ExpressionMatchers]
     val one: Expression = Number.one
     val negativeOne: Number = Number(-1)
     val q = matchers.matchBiFunctionConstantResult(Product, negativeOne, Number.zero)
-    val r: matchers.MatchResult[Expression] = q((one, BiFunction(one, negativeOne, Product)))
+    import matchers.TildeOps
+    val r: matchers.MatchResult[Expression] = q(one ~ BiFunction(one, negativeOne, Product))
     r.successful shouldBe true
     r.get shouldBe Number.zero
   }
@@ -88,7 +88,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val one: Expression = Number.one
     val negativeOne: Number = Number(-1)
     val p = matchers.matchEitherDyadic
-    val r: matchers.MatchResult[(BiFunction, Expression)] = p((one, BiFunction(one, negativeOne, Product)))
+    import matchers.TildeOps
+    val r: matchers.MatchResult[BiFunction ~ Expression] = p(one ~ BiFunction(one, negativeOne, Product))
     r.successful shouldBe true
   }
   it should "match (biFunction, 1)" in {
@@ -97,7 +98,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val one: Expression = Number.one
     val negativeOne: Number = Number(-1)
     val p = matchers.matchEitherDyadic
-    val r: matchers.MatchResult[(BiFunction, Expression)] = p((BiFunction(one, negativeOne, Product), one))
+    import matchers.TildeOps
+    val r: matchers.MatchResult[BiFunction ~ Expression] = p(BiFunction(one, negativeOne, Product) ~ one)
     r.successful shouldBe true
   }
 

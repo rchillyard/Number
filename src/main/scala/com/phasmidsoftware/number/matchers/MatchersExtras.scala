@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.matchers
 
-import com.phasmidsoftware.matchers.{MatcherException, Matchers}
+import com.phasmidsoftware.matchers.{MatcherException, Matchers, ~}
 
 /**
   * This trait defines a set of Matchers which operate in a parallel fashion to the Parsers of the Scala
@@ -22,8 +22,8 @@ trait MatchersExtras extends Matchers {
     * @tparam R  the result type.
     * @return a Matcher[P, R]
     */
-  def from2[T0, T1, P <: Product, R](m: Matcher[(T0, T1), R])(f: (T0, T1) => P): Matcher[P, R] = p =>
-    m(p.productElement(0).asInstanceOf[T0], p.productElement(1).asInstanceOf[T1])
+  def from2[T0, T1, P <: Product, R](m: Matcher[T0 ~ T1, R])(f: (T0, T1) => P): Matcher[P, R] = p =>
+    m(p.productElement(0).asInstanceOf[T0] ~ p.productElement(1).asInstanceOf[T1])
 
   /**
     * Method to create a Matcher which operates on an instance of a case class (or other Product) P but which invokes m (which takes a 2-tuple).
