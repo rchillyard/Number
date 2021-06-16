@@ -92,8 +92,6 @@ object Expression {
     */
   implicit class ExpressionOps(x: Expression) {
 
-    import Expression._
-
     /**
       * Method to lazily multiply the Number x by y.
       *

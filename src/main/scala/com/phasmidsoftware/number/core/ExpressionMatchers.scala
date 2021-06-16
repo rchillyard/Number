@@ -8,8 +8,6 @@ import scala.language.implicitConversions
 /**
   * Matchers whose input is generally an Expression.
   *
-  * CONSIDER replacing all (Expression, Expression) types with Expression ~ Expression
-  *
   * These Matchers are used to simplify (lazy) Expressions before those Expressions get evaluated,
   * thus sometimes avoiding loss of precision.
   */
@@ -79,6 +77,21 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     matchFunction & matchMonadicDuple(always, ExpressionMatcher(always)) :| "functionSimplifier"
 
   /**
+    * Type alias for a pair of expressions (purpose of this is solely for brevity).
+    */
+  type Expressions = Expression ~ Expression
+
+  /**
+    * Type alias for a monadic duple (purpose of this is solely for brevity).
+    */
+  type MonadicDuple = ExpressionFunction ~ Expression
+
+  /**
+    * Type alias for a dyadic triple (purpose of this is solely for brevity).
+    */
+  type DyadicTriple = ExpressionBiFunction ~ Expression ~ Expression
+
+  /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
     * In particular, we simplify this following expression (in RPN) to 0:
     * x -1 * x +
@@ -109,9 +122,9 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @param f the function to be matched.
     * @param c the constant to be matched.
     * @param r the result value (to be returned in the appropriate MatchResult).
-    * @return a Matcher[Expression ~ Expression, Expression].
+    * @return a Matcher[Expressions, Expression].
     */
-  def matchBiFunctionConstantResult(f: ExpressionBiFunction, c: Expression, r: Expression): Matcher[Expression ~ Expression, Expression] =
+  def matchBiFunctionConstantResult(f: ExpressionBiFunction, c: Expression, r: Expression): Matcher[Expressions, Expression] =
     matchEitherDyadic & matchExpressionBiFunction(f) & matchAndSubstituteDyadicExpressions(c, r) :| s"matchBiFunctionConstantResult($f, $c, $r)"
 
   /**
@@ -125,10 +138,11 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @param r an Expression which will be returned on a successful match.
     * @return r assuming matching succeeds.
     */
-  def matchAndSubstituteDyadicExpressions(c: Expression, r: Expression): Matcher[Expression ~ Expression ~ Expression, Expression] =
+  def matchAndSubstituteDyadicExpressions(c: Expression, r: Expression): Matcher[Expressions ~ Expression, Expression] =
     namedMatcher(s"matchAndSubstituteDyadicExpressions: $c, $r") {
       case x ~ y ~ b if b.materialize == x.materialize && y.materialize == c.materialize => Match(r)
       case y ~ x ~ b if b.materialize == x.materialize && y.materialize == c.materialize => Match(r)
+      // NOTE non-match will be caught.
     }
 
   /**
@@ -145,24 +159,24 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
 
   /**
     * Matcher which takes a specific ExpressionBiFunction (such as Sum, Product, ...) and returns a Matcher
-    * of type Expression ~ Expression => Expression ~ Expression ~ Expression.
+    * of type Expressions => Expressions ~ Expression.
     *
     * @param f the function to be matched.
-    * @return a Matcher[Expression ~ Expression, Expression ~ Expression ~ Expression].
+    * @return a Matcher[Expressions, Expressions ~ Expression].
     */
-  def matchBiFunctionRepeated(f: ExpressionBiFunction): Matcher[Expression ~ Expression, Expression ~ Expression ~ Expression] =
+  def matchBiFunctionRepeated(f: ExpressionBiFunction): Matcher[Expressions, Expressions ~ Expression] =
     matchEitherDyadic & matchExpressionBiFunction(f) :| s"matchBiFunctionRepeated($f)"
 
   /**
-    * Matcher which takes a BiFunction ~ Expression and returns an Expression ~ Expression ~ Expression.
+    * Matcher which takes a BiFunction ~ Expression and returns an Expressions ~ Expression.
     * The BiFunction is matched according to matchDyadicFunction(h) while the Expression is passed on unchanged.
     *
     * @param h an ExpressionBiFunction
-    * @return a Matcher[BiFunction ~ Expression, Expression ~ Expression ~ Expression].
+    * @return a Matcher[BiFunction ~ Expression, Expressions ~ Expression].
     */
-  def matchExpressionBiFunction(h: ExpressionBiFunction): Matcher[BiFunction ~ Expression, Expression ~ Expression ~ Expression] =
+  def matchExpressionBiFunction(h: ExpressionBiFunction): Matcher[BiFunction ~ Expression, Expressions ~ Expression] =
   // CONSIDER why do we have to spell out the types just so we can add a logger here?
-    filter2_0[BiFunction, Expression, Expression ~ Expression](matchDyadicFunction(h)) :| "matchExpressionBiFunction"
+    filter2_0[BiFunction, Expression, Expressions](matchDyadicFunction(h)) :| "matchExpressionBiFunction"
 
   /**
     * Matcher which takes a BiFunction and returns a ~ of two Expressions.
@@ -170,9 +184,9 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * The resulting MatchResult is made up of two Expressions representing the first and second parameters of the BiFunction.
     *
     * @param h an ExpressionBiFunction which must match the function of the input.
-    * @return a Matcher[BiFunction, Expression ~ Expression].
+    * @return a Matcher[BiFunction, Expressions].
     */
-  def matchDyadicFunction(h: ExpressionBiFunction): Matcher[BiFunction, Expression ~ Expression] =
+  def matchDyadicFunction(h: ExpressionBiFunction): Matcher[BiFunction, Expressions] =
     namedMatcher(s"matchDyadicFunction($h)") {
       case BiFunction(x, y, `h`) => Match(x) ~ Match(y)
       case x => Miss(s"matchDyadicFunction($h)", x)
@@ -183,7 +197,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return a BiFunction ~ Expression.
     */
-  def matchEitherDyadic: Matcher[Expression ~ Expression, BiFunction ~ Expression] =
+  def matchEitherDyadic: Matcher[Expressions, BiFunction ~ Expression] =
     *(matchBiFunctionExpression) :| "matchEitherDyadic"
 
   /**
@@ -191,7 +205,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return a BiFunction ~ Expression.
     */
-  def matchBiFunctionExpression: Matcher[Expression ~ Expression, BiFunction ~ Expression] =
+  def matchBiFunctionExpression: Matcher[Expressions, BiFunction ~ Expression] =
     namedMatcher("matchBiFunctionExpression") {
       case (f: BiFunction) ~ x => Match(f) ~ Match(x)
       case z => Miss("matchBiFunctionExpression", z)
@@ -206,11 +220,11 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * matcher with swapIfNecessary.
     *
     * @param f an ExpressionBiFunction
-    * @return a Matcher[DyadicTriple, Expression ~ Expression].
+    * @return a Matcher[DyadicTriple, Expressions].
     */
-  def matchDyadicBranches(f: ExpressionBiFunction): Matcher[DyadicTriple, Expression ~ Expression] =
+  def matchDyadicBranches(f: ExpressionBiFunction): Matcher[DyadicTriple, Expressions] =
     namedMatcher(s"matchDyadicBranches: $f") {
-      case DyadicTriple(`f`, l1, r1) => Match(l1) ~ Match(r1)
+      case `f` ~ l1 ~ r1 => Match(l1) ~ Match(r1)
       case x => Miss("matchDyadicBranches", x)
     }
 
@@ -218,9 +232,9 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * Matcher which takes a ~~ of Expressions and combines them according to the parameter f.
     *
     * @param f Sum, Product of Power.
-    * @return Matcher[Expression ~ Expression ~ Expression, Expression].
+    * @return Matcher[Expressions ~ Expression, Expression].
     */
-  def gatherer(f: ExpressionBiFunction): Matcher[Expression ~ Expression ~ Expression, Expression] = Matcher {
+  def gatherer(f: ExpressionBiFunction): Matcher[Expressions ~ Expression, Expression] = Matcher {
     case x ~ y ~ z => combineGather(f, x, y, z)
     case t => Miss("gatherer", t)
   }
@@ -263,7 +277,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @return ExpressionMatcher[MonadicDuple]
     */
   def matchFunction: ExpressionMatcher[MonadicDuple] = {
-    case Function(x, f) => Match(MonadicDuple(f, x))
+    case Function(x, f) => Match(f ~ x)
     case e => Miss("matchFunction", e)
   }
 
@@ -273,34 +287,13 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @return ExpressionMatcher[DyadicTriple]
     */
   def matchBiFunction: ExpressionMatcher[DyadicTriple] = {
-    case BiFunction(a, b, f) => Match(DyadicTriple(f, a, b))
+    case BiFunction(a, b, f) => Match(f ~ a ~ b)
     case e => Miss("matchBiFunction", e)
   }
 
   // CONSIDER does this really make sense? We end up extracting just the expression, providing that the function matches OK.
   def matchMonadicDuple(fm: Matcher[ExpressionFunction, ExpressionFunction], om: ExpressionMatcher[Expression]): Matcher[MonadicDuple, Expression] =
-    from2(fm ~> om)(MonadicDuple) :| "matchMonadicDuple"
-
-  /**
-    * Named Product to represent a BiFunction.
-    *
-    * CONSIDER do we really need this? Can't we do just fine with ~~?
-    *
-    * @param f an ExpressionBiFunction.
-    * @param l an Expression.
-    * @param r an Expression.
-    */
-  case class DyadicTriple(f: ExpressionBiFunction, l: Expression, r: Expression)
-
-  /**
-    * Named Product to represent a Function.
-    *
-    * CONSIDER do we really need this? Can't we do just fine with ~?
-    *
-    * @param f an ExpressionBiFunction.
-    * @param x an Expression.
-    */
-  case class MonadicDuple(f: ExpressionFunction, x: Expression)
+    fm ~> om :| "matchMonadicDuple"
 
   /**
     * Private method to return a MatchResult, given an ExpressionBiFunction, and three Expressions: x, y, and z.
