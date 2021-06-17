@@ -105,7 +105,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: Expression = Number(7)
     val y = x.sqrt
     val z = y ^ 2
-    z.simplify shouldBe Number(7)
+    z.simplify.simplify shouldBe Number(7)
   }
 
   behavior of "canceling operations"
@@ -133,7 +133,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: Expression = seven.sqrt
     val y = x ^ 2
     val z = y.simplify
-    z shouldBe Number(7)
+    z.simplify shouldBe Number(7)
   }
   ignore should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)

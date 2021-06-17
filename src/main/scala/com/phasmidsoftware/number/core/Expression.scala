@@ -286,13 +286,7 @@ trait AtomicExpression extends Expression {
   * with simplification.
   *
   */
-abstract class CompositeExpression extends Expression {
-  def simplify: Expression = {
-    // TODO simplify me if the leaves are all exact
-    import Expression._
-    em.materializer(this).getOrElse(this)
-  }
-}
+abstract class CompositeExpression extends Expression
 
 /**
   * A literal number.
@@ -330,6 +324,10 @@ case class Literal(x: Number) extends AtomicExpression {
     * @return a String representation of this Literal.
     */
   override def toString: String = s"$x"
+}
+
+object Literal {
+  def apply(x: Int): Literal = Literal(Number(x))
 }
 
 /**
@@ -453,6 +451,19 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   def materialize: Number = f(x.simplify.materialize)
 
   /**
+    * If it is possible to simplify this Expression, then we do so.
+    * Typically, we simplify non-exact expressions if possible.
+    * There is no compelling need to simplify exact expressions.
+    *
+    * @return an Expression tree which is the simpler equivalent of this.
+    */
+  def simplify: Expression = {
+    val z = x.simplify
+    if (z != x) Function(z, f)
+    else this
+  }
+
+  /**
     * Action to materialize this Expression and render it as a String.
     *
     * @return a String representing the value of this expression.
@@ -490,6 +501,24 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       val simplified = simplify
       if (simplified == this) value
       else simplified.materialize
+    }
+
+  /**
+    * If it is possible to simplify this Expression, then we do so.
+    * Typically, we simplify non-exact expressions if possible.
+    * There is no compelling need to simplify exact expressions.
+    *
+    * @return an Expression tree which is the simpler equivalent of this.
+    */
+  def simplify: Expression =
+    if (isExact)
+      value
+    else {
+      import Expression._
+      em.simplifier(this) match {
+        case em.Match(e) => e.asInstanceOf[Expression]
+        case _ => this
+      }
     }
 
   /**
@@ -594,7 +623,7 @@ case object Sum extends ExpressionBiFunction((x, y) => x add y, "+")
 
 case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*")
 
-case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^")
+case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", false)
 
 /**
   * A lazy monadic expression function.
@@ -624,10 +653,11 @@ class ExpressionFunction(f: Number => Number, name: String) extends (Number => N
   * A lazy dyadic expression function.
   * TODO need to mark whether this function is exact or not.
   *
-  * @param f    the function (Number, Number) => Number
-  * @param name the name of this function.
+  * @param f        the function (Number, Number) => Number
+  * @param name     the name of this function.
+  * @param commutes true only if the parameters to f are commutative.
   */
-class ExpressionBiFunction(val f: (Number, Number) => Number, val name: String) extends ((Number, Number) => Number) {
+class ExpressionBiFunction(val f: (Number, Number) => Number, val name: String, val commutes: Boolean = true) extends ((Number, Number) => Number) {
   /**
     * Evaluate this function on x.
     *
