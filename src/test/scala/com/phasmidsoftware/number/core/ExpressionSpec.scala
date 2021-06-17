@@ -41,7 +41,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "Expression"
 
-  ignore should "materialize" in {
+  it should "materialize" in {
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(x1, x2, Sum)
@@ -49,7 +49,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     result shouldEqual Number(Math.PI + 1)
   }
 
-  ignore should "render" in {
+  it should "render" in {
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(x1, x2, Sum)
@@ -135,13 +135,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val z = y.simplify
     z.simplify shouldBe Number(7)
   }
-  ignore should "show that lazy evaluation only works when you use it" in {
+  it should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)
     val x: Number = seven.sqrt
     val y = x ^ 2
     y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
   }
-  ignore should "show ^2 and sqrt for illustrative purposes" in {
+  it should "show ^2 and sqrt for illustrative purposes" in {
     val seven = Number(7)
     val x = seven.sqrt
     val y = (x ^ 2).materialize
@@ -149,18 +149,20 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     y shouldEqual Number(7)
   }
   // ISSUE 25
-  ignore should "cancel addition and subtraction" in {
+  it should "cancel addition and subtraction" in {
     val x = Number.one + 3 - 3
-    x.simplify shouldBe Expression(Number.one)
+    val q = x.simplify
+    q shouldBe Number.one
   }
   // ISSUE 25
   ignore should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
-    x.simplify shouldBe Expression(Number.e)
+    val q = x.simplify
+    q shouldBe Number.e
   }
 
   behavior of "various operations"
-  ignore should "evaluate E * 2" in {
+  it should "evaluate E * 2" in {
     (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
   }
 

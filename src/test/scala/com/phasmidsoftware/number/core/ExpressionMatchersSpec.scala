@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogDebug, LogLevel, MatchLogger, ~}
+import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -18,6 +19,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   after {
     if (sb.nonEmpty) println(sb.toString())
     println("===============================\n")
+  }
+
+  implicit object NumberEquality extends Equality[Number] {
+    def areEqual(a: Number, b: Any): Boolean = b match {
+      case n: Number => a.compare(n) == 0
+      case n: Expression => a.compare(n) == 0
+      case _ => false
+    }
   }
 
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
@@ -63,12 +72,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   import com.phasmidsoftware.number.core.Expression.ExpressionOps
 
   behavior of "gathering operations"
-  ignore should "gather 2 and * 1/2" in {
+  it should "gather 2 and * 1/2" in {
     val x: Expression = Number(7)
     val y = x.sqrt
     val z = y ^ 2
     val matchers = implicitly[ExpressionMatchers]
-    matchers.simplifier(z) should matchPattern { case matchers.Match(ExactNumber(Right(7), Scalar)) => }
+    val q = matchers.simplifier(z)
+    q should matchPattern { case matchers.Match(_) => }
+    q.get.simplify shouldBe Number(7)
   }
 
   behavior of "matchBiFunctionConstantResult"
@@ -172,18 +183,18 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val q = z.simplify
     q shouldBe Number(7)
   }
-  ignore should "show that lazy evaluation only works when you use it" in {
+  it should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)
     val x: Number = seven.sqrt
     val y = x ^ 2
     y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
   }
-  ignore should "show ^2 and sqrt for illustrative purposes" in {
+  it should "show ^2 and sqrt for illustrative purposes" in {
     val seven = Number(7)
     val x = seven.sqrt
-    val y = x ^ 2
-    y should matchPattern { case FuzzyNumber(_, _, _) => }
-    y shouldEqual Number(7)
+    val y: Expression = x ^ 2
+    y should matchPattern { case BiFunction(FuzzyNumber(_, _, _), Literal(ExactNumber(Right(2), Scalar)), Power) => }
+    y.materialize shouldEqual Number(7)
   }
   // ISSUE 25
   it should "cancel addition and subtraction" in {
@@ -233,7 +244,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "various operations"
-  ignore should "evaluate E * 2" in {
+  it should "evaluate E * 2" in {
     (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
   }
 

@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogLevel, MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
-
 import scala.language.implicitConversions
 
 /**
@@ -112,10 +111,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
 
   /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
-    * In particular, we simplify this following expression (in RPN) to 0:
-    * x -1 * x +
-    *
-    * NOTE that the * operator in the following will invert the order of the incoming tuple if required.
+    * In particular, we simplify this following expression to x:  x + 0 or 0 + x.
     *
     * @return a Matcher[DyadicTriple, Expression]
     */
@@ -136,10 +132,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
 
   /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
-    * In particular, we simplify this following expression (in RPN) to 0:
-    * x -1 * x +
-    *
-    * NOTE that the * operator in the following will invert the order of the incoming tuple if required.
+    * In particular, we simplify this following expression to x:  x * 1 or 1 * x.
     *
     * @return a Matcher[DyadicTriple, Expression]
     */
@@ -148,10 +141,8 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
 
   /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
-    * In particular, we simplify this following expression (in RPN) to 0:
-    * x -1 * x +
-    *
-    * NOTE that the * operator in the following will invert the order of the incoming tuple if required.
+    * In particular, we simplify this following expression to x:  x to the power of 1.
+    * And furthermore, we simplify this following expression to 1:  1 to the power of x.
     *
     * @return a Matcher[DyadicTriple, Expression]
     */
