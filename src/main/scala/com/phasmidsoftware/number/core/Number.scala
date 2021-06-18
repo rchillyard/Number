@@ -655,6 +655,10 @@ object Number {
     */
   val one: Number = ExactNumber(Right(1), Scalar)
   /**
+    * Exact value of 1
+    */
+  val two: Number = ExactNumber(Right(2), Scalar)
+  /**
     * Exact value of pi
     */
   val pi: Number = ExactNumber(Right(1), Pi)

@@ -1,11 +1,14 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogLevel, MatchLogger}
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
+import com.phasmidsoftware.number.core.Expression.{ExpressionOps, pi}
+import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
+import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
@@ -38,6 +41,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   implicit val p: ExpressionMatchers = new ExpressionMatchers {}
+
+  behavior of "parse"
+  val syp = new ShuntingYardParser()
+  it should "parse 1" in {
+    syp.parseInfix("1") should matchPattern { case Success(_) => }
+    syp.parseInfix("(1)") should matchPattern { case Failure(_) => } // tokens must currently be separated by white space
+    syp.parseInfix("( 1 )") should matchPattern { case Success(_) => }
+    syp.parseInfix("( ( 0.5 + 3 ) + ( 2 * ( 0.5 + 3 ) ) )") should matchPattern { case Success(_) => }
+    syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
+  }
 
   behavior of "Expression"
 
@@ -83,9 +96,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     x shouldEqual Number(6)
   }
   ignore should "evaluate (√3 + 1)(√3 - 1) as 2" in {
-    val root3: Expression = Number(3).sqrt
-    val x = (root3 + 1) * (root3 - 1)
-    x.materialize shouldBe Number(2)
+    val root3: Expression = Expression(3).sqrt
+    val x: Expression = (root3 + 1) * (root3 - 1)
+    val q = x.simplify
+    println(s"q = $q")
+    val w = q.simplify
+    println(s"w = $w")
+    q.materialize shouldBe Number(2)
   }
   it should "evaluate sin pi/2" in {
     val x: Expression = Number.pi / 2
@@ -166,4 +183,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
   }
 
+  behavior of "depth"
+  it should "be 1 for any atomic expression" in {
+    Expression(1).depth shouldBe 1
+    Expression.one.depth shouldBe 1
+    Literal(1).depth shouldBe 1
+    pi.depth shouldBe 1
+  }
+  it should "be more than 1 for other expression" in {
+    (Number.e * 2).depth shouldBe 2
+    (Number.e * 2 / 2).depth shouldBe 3
+    val expression = Expression(7).sqrt ^ 2
+    println(expression)
+    expression.depth shouldBe 4
+  }
 }

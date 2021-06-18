@@ -33,6 +33,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   private val two: Number = Number(2)
   private val one: Number = Number.one
   private val zero: Number = Number.zero
+  private val half: Number = Number.two.invert
+
 
   behavior of "value"
   it should "work with value on Literal" in {
@@ -282,6 +284,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(BiFunction(two, one, Power)) shouldBe em.Match(two)
     p(BiFunction(one, two, Power)) shouldBe em.Match(one)
   }
+  // NOTE: this will succeed only if we allow simplifications which reduce depth (but are not necessarily exact)
+  ignore should "simplify 1" in {
+    val p = em.biFunctionSimplifier
+    val x = Expression(3).sqrt
+    val z = p(x)
+    z shouldBe em.Match(BiFunction(Number(3), Number(0.5), Power))
+  }
 
   behavior of "matchBiFunctionConstantResult"
   it should "simplify" in {
@@ -291,5 +300,76 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(two ~ BiFunction(two, Number(-1), Product)) shouldBe em.Match(zero)
     p(BiFunction(Number(-1), two, Product) ~ two) shouldBe em.Match(zero)
     p(two ~ BiFunction(Number(-1), two, Product)) shouldBe em.Match(zero)
+  }
+
+  behavior of "distributor"
+  it should "distribute" in {
+    val p = em.distributor
+    import em.TildeOps
+    val a = BiFunction(one, two, Sum)
+    val b = BiFunction(two, one, Sum)
+    val z = p(Product ~ a ~ b)
+    z shouldBe em.Match(Number(9))
+  }
+  it should "distribute1" in {
+    val p = em.distributeSum
+    val a = BiFunction(two, Number(3), Sum)
+    val b = BiFunction(Number(4), two, Sum)
+    import em.TildeOps
+    val z = p(a ~ b)
+    z shouldBe em.Match(Number(30))
+  }
+  it should "distribute1 a" in {
+    val p = em.distributeSum
+    val a = BiFunction(one, two, Sum)
+    val b = BiFunction(two, one, Sum)
+    import em.TildeOps
+    val z = p(a ~ b)
+    z shouldBe em.Match(Number(9))
+  }
+  it should "distribute1 b" in {
+    val p = em.distributeSum
+    val x = Number("2.00")
+    val y = Number("3.00")
+    val a = BiFunction(one, x, Sum)
+    val b = BiFunction(half, y, Sum)
+    import em.TildeOps
+    val z = p(a ~ b)
+    z shouldBe em.Match(Number(10.5))
+  }
+  // NOTE This expression won't simplify because it is inexact (and distribution doesn't reduce the depth).
+  ignore should "distribute1 c" in {
+    val p = em.distributeSum
+    val x = Number("2.00*")
+    val y = Number("3.00*")
+    val a = BiFunction(one, x, Sum)
+    val b = BiFunction(half, y, Sum)
+    val r = BiFunction(a, b, Product)
+    println(r)
+    import em.TildeOps
+    val z = p(a ~ b)
+    val eo = Expression.parse("( ( 3.00* + 0.5 ) + ( 2.00* * ( 3.00* + 0.5 ) ) )")
+    eo map (z shouldBe em.Match(_)) orElse fail("could not parse expression")
+  }
+  // FIXME we do need to find a solution to this problem.
+  ignore should "distribute1 d" in {
+    val p = em.distributeSum
+    val x = Expression(3).sqrt
+    val y = -x
+    val a = BiFunction(one, x, Sum)
+    val b = BiFunction(one, y, Sum)
+    val r = BiFunction(a, b, Product)
+    println(r)
+    import em.TildeOps
+    val z = p(a ~ b)
+    z shouldBe em.Match(Number(9))
+  }
+  it should "distribute2" in {
+    val p = em.distributeProduct
+    val x = Expression(3).sqrt
+    val a = BiFunction(two, x, Product)
+    import em.TildeOps
+    val z = p(a ~ two)
+    z shouldBe em.Match(Number(12))
   }
 }

@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogLevel, MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
+
 import scala.language.implicitConversions
 
 /**
@@ -71,10 +72,11 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
 
   /**
     * Method to match an Expression and replace it with a simplified expression.
+    * However, it will accept the replacement only if the replacement has an exact value.
     *
     * @return an Transformer.
     */
-  def simplifier: Transformer = (biFunctionSimplifier | functionSimplifier) :| "simplifier"
+  def simplifier: Transformer = simpler(biFunctionSimplifier | functionSimplifier)
 
   /**
     * Method to match an Expression which is a BiFunction and replace it with a simplified expression.
@@ -82,7 +84,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @return an Transformer.
     */
   def biFunctionSimplifier: Transformer =
-    matchBiFunction & (matchSimplifyPlus | matchSimplifyPlusIdentity | matchSimplifyTimes | matchSimplifyTimesIdentity | matchSimplifyPowerIdentity | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power)) :| "biFunctionSimplifier"
+    matchBiFunction & (matchSimplifyPlus | matchSimplifyPlusIdentity | matchSimplifyTimes | matchSimplifyTimesIdentity | matchSimplifyPowerIdentity | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power) | distributor) :| "biFunctionSimplifier"
 
   /**
     * Method to match an Expression which is a Function and replace it with a simplified expression.
@@ -96,6 +98,16 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * Type alias for a dyadic triple (purpose of this is solely for brevity).
     */
   type DyadicTriple = ExpressionBiFunction ~ Expression ~ Expression
+
+  /**
+    * This simplification will succeed if an expression is of one of the following forms:
+    * (a + b) * c will become a * c + b * c; or
+    * (a * b) power c will become a power c * b power c.
+    *
+    * @return Matcher[DyadicTriple, Expression]
+    */
+  def distributor: Matcher[DyadicTriple, Expression] =
+    (matchDyadicBranches(Product) & *(distributeSum) | matchDyadicBranches(Power) & distributeProduct) :| "distributor"
 
   /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
@@ -280,6 +292,30 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     }
 
   /**
+    * Do the distribution of the form: (a + b) * c
+    *
+    * @return a Matcher[Expressions, Expression]
+    */
+  def distributeSum: Matcher[Expressions, Expression] = Matcher {
+    case x ~ y => x match {
+      case BiFunction(a, b, Sum) => Match(BiFunction((a * y).simplify, (b * y).simplify, Sum).simplify)
+      case t => Miss("distributeSum", t)
+    }
+  }
+
+  /**
+    * Do the distribution of the form: (a * b) power c
+    *
+    * @return a Matcher[Expressions, Expression]
+    */
+  def distributeProduct: Matcher[Expressions, Expression] = Matcher {
+    case x ~ y => x match {
+      case BiFunction(a, b, Product) => Match(BiFunction((a ^ y).simplify, (b ^ y).simplify, Product).simplify)
+      case t => Miss("distributeProduct", t)
+    }
+  }
+
+  /**
     * Matcher which takes a ~~ of Expressions and combines them according to the parameter f.
     *
     * @param f Sum, Product or Power.
@@ -390,5 +426,20 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
       case _ => Miss(s"eliminateIdentity $f, $x, $c missed", Number.NaN)
     }
 
+  private def simpler(m: Transformer): Transformer = Matcher[Expression, Expression] {
+    r =>
+      m(r) match {
+        case z@Match(x) =>
+          if (x.isExact || x.depth < r.depth)
+            z
+          else
+            Miss("simplified version is neither exact nor simpler", x)
+        case _ =>
+          Miss("simplifier", r)
+      }
+  }
 
+  //noinspection ScalaUnusedSymbol
+  // NOTE unused method but keeping it for now.
+  private def exact: Transformer = filter[Expression] ( _.isExact )
 }

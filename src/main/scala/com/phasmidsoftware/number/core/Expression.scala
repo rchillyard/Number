@@ -2,6 +2,10 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.LogLevel
 import com.phasmidsoftware.number.core.Number.negate
+import com.phasmidsoftware.number.mill.Mill
+import com.phasmidsoftware.number.parse.ShuntingYardParser
+
+import scala.util.Try
 
 /**
   * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
@@ -31,6 +35,13 @@ trait Expression {
     * @return the materialized Number.
     */
   def materialize: Number
+
+  /**
+    * Method to determine the depth of this Expression.
+    *
+    * @return the depth (an atomic expression has depth of 1).
+    */
+  def depth: Int
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -75,7 +86,8 @@ object Expression {
   /**
     * The following method is helpful in getting an expression started.
     */
-  def apply(x: String): Expression = Expression(Number(x))
+  def parse(x: String): Option[Expression] =
+    new ShuntingYardParser().parseInfix(x).toOption flatMap (_.evaluate)
 
   /**
     * The following constants are helpful in getting an expression started.
@@ -274,6 +286,11 @@ trait AtomicExpression extends Expression {
   def simplify: Expression = this
 
   /**
+    * @return 1.
+    */
+  def depth: Int = 1
+
+  /**
     * CONSIDER a different mechanism here (or different implementation of ExpressionMatchers).
     *
     * @return an instance of ExpressionMatchers.
@@ -444,6 +461,13 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   def isExact: Boolean = f(x.materialize).isExact
 
   /**
+    * Method to determine the depth of this Expression.
+    *
+    * @return the 1 + depth of x.
+    */
+  def depth: Int = 1 + x.depth
+
+  /**
     * Action to materialize this Expression as a Number.
     *
     * @return the materialized Number.
@@ -490,6 +514,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return false.
     */
   def isExact: Boolean = value.isExact
+
+  /**
+    * Method to determine the depth of this Expression.
+    *
+    * @return the depth (an atomic expression has depth of 1).
+    */
+  def depth: Int = 1 + math.max(a.depth, b.depth)
 
   /**
     * Action to materialize this Expression as a Number.
