@@ -2,10 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.LogLevel
 import com.phasmidsoftware.number.core.Number.negate
-import com.phasmidsoftware.number.mill.Mill
 import com.phasmidsoftware.number.parse.ShuntingYardParser
-
-import scala.util.Try
 
 /**
   * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
@@ -51,6 +48,10 @@ trait Expression {
     */
   def render: String
 
+  def layout(x: Int): String
+
+  //  override def toString: String = layout(0)
+
   /**
     * Eagerly compare this Expression with comparand.
     *
@@ -84,10 +85,15 @@ object Expression {
   }
 
   /**
-    * The following method is helpful in getting an expression started.
+    * Method to parse a String as an Expression.
+    *
+    * TODO this may not accurately parse all infix expressions.
+    * The idea is for render and parse.get to be inverses.
+    * NOTE that it might be a problem with render instead.
     */
-  def parse(x: String): Option[Expression] =
-    new ShuntingYardParser().parseInfix(x).toOption flatMap (_.evaluate)
+  def parse(x: String): Option[Expression] = new ShuntingYardParser().parseInfix(x).toOption flatMap (_.evaluate)
+
+  def indent(x: Int): String = "  " * x
 
   /**
     * The following constants are helpful in getting an expression started.
@@ -110,7 +116,15 @@ object Expression {
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
       */
-    def +(y: Expression): Expression = BiFunction(x, y, Sum)
+    def plus(y: Expression): Expression = BiFunction(x, y, Sum)
+
+    /**
+      * Method to lazily multiply the Number x by y.
+      *
+      * @param y another Expression.
+      * @return an Expression which is the lazy product of x and y.
+      */
+    def +(y: Expression): Expression = x plus y
 
     /**
       * Method to lazily multiply the Number x by y.
@@ -296,6 +310,8 @@ trait AtomicExpression extends Expression {
     * @return an instance of ExpressionMatchers.
     */
   def matchers: ExpressionMatchers = new ExpressionMatchers()
+
+  def layout(n: Int): String = s"$render"
 }
 
 /**
@@ -494,6 +510,9 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     */
   def render: String = materialize.toString
 
+  def layout(n: Int): String = s"$f:\n${Expression.indent(n)}${x.layout(n + 1)}\n"
+
+  //  override def toString: String = s"\n${layout(0)}"
   override def toString: String = s"$f($x)"
 }
 
@@ -559,12 +578,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def render: String = materialize.render
 
+  def layout(n: Int): String = s"$f:\n${Expression.indent(n)}${a.layout(n + 1)}\n${Expression.indent(n)}${b.layout(n + 1)}\n"
+
   /**
     * Render this BiFunction for debugging purposes.
     *
     * @return a String showing a, f, and b in parentheses.
     */
-  override def toString: String = s"($a $f $b)"
+  // TODO tidy up
+  //  override def toString: String = layout(0)
+  override def toString: String = s"($b $f $a)"
 
   private def inverter(name: String): Option[(ExpressionBiFunction, Expression, Expression)] = name match {
     case "+" => Some((Product, MinusOne, Zero))

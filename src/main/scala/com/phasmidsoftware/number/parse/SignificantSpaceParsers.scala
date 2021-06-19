@@ -23,7 +23,8 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     */
   def stringParser[X](p: Parser[X], w: String): Try[X] = parseAll(p, w) match {
     case Success(t, _) => scala.util.Success(t)
-    case Failure(m, _) => scala.util.Failure(SignificantSpaceParserException(m))
+    case Failure(m, x) =>
+      scala.util.Failure(SignificantSpaceParserException(s"""$m did not match "${x.source}" at offset ${x.offset}"""))
     case Error(m, _) => scala.util.Failure(SignificantSpaceParserException(m))
   }
 

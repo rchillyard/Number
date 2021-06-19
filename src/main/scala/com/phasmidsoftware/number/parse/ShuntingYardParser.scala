@@ -26,7 +26,7 @@ class ShuntingYardParser extends MillParser {
   def parseInfix(w: String): Try[Mill] = stringParser(shuntingYard, w).flatMap(_.toMill)
 
   /**
-    * A ShuntingYard consisting of two stacks: the values stack and the operators stack.
+    * A ShuntingYard consisting of two structures: the values queue and the operators stack.
     *
     * @param values    a list of values and operators. The former are added directly to values.
     *                  However, operators are only added indirectly, after a closing parenthesis
@@ -34,6 +34,9 @@ class ShuntingYardParser extends MillParser {
     * @param operators a list of operators which is temporarily placed here until switch is called.
     */
   case class ShuntingYard(values: Seq[Item], operators: Seq[Item]) {
+
+    // TODO remove this.
+    //    println(s"$this")
 
     /**
       * Method to add a token to this ShuntingYard.
@@ -65,17 +68,37 @@ class ShuntingYardParser extends MillParser {
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 
-    private def :+(number: Number) = ShuntingYard(Expr(number) +: values, operators)
-
-    private def :+(operator: String) = ShuntingYard(values, Item(operator) +: operators)
+    private def :+(number: Number) = ShuntingYard(values :+ Expr(number), operators)
 
     @tailrec
-    private def switch: ShuntingYard = this match {
-      case ShuntingYard(values, Nil) => ShuntingYard(values, Nil)
-      case ShuntingYard(values, Open :: tail) => ShuntingYard(values, tail).switch
-      case ShuntingYard(values, operator :: operators) => ShuntingYard(values :+ operator, operators).switch
-      case _ => throw MillException("ShuntingYard.switch: logic error")
+    private def :+(operator: String): ShuntingYard = Item(operator) match {
+      case o1@Dyadic(_, _) => operators match {
+        case Nil =>
+          ShuntingYard(values, o1 +: Nil)
+        case Open :: xs =>
+          ShuntingYard(values, o1 :: Open :: xs)
+        case op +: xs => op match {
+          case o2@Dyadic(_, _) =>
+            // CONSIDER this is probably wrong.
+            if (implicitly[Ordering[Dyadic]].compare(o1, o2) <= 0)
+              ShuntingYard(values :+ o2, xs) :+ operator
+            else
+              ShuntingYard(values, o1 +: o2 +: xs)
+          case _ =>
+            ShuntingYard(values, op +: xs)
+        }
+      }
+      case op => ShuntingYard(values, op +: operators)
     }
+
+    @tailrec
+    private def switch: ShuntingYard =
+      this match {
+        case s@ShuntingYard(_, Nil) => s
+        case ShuntingYard(values, Open :: tail) => ShuntingYard(values, tail).switch
+        case ShuntingYard(values, operator :: operators) => ShuntingYard(values :+ operator, operators).switch
+        case _ => throw MillException("ShuntingYard.switch: logic error")
+      }
   }
 
   object ShuntingYard {

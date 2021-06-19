@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.mill.{Expr, Item, Mill}
+
 import scala.util.Try
 
 /**
@@ -119,7 +120,7 @@ class MillParser extends NumberParser {
     case z ~ os ~ y ~ x => DyadicTerm(x, MonadicTerm(y, os, z))
   }
 
-  def dyadicOperator: Parser[String] = ("+" | "*" | "×" | "^" | "-") :| "dyadicOperator"
+  def dyadicOperator: Parser[String] = ("+" | "*" | "×" | "^" | "-" | "−" | "–" | "/" | "÷") :| "dyadicOperator"
 
   def monadicOperator: Parser[String] = """(?i)chs|inv|v|ln|exp|sin|cos""".r :| "monadicOperator"
 

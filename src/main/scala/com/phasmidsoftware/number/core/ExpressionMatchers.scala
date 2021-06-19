@@ -298,10 +298,16 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     */
   def distributeSum: Matcher[Expressions, Expression] = Matcher {
     case x ~ y => x match {
-      case BiFunction(a, b, Sum) => Match(BiFunction((a * y).simplify, (b * y).simplify, Sum).simplify)
+      case BiFunction(a, b, Sum) => y match {
+        case BiFunction(c, d, Sum) => Match(BiFunction((simplifyProduct(a, c) plus simplifyProduct(a, d)).simplify, (simplifyProduct(b, c) plus simplifyProduct(b, d)).simplify, Sum).simplify)
+        case _ => Match(BiFunction((a * y).simplify, (b * y).simplify, Sum).simplify)
+      }
       case t => Miss("distributeSum", t)
     }
   }
+
+  def simplifyProduct(u: Expression, v: Expression): Expression =
+    (u * v).simplify
 
   /**
     * Do the distribution of the form: (a * b) power c

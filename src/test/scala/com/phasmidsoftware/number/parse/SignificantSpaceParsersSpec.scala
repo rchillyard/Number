@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.parse
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class SignificantSpaceParsersSpec extends AnyFlatSpec with should.Matchers {
@@ -26,7 +27,7 @@ class SignificantSpaceParsersSpec extends AnyFlatSpec with should.Matchers {
   it should "fail for RegexOps" in {
     val q: ssp.Parser[String] = ssp.RegexOps("hello".r) :| "hello"
     val triedString = ssp.stringParser(q, "Hello")
-    triedString should matchPattern { case Failure(SignificantSpaceParserException("hello")) => }
+    triedString should matchPattern { case Failure(SignificantSpaceParserException("""hello did not match "Hello" at offset 0""")) => }
   }
 
   it should "ParserOps" in {

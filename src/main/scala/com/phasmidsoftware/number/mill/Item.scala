@@ -5,19 +5,30 @@ import com.phasmidsoftware.number.core._
 
 trait Item
 
-trait Dyadic extends Item
+class Dyadic(val precedence: Int, val leftAssociativity: Boolean = true) extends Item {
+}
+
+object Dyadic {
+  def unapply(arg: Dyadic): Option[(Int, Boolean)] = Some(arg.precedence -> arg.leftAssociativity)
+
+  implicit object DyadicOrdering extends Ordering[Dyadic] {
+    def compare(x: Dyadic, y: Dyadic): Int = if ((x.leftAssociativity && x.precedence <= y.precedence) || (!x.leftAssociativity && x.precedence < y.precedence)) -1 else 0
+  }
+}
 
 trait Monadic extends Item
 
 trait Anadic extends Item
 
-case object Multiply extends Dyadic
+case object Multiply extends Dyadic(3)
 
-case object Add extends Dyadic
+case object Divide extends Dyadic(3)
 
-case object Subtract extends Dyadic
+case object Add extends Dyadic(2)
 
-case object Power extends Dyadic
+case object Subtract extends Dyadic(2)
+
+case object Power extends Dyadic(4, false)
 
 case object Chs extends Monadic
 
@@ -56,8 +67,9 @@ object Item {
     // Dyadic operators
     case "^" => Power
     case "+" => Add
-    case "-" => Subtract
+    case "-" | "−" | "–" => Subtract
     case "*" | "×" => Multiply
+    case "/" | "÷" => Divide
     // Monadic operators
     case "chs" => Chs
     case "inv" => Inv
