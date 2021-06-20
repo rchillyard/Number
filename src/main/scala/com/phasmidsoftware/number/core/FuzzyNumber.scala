@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.util.Left
 
 /**
@@ -239,9 +238,8 @@ object FuzzyNumber {
 
   def sin(x: FuzzyNumber): Number = transformMonadic(x.scale(Pi), Scalar, MonadicOperationSin)
 
+  // TEST me or eliminate
   def sqrt(x: FuzzyNumber): Number = transformMonadic(x, Scalar, MonadicOperationSqrt)
-
-  def exp(x: FuzzyNumber): Number = transformMonadic(x.scale(E), Scalar, MonadicOperationExp)
 
   private def plus(x: FuzzyNumber, y: Number): Number = {
     val (p, q) = x.alignTypes(y)

@@ -129,7 +129,7 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
   implicit val enabled: Boolean = false
 
   // NOTE enabled and debug are not currently used.
-  protected def debug[X](w: => String, x: X)(implicit enabled: Boolean): X = {
+  protected def debug[X](x: X, w: => String)(implicit enabled: Boolean): X = {
     if (enabled) println(s"debug: $w: $x")
     x
   }
@@ -146,7 +146,7 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
   private def compose[X](p: Parser[Option[X]], q: Parser[X]): Parser[X] = Parser {
     in =>
       p(in) match {
-        case s@this.Success(Some(_), _) => s map (xo => xo.get)
+        case s@this.Success(Some(x), _) => s map (_ => x)
         case _ => q(in) match {
           case s@this.Success(_, _) => s
           case _ => this.Failure("compose: failed", in)
@@ -167,7 +167,7 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
   private def composeOption[X, Y](p: Parser[Option[X]], q: Parser[Y]): Parser[Either[Y, X]] = Parser {
     in =>
       p(in) match {
-        case s@this.Success(Some(_), _) => s map (xo => Right(xo.get))
+        case s@this.Success(Some(x), _) => s map (_ => Right(x))
         case _ => q(in) match {
           case s@this.Success(_, _) => s map (x => Left(x))
           case _ => this.Failure("composeOption: failed", in)
