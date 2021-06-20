@@ -5,8 +5,7 @@ import com.phasmidsoftware.number.core._
 
 trait Item
 
-class Dyadic(val precedence: Int, val leftAssociativity: Boolean = true) extends Item {
-}
+class Dyadic(val precedence: Int, val leftAssociativity: Boolean = true) extends Item
 
 object Dyadic {
   def unapply(arg: Dyadic): Option[(Int, Boolean)] = Some(arg.precedence -> arg.leftAssociativity)

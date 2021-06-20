@@ -12,6 +12,8 @@ import scala.util.Try
   * The input is then converted to an IndexedSeq of Strings which is then reversed and rendered as a single String.
   * The purpose of this strange little dance is to reverse the order of the tokens without reversing the tokens themselves.
   *
+  * For detail of the method, please see https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+  *
   * CONSIDER using a TokenParser instead of a RegexParser.
   */
 class ShuntingYardParser extends MillParser {
@@ -26,17 +28,14 @@ class ShuntingYardParser extends MillParser {
   def parseInfix(w: String): Try[Mill] = stringParser(shuntingYard, w).flatMap(_.toMill)
 
   /**
-    * A ShuntingYard consisting of two structures: the values queue and the operators stack.
+    * A ShuntingYard consisting of two structures: a queue of values and a stack of operators.
     *
     * @param values    a list of values and operators. The former are added directly to values.
     *                  However, operators are only added indirectly, after a closing parenthesis
     *                  (or the end of the string) is reached.
-    * @param operators a list of operators which is temporarily placed here until switch is called.
+    * @param operators a stack of operators which is temporarily placed here until switch is called.
     */
   case class ShuntingYard(values: Seq[Item], operators: Seq[Item]) {
-
-    // TODO remove this.
-    //    println(s"$this")
 
     /**
       * Method to add a token to this ShuntingYard.
@@ -73,19 +72,15 @@ class ShuntingYardParser extends MillParser {
     @tailrec
     private def :+(operator: String): ShuntingYard = Item(operator) match {
       case o1@Dyadic(_, _) => operators match {
-        case Nil =>
-          ShuntingYard(values, o1 +: Nil)
-        case Open :: xs =>
-          ShuntingYard(values, o1 :: Open :: xs)
+        case Nil => ShuntingYard(values, o1 +: Nil)
+        case Open :: xs => ShuntingYard(values, o1 :: Open :: xs)
         case op +: xs => op match {
           case o2@Dyadic(_, _) =>
-            // CONSIDER this is probably wrong.
-            if (implicitly[Ordering[Dyadic]].compare(o1, o2) <= 0)
+            if (implicitly[Ordering[Dyadic]].compare(o1, o2) < 0)
               ShuntingYard(values :+ o2, xs) :+ operator
             else
               ShuntingYard(values, o1 +: o2 +: xs)
-          case _ =>
-            ShuntingYard(values, op +: xs)
+          case _ => ShuntingYard(values, op +: xs)
         }
       }
       case op => ShuntingYard(values, op +: operators)
@@ -95,9 +90,9 @@ class ShuntingYardParser extends MillParser {
     private def switch: ShuntingYard =
       this match {
         case s@ShuntingYard(_, Nil) => s
-        case ShuntingYard(values, Open :: tail) => ShuntingYard(values, tail).switch
+        case ShuntingYard(values, Open :: tail) => ShuntingYard(values, tail)
         case ShuntingYard(values, operator :: operators) => ShuntingYard(values :+ operator, operators).switch
-        case _ => throw MillException("ShuntingYard.switch: logic error")
+        case _ => throw MillException("ShuntingYard.switch: logic error (probably non-matching parentheses)")
       }
   }
 

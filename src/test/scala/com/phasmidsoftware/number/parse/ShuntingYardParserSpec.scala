@@ -65,19 +65,16 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     xo should matchPattern { case Some(_) => }
     xo.get shouldBe Number(64)
   }
-  // FIXME #33
-  ignore should "parseInfix 4 + 4 × 2 / ( 1 − 5 ) ^ 2 ^ 3" in {
-    val sy = p.parseInfix("4 + 4 × 2 / ( 1 - 5 ) ^ 2 ^ 3")
+  it should "parseInfix 3 + 4 × 2 / ( 1 − 5 ) ^ 2 ^ 3" in {
+    val sy = p.parseInfix("3 + 4 × 2 / ( 1 - 5 ) ^ 2 ^ 3")
     sy should matchPattern { case Success(_) => }
-    println(sy)
+    // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
     val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate) yield e.materialize
     xo should matchPattern { case Some(_) => }
-    println(xo)
-    xo.get shouldBe Number(64)
+    xo.get shouldEqual Number(3.0001220703125)
   }
 
-  // FIXME #33
-  ignore should "parseInfix ( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )" in {
+  it should "parseInfix ( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )" in {
     val sy = p.parseInfix("( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )")
     sy should matchPattern { case Success(_) => }
     println(sy)

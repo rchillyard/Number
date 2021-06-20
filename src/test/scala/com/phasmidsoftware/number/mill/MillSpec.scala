@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.{Expression, Number, Rational}
 import com.phasmidsoftware.number.parse.MillParser
+import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.{Assertion, Succeeded}
@@ -9,6 +10,14 @@ import org.scalatest.{Assertion, Succeeded}
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers {
+
+  implicit object NumberEquality extends Equality[Number] {
+    def areEqual(a: Number, b: Any): Boolean = b match {
+      case n: Number => a.compare(n) == 0
+      case n: Expression => a.compare(n) == 0
+      case _ => false
+    }
+  }
 
   behavior of "Mill"
 
@@ -184,14 +193,17 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     value foreach (m => println(m.evaluate))
     value map (checkMill(Number(40), _)) should matchPattern { case Success(_) => }
   }
-  // FIXME this looks silly
-  ignore should "parse 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +" in {
+  // this is from https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+  it should "parse 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +" in {
     val w = "3 4 2 × 1 5 − 2 3 ^ ^ ÷ +"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
     value foreach (m => println(m))
     value foreach (m => println(m.evaluate))
-    value map (checkMill(Number(9), _)) should matchPattern { case Success(_) => }
+    val q: Option[Expression] = value.toOption flatMap (_.evaluate)
+    val z = q map (_.materialize)
+    z should matchPattern { case Some(_) => }
+    z.get shouldEqual Number("3.000*")
   }
 
   ignore should "parse and evaluate:  220xxxx with trailing space" in {
