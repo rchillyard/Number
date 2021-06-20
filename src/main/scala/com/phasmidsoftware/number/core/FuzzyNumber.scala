@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import scala.util.Left
 
 /**
@@ -87,7 +88,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * In other words,  in the case where f is not factor, the numerical value of the result's value will be different
     * from this value.
     *
-    * FIXME: this does not work properly for FuzzyNumbers except Pi-related conversions with relative fuzz.
+    * TODO: this does not work properly for FuzzyNumbers except Pi-related conversions with relative fuzz.
     *
     * @param f the new factor for the result.
     * @return a Number based on this and factor.

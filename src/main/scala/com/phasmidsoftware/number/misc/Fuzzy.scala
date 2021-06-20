@@ -285,7 +285,7 @@ object Fuzzy {
 
     val fuzz = for {z <- f; w <- fraction; y <- exp orElse Some(1.0)} yield fuzzFactor(z, w._2) * y
     //    println(s"creating Fuzzy: with parameters: $i $x $f $e with intermediate results fraction=$fraction, fuzz=$fuzz, exponent=$exponent")
-    // FIXME this is not really going to work: it creates a Gaussian without exponent in preference to an Exact with exponent. 
+    // TODO this is not really going to work: it creates a Gaussian without exponent in preference to an Exact with exponent.
     map3(fraction, exp, fuzz)(createFuzzyXEF) orElse map2(fraction, fuzz)(createFuzzyXF) orElse map2(fraction, exp)(createFuzzyXE) orElse (fraction map {
       createFuzzyX
     }) match {
@@ -322,7 +322,7 @@ object Fuzzy {
       case Exact(q) => Exact(p + q);
       case _ => sum(y, x)
     }
-    // FIXME try to eliminate the following cast
+    // TODO try to eliminate the following cast
     case _ => x.asInstanceOf[FuzzyBase].combine(y, _ + _, (_, _) => 1, (_, _) => 1)
   }
 

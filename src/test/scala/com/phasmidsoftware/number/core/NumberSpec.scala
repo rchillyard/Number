@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -310,11 +311,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val expected: Number = (Number(Math.E) ^ 2).materialize
     actual should ===(expected)
   }
-  // TODO we should implement conversions between E and Pi
+  // TODO #34 we should implement conversions between E and Pi
   ignore should "work for Pi, E" in {
     val target = Number(1, Pi)
     target.scale(E) should ===(Number(Math.PI / Math.E, E))
   }
+  // TODO #34 we should implement conversions between E and Pi
   ignore should "work for E, Pi" in {
     val target = Number(1, E)
     target.scale(Pi) should ===(Number(Math.E / Math.PI, Pi))
@@ -331,6 +333,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     p shouldBe numberOne
     q shouldEqual Number(2 * Math.PI)
   }
+  // FIXME Issue 37
   ignore should "work for Pi, Scalar" in {
     val target = Number(2, Pi)
     target.alignFactors(numberOne) shouldBe(Number(2 * Math.PI), numberOne)
@@ -656,7 +659,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(Rational(6).invert, Pi)
     target.sin shouldBe Number(Rational(1, 2), Scalar)
   }
-  ignore should "work for Pi/3" in {
+  it should "work for Pi/3" in {
     val target = Number(Rational(1, 3), Pi)
     val sin = target.sin
     sin should ===(Number(3).sqrt / 2)
@@ -679,7 +682,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number.pi / 3
     target.cos.materialize shouldBe Number(Rational(1, 2), Scalar)
   }
-  ignore should "work for Pi/6" in {
+  it should "work for Pi/6" in {
     val target: Expression = Number.pi / 6
     target.cos should ===(Number(3).sqrt / 2)
   }
@@ -697,11 +700,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target: Expression = Number(Rational.half, Pi)
     target.tan.materialize.isInfinite shouldBe true
   }
-  ignore should "work for Pi/3" in {
+  it should "work for Pi/3" in {
     val target: Expression = Number.pi / 3
     target.tan shouldEqual Number(3).sqrt
   }
-  ignore should "work for Pi/6" in {
+  it should "work for Pi/6" in {
     val target = Number.pi / 6
     target.tan should ===(Number(3).sqrt.invert)
   }

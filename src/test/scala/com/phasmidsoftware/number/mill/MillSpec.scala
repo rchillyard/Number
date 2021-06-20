@@ -206,7 +206,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     z.get shouldEqual Number("3.000*")
   }
 
-  ignore should "parse and evaluate:  220xxxx with trailing space" in {
+  it should "parse and evaluate:  220xxxx with trailing space" in {
     val w =
       """ 6    5  ^   7    4  ^ +
         | 8    3  ^   9    2  ^ + ×
@@ -215,7 +215,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
     value foreach (m => println(m.evaluate))
-    value map (checkMill(Number(220364696), _)) should matchPattern { case Success(_) => }
+    value map (checkMill(Number(-220364696), _)) should matchPattern { case Success(_) => }
   }
 
   private def checkMill(expected: Number, list: List[String]): Assertion = {

@@ -107,6 +107,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: Expression = Number(36).sqrt
     x shouldEqual Number(6)
   }
+  // FIXME Issue #30
   ignore should "evaluate (√3 + 1)(√3 - 1) as 2" in {
     val root3: Expression = Expression(3).sqrt
     val x: Expression = (root3 + 1) * (root3 - 1)
@@ -124,7 +125,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "toString"
-  // FIXME
+  // FIXME Issue #36
   ignore should "work for (sqrt 2)^2" in {
     val seven: Expression = Number(7)
     val result: Expression = seven.sqrt ^ 2
@@ -185,7 +186,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val q = x.simplify
     q shouldBe Number.one
   }
-  // ISSUE 25
+  // FIXME 25
   ignore should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
     val q = x.simplify
