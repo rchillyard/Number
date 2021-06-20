@@ -78,13 +78,15 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     */
   def simplifier: Transformer = simpler(biFunctionSimplifier | functionSimplifier)
 
+  def biFunctionSimplifier: Transformer = matchBiFunction & biFunctionMatcher
+
   /**
     * Method to match an Expression which is a BiFunction and replace it with a simplified expression.
     *
-    * @return an Transformer.
+    * @return an Matcher[DyadicTriple, Expression].
     */
-  def biFunctionSimplifier: Transformer =
-    matchBiFunction & (matchSimplifyPlus | matchSimplifyPlusIdentity | matchSimplifyTimes | matchSimplifyTimesIdentity | matchSimplifyPowerIdentity | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power) | distributor) :| "biFunctionSimplifier"
+  def biFunctionMatcher: Matcher[DyadicTriple, Expression] =
+    (matchSimplifyPlus | matchSimplifyPlusIdentity | matchSimplifyTimes | matchSimplifyTimesIdentity | matchSimplifyPowerIdentity | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power) | distributor) :| "biFunctionSimplifier"
 
   /**
     * Method to match an Expression which is a Function and replace it with a simplified expression.
@@ -107,7 +109,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @return Matcher[DyadicTriple, Expression]
     */
   def distributor: Matcher[DyadicTriple, Expression] =
-    (matchDyadicBranches(Product) & *(distributeSum) | matchDyadicBranches(Power) & distributeProduct) :| "distributor"
+    (matchDyadicBranches(Product) & *(distributeProductSum | distributeProductPower) | matchDyadicBranches(Power) & (distributePowerProduct | distributePowerPower)) :| "distributor"
 
   /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
@@ -119,7 +121,55 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @return a Matcher[DyadicTriple, Expression]
     */
   def matchSimplifyPlus: Matcher[DyadicTriple, Expression] =
-    matchDyadicBranches(Sum) & *(matchBiFunctionConstantResult(Product, Number(-1), Number.zero)) :| "matchSimplifyPlus"
+    matchDyadicBranches(Sum) & gatherSum & *(matchOffsetting | matchAndEliminateIdentity(Sum)) :| "matchSimplifyPlus"
+
+  /**
+    * Method to simplify together repeated operators where we can combine exact expressions.
+    *
+    * @return a Matcher[Expressions, Expressions].
+    */
+  def gatherSum: Matcher[Expressions, Expressions] = namedMatcher("gatherPlus") {
+    case x ~ y =>
+      matchBiFunction(x) match {
+        case Match(Sum ~ b ~ c) if b.isExact && c.isExact =>
+          gatherSum((b plus c).materialize ~ y)
+        case Match(Sum ~ b ~ c) if b.isExact && y.isExact =>
+          gatherSum((b plus y).materialize ~ c)
+        case Match(Sum ~ b ~ c) if c.isExact && y.isExact =>
+          gatherSum((c plus y).materialize ~ b)
+        case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if p.isExact =>
+          gatherSum((q plus y) ~ (p plus c))
+        case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if q.isExact =>
+          gatherSum((p plus y) ~ (q plus c))
+        case Match(Sum ~ b ~ BiFunction(p, q, Sum)) if p.isExact =>
+          gatherSum((q plus y) ~ (p plus b))
+        case Match(Sum ~ b ~ BiFunction(p, q, Sum)) if q.isExact =>
+          gatherSum((p plus y) ~ (q plus b))
+        // At this point, x is not an exact Sum (it's either inexact or not a Sum).
+        case Match(Sum ~ b ~ c) =>
+          matchBiFunction(y) match {
+            case Match(Sum ~ d ~ e) if b.isExact && d.isExact =>
+              gatherSum((b plus d).materialize ~ BiFunction(c, e, Sum))
+            case Match(Sum ~ d ~ e) if b.isExact && e.isExact =>
+              gatherSum((b plus e).materialize ~ BiFunction(c, d, Sum))
+            case Match(Sum ~ d ~ e) if c.isExact && d.isExact =>
+              gatherSum((c plus d).materialize ~ BiFunction(b, e, Sum))
+            case Match(Sum ~ d ~ e) if c.isExact && e.isExact =>
+              gatherSum((c plus e).materialize ~ BiFunction(b, d, Sum))
+            case _ =>
+              Match(x) ~ Match(y) // Terminating condition.
+          }
+        case _ => // XXX x is not a Sum of any sort.
+          matchBiFunction(y) match {
+            case Match(Sum ~ _ ~ _) =>
+              gatherSum(y ~ x)
+            case _ =>
+              Match(x) ~ Match(y) // Terminating condition.
+          }
+      }
+  }
+
+  def matchOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Product, Number(-1), Number.zero)
 
   /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
@@ -175,6 +225,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     */
   def matchBiFunctionConstantResult(f: ExpressionBiFunction, c: Expression, r: Expression): Matcher[Expressions, Expression] =
   // CONSIDER replacing true with f.commutes
+  // NOTE that the naming operator doesn't have any effect when all composition is via the & operator.
     matchEitherDyadic(true) & matchExpressionBiFunction(f) & matchAndSubstituteDyadicExpressions(c, r) :| s"matchBiFunctionConstantResult($f, $c, $r)"
 
   /**
@@ -292,11 +343,11 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     }
 
   /**
-    * Do the distribution of the form: (a + b) * c
+    * Do the distribution of the form: (a + b) * c or (a + b) * (c + d).
     *
     * @return a Matcher[Expressions, Expression]
     */
-  def distributeSum: Matcher[Expressions, Expression] = Matcher {
+  def distributeProductSum: Matcher[Expressions, Expression] = Matcher {
     case x ~ y => x match {
       case BiFunction(a, b, Sum) => y match {
         case BiFunction(c, d, Sum) => Match(BiFunction((simplifyProduct(a, c) plus simplifyProduct(a, d)).simplify, (simplifyProduct(b, c) plus simplifyProduct(b, d)).simplify, Sum).simplify)
@@ -314,10 +365,39 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return a Matcher[Expressions, Expression]
     */
-  def distributeProduct: Matcher[Expressions, Expression] = Matcher {
+  def distributePowerProduct: Matcher[Expressions, Expression] = Matcher {
     case x ~ y => x match {
       case BiFunction(a, b, Product) => Match(BiFunction((a ^ y).simplify, (b ^ y).simplify, Product).simplify)
-      case t => Miss("distributeProduct", t)
+      case t => Miss("distributePowerProduct", t)
+    }
+  }
+
+  /**
+    * Do the distribution of the form: (a power b) power c.
+    *
+    * @return a Matcher[Expressions, Expression]
+    */
+  def distributePowerPower: Matcher[Expressions, Expression] = Matcher {
+    case x ~ y => x match {
+      case BiFunction(a, b, Power) => Match(a ^ (b * y).simplify)
+      case t => Miss("distributePowerPower", t)
+    }
+  }
+
+  /**
+    * Do the distribution of the form: (a power b) power c or (a power b) * (c power d)
+    *
+    * CONSIDER rename to simplifyProductPower.
+    *
+    * @return a Matcher[Expressions, Expression]
+    */
+  def distributeProductPower: Matcher[Expressions, Expression] = Matcher {
+    case x ~ y => x match {
+      case BiFunction(a, b, Power) => y match {
+        case BiFunction(c, d, Power) if a.isExact && c.isExact && a.materialize == c.materialize => Match(a ^ (b plus d).simplify)
+        case _ => Miss("distributeProductPower", x ~ y)
+      }
+      case t => Miss("distributeProductPower", t)
     }
   }
 

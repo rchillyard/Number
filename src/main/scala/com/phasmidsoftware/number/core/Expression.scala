@@ -528,11 +528,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   /**
     * Method to determine if this Expression can be evaluated exactly.
     *
-    * CONSIDER deal with each ExpressionFunction on an individual basis.
-    *
-    * @return false.
+    * @return the value of exact which is based on a, b, and f.
     */
-  def isExact: Boolean = value.isExact
+  def isExact: Boolean = exact
 
   /**
     * Method to determine the depth of this Expression.
@@ -587,7 +585,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   // TODO tidy up
   //  override def toString: String = layout(0)
-  override def toString: String = s"($b $f $a)"
+  override def toString: String = if (exact) s"($a $f $b)" else s"{$a $f $b}"
 
   private def inverter(name: String): Option[(ExpressionBiFunction, Expression, Expression)] = name match {
     case "+" => Some((Product, MinusOne, Zero))
@@ -652,17 +650,25 @@ private def oldSimplify: Expression = {
       case _ =>
         // NOTE: we check only for gatherer left, right
         cancelOperands(left, right, f.name) orElse
-                cancel(left, right, f.name) orElse
-                cancel(right, left, f.name) orElse
-                gatherer(left, right, f.name) getOrElse
-                BiFunction(left, right, f)
+          cancel(left, right, f.name) orElse
+          cancel(right, left, f.name) orElse
+          gatherer(left, right, f.name) getOrElse
+          BiFunction(left, right, f)
     }
-    // TODO remove this debugging aid
-    if (result != this) println(s"simplified $this to $result")
-    result
+  // TODO remove this debugging aid
+  if (result != this) println(s"simplified $this to $result")
+  result
+}
+
+  // TODO this is where we need to do better
+  private lazy val value: Number = f(a.materialize, b.materialize)
+
+  private def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
+    case Power => a.isExact && b.isExact && b.materialize.toInt.map(_ >= 0).isDefined
+    case _ => false
   }
 
-  private lazy val value: Number = f(a.materialize, b.materialize)
+  private lazy val exact: Boolean = f.isExact && a.isExact && b.isExact || conditionallyExact(f, a, b)
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")
@@ -673,11 +679,11 @@ case object Log extends ExpressionFunction(x => x.log, "log")
 
 case object Exp extends ExpressionFunction(x => x.exp, "exp")
 
-case object Sum extends ExpressionBiFunction((x, y) => x add y, "+")
+case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = true)
 
-case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*")
+case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*", isExact = true)
 
-case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", false)
+case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExact = false, commutes = false)
 
 /**
   * A lazy monadic expression function.
@@ -709,9 +715,10 @@ class ExpressionFunction(f: Number => Number, name: String) extends (Number => N
   *
   * @param f        the function (Number, Number) => Number
   * @param name     the name of this function.
+  * @param isExact  true if this function is always exact, given exact inputs.
   * @param commutes true only if the parameters to f are commutative.
   */
-class ExpressionBiFunction(val f: (Number, Number) => Number, val name: String, val commutes: Boolean = true) extends ((Number, Number) => Number) {
+class ExpressionBiFunction(val f: (Number, Number) => Number, val name: String, val isExact: Boolean, val commutes: Boolean = true) extends ((Number, Number) => Number) {
   /**
     * Evaluate this function on x.
     *
