@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.mill
 import com.phasmidsoftware.number.core.Expression
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.parse.{MillParser, ShuntingYardParser}
+
 import scala.language.postfixOps
 import scala.util.Try
 
@@ -205,18 +206,11 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return an Expression which is f(x2, x1)
     */
   private def calculateDyadic(f: Dyadic, x1: Expression, x2: Expression) = f match {
-    case Multiply => doLog(f, x2 * x1, x2, x1)
-    case Add => doLog(f, x2 + x1, x2, x1)
-    case Subtract => doLog(f, x2 + -x1, x2, x1)
-    case Divide => doLog(f, x2 * x1.reciprocal, x2, x1)
-    case Power => doLog(f, x2 ^ x1, x2, x1)
-  }
-
-  // TODO remove this logging stuff
-  def doLog(f: Dyadic, x: Expression, qs: Expression*): Expression = {
-    //    val params = (qs map (_.materialize.toString)).mkString(", ")
-    //    println(s"$f($params) -> ${x.materialize}")
-    x
+    case Multiply => x2 * x1
+    case Add => x2 + x1
+    case Subtract => x2 + -x1
+    case Divide => x2 * x1.reciprocal
+    case Power => x2 ^ x1
   }
 
   private def evaluateSwap = {

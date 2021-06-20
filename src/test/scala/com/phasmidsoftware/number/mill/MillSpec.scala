@@ -107,13 +107,11 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "parse and evaluate: 2 3 ^" in {
     val value: Try[Mill] = p.parseMill("2 3 ^")
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(8), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate: 2 v" in {
     val value: Try[Mill] = p.parseMill("2 v")
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(2).sqrt, _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate: 73 24 <> -" in {
@@ -154,43 +152,36 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
         |90  12  * - """.stripMargin
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(3696), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate:  207" in {
     val w = "6  7  +  5  *  4  +  3  *"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(207), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate:  207 with leading space" in {
     val w = " 6  7  +  5  *  4  +  3  *"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(207), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate:  207 with trailing space" in {
     val w = "6  7  +  5  *  4  +  3  * "
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(207), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate:  9" in {
     val w = "3 2 ^"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(9), _)) should matchPattern { case Success(_) => }
   }
   it should "parse 3 5 + 7 2 – *" in {
     val w = "3 5 + 7 2 – *"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m))
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(40), _)) should matchPattern { case Success(_) => }
   }
   // this is from https://en.wikipedia.org/wiki/Shunting-yard_algorithm
@@ -198,8 +189,6 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val w = "3 4 2 × 1 5 − 2 3 ^ ^ ÷ +"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m))
-    value foreach (m => println(m.evaluate))
     val q: Option[Expression] = value.toOption flatMap (_.evaluate)
     val z = q map (_.materialize)
     z should matchPattern { case Some(_) => }
@@ -214,7 +203,6 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
         | 4    7  ^   5    6  ^ + × –""".stripMargin
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
     value map (checkMill(Number(-220364696), _)) should matchPattern { case Success(_) => }
   }
 

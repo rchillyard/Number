@@ -49,18 +49,14 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parseInfix ( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ^ 9" in {
     val sy = p.parseInfix("( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ^ 9")
     sy should matchPattern { case Success(_) => }
-    println(sy)
     val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate) yield e
-    println(xo)
     xo should matchPattern { case Some(_) => }
-    //    xo.get shouldBe Number(1)
     val yo: Option[Number] = xo map (_.materialize)
     yo.get shouldEqual Number(60716.99276646)
   }
   it should "parseInfix ( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ^ 2 ) ^ 3 )" in {
     val sy = p.parseInfix("( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ^ 2 ) ^ 3 )")
     sy should matchPattern { case Success(_) => }
-    println(sy)
     val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate) yield e.materialize
     xo should matchPattern { case Some(_) => }
     xo.get shouldBe Number(64)
@@ -77,10 +73,8 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parseInfix ( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )" in {
     val sy = p.parseInfix("( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )")
     sy should matchPattern { case Success(_) => }
-    println(sy)
     val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate) yield e.materialize
     xo should matchPattern { case Some(_) => }
-    println(xo)
     xo.get shouldBe Number(101)
   }
 
@@ -92,19 +86,15 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parse Infix and evaluate:  0.5" in {
     val value: Try[Mill] = p.parseInfix("2 ^ -1")
     value should matchPattern { case Success(_) => }
-    val triedMaybeExpression = value map (_.evaluate)
-    println(triedMaybeExpression)
     value map (_.evaluate shouldBe 0.5)
   }
 
   it should "parse Infix and evaluate: sqrt(3)" in {
     val value: Option[Mill] = p.parseInfix("3 ^ ( 2 ^ -1 )").toOption
     value should matchPattern { case Some(_) => }
-    val triedMaybeExpression = value map (_.evaluate)
-    println(triedMaybeExpression)
     val z: Option[Expression] = value flatMap (_.evaluate)
     val q = z map (_.materialize)
-    println(q)
+    // TODO test the result.
   }
 
 
