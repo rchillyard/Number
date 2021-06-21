@@ -201,7 +201,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y should matchPattern { case BiFunction(FuzzyNumber(_, _, _), Literal(ExactNumber(Right(2), Scalar)), Power) => }
     y.materialize shouldEqual Number(7)
   }
-  // ISSUE 25
   it should "cancel addition and subtraction" in {
     val x = one + 3 - 3
     val q = x.simplify
@@ -332,9 +331,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe one
   }
-  behavior of "matchSimplifyPlus"
+  behavior of "matchSimplifySum"
   it should "properly simplify 1 + root3 - root3 + 3" in {
-    val p = em.matchSimplifyPlus
+    val p = em.matchSimplifySum
     val z: Expression = Number(3).sqrt
     val x = z plus -z + zero
     import em.TildeOps

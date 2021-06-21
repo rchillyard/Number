@@ -8,13 +8,28 @@ import com.phasmidsoftware.number.parse.ShuntingYardParser
   * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
   */
 trait Expression {
+  /**
+    * Method to determine if this Expression cannot be simplified on account of it being atomic.
+    *
+    * @return true if this extends AtomicExpression
+    */
+  def isAtomic: Boolean
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
     *
+    * NOTE: the implementations of this don't always make perfect sense regarding maybeFactor.
+    *
     * @return true if materialize will result in an ExactNumber, else false.
     */
   def isExact: Boolean
+
+  /**
+    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
+    *
+    * @return Some(factor) if expression only involves that factor; otherwise None.
+    */
+  def maybeFactor: Option[Factor]
 
   /**
     * If it is possible to simplify this Expression, then we do so.
@@ -289,6 +304,9 @@ object Expression {
   * An Expression which cannot be further simplified.
   */
 trait AtomicExpression extends Expression {
+
+  def isAtomic: Boolean = true
+
   /**
     * @return this.
     */
@@ -298,13 +316,6 @@ trait AtomicExpression extends Expression {
     * @return 1.
     */
   def depth: Int = 1
-
-  /**
-    * CONSIDER a different mechanism here (or different implementation of ExpressionMatchers).
-    *
-    * @return an instance of ExpressionMatchers.
-    */
-  def matchers: ExpressionMatchers = new ExpressionMatchers()
 }
 
 /**
@@ -312,7 +323,9 @@ trait AtomicExpression extends Expression {
   * with simplification.
   *
   */
-abstract class CompositeExpression extends Expression
+abstract class CompositeExpression extends Expression {
+  def isAtomic: Boolean = false
+}
 
 /**
   * A literal number.
@@ -326,7 +339,12 @@ case class Literal(x: Number) extends AtomicExpression {
     *
     * @return true if materialize will result in an ExactNumber, else false.
     */
-  def isExact: Boolean = x.isExact
+  def isExact: Boolean = x.isExact && maybeFactor.contains(Scalar)
+
+  /**
+    * @return Some(factor).
+    */
+  def maybeFactor: Option[Factor] = Some(x.factor)
 
   /**
     * Action to materialize this Expression as a Number,
@@ -368,7 +386,7 @@ abstract class Constant extends AtomicExpression {
     *
     * @return true.
     */
-  def isExact: Boolean = true
+  def isExact: Boolean = maybeFactor.contains(Scalar)
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -394,6 +412,8 @@ case object Zero extends Constant {
     * @return Number.zero
     */
   def materialize: Number = Number.zero
+
+  def maybeFactor: Option[Factor] = Some(Scalar)
 }
 
 case object One extends Constant {
@@ -404,6 +424,8 @@ case object One extends Constant {
     * @return the materialized Number.
     */
   def materialize: Number = Number.one
+
+  def maybeFactor: Option[Factor] = Some(Scalar)
 }
 
 case object MinusOne extends Constant {
@@ -414,6 +436,8 @@ case object MinusOne extends Constant {
     * @return the materialized Number.
     */
   def materialize: Number = negate(Number.one)
+
+  def maybeFactor: Option[Factor] = Some(Scalar)
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -436,6 +460,8 @@ case object ConstPi extends Constant {
     * @return the materialized Number.
     */
   def materialize: Number = Number.pi
+
+  def maybeFactor: Option[Factor] = Some(Pi)
 }
 
 /**
@@ -450,6 +476,8 @@ case object ConstE extends Constant {
     * @return the materialized Number.
     */
   def materialize: Number = Number.e
+
+  def maybeFactor: Option[Factor] = Some(E)
 }
 
 /**
@@ -468,6 +496,13 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     * @return false.
     */
   def isExact: Boolean = f(x.materialize).isExact
+
+  /**
+    * TODO implement properly according to the actual function involved.
+    *
+    * @return Some(factor) if expression only involves that factor; otherwise None.
+    */
+  def maybeFactor: Option[Factor] = None
 
   /**
     * Method to determine the depth of this Expression.
@@ -520,7 +555,19 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the value of exact which is based on a, b, and f.
     */
-  def isExact: Boolean = exact
+  def isExact: Boolean = exact && maybeFactor.contains(Scalar)
+
+  /**
+    * TODO implement properly according to the actual function involved.
+    *
+    * @return Some(factor) if expression only involves that factor; otherwise None.
+    */
+  def maybeFactor: Option[Factor] = f match {
+    case Sum => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2) yield f1
+    case Product => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2 || f2 == Scalar || f1 == Scalar) yield if (f1 == f2) f1 else if (f2 == Scalar) f1 else f2
+    case Power => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f2 == Scalar) yield f1
+  }
+
 
   /**
     * Method to determine the depth of this Expression.
@@ -549,7 +596,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an Expression tree which is the simpler equivalent of this.
     */
   def simplify: Expression =
-    if (isExact)
+    if (isExact && maybeFactor.contains(Scalar))
       value
     else {
       import Expression._

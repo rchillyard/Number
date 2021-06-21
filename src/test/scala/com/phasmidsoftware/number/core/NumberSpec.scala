@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -305,19 +304,17 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(1, E)
     target.scale(Scalar) should ===(Number(Math.E))
   }
-  ignore should "work for 2E, Scalar" in {
+  it should "work for 2E, Scalar" in {
     val target = Number(2, E)
     val actual: Number = target.scale(Scalar)
     val expected: Number = (Number(Math.E) ^ 2).materialize
     actual should ===(expected)
   }
-  // TODO #34 we should implement conversions between E and Pi
-  ignore should "work for Pi, E" in {
+  it should "work for Pi, E" in {
     val target = Number(1, Pi)
     target.scale(E) should ===(Number(Math.PI / Math.E, E))
   }
-  // TODO #34 we should implement conversions between E and Pi
-  ignore should "work for E, Pi" in {
+  it should "work for E, Pi" in {
     val target = Number(1, E)
     target.scale(Pi) should ===(Number(Math.E / Math.PI, Pi))
   }
@@ -333,10 +330,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     p shouldBe numberOne
     q shouldEqual Number(2 * Math.PI)
   }
-  // FIXME Issue 37
-  ignore should "work for Pi, Scalar" in {
+  it should "work for Pi, Scalar" in {
     val target = Number(2, Pi)
-    target.alignFactors(numberOne) shouldBe(Number(2 * Math.PI), numberOne)
+    val (f, x) = target.alignFactors(numberOne)
+    f shouldEqual Number(2 * Math.PI)
+    x shouldBe numberOne
   }
   it should "work for Pi, Pi" in {
     val target = Number(1, Pi)
@@ -825,7 +823,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.toInt shouldBe Some(1)
   }
 
-  // Following are the tests of Numeric[Number]
+  // XXX Following are the tests of Numeric[Number]
 
   behavior of "Numeric toInt"
   it should "work for 1" in {

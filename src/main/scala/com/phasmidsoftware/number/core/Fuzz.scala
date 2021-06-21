@@ -276,7 +276,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T]
     val roundedM = round(scaledM, 2 - d)
     //      if (scaledM > 0.01) // TODO let's do this unusual adjustment later
     val scaledT = tv.scale(t, toDecimalPower(1, -exponent))
-    val q = f"$roundedM%.99f".substring(2) // drop the "0."
+    val q = f"$roundedM%.99f".substring(2) // XXX drop the "0."
     val (qPrefix, qSuffix) = q.toCharArray.span(_ == '0')
     val (qPreSuffix, _) = qSuffix.span(_ != '0')
     val adjust = qPreSuffix.length - 2
