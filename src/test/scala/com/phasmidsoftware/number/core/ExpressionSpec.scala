@@ -1,11 +1,15 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
+import com.phasmidsoftware.matchers.{LogLevel, MatchLogger}
+import com.phasmidsoftware.number.core.Expression.{ExpressionOps, pi}
+import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
+import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import scala.util.{Failure, Success}
 
-class ExpressionSpec extends AnyFlatSpec with should.Matchers {
+class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
@@ -21,6 +25,45 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
       case _ => false
     }
   }
+
+  val sb = new StringBuilder
+  implicit val logger: MatchLogger = w => sb.append(s"$w\n")
+  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogOff
+
+  before {
+    sb.clear()
+  }
+
+  after {
+    if (sb.nonEmpty) println(sb.toString())
+    if (ll != com.phasmidsoftware.matchers.LogOff)
+      println("===============================\n")
+  }
+
+  // NOTE this variable does not seem to be utilized
+  implicit val p: ExpressionMatchers = new ExpressionMatchers {}
+
+  behavior of "parse"
+  val syp = new ShuntingYardParser()
+  it should "parse 1" in {
+    syp.parseInfix("1") should matchPattern { case Success(_) => }
+    syp.parseInfix("(1)") should matchPattern { case Failure(_) => } // tokens must currently be separated by white space
+    syp.parseInfix("( 1 )") should matchPattern { case Success(_) => }
+    syp.parseInfix("( ( 0.5 + 3 ) + ( 2 * ( 0.5 + 3 ) ) )") should matchPattern { case Success(_) => }
+    syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
+  }
+
+  it should "parse and evaluate sqrt(3)" in {
+    val eo: Option[Expression] = Expression.parse("3 ^ ( 2 ^ -1 )")
+    eo should matchPattern { case Some(_) => }
+    eo.get shouldBe BiFunction(Number(3), BiFunction(Number(2), Number(-1), Power), Power)
+  }
+  it should "parse and evaluate half" in {
+    val eo: Option[Expression] = Expression.parse("2 ^ -1")
+    eo should matchPattern { case Some(_) => }
+    eo.get shouldBe BiFunction(Number(2), Number(-1), Power)
+  }
+
 
   behavior of "Expression"
 
@@ -72,18 +115,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "toString"
-  it should "work for (sqrt 2)^2" in {
+  it should "work for (sqrt 7)^2" in {
     val seven: Expression = Number(7)
     val result: Expression = seven.sqrt ^ 2
-    result.toString shouldBe "((7 ^ (2 ^ -1)) ^ 2)"
+    result.toString shouldBe "{{7 ^ (2 ^ -1)} ^ 2}"
   }
 
   behavior of "gathering operations"
-  it should "gather 2 and * 1/2" in {
+  it should "gather powers of 2 and * 1/2" in {
     val x: Expression = Number(7)
     val y = x.sqrt
     val z = y ^ 2
-    z.simplify shouldBe Number(7)
+    z.materialize shouldBe Number(7)
   }
 
   behavior of "canceling operations"
@@ -91,7 +134,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val x: Expression = Expression.one
     val y = -x
     val z = x + y
-    z.simplify shouldBe Number.zero
+    val simplify = z.simplify
+    simplify shouldBe Number.zero
   }
   it should "cancel 2 and * 1/2" in {
     val x = Expression.one * 2
@@ -110,7 +154,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val x: Expression = seven.sqrt
     val y = x ^ 2
     val z = y.simplify
-    z shouldBe Number(7)
+    z.simplify shouldBe Number(7)
   }
   it should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)
@@ -121,19 +165,20 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
   it should "show ^2 and sqrt for illustrative purposes" in {
     val seven = Number(7)
     val x = seven.sqrt
-    val y = x power 2
+    val y = (x ^ 2).materialize
     y should matchPattern { case FuzzyNumber(_, _, _) => }
     y shouldEqual Number(7)
   }
-  // ISSUE 25
-  ignore should "cancel addition and subtraction" in {
+  it should "cancel addition and subtraction" in {
     val x = Number.one + 3 - 3
-    x.simplify shouldBe Expression(Number.one)
+    val q = x.simplify
+    q shouldBe Number.one
   }
-  // ISSUE 25
+  // FIXME #25
   ignore should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
-    x.simplify shouldBe Expression(Number.e)
+    val q = x.simplify
+    q shouldBe Number.e
   }
 
   behavior of "various operations"
@@ -141,4 +186,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
   }
 
+  behavior of "depth"
+  it should "be 1 for any atomic expression" in {
+    Expression(1).depth shouldBe 1
+    Expression.one.depth shouldBe 1
+    Literal(1).depth shouldBe 1
+    pi.depth shouldBe 1
+  }
+  it should "be more than 1 for other expression" in {
+    (Number.e * 2).depth shouldBe 2
+    (Number.e * 2 / 2).depth shouldBe 3
+    val expression = Expression(7).sqrt ^ 2
+    expression.depth shouldBe 4
+  }
 }

@@ -2,12 +2,22 @@ package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.{Expression, Number, Rational}
 import com.phasmidsoftware.number.parse.MillParser
-import org.scalatest.Assertion
+import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import org.scalatest.{Assertion, Succeeded}
+
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers {
+
+  implicit object NumberEquality extends Equality[Number] {
+    def areEqual(a: Number, b: Any): Boolean = b match {
+      case n: Number => a.compare(n) == 0
+      case n: Expression => a.compare(n) == 0
+      case _ => false
+    }
+  }
 
   behavior of "Mill"
 
@@ -50,16 +60,16 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     target shouldBe Stack(items)
   }
   it should "process list of Items: 42, 37, +" in {
-    checkMill(Number(79), List("42", "37", "+"))
+    checkMill(Number(79), List("42", "37", "+")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items: 42, 37, -" in {
-    checkMill(Number(5), List("42", "37", "-"))
+    checkMill(Number(5), List("42", "37", "-")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items with Swap: 42, 37, Swap, -" in {
-    checkMill(Number(-5), List("42", "37", "<>", "-"))
+    checkMill(Number(-5), List("42", "37", "<>", "-")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items with Noop: 42, 37, +, Noop" in {
-    checkMill(Number(79), List("42", "37", "+", ""))
+    checkMill(Number(79), List("42", "37", "+", "")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items with Clr: 42, 37, +, c" in {
     val x: Mill = create(List("42", "37", "+", "c"))
@@ -70,16 +80,16 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     an[MillException] shouldBe thrownBy(x.evaluate)
   }
   it should "process list of Items: 3, 2, ^" in {
-    checkMill(Number(9), List("3", "2", "^"))
+    checkMill(Number(9), List("3", "2", "^")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items: 7, chs" in {
-    checkMill(Number(-7), List("7", "chs"))
+    checkMill(Number(-7), List("7", "chs")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items: 42, 37, +, 2, *" in {
-    checkMill(Number(158), List("42", "37", "+", "2", "*"))
+    checkMill(Number(158), List("42", "37", "+", "2", "*")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items: 2, inv" in {
-    checkMill(Number(Rational.half), List("2", "inv"))
+    checkMill(Number(Rational.half), List("2", "inv")) should matchPattern { case Succeeded => }
   }
   it should "process a String: 42 37 + 2 *" in {
     val value: Option[Expression] = Mill.parse("42 37 + 2 *").toOption.flatMap(_.evaluate)
@@ -92,19 +102,17 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "parse and evaluate: 2 37 + 2 *" in {
     val value: Try[Mill] = p.parseMill("42 37 + 2 *")
     value should matchPattern { case Success(_) => }
-    value map (checkMill(Number(158), _))
+    value map (checkMill(Number(158), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate: 2 3 ^" in {
     val value: Try[Mill] = p.parseMill("2 3 ^")
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
-    value map (checkMill(Number(8), _))
+    value map (checkMill(Number(8), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate: 2 v" in {
     val value: Try[Mill] = p.parseMill("2 v")
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
-    value map (checkMill(Number(2).sqrt, _))
+    value map (checkMill(Number(2).sqrt, _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate: 73 24 <> -" in {
     val my: Try[Mill] = p.parseMill("73 24 <> -")
@@ -135,7 +143,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "parse and evaluate:  12  34  +  56  +  78  -  90  +  12  -  " in {
     val value: Try[Mill] = p.parseMill("12  34  +  56  +  78  -  90  +  12  -  ")
     value should matchPattern { case Success(_) => }
-    value map (checkMill(Number(102), _))
+    value map (checkMill(Number(102), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate:  3696" in {
     val w =
@@ -144,31 +152,50 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
         |90  12  * - """.stripMargin
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
-    value map (checkMill(Number(3696), _))
+    value map (checkMill(Number(3696), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate:  207" in {
     val w = "6  7  +  5  *  4  +  3  *"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
-    value map (checkMill(Number(207), _))
+    value map (checkMill(Number(207), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate:  207 with leading space" in {
     val w = " 6  7  +  5  *  4  +  3  *"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
-    value map (checkMill(Number(207), _))
+    value map (checkMill(Number(207), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate:  207 with trailing space" in {
     val w = "6  7  +  5  *  4  +  3  * "
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
-    value map (checkMill(Number(207), _))
+    value map (checkMill(Number(207), _)) should matchPattern { case Success(_) => }
   }
-  ignore should "parse and evaluate:  220xxxx with trailing space" in {
+  it should "parse and evaluate:  9" in {
+    val w = "3 2 ^"
+    val value: Try[Mill] = p.parseMill(w)
+    value should matchPattern { case Success(_) => }
+    value map (checkMill(Number(9), _)) should matchPattern { case Success(_) => }
+  }
+  it should "parse 3 5 + 7 2 – *" in {
+    val w = "3 5 + 7 2 – *"
+    val value: Try[Mill] = p.parseMill(w)
+    value should matchPattern { case Success(_) => }
+    value map (checkMill(Number(40), _)) should matchPattern { case Success(_) => }
+  }
+  // this is from https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+  it should "parse 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +" in {
+    val w = "3 4 2 × 1 5 − 2 3 ^ ^ ÷ +"
+    val value: Try[Mill] = p.parseMill(w)
+    value should matchPattern { case Success(_) => }
+    val q: Option[Expression] = value.toOption flatMap (_.evaluate)
+    val z = q map (_.materialize)
+    z should matchPattern { case Some(_) => }
+    z.get shouldEqual Number("3.000*")
+  }
+
+  it should "parse and evaluate:  220xxxx with trailing space" in {
     val w =
       """ 6    5  ^   7    4  ^ +
         | 8    3  ^   9    2  ^ + ×
@@ -176,26 +203,21 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
         | 4    7  ^   5    6  ^ + × –""".stripMargin
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    value foreach (m => println(m.evaluate))
-    value map (checkMill(Number(220364696), _))
+    value map (checkMill(Number(-220364696), _)) should matchPattern { case Success(_) => }
   }
 
-  behavior of "parseInfix"
-  it should "work" in {
-    val target: Try[Mill] = Mill.parseInfix("12 + 34  +  56  -  78  +  90  -  12")
-    target should matchPattern { case Success(_) => }
-  }
-
-  private def checkMill(expected: Number, list: List[String]): Any = {
+  private def checkMill(expected: Number, list: List[String]): Assertion = {
     checkMill(expected, create(list))
   }
 
   private def create(list: List[String]): Mill = {
-    Mill.create(list map (Item(_)))
+    val mill = Mill.create(list map (Item(_)))
+    mill
   }
 
   private def checkMill(expected: Number, mill: Mill): Assertion = {
-    val z = mill.evaluate
-    z map (_.materialize) shouldBe Some(expected)
+    val q = mill.evaluate map (_.materialize)
+    q should matchPattern { case Some(_) => }
+    q.get shouldBe expected
   }
 }

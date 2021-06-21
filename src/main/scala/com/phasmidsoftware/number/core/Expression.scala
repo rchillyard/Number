@@ -1,7 +1,12 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.matchers.LogLevel
 import com.phasmidsoftware.number.core.Number.negate
+import com.phasmidsoftware.number.parse.ShuntingYardParser
 
+/**
+  * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
+  */
 trait Expression {
 
   /**
@@ -13,8 +18,10 @@ trait Expression {
 
   /**
     * If it is possible to simplify this Expression, then we do so.
+    * Typically, we simplify non-exact expressions if possible.
+    * There is no compelling need to simplify exact expressions.
     *
-    * @return an Expression tree which is the equivalent of this.
+    * @return an Expression tree which is the simpler equivalent of this.
     */
   def simplify: Expression
 
@@ -25,6 +32,13 @@ trait Expression {
     * @return the materialized Number.
     */
   def materialize: Number
+
+  /**
+    * Method to determine the depth of this Expression.
+    *
+    * @return the depth (an atomic expression has depth of 1).
+    */
+  def depth: Int
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -45,6 +59,10 @@ trait Expression {
 
 object Expression {
 
+  // NOTE this is where we turn logging on (by using LogDebug)
+  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogOff
+  implicit val em: ExpressionMatchers = new ExpressionMatchers {}
+
   /**
     * The following method is helpful in getting an expression started.
     */
@@ -64,9 +82,13 @@ object Expression {
   }
 
   /**
-    * The following method is helpful in getting an expression started.
+    * Method to parse a String as an Expression.
+    *
+    * TODO this may not accurately parse all infix expressions.
+    * The idea is for render and parse.get to be inverses.
+    * NOTE that it might be a problem with render instead.
     */
-  def apply(x: String): Expression = Expression(Number(x))
+  def parse(x: String): Option[Expression] = new ShuntingYardParser().parseInfix(x).toOption flatMap (_.evaluate)
 
   /**
     * The following constants are helpful in getting an expression started.
@@ -76,14 +98,28 @@ object Expression {
   val pi: Expression = Expression(Number.pi)
   val e: Expression = Expression(Number.e)
 
+  /**
+    * Implicit class to allow various operations to be performed on an Expression.
+    *
+    * @param x an Expression.
+    */
   implicit class ExpressionOps(x: Expression) {
+
     /**
       * Method to lazily multiply the Number x by y.
       *
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
       */
-    def +(y: Expression): Expression = BiFunction(x, y, Sum)
+    def plus(y: Expression): Expression = BiFunction(x, y, Sum)
+
+    /**
+      * Method to lazily multiply the Number x by y.
+      *
+      * @param y another Expression.
+      * @return an Expression which is the lazy product of x and y.
+      */
+    def +(y: Expression): Expression = x plus y
 
     /**
       * Method to lazily multiply the Number x by y.
@@ -107,7 +143,7 @@ object Expression {
       * @param y another Number.
       * @return an Expression which is the lazy product of x and y.
       */
-    def -(y: Number): Expression = BiFunction(x, Expression(y).unary_-, Sum)
+    def -(y: Number): Expression = BiFunction(x, -Expression(y), Sum)
 
     /**
       * Method to lazily change the sign of this expression.
@@ -203,18 +239,25 @@ object Expression {
     def sqrt: Expression = this ^ Number(2).reciprocal
 
     /**
-      * Method to lazily get the sin of x.
+      * Method to lazily get the sine of x.
       *
-      * @return an Expression representing the sin of x.
+      * @return an Expression representing the sin(x).
       */
     def sin: Expression = Function(x, Sine)
 
     /**
-      * Method to lazily get the sin of x.
+      * Method to lazily get the cosine of x.
       *
-      * @return an Expression representing the sin of x.
+      * @return an Expression representing the cos(x).
       */
     def cos: Expression = Function(x, Cosine)
+
+    /**
+      * Method to lazily get the tangent of x.
+      *
+      * @return an Expression representing the tan(x).
+      */
+    def tan: Expression = sin * cos.reciprocal
 
     /**
       * Method to lazily get the natural log of x.
@@ -230,6 +273,8 @@ object Expression {
       */
     def exp: Expression = Function(x, Exp)
 
+    // TODO add atan method.
+
     /**
       * Eagerly compare this expression with y.
       *
@@ -240,7 +285,41 @@ object Expression {
   }
 }
 
-case class Literal(x: Number) extends Expression {
+/**
+  * An Expression which cannot be further simplified.
+  */
+trait AtomicExpression extends Expression {
+  /**
+    * @return this.
+    */
+  def simplify: Expression = this
+
+  /**
+    * @return 1.
+    */
+  def depth: Int = 1
+
+  /**
+    * CONSIDER a different mechanism here (or different implementation of ExpressionMatchers).
+    *
+    * @return an instance of ExpressionMatchers.
+    */
+  def matchers: ExpressionMatchers = new ExpressionMatchers()
+}
+
+/**
+  * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
+  * with simplification.
+  *
+  */
+abstract class CompositeExpression extends Expression
+
+/**
+  * A literal number.
+  *
+  * @param x the Number.
+  */
+case class Literal(x: Number) extends AtomicExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -271,31 +350,25 @@ case class Literal(x: Number) extends Expression {
     * @return a String representation of this Literal.
     */
   override def toString: String = s"$x"
-
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * @return an Expression tree which is the equivalent of this.
-    */
-  def simplify: Expression = this
 }
 
-abstract class Constant extends Expression {
+object Literal {
+  def apply(x: Int): Literal = Literal(Number(x))
+}
+
+/**
+  * A known constant value, for example π (pi) or e.
+  */
+abstract class Constant extends AtomicExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
-    * NOTE Some constants will be fuzzy in which case this method must be overridden.
+    *
+    * Important NOTE: Some constants will be fuzzy in which case this method must be overridden.
     *
     * @return true.
     */
   def isExact: Boolean = true
-
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * @return this.
-    */
-  def simplify: Expression = this
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -352,7 +425,7 @@ case object MinusOne extends Constant {
 }
 
 /**
-  * The constant Pi.
+  * The constant π (pi).
   * Yes, this is an exact number.
   */
 case object ConstPi extends Constant {
@@ -385,7 +458,7 @@ case object ConstE extends Constant {
   * @param x the expression being operated on.
   * @param f the function to be applied to x.
   */
-case class Function(x: Expression, f: ExpressionFunction) extends Expression {
+case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -397,6 +470,13 @@ case class Function(x: Expression, f: ExpressionFunction) extends Expression {
   def isExact: Boolean = f(x.materialize).isExact
 
   /**
+    * Method to determine the depth of this Expression.
+    *
+    * @return the 1 + depth of x.
+    */
+  def depth: Int = 1 + x.depth
+
+  /**
     * Action to materialize this Expression as a Number.
     *
     * @return the materialized Number.
@@ -404,23 +484,24 @@ case class Function(x: Expression, f: ExpressionFunction) extends Expression {
   def materialize: Number = f(x.simplify.materialize)
 
   /**
+    * If it is possible to simplify this Expression, then we do so.
+    * Typically, we simplify non-exact expressions if possible.
+    * There is no compelling need to simplify exact expressions.
+    *
+    * @return an Expression tree which is the simpler equivalent of this.
+    */
+  def simplify: Expression = {
+    val z = x.simplify
+    if (z != x) Function(z, f)
+    else this
+  }
+
+  /**
     * Action to materialize this Expression and render it as a String.
     *
     * @return a String representing the value of this expression.
     */
   def render: String = materialize.toString
-
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    *
-    * NOTE: currently, we do not do any simplification of monadic functions.
-    * Possibilities: swapping the order of commutative operators (are there any?)
-    * Also, pairing inverse trigonometric functions like atan (a dyadic operator) with sin/cos.
-    * Also, distributing monadic functions to the branches of an addition, etc.
-    *
-    * @return an Expression tree which is the equivalent of this.
-    */
-  def simplify: Expression = this
 
   override def toString: String = s"$f($x)"
 }
@@ -432,46 +513,65 @@ case class Function(x: Expression, f: ExpressionFunction) extends Expression {
   * @param b the second expression being operated on.
   * @param f the function to be applied to a and b.
   */
-case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends Expression {
+case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends CompositeExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
     *
-    * CONSIDER deal with each ExpressionFunction on an individual basis.
-    *
-    * @return false.
+    * @return the value of exact which is based on a, b, and f.
     */
-  def isExact: Boolean = f(a.materialize, b.materialize).isExact
+  def isExact: Boolean = exact
+
+  /**
+    * Method to determine the depth of this Expression.
+    *
+    * @return the depth (an atomic expression has depth of 1).
+    */
+  def depth: Int = 1 + math.max(a.depth, b.depth)
 
   /**
     * Action to materialize this Expression as a Number.
     *
-    * CONSIDER do we need to simplify each expression first?
-    *
     * @return the materialized Number.
     */
-  def materialize: Number = f(a.simplify.materialize, b.simplify.materialize)
+  def materialize: Number =
+    if (isExact) value else {
+      val simplified = simplify
+      if (simplified == this) value
+      else simplified.materialize
+    }
 
   /**
     * If it is possible to simplify this Expression, then we do so.
+    * Typically, we simplify non-exact expressions if possible.
+    * There is no compelling need to simplify exact expressions.
     *
-    * @return an Expression tree which is the equivalent of this.
+    * @return an Expression tree which is the simpler equivalent of this.
     */
-  def simplify: Expression = new ExpressionMatchers().materializer(this).getOrElse(Number())
+  def simplify: Expression =
+    if (isExact)
+      value
+    else {
+      import Expression._
+      em.simplifier(this) match {
+        case em.Match(e) => e.asInstanceOf[Expression]
+        case _ => this
+      }
+    }
 
   /**
     * Action to materialize this Expression and render it as a String.
     *
     * @return a String representing the value of this expression.
     */
-  def render: String = materialize.toString
+  def render: String = materialize.render
 
   /**
     * Render this BiFunction for debugging purposes.
     *
-    * @return a String showing a, f, and b in parentheses.
+    * @return a String showing a, f, and b in parentheses (or in braces if not exact).
     */
-  override def toString: String = s"($a $f $b)"
+  override def toString: String = if (exact) s"($a $f $b)" else s"{$a $f $b}"
 
   private def inverter(name: String): Option[(ExpressionBiFunction, Expression, Expression)] = name match {
     case "+" => Some((Product, MinusOne, Zero))
@@ -520,6 +620,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   /**
     * For now, leaving this old simplify method which has been replaced by the matcher-based simplify method above.
     *
+    * TODO eliminate this method
+    *
     * @return
     */
 //noinspection ScalaUnusedSymbol
@@ -536,15 +638,24 @@ private def oldSimplify: Expression = {
       case _ =>
         // NOTE: we check only for gatherer left, right
         cancelOperands(left, right, f.name) orElse
-                cancel(left, right, f.name) orElse
-                cancel(right, left, f.name) orElse
-                gatherer(left, right, f.name) getOrElse
-                BiFunction(left, right, f)
+          cancel(left, right, f.name) orElse
+          cancel(right, left, f.name) orElse
+          gatherer(left, right, f.name) getOrElse
+          BiFunction(left, right, f)
     }
-    // TODO remove this debugging aid
-    if (result != this) println(s"simplified $this to $result")
-    result
+  // TODO remove this debugging aid
+  if (result != this) println(s"simplified $this to $result")
+  result
+}
+
+  private lazy val value: Number = f(a.materialize, b.materialize)
+
+  private def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
+    case Power => a.isExact && b.isExact && b.materialize.toInt.map(_ >= 0).isDefined
+    case _ => false
   }
+
+  private lazy val exact: Boolean = f.isExact && a.isExact && b.isExact || conditionallyExact(f, a, b)
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")
@@ -555,15 +666,15 @@ case object Log extends ExpressionFunction(x => x.log, "log")
 
 case object Exp extends ExpressionFunction(x => x.exp, "exp")
 
-case object Sum extends ExpressionBiFunction((x, y) => x add y, "+")
+case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = true)
 
-case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*")
+case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*", isExact = true)
 
-case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^")
+case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExact = false, commutes = false)
 
 /**
   * A lazy monadic expression function.
-  * TODO need to mark whether this function is exact or not.
+  * TODO need to mark whether this function is exact or not (but I can't think of many which are exact)
   *
   * @param f    the function Number => Number
   * @param name the name of this function.
@@ -587,12 +698,13 @@ class ExpressionFunction(f: Number => Number, name: String) extends (Number => N
 
 /**
   * A lazy dyadic expression function.
-  * TODO need to mark whether this function is exact or not.
   *
-  * @param f    the function (Number, Number) => Number
-  * @param name the name of this function.
+  * @param f        the function (Number, Number) => Number
+  * @param name     the name of this function.
+  * @param isExact  true if this function is always exact, given exact inputs.
+  * @param commutes true only if the parameters to f are commutative.
   */
-class ExpressionBiFunction(val f: (Number, Number) => Number, val name: String) extends ((Number, Number) => Number) {
+class ExpressionBiFunction(val f: (Number, Number) => Number, val name: String, val isExact: Boolean, val commutes: Boolean = true) extends ((Number, Number) => Number) {
   /**
     * Evaluate this function on x.
     *

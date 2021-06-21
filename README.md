@@ -1,5 +1,10 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Number?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Number&utm_campaign=Badge_Grade)
 [![CircleCI](https://circleci.com/gh/rchillyard/Number.svg?style=svg)](https://circleci.com/gh/rchillyard/Number)
+![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Number)
+![GitHub](https://img.shields.io/github/license/rchillyard/Number)
+![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Number)
+![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Number)
+![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Number/bug)
 
 
 # Number
@@ -176,20 +181,28 @@ Version 1.0.3 supports lazy evaluation via a trait called _Expression_.
 The advantage of lazy evaluation is not so much performance.
 That's going to be neither here nor there.
 But it is in avoiding precision loss in some circumstances.
+The simplification mechanism which is invoked when materializing an expression goes to great lengths to cancel out any loss of precision.
+
+An example of this is the expression (√3 + 1)(√3 - 1).
+It is easy to see that this should have a value of exactly 2.
+However, it is not trivial to do the appropriate matching to achieve this simplification.
+This is why Number uses the Matchers package (https://github.com/rchillyard/Matchers).
+
+The simplification mechanism uses its own _ExpressionMatchers_, which is an extension of _Matchers_.
+The current set of expression optimizations is somewhat limited, but it catches the most important cases.
 
 For example, suppose an expression you are working on involves the square root of, say, 7.
 However, you don't particularly pay attention to the fact that later on in the calculation, you square everything.
 If you don't use lazy evaluation, your final result will have an error bound, even though the true value should be
 proportional to exactly 7.
 
-It's important to realize that, to get the benefit of this behavior, you have to use the _Expression_ mechanism.
+It's important to realize that, to get the benefit of this behavior, you must use the _Expression_ mechanism (not a pure _Number_).
 
       it should "give precise result for sqrt(7)^2" in {
-        val seven: Expression = Number(7)
-        val x = seven.sqrt
-        val y = x ^ 2
-        y shouldBe Number(7)
-        y.materialize should matchPattern { case ExactNumber(_, _) => }
+        val x: Expression = Number(7)
+        val y = x.sqrt
+        val z = y ^ 2
+        z.materialize shouldBe Number(7)
       }
       it should "show ^2 and sqrt for illustrative purposes" in {
         val seven = Number(7)
@@ -208,9 +221,6 @@ So, for example, you can write:
     val x = Number(1) + 2
 
 For this to compile properly, you will need to import the _ExpressionOps_ class.
-
-From version 1.0.7, the simplification mechanism uses a feature called _Matchers_, in particular, _ExpressionMatchers_.
-The current set of expression optimizations is somewhat limited, but it catches the most important cases. 
 
 Error Bounds (Fuzziness)
 ========================
@@ -273,6 +283,7 @@ then we consider that the different is zero (method isZero) or that it has a sig
 Versions
 ========
 The Current version is 1.0.8
+This includes better simplification and, in particular, evaluates (√3 + 1)(√3 - 1) as exactly 2. 
 
 Version 1.0.7: added Matchers.
 

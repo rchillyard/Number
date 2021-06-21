@@ -23,7 +23,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   def isExact: Boolean = false
 
   /**
-    * Auxiliary constructor for an exact number.
+    * Auxiliary constructor for a FuzzyNumber.
     *
     * @param v    the value for the new Number.
     * @param fuzz the fuzz for the new Number.
@@ -31,7 +31,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   def this(v: Value, fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
 
   /**
-    * Action to render this ExactNumber as a String.
+    * Action to render this FuzzyNumber as a String.
     *
     * @return a String.
     */
@@ -87,7 +87,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * In other words,  in the case where f is not factor, the numerical value of the result's value will be different
     * from this value.
     *
-    * FIXME: this does not work properly for FuzzyNumbers except Pi-related conversions with relative fuzz.
+    * TODO: this does not work properly for FuzzyNumbers except Pi-related conversions with relative fuzz.
     *
     * @param f the new factor for the result.
     * @return a Number based on this and factor.

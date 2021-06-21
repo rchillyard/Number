@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.mill._
+
 import scala.annotation.tailrec
 import scala.util.Try
 
@@ -10,6 +11,8 @@ import scala.util.Try
   * The input to this parser is a string of tokens, each separated by any amount of white space.
   * The input is then converted to an IndexedSeq of Strings which is then reversed and rendered as a single String.
   * The purpose of this strange little dance is to reverse the order of the tokens without reversing the tokens themselves.
+  *
+  * For detail of the method, please see https://en.wikipedia.org/wiki/Shunting-yard_algorithm
   *
   * CONSIDER using a TokenParser instead of a RegexParser.
   */
@@ -25,12 +28,12 @@ class ShuntingYardParser extends MillParser {
   def parseInfix(w: String): Try[Mill] = stringParser(shuntingYard, w).flatMap(_.toMill)
 
   /**
-    * A ShuntingYard consisting of two stacks: the values stack and the operators stack.
+    * A ShuntingYard consisting of two structures: a queue of values and a stack of operators.
     *
     * @param values    a list of values and operators. The former are added directly to values.
     *                  However, operators are only added indirectly, after a closing parenthesis
     *                  (or the end of the string) is reached.
-    * @param operators a list of operators which is temporarily placed here until switch is called.
+    * @param operators a stack of operators which is temporarily placed here until switch is called.
     */
   case class ShuntingYard(values: Seq[Item], operators: Seq[Item]) {
 
@@ -49,8 +52,8 @@ class ShuntingYardParser extends MillParser {
         case Right(number) => this :+ number
       }
       case InfixToken(None, x) =>
-        if (x) this :+ openParenthesis
-        else switch
+        if (x) this :+ openParenthesis // open parenthesis
+        else switch // close parenthesis
     }
 
     /**
@@ -61,20 +64,36 @@ class ShuntingYardParser extends MillParser {
       */
     def toMill: Try[Mill] = switch match {
       case ShuntingYard(values, Nil) => Try(Mill(values: _*))
-      case ShuntingYard(_, junk) => scala.util.Failure(MillException(s"toMill: logic error: resulting list of operators is not empty: $junk"))
+      case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 
-    private def :+(number: Number) = ShuntingYard(Expr(number) +: values, operators)
-
-    private def :+(operator: String) = ShuntingYard(values, Item(operator) +: operators)
+    private def :+(number: Number) = ShuntingYard(values :+ Expr(number), operators)
 
     @tailrec
-    private def switch: ShuntingYard = this match {
-      case ShuntingYard(values, Nil) => ShuntingYard(values, Nil)
-      case ShuntingYard(values, Open :: tail) => ShuntingYard(values, tail).switch
-      case ShuntingYard(values, operator :: operators) => ShuntingYard(values :+ operator, operators).switch
-      case _ => throw MillException("ShuntingYard.switch: logic error")
+    private def :+(operator: String): ShuntingYard = Item(operator) match {
+      case o1@Dyadic(_, _) => operators match {
+        case Nil => ShuntingYard(values, o1 +: Nil)
+        case Open :: xs => ShuntingYard(values, o1 :: Open :: xs)
+        case op +: xs => op match {
+          case o2@Dyadic(_, _) =>
+            if (implicitly[Ordering[Dyadic]].compare(o1, o2) < 0)
+              ShuntingYard(values :+ o2, xs) :+ operator
+            else
+              ShuntingYard(values, o1 +: o2 +: xs)
+          case _ => ShuntingYard(values, op +: xs)
+        }
+      }
+      case op => ShuntingYard(values, op +: operators)
     }
+
+    @tailrec
+    private def switch: ShuntingYard =
+      this match {
+        case s@ShuntingYard(_, Nil) => s
+        case ShuntingYard(values, Open :: tail) => ShuntingYard(values, tail)
+        case ShuntingYard(values, operator :: operators) => ShuntingYard(values :+ operator, operators).switch
+        case _ => throw MillException("ShuntingYard.switch: logic error (probably non-matching parentheses)")
+      }
   }
 
   object ShuntingYard {

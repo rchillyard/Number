@@ -100,12 +100,15 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   * This class is designed to model a Numerical value of various possible different types.
   * These types are: Int, BigInt, Rational, Double.
   *
+  * TODO try to refactor in such a way that we reduce the number of methods defined here,
+  * especially those which are not implementations of an abstract method.
+  *
   * CONSIDER including the fuzziness in Number and simply having ExactNumber always have fuzz of None.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
-abstract class Number(val value: Value, val factor: Factor) extends Expression with Ordered[Number] {
+abstract class Number(val value: Value, val factor: Factor) extends AtomicExpression with Ordered[Number] {
 
   self =>
 
@@ -117,15 +120,8 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   def this(v: Value) = this(v, Scalar)
 
   /**
-    * Numbers cannot (for now) be simplified.
-    *
-    * @return this.
-    */
-  def simplify: Expression = this
-
-  /**
     * Method to determine if this is a valid Number.
-    * An invalid number is of the has a value of form Left(Left(Left(None)))
+    * An invalid number has a value of form Left(Left(Left(None)))
     *
     * @return true if this is a valid Number
     */
@@ -173,16 +169,6 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   def add(x: Number): Number = Number.plus(this, x)
 
   /**
-    * Subtract x from this Number and return the result.
-    * See + and unary_ for more detail.
-    * CONSIDER inlining this method.
-    *
-    * @param x the subtrahend.
-    * @return the difference.
-    */
-  def subtract(x: Number): Number = this add -x
-
-  /**
     * Change the sign of this Number.
     */
   lazy val unary_- : Number = Number.negate(this)
@@ -198,17 +184,6 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   def multiply(x: Number): Number = Number.times(this, x)
 
   /**
-    * Eagerly multiply this Number by an Int.
-    * CONSIDER inlining this method.
-    *
-    * TEST me
-    *
-    * @param x the scale factor (an Int).
-    * @return this * x.
-    */
-  def multiply(x: Int): Number = Number.scale(this, x)
-
-  /**
     * Divide this Number by x and return the result.
     * See * and invert for more detail.
     * CONSIDER inlining this method.
@@ -219,15 +194,6 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   def divide(x: Number): Number = this multiply x.invert
 
   /**
-    * Divide this Number by a scalar x and return the result.
-    * CONSIDER inlining this method.
-    *
-    * @param x the divisor (an Int).
-    * @return the quotient.
-    */
-  def divide(x: Int): Number = this divide Number(x)
-
-  /**
     * Raise this Number to the power p.
     * CONSIDER inlining this method.
     *
@@ -235,15 +201,6 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     * @return this Number raised to power p.
     */
   def power(p: Number): Number = Number.power(this, p)
-
-  /**
-    * Raise this Number to the power p.
-    * CONSIDER inlining this method.
-    *
-    * @param p an integer.
-    * @return this Number raised to power p.
-    */
-  def power(p: Int): Number = Number.power(this, p)
 
   /**
     * Yields the inverse of this Number.
@@ -272,14 +229,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     *
     * @return the cosine.
     */
-  def cos: Number = negate(scale(Pi) subtract Number(Rational.half, Pi)).sin
-
-  /**
-    * The tangent of this Number.
-    *
-    * @return the tangent.
-    */
-  def tan: Number = sin divide cos
+  def cos: Number = negate(scale(Pi) add -Number(Rational.half, Pi)).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -354,6 +304,8 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
     *
+    * CONSIDER do we really need this?
+    *
     * @param other the Number to be compared with.
     * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
     * @return -1, 0, 1 as usual.
@@ -365,7 +317,7 @@ abstract class Number(val value: Value, val factor: Factor) extends Expression w
     *
     * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
     */
-  def makeFuzzyIfAppropriate(f: Number => Number): Number
+  protected def makeFuzzyIfAppropriate(f: Number => Number): Number
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -703,6 +655,10 @@ object Number {
     */
   val one: Number = ExactNumber(Right(1), Scalar)
   /**
+    * Exact value of 1
+    */
+  val two: Number = ExactNumber(Right(2), Scalar)
+  /**
     * Exact value of pi
     */
   val pi: Number = ExactNumber(Right(1), Pi)
@@ -735,7 +691,7 @@ object Number {
       * @param y the divisor, a Number.
       * @return a Number whose value is x / y.
       */
-    def /(y: Number): Number = (Number(x) / y).materialize
+    def /(y: Number): Number = (Number(x) multiply y.invert).materialize
 
     /**
       * Divide x by y (a Number) and yield a Number.
@@ -1188,9 +1144,6 @@ object Number {
     case (Scalar, E) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
     case _ => throw NumberException("scaling between e and Pi factors is not supported")
   }
-
-  // TEST me
-  private def scale(x: Number, f: Int): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationScale(f)))
 
   def negate(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationNegate))
 

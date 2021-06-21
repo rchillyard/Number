@@ -111,7 +111,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "multiply 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
     val y = Number(2)
-    val z = (x * y).materialize
+    val z: Number = (x * y).materialize
     z.value shouldBe Right(2)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case None => }
@@ -134,7 +134,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val result = zy.get.materialize
     result.value shouldBe Right(2)
     result.factor shouldBe Scalar
-    result.fuzz should matchPattern { case Some(RelativeFuzz(0.25, Box)) => }
+    result.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
   it should "multiply 1.* and 2.*" in {
     val xy: Try[Number] = Number.parse("1.*")
@@ -172,25 +172,26 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "power"
   it should "work for (fuzzy 3)^2 (i.e. an constant Int power)" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), Scalar, Some(RelativeFuzz(0.1, Gaussian)))
-    val z: Number = x power 2
+    val z: Number = (x ^ 2).materialize
     z.value shouldBe Right(9)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
     z.fuzz.get match {
-      case RelativeFuzz(m, Gaussian) => m shouldBe 0.2
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.06666666666666667
     }
   }
   it should "work for 2**2 (i.e. an constant Int power)" in {
     val xy: Try[Number] = Number.parse("2.0*")
     xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
     xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
-    val zy = for (x <- xy) yield x power 2
+    val zy = for (x <- xy) yield (x ^ 2).materialize
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(4)
-    zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
-    zy.get.fuzz.get match {
-      case RelativeFuzz(m, Gaussian) => m shouldBe 0.028867513459481294 +- 0.00000000000000001
+    val result: Number = zy.get
+    result.value shouldBe Right(4)
+    result.factor shouldBe Scalar
+    result.fuzz.isDefined shouldBe true
+    result.fuzz.get match {
+      case RelativeFuzz(m, Box) => m shouldBe 0.025
     }
   }
   it should "work for 2**2 (i.e. a fuzzy Number power)" in {
