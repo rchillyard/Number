@@ -37,9 +37,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   after {
     if (sb.nonEmpty) println(sb.toString())
-    println("===============================\n")
+    if (ll != com.phasmidsoftware.matchers.LogOff)
+      println("===============================\n")
   }
 
+  // NOTE this variable does not seem to be utilized
   implicit val p: ExpressionMatchers = new ExpressionMatchers {}
 
   behavior of "parse"
@@ -52,7 +54,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
   }
 
-  // FIXME #30
   it should "parse and evaluate sqrt(3)" in {
     val eo: Option[Expression] = Expression.parse("3 ^ ( 2 ^ -1 )")
     eo should matchPattern { case Some(_) => }
@@ -108,18 +109,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: Expression = Number(36).sqrt
     x shouldEqual Number(6)
   }
-  // FIXME Issue #30
+  // TODO this properly belongs in ExpressionMatchersSpec
   it should "evaluate (√3 + 1)(√3 - 1) as 2" in {
     val root3: Expression = Expression(3).sqrt
     val x: Expression = (root3 + 1) * (root3 - 1)
     val q = x.simplify
-    println(s"q = $q")
-    val w = q.simplify
-    println(s"w = $w")
     q.materialize shouldBe Number(2)
   }
-  // FIXME (just put back the regular toString in Expression)
-  ignore should "evaluate sin pi/2" in {
+  it should "evaluate sin pi/2" in {
     val x: Expression = Number.pi / 2
     val y: Expression = x.sin
     y.materialize shouldBe Number.one
@@ -180,7 +177,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     y should matchPattern { case FuzzyNumber(_, _, _) => }
     y shouldEqual Number(7)
   }
-  // ISSUE 25
   it should "cancel addition and subtraction" in {
     val x = Number.one + 3 - 3
     val q = x.simplify
@@ -209,7 +205,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (Number.e * 2).depth shouldBe 2
     (Number.e * 2 / 2).depth shouldBe 3
     val expression = Expression(7).sqrt ^ 2
-    println(expression)
     expression.depth shouldBe 4
   }
 }
