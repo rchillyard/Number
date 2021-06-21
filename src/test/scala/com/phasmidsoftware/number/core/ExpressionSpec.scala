@@ -29,7 +29,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   val sb = new StringBuilder
   implicit val logger: MatchLogger = w => sb.append(s"$w\n")
-  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogDebug
+  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogOff
 
   before {
     sb.clear()

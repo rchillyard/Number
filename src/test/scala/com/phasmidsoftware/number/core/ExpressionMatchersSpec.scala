@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.{LogDebug, LogLevel, MatchLogger, ~}
+import com.phasmidsoftware.matchers.{LogLevel, LogOff, MatchLogger, ~}
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,7 +10,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   val sb = new StringBuilder
   implicit val logger: MatchLogger = w => sb.append(s"$w\n")
-  implicit val ll: LogLevel = LogDebug
+  implicit val ll: LogLevel = LogOff
 
   before {
     sb.clear()

@@ -79,10 +79,17 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     */
   def simplifier: Transformer = simpler(prefer(biFunctionSimplifier) | functionSimplifier)
 
+  /**
+    * Method to simplify a BiFunction.
+    *
+    * @return a Transformer.
+    */
   def biFunctionSimplifier: Transformer = matchBiFunction & biFunctionMatcher
 
   /**
     * Method to match an Expression which is a BiFunction and replace it with a simplified expression.
+    *
+    * NOTE: there may be some redundancies here.
     *
     * @return an Matcher[DyadicTriple, Expression].
     */
@@ -152,49 +159,11 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     case x ~ y => gatherSumInner(x, y)
   }
 
-  @tailrec
-  private def gatherSumInner(x: Expression, y: Expression): MatchResult[Expressions] =
-    if (x.isExact && y.isExact)
-      Match(x.materialize ~ y.materialize)
-    else
-      matchBiFunction(x) match {
-        case Match(Sum ~ b ~ c) if b.isExact && c.isExact =>
-          gatherSumInner((b plus c).materialize, y)
-        case Match(Sum ~ b ~ c) if b.isExact && y.isExact =>
-          gatherSumInner((b plus y).materialize, c)
-        case Match(Sum ~ b ~ c) if c.isExact && y.isExact =>
-          gatherSumInner((c plus y).materialize, b)
-        case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if p.isExact =>
-          gatherSumInner(q plus y, p plus c)
-        case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if q.isExact =>
-          gatherSumInner(p plus y, q plus c)
-        case Match(Sum ~ b ~ BiFunction(p, q, Sum)) if p.isExact =>
-          gatherSumInner(q plus y, p plus b)
-        case Match(Sum ~ b ~ BiFunction(p, q, Sum)) if q.isExact =>
-          gatherSumInner(p plus y, q plus b)
-        // At this point, x is not an exact Sum (it's either inexact or not a Sum).
-        case Match(Sum ~ b ~ c) =>
-          matchBiFunction(y) match {
-            case Match(Sum ~ d ~ e) if b.isExact && d.isExact =>
-              gatherSumInner((b plus d).materialize, BiFunction(c, e, Sum))
-            case Match(Sum ~ d ~ e) if b.isExact && e.isExact =>
-              gatherSumInner((b plus e).materialize, BiFunction(c, d, Sum))
-            case Match(Sum ~ d ~ e) if c.isExact && d.isExact =>
-              gatherSumInner((c plus d).materialize, BiFunction(b, e, Sum))
-            case Match(Sum ~ d ~ e) if c.isExact && e.isExact =>
-              gatherSumInner((c plus e).materialize, BiFunction(b, d, Sum))
-            case _ =>
-              Match(x ~ y) // Terminating condition.
-          }
-        case _ => // XXX x is not a Sum of any sort.
-          matchBiFunction(y) match {
-            case Match(Sum ~ _ ~ _) =>
-              gatherSumInner(y, x)
-            case _ =>
-              Miss("gatherSum", x ~ y) // Terminating condition.
-          }
-      }
-
+  /**
+    * Matcher to eliminate offsetting expressions such as x + - x.
+    *
+    * @return a Matcher[Expressions, Expression].
+    */
   def matchOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Product, Number(-1), Number.zero)
 
   /**
@@ -383,8 +352,14 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     }
   }
 
-  def simplifyProduct(u: Expression, v: Expression): Expression =
-    (u * v).simplify
+  /**
+    * Method to simplify a product of two expressions.
+    *
+    * @param u the first expression.
+    * @param v the second expression.
+    * @return a possibly simplified version of their product.
+    */
+  def simplifyProduct(u: Expression, v: Expression): Expression = (u * v).simplify
 
   /**
     * Do the distribution of the form: (a * b) power c
@@ -493,6 +468,58 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   // CONSIDER does this really make sense? We end up extracting just the expression, providing that the function matches OK.
   def matchMonadicDuple(fm: Matcher[ExpressionFunction, ExpressionFunction], om: Transformer): Matcher[MonadicDuple, Expression] =
     fm ~> om :| "matchMonadicDuple"
+
+  /**
+    * Inner method for gatherSum.
+    *
+    * TODO rewrite this in terms of Matchers.
+    *
+    * @param x first expression.
+    * @param y second expression.
+    * @return a MatchResult[Expression].
+    */
+  @tailrec
+  private def gatherSumInner(x: Expression, y: Expression): MatchResult[Expressions] =
+    if (x.isExact && y.isExact)
+      Match(x.materialize ~ y.materialize)
+    else
+      matchBiFunction(x) match {
+        case Match(Sum ~ b ~ c) if b.isExact && c.isExact =>
+          gatherSumInner((b plus c).materialize, y)
+        case Match(Sum ~ b ~ c) if b.isExact && y.isExact =>
+          gatherSumInner((b plus y).materialize, c)
+        case Match(Sum ~ b ~ c) if c.isExact && y.isExact =>
+          gatherSumInner((c plus y).materialize, b)
+        case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if p.isExact =>
+          gatherSumInner(q plus y, p plus c)
+        case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if q.isExact =>
+          gatherSumInner(p plus y, q plus c)
+        case Match(Sum ~ b ~ BiFunction(p, q, Sum)) if p.isExact =>
+          gatherSumInner(q plus y, p plus b)
+        case Match(Sum ~ b ~ BiFunction(p, q, Sum)) if q.isExact =>
+          gatherSumInner(p plus y, q plus b)
+        // At this point, x is not an exact Sum (it's either inexact or not a Sum).
+        case Match(Sum ~ b ~ c) =>
+          matchBiFunction(y) match {
+            case Match(Sum ~ d ~ e) if b.isExact && d.isExact =>
+              gatherSumInner((b plus d).materialize, BiFunction(c, e, Sum))
+            case Match(Sum ~ d ~ e) if b.isExact && e.isExact =>
+              gatherSumInner((b plus e).materialize, BiFunction(c, d, Sum))
+            case Match(Sum ~ d ~ e) if c.isExact && d.isExact =>
+              gatherSumInner((c plus d).materialize, BiFunction(b, e, Sum))
+            case Match(Sum ~ d ~ e) if c.isExact && e.isExact =>
+              gatherSumInner((c plus e).materialize, BiFunction(b, d, Sum))
+            case _ =>
+              Match(x ~ y) // Terminating condition.
+          }
+        case _ => // XXX x is not a Sum of any sort.
+          matchBiFunction(y) match {
+            case Match(Sum ~ _ ~ _) =>
+              gatherSumInner(y, x)
+            case _ =>
+              Miss("gatherSum", x ~ y) // Terminating condition.
+          }
+      }
 
   /**
     * Private method to return a MatchResult, given an ExpressionBiFunction, and three Expressions: x, y, and z.

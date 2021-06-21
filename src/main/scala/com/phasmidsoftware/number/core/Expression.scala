@@ -48,10 +48,6 @@ trait Expression {
     */
   def render: String
 
-  def layout(x: Int): String
-
-  //  override def toString: String = layout(0)
-
   /**
     * Eagerly compare this Expression with comparand.
     *
@@ -63,7 +59,8 @@ trait Expression {
 
 object Expression {
 
-  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogDebug
+  // NOTE this is where we turn logging on (by using LogDebug)
+  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogOff
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
   /**
@@ -92,8 +89,6 @@ object Expression {
     * NOTE that it might be a problem with render instead.
     */
   def parse(x: String): Option[Expression] = new ShuntingYardParser().parseInfix(x).toOption flatMap (_.evaluate)
-
-  def indent(x: Int): String = "  " * x
 
   /**
     * The following constants are helpful in getting an expression started.
@@ -310,8 +305,6 @@ trait AtomicExpression extends Expression {
     * @return an instance of ExpressionMatchers.
     */
   def matchers: ExpressionMatchers = new ExpressionMatchers()
-
-  def layout(n: Int): String = s"$render"
 }
 
 /**
@@ -510,9 +503,6 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     */
   def render: String = materialize.toString
 
-  def layout(n: Int): String = s"$f:\n${Expression.indent(n)}${x.layout(n + 1)}\n"
-
-  //  override def toString: String = s"\n${layout(0)}"
   override def toString: String = s"$f($x)"
 }
 
@@ -576,15 +566,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def render: String = materialize.render
 
-  def layout(n: Int): String = s"$f:\n${Expression.indent(n)}${a.layout(n + 1)}\n${Expression.indent(n)}${b.layout(n + 1)}\n"
-
   /**
     * Render this BiFunction for debugging purposes.
     *
-    * @return a String showing a, f, and b in parentheses.
+    * @return a String showing a, f, and b in parentheses (or in braces if not exact).
     */
-  // TODO tidy up
-  //  override def toString: String = layout(0)
   override def toString: String = if (exact) s"($a $f $b)" else s"{$a $f $b}"
 
   private def inverter(name: String): Option[(ExpressionBiFunction, Expression, Expression)] = name match {
@@ -634,6 +620,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   /**
     * For now, leaving this old simplify method which has been replaced by the matcher-based simplify method above.
     *
+    * TODO eliminate this method
+    *
     * @return
     */
 //noinspection ScalaUnusedSymbol
@@ -660,7 +648,6 @@ private def oldSimplify: Expression = {
   result
 }
 
-  // TODO this is where we need to do better
   private lazy val value: Number = f(a.materialize, b.materialize)
 
   private def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
@@ -687,7 +674,7 @@ case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExac
 
 /**
   * A lazy monadic expression function.
-  * TODO need to mark whether this function is exact or not.
+  * TODO need to mark whether this function is exact or not (but I can't think of many which are exact)
   *
   * @param f    the function Number => Number
   * @param name the name of this function.
@@ -711,7 +698,6 @@ class ExpressionFunction(f: Number => Number, name: String) extends (Number => N
 
 /**
   * A lazy dyadic expression function.
-  * TODO need to mark whether this function is exact or not.
   *
   * @param f        the function (Number, Number) => Number
   * @param name     the name of this function.
