@@ -425,7 +425,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val eo = Expression.parse("( ( 3.00* + 0.5 ) + ( 2.00* * ( 3.00* + 0.5 ) ) )")
     eo map (z shouldBe em.Match(_)) orElse fail("could not parse expression")
   }
-  // FIXME #30 we do need to find a solution to this problem.
   it should "distributeProductSum d" in {
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
@@ -457,13 +456,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "simplify"
-  // FIXME #30
-  ignore should "work" in {
+  it should "work" in {
     val xo = Expression.parse("( 3 ^ ( 2 ^ -1 ) )")
     val yo = Expression.parse("( ( 3 ^ ( 2 ^ -1 ) ) * -1 )")
     println(xo)
     println(yo)
     val zo = for (x <- xo; y <- yo) yield em.simplifyProduct(x, y)
-    zo should matchPattern { case Some(em.Match(ExactNumber(Right(-3), Scalar))) => }
+    println(zo)
+    zo should matchPattern { case Some(_) => }
+    zo.get shouldBe BiFunction(Number(3), Number(-1), Product)
   }
 }

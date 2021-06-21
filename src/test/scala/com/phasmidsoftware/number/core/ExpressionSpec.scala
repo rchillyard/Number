@@ -53,14 +53,15 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   // FIXME #30
-  ignore should "parse and evaluate sqrt(3)" in {
-    val eo: Option[Expression] = Expression.parse("3 ^ (2 ^ -1)")
-    eo should matchPattern { case Some(BiFunction(ExactNumber(Right(3), Scalar), BiFunction(ExactNumber(Right(2), Scalar), MinusOne, Product), Power)) => }
+  it should "parse and evaluate sqrt(3)" in {
+    val eo: Option[Expression] = Expression.parse("3 ^ ( 2 ^ -1 )")
+    eo should matchPattern { case Some(_) => }
+    eo.get shouldBe BiFunction(Number(3), BiFunction(Number(2), Number(-1), Power), Power)
   }
-  // FIXME #30
-  ignore should "parse and evaluate half" in {
+  it should "parse and evaluate half" in {
     val eo: Option[Expression] = Expression.parse("2 ^ -1")
-    eo should matchPattern { case Some(BiFunction(ExactNumber(Right(2), Scalar), MinusOne, Power)) => }
+    eo should matchPattern { case Some(_) => }
+    eo.get shouldBe BiFunction(Number(2), Number(-1), Power)
   }
 
 
@@ -108,7 +109,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     x shouldEqual Number(6)
   }
   // FIXME Issue #30
-  ignore should "evaluate (√3 + 1)(√3 - 1) as 2" in {
+  it should "evaluate (√3 + 1)(√3 - 1) as 2" in {
     val root3: Expression = Expression(3).sqrt
     val x: Expression = (root3 + 1) * (root3 - 1)
     val q = x.simplify
@@ -125,11 +126,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "toString"
-  // FIXME Issue #36
-  ignore should "work for (sqrt 2)^2" in {
+  it should "work for (sqrt 2)^2" in {
     val seven: Expression = Number(7)
     val result: Expression = seven.sqrt ^ 2
-    result.toString shouldBe "((7 ^ (2 ^ -1)) ^ 2)"
+    result.toString shouldBe "{{7 ^ (2 ^ -1)} ^ 2}"
   }
 
   behavior of "gathering operations"
