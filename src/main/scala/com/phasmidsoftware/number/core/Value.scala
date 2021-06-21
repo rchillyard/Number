@@ -1,8 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.optionMap
-
-import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
 
@@ -44,7 +42,7 @@ object Value {
 }
 
 sealed trait Factor {
-  def value: Double
+  val value: Double
 
   def +(other: Factor): Option[Factor]
 }
@@ -58,7 +56,7 @@ sealed abstract class NonScalarFactor extends Factor {
 }
 
 case object Scalar extends Factor {
-  override def value: Double = 1
+  val value: Double = 1
 
   override def toString: String = ""
 
@@ -66,13 +64,13 @@ case object Scalar extends Factor {
 }
 
 case object Pi extends NonScalarFactor {
-  def value: Double = Math.PI
+  val value: Double = Math.PI
 
   override def toString: String = Factor.sPi
 }
 
 case object E extends NonScalarFactor {
-  def value: Double = Math.E
+  val value: Double = Math.E
 
   override def toString: String = Factor.sE
 }

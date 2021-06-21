@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -333,10 +332,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     p shouldBe numberOne
     q shouldEqual Number(2 * Math.PI)
   }
-  // FIXME Issue 37
-  ignore should "work for Pi, Scalar" in {
+  it should "work for Pi, Scalar" in {
     val target = Number(2, Pi)
-    target.alignFactors(numberOne) shouldBe(Number(2 * Math.PI), numberOne)
+    val (f, x) = target.alignFactors(numberOne)
+    f shouldEqual Number(2 * Math.PI)
+    x shouldBe numberOne
   }
   it should "work for Pi, Pi" in {
     val target = Number(1, Pi)
