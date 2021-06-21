@@ -244,7 +244,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = x + 3
     val z: ExpressionMatchers#MatchResult[Expression] = q(y)
     z.successful shouldBe true
-    z.get shouldBe BiFunction(Number(9), Literal(3), Sum)
+    z.get shouldBe Number(12)
   }
 
   behavior of "various operations"
@@ -285,6 +285,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(BiFunction(one, two, Product)) shouldBe em.Match(two)
     p(BiFunction(two, one, Power)) shouldBe em.Match(two)
     p(BiFunction(one, two, Power)) shouldBe em.Match(one)
+  }
+  it should "evaluate (√3 + 1)(√3 - 1) as 2 exactly" in {
+    val root3: Expression = Expression(3).sqrt
+    val x: Expression = (root3 + 1) * (root3 - 1)
+    val q = x.simplify
+    q.materialize shouldBe Number(2)
   }
   // NOTE: this will succeed only if we allow simplifications which reduce depth (but are not necessarily exact)
   ignore should "simplify 1" in {
@@ -339,16 +345,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "gatherSum"
   it should "work" in {
-    val p: em.Matcher[em.Expressions, em.Expressions] = em.gatherSum
+    val p: em.Matcher[em.Expressions, Expression] = em.gatherSum
     val z: Expression = Number(3).sqrt
     val x = z plus -z + zero
     import em.TildeOps
     val r = p(one ~ x)
     r should matchPattern { case em.Match(_) => }
-    val q: em.Matcher[Expression ~ Expression, Expression] = em.*(em.matchOffsetting | em.matchAndEliminateIdentity(Sum))
-    val w: em.MatchResult[Expression] = r & q
-    w.get shouldBe one
-
+    r.get shouldBe one
   }
   behavior of "distributor"
   it should "distribute" in {

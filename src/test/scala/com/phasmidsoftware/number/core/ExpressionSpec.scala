@@ -7,7 +7,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
@@ -109,13 +108,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: Expression = Number(36).sqrt
     x shouldEqual Number(6)
   }
-  // TODO this properly belongs in ExpressionMatchersSpec
-  it should "evaluate (√3 + 1)(√3 - 1) as 2" in {
-    val root3: Expression = Expression(3).sqrt
-    val x: Expression = (root3 + 1) * (root3 - 1)
-    val q = x.simplify
-    q.materialize shouldBe Number(2)
-  }
   it should "evaluate sin pi/2" in {
     val x: Expression = Number.pi / 2
     val y: Expression = x.sin
@@ -123,18 +115,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "toString"
-  it should "work for (sqrt 2)^2" in {
+  it should "work for (sqrt 7)^2" in {
     val seven: Expression = Number(7)
     val result: Expression = seven.sqrt ^ 2
     result.toString shouldBe "{{7 ^ (2 ^ -1)} ^ 2}"
   }
 
   behavior of "gathering operations"
-  it should "gather 2 and * 1/2" in {
+  it should "gather powers of 2 and * 1/2" in {
     val x: Expression = Number(7)
     val y = x.sqrt
     val z = y ^ 2
-    z.simplify.simplify shouldBe Number(7)
+    z.materialize shouldBe Number(7)
   }
 
   behavior of "canceling operations"
@@ -182,7 +174,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val q = x.simplify
     q shouldBe Number.one
   }
-  // FIXME 25
+  // FIXME #25
   ignore should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
     val q = x.simplify

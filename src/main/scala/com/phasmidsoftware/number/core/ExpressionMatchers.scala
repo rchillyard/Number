@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogLevel, MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -79,7 +78,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return an Transformer.
     */
-  def simplifier: Transformer = simpler(prefer(biFunctionSimplifier) | functionSimplifier :| "simplifier")
+  def simplifier: Transformer = simpler(biFunctionSimplifier | functionSimplifier :| "simplifier")
 
   /**
     * Method to simplify a BiFunction.
@@ -134,36 +133,20 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @return a Matcher[DyadicTriple, Expression]
     */
   def matchSimplifyPlus: Matcher[DyadicTriple, Expression] =
-    (matchDyadicBranches(Sum) & prefer(gatherSum) & *(matchOffsetsOrIdentities)) :| "matchSimplifyPlus"
+    matchDyadicBranches(Sum) & (gatherSum | *(matchOffsetsOrIdentities)) :| "matchSimplifyPlus"
 
   def matchOffsetsOrIdentities: Matcher[Expressions, Expression] = matchOffsetting | matchAndEliminateIdentity(Sum) :| "matchOffsetsOrIdentities"
-
-  /**
-    * TODO move this into Matchers project.
-    *
-    * Matcher which takes tries to match the input t according to m.
-    * If it's a match, then that will be returned.
-    * If it's a miss, then we return a match based on the original t.
-    *
-    * @param m a Mather[T, T]
-    * @tparam T both the type of the input and the underlying type of the output.
-    * @return a Matcher[T, T]
-    */
-  def prefer[T](m: Matcher[T, T]): Matcher[T, T] = Matcher {
-    t =>
-      m(t) match {
-        case z@Match(_) => z
-        case Miss(_, _) => Match(t)
-      }
-  }
 
   /**
     * Method to simplify together repeated operators where we can combine exact expressions.
     *
     * @return a Matcher[Expressions, Expressions].
     */
-  def gatherSum: Matcher[Expressions, Expressions] = namedMatcher("gatherSum") {
-    case x ~ y => gatherSumInner(x, y)
+  def gatherSum: Matcher[Expressions, Expression] = namedMatcher("gatherSum") {
+    case x ~ y => gatherSumInner(x, y) flatMap {
+      case a ~ b if a != x && b != y => Match(BiFunction(a, b, Sum).simplify)
+      case _ => Miss("gatherSum recursion", BiFunction(x, y, Sum))
+    }
   }
 
   /**
