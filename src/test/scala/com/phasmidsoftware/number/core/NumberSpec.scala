@@ -304,19 +304,17 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(1, E)
     target.scale(Scalar) should ===(Number(Math.E))
   }
-  ignore should "work for 2E, Scalar" in {
+  it should "work for 2E, Scalar" in {
     val target = Number(2, E)
     val actual: Number = target.scale(Scalar)
     val expected: Number = (Number(Math.E) ^ 2).materialize
     actual should ===(expected)
   }
-  // TODO #34 we should implement conversions between E and Pi
-  ignore should "work for Pi, E" in {
+  it should "work for Pi, E" in {
     val target = Number(1, Pi)
     target.scale(E) should ===(Number(Math.PI / Math.E, E))
   }
-  // TODO #34 we should implement conversions between E and Pi
-  ignore should "work for E, Pi" in {
+  it should "work for E, Pi" in {
     val target = Number(1, E)
     target.scale(Pi) should ===(Number(Math.E / Math.PI, Pi))
   }
@@ -825,7 +823,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.toInt shouldBe Some(1)
   }
 
-  // Following are the tests of Numeric[Number]
+  // XXX Following are the tests of Numeric[Number]
 
   behavior of "Numeric toInt"
   it should "work for 1" in {

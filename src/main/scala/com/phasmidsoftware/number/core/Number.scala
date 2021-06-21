@@ -6,7 +6,6 @@ import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.math.BigInt
@@ -26,7 +25,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   /**
     * @return true.
     */
-  def isExact: Boolean = true
+  def isExact: Boolean = factor == Scalar
 
   /**
     * Auxiliary constructor for the usual situation with the default factor.
@@ -118,6 +117,8 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @param v the value for the new Number.
     */
   def this(v: Value) = this(v, Scalar)
+
+  def maybeFactor: Option[Factor] = Some(factor)
 
   /**
     * Method to determine if this is a valid Number.
@@ -482,15 +483,15 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     */
   //protected
   lazy val specialize: Number = value match {
-    // Int case
+    // XXX Int case
     case Right(_) => this
-    // Rational case
+    // XXX Rational case
     case Left(Right(r)) =>
       Try(r.toInt) match {
         case Success(b) => make(b).specialize
         case _ => this
       }
-    // Double case
+    // XXX Double case
     case d@Left(Left(Some(x))) =>
       // NOTE: here we attempt to deal with Doubles.
       // If a double can be represented by a BigDecimal with scale 0, 1, or 2 then we treat it as exact.
@@ -503,7 +504,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
         // CONSIDER in following line adding fuzz only if this Number is exact.
         case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzz.toDecimalPower(5, -n), Box))
       }
-    // Invalid case
+    // XXX Invalid case
     case _ => this
   }
 
@@ -530,27 +531,27 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     */
   //protected
   def alignTypes(x: Number): (Number, Number) = value match {
-    // this is an invalid Number: return a pair of invalid numbers
+    // XXX this is an invalid Number: return a pair of invalid numbers
     case Left(Left(None)) => (this, this)
-    // this value is a real Number: convert x to a Number based on real.
+    // XXX this value is a real Number: convert x to a Number based on real.
     case Left(Left(Some(_))) => x.value match {
-      // x's value is invalid: swap the order so the the first element is invalid
+      // XXX x's value is invalid: swap the order so the the first element is invalid
       case Left(Left(None)) => x.alignTypes(this)
-      // otherwise: return this and x re-cast as a Double
+      // XXX otherwise: return this and x re-cast as a Double
       case _ => (this, prepare(x.maybeDouble.map(y => make(y, x.factor).specialize)))
     }
-    // this value is a Rational:
+    // XXX this value is a Rational:
     case Left(Right(_)) => x.value match {
-      // x's value is a real Number: swap the order so that the first element is the real number
+      // XXX x's value is a real Number: swap the order so that the first element is the real number
       case Left(Left(_)) => x.alignTypes(this)
-      // otherwise: return this and x re-cast as a Rational
+      // XXX otherwise: return this and x re-cast as a Rational
       case _ => (this, x.make(x.maybeRational.getOrElse(Rational.NaN), x.factor).specialize)
     }
-    // this value is an Int:
+    // XXX this value is an Int:
     case Right(_) => x.value match {
-      // x's value is a BigInt, Rational or real Number: swap the order so that the first element is the BigInt/Rational/real number
+      // XXX x's value is a BigInt, Rational or real Number: swap the order so that the first element is the BigInt/Rational/real number
       case Left(_) => x.alignTypes(this)
-      // otherwise: return this and x re-cast as an Int
+      // XXX otherwise: return this and x re-cast as an Int
       case _ => (this, x.make(x.maybeInt.getOrElse(0), x.factor).specialize)
     }
   }
@@ -1110,8 +1111,6 @@ object Number {
     case x => LazyList.continually(inverse(n)).take(-x).product
   }
 
-//  private def power(n: Number, y: Double): Number = prepare(n.toDouble.map(x => math.pow(x, y)).map(n.make))
-
   /**
     * Method to take the ith root of n.
     *
@@ -1129,7 +1128,6 @@ object Number {
   /**
     * Method to deal with a Scale factor change.
     *
-    * NOTE: currently, direct conversion between E and Pi is not supported.
     * CONSIDER: re-implementing the Pi/Scalar and Scalar/Pi cases using MonadicOperationScale.
     * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then not for E conversions.
     *
@@ -1142,6 +1140,8 @@ object Number {
     case (Pi, Scalar) | (Scalar, Pi) => prepare(n.maybeDouble.map(x => n.make(scaleDouble(x, n.factor, factor), factor)))
     case (E, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, E) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
+    case (Pi, E) => scale(scale(n, Scalar), E)
+    case (E, Pi) => scale(scale(n, Scalar), E)
     case _ => throw NumberException("scaling between e and Pi factors is not supported")
   }
 

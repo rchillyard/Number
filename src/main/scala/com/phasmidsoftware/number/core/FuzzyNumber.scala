@@ -82,19 +82,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   override def power(p: Number): Number = FuzzyNumber.power(this, p)
 
   /**
-    * Method to create a new version of this, but with factor f.
-    * NOTE: the result will have the same absolute magnitude as this.
-    * In other words,  in the case where f is not factor, the numerical value of the result's value will be different
-    * from this value.
-    *
-    * TODO: this does not work properly for FuzzyNumbers except Pi-related conversions with relative fuzz.
-    *
-    * @param f the new factor for the result.
-    * @return a Number based on this and factor.
-    */
-  override def scale(f: Factor): Number = super.scale(f)
-
-  /**
     * @return true if this Number is equivalent to zero with at least 50% confidence.
     */
   override lazy val isZero: Boolean = isProbablyZero(0.5)

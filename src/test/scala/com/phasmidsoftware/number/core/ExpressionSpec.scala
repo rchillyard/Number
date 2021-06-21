@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.{LogLevel, MatchLogger}
 import com.phasmidsoftware.number.core.Expression.{ExpressionOps, pi}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
@@ -25,23 +24,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
       case _ => false
     }
   }
-
-  val sb = new StringBuilder
-  implicit val logger: MatchLogger = w => sb.append(s"$w\n")
-  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogOff
-
-  before {
-    sb.clear()
-  }
-
-  after {
-    if (sb.nonEmpty) println(sb.toString())
-    if (ll != com.phasmidsoftware.matchers.LogOff)
-      println("===============================\n")
-  }
-
-  // NOTE this variable does not seem to be utilized
-  implicit val p: ExpressionMatchers = new ExpressionMatchers {}
 
   behavior of "parse"
   val syp = new ShuntingYardParser()
@@ -174,8 +156,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val q = x.simplify
     q shouldBe Number.one
   }
-  // FIXME #25
-  ignore should "cancel multiplication and division" in {
+  it should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
     val q = x.simplify
     q shouldBe Number.e

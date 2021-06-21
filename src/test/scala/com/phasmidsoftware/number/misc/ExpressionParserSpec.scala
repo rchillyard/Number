@@ -92,7 +92,7 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     r should matchPattern { case parser.Success(_, _) => }
     r.get.value should matchPattern { case Success(1.5) => }
   }
-  // TODO #35
+  // FIXME #35
   ignore should "fail DoubleExpressionParser(2*(2+1-3/2)/3)" in {
     val parser = DoubleExpressionParser
     val r = parser.parseAll(parser.expr, "2*(2+1-3/2)/3")
