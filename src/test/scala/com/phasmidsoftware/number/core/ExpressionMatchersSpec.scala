@@ -115,15 +115,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
   }
 
-  behavior of "simplifier"
+  behavior of "matchOffsetting"
   it should "cancel 1 and - -1" in {
     sb.append("cancel 1 and - -1:\n")
     val x: Expression = Expression.one
     val y = -x
     val z = x + y
-    //    val matchers = new ExpressionMatchers
     val matchers = implicitly[ExpressionMatchers]
-    val result = matchers.simplifier(z)
+    val p = matchers.matchBiFunction & matchers.matchDyadicBranches(Sum) & matchers.matchOffsetting
+    val result = p(z)
     result should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
   }
   it should "cancel -1 and - 1" in {
@@ -131,9 +131,31 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Expression.one
     val y = -x
     val z = y + x
-    //    val matchers = new ExpressionMatchers
     val matchers = implicitly[ExpressionMatchers]
-    val result = matchers.simplifier(z)
+    val p = matchers.matchBiFunction & matchers.matchDyadicBranches(Sum) & matchers.matchOffsetting
+    val result = p(z)
+    result should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
+  }
+
+  behavior of "simplifier"
+  it should "cancel 1 and - -1" in {
+    sb.append("cancel 1 and - -1:\n")
+    val x: Expression = Expression.one
+    val y = -x
+    val z = x + y
+    val matchers = implicitly[ExpressionMatchers]
+    val p = matchers.simplifier
+    val result = p(z) map (_.materialize)
+    result should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
+  }
+  it should "cancel -1 and - 1" in {
+    sb.append("cancel -1 and - 1:\n")
+    val x: Expression = Expression.one
+    val y = -x
+    val z = y + x
+    val matchers = implicitly[ExpressionMatchers]
+    val p = matchers.simplifier
+    val result = p(z) map (_.materialize)
     result should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
   }
   it should "cancel 1 and - -1 b" in {
@@ -143,7 +165,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = x + y
     //    val matchers = new ExpressionMatchers
     val matchers = implicitly[ExpressionMatchers]
-    val result = matchers.simplifier(z)
+    val result = matchers.simplifier(z) map (_.materialize)
     result should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
   }
   it should "cancel -1 and - 1 b" in {
@@ -153,7 +175,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = y + x
     //    val matchers = new ExpressionMatchers
     val matchers = implicitly[ExpressionMatchers]
-    val result = matchers.simplifier(z)
+    val result = matchers.simplifier(z) map (_.materialize)
     result should matchPattern { case matchers.Match(ExactNumber(Right(0), Scalar)) => }
   }
   it should "cancel 2 and * 1/2" in {
@@ -341,7 +363,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "gatherSum"
   it should "work" in {
-    val p = em.gatherSum
+    val p: em.Matcher[em.Expressions, em.Expressions] = em.gatherSum
     val z: Expression = Number(3).sqrt
     val x = z plus -z + zero
     println(x)
@@ -404,19 +426,17 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     eo map (z shouldBe em.Match(_)) orElse fail("could not parse expression")
   }
   // FIXME #30 we do need to find a solution to this problem.
-  ignore should "distributeProductSum d" in {
-    val p = em.distributeProductSum
+  it should "distributeProductSum d" in {
+    val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
     val y = -x
     val a = BiFunction(one, x, Sum)
     val b = BiFunction(one, y, Sum)
     val r = BiFunction(a, b, Product)
     println(r)
-    import em.TildeOps
-    val expr: Expression ~ Expression = a.simplify ~ b.simplify
-    val z: em.MatchResult[Expression] = p(expr)
+    val z: em.MatchResult[Expression] = p(r)
     val k: em.MatchResult[Expression] = z map (_.simplify)
-    k shouldBe em.Match(Number(9))
+    k shouldBe em.Match(Number(-2))
   }
   it should "distributePowerProduct" in {
     val p = em.distributePowerProduct

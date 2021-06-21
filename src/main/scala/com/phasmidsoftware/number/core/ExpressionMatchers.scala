@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.matchers.{LogLevel, MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
 
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 
 /**
@@ -76,7 +77,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return an Transformer.
     */
-  def simplifier: Transformer = simpler(biFunctionSimplifier | functionSimplifier)
+  def simplifier: Transformer = simpler(prefer(biFunctionSimplifier) | functionSimplifier)
 
   def biFunctionSimplifier: Transformer = matchBiFunction & biFunctionMatcher
 
@@ -121,53 +122,78 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @return a Matcher[DyadicTriple, Expression]
     */
   def matchSimplifyPlus: Matcher[DyadicTriple, Expression] =
-    matchDyadicBranches(Sum) & gatherSum & *(matchOffsetting | matchAndEliminateIdentity(Sum)) :| "matchSimplifyPlus"
+    matchDyadicBranches(Sum) & prefer(gatherSum) & *(matchOffsetting | matchAndEliminateIdentity(Sum)) :| "matchSimplifyPlus"
+
+  /**
+    * TODO move this into Matchers project.
+    *
+    * Matcher which takes tries to match the input t according to m.
+    * If it's a match, then that will be returned.
+    * If it's a miss, then we return a match based on the original t.
+    *
+    * @param m a Mather[T, T]
+    * @tparam T both the type of the input and the underlying type of the output.
+    * @return a Matcher[T, T]
+    */
+  def prefer[T](m: Matcher[T, T]): Matcher[T, T] = Matcher {
+    t =>
+      m(t) match {
+        case z@Match(_) => z
+        case Miss(_, _) => Match(t)
+      }
+  }
 
   /**
     * Method to simplify together repeated operators where we can combine exact expressions.
     *
     * @return a Matcher[Expressions, Expressions].
     */
-  def gatherSum: Matcher[Expressions, Expressions] = namedMatcher("gatherPlus") {
-    case x ~ y =>
+  def gatherSum: Matcher[Expressions, Expressions] = namedMatcher("gatherSum") {
+    case x ~ y => gatherSumInner(x, y)
+  }
+
+  @tailrec
+  private def gatherSumInner(x: Expression, y: Expression): MatchResult[Expressions] =
+    if (x.isExact && y.isExact)
+      Match(x.materialize ~ y.materialize)
+    else
       matchBiFunction(x) match {
         case Match(Sum ~ b ~ c) if b.isExact && c.isExact =>
-          gatherSum((b plus c).materialize ~ y)
+          gatherSumInner((b plus c).materialize, y)
         case Match(Sum ~ b ~ c) if b.isExact && y.isExact =>
-          gatherSum((b plus y).materialize ~ c)
+          gatherSumInner((b plus y).materialize, c)
         case Match(Sum ~ b ~ c) if c.isExact && y.isExact =>
-          gatherSum((c plus y).materialize ~ b)
+          gatherSumInner((c plus y).materialize, b)
         case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if p.isExact =>
-          gatherSum((q plus y) ~ (p plus c))
+          gatherSumInner(q plus y, p plus c)
         case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if q.isExact =>
-          gatherSum((p plus y) ~ (q plus c))
+          gatherSumInner(p plus y, q plus c)
         case Match(Sum ~ b ~ BiFunction(p, q, Sum)) if p.isExact =>
-          gatherSum((q plus y) ~ (p plus b))
+          gatherSumInner(q plus y, p plus b)
         case Match(Sum ~ b ~ BiFunction(p, q, Sum)) if q.isExact =>
-          gatherSum((p plus y) ~ (q plus b))
+          gatherSumInner(p plus y, q plus b)
         // At this point, x is not an exact Sum (it's either inexact or not a Sum).
         case Match(Sum ~ b ~ c) =>
           matchBiFunction(y) match {
             case Match(Sum ~ d ~ e) if b.isExact && d.isExact =>
-              gatherSum((b plus d).materialize ~ BiFunction(c, e, Sum))
+              gatherSumInner((b plus d).materialize, BiFunction(c, e, Sum))
             case Match(Sum ~ d ~ e) if b.isExact && e.isExact =>
-              gatherSum((b plus e).materialize ~ BiFunction(c, d, Sum))
+              gatherSumInner((b plus e).materialize, BiFunction(c, d, Sum))
             case Match(Sum ~ d ~ e) if c.isExact && d.isExact =>
-              gatherSum((c plus d).materialize ~ BiFunction(b, e, Sum))
+              gatherSumInner((c plus d).materialize, BiFunction(b, e, Sum))
             case Match(Sum ~ d ~ e) if c.isExact && e.isExact =>
-              gatherSum((c plus e).materialize ~ BiFunction(b, d, Sum))
+              gatherSumInner((c plus e).materialize, BiFunction(b, d, Sum))
             case _ =>
-              Match(x) ~ Match(y) // Terminating condition.
+              Match(x ~ y) // Terminating condition.
           }
         case _ => // XXX x is not a Sum of any sort.
           matchBiFunction(y) match {
             case Match(Sum ~ _ ~ _) =>
-              gatherSum(y ~ x)
+              gatherSumInner(y, x)
             case _ =>
-              Match(x) ~ Match(y) // Terminating condition.
+              Miss("gatherSum", x ~ y) // Terminating condition.
           }
       }
-  }
 
   def matchOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Product, Number(-1), Number.zero)
 
@@ -485,22 +511,23 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   private def combineGather(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] =
     f match {
       case Power =>
+        // CONSIDER checking that y * z is a positive integer.
         (y * z).materialize match {
-          case n@ExactNumber(_, _) =>
-            Match(x ^ n)
-          case _ =>
-            Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
+          case n@ExactNumber(_, _) => Match(x ^ n)
+          case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
         }
       case Product =>
-        // CONSIDER implementing this for the other pairs: x, z and y, z.
-        (x * y).materialize match {
-          case n@ExactNumber(_, _) => Match(n * z)
+        ((x * y).materialize, (x * z).materialize, (z * y).materialize) match {
+          case (n@ExactNumber(_, _), _, _) => Match(n * z)
+          case (_, n@ExactNumber(_, _), _) => Match(n * y)
+          case (_, _, n@ExactNumber(_, _)) => Match(n * x)
           case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
         }
       case Sum =>
-        import com.phasmidsoftware.number.core.Expression.ExpressionOps // CONSIDER why do we need this only for "+"?
-        (x + y).materialize match {
-          case n@ExactNumber(_, _) => Match(n + z)
+        ((x plus y).materialize, (x plus z).materialize, (z plus y).materialize) match {
+          case (n@ExactNumber(_, _), _, _) => Match(n plus z)
+          case (_, n@ExactNumber(_, _), _) => Match(n plus y)
+          case (_, _, n@ExactNumber(_, _)) => Match(n plus x)
           case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
         }
     }
@@ -515,13 +542,9 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   private def simpler(m: Transformer): Transformer = Matcher[Expression, Expression] {
     r =>
       m(r) match {
-        case z@Match(x) =>
-          if (x.isExact || x.depth < r.depth)
-            z
-          else
-            Miss("simplified version is neither exact nor simpler", x)
-        case _ =>
-          Miss("simplifier", r)
+        case z@Match(x) if x.isExact || x.depth < r.depth => z
+        case Match(x) => Miss("simplified version is neither exact nor simpler", x)
+        case mr => mr
       }
   }
 
