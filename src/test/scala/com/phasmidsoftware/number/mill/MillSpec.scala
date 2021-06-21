@@ -6,7 +6,6 @@ import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.{Assertion, Succeeded}
-
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers {
@@ -108,6 +107,11 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val value: Try[Mill] = p.parseMill("2 3 ^")
     value should matchPattern { case Success(_) => }
     value map (checkMill(Number(8), _)) should matchPattern { case Success(_) => }
+  }
+  it should "parse and evaluate: 2 3 /" in {
+    val value: Try[Mill] = p.parseMill("2 3 /")
+    value should matchPattern { case Success(_) => }
+    value map (checkMill(Number("2/3"), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate: 2 v" in {
     val value: Try[Mill] = p.parseMill("2 v")
