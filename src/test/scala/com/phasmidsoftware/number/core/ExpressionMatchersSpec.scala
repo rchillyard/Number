@@ -96,14 +96,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "matchEitherDyadic"
   it should "match (1, biFunction)" in {
     val negativeOne: Number = Number(-1)
-    val p = em.matchEitherDyadic(true)
+    val p = em.matchEitherDyadic(commutes = true)
     import em.TildeOps
     val r: em.MatchResult[BiFunction ~ Expression] = p(one ~ BiFunction(one, negativeOne, Product))
     r.successful shouldBe true
   }
   it should "match (biFunction, 1)" in {
     val negativeOne: Number = Number(-1)
-    val p = em.matchEitherDyadic(true)
+    val p = em.matchEitherDyadic(commutes = true)
     import em.TildeOps
     val r: em.MatchResult[BiFunction ~ Expression] = p(BiFunction(one, negativeOne, Product) ~ one)
     r.successful shouldBe true

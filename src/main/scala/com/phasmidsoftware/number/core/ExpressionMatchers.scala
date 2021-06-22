@@ -224,7 +224,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   def matchBiFunctionConstantResult(f: ExpressionBiFunction, c: Expression, r: Expression): Matcher[Expressions, Expression] =
   // CONSIDER replacing true with f.commutes
   // NOTE that the naming operator doesn't have any effect when all composition is via the & operator.
-    (matchEitherDyadic(true) & matchExpressionBiFunction(f) & matchAndSubstituteDyadicExpressions(c, r)) :| s"matchBiFunctionConstantResult($f, $c, $r)"
+    (matchEitherDyadic(commutes = true) & matchExpressionBiFunction(f) & matchAndSubstituteDyadicExpressions(c, r)) :| s"matchBiFunctionConstantResult($f, $c, $r)"
 
   /**
     * Matcher which takes a specific ExpressionBiFunction f (such as Sum, Product, ...),
@@ -306,11 +306,11 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   /**
     * Matcher which takes a ~ of Expressions and matches either element to a BiFunction and the other as is.
     *
-    * @param flip whether or not to allow flipping the input members of the incoming ~.
+    * @param commutes whether or not to allow flipping the input members of the incoming ~.
     * @return a BiFunction ~ Expression.
     */
-  def matchEitherDyadic(flip: Boolean): Matcher[Expressions, BiFunction ~ Expression] =
-    *(matchBiFunctionExpression, flip) :| "matchEitherDyadic"
+  def matchEitherDyadic(commutes: Boolean): Matcher[Expressions, BiFunction ~ Expression] =
+    *(matchBiFunctionExpression, commutes) :| "matchEitherDyadic"
 
   /**
     * Matcher which takes a ~ of Expressions and matches the first to a BiFunction and leaves the other as is.
