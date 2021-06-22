@@ -251,9 +251,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
   }
 
-  behavior of "matchSimplifyTimesIdentity"
+  behavior of "matchSimplifyProductIdentity"
   it should "eliminate 1" in {
-    val p = em.matchSimplifyTimesIdentity
+    val p = em.matchSimplifyProductIdentity
     import em.TildeOps
     p(Product ~ two ~ one) shouldBe em.Match(two)
     p(Product ~ one ~ two) shouldBe em.Match(two)

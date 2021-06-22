@@ -95,7 +95,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @return an Matcher[DyadicTriple, Expression].
     */
   def biFunctionMatcher: Matcher[DyadicTriple, Expression] =
-    matchSimplifySum | matchSimplifyPlusIdentity | matchSimplifyProduct | matchSimplifyTimesIdentity | matchSimplifyPowerIdentity | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power) | distributor :| "biFunctionSimplifier"
+    matchSimplifySum | matchSimplifyProduct | matchSimplifyPowerIdentity | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power) | distributor :| "biFunctionSimplifier"
 
   /**
     * Method to match an Expression which is a Function and replace it with a simplified expression.
@@ -133,7 +133,20 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return a Matcher[DyadicTriple, Expression]
     */
-  def matchSimplifySum: Matcher[DyadicTriple, Expression] = matchDyadicBranches(Sum) & (gatherSum | *(matchOffsetsOrIdentities)) :| "matchSimplifySum"
+  def matchSimplifySum: Matcher[DyadicTriple, Expression] =
+    (matchDyadicBranches(Sum) & (gatherSum | *(matchOffsetsOrIdentities))) | matchSimplifyPlusIdentity :| "matchSimplifySum"
+
+  /**
+    * Matcher which takes a DyadicTriple on * and, if appropriate, simplifies it to an Expression.
+    * In particular, we simplify this following expression (in RPN) to 1:
+    * x -1 power x *
+    *
+    * NOTE that the * operator in the following will invert the order of the incoming tuple if required.
+    *
+    * @return a Matcher[DyadicTriple, Expression]
+    */
+  def matchSimplifyProduct: Matcher[DyadicTriple, Expression] =
+    (matchDyadicBranches(Product) & (gatherProduct | *(matchBiFunctionConstantResult(Power, Number(-1), Number.one)))) | matchSimplifyProductIdentity :| "matchSimplifyProduct"
 
   def matchOffsetsOrIdentities: Matcher[Expressions, Expression] = matchOffsetting | matchAndEliminateIdentity(Sum) :| "matchOffsetsOrIdentities"
 
@@ -178,24 +191,12 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     matchDyadicBranches(Sum) & *(matchAndEliminateIdentity(Sum))
 
   /**
-    * Matcher which takes a DyadicTriple on * and, if appropriate, simplifies it to an Expression.
-    * In particular, we simplify this following expression (in RPN) to 1:
-    * x -1 power x *
-    *
-    * NOTE that the * operator in the following will invert the order of the incoming tuple if required.
-    *
-    * @return a Matcher[DyadicTriple, Expression]
-    */
-  def matchSimplifyProduct: Matcher[DyadicTriple, Expression] =
-    matchDyadicBranches(Product) & (gatherProduct | *(matchBiFunctionConstantResult(Power, Number(-1), Number.one)))
-
-  /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
     * In particular, we simplify this following expression to x:  x * 1 or 1 * x.
     *
     * @return a Matcher[DyadicTriple, Expression]
     */
-  def matchSimplifyTimesIdentity: Matcher[DyadicTriple, Expression] =
+  def matchSimplifyProductIdentity: Matcher[DyadicTriple, Expression] =
     matchDyadicBranches(Product) & *(matchAndEliminateIdentity(Product))
 
   /**
