@@ -18,6 +18,8 @@ libraryDependencies ++= Seq(
   "com.phasmidsoftware" %% "matchers" % "1.0.4-SNAPSHOT",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.2.0-M1",
   "org.apache.commons" % "commons-math3" % "3.6.1", // This is used for the trait Fuzzy (old stuff)
+  "org.slf4j" % "slf4j-api" % "1.7.31",
+  "ch.qos.logback" % "logback-classic" % "1.2.3" % "test",
   "org.scalacheck" %% "scalacheck" % "1.14.1" % "test" // This is used for testing Rational
 //  "org.typelevel" %% "cats-core" % "2.2.0"
 )
