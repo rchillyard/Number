@@ -6,6 +6,7 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.optionMap
+
 import scala.math.BigInt
 import scala.util._
 

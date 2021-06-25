@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.math.BigInt
@@ -469,7 +470,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     */
   def normalize: Number = factor match {
     case Scalar => this
-      // TEST me
+    // TEST me
     case Pi | E => prepare(maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar)))
   }
 
@@ -1131,7 +1132,7 @@ object Number {
     * CONSIDER: re-implementing the Pi/Scalar and Scalar/Pi cases using MonadicOperationScale.
     * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then not for E conversions.
     *
-    * @param n the Number to be scaled.
+    * @param n      the Number to be scaled.
     * @param factor the factor to which it should be converted.
     * @return the resulting Number (equivalent in value, but with a potentially different scale factor).
     */

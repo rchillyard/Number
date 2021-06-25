@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Rational.{bigZero, narrow}
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
+
 import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions

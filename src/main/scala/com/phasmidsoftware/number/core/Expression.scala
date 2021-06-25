@@ -671,8 +671,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return
     */
-//noinspection ScalaUnusedSymbol
-private def oldSimplify: Expression = {
+  //noinspection ScalaUnusedSymbol
+  private def oldSimplify: Expression = {
     val left = a.simplify
     val right = b.simplify
     val result = f.name match {
@@ -690,10 +690,10 @@ private def oldSimplify: Expression = {
           gatherer(left, right, f.name) getOrElse
           BiFunction(left, right, f)
     }
-  // TODO remove this debugging aid
-  if (result != this) println(s"simplified $this to $result")
-  result
-}
+    // TODO remove this debugging aid
+    if (result != this) println(s"simplified $this to $result")
+    result
+  }
 
   private lazy val value: Number = f(a.materialize, b.materialize)
 

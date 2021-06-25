@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogLevel, MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -640,5 +641,5 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
 
   //noinspection ScalaUnusedSymbol
   // NOTE unused method but keeping it for now.
-  private def exact: Transformer = filter[Expression] ( _.isExact )
+  private def exact: Transformer = filter[Expression](_.isExact)
 }

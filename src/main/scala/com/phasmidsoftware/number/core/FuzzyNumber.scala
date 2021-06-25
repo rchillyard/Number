@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import scala.util.Left
 
 /**

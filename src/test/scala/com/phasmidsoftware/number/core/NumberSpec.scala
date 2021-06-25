@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {

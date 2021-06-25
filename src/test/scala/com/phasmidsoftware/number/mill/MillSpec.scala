@@ -6,6 +6,7 @@ import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.{Assertion, Succeeded}
+
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers {
