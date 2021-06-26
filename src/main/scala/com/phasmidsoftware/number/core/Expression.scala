@@ -664,37 +664,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ => None
   }
 
-  /**
-    * For now, leaving this old simplify method which has been replaced by the matcher-based simplify method above.
-    *
-    * TODO eliminate this method
-    *
-    * @return
-    */
-  //noinspection ScalaUnusedSymbol
-  private def oldSimplify: Expression = {
-    val left = a.simplify
-    val right = b.simplify
-    val result = f.name match {
-      case "+" if left == Zero => right
-      case "*" if left == One => right
-      case "+" if right == Zero => left
-      case "*" if right == One => left
-      case "^" if right == One => left
-      case "^" if right == Zero => One
-      case _ =>
-        // NOTE: we check only for gatherer left, right
-        cancelOperands(left, right, f.name) orElse
-          cancel(left, right, f.name) orElse
-          cancel(right, left, f.name) orElse
-          gatherer(left, right, f.name) getOrElse
-          BiFunction(left, right, f)
-    }
-    // TODO remove this debugging aid
-    if (result != this) println(s"simplified $this to $result")
-    result
-  }
-
   private lazy val value: Number = f(a.materialize, b.materialize)
 
   private def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
