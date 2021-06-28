@@ -9,8 +9,7 @@ import org.scalatest.matchers.should
 class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   val sb = new StringBuilder
-  implicit val logger: MatchLogger = w => sb.append(s"$w\n")
-  implicit val ll: LogLevel = LogOff
+  implicit val logger: MatchLogger = SBLogger(LogOff, sb)
 
   before {
     sb.clear()
@@ -18,7 +17,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   after {
     if (sb.nonEmpty) println(sb.toString())
-    if (ll != com.phasmidsoftware.matchers.LogOff)
+    if (logger.logLevel != com.phasmidsoftware.matchers.LogOff)
       println("===============================\n")
   }
 
@@ -437,3 +436,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     zo.get shouldBe BiFunction(Number(3), Number(-1), Product)
   }
 }
+
+case class SBLogger(override val logLevel: LogLevel, sb: StringBuilder) extends MatchLogger(logLevel, { w => sb.append(s"$w\n"); () })
+

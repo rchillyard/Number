@@ -75,7 +75,6 @@ trait Expression {
 object Expression {
 
   // NOTE this is where we turn logging on (by using LogDebug)
-  implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogOff
   implicit val logger: MatchLogger = MatchLogger(LogOff, classOf[Expression])
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
