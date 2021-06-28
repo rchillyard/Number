@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.LogLevel
+import com.phasmidsoftware.matchers.{LogLevel, MatchLogger, LogOff}
 import com.phasmidsoftware.number.core.Number.negate
-import com.phasmidsoftware.number.parse.ShuntingYardParser
+import com.phasmidsoftware.number.parse.{ShuntingYardParser}
 
 /**
   * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
@@ -76,6 +76,7 @@ object Expression {
 
   // NOTE this is where we turn logging on (by using LogDebug)
   implicit val ll: LogLevel = com.phasmidsoftware.matchers.LogOff
+  implicit val logger: MatchLogger = MatchLogger(LogOff, classOf[Expression])
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
   /**
