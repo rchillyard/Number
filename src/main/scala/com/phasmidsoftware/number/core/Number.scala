@@ -7,7 +7,6 @@ import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.math.BigInt
@@ -180,7 +179,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @return the sum.
     */
   def add(x: Field): Field = x match {
-    case n@Number(_, _) => addNumber(n)
+    case n@Number(_, _) => doAdd(n)
     case c@Complex(_, _) => c.add(x)
   }
 
@@ -192,7 +191,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * * @return the product.
     */
   def multiply(x: Field): Field = x match {
-    case n@Number(_, _) => multiplyNumber(n)
+    case n@Number(_, _) => doMultiply(n)
     case c@Complex(_, _) => c.multiply(x)
   }
 
@@ -204,14 +203,14 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @return the quotient.
     */
   def divide(x: Field): Field = x match {
-    case n@Number(_, _) => divideNumber(n)
+    case n@Number(_, _) => doDivide(n)
     case c@Complex(_, _) => c.divide(x)
   }
 
   /**
     * Change the sign of this Number.
     */
-  def unary_- : Field = negateNumber
+  def unary_- : Field = doNegate
 
   /**
     * Raise this Number to the power p.
@@ -219,26 +218,47 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @param p a Number.
     * @return this Number raised to power p.
     */
-  def power(p: Field): Field = p match {
-    case n@Number(_, _) => powerNumber(n)
+  def power(p: Number): Field = p match {
+    case n@Number(_, _) => doPower(n)
     case c@Complex(_, _) => c.power(p)
   }
 
-  protected lazy val negateNumber: Number = multiplyNumber(Number(-1))
+  /**
+    * Negative of this Number.
+    */
+  protected lazy val doNegate: Number = doMultiply(Number(-1))
 
-  protected def addNumber(n: Number): Number = Number.plus(this, n)
+  /**
+    * Add this Number to n.
+    *
+    * @param n another Number.
+    * @return the sum of this and n.
+    */
+  protected def doAdd(n: Number): Number = Number.plus(this, n)
 
-  protected def multiplyNumber(n: Number): Number = Number.times(this, n)
+  /**
+    * Multiply this Number by n.
+    *
+    * @param n another Number.
+    * @return the product of this and n.
+    */
+  protected def doMultiply(n: Number): Number = Number.times(this, n)
 
-  protected def divideNumber(n: Number): Number = multiplyNumber(n.invert)
+  /**
+    * Divide this Number by n.
+    *
+    * @param n another Number.
+    * @return this quotient of this and n, i.e. this/n.
+    */
+  protected def doDivide(n: Number): Number = doMultiply(n.invert)
 
   /**
     * Raise this Number to the power p.
     *
     * @param p a Number.
-    * @return this Number raised to power p.
+    * @return this Number raised to the power of p.
     */
-  def powerNumber(p: Number): Number = Number.power(this, p)
+  def doPower(p: Number): Number = Number.power(this, p)
 
   /**
     * Yields the inverse of this Number.
@@ -267,7 +287,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @return the cosine.
     */
-  def cos: Number = negate(scale(Pi) addNumber Number(Rational.half, Pi).negateNumber).sin
+  def cos: Number = negate(scale(Pi) doAdd Number(Rational.half, Pi).doNegate).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -314,7 +334,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @return this if its positive, else - this.
     */
-  def abs: Number = if (signum >= 0) this else negateNumber
+  def abs: Number = if (signum >= 0) this else doNegate
 
   /**
     * Method to create a new version of this, but with factor f.
@@ -722,7 +742,7 @@ object Number {
       * @param y the addend, a Number.
       * @return a Number whose value is x + y.
       */
-    def +(y: Number): Number = Number(x) addNumber y //.materialize
+    def +(y: Number): Number = Number(x) doAdd y //.materialize
 
     /**
       * Multiply x by y (a Number) and yield a Number.
@@ -730,7 +750,7 @@ object Number {
       * @param y the multiplicand, a Number.
       * @return a Number whose value is x * y.
       */
-    def *(y: Number): Number = Number(x) multiplyNumber y //.materialize
+    def *(y: Number): Number = Number(x) doMultiply y //.materialize
 
     /**
       * Divide x by y (a Number) and yield a Number.
@@ -738,7 +758,7 @@ object Number {
       * @param y the divisor, a Number.
       * @return a Number whose value is x / y.
       */
-    def /(y: Number): Number = Number(x) multiplyNumber y.invert //.materialize
+    def /(y: Number): Number = Number(x) doMultiply y.invert //.materialize
 
     /**
       * Divide x by y (a Number) and yield a Number.
@@ -1203,7 +1223,7 @@ object Number {
 
   private def sin(x: Number): Number = prepareWithSpecialize(x.scale(Pi).transformMonadic(Scalar)(MonadicOperationSin))
 
-  private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y divideNumber x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
+  private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y doDivide x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
 
   private def log(x: Number): Number = x.scale(E).make(Scalar)
 

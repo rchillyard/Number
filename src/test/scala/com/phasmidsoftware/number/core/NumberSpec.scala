@@ -6,7 +6,6 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -728,7 +727,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     import Expression.ExpressionOps
     val expected: Expression = Number.pi * 7 / 4
     // TODO revert this so that it reads actual ... expected
-    //    actual should ===(expected)
+    //  XXX  actual should ===(expected)
     expected should ===(actual)
   }
 

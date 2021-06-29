@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.util.Left
 
 /**
@@ -52,7 +51,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the addend.
     * @return the sum.
     */
-  override def addNumber(x: Number): Number = FuzzyNumber.plus(this, x)
+  override def doAdd(x: Number): Number = FuzzyNumber.plus(this, x)
 
   /**
     * Multiply a Number by this FuzzyNumber.
@@ -60,7 +59,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the multiplicand.
     * @return the product.
     */
-  override def multiplyNumber(x: Number): Number = FuzzyNumber.times(this, x)
+  override def doMultiply(x: Number): Number = FuzzyNumber.times(this, x)
 
   /**
     * Yields the square root of this FuzzyNumber.
@@ -81,7 +80,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param p a Number.
     * @return this Number raised to power p.
     */
-  override def powerNumber(p: Number): Number = FuzzyNumber.power(this, p)
+  override def doPower(p: Number): Number = FuzzyNumber.power(this, p)
 
   /**
     * @return true if this Number is equivalent to zero with at least 50% confidence.

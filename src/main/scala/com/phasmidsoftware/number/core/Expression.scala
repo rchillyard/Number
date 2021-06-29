@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.{LogLevel, LogOff, MatchLogger}
-import com.phasmidsoftware.number.core.Field.recover
+import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 
@@ -67,23 +67,24 @@ trait Expression {
   /**
     * Eagerly compare this Expression with comparand.
     *
+    * TODO this will work only for Numbers. We need to be able to determine if two Complex numbers are essentially the same.
+    *
     * @param comparand the expression to be compared.
     * @return the result of comparing materialized this with materialized comparand.
     */
   def compare(comparand: Expression): Int = recover(for (x <- materialize.asNumber; y <- comparand.materialize.asNumber) yield x.compare(y), NumberException("compare: logic error"))
-  //    materialize.compare(comparand.materialize)
 }
 
 object Expression {
 
-  // NOTE this is where we turn logging on (by using LogDebug)
+  // NOTE this is where we turn logging on (by using LogDebug or LogInfo).
   implicit val logger: MatchLogger = MatchLogger(LogOff, classOf[Expression])
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
   /**
     * The following method is helpful in getting an expression started.
     *
-    * CONSIDER changing type of Literal to Field
+    * CONSIDER changing type of Literal to Number
     */
   def apply(x: Field): Expression = x match {
     case Number.zero => Zero
@@ -126,7 +127,7 @@ object Expression {
   implicit class ExpressionOps(x: Expression) {
 
     /**
-      * Method to lazily multiply the Expression x by y.
+      * Method to lazily multiply x by y.
       *
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
@@ -134,7 +135,7 @@ object Expression {
     def plus(y: Expression): Expression = BiFunction(x, y, Sum)
 
     /**
-      * Method to lazily multiply the Expression x by y.
+      * Method to lazily multiply x by y.
       *
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
@@ -142,15 +143,23 @@ object Expression {
     def +(y: Expression): Expression = x plus y
 
     /**
-      * Method to lazily multiply the Expression x by y.
+      * Method to lazily multiply x by y.
       *
-      * @param y another Field.
+      * @param y a Number.
       * @return an Expression which is the lazy product of x and y.
       */
     def +(y: Number): Expression = this.+(Expression(y))
 
     /**
-      * Method to lazily add the Expression x to y.
+      * Method to lazily multiply x by y.
+      *
+      * @param y a Field.
+      * @return an Expression which is the lazy product of x and y.
+      */
+    def +(y: Field): Expression = this.+(Expression(y))
+
+    /**
+      * Method to lazily add x to y.
       *
       * @param y an Int.
       * @return an Expression which is the lazy product of x and y.
@@ -160,10 +169,18 @@ object Expression {
     /**
       * Method to lazily subtract the Number y from x.
       *
-      * @param y another Number.
+      * @param y a Number.
       * @return an Expression which is the lazy product of x and y.
       */
     def -(y: Number): Expression = BiFunction(x, -Expression(y), Sum)
+
+    /**
+      * Method to lazily subtract the Field y from x.
+      *
+      * @param y a Field.
+      * @return an Expression which is the lazy product of x and y.
+      */
+    def -(y: Field): Expression = BiFunction(x, -Expression(y), Sum)
 
     /**
       * Method to lazily change the sign of this expression.
@@ -181,7 +198,7 @@ object Expression {
     def -(y: Int): Expression = this.-(Number(y))
 
     /**
-      * Method to lazily multiply the Expression x by y.
+      * Method to lazily multiply x by y.
       *
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
@@ -189,15 +206,23 @@ object Expression {
     def *(y: Expression): Expression = BiFunction(x, y, Product)
 
     /**
-      * Method to lazily multiply the Expression x by y.
+      * Method to lazily multiply x by y.
       *
-      * @param y another Field.
+      * @param y a Number.
       * @return an Expression which is the lazy product of x and y.
       */
     def *(y: Number): Expression = *(Expression(y))
 
     /**
-      * Method to lazily multiply the Expression x by y.
+      * Method to lazily multiply x by y.
+      *
+      * @param y a Field.
+      * @return an Expression which is the lazy product of x and y.
+      */
+    def *(y: Field): Expression = *(Expression(y))
+
+    /**
+      * Method to lazily multiply x by y.
       *
       * @param y an Int.
       * @return an Expression which is the lazy product of x and y.
@@ -205,22 +230,30 @@ object Expression {
     def *(y: Int): Expression = *(Number(y))
 
     /**
-      * Method to lazily yield the reciprocal of this Expression.
+      * Method to lazily yield the reciprocal of x.
       *
-      * @return an Expression representing the reciprocal of this.
+      * @return an Expression representing the reciprocal of x.
       */
     def reciprocal: Expression = BiFunction(x, MinusOne, Power)
 
     /**
-      * Method to lazily divide the Field x by y.
+      * Method to lazily divide x by y.
       *
-      * @param y another Number.
+      * @param y a Number.
       * @return an Expression which is the lazy quotient of x and y.
       */
     def /(y: Number): Expression = *(Expression(y).reciprocal)
 
     /**
-      * Method to lazily multiply the Field x by y.
+      * Method to lazily divide x by y.
+      *
+      * @param y a Field.
+      * @return an Expression which is the lazy quotient of x and y.
+      */
+    def /(y: Field): Expression = *(Expression(y).reciprocal)
+
+    /**
+      * Method to lazily multiply x by y.
       *
       * @param y another Field.
       * @return an Expression which is the lazy product of x and y.
@@ -230,7 +263,7 @@ object Expression {
     /**
       * Method to lazily raise x to the power of y.
       *
-      * @param y the power to which x should be raised.
+      * @param y the power to which x should be raised (an Expression).
       * @return an Expression representing x to the power of y.
       */
     def ^(y: Expression): Expression = BiFunction(x, y, Power)
@@ -238,7 +271,7 @@ object Expression {
     /**
       * Method to lazily raise x to the power of y.
       *
-      * @param y the power to which x should be raised.
+      * @param y the power to which x should be raised (a Number).
       * @return an Expression representing x to the power of y.
       */
     def ^(y: Number): Expression = ^(Expression(y))
@@ -301,7 +334,7 @@ object Expression {
       * @param comparand the number to be compared.
       * @return the result of the comparison.
       */
-    def compare(comparand: Field): Int = x compare comparand
+    def compare(comparand: Expression): Int = x compare comparand
   }
 }
 
@@ -335,7 +368,7 @@ abstract class CompositeExpression extends Expression {
 /**
   * A literal number.
   *
-  * @param x the Field.
+  * @param x the Number.
   */
 case class Literal(x: Number) extends AtomicExpression {
 
@@ -355,9 +388,9 @@ case class Literal(x: Number) extends AtomicExpression {
     * Action to materialize this Expression as a Field,
     * that is to say we eagerly evaluate this Expression as a Field.
     *
-    * @return the materialized Field.
+    * @return x.
     */
-  def materialize: Field = x
+  def materialize: Number = x
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -416,7 +449,7 @@ case object Zero extends Constant {
     *
     * @return Number.zero
     */
-  def materialize: Field = Number.zero
+  def materialize: Number = Number.zero
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
@@ -426,9 +459,9 @@ case object One extends Constant {
     * Action to materialize this Expression as a Field,
     * that is to say we eagerly evaluate this Expression as a Field.
     *
-    * @return the materialized Number.
+    * @return 1.
     */
-  def materialize: Field = Number.one
+  def materialize: Number = Number.one
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
@@ -438,9 +471,9 @@ case object MinusOne extends Constant {
     * Action to materialize this Expression as a Field,
     * that is to say we eagerly evaluate this Expression as a Field.
     *
-    * @return the materialized Number.
+    * @return -1.
     */
-  def materialize: Field = negate(Number.one)
+  def materialize: Number = negate(Number.one)
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 
@@ -462,9 +495,9 @@ case object ConstPi extends Constant {
     * Action to materialize this Expression as a Field,
     * that is to say we eagerly evaluate this Expression as a Field.
     *
-    * @return the materialized Number.
+    * @return pi.
     */
-  def materialize: Field = Number.pi
+  def materialize: Number = Number.pi
 
   def maybeFactor: Option[Factor] = Some(Pi)
 }
@@ -478,9 +511,9 @@ case object ConstE extends Constant {
     * Action to materialize this Expression as a Field,
     * that is to say we eagerly evaluate this Expression as a Field.
     *
-    * @return the materialized Number.
+    * @return e.
     */
-  def materialize: Field = Number.e
+  def materialize: Number = Number.e
 
   def maybeFactor: Option[Factor] = Some(E)
 }
@@ -691,16 +724,19 @@ case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = t
 
 case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*", isExact = true)
 
-case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExact = false, commutes = false)
+case object Power extends ExpressionBiFunction((x, y) => x.power(convertToNumber(y)), "^", isExact = false, commutes = false)
 
 /**
   * A lazy monadic expression function.
-  * TODO need to mark whether this function is exact or not (but I can't think of many which are exact)
   *
-  * @param f    the function Field => Field
+  * TODO need to mark whether this function is exact or not (but I can't think of many which are exact).
+  *
+  * TODO implement also for other fields than Numbers.
+  *
+  * @param f    the function Number => Number.
   * @param name the name of this function.
   */
-class ExpressionFunction(f: Number => Number, name: String) extends (Field => Field) {
+class ExpressionFunction(val f: Number => Number, val name: String) extends (Field => Field) {
   /**
     * Evaluate this function on Field x.
     *
@@ -719,6 +755,7 @@ class ExpressionFunction(f: Number => Number, name: String) extends (Field => Fi
 }
 
 object ExpressionFunction {
+  def unapply(arg: ExpressionFunction): Option[(Number => Number, String)] = Some(arg.f, arg.name)
 }
 
 /**
@@ -738,10 +775,6 @@ class ExpressionBiFunction(val f: (Field, Field) => Field, val name: String, val
     * @return the result of f(x).
     */
   override def apply(a: Field, b: Field): Field = f(a, b)
-  //  {
-  //    val zo = for (x <- a.asNumber; y <- b.asNumber) yield f(x,y)
-  //    recover(zo, ExpressionException(s"logic error: ExpressionBiFunction.apply($a, $b)"))
-  //  }
 
   /**
     * Generate helpful debugging information about this ExpressionFunction.

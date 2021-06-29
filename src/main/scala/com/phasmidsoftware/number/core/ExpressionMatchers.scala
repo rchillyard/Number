@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogLevel, MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -67,7 +66,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   /**
     * Matcher which materializes (in the expression sense) the given Expression.
     *
-    * @return an ExpressionMatcher[Number].
+    * @return an ExpressionMatcher[Field].
     */
   def evaluator: ExpressionMatcher[Field] = lift[Expression, Field](e => e.materialize)
 
@@ -420,7 +419,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   /**
     * Matcher which matches on Expressions that directly represent Numbers.
     *
-    * @return a ExpressionMatcher[Number].
+    * @return a ExpressionMatcher[Field].
     */
   def value: ExpressionMatcher[Field] = {
     case Literal(x) => Match(x)
@@ -442,7 +441,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * Matcher to match a specific Number.
     *
     * @param x the Number to match.
-    * @return a Matcher[Number, Number] which matches only on x.
+    * @return a Matcher[Field, Field] which matches only on x.
     */
   def matchNumber(x: Field): Matcher[Field, Field] = {
     case `x` => Match(x)
@@ -508,7 +507,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
           gatherSumInner(q plus y, p plus b)
         case Match(Sum ~ b ~ BiFunction(p, q, Sum)) if q.isExact =>
           gatherSumInner(p plus y, q plus b)
-        // At this point, x is not an exact Sum (it's either inexact or not a Sum).
+        // NOTE At this point, x is not an exact Sum (it's either inexact or not a Sum).
         case Match(Sum ~ b ~ c) =>
           matchBiFunction(y) match {
             case Match(Sum ~ d ~ e) if b.isExact && d.isExact =>

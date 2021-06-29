@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -158,7 +157,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(-1)
     zy.get.factor shouldBe Scalar
-    //    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
+    // XXX zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
     zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
   }
 
@@ -202,7 +201,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
     xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
     val exponent = xy.get
-    val zy = for (x <- xy) yield x powerNumber exponent
+    val zy = for (x <- xy) yield x doPower exponent
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(4)
     zy.get.factor shouldBe Scalar

@@ -67,7 +67,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
     * @param p a Number.
     * @return this Number raised to power p.
     */
-  def power(p: Field): Field = ???
+  def power(p: Number): Field = ???
 
   /**
     * Yields the inverse of this Number.

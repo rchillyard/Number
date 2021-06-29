@@ -63,13 +63,13 @@ case class Expr(x: Expression) extends Item {
 
 object Item {
   def apply(s: String): Item = s.toLowerCase match {
-    // Dyadic operators
+    // XXX Dyadic operators
     case "^" => Power
     case "+" => Add
     case "-" | "−" | "–" => Subtract
     case "*" | "×" => Multiply
     case "/" | "÷" => Divide
-    // Monadic operators
+    // XXX Monadic operators
     case "chs" => Chs
     case "inv" => Inv
     case "v" => Sqrt
@@ -77,14 +77,14 @@ object Item {
     case "exp" => Exponent
     case "sin" => Sin
     case "cos" => Cos
-    // Anadic operators
+    // XXX Anadic operators
     case "<>" => Swap
     case "c" => Clr
     case "" => Noop
-    // Parentheses
+    // XXX Parentheses
     case "(" => Open
     case ")" => Close
-    // Expressions
+    // XXX Expressions
     case x => Expr(Number(x))
   }
 }
