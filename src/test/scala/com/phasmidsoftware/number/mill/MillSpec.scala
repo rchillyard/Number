@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.mill
 
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.{Expression, Number, Rational}
 import com.phasmidsoftware.number.parse.MillParser
 import org.scalactic.Equality
@@ -197,7 +198,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val q: Option[Expression] = value.toOption flatMap (_.evaluate)
     val z = q map (_.materialize)
     z should matchPattern { case Some(_) => }
-    z.get shouldEqual Number("3.000*")
+    convertToNumber(z.get) shouldEqual Number("3.000*")
   }
 
   it should "parse and evaluate:  220xxxx with trailing space" in {

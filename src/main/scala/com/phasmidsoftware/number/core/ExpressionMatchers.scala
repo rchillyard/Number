@@ -69,7 +69,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return an ExpressionMatcher[Number].
     */
-  def evaluator: ExpressionMatcher[Number] = lift[Expression, Number](t => t.materialize)
+  def evaluator: ExpressionMatcher[Field] = lift[Expression, Field](e => e.materialize)
 
   /**
     * Method to match an Expression and replace it with a simplified expression.
@@ -422,7 +422,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     *
     * @return a ExpressionMatcher[Number].
     */
-  def value: ExpressionMatcher[Number] = {
+  def value: ExpressionMatcher[Field] = {
     case Literal(x) => Match(x)
     case x@ExactNumber(_, _) => Match(x)
     case x@FuzzyNumber(_, _, _) => Match(x)
@@ -431,12 +431,12 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
   }
 
   /**
-    * Matcher which matches on Expressions that directly represents a specific given Number.
+    * Matcher which matches on Expressions that directly represents a specific given Field.
     *
     * @param x the Number to match.
     * @return a Matcher[Expression, Number].
     */
-  def matchValue(x: Number): ExpressionMatcher[Number] = (value & matchNumber(x)) :| s"matchValue($x)"
+  def matchValue(x: Field): ExpressionMatcher[Field] = (value & matchNumber(x)) :| s"matchValue($x)"
 
   /**
     * Matcher to match a specific Number.
@@ -444,7 +444,7 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * @param x the Number to match.
     * @return a Matcher[Number, Number] which matches only on x.
     */
-  def matchNumber(x: Number): Matcher[Number, Number] = {
+  def matchNumber(x: Field): Matcher[Field, Field] = {
     case `x` => Match(x)
     case e => Miss("matchNumber", e)
   }

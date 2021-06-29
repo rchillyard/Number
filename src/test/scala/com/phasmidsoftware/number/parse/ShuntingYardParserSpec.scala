@@ -25,7 +25,7 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parseInfix 1" in {
     val sy = p.parseInfix("1")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate) yield e.materialize
+    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
     xo.get shouldBe Number.one
   }
@@ -33,7 +33,7 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parseInfix 1 + 2" in {
     val sy = p.parseInfix("1 + 2")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate) yield e.materialize
+    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
     xo.get shouldBe Number(3)
   }
@@ -41,7 +41,7 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parseInfix ( 1 + 2 ) * 3" in {
     val sy = p.parseInfix("( 1 + 2 ) * 3")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate) yield e.materialize
+    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
     xo.get shouldBe Number(9)
   }
@@ -49,15 +49,14 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parseInfix ( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ^ 9" in {
     val sy = p.parseInfix("( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ^ 9")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate) yield e
+    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
-    val yo: Option[Number] = xo map (_.materialize)
-    yo.get shouldEqual Number(60716.99276646)
+    xo.get shouldBe Number("60716.992766464000")
   }
   it should "parseInfix ( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ^ 2 ) ^ 3 )" in {
     val sy = p.parseInfix("( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ^ 2 ) ^ 3 )")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate) yield e.materialize
+    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
     xo.get shouldBe Number(64)
   }
@@ -65,7 +64,7 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     val sy = p.parseInfix("3 + 4 × 2 / ( 1 - 5 ) ^ 2 ^ 3")
     sy should matchPattern { case Success(_) => }
     // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate) yield e.materialize
+    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
     xo.get shouldEqual Number(3.0001220703125)
   }
@@ -73,7 +72,7 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parseInfix ( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )" in {
     val sy = p.parseInfix("( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate) yield e.materialize
+    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
     xo.get shouldBe Number(101)
   }

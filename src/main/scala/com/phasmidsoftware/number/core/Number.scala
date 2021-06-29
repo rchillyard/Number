@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
+import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.{negate, prepare}
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
@@ -108,7 +109,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
-abstract class Number(val value: Value, val factor: Factor) extends AtomicExpression with Ordered[Number] {
+abstract class Number(val value: Value, val factor: Factor) extends AtomicExpression with Ordered[Number] with Field {
 
   self =>
 
@@ -161,6 +162,16 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
   def toInt: Option[Int] = maybeInt
 
   /**
+    * Method to determine if this Number is positive.
+    * Use case: does the String representation not start with a "-"?
+    *
+    * CONSIDER evaluating toString instead.
+    *
+    * @return true if this Number is greater than or equal to 0.
+    */
+  def isPositive: Boolean = signum >= 0
+
+  /**
     * Add x to this Number and return the result.
     * See Number.plus for more detail.
     * CONSIDER inlining this method.
@@ -168,41 +179,66 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @param x the addend.
     * @return the sum.
     */
-  def add(x: Number): Number = Number.plus(this, x)
-
-  /**
-    * Change the sign of this Number.
-    */
-  lazy val unary_- : Number = Number.negate(this)
+  def add(x: Field): Field = x match {
+    case n@Number(_, _) => addNumber(n)
+    case c@Complex(_, _) => c.add(x)
+  }
 
   /**
     * Multiply this Number by x and return the result.
     * See Number.times for more detail.
-    * CONSIDER inlining this method.
     *
     * * @param x the multiplicand.
     * * @return the product.
     */
-  def multiply(x: Number): Number = Number.times(this, x)
+  def multiply(x: Field): Field = x match {
+    case n@Number(_, _) => multiplyNumber(n)
+    case c@Complex(_, _) => c.multiply(x)
+  }
 
   /**
     * Divide this Number by x and return the result.
     * See * and invert for more detail.
-    * CONSIDER inlining this method.
     *
     * @param x the divisor.
     * @return the quotient.
     */
-  def divide(x: Number): Number = this multiply x.invert
+  def divide(x: Field): Field = x match {
+    case n@Number(_, _) => divideNumber(n)
+    case c@Complex(_, _) => c.divide(x)
+  }
+
+  /**
+    * Change the sign of this Number.
+    */
+  def unary_- : Field = negateNumber
 
   /**
     * Raise this Number to the power p.
-    * CONSIDER inlining this method.
     *
     * @param p a Number.
     * @return this Number raised to power p.
     */
-  def power(p: Number): Number = Number.power(this, p)
+  def power(p: Field): Field = p match {
+    case n@Number(_, _) => powerNumber(n)
+    case c@Complex(_, _) => c.power(p)
+  }
+
+  protected lazy val negateNumber: Number = multiplyNumber(Number(-1))
+
+  protected def addNumber(n: Number): Number = Number.plus(this, n)
+
+  protected def multiplyNumber(n: Number): Number = Number.times(this, n)
+
+  protected def divideNumber(n: Number): Number = multiplyNumber(n.invert)
+
+  /**
+    * Raise this Number to the power p.
+    *
+    * @param p a Number.
+    * @return this Number raised to power p.
+    */
+  def powerNumber(p: Number): Number = Number.power(this, p)
 
   /**
     * Yields the inverse of this Number.
@@ -231,7 +267,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @return the cosine.
     */
-  def cos: Number = negate(scale(Pi) add -Number(Rational.half, Pi)).sin
+  def cos: Number = negate(scale(Pi) addNumber Number(Rational.half, Pi).negateNumber).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -272,6 +308,13 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   def signum(p: Double): Int
+
+  /**
+    * Method to yield the absolute value of this Number.
+    *
+    * @return this if its positive, else - this.
+    */
+  def abs: Number = if (signum >= 0) this else negateNumber
 
   /**
     * Method to create a new version of this, but with factor f.
@@ -648,6 +691,8 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
 }
 
 object Number {
+  def unapply(arg: Number): Option[(Value, Factor)] = Some(arg.value, arg.factor)
+
   /**
     * Exact value of 1
     */
@@ -677,7 +722,7 @@ object Number {
       * @param y the addend, a Number.
       * @return a Number whose value is x + y.
       */
-    def +(y: Number): Number = (Number(x) add y).materialize
+    def +(y: Number): Number = Number(x) addNumber y //.materialize
 
     /**
       * Multiply x by y (a Number) and yield a Number.
@@ -685,7 +730,7 @@ object Number {
       * @param y the multiplicand, a Number.
       * @return a Number whose value is x * y.
       */
-    def *(y: Number): Number = (Number(x) multiply y).materialize
+    def *(y: Number): Number = Number(x) multiplyNumber y //.materialize
 
     /**
       * Divide x by y (a Number) and yield a Number.
@@ -693,7 +738,7 @@ object Number {
       * @param y the divisor, a Number.
       * @return a Number whose value is x / y.
       */
-    def /(y: Number): Number = (Number(x) multiply y.invert).materialize
+    def /(y: Number): Number = Number(x) multiplyNumber y.invert //.materialize
 
     /**
       * Divide x by y (a Number) and yield a Number.
@@ -1049,7 +1094,7 @@ object Number {
 
   private def plusAligned(x: Number, y: Number): Number =
     y match {
-      case n@FuzzyNumber(_, _, _) => n add x
+      case n@FuzzyNumber(_, _, _) => recover((n plus x).materialize.asNumber, NumberException("logic error: plusAligned"))
       case _ =>
         val (p, q) = x.alignTypes(y)
         prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
@@ -1058,7 +1103,7 @@ object Number {
   @tailrec
   private def times(x: Number, y: Number): Number =
     y match {
-      case n@FuzzyNumber(_, _, _) => n multiply x
+      case n@FuzzyNumber(_, _, _) => recover((n multiply x).materialize.asNumber, NumberException("logic error: plusAligned"))
       case _ =>
         val (p, q) = x.alignTypes(y)
         p.factor + q.factor match {
@@ -1158,7 +1203,7 @@ object Number {
 
   private def sin(x: Number): Number = prepareWithSpecialize(x.scale(Pi).transformMonadic(Scalar)(MonadicOperationSin))
 
-  private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y divide x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
+  private def atan(x: Number, y: Number): Number = prepareWithSpecialize((y divideNumber x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
 
   private def log(x: Number): Number = x.scale(E).make(Scalar)
 

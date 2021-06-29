@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
 
 import scala.util.Left
@@ -51,7 +52,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the addend.
     * @return the sum.
     */
-  override def add(x: Number): Number = FuzzyNumber.plus(this, x)
+  override def addNumber(x: Number): Number = FuzzyNumber.plus(this, x)
 
   /**
     * Multiply a Number by this FuzzyNumber.
@@ -59,7 +60,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the multiplicand.
     * @return the product.
     */
-  override def multiply(x: Number): Number = FuzzyNumber.times(this, x)
+  override def multiplyNumber(x: Number): Number = FuzzyNumber.times(this, x)
 
   /**
     * Yields the square root of this FuzzyNumber.
@@ -80,7 +81,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param p a Number.
     * @return this Number raised to power p.
     */
-  override def power(p: Number): Number = FuzzyNumber.power(this, p)
+  override def powerNumber(p: Number): Number = FuzzyNumber.power(this, p)
 
   /**
     * @return true if this Number is equivalent to zero with at least 50% confidence.
@@ -234,7 +235,7 @@ object FuzzyNumber {
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
       case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
-      case (_, _) => p add q
+      case (_, _) => recover((p plus q).materialize.asNumber, FuzzyNumberException("logic error: plus"))
     }
   }
 
@@ -244,7 +245,7 @@ object FuzzyNumber {
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
       case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
-      case (_, _) => p multiply q
+      case (_, _) => recover((p multiply q).materialize.asNumber, FuzzyNumberException("logic error: times"))
     }
   }
 

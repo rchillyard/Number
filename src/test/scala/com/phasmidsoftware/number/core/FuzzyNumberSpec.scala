@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -67,10 +68,11 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "plus"
+
   it should "add 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
     val y = Number(2)
-    val z = x add y
+    val z = convertToNumber(x add y)
     z.value shouldBe Right(3)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case None => }
@@ -78,7 +80,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1.* and 2" in {
     val xy: Try[Number] = Number.parse("1.*")
     val yy = Success(Number(2))
-    val zy = for (x <- xy; y <- yy) yield x add y
+    val zy = for (x <- xy; y <- yy) yield convertToNumber(x add y)
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar
@@ -87,7 +89,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 and 2.*" in {
     val xy = Number.parse("2.*")
     val yy = Success(Number(1))
-    val zy = for (x <- xy; y <- yy) yield y add x
+    val zy = for (x <- xy; y <- yy) yield convertToNumber(y add x)
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar
@@ -99,7 +101,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     xy.get.fuzz.get.normalizeShape should matchPattern { case AbsoluteFuzz(0.2886751345948129, Gaussian) => }
     val yy = Number.parse("2.*")
     yy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
-    val zy = for (x <- xy; y <- yy) yield x add y
+    val zy = for (x <- xy; y <- yy) yield convertToNumber(x add y)
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar
@@ -111,7 +113,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "multiply 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
     val y = Number(2)
-    val z: Number = (x * y).materialize
+    val z: Number = convertToNumber((x * y).materialize)
     z.value shouldBe Right(2)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case None => }
@@ -121,7 +123,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val yy = Success(Number(2))
     val zy = for (x <- xy; y <- yy) yield x * y
     zy should matchPattern { case Success(_) => }
-    val result = zy.get.materialize
+    val result = convertToNumber(zy.get.materialize)
     result.value shouldBe Right(2)
     result.factor shouldBe Scalar
     result.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
@@ -131,7 +133,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val yy = Success(Number(1))
     val zy: Try[Expression] = for (x <- xy; y <- yy) yield x * y
     zy should matchPattern { case Success(_) => }
-    val result = zy.get.materialize
+    val result = convertToNumber(zy.get.materialize)
     result.value shouldBe Right(2)
     result.factor shouldBe Scalar
     result.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
@@ -143,7 +145,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     yy.get.fuzz.get.normalizeShape.normalize(2, relative = true) should matchPattern { case Some(RelativeFuzz(0.14433756729740646, Gaussian)) => }
     val zy = for (x <- xy; y <- yy) yield x * y
     zy should matchPattern { case Success(_) => }
-    val result = zy.get.materialize
+    val result = convertToNumber(zy.get.materialize)
     result.value shouldBe Right(2)
     result.factor shouldBe Scalar
     result.fuzz should matchPattern { case Some(RelativeFuzz(0.3818813079129867, Gaussian)) => }
@@ -152,11 +154,12 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "-"
   it should "work for 1.*" in {
     val xy: Try[Number] = Number.parse("1.*")
-    val zy = for (x <- xy) yield -x
+    val zy = for (x <- xy) yield convertToNumber(-x)
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(-1)
     zy.get.factor shouldBe Scalar
-    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
+    //    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
   }
 
   behavior of "negate"
@@ -172,7 +175,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "power"
   it should "work for (fuzzy 3)^2 (i.e. an constant Int power)" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), Scalar, Some(RelativeFuzz(0.1, Gaussian)))
-    val z: Number = (x ^ 2).materialize
+    val z: Number = convertToNumber((x ^ 2).materialize)
     z.value shouldBe Right(9)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
@@ -186,7 +189,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
     val zy = for (x <- xy) yield (x ^ 2).materialize
     zy should matchPattern { case Success(_) => }
-    val result: Number = zy.get
+    val result: Number = convertToNumber(zy.get)
     result.value shouldBe Right(4)
     result.factor shouldBe Scalar
     result.fuzz.isDefined shouldBe true
@@ -199,7 +202,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
     xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
     val exponent = xy.get
-    val zy = for (x <- xy) yield x power exponent
+    val zy = for (x <- xy) yield x powerNumber exponent
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(4)
     zy.get.factor shouldBe Scalar

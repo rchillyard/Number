@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogLevel, LogOff, MatchLogger, ~}
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -38,7 +39,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "value"
   it should "work with value on Literal" in {
-    val f: em.ExpressionMatcher[Number] = em.value
+    val f: em.ExpressionMatcher[Field] = em.value
     f(Literal(one)).successful shouldBe true
   }
   it should "work with value on One" in {
@@ -56,7 +57,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchValue"
   it should "work with value 1" in {
-    val f: em.ExpressionMatcher[Number] = em.matchValue(one)
+    val f: em.ExpressionMatcher[Field] = em.matchValue(one)
     val e = Literal(one)
     f(e).successful shouldBe true
   }
@@ -198,7 +199,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = seven.sqrt
     val y: Expression = x ^ 2
     y should matchPattern { case BiFunction(FuzzyNumber(_, _, _), Literal(ExactNumber(Right(2), Scalar)), Power) => }
-    y.materialize shouldEqual Number(7)
+    convertToNumber(y.materialize) shouldEqual Number(7)
   }
   it should "cancel addition and subtraction" in {
     val x = one + 3 - 3
