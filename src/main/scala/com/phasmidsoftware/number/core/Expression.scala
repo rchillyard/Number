@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.matchers.{LogLevel, LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.parse.ShuntingYardParser
