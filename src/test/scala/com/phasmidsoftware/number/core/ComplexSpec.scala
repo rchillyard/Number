@@ -32,6 +32,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "divide" in {
+    val z = ComplexCartesian(Number.two, Number(4))
+    val z1 = z / c2_0
+    z1.materialize shouldBe c1_2
 
   }
 

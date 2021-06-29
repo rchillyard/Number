@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.asComplex
+import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
 import com.phasmidsoftware.number.core.Number.negate
 
 abstract class Complex(val real: Number, val imag: Number) extends AtomicExpression with Field {
@@ -14,16 +15,16 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
   def make(a: Number, b: Number): Complex
 
   /**
-    * Method to determine if this Expression can be evaluated exactly.
+    * Method to determine if this Complex can be evaluated exactly.
     *
     * NOTE: the implementations of this don't always make perfect sense regarding maybeFactor.
     *
-    * @return true if materialize will result in an ExactNumber, else false.
+    * @return true if materialize will result in an exact Field, else false.
     */
   def isExact: Boolean = real.isExact && imag.isExact
 
   /**
-    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
+    * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
     *
     * TODO may need to revisit this as Polar complex numbers should be easily handled.
     *
@@ -32,12 +33,18 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
   def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor; if f1 == f2) yield f1
 
   /**
-    * Action to materialize this Expression as a Number,
-    * that is to say we eagerly evaluate this Expression as a Number.
+    * Action to materialize this Complex as a Field,
     *
-    * @return the materialized Number.
+    * @return this.
     */
   def materialize: Field = this
+
+  /**
+    * Evaluate the magnitude squared of this Complex number.
+    *
+    * @return the magnitude squared.
+    */
+  def magnitudeSquared: Number
 
   /**
     * Add x to this Complex and return the result.
@@ -66,28 +73,38 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
   }
 
   /**
-    * Divide this Number by x and return the result.
+    * Divide this Complex by x and return the result.
     * See * and invert for more detail.
     *
     * @param x the divisor.
     * @return the quotient.
     */
-  def divide(x: Field): Field = ???
+  def divide(x: Field): Field = this multiply x.invert
 
   /**
-    * Raise this Number to the power p.
+    * Raise this Complex to the power p.
     *
     * @param p a Number.
     * @return this Number raised to power p.
     */
-  def power(p: Number): Field = ???
+  def power(p: Number): Field = this match {
+    case ComplexPolar(_, _) =>
+      recover(
+        for (r <- real.^(p).materialize.asNumber; i <- (imag * p).materialize.asNumber) yield make(r, i),
+        ComplexException("logic error: power")
+      )
+    case ComplexCartesian(a, b) => p.toInt match {
+      case Some(0) => ComplexCartesian(Number.one, Number.zero)
+      case Some(-1) => -this divide this.magnitudeSquared
+      case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.reduce[Expression]((a, b) => a * b).materialize
+      case _ => throw ComplexException(s"not implemented: power($p)")
+    }
+  }
 
   /**
-    * Yields the inverse of this Number.
-    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
-    * factors.
+    * Yields the inverse of this Complex.
     */
-  def invert: Field = ???
+  def invert: Field = power(Number(-1))
 
   /**
     * Method to add this to the given parameter (a Cartesian).
@@ -163,6 +180,8 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
 
   def isInfinite: Boolean = x.isInfinite || y.isInfinite
 
+  def magnitudeSquared: Number = convertToNumber(((x doMultiply x) plus (y doMultiply y)).materialize)
+
   /**
     * Action to materialize this Expression and render it as a String,
     * that is to say we eagerly evaluate this Expression as a String.
@@ -206,6 +225,8 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
   def isZero: Boolean = r.isZero
 
   def isInfinite: Boolean = r.isInfinite
+
+  def magnitudeSquared: Number = r
 
   /**
     * Action to materialize this Expression and render it as a String,
