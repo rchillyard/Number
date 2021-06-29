@@ -7,6 +7,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Complex"
 
+  private val c1_2 = ComplexCartesian(Number.one, Number.two)
+  private val c2_0 = ComplexCartesian(Number.two, Number.zero)
+
   it should "imag" in {
 
   }
@@ -16,7 +19,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "multiply" in {
-
+    val z1 = c1_2 * c2_0
+    z1.materialize shouldBe ComplexCartesian(Number.two, Number(4))
   }
 
   it should "unary_$minus" in {
@@ -52,9 +56,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "add" in {
-    val c1 = ComplexCartesian(Number.one, Number.two)
-    val c2 = ComplexCartesian(Number.two, Number.zero)
-    val c3 = c1 add c2
+    val c3 = c1_2 add c2_0
     c3 should matchPattern { case ComplexCartesian(ExactNumber(Right(3), Scalar), ExactNumber(Right(2), Scalar)) => }
   }
 
@@ -70,7 +72,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "addComplex" in {
+  it should "sum" in {
 
   }
 

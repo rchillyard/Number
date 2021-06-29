@@ -1,8 +1,18 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.asComplex
+import com.phasmidsoftware.number.core.Number.negate
 
 abstract class Complex(val real: Number, val imag: Number) extends AtomicExpression with Field {
+  /**
+    * Instance method to make a Complex number from a real and an imaginary part.
+    *
+    * @param a the real part.
+    * @param b the imaginary part.
+    * @return a Complex number, either ComplexCartesian or ComplexPolar
+    */
+  def make(a: Number, b: Number): Complex
+
   /**
     * Method to determine if this Expression can be evaluated exactly.
     *
@@ -27,30 +37,33 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
     *
     * @return the materialized Number.
     */
-  def materialize: Number = throw NumberException("cannot materialize a Complex")
+  def materialize: Field = this
 
   /**
-    * Add x to this Number and return the result.
-    * See Number.plus for more detail.
+    * Add x to this Complex and return the result.
     *
     * @param x the addend.
     * @return the sum.
     */
-  def add(x: Field): Field = addComplex(asComplex(x, polar = false))
+  def add(x: Field): Field = sum(asComplex(x, polar = false))
 
   /**
     * Change the sign of this Number.
     */
-  def unary_- : Field = ???
+  def unary_- : Field = make(real, negate(imag))
+
+  def numberProduct(n: Number): Complex
 
   /**
-    * Multiply this Number by x and return the result.
-    * See Number.times for more detail.
+    * Multiply this Complex by x and return the result.
     *
     * * @param x the multiplicand.
     * * @return the product.
     */
-  def multiply(x: Field): Field = ???
+  def multiply(x: Field): Field = x match {
+    case n@Number(_, _) => numberProduct(n)
+    case c@Complex(_, _) => product(c)
+  }
 
   /**
     * Divide this Number by x and return the result.
@@ -82,12 +95,28 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
     * @param addend the complex addend.
     * @return the sum of this and addend.
     */
-  def addComplex(addend: Complex): Complex = this match {
+  def sum(addend: Complex): Complex = this match {
     case ComplexCartesian(_, _) => doAdd(addend)
     case ComplexPolar(_, _) => asComplex(this, polar = false) doAdd addend
   }
 
   def doAdd(complex: Complex): Complex
+
+  /**
+    * Method to multiply this by the given parameter (a Polar).
+    *
+    * @param multiplicand the complex multiplicand.
+    * @return the product of this and multiplicand.
+    */
+  def product(multiplicand: Complex): Complex = this match {
+    case ComplexPolar(_, _) => doMultiply(multiplicand)
+    case ComplexCartesian(_, _) => multiplicand match {
+      case ComplexCartesian(_, _) => doMultiply(multiplicand)
+      case ComplexPolar(_, _) => asComplex(this, polar = true) doMultiply multiplicand
+    }
+  }
+
+  def doMultiply(complex: Complex): Complex
 
   protected def showImaginary: String = s"${if (imag.isPositive) "" else "-"}${imag.abs}"
 }
@@ -126,6 +155,10 @@ object Complex {
 
 case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
 
+  def numberProduct(n: Number): Complex = make(x doMultiply n, y doMultiply n)
+
+  def make(a: Number, b: Number): Complex = ComplexCartesian(a, b)
+
   def isZero: Boolean = x.isZero && y.isZero
 
   def isInfinite: Boolean = x.isInfinite || y.isInfinite
@@ -148,9 +181,27 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     case ComplexCartesian(a, b) => Complex.apply((x plus a).materialize, (y plus b).materialize, ComplexCartesian, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
     case ComplexPolar(_, _) => throw ComplexException("logic error: ComplexCartesian.doAdd")
   }
+
+  /**
+    * Add two Cartesian Complex numbers.
+    *
+    * @param complex the addend.
+    * @return the sum.
+    */
+  def doMultiply(complex: Complex): Complex = complex match {
+    case ComplexCartesian(a, b) =>
+      val real: Expression = a * x plus -(b * y)
+      val imag: Expression = a * y plus b * x
+      Complex.apply(real.materialize, imag.materialize, ComplexCartesian, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
+    case ComplexPolar(_, _) => throw ComplexException("logic error: ComplexCartesian.doAdd")
+  }
 }
 
 case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
+
+  def numberProduct(n: Number): Complex = make(r doMultiply n, theta)
+
+  def make(a: Number, b: Number): Complex = ComplexPolar(a, b)
 
   def isZero: Boolean = r.isZero
 
@@ -166,6 +217,10 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
 
   def doAdd(complex: Complex): Complex = throw ComplexException("logic error: ComplexPolar.doAdd")
 
+  def doMultiply(complex: Complex): Complex = complex match {
+    case ComplexPolar(a, b) => make(r doMultiply a, theta doAdd b)
+    case _ => throw ComplexException("logic error: ComplexPolar.doMultiply")
+  }
 }
 
 case class ComplexException(str: String) extends Exception(str)

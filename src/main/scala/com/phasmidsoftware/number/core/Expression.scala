@@ -90,6 +90,7 @@ object Expression {
     case Number.zero => Zero
     case Number.one => One
     case n@Number(_, _) => Literal(n)
+    case c@Complex(_, _) => c
     case _ => throw NumberException(s"logic error: $x is not a Number")
   }
 

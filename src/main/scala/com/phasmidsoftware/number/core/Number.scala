@@ -234,7 +234,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @param n another Number.
     * @return the sum of this and n.
     */
-  protected def doAdd(n: Number): Number = Number.plus(this, n)
+  def doAdd(n: Number): Number = Number.plus(this, n)
 
   /**
     * Multiply this Number by n.
@@ -242,7 +242,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @param n another Number.
     * @return the product of this and n.
     */
-  protected def doMultiply(n: Number): Number = Number.times(this, n)
+  def doMultiply(n: Number): Number = Number.times(this, n)
 
   /**
     * Divide this Number by n.
@@ -250,7 +250,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @param n another Number.
     * @return this quotient of this and n, i.e. this/n.
     */
-  protected def doDivide(n: Number): Number = doMultiply(n.invert)
+  def doDivide(n: Number): Number = doMultiply(n.invert)
 
   /**
     * Raise this Number to the power p.
