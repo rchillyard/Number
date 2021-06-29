@@ -72,6 +72,14 @@ trait Field extends AtomicExpression {
   def power(p: Number): Field
 
   /**
+    * Raise this Field to the power p.
+    *
+    * @param p an Int.
+    * @return this Field raised to power p.
+    */
+  def power(p: Int): Field
+
+  /**
     * Yields the inverse of this Field.
     * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
     * factors.

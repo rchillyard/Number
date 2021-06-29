@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Complex.asComplex
+import com.phasmidsoftware.number.core.Complex.narrow
 import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
 import com.phasmidsoftware.number.core.Number.negate
 
@@ -52,7 +52,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
     * @param x the addend.
     * @return the sum.
     */
-  def add(x: Field): Field = sum(asComplex(x, polar = false))
+  def add(x: Field): Field = sum(narrow(x, polar = false))
 
   /**
     * Change the sign of this Number.
@@ -101,10 +101,12 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
     }
   }
 
+  def power(p: Int): Field = power(Number(p))
+
   /**
     * Yields the inverse of this Complex.
     */
-  def invert: Field = power(Number(-1))
+  def invert: Field = power(-1)
 
   /**
     * Method to add this to the given parameter (a Cartesian).
@@ -114,7 +116,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
     */
   def sum(addend: Complex): Complex = this match {
     case ComplexCartesian(_, _) => doAdd(addend)
-    case ComplexPolar(_, _) => asComplex(this, polar = false) doAdd addend
+    case ComplexPolar(_, _) => narrow(this, polar = false) doAdd addend
   }
 
   def doAdd(complex: Complex): Complex
@@ -129,7 +131,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
     case ComplexPolar(_, _) => doMultiply(multiplicand)
     case ComplexCartesian(_, _) => multiplicand match {
       case ComplexCartesian(_, _) => doMultiply(multiplicand)
-      case ComplexPolar(_, _) => asComplex(this, polar = true) doMultiply multiplicand
+      case ComplexPolar(_, _) => narrow(this, polar = true) doMultiply multiplicand
     }
   }
 
@@ -163,7 +165,7 @@ object Complex {
   def apply(a: Field, b: Field, f: (Number, Number) => Complex, x: ComplexException): Complex =
     Field.recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
 
-  def asComplex(x: Field, polar: Boolean): Complex = x match {
+  def narrow(x: Field, polar: Boolean): Complex = x match {
     case c@ComplexCartesian(_, _) => if (polar) convertToPolar(c) else c
     case n@Number(_, _) => ComplexCartesian(n, Number.zero)
   }
@@ -226,7 +228,7 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
 
   def isInfinite: Boolean = r.isInfinite
 
-  def magnitudeSquared: Number = r
+  def magnitudeSquared: Number = r doMultiply r
 
   /**
     * Action to materialize this Expression and render it as a String,

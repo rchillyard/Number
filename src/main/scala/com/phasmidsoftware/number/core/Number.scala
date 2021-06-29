@@ -220,8 +220,10 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     */
   def power(p: Number): Field = p match {
     case n@Number(_, _) => doPower(n)
-    case c@Complex(_, _) => c.power(p)
+    case _ => throw NumberException("logic error: power not supported for non-Number powers")
   }
+
+  def power(p: Int): Field = power(Number(p))
 
   /**
     * Negative of this Number.

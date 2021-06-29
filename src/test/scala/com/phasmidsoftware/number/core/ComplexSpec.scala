@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -39,7 +40,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "isAtomic" in {
-
+    c2_0.isAtomic shouldBe true
   }
 
   it should "simplify" in {
@@ -54,8 +55,19 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "power" in {
+  it should "power1" in {
+    val z = c1_2 power 2
+    z.materialize should matchPattern { case ComplexCartesian(ExactNumber(Right(-3), Scalar), ExactNumber(Right(4), Scalar)) => }
+  }
 
+  it should "power2" in {
+    val z = c1_2 power 0
+    z.materialize should matchPattern { case ComplexCartesian(ExactNumber(Right(1), Scalar), ExactNumber(Right(0), Scalar)) => }
+  }
+
+  it should "power3" in {
+    val z = c1_2 power -1
+    z.materialize shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
   it should "add" in {
@@ -88,7 +100,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "invert" in {
-
+    val z = c1_2.invert
+    z.materialize shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
   it should "apply" in {
@@ -103,7 +116,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "asComplex" in {
+  it should "narrow" in {
 
   }
 
