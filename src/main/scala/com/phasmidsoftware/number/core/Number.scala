@@ -7,6 +7,7 @@ import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.math.BigInt
@@ -228,7 +229,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
   /**
     * Negative of this Number.
     */
-  protected lazy val doNegate: Number = doMultiply(Number(-1))
+  lazy val doNegate: Number = doMultiply(Number(-1))
 
   /**
     * Add this Number to n.
@@ -358,6 +359,13 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @return true if this Number is equal to zero.
     */
   def isInfinite: Boolean = Number.isInfinite(this)
+
+  /**
+    * Evaluate the magnitude squared of this Complex number.
+    *
+    * @return the magnitude squared.
+    */
+  def magnitudeSquared: Expression = this * this
 
   /**
     * Method to compare this with another Number.

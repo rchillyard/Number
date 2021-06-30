@@ -96,8 +96,16 @@ trait Field extends AtomicExpression {
     case n@Number(_, _) => Some(n)
     case ComplexCartesian(x, y) if y == Number.zero => Some(x)
     case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
+    case ComplexPolar(r, theta) if theta == Number.pi => Some(r.doNegate)
     case _ => None
   }
+
+  /**
+    * Evaluate the magnitude squared of this Complex number.
+    *
+    * @return the magnitude squared.
+    */
+  def magnitudeSquared: Expression
 }
 
 object Field {
