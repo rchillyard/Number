@@ -27,7 +27,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   /**
     * @return true.
     */
-  def isExact: Boolean = factor == Scalar
+  def isExact: Boolean = true
 
   /**
     * Auxiliary constructor for the usual situation with the default factor.

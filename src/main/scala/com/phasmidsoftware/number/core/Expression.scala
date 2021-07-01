@@ -594,7 +594,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the value of exact which is based on a, b, and f.
     */
-  def isExact: Boolean = exact && maybeFactor.contains(Scalar)
+  def isExact: Boolean = exact && maybeFactor.isDefined && value.isExact
 
   /**
     * TODO implement properly according to the actual function involved.
@@ -635,8 +635,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an Expression tree which is the simpler equivalent of this.
     */
   def simplify: Expression =
-    if (isExact && maybeFactor.contains(Scalar))
-      value
+    if (isExact) value
     else {
       import Expression._
       em.simplifier(this) match {
