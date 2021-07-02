@@ -169,6 +169,19 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
   }
 
+  behavior of "isExact"
+  it should "be true for any constant Number" in {
+    Number.one.isExact shouldBe true
+    Number.pi.isExact shouldBe true
+  }
+  it should "be true for any sum of exact Numbers of the same factor (not e)" in {
+    (Number.one plus Number.two).isExact shouldBe true
+    (Number.pi plus Number.pi).isExact shouldBe true
+  }
+  it should "be true for any product of exact Numbers of factor e" in {
+    (Number.e multiply Number.e).isExact shouldBe true
+  }
+
   behavior of "depth"
   it should "be 1 for any atomic expression" in {
     Expression(1).depth shouldBe 1
