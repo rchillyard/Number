@@ -143,14 +143,6 @@ object Complex {
     apply(z, c.y atan c.x, ComplexPolar, ComplexException(s"logic error: convertToPolar2: $c"))
   }
 
-  //  , ComplexPolar, ComplexException(s"logic error: convertToPolar: $c"))
-  //  {
-  //    val ro: Option[Number] = for (p <- (c.x multiply c.x add c.y multiply  c.y).asNumber; z <- p.sqrt.materialize.asNumber) yield z
-  //    val to: Option[Number] = for (z <- (c.y atan c.x).asNumber) yield z
-  //    val zo = for (r <- ro; t <- to) yield ComplexPolar(r, t)
-  //    recover(zo, ComplexException(s"logic error: convertToPolar: $c"))
-  //  }
-
   def convertToCartesian(c: ComplexPolar): Complex =
     apply(c.r multiply c.theta.cos, c.r multiply c.theta.sin, ComplexCartesian, ComplexException(s"logic error: convertToCartesian: $c"))
 
@@ -163,7 +155,6 @@ object Complex {
     case c@ComplexPolar(_, _) => if (!polar) convertToCartesian(c) else c
     case n@Number(_, _) => ComplexCartesian(n, Number.zero)
   }
-
 }
 
 case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {

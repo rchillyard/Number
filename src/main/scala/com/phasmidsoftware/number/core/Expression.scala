@@ -594,17 +594,28 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the value of exact which is based on a, b, and f.
     */
-  def isExact: Boolean = exact && maybeFactor.contains(Scalar)
+  def isExact: Boolean = {
+    val exact1 = exact
+    val bool = maybeFactor.isDefined
+//    val bool = maybeFactor.contains(Scalar)
+    println(s"isExact for $this: $exact1 && $bool")
+    exact1 && bool
+  }
 
   /**
     * TODO implement properly according to the actual function involved.
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
-  def maybeFactor: Option[Factor] = f match {
-    case Sum => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2) yield f1
-    case Product => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2 || f2 == Scalar || f1 == Scalar) yield if (f1 == f2) f1 else if (f2 == Scalar) f1 else f2
-    case Power => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f2 == Scalar) yield f1
+  def maybeFactor: Option[Factor] = {
+    val result = f match {
+      case Sum => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2) yield f1
+      case Product =>
+        for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2 || f2 == Scalar || f1 == Scalar) yield if (f1 == f2) f1 else if (f2 == Scalar) f1 else f2
+      case Power => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f2 == Scalar) yield f1
+    }
+    println(s"maybeFactor for $this: $result")
+    result
   }
 
 
@@ -705,8 +716,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 
   private lazy val value: Field = f(a.materialize, b.materialize)
 
+  // CONSIDER: we now treat all integer powers as not causing fuzziness.  Is that right?
   private def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
-    case Power => a.isExact && b.isExact && b.materialize.asNumber.flatMap(x => x.toInt.map(_ >= 0)).isDefined
+    case Power => a.isExact && b.isExact && b.materialize.asNumber.flatMap(x => x.toInt).isDefined
     case _ => false
   }
 

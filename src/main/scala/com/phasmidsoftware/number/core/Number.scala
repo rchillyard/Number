@@ -7,7 +7,6 @@ import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.math.BigInt
@@ -27,7 +26,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   /**
     * @return true.
     */
-  def isExact: Boolean = factor == Scalar
+  def isExact: Boolean = true
 
   /**
     * Auxiliary constructor for the usual situation with the default factor.
