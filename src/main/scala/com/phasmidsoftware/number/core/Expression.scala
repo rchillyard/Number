@@ -601,17 +601,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
-  def maybeFactor: Option[Factor] = {
-    val result = f match {
-      case Sum => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2) yield f1
-      case Product =>
-        for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2 || f2 == Scalar || f1 == Scalar) yield if (f1 == f2) f1 else if (f2 == Scalar) f1 else f2
-      case Power => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f2 == Scalar) yield f1
-    }
-    println(s"maybeFactor for $this: $result")
-    result
+  def maybeFactor: Option[Factor] = f match {
+    case Sum => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2) yield f1
+    case Product => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2 || f2 == Scalar || f1 == Scalar) yield if (f1 == f2) f1 else if (f2 == Scalar) f1 else f2
+    case Power => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f2 == Scalar) yield f1
   }
-
 
   /**
     * Method to determine the depth of this Expression.
@@ -637,14 +631,17 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * Typically, we simplify non-exact expressions if possible.
     * There is no compelling need to simplify exact expressions.
     *
+    * TODO replace logic with something from Matchers (maybe?)
+    *
     * @return an Expression tree which is the simpler equivalent of this.
     */
   def simplify: Expression =
     if (isExact) value
     else {
       import Expression._
-      em.simplifier(this) match {
-        case em.Match(e) => e.asInstanceOf[Expression]
+      val z: em.MatchResult[Expression] = em.simplifier(this)
+      z match {
+        case em.Match(e) => e
         case _ => this
       }
     }
@@ -669,15 +666,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ => None
   }
 
-  private def cancel(l: Expression, r: Expression, name: String): Option[Expression] = inverter(name) match {
-    case Some((op, exp, result)) => r match {
-      case BiFunction(a, b, f) if same(l, a) && b == exp && f == op => Some(result)
-      case BiFunction(a, b, f) if a == exp && same(l, b) && f == op => Some(result)
-      case _ => None
-    }
-    case None => None
-  }
-
   /**
     * NOTE: we do a materialize here, which isn't right.
     * TODO fix it.
@@ -686,24 +674,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 
   private def grouper(name: String): Option[(ExpressionBiFunction, ExpressionBiFunction)] = name match {
     case "^" => Some((Power, Product))
-    case _ => None
-  }
-
-  private def gatherer(l: Expression, r: Expression, name: String): Option[Expression] = grouper(name) match {
-    case Some((op, f)) => l match {
-      case BiFunction(a, b, `op`) =>
-        val function1 = BiFunction(b, r, f)
-        val simplify1 = function1.simplify
-        val function2 = BiFunction(a, simplify1, op)
-        val simplify2 = function2.simplify
-        Some(simplify2)
-      case _ => None
-    }
-    case None => None
-  }
-
-  private def cancelOperands(l: Expression, r: Expression, name: String): Option[Expression] = (l, r, name) match {
-    case (MinusOne, One, "+") | (One, MinusOne, "+") => Some(Zero)
     case _ => None
   }
 

@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogLevel, MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -74,11 +75,9 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
     * Method to match an Expression and replace it with a simplified expression.
     * However, it will accept the replacement only if the replacement has an exact value.
     *
-    * TODO remove this prefer method call. It should not be necessary.
-    *
     * @return an Transformer.
     */
-  def simplifier: Transformer = simpler(biFunctionSimplifier | functionSimplifier :| "simplifier")
+  def simplifier: Transformer = matchesIfResultOK(biFunctionSimplifier | functionSimplifier :| "simplifier", isSimpler)
 
   /**
     * Method to simplify a BiFunction.
@@ -629,14 +628,27 @@ class ExpressionMatchers(implicit val ll: LogLevel, val matchLogger: MatchLogger
       case _ => Miss(s"eliminateIdentity $f, $x, $c missed", Number.NaN)
     }
 
-  private def simpler(m: Transformer): Transformer = Matcher[Expression, Expression] {
-    r =>
-      m(r) match {
-        case z@Match(x) if x.isExact || x.depth < r.depth => z
-        case Match(x) => Miss("simplified version is neither exact nor simpler", x)
+  /**
+    * Method to create a Matcher which tries to match on parameter m, and then checks the result
+    * according to function f.
+    *
+    * CONSIDER look for a combination of matchers which already provide this functionality.
+    *
+    * TODO promote this to Matchers.
+    *
+    * @param m Matcher[T, R]
+    * @return a Mather[T, R] based on m.
+    */
+  def matchesIfResultOK[T, R](m: Matcher[T, R], f: (T, R) => Boolean): Matcher[T, R] = Matcher[T, R] {
+    t =>
+      m(t) match {
+        case z@Match(r) if f(t, r) => z
+        case Match(r) => Miss("matchesIfResultOK: matched but guard failed", r)
         case mr => mr
       }
   }
+
+  private def isSimpler(t: Expression, r: Expression): Boolean = r.isExact || r.depth < t.depth
 
   //noinspection ScalaUnusedSymbol
   // NOTE unused method but keeping it for now.

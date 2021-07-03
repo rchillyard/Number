@@ -206,14 +206,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val q = x.simplify
     q shouldBe one
   }
-  // FIXME Caused by July 1st commit
-  ignore should "cancel multiplication and division" in {
+  it should "cancel multiplication and division" in {
     val x = Number.pi * 2 / 2
     val simplify = x.simplify
     simplify shouldBe Number.pi
   }
-  // FIXME Caused by July 1st commit
-  ignore should "cancel multiplication and division backwards" in {
+  it should "cancel multiplication and division backwards" in {
     val x = Number.pi / 2 * 2
     val simplify = x.simplify
     simplify shouldBe Number.pi
@@ -294,6 +292,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     q.materialize shouldBe Number(2)
   }
   // NOTE: this will succeed only if we allow simplifications which reduce depth (but are not necessarily exact)
+  // FIXME problem with distributePowerPower
   ignore should "simplify 1" in {
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
