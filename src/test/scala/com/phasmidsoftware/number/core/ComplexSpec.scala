@@ -96,7 +96,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "maybeFactor" in {
     c1_2.maybeFactor shouldBe Some(Scalar)
-    p1_pi.maybeFactor shouldBe None
+    ComplexCartesian(Number.one, Number.pi).maybeFactor shouldBe None
+    p1_pi.maybeFactor shouldBe Some(Scalar)
+    ComplexPolar(Number.one, Number.one).maybeFactor shouldBe None
   }
 
   it should "sum" in {

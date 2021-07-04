@@ -378,7 +378,7 @@ case class Literal(x: Number) extends AtomicExpression {
     *
     * @return true if materialize will result in an ExactNumber, else false.
     */
-  def isExact: Boolean = x.isExact && maybeFactor.contains(Scalar)
+  def isExact: Boolean = x.isExact
 
   /**
     * @return Some(factor).
@@ -597,15 +597,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   def isExact: Boolean = exact && maybeFactor.isDefined && value.isExact
 
   /**
-    * TODO implement properly according to the actual function involved.
+    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
     *
-    * @return Some(factor) if expression only involves that factor; otherwise None.
+    * @return the value of factorsMatch for the function f and the results of invoking maybeFactor on each operand..
     */
-  def maybeFactor: Option[Factor] = f match {
-    case Sum => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2) yield f1
-    case Product => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f1 == f2 || f2 == Scalar || f1 == Scalar) yield if (f1 == f2) f1 else if (f2 == Scalar) f1 else f2
-    case Power => for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; if f2 == Scalar) yield f1
-  }
+  def maybeFactor: Option[Factor] = for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; r <- factorsMatch(f, f1, f2)) yield r
 
   /**
     * Method to determine the depth of this Expression.
@@ -660,21 +656,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   override def toString: String = if (exact) s"($a $f $b)" else s"{$a $f $b}"
 
-  private def inverter(name: String): Option[(ExpressionBiFunction, Expression, Expression)] = name match {
-    case "+" => Some((Product, MinusOne, Zero))
-    case "*" => Some((Power, MinusOne, One))
-    case _ => None
-  }
-
-  /**
-    * NOTE: we do a materialize here, which isn't right.
-    * TODO fix it.
-    */
-  private def same(l: Expression, a: Expression) = a == l || a == l.materialize
-
-  private def grouper(name: String): Option[(ExpressionBiFunction, ExpressionBiFunction)] = name match {
-    case "^" => Some((Power, Product))
-    case _ => None
+  // TODO note that E numbers don't behave like other numbers so really should be excluded from all cases
+  private def factorsMatch(f: ExpressionBiFunction, f1: Factor, f2: Factor): Option[Factor] = f match {
+    case Sum if f1 == f2 && f1 != E =>
+      Some(f1)
+    case Product if f1 == f2 || f1 == Scalar || f2 == Scalar =>
+      if (f1 == f2) Some(f1) else if (f2 == Scalar) Some(f1) else Some(f2)
+    case Power if f2 == Scalar =>
+      Some(f1)
+    case _ =>
+      None
   }
 
   private lazy val value: Field = f(a.materialize, b.materialize)

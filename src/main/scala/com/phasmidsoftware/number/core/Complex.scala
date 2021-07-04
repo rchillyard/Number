@@ -24,15 +24,6 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
   def isExact: Boolean = real.isExact && imag.isExact
 
   /**
-    * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
-    *
-    * TODO may need to revisit this as Polar complex numbers should be easily handled.
-    *
-    * @return Some(factor) if expression only involves that factor; otherwise None.
-    */
-  def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor; if f1 == f2) yield f1
-
-  /**
     * Action to materialize this Complex as a Field,
     *
     * @return this.
@@ -86,7 +77,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
         for (r <- real.^(p).materialize.asNumber; i <- (imag * p).materialize.asNumber) yield make(r, i),
         ComplexException("logic error: power")
       )
-    case ComplexCartesian(a, b) => p.toInt match {
+    case ComplexCartesian(_, _) => p.toInt match {
       case Some(0) => ComplexCartesian(Number.one, Number.zero)
       case Some(-1) => -this divide this.magnitudeSquared.materialize
       case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.reduce[Expression]((a, b) => a * b).materialize
@@ -159,6 +150,13 @@ object Complex {
 
 case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
 
+  /**
+    * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
+    *
+    * @return Some(factor) if expression only involves that factor; otherwise None.
+    */
+  def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor; if f1 == f2) yield f1
+
   def numberProduct(n: Number): Complex = make(x doMultiply n, y doMultiply n)
 
   def make(a: Number, b: Number): Complex = ComplexCartesian(a, b)
@@ -204,6 +202,13 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
 }
 
 case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
+
+  /**
+    * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
+    *
+    * @return Some(factor of r) if factor of theta is Pi; otherwise None.
+    */
+  def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor; if f2 == Pi) yield f1
 
   def numberProduct(n: Number): Complex = make(r doMultiply n, theta)
 
