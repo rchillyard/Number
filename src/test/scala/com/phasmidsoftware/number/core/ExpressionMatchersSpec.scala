@@ -261,7 +261,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchSimplifyPlusIdentity"
   it should "eliminate 1" in {
-    val p = em.matchSimplifyPlusIdentity
+    val p = em.matchSimplifySumIdentity
     import em.TildeOps
     p(Sum ~ two ~ zero) shouldBe em.Match(two)
     p(Sum ~ zero ~ two) shouldBe em.Match(two)
