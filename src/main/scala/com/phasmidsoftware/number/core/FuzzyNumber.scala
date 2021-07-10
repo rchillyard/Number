@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import scala.util.Left
 
 /**
@@ -11,6 +12,8 @@ import scala.util.Left
   * TODO implement scale, atan.
   * TODO FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz.
   * TODO ensure that every Double calculation contributes fuzziness.
+  * NOTE it is not necessary to override compareTo because the operative method is signum for all Number comparisons,
+  * and that is overridden here.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
@@ -182,6 +185,23 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     sb.append(factor.toString)
     sb.toString
   }
+
+  /**
+    * NOTE: I'm not 100% sure if this is strictly necessary.
+    *
+    * @param that another object.
+    * @return true if this can equal that.
+    */
+  override def canEqual(that: Any): Boolean = that match {
+    case x: Number => true
+    case x: AtomicExpression => x.materialize.asNumber.isDefined
+    case _ => false
+  }
+
+  // CONSIDER implementing equals
+  //  override def equals(obj: Any): Boolean = obj match {
+  //    case n@Number(_,_) => compare(n) == 0
+  //  }
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
