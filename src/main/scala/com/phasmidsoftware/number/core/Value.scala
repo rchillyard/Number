@@ -64,12 +64,24 @@ case object Scalar extends Factor {
   def +(other: Factor): Option[Factor] = Some(other)
 }
 
+/**
+  * This factor is primarily used for rotation by an angle.
+  * The range of such values is 0 thru 2pi.
+  */
 case object Pi extends NonScalarFactor {
   val value: Double = Math.PI
 
   override def toString: String = Factor.sPi
 }
 
+/**
+  * This factor essentially provides log/exponent arithmetic.
+  *
+  * A number in factor E will evaluate as e raised to that power.
+  * So, it is the natural log of a scalar value.
+  *
+  * Thus the range of such values is any positive number.
+  */
 case object E extends NonScalarFactor {
   val value: Double = Math.E
 
