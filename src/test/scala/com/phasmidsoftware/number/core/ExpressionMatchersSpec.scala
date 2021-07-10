@@ -198,7 +198,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val seven = Number(7)
     val x = seven.sqrt
     val y: Expression = x ^ 2
-    y should matchPattern { case BiFunction(FuzzyNumber(_, _, _), Literal(ExactNumber(Right(2), Scalar)), Power) => }
+    y should matchPattern { case BiFunction(FuzzyNumber(_, _, _), ExactNumber(Right(2), Scalar), Power) => }
     convertToNumber(y.materialize) shouldEqual Number(7)
   }
   it should "cancel addition and subtraction" in {
@@ -243,7 +243,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = x + 3
     val z: ExpressionMatchers#MatchResult[Expression] = q(y)
     z.successful shouldBe true
-    z.get shouldBe Number(12)
+    z.get.materialize shouldBe Number(12)
   }
 
   behavior of "various operations"

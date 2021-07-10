@@ -82,16 +82,12 @@ object Expression {
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
   /**
-    * The following method is helpful in getting an expression started.
-    *
-    * CONSIDER changing type of Literal to Number
+    * The following method is helpful in getting an expression from a Field.
     */
   def apply(x: Field): Expression = x match {
-    case Number.zero => Zero
-    case Number.one => One
-    case n@Number(_, _) => Literal(n)
+    case n@Number(_, _) => n
     case c@Complex(_, _) => c
-    case _ => throw NumberException(s"logic error: $x is not a Number")
+    case _ => throw NumberException(s"logic error: $x is not a Number or a Complex")
   }
 
   /**
@@ -328,6 +324,7 @@ object Expression {
     def exp: Expression = Function(x, Exp)
 
     // TODO add atan method.
+    def atan(y: Expression): Expression = BiFunction(x, y, Atan)
 
     /**
       * Eagerly compare this expression with y.
@@ -682,6 +679,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 case object Sine extends ExpressionFunction(x => x.sin, "sin")
 
 case object Cosine extends ExpressionFunction(x => x.cos, "cos")
+
+case object Atan extends ExpressionBiFunction((x, y) => (for (a <- x.asNumber; b <- y.asNumber) yield a atan b).getOrElse(Number.NaN), "atan", false, false)
 
 case object Log extends ExpressionFunction(x => x.log, "log")
 
