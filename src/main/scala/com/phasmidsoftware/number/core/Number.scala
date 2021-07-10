@@ -7,6 +7,7 @@ import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value._
 import com.phasmidsoftware.number.parse.NumberParser
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.math.BigInt
@@ -105,6 +106,8 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   *
   * CONSIDER including the fuzziness in Number and simply having ExactNumber always have fuzz of None.
   *
+  * CONSIDER implementing equals. However, be careful!
+  *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   */
@@ -118,6 +121,12 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @param v the value for the new Number.
     */
   def this(v: Value) = this(v, Scalar)
+
+  // CONSIDER implementing equals (but be careful!)
+  //  override def equals(obj: Any): Boolean = obj match {
+  //    case x: Number => this.compare(x) == 0
+  //    case _ => false
+  //  }
 
   def maybeFactor: Option[Factor] = Some(factor)
 
@@ -723,9 +732,13 @@ object Number {
   def unapply(arg: Number): Option[(Value, Factor)] = Some(arg.value, arg.factor)
 
   /**
-    * Exact value of 1
+    * Exact value of 0
     */
   val zero: Number = ExactNumber(Right(0), Scalar)
+  /**
+    * Exact value of -0
+    */
+  val negZero: Number = ExactNumber(Left(Right(Rational(0, -1))), Scalar)
   /**
     * Exact value of 1
     */
@@ -738,6 +751,7 @@ object Number {
     * Exact value of pi
     */
   val pi: Number = ExactNumber(Right(1), Pi)
+
   /**
     * Exact value of e
     */
@@ -1034,7 +1048,7 @@ object Number {
     */
   trait NumberIsOrdering extends Ordering[Number] {
     /**
-      * When we do a compare on E numbers, they are in the same order as Scalar numbers.
+      * When we do a compare on E numbers, they are in the same order as Scalar numbers (i.e. monotonically increasing).
       * It's not necessary to convert exact numbers to fuzzy numbers for this purpose, we simply
       * pretend that the E numbers are Scalar numbers.
       *
