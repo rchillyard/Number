@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -730,6 +731,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     //  XXX  actual should ===(expected)
     expected should ===(actual)
   }
+  // TODO need to operate appropriately on negZero.
+  ignore should "evaluate atan" in {
+    Number.one.atan(Number.negZero) shouldBe Number(3, Pi)
+  }
+
 
   // NOTE: Following are the tests of Ordering[Number]
 

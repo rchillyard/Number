@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Field.recover
+
 /**
   * Trait which describes the behavior of all Numbers and Complex instances.
   * See https://en.wikipedia.org/wiki/Field_(mathematics).
@@ -106,6 +108,20 @@ trait Field extends AtomicExpression {
     * @return the magnitude squared.
     */
   def magnitudeSquared: Expression
+
+  /**
+    * Eagerly compare this Field with comparand.
+    *
+    * TODO this will work only for Numbers. We need to be able to determine if two Complex numbers are essentially the same.
+    *
+    * @param comparand the expression to be compared.
+    * @return the result of comparing this with comparand, as Numbers.
+    *         An exception is thrown if either cannot be represented as a Number.
+    */
+  def compare(comparand: Field): Int = (this, comparand) match {
+    case (x@Number(_, _), y@Number(_, _)) => x.compare(y)
+    case (fx, fy) => recover(for (x <- fx.asNumber; y <- fy.asNumber) yield x.compare(y), NumberException("cannot compare Complex numbers"))
+  }
 }
 
 object Field {

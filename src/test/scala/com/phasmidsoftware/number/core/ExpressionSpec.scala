@@ -20,6 +20,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     }
   }
 
+  implicit object FieldEquality extends Equality[Field] {
+    def areEqual(a: Field, b: Any): Boolean = b match {
+      case n: Field => a.compare(n) == 0
+      case _ => false
+    }
+  }
+
   implicit object NumberEquality extends Equality[Number] {
     def areEqual(a: Number, b: Any): Boolean = b match {
       case n: Number => a.compare(n) == 0
@@ -97,6 +104,23 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: Expression = x.sin
     y.materialize shouldBe Number.one
   }
+  it should "evaluate atan" in {
+    Expression(Number.zero).atan(Number.one).materialize shouldBe (Number.pi / 2).materialize
+    Expression(Number.one).atan(Number.zero).materialize shouldBe (Number.pi * 0).materialize
+    Number.one.atan(Number.zero).materialize shouldBe (Number.pi * 0).materialize
+  }
+  it should "evaluate ln E" in {
+    val x: Expression = Number.e
+    val y: Expression = x.log
+    y.materialize shouldBe Number.one
+  }
+  it should "evaluate ln 2E" in {
+    val x: Expression = Number.e * 2
+    val y: Expression = x.log
+    val result = y.materialize
+    val expected = Number("1.693147180559945(13)")
+    result shouldEqual expected
+  }
 
   behavior of "toString"
   it should "work for (sqrt 7)^2" in {
@@ -158,7 +182,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val q = x.simplify
     q shouldBe Number.one
   }
-  // FIXME Evaluation problem
+  // FIXME Issue #47 Evaluation problem
   ignore should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
     val q = x.simplify
