@@ -434,9 +434,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def value: ExpressionMatcher[Field] = {
     case Literal(x) => Match(x)
-    case x@ExactNumber(_, _) => Match(x)
-    case x@FuzzyNumber(_, _, _) => Match(x)
-    case x@(Zero | MinusOne | One) => Match(x.materialize)
+    case x@Number(_, _) => Match(x)
+    case x: Constant => Match(x.materialize)
     case x => Miss("value", x)
   }
 

@@ -6,3 +6,5 @@ project/target
 
 .bsp/
 /api/
+
+logs/

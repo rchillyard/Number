@@ -129,66 +129,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     result.toString shouldBe "{{7 ^ (2 ^ -1)} ^ 2}"
   }
 
-  behavior of "gathering operations"
-  it should "gather powers of 2 and * 1/2" in {
-    val x: Expression = Number(7)
-    val y = x.sqrt
-    val z = y ^ 2
-    z.materialize shouldBe Number(7)
-  }
-
-  behavior of "canceling operations"
-  it should "cancel 1 and - -1" in {
-    val x: Expression = Expression.one
-    val y = -x
-    val z = x + y
-    val simplify = z.simplify
-    simplify shouldBe Number.zero
-  }
-  it should "cancel 2 and * 1/2" in {
-    val x = Expression.one * 2
-    val y = x.reciprocal
-    val z = x * y
-    z.simplify shouldBe Number.one
-  }
-  it should "cancel 2 * 1/2" in {
-    val x = Expression.one * 2
-    val y = x.reciprocal
-    val z = y * x
-    z.simplify shouldBe Number.one
-  }
-  it should "cancel ^2 and sqrt" in {
-    val seven = Expression(7)
-    val x: Expression = seven.sqrt
-    val y = x ^ 2
-    val z = y.simplify
-    z.simplify shouldBe Number(7)
-  }
-  it should "show that lazy evaluation only works when you use it" in {
-    val seven = Number(7)
-    val x: Number = seven.sqrt
-    val y = x ^ 2
-    y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
-  }
-  it should "show ^2 and sqrt for illustrative purposes" in {
-    val seven = Number(7)
-    val x = seven.sqrt
-    val y = convertToNumber((x ^ 2).materialize)
-    y should matchPattern { case FuzzyNumber(_, _, _) => }
-    y shouldEqual Number(7)
-  }
-  it should "cancel addition and subtraction" in {
-    val x = Number.one + 3 - 3
-    val q = x.simplify
-    q shouldBe Number.one
-  }
-  // FIXME Issue #47 Evaluation problem
-  ignore should "cancel multiplication and division" in {
-    val x = Number.e * 2 / 2
-    val q = x.simplify
-    q shouldBe Number.e
-  }
-
   behavior of "various operations"
   it should "evaluate E * 2" in {
     (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"

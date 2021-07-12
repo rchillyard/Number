@@ -667,13 +667,24 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 
   private lazy val value: Field = f(a.materialize, b.materialize)
 
-  // CONSIDER: we now treat all integer powers as not causing fuzziness.  Is that right?
+  /**
+    * Determine if this dyadic expression has an exact result, according to f, the function.
+    * NOTE that Product is always true, but it is possible that Sum or Power could be false.
+    *
+    * CONSIDER not checking a and b as exact because we wouldn't be here if they weren't.
+    *
+    * @param f the function.
+    * @param a first operand.
+    * @param b second operand.
+    * @return true if the result of the f(a,b) is exact.
+    */
   private def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
-    case Power => a.isExact && b.isExact && b.materialize.asNumber.flatMap(x => x.toInt).isDefined
+    case Power => b.materialize.asNumber.flatMap(x => x.toInt).isDefined
+    case Sum => maybeFactor.isDefined
     case _ => false
   }
 
-  private lazy val exact: Boolean = f.isExact && a.isExact && b.isExact || conditionallyExact(f, a, b)
+  private lazy val exact: Boolean = a.isExact && b.isExact && (f.isExact || conditionallyExact(f, a, b))
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")
@@ -686,7 +697,7 @@ case object Log extends ExpressionFunction(x => x.log, "log")
 
 case object Exp extends ExpressionFunction(x => x.exp, "exp")
 
-case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = true)
+case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = false)
 
 case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*", isExact = true)
 
