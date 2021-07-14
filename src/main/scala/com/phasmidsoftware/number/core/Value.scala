@@ -61,7 +61,11 @@ case object Scalar extends Factor {
 
   override def toString: String = ""
 
-  def +(other: Factor): Option[Factor] = Some(other)
+  def +(other: Factor): Option[Factor] = other match {
+    case E => None
+    case _ => Some(other)
+  }
+
 }
 
 /**

@@ -29,7 +29,7 @@ case class Rational(n: BigInt, d: BigInt) {
   require(d.signum >= 0, s"Rational denominator is negative: $d")
 
   // NOTE: ensure that the numerator and denominator are relatively prime.
-  require(n == bigZero && d == bigZero || Rational.gcd(n.abs, d.abs) == 1, s"Rational($n,$d): arguments have common factor: ${Rational.gcd(n, d)}")
+  require(n == bigZero && d == bigZero || n.gcd(d) == 1, s"Rational($n,$d): arguments have common factor: ${n.gcd(d)}")
 
   // Operators
   def +(that: Rational): Rational = Rational.plus(this, that)
@@ -331,7 +331,7 @@ object Rational {
     * @param n the value.
     * @return a Rational with the same value as n.
     */
-  def apply(n: Int): Rational = apply(n.toLong)
+  def apply(n: Int): Rational = apply(BigInt(n))
 
   /**
     * Method to construct a Rational based on a Double.
@@ -385,16 +385,6 @@ object Rational {
     *         or Failure(RationalParserException) if w is malformed.
     */
   def parse(w: String): Try[Rational] = RationalParser.parse(w)
-
-  /**
-    * Tail-recursive method to find the greatest common divisor of two BigInts.
-    * NOTE: This is Euclid's method.
-    *
-    * @param a the first BigInt.
-    * @param b the second BigInt.
-    * @return if (b==0) a else gcd(b, a % b)
-    */
-  @tailrec def gcd(a: BigInt, b: BigInt): BigInt = if (b == 0) a else gcd(b, a % b)
 
   /**
     * Method to yield a Rational exponent (in the sense of the a literal Double: for example 1.0Ex).
@@ -476,7 +466,7 @@ object Rational {
   def hasCorrectRatio(r: Rational, top: BigInt, bottom: BigInt): Boolean = {
     val _a = r * bottom
     val result = bottom == 0 || _a.isInfinity || (_a.isWhole && _a.toBigInt == top)
-    if (!result) throw RationalException(s"incorrect ratio: r=${r.n}/${r.d}, top=$top, bottom=$bottom, _a=${_a}, gcd=${Rational.gcd(top, bottom)}")
+    if (!result) throw RationalException(s"incorrect ratio: r=${r.n}/${r.d}, top=$top, bottom=$bottom, _a=${_a}, gcd=${top.gcd(bottom)}")
     result
   }
 
@@ -506,7 +496,8 @@ object Rational {
   @scala.annotation.tailrec
   private def normalize(n: BigInt, d: BigInt): Rational =
     if (d < 0) normalize(-n, -d) else {
-      val g = gcd(n.abs, d)
+      // CONSIDER that we weren't previously taking the abs of d (which should always be positive)
+      val g = n.gcd(d)
       g.signum match {
         case 0 => Rational.NaN
         case _ => new Rational(n / g, d / g)

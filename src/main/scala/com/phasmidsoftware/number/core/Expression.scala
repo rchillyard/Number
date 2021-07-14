@@ -673,12 +673,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * CONSIDER not checking a and b as exact because we wouldn't be here if they weren't.
     *
+    * TODO refactor this method to remove all parameters since they are simply copies of the values in scope.
+    *
     * @param f the function.
     * @param a first operand.
     * @param b second operand.
     * @return true if the result of the f(a,b) is exact.
     */
-  private def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
+  def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
     case Power => b.materialize.asNumber.flatMap(x => x.toInt).isDefined
     case Sum => maybeFactor.isDefined
     case _ => false

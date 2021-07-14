@@ -122,7 +122,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Expression.one
     val y = -x
     val z = x + y
-    val p = em.matchBiFunction & em.matchDyadicBranches(Sum) & em.matchOffsetting
+    val p = em.matchBiFunction & em.matchDyadicBranches(Sum) & em.matchSumOffsetting
     val result = p(z)
     result should matchPattern { case em.Match(ExactNumber(Right(0), Scalar)) => }
   }
@@ -131,7 +131,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Expression.one
     val y = -x
     val z = y + x
-    val p = em.matchBiFunction & em.matchDyadicBranches(Sum) & em.matchOffsetting
+    val p = em.matchBiFunction & em.matchDyadicBranches(Sum) & em.matchSumOffsetting
     val result = p(z)
     result should matchPattern { case em.Match(ExactNumber(Right(0), Scalar)) => }
   }
@@ -265,18 +265,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ two ~ one) shouldBe em.Match(two)
     p(Product ~ one ~ two) shouldBe em.Match(two)
   }
-  // FIXME Issue #47
-  ignore should "eliminate 2 / 2" in {
-    val p = em.gatherProduct
-    import em.TildeOps
-    val x = Number.e * 2
-    val y: Expression = Number.two.invert
-    val value1: em.MatchResult[Expression] = p(x ~ y)
-    value1 shouldBe em.Match(Expression(Number.e))
-    p(y ~ x) shouldBe em.Match(two)
-  }
 
-  behavior of "matchSimplifyPlusIdentity"
+  behavior of "matchSimplifySumIdentity"
   it should "eliminate 1" in {
     val p = em.matchSimplifySumIdentity
     import em.TildeOps
@@ -349,8 +339,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe one
   }
+
   behavior of "matchSimplifySum"
-  it should "properly simplify 1 + root3 - root3 + 3" in {
+  it should "properly simplify 1 + root3 - root3 + 0" in {
     val p = em.matchSimplifySum
     val z: Expression = Number(3).sqrt
     val x = z plus -z + zero
@@ -358,6 +349,70 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val r = p(Sum ~ one ~ x)
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe one
+  }
+  it should "properly simplify (1 + root3) + (zero - root3)" in {
+    val p = em.matchSimplifySum
+    val root3 = Number(3).sqrt
+    val x: Expression = one + root3
+    val z = zero - root3
+    import em.TildeOps
+    val r = p(Sum ~ x ~ z)
+    r should matchPattern { case em.Match(_) => }
+    r.get shouldBe one
+  }
+
+  behavior of "matchSimplifyProduct"
+  it should "properly simplify 1 * (root3 / root3 * 3)" in {
+    val p = em.matchSimplifyProduct
+    val z: Expression = Number(3).sqrt
+    val x = z * z.reciprocal * Number(3)
+    import em.TildeOps
+    val r = p(Product ~ one ~ x)
+    r should matchPattern { case em.Match(_) => }
+    r.get shouldBe Number(3)
+  }
+  it should "properly simplify (1 * root3) * (3 / root3)" in {
+    val p = em.matchSimplifyProduct
+    val root3 = Number(3).sqrt
+    val x: Expression = one * root3
+    val z = Number(3) * root3.reciprocal
+    import em.TildeOps
+    val r = p(Product ~ x ~ z)
+    r should matchPattern { case em.Match(_) => }
+    r.get shouldBe Number(3)
+  }
+  // FIXME causes a stack overflow
+  ignore should "simplify e * 2 / 2" in {
+    val p = em.matchSimplifyProduct
+    import em.TildeOps
+    val e: Number = Number.e
+    val x: Expression = e * Number.two
+    val y: Expression = Expression(Number.two).reciprocal
+    p(Product ~ x ~ y) shouldBe em.Match(e)
+  }
+  it should "simplify root3 * 2 / 2" in {
+    val p = em.matchSimplifyProduct
+    import em.TildeOps
+    val root3: Number = Number(3).sqrt
+    val x: Expression = root3 * Number.two
+    val y: Expression = Expression(Number.two).reciprocal
+    p(Product ~ x ~ y) shouldBe em.Match(root3)
+  }
+  it should "simplify root4 * 2 / 2" in {
+    val p = em.matchSimplifyProduct
+    import em.TildeOps
+    val root4: Number = Number(4).sqrt
+    val x = root4 * Number.two
+    val y: Expression = Expression(Number.two).reciprocal
+    p(Product ~ x ~ y) shouldBe em.Match(root4)
+  }
+  // FIXME causes a stack overflow
+  ignore should "simplify e * 2 / 2 * 1" in {
+    val p = em.matchSimplifyProduct
+    import em.TildeOps
+    val x = Expression(Number.e) * Number.two
+    val y: Expression = Expression(Number.two).reciprocal * one
+    p(Product ~ x ~ y) shouldBe em.Match(Number.e)
   }
 
   behavior of "gatherSum"
@@ -522,7 +577,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val q = x.simplify
     q shouldBe Number.one
   }
-  // FIXME Issue #47 Evaluation problem
+  // FIXME Issue #47 Evaluation problem: stack overflow
   ignore should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
     val q = x.simplify
