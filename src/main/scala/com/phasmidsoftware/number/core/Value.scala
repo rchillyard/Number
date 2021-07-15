@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.optionMap
+
 import scala.math.BigInt
 import scala.util._
 
@@ -60,15 +61,31 @@ case object Scalar extends Factor {
 
   override def toString: String = ""
 
-  def +(other: Factor): Option[Factor] = Some(other)
+  def +(other: Factor): Option[Factor] = other match {
+    case E => None
+    case _ => Some(other)
+  }
+
 }
 
+/**
+  * This factor is primarily used for rotation by an angle.
+  * The range of such values is 0 thru 2pi.
+  */
 case object Pi extends NonScalarFactor {
   val value: Double = Math.PI
 
   override def toString: String = Factor.sPi
 }
 
+/**
+  * This factor essentially provides log/exponent arithmetic.
+  *
+  * A number in factor E will evaluate as e raised to that power.
+  * So, it is the natural log of a scalar value.
+  *
+  * Thus the range of such values is any positive number.
+  */
 case object E extends NonScalarFactor {
   val value: Double = Math.E
 

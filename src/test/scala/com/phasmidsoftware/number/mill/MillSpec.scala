@@ -1,11 +1,13 @@
 package com.phasmidsoftware.number.mill
 
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.{Expression, Number, Rational}
 import com.phasmidsoftware.number.parse.MillParser
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.{Assertion, Succeeded}
+
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers {
@@ -196,7 +198,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val q: Option[Expression] = value.toOption flatMap (_.evaluate)
     val z = q map (_.materialize)
     z should matchPattern { case Some(_) => }
-    z.get shouldEqual Number("3.000*")
+    convertToNumber(z.get) shouldEqual Number("3.000*")
   }
 
   it should "parse and evaluate:  220xxxx with trailing space" in {

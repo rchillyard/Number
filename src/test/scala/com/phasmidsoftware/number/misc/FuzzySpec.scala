@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.misc
 
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
+
 import scala.util.Success
 
 /**

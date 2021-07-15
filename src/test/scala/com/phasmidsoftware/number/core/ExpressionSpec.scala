@@ -1,11 +1,13 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Expression.{ExpressionOps, pi}
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
@@ -14,6 +16,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     def areEqual(a: Expression, b: Any): Boolean = b match {
       case n: Number => new ExpressionOps(a).compare(n) == 0
       case n: Expression => a.compare(n) == 0
+      case _ => false
+    }
+  }
+
+  implicit object FieldEquality extends Equality[Field] {
+    def areEqual(a: Field, b: Any): Boolean = b match {
+      case n: Field => a.compare(n) == 0
       case _ => false
     }
   }
@@ -54,7 +63,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x2 = Number.pi
     val e = BiFunction(x1, x2, Sum)
     val result = e.materialize
-    result shouldEqual Number(Math.PI + 1)
+    convertToNumber(result) shouldEqual Number(Math.PI + 1)
   }
 
   it should "render" in {
@@ -95,6 +104,23 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: Expression = x.sin
     y.materialize shouldBe Number.one
   }
+  it should "evaluate atan" in {
+    Expression(Number.zero).atan(Number.one).materialize shouldBe (Number.pi / 2).materialize
+    Expression(Number.one).atan(Number.zero).materialize shouldBe (Number.pi * 0).materialize
+    Number.one.atan(Number.zero).materialize shouldBe (Number.pi * 0).materialize
+  }
+  it should "evaluate ln E" in {
+    val x: Expression = Number.e
+    val y: Expression = x.log
+    y.materialize shouldBe Number.one
+  }
+  it should "evaluate ln 2E" in {
+    val x: Expression = Number.e * 2
+    val y: Expression = x.log
+    val result = y.materialize
+    val expected = Number("1.693147180559945(13)")
+    result shouldEqual expected
+  }
 
   behavior of "toString"
   it should "work for (sqrt 7)^2" in {
@@ -103,68 +129,22 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     result.toString shouldBe "{{7 ^ (2 ^ -1)} ^ 2}"
   }
 
-  behavior of "gathering operations"
-  it should "gather powers of 2 and * 1/2" in {
-    val x: Expression = Number(7)
-    val y = x.sqrt
-    val z = y ^ 2
-    z.materialize shouldBe Number(7)
-  }
-
-  behavior of "canceling operations"
-  it should "cancel 1 and - -1" in {
-    val x: Expression = Expression.one
-    val y = -x
-    val z = x + y
-    val simplify = z.simplify
-    simplify shouldBe Number.zero
-  }
-  it should "cancel 2 and * 1/2" in {
-    val x = Expression.one * 2
-    val y = x.reciprocal
-    val z = x * y
-    z.simplify shouldBe Number.one
-  }
-  it should "cancel 2 * 1/2" in {
-    val x = Expression.one * 2
-    val y = x.reciprocal
-    val z = y * x
-    z.simplify shouldBe Number.one
-  }
-  it should "cancel ^2 and sqrt" in {
-    val seven = Expression(7)
-    val x: Expression = seven.sqrt
-    val y = x ^ 2
-    val z = y.simplify
-    z.simplify shouldBe Number(7)
-  }
-  it should "show that lazy evaluation only works when you use it" in {
-    val seven = Number(7)
-    val x: Number = seven.sqrt
-    val y = x ^ 2
-    y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
-  }
-  it should "show ^2 and sqrt for illustrative purposes" in {
-    val seven = Number(7)
-    val x = seven.sqrt
-    val y = (x ^ 2).materialize
-    y should matchPattern { case FuzzyNumber(_, _, _) => }
-    y shouldEqual Number(7)
-  }
-  it should "cancel addition and subtraction" in {
-    val x = Number.one + 3 - 3
-    val q = x.simplify
-    q shouldBe Number.one
-  }
-  it should "cancel multiplication and division" in {
-    val x = Number.e * 2 / 2
-    val q = x.simplify
-    q shouldBe Number.e
-  }
-
   behavior of "various operations"
   it should "evaluate E * 2" in {
     (Number.e * 2).materialize.toString shouldBe "5.436563656918090(35)"
+  }
+
+  behavior of "isExact"
+  it should "be true for any constant Number" in {
+    Number.one.isExact shouldBe true
+    Number.pi.isExact shouldBe true
+  }
+  it should "be true for any sum of exact Numbers of the same factor (not e)" in {
+    (Number.one plus Number.two).isExact shouldBe true
+    (Number.pi plus Number.pi).isExact shouldBe true
+  }
+  it should "be true for any product of exact Numbers of factor e" in {
+    (Number.e multiply Number.e).isExact shouldBe true
   }
 
   behavior of "depth"

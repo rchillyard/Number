@@ -42,7 +42,7 @@ trait Fuzz[T] {
     * Whether or not this is a true convolution, I'm not sure.
     * But is an operation to combine two probability density functions and, as such, f * g = g * f.
     *
-    * @param convolute the convolute, which must have the same shape as this.
+    * @param convolute   the convolute, which must have the same shape as this.
     * @param independent true if the fuzz distributions are independent.
     * @return the convolution of this and the convolute.
     */
@@ -93,7 +93,7 @@ trait Fuzz[T] {
   * Relative fuzziness.
   *
   * @param tolerance the error bound.
-  * @param shape the shape (Uniform, Gaussian, etc.)
+  * @param shape     the shape (Uniform, Gaussian, etc.)
   * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics [must have Valuable].
   */
 case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fuzz[T] {
@@ -153,8 +153,9 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
 
   /**
     * Render this Fuzz as with a given T value.
+    *
     * @param t the T value.
-    *  @return a String which is the textual rendering of t with this Fuzz applied.
+    * @return a String which is the textual rendering of t with this Fuzz applied.
     */
   def toString(t: T): String = absolute(t).map(_.toString(t)).getOrElse("")
 
@@ -185,7 +186,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
   * Absolute Fuzziness.
   *
   * @param magnitude the magnitude of the fuzz.
-  * @param shape the shape of the fuzz.
+  * @param shape     the shape of the fuzz.
   * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics.
   */
 case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzz[T] {

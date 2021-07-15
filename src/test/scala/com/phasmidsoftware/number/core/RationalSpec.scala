@@ -19,7 +19,6 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   private val unitySymbol = Symbol("unity")
   private val narrowSymbol = Symbol("narrow")
   private val normalizeSymbol = Symbol("normalize")
-  private val gcdSymbol = Symbol("gcd")
   private val compareSymbol = Symbol("compare")
 
   behavior of "new Rational(BigInt,Long)"
@@ -603,33 +602,6 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     z should matchPattern { case Rational(x, y) if x == BigInt(3) && y == 5L => }
   }
 
-  behavior of "gcd"
-  it should "work for 0,0" in {
-    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
-    val z = Rational invokePrivate decorateGcd(Rational.bigZero, Rational.bigZero)
-    z should matchPattern { case Rational.bigZero => }
-  }
-  it should "work for 1,0" in {
-    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
-    val z = Rational invokePrivate decorateGcd(Rational.bigOne, Rational.bigZero)
-    z should matchPattern { case Rational.bigOne => }
-  }
-  it should "work for 1,1" in {
-    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
-    val z = Rational invokePrivate decorateGcd(Rational.bigOne, Rational.bigOne)
-    z should matchPattern { case Rational.bigOne => }
-  }
-  it should "work for 2,2" in {
-    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
-    val z = Rational invokePrivate decorateGcd(Rational.bigOne * 2, Rational.bigOne * 2)
-    z should matchPattern { case b: BigInt if b.toInt == 2 => }
-  }
-  it should "work for 3,5" in {
-    val decorateGcd = PrivateMethod[BigInt](gcdSymbol)
-    val z = Rational invokePrivate decorateGcd(Rational.bigOne * 3, Rational.bigOne * 5)
-    z should matchPattern { case Rational.bigOne => }
-  }
-
   behavior of "compare"
   it should "work for 0,0" in {
     val decorateCompare = PrivateMethod[Int](compareSymbol)
@@ -658,7 +630,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "work for -inf,inf" in {
     val decorateCompare = PrivateMethod[Int](compareSymbol)
-    val z = Rational invokePrivate decorateCompare(Rational.infinity.unary_-, Rational.infinity)
+    val z = Rational invokePrivate decorateCompare(-Rational.infinity, Rational.infinity)
     z should matchPattern { case 0 => }
   }
 
@@ -691,7 +663,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.approximateAny(Math.PI) shouldBe Rational(75948, 24175)
   }
   // NOTE: this test works but it is very slow. It should be checked from time to time.
-  ignore should "work for 3.1416n" in {
+  ignore should "work for 3.1416" in {
     Rational.approximateAny(3.1416) shouldBe Rational(3141600355L, 1000000113)
   }
 

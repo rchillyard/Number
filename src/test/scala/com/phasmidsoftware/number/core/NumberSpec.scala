@@ -1,10 +1,12 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{negate, pi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -307,7 +309,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 2E, Scalar" in {
     val target = Number(2, E)
     val actual: Number = target.scale(Scalar)
-    val expected: Number = (Number(Math.E) ^ 2).materialize
+    val expected: Number = convertToNumber((Number(Math.E) ^ 2).materialize)
     actual should ===(expected)
   }
   it should "work for Pi, E" in {
@@ -481,12 +483,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add Double 1 and Pi" in {
     val x = Number(doubleOne)
     val y = Number(1, Pi)
-    (x add y) should ===(Number(Math.PI + 1))
+    convertToNumber(x add y) should ===(Number(Math.PI + 1))
   }
   it should "add Pi and 2Pi" in {
     val x = Number(1, Pi)
     val y = Number(2, Pi)
-    (x add y) shouldBe Number(3, Pi)
+    convertToNumber(x add y) shouldBe Number(3, Pi)
   }
   it should "add 1 to pi" in {
     val x1 = Number.one
@@ -612,7 +614,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "divide Double 1 by Double Pi" in {
     val x = Number(doubleOne)
     val y = Number(Math.PI)
-    x divide y should ===(Number(1 / Math.PI))
+    convertToNumber(x divide y) should ===(Number(1 / Math.PI))
   }
 
   // XXX what is this ** operator?
@@ -726,9 +728,14 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     import Expression.ExpressionOps
     val expected: Expression = Number.pi * 7 / 4
     // TODO revert this so that it reads actual ... expected
-    //    actual should ===(expected)
+    //  XXX  actual should ===(expected)
     expected should ===(actual)
   }
+  // TODO need to operate appropriately on negZero.
+  ignore should "evaluate atan" in {
+    Number.one.atan(Number.negZero) shouldBe Number(3, Pi)
+  }
+
 
   // NOTE: Following are the tests of Ordering[Number]
 
