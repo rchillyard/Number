@@ -282,6 +282,7 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
+* Version 1.0.10...
 * Version 1.0.9: Added complex numbers; improved simplifications somewhat; use version 1.0.4 of Matchers (now in main).
 * Version 1.0.8: This includes better simplification and, in particular, evaluates (√3 + 1)(√3 - 1) as exactly 2. 
 * Version 1.0.7: added Matchers.
