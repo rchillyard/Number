@@ -9,8 +9,11 @@ object Pi extends App {
 
   def getPoints(n: Int)(implicit r: Random): LazyList[(Double, Double)] = {
     def getCoordinate: Double = (r.nextDouble() - 0.5) * 2
+
     def sqr(x: Double) = x * x
-    def radius(t: (Double,Double)): Double = math.sqrt(sqr(t._1)+sqr(t._2))
+
+    def radius(t: (Double, Double)): Double = math.sqrt(sqr(t._1) + sqr(t._2))
+
     val xs = LazyList.continually(getCoordinate)
     val ys = LazyList.continually(getCoordinate)
     val zs = xs zip ys
@@ -25,6 +28,7 @@ object Pi extends App {
   }
 
   import com.phasmidsoftware.number.misc.Benchmark._
+
   import scala.concurrent.duration.DurationInt
   import scala.language.postfixOps
 

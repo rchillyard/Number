@@ -34,6 +34,7 @@ def calculatePi(n: Int)(implicit r: Random): Future[Double] = Future {
 }
 
 import com.phasmidsoftware.number.misc.Benchmark._
+
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 

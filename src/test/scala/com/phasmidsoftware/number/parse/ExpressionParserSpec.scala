@@ -1,6 +1,7 @@
-package com.phasmidsoftware.number.misc
+package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.misc.{DoubleExpressionParser, IntExpressionParser, RationalExpressionParser}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 
@@ -8,6 +9,10 @@ import scala.util._
 
 
 /**
+  * Specification for ExpressionParser.
+  *
+  * CONSIDER move to parse package.
+  *
   * @author scalaprof
   */
 class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
@@ -92,12 +97,29 @@ class ExpressionParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     r should matchPattern { case parser.Success(_, _) => }
     r.get.value should matchPattern { case Success(1.5) => }
   }
-  // FIXME #35
-  ignore should "fail DoubleExpressionParser(2*(2+1-3/2)/3)" in {
+  it should "parse 10/3 as ..." in {
     val parser = DoubleExpressionParser
-    val r = parser.parseAll(parser.expr, "2*(2+1-3/2)/3")
+    val r = parser.parseAll(parser.expr, "10/3")
     r should matchPattern { case parser.Success(_, _) => }
-    r.get.value should matchPattern { case Success(1.0) => }
+    r.get.value should matchPattern { case Success(3.333333333333333) => }
+  }
+  it should "succeed for DoubleExpressionParser(2+1-3/2)" in {
+    val parser = DoubleExpressionParser
+    val r = parser.parseAll(parser.expr, "2+1-3/2")
+    r should matchPattern { case parser.Success(_, _) => }
+    r.get.value should matchPattern { case Success(1.5) => }
+  }
+  it should "succeed DoubleExpressionParser(5*(6+1-(3/2))/4)" in {
+    val parser = DoubleExpressionParser
+    val r = parser.parseAll(parser.expr, "5*(6+1-(3/2))/4")
+    r should matchPattern { case parser.Success(_, _) => }
+    r.get.value should matchPattern { case Success(6.875) => }
+  }
+  it should "succeed DoubleExpressionParser(5*(6+1-3/2)/4) even without explicit parentheses" in {
+    val parser = DoubleExpressionParser
+    val r: parser.ParseResult[parser.Expr] = parser.parseAll(parser.expr, "5*(6+1-3/2)/4")
+    r should matchPattern { case parser.Success(_, _) => }
+    r.get.value should matchPattern { case Success(6.875) => }
   }
   it should "fail to parse 1*2+1-pi/2" in {
     val parser = DoubleExpressionParser

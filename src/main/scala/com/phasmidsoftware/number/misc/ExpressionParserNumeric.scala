@@ -14,7 +14,7 @@ abstract class ExpressionParserNumeric[T: Numeric] extends ExpressionParser[T] {
 
   def div: (T, T) => T = num match {
     case value: Fractional[T] => value.div
-    case _ => throw new IllegalArgumentException("div method unavailable")
+    case x => throw new IllegalArgumentException(s"div method unavailable for ${x.getClass}")
   }
 
   def one: T = num.one

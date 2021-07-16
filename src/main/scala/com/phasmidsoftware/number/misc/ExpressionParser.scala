@@ -25,6 +25,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
 
   trait Expression {
     def value: Try[T]
+
+    def show(indent: Int): String
   }
 
   def lift(t: Try[T])(f: T => T): Try[T] = t map f
@@ -41,6 +43,17 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     }
 
     def value: Try[T] = ts.foldLeft(t.value)((a, x) => map2(a, termVal(x))(plus))
+
+    def termShow(t: String ~ Term, i: Int): String = t._1 + new_line(i) + t._2.show(i + 1)
+
+    def show(i: Int): String = {
+      val sb = new StringBuilder("Expr: " + new_line(i + 1) + t.show(i + 1))
+      if (ts.nonEmpty) {
+        sb.append(ts.foldLeft(" {")((a, x) => a + new_line(i + 1) + termShow(x, i + 1)))
+        sb.append(new_line(i + 1) + "}")
+      }
+      sb.toString
+    }
   }
 
   case class Term(f: Factor, fs: List[String ~ Factor]) extends Expression {
@@ -51,34 +64,56 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     }
 
     def value: Try[T] = fs.foldLeft(f.value)((a, x) => map2(a, factorVal(x))(times))
+
+    def factorShow(t: String ~ Factor, i: Int): String = t._1 + new_line(i) + t._2.show(i + 1)
+
+    def show(i: Int): String = {
+      val sb = new StringBuilder("Term: " + new_line(i + 1) + f.show(i + 1))
+      if (fs.nonEmpty) {
+        sb.append(fs.foldLeft(" {")((a, x) => a + new_line(i + 1) + factorShow(x, i + 1)))
+        sb.append(new_line(i + 1) + "}")
+      }
+      sb.toString
+    }
   }
 
   case class FloatingPoint(x: String) extends Factor {
     def value: Try[T] = self.apply(x)
+
+    def show(i: Int): String = "Number: " + x
   }
 
   case class Parentheses(e: Expr) extends Factor {
     def value: Try[T] = e.value
+
+    def show(i: Int): String = "(" + new_line(i) + e.show(i + 1) + ")"
   }
 
-  case object BadFactor extends Factor {
-    def value: Try[T] = scala.util.Failure(ParseException("bad factor"))
+  case class BadFactor(x: Expression) extends Factor {
+    def value: Try[T] = scala.util.Failure(ParseException("\n" + x.show(0) + "\n"))
+
+    def show(i: Int): String = "bad factor: " + new_line(i) + x.show(i + 1)
   }
 
   def expr: Parser[Expr] = term ~ rep("+" ~ term | "-" ~ term) ^^ {
     case t ~ x => Expr(t, x)
   }
 
-
   def term: Parser[Term] = factor ~ rep("*" ~ factor | "/" ~ factor) ^^ {
     case f ~ r => Term(f, r)
   }
 
-  def factor: Parser[Factor] = (number | parentheses | failure("factor")) ^^ { case f: Factor => f; case _ => BadFactor }
+  def factor: Parser[Factor] = (number | parentheses | failure("factor")) ^^ {
+    case f: Factor => f
+    case f => BadFactor(f)
+  }
 
   def number: Parser[Factor] = floatingPointNumber ^^ (x => FloatingPoint(x))
 
-  def parentheses: Parser[Expr] = "(" ~> expr <~ ")"
+  def parentheses: Parser[Parentheses] = "(" ~> expr <~ ")" ^^ (x => Parentheses(x))
+
+  private def new_line(i: Int) = "\n" + ("  " * i)
+
 }
 
 case class ParseException(s: String) extends Exception(s"Parse exception: $s")

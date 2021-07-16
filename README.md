@@ -282,28 +282,18 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
-The Current version is 1.0.8
-This includes better simplification and, in particular, evaluates (√3 + 1)(√3 - 1) as exactly 2. 
-
-Version 1.0.7: added Matchers.
-
-Version 1.0.6: added Mill (RPN evaluator).
-
-Version 1.0.5: reimplement the e factor.
-
-Version 1.0.4 Made improvements to Rational, removed BigInt from Value,
+* Version 1.0.9: Added complex numbers; improved simplifications somewhat; use version 1.0.4 of Matchers (now in main).
+* Version 1.0.8: This includes better simplification and, in particular, evaluates (√3 + 1)(√3 - 1) as exactly 2. 
+* Version 1.0.7: added Matchers.
+* Version 1.0.6: added Mill (RPN evaluator).
+* Version 1.0.5: reimplement the e factor.
+* Version 1.0.4 Made improvements to Rational, removed BigInt from Value,
 and effected many refactorings.
-
-Version 1.0.3 implements lazy evaluation.
-
-Version 1.0.2 Included fixing the bug mentioned in 1.0.1 (actually a Rational bug), as well as adding the :/ operator
+* Version 1.0.3 implements lazy evaluation.
+* Version 1.0.2 Included fixing the bug mentioned in 1.0.1 (actually a Rational bug), as well as adding the :/ operator
 and many other fixes/features.
-
-Version 1.0.1 Fixed many issues with minor inconsistencies.
-Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_.
-Each of these has, significantly, a signature with a confidence value (the default value is 0.5).
-
-Initial version is 1.0.0
+* Version 1.0.1 Fixed many issues with minor inconsistencies.  Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_. Each of these has, significantly, a signature with a confidence value (the default value is 0.5).
+* Initial version is 1.0.0
 
 Future Upgrades
 ===============

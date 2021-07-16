@@ -1,6 +1,8 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import scala.util.Left
 
 /**
@@ -10,6 +12,8 @@ import scala.util.Left
   * TODO implement scale, atan.
   * TODO FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz.
   * TODO ensure that every Double calculation contributes fuzziness.
+  * NOTE it is not necessary to override compareTo because the operative method is signum for all Number comparisons,
+  * and that is overridden here.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
@@ -50,7 +54,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the addend.
     * @return the sum.
     */
-  override def add(x: Number): Number = FuzzyNumber.plus(this, x)
+  override def doAdd(x: Number): Number = FuzzyNumber.plus(this, x)
 
   /**
     * Multiply a Number by this FuzzyNumber.
@@ -58,7 +62,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the multiplicand.
     * @return the product.
     */
-  override def multiply(x: Number): Number = FuzzyNumber.times(this, x)
+  override def doMultiply(x: Number): Number = FuzzyNumber.times(this, x)
 
   /**
     * Yields the square root of this FuzzyNumber.
@@ -79,7 +83,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param p a Number.
     * @return this Number raised to power p.
     */
-  override def power(p: Number): Number = FuzzyNumber.power(this, p)
+  override def doPower(p: Number): Number = FuzzyNumber.power(this, p)
 
   /**
     * @return true if this Number is equivalent to zero with at least 50% confidence.
@@ -183,6 +187,23 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   }
 
   /**
+    * NOTE: I'm not 100% sure if this is strictly necessary.
+    *
+    * @param that another object.
+    * @return true if this can equal that.
+    */
+  override def canEqual(that: Any): Boolean = that match {
+    case x: Number => true
+    case x: AtomicExpression => x.materialize.asNumber.isDefined
+    case _ => false
+  }
+
+  // CONSIDER implementing equals
+  //  override def equals(obj: Any): Boolean = obj match {
+  //    case n@Number(_,_) => compare(n) == 0
+  //  }
+
+  /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Both the value and the factor will be changed.
     *
@@ -233,7 +254,7 @@ object FuzzyNumber {
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
       case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
-      case (_, _) => p add q
+      case (_, _) => recover((p plus q).materialize.asNumber, FuzzyNumberException("logic error: plus"))
     }
   }
 
@@ -243,7 +264,7 @@ object FuzzyNumber {
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
       case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
-      case (_, _) => p multiply q
+      case (_, _) => recover((p multiply q).materialize.asNumber, FuzzyNumberException("logic error: times"))
     }
   }
 
