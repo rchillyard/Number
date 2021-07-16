@@ -682,4 +682,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   //noinspection ScalaUnusedSymbol
   // NOTE unused method but keeping it for now.
   private def exact: Transformer = filter[Expression](_.isExact)
+
+  val logger: MatchLogger = matchLogger
 }
