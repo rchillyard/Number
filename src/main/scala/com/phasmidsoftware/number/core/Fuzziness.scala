@@ -584,7 +584,7 @@ case object Gaussian extends Shape {
   }
 }
 
-trait Fuzzy[T] {
+trait Fuzz[T] {
   val fuzz: Option[Fuzziness[T]]
 }
 

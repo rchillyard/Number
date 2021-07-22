@@ -19,7 +19,7 @@ import scala.util.Left
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   * @param fuzz   the fuzziness of this Number.
   */
-case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzziness[Double]]) extends Number(value, factor) with Fuzzy[Double] {
+case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzziness[Double]]) extends Number(value, factor) with Fuzz[Double] {
 
   /**
     * @return false.
@@ -193,7 +193,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @return true if this can equal that.
     */
   override def canEqual(that: Any): Boolean = that match {
-    case x: Number => true
+    case _: Number => true
     case x: AtomicExpression => x.materialize.asNumber.isDefined
     case _ => false
   }

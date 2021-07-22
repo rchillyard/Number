@@ -8,7 +8,7 @@ import scala.util.Success
 /**
   * @author scalaprof
   */
-class FuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
+class FuzzSpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   def checkDouble(actual: Double, expected: Double): Unit = {
     assert(math.abs(actual - expected) < 1E7)
