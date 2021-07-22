@@ -41,7 +41,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     *
     * @return None
     */
-  def fuzz: Option[Fuzz[Double]] = None
+  def fuzz: Option[Fuzziness[Double]] = None
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -143,7 +143,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @return for an Exact number, this will be None, otherwise the actual fuzz.
     */
-  def fuzz: Option[Fuzz[Double]]
+  def fuzz: Option[Fuzziness[Double]]
 
   /**
     * Method to get the value of this Number as an optional Double.
@@ -584,7 +584,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
       r.toBigDecimal.scale match {
         case 0 | 1 | 2 => make(r).specialize
         // CONSIDER in following line adding fuzz only if this Number is exact.
-        case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzz.toDecimalPower(5, -n), Box))
+        case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -n), Box))
       }
     // XXX Invalid case
     case _ => this
@@ -804,7 +804,7 @@ object Number {
     * @param fuzz   the fuzziness of this Number, wrapped in Option.
     * @return a Number.
     */
-  def create(value: Value, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = (fuzz match {
+  def create(value: Value, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number = (fuzz match {
     case None => ExactNumber(value, factor)
     case _ => FuzzyNumber(value, factor, fuzz)
   }).specialize
@@ -825,7 +825,7 @@ object Number {
     * @param actualFuzz the fuzziness of this Number.
     * @return a Number.
     */
-  def create(value: Value, actualFuzz: Fuzz[Double]): Number = create(value, Scalar, Some(actualFuzz))
+  def create(value: Value, actualFuzz: Fuzziness[Double]): Number = create(value, Scalar, Some(actualFuzz))
 
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
@@ -855,7 +855,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Int, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(fromInt(x), factor, fuzz)
+  def apply(x: Int, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number = create(fromInt(x), factor, fuzz)
 
   /**
     * Method to construct a Number from a BigInt.
@@ -864,7 +864,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: BigInt, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = apply(Rational(x), factor, fuzz)
+  def apply(x: BigInt, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number = apply(Rational(x), factor, fuzz)
 
   /**
     * Method to construct a Number from a Rational.
@@ -874,7 +874,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Rational, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(fromRational(x), factor, fuzz)
+  def apply(x: Rational, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number = create(fromRational(x), factor, fuzz)
 
   /**
     * Method to construct a Number from a BigDecimal.
@@ -883,7 +883,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: BigDecimal, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = Number(Rational(x), factor, fuzz)
+  def apply(x: BigDecimal, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number = Number(Rational(x), factor, fuzz)
 
   /**
     * Method to construct a Number from an optional Double.
@@ -892,7 +892,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on xo.
     */
-  def apply(xo: Option[Double], factor: Factor, fuzz: Option[Fuzz[Double]]): Number = create(fromDouble(xo), factor, fuzz)
+  def apply(xo: Option[Double], factor: Factor, fuzz: Option[Fuzziness[Double]]): Number = create(fromDouble(xo), factor, fuzz)
 
   /**
     * Method to construct a Number from a Double.
@@ -901,7 +901,7 @@ object Number {
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
-  def apply(x: Double, factor: Factor, fuzz: Option[Fuzz[Double]]): Number = x match {
+  def apply(x: Double, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number = x match {
     case Double.NaN => Number(None, factor, fuzz)
     case _ => Number(Some(x), factor, fuzz)
   }

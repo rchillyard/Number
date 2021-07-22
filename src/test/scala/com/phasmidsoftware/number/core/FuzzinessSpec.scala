@@ -6,7 +6,7 @@ import org.scalatest.matchers.should
 
 import scala.util.{Left, Try}
 
-class FuzzSpec extends AnyFlatSpec with should.Matchers {
+class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   private val p = new NumberParser
 

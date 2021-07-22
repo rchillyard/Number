@@ -619,7 +619,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = eml.matchLogger
     val f = eml.value :| "value"
     f(x).successful shouldBe false
-    sb.toString shouldBe "trying matcher value on (1 * 2)...\n... value((1 * 2)): Miss: value: (1 * 2)\n"
+    sb.toString shouldBe "trying matcher value on (1 * 2)...\n... value: Miss: value: (1 * 2)\n"
   }
 
 }

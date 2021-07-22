@@ -19,7 +19,7 @@ import scala.util.Left
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   * @param fuzz   the fuzziness of this Number.
   */
-case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzz[Double]]) extends Number(value, factor) with Fuzzy[Double] {
+case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzziness[Double]]) extends Number(value, factor) with Fuzzy[Double] {
 
   /**
     * @return false.
@@ -32,7 +32,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param v    the value for the new Number.
     * @param fuzz the fuzz for the new Number.
     */
-  def this(v: Value, fuzz: Option[Fuzz[Double]]) = this(v, Scalar, fuzz)
+  def this(v: Value, fuzz: Option[Fuzziness[Double]]) = this(v, Scalar, fuzz)
 
   /**
     * Action to render this FuzzyNumber as a String.
@@ -129,7 +129,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param f the additional fuzz.
     * @return this but with fuzziness which is the convolution of fuzz and f.
     */
-  def addFuzz(f: Fuzz[Double]): Number = FuzzyNumber.addFuzz(this, f)
+  def addFuzz(f: Fuzziness[Double]): Number = FuzzyNumber.addFuzz(this, f)
 
   /**
     * Make a copy of this Number, but with different fuzziness.
@@ -137,7 +137,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param z the optional Fuzz.
     * @return either a Fuzzy or Exact Number.
     */
-  def makeFuzzy(z: Option[Fuzz[Double]]): FuzzyNumber = FuzzyNumber(value, factor, z)
+  def makeFuzzy(z: Option[Fuzziness[Double]]): FuzzyNumber = FuzzyNumber(value, factor, z)
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -154,7 +154,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     */
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
     for (n <- composeDyadic(other, f)(op); t1 <- this.toDouble; t2 <- other.toDouble) yield
-      FuzzyNumber(n.value, n.factor, Fuzz.combine(t1, t2, !op.absolute, independent)(Fuzz.applyCoefficients((fuzz, other.fuzz), coefficients)))
+      FuzzyNumber(n.value, n.factor, Fuzziness.combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients)))
 
   /**
     * Evaluate a monadic operator on this, using either negate or... according to the value of op.
@@ -166,7 +166,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[Number] = {
     transformMonadic(f)(op).flatMap {
       case n: FuzzyNumber =>
-        for (x <- n.toDouble) yield n.makeFuzzy(Fuzz.map(x, !op.absolute, op.derivative, fuzz))
+        for (x <- n.toDouble) yield n.makeFuzzy(Fuzziness.map(x, !op.absolute, op.derivative, fuzz))
     }
   }
 
@@ -223,7 +223,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param z the new fuzziness.
     * @return a FuzzyNumber.
     */
-  protected def make(v: Value, f: Factor, z: Option[Fuzz[Double]]): Number = FuzzyNumber(v, f, z)
+  protected def make(v: Value, f: Factor, z: Option[Fuzziness[Double]]): Number = FuzzyNumber(v, f, z)
 }
 
 object FuzzyNumber {
@@ -268,13 +268,13 @@ object FuzzyNumber {
     }
   }
 
-  private def addFuzz(n: Number, f: Fuzz[Double]): Number = (n.value, n.fuzz) match {
+  private def addFuzz(n: Number, f: Fuzziness[Double]): Number = (n.value, n.fuzz) match {
     case (v@Left(Left(Some(_))), fo) => addFuzz(n, v, fo, f)
     case _ => n
   }
 
-  private def addFuzz(number: Number, v: Value, fo: Option[Fuzz[Double]], fAdditional: Fuzz[Double]) = {
-    val combinedFuzz = for (f <- fo.orElse(Some(AbsoluteFuzz(0.0, Box))); p <- number.toDouble; g <- Fuzz.combine(p, 0, f.style, independent = false)((fo, fAdditional.normalize(p, f.style)))) yield g
+  private def addFuzz(number: Number, v: Value, fo: Option[Fuzziness[Double]], fAdditional: Fuzziness[Double]) = {
+    val combinedFuzz = for (f <- fo.orElse(Some(AbsoluteFuzz(0.0, Box))); p <- number.toDouble; g <- Fuzziness.combine(p, 0, f.style, independent = false)((fo, fAdditional.normalize(p, f.style)))) yield g
     FuzzyNumber(v, number.factor, combinedFuzz)
   }
 

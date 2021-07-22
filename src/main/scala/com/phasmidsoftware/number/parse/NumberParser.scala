@@ -21,7 +21,7 @@ class NumberParser extends RationalParser {
   def parseNumber(w: String): Try[Number] = stringParser(number, w)
 
   trait WithFuzziness {
-    def fuzz: Option[Fuzz[Double]]
+    def fuzz: Option[Fuzziness[Double]]
   }
 
   /**
@@ -35,7 +35,7 @@ class NumberParser extends RationalParser {
 
     def value: Try[Rational] = realNumber.value.map(r => r.applyExponent(getExponent))
 
-    def fuzz: Option[Fuzz[Double]] = fuzziness match {
+    def fuzz: Option[Fuzziness[Double]] = fuzziness match {
       // XXX: first we deal with the "None" case
       case None => calculateFuzz(getExponent, realNumber.fractionalPart.length)
       case Some(w) =>
@@ -85,7 +85,7 @@ class NumberParser extends RationalParser {
         r <- ro.orElse(Some(WholeNumber.one));
         v <- r.value.toOption;
         f <- fo.orElse(Some(Scalar))) yield {
-        val z: Option[Fuzz[Double]] = r match {
+        val z: Option[Fuzziness[Double]] = r match {
           case n@NumberWithFuzziness(_, _, _) => n.fuzz
           case n@RealNumber(_, _, Some(f), _) if f.length > DPExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
           case _ => None
@@ -94,7 +94,7 @@ class NumberParser extends RationalParser {
       }
     else None
 
-  private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzz[Double]] = Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
+  private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzziness[Double]] = Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
 
   import com.phasmidsoftware.number.core.Factor._
 
