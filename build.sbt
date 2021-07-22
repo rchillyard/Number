@@ -2,7 +2,7 @@ organization := "com.phasmidsoftware"
 
 name := "Number"
 
-version := "1.0.9"
+version := "1.0.10"
 
 scalaVersion := "2.13.6"
 
@@ -12,7 +12,7 @@ val scalaTestVersion = "3.2.3"
 
 lazy val root = (project in file(".")).dependsOn(matchers)
 
-lazy val matchers = RootProject(uri("git://github.com/rchillyard/Matchers"))
+lazy val matchers = RootProject(uri("git://github.com/rchillyard/Matchers#V1_0_5"))
 
 libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
