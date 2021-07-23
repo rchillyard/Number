@@ -95,6 +95,8 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @return this ExactNumber.
     */
   def materialize: Number = this
+
+  def asFuzzyNumber: FuzzyNumber = FuzzyNumber(value, factor, None)
 }
 
 /**
@@ -219,7 +221,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
   /**
     * Change the sign of this Number.
     */
-  def unary_- : Field = doNegate
+  def unary_- : Field = makeNegative
 
   /**
     * Raise this Number to the power p.
@@ -237,7 +239,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
   /**
     * Negative of this Number.
     */
-  lazy val doNegate: Number = doMultiply(Number(-1))
+  def makeNegative: Number = doMultiply(Number(-1))
 
   /**
     * Add this Number to n.
@@ -298,7 +300,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @return the cosine.
     */
-  def cos: Number = negate(scale(Pi) doAdd Number(Rational.half, Pi).doNegate).sin
+  def cos: Number = negate(scale(Pi) doAdd Number(Rational.half, Pi).makeNegative).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -345,7 +347,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @return this if its positive, else - this.
     */
-  def abs: Number = if (signum >= 0) this else doNegate
+  def abs: Number = if (signum >= 0) this else makeNegative
 
   /**
     * Method to create a new version of this, but with factor f.
@@ -726,6 +728,13 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
     tryMap(value)(identityTry, xToZy1).toOption
   }
+
+  /**
+    * Ensure that this Number is actually a FuzzyNumber.
+    *
+    * @return a FuzzyNumber which is the same as this Number.
+    */
+  def asFuzzyNumber: FuzzyNumber
 }
 
 object Number {

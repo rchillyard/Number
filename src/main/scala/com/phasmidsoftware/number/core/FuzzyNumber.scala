@@ -54,7 +54,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the addend.
     * @return the sum.
     */
-  override def doAdd(x: Number): Number = FuzzyNumber.plus(this, x)
+  override def doAdd(x: Number): FuzzyNumber = FuzzyNumber.plus(this, x)
 
   /**
     * Multiply a Number by this FuzzyNumber.
@@ -62,7 +62,9 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param x the multiplicand.
     * @return the product.
     */
-  override def doMultiply(x: Number): Number = FuzzyNumber.times(this, x)
+  override def doMultiply(x: Number): FuzzyNumber = FuzzyNumber.times(this, x)
+
+  override def makeNegative: FuzzyNumber = super.makeNegative.asInstanceOf[FuzzyNumber]
 
   /**
     * Yields the square root of this FuzzyNumber.
@@ -224,9 +226,31 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @return a FuzzyNumber.
     */
   protected def make(v: Value, f: Factor, z: Option[Fuzziness[Double]]): Number = FuzzyNumber(v, f, z)
+
+  /**
+    * Ensure that this Number is actually a FuzzyNumber.
+    *
+    * @return a FuzzyNumber which is the same as this Number.
+    */
+  def asFuzzyNumber: FuzzyNumber = this
 }
 
 object FuzzyNumber {
+
+  /**
+    * Definition of concrete (implicit) type class object for FuzzyNumber being Fuzzy.
+    */
+  implicit object FuzzyFuzzyNumber extends Fuzzy[FuzzyNumber] {
+    /**
+      * Method to determine if t1 and t2 can be considered the same with a probability of p.
+      *
+      * @param p  a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless t1 actually is t2.
+      * @param t1 a value of T.
+      * @param t2 a value of T.
+      * @return true if t1 and t2 are considered equal with probability p.
+      */
+    def same(p: Double)(t1: FuzzyNumber, t2: FuzzyNumber): Boolean = t1.doAdd(t2.makeNegative).isProbablyZero(p)
+  }
 
   /**
     * Get the fuzz coefficients for calculating the fuzz on a power operation.
@@ -249,22 +273,22 @@ object FuzzyNumber {
   // TEST me or eliminate
   def sqrt(x: FuzzyNumber): Number = transformMonadic(x, Scalar, MonadicOperationSqrt)
 
-  private def plus(x: FuzzyNumber, y: Number): Number = {
+  private def plus(x: FuzzyNumber, y: Number): FuzzyNumber = {
     val (p, q) = x.alignTypes(y)
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
       case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
-      case (_, _) => recover((p plus q).materialize.asNumber, FuzzyNumberException("logic error: plus"))
+      case (_, _) => recover((p plus q).materialize.asNumber, FuzzyNumberException("logic error: plus")).asFuzzyNumber
     }
   }
 
-  private def times(x: FuzzyNumber, y: Number): Number = {
+  private def times(x: FuzzyNumber, y: Number): FuzzyNumber = {
     val (a, b) = x.alignFactors(y)
     val (p, q) = a.alignTypes(b)
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
       case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
-      case (_, _) => recover((p multiply q).materialize.asNumber, FuzzyNumberException("logic error: times"))
+      case (_, _) => recover((p multiply q).materialize.asNumber, FuzzyNumberException("logic error: times")).asFuzzyNumber
     }
   }
 
@@ -292,9 +316,9 @@ object FuzzyNumber {
     *                     For addition or multiplication, they will be 1 and 1.
     * @return a new Number which is the result of operating on n and q as described above.
     */
-  private def composeDyadic(n: Number, q: Number, f: Factor, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]) = n match {
-    case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients))
-    case _: Number => prepareWithSpecialize(n.composeDyadic(n, f)(op))
+  private def composeDyadic(n: Number, q: Number, f: Factor, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): FuzzyNumber = n match {
+    case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients)).asFuzzyNumber
+    case _: Number => prepareWithSpecialize(n.composeDyadic(n, f)(op)).asFuzzyNumber
   }
 
   private def transformMonadic(n: Number, factor: Factor, op: MonadicOperation) = n match {

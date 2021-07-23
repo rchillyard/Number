@@ -304,7 +304,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
     *
     * @return the value of x at which the probability density is exactly transitions from likely to not likely.
     */
-  def likely(p: Double): T = tv.fromDouble(shape.likely(tv.toDouble(magnitude), 0.5))
+  def likely(p: Double): T = tv.fromDouble(shape.likely(tv.toDouble(magnitude), p))
 
   /**
     * False.
@@ -573,15 +573,27 @@ case object Gaussian extends Shape {
     *          NOTE: only certain values are supported: 0.05, 0.1, 0.25 0.5, 0.75, 0.95.
     * @return the value of x at which the cumulative probability is p.
     */
-  def likely(l: Double, p: Double): Double = l * p match {
-    case 0.05 => 1.38
-    case 0.1 => 1.16
-    case 0.25 => 0.815
-    case 0.5 => 0.475
-    case 0.75 => 0.225
-    case 0.95 => 0.045
-    case _ => 0.475
-  }
+  def likely(l: Double, p: Double): Double =
+  //  {
+  //    val x = 1 - p
+  //    val erfc: Double = org.apache.commons.math3.special.Erf.erfc(x)
+  //    val erfcInv: Double = org.apache.commons.math3.special.Erf.erfcInv(x)
+  //    val erfInv: Double = org.apache.commons.math3.special.Erf.erfInv(x)
+  //    val erf: Double = org.apache.commons.math3.special.Erf.erf(x)
+  //    erfc * erfcInv * erfInv * l * erf
+  //
+  //  }
+  // l * {
+    p match {
+      case 0.05 => 1.38
+      case 0.1 => 1.16
+      case 0.25 => 0.815
+      case 0.5 => 0.475
+      case 0.75 => 0.225
+      case 0.95 => 0.045
+      case _ => 0.475
+    }
+//  }
 }
 
 trait Fuzz[T] {

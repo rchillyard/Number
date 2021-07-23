@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -233,11 +234,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 3.141592653589793" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
+    // NOTE: this is rather a low probability value (normally, we use 0.5)
     result.fuzzyCompare(Number.zero, 0.1) shouldBe 0
   }
   it should "work for 3.141592653589793 backwards" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
+    // NOTE: this is rather a low probability value (normally, we use 0.5)
     Number.zero.fuzzyCompare(result, 0.1) shouldBe 0
   }
 
@@ -248,5 +251,17 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val x = Number.one
     val y = Number.one
     implicitly[Numeric[Number]].compare(x, y) shouldBe 0
+  }
+
+  behavior of "same"
+  it should "think 1 and 1 are the same" in {
+    val x = Number.one.asFuzzyNumber
+    val y = Number.one.asFuzzyNumber
+    implicitly[Fuzzy[FuzzyNumber]].same(0.95)(x, y) shouldBe true
+  }
+  it should "think pi and pi are the same" in {
+    val x = Number.parse("3.142").get.asFuzzyNumber
+    val y = Number.pi.asFuzzyNumber
+    implicitly[Fuzzy[FuzzyNumber]].same(.9)(x, y) shouldBe true
   }
 }
