@@ -312,13 +312,16 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val expected: Number = convertToNumber((Number(Math.E) ^ 2).materialize)
     actual should ===(expected)
   }
-  it should "work for Pi, E" in {
-    val target = Number(1, Pi)
-    target.scale(E) should ===(Number(Math.PI / Math.E, E))
-  }
   it should "work for E, Pi" in {
     val target = Number(1, E)
-    target.scale(Pi) should ===(Number(Math.E / Math.PI, Pi))
+    val expected = Number(Math.E / Math.PI, Pi)
+    target.scale(Pi) should ===(expected)
+  }
+  it should "not work for Pi, E (because E numbers are not linear)" in {
+    val target = Number(1, Pi)
+    val expected = Number(Math.PI / Math.E, E)
+    val result = target.scale(E) === expected
+    result shouldBe false
   }
 
   behavior of "alignFactors"

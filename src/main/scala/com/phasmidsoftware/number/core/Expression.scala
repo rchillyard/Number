@@ -50,6 +50,13 @@ trait Expression {
   def materialize: Field
 
   /**
+    * Method to materialize this Expression as a Field and, if possible, convert it to a Number.
+    *
+    * @return an Option[Number].
+    */
+  def asNumber: Option[Number] = materialize.asNumber
+
+  /**
     * Method to determine the depth of this Expression.
     *
     * @return the depth (an atomic expression has depth of 1).

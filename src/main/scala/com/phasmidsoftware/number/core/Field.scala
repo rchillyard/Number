@@ -94,7 +94,7 @@ trait Field extends AtomicExpression {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  def asNumber: Option[Number] = this match {
+  override def asNumber: Option[Number] = this match {
     case n@Number(_, _) => Some(n)
     case ComplexCartesian(x, y) if y == Number.zero => Some(x)
     case ComplexPolar(r, theta) if theta == Number.zero => Some(r)

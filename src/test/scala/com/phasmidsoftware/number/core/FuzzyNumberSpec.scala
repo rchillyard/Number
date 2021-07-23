@@ -262,6 +262,33 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "think pi and pi are the same" in {
     val x = Number.parse("3.142").get.asFuzzyNumber
     val y = Number.pi.asFuzzyNumber
-    implicitly[Fuzzy[FuzzyNumber]].same(.9)(x, y) shouldBe true
+    // NOTE we check that these two numbers are the same with a confidence of 80%
+    implicitly[Fuzzy[FuzzyNumber]].same(0.8)(x, y) shouldBe true
+    // NOTE we check that these two numbers are not the same with a confidence of 90%
+    implicitly[Fuzzy[FuzzyNumber]].same(0.9)(x, y) shouldBe false
+  }
+
+  behavior of "isProbablyZero"
+  it should "think pi and pi are the same (1)" in {
+    val x = Number.parse("3.142").get.asFuzzyNumber
+    val y = Number.pi.asFuzzyNumber
+    val zo = (x - y).asNumber map (_.asFuzzyNumber)
+    zo.isDefined shouldBe true
+    val z = zo.get
+    z.isProbablyZero(0) shouldBe true
+    z.isProbablyZero(1) shouldBe false
+    z.isProbablyZero(0.5) shouldBe true
+    z.isProbablyZero(0.895) shouldBe false
+  }
+  it should "think pi and pi are the same (2)" in {
+    val x = Number.parse("3.1415927").get.asFuzzyNumber
+    val y = Number.pi.asFuzzyNumber
+    val zo = (x - y).asNumber map (_.asFuzzyNumber)
+    zo.isDefined shouldBe true
+    val z = zo.get
+    z.isProbablyZero(0) shouldBe true
+    z.isProbablyZero(1) shouldBe false
+    z.isProbablyZero(0.5) shouldBe true
+    z.isProbablyZero(0.875) shouldBe false
   }
 }

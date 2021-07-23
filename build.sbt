@@ -17,7 +17,7 @@ lazy val matchers = RootProject(uri("git://github.com/rchillyard/Matchers#V1_0_5
 libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
     "org.scala-lang.modules" %% "scala-parser-combinators" % "1.2.0-M1",
-    "org.apache.commons" % "commons-math3" % "3.6.1", // This is used for the trait Fuzzy (old stuff)
+    "org.apache.commons" % "commons-math3" % "3.6.1",
     "ch.qos.logback" % "logback-classic" % "1.2.3" % "test",
     "org.scalacheck" %% "scalacheck" % "1.14.1" % "test" // This is used for testing Rational
 )

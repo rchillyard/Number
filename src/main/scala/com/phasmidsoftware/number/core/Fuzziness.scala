@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
+import org.apache.commons.math3.special.Erf.erfInv
 
 import scala.math.Numeric.DoubleIsFractional
 import scala.math.Ordering
@@ -83,10 +84,12 @@ trait Fuzziness[T] {
   /**
     * Determine the range +- t within which a deviation is considered within tolerance and where
     * l signifies the extent of the PDF.
+    * In other words get the wiggle room.
     *
+    * @param p the confidence we wish to have in the result: typical value: 0.5
     * @return the value of t at which the probability density is exactly transitions from likely to not likely.
     */
-  def likely(p: Double): T
+  def wiggle(p: Double): T
 }
 
 /**
@@ -170,11 +173,12 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
   /**
     * Determine the range +- t within which a deviation is considered within tolerance and where
     * l signifies the extent of the PDF.
+    * In other words get the wiggle room.
     *
-    * @param p the confidence we wish to have in the likelihood: typical value: 0.5
+    * @param p the confidence we wish to have in the result: typical value: 0.5
     * @return the value of t at which the probability density is exactly transitions from likely to not likely.
     */
-  def likely(p: Double): T = tv.fromDouble(shape.likely(tolerance, p))
+  def wiggle(p: Double): T = tv.fromDouble(shape.wiggle(tolerance, p))
 
   /**
     * True.
@@ -301,10 +305,12 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
   /**
     * Determine the range +- x within which a deviation is considered within tolerance and where
     * l signifies the extent of the PDF.
+    * In other words get the wiggle room.
     *
+    * @param p the confidence we wish to have in the result: typical value: 0.5
     * @return the value of x at which the probability density is exactly transitions from likely to not likely.
     */
-  def likely(p: Double): T = tv.fromDouble(shape.likely(tv.toDouble(magnitude), p))
+  def wiggle(p: Double): T = tv.fromDouble(shape.wiggle(tv.toDouble(magnitude), p))
 
   /**
     * False.
@@ -458,7 +464,7 @@ trait Shape {
     * @param p the confidence that we wish to place on the likelihood: typical value is 0.5.
     * @return the value of x at which the probability density is exactly transitions from likely to not likely.
     */
-  def likely(l: Double, p: Double): Double
+  def wiggle(l: Double, p: Double): Double
 }
 
 /**
@@ -504,7 +510,7 @@ case object Box extends Shape {
     * @param p ignored
     * @return the value of x at which the probability density transitions from possible to impossible.
     */
-  def likely(l: Double, p: Double): Double = l / 2
+  def wiggle(l: Double, p: Double): Double = l / 2
 }
 
 /**
@@ -563,36 +569,22 @@ case object Gaussian extends Shape {
   }
 
   /**
-    * Determine the range +- x within which a deviation is considered within tolerance and where
-    * l signifies the extent of the PDF.
+    * Determine the "wiggle room" for a particular probability of confidence,
+    * i.e. the range +- x within which a deviation is considered within tolerance and where l signifies the extent of the PDF.
     *
-    * This is based on the table of erfc(p) value.
+    * This is based on the inverse Error function (see https://en.wikipedia.org/wiki/Normal_distribution#Cumulative_distribution_function).
     *
     * @param l the standard deviation.
     * @param p the confidence desired for the likelihood.
-    *          NOTE: only certain values are supported: 0.05, 0.1, 0.25 0.5, 0.75, 0.95.
-    * @return the value of x at which the cumulative probability is p.
+    * @return the value of x such that p iw the probability of a random number x (with mean 0, and variance 1/2) falling between -x and x.
     */
-  def likely(l: Double, p: Double): Double = // TODO ... l *
-    (p match {
-      case 0.05 => 1.38
-      case 0.1 => 1.16
-      case 0.25 => 0.815
-      case 0.5 => 0.475
-      case 0.75 => 0.225
-      case 0.95 => 0.045
-      case _ => 0.475
-    })
-  //  {
-  //    val x = 1 - p
-  //    val erfc: Double = org.apache.commons.math3.special.Erf.erfc(x)
-  //    val erfcInv: Double = org.apache.commons.math3.special.Erf.erfcInv(x)
-  //    val erfInv: Double = org.apache.commons.math3.special.Erf.erfInv(x)
-  //    val erf: Double = org.apache.commons.math3.special.Erf.erf(x)
-  //    erfc * erfcInv * erfInv * l * erf
-  //
-  //  }
-  // l * {
+  def wiggle(l: Double, p: Double): Double = l / sigma * erfInv(1 - p)
+
+  /**
+    * The standard deviation of a normals distribution whose variance is 1/2.
+    * This is the basis of the inverse error function.
+    */
+  val sigma: Double = math.sqrt(0.5)
 }
 
 trait Fuzz[T] {

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Field.recover
+import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
 
 import scala.util.Left
@@ -93,10 +94,10 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   override lazy val isZero: Boolean = isProbablyZero(0.5)
 
   /**
-    * @param p the confidence desired.
+    * @param p the confidence desired. Ignored if isZero is true.
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  def isProbablyZero(p: Double): Boolean = super.isZero || (for (f <- fuzz; x <- toDouble) yield f.normalizeShape.likely(p) > math.abs(x)).getOrElse(false)
+  def isProbablyZero(p: Double): Boolean = super.isZero || (for (f <- fuzz; x <- toDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
@@ -252,6 +253,15 @@ object FuzzyNumber {
     def same(p: Double)(t1: FuzzyNumber, t2: FuzzyNumber): Boolean = t1.doAdd(t2.makeNegative).isProbablyZero(p)
   }
 
+  def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number, p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
+
+  def apply(): Number = Number.apply()
+
+  def sin(x: FuzzyNumber): Number = transformMonadic(x.scale(Pi), Scalar, MonadicOperationSin)
+
+  // TEST me or eliminate
+  def sqrt(x: FuzzyNumber): Number = transformMonadic(x, Scalar, MonadicOperationSqrt)
+
   /**
     * Get the fuzz coefficients for calculating the fuzz on a power operation.
     * According to the "Generalized Power Rule," these coefficients should be y/x and ln x, respectively,
@@ -264,14 +274,14 @@ object FuzzyNumber {
   private def getPowerCoefficients(n: Number, p: Number): Option[(Double, Double)] =
     for (z <- n.toDouble; q <- p.toDouble) yield (q / z, math.log(z))
 
-  def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number, p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
-
-  def apply(): Number = Number.apply()
-
-  def sin(x: FuzzyNumber): Number = transformMonadic(x.scale(Pi), Scalar, MonadicOperationSin)
-
-  // TEST me or eliminate
-  def sqrt(x: FuzzyNumber): Number = transformMonadic(x, Scalar, MonadicOperationSqrt)
+  /**
+    *
+    * @param p the confidence desired. Ignored if isZero is true.
+    * @param f the fuzziness.
+    * @param x the value to be tested (may be positive or negative).
+    * @return true if x is within the tolerance range of f, given confidence level p. Otherwise, false
+    */
+  private def withinWiggleRoom(p: Double, f: Fuzziness[Double], x: Double) = f.normalizeShape.wiggle(p) > math.abs(x)
 
   private def plus(x: FuzzyNumber, y: Number): FuzzyNumber = {
     val (p, q) = x.alignTypes(y)
