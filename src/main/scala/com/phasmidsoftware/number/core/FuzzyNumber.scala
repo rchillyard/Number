@@ -64,7 +64,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     */
   override def doMultiply(x: Number): FuzzyNumber = FuzzyNumber.times(this, x)
 
-  override def makeNegative: FuzzyNumber = super.makeNegative.asInstanceOf[FuzzyNumber]
+  override def makeNegative: FuzzyNumber = super.makeNegative.asFuzzyNumber
 
   /**
     * Yields the square root of this FuzzyNumber.
