@@ -10,11 +10,15 @@ import scala.util.Left
   * This class is designed to model a fuzzy Number.
   * See Number for more details on the actual representation.
   *
-  * TODO implement scale, atan.
   * TODO FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz.
+  * I suspect that this inversion of logic might be the cause of some stack overflows that occur for some ignored tests.
+  *
   * TODO ensure that every Double calculation contributes fuzziness.
+  *
   * NOTE it is not necessary to override compareTo because the operative method is signum for all Number comparisons,
   * and that is overridden here.
+  *
+  * CONSIDER implementing equals (but be careful!). Don't implement it in terms of compare(...)==0 or Same.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
@@ -23,9 +27,9 @@ import scala.util.Left
 case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzziness[Double]]) extends Number(value, factor) with Fuzz[Double] {
 
   /**
-    * @return false.
+    * @return true if there is no fuzz.
     */
-  def isExact: Boolean = false
+  def isExact: Boolean = fuzz.isEmpty
 
   /**
     * Auxiliary constructor for a FuzzyNumber.
@@ -198,20 +202,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     case x: AtomicExpression => x.materialize.asNumber.isDefined
     case _ => false
   }
-
-  // CONSIDER implementing equals (but be careful!)
-  //  /**
-  //    * Implementation of equals
-  //    *
-  //    * @param obj the other object.
-  //    * @return true if obj is a Number and they are equivalent numerically (to within tolerance), else false.
-  //    */
-  //    override def equals(obj: Any): Boolean =
-  //      (obj.isInstanceOf[FuzzyNumber] && (this eq obj.asInstanceOf[FuzzyNumber])) || (obj match {
-  //      case ExactNumber(v,f) if fuzz.isEmpty => value==v && factor==f
-  //      case n@Number(_,_)  => compare(n) == 0
-  //      case _ => false
-  //    })
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
