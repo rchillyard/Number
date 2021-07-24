@@ -1,19 +1,19 @@
 package com.phasmidsoftware.number.core
 
 /**
-  * Type class which will add fuzzy behavior to a type T.
+  * Type class which adds fuzzy behavior to a type X.
   *
-  * @tparam T the type to be made fuzzy.
+  * @tparam X the type to be made fuzzy.
   */
-trait Fuzzy[T] {
+trait Fuzzy[X] {
 
   /**
-    * Method to determine if t1 and t2 can be considered the same with a probability of p.
+    * Method to determine if x1 and x2 can be considered the same with a probability of p.
     *
-    * @param p  a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless t1 actually is t2.
-    * @param t1 a value of T.
-    * @param t2 a value of T.
+    * @param p  a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
+    * @param x1 a value of X.
+    * @param x2 a value of X.
     * @return true if t1 and t2 are considered equal with probability p.
     */
-  def same(p: Double)(t1: T, t2: T): Boolean
+  def same(p: Double)(x1: X, x2: X): Boolean
 }

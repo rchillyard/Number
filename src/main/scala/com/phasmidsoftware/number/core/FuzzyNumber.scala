@@ -138,7 +138,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * Make a copy of this Number, but with different fuzziness.
     *
     * @param z the optional Fuzz.
-    * @return either a Fuzzy or Exact Number.
+    * @return a FuzzyNumber.
     */
   def makeFuzzy(z: Option[Fuzziness[Double]]): FuzzyNumber = FuzzyNumber(value, factor, z)
 
@@ -243,14 +243,14 @@ object FuzzyNumber {
     */
   implicit object FuzzyFuzzyNumber extends Fuzzy[FuzzyNumber] {
     /**
-      * Method to determine if t1 and t2 can be considered the same with a probability of p.
+      * Method to determine if x1 and x2 can be considered the same with a probability of p.
       *
-      * @param p  a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless t1 actually is t2.
-      * @param t1 a value of T.
-      * @param t2 a value of T.
-      * @return true if t1 and t2 are considered equal with probability p.
+      * @param p  a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
+      * @param x1 a value of X.
+      * @param x2 a value of X.
+      * @return true if x1 and x2 are considered equal with probability p.
       */
-    def same(p: Double)(t1: FuzzyNumber, t2: FuzzyNumber): Boolean = t1.doAdd(t2.makeNegative).isProbablyZero(p)
+    def same(p: Double)(x1: FuzzyNumber, x2: FuzzyNumber): Boolean = x1.doAdd(x2.makeNegative).isProbablyZero(p)
   }
 
   def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number, p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))

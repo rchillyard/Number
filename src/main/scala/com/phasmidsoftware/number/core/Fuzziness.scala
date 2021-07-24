@@ -8,7 +8,9 @@ import scala.math.Ordering
 import scala.util.Try
 
 /**
-  * Type constructor which will give fuzzy behavior to a type T.
+  * This trait models the behavior of fuzziness.
+  *
+  * See also related trait Fuzzy[X].
   *
   * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics.
   */
@@ -340,7 +342,7 @@ object Fuzziness {
     *
     * @param k the scale constant.
     * @tparam T the underlying type.
-    * @return a function which will transform a Fuzzy[T] into a Fuzzy[T].
+    * @return a function which will transform a Fuzziness[T] into a Fuzziness[T].
     */
   def scaleTransform[T: Valuable](k: T): Fuzziness[T] => Fuzziness[T] = _.transform(scale(k))
 
@@ -587,7 +589,18 @@ case object Gaussian extends Shape {
   val sigma: Double = math.sqrt(0.5)
 }
 
+/**
+  * Trait which models the behavior of something with (maybe) fuzziness.
+  *
+  * See also related trait Fuzzy[X] but note that there, the parametric type X
+  * corresponds to the quantity itself, not its fuzziness.
+  *
+  * @tparam T the type of fuzziness.
+  */
 trait Fuzz[T] {
+  /**
+    * The (optional) fuzziness: if None, then there is no fuzziness.
+    */
   val fuzz: Option[Fuzziness[T]]
 }
 

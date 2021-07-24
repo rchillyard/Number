@@ -455,7 +455,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @param v the value.
     * @param f the factor.
-    * @return either a Fuzzy or Exact Number.
+    * @return either a Number.
     */
   protected def make(v: Value, f: Factor): Number
 
@@ -467,7 +467,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * TEST me
     *
     * @param f the factor.
-    * @return either a Fuzzy or Exact Number.
+    * @return either a Number.
     */
   protected def make(f: Factor): Number = make(value, f)
 
@@ -477,7 +477,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * This method should be followed by a call to specialize.
     *
     * @param v the value.
-    * @return either a Fuzzy or Exact Number.
+    * @return either a Number.
     */
   def make(v: Value): Number = make(v, factor)
 
@@ -488,7 +488,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @param v the value.
     * @param f Factor.
-    * @return either a Fuzzy or Exact Number.
+    * @return either a Number.
     */
   protected def make(v: Int, f: Factor): Number = make(Value.fromInt(v), f)
 
@@ -498,7 +498,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * This method should be followed by a call to specialize.
     *
     * @param v the value.
-    * @return either a Fuzzy or Exact Number.
+    * @return either a Number.
     */
   protected def make(v: Int): Number = make(v, factor)
 
@@ -509,7 +509,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @param r a Rational.
     * @param f Factor.
-    * @return either a Fuzzy or Exact Number.
+    * @return either a Number.
     */
   protected def make(r: Rational, f: Factor): Number = make(Value.fromRational(r), f)
 
@@ -519,7 +519,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * This method should be followed by a call to specialize.
     *
     * @param v the value.
-    * @return either a Fuzzy or Exact Number.
+    * @return either a Number.
     */
   protected def make(v: Rational): Number = make(v, factor)
 
@@ -530,7 +530,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     *
     * @param v the value (a Double).
     * @param f Factor.
-    * @return either a Fuzzy or Exact Number.
+    * @return either a Number.
     */
   protected def make(v: Double, f: Factor): Number = makeFuzzyIfAppropriate(x => x.make(Value.fromDouble(Some(v)), f))
 
@@ -542,7 +542,7 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * TEST me
     *
     * @param v the value (a Double).
-    * @return either a Fuzzy or Exact Number.
+    * @return either a Number.
     */
   protected def make(v: Double): Number = make(v, factor)
 
