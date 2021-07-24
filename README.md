@@ -41,22 +41,6 @@ For more detail, see Representation below.
 
 It is of course perfectly possible to use the _Rational_ classes directly, without using the _Number_ (or _Expression_) classes.
 
-Mill
-====
-The _Mill_ trait allows expressions to be evaluated using RPN (Reverse Polish Notation).
-For example:
-
-    val eo: Option[Expression] = Mill.parseMill("42 37 + 2 *").toOption.flatMap(_.evaluate)
-
-yields the optional _Expression_ with a materialized value of 158.
-See the code for other methods for defining _Mill_ operations.
-
-The _Mill.parse_ method in turn invokes methods of _MillParser_.
-
-The Mill offers two parsers: one is a pure RPN parser (as described above).
-The other is an infix parser which uses [Dijkstra's Shunting Yard algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
-to build a Mill.
-
 Parsing
 =======
 A String representing a number with two or fewer decimal places is considered exact--a number with more than two decimal places is
@@ -126,6 +110,21 @@ Numbers followed by "(xx)" show standard scientific notation where xx represents
 with respect to the last two digits (sometimes there is only one x which corresponds to the last digit).
 If a Number is followed by "[xx]," this corresponds to a "box" (i.e. truncated uniform) probability density function.
 
+Fuzzy
+=====
+The _Fuzzy[X]_ trait defines a typeclass which adds fuzziness to any object type.
+There is exactly one method defined and that is _same_:
+
+    def same(p: Double)(x1: X, x2: X): Boolean
+
+Given a confidence value _p_ (a probability between 0 and 1), this method will determine if any two objects of type _X_
+can be considered the same.
+
+The _fuzzyCompare_ method of _FuzzyNumber_ does use this method.
+
+Note that the Fuzzy trait assumes nothing at all about the representation of _X_, or even if _X_ is numeric.
+The spec file shows an example where _X_ is represents a color.
+
 Comparison
 ==========
 Comparison between _Numbers_ is based on, first, equality of value.
@@ -135,12 +134,39 @@ However, for _FuzzyNumber_, it is then determined whether there is significant o
 between the fuzz of the two numbers.
 If the overlap is sufficient that there is deemed to be a 50% probability that the numbers are really the same,
 then the comparison yields 0 (equal).
+Note the use of _Fuzzy_, above.
 Additionally, each of the methods involved has a signature which includes a p value (the confidence probability).
+
+Mill
+====
+The _Mill_ trait allows expressions to be evaluated using RPN (Reverse Polish Notation).
+For example:
+
+    val eo: Option[Expression] = Mill.parseMill("42 37 + 2 *").toOption.flatMap(_.evaluate)
+
+yields the optional _Expression_ with a materialized value of 158.
+See the code for other methods for defining _Mill_ operations.
+
+The _Mill.parse_ method in turn invokes methods of _MillParser_.
+
+The Mill offers two parsers: one is a pure RPN parser (as described above).
+The other is an infix parser which uses [Dijkstra's Shunting Yard algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
+to build a Mill.
   
-Representation
-==============
+Field
+=====
+The most general form of mathematical quantity is a Field (added in V1.0.9).
+See https://en.wikipedia.org/wiki/Field_(mathematics).
+A field supports operations such as addition, subtraction, multiplication, and division.
+We also support powers because, at least for integer powers, raising to a power is simply iterating over a number of multiplications.
+
+The two types of Field supported are Number (see below) and Complex.
+
+Number
+======
 There are two kinds of _Number_: _ExactNumber_ and _FuzzyNumber_.
 A _FuzzyNumber_ has a fuzz quantity which is an optional _Fuzz[Double]_.
+
 The "value" of a _Number_ is represented by the following type:
 
     type Value = Either[Either[Option[Double], Rational], Int]
@@ -157,11 +183,18 @@ Similarly, a _Rational_ with numerator _x_ and unit denominator, where _x_ is in
 It is also possible that a _Double_ _x_ will be represented by a _Left(Right(Rational(x)))_.
 For this to happen, the value in question must have fewer than three decimal places (similar to the parsing scheme).
 
+Complex
+=======
+There are two types of _Complex_: _ComplexCartesian_ and _ComplexPolar_.
+Complex numbers support all of the Field operations, as well as _modulus_ and _complement_.
+It is easy to convert between the two types of _Complex_.
+
 Factors
 =======
 There are three "factors:" Scalar (for ordinary dimensionless numbers), __Pi__ (used to represent radians or any multiple of pi),
 and __E__ (for powers of the Euler number).
-Trigonometrical functions are designed to work with __Pi__.
+
+Trigonometrical functions are designed to work with __Pi__ quantities.
 Such values are limited (modulated) to be in the range 0..2pi.
 However, this happens as the result of operations, so it is still possible to define a value of 2pi.
 For example, if you want to check that the sine of pi/2 is equal to 1 exactly, then you should write the following:
@@ -171,9 +204,13 @@ For example, if you want to check that the sine of pi/2 is equal to 1 exactly, t
 
 Similarly, if you use the _atan_ method on a Scalar number, the result will be a number (possibly exact) whose factor is __Pi__.
 
-The e factor works quite differently.
+The 𝜀 factor works quite differently.
 It is not a simple matter of scaling.
 A Number of the form Number(x, e) actually evaluates to e^x rather than e x.
+
+It would be possible to implement pi values similarly to 𝜀 values (as evaluations of e^ix).
+However, this is not currently done (future enhancement?).
+See Complex numbers.
 
 Lazy Evaluation
 ===============

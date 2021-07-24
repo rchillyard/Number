@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Field.recover
+import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Number.{negate, prepare}
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, toInts}
 import com.phasmidsoftware.number.core.Render.renderValue
@@ -1137,12 +1138,17 @@ object Number {
   /**
     * For fuzzy numbers, it's appropriate to use the the normal mechanism for compare, even for E numbers.
     *
+    * NOTE, we first invoke same(p)(x, y) to determine if the Numbers are the same in a canonical manner.
+    * However, we could actually skip this step and always just invoke the else part of the expression.
+    *
     * @param x the first number.
     * @param y the second number.
     * @param p the probability criterion.
     * @return an Int representing the order.
     */
-  def fuzzyCompare(x: Number, y: Number, p: Double): Int = Number.plus(x, Number.negate(y)).signum(p)
+  def fuzzyCompare(x: Number, y: Number, p: Double): Int =
+    if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
+    else Number.plus(x, Number.negate(y)).signum(p)
 
   /**
     * Following are the definitions required by Fractional[Number]

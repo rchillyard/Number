@@ -71,10 +71,6 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "simplify" in {
-
-  }
-
   it should "power1" in {
     val z = c1_2 power 2
     z.materialize should matchPattern { case ComplexCartesian(ExactNumber(Right(-3), Scalar), ExactNumber(Right(4), Scalar)) => }
@@ -90,10 +86,6 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z.materialize shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
-  it should "depth" in {
-
-  }
-
   it should "maybeFactor" in {
     c1_2.maybeFactor shouldBe Some(Scalar)
     ComplexCartesian(Number.one, Number.pi).maybeFactor shouldBe None
@@ -101,12 +93,19 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     ComplexPolar(Number.one, Number.one).maybeFactor shouldBe None
   }
 
-  it should "sum" in {
-
+  it should "modulus" in {
+    c2_0.modulus shouldBe Number.two
+    p1_pi.modulus shouldBe Number.one
   }
 
-  it should "showImaginary" in {
+  it should "complement (1)" in {
+    c2_0.complement shouldBe c2_0
+    c1_2.complement shouldBe ComplexCartesian(1, -2)
+    (p1_pi_2.complement doAdd p1_pi_2).modulus shouldBe Number.zero
+  }
 
+  it should "complement (2)" in {
+    p1_pi.complement shouldBe p1_pi
   }
 
   it should "doAdd" in {

@@ -89,6 +89,14 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   override def doPower(p: Number): Number = FuzzyNumber.power(this, p)
 
   /**
+    * Method to compare this FuzzyNumber with another Number.
+    *
+    * @param other the other Number.
+    * @return -1, 0, or 1 according to whether x is <, =, or > y.
+    */
+  override def compare(other: Number): Int = fuzzyCompare(other, 0.5)
+
+  /**
     * @return true if this Number is equivalent to zero with at least 50% confidence.
     */
   override lazy val isZero: Boolean = isProbablyZero(0.5)
@@ -240,7 +248,7 @@ object FuzzyNumber {
   /**
     * Definition of concrete (implicit) type class object for FuzzyNumber being Fuzzy.
     */
-  implicit object FuzzyFuzzyNumber extends Fuzzy[FuzzyNumber] {
+  implicit object NumberIsFuzzy extends Fuzzy[Number] {
     /**
       * Method to determine if x1 and x2 can be considered the same with a probability of p.
       *
@@ -249,7 +257,7 @@ object FuzzyNumber {
       * @param x2 a value of X.
       * @return true if x1 and x2 are considered equal with probability p.
       */
-    def same(p: Double)(x1: FuzzyNumber, x2: FuzzyNumber): Boolean = x1.doAdd(x2.makeNegative).isProbablyZero(p)
+    def same(p: Double)(x1: Number, x2: Number): Boolean = x1.doAdd(x2.makeNegative).asFuzzyNumber.isProbablyZero(p)
   }
 
   def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number, p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))

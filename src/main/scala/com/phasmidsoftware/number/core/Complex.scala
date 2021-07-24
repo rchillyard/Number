@@ -1,10 +1,24 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Complex.narrow
+import com.phasmidsoftware.number.core.Complex.{convertToCartesian, narrow}
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.negate
 
 abstract class Complex(val real: Number, val imag: Number) extends AtomicExpression with Field {
+  /**
+    * Method to determine the modulus of this Complex number.
+    *
+    * @return the modulus of this Complex.
+    */
+  def modulus: Number
+
+  /**
+    * Method to determine the complement of this Complex number.
+    *
+    * @return the complement of this Complex.
+    */
+  def complement: Complex = make(real, imag.makeNegative)
+
   /**
     * Instance method to make a Complex number from a real and an imaginary part.
     *
@@ -131,11 +145,11 @@ object Complex {
   def convertToPolar(c: ComplexCartesian): Complex = {
     val ro: Option[Field] = for (p <- (c.x multiply c.x add c.y multiply c.y).asNumber; z = p.sqrt.materialize) yield z
     val z: Field = Field.recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
-    apply(z, c.y atan c.x, ComplexPolar, ComplexException(s"logic error: convertToPolar2: $c"))
+    apply(z, c.y atan c.x, ComplexPolar.apply, ComplexException(s"logic error: convertToPolar2: $c"))
   }
 
   def convertToCartesian(c: ComplexPolar): Complex =
-    apply(c.r multiply c.theta.cos, c.r multiply c.theta.sin, ComplexCartesian, ComplexException(s"logic error: convertToCartesian: $c"))
+    apply(c.r multiply c.theta.cos, c.r multiply c.theta.sin, ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
 
 
   def apply(a: Field, b: Field, f: (Number, Number) => Complex, x: ComplexException): Complex =
@@ -149,6 +163,13 @@ object Complex {
 }
 
 case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
+
+  /**
+    * Method to determine the modulus of this Complex number.
+    *
+    * @return the modulus of this Complex.
+    */
+  def modulus: Number = magnitudeSquared.sqrt.asNumber.getOrElse(Number.NaN)
 
   /**
     * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
@@ -182,8 +203,8 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     * @return the sum.
     */
   def doAdd(complex: Complex): Complex = complex match {
-    case ComplexCartesian(a, b) => Complex.apply((x plus a).materialize, (y plus b).materialize, ComplexCartesian, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
-    case ComplexPolar(_, _) => throw ComplexException("logic error: ComplexCartesian.doAdd")
+    case ComplexCartesian(a, b) => Complex.apply((x plus a).materialize, (y plus b).materialize, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
+    case c@ComplexPolar(_, _) => doAdd(convertToCartesian(c))
   }
 
   /**
@@ -196,12 +217,27 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     case ComplexCartesian(a, b) =>
       val real: Expression = a * x plus -(b * y)
       val imag: Expression = a * y plus b * x
-      Complex.apply(real.materialize, imag.materialize, ComplexCartesian, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
+      Complex.apply(real.materialize, imag.materialize, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
     case ComplexPolar(_, _) => throw ComplexException("logic error: ComplexCartesian.doAdd")
   }
 }
 
+object ComplexCartesian {
+  def apply(x: Int, y: Int): ComplexCartesian = ComplexCartesian(Number(x), Number(y))
+
+  def apply(x: Int, y: Number): ComplexCartesian = ComplexCartesian(Number(x), y)
+
+  def apply(x: Number, y: Int): ComplexCartesian = ComplexCartesian(x, Number(y))
+}
+
 case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
+
+  /**
+    * Method to determine the modulus of this Complex number.
+    *
+    * @return the modulus of this Complex.
+    */
+  def modulus: Number = r
 
   /**
     * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
@@ -212,7 +248,7 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
 
   def numberProduct(n: Number): Complex = make(r doMultiply n, theta)
 
-  def make(a: Number, b: Number): Complex = ComplexPolar(a, b)
+  def make(a: Number, b: Number): Complex = ComplexPolar(a, b.modulate)
 
   def isZero: Boolean = r.isZero
 
@@ -228,12 +264,16 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
     */
   def render: String = s"${r}e^$showImaginary"
 
-  def doAdd(complex: Complex): Complex = throw ComplexException("logic error: ComplexPolar.doAdd")
+  def doAdd(complex: Complex): Complex = convertToCartesian(this).doAdd(complex)
 
   def doMultiply(complex: Complex): Complex = complex match {
     case ComplexPolar(a, b) => make(r doMultiply a, theta doAdd b)
     case _ => throw ComplexException("logic error: ComplexPolar.doMultiply")
   }
+}
+
+object ComplexPolar {
+  def apply(r: Int, theta: Number): ComplexPolar = ComplexPolar(Number(r), theta)
 }
 
 case class ComplexException(str: String) extends Exception(str)
