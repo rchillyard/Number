@@ -56,18 +56,16 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   /**
     * If the result of invoking f on this is a Double, then there will inevitably be some loss of precision.
     *
-    * CONSIDER passing in the fuzziness value as it may differ for different functions.
-    *
-    * CONSIDER merging this method with the method in FuzzyNumber.scala
+    * CONSIDER rewriting this so that we don't have to override the method. But be careful!
     *
     * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
     * @return a Number which is the square toot of this, possibly fuzzy, Number.
     */
-  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = {
+  override protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = {
     val z = f(this)
     z.value match {
       case v@Left(Left(Some(_))) => FuzzyNumber(v, z.factor, Some(Fuzziness.createFuzz(relativePrecision)))
-      case v => z.make(v) // .asFuzzyNumber // FIXME this causes a stack overflow!
+      case v => z.make(v) // NOTE: do not attempt to convert this to a FuzzyNumber because it will cause a stack overflow
     }
   }
 
@@ -417,9 +415,8 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
     * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
     */
-  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number
-  // TODO restore this line and make it return FuzzyNumber
-  //  = f(this).asFuzzyNumber.addFuzz(Fuzziness.createFuzz(relativePrecision))
+  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number =
+    f(this).asFuzzyNumber.addFuzz(Fuzziness.createFuzz(relativePrecision))
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.

@@ -117,17 +117,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   def signum(p: Double): Int = if (isProbablyZero(p)) 0 else super.signum
 
   /**
-    * This method is invoked by power so do NOT invoke sqrt or power in implementations.
-    *
-    * NOTE: we do not add any extra degree of imprecision here because it's assumed that
-    * any existing fuzziness will outweigh the double-precision-induced fuzziness.
-    *
-    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
-    * @return a Number which is the square toot of this, possibly fuzzy, Number.
-    */
-  override protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = f(this).asInstanceOf[FuzzyNumber].addFuzz(Fuzziness.createFuzz(relativePrecision))
-
-  /**
     * Make a copy of this FuzzyNumber but with additional fuzz given by f.
     *
     * @param f the additional fuzz.
