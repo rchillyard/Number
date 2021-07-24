@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Fuzziness.createFuzz
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -129,6 +130,16 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     xy.get.fuzz.get.normalizeShape should matchPattern { case AbsoluteFuzz(0.2886751345948129, Gaussian) => }
   }
 
+  behavior of "createFuzz"
+  it should "work for 0" in {
+    createFuzz(0) shouldBe RelativeFuzz(1.6E-16, Box)
+  }
+  it should "work for 1" in {
+    createFuzz(1) shouldBe RelativeFuzz(3.2E-16, Box)
+  }
+  it should "work for 5" in {
+    createFuzz(5) shouldBe RelativeFuzz(5.12E-15, Box)
+  }
   behavior of "render"
   private val z = implicitly[Valuable[Double]]
   it should "render Pi" in {

@@ -122,9 +122,10 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * NOTE: we do not add any extra degree of imprecision here because it's assumed that
     * any existing fuzziness will outweigh the double-precision-induced fuzziness.
     *
+    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
     * @return a Number which is the square toot of this, possibly fuzzy, Number.
     */
-  def makeFuzzyIfAppropriate(f: Number => Number): Number = f(this).asInstanceOf[FuzzyNumber].addFuzz(RelativeFuzz[Double](DoublePrecisionTolerance, Box))
+  override protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = f(this).asInstanceOf[FuzzyNumber].addFuzz(Fuzziness.createFuzz(relativePrecision))
 
   /**
     * Make a copy of this FuzzyNumber but with additional fuzz given by f.
@@ -201,10 +202,19 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     case _ => false
   }
 
-  // CONSIDER implementing equals
-  //  override def equals(obj: Any): Boolean = obj match {
-  //    case n@Number(_,_) => compare(n) == 0
-  //  }
+  // CONSIDER implementing equals (but be careful!)
+  //  /**
+  //    * Implementation of equals
+  //    *
+  //    * @param obj the other object.
+  //    * @return true if obj is a Number and they are equivalent numerically (to within tolerance), else false.
+  //    */
+  //    override def equals(obj: Any): Boolean =
+  //      (obj.isInstanceOf[FuzzyNumber] && (this eq obj.asInstanceOf[FuzzyNumber])) || (obj match {
+  //      case ExactNumber(v,f) if fuzz.isEmpty => value==v && factor==f
+  //      case n@Number(_,_)  => compare(n) == 0
+  //      case _ => false
+  //    })
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.

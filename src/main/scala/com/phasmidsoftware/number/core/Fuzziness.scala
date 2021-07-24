@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
+import com.phasmidsoftware.number.core.Valuable.ValuableDouble
 import org.apache.commons.math3.special.Erf.erfInv
 
 import scala.math.Numeric.DoubleIsFractional
@@ -405,6 +406,15 @@ object Fuzziness {
       case Some(f1) => Some(f1.transform(g))
       case _ => None
     }
+
+  /**
+    * This method creates fuzz based on the practical limitations of representations and functions in double-precision arithmetic.
+    *
+    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
+    * @return the approximate precision for a floating point operation, expressed in terms of RelativeFuzz.
+    */
+  def createFuzz(relativePrecision: Int): RelativeFuzz[Double] =
+    RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)(ValuableDouble)
 
   /**
     * Normalize the magnitude qualifier of the given fuzz according to relative.

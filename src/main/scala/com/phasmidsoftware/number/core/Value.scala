@@ -65,11 +65,22 @@ case object Scalar extends Factor {
     case E => None
     case _ => Some(other)
   }
-
 }
 
 /**
   * This factor is primarily used for rotation by an angle.
+  *
+  * A number x with factor Pi (theoretically) evaluates to e raised to the power ix.
+  * So, you could think of it as essentially a shorthand for writing both cosine and sine.
+  * NOTE however that, unlike, with the factor E, we currently do not treat Pi values in quite this way in the code.
+  *
+  * CONSIDER implementing the Pi factor conversions in a manner similar to that of E.
+  * This would entail conversion from a single number to a pair of Doubles when going from Pi to Scalar.
+  * We could do that using a Complex number but I'd rather do it as a 2-tuple of Doubles.
+  * Perhaps the whole idea of our Complex implementation is misguided (although it does allow us to represent
+  * complex numbers in Polar form since, in that case, the real part is a Scalar number, and the imaginary part is coded in
+  * with factor Pi).
+  *
   * The range of such values is 0 thru 2pi.
   */
 case object Pi extends NonScalarFactor {
@@ -81,7 +92,7 @@ case object Pi extends NonScalarFactor {
 /**
   * This factor essentially provides log/exponent arithmetic.
   *
-  * A number in factor E will evaluate as e raised to that power.
+  * NOTE: A number in factor E will evaluate as e raised to that power.
   * So, it is the natural log of a scalar value.
   *
   * Thus the range of such values is any positive number.

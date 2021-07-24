@@ -58,13 +58,16 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     *
     * CONSIDER passing in the fuzziness value as it may differ for different functions.
     *
+    * CONSIDER merging this method with the method in FuzzyNumber.scala
+    *
+    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
     * @return a Number which is the square toot of this, possibly fuzzy, Number.
     */
-  def makeFuzzyIfAppropriate(f: Number => Number): Number = {
-    val z: Number = f(this)
+  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = {
+    val z = f(this)
     z.value match {
-      case v@Left(Left(Some(_))) => FuzzyNumber(v, z.factor, Some(RelativeFuzz(DoublePrecisionTolerance, Box)))
-      case v => z.make(v)
+      case v@Left(Left(Some(_))) => FuzzyNumber(v, z.factor, Some(Fuzziness.createFuzz(relativePrecision)))
+      case v => z.make(v) // .asFuzzyNumber // FIXME this causes a stack overflow!
     }
   }
 
@@ -290,9 +293,11 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * Method to determine the sine of this Number.
     * The result will be a Number with Scalar factor.
     *
+    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
+    *
     * @return the sine of this.
     */
-  def sin: Number = makeFuzzyIfAppropriate(Number.sin)
+  def sin: Number = makeFuzzyIfAppropriate(Number.sin, 3)
 
   /**
     * Method to determine the cosine of this Number.
@@ -305,26 +310,32 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
     *
+    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
+    *
     * @param y the opposite length
     * @return the angle defined by x = this, y = y
     */
-  def atan(y: Number): Number = makeFuzzyIfAppropriate(x => Number.atan(x, y))
+  def atan(y: Number): Number = makeFuzzyIfAppropriate(x => Number.atan(x, y), 3)
 
   /**
     * Method to determine the natural log of this Number.
     * The result will be a Number with Scalar factor.
     *
+    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
+    *
     * @return the natural log of this.
     */
-  def log: Number = makeFuzzyIfAppropriate(Number.log)
+  def log: Number = makeFuzzyIfAppropriate(Number.log, 3)
 
   /**
     * Method to raise E to the power of this number.
     * The result will be a Number with E factor.
     *
+    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
+    *
     * @return the e to the power of this.
     */
-  def exp: Number = makeFuzzyIfAppropriate(Number.exp)
+  def exp: Number = makeFuzzyIfAppropriate(Number.exp, 3)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
@@ -355,10 +366,13 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * In other words,  in the case where f is not factor, the numerical value of the result's value will be different
     * from this value.
     *
+    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
+    * It may not be appropriate for all invocations.
+    *
     * @param f the new factor for the result.
     * @return a Number based on this and factor.
     */
-  def scale(f: Factor): Number = makeFuzzyIfAppropriate(x => Number.scale(x, f))
+  def scale(f: Factor): Number = makeFuzzyIfAppropriate(x => Number.scale(x, f), 0)
 
   /**
     * @return true if this Number is equal to zero.
@@ -400,9 +414,12 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
   /**
     * Be careful when implementing this method that you do not invoke a method recursively.
     *
+    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
     * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
     */
-  protected def makeFuzzyIfAppropriate(f: Number => Number): Number
+  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number
+  // TODO restore this line and make it return FuzzyNumber
+  //  = f(this).asFuzzyNumber.addFuzz(Fuzziness.createFuzz(relativePrecision))
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -528,11 +545,14 @@ abstract class Number(val value: Value, val factor: Factor) extends AtomicExpres
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
+    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
+    * It may not be appropriate for all invocations.
+    *
     * @param v the value (a Double).
     * @param f Factor.
     * @return either a Number.
     */
-  protected def make(v: Double, f: Factor): Number = makeFuzzyIfAppropriate(x => x.make(Value.fromDouble(Some(v)), f))
+  protected def make(v: Double, f: Factor): Number = makeFuzzyIfAppropriate(x => x.make(Value.fromDouble(Some(v)), f), 0)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -1212,6 +1232,8 @@ object Number {
   /**
     * Method to take the ith root of n.
     *
+    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
+    *
     * @param n the Number whose root is required.
     * @param i the ordinal of the root (2: square root, etc.).
     * @return the root.
@@ -1219,7 +1241,7 @@ object Number {
   private def root(n: Number, i: Int): Option[Number] = i match {
     case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
     case 1 => Some(n)
-    case 2 => Some(n.makeFuzzyIfAppropriate(Number.sqrt))
+    case 2 => Some(n.makeFuzzyIfAppropriate(Number.sqrt, 3))
     case _ => None
   }
 
