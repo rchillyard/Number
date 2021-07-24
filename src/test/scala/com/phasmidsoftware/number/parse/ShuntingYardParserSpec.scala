@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.{Expression, Number}
+import com.phasmidsoftware.number.core.{Expression, GeneralNumber}
 import com.phasmidsoftware.number.mill.Mill
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -11,9 +11,9 @@ import scala.util.{Success, Try}
 class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
 
 
-  implicit object NumberEquality extends Equality[Number] {
-    def areEqual(a: Number, b: Any): Boolean = b match {
-      case n: Number => a.compare(n) == 0
+  implicit object NumberEquality extends Equality[GeneralNumber] {
+    def areEqual(a: GeneralNumber, b: Any): Boolean = b match {
+      case n: GeneralNumber => a.compare(n) == 0
       case _ => false
     }
   }
@@ -25,56 +25,56 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parseInfix 1" in {
     val sy = p.parseInfix("1")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
+    val xo: Option[GeneralNumber] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number.one
+    xo.get shouldBe GeneralNumber.one
   }
 
   it should "parseInfix 1 + 2" in {
     val sy = p.parseInfix("1 + 2")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
+    val xo: Option[GeneralNumber] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number(3)
+    xo.get shouldBe GeneralNumber(3)
   }
 
   it should "parseInfix ( 1 + 2 ) * 3" in {
     val sy = p.parseInfix("( 1 + 2 ) * 3")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
+    val xo: Option[GeneralNumber] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number(9)
+    xo.get shouldBe GeneralNumber(9)
   }
   // From https://www.hpmuseum.org/rpn.htm
   it should "parseInfix ( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ^ 9" in {
     val sy = p.parseInfix("( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ^ 9")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
+    val xo: Option[GeneralNumber] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number("60716.992766464000")
+    xo.get shouldBe GeneralNumber("60716.992766464000")
   }
   it should "parseInfix ( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ^ 2 ) ^ 3 )" in {
     val sy = p.parseInfix("( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ^ 2 ) ^ 3 )")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
+    val xo: Option[GeneralNumber] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number(64)
+    xo.get shouldBe GeneralNumber(64)
   }
   it should "parseInfix 3 + 4 × 2 / ( 1 − 5 ) ^ 2 ^ 3" in {
     val sy = p.parseInfix("3 + 4 × 2 / ( 1 - 5 ) ^ 2 ^ 3")
     sy should matchPattern { case Success(_) => }
     // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
+    val xo: Option[GeneralNumber] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
-    xo.get shouldEqual Number(3.0001220703125)
+    xo.get shouldEqual GeneralNumber(3.0001220703125)
   }
 
   it should "parseInfix ( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )" in {
     val sy = p.parseInfix("( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
+    val xo: Option[GeneralNumber] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number(101)
+    xo.get shouldBe GeneralNumber(101)
   }
 
   it should "parse Infix and evaluate:  9" in {

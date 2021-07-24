@@ -25,7 +25,7 @@ class MillParser extends NumberParser {
   def parseMill(w: String): Try[Mill] = stringParser(mill, w.trim.split("""\s+""").reverse.mkString(" "))
 
   /**
-    * Trait Term which represents a dyadic, monadic, anadic term (the latter including a Number).
+    * Trait Term which represents a dyadic, monadic, anadic term (the latter including a GeneralNumber).
     */
   trait Term {
     def toItems: Seq[Item] = this match {
@@ -39,7 +39,7 @@ class MillParser extends NumberParser {
   }
 
   /**
-    * AnadicTerm is a Term defined by a Token, which is either an operator (a String) or a Number.
+    * AnadicTerm is a Term defined by a Token, which is either an operator (a String) or a GeneralNumber.
     *
     * @param t the defining token.
     */
@@ -53,7 +53,7 @@ class MillParser extends NumberParser {
   /**
     * MonadicTerm is a Term defined by a Term t, a list of Strings, and an operator op.
     *
-    * @param t  a Term, typically a Number or another term.
+    * @param t  a Term, typically a GeneralNumber or another term.
     * @param os a possibly empty list of Strings, representing neutral operators such as the swap operator.
     * @param op an monadic operator, represented by a String.
     */
@@ -64,7 +64,7 @@ class MillParser extends NumberParser {
   /**
     * DyadicTerm is a Term defined by a Term t, followed by a MonadicTerm.
     *
-    * @param t  a Term, typically a Number or another term.
+    * @param t  a Term, typically a GeneralNumber or another term.
     * @param op a MonadicTerm.
     */
   case class DyadicTerm(t: Term, op: MonadicTerm) extends Term {
@@ -73,10 +73,10 @@ class MillParser extends NumberParser {
 
   /**
     * Token is something that results in a value: either
-    * a Number (itself); or
+    * a GeneralNumber (itself); or
     * a non-empty sequence of String each of which is an anadic (no operand) operator.
     */
-  type Token = Either[String, Number]
+  type Token = Either[String, GeneralNumber]
 
   /**
     * A Parser[Mill].
@@ -97,7 +97,7 @@ class MillParser extends NumberParser {
   def term: Parser[Term] = (dyadicTerm | monadicTerm | anadicTerm) :| "term"
 
   /**
-    * anadicTerm: an operator or Number which increases depth of the stack.
+    * anadicTerm: an operator or GeneralNumber which increases depth of the stack.
     *
     * @return a Parser[AnadicTerm]
     */
@@ -107,7 +107,7 @@ class MillParser extends NumberParser {
   }
 
   /**
-    * MonadicTerm: an operator or Number which maintains the depth of the stack.
+    * MonadicTerm: an operator or GeneralNumber which maintains the depth of the stack.
     * It matches on a monadicOperator, a list of neutral operators, followed by a term.
     *
     * @return a Parser[MonadicTerm].

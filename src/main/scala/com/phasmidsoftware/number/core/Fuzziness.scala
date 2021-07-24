@@ -30,7 +30,7 @@ trait Fuzziness[T] {
 
   /**
     * Transform this Fuzz[T] according to func.
-    * Typically, func will be the derivative of the relevant Number function.
+    * Typically, func will be the derivative of the relevant GeneralNumber function.
     *
     * @param func the function to apply to this Fuzz[T].
     * @return an (optional) transformed version of Fuzz[T].
@@ -55,7 +55,7 @@ trait Fuzziness[T] {
   /**
     * Method to possibly change the style of this Fuzz[T}.
     *
-    * @param t        the magnitude of the relevant Number.
+    * @param t        the magnitude of the relevant GeneralNumber.
     * @param relative if true then change to Relative (if Absolute).
     * @return the (optional) Fuzz as a Relative or Absolute Fuzz, according to relative.
     */
@@ -108,7 +108,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
 
   /**
     * Transform this Fuzz[T] according to func.
-    * Typically, func will be the derivative of the relevant Number function.
+    * Typically, func will be the derivative of the relevant GeneralNumber function.
     *
     * @param func the function to apply to this Fuzz[T].
     * @return a transformed version of Fuzz[T].
@@ -129,7 +129,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
   /**
     * Return either a AbsoluteFuzz equivalent or this, according to relative.
     *
-    * @param t        the magnitude of the relevant Number.
+    * @param t        the magnitude of the relevant GeneralNumber.
     * @param relative if true then convert to RelativeFuzz otherwise wrap this in Some().
     * @return the (optional) Fuzz as a Relative or Absolute Fuzz, according to relative.
     */
@@ -211,7 +211,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
 
   /**
     * Transform this Fuzz[T] according to func.
-    * Typically, func will be the derivative of the relevant Number function.
+    * Typically, func will be the derivative of the relevant GeneralNumber function.
     *
     * @param func the function to apply to this Fuzz[T].
     * @return an (optional) transformed version of Fuzz[T].
@@ -221,7 +221,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
   /**
     * Return either a RelativeFuzz equivalent or this, according to relativeStyle.
     *
-    * @param t             the magnitude of the relevant Number.
+    * @param t             the magnitude of the relevant GeneralNumber.
     * @param relativeStyle if true then convert to Absolute otherwise wrap this in Some().
     * @return the (optional) Fuzz as a Relative or Absolute Fuzz, according to relative.
     */
@@ -394,7 +394,7 @@ object Fuzziness {
     * Note also that we normalize the shape of each fuzz to ensure Gaussian, since we cannot combine Box shapes into Box
     * (we could combine Box shapes into trapezoids but who needs that?).
     *
-    * @param t        the magnitude of the resulting Number.
+    * @param t        the magnitude of the resulting GeneralNumber.
     * @param relative true if we are multiplying, false if we are adding.
     * @param g        the function with which to transform the given Fuzz value
     * @param fuzz     one of the (optional) Fuzz values.

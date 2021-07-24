@@ -38,7 +38,7 @@ sealed trait MonadicOperation {
 }
 
 /**
-  * MonadicOperation to negate a Number.
+  * MonadicOperation to negate a GeneralNumber.
   */
 case object MonadicOperationNegate extends MonadicOperation {
   val functions: MonadicFunctions = {
@@ -57,7 +57,7 @@ case object MonadicOperationNegate extends MonadicOperation {
 }
 
 /**
-  * MonadicOperation to invert a Number.
+  * MonadicOperation to invert a GeneralNumber.
   */
 case object MonadicOperationInvert extends MonadicOperation {
   def invertInt(x: Int): Try[Int] = x match {
@@ -80,7 +80,7 @@ case object MonadicOperationInvert extends MonadicOperation {
 }
 
 /**
-  * MonadicOperation to raise e (Euler's number) to the power of a Number.
+  * MonadicOperation to raise e (Euler's number) to the power of a GeneralNumber.
   */
 case object MonadicOperationExp extends MonadicOperation {
   def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
@@ -106,7 +106,7 @@ case object MonadicOperationExp extends MonadicOperation {
 }
 
 /**
-  * MonadicOperation to yield the natural logarithm of a Number.
+  * MonadicOperation to yield the natural logarithm of a GeneralNumber.
   */
 case object MonadicOperationLog extends MonadicOperation {
   def expDouble(x: Double): Try[Double] = Try(Math.log(x))
@@ -131,7 +131,7 @@ case object MonadicOperationLog extends MonadicOperation {
 }
 
 /**
-  * MonadicOperation to calculate the sine of a Number.
+  * MonadicOperation to calculate the sine of a GeneralNumber.
   */
 case object MonadicOperationSin extends MonadicOperation {
   def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))
@@ -157,7 +157,7 @@ case object MonadicOperationSin extends MonadicOperation {
 }
 
 /**
-  * MonadicOperation to yield the arctangent a Number.
+  * MonadicOperation to yield the arctangent a GeneralNumber.
   *
   * @param sign an Int which will distinguish between results in the four quadrants.
   */
@@ -185,7 +185,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 }
 
 /**
-  * MonadicOperation to yield the modulus a Number.
+  * MonadicOperation to yield the modulus a GeneralNumber.
   */
 case object MonadicOperationModulate extends MonadicOperation {
   private def modulate[X: Numeric](z: X, min: X, max: X): X = {
@@ -215,7 +215,7 @@ case object MonadicOperationModulate extends MonadicOperation {
 }
 
 /**
-  * MonadicOperation to yield the square root of a Number.
+  * MonadicOperation to yield the square root of a GeneralNumber.
   *
   * CONSIDER eliminating this and using power only.
   */
@@ -326,7 +326,7 @@ case object QueryOperationIsInfinite extends QueryOperation {
 object Operations {
   /**
     * Evaluate a monadic operator on this, using the various functions passed in.
-    * The result is an Option[Value] rather than a Number, as in Number's doComposeMonadic.
+    * The result is an Option[Value] rather than a GeneralNumber, as in GeneralNumber's doComposeMonadic.
     *
     * @param functions the tuple of four conversion functions.
     * @return an Option[Value] which is result of applying the appropriate function to the given value.
