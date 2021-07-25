@@ -2,15 +2,14 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, narrow}
 import com.phasmidsoftware.number.core.Field.recover
-import com.phasmidsoftware.number.core.GeneralNumber.negate
 
-abstract class Complex(val real: GeneralNumber, val imag: GeneralNumber) extends AtomicExpression with Field {
+abstract class Complex(val real: Number, val imag: Number) extends AtomicExpression with Field {
   /**
     * Method to determine the modulus of this Complex number.
     *
     * @return the modulus of this Complex.
     */
-  def modulus: GeneralNumber
+  def modulus: Number
 
   /**
     * Method to determine the complement of this Complex number.
@@ -26,7 +25,7 @@ abstract class Complex(val real: GeneralNumber, val imag: GeneralNumber) extends
     * @param b the imaginary part.
     * @return a Complex number, either ComplexCartesian or ComplexPolar
     */
-  def make(a: GeneralNumber, b: GeneralNumber): Complex
+  def make(a: Number, b: Number): Complex
 
   /**
     * Method to determine if this Complex can be evaluated exactly.
@@ -53,11 +52,11 @@ abstract class Complex(val real: GeneralNumber, val imag: GeneralNumber) extends
   def add(x: Field): Field = sum(narrow(x, polar = false))
 
   /**
-    * Change the sign of this GeneralNumber.
+    * Change the sign of this Number.
     */
-  def unary_- : Field = make(real, negate(imag))
+  def unary_- : Field = make(real, Number.negate(imag))
 
-  def numberProduct(n: GeneralNumber): Complex
+  def numberProduct(n: Number): Complex
 
   /**
     * Multiply this Complex by x and return the result.
@@ -66,7 +65,7 @@ abstract class Complex(val real: GeneralNumber, val imag: GeneralNumber) extends
     * * @return the product.
     */
   def multiply(x: Field): Field = x match {
-    case n@GeneralNumber(_, _) => numberProduct(n)
+    case n@Number(_, _) => numberProduct(n)
     case c@Complex(_, _) => product(c)
   }
 
@@ -82,24 +81,24 @@ abstract class Complex(val real: GeneralNumber, val imag: GeneralNumber) extends
   /**
     * Raise this Complex to the power p.
     *
-    * @param p a GeneralNumber.
-    * @return this GeneralNumber raised to power p.
+    * @param p a Number.
+    * @return this Number raised to power p.
     */
-  def power(p: GeneralNumber): Field = this match {
+  def power(p: Number): Field = this match {
     case ComplexPolar(_, _) =>
       recover(
         for (r <- real.^(p).materialize.asNumber; i <- (imag * p).materialize.asNumber) yield make(r, i),
         ComplexException("logic error: power")
       )
     case ComplexCartesian(_, _) => p.toInt match {
-      case Some(0) => ComplexCartesian(GeneralNumber.one, GeneralNumber.zero)
+      case Some(0) => ComplexCartesian(Number.one, Number.zero)
       case Some(-1) => -this divide this.magnitudeSquared.materialize
       case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.reduce[Expression]((a, b) => a * b).materialize
       case _ => throw ComplexException(s"not implemented: power($p)")
     }
   }
 
-  def power(p: Int): Field = power(GeneralNumber(p))
+  def power(p: Int): Field = power(Number(p))
 
   /**
     * Yields the inverse of this Complex.
@@ -140,7 +139,7 @@ abstract class Complex(val real: GeneralNumber, val imag: GeneralNumber) extends
 
 object Complex {
 
-  def unapply(arg: Complex): Option[(GeneralNumber, GeneralNumber)] = Some(arg.real, arg.imag)
+  def unapply(arg: Complex): Option[(Number, Number)] = Some(arg.real, arg.imag)
 
   def convertToPolar(c: ComplexCartesian): Complex = {
     val ro: Option[Field] = for (p <- (c.x multiply c.x add c.y multiply c.y).asNumber; z = p.sqrt.materialize) yield z
@@ -152,35 +151,35 @@ object Complex {
     apply(c.r multiply c.theta.cos, c.r multiply c.theta.sin, ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
 
 
-  def apply(a: Field, b: Field, f: (GeneralNumber, GeneralNumber) => Complex, x: ComplexException): Complex =
+  def apply(a: Field, b: Field, f: (Number, Number) => Complex, x: ComplexException): Complex =
     Field.recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
 
   def narrow(x: Field, polar: Boolean): Complex = x match {
     case c@ComplexCartesian(_, _) => if (polar) convertToPolar(c) else c
     case c@ComplexPolar(_, _) => if (!polar) convertToCartesian(c) else c
-    case n@GeneralNumber(_, _) => ComplexCartesian(n, GeneralNumber.zero)
+    case n@Number(_, _) => ComplexCartesian(n, Number.zero)
   }
 }
 
-case class ComplexCartesian(x: GeneralNumber, y: GeneralNumber) extends Complex(x, y) {
+case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
 
   /**
     * Method to determine the modulus of this Complex number.
     *
     * @return the modulus of this Complex.
     */
-  def modulus: GeneralNumber = magnitudeSquared.sqrt.asNumber.getOrElse(GeneralNumber.NaN)
+  def modulus: Number = magnitudeSquared.sqrt.asNumber.getOrElse(Number.NaN)
 
   /**
     * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
-  def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor; if f1 == f2) yield f1
+  def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor if f2 == f1) yield f1 // CHECK
 
-  def numberProduct(n: GeneralNumber): Complex = make(x doMultiply n, y doMultiply n)
+  def numberProduct(n: Number): Complex = make(x doMultiply n, y doMultiply n)
 
-  def make(a: GeneralNumber, b: GeneralNumber): Complex = ComplexCartesian(a, b)
+  def make(a: Number, b: Number): Complex = ComplexCartesian(a, b)
 
   def isZero: Boolean = x.isZero && y.isZero
 
@@ -223,21 +222,21 @@ case class ComplexCartesian(x: GeneralNumber, y: GeneralNumber) extends Complex(
 }
 
 object ComplexCartesian {
-  def apply(x: Int, y: Int): ComplexCartesian = ComplexCartesian(GeneralNumber(x), GeneralNumber(y))
+  def apply(x: Int, y: Int): ComplexCartesian = ComplexCartesian(Number(x), Number(y))
 
-  def apply(x: Int, y: GeneralNumber): ComplexCartesian = ComplexCartesian(GeneralNumber(x), y)
+  def apply(x: Int, y: Number): ComplexCartesian = ComplexCartesian(Number(x), y)
 
-  def apply(x: GeneralNumber, y: Int): ComplexCartesian = ComplexCartesian(x, GeneralNumber(y))
+  def apply(x: Number, y: Int): ComplexCartesian = ComplexCartesian(x, Number(y))
 }
 
-case class ComplexPolar(r: GeneralNumber, theta: GeneralNumber) extends Complex(r, theta) {
+case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
 
   /**
     * Method to determine the modulus of this Complex number.
     *
     * @return the modulus of this Complex.
     */
-  def modulus: GeneralNumber = r
+  def modulus: Number = r
 
   /**
     * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
@@ -246,9 +245,9 @@ case class ComplexPolar(r: GeneralNumber, theta: GeneralNumber) extends Complex(
     */
   def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor; if f2 == Pi) yield f1
 
-  def numberProduct(n: GeneralNumber): Complex = make(r doMultiply n, theta)
+  def numberProduct(n: Number): Complex = make(r doMultiply n, theta)
 
-  def make(a: GeneralNumber, b: GeneralNumber): Complex = ComplexPolar(a, b.modulate)
+  def make(a: Number, b: Number): Complex = ComplexPolar(a, b.modulate)
 
   def isZero: Boolean = r.isZero
 
@@ -273,7 +272,7 @@ case class ComplexPolar(r: GeneralNumber, theta: GeneralNumber) extends Complex(
 }
 
 object ComplexPolar {
-  def apply(r: Int, theta: GeneralNumber): ComplexPolar = ComplexPolar(GeneralNumber(r), theta)
+  def apply(r: Int, theta: Number): ComplexPolar = ComplexPolar(Number(r), theta)
 }
 
 case class ComplexException(str: String) extends Exception(str)

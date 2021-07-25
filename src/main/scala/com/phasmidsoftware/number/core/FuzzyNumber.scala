@@ -1,13 +1,14 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
-import com.phasmidsoftware.number.core.GeneralNumber.prepareWithSpecialize
+import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
 
 import scala.util.Left
 
 /**
-  * This class is designed to model a fuzzy GeneralNumber.
+  * This class is designed to model a fuzzy Number.
   * See GeneralNumber for more details on the actual representation.
   *
   * TODO FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz.
@@ -15,27 +16,22 @@ import scala.util.Left
   *
   * TODO ensure that every Double calculation contributes fuzziness.
   *
-  * NOTE it is not necessary to override compareTo because the operative method is signum for all GeneralNumber comparisons,
+  * NOTE it is not necessary to override compareTo because the operative method is signum for all Number comparisons,
   * and that is overridden here.
   *
   * CONSIDER implementing equals (but be careful!). Don't implement it in terms of compare(...)==0 or Same.
   *
-  * @param value  the value of the GeneralNumber, expressed as a nested Either type.
-  * @param factor the scale factor of the GeneralNumber: valid scales are: Scalar, Pi, and E.
-  * @param fuzz   the fuzziness of this GeneralNumber.
+  * @param value  the value of the Number, expressed as a nested Either type.
+  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
+  * @param fuzz   the fuzziness of this Number.
   */
-case class FuzzyNumber(override val value: Value, override val factor: Factor, fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor) with Fuzz[Double] {
-
-  /**
-    * @return true if there is no fuzz.
-    */
-  def isExact: Boolean = fuzz.isEmpty
+case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
 
   /**
     * Auxiliary constructor for a FuzzyNumber.
     *
-    * @param v    the value for the new GeneralNumber.
-    * @param fuzz the fuzz for the new GeneralNumber.
+    * @param v    the value for the new Number.
+    * @param fuzz the fuzz for the new Number.
     */
   def this(v: Value, fuzz: Option[Fuzziness[Double]]) = this(v, Scalar, fuzz)
 
@@ -47,67 +43,58 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   def render: String = toString
 
   /**
-    * Action to materialize this Expression.
-    *
-    * @return this ExactNumber.
-    */
-  def materialize: GeneralNumber = this
-
-  /**
-    * Add a GeneralNumber to this FuzzyNumber.
+    * Add a Number to this FuzzyNumber.
     *
     * @param x the addend.
     * @return the sum.
     */
-  override def doAdd(x: GeneralNumber): FuzzyNumber = FuzzyNumber.plus(this, x)
+  override def doAdd(x: Number): FuzzyNumber = FuzzyNumber.plus(this, x)
 
   /**
-    * Multiply a GeneralNumber by this FuzzyNumber.
+    * Multiply a Number by this FuzzyNumber.
     *
     * @param x the multiplicand.
     * @return the product.
     */
-  override def doMultiply(x: GeneralNumber): FuzzyNumber = FuzzyNumber.times(this, x)
-
-  override def makeNegative: FuzzyNumber = super.makeNegative.asFuzzyNumber
+  override def doMultiply(x: Number): FuzzyNumber = FuzzyNumber.times(this, x)
 
   /**
     * Yields the square root of this FuzzyNumber.
     * If possible, the result will be exact.
     */
-  override def sqrt: GeneralNumber = FuzzyNumber.sqrt(this)
+  override def sqrt: Number = FuzzyNumber.sqrt(this)
 
   /**
-    * Method to determine the sine of this GeneralNumber.
-    * The result will be a GeneralNumber with Scalar factor.
+    * Method to determine the sine of this Number.
+    * The result will be a Number with Scalar factor.
     */
-  override def sin: GeneralNumber = FuzzyNumber.sin(this)
+  override def sin: Number = FuzzyNumber.sin(this)
 
   /**
-    * Raise this GeneralNumber to the power p.
+    * Raise this Number to the power p.
     * CONSIDER inlining this method.
     *
-    * @param p a GeneralNumber.
-    * @return this GeneralNumber raised to power p.
+    * @param p a Number.
+    * @return this Number raised to power p.
     */
-  override def doPower(p: GeneralNumber): GeneralNumber = FuzzyNumber.power(this, p)
+  override def doPower(p: Number): Number = FuzzyNumber.power(this, p)
 
   /**
-    * Method to compare this FuzzyNumber with another GeneralNumber.
+    * Method to compare this FuzzyNumber with another Number.
     *
-    * @param other the other GeneralNumber.
+    * @param other the other Number.
     * @return -1, 0, or 1 according to whether x is <, =, or > y.
     */
-  override def compare(other: GeneralNumber): Int = fuzzyCompare(other, 0.5)
+  override def compare(other: Number): Int = fuzzyCompare(other, 0.5)
 
   /**
-    * @return true if this GeneralNumber is equivalent to zero with at least 50% confidence.
+    * @return true if this Number is equivalent to zero with at least 50% confidence.
     */
   override lazy val isZero: Boolean = isProbablyZero(0.5)
 
   /**
     * @param p the confidence desired. Ignored if isZero is true.
-    * @return true if this GeneralNumber is equivalent to zero with at least p confidence.
+    * @return true if this Number is equivalent to zero with at least p confidence.
     */
   def isProbablyZero(p: Double): Boolean = super.isZero || (for (f <- fuzz; x <- toDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
 
@@ -129,15 +116,9 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
   def signum(p: Double): Int = if (isProbablyZero(p)) 0 else super.signum
 
   /**
-    * Make a copy of this FuzzyNumber but with additional fuzz given by f.
+    * Make a copy of this Number, but with different fuzziness.
     *
-    * @param f the additional fuzz.
-    * @return this but with fuzziness which is the convolution of fuzz and f.
-    */
-  def addFuzz(f: Fuzziness[Double]): GeneralNumber = FuzzyNumber.addFuzz(this, f)
-
-  /**
-    * Make a copy of this GeneralNumber, but with different fuzziness.
+    * CONSIDER moving this to ExactNumber
     *
     * @param z the optional Fuzz.
     * @return a FuzzyNumber.
@@ -148,16 +129,16 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
-    * @param other        the other operand, a GeneralNumber.
+    * @param other        the other operand, a Number.
     * @param f            the factor to apply to the result.
     * @param op           the appropriate DyadicOperation.
     * @param independent  true if the fuzziness of the operands are independent.
     * @param coefficients an optional Tuple representing the coefficients to scale the fuzz values by.
     *                     For a power operation such as x to the power of y, these will be y/x and ln x respectively.
     *                     For addition or multiplication, they will be 1 and 1.
-    * @return a new GeneralNumber which is result of applying the appropriate function to the operands this and other.
+    * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  def composeDyadicFuzzy(other: GeneralNumber, f: Factor)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[GeneralNumber] =
+  def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
     for (n <- composeDyadic(other, f)(op); t1 <- this.toDouble; t2 <- other.toDouble) yield
       FuzzyNumber(n.value, n.factor, Fuzziness.combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients)))
 
@@ -166,9 +147,9 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     *
     * @param f  the factor to apply to the result.
     * @param op the appropriate MonadicOperation.
-    * @return a new GeneralNumber which is result of applying the appropriate function to the operand this.
+    * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[GeneralNumber] = {
+  def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[Number] = {
     transformMonadic(f)(op).flatMap {
       case n: FuzzyNumber =>
         for (x <- n.toDouble) yield n.makeFuzzy(Fuzziness.map(x, !op.absolute, op.derivative, fuzz))
@@ -184,7 +165,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     val sb = new StringBuilder()
     val w = fuzz match {
       case Some(f) => f.toString(toDouble.getOrElse(0.0))
-      case None => GeneralNumber.valueToString(value)
+      case None => Number.valueToString(value)
     }
     sb.append(w)
     sb.append(factor.toString)
@@ -198,23 +179,23 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @return true if this can equal that.
     */
   override def canEqual(that: Any): Boolean = that match {
-    case _: GeneralNumber => true
+    case _: Number => true
     case x: AtomicExpression => x.materialize.asNumber.isDefined
     case _ => false
   }
 
   /**
-    * Make a copy of this GeneralNumber, given the same degree of fuzziness as the original.
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Both the value and the factor will be changed.
     *
     * @param v the value.
     * @param f the factor.
     * @return a FuzzyNumber.
     */
-  protected def make(v: Value, f: Factor): GeneralNumber = make(v, f, fuzz)
+  protected def make(v: Value, f: Factor): Number = make(v, f, fuzz)
 
   /**
-    * Make a copy of this GeneralNumber, given the same degree of fuzziness as the original.
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Both the value and the factor will be changed.
     * CONSIDER: not entirely sure we need this method.
     *
@@ -223,12 +204,12 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, f
     * @param z the new fuzziness.
     * @return a FuzzyNumber.
     */
-  protected def make(v: Value, f: Factor, z: Option[Fuzziness[Double]]): GeneralNumber = FuzzyNumber(v, f, z)
+  protected def make(v: Value, f: Factor, z: Option[Fuzziness[Double]]): Number = FuzzyNumber(v, f, z)
 
   /**
-    * Ensure that this GeneralNumber is actually a FuzzyNumber.
+    * Ensure that this Number is actually a FuzzyNumber.
     *
-    * @return a FuzzyNumber which is the same as this GeneralNumber.
+    * @return a FuzzyNumber which is the same as this Number.
     */
   def asFuzzyNumber: FuzzyNumber = this
 }
@@ -238,7 +219,7 @@ object FuzzyNumber {
   /**
     * Definition of concrete (implicit) type class object for FuzzyNumber being Fuzzy.
     */
-  implicit object NumberIsFuzzy extends Fuzzy[GeneralNumber] {
+  implicit object NumberIsFuzzy extends Fuzzy[Number] {
     /**
       * Method to determine if x1 and x2 can be considered the same with a probability of p.
       *
@@ -247,17 +228,17 @@ object FuzzyNumber {
       * @param x2 a value of X.
       * @return true if x1 and x2 are considered equal with probability p.
       */
-    def same(p: Double)(x1: GeneralNumber, x2: GeneralNumber): Boolean = x1.doAdd(x2.makeNegative).asFuzzyNumber.isProbablyZero(p)
+    def same(p: Double)(x1: Number, x2: Number): Boolean = x1.doAdd(x2.makeNegative).isProbablyZero(p)
   }
 
-  def power(number: FuzzyNumber, p: GeneralNumber): GeneralNumber = composeDyadic(number, p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
+  def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number, p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
 
-  def apply(): GeneralNumber = GeneralNumber.apply()
+  def apply(): Number = Number.apply()
 
-  def sin(x: FuzzyNumber): GeneralNumber = transformMonadic(x.scale(Pi), Scalar, MonadicOperationSin)
+  def sin(x: FuzzyNumber): Number = transformMonadic(x.scale(Pi), Scalar, MonadicOperationSin)
 
   // TEST me or eliminate
-  def sqrt(x: FuzzyNumber): GeneralNumber = transformMonadic(x, Scalar, MonadicOperationSqrt)
+  def sqrt(x: FuzzyNumber): Number = transformMonadic(x, Scalar, MonadicOperationSqrt)
 
   /**
     * Get the fuzz coefficients for calculating the fuzz on a power operation.
@@ -268,7 +249,7 @@ object FuzzyNumber {
     * @param p the power (exponent) with which to raise n.
     * @return the value of n to the power of p.
     */
-  private def getPowerCoefficients(n: GeneralNumber, p: GeneralNumber): Option[(Double, Double)] =
+  private def getPowerCoefficients(n: Number, p: Number): Option[(Double, Double)] =
     for (z <- n.toDouble; q <- p.toDouble) yield (q / z, math.log(z))
 
   /**
@@ -280,31 +261,31 @@ object FuzzyNumber {
     */
   private def withinWiggleRoom(p: Double, f: Fuzziness[Double], x: Double) = f.normalizeShape.wiggle(p) > math.abs(x)
 
-  private def plus(x: FuzzyNumber, y: GeneralNumber): FuzzyNumber = {
-    val (p, q) = x.alignTypes(y)
+  private def plus(x: FuzzyNumber, y: Number): FuzzyNumber = {
+    val (p, q) = x.alignTypes(y.asInstanceOf[GeneralNumber])
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
       case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
-      case (_, _) => recover((p plus q).materialize.asNumber, FuzzyNumberException("logic error: plus")).asFuzzyNumber
+      case (_, _) => recover((p plus q).materialize.asNumber, FuzzyNumberException("logic error: plus")).asInstanceOf[core.GeneralNumber].asFuzzyNumber
     }
   }
 
-  private def times(x: FuzzyNumber, y: GeneralNumber): FuzzyNumber = {
+  private def times(x: FuzzyNumber, y: Number): FuzzyNumber = {
     val (a, b) = x.alignFactors(y)
-    val (p, q) = a.alignTypes(b)
+    val (p, q) = a.asInstanceOf[GeneralNumber].alignTypes(b.asInstanceOf[GeneralNumber])
     (p, q) match {
       case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
       case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
-      case (_, _) => recover((p multiply q).materialize.asNumber, FuzzyNumberException("logic error: times")).asFuzzyNumber
+      case (_, _) => recover((p multiply q).materialize.asNumber, FuzzyNumberException("logic error: times")).asInstanceOf[core.GeneralNumber].asFuzzyNumber
     }
   }
 
-  private def addFuzz(n: GeneralNumber, f: Fuzziness[Double]): GeneralNumber = (n.value, n.fuzz) match {
+  def addFuzz(n: Number, f: Fuzziness[Double]): Number = (n.value, n.fuzz) match {
     case (v@Left(Left(Some(_))), fo) => addFuzz(n, v, fo, f)
     case _ => n
   }
 
-  private def addFuzz(number: GeneralNumber, v: Value, fo: Option[Fuzziness[Double]], fAdditional: Fuzziness[Double]) = {
+  private def addFuzz(number: Number, v: Value, fo: Option[Fuzziness[Double]], fAdditional: Fuzziness[Double]) = {
     val combinedFuzz = for (f <- fo.orElse(Some(AbsoluteFuzz(0.0, Box))); p <- number.toDouble; g <- Fuzziness.combine(p, 0, f.style, independent = false)((fo, fAdditional.normalize(p, f.style)))) yield g
     FuzzyNumber(v, number.factor, combinedFuzz)
   }
@@ -321,16 +302,16 @@ object FuzzyNumber {
     * @param coefficients an optional Tuple representing the coefficients to scale the fuzz values by.
     *                     For a power operation such as x to the power of y, these will be y/x and ln x respectively.
     *                     For addition or multiplication, they will be 1 and 1.
-    * @return a new GeneralNumber which is the result of operating on n and q as described above.
+    * @return a new Number which is the result of operating on n and q as described above.
     */
-  private def composeDyadic(n: GeneralNumber, q: GeneralNumber, f: Factor, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): FuzzyNumber = n match {
-    case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients)).asFuzzyNumber
-    case _: GeneralNumber => prepareWithSpecialize(n.composeDyadic(n, f)(op)).asFuzzyNumber
+  private def composeDyadic(n: Number, q: Number, f: Factor, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): FuzzyNumber = n match {
+    case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients)).asInstanceOf[core.GeneralNumber].asFuzzyNumber
+    case _: Number => prepareWithSpecialize(n.composeDyadic(n, f)(op)).asInstanceOf[core.GeneralNumber].asFuzzyNumber
   }
 
-  private def transformMonadic(n: GeneralNumber, factor: Factor, op: MonadicOperation) = n match {
+  private def transformMonadic(n: Number, factor: Factor, op: MonadicOperation) = n match {
     case x: FuzzyNumber => prepareWithSpecialize(x.transformMonadicFuzzy(factor)(op))
-    case _: GeneralNumber => prepareWithSpecialize(n.transformMonadic(factor)(op))
+    case _: Number => prepareWithSpecialize(n.transformMonadic(factor)(op))
   }
 
 }

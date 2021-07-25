@@ -5,20 +5,20 @@ import com.phasmidsoftware.number.core._
 import scala.util.Try
 
 /**
-  * Parser for GeneralNumber.
+  * Parser for Number.
   */
 class NumberParser extends RationalParser {
 
   /**
-    * Parse the string w as a GeneralNumber.
+    * Parse the string w as a Number.
     * The string consists of two optional parts:
     * the numerator and the factor.
     * Either of these can be missing but not both.
     *
     * @param w the String to parse.
-    * @return a GeneralNumber, wrapped in Try.
+    * @return a Number, wrapped in Try.
     */
-  def parseNumber(w: String): Try[GeneralNumber] = stringParser(number, w)
+  def parseNumber(w: String): Try[Number] = stringParser(number, w)
 
   trait WithFuzziness {
     def fuzz: Option[Fuzziness[Double]]
@@ -53,9 +53,9 @@ class NumberParser extends RationalParser {
     private def getExponent = maybeExponent.getOrElse("0").toInt
   }
 
-  def number: Parser[GeneralNumber] = maybeNumber :| "number" ^^ { no => no.getOrElse(FuzzyNumber()) }
+  def number: Parser[Number] = maybeNumber :| "number" ^^ { no => no.getOrElse(FuzzyNumber()) }
 
-  def maybeNumber: Parser[Option[GeneralNumber]] = (opt(generalNumber) ~ opt(factor)) :| "maybeNumber" ^^ {
+  def maybeNumber: Parser[Option[Number]] = (opt(generalNumber) ~ opt(factor)) :| "maybeNumber" ^^ {
     case no ~ fo => optionalNumber(no, fo)
   }
 
@@ -79,7 +79,7 @@ class NumberParser extends RationalParser {
   //  Any number with a longer fractional part is assumed to be fuzzy.
   val DPExact = 2
 
-  private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[GeneralNumber] =
+  private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[Number] =
     if (ro.isDefined || fo.isDefined)
       for (
         r <- ro.orElse(Some(WholeNumber.one));
@@ -90,7 +90,7 @@ class NumberParser extends RationalParser {
           case n@RealNumber(_, _, Some(f), _) if f.length > DPExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
           case _ => None
         }
-        GeneralNumber.apply(v, f, z)
+        Number.apply(v, f, z)
       }
     else None
 

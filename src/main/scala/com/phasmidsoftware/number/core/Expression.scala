@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
-import com.phasmidsoftware.number.core.GeneralNumber.negate
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 
 /**
@@ -50,11 +49,11 @@ trait Expression {
   def materialize: Field
 
   /**
-    * Method to materialize this Expression as a Field and, if possible, convert it to a GeneralNumber.
+    * Method to materialize this Expression as a Field and, if possible, convert it to a Number.
     *
-    * @return an Option[GeneralNumber].
+    * @return an Option[Number].
     */
-  def asNumber: Option[GeneralNumber] = materialize.asNumber
+  def asNumber: Option[Number] = materialize.asNumber
 
   /**
     * Method to determine the depth of this Expression.
@@ -92,9 +91,9 @@ object Expression {
     * The following method is helpful in getting an expression from a Field.
     */
   def apply(x: Field): Expression = x match {
-    case n@GeneralNumber(_, _) => n
+    case n@Number(_, _) => n
     case c@Complex(_, _) => c
-    case _ => throw NumberException(s"logic error: $x is not a GeneralNumber or a Complex")
+    case _ => throw NumberException(s"logic error: $x is not a Number or a Complex")
   }
 
   /**
@@ -103,7 +102,7 @@ object Expression {
   def apply(x: Int): Expression = x match {
     case 0 => Zero
     case 1 => One
-    case _ => Expression(GeneralNumber(x))
+    case _ => Expression(Number(x))
   }
 
   /**
@@ -120,8 +119,8 @@ object Expression {
     */
   val zero: Expression = Zero
   val one: Expression = One
-  val pi: Expression = Expression(GeneralNumber.pi)
-  val e: Expression = Expression(GeneralNumber.e)
+  val pi: Expression = Expression(Number.pi)
+  val e: Expression = Expression(Number.e)
 
   /**
     * Implicit class to allow various operations to be performed on an Expression.
@@ -149,10 +148,10 @@ object Expression {
     /**
       * Method to lazily multiply x by y.
       *
-      * @param y a GeneralNumber.
+      * @param y a Number.
       * @return an Expression which is the lazy product of x and y.
       */
-    def +(y: GeneralNumber): Expression = this.+(Expression(y))
+    def +(y: Number): Expression = this.+(Expression(y))
 
     /**
       * Method to lazily multiply x by y.
@@ -168,15 +167,15 @@ object Expression {
       * @param y an Int.
       * @return an Expression which is the lazy product of x and y.
       */
-    def +(y: Int): Expression = this.+(GeneralNumber(y))
+    def +(y: Int): Expression = this.+(Number(y))
 
     /**
-      * Method to lazily subtract the GeneralNumber y from x.
+      * Method to lazily subtract the Number y from x.
       *
-      * @param y a GeneralNumber.
+      * @param y a Number.
       * @return an Expression which is the lazy product of x and y.
       */
-    def -(y: GeneralNumber): Expression = BiFunction(x, -Expression(y), Sum)
+    def -(y: Number): Expression = BiFunction(x, -Expression(y), Sum)
 
     /**
       * Method to lazily subtract the Field y from x.
@@ -199,7 +198,7 @@ object Expression {
       * @param y an Int.
       * @return an Expression which is the lazy product of x and y.
       */
-    def -(y: Int): Expression = this.-(GeneralNumber(y))
+    def -(y: Int): Expression = this.-(Number(y))
 
     /**
       * Method to lazily multiply x by y.
@@ -212,10 +211,10 @@ object Expression {
     /**
       * Method to lazily multiply x by y.
       *
-      * @param y a GeneralNumber.
+      * @param y a Number.
       * @return an Expression which is the lazy product of x and y.
       */
-    def *(y: GeneralNumber): Expression = *(Expression(y))
+    def *(y: Number): Expression = *(Expression(y))
 
     /**
       * Method to lazily multiply x by y.
@@ -231,7 +230,7 @@ object Expression {
       * @param y an Int.
       * @return an Expression which is the lazy product of x and y.
       */
-    def *(y: Int): Expression = *(GeneralNumber(y))
+    def *(y: Int): Expression = *(Number(y))
 
     /**
       * Method to lazily yield the reciprocal of x.
@@ -243,10 +242,10 @@ object Expression {
     /**
       * Method to lazily divide x by y.
       *
-      * @param y a GeneralNumber.
+      * @param y a Number.
       * @return an Expression which is the lazy quotient of x and y.
       */
-    def /(y: GeneralNumber): Expression = *(Expression(y).reciprocal)
+    def /(y: Number): Expression = *(Expression(y).reciprocal)
 
     /**
       * Method to lazily divide x by y.
@@ -262,7 +261,7 @@ object Expression {
       * @param y another Field.
       * @return an Expression which is the lazy product of x and y.
       */
-    def /(y: Int): Expression = /(GeneralNumber(y))
+    def /(y: Int): Expression = /(Number(y))
 
     /**
       * Method to lazily raise x to the power of y.
@@ -275,10 +274,10 @@ object Expression {
     /**
       * Method to lazily raise x to the power of y.
       *
-      * @param y the power to which x should be raised (a GeneralNumber).
+      * @param y the power to which x should be raised (a Number).
       * @return an Expression representing x to the power of y.
       */
-    def ^(y: GeneralNumber): Expression = ^(Expression(y))
+    def ^(y: Number): Expression = ^(Expression(y))
 
     /**
       * Method to lazily raise the Field x to the power of y.
@@ -286,14 +285,14 @@ object Expression {
       * @param y the power.
       * @return an Expression which is the lazy power of x to the y.
       */
-    def ^(y: Int): Expression = ^(GeneralNumber(y))
+    def ^(y: Int): Expression = ^(Number(y))
 
     /**
       * Method to lazily get the square root of x.
       *
       * @return an Expression representing the square root of x.
       */
-    def sqrt: Expression = this ^ GeneralNumber(2).reciprocal
+    def sqrt: Expression = this ^ Number(2).reciprocal
 
     /**
       * Method to lazily get the sine of x.
@@ -373,9 +372,9 @@ abstract class CompositeExpression extends Expression {
 /**
   * A literal number.
   *
-  * @param x the GeneralNumber.
+  * @param x the Number.
   */
-case class Literal(x: GeneralNumber) extends AtomicExpression {
+case class Literal(x: Number) extends AtomicExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -395,7 +394,7 @@ case class Literal(x: GeneralNumber) extends AtomicExpression {
     *
     * @return x.
     */
-  def materialize: GeneralNumber = x
+  def materialize: Number = x
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -414,7 +413,7 @@ case class Literal(x: GeneralNumber) extends AtomicExpression {
 }
 
 object Literal {
-  def apply(x: Int): Literal = Literal(GeneralNumber(x))
+  def apply(x: Int): Literal = Literal(Number(x))
 }
 
 /**
@@ -452,9 +451,9 @@ case object Zero extends Constant {
     * Action to materialize this Expression as a Field,
     * that is to say we eagerly evaluate this Expression as a Field.
     *
-    * @return GeneralNumber.zero
+    * @return Number.zero
     */
-  def materialize: GeneralNumber = GeneralNumber.zero
+  def materialize: Number = Number.zero
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
@@ -466,7 +465,7 @@ case object One extends Constant {
     *
     * @return 1.
     */
-  def materialize: GeneralNumber = GeneralNumber.one
+  def materialize: Number = Number.one
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
@@ -478,7 +477,7 @@ case object MinusOne extends Constant {
     *
     * @return -1.
     */
-  def materialize: GeneralNumber = negate(GeneralNumber.one)
+  def materialize: Number = Number.negate(Number.one)
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 
@@ -502,7 +501,7 @@ case object ConstPi extends Constant {
     *
     * @return pi.
     */
-  def materialize: GeneralNumber = GeneralNumber.pi
+  def materialize: Number = Number.pi
 
   def maybeFactor: Option[Factor] = Some(Pi)
 }
@@ -518,7 +517,7 @@ case object ConstE extends Constant {
     *
     * @return e.
     */
-  def materialize: GeneralNumber = GeneralNumber.e
+  def materialize: Number = Number.e
 
   def maybeFactor: Option[Factor] = Some(E)
 }
@@ -700,7 +699,7 @@ case object Sine extends ExpressionFunction(x => x.sin, "sin")
 
 case object Cosine extends ExpressionFunction(x => x.cos, "cos")
 
-case object Atan extends ExpressionBiFunction((x, y) => (for (a <- x.asNumber; b <- y.asNumber) yield a atan b).getOrElse(GeneralNumber.NaN), "atan", false, false)
+case object Atan extends ExpressionBiFunction((x, y) => (for (a <- x.asNumber; b <- y.asNumber) yield a atan b).getOrElse(Number.NaN), "atan", false, false)
 
 case object Log extends ExpressionFunction(x => x.log, "log")
 
@@ -719,10 +718,10 @@ case object Power extends ExpressionBiFunction((x, y) => x.power(convertToNumber
   *
   * TODO implement also for other fields than Numbers.
   *
-  * @param f    the function GeneralNumber => GeneralNumber.
+  * @param f    the function Number => Number.
   * @param name the name of this function.
   */
-class ExpressionFunction(val f: GeneralNumber => GeneralNumber, val name: String) extends (Field => Field) {
+class ExpressionFunction(val f: Number => Number, val name: String) extends (Field => Field) {
   /**
     * Evaluate this function on Field x.
     *
@@ -741,7 +740,7 @@ class ExpressionFunction(val f: GeneralNumber => GeneralNumber, val name: String
 }
 
 object ExpressionFunction {
-  def unapply(arg: ExpressionFunction): Option[(GeneralNumber => GeneralNumber, String)] = Some(arg.f, arg.name)
+  def unapply(arg: ExpressionFunction): Option[(Number => Number, String)] = Some(arg.f, arg.name)
 }
 
 /**

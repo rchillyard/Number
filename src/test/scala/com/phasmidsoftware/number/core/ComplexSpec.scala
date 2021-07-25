@@ -10,21 +10,21 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Complex"
 
-  private val c1_2 = ComplexCartesian(GeneralNumber.one, GeneralNumber.two)
-  private val c2_0 = ComplexCartesian(GeneralNumber.two, GeneralNumber.zero)
-  private val p1_pi = ComplexPolar(GeneralNumber.one, GeneralNumber.pi)
-  private val p1_pi_2 = ComplexPolar(GeneralNumber.one, convertToNumber((GeneralNumber.pi / GeneralNumber.two).materialize))
+  private val c1_2 = ComplexCartesian(Number.one, Number.two)
+  private val c2_0 = ComplexCartesian(Number.two, Number.zero)
+  private val p1_pi = ComplexPolar(Number.one, Number.pi)
+  private val p1_pi_2 = ComplexPolar(Number.one, convertToNumber((Number.pi / Number.two).materialize))
 
   it should "real" in {
-    c1_2.real shouldBe GeneralNumber.one
-    c2_0.real shouldBe GeneralNumber.two
-    p1_pi.real shouldBe GeneralNumber.one
+    c1_2.real shouldBe Number.one
+    c2_0.real shouldBe Number.two
+    p1_pi.real shouldBe Number.one
   }
 
   it should "imag" in {
-    c1_2.imag shouldBe GeneralNumber.two
-    c2_0.imag shouldBe GeneralNumber.zero
-    p1_pi.imag shouldBe GeneralNumber.pi
+    c1_2.imag shouldBe Number.two
+    c2_0.imag shouldBe Number.zero
+    p1_pi.imag shouldBe Number.pi
   }
 
   it should "isAtomic" in {
@@ -41,7 +41,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "asNumber" in {
-    c2_0.asNumber shouldBe Some(GeneralNumber.two)
+    c2_0.asNumber shouldBe Some(Number.two)
     c1_2.asNumber shouldBe None
   }
 
@@ -51,21 +51,21 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "add2" in {
     val c3 = p1_pi add c2_0
-    c3 shouldBe ComplexCartesian(GeneralNumber.one, GeneralNumber.zero)
+    c3 shouldBe ComplexCartesian(Number.one, Number.zero)
   }
 
   it should "multiply" in {
     val z1 = c1_2 * c2_0
-    z1.materialize shouldBe ComplexCartesian(GeneralNumber.two, GeneralNumber(4))
+    z1.materialize shouldBe ComplexCartesian(Number.two, Number(4))
   }
 
   it should "unary_$minus" in {
     val z = -c1_2
-    z shouldBe ComplexCartesian(GeneralNumber.one, GeneralNumber(-2))
+    z shouldBe ComplexCartesian(Number.one, Number(-2))
   }
 
   it should "divide" in {
-    val z = ComplexCartesian(GeneralNumber.two, GeneralNumber(4))
+    val z = ComplexCartesian(Number.two, Number(4))
     val z1 = z / c2_0
     z1.materialize shouldBe c1_2
 
@@ -83,25 +83,25 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "power3" in {
     val z = c1_2 power -1
-    z.materialize shouldBe ComplexCartesian(GeneralNumber(r"1/5"), GeneralNumber(r"-2/5"))
+    z.materialize shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
   it should "maybeFactor" in {
     c1_2.maybeFactor shouldBe Some(Scalar)
-    ComplexCartesian(GeneralNumber.one, GeneralNumber.pi).maybeFactor shouldBe None
+    ComplexCartesian(Number.one, Number.pi).maybeFactor shouldBe None
     p1_pi.maybeFactor shouldBe Some(Scalar)
-    ComplexPolar(GeneralNumber.one, GeneralNumber.one).maybeFactor shouldBe None
+    ComplexPolar(Number.one, Number.one).maybeFactor shouldBe None
   }
 
   it should "modulus" in {
-    c2_0.modulus shouldBe GeneralNumber.two
-    p1_pi.modulus shouldBe GeneralNumber.one
+    c2_0.modulus shouldBe Number.two
+    p1_pi.modulus shouldBe Number.one
   }
 
   it should "complement (1)" in {
     c2_0.complement shouldBe c2_0
     c1_2.complement shouldBe ComplexCartesian(1, -2)
-    (p1_pi_2.complement doAdd p1_pi_2).modulus shouldBe GeneralNumber.zero
+    (p1_pi_2.complement doAdd p1_pi_2).modulus shouldBe Number.zero
   }
 
   it should "complement (2)" in {
@@ -114,7 +114,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "invert" in {
     val z = c1_2.invert
-    z.materialize shouldBe ComplexCartesian(GeneralNumber(r"1/5"), GeneralNumber(r"-2/5"))
+    z.materialize shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
   it should "apply" in {
@@ -122,7 +122,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   ignore should "convertToPolar" in {
-    convertToPolar(c1_2) shouldBe ComplexPolar(GeneralNumber(5).sqrt, GeneralNumber.pi doDivide GeneralNumber(3))
+    convertToPolar(c1_2) shouldBe ComplexPolar(Number(5).sqrt, Number.pi doDivide Number(3))
   }
 
   it should "unapply" in {
@@ -134,12 +134,12 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "convertToCartesian" in {
-    convertToCartesian(p1_pi) shouldBe ComplexCartesian(GeneralNumber(-1), GeneralNumber.zero)
+    convertToCartesian(p1_pi) shouldBe ComplexCartesian(Number(-1), Number.zero)
   }
 
   it should "magnitudeSquared" in {
     val c3 = p1_pi add c2_0
-    convertToNumber(c3.materialize.magnitudeSquared.materialize) shouldBe GeneralNumber.one
+    convertToNumber(c3.materialize.magnitudeSquared.materialize) shouldBe Number.one
 
   }
 

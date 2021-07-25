@@ -182,14 +182,14 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a Matcher[Expressions, Expression].
     */
-  def matchSumOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Product, GeneralNumber(-1), GeneralNumber.zero) :| "matchSumOffsetting"
+  def matchSumOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Product, Number(-1), Number.zero) :| "matchSumOffsetting"
 
   /**
     * Matcher to eliminate offsetting expressions such as x * 1 / x.
     *
     * @return a Matcher[Expressions, Expression].
     */
-  def matchProductOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Power, GeneralNumber(-1), GeneralNumber.one) :| "matchProductOffsetting"
+  def matchProductOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Power, Number(-1), Number.one) :| "matchProductOffsetting"
 
   /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
@@ -445,7 +445,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def value: ExpressionMatcher[Field] = {
     case Literal(x) => Match(x)
-    case x@GeneralNumber(_, _) => Match(x)
+    case x@Number(_, _) => Match(x)
     case x: Constant => Match(x.materialize)
     case x => Miss("value", x)
   }
@@ -453,15 +453,15 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
     * Matcher which matches on Expressions that directly represents a specific given Field.
     *
-    * @param x the GeneralNumber to match.
-    * @return a Matcher[Expression, GeneralNumber].
+    * @param x the Number to match.
+    * @return a Matcher[Expression, Number].
     */
   def matchValue(x: Field): ExpressionMatcher[Field] = (value & matchNumber(x)) :| s"matchValue($x)"
 
   /**
-    * Matcher to match a specific GeneralNumber.
+    * Matcher to match a specific Number.
     *
-    * @param x the GeneralNumber to match.
+    * @param x the Number to match.
     * @return a Matcher[Field, Field] which matches only on x.
     */
   def matchNumber(x: Field): Matcher[Field, Field] =
@@ -624,7 +624,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param x an Expression.
     * @param y an Expression.
     * @param z an Expression.
-    * @return a MatchResult[GeneralNumber].
+    * @return a MatchResult[Number].
     */
   private def combineGather(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] =
     f match {
@@ -632,29 +632,29 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         // CONSIDER checking that y * z is a positive integer.
         (y * z).materialize match {
           case n@ExactNumber(_, _) => Match(x ^ n)
-          case _ => Miss(s"combineGather $f, $x, $y, $z missed", GeneralNumber.NaN)
+          case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
         }
       case Product =>
         ((x * y).materialize, (x * z).materialize, (z * y).materialize) match {
           case (n@ExactNumber(_, _), _, _) => Match(n * z)
           case (_, n@ExactNumber(_, _), _) => Match(n * y)
           case (_, _, n@ExactNumber(_, _)) => Match(n * x)
-          case _ => Miss(s"combineGather $f, $x, $y, $z missed", GeneralNumber.NaN)
+          case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
         }
       case Sum =>
         ((x plus y).materialize, (x plus z).materialize, (z plus y).materialize) match {
           case (n@ExactNumber(_, _), _, _) => Match(n plus z)
           case (_, n@ExactNumber(_, _), _) => Match(n plus y)
           case (_, _, n@ExactNumber(_, _)) => Match(n plus x)
-          case _ => Miss(s"combineGather $f, $x, $y, $z missed", GeneralNumber.NaN)
+          case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
         }
     }
 
   private def eliminateIdentity(f: ExpressionBiFunction, x: Expression, c: Expression): MatchResult[Expression] =
     (f, x.materialize, c.materialize) match {
-      case (Power, _, GeneralNumber.one) | (Product, _, GeneralNumber.one) | (Sum, _, GeneralNumber.zero) => Match(x)
-      case (Power, GeneralNumber.one, _) => Match(GeneralNumber.one)
-      case _ => Miss(s"eliminateIdentity $f, $x, $c missed", GeneralNumber.NaN)
+      case (Power, _, Number.one) | (Product, _, Number.one) | (Sum, _, Number.zero) => Match(x)
+      case (Power, Number.one, _) => Match(Number.one)
+      case _ => Miss(s"eliminateIdentity $f, $x, $c missed", Number.NaN)
     }
 
   /**

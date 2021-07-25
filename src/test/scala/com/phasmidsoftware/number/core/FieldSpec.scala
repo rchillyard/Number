@@ -48,9 +48,9 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "isExact" in {
-    //    GeneralNumber(4).power(convertToNumber((GeneralNumber.one / 2).materialize)).isExact shouldBe true
-    //    GeneralNumber(2).power(convertToNumber((GeneralNumber.one / 2).materialize)).isExact shouldBe false
-    val x = (GeneralNumber.pi / 2).materialize
+    //    Number(4).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe true
+    //    Number(2).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe false
+    val x = (Number.pi / 2).materialize
     x.isExact shouldBe true
   }
 

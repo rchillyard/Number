@@ -85,6 +85,6 @@ object Item {
     case "(" => Open
     case ")" => Close
     // XXX Expressions
-    case x => Expr(GeneralNumber(x))
+    case x => Expr(Number(x))
   }
 }

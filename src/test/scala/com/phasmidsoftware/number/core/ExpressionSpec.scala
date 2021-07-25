@@ -27,9 +27,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     }
   }
 
-  implicit object NumberEquality extends Equality[GeneralNumber] {
-    def areEqual(a: GeneralNumber, b: Any): Boolean = b match {
-      case n: GeneralNumber => a.compare(n) == 0
+  implicit object NumberEquality extends Equality[Number] {
+    def areEqual(a: Number, b: Any): Boolean = b match {
+      case n: Number => a.compare(n) == 0
       case _ => false
     }
   }
@@ -47,28 +47,27 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "parse and evaluate sqrt(3)" in {
     val eo: Option[Expression] = Expression.parse("3 ^ ( 2 ^ -1 )")
     eo should matchPattern { case Some(_) => }
-    eo.get shouldBe BiFunction(GeneralNumber(3), BiFunction(GeneralNumber(2), GeneralNumber(-1), Power), Power)
+    eo.get shouldBe BiFunction(Number(3), BiFunction(Number(2), Number(-1), Power), Power)
   }
   it should "parse and evaluate half" in {
     val eo: Option[Expression] = Expression.parse("2 ^ -1")
     eo should matchPattern { case Some(_) => }
-    eo.get shouldBe BiFunction(GeneralNumber(2), GeneralNumber(-1), Power)
+    eo.get shouldBe BiFunction(Number(2), Number(-1), Power)
   }
-
 
   behavior of "Expression"
 
   it should "materialize" in {
-    val x1 = GeneralNumber.one
-    val x2 = GeneralNumber.pi
+    val x1 = Number.one
+    val x2 = Number.pi
     val e = BiFunction(x1, x2, Sum)
     val result = e.materialize
-    convertToNumber(result) shouldEqual GeneralNumber(Math.PI + 1)
+    convertToNumber(result) shouldEqual Number(Math.PI + 1)
   }
 
   it should "render" in {
-    val x1 = GeneralNumber.one
-    val x2 = GeneralNumber.pi
+    val x1 = Number.one
+    val x2 = Number.pi
     val e = BiFunction(x1, x2, Sum)
     e.render shouldBe "4.1415926535897930(29)"
   }
@@ -76,75 +75,75 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "ExpressionOps"
 
   it should "evaluate +" in {
-    val x = GeneralNumber(1) + 2
-    x shouldEqual GeneralNumber(3)
+    val x = Number(1) + 2
+    x shouldEqual Number(3)
   }
   it should "evaluate -" in {
-    val x = GeneralNumber(1) - 2
-    x shouldEqual GeneralNumber(-1)
+    val x = Number(1) - 2
+    x shouldEqual Number(-1)
   }
   it should "evaluate *" in {
-    val x = GeneralNumber(3) * 2
-    x shouldEqual GeneralNumber(6)
+    val x = Number(3) * 2
+    x shouldEqual Number(6)
   }
   it should "evaluate /" in {
-    val x = GeneralNumber(6) / 2
-    x shouldEqual GeneralNumber(3)
+    val x = Number(6) / 2
+    x shouldEqual Number(3)
   }
   it should "evaluate ^ 2" in {
-    val x = GeneralNumber(6) ^ 2
-    x shouldEqual GeneralNumber(36)
+    val x = Number(6) ^ 2
+    x shouldEqual Number(36)
   }
   it should "evaluate sqrt 36" in {
-    val x: Expression = GeneralNumber(36).sqrt
-    x shouldEqual GeneralNumber(6)
+    val x: Expression = Number(36).sqrt
+    x shouldEqual Number(6)
   }
   it should "evaluate sin pi/2" in {
-    val x: Expression = GeneralNumber.pi / 2
+    val x: Expression = Number.pi / 2
     val y: Expression = x.sin
-    y.materialize shouldBe GeneralNumber.one
+    y.materialize shouldBe Number.one
   }
   it should "evaluate atan" in {
-    Expression(GeneralNumber.zero).atan(GeneralNumber.one).materialize shouldBe (GeneralNumber.pi / 2).materialize
-    Expression(GeneralNumber.one).atan(GeneralNumber.zero).materialize shouldBe (GeneralNumber.pi * 0).materialize
-    GeneralNumber.one.atan(GeneralNumber.zero).materialize shouldBe (GeneralNumber.pi * 0).materialize
+    Expression(Number.zero).atan(Number.one).materialize shouldBe (Number.pi / 2).materialize
+    Expression(Number.one).atan(Number.zero).materialize shouldBe (Number.pi * 0).materialize
+    Number.one.atan(Number.zero).materialize shouldBe (Number.pi * 0).materialize
   }
   it should "evaluate ln E" in {
-    val x: Expression = GeneralNumber.e
+    val x: Expression = Number.e
     val y: Expression = x.log
-    y.materialize shouldBe GeneralNumber.one
+    y.materialize shouldBe Number.one
   }
   it should "evaluate ln 2E" in {
-    val x: Expression = GeneralNumber.e * 2
+    val x: Expression = Number.e * 2
     val y: Expression = x.log
     val result = y.materialize
-    val expected = GeneralNumber("1.693147180559945(13)")
+    val expected = Number("1.693147180559945(13)")
     result shouldEqual expected
   }
 
   behavior of "toString"
   it should "work for (sqrt 7)^2" in {
-    val seven: Expression = GeneralNumber(7)
+    val seven: Expression = Number(7)
     val result: Expression = seven.sqrt ^ 2
     result.toString shouldBe "{{7 ^ (2 ^ -1)} ^ 2}"
   }
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (GeneralNumber.e * 2).materialize.toString shouldBe "5.43656365691809(3)"
+    (Number.e * 2).materialize.toString shouldBe "5.43656365691809(3)"
   }
 
   behavior of "isExact"
-  it should "be true for any constant GeneralNumber" in {
-    GeneralNumber.one.isExact shouldBe true
-    GeneralNumber.pi.isExact shouldBe true
+  it should "be true for any constant Number" in {
+    Number.one.isExact shouldBe true
+    Number.pi.isExact shouldBe true
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
-    (GeneralNumber.one plus GeneralNumber.two).isExact shouldBe true
-    (GeneralNumber.pi plus GeneralNumber.pi).isExact shouldBe true
+    (Number.one plus Number.two).isExact shouldBe true
+    (Number.pi plus Number.pi).isExact shouldBe true
   }
   it should "be true for any product of exact Numbers of factor e" in {
-    (GeneralNumber.e multiply GeneralNumber.e).isExact shouldBe true
+    (Number.e multiply Number.e).isExact shouldBe true
   }
 
   behavior of "depth"
@@ -155,8 +154,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     pi.depth shouldBe 1
   }
   it should "be more than 1 for other expression" in {
-    (GeneralNumber.e * 2).depth shouldBe 2
-    (GeneralNumber.e * 2 / 2).depth shouldBe 3
+    (Number.e * 2).depth shouldBe 2
+    (Number.e * 2 / 2).depth shouldBe 3
     val expression = Expression(7).sqrt ^ 2
     expression.depth shouldBe 4
   }
