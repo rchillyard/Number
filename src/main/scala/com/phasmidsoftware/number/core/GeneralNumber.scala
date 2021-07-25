@@ -34,11 +34,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def this(v: Value) = this(v, Scalar, None)
 
   /**
-    * @return true if there is no fuzz.
-    */
-  def isExact: Boolean = fuzz.isEmpty
-
-  /**
     * Action to materialize this Expression.
     *
     * @return this ExactNumber.
@@ -88,62 +83,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return true if this Number is greater than or equal to 0.
     */
   override def isPositive: Boolean = signum >= 0
-
-  /**
-    * Add x to this Number and return the result.
-    * See Number.plus for more detail.
-    * CONSIDER inlining this method.
-    *
-    * @param x the addend.
-    * @return the sum.
-    */
-  def add(x: Field): Field = x match {
-    case n@Number(_, _) => doAdd(n)
-    case c@Complex(_, _) => c.add(x)
-  }
-
-  /**
-    * Multiply this Number by x and return the result.
-    * See Number.times for more detail.
-    *
-    * * @param x the multiplicand.
-    * * @return the product.
-    */
-  def multiply(x: Field): Field = x match {
-    case n@Number(_, _) => doMultiply(n)
-    case c@Complex(_, _) => c.multiply(x)
-  }
-
-  /**
-    * Divide this Number by x and return the result.
-    * See * and invert for more detail.
-    *
-    * @param x the divisor.
-    * @return the quotient.
-    */
-  def divide(x: Field): Field = x match {
-    case n@Number(_, _) => doDivide(n)
-    case c@Complex(_, _) => c.divide(x)
-  }
-
-  /**
-    * Change the sign of this Number.
-    */
-  def unary_- : Field = makeNegative
-
-  /**
-    * Raise this Number to the power p.
-    *
-    * @param p a Number.
-    * @return this Number raised to power p.
-    */
-  def power(p: Number): Field = p match {
-    case n@Number(_, _) => doPower(n)
-    case _ => throw NumberException("logic error: power not supported for non-Number powers")
-  }
-
-  def power(p: Int): Field = power(Number(p))
-
   /**
     * Negative of this Number.
     */
@@ -180,13 +119,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return this Number raised to the power of p.
     */
   override def doPower(p: Number): Number = Number.power(this, p)
-
-  /**
-    * Yields the inverse of this Number.
-    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
-    * factors.
-    */
-  def invert: Number = Number.inverse(normalize)
 
   /**
     * Yields the square root of this Number.
@@ -269,16 +201,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a Number based on this and factor.
     */
   override def scale(f: Factor): Number = makeFuzzyIfAppropriate(x => Number.scale(x, f), 0)
-
-  /**
-    * @return true if this Number is equal to zero.
-    */
-  def isZero: Boolean = Number.isZero(this)
-
-  /**
-    * @return true if this Number is equal to zero.
-    */
-  def isInfinite: Boolean = Number.isInfinite(this)
 
   /**
     * Evaluate the magnitude squared of this Complex number.

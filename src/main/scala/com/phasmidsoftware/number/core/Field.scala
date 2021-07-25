@@ -43,11 +43,6 @@ trait Field extends AtomicExpression {
   def add(x: Field): Field
 
   /**
-    * Change the sign of this Field.
-    */
-  def unary_- : Field
-
-  /**
     * Multiply this Field by x and return the result.
     *
     * * @param x the multiplicand.
@@ -62,6 +57,11 @@ trait Field extends AtomicExpression {
     * @return the quotient.
     */
   def divide(x: Field): Field
+
+  /**
+    * Change the sign of this Field.
+    */
+  def unary_- : Field
 
   /**
     * Raise this Field to the power p.

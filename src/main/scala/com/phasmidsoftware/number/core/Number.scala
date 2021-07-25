@@ -12,10 +12,28 @@ import scala.annotation.tailrec
 import scala.math.BigInt
 import scala.util._
 
+/**
+  * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
+  *
+  * Every number has three properties:
+  * * value: Value
+  * * factor: Factor
+  * * fuzz: (from extending Fuzz[Double]).
+  */
 trait Number extends Fuzz[Double] with Field with Ordered[Number] {
 
+  /**
+    * The value of this Number.
+    *
+    * @return the value.
+    */
   def value: Value
 
+  /**
+    * The factor of this Number.
+    * Ordinary numbers are of Scalar factor, angles have factor Pi, and natural logs have factor E.
+    * @return the factor.
+    */
   def factor: Factor
 
   /**
@@ -69,8 +87,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     */
   def makeNegative: Number
 
-  // CONSIDER move add, multiply, etc.
-
   /**
     * Add this Number to n.
     *
@@ -103,12 +119,86 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     */
   def doPower(p: Number): Number
 
+  // NOTE Following are methods defined in Field.
+
+  /**
+    * @return true if this Number is equal to zero.
+    */
+  def isInfinite: Boolean = Number.isInfinite(this)
+
+  /**
+    * @return true if this Number is equal to zero.
+    */
+  def isZero: Boolean = Number.isZero(this)
+
+  /**
+    * @return true if there is no fuzz.
+    */
+  def isExact: Boolean = fuzz.isEmpty
+
+  /**
+    * Add x to this Number and return the result.
+    *
+    * @param x the addend.
+    * @return the sum.
+    */
+  def add(x: Field): Field = x match {
+    case n@Number(_, _) => doAdd(n)
+    case c@Complex(_, _) => c.add(x)
+  }
+
+  /**
+    * Multiply this Number by x and return the result.
+    *
+    * @param x the multiplicand.
+    * @return the product.
+    */
+  def multiply(x: Field): Field = x match {
+    case n@Number(_, _) => doMultiply(n)
+    case c@Complex(_, _) => c.multiply(x)
+  }
+
+  /**
+    * Divide this Number by x and return the result.
+    *
+    * @param x the divisor.
+    * @return the quotient.
+    */
+  def divide(x: Field): Field = x match {
+    case n@Number(_, _) => doDivide(n)
+    case c@Complex(_, _) => c.divide(x)
+  }
+
+  /**
+    * Change the sign of this Number.
+    */
+  def unary_- : Field = makeNegative
+
+  /**
+    * Raise this Number to the power p.
+    *
+    * @param p a Number.
+    * @return this Number raised to power p.
+    */
+  def power(p: Number): Field = p match {
+    case n@Number(_, _) => doPower(n)
+    case _ => throw NumberException("logic error: power not supported for non-Number powers")
+  }
+
+  /**
+    * Raise this Number to the power p.
+    *
+    * @param p an Int.
+    * @return this Number raised to power p.
+    */
+  def power(p: Int): Field = power(Number(p))
+
   /**
     * Yields the inverse of this Number.
     * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
     * factors.
     */
-  def invert: Number
+  def invert: Number = Number.inverse(normalize)
 
   /**
     * Yields the square root of this Number.
@@ -200,8 +290,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return a Number based on this and factor.
     */
   def scale(f: Factor): Number
-
-  // CONSIDER isZero, isInfinite here.
 
   /**
     * Be careful when implementing this method that you do not invoke a method recursively.
