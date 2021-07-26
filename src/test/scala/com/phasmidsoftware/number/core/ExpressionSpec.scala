@@ -130,7 +130,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (Number.e * 2).materialize.toString shouldBe "5.43656365691809(3)"
+    (Number.e * 2).materialize.toString shouldBe "5.436563656918090(29)"
   }
 
   behavior of "isExact"

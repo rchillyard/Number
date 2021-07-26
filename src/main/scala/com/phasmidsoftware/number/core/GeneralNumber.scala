@@ -339,6 +339,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * Only the value and the factor will change.
     * This method should be followed by a call to specialize.
     *
+    * NOTE that this method is primarily used by doComposeDyadic
+    *
     * @param r a Rational.
     * @param f Factor.
     * @return either a Number.
@@ -350,26 +352,21 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * Only the value will change.
     * This method should be followed by a call to specialize.
     *
-    * @param v the value.
+    * @param r the value.
     * @return either a Number.
     */
-  override protected def make(v: Rational): Number = make(v, factor)
+  override protected def make(r: Rational): Number = make(r, factor)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
-    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
-    * It may not be appropriate for all invocations.
-    *
-    * TODO we shouldn't be making up our own fuzziness here. That's not the job of the make method.
-    *
-    * @param v the value (a Double).
+    * @param x the value (a Double).
     * @param f Factor.
     * @return either a Number.
     */
-  override protected def make(v: Double, f: Factor): Number = makeFuzzyIfAppropriate(x => x.asInstanceOf[GeneralNumber].make(Value.fromDouble(Some(v)), f), 0)
+  override protected def make(x: Double, f: Factor): Number = make(Value.fromDouble(Some(x)), f)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -378,10 +375,10 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * TEST me
     *
-    * @param v the value (a Double).
+    * @param x the value (a Double).
     * @return either a Number.
     */
-  override protected def make(v: Double): Number = make(v, factor)
+  override protected def make(x: Double): Number = make(x, factor)
 
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
@@ -468,7 +465,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
         // XXX x's value is a real Number: swap the order so that the first element is the real number
         case Left(Left(_)) => x.alignTypes(this)
         // XXX otherwise: return this and x re-cast as a Rational
-        case _ => (this, x.make(x.maybeRational.getOrElse(Rational.NaN), x.factor).specialize)
+        case _ => (this, x.make(x.maybeRational.getOrElse(Rational.NaN)).specialize)
       }
       // XXX this value is an Int:
       case Right(_) => x.value match {
