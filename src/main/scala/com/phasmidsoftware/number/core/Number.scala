@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{identityTry, tryF}
-import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Render.renderValue
@@ -794,7 +794,7 @@ object Number {
       if (x.factor == E && y.factor == E)
         compare(x.make(Scalar), y.make(Scalar))
       else
-        plus(x, negate(y)).signum
+        GeneralNumber.plus(x.asInstanceOf[GeneralNumber], Number.negate(y)).signum
   }
 
   implicit object NumberIsOrdering extends NumberIsOrdering
@@ -803,11 +803,11 @@ object Number {
     * Following are the definitions required by Numeric[Number]
     */
   trait NumberIsNumeric extends Numeric[Number] {
-    def plus(x: Number, y: Number): Number = Number.plus(x, y)
+    def plus(x: Number, y: Number): Number = GeneralNumber.plus(x.asInstanceOf[GeneralNumber], y)
 
-    def minus(x: Number, y: Number): Number = Number.plus(x, negate(y))
+    def minus(x: Number, y: Number): Number = GeneralNumber.plus(x.asInstanceOf[GeneralNumber], negate(y))
 
-    def times(x: Number, y: Number): Number = Number.times(x, y)
+    def times(x: Number, y: Number): Number = GeneralNumber.times(x.asInstanceOf[GeneralNumber], y)
 
     def negate(x: Number): Number = Number.negate(x)
 
@@ -855,46 +855,18 @@ object Number {
     */
   def fuzzyCompare(x: Number, y: Number, p: Double): Int =
     if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
-    else Number.plus(x, Number.negate(y)).signum(p)
+    else GeneralNumber.plus(x.asInstanceOf[GeneralNumber], Number.negate(y)).signum(p)
 
   /**
     * Following are the definitions required by Fractional[Number]
     */
   trait NumberIsFractional extends Fractional[Number] {
-    def div(x: Number, y: Number): Number = Number.times(x, inverse(y))
+    def div(x: Number, y: Number): Number = GeneralNumber.times(x.asInstanceOf[GeneralNumber], Number.inverse(y))
   }
 
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering
 
   // CONSIDER some of the following should probably be moved to GeneralNumber
-  def plus(x: Number, y: Number): Number = {
-    val (a, b) = x.asInstanceOf[GeneralNumber].alignFactors(y)
-    a.factor match {
-      case E => plusAligned(a.scale(Scalar), b.scale(Scalar))
-      case _ => plusAligned(a, b)
-    }
-  }
-
-  private def plusAligned(x: Number, y: Number): Number =
-    y match {
-      case n@FuzzyNumber(_, _, _) => recover((n plus x).materialize.asNumber, NumberException("logic error: plusAligned"))
-      case _ =>
-        val (p, q) = x.asInstanceOf[GeneralNumber].alignTypes(y.asInstanceOf[GeneralNumber])
-        prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
-    }
-
-  @tailrec
-  def times(x: Number, y: Number): Number =
-    y match {
-      case n@FuzzyNumber(_, _, _) => recover((n multiply x).materialize.asNumber, NumberException("logic error: plusAligned"))
-      case _ =>
-        val (p, q) = x.asInstanceOf[GeneralNumber].alignTypes(y.asInstanceOf[GeneralNumber])
-        p.factor + q.factor match {
-          case Some(E) => prepareWithSpecialize(p.composeDyadic(q, E)(DyadicOperationPlus))
-          case Some(f) => prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationTimes))
-          case None => times(x.scale(Scalar), y.scale(Scalar))
-        }
-    }
 
   def prepare(no: Option[Number]): Number = no.getOrElse(Number())
 
@@ -937,7 +909,7 @@ object Number {
 
   private def power(n: Number, i: Int) = i match {
     case x if x > 0 => LazyList.continually(n).take(x).product
-    case x => LazyList.continually(inverse(n)).take(-x).product
+    case x => LazyList.continually(Number.inverse(n)).take(-x).product
   }
 
   /**

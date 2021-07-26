@@ -1,10 +1,12 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
-import com.phasmidsoftware.number.core.Number.{inverse, negate, prepare}
+import com.phasmidsoftware.number.core.Field.recover
+import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 
 import java.util.NoSuchElementException
+import scala.annotation.tailrec
 import scala.util._
 
 /**
@@ -94,7 +96,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param n another Number.
     * @return the sum of this and n.
     */
-  override def doAdd(n: Number): Number = Number.plus(this, n)
+  override def doAdd(n: Number): Number = this match {
+    case x: GeneralNumber => GeneralNumber.plus(x, n)
+  }
 
   /**
     * Multiply this Number by n.
@@ -102,7 +106,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param n another Number.
     * @return the product of this and n.
     */
-  override def doMultiply(n: Number): Number = Number.times(this, n)
+  override def doMultiply(n: Number): Number = GeneralNumber.times(this, n)
 
   /**
     * Divide this Number by n.
@@ -110,7 +114,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param n another Number.
     * @return this quotient of this and n, i.e. this/n.
     */
-  override def doDivide(n: Number): Number = doMultiply(inverse(n))
+  override def doDivide(n: Number): Number = doMultiply(Number.inverse(n))
 
   /**
     * Raise this Number to the power p.
@@ -142,7 +146,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return the cosine.
     */
-  override def cos: Number = negate(scale(Pi) doAdd Number(Rational.half, Pi).makeNegative).sin
+  override def cos: Number = Number.negate(scale(Pi) doAdd Number(Rational.half, Pi).makeNegative).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -359,6 +363,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
     * It may not be appropriate for all invocations.
     *
+    * TODO we shouldn't be making up our own fuzziness here. That's not the job of the make method.
+    *
     * @param v the value (a Double).
     * @param f Factor.
     * @return either a Number.
@@ -385,7 +391,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   override def normalize: Number = factor match {
     case Scalar => this
     // TEST me
-    case Pi | E => prepare(maybeDouble map (x => self.make(x * factor.value).specialize.asInstanceOf[GeneralNumber].make(Scalar)))
+    case Pi | E => Number.prepare(maybeDouble map (x => self.make(x * factor.value).specialize.asInstanceOf[GeneralNumber].make(Scalar)))
   }
 
   /**
@@ -455,7 +461,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
         // XXX x's value is invalid: swap the order so the the first element is invalid
         case Left(Left(None)) => x.alignTypes(this)
         // XXX otherwise: return this and x re-cast as a Double
-        case _ => (this, prepare(x.maybeDouble.map(y => make(y, x.factor).specialize)))
+        case _ => (this, Number.prepare(x.maybeDouble.map(y => make(y, x.factor).specialize)))
       }
       // XXX this value is a Rational:
       case Left(Right(_)) => x.value match {
@@ -573,3 +579,34 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   }
 }
 
+object GeneralNumber {
+  def plus(x: GeneralNumber, y: Number): Number = {
+    val (a, b) = x.alignFactors(y)
+    a.factor match {
+      case E => plusAligned(a.scale(Scalar), b.scale(Scalar))
+      case _ => plusAligned(a, b)
+    }
+  }
+
+  @tailrec
+  def times(x: GeneralNumber, y: Number): Number =
+    y match {
+      case n@FuzzyNumber(_, _, _) => recover((n multiply x).materialize.asNumber, NumberException("logic error: plusAligned"))
+      case _ =>
+        val (p, q) = x.alignTypes(y.asInstanceOf[GeneralNumber])
+        p.factor + q.factor match {
+          case Some(E) => prepareWithSpecialize(p.composeDyadic(q, E)(DyadicOperationPlus))
+          case Some(f) => prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationTimes))
+          case None => times(x.scale(Scalar).asInstanceOf[GeneralNumber], y.scale(Scalar))
+        }
+    }
+
+  private def plusAligned(x: Number, y: Number): Number =
+    y match {
+      case n@FuzzyNumber(_, _, _) => recover((n plus x).materialize.asNumber, NumberException("logic error: plusAligned"))
+      case _ =>
+        val (p, q) = x.asInstanceOf[GeneralNumber].alignTypes(y.asInstanceOf[GeneralNumber])
+        prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
+    }
+
+}
