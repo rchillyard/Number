@@ -258,13 +258,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   import FuzzyNumber._
 
   it should "think 1 and 1 are the same" in {
-    val x = Number.one.asInstanceOf[GeneralNumber].asFuzzyNumber
-    val y = Number.one.asInstanceOf[GeneralNumber].asFuzzyNumber
+    val x = Number.one
+    val y = Number.one
     implicitly[Fuzzy[Number]].same(0.95)(x, y) shouldBe true
   }
   it should "think pi and pi are the same" in {
-    val x = Number.parse("3.142").get.asInstanceOf[GeneralNumber].asFuzzyNumber
-    val y = Number.pi.asInstanceOf[GeneralNumber].asFuzzyNumber
+    val x = Number.parse("3.142").get
+    val y = Number.pi
     // NOTE we check that these two numbers are the same with a confidence of 80%
     implicitly[Fuzzy[Number]].same(0.8)(x, y) shouldBe true
     // NOTE we check that these two numbers are not the same with a confidence of 90%
@@ -273,9 +273,9 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "isProbablyZero"
   it should "think pi and pi are the same (1)" in {
-    val x = Number.parse("3.142").get.asInstanceOf[GeneralNumber].asFuzzyNumber
-    val y = Number.pi.asInstanceOf[GeneralNumber].asFuzzyNumber
-    val zo = (x - y).asNumber map (_.asInstanceOf[GeneralNumber].asFuzzyNumber)
+    val x: Number = Number.parse("3.142").get
+    val y: Number = Number.pi
+    val zo: Option[Number] = (x - y).asNumber
     zo.isDefined shouldBe true
     val z = zo.get
     z.isProbablyZero(0) shouldBe true
@@ -284,9 +284,9 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     z.isProbablyZero(0.895) shouldBe false
   }
   it should "think pi and pi are the same (2)" in {
-    val x = Number.parse("3.1415927").get.asInstanceOf[GeneralNumber].asFuzzyNumber
-    val y = Number.pi.asInstanceOf[GeneralNumber].asFuzzyNumber
-    val zo = (x - y).asNumber map (_.asInstanceOf[GeneralNumber].asFuzzyNumber)
+    val x = Number.parse("3.1415927").get
+    val y = Number.pi
+    val zo = (x - y).asNumber
     zo.isDefined shouldBe true
     val z = zo.get
     z.isProbablyZero(0) shouldBe true

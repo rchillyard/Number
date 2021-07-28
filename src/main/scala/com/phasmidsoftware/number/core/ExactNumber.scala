@@ -71,8 +71,5 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     *
     * @return a String.
     */
-  override def render: String = toString
-
-  def asFuzzyNumber: FuzzyNumber = FuzzyNumber(value, factor, None)
-
+  def render: String = toString
 }

@@ -156,7 +156,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "be likely for 1.251" in {
     val xy = Number.parse("1.251")
     xy.isSuccess shouldBe true
-    val x: FuzzyNumber = xy.get.asInstanceOf[GeneralNumber].asFuzzyNumber
+    val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz
     z.isDefined shouldBe true
     val q: Fuzziness[Double] = z.get
@@ -171,7 +171,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "be likely for 1.251" in {
     val xy = Number.parse("1.251")
     xy.isSuccess shouldBe true
-    val x: FuzzyNumber = xy.get.asInstanceOf[GeneralNumber].asFuzzyNumber
+    val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz
     z.isDefined shouldBe true
     val q: Fuzziness[Double] = z.get
@@ -185,7 +185,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "be likely for 5.0040" in {
     val xy: Option[Number] = for (a <- Number.parse("1.251").toOption; b <- Number.parse("4.00*").toOption; x <- (a * b).asNumber) yield x
     xy.isDefined shouldBe true
-    val x: FuzzyNumber = xy.get.asInstanceOf[GeneralNumber].asFuzzyNumber
+    val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz
     z.isDefined shouldBe true
     val q: Fuzziness[Double] = z.get

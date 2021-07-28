@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP.{identityTry, tryF}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
@@ -292,6 +293,15 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def scale(f: Factor): Number
 
   /**
+    * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
+    *
+    * @param other the Number to be compared with.
+    * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
+    * @return -1, 0, 1 as usual.
+    */
+  def fuzzyCompare(other: Number, p: Double): Int
+
+  /**
     * Be careful when implementing this method that you do not invoke a method recursively.
     *
     * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
@@ -335,7 +345,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param f the factor.
     * @return either a Number.
     */
-  protected def make(v: Value, f: Factor): Number
+  def make(v: Value, f: Factor): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -347,7 +357,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param f the factor.
     * @return either a Number.
     */
-  protected def make(f: Factor): Number
+  def make(f: Factor): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -368,7 +378,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param f Factor.
     * @return either a Number.
     */
-  protected def make(v: Int, f: Factor): Number
+  def make(v: Int, f: Factor): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -378,7 +388,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param v the value.
     * @return either a Number.
     */
-  protected def make(v: Int): Number
+  def make(v: Int): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -389,7 +399,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param f Factor.
     * @return either a Number.
     */
-  protected def make(r: Rational, f: Factor): Number
+  def make(r: Rational, f: Factor): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -399,7 +409,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param v the value.
     * @return either a Number.
     */
-  protected def make(v: Rational): Number
+  def make(v: Rational): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -413,7 +423,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param f Factor.
     * @return either a Number.
     */
-  protected def make(v: Double, f: Factor): Number
+  def make(v: Double, f: Factor): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -425,7 +435,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param v the value (a Double).
     * @return either a Number.
     */
-  protected def make(v: Double): Number
+  def make(v: Double): Number
 
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
@@ -794,7 +804,7 @@ object Number {
       if (x.factor == E && y.factor == E)
         compare(x.make(Scalar), y.make(Scalar))
       else
-        GeneralNumber.plus(x.asInstanceOf[GeneralNumber], Number.negate(y)).signum
+        GeneralNumber.plus(x, Number.negate(y)).signum
   }
 
   implicit object NumberIsOrdering extends NumberIsOrdering
@@ -803,11 +813,11 @@ object Number {
     * Following are the definitions required by Numeric[Number]
     */
   trait NumberIsNumeric extends Numeric[Number] {
-    def plus(x: Number, y: Number): Number = GeneralNumber.plus(x.asInstanceOf[GeneralNumber], y)
+    def plus(x: Number, y: Number): Number = GeneralNumber.plus(x, y)
 
-    def minus(x: Number, y: Number): Number = GeneralNumber.plus(x.asInstanceOf[GeneralNumber], negate(y))
+    def minus(x: Number, y: Number): Number = GeneralNumber.plus(x, negate(y))
 
-    def times(x: Number, y: Number): Number = GeneralNumber.times(x.asInstanceOf[GeneralNumber], y)
+    def times(x: Number, y: Number): Number = GeneralNumber.times(x, y)
 
     def negate(x: Number): Number = Number.negate(x)
 
@@ -817,11 +827,13 @@ object Number {
 
     def toInt(x: Number): Int = toLong(x).toInt
 
-    def toLong(x: Number): Long = x.asInstanceOf[GeneralNumber].maybeRational match {
-      case Some(r) => r.toLong
-      case None => x.maybeDouble match {
-        case Some(z) => Math.round(z)
-        case None => throw NumberException("toLong: this is invalid")
+    def toLong(x: Number): Long = x match {
+      case z: core.GeneralNumber => z.maybeRational match {
+        case Some(r) => r.toLong
+        case None => x.maybeDouble match {
+          case Some(z) => Math.round(z)
+          case None => throw NumberException("toLong: this is invalid")
+        }
       }
     }
 
@@ -855,13 +867,13 @@ object Number {
     */
   def fuzzyCompare(x: Number, y: Number, p: Double): Int =
     if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
-    else GeneralNumber.plus(x.asInstanceOf[GeneralNumber], Number.negate(y)).signum(p)
+    else GeneralNumber.plus(x, Number.negate(y)).signum(p)
 
   /**
     * Following are the definitions required by Fractional[Number]
     */
   trait NumberIsFractional extends Fractional[Number] {
-    def div(x: Number, y: Number): Number = GeneralNumber.times(x.asInstanceOf[GeneralNumber], Number.inverse(y))
+    def div(x: Number, y: Number): Number = GeneralNumber.times(x, Number.inverse(y))
   }
 
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering
@@ -956,7 +968,16 @@ object Number {
 
   def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite)
 
-  def signum(x: Number): Int = x.asInstanceOf[GeneralNumber].doTransformMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
+  /**
+    * TODO move this to GeneralNumber as an instance method.
+    *
+    * @param x a Number.
+    * @return -1, 0, or 1 according to its sign.
+    */
+  def signum(x: Number): Int = x match {
+    case z: GeneralNumber =>
+      z.doTransformMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
+  }
 
   def sin(x: Number): Number = prepareWithSpecialize(x.scale(Pi).transformMonadic(Scalar)(MonadicOperationSin))
 
