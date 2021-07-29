@@ -63,13 +63,4 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
   def isProbablyZero(p: Double): Boolean = isZero
-
-  /**
-    * Action to render this ExactNumber as a String.
-    *
-    * TEST me
-    *
-    * @return a String.
-    */
-  def render: String = toString
 }

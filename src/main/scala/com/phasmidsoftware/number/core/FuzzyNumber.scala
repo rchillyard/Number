@@ -35,13 +35,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
   def this(v: Value, fuzz: Option[Fuzziness[Double]]) = this(v, Scalar, fuzz)
 
   /**
-    * Action to render this FuzzyNumber as a String.
-    *
-    * @return a String.
-    */
-  def render: String = toString
-
-  /**
     * Add a Number to this FuzzyNumber.
     *
     * @param x the addend.
@@ -262,7 +255,7 @@ object FuzzyNumber {
     */
   private def withinWiggleRoom(p: Double, f: Fuzziness[Double], x: Double) = f.normalizeShape.wiggle(p) > math.abs(x)
 
-  private def plus(x: FuzzyNumber, y: Number): Number = x.alignFactors(y) match {
+   def plus(x: FuzzyNumber, y: Number): Number = x.alignFactors(y) match {
     case (a: GeneralNumber, b: GeneralNumber) =>
       val (p, q) = a.alignTypes(b)
       (p, q) match {
@@ -272,7 +265,7 @@ object FuzzyNumber {
       }
   }
 
-  private def times(x: FuzzyNumber, y: Number): Number = x.alignFactors(y) match {
+   def times(x: GeneralNumber, y: Number): Number = x.alignFactors(y) match {
     case (a: GeneralNumber, b: GeneralNumber) =>
       val (p, q) = a.alignTypes(b)
       (p, q) match {

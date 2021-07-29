@@ -94,6 +94,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * Add this Number to n.
     *
+    * NOTE: there is currently a significant difference between GeneralNumber.plus and FuzzyNumber.plus
+    *
     * @param n another Number.
     * @return the sum of this and n.
     */
@@ -103,6 +105,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * Multiply this Number by n.
+    *
+    * NOTE: there is currently a significant difference between GeneralNumber.plus and FuzzyNumber.plus
     *
     * @param n another Number.
     * @return the product of this and n.
@@ -215,6 +219,13 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def magnitudeSquared: Expression = this * this
 
   def compare(other: Number): Int = Number.doCompare(this, other)
+
+  /**
+    * Action to render this GeneralNumber as a String.
+    *
+    * @return a String.
+    */
+  def render: String = toString
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
