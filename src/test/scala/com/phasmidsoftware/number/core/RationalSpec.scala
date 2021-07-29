@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
-
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -161,6 +160,18 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val pi = BigDecimal(math.Pi)
     val r = Rational(pi)
     r.toDouble shouldBe math.Pi
+  }
+
+  behavior of "isWhole"
+  it should "be true for integers" in {
+    Rational.zero.isWhole shouldBe true
+    Rational.one.isWhole shouldBe true
+    Rational.two.isWhole shouldBe true
+  }
+  it should "be false for reciprocals" in {
+    Rational.zero.invert.isWhole shouldBe false
+    Rational.one.invert.isWhole shouldBe true
+    Rational.two.invert.isWhole shouldBe false
   }
 
   behavior of "toBigInt"
@@ -339,6 +350,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     target.power(Rational(2, 3)) shouldBe Success(Rational(4, 9))
   }
 
+  it should "fail for non-exact powers" in {
+    val target = Rational(7, 28)
+    target.power(Rational(2, 3)).isFailure shouldBe true
+  }
+
   behavior of "exponent"
   it should "work for 2" in {
     val hundred = Rational.exponent(2)
@@ -414,7 +430,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "barf when Rational.toInt invoked" in {
     an[RationalException] should be thrownBy Rational.toInt(Rational(2, 3)).get
     val thrown = the[Exception] thrownBy Rational(2, 3).toInt
-    thrown.getMessage should equal("toBigInt: 2/3 is not whole")
+    thrown.getMessage should equal("2/3 is not whole")
   }
 
   behavior of "2/4"

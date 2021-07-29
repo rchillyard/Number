@@ -1,8 +1,7 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.{bigZero, narrow}
+import com.phasmidsoftware.number.core.Rational.bigZero
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-
 import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -92,9 +91,15 @@ case class Rational(n: BigInt, d: BigInt) {
 
   lazy val toDouble: Double = Rational.toDouble(this)
 
+  /**
+    * Method to get the xth power of this Rational, exactly.
+    *
+    * @param x the power (any Rational).
+    * @return Success(...) if the result can be calculated exactly, else Failure.
+    */
   def power(x: Rational): Try[Rational] = {
-    val maybeNum: Try[Int] = narrow(x.n, Int.MinValue, Int.MaxValue) map (_.toInt)
-    val maybeDenom: Try[Int] = narrow(x.d, Int.MinValue, Int.MaxValue) map (_.toInt)
+    val maybeNum: Try[Int] = FP.toTry(Rational.toInt(x.n), Failure(RationalException("can't get exact root")))
+    val maybeDenom: Try[Int] = FP.toTry(Rational.toInt(x.d), Failure(RationalException("can't get exact root")))
     for (p <- maybeNum; r <- maybeDenom; z <- FP.toTryWithThrowable(this.power(p).root(r), RationalException("can't get exact root"))) yield z
   }
 
@@ -534,7 +539,7 @@ object Rational {
     * @param x a Rational.
     * @return an Try[Int]
     */
-  def toInt(x: Rational): Try[Int] = narrow(x, Int.MinValue, Int.MaxValue) map (_.toInt)
+  def toInt(x: Rational): Try[Int] = if (x.isWhole && x.n.isValidInt) Success(x.n.toInt) else Failure(RationalException(s"$x is not whole"))
 
   /**
     * Get Rational x as a pair of Longs (if possible).
@@ -557,6 +562,8 @@ object Rational {
   // CONSIDER making this public
   private def toBigInt(x: Rational): Try[BigInt] = if (x.isWhole) Success(x.n) else Failure(RationalException(s"toBigInt: $x is " + (if (x.d == 0L)
     "infinite" else "not whole")))
+
+  private def toInt(x: BigInt): Option[Int] = if (x.isValidInt) Some(x.toInt) else None
 
   private def div(x: Rational, y: Rational): Rational = x / y
 

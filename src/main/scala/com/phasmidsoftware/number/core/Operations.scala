@@ -1,10 +1,11 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
-
+import com.phasmidsoftware.number.core.Rational.toInt
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
+import scala.math.BigInt
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
 
@@ -35,10 +36,20 @@ sealed trait MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (a Rational).
+    * @return true if the result is exact.
+    */
+  def isExact(r: Rational): Boolean
 }
 
 /**
-  * MonadicOperation to negate a GeneralNumber.
+  * MonadicOperation to negate a Number.
+  *
+  * NOTE: not valid on E-scaled values.
   */
 case object MonadicOperationNegate extends MonadicOperation {
   val functions: MonadicFunctions = {
@@ -54,10 +65,18 @@ case object MonadicOperationNegate extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (ignored).
+    * @return true.
+    */
+  def isExact(r: Rational): Boolean = true
 }
 
 /**
-  * MonadicOperation to invert a GeneralNumber.
+  * MonadicOperation to invert a Number.
   */
 case object MonadicOperationInvert extends MonadicOperation {
   def invertInt(x: Int): Try[Int] = x match {
@@ -77,25 +96,36 @@ case object MonadicOperationInvert extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (ignored).
+    * @return true.
+    */
+  def isExact(r: Rational): Boolean = true
 }
 
 /**
-  * MonadicOperation to raise e (Euler's number) to the power of a GeneralNumber.
+  * MonadicOperation to raise e (Euler's number) to the power of a Number.
   */
 case object MonadicOperationExp extends MonadicOperation {
+  def expInt(x: Int): Try[Int] = x match {
+    case 0 => Success(1)
+    case _ => Failure(NumberException("can't exp Int"))
+  }
+
+  val expRat: Rational => Try[Rational] = {
+    case r if r.isInfinity && r.signum < 0 => Success(Rational.zero)
+    case r => fail("can't do exp Rational=>Rational for non-zero parameter")(r)
+  }
+
   def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
 
-  val expRat: Rational => Try[Rational] = x =>
-    Rational.toInt(x) map {
-      case 0 => Rational.one
-      case 1 => Rational(math.E)
-      case y => Rational(Math.exp(y))
-    }
-
   val functions: MonadicFunctions = (
-    fail("can't do exp Int=>Int"),
-    fail("can't do exp Rational=>Rational"),
-    expDouble)
+          expInt,
+          expRat,
+          expDouble)
 
   val derivative: Double => Double = x => Math.exp(x)
 
@@ -103,24 +133,37 @@ case object MonadicOperationExp extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (a Rational).
+    * @return the success status of the result of expInt or expRat.
+    */
+  def isExact(r: Rational): Boolean = toInt(r).flatMap(expInt).orElse(expRat(r)).isSuccess
 }
 
 /**
-  * MonadicOperation to yield the natural logarithm of a GeneralNumber.
+  * MonadicOperation to yield the natural logarithm of a Number.
   */
 case object MonadicOperationLog extends MonadicOperation {
-  def expDouble(x: Double): Try[Double] = Try(Math.log(x))
 
-  val expRat: Rational => Try[Rational] = x =>
-    Rational.toInt(x) map {
-      case 0 => Rational(-1, 0)
-      case y => Rational(Math.log(y))
-    }
+  def logInt(x: Int): Try[Int] = x match {
+    case 1 => Success(0)
+    case _ => Failure(NumberException("can't log Int"))
+  }
+
+  private val logRat: Rational => Try[Rational] = {
+    case Rational.zero => Success(Rational.infinity.negate)
+    case r => fail("can't do log Rational=>Rational for parameter")(r)
+  }
+
+  def logDouble(x: Double): Try[Double] = Try(Math.log(x))
 
   val functions: MonadicFunctions = (
-    fail("can't do exp Int=>Int"),
-    expRat,
-    expDouble)
+          logInt,
+          logRat,
+          logDouble)
 
   val derivative: Double => Double = x => 1 / x
 
@@ -128,25 +171,52 @@ case object MonadicOperationLog extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false //not used
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (a Rational).
+    * @return the success status of the result of expRat.
+    */
+  def isExact(r: Rational): Boolean = toInt(r).flatMap(logInt).orElse(logRat(r)).isSuccess
 }
 
 /**
-  * MonadicOperation to calculate the sine of a GeneralNumber.
+  * MonadicOperation to calculate the sine of a Number.
+  * The number is a factor of pi, i.e. it is in radians.
   */
 case object MonadicOperationSin extends MonadicOperation {
-  def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))
+  private val sinInt: Int => Try[Int] = tryF(_ => 0)
 
-  val sinRat: Rational => Try[Rational] = x =>
+  private val (two, six) = (BigInt(2), BigInt(6))
+
+  private val sinRatExact: Rational => Try[Rational] = x =>
+    (x.n, x.d) match {
+      case (n, `two`) if n.isValidInt => n.toInt match {
+        case 1 => Success(Rational.one)
+        case 3 => Success(Rational.one.negate)
+        case _ => Failure(NumberException("sine cannot be exact Rational"))
+      }
+      case (n, `six`) if n.isValidInt => n.toInt match {
+        case 1 | 5 => Success(Rational.half)
+        case 7 | 11 => Success(Rational.half.negate)
+        case _ => Failure(NumberException("sine cannot be exact Rational"))
+      }
+      case _ => Failure(NumberException("sine cannot be exact Rational"))
+    }
+
+  private val sinRatInexact: Rational => Try[Rational] = x =>
+    // CONSIDER do we really need this first clause?
     if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational(_))
     else x.invert.toInt match {
-      case 6 => Success(Rational.half)
       case 4 => Rational.half.sqrt
       case 3 => Rational(3).sqrt map (_ / 2)
-      case 2 => Success(Rational.one)
       case _ => Failure(NumberException("sine cannot be Rational"))
     }
 
-  val functions: MonadicFunctions = (tryF[Int, Int](_ => 0), sinRat, sinDouble)
+  private def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))
+
+  val functions: MonadicFunctions = (sinInt, r => sinRatExact(r) orElse sinRatInexact(r), sinDouble)
 
   val derivative: Double => Double = x => math.cos(x)
 
@@ -154,27 +224,35 @@ case object MonadicOperationSin extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (a Rational).
+    * @return the success status of the result of expRat.
+    */
+  def isExact(r: Rational): Boolean = toInt(r).orElse(sinRatExact(r)).isSuccess
 }
 
 /**
-  * MonadicOperation to yield the arctangent a GeneralNumber.
+  * MonadicOperation to yield the arctangent of a Number.
   *
   * @param sign an Int which will distinguish between results in the four quadrants.
   */
 case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
-  def atan(x: Double): Try[Double] =
-    Try(math.atan2(x, sign) / math.Pi) // TODO use scale // TEST me
 
   val atanRat: Rational => Try[Rational] = x =>
-    if (!x.isWhole) atan(x.toDouble).map(Rational(_))
-    else x.toInt match {
+    toInt(x) flatMap {
       case -1 => Success(Rational.one * 3 / 4 + (if (sign < 0) Rational.one else Rational.zero))
       case 0 => Success(Rational.zero + (if (sign < 0) Rational.one else Rational.zero))
       case 1 => Success(Rational.one / 4 + (if (sign < 0) Rational.one else Rational.zero))
       case _ => Failure(NumberException("atan cannot be Rational"))
     }
 
-  val functions: MonadicFunctions = (fail("atan cannot be Rational"), atanRat, atan)
+  def atan(x: Double): Try[Double] =
+    Try(math.atan2(x, sign) / math.Pi) // TODO use scale // TEST me
+
+  val functions: MonadicFunctions = (fail("atan cannot be Int"), atanRat, atan)
 
   val derivative: Double => Double = x => 1 / (1 + x * x)
 
@@ -182,10 +260,18 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (a Rational).
+    * @return the success status of the result of expRat.
+    */
+  def isExact(r: Rational): Boolean = atanRat(r).isSuccess
 }
 
 /**
-  * MonadicOperation to yield the modulus a GeneralNumber.
+  * MonadicOperation to yield the modulus a Number.
   */
 case object MonadicOperationModulate extends MonadicOperation {
   private def modulate[X: Numeric](z: X, min: X, max: X): X = {
@@ -201,9 +287,9 @@ case object MonadicOperationModulate extends MonadicOperation {
   }
 
   val functions: MonadicFunctions = (
-    tryF(z => modulate(z, 0, 2)),
-    tryF(z => modulate(z, Rational.zero, Rational.two)),
-    tryF(z => modulate(z, 0, 2))
+          tryF(z => modulate(z, 0, 2)),
+          tryF(z => modulate(z, Rational.zero, Rational.two)),
+          tryF(z => modulate(z, 0, 2))
   )
 
   val derivative: Double => Double = _ => 1
@@ -212,18 +298,28 @@ case object MonadicOperationModulate extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (ignored).
+    * @return the success status of the result of expRat.
+    */
+  def isExact(r: Rational): Boolean = true
 }
 
 /**
-  * MonadicOperation to yield the square root of a GeneralNumber.
+  * MonadicOperation to yield the square root of a Number.
   *
   * CONSIDER eliminating this and using power only.
   */
 case object MonadicOperationSqrt extends MonadicOperation {
-  val sqrtInt: Int => Try[Int] =
+  val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
     x => toTryWithThrowable(Rational.squareRoots.get(x), NumberException("Cannot create Int from Double"))
 
-  val functions: MonadicFunctions = (sqrtInt, x => x.sqrt, tryF(x => math.sqrt(x)))
+  val sqrtRat: Rational => Try[Rational] = x => FP.toTry(x.root(2), Failure(NumberException("Cannot get exact square root")))
+
+  val functions: MonadicFunctions = (sqrtInt, sqrtRat, tryF(x => math.sqrt(x)))
 
   val derivative: Double => Double = x => 1 / math.sqrt(x) / 2
 
@@ -231,6 +327,15 @@ case object MonadicOperationSqrt extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false // not used
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (ignored).
+    * @return the success status of the result of expRat.
+    */
+  def isExact(r: Rational): Boolean = toInt(r).flatMap(sqrtInt).orElse(sqrtRat(r)).isSuccess
+
 }
 
 /**
@@ -254,6 +359,14 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false // not used
+
+  /**
+    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    *
+    * @param r the input value (ignored).
+    * @return the success status of the result of expRat.
+    */
+  def isExact(r: Rational): Boolean = true
 }
 
 /**
@@ -326,7 +439,7 @@ case object QueryOperationIsInfinite extends QueryOperation {
 object Operations {
   /**
     * Evaluate a monadic operator on this, using the various functions passed in.
-    * The result is an Option[Value] rather than a GeneralNumber, as in GeneralNumber's doComposeMonadic.
+    * The result is an Option[Value] rather than a Number, as in Number's doComposeMonadic.
     *
     * @param functions the tuple of four conversion functions.
     * @return an Option[Value] which is result of applying the appropriate function to the given value.
