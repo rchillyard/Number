@@ -31,6 +31,14 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def make(v: Value, f: Factor): Number = ExactNumber(v, f)
 
   /**
+    * We cannot add fuzziness to an Exact number so we return the equivalent FuzzyNumber.
+    *
+    * @param fo the (optional) fuzziness.
+    * @return a Number.
+    */
+  def make(fo: Option[Fuzziness[Double]]): Number = FuzzyNumber(value, factor, fo)
+
+  /**
     * If the result of invoking f on this is a Double, then there will inevitably be some loss of precision.
     *
     * CONSIDER rewriting this so that we don't have to override the method. But be careful!

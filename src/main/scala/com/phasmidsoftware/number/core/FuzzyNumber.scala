@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.util.Left
 
 /**
@@ -148,11 +147,13 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
   /**
     * Evaluate a monadic operator on this, using either negate or... according to the value of op.
     *
+    * TODO remove this
+    *
     * @param f  the factor to apply to the result.
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[Number] = {
+  override def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[Number] = {
     transformMonadic(f)(op).flatMap {
       case n: FuzzyNumber =>
         for (t <- toDouble; u <- n.toDouble) yield n.makeFuzzy(Fuzziness.map(t, u, !op.absolute, op.derivative, fuzz))
@@ -175,17 +176,17 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     sb.toString
   }
 
-  /**
-    * NOTE: I'm not 100% sure if this is strictly necessary.
-    *
-    * @param that another object.
-    * @return true if this can equal that.
-    */
-  def canEqual(that: Any): Boolean = that match {
-    case _: Number => true
-    case x: AtomicExpression => x.materialize.asNumber.isDefined
-    case _ => false
-  }
+//  /**
+//    * NOTE: I'm not 100% sure if this is strictly necessary.
+//    *
+//    * @param that another object.
+//    * @return true if this can equal that.
+//    */
+//  def canEqual(that: Any): Boolean = that match {
+//    case _: Number => true
+//    case x: AtomicExpression => x.materialize.asNumber.isDefined
+//    case _ => false
+//  }
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -200,7 +201,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Both the value and the factor will be changed.
-    * CONSIDER: not entirely sure we need this method.
     *
     * @param v the value.
     * @param f the factor.
@@ -208,6 +208,14 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @return a FuzzyNumber.
     */
   def make(v: Value, f: Factor, z: Option[Fuzziness[Double]]): Number = FuzzyNumber(v, f, z)
+
+  /**
+    * Make a copy of this Number, with the same value and factor but with a different value of fuzziness.
+    *
+    * @param fo the (optional) fuzziness.
+    * @return a Number.
+    */
+  def make(fo: Option[Fuzziness[Double]]): Number = make(value, factor, fo)
 }
 
 object FuzzyNumber {

@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.Valuable.ValuableDouble
 import org.apache.commons.math3.special.Erf.erfInv
-
 import scala.math.Numeric.DoubleIsFractional
 import scala.math.Ordering
 import scala.util.Try

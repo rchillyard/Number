@@ -3,8 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-import com.phasmidsoftware.number.core.Rational.RationalHelper
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.util._
@@ -133,7 +131,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * Yields the square root of this Number.
     * If possible, the result will be exact.
     */
-  def sqrt: Number = Number.power(this, Number(r"1/2"))
+  def sqrt: Number = Number.power(this, Number(Rational.half))
 
   /**
     * Method to determine the sine of this Number.
@@ -270,11 +268,22 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * Evaluate a monadic operator on this.
     *
+    * CONSIDER the exact cases don't change the fuzziness at all.
+    * But, if there is already fuzziness, then the monadic function should change it.
+    *
     * @param f  the factor to apply to the result.
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] = doTransformMonadic(f)(op.functions)
+  def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] =
+    Operations.doTransformValueMonadic(value)(op.functions) flatMap {
+      case v@Right(x) if op.isExact(Rational(x)) => Some(make(v, f))
+      case v@Left(Right(x)) if op.isExact(x) => Some(make(v, f))
+      case v => make(v, f) match {
+        case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz))
+        case x => Some(x) // TODO remove this
+      }
+    }
 
   /**
     * Evaluate a query operator on this.
@@ -309,7 +318,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * TEST me
     *
     * @param f the factor.
-    * @return either a Number.
+    * @return a Number.
     */
   def make(f: Factor): Number = make(value, f)
 
@@ -319,7 +328,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * This method should be followed by a call to specialize.
     *
     * @param v the value.
-    * @return either a Number.
+    * @return a Number.
     */
   def make(v: Value): Number = make(v, factor)
 
@@ -330,7 +339,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @param v the value.
     * @param f Factor.
-    * @return either a Number.
+    * @return a Number.
     */
   def make(v: Int, f: Factor): Number = make(Value.fromInt(v), f)
 
@@ -340,7 +349,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * This method should be followed by a call to specialize.
     *
     * @param v the value.
-    * @return either a Number.
+    * @return a Number.
     */
   def make(v: Int): Number = make(v, factor)
 
@@ -353,7 +362,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @param r a Rational.
     * @param f Factor.
-    * @return either a Number.
+    * @return a Number.
     */
   def make(r: Rational, f: Factor): Number = make(Value.fromRational(r), f)
 
@@ -363,7 +372,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * This method should be followed by a call to specialize.
     *
     * @param r the value.
-    * @return either a Number.
+    * @return a Number.
     */
   def make(r: Rational): Number = make(r, factor)
 
@@ -374,7 +383,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @param x the value (a Double).
     * @param f Factor.
-    * @return either a Number.
+    * @return a Number.
     */
   def make(x: Double, f: Factor): Number = make(Value.fromDouble(Some(x)), f)
 
@@ -386,9 +395,19 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * TEST me
     *
     * @param x the value (a Double).
-    * @return either a Number.
+    * @return a Number.
     */
   def make(x: Double): Number = make(x, factor)
+
+  /**
+    * Make a copy of this Number, with the same value and factor but with a different value of fuzziness.
+    *
+    * TEST me
+    *
+    * @param fo the (optional) fuzziness.
+    * @return a Number.
+    */
+  def make(fo: Option[Fuzziness[Double]]): Number
 
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
@@ -529,12 +548,29 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * Evaluate a monadic operator on this, using the various functions passed in.
     *
+    * NOTE: this is now only ever invoked by signum so, the fact that it doesn't do anything with fuzziness is not a problem.
+    *
     * @param f         the factor to be used for the result.
     * @param functions the tuple of four conversion functions.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
   def doTransformMonadic(f: Factor)(functions: MonadicFunctions): Option[Number] =
     Operations.doTransformValueMonadic(value)(functions) map (make(_, f))
+
+
+  /**
+    * Evaluate a monadic operator on this, using either negate or... according to the value of op.
+    *
+    * @param f  the factor to apply to the result.
+    * @param op the appropriate MonadicOperation.
+    * @return a new Number which is result of applying the appropriate function to the operand this.
+    */
+  def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[Number] = {
+    transformMonadic(f)(op).flatMap {
+      case n: FuzzyNumber =>
+        for (t <- toDouble; x <- n.toDouble) yield n.makeFuzzy(Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz))
+    }
+  }
 
   /**
     * Evaluate a query operator on this, using the various functions passed in.
@@ -576,6 +612,22 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
     tryMap(value)(identityTry, xToZy1).toOption
   }
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: GeneralNumber =>
+      (that canEqual this) &&
+              value == that.value &&
+              factor == that.factor &&
+              fuzz == that.fuzz
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(value, factor, fuzz)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 }
 
 object GeneralNumber {
@@ -612,5 +664,4 @@ object GeneralNumber {
           prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
       }
   }
-
 }

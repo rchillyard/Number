@@ -10,9 +10,11 @@ scalacOptions ++= Seq( "-target:jvm-1.8", "-encoding", "UTF-8", "-unchecked", "-
 
 val scalaTestVersion = "3.2.3"
 
-lazy val root = (project in file(".")).dependsOn(matchers)
+lazy val root = (project in file(".")).dependsOn(matchers, flog)
 
 lazy val matchers = RootProject(uri("git://github.com/rchillyard/Matchers#V1_0_5"))
+lazy val flog = RootProject(uri("git://github.com/rchillyard/Flog"))
+
 
 libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",

@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -349,8 +348,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "not work for Pi, E (because E numbers are not linear)" in {
     val target = Number(1, Pi)
     val expected = Number(Math.PI / Math.E, E)
-    val result = target.scale(E) === expected
-    result shouldBe false
+    val result = target.scale(E)
+    result === expected shouldBe false
   }
 
   behavior of "alignFactors"

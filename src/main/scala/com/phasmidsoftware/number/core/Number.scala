@@ -8,7 +8,6 @@ import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
-
 import scala.annotation.tailrec
 import scala.math.BigInt
 import scala.util._
@@ -975,6 +974,7 @@ object Number {
     * @return -1, 0, or 1 according to its sign.
     */
   def signum(x: Number): Int = x match {
+    // CONSIDER this should be more like a query than a monadic function.
     case z: GeneralNumber =>
       z.doTransformMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
   }

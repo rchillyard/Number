@@ -185,6 +185,8 @@ case object MonadicOperationLog extends MonadicOperation {
 /**
   * MonadicOperation to calculate the sine of a Number.
   * The number is a factor of pi, i.e. it is in radians.
+  *
+  * See https://en.wikipedia.org/wiki/List_of_trigonometric_identities
   */
 case object MonadicOperationSin extends MonadicOperation {
   private val sinInt: Int => Try[Int] = tryF(_ => 0)
@@ -403,13 +405,17 @@ case object DyadicOperationTimes extends DyadicOperation {
 
 case object DyadicOperationPower extends DyadicOperation {
   val functions: DyadicFunctions = {
-    val fInt = (x: Int, p: Int) => Rational.narrow(BigInt(x).pow(p), Int.MinValue, Int.MaxValue).map(_.toInt)
     val fRational = (x: Rational, p: Rational) => x.power(p)
     val fDouble = tryF[Double, Double, Double]((x, p) => math.pow(x, p))
-    (fInt, fRational, fDouble)
+    (powerInt, fRational, fDouble)
   }
 
   val absolute: Boolean = false
+
+  def powerInt(x: Int, p: Int): Try[Int] =
+    if (p >= 0) Rational.narrow(BigInt(x).pow(p), Int.MinValue, Int.MaxValue).map(_.toInt)
+    else Failure(NumberException("negative power (Int)"))
+
 }
 
 /**
