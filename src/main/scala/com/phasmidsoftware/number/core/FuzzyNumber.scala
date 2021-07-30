@@ -147,8 +147,10 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
-    for (n <- composeDyadic(other, f)(op); t1 <- this.toDouble; t2 <- other.toDouble) yield
-      FuzzyNumber(n.value, n.factor, Fuzziness.combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients)))
+    for (n <- composeDyadic(other, f)(op); t1 <- this.toDouble; t2 <- other.toDouble) yield {
+      val q = Fuzziness.combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients))
+      FuzzyNumber(n.value, n.factor, q)
+    }
 
   /**
     * Evaluate a monadic operator on this, using either negate or... according to the value of op.
@@ -160,7 +162,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
   def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[Number] = {
     transformMonadic(f)(op).flatMap {
       case n: FuzzyNumber =>
-        for (x <- n.toDouble) yield n.makeFuzzy(Fuzziness.map(x, !op.absolute, op.derivative, fuzz))
+        for (t <- toDouble; u <- n.toDouble) yield n.makeFuzzy(Fuzziness.map(t, u, !op.absolute, op.derivative, fuzz))
     }
   }
 

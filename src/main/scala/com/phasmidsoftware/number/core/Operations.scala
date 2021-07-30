@@ -25,7 +25,8 @@ sealed trait MonadicOperation {
   val functions: MonadicFunctions
 
   /**
-    * Yield a function which provides the derivative of this MonadicOperation with respect to x, at x.
+    * Yield a function which provides the derivative of this MonadicOperation, i.e. f(x), with respect to x, at x.
+    * The dimensions of the derivative are those of f / x.
     *
     * @return a function Double => Double
     */
