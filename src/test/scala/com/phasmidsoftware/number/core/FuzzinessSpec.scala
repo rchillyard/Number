@@ -207,4 +207,20 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     q.shape.wiggle(r, 0.9) shouldBe (r * 0.08885599049425764 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 1) shouldBe 0
   }
+
+  behavior of "map"
+  it should "work" in {
+    val fuzz = RelativeFuzz(1E-15, Box)
+    val n: FuzzyNumber = FuzzyNumber(Value.fromInt(1), Scalar, None).addFuzz(fuzz).asInstanceOf[FuzzyNumber]
+    val op = MonadicOperationExp
+    val r: Option[Value] = Operations.doTransformValueMonadic(n.value)(op.functions)
+    r.isDefined shouldBe true
+    val q = n.make(r.get, Scalar)
+    val x = q.toDouble
+    val v = x.get
+    println(v)
+    val z: Option[Fuzziness[Double]] = Fuzziness.map[Double, Double, Double](1, v, !op.absolute, op.derivative, Some(fuzz))
+    z.toString shouldBe "Some(RelativeFuzz(1.0E-15,Box))"
+  }
+
 }

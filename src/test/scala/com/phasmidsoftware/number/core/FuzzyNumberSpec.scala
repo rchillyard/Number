@@ -150,6 +150,16 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     result.factor shouldBe Scalar
     result.fuzz should matchPattern { case Some(RelativeFuzz(0.3818813079129867, Gaussian)) => }
   }
+  it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Box))" in {
+    val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), Scalar, Some(RelativeFuzz(0.1, Box)))
+    val z: Number = x.doMultiply(x)
+    z.value shouldBe Right(9)
+    z.factor shouldBe Scalar
+    //    z.fuzz should matchPattern { case Some(RelativeFuzz(0.11547005383792518, Gaussian)) => }
+    z.fuzz.get match {
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.11547005383792518
+    }
+  }
 
   behavior of "-"
   it should "work for 1.*" in {
@@ -173,14 +183,27 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "power"
-  it should "work for (fuzzy 3)^2 (i.e. an constant Int power)" in {
+  it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Box))" in {
+    val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), Scalar, Some(RelativeFuzz(0.1, Box)))
+    val z: Number = convertToNumber((x ^ 2).materialize)
+    val q: Number = x.doMultiply(x)
+    println(q)
+    z.value shouldBe Right(9)
+    z.factor shouldBe Scalar
+    // TODO check this one: shape should be Gaussian. And is the value correct?
+    z.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
+    z.fuzz.get match {
+      case RelativeFuzz(m, Box) => m shouldBe 0.022222222222222223
+    }
+  }
+  it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Gaussian))" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), Scalar, Some(RelativeFuzz(0.1, Gaussian)))
     val z: Number = convertToNumber((x ^ 2).materialize)
     z.value shouldBe Right(9)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
     z.fuzz.get match {
-      case RelativeFuzz(m, Gaussian) => m shouldBe 0.06666666666666667
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.022222222222222223
     }
   }
   it should "work for 2**2 (i.e. an constant Int power)" in {
@@ -293,5 +316,18 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     z.isProbablyZero(1) shouldBe false
     z.isProbablyZero(0.5) shouldBe true
     z.isProbablyZero(0.875) shouldBe false
+  }
+
+  behavior of "makeFuzzy"
+  it should "work" in {
+    val fuzz = RelativeFuzz(1E-15, Box)
+    val n: FuzzyNumber = FuzzyNumber(Value.fromInt(1), Scalar, None).addFuzz(fuzz).asInstanceOf[FuzzyNumber]
+    val op = MonadicOperationExp
+    val r: Option[Value] = Operations.doTransformValueMonadic(n.value)(op.functions)
+    r.isDefined shouldBe true
+    val q = n.make(r.get, Scalar)
+    val x = q.toDouble
+    val z: FuzzyNumber = q.asInstanceOf[FuzzyNumber].makeFuzzy(Fuzziness.map[Double, Double, Double](1, x.get, !op.absolute, op.derivative, Some(fuzz)))
+    z.fuzz.get.toString(x.get) shouldBe "2.7182818284590450[27]"
   }
 }
