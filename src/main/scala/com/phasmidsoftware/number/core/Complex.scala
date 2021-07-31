@@ -134,7 +134,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
 
   def doMultiply(complex: Complex): Complex
 
-  protected def showImaginary: String = s"${if (imag.isPositive) "" else "-"}${imag.abs}"
+  protected def showImaginary: String = s"${if (imag.isPositive) "" else "-"}i${imag.abs}"
 }
 
 object Complex {
@@ -193,7 +193,7 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     *
     * @return a String representing the value of this expression.
     */
-  def render: String = s"""($x $showImaginary"""
+  def render: String = s"""($x+$showImaginary)"""
 
   /**
     * Add two Cartesian Complex numbers.

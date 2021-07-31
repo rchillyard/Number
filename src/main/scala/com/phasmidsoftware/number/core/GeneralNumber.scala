@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.util._
@@ -27,19 +28,15 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   self =>
 
   /**
-    * Auxiliary constructor for the usual situation with the default factor and no fuzziness.
-    *
-    * @param v the value for the new Number.
-    */
-  def this(v: Value) = this(v, Scalar, None)
-
-  /**
     * Action to materialize this Expression.
     *
     * @return this ExactNumber.
     */
   def materialize: Number = this
 
+  /**
+    * @return Some(factor).
+    */
   def maybeFactor: Option[Factor] = Some(factor)
 
   /**
@@ -281,7 +278,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
       case v@Left(Right(x)) if op.isExact(x) => Some(make(v, f))
       case v => make(v, f) match {
         case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz))
-        case x => Some(x) // TODO remove this
       }
     }
 

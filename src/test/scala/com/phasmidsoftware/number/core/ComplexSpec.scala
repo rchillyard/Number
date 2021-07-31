@@ -143,4 +143,13 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
+  behavior of "render"
+  it should "work" in {
+    c2_0.render shouldBe "(2+i0)"
+    c1_2.render shouldBe "(1+i2)"
+    p1_pi.render shouldBe "1e^i1\uD835\uDED1"
+    p1_pi_2.render shouldBe "1e^i0.5\uD835\uDED1"
+    p1_pi_2.complement.render shouldBe "1e^i1.5\uD835\uDED1"
+  }
+
 }
