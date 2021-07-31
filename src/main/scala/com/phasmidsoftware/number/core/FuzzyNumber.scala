@@ -26,14 +26,6 @@ import scala.util.Left
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
 
   /**
-    * Auxiliary constructor for a FuzzyNumber.
-    *
-    * @param v    the value for the new Number.
-    * @param fuzz the fuzz for the new Number.
-    */
-  def this(v: Value, fuzz: Option[Fuzziness[Double]]) = this(v, Scalar, fuzz)
-
-  /**
     * Add a Number to this FuzzyNumber.
     *
     * @param x the addend.
@@ -117,6 +109,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
   def makeFuzzy(z: Option[Fuzziness[Double]]): FuzzyNumber = FuzzyNumber(value, factor, z)
 
   /**
+    * NOTE this is used by GeneralNumber.specialize
     *
     * @param f the additional fuzz.
     * @return this but with fuzziness which is the convolution of fuzz and f.
@@ -145,22 +138,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     }
 
   /**
-    * Evaluate a monadic operator on this, using either negate or... according to the value of op.
-    *
-    * TODO remove this
-    *
-    * @param f  the factor to apply to the result.
-    * @param op the appropriate MonadicOperation.
-    * @return a new Number which is result of applying the appropriate function to the operand this.
-    */
-  override def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[Number] = {
-    transformMonadic(f)(op).flatMap {
-      case n: FuzzyNumber =>
-        for (t <- toDouble; u <- n.toDouble) yield n.makeFuzzy(Fuzziness.map(t, u, !op.absolute, op.derivative, fuzz))
-    }
-  }
-
-  /**
     * Render this FuzzyNumber in String form, including the factor, and the fuzz.
     *
     * @return
@@ -175,18 +152,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     sb.append(factor.toString)
     sb.toString
   }
-
-//  /**
-//    * NOTE: I'm not 100% sure if this is strictly necessary.
-//    *
-//    * @param that another object.
-//    * @return true if this can equal that.
-//    */
-//  def canEqual(that: Any): Boolean = that match {
-//    case _: Number => true
-//    case x: AtomicExpression => x.materialize.asNumber.isDefined
-//    case _ => false
-//  }
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -215,7 +180,10 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @param fo the (optional) fuzziness.
     * @return a Number.
     */
-  def make(fo: Option[Fuzziness[Double]]): Number = make(value, factor, fo)
+  def make(fo: Option[Fuzziness[Double]]): Number = fo match {
+    case Some(_) => make(value, factor, fo)
+    case None => ExactNumber(value, factor)
+  }
 }
 
 object FuzzyNumber {
@@ -311,11 +279,9 @@ object FuzzyNumber {
     */
   private def composeDyadic(n: Number, q: Number, f: Factor, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Number = n match {
     case x: FuzzyNumber => prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients))
-    case _: Number => prepareWithSpecialize(n.composeDyadic(n, f)(op))
   }
 
   private def transformMonadic(n: Number, factor: Factor, op: MonadicOperation) = n match {
-    case x: FuzzyNumber => prepareWithSpecialize(x.transformMonadicFuzzy(factor)(op))
     case _: Number => prepareWithSpecialize(n.transformMonadic(factor)(op))
   }
 

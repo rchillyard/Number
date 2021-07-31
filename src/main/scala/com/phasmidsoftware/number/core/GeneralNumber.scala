@@ -561,6 +561,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * Evaluate a monadic operator on this, using either negate or... according to the value of op.
     *
+    * TEST me or eliminate
+    *
     * @param f  the factor to apply to the result.
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
