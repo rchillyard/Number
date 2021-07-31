@@ -11,7 +11,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Complex"
 
   private val c1_2 = ComplexCartesian(Number.one, Number.two)
-  private val c2_0 = ComplexCartesian(Number.two, Number.zero)
+  private val c2_0 = Complex(Number.two)
   private val p1_pi = ComplexPolar(Number.one, Number.pi)
   private val p1_pi_2 = ComplexPolar(Number.one, convertToNumber((Number.pi / Number.two).materialize))
 
@@ -151,4 +151,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi_2.complement.render shouldBe "1e^i1.5\uD835\uDED1"
   }
 
+  behavior of "asComplex"
+  it should "work" in {
+    c2_0.asComplex shouldBe c2_0
+    Number(2).asComplex shouldBe c2_0
+  }
 }
