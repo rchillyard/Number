@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.Field.recover
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
 trait Field extends AtomicExpression {
+
   /**
     * Method to determine if this Field has infinite magnitude.
     *
@@ -92,22 +93,19 @@ trait Field extends AtomicExpression {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  override def asNumber: Option[Number] = this match {
-    case n@Number(_, _) => Some(n)
-    case ComplexCartesian(x, y) if y == Number.zero => Some(x)
-    case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
-    case ComplexPolar(r, theta) if theta == Number.pi => Some(r.makeNegative)
-    case _ => None
-  }
+  override def asNumber: Option[Number] =
+    this match {
+      case n@Number(_, _) => Some(n)
+      case ComplexCartesian(x, y) if y == Number.zero => Some(x)
+      case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
+      case ComplexPolar(r, theta) if theta == Number.pi => Some(r.makeNegative)
+      case _ => None
+    }
 
-  /**
-    * Evaluate the magnitude squared of this Complex number.
-    *
-    * CONSIDER why is this defined in Field. Surely, it's unique to Complex numbers.
-    *
-    * @return the magnitude squared.
-    */
-  def magnitudeSquared: Expression
+  def asComplex: Complex = this match {
+    case n@Number(_, _) => Complex(n)
+    case n@Complex(_, _) => n
+  }
 
   /**
     * Eagerly compare this Field with comparand.

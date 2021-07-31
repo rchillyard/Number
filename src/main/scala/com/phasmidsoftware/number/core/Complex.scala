@@ -4,6 +4,14 @@ import com.phasmidsoftware.number.core.Complex.{convertToCartesian, narrow}
 import com.phasmidsoftware.number.core.Field.recover
 
 abstract class Complex(val real: Number, val imag: Number) extends AtomicExpression with Field {
+
+  /**
+    * Evaluate the magnitude squared of this Complex number.
+    *
+    * @return the magnitude squared.
+    */
+  def magnitudeSquared: Expression
+
   /**
     * Method to determine the modulus of this Complex number.
     *
@@ -153,6 +161,8 @@ object Complex {
 
   def apply(a: Field, b: Field, f: (Number, Number) => Complex, x: ComplexException): Complex =
     Field.recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
+
+  def apply(x: Number): Complex = ComplexCartesian(x, Number.zero)
 
   def narrow(x: Field, polar: Boolean): Complex = x match {
     case c@ComplexCartesian(_, _) => if (polar) convertToPolar(c) else c

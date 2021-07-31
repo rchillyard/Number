@@ -1,4 +1,5 @@
 import scala.annotation.tailrec
+import scala.language.postfixOps
 
 val potholes: Seq[Double] = Seq(3, 10, 6, 7, 13, 21)
 val crews: Seq[Double] = Seq(2, 4, 8, 12, 17, 20)

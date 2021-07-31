@@ -139,8 +139,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "magnitudeSquared" in {
     val c3 = p1_pi add c2_0
-    convertToNumber(c3.materialize.magnitudeSquared.materialize) shouldBe Number.one
-
+    convertToNumber(c3.materialize.asComplex.magnitudeSquared.materialize) shouldBe Number.one
   }
 
   behavior of "render"
