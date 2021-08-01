@@ -479,7 +479,7 @@ object Number {
   /**
     * Exact value of -0
     */
-  val negZero: Number = ExactNumber(Left(Right(Rational(0, -1))), Scalar)
+  val negZero: Number = ExactNumber(Left(Right(Rational.negZero)), Scalar)
   /**
     * Exact value of 1
     */

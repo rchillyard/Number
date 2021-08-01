@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.bigZero
+import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero}
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
 
 import java.lang.Math._
@@ -26,7 +26,7 @@ case class Rational(n: BigInt, d: BigInt) {
   // Pre-conditions
 
   // NOTE: ensure that the denominator is non-zero, or the numerator is zero.
-  require(d.signum >= 0 || n.signum == 0, s"Rational denominator is negative: $d")
+  require(d.signum >= 0 || (n.signum == 0 && d == bigNegOne), s"Rational denominator is negative: $d")
 
   // NOTE: ensure that the numerator and denominator are relatively prime.
   require(n == bigZero && d == bigZero || n.gcd(d) == 1, s"Rational($n,$d): arguments have common factor: ${n.gcd(d)}")
@@ -289,6 +289,7 @@ object Rational {
   val two: Rational = Rational(2)
   lazy val half: Rational = two.invert
   lazy val NaN = new Rational(0, 0)
+  lazy val negZero = new Rational(0, -1)
 
   /**
     * Method to construct a Rational from two BigInt values.
@@ -505,7 +506,7 @@ object Rational {
     */
   @scala.annotation.tailrec
   private def normalize(n: BigInt, d: BigInt): Rational = {
-    if (d < 0 && n == bigZero) new Rational(n, d)
+    if (d == bigNegOne && n == bigZero) new Rational(n, d)
     else if (d < 0) normalize(-n, -d) else {
       // CONSIDER that we weren't previously taking the abs of d (which should always be positive)
       val g = n.gcd(d)
@@ -520,9 +521,17 @@ object Rational {
 
   private def negate(x: Rational): Rational = Rational(-x.n, x.d)
 
-  private def plus(x: Rational, y: Rational): Rational = Rational((x.n * y.d) + (y.n * x.d), x.d * y.d)
+  private def plus(x: Rational, y: Rational): Rational = (x, y) match {
+    case (Rational.negZero, z) => z
+    case (z, Rational.negZero) => z
+    case _ => Rational((x.n * y.d) + (y.n * x.d), x.d * y.d)
+  }
 
-  private def times(x: Rational, y: Rational): Rational = Rational(x.n * y.n, x.d * y.d)
+  private def times(x: Rational, y: Rational): Rational = (x, y) match {
+    case (Rational.negZero, _) => zero
+    case (_, Rational.negZero) => zero
+    case _ => Rational(x.n * y.n, x.d * y.d)
+  }
 
   private def toDoubleViaString(x: BigInt) = x.toString().toDouble
 

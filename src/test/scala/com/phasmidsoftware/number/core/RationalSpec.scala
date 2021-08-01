@@ -747,4 +747,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r: Rational = 2 / 3
     r shouldBe Rational.zero
   }
+
+  behavior of "negZero"
+  it should "add to zero correctly" in {
+    Rational.negZero + Rational.zero shouldBe Rational.zero
+  }
+  it should "add to one correctly" in {
+    Rational.negZero + Rational.one shouldBe Rational.one
+  }
 }
