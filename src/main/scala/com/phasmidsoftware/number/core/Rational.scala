@@ -505,16 +505,15 @@ object Rational {
     * @return a Rational formed from n and d.
     */
   @scala.annotation.tailrec
-  private def normalize(n: BigInt, d: BigInt): Rational = {
-    if (d == bigNegOne && n == bigZero) new Rational(n, d)
-    else if (d < 0) normalize(-n, -d) else {
-      // CONSIDER that we weren't previously taking the abs of d (which should always be positive)
+  private def normalize(n: BigInt, d: BigInt): Rational = (n, d) match {
+    case (Rational.bigZero, Rational.bigNegOne) => new Rational(n, d)
+    case _ if d < 0 => normalize(-n, -d)
+    case _ =>
       val g = n.gcd(d)
       g.signum match {
         case 0 => Rational.NaN
         case _ => new Rational(n / g, d / g)
       }
-    }
   }
 
   private def minus(x: Rational, y: Rational): Rational = plus(x, negate(y))
