@@ -452,6 +452,14 @@ case object QueryOperationIsInfinite extends QueryOperation[Boolean] {
   }
 }
 
+case object QueryOperationSignum extends QueryOperation[Int] {
+  def getFunctions: QueryFunctions[Int] = new QueryFunctions[Int] {
+    val fInt: Int => Try[Int] = tryF[Int, Int](math.signum)
+    val fRat: Rational => Try[Int] = tryF[Rational, Int](_.signum)
+    val fDouble: Double => Try[Int] = tryF[Double, Int](math.signum(_).toInt)
+  }
+}
+
 object Operations {
   /**
     * Evaluate a monadic operator on this, using the various functions passed in.

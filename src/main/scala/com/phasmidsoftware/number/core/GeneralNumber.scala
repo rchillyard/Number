@@ -510,18 +510,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   }
 
   /**
-    * Evaluate a monadic operator on this, using the various functions passed in.
-    *
-    * NOTE: this is now only ever invoked by signum so, the fact that it doesn't do anything with fuzziness is not a problem.
-    *
-    * @param f         the factor to be used for the result.
-    * @param functions the tuple of four conversion functions.
-    * @return a new Number which is result of applying the appropriate function to the operand this.
-    */
-  def doTransformMonadic(f: Factor)(functions: MonadicFunctions): Option[Number] =
-    Operations.doTransformValueMonadic(value)(functions) map (make(_, f))
-
-  /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the factor).
     * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query
@@ -540,7 +528,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * An optional Int that corresponds to the value of this Number (but ignoring the factor).
     *
-    * CONSIDER using MonadicTransformations
+    * CONSIDER using query
     */
   private lazy val maybeInt: Option[Int] = {
     val xToZy0: Option[Double] => Try[Int] = {

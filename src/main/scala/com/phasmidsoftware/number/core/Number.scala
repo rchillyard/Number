@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.{identityTry, tryF}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Rational.toInts
@@ -976,9 +975,7 @@ object Number {
     * @return -1, 0, or 1 according to its sign.
     */
   def signum(x: Number): Int = x match {
-    // CONSIDER this should be more like a query than a monadic function.
-    case z: GeneralNumber =>
-      z.doTransformMonadic(x.factor)(identityTry, tryF(x => x.signum), tryF(math.signum)).flatMap(_.toInt).getOrElse(0)
+    case z: GeneralNumber => z.query(QueryOperationSignum, 0)
   }
 
   def sin(x: Number): Number = prepareWithSpecialize(x.scale(Pi).transformMonadic(Scalar)(MonadicOperationSin))
