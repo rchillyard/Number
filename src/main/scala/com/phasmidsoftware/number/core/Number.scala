@@ -333,9 +333,9 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * Evaluate a query operator on this.
     *
     * @param op the appropriate QueryOperation.
-    * @return a Boolean.
+    * @return a T.
     */
-  def query(op: QueryOperation[Boolean]): Boolean
+  def query[T](op: QueryOperation[T], defaultVal: => T): T
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -965,9 +965,9 @@ object Number {
 
   def inverse(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationInvert))
 
-  def isZero(x: Number): Boolean = x.query(QueryOperationIsZero)
+  def isZero(x: Number): Boolean = x.query(QueryOperationIsZero, false)
 
-  def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite)
+  def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite, false)
 
   /**
     * TODO move this to GeneralNumber as an instance method.

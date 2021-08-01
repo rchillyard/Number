@@ -279,7 +279,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param op the appropriate QueryOperation.
     * @return a Boolean.
     */
-  def query(op: QueryOperation[Boolean]): Boolean = doQuery(op.getFunctions).getOrElse(false)
+  def query[T](op: QueryOperation[T], defaultVal: => T): T = Operations.doQuery(value, op.getFunctions).getOrElse(defaultVal)
 
   /**
     * Render this Number in String form, including the factor.
@@ -522,17 +522,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     Operations.doTransformValueMonadic(value)(functions) map (make(_, f))
 
   /**
-    * Evaluate a query operator on this, using the various functions passed in.
-    *
-    * @param functions the tuple of four conversion functions.
-    * @return a new Number which is result of applying the appropriate function to the operand this.
-    */
-  private def doQuery(functions: BooleanQueryFunctions): Option[Boolean] = Operations.doQuery(value, functions)
-
-  /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the factor).
     * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
-    * CONSIDER using MonadicTransformations
+    * CONSIDER using query
     */
   lazy val maybeRational: Option[Rational] = {
     import Converters._

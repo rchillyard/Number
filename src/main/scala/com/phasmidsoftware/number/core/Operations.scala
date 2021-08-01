@@ -471,14 +471,14 @@ object Operations {
     tryMap(value)(x => for (i <- fInt(x)) yield Value.fromInt(i), xToZy1).toOption
   }
 
-  def doQuery(v: Value, functions: QueryFunctions[Boolean]): Option[Boolean] = {
+  def doQuery[T](v: Value, functions: QueryFunctions[T]): Option[T] = {
     val (fInt, fRational, fDouble) = (functions.fInt, functions.fRat, functions.fDouble) // TODO improve this
-    val xToZy0: Option[Double] => Try[Boolean] = {
+    val xToZy0: Option[Double] => Try[T] = {
       case Some(n) => fDouble(n)
       case None => Failure(new NoSuchElementException())
     }
     import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Boolean] = y => tryMap(y)(x => fRational(x), xToZy0)
+    val xToZy1: Either[Option[Double], Rational] => Try[T] = y => tryMap(y)(x => fRational(x), xToZy0)
     tryMap(v)(x => fInt(x), xToZy1).toOption
   }
 
