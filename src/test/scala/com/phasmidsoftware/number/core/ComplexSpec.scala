@@ -37,7 +37,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi.isExact shouldBe true
     (c1_2 add c2_0).materialize.isExact shouldBe true
     // FIXME Caused by July 1st commit
-//    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
+    //    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
   }
 
   it should "asNumber" in {

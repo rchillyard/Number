@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
 import com.phasmidsoftware.number.core.Rational.toInt
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -124,9 +125,9 @@ case object MonadicOperationExp extends MonadicOperation {
   def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
 
   val functions: MonadicFunctions = (
-          expInt,
-          expRat,
-          expDouble)
+    expInt,
+    expRat,
+    expDouble)
 
   val derivative: Double => Double = x => Math.exp(x)
 
@@ -162,9 +163,9 @@ case object MonadicOperationLog extends MonadicOperation {
   def logDouble(x: Double): Try[Double] = Try(Math.log(x))
 
   val functions: MonadicFunctions = (
-          logInt,
-          logRat,
-          logDouble)
+    logInt,
+    logRat,
+    logDouble)
 
   val derivative: Double => Double = x => 1 / x
 
@@ -290,9 +291,9 @@ case object MonadicOperationModulate extends MonadicOperation {
   }
 
   val functions: MonadicFunctions = (
-          tryF(z => modulate(z, 0, 2)),
-          tryF(z => modulate(z, Rational.zero, Rational.two)),
-          tryF(z => modulate(z, 0, 2))
+    tryF(z => modulate(z, 0, 2)),
+    tryF(z => modulate(z, Rational.zero, Rational.two)),
+    tryF(z => modulate(z, 0, 2))
   )
 
   val derivative: Double => Double = _ => 1

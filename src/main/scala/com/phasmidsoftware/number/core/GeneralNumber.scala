@@ -454,21 +454,21 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
           // XXX otherwise: return this and x re-cast as a Double
           case _ => (this, Number.prepare(x.maybeDouble.map(y => make(y, x.factor).specialize)))
         }
-      // XXX this value is a Rational:
-      case Left(Right(_)) => x.value match {
-        // XXX x's value is a real Number: swap the order so that the first element is the real number
-        case Left(Left(_)) => x.alignTypes(this)
-        // XXX otherwise: return this and x re-cast as a Rational
-        case _ => (this, x.make(x.maybeRational.getOrElse(Rational.NaN)).specialize)
+        // XXX this value is a Rational:
+        case Left(Right(_)) => x.value match {
+          // XXX x's value is a real Number: swap the order so that the first element is the real number
+          case Left(Left(_)) => x.alignTypes(this)
+          // XXX otherwise: return this and x re-cast as a Rational
+          case _ => (this, x.make(x.maybeRational.getOrElse(Rational.NaN)).specialize)
+        }
+        // XXX this value is an Int:
+        case Right(_) => x.value match {
+          // XXX x's value is a BigInt, Rational or real Number: swap the order so that the first element is the BigInt/Rational/real number
+          case Left(_) => x.alignTypes(this)
+          // XXX otherwise: return this and x re-cast as an Int
+          case _ => (this, x.make(x.maybeInt.getOrElse(0), x.factor).specialize)
+        }
       }
-      // XXX this value is an Int:
-      case Right(_) => x.value match {
-        // XXX x's value is a BigInt, Rational or real Number: swap the order so that the first element is the BigInt/Rational/real number
-        case Left(_) => x.alignTypes(this)
-        // XXX otherwise: return this and x re-cast as an Int
-        case _ => (this, x.make(x.maybeInt.getOrElse(0), x.factor).specialize)
-      }
-    }
   }
 
   /**
@@ -567,9 +567,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   override def equals(other: Any): Boolean = other match {
     case that: GeneralNumber =>
       (that canEqual this) &&
-              value == that.value &&
-              factor == that.factor &&
-              fuzz == that.fuzz
+        value == that.value &&
+        factor == that.factor &&
+        fuzz == that.fuzz
     case _ => false
   }
 

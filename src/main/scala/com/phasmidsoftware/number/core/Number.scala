@@ -32,6 +32,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   /**
     * The factor of this Number.
     * Ordinary numbers are of Scalar factor, angles have factor Pi, and natural logs have factor E.
+    *
     * @return the factor.
     */
   def factor: Factor

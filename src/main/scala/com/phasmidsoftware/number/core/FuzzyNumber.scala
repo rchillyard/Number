@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import scala.util.Left
 
 /**
@@ -191,7 +192,7 @@ object FuzzyNumber {
     */
   private def withinWiggleRoom(p: Double, f: Fuzziness[Double], x: Double) = f.normalizeShape.wiggle(p) > math.abs(x)
 
-   def plus(x: FuzzyNumber, y: Number): Number = x.alignFactors(y) match {
+  def plus(x: FuzzyNumber, y: Number): Number = x.alignFactors(y) match {
     case (a: GeneralNumber, b: GeneralNumber) =>
       val (p, q) = a.alignTypes(b)
       (p, q) match {
@@ -201,7 +202,7 @@ object FuzzyNumber {
       }
   }
 
-   def times(x: GeneralNumber, y: Number): Number = x.alignFactors(y) match {
+  def times(x: GeneralNumber, y: Number): Number = x.alignFactors(y) match {
     case (a: GeneralNumber, b: GeneralNumber) =>
       val (p, q) = a.alignTypes(b)
       (p, q) match {
