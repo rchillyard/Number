@@ -32,7 +32,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @param x the addend.
     * @return the sum.
     */
-  override def doAdd(x: Number): Number = FuzzyNumber.plus(this, x) // NOTE: required but why?
+  def doAdd(x: Number): Number = FuzzyNumber.plus(this, x) // NOTE: required but why?
 
   /**
     * Multiply a Number by this FuzzyNumber.
@@ -40,7 +40,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @param x the multiplicand.
     * @return the product.
     */
-  override def doMultiply(x: Number): Number = FuzzyNumber.times(this, x) // NOTE: required but why?
+  def doMultiply(x: Number): Number = FuzzyNumber.times(this, x) // NOTE: required but why?
 
   /**
     * Raise this Number to the power p.
@@ -49,7 +49,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @param p a Number.
     * @return this Number raised to power p.
     */
-  override def doPower(p: Number): Number = FuzzyNumber.power(this, p)
+  def doPower(p: Number): Number = FuzzyNumber.power(this, p)
 
   /**
     * Method to compare this FuzzyNumber with another Number.
@@ -59,7 +59,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @param other the other Number.
     * @return -1, 0, or 1 according to whether x is <, =, or > y.
     */
-  override def compare(other: Number): Int = fuzzyCompare(other, 0.5)
+  def compare(other: Number): Int = fuzzyCompare(other, 0.5)
 
   /**
     * NOTE this method can be eliminated but the compare query operation doesn't appear to take fuzziness into account.

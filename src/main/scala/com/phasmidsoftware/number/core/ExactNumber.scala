@@ -14,6 +14,44 @@ import scala.util._
 case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
 
   /**
+    * Add this Number to n.
+    *
+    * NOTE: there is currently a significant difference between GeneralNumber.plus and FuzzyNumber.plus
+    *
+    * @param n another Number.
+    * @return the sum of this and n.
+    */
+  def doAdd(n: Number): Number = this match {
+    case x: GeneralNumber => GeneralNumber.plus(x, n)
+  }
+
+  /**
+    * Multiply this Number by n.
+    *
+    * NOTE: there is currently a significant difference between GeneralNumber.plus and FuzzyNumber.plus
+    *
+    * @param n another Number.
+    * @return the product of this and n.
+    */
+  def doMultiply(n: Number): Number = GeneralNumber.times(this, n)
+
+  /**
+    * Raise this Number to the power p.
+    *
+    * @param p a Number.
+    * @return this Number raised to the power of p.
+    */
+  def doPower(p: Number): Number = Number.power(this, p)
+
+  /**
+    * Method to compare this Number with another.
+    *
+    * @param other the other Number.
+    * @return -1, 0, or 1 according to the relative magnitudes.
+    */
+  def compare(other: Number): Int = Number.doCompare(this, other)
+
+  /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Both the value and the factor will be changed.
     *

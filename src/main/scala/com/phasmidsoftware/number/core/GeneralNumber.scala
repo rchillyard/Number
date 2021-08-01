@@ -12,8 +12,7 @@ import scala.util._
   * This class is designed to model a Numerical value of various possible different types.
   * These types are: Int, BigInt, Rational, Double.
   *
-  * TODO try to refactor in such a way that we reduce the number of methods defined here,
-  * especially those which are not implementations of an abstract method.
+  * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
@@ -83,42 +82,12 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def makeNegative: Number = doMultiply(Number(-1))
 
   /**
-    * Add this Number to n.
-    *
-    * NOTE: there is currently a significant difference between GeneralNumber.plus and FuzzyNumber.plus
-    *
-    * @param n another Number.
-    * @return the sum of this and n.
-    */
-  def doAdd(n: Number): Number = this match {
-    case x: GeneralNumber => GeneralNumber.plus(x, n)
-  }
-
-  /**
-    * Multiply this Number by n.
-    *
-    * NOTE: there is currently a significant difference between GeneralNumber.plus and FuzzyNumber.plus
-    *
-    * @param n another Number.
-    * @return the product of this and n.
-    */
-  def doMultiply(n: Number): Number = GeneralNumber.times(this, n)
-
-  /**
     * Divide this Number by n.
     *
     * @param n another Number.
     * @return this quotient of this and n, i.e. this/n.
     */
   def doDivide(n: Number): Number = doMultiply(Number.inverse(n))
-
-  /**
-    * Raise this Number to the power p.
-    *
-    * @param p a Number.
-    * @return this Number raised to the power of p.
-    */
-  def doPower(p: Number): Number = Number.power(this, p)
 
   /**
     * Yields the square root of this Number.
@@ -198,14 +167,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a Number based on this and factor.
     */
   def scale(f: Factor): Number = makeFuzzyIfAppropriate(x => Number.scale(x, f), 0)
-
-  /**
-    * Method to compare this Number with another.
-    *
-    * @param other the other Number.
-    * @return -1, 0, or 1 according to the relative magnitudes.
-    */
-  def compare(other: Number): Int = Number.doCompare(this, other)
 
   /**
     * Action to render this GeneralNumber as a String.
