@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
-import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 
 /**
@@ -478,7 +477,7 @@ case object MinusOne extends Constant {
     *
     * @return -1.
     */
-  def materialize: Number = negate(Number.one)
+  def materialize: Number = Number.negate(Number.one)
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 

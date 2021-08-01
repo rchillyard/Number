@@ -1,10 +1,17 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Complex.{convertToCartesian, narrow}
+import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar, narrow}
 import com.phasmidsoftware.number.core.Field.recover
-import com.phasmidsoftware.number.core.Number.negate
 
 abstract class Complex(val real: Number, val imag: Number) extends AtomicExpression with Field {
+
+  /**
+    * Evaluate the magnitude squared of this Complex number.
+    *
+    * @return the magnitude squared.
+    */
+  def magnitudeSquared: Expression
+
   /**
     * Method to determine the modulus of this Complex number.
     *
@@ -55,7 +62,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
   /**
     * Change the sign of this Number.
     */
-  def unary_- : Field = make(real, negate(imag))
+  def unary_- : Field = make(real, Number.negate(imag))
 
   def numberProduct(n: Number): Complex
 
@@ -135,17 +142,18 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
 
   def doMultiply(complex: Complex): Complex
 
-  protected def showImaginary: String = s"${if (imag.isPositive) "" else "-"}${imag.abs}"
+  protected def showImaginary: String = s"${if (imag.isPositive) "" else "-"}i${imag.abs}"
 }
 
 object Complex {
 
+  // TODO this is dangerous.
   def unapply(arg: Complex): Option[(Number, Number)] = Some(arg.real, arg.imag)
 
   def convertToPolar(c: ComplexCartesian): Complex = {
-    val ro: Option[Field] = for (p <- (c.x multiply c.x add c.y multiply c.y).asNumber; z = p.sqrt.materialize) yield z
+    val ro: Option[Field] = for (p <- ((c.x multiply c.x) add (c.y multiply c.y)).asNumber; z = p.sqrt.materialize) yield z
     val z: Field = Field.recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
-    apply(z, c.y atan c.x, ComplexPolar.apply, ComplexException(s"logic error: convertToPolar2: $c"))
+    apply(z, c.x atan c.y, ComplexPolar.apply, ComplexException(s"logic error: convertToPolar2: $c"))
   }
 
   def convertToCartesian(c: ComplexPolar): Complex =
@@ -154,6 +162,8 @@ object Complex {
 
   def apply(a: Field, b: Field, f: (Number, Number) => Complex, x: ComplexException): Complex =
     Field.recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
+
+  def apply(x: Number): Complex = ComplexCartesian(x, Number.zero)
 
   def narrow(x: Field, polar: Boolean): Complex = x match {
     case c@ComplexCartesian(_, _) => if (polar) convertToPolar(c) else c
@@ -176,13 +186,13 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
-  def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor; if f1 == f2) yield f1
+  def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor if f2 == f1) yield f1 // CHECK
 
   def numberProduct(n: Number): Complex = make(x doMultiply n, y doMultiply n)
 
   def make(a: Number, b: Number): Complex = ComplexCartesian(a, b)
 
-  def isZero: Boolean = x.isZero && y.isZero
+  def isZero: Boolean = convertToPolar(this).real.isProbablyZero(0.5)
 
   def isInfinite: Boolean = x.isInfinite || y.isInfinite
 
@@ -194,7 +204,7 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     *
     * @return a String representing the value of this expression.
     */
-  def render: String = s"""($x $showImaginary"""
+  def render: String = s"""($x+$showImaginary)"""
 
   /**
     * Add two Cartesian Complex numbers.

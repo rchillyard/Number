@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.Field.recover
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
 trait Field extends AtomicExpression {
+
   /**
     * Method to determine if this Field has infinite magnitude.
     *
@@ -43,13 +44,7 @@ trait Field extends AtomicExpression {
   def add(x: Field): Field
 
   /**
-    * Change the sign of this Number.
-    */
-  def unary_- : Field
-
-  /**
     * Multiply this Field by x and return the result.
-    * See Number.times for more detail.
     *
     * * @param x the multiplicand.
     * * @return the product.
@@ -58,12 +53,16 @@ trait Field extends AtomicExpression {
 
   /**
     * Divide this Field by x and return the result.
-    * See * and invert for more detail.
     *
     * @param x the divisor.
     * @return the quotient.
     */
   def divide(x: Field): Field
+
+  /**
+    * Change the sign of this Field.
+    */
+  def unary_- : Field
 
   /**
     * Raise this Field to the power p.
@@ -94,20 +93,24 @@ trait Field extends AtomicExpression {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  override def asNumber: Option[Number] = this match {
-    case n@Number(_, _) => Some(n)
-    case ComplexCartesian(x, y) if y == Number.zero => Some(x)
-    case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
-    case ComplexPolar(r, theta) if theta == Number.pi => Some(r.makeNegative)
-    case _ => None
-  }
+  override def asNumber: Option[Number] =
+    this match {
+      case n@Number(_, _) => Some(n)
+      case ComplexCartesian(x, y) if y == Number.zero => Some(x)
+      case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
+      case ComplexPolar(r, theta) if theta == Number.pi => Some(r.makeNegative)
+      case _ => None
+    }
 
   /**
-    * Evaluate the magnitude squared of this Complex number.
+    * Method to return this Field as a Complex.
     *
-    * @return the magnitude squared.
+    * @return either this or Complex(this) as appropriate.
     */
-  def magnitudeSquared: Expression
+  def asComplex: Complex = this match {
+    case n@Number(_, _) => Complex(n)
+    case n@Complex(_, _) => n
+  }
 
   /**
     * Eagerly compare this Field with comparand.

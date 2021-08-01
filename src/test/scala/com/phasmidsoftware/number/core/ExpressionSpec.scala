@@ -14,7 +14,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
-      case n: Number => new ExpressionOps(a).compare(n) == 0
+      case n: GeneralNumber => new ExpressionOps(a).compare(n) == 0
       case n: Expression => a.compare(n) == 0
       case _ => false
     }
@@ -54,7 +54,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     eo should matchPattern { case Some(_) => }
     eo.get shouldBe BiFunction(Number(2), Number(-1), Power)
   }
-
 
   behavior of "Expression"
 
@@ -131,7 +130,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (Number.e * 2).materialize.toString shouldBe "5.43656365691809(3)"
+    (Number.e * 2).materialize.toString shouldBe "5.436563656918090(29)"
   }
 
   behavior of "isExact"

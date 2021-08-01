@@ -3,15 +3,23 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Rational.RationalHelper
+import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
+  implicit object ComplexEquality extends Equality[Complex] {
+    def areEqual(a: Complex, b: Any): Boolean = b match {
+      case n: Complex => (a - n).materialize.isZero
+      case _ => false
+    }
+  }
+
   behavior of "Complex"
 
   private val c1_2 = ComplexCartesian(Number.one, Number.two)
-  private val c2_0 = ComplexCartesian(Number.two, Number.zero)
+  private val c2_0 = Complex(Number.two)
   private val p1_pi = ComplexPolar(Number.one, Number.pi)
   private val p1_pi_2 = ComplexPolar(Number.one, convertToNumber((Number.pi / Number.two).materialize))
 
@@ -37,7 +45,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi.isExact shouldBe true
     (c1_2 add c2_0).materialize.isExact shouldBe true
     // FIXME Caused by July 1st commit
-//    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
+    //    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
   }
 
   it should "asNumber" in {
@@ -121,8 +129,34 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  ignore should "convertToPolar" in {
-    convertToPolar(c1_2) shouldBe ComplexPolar(Number(5).sqrt, Number.pi doDivide Number(3))
+  it should "convertToPolar" in {
+    val expected = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Pi))
+    val actual = convertToPolar(c1_2)
+    actual shouldEqual expected
+  }
+
+  it should "check that math.atan really works" in {
+    val tangent = 2.0
+    val theta = math.atan2(tangent, 1)
+    val result = math.tan(theta)
+    result shouldBe tangent +- 1E-8
+    // TODO understand why the match.atan method seems to be so imprecise
+    theta * 3 shouldBe math.Pi +- 2E-1
+  }
+
+  it should "check that math.atan really works for many fractions" in {
+    for (i <- 0 to 10; j <- 0 to 10)
+      if (i != 0 || j != 0) checkAtan2(i, j)
+  }
+
+  private def checkAtan2(opposite: Int, adjacent: Int): Unit = {
+    val theta = math.atan2(opposite, adjacent)
+    val thetaAsFraction = theta / math.Pi
+    println(s"atan2($opposite/$adjacent) is $thetaAsFraction")
+    val result = math.tan(theta)
+    val expected = opposite * 1.0 / adjacent
+    if (expected != Double.PositiveInfinity)
+      result shouldBe expected +- 1E-6
   }
 
   it should "unapply" in {
@@ -139,8 +173,21 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "magnitudeSquared" in {
     val c3 = p1_pi add c2_0
-    convertToNumber(c3.materialize.magnitudeSquared.materialize) shouldBe Number.one
-
+    convertToNumber(c3.materialize.asComplex.magnitudeSquared.materialize) shouldBe Number.one
   }
 
+  behavior of "render"
+  it should "work" in {
+    c2_0.render shouldBe "(2+i0)"
+    c1_2.render shouldBe "(1+i2)"
+    p1_pi.render shouldBe "1e^i1\uD835\uDED1"
+    p1_pi_2.render shouldBe "1e^i0.5\uD835\uDED1"
+    p1_pi_2.complement.render shouldBe "1e^i1.5\uD835\uDED1"
+  }
+
+  behavior of "asComplex"
+  it should "work" in {
+    c2_0.asComplex shouldBe c2_0
+    Number(2).asComplex shouldBe c2_0
+  }
 }

@@ -5,7 +5,7 @@ import scala.util.{Either, Try}
 package object core {
 
   /**
-    * This is the type of the value parameter of a Number.
+    * This is the type of the value parameter of a GeneralNumber.
     *
     * There is a companion object to this type in module Value.scala.
     */
@@ -22,9 +22,14 @@ package object core {
   type MonadicFunctions = (Int => Try[Int], Rational => Try[Rational], Double => Try[Double])
 
   /**
-    * Type alias for the query functions, a tuple of three functions, corresponding to the functions for Int, Rational and Double representations.
+    * Type alias for the Boolean query functions.
     */
-  type QueryFunctions = (Int => Try[Boolean], Rational => Try[Boolean], Double => Try[Boolean])
+  type BooleanQueryFunctions = QueryFunctions[Boolean]
+
+  /**
+    * Type alias for the Int query functions.
+    */
+  type IntQueryFunctions = QueryFunctions[Int]
 
   /**
     * This is the (approximate) error bound on double precision numbers.

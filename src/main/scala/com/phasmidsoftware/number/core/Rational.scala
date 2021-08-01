@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.{bigZero, narrow}
+import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero}
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
 
 import java.lang.Math._
@@ -25,8 +25,8 @@ case class Rational(n: BigInt, d: BigInt) {
 
   // Pre-conditions
 
-  // NOTE: ensure that the denominator is positive.
-  require(d.signum >= 0, s"Rational denominator is negative: $d")
+  // NOTE: ensure that the denominator is non-zero, or the numerator is zero.
+  require(d.signum >= 0 || (n.signum == 0 && d == bigNegOne), s"Rational denominator is negative: $d")
 
   // NOTE: ensure that the numerator and denominator are relatively prime.
   require(n == bigZero && d == bigZero || n.gcd(d) == 1, s"Rational($n,$d): arguments have common factor: ${n.gcd(d)}")
@@ -62,6 +62,8 @@ case class Rational(n: BigInt, d: BigInt) {
 
   def ^(that: Rational): Try[Rational] = power(that)
 
+  def abs: Rational = if (signum < 0) negate else this
+
   lazy val sqrt: Try[Rational] = power(Rational.half)
 
   // Other methods appropriate to Rational
@@ -92,9 +94,15 @@ case class Rational(n: BigInt, d: BigInt) {
 
   lazy val toDouble: Double = Rational.toDouble(this)
 
+  /**
+    * Method to get the xth power of this Rational, exactly.
+    *
+    * @param x the power (any Rational).
+    * @return Success(...) if the result can be calculated exactly, else Failure.
+    */
   def power(x: Rational): Try[Rational] = {
-    val maybeNum: Try[Int] = narrow(x.n, Int.MinValue, Int.MaxValue) map (_.toInt)
-    val maybeDenom: Try[Int] = narrow(x.d, Int.MinValue, Int.MaxValue) map (_.toInt)
+    val maybeNum: Try[Int] = FP.toTry(Rational.toInt(x.n), Failure(RationalException("can't get exact root")))
+    val maybeDenom: Try[Int] = FP.toTry(Rational.toInt(x.d), Failure(RationalException("can't get exact root")))
     for (p <- maybeNum; r <- maybeDenom; z <- FP.toTryWithThrowable(this.power(p).root(r), RationalException("can't get exact root"))) yield z
   }
 
@@ -148,6 +156,7 @@ case class Rational(n: BigInt, d: BigInt) {
 
   override def toString: String =
     if (isNaN) "NaN"
+    else if (isZero && d < 0) "-0"
     else if (isInfinity) (if (n > 0) "+ve" else "-ve") + " infinity"
     else if (isWhole) toBigInt.toString
     else if (d > 100000L || isExactDouble) toDouble.toString
@@ -272,6 +281,7 @@ object Rational {
 
   val bigZero: BigInt = BigInt(0)
   val bigOne: BigInt = BigInt(1)
+  val bigNegOne: BigInt = BigInt(-1)
   val zero: Rational = Rational(0)
   lazy val infinity: Rational = zero.invert
   val one: Rational = Rational(1)
@@ -279,6 +289,7 @@ object Rational {
   val two: Rational = Rational(2)
   lazy val half: Rational = two.invert
   lazy val NaN = new Rational(0, 0)
+  lazy val negZero = new Rational(0, -1)
 
   /**
     * Method to construct a Rational from two BigInt values.
@@ -494,28 +505,38 @@ object Rational {
     * @return a Rational formed from n and d.
     */
   @scala.annotation.tailrec
-  private def normalize(n: BigInt, d: BigInt): Rational =
-    if (d < 0) normalize(-n, -d) else {
-      // CONSIDER that we weren't previously taking the abs of d (which should always be positive)
+  private def normalize(n: BigInt, d: BigInt): Rational = (n, d) match {
+    case (Rational.bigZero, Rational.bigNegOne) => new Rational(n, d)
+    case _ if d < 0 => normalize(-n, -d)
+    case _ =>
       val g = n.gcd(d)
       g.signum match {
         case 0 => Rational.NaN
         case _ => new Rational(n / g, d / g)
       }
-    }
+  }
 
   private def minus(x: Rational, y: Rational): Rational = plus(x, negate(y))
 
   private def negate(x: Rational): Rational = Rational(-x.n, x.d)
 
-  private def plus(x: Rational, y: Rational): Rational = Rational((x.n * y.d) + (y.n * x.d), x.d * y.d)
+  private def plus(x: Rational, y: Rational): Rational = (x, y) match {
+    case (Rational.negZero, z) => z
+    case (z, Rational.negZero) => z
+    case _ => Rational((x.n * y.d) + (y.n * x.d), x.d * y.d)
+  }
 
-  private def times(x: Rational, y: Rational): Rational = Rational(x.n * y.n, x.d * y.d)
+  private def times(x: Rational, y: Rational): Rational = (x, y) match {
+    case (Rational.negZero, _) => zero
+    case (_, Rational.negZero) => zero
+    case _ => Rational(x.n * y.n, x.d * y.d)
+  }
 
   private def toDoubleViaString(x: BigInt) = x.toString().toDouble
 
   private def toDouble(x: Rational): Double = Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
 
+  // TEST me
   private def toFloat(x: Rational): Float = toDouble(x).toFloat
 
   private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z
@@ -534,7 +555,7 @@ object Rational {
     * @param x a Rational.
     * @return an Try[Int]
     */
-  def toInt(x: Rational): Try[Int] = narrow(x, Int.MinValue, Int.MaxValue) map (_.toInt)
+  def toInt(x: Rational): Try[Int] = if (x.isWhole && x.n.isValidInt) Success(x.n.toInt) else Failure(RationalException(s"$x is not whole"))
 
   /**
     * Get Rational x as a pair of Longs (if possible).
@@ -557,6 +578,8 @@ object Rational {
   // CONSIDER making this public
   private def toBigInt(x: Rational): Try[BigInt] = if (x.isWhole) Success(x.n) else Failure(RationalException(s"toBigInt: $x is " + (if (x.d == 0L)
     "infinite" else "not whole")))
+
+  private def toInt(x: BigInt): Option[Int] = if (x.isValidInt) Some(x.toInt) else None
 
   private def div(x: Rational, y: Rational): Rational = x / y
 

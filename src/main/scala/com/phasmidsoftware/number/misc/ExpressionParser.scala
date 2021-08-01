@@ -80,7 +80,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
   case class FloatingPoint(x: String) extends Factor {
     def value: Try[T] = self.apply(x)
 
-    def show(i: Int): String = "Number: " + x
+    def show(i: Int): String = "GeneralNumber: " + x
   }
 
   case class Parentheses(e: Expr) extends Factor {

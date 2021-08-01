@@ -36,7 +36,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   private val two: Number = Number(2)
   private val one: Number = Number.one
   private val zero: Number = Number.zero
-  private val half: Number = Number.two.invert
+  private val half: Number = convertToNumber(Number.two.invert)
 
 
   behavior of "value"
@@ -255,7 +255,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (Number.e * 2).materialize.toString shouldBe "5.43656365691809(3)"
+    (Number.e * 2).materialize.toString shouldBe "5.436563656918090(29)"
   }
 
   behavior of "matchSimplifyProductIdentity"
@@ -426,9 +426,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe one
   }
 
-  // FIXME including this in with Issue #47 but it might be a different issue
   behavior of "gatherProduct"
-  ignore should "work" in {
+  it should "work" in {
     val p: em.Matcher[Expression ~ Expression, Expression] = em.gatherProduct
     val z: Expression = Number(3).sqrt
     val x = z * z.reciprocal * one
@@ -436,7 +435,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //    val q: em.Matcher[Expression ~ Expression, Expression] = eml.log(p)
     val r = p(Expression(one) ~ x)
     r should matchPattern { case em.Match(_) => }
-    r.get shouldBe one
+    r.get.asNumber shouldBe Some(one)
   }
 
   behavior of "distributor"
