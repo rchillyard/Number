@@ -419,28 +419,36 @@ case object DyadicOperationPower extends DyadicOperation {
 
 }
 
+
+/**
+  * Trait for the query functions: three functions, corresponding to the functions for Int, Rational and Double representations.
+  */
+trait QueryFunctions[T] {
+  val fInt: Int => Try[T]
+  val fRat: Rational => Try[T]
+  val fDouble: Double => Try[T]
+}
+
 /**
   * Definitions of QueryOperations.
   */
-sealed trait QueryOperation {
-  def getFunctions: QueryFunctions
+sealed trait QueryOperation[T] {
+  def getFunctions: QueryFunctions[T]
 }
 
-case object QueryOperationIsZero extends QueryOperation {
-  def getFunctions: QueryFunctions = {
-    val fInt = tryF[Int, Boolean](x => x == 0)
-    val fRational = tryF[Rational, Boolean](x => x.signum == 0)
-    val fDouble = tryF[Double, Boolean](x => x.sign == 0 || x.sign == -0)
-    (fInt, fRational, fDouble)
+case object QueryOperationIsZero extends QueryOperation[Boolean] {
+  def getFunctions: QueryFunctions[Boolean] = new QueryFunctions[Boolean] {
+    val fInt: Int => Try[Boolean] = tryF[Int, Boolean](x => x == 0)
+    val fRat: Rational => Try[Boolean] = tryF[Rational, Boolean](x => x.signum == 0)
+    val fDouble: Double => Try[Boolean] = tryF[Double, Boolean](x => x.sign == 0 || x.sign == -0)
   }
 }
 
-case object QueryOperationIsInfinite extends QueryOperation {
-  def getFunctions: QueryFunctions = {
-    val fInt = tryF[Int, Boolean](_ => false)
-    val fRational = tryF[Rational, Boolean](x => x.isInfinity)
-    val fDouble = tryF[Double, Boolean](x => x == Double.PositiveInfinity || x == Double.NegativeInfinity)
-    (fInt, fRational, fDouble)
+case object QueryOperationIsInfinite extends QueryOperation[Boolean] {
+  def getFunctions: QueryFunctions[Boolean] = new QueryFunctions[Boolean] {
+    val fInt: Int => Try[Boolean] = tryF[Int, Boolean](_ => false)
+    val fRat: Rational => Try[Boolean] = tryF[Rational, Boolean](x => x.isInfinity)
+    val fDouble: Double => Try[Boolean] = tryF[Double, Boolean](x => x == Double.PositiveInfinity || x == Double.NegativeInfinity)
   }
 }
 
@@ -463,8 +471,8 @@ object Operations {
     tryMap(value)(x => for (i <- fInt(x)) yield Value.fromInt(i), xToZy1).toOption
   }
 
-  def doQuery(v: Value, functions: QueryFunctions): Option[Boolean] = {
-    val (fInt, fRational, fDouble) = functions
+  def doQuery(v: Value, functions: QueryFunctions[Boolean]): Option[Boolean] = {
+    val (fInt, fRational, fDouble) = (functions.fInt, functions.fRat, functions.fDouble) // TODO improve this
     val xToZy0: Option[Double] => Try[Boolean] = {
       case Some(n) => fDouble(n)
       case None => Failure(new NoSuchElementException())

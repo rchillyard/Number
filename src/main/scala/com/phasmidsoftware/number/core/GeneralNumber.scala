@@ -279,7 +279,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param op the appropriate QueryOperation.
     * @return a Boolean.
     */
-  def query(op: QueryOperation): Boolean = doQuery(op.getFunctions).getOrElse(false)
+  def query(op: QueryOperation[Boolean]): Boolean = doQuery(op.getFunctions).getOrElse(false)
 
   /**
     * Render this Number in String form, including the factor.
@@ -527,7 +527,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param functions the tuple of four conversion functions.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  private def doQuery(functions: QueryFunctions): Option[Boolean] = Operations.doQuery(value, functions)
+  private def doQuery(functions: BooleanQueryFunctions): Option[Boolean] = Operations.doQuery(value, functions)
 
   /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the factor).

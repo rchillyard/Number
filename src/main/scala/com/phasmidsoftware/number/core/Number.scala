@@ -335,7 +335,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param op the appropriate QueryOperation.
     * @return a Boolean.
     */
-  def query(op: QueryOperation): Boolean
+  def query(op: QueryOperation[Boolean]): Boolean
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
