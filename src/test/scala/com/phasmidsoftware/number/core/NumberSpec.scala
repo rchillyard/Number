@@ -2,9 +2,11 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
+import com.phasmidsoftware.number.core.Number.negate
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -763,8 +765,13 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     expected should ===(actual)
   }
   // TODO need to operate appropriately on negZero.
-  ignore should "evaluate atan" in {
-    Number.one.atan(Number.negZero) shouldBe Number(3, Pi)
+  it should "evaluate atan of 1 over -0" in {
+    val number = Number.negZero.atan(Number.one)
+    number shouldBe Number(Rational(3, 2), Pi)
+  }
+  it should "evaluate atan of -1 over 0" in {
+    val number = Number.zero.atan(negate(Number.one))
+    number shouldBe Number(Rational(3, 2), Pi)
   }
 
 

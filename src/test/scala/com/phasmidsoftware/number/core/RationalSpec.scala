@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
+
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -37,8 +38,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "fail for 2, 2" in {
     a[IllegalArgumentException] should be thrownBy new Rational(BigInt(2), 2L)
   }
-  it should "fail for 0, -1" in {
-    a[IllegalArgumentException] should be thrownBy new Rational(BigInt(0), -1L)
+  it should "succeed for 0, -1" in {
+    new Rational(BigInt(0), -1L).d shouldBe BigInt(-1)
+  }
+  it should "fail for 1, -1" in {
+    a[IllegalArgumentException] should be thrownBy new Rational(BigInt(1), -1L)
   }
 
   behavior of "apply(BigInt,Long)"

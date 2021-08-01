@@ -121,6 +121,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
+  // FIXME complex conversion issue
   ignore should "convertToPolar" in {
     convertToPolar(c1_2) shouldBe ComplexPolar(Number(5).sqrt, Number.pi doDivide Number(3))
   }

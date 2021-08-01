@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Rational.bigZero
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
+
 import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -24,8 +25,8 @@ case class Rational(n: BigInt, d: BigInt) {
 
   // Pre-conditions
 
-  // NOTE: ensure that the denominator is positive.
-  require(d.signum >= 0, s"Rational denominator is negative: $d")
+  // NOTE: ensure that the denominator is non-zero, or the numerator is zero.
+  require(d.signum >= 0 || n.signum == 0, s"Rational denominator is negative: $d")
 
   // NOTE: ensure that the numerator and denominator are relatively prime.
   require(n == bigZero && d == bigZero || n.gcd(d) == 1, s"Rational($n,$d): arguments have common factor: ${n.gcd(d)}")
@@ -153,6 +154,7 @@ case class Rational(n: BigInt, d: BigInt) {
 
   override def toString: String =
     if (isNaN) "NaN"
+    else if (isZero && d < 0) "-0"
     else if (isInfinity) (if (n > 0) "+ve" else "-ve") + " infinity"
     else if (isWhole) toBigInt.toString
     else if (d > 100000L || isExactDouble) toDouble.toString
@@ -277,6 +279,7 @@ object Rational {
 
   val bigZero: BigInt = BigInt(0)
   val bigOne: BigInt = BigInt(1)
+  val bigNegOne: BigInt = BigInt(-1)
   val zero: Rational = Rational(0)
   lazy val infinity: Rational = zero.invert
   val one: Rational = Rational(1)
@@ -499,8 +502,9 @@ object Rational {
     * @return a Rational formed from n and d.
     */
   @scala.annotation.tailrec
-  private def normalize(n: BigInt, d: BigInt): Rational =
-    if (d < 0) normalize(-n, -d) else {
+  private def normalize(n: BigInt, d: BigInt): Rational = {
+    if (d < 0 && n == bigZero) new Rational(n, d)
+    else if (d < 0) normalize(-n, -d) else {
       // CONSIDER that we weren't previously taking the abs of d (which should always be positive)
       val g = n.gcd(d)
       g.signum match {
@@ -508,6 +512,7 @@ object Rational {
         case _ => new Rational(n / g, d / g)
       }
     }
+  }
 
   private def minus(x: Rational, y: Rational): Rational = plus(x, negate(y))
 
@@ -521,6 +526,7 @@ object Rational {
 
   private def toDouble(x: Rational): Double = Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
 
+  // TEST me
   private def toFloat(x: Rational): Float = toDouble(x).toFloat
 
   private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z
