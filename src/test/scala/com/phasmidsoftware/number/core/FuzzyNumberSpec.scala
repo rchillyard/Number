@@ -318,16 +318,16 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     z.isProbablyZero(0.875) shouldBe false
   }
 
-  behavior of "makeFuzzy"
+  behavior of "make(Fuzziness)"
   it should "work" in {
     val fuzz = RelativeFuzz(1E-15, Box)
     val n: FuzzyNumber = FuzzyNumber(Value.fromInt(1), Scalar, None).addFuzz(fuzz).asInstanceOf[FuzzyNumber]
     val op = MonadicOperationExp
     val r: Option[Value] = Operations.doTransformValueMonadic(n.value)(op.functions)
     r.isDefined shouldBe true
-    val q = n.make(r.get, Scalar)
+    val q: Number = n.make(r.get, Scalar)
     val x = q.toDouble
-    val z: FuzzyNumber = q.asInstanceOf[FuzzyNumber].makeFuzzy(Fuzziness.map[Double, Double, Double](1, x.get, !op.absolute, op.derivative, Some(fuzz)))
+    val z: GeneralNumber = q.make(Fuzziness.map[Double, Double, Double](1, x.get, !op.absolute, op.derivative, Some(fuzz))).asInstanceOf[GeneralNumber]
     z.fuzz.get.toString(x.get) shouldBe "2.7182818284590450[27]"
   }
 }

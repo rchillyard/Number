@@ -15,10 +15,6 @@ import scala.util._
   * TODO try to refactor in such a way that we reduce the number of methods defined here,
   * especially those which are not implementations of an abstract method.
   *
-  * CONSIDER including the fuzziness in Number and simply having ExactNumber always have fuzz of None.
-  *
-  * CONSIDER implementing equals. However, be careful!
-  *
   * @param value  the value of the Number, expressed as a nested Either type.
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   * @param fuzz   the (optional) fuzziness of this Number.
@@ -198,21 +194,17 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * In other words,  in the case where f is not factor, the numerical value of the result's value will be different
     * from this value.
     *
-    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
-    * It may not be appropriate for all invocations.
-    *
     * @param f the new factor for the result.
     * @return a Number based on this and factor.
     */
   def scale(f: Factor): Number = makeFuzzyIfAppropriate(x => Number.scale(x, f), 0)
 
   /**
-    * Evaluate the magnitude squared of this Complex number.
+    * Method to compare this Number with another.
     *
-    * @return the magnitude squared.
+    * @param other the other Number.
+    * @return -1, 0, or 1 according to the relative magnitudes.
     */
-  def magnitudeSquared: Expression = this * this
-
   def compare(other: Number): Int = Number.doCompare(this, other)
 
   /**
@@ -311,8 +303,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * Only the factor will change.
     * This method does not need to be followed by a call to specialize.
     *
-    * TEST me
-    *
     * @param f the factor.
     * @return a Number.
     */
@@ -382,28 +372,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a Number.
     */
   def make(x: Double, f: Factor): Number = make(Value.fromDouble(Some(x)), f)
-
-  /**
-    * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value will change.
-    * This method should be followed by a call to specialize.
-    *
-    * TEST me
-    *
-    * @param x the value (a Double).
-    * @return a Number.
-    */
-  def make(x: Double): Number = make(x, factor)
-
-  /**
-    * Make a copy of this Number, with the same value and factor but with a different value of fuzziness.
-    *
-    * TEST me
-    *
-    * @param fo the (optional) fuzziness.
-    * @return a Number.
-    */
-  def make(fo: Option[Fuzziness[Double]]): Number
 
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
@@ -525,7 +493,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
     def tryDouble(xo: Option[Double]): Try[Number] = xo match {
       case Some(n) => toTryWithThrowable(for (y <- other.maybeDouble) yield fDouble(n, y) map (x => make(x, f)), NumberException("other is not a Double")).flatten
-      case None => Failure(NumberException("number is invalid"))
+      case None => Failure(NumberException("number is invalid")) // NOTE this case is not observed in practice
     }
 
     def tryConvert[X](x: X, msg: String)(extract: Number => Option[X], func: (X, X) => Try[X], g: (X, Factor) => Number): Try[Number] =
@@ -552,23 +520,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   def doTransformMonadic(f: Factor)(functions: MonadicFunctions): Option[Number] =
     Operations.doTransformValueMonadic(value)(functions) map (make(_, f))
-
-
-  /**
-    * Evaluate a monadic operator on this, using either negate or... according to the value of op.
-    *
-    * TEST me or eliminate
-    *
-    * @param f  the factor to apply to the result.
-    * @param op the appropriate MonadicOperation.
-    * @return a new Number which is result of applying the appropriate function to the operand this.
-    */
-  def transformMonadicFuzzy(f: Factor)(op: MonadicOperation): Option[Number] = {
-    transformMonadic(f)(op).flatMap {
-      case n: FuzzyNumber =>
-        for (t <- toDouble; x <- n.toDouble) yield n.makeFuzzy(Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz))
-    }
-  }
 
   /**
     * Evaluate a query operator on this, using the various functions passed in.

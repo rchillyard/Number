@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP.{identityTry, tryF}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
@@ -8,6 +7,7 @@ import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
+
 import scala.annotation.tailrec
 import scala.math.BigInt
 import scala.util._
@@ -425,16 +425,14 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def make(v: Double, f: Factor): Number
 
   /**
-    * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value will change.
-    * This method should be followed by a call to specialize.
+    * Make a copy of this Number, with the same value and factor but with a different value of fuzziness.
     *
     * TEST me
     *
-    * @param v the value (a Double).
-    * @return either a Number.
+    * @param fo the (optional) fuzziness.
+    * @return a Number.
     */
-  def make(v: Double): Number
+  def make(fo: Option[Fuzziness[Double]]): Number
 
   /**
     * Method to "normalize" a number, that's to say make it a Scalar.
@@ -827,7 +825,7 @@ object Number {
     def toInt(x: Number): Int = toLong(x).toInt
 
     def toLong(x: Number): Long = x match {
-      case z: core.GeneralNumber => z.maybeRational match {
+      case z: GeneralNumber => z.maybeRational match {
         case Some(r) => r.toLong
         case None => x.maybeDouble match {
           case Some(z) => Math.round(z)
@@ -889,6 +887,7 @@ object Number {
     y.scale(Scalar).toRational match {
       case Some(r) => power(x, r)
       case None =>
+        // NOTE this is not used, but it doesn't seem to handle fuzziness properly either.
         val zo = for (p <- x.toDouble; q <- y.toDouble) yield Number(math.pow(p, q))
         prepareWithSpecialize(zo)
     }
@@ -927,6 +926,8 @@ object Number {
     * Method to take the ith root of n.
     *
     * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
+    *
+    * CONSIDER a special factor which is basically a root.
     *
     * @param n the Number whose root is required.
     * @param i the ordinal of the root (2: square root, etc.).

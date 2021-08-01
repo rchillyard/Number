@@ -14,13 +14,6 @@ import scala.util._
 case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
 
   /**
-    * Auxiliary constructor for the usual situation with the default factor.
-    *
-    * @param v the value for the new Number.
-    */
-  def this(v: Value) = this(v, Scalar)
-
-  /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Both the value and the factor will be changed.
     *
