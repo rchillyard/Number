@@ -426,9 +426,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe one
   }
 
-  // FIXME including this in with Issue #47 but it might be a different issue
   behavior of "gatherProduct"
-  ignore should "work" in {
+  it should "work" in {
     val p: em.Matcher[Expression ~ Expression, Expression] = em.gatherProduct
     val z: Expression = Number(3).sqrt
     val x = z * z.reciprocal * one
@@ -436,7 +435,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //    val q: em.Matcher[Expression ~ Expression, Expression] = eml.log(p)
     val r = p(Expression(one) ~ x)
     r should matchPattern { case em.Match(_) => }
-    r.get shouldBe one
+    r.get.asNumber shouldBe Some(one)
   }
 
   behavior of "distributor"
