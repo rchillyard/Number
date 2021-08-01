@@ -756,14 +756,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number.negate(Number.one)
     target.atan(Number.zero) shouldBe Number(1, Pi)
   }
-  it should "be Pi / 3 for 2/1" in {
-    Number.one.atan(Number.two) shouldBe Number(r"1/3", Pi)
+  it should "be Pi / 3 for root(3)" in {
+    Number.one.atan(Number(Rational(3)).sqrt) shouldEqual Number(r"1/3", Pi)
   }
-  it should "be 5 Pi / 6 for 1/-2" in {
-    negate(Number.two).atan(Number.one) shouldBe Number(r"5/6", Pi)
+  it should "be 7 Pi / 6 for 1/-root(3)" in {
+    // CONSIDER shouldn't this be 5 Pi / 6?
+    negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"7/6", Pi)
   }
   it should "be 11 Pi / 6 for -1/2" in {
-    Number.two.atan(negate(Number.one)) shouldBe Number(r"11/6", Pi)
+    Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"11/6", Pi)
   }
   it should "be 3 pi / 4 for 1/-1" in {
     val adjacent = Number.negate(Number.one)

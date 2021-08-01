@@ -251,8 +251,6 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
       case Rational.infinity => Success(Rational.half)
       case Rational.zero => Success(Rational.zero)
       case Rational.one => Success(Rational.one / 4)
-      case Rational.two => Success(Rational.one / 3)
-      case Rational.half => Success(Rational.one / 6)
       case _ => Failure(NumberException("atan cannot be Rational"))
     }) map {
       r => if (flip) -r else r

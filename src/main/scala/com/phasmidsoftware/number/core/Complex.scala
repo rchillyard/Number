@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Complex.{convertToCartesian, narrow}
+import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar, narrow}
 import com.phasmidsoftware.number.core.Field.recover
 
 abstract class Complex(val real: Number, val imag: Number) extends AtomicExpression with Field {
@@ -147,6 +147,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
 
 object Complex {
 
+  // TODO this is dangerous.
   def unapply(arg: Complex): Option[(Number, Number)] = Some(arg.real, arg.imag)
 
   def convertToPolar(c: ComplexCartesian): Complex = {
@@ -191,7 +192,7 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
 
   def make(a: Number, b: Number): Complex = ComplexCartesian(a, b)
 
-  def isZero: Boolean = x.isZero && y.isZero
+  def isZero: Boolean = convertToPolar(this).real.isProbablyZero(0.5)
 
   def isInfinite: Boolean = x.isInfinite || y.isInfinite
 

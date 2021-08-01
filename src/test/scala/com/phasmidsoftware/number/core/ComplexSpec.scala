@@ -3,10 +3,18 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Rational.RationalHelper
+import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 class ComplexSpec extends AnyFlatSpec with should.Matchers {
+
+  implicit object ComplexEquality extends Equality[Complex] {
+    def areEqual(a: Complex, b: Any): Boolean = b match {
+      case n: Complex => (a - n).materialize.isZero
+      case _ => false
+    }
+  }
 
   behavior of "Complex"
 
@@ -121,11 +129,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  // FIXME complex conversion issue
   it should "convertToPolar" in {
-    val expected = ComplexPolar(Number(5).sqrt, Number.pi doDivide Number(3))
+    val expected = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Pi))
     val actual = convertToPolar(c1_2)
-    actual shouldBe expected
+    actual shouldEqual expected
   }
 
   it should "check that math.atan really works" in {
@@ -135,6 +142,21 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     result shouldBe tangent +- 1E-8
     // TODO understand why the match.atan method seems to be so imprecise
     theta * 3 shouldBe math.Pi +- 2E-1
+  }
+
+  it should "check that math.atan really works for many fractions" in {
+    for (i <- 0 to 10; j <- 0 to 10)
+      if (i != 0 || j != 0) checkAtan2(i, j)
+  }
+
+  private def checkAtan2(opposite: Int, adjacent: Int): Unit = {
+    val theta = math.atan2(opposite, adjacent)
+    val thetaAsFraction = theta / math.Pi
+    println(s"atan2($opposite/$adjacent) is $thetaAsFraction")
+    val result = math.tan(theta)
+    val expected = opposite * 1.0 / adjacent
+    if (expected != Double.PositiveInfinity)
+      result shouldBe expected +- 1E-6
   }
 
   it should "unapply" in {
