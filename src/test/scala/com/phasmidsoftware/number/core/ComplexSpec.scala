@@ -122,8 +122,19 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   // FIXME complex conversion issue
-  ignore should "convertToPolar" in {
-    convertToPolar(c1_2) shouldBe ComplexPolar(Number(5).sqrt, Number.pi doDivide Number(3))
+  it should "convertToPolar" in {
+    val expected = ComplexPolar(Number(5).sqrt, Number.pi doDivide Number(3))
+    val actual = convertToPolar(c1_2)
+    actual shouldBe expected
+  }
+
+  it should "check that math.atan really works" in {
+    val tangent = 2.0
+    val theta = math.atan2(tangent, 1)
+    val result = math.tan(theta)
+    result shouldBe tangent +- 1E-8
+    // TODO understand why the match.atan method seems to be so imprecise
+    theta * 3 shouldBe math.Pi +- 2E-1
   }
 
   it should "unapply" in {

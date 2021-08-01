@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
+import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -755,14 +756,24 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number.negate(Number.one)
     target.atan(Number.zero) shouldBe Number(1, Pi)
   }
-  it should "be pi/4 for 1/-1" in {
-    val target = Number.negate(Number.one)
-    val actual = target.atan(Number.one)
+  it should "be Pi / 3 for 2/1" in {
+    Number.one.atan(Number.two) shouldBe Number(r"1/3", Pi)
+  }
+  it should "be 5 Pi / 6 for 1/-2" in {
+    negate(Number.two).atan(Number.one) shouldBe Number(r"5/6", Pi)
+  }
+  it should "be 11 Pi / 6 for -1/2" in {
+    Number.two.atan(negate(Number.one)) shouldBe Number(r"11/6", Pi)
+  }
+  it should "be 3 pi / 4 for 1/-1" in {
+    val adjacent = Number.negate(Number.one)
+    val opposite = Number.one
+    val actual: Number = adjacent.atan(opposite)
     import Expression.ExpressionOps
-    val expected: Expression = Number.pi * 7 / 4
+    val expected: Number = (Number.pi * 3 / 4).asNumber.get
     // TODO revert this so that it reads actual ... expected
     //  XXX  actual should ===(expected)
-    expected should ===(actual)
+    actual shouldBe expected
   }
   // TODO need to operate appropriately on negZero.
   it should "evaluate atan of 1 over -0" in {

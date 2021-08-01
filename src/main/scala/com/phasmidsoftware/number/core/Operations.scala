@@ -245,16 +245,26 @@ case object MonadicOperationSin extends MonadicOperation {
   */
 case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 
-  val atanRat: Rational => Try[Rational] = x =>
-    toInt(x) flatMap {
-      case -1 => Success(Rational.one * 3 / 4 + (if (sign < 0) Rational.one else Rational.zero))
-      case 0 => Success(Rational.zero + (if (sign < 0) Rational.one else Rational.zero))
-      case 1 => Success(Rational.one / 4 + (if (sign < 0) Rational.one else Rational.zero))
+  val atanRat: Rational => Try[Rational] = r => {
+    val flip = r.signum < 0
+    (r.abs match {
+      case Rational.infinity => Success(Rational.half)
+      case Rational.zero => Success(Rational.zero)
+      case Rational.one => Success(Rational.one / 4)
+      case Rational.two => Success(Rational.one / 3)
+      case Rational.half => Success(Rational.one / 6)
       case _ => Failure(NumberException("atan cannot be Rational"))
-    }
+    }) map {
+      r => if (flip) -r else r
+    } map (
+      r => if (sign < 0) Rational.one + r else r
+      )
+  }
 
   def atan(x: Double): Try[Double] =
-    Try(math.atan2(x, sign) / math.Pi) // TODO use scale // TEST me
+    Try {
+      math.atan2(x, sign) / math.Pi
+    } // TODO use scale // TEST me
 
   val functions: MonadicFunctions = (fail("atan cannot be Int"), atanRat, atan)
 

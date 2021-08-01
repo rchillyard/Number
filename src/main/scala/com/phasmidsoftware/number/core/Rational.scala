@@ -62,6 +62,8 @@ case class Rational(n: BigInt, d: BigInt) {
 
   def ^(that: Rational): Try[Rational] = power(that)
 
+  def abs: Rational = if (signum < 0) negate else this
+
   lazy val sqrt: Try[Rational] = power(Rational.half)
 
   // Other methods appropriate to Rational

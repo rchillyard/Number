@@ -150,9 +150,9 @@ object Complex {
   def unapply(arg: Complex): Option[(Number, Number)] = Some(arg.real, arg.imag)
 
   def convertToPolar(c: ComplexCartesian): Complex = {
-    val ro: Option[Field] = for (p <- (c.x multiply c.x add c.y multiply c.y).asNumber; z = p.sqrt.materialize) yield z
+    val ro: Option[Field] = for (p <- ((c.x multiply c.x) add (c.y multiply c.y)).asNumber; z = p.sqrt.materialize) yield z
     val z: Field = Field.recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
-    apply(z, c.y atan c.x, ComplexPolar.apply, ComplexException(s"logic error: convertToPolar2: $c"))
+    apply(z, c.x atan c.y, ComplexPolar.apply, ComplexException(s"logic error: convertToPolar2: $c"))
   }
 
   def convertToCartesian(c: ComplexPolar): Complex =
