@@ -157,7 +157,7 @@ object Constants {
   val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
   val sAlpha = "0.0072973525693(11)" // (dimensionless)
   val sAvagadro = "6.0221407600E23" // mole ^ -1
-  val sBoltzmann = "1.38064900E-23" // J K ^ -1
+  val sBoltzmann = "1380649.E-29" // J K ^ -1
   val sPlanck = "6.6260701500E-34" // J Hz ^ -1
   val sC = "299792458" // m sec ^ -1
   val sMu = "1836.15267343(11)" // (dimensionless)

@@ -83,6 +83,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     val z = zy.get
     z.isExact shouldBe false
+    z.fuzz.get shouldBe AbsoluteFuzz(5.0E-16, Box)
     z.toDouble.get shouldBe 1.618033988749894 +- 1E-13
   }
   it should "parse G" in {
@@ -367,5 +368,27 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val x = q.toDouble
     val z: GeneralNumber = q.make(Fuzziness.map[Double, Double, Double](1, x.get, !op.absolute, op.derivative, Some(fuzz))).asInstanceOf[GeneralNumber]
     z.fuzz.get.toString(x.get) shouldBe "2.7182818284590450[27]"
+  }
+
+  behavior of "foucault"
+  it should "calculate length of Foucault's pendulum" in {
+    // NOTE this is here to support Foucault.sc
+    val g = Number("9.81*")
+    println(g.fuzz)
+    val t = Number("16.5(2)")
+    println(t.fuzz)
+
+    val tScaled: Option[Number] = (t / Number.twoPi).asNumber
+    println(tScaled.get.fuzz)
+    val square: Option[Number] = tScaled.flatMap(x => (x ^ 2).asNumber)
+    println(square.get.fuzz)
+
+    // NOTE the following value is inconsistent with Foucault.sc
+    square.get.fuzz shouldBe Some(RelativeFuzz(0.003515344528869159, Gaussian))
+
+    val length: Option[Number] = square flatMap (x => (x * g).asNumber)
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.0036713331090357055, Gaussian))
+
+    println(length.get)
   }
 }

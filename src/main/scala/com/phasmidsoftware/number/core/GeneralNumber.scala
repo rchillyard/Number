@@ -413,7 +413,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
           // XXX x's value is invalid: swap the order so the the first element is invalid
           case Left(Left(None)) => x.alignTypes(this)
           // XXX otherwise: return this and x re-cast as a Double
-          case _ => (this, Number.prepare(x.maybeDouble.map(y => make(y, x.factor).specialize)))
+          case _ => (this, Number.prepare(x.maybeDouble.map(y => make(y, x.factor, x.fuzz).specialize)))
         }
         // XXX this value is a Rational:
         case Left(Right(_)) => x.value match {

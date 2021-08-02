@@ -6,6 +6,9 @@ import scala.util.Try
 
 /**
   * Parser for Number.
+  *
+  * TODO when we specify an exact number by following an integer by an exponent, we must precede the "E" with a decimal point.
+  * Try to eliminate that requirement.
   */
 class NumberParser extends RationalParser {
 

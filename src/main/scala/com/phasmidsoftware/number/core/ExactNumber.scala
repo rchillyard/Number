@@ -70,6 +70,24 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def make(fo: Option[Fuzziness[Double]]): Number = FuzzyNumber(value, factor, fo)
 
   /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value and factor will change.
+    * This method should be followed by a call to specialize.
+    *
+    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
+    * It may not be appropriate for all invocations.
+    *
+    * @param v  the value (a Double).
+    * @param f  Factor.
+    * @param fo optional fuzz.
+    * @return either a Number.
+    */
+  def make(v: Double, f: Factor, fo: Option[Fuzziness[Double]]): Number = fo match {
+    case None => ExactNumber(Value.fromDouble(Some(v)), f)
+    case Some(_) => FuzzyNumber(Value.fromDouble(Some(v)), f, fo)
+  }
+
+  /**
     * If the result of invoking f on this is a Double, then there will inevitably be some loss of precision.
     *
     * CONSIDER rewriting this so that we don't have to override the method. But be careful!

@@ -260,13 +260,14 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "parse boltzmann" in {
-    val z = Number.parse(sBoltzmann)
-    z should matchPattern { case Success(_) => }
-    z.get.isExact shouldBe true
+    val zy = Number.parse(sBoltzmann)
+    zy should matchPattern { case Success(_) => }
+    zy.get.isExact shouldBe true
+    zy.get.toDouble shouldBe Some(1.380649E-23)
   }
   it should "fail to parse boltzmann with alternative minus" in {
-    val z = Number.parse("1.380649E−23")
-    z should matchPattern { case Failure(_) => }
+    val zy = Number.parse("1.380649E−23")
+    zy should matchPattern { case Failure(_) => }
   }
   it should "parse planck" in {
     val z = Number.parse(sPlanck)

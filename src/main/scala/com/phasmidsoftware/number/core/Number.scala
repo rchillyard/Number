@@ -425,6 +425,21 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def make(v: Double, f: Factor): Number
 
   /**
+    * Make a copy of this Number, given the same degree of fuzziness as the original.
+    * Only the value and factor will change.
+    * This method should be followed by a call to specialize.
+    *
+    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
+    * It may not be appropriate for all invocations.
+    *
+    * @param v  the value (a Double).
+    * @param f  Factor.
+    * @param fo optional fuzz.
+    * @return either a Number.
+    */
+  def make(v: Double, f: Factor, fo: Option[Fuzziness[Double]]): Number
+
+  /**
     * Make a copy of this Number, with the same value and factor but with a different value of fuzziness.
     *
     * TEST me
@@ -493,6 +508,16 @@ object Number {
     * Exact value of pi
     */
   val pi: Number = ExactNumber(Right(1), Pi)
+
+  /**
+    * Exact value of 2 pi
+    */
+  val twoPi: Number = ExactNumber(Right(2), Pi)
+
+  /**
+    * Exact value of pi/2
+    */
+  val piBy2: Number = ExactNumber(Left(Right(Rational.half)), Pi)
 
   /**
     * Exact value of e

@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.parse
 
+import com.phasmidsoftware.number.core.Number
 import com.phasmidsoftware.number.misc.{Exact, FuzzyParser, Gaussian}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
@@ -149,5 +150,9 @@ class FuzzyParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
       case Exact(x) => assert(math.abs(x - 3.1415927) < 1E-5)
       case f@_ => fail(s"should be Exact but is $f")
     }
+  }
+  // FIXME parsing error
+  ignore should "parse " in {
+    Number("16.5[2]").isExact shouldBe false
   }
 }
