@@ -1,5 +1,5 @@
 package com.phasmidsoftware.number.core
-
+import com.phasmidsoftware.number.core.Constants.{sAlpha, sG}
 import com.phasmidsoftware.number.core.Fuzziness.createFuzz
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,6 +10,7 @@ import scala.util.{Left, Try}
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   private val p = new NumberParser
+
 
   behavior of "generalNumber"
   it should "parse 1." in {
@@ -27,6 +28,30 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "parse 1.000 as fuzzy" in {
     val z = p.parseAll(p.generalNumber, "1.000")
     z should matchPattern { case p.Success(p.RealNumber(false, "1", Some("000"), None), _) => }
+  }
+  it should "parse G as fuzzy" in {
+    val z = p.parseAll(p.generalNumber, sG)
+    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "6", Some("67430"), None), Some("15"), Some("-11"))
+  }
+
+  behavior of "maybeNumber"
+  it should "" in {
+    val z = p.parseAll(p.maybeNumber, sG)
+    z.get.get.isExact shouldBe false
+    z.get.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
+  }
+  behavior of "number"
+  it should "" in {
+    val z: p.ParseResult[Number] = p.parseAll(p.number, sG)
+    z.get.isExact shouldBe false
+    z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
+  }
+  behavior of "StringParser"
+  it should "" in {
+    val x =    new NumberParser
+    val q: Try[Number] = x.parseNumber(sG)
+    q.get.isExact shouldBe false
+    q.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
 
   behavior of "fuzz"
@@ -74,14 +99,12 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "1", Some("0"), None), None, None)
   }
   it should "parse G" in {
-    val G = "6.67430(15)E-11"
-    val z: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, G)
+    val z: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, sG)
     z should matchPattern { case p.Success(_, _) => }
     z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "6", Some("67430"), None), Some("15"), Some("-11"))
   }
   it should "parse alpha" in {
-    val alpha = "0.0072973525693(11)"
-    val z: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, alpha)
+    val z: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, sAlpha)
     z should matchPattern { case p.Success(_, _) => }
     z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "0", Some("0072973525693"), None), Some("11"), None)
   }

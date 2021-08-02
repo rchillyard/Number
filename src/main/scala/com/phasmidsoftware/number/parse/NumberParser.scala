@@ -67,11 +67,13 @@ class NumberParser extends RationalParser {
 
   def generalNumber: Parser[ValuableNumber] = (numberWithFuzziness | rationalNumber) :| "generalNumber"
 
-  def numberWithFuzziness: Parser[NumberWithFuzziness] = (realNumber ~ fuzz ~ opt(rE ~> wholeNumber)) :| "numberWithFuzziness" ^^ {
+  def numberWithFuzziness: Parser[NumberWithFuzziness] = (realNumber ~ fuzz ~ opt(exponent)) :| "numberWithFuzziness" ^^ {
     case rn ~ f ~ expo => NumberWithFuzziness(rn, f, expo)
   }
 
-  def exponent: Parser[String] = ("[eE]".r ~> wholeNumber) :| "exponent"
+  // NOTE: if you copy numbers from HTML, you may end up with an illegal "-" character.
+  // Error message will be something like: string matching regex '-?\d+' expected but '−' found
+  def exponent: Parser[String] = (rE ~> wholeNumber) :| "exponent"
 
   private val rE = "[eE]".r
 

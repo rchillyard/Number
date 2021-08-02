@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Constants.{sAlpha, sAvagadro, sG, sMu}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import org.scalactic.Equality
@@ -66,6 +67,25 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val xy: Try[Number] = Number.parse("1.00(05)")
     xy.get shouldBe Number.create(Right(1), AbsoluteFuzz(0.05, Gaussian))
   }
+  it should "parse G" in {
+    val z = Number.parse("6.67430(15)E-11")
+    z should matchPattern { case Success(_) => }
+    z.get.isExact shouldBe false
+    z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
+  }
+  it should "parse alpha" in {
+    val z = Number.parse(sAlpha)
+    z should matchPattern { case Success(_) => }
+    z.get.isExact shouldBe false
+    z.get.fuzz.get shouldBe AbsoluteFuzz(1.1E-12, Gaussian)
+  }
+  it should "parse mu" in {
+    val z = Number.parse(sMu)
+    z should matchPattern { case Success(_) => }
+    z.get.isExact shouldBe false
+    z.get.fuzz.get shouldBe AbsoluteFuzz(1.1E-7, Gaussian)
+  }
+
 
   behavior of "plus"
 

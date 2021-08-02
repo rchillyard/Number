@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Constants.{sAvagadro, sBoltzmann, sC, sPlanck}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
@@ -8,7 +9,7 @@ import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-import scala.util.{Failure, Left, Try}
+import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
 
@@ -257,6 +258,30 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number("3.141592700")
     target should matchPattern { case ExactNumber(_, _) => }
     target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+  }
+  it should "parse boltzmann" in {
+    val z = Number.parse(sBoltzmann)
+    z should matchPattern { case Success(_) => }
+    z.get.isExact shouldBe true
+  }
+  it should "fail to parse boltzmann with alternative minus" in {
+    val z = Number.parse("1.380649E−23")
+    z should matchPattern { case Failure(_) => }
+  }
+  it should "parse planck" in {
+    val z = Number.parse(sPlanck)
+    z should matchPattern { case Success(_) => }
+    z.get.isExact shouldBe true
+  }
+  it should "parse c" in {
+    val z = Number.parse(sC)
+    z should matchPattern { case Success(_) => }
+    z.get.isExact shouldBe true
+  }
+  it should "parse avagadro" in {
+    val z = Number.parse(sAvagadro)
+    z should matchPattern { case Success(_) => }
+    z.get.isExact shouldBe true
   }
 
   behavior of "normalize"

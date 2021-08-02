@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.Valuable.ValuableDouble
 import org.apache.commons.math3.special.Erf.erfInv
+
 import scala.math.Numeric.DoubleIsFractional
 import scala.math.Ordering
 import scala.util.Try
@@ -87,6 +88,9 @@ trait Fuzziness[T] {
     * Determine the range +- t within which a deviation is considered within tolerance and where
     * l signifies the extent of the PDF.
     * In other words get the wiggle room.
+    *
+    * NOTE effectively, this method converts a Gaussian distribution into a Box distribution.
+    * CONSIDER refactoring to take advantage of that equivalence.
     *
     * @param p the confidence we wish to have in the result: typical value: 0.5
     * @return the value of t at which the probability density is exactly transitions from likely to not likely.
@@ -175,6 +179,8 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
 
   /**
     * Yields the actual probability density for the value t.
+    *
+    * TEST me (not used)
     *
     * @param t a particular T value, for which we want the probability density.
     * @return the probability density.
@@ -529,6 +535,7 @@ case object Box extends Shape {
     *
     * @param x the x value (ignored)
     * @param l the half-width of a Box.
+    * @return the value of the probability density at x.
     */
   def probabilityDensity(x: Double, l: Double): Double = 0.5 / l
 
@@ -585,8 +592,11 @@ case object Gaussian extends Shape {
     * Determine the APPROXIMATE probability density for this shape at the point x where l signifies the extent of the PDF.
     * This is not intended for precision.
     *
+    * TODO use erf instead.
+    *
     * @param x     the x value.
     * @param sigma the standard deviation of a Box.
+    * @return the value of the probability density at x.
     */
   def probabilityDensity(x: Double, sigma: Double): Double = {
     val y = math.abs(x)
