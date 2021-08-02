@@ -150,3 +150,66 @@ object Field {
     case None => throw x
   }
 }
+
+object Constants {
+  val sPhi = "1.618033988749894"
+  val sGamma = "0.57721566490153286060651209008240243104215933593992"
+  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
+  val sAlpha = "0.0072973525693(11)" // (dimensionless)
+  val sAvagadro = "6.0221407600E23" // mole ^ -1
+  val sBoltzmann = "1.38064900E-23" // J K ^ -1
+  val sPlanck = "6.6260701500E-34" // J Hz ^ -1
+  val sC = "299792458" // m sec ^ -1
+  val sMu = "1836.15267343(11)" // (dimensionless)
+
+  val one: Number = Number.one
+  val zero: Number = Number.zero
+  val pi: Number = Number.pi
+  val e: Number = Number.e
+  val i: Complex = Complex.i
+
+  /**
+    * https://en.wikipedia.org/wiki/Golden_ratio
+    */
+  lazy val phi: Number = Number(sPhi)
+
+  /**
+    * https://en.wikipedia.org/wiki/Euler–Mascheroni_constant
+    */
+  lazy val gamma: Number = Number(sGamma)
+
+  /**
+    * https://en.wikipedia.org/wiki/Gravitational_constant
+    */
+  lazy val G: Number = Number(sG)
+
+  /**
+    * https://en.wikipedia.org/wiki/Fine-structure_constant
+    */
+  lazy val alpha: Number = Number(sAlpha)
+
+  /**
+    * https://en.wikipedia.org/wiki/Avogadro_constant
+    */
+  lazy val avagadro: Number = Number(sAvagadro)
+
+  /**
+    * https://en.wikipedia.org/wiki/Boltzmann_constant
+    */
+  lazy val boltzmann: Number = Number(sBoltzmann)
+
+  /**
+    * https://en.wikipedia.org/wiki/Planck_constant
+    */
+  lazy val planck: Number = Number(sPlanck)
+
+  /**
+    * https://en.wikipedia.org/wiki/Speed_of_light
+    */
+  lazy val c: Number = Number(sC)
+
+  /**
+    * https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio
+    */
+  lazy val mu: Number = Number(sMu)
+}

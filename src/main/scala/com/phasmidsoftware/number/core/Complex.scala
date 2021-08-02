@@ -146,6 +146,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
 }
 
 object Complex {
+  val i: ComplexCartesian = ComplexCartesian(0, 1)
 
   // TODO this is dangerous.
   def unapply(arg: Complex): Option[(Number, Number)] = Some(arg.real, arg.imag)

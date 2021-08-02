@@ -7,46 +7,6 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Field"
 
-  it should "unary_$minus" in {
-
-  }
-
-  it should "add" in {
-
-  }
-
-  it should "divide" in {
-
-  }
-
-  it should "isZero" in {
-
-  }
-
-  it should "magnitudeSquared" in {
-
-  }
-
-  it should "power1" in {
-
-  }
-
-  it should "power2" in {
-
-  }
-
-  it should "invert" in {
-
-  }
-
-  it should "asNumber" in {
-
-  }
-
-  it should "isInfinite" in {
-
-  }
-
   it should "isExact" in {
     //    Number(4).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe true
     //    Number(2).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe false
@@ -54,16 +14,9 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
     x.isExact shouldBe true
   }
 
-  it should "multiply" in {
-
-  }
-
-  it should "recover" in {
-
-  }
-
-  it should "convertToNumber" in {
-
+  it should "multiply i by itself correctly" in {
+    val z = Constants.i * Constants.i
+    z.materialize.asComplex shouldBe ComplexCartesian(-1, 0)
   }
 
 }
