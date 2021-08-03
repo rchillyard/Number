@@ -204,9 +204,27 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     q.wiggle(0.9) shouldBe 0.00025
   }
 
-  behavior of "Gaussian.wiggle"
+  behavior of "Box.wiggle"
   it should "be likely for 5.0040" in {
     val xy: Option[Number] = for (a <- Number.parse("1.251").toOption; b <- Number.parse("4.00*").toOption; x <- (a * b).asNumber) yield x
+    xy.isDefined shouldBe true
+    val x: Number = xy.get
+    val z: Option[Fuzziness[Double]] = x.fuzz
+    z.isDefined shouldBe true
+    val q: Fuzziness[Double] = z.get
+    q should matchPattern { case RelativeFuzz(_, _) => }
+    q.shape should matchPattern { case Box => }
+    q.style shouldBe true
+    val r = q.asInstanceOf[RelativeFuzz[Double]].tolerance
+    r shouldBe 0.0016496802557953638 +- 0.0000000001
+    q.shape.wiggle(r, 0.0) shouldBe Double.PositiveInfinity
+    q.shape.wiggle(r, 0.9) shouldBe 8.248401278976819E-4 +- 0.00001
+    q.shape.wiggle(r, 1) shouldBe 0
+  }
+
+  behavior of "Gaussian.wiggle"
+  it should "be likely for 5.0040" in {
+    val xy: Option[Number] = for (a <- Number.parse("1.250(2)").toOption; b <- Number.parse("4.00*").toOption; x <- (a * b).asNumber) yield x
     xy.isDefined shouldBe true
     val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz
@@ -216,14 +234,14 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     q.shape should matchPattern { case Gaussian => }
     q.style shouldBe true
     val r = q.asInstanceOf[RelativeFuzz[Double]].tolerance
-    r shouldBe 8.605898416428996E-4 +- 0.0000000001
+    r shouldBe 0.0020580412706533817 +- 0.0000000001
     q.shape.wiggle(r, 0.0) shouldBe Double.PositiveInfinity
     q.shape.wiggle(r, 0.1) shouldBe (r * 1.1630871536766743 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 0.2) shouldBe (r * 0.9061938024368233 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 0.3) shouldBe (r * 0.7328690779592166 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 0.4) shouldBe (r * 0.5951160814499948 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 0.5) shouldBe (r * 0.47693627620446977 / Gaussian.sigma) +- 0.00001
-    q.shape.wiggle(r, 0.5) shouldBe 0.000580459 +- 0.000001
+    q.shape.wiggle(r, 0.5) shouldBe 0.0013881277425362257 +- 0.000001
     q.shape.wiggle(r, 0.6) shouldBe (r * 0.37080715859355795 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 0.7) shouldBe (r * 0.27246271472675443 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 0.8) shouldBe (r * 0.1791434546212916 / Gaussian.sigma) +- 0.00001

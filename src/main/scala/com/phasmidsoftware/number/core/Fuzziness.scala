@@ -154,8 +154,8 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     */
   def *(convolute: Fuzziness[T], independent: Boolean): Fuzziness[T] = if (this.shape == convolute.shape)
     convolute match {
-      case RelativeFuzz(t, Gaussian) => RelativeFuzz(Gaussian.convolutionProduct(tolerance, t, independent), shape)
-      case RelativeFuzz(t, _) => RelativeFuzz(tolerance + t, shape) // NOTE: we should not need this one
+      case RelativeFuzz(t, Box) => RelativeFuzz(tolerance + t, shape)
+      case RelativeFuzz(t, _) => RelativeFuzz(Gaussian.convolutionProduct(tolerance, t, independent), shape)
       case _ => throw FuzzyNumberException("* operation on different styles")
     }
   else
@@ -401,6 +401,7 @@ object Fuzziness {
     val f1o = doNormalize(fuzz._1, t1, relative)
     val f2o = doNormalize(fuzz._2, t2, relative)
     (f1o, f2o) match {
+      case (Some(f1), Some(f2)) if relative && f1.shape == Box && f2.shape == Box => Some(f1.*(f2, independent))
       case (Some(f1), Some(f2)) => Some(f1.normalizeShape.*(f2.normalizeShape, independent))
       case (Some(f1), None) => Some(f1)
       case (None, Some(f2)) => Some(f2)
@@ -544,10 +545,16 @@ case object Box extends Shape {
     * l signifies the extent of the PDF.
     *
     * @param l the half-width of a Box.
-    * @param p ignored
+    * @param p the confidence that we wish to place on the likelihood: typical value is 0.5.
+    *          Unless is is either 0 or 1, the actual p value is ignored.
     * @return the value of x at which the probability density transitions from possible to impossible.
     */
-  def wiggle(l: Double, p: Double): Double = l / 2
+  def wiggle(l: Double, p: Double): Double = p match {
+    case 0.0 => Double.PositiveInfinity
+    case 1.0 => 0
+    case _ => l / 2
+  }
+
 }
 
 /**
