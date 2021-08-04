@@ -281,9 +281,15 @@ object Rational {
 
   val bigZero: BigInt = BigInt(0)
   val bigOne: BigInt = BigInt(1)
+  val bigTwo: BigInt = BigInt(2)
+  val bigThree: BigInt = BigInt(3)
+  val bigFour: BigInt = BigInt(4)
+  val bigFive: BigInt = BigInt(5)
+  val bigSeven: BigInt = BigInt(7)
   val bigNegOne: BigInt = BigInt(-1)
   val zero: Rational = Rational(0)
   lazy val infinity: Rational = zero.invert
+  lazy val negInfinity: Rational = negZero.invert
   val one: Rational = Rational(1)
   val ten: Rational = Rational(10)
   val two: Rational = Rational(2)

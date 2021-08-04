@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Field.recover
-import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
 
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
@@ -109,7 +109,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return the cosine.
     */
-  def cos: Number = Number.negate(scale(Pi) doAdd Number(Rational.half, Pi).makeNegative).sin
+  def cos: Number = Number.negate(negate(scale(Pi)) doAdd Number(Rational.half, Pi).makeNegative).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.

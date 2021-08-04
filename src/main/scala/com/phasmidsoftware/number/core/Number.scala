@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
+import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
@@ -223,6 +224,21 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def cos: Number
 
   /**
+    * Method to determine the tangent of this Number.
+    * The result will be a Number with Scalar factor.
+    *
+    * @return the tangent
+    */
+  def tan: Number = (value, factor) match {
+    case (Left(Right(r)), Pi) => r match {
+      case Rational(Rational.bigOne, Rational.bigFour) | Rational(Rational.bigFive, Rational.bigFour) => Number.one
+      case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) => negate(Number.one)
+      case _ => (sin / cos).asNumber.getOrElse(Number.NaN)
+    }
+    case _ => (sin / cos).asNumber.getOrElse(Number.NaN)
+  }
+
+  /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
     *
     * @param y the opposite length
@@ -288,14 +304,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return -1, 0, 1 as usual.
     */
   def fuzzyCompare(other: Number, p: Double): Int
-  //
-  //  /**
-  //    * Be careful when implementing this method that you do not invoke a method recursively.
-  //    *
-  //    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
-  //    * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
-  //    */
-  //  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.

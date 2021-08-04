@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.{sAlpha, sGamma, sMu, sPhi}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
+import com.phasmidsoftware.number.core.Number.negate
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -235,7 +236,6 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Box))" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), Scalar, Some(RelativeFuzz(0.1, Box)))
     val z: Number = convertToNumber((x ^ 2).materialize)
-    val q: Number = x.doMultiply(x)
     z.value shouldBe Right(9)
     z.factor shouldBe Scalar
     // TODO check this one: shape should be Gaussian. And is the value correct?
@@ -302,6 +302,22 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(0, Pi)
     target.sin shouldBe Number(0, Scalar)
   }
+  it should "work for pi" in {
+    val target = Number.pi
+    target.sin shouldBe Number(0, Scalar)
+  }
+  it should "work for 2pi" in {
+    val target = Number.twoPi
+    target.sin shouldBe Number(0, Scalar)
+  }
+  it should "work for pi/2" in {
+    val target = Number.piBy2
+    target.sin shouldBe Number(1, Scalar)
+  }
+  it should "work for 3pi/2" in {
+    val target = (Number.piBy2 * 3).asNumber
+    target.map(_.sin) shouldBe Some(Number(-1, Scalar))
+  }
   it should "work for 3.141592653589793" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
@@ -311,6 +327,74 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 3.141592653589793 backwards" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
+    // NOTE: this is rather a low probability value (normally, we use 0.5)
+    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.1) shouldBe 0
+  }
+
+  behavior of "cos"
+  it should "work for 0" in {
+    val target = Number(0, Pi)
+    target.cos shouldBe Number(1, Scalar)
+  }
+  it should "work for pi" in {
+    val target = Number.pi
+    target.cos shouldBe Number(-1, Scalar)
+  }
+  it should "work for 2pi" in {
+    val target = Number.twoPi
+    target.cos shouldBe Number(1, Scalar)
+  }
+  it should "work for pi/2" in {
+    val target = Number.piBy2
+    target.cos shouldBe Number(0, Scalar)
+  }
+  it should "work for 3pi/2" in {
+    val target = (Number.piBy2 * 3).asNumber
+    target.map(_.cos) shouldBe Some(Number(0, Scalar))
+  }
+  it should "work for 3.141592653589793" in {
+    val target = Number("3.1415926535897932384626433")
+    val result = target.cos
+    // NOTE: this is rather a low probability value (normally, we use 0.5)
+    result.asInstanceOf[GeneralNumber].fuzzyCompare(negate(Number.one), 0.1) shouldBe 0
+  }
+  it should "work for 3.141592653589793 backwards" in {
+    val target = Number("3.1415926535897932384626433")
+    val result = target.cos
+    // NOTE: this is rather a low probability value (normally, we use 0.5)
+    negate(Number.one).asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.1) shouldBe 0
+  }
+
+  behavior of "tan"
+  it should "work for 0" in {
+    val target = Number(0, Pi)
+    target.tan shouldBe Number(0, Scalar)
+  }
+  it should "work for pi" in {
+    val target = Number.pi
+    target.tan shouldBe Number(0, Scalar)
+  }
+  it should "work for 2pi" in {
+    val target = Number.twoPi
+    target.tan shouldBe Number(0, Scalar)
+  }
+  it should "work for pi/2" in {
+    val target = Number.piBy2
+    target.tan shouldBe Number(Rational.infinity, Scalar)
+  }
+  it should "work for 3pi/2" in {
+    val target = (Number.piBy2 * 3).asNumber
+    target.map(_.tan) shouldBe Some(Number(Rational.negInfinity, Scalar))
+  }
+  it should "work for 3.141592653589793" in {
+    val target = Number("3.1415926535897932384626433")
+    val result = target.tan
+    // NOTE: this is rather a low probability value (normally, we use 0.5)
+    result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
+  }
+  it should "work for 3.141592653589793 backwards" in {
+    val target = Number("3.1415926535897932384626433")
+    val result = target.tan
     // NOTE: this is rather a low probability value (normally, we use 0.5)
     Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.1) shouldBe 0
   }
