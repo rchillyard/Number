@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.{sAlpha, sGamma, sMu, sPhi}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.negate
+import com.phasmidsoftware.number.core.Number.{negate, twoPi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -473,22 +473,21 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "calculate length of Foucault's pendulum but with relative box fuzziness" in {
     // NOTE this is here to support Foucault.sc
     val g = Number("9.81*")
-    println(g.fuzz)
-    val t = Number("16.5[2]")
-    println(t.fuzz)
-    val oneOver2pi = Number(0.159154943091895)
-    println(oneOver2pi.fuzz)
+    println(s"g fuzz: ${g.fuzz.map(_.normalize(9.81, relative = true))}")
+    val t = Number("16.5*")
+    println(s"t fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
 
-    val tScaled: Option[Number] = (t * oneOver2pi).asNumber
-    println(tScaled.get.fuzz)
+    val tScaled: Option[Number] = (t / twoPi).asNumber
+    println(s"tScaled fuzz: ${tScaled.get.fuzz}")
     val square: Option[Number] = tScaled.flatMap(x => (x ^ 2).asNumber)
-    println(square.get.fuzz)
+    println(s"square fuzz: ${square.get.fuzz}")
 
-    // NOTE the following value is inconsistent with Foucault.sc
-    square.get.fuzz shouldBe Some(RelativeFuzz(0.0035153445288781528, Box))
+    // FIXME Issue #52 the following number is not correct: it should be approximately 0.006 (twice the value shown above for t)
+    square.get.fuzz shouldBe Some(RelativeFuzz(8.788361322184242E-4, Box))
 
     val length: Option[Number] = square flatMap (x => (x * g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.004025028524801419, Box))
+    // NOTE the following number is not correct: it should be approximately 0.0065
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.0013885201281416911, Box))
 
     println(length.get)
   }

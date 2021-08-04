@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Rational.toInts
@@ -9,6 +8,7 @@ import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
 
 import scala.annotation.tailrec
+import scala.language.implicitConversions
 import scala.math.BigInt
 import scala.util._
 
@@ -515,6 +515,18 @@ object Number {
     */
   val e: Number = ExactNumber(Right(1), E)
 
+  implicit def convertToNumber(x: Expression): Number = x.asNumber match {
+    case Some(n) => n
+    case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
+  }
+
+  /**
+    * Implicit class to operate on Numbers introduced as integers.
+    *
+    * CONSIDER generalizing this to inputs of Values (or Rationals, Doubles).
+    *
+    * @param x an Int to be treated as a Number.
+    */
   implicit class NumberOps(x: Int) {
 
     /**
@@ -523,7 +535,7 @@ object Number {
       * @param y the addend, a Number.
       * @return a Number whose value is x + y.
       */
-    def +(y: Number): Number = Number(x) doAdd y //.materialize
+    def +(y: Number): Number = Number(x) doAdd y
 
     /**
       * Multiply x by y (a Number) and yield a Number.
@@ -531,7 +543,7 @@ object Number {
       * @param y the multiplicand, a Number.
       * @return a Number whose value is x * y.
       */
-    def *(y: Number): Number = Number(x) doMultiply y //.materialize
+    def *(y: Number): Number = Number(x) doMultiply y
 
     /**
       * Divide x by y (a Number) and yield a Number.

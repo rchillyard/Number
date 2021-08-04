@@ -1,10 +1,7 @@
-import com.phasmidsoftware.number.core.{Expression, Number}
+import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.Number._
 
 val g = Number("9.81*")
-val t = Number("16.5(3)")
-val oneOver2pi = Number(0.159154943091895)
-val tScaled: Expression = t * oneOver2pi
-val square: Expression = tScaled ^ 2
-val length = g * square
-val xLength = length.asNumber
-
+val t = Number("16.5*")
+val expression = g * ((t / twoPi) ^ 2)
+val length: Number = expression
