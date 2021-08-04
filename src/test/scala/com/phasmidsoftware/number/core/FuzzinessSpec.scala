@@ -31,7 +31,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "parse G as fuzzy" in {
     val z = p.parseAll(p.generalNumber, sG)
-    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "6", Some("67430"), None), Some("15"), Some("-11"))
+    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "6", Some("67430"), None), Some("(15)"), Some("-11"))
   }
 
   behavior of "maybeNumber"
@@ -65,15 +65,15 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "parse (5)" in {
     val z = p.parseAll(p.fuzz, "(5)")
-    z should matchPattern { case p.Success(Some("5"), _) => }
+    z should matchPattern { case p.Success(Some("(5)"), _) => }
   }
   it should "parse (15)" in {
     val z = p.parseAll(p.fuzz, "(15)")
-    z should matchPattern { case p.Success(Some("15"), _) => }
+    z should matchPattern { case p.Success(Some("(15)"), _) => }
   }
   it should "parse (315)" in {
     val z = p.parseAll(p.fuzz, "(315)")
-    z should matchPattern { case p.Success(Some("315"), _) => }
+    z should matchPattern { case p.Success(Some("(315)"), _) => }
   }
   it should "fail to parse .." in {
     val z = p.parseAll(p.fuzz, "..")
@@ -101,12 +101,12 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "parse G" in {
     val z: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, sG)
     z should matchPattern { case p.Success(_, _) => }
-    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "6", Some("67430"), None), Some("15"), Some("-11"))
+    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "6", Some("67430"), None), Some("(15)"), Some("-11"))
   }
   it should "parse alpha" in {
     val z: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, sAlpha)
     z should matchPattern { case p.Success(_, _) => }
-    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "0", Some("0072973525693"), None), Some("11"), None)
+    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "0", Some("0072973525693"), None), Some("(11)"), None)
   }
 
   behavior of "Fuzz.toString"
@@ -259,7 +259,6 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val q = n.make(r.get, Scalar)
     val x = q.toDouble
     val v = x.get
-    println(v)
     val z: Option[Fuzziness[Double]] = Fuzziness.map[Double, Double, Double](1, v, !op.absolute, op.derivative, Some(fuzz))
     z.toString shouldBe "Some(RelativeFuzz(1.0E-15,Box))"
   }

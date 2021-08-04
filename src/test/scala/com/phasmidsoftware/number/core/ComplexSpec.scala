@@ -152,7 +152,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   private def checkAtan2(opposite: Int, adjacent: Int): Unit = {
     val theta = math.atan2(opposite, adjacent)
     val thetaAsFraction = theta / math.Pi
-    println(s"atan2($opposite/$adjacent) is $thetaAsFraction")
+//    println(s"atan2($opposite/$adjacent) is $thetaAsFraction")
     val result = math.tan(theta)
     val expected = opposite * 1.0 / adjacent
     if (expected != Double.PositiveInfinity)

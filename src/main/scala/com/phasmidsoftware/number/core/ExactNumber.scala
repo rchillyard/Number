@@ -1,7 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import scala.util._
-
 /**
   * This class is designed to model an exact Numeral.
   * See GeneralNumber for more details on the actual representation.
@@ -74,9 +72,6 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
-    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
-    * It may not be appropriate for all invocations.
-    *
     * @param v  the value (a Double).
     * @param f  Factor.
     * @param fo optional fuzz.
@@ -85,22 +80,6 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def make(v: Double, f: Factor, fo: Option[Fuzziness[Double]]): Number = fo match {
     case None => ExactNumber(Value.fromDouble(Some(v)), f)
     case Some(_) => FuzzyNumber(Value.fromDouble(Some(v)), f, fo)
-  }
-
-  /**
-    * If the result of invoking f on this is a Double, then there will inevitably be some loss of precision.
-    *
-    * CONSIDER rewriting this so that we don't have to override the method. But be careful!
-    *
-    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
-    * @return a Number which is the square toot of this, possibly fuzzy, Number.
-    */
-  override protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = {
-    val z = f(this)
-    z.value match {
-      case v@Left(Left(Some(_))) => FuzzyNumber(v, z.factor, Some(Fuzziness.createFuzz(relativePrecision)))
-      case v => z.make(v) // NOTE: do not attempt to convert this to a FuzzyNumber because it will cause a stack overflow
-    }
   }
 
   /**

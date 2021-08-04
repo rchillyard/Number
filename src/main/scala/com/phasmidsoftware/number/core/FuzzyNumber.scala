@@ -154,9 +154,6 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
-    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
-    * It may not be appropriate for all invocations.
-    *
     * @param v  the value (a Double).
     * @param f  Factor.
     * @param fo optional fuzz.

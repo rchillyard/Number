@@ -41,14 +41,21 @@ class NumberParser extends RationalParser {
     def fuzz: Option[Fuzziness[Double]] = fuzziness match {
       // XXX: first we deal with the "None" case
       case None => calculateFuzz(getExponent, realNumber.fractionalPart.length)
-      case Some(w) =>
+      case Some(z) =>
+        val gaussian = """\((\d*)\)""".r
+        val box = """\[(\d*)]""".r
+        val (shape, w) = z match {
+          case gaussian(f) => (Gaussian, f)
+          case box(f) => (Box, f)
+          case _ => throw SignificantSpaceParserException(s"fuzziness does not match either (xx) or [xx]: $z")
+        }
         val zo: Option[Int] = w match {
           case s if s.length >= 2 => s.substring(0, 2).toIntOption
           case s => s.toIntOption
         }
         zo map (x => {
           val i = getExponent - realNumber.fractionalPart.length
-          AbsoluteFuzz[Double](Rational(x).applyExponent(i).toDouble, Gaussian)
+          AbsoluteFuzz[Double](Rational(x).applyExponent(i).toDouble, shape)
         })
     }
 
@@ -62,7 +69,7 @@ class NumberParser extends RationalParser {
     case no ~ fo => optionalNumber(no, fo)
   }
 
-  def fuzz: Parser[Option[String]] = ("""\*""".r | """\.\.\.""".r | "(" ~> """\d+""".r <~ ")") :| "fuzz" ^^ {
+  def fuzz: Parser[Option[String]] = ("""\*""".r | """\.\.\.""".r | """[\(\[]\d+[\)\]]""".r) :| "fuzz" ^^ {
     case "*" => None
     case "..." => None
     case w => Some(w)

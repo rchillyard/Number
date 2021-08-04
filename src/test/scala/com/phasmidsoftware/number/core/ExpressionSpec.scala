@@ -69,7 +69,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(x1, x2, Sum)
-    e.render shouldBe "4.1415926535897930(29)"
+    e.render shouldBe "4.141592653589793[5]"
   }
 
   behavior of "ExpressionOps"
@@ -130,7 +130,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (Number.e * 2).materialize.toString shouldBe "5.436563656918090[51]"
+    (Number.e * 2).materialize.toString shouldBe "5.436563656918090[57]"
   }
 
   behavior of "isExact"

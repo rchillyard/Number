@@ -99,11 +99,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * Method to determine the sine of this Number.
     * The result will be a Number with Scalar factor.
     *
-    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
-    *
     * @return the sine of this.
     */
-  def sin: Number = makeFuzzyIfAppropriate(Number.sin, 3)
+  def sin: Number = Number.sin(this)
 
   /**
     * Method to determine the cosine of this Number.
@@ -116,32 +114,26 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
     *
-    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
-    *
     * @param y the opposite length
     * @return the angle defined by x = this, y = y
     */
-  def atan(y: Number): Number = makeFuzzyIfAppropriate(x => Number.atan(x, y), 3)
+  def atan(y: Number): Number = Number.atan(this, y)
 
   /**
     * Method to determine the natural log of this Number.
     * The result will be a Number with Scalar factor.
     *
-    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
-    *
     * @return the natural log of this.
     */
-  def log: Number = makeFuzzyIfAppropriate(Number.log, 3)
+  def log: Number = Number.log(this)
 
   /**
     * Method to raise E to the power of this number.
     * The result will be a Number with E factor.
     *
-    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
-    *
     * @return the e to the power of this.
     */
-  def exp: Number = makeFuzzyIfAppropriate(Number.exp, 3)
+  def exp: Number = Number.exp(this)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
@@ -166,7 +158,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param f the new factor for the result.
     * @return a Number based on this and factor.
     */
-  def scale(f: Factor): Number = makeFuzzyIfAppropriate(x => Number.scale(x, f), 0)
+  def scale(f: Factor): Number = Number.scale(this, f)
 
   /**
     * Action to render this GeneralNumber as a String.
@@ -191,18 +183,18 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return this but with fuzziness which is the convolution of fuzz and f.
     */
   def addFuzz(f: Fuzziness[Double]): Number = FuzzyNumber.addFuzz(this, f)
-
-  /**
-    * Be careful when implementing this method that you do not invoke a method recursively.
-    *
-    * CONSIDER is there really any need for this to be different from ExactNumber?
-    *
-    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
-    * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
-    */
-  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = f(this) match {
-    case x: GeneralNumber => x.addFuzz(Fuzziness.createFuzz(relativePrecision))
-  }
+  //
+  //  /**
+  //    * Be careful when implementing this method that you do not invoke a method recursively.
+  //    *
+  //    * CONSIDER is there really any need for this to be different from ExactNumber?
+  //    *
+  //    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
+  //    * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
+  //    */
+  //  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = f(this) match {
+  //    case x: GeneralNumber => x.addFuzz(Fuzziness.createFuzz(relativePrecision))
+  //  }
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -227,12 +219,20 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] =
     Operations.doTransformValueMonadic(value)(op.functions) flatMap {
-      case v@Right(x) if op.isExact(Rational(x)) => Some(make(v, f))
-      case v@Left(Right(x)) if op.isExact(x) => Some(make(v, f))
-      case v => make(v, f) match {
-        case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz))
-      }
+      case v@Right(x)
+        if op.isExact(Rational(x)) => Some(make(v, f))
+      case v@Left(Right(x))
+        if op.isExact(x) => Some(make(v, f))
+      case v =>
+        make(v, f) match {
+          case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(monadicFuzziness(op, t, x))
+        }
     }
+
+  private def monadicFuzziness(op: MonadicOperation, t: Double, x: Double): Option[Fuzziness[Double]] = {
+    val functionalFuzz = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz)
+    Fuzziness.combine(t, t, relative = true, independent = true)((functionalFuzz, Some(Fuzziness.createFuzz(op.fuzz))))
+  }
 
   /**
     * Evaluate a query operator on this.

@@ -40,12 +40,20 @@ sealed trait MonadicOperation {
   val absolute: Boolean
 
   /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    * Determine if, given an exact Rational (or Int) output value, this MonadicOperation returns an exact result.
+    *
+    * NOTE: it seems that all implementations of this method simply return true.
+    * CONSIDER eliminate.
     *
     * @param r the input value (a Rational).
     * @return true if the result is exact.
     */
   def isExact(r: Rational): Boolean
+
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int
 }
 
 /**
@@ -75,6 +83,11 @@ case object MonadicOperationNegate extends MonadicOperation {
     * @return true.
     */
   def isExact(r: Rational): Boolean = true
+
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int = 0
 }
 
 /**
@@ -106,6 +119,11 @@ case object MonadicOperationInvert extends MonadicOperation {
     * @return true.
     */
   def isExact(r: Rational): Boolean = true
+
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int = 0
 }
 
 /**
@@ -143,6 +161,11 @@ case object MonadicOperationExp extends MonadicOperation {
     * @return the success status of the result of expInt or expRat.
     */
   def isExact(r: Rational): Boolean = toInt(r).flatMap(expInt).orElse(expRat(r)).isSuccess
+
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int = 3
 }
 
 /**
@@ -181,6 +204,11 @@ case object MonadicOperationLog extends MonadicOperation {
     * @return the success status of the result of expRat.
     */
   def isExact(r: Rational): Boolean = toInt(r).flatMap(logInt).orElse(logRat(r)).isSuccess
+
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int = 3
 }
 
 /**
@@ -235,7 +263,12 @@ case object MonadicOperationSin extends MonadicOperation {
     * @param r the input value (a Rational).
     * @return the success status of the result of expRat.
     */
-  def isExact(r: Rational): Boolean = toInt(r).orElse(sinRatExact(r)).isSuccess
+  def isExact(r: Rational): Boolean = true
+
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int = 3
 }
 
 /**
@@ -279,7 +312,12 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     * @param r the input value (a Rational).
     * @return the success status of the result of expRat.
     */
-  def isExact(r: Rational): Boolean = atanRat(r).isSuccess
+  def isExact(r: Rational): Boolean = true
+
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int = 4
 }
 
 /**
@@ -318,6 +356,11 @@ case object MonadicOperationModulate extends MonadicOperation {
     * @return the success status of the result of expRat.
     */
   def isExact(r: Rational): Boolean = true
+
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int = 0
 }
 
 /**
@@ -341,13 +384,18 @@ case object MonadicOperationSqrt extends MonadicOperation {
   val absolute: Boolean = false // not used
 
   /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
+    * Determine if, given an exact Rational (or Int) output value, this MonadicOperation returns an exact result.
     *
-    * @param r the input value (ignored).
+    * @param r the output value (ignored).
     * @return the success status of the result of expRat.
     */
-  def isExact(r: Rational): Boolean = toInt(r).flatMap(sqrtInt).orElse(sqrtRat(r)).isSuccess
+  def isExact(r: Rational): Boolean = true
+  //    s"isExact: $r" !! toInt(r).flatMap(sqrtInt).orElse(sqrtRat(r)).isSuccess
 
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int = 3
 }
 
 /**
@@ -379,6 +427,11 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
     * @return the success status of the result of expRat.
     */
   def isExact(r: Rational): Boolean = true
+
+  /**
+    * Relative precision, as used by createFuzz.
+    */
+  val fuzz: Int = 0
 }
 
 /**

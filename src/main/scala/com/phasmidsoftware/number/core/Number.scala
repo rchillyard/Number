@@ -210,8 +210,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * Method to determine the sine of this Number.
     * The result will be a Number with Scalar factor.
     *
-    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
-    *
     * @return the sine of this.
     */
   def sin: Number
@@ -227,8 +225,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
     *
-    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
-    *
     * @param y the opposite length
     * @return the angle defined by x = this, y = y
     */
@@ -238,8 +234,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * Method to determine the natural log of this Number.
     * The result will be a Number with Scalar factor.
     *
-    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
-    *
     * @return the natural log of this.
     */
   def log: Number
@@ -247,8 +241,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   /**
     * Method to raise E to the power of this number.
     * The result will be a Number with E factor.
-    *
-    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
     *
     * @return the e to the power of this.
     */
@@ -283,9 +275,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * In other words,  in the case where f is not factor, the numerical value of the result's value will be different
     * from this value.
     *
-    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
-    * It may not be appropriate for all invocations.
-    *
     * @param f the new factor for the result.
     * @return a Number based on this and factor.
     */
@@ -299,14 +288,14 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return -1, 0, 1 as usual.
     */
   def fuzzyCompare(other: Number, p: Double): Int
-
-  /**
-    * Be careful when implementing this method that you do not invoke a method recursively.
-    *
-    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
-    * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
-    */
-  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number
+  //
+  //  /**
+  //    * Be careful when implementing this method that you do not invoke a method recursively.
+  //    *
+  //    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
+  //    * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
+  //    */
+  //  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -415,9 +404,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
-    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
-    * It may not be appropriate for all invocations.
-    *
     * @param v the value (a Double).
     * @param f Factor.
     * @return either a Number.
@@ -428,9 +414,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
-    *
-    * NOTE that the value 0 (which represents 1 times the double-precision tolerance) is a guess.
-    * It may not be appropriate for all invocations.
     *
     * @param v  the value (a Double).
     * @param f  Factor.
@@ -601,6 +584,19 @@ object Number {
     * @return a Number.
     */
   def create(value: Value): Number = create(value, Scalar)
+
+  /**
+    * Method to construct a Number from a String.
+    * This is by far the best way of creating the number that you really want.
+    *
+    * @param x the String representation of the value.
+    * @return a Number based on x.
+    */
+  def apply(x: String, factor: Factor): Number = parse(x) match {
+    // CONSIDER we should perhaps process n (e.g. to modulate a Pi value)
+    case Success(n) => n.make(factor)
+    case Failure(e) => throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
+  }
 
   /**
     * Method to construct a Number from a String.
@@ -951,8 +947,6 @@ object Number {
   /**
     * Method to take the ith root of n.
     *
-    * NOTE that the value 3 (which represents 8 times the double-precision tolerance) is a guess.
-    *
     * CONSIDER a special factor which is basically a root.
     *
     * @param n the Number whose root is required.
@@ -962,7 +956,7 @@ object Number {
   private def root(n: Number, i: Int): Option[Number] = i match {
     case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
     case 1 => Some(n)
-    case 2 => Some(n.makeFuzzyIfAppropriate(Number.sqrt, 3))
+    case 2 => Some(Number.sqrt(n))
     case _ => None
   }
 
@@ -1004,7 +998,9 @@ object Number {
     case z: GeneralNumber => z.query(QueryOperationSignum, 0)
   }
 
-  def sin(x: Number): Number = prepareWithSpecialize(x.scale(Pi).transformMonadic(Scalar)(MonadicOperationSin))
+  def sin(x: Number): Number =
+    if (x.signum >= 0) prepareWithSpecialize(x.scale(Pi).transformMonadic(Scalar)(MonadicOperationSin))
+    else negate(sin(negate(x)))
 
   def atan(x: Number, y: Number): Number = prepareWithSpecialize((y doDivide x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
 
