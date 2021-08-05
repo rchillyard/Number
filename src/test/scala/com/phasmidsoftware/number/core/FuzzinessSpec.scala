@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.core.Fuzziness.createFuzz
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Left, Try}
 
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
@@ -268,7 +267,15 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val x = q.toDouble
     val v = x.get
     val z: Option[Fuzziness[Double]] = Fuzziness.map[Double, Double, Double](1, v, !op.absolute, op.derivative, Some(fuzz))
-    z.toString shouldBe "Some(RelativeFuzz(1.0E-15,Box))"
+    z.toString shouldBe "Some(RelativeFuzz(2.718281828459045E-15,Box))"
   }
 
+  behavior of "power"
+  it should "work for e^x" in {
+    val two = Number("2.00[2]")
+    val nominalValueOfTwo = 2
+    val relativeErrorOfTwo = 0.01
+    val z: Number = Number.exp(two).scale(Scalar)
+    z.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe (nominalValueOfTwo * relativeErrorOfTwo) +- 1.0E-10
+  }
 }

@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.Valuable.ValuableDouble
 import org.apache.commons.math3.special.Erf.erfInv
-
 import scala.math.Numeric.DoubleIsFractional
 import scala.math.Ordering
 import scala.util.Try
@@ -119,9 +118,10 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * @tparam V the type of the quotient of T/U.
     * @return a transformed version of Fuzziness[U].
     */
-  def transform[U: Valuable, V: Valuable](func: T => V)(t: T): Fuzziness[U] = absolute(t) match {
-    case Some(fuzz) => fuzz.transform(func)(t)
-    case None => throw FuzzyNumberException("logic error: unable to create absolute fuzziness")
+  def transform[U: Valuable, V: Valuable](func: T => V)(t: T): Fuzziness[U] = {
+    val duByDt: V = func(t)
+    val dU: U = implicitly[Valuable[U]].multiply(implicitly[Valuable[T]].fromDouble(tolerance), duByDt)
+    RelativeFuzz[U](implicitly[Valuable[U]].toDouble(dU), shape)
   }
 
   /**
@@ -370,8 +370,8 @@ object Fuzziness {
   /**
     * Scale the fuzz values by the two given coefficients.
     *
-    * @param fuzz         the fuzz values (a Tuple).
-    * @param coefficients the coefficients (a Tuple).
+    * @param fuzz         the fuzz values (a Tuple), deltaX/X and deltaY/Y.
+    * @param coefficients the coefficients (a Tuple): the coefficients of deltaX/X and deltaY/Y respectively.
     * @return the scaled fuzz values (a Tuple).
     */
   def applyCoefficients[T: Valuable](fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]]), coefficients: Option[(T, T)]): (Option[Fuzziness[T]], Option[Fuzziness[T]]) =

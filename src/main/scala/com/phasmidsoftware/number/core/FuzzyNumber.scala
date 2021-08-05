@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.util.Left
 
 /**
@@ -185,7 +184,7 @@ object FuzzyNumber {
 
   /**
     * Get the fuzz coefficients for calculating the fuzz on a power operation.
-    * According to the "Generalized Power Rule," these coefficients should be y/x and ln x, respectively,
+    * According to the "Generalized Power Rule," these coefficients should be y and y ln x, respectively,
     * where x is the magnitude of n and y is the magnitude of p.
     *
     * @param n the number to be raised to power p.
@@ -193,7 +192,7 @@ object FuzzyNumber {
     * @return the value of n to the power of p.
     */
   private def getPowerCoefficients(n: Number, p: Number): Option[(Double, Double)] =
-    for (z <- n.toDouble; q <- p.toDouble) yield (q / z, math.log(z))
+    for (z <- n.toDouble; q <- p.toDouble) yield (q, q * math.log(z))
 
   /**
     *
