@@ -7,7 +7,6 @@ import com.phasmidsoftware.number.core.Number.{negate, twoPi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -241,7 +240,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     // TODO check this one: shape should be Gaussian. And is the value correct?
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
     z.fuzz.get match {
-      case RelativeFuzz(m, Box) => m shouldBe 0.022222222222222223
+      case RelativeFuzz(m, Box) => m shouldBe 0.2
     }
   }
   it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Gaussian))" in {
@@ -251,7 +250,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
     z.fuzz.get match {
-      case RelativeFuzz(m, Gaussian) => m shouldBe 0.022222222222222223
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.2
     }
   }
   it should "work for 2**2 (i.e. an constant Int power)" in {
@@ -265,7 +264,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     result.factor shouldBe Scalar
     result.fuzz.isDefined shouldBe true
     result.fuzz.get match {
-      case RelativeFuzz(m, Box) => m shouldBe 0.025
+      case RelativeFuzz(m, Box) => m shouldBe 0.05
     }
   }
   it should "work for 2**2 (i.e. a fuzzy Number power)" in {
@@ -279,7 +278,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy.get.factor shouldBe Scalar
     zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
     zy.get.fuzz.get match {
-      case RelativeFuzz(m, Box) => m shouldBe 0.04232867951399863 +- 0.00000000000000001
+      case RelativeFuzz(m, Box) => m shouldBe 0.08465735902799726 +- 0.00000000000000001
     }
   }
 
@@ -466,10 +465,20 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val q: Number = n.make(r.get, Scalar)
     val x = q.toDouble
     val z: GeneralNumber = q.make(Fuzziness.map[Double, Double, Double](1, x.get, !op.absolute, op.derivative, Some(fuzz))).asInstanceOf[GeneralNumber]
-    z.fuzz.get.toString(x.get) shouldBe "2.7182818284590450[27]"
+    z.fuzz.get.toString(x.get) shouldBe "2.7182818284590450[74]"
   }
 
   behavior of "foucault"
+  it should "do part of the calculation" in {
+    val t = Number("16.5*")
+    println(s"t fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
+
+    val square: Option[Number] = (t ^ 2).asNumber
+    println(s"square fuzz: ${square.get.fuzz}")
+    square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
+    square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
+  }
+
   it should "calculate length of Foucault's pendulum but with relative box fuzziness" in {
     // NOTE this is here to support Foucault.sc
     val g = Number("9.81*")
@@ -483,11 +492,12 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     println(s"square fuzz: ${square.get.fuzz}")
 
     // FIXME Issue #52 the following number is not correct: it should be approximately 0.006 (twice the value shown above for t)
-    square.get.fuzz shouldBe Some(RelativeFuzz(8.788361322184242E-4, Box))
+    square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
+    square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
 
     val length: Option[Number] = square flatMap (x => (x * g).asNumber)
     // NOTE the following number is not correct: it should be approximately 0.0065
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.0013885201281416911, Box))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.0065702900565341804, Box))
 
     println(length.get)
   }
@@ -504,10 +514,10 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     println(square.get.fuzz)
 
     // NOTE the following value is inconsistent with Foucault.sc
-    square.get.fuzz shouldBe Some(RelativeFuzz(0.0035153445288691534, Gaussian))
+    square.get.fuzz shouldBe Some(RelativeFuzz(0.024242424242426956, Gaussian))
 
     val length: Option[Number] = square flatMap (x => (x * g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.0036713331090357, Gaussian))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.024390888700791504, Gaussian))
 
     println(length.get)
   }
