@@ -55,8 +55,8 @@ You can always override this behavior by adding "*" or "..." to the end of a num
 or by adding two 0s to the end of a number with more than two decimal places.
 
 The rules are a little different if you define a number using a floating-point literal such as Number(1.23400),
-the compiler will treat that as an fuzzy number, even though it ends with two zeroes because the compiler essentially ignores them.
-However, Number(1.23) will be considered exact.
+the compiler will treat that as a fuzzy number, even though it ends with two zeroes because the compiler essentially ignores them.
+However, _Number(1.23)_ will be considered exact while _Number(1.234)_ will not.
 It's best always to use a String if you want to override the default behavior.
 
 In general, the form of a number to be parsed from a String is:
@@ -68,8 +68,9 @@ In general, the form of a number to be parsed from a String is:
     rational ::= digits "/" digits
     integerPart ::= digits
     fractionalPart ::= digits
-    fuzz ::= "..." | "*" | "(" digits ")"
+    fuzz ::= "..." | "*" | "(" fuzz ")" | "[" fuzz "]"
     exponent ::= E sign? digits
+    fuzz ::= one or two digits
 
 Note that the __e__ and __pi__ symbols are, respectively,
 (in unicode):   \uD835\uDF00 and \uD835\uDED1 (&#xD835;&#xDF00; and &#xD835;&#xDED1;)  
@@ -102,13 +103,21 @@ However, if you want to force a number like 3.1415927 to be exact, then you will
 
     Number("3.141592700")
 
+For fuzzy numbers in standard scientific notation, there is an operator "~" which, when following a Double,
+will add the next one or two integer digits as the standard deviation.
+For example (proton-electron mass ratio, and the gravitational constant):
+
+    1836.15267343~11
+    6.67430E-11~15
+
 Rendering
 =========
 Generally speaking, the output String corresponding to a Number will be the same as the input String,
 although at this stage of the software, that is not guaranteed.
 Numbers followed by "(xx)" show standard scientific notation where xx represents the standard deviation of the error
 with respect to the last two digits (sometimes there is only one x which corresponds to the last digit).
-If a Number is followed by "[xx]," this corresponds to a "box" (i.e. truncated uniform) probability density function.
+If a Number is followed by "\[x\]" or "\[xx\]" this corresponds to a "box" (i.e. truncated uniform) probability density function.
+It's unlikely that you'll need to use this form since box is the default shape when specifying fuzzy numbers with a String.
 
 Fuzzy
 =====
@@ -186,7 +195,7 @@ For this to happen, the value in question must have fewer than three decimal pla
 Complex
 =======
 There are two types of _Complex_: _ComplexCartesian_ and _ComplexPolar_.
-Complex numbers support all of the Field operations, as well as _modulus_ and _complement_.
+Complex numbers support all the Field operations, as well as _modulus_ and _complement_.
 It is easy to convert between the two types of _Complex_.
 
 Factors
@@ -211,6 +220,13 @@ A Number of the form Number(x, e) actually evaluates to e^x rather than e x.
 It would be possible to implement pi values similarly to 𝜀 values (as evaluations of e^ix).
 However, this is not currently done (future enhancement?).
 See Complex numbers.
+
+Constants
+=========
+
+The Number class defines a number of constant values for Number, such as Pi, e, one, zero, etc.
+The Constants object contains a number of fundamental constant definitions, in addition to those defined by Number.
+For example: c (speed of light), alpha (fine structure constant), etc.
 
 Lazy Evaluation
 ===============
@@ -259,11 +275,16 @@ So, for example, you can write:
 
 For this to compile properly, you will need to import the _ExpressionOps_ class.
 
+The one drawback of the _Expression_ mechanism is that, when you want to convert back to a _Number_, it is a little awkward.
+You can use the _asNumber_ method (which returns an _Option\[Number\]_) or you can use an implicit converter
+(in which case you will need to ensure that you have Number._ imported).
+If you use the latter mechanism, keep in mind that it's possible that an exception will be thrown.
+
 Error Bounds (Fuzziness)
 ========================
 The error bounds are represented by the _Fuzz[Double]_ class.
 A _Number_ with _None_ for the _fuzz_ is an _ExactNumber_, otherwise, _FuzzyNumber_.
-The are three major attributes of fuzz: shape, style (either relative or absolute), and the value
+There are three major attributes of fuzz: shape, style (either relative or absolute), and the value
 (called _magnitude_ when absolute, and _tolerance_ when relative).
 Shape describes the probability density function (PDF) of values compared to the nominal value.
 There are currently only two types of shape:
@@ -319,7 +340,7 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
-* Version 1.0.10...
+* Version 1.0.10: Many improvements and fixes: added Constants, implicit converter from Expression to Number, refactored structure of classes, 
 * Version 1.0.9: Added complex numbers; improved simplifications somewhat; use version 1.0.4 of Matchers (now in main).
 * Version 1.0.8: This includes better simplification and, in particular, evaluates (√3 + 1)(√3 - 1) as exactly 2. 
 * Version 1.0.7: added Matchers.

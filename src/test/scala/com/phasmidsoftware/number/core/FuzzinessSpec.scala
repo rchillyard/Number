@@ -11,7 +11,6 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   private val p = new NumberParser
 
-
   behavior of "generalNumber"
   it should "parse 1." in {
     val z = p.parseAll(p.generalNumber, "1.")
@@ -71,13 +70,22 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val z = p.parseAll(p.fuzz, "(15)")
     z should matchPattern { case p.Success(Some("(15)"), _) => }
   }
-  it should "parse (315)" in {
+  it should "fail to parse (315)" in {
+    // NOTE too many fuzz digits
     val z = p.parseAll(p.fuzz, "(315)")
-    z should matchPattern { case p.Success(Some("(315)"), _) => }
+    z should matchPattern { case p.Failure(_, _) => }
   }
   it should "fail to parse .." in {
     val z = p.parseAll(p.fuzz, "..")
     z should matchPattern { case p.Failure(_, _) => }
+  }
+
+  behavior of "FuzzOps"
+  it should "understand ..." in {
+    import Number.FuzzOps
+    val x = 3.1415927 ~ 12
+    x.isExact shouldBe false
+    x.toString shouldBe "3.1415927(12)"
   }
 
   behavior of "exponent"

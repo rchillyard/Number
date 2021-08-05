@@ -69,10 +69,20 @@ class NumberParser extends RationalParser {
     case no ~ fo => optionalNumber(no, fo)
   }
 
-  def fuzz: Parser[Option[String]] = ("""\*""".r | """\.\.\.""".r | """[\(\[]\d+[\)\]]""".r) :| "fuzz" ^^ {
-    case "*" => None
-    case "..." => None
-    case w => Some(w)
+  /**
+    * Method to parse fuzz, consisting of the strings "*", "...", or one or two digits enclosed in () or [].
+    *
+    * @return a Parser of an optional String.
+    *         If the String is None, then it is general fuzz (* or ...) otherwise Some(digits).
+    */
+  def fuzz: Parser[Option[String]] = {
+    // NOTE don't take the Analyzer's suggestion to remove escapes.
+    val fuzzyDigits = """[\(\[]\d{1,2}[\)\]]""".r
+    ("""\*""".r | """\.\.\.""".r | fuzzyDigits) :| "fuzz" ^^ {
+      case "*" => None
+      case "..." => None
+      case w => Some(w)
+    }
   }
 
   def generalNumber: Parser[ValuableNumber] = (numberWithFuzziness | rationalNumber) :| "generalNumber"

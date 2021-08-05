@@ -515,9 +515,25 @@ object Number {
     */
   val e: Number = ExactNumber(Right(1), E)
 
+  /**
+    * Implicit converter from Expression to Number.
+    *
+    * @param x the Expression to be converted.
+    * @return the equivalent Number.
+    * @throws ExpressionException if x cannot be converted to a Number.
+    */
   implicit def convertToNumber(x: Expression): Number = x.asNumber match {
     case Some(n) => n
     case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
+  }
+
+  implicit class FuzzOps(x: Double) {
+    def ~(y: Int): Number = if (y >= 10 && y < 100) {
+      val p = y * math.pow(10.0, -BigDecimal(x).scale)
+      Number(x, Scalar, Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
+    }
+    else
+      throw NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
   }
 
   /**

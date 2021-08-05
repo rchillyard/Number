@@ -579,8 +579,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   // FIXME Issue #47 Evaluation problem: stack overflow
   ignore should "cancel multiplication and division" in {
     val x = Number.e * 2 / 2
-    val q = x.simplify
-    q shouldBe Number.e
+    val result: Number = x
+    result shouldBe Number.e
   }
 
   behavior of "value with logging"
