@@ -1,9 +1,11 @@
 package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.{sAlpha, sG}
 import com.phasmidsoftware.number.core.Fuzziness.createFuzz
+import com.phasmidsoftware.number.core.Number.convertToNumber
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Left, Try}
 
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
@@ -213,7 +215,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Box.wiggle"
   it should "be likely for 5.0040" in {
-    val xy: Option[Number] = for (a <- Number.parse("1.251").toOption; b <- Number.parse("4.00*").toOption; x <- (a * b).asNumber) yield x
+    val xy: Option[Number] = for (a <- Number.parse("1.251").toOption; b <- Number.parse("4.00*").toOption; x <- (Literal(a) * b).asNumber) yield x
     xy.isDefined shouldBe true
     val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz
@@ -231,7 +233,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Gaussian.wiggle"
   it should "be likely for 5.0040" in {
-    val xy: Option[Number] = for (a <- Number.parse("1.250(2)").toOption; b <- Number.parse("4.00*").toOption; x <- (a * b).asNumber) yield x
+    val xy: Option[Number] = for (a <- Number.parse("1.250(2)").toOption; b <- Number.parse("4.00*").toOption; x <- (Literal(a) * b).asNumber) yield x
     xy.isDefined shouldBe true
     val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz

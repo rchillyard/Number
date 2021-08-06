@@ -50,11 +50,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "work with value on Number.one" in {
     val f = em.value
-    f(one).successful shouldBe true
+    f(One).successful shouldBe true
   }
   it should "work with value on FuzzyNumber" in {
     val f = em.value
-    f(FuzzyNumber(Right(1), Scalar, None)).successful shouldBe true
+    f(Literal(FuzzyNumber(Right(1), Scalar, None))).successful shouldBe true
   }
   it should "fail on non-value" in {
     val x = Expression(1) * 2
@@ -82,22 +82,23 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "gathering operations"
   it should "gather 2 and * 1/2" in {
-    val x: Expression = Number(7)
+    val x: Expression = Literal(Number(7))
     val y = x.sqrt
     val z = y ^ 2
     val q = em.simplifier(z)
     q should matchPattern { case em.Match(_) => }
-    q.get.simplify shouldBe Number(7)
+    val result = q.get.simplify
+    result shouldBe Literal(7)
   }
 
   behavior of "matchBiFunctionConstantResult"
   it should "match 1" in {
     val negativeOne: Number = Number(-1)
-    val q = em.matchBiFunctionConstantResult(Product, negativeOne, zero)
+    val q = em.matchBiFunctionConstantResult(Product, MinusOne, Zero)
     import em.TildeOps
-    val r: em.MatchResult[Expression] = q(one ~ BiFunction(one, negativeOne, Product))
+    val r: em.MatchResult[Expression] = q(One ~ BiFunction(One, MinusOne, Product))
     r.successful shouldBe true
-    r.get shouldBe zero
+    r.get shouldBe Zero
   }
 
   behavior of "matchEitherDyadic"
@@ -105,14 +106,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val negativeOne: Number = Number(-1)
     val p = em.matchEitherDyadic(commutes = true)
     import em.TildeOps
-    val r: em.MatchResult[BiFunction ~ Expression] = p(one ~ BiFunction(one, negativeOne, Product))
+    val r: em.MatchResult[BiFunction ~ Expression] = p(One ~ BiFunction(One, MinusOne, Product))
     r.successful shouldBe true
   }
   it should "match (biFunction, 1)" in {
     val negativeOne: Number = Number(-1)
     val p = em.matchEitherDyadic(commutes = true)
     import em.TildeOps
-    val r: em.MatchResult[BiFunction ~ Expression] = p(BiFunction(one, negativeOne, Product) ~ one)
+    val r: em.MatchResult[BiFunction ~ Expression] = p(BiFunction(One, MinusOne, Product) ~ One)
     r.successful shouldBe true
   }
 
@@ -124,7 +125,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = x + y
     val p = em.matchBiFunction & em.matchDyadicBranches(Sum) & em.matchSumOffsetting
     val result = p(z)
-    result should matchPattern { case em.Match(ExactNumber(Right(0), Scalar)) => }
+    result should matchPattern { case em.Match(Zero) => }
   }
   it should "cancel -1 and - 1" in {
     sb.append("cancel -1 and - 1:\n")
@@ -133,7 +134,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = y + x
     val p = em.matchBiFunction & em.matchDyadicBranches(Sum) & em.matchSumOffsetting
     val result = p(z)
-    result should matchPattern { case em.Match(ExactNumber(Right(0), Scalar)) => }
+    result should matchPattern { case em.Match(Zero) => }
   }
 
   behavior of "simplifier"
@@ -158,7 +159,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "cancel 1 and - -1 b" in {
     sb.append("cancel 1 and - -1 b:\n")
     val x: Expression = Expression.one
-    val y = Number(-1) * x
+    val y = MinusOne * x
     val z = x + y
     val result = em.simplifier(z) map (_.materialize)
     result should matchPattern { case em.Match(ExactNumber(Right(0), Scalar)) => }
@@ -166,7 +167,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "cancel -1 and - 1 b" in {
     sb.append("cancel -1 and - 1 b:\n")
     val x: Expression = Expression.one
-    val y = Number(-1) * x
+    val y = MinusOne * x
     val z = y + x
     val result = em.simplifier(z) map (_.materialize)
     result should matchPattern { case em.Match(ExactNumber(Right(0), Scalar)) => }
@@ -177,7 +178,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = x * y
     val result = em.simplifier(z)
     result.successful shouldBe true
-    result.get shouldBe one
+    result.get shouldBe One
   }
   it should "cancel 2 * 1/2" in {
     val x = Expression.one * 2
@@ -185,7 +186,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = y * x
     val result = em.simplifier(z)
     result.successful shouldBe true
-    result.get shouldBe one
+    result.get shouldBe One
   }
   it should "cancel ^2 and sqrt" in {
     val seven = Expression(7)
@@ -193,35 +194,35 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = x ^ 2
     val z = y.simplify
     val q = z.simplify
-    q shouldBe Number(7)
+    q shouldBe Literal(7)
   }
   it should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)
     val x: Number = seven.sqrt
-    val y = x ^ 2
-    y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
+    val y = x doPower two
+    y should matchPattern { case FuzzyNumber(_, _, _) => }
   }
   it should "show ^2 and sqrt for illustrative purposes" in {
     val seven = Number(7)
     val x = seven.sqrt
-    val y: Expression = x ^ 2
-    y should matchPattern { case BiFunction(FuzzyNumber(_, _, _), ExactNumber(Right(2), Scalar), Power) => }
+    val y: Expression = Literal(x) ^ two
+    y should matchPattern { case BiFunction(Literal(FuzzyNumber(_, _, _)), Literal(ExactNumber(Right(2), Scalar)), Power) => }
     convertToNumber(y.materialize) shouldEqual Number(7)
   }
   it should "cancel addition and subtraction" in {
-    val x = one + 3 - 3
+    val x = One + 3 - 3
     val q = x.simplify
-    q shouldBe one
+    q shouldBe One
   }
   it should "cancel multiplication and division" in {
-    val x = Number.pi * 2 / 2
+    val x = Literal(Number.pi) * 2 / 2
     val simplify = x.simplify
-    simplify shouldBe Number.pi
+    simplify shouldBe ConstPi
   }
   it should "cancel multiplication and division backwards" in {
-    val x = Number.pi / 2 * 2
+    val x = Literal(Number.pi) / 2 * 2
     val simplify = x.simplify
-    simplify shouldBe Number.pi
+    simplify shouldBe ConstPi
   }
 
   behavior of "biFunctionSimplifier"
@@ -255,42 +256,42 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (Number.e * 2).materialize.toString shouldBe "5.436563656918090[57]"
+    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918090[57]"
   }
 
   behavior of "matchSimplifyProductIdentity"
   it should "eliminate 1" in {
     val p = em.matchSimplifyProductIdentity
     import em.TildeOps
-    p(Product ~ two ~ One) shouldBe em.Match(two)
-    p(Product ~ One ~ two) shouldBe em.Match(two)
+    p(Product ~ Two ~ One) shouldBe em.Match(Two)
+    p(Product ~ One ~ Two) shouldBe em.Match(Two)
   }
 
   behavior of "matchSimplifySumIdentity"
   it should "eliminate 1" in {
     val p = em.matchSimplifySumIdentity
     import em.TildeOps
-    p(Sum ~ two ~ Zero) shouldBe em.Match(two)
-    p(Sum ~ Zero ~ two) shouldBe em.Match(two)
+    p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
+    p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
   }
 
   behavior of "matchSimplifyPowerIdentity"
   it should "eliminate 1" in {
     val p = em.matchSimplifyPowerIdentity
     import em.TildeOps
-    p(Power ~ two ~ One) shouldBe em.Match(two)
-    p(Power ~ One ~ two) shouldBe em.Match(one)
+    p(Power ~ Two ~ One) shouldBe em.Match(Two)
+    p(Power ~ One ~ Two) shouldBe em.Match(One)
   }
 
   behavior of "biFunctionSimplifier"
   it should "simplify" in {
     val p = em.biFunctionSimplifier
-    p(BiFunction(two, Zero, Sum)) shouldBe em.Match(two)
-    p(BiFunction(Zero, two, Sum)) shouldBe em.Match(two)
-    p(BiFunction(two, One, Product)) shouldBe em.Match(two)
-    p(BiFunction(One, two, Product)) shouldBe em.Match(two)
-    p(BiFunction(two, One, Power)) shouldBe em.Match(two)
-    p(BiFunction(One, two, Power)) shouldBe em.Match(one)
+    p(BiFunction(Two, Zero, Sum)) shouldBe em.Match(Two)
+    p(BiFunction(Zero, Two, Sum)) shouldBe em.Match(Two)
+    p(BiFunction(Two, One, Product)) shouldBe em.Match(Two)
+    p(BiFunction(One, Two, Product)) shouldBe em.Match(Two)
+    p(BiFunction(Two, One, Power)) shouldBe em.Match(Two)
+    p(BiFunction(One, Two, Power)) shouldBe em.Match(One)
   }
   it should "evaluate (√3 + 1)(√3 - 1) as 2 exactly" in {
     val root3: Expression = Expression(3).sqrt
@@ -304,17 +305,17 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
     val z = p(x)
-    z shouldBe em.Match(BiFunction(Number(3), Number(0.5), Power))
+    z shouldBe em.Match(BiFunction(Literal(3), Literal(0.5), Power))
   }
 
   behavior of "matchBiFunctionConstantResult"
   it should "simplify" in {
-    val p: em.Matcher[em.Expressions, Expression] = em.matchBiFunctionConstantResult(Product, Number(-1), Zero)
+    val p: em.Matcher[em.Expressions, Expression] = em.matchBiFunctionConstantResult(Product, MinusOne, Zero)
     import em.TildeOps
-    p(BiFunction(two, Number(-1), Product) ~ two) shouldBe em.Match(Zero)
-    p(two ~ BiFunction(two, Number(-1), Product)) shouldBe em.Match(Zero)
-    p(BiFunction(Number(-1), two, Product) ~ two) shouldBe em.Match(Zero)
-    p(two ~ BiFunction(Number(-1), two, Product)) shouldBe em.Match(Zero)
+    p(BiFunction(Two, MinusOne, Product) ~ Two) shouldBe em.Match(Zero)
+    p(Two ~ BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Zero)
+    p(BiFunction(MinusOne, Two, Product) ~ Two) shouldBe em.Match(Zero)
+    p(Two ~ BiFunction(MinusOne, Two, Product)) shouldBe em.Match(Zero)
   }
 
   behavior of "simplifyProduct"
@@ -327,28 +328,28 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "biFunctionSimplifier"
   it should "simplify 1 + 2 - 2" in {
     val p = em.biFunctionSimplifier
-    val x = One plus two - two
+    val x = One plus Two - Two
     val r = p(x)
     r should matchPattern { case em.Match(_) => }
-    r.get shouldBe one
+    r.get shouldBe One
   }
   it should "properly simplify 1 + 2 - 2 + 0" in {
     val p = em.biFunctionSimplifier
-    val x = One plus two - two + Zero
+    val x = One plus Two - Two + Zero
     val r = p(x)
     r should matchPattern { case em.Match(_) => }
-    r.get shouldBe one
+    r.get shouldBe One
   }
 
   behavior of "matchSimplifySum"
   it should "properly simplify 1 + root3 - root3 + 0" in {
     val p = em.matchSimplifySum
-    val z: Expression = Number(3).sqrt
+    val z: Expression = Literal(3).sqrt
     val x = z plus -z + Zero
     import em.TildeOps
     val r = p(Sum ~ One ~ x)
     r should matchPattern { case em.Match(_) => }
-    r.get shouldBe one
+    r.get shouldBe One
   }
   it should "properly simplify (1 + root3) + (zero - root3)" in {
     val p = em.matchSimplifySum
@@ -358,35 +359,35 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     import em.TildeOps
     val r = p(Sum ~ x ~ z)
     r should matchPattern { case em.Match(_) => }
-    r.get shouldBe one
+    r.get shouldBe One
   }
 
   behavior of "matchSimplifyProduct"
   it should "properly simplify 1 * (root3 / root3 * 3)" in {
     val p = em.matchSimplifyProduct
-    val z: Expression = Number(3).sqrt
+    val z: Expression = Literal(3).sqrt
     val x = z * z.reciprocal * Number(3)
     import em.TildeOps
     val r = p(Product ~ One ~ x)
     r should matchPattern { case em.Match(_) => }
-    r.get shouldBe Number(3)
+    r.get shouldBe Literal(3)
   }
   it should "properly simplify (1 * root3) * (3 / root3)" in {
     val p = em.matchSimplifyProduct
-    val root3 = Number(3).sqrt
+    val root3 = Literal(3).sqrt
     val x: Expression = One * root3
-    val z = Number(3) * root3.reciprocal
+    val z = Literal(3) * root3.reciprocal
     import em.TildeOps
     val r = p(Product ~ x ~ z)
     r should matchPattern { case em.Match(_) => }
-    r.get shouldBe Number(3)
+    r.get shouldBe Literal(3)
   }
   // FIXME causes a stack overflow
   ignore should "simplify e * 2 / 2" in {
     val p = em.matchSimplifyProduct
     import em.TildeOps
     val e: Number = Number.e
-    val x: Expression = e * Number.two
+    val x: Expression = Literal(e) * Number.two
     val y: Expression = Expression(Number.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(e)
   }
@@ -394,17 +395,17 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = em.matchSimplifyProduct
     import em.TildeOps
     val root3: Number = Number(3).sqrt
-    val x: Expression = root3 * Number.two
+    val x: Expression = Literal(root3) * Number.two
     val y: Expression = Expression(Number.two).reciprocal
-    p(Product ~ x ~ y) shouldBe em.Match(root3)
+    p(Product ~ x ~ y) shouldBe em.Match(Literal(root3))
   }
   it should "simplify root4 * 2 / 2" in {
     val p = em.matchSimplifyProduct
     import em.TildeOps
     val root4: Number = Number(4).sqrt
-    val x = root4 * Number.two
+    val x = Literal(root4) * Number.two
     val y: Expression = Expression(Number.two).reciprocal
-    p(Product ~ x ~ y) shouldBe em.Match(root4)
+    p(Product ~ x ~ y) shouldBe em.Match(Literal(root4))
   }
   // FIXME causes a stack overflow
   ignore should "simplify e * 2 / 2 * 1" in {
@@ -418,68 +419,68 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "gatherSum"
   it should "work" in {
     val p: em.Matcher[em.Expressions, Expression] = em.gatherSum
-    val z: Expression = Number(3).sqrt
+    val z: Expression = Literal(3).sqrt
     val x = z plus -z + Zero
     import em.TildeOps
     val r = p(One ~ x)
     r should matchPattern { case em.Match(_) => }
-    r.get shouldBe one
+    r.get shouldBe One
   }
 
   behavior of "gatherProduct"
   it should "work" in {
     val p: em.Matcher[Expression ~ Expression, Expression] = em.gatherProduct
-    val z: Expression = Number(3).sqrt
+    val z: Expression = Literal(3).sqrt
     val x = z * z.reciprocal * One
     import em.TildeOps
     //    val q: em.Matcher[Expression ~ Expression, Expression] = eml.log(p)
     val r = p(Expression(one) ~ x)
     r should matchPattern { case em.Match(_) => }
-    r.get.asNumber shouldBe Some(one)
+    r.get.materialize.asNumber shouldBe Some(one)
   }
 
   behavior of "distributor"
   it should "distribute" in {
     val p = em.distributor
     import em.TildeOps
-    val a = BiFunction(One, two, Sum)
-    val b = BiFunction(two, One, Sum)
+    val a = BiFunction(One, Two, Sum)
+    val b = BiFunction(Two, One, Sum)
     val z = p(Product ~ a ~ b)
-    z shouldBe em.Match(Number(9))
+    z shouldBe em.Match(Literal(9))
   }
   it should "distributeProductSum" in {
     val p = em.distributeProductSum
-    val a = BiFunction(two, Number(3), Sum)
-    val b = BiFunction(Number(4), two, Sum)
+    val a = BiFunction(Two, Literal(3), Sum)
+    val b = BiFunction(Literal(4), Two, Sum)
     import em.TildeOps
     val z = p(a ~ b)
-    z shouldBe em.Match(Number(30))
+    z shouldBe em.Match(Literal(30))
   }
   it should "distributeProductSum a" in {
     val p = em.distributeProductSum
-    val a = BiFunction(One, two, Sum)
-    val b = BiFunction(two, One, Sum)
+    val a = BiFunction(One, Two, Sum)
+    val b = BiFunction(Two, One, Sum)
     import em.TildeOps
     val z = p(a ~ b)
-    z shouldBe em.Match(Number(9))
+    z shouldBe em.Match(Literal(9))
   }
   it should "distributeProductSum b" in {
     val p = em.distributeProductSum
     val x = Number("2.00")
     val y = Number("3.00")
-    val a = BiFunction(One, x, Sum)
-    val b = BiFunction(half, y, Sum)
+    val a = BiFunction(One, Literal(x), Sum)
+    val b = BiFunction(Literal(half), Literal(y), Sum)
     import em.TildeOps
     val z = p(a ~ b)
-    z shouldBe em.Match(Number(10.5))
+    z shouldBe em.Match(Literal(10.5))
   }
   // NOTE This expression won't simplify because it is inexact (and distribution doesn't reduce the depth).
   ignore should "distributeProductSum c" in {
     val p = em.distributeProductSum
     val x = Number("2.00*")
     val y = Number("3.00*")
-    val a = BiFunction(One, x, Sum)
-    val b = BiFunction(half, y, Sum)
+    val a = BiFunction(One, Literal(x), Sum)
+    val b = BiFunction(Literal(half), Literal(y), Sum)
     import em.TildeOps
     val z = p(a ~ b)
     val eo = Expression.parse("( ( 3.00* + 0.5 ) + ( 2.00* * ( 3.00* + 0.5 ) ) )")
@@ -494,15 +495,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val r = BiFunction(a, b, Product)
     val z: em.MatchResult[Expression] = p(r)
     val k: em.MatchResult[Expression] = z map (_.simplify)
-    k shouldBe em.Match(Number(-2))
+    k shouldBe em.Match(Literal(-2))
   }
   it should "distributePowerProduct" in {
     val p = em.distributePowerProduct
     val x = Expression(3).sqrt
-    val a = BiFunction(two, x, Product)
+    val a = BiFunction(Two, x, Product)
     import em.TildeOps
-    val z = p(a ~ two)
-    z shouldBe em.Match(Number(12))
+    val z = p(a ~ Two)
+    z shouldBe em.Match(Literal(12))
   }
   it should "distributeProductPower on root(3) * root(3)" in {
     val p = em.distributeProductPower
@@ -520,12 +521,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val yo = Expression.parse("( ( 3 ^ ( 2 ^ -1 ) ) * -1 )")
     val zo = for (x <- xo; y <- yo) yield em.simplifyProduct(x, y)
     zo should matchPattern { case Some(_) => }
-    zo.get shouldBe BiFunction(Number(3), Number(-1), Product)
+    zo.get shouldBe BiFunction(Literal(3), Literal(-1), Product)
   }
 
   behavior of "gathering operations"
   it should "gather powers of 2 and * 1/2" in {
-    val x: Expression = Number(7)
+    val x: Expression = Literal(7)
     val y = x.sqrt
     val z = y ^ 2
     z.materialize shouldBe Number(7)
@@ -537,48 +538,48 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = -x
     val z = x + y
     val simplify = z.simplify
-    simplify shouldBe Number.zero
+    simplify shouldBe Zero
   }
   it should "cancel 2 and * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = x * y
-    z.simplify shouldBe Number.one
+    z.simplify shouldBe One
   }
   it should "cancel 2 * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = y * x
-    z.simplify shouldBe Number.one
+    z.simplify shouldBe One
   }
   it should "cancel ^2 and sqrt" in {
     val seven = Expression(7)
     val x: Expression = seven.sqrt
     val y = x ^ 2
     val z = y.simplify
-    z.simplify shouldBe Number(7)
+    z.simplify shouldBe Literal(7)
   }
   it should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)
     val x: Number = seven.sqrt
-    val y = x ^ 2
+    val y = Literal(x) ^ 2
     y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
   }
   it should "show ^2 and sqrt for illustrative purposes" in {
     val seven = Number(7)
-    val x = seven.sqrt
+    val x = Literal(seven.sqrt)
     val y = convertToNumber((x ^ 2).materialize)
     y should matchPattern { case FuzzyNumber(_, _, _) => }
     y shouldEqual Number(7)
   }
   it should "cancel addition and subtraction" in {
-    val x = Number.one + 3 - 3
+    val x = One + 3 - 3
     val q = x.simplify
-    q shouldBe Number.one
+    q shouldBe One
   }
   // FIXME Issue #47 Evaluation problem: stack overflow
   ignore should "cancel multiplication and division" in {
-    val x = Number.e * 2 / 2
+    val x = Literal(Number.e) * 2 / 2
     val result: Number = x
     result shouldBe Number.e
   }
@@ -602,14 +603,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     import eml.MatcherOps
     implicit val logger: MatchLogger = eml.matchLogger
     val f = eml.value :| "value"
-    f(one).successful shouldBe true
+    f(One).successful shouldBe true
     sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
   }
   it should "work with value on FuzzyNumber" in {
     import eml.MatcherOps
     implicit val logger: MatchLogger = eml.matchLogger
     val f = eml.value :| "value"
-    f(FuzzyNumber(Right(1), Scalar, None)).successful shouldBe true
+    f(Literal(FuzzyNumber(Right(1), Scalar, None))).successful shouldBe true
     sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
   }
   it should "fail on non-value" in {

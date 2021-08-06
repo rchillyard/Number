@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.{Expression, Number, Rational}
+import com.phasmidsoftware.number.core.{ConstE, Expression, Literal, Number, Rational}
 import com.phasmidsoftware.number.parse.MillParser
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -44,7 +44,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   it should "apply(1)" in {
     val mill = Mill(Item("1"))
     mill.isEmpty shouldBe false
-    mill.evaluate shouldBe Some(Number.one)
+    mill.evaluate shouldBe Some(Literal(1))
   }
   it should "process empty list of Items" in {
     val mill = Mill()
@@ -142,7 +142,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val my: Try[Mill] = p.parseMill("2 exp")
     my should matchPattern { case Success(_) => }
     val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
-    eo shouldBe Some((Number.e * Number.e).materialize)
+    eo shouldBe Some((ConstE * Number.e).materialize)
   }
 
   // See https://hansklav.home.xs4all.nl/rpn/

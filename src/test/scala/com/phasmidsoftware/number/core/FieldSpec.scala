@@ -10,12 +10,12 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
   it should "isExact" in {
     //    Number(4).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe true
     //    Number(2).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe false
-    val x = (Number.pi / 2).materialize
+    val x = (ConstPi / 2).materialize
     x.isExact shouldBe true
   }
 
   it should "multiply i by itself correctly" in {
-    val z = Constants.i * Constants.i
+    val z = Expression(Constants.i) * Constants.i
     z.materialize.asComplex shouldBe ComplexCartesian(-1, 0)
   }
 

@@ -11,7 +11,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   implicit object ComplexEquality extends Equality[Complex] {
     def areEqual(a: Complex, b: Any): Boolean = b match {
-      case n: Complex => (a - n).materialize.isZero
+      case n: Complex => (Literal(a) - n).materialize.isZero
       case _ => false
     }
   }
@@ -21,7 +21,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   private val c1_2 = ComplexCartesian(Number.one, Number.two)
   private val c2_0 = Complex(Number.two)
   private val p1_pi = ComplexPolar(Number.one, Number.pi)
-  private val p1_pi_2 = ComplexPolar(Number.one, convertToNumber((Number.pi / Number.two).materialize))
+  private val p1_pi_2 = ComplexPolar(Number.one, Number.pi doDivide Number.two)
 
   it should "real" in {
     c1_2.real shouldBe Number.one
@@ -35,15 +35,11 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi.imag shouldBe Number.pi
   }
 
-  it should "isAtomic" in {
-    c2_0.isAtomic shouldBe true
-  }
-
   it should "isExact" in {
     c1_2.isExact shouldBe true
     c2_0.isExact shouldBe true
     p1_pi.isExact shouldBe true
-    (c1_2 add c2_0).materialize.isExact shouldBe true
+    (c1_2 add c2_0).isExact shouldBe true
     // FIXME Caused by July 1st commit
     //    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
   }
@@ -63,7 +59,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "multiply" in {
-    val z1 = c1_2 * c2_0
+    val z1 = Expression(c1_2) * c2_0
     z1.materialize shouldBe ComplexCartesian(Number.two, Number(4))
   }
 
@@ -74,31 +70,35 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "divide" in {
     val z = ComplexCartesian(Number.two, Number(4))
-    val z1 = z / c2_0
+    val z1 = Literal(z) / c2_0
     z1.materialize shouldBe c1_2
+  }
 
+  it should "power0" in {
+    val z: Field = c1_2 power 1
+    z shouldBe c1_2
   }
 
   it should "power1" in {
-    val z = c1_2 power 2
-    z.materialize should matchPattern { case ComplexCartesian(ExactNumber(Right(-3), Scalar), ExactNumber(Right(4), Scalar)) => }
+    val z: Field = c1_2 power 2
+    z should matchPattern { case ComplexCartesian(ExactNumber(Right(-3), Scalar), ExactNumber(Right(4), Scalar)) => }
   }
 
   it should "power2" in {
     val z = c1_2 power 0
-    z.materialize should matchPattern { case ComplexCartesian(ExactNumber(Right(1), Scalar), ExactNumber(Right(0), Scalar)) => }
+    z should matchPattern { case ComplexCartesian(ExactNumber(Right(1), Scalar), ExactNumber(Right(0), Scalar)) => }
   }
 
   it should "power3" in {
     val z = c1_2 power -1
-    z.materialize shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
+    z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
   it should "maybeFactor" in {
     c1_2.maybeFactor shouldBe Some(Scalar)
     ComplexCartesian(Number.one, Number.pi).maybeFactor shouldBe None
-    p1_pi.maybeFactor shouldBe Some(Scalar)
-    ComplexPolar(Number.one, Number.one).maybeFactor shouldBe None
+    p1_pi.maybeFactor shouldBe None
+    ComplexPolar(Number.one, Number.one).maybeFactor shouldBe Some(Scalar)
   }
 
   it should "modulus" in {
@@ -122,7 +122,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "invert" in {
     val z = c1_2.invert
-    z.materialize shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
+    z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
   it should "apply" in {
@@ -173,7 +173,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "magnitudeSquared" in {
     val c3 = p1_pi add c2_0
-    convertToNumber(c3.materialize.asComplex.magnitudeSquared.materialize) shouldBe Number.one
+    convertToNumber(c3.asComplex.magnitudeSquared) shouldBe Number.one
   }
 
   behavior of "render"

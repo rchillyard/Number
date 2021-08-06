@@ -30,7 +30,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
 
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
-      case n: Number => new ExpressionOps(a).compare(n) == 0
+      case n: Number => new ExpressionOps(a).compare(Literal(n)) == 0
       case n: Expression => a.compare(n) == 0
       case _ => false
     }
@@ -121,24 +121,24 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     //    numberOne.scale(Pi).toString shouldBe "0.318309886183790700(42)\uD835\uDED1" // this is how it should be
   }
   it should "work for E^2" in {
-    val target = Number.e ^ 2
-    target.materialize.toString shouldBe "\uD835\uDF00\u00B2"
+    val target = Number.e doPower 2
+    target.toString shouldBe "\uD835\uDF00\u00B2"
   }
   it should "work for E^3" in {
-    val target = Number.e ^ 3
-    target.materialize.toString shouldBe "\uD835\uDF00\u00B3"
+    val target = Number.e doPower 3
+    target.toString shouldBe "\uD835\uDF00\u00B3"
   }
   it should "work for E^4" in {
-    val target = Number.e ^ 4
-    target.materialize.toString shouldBe "\uD835\uDF00\u2074"
+    val target = Number.e doPower 4
+    target.toString shouldBe "\uD835\uDF00\u2074"
   }
   it should "work for E^10" in {
-    val target = Number.e ^ 10
-    target.materialize.toString shouldBe "\uD835\uDF00^10"
+    val target = Number.e doPower 10
+    target.toString shouldBe "\uD835\uDF00^10"
   }
   it should "work for square root E" in {
     val target = Number.e.sqrt
-    target.materialize.toString shouldBe "√\uD835\uDF00"
+    target.toString shouldBe "√\uD835\uDF00"
   }
 
   behavior of "toDouble"
@@ -399,25 +399,25 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 2E, Scalar" in {
     val target = Number(2, E)
     val actual: Number = target.scale(Scalar)
-    val expected: Number = convertToNumber((Number(Math.E) ^ 2).materialize)
+    val expected: Number = convertToNumber((Number(Math.E) doPower 2))
     actual should ===(expected)
   }
   it should "work for 2E, Scalar but comparing against E * E" in {
     val target = Number(2, E)
     val actual: Number = target.scale(Scalar)
-    val expected: Number = convertToNumber((Number(Math.E) * Number(Math.E)).materialize)
+    val expected: Number = convertToNumber((Number(Math.E) doMultiply Number(Math.E)))
     actual should ===(expected)
   }
   it should "work for Scalar, 2E (same as before but with parameters to === reversed" in {
     val target = Number(2, E)
     val actual: Number = target.scale(Scalar)
-    val expected: Number = convertToNumber((Number(Math.E) ^ 2).materialize)
+    val expected: Number = convertToNumber((Number(Math.E) doPower 2))
     expected should ===(actual)
   }
   it should "work for Scalar, 2E (same as before but using E * E and parameters to === reversed" in {
     val target = Number(2, E)
     val actual: Number = target.scale(Scalar)
-    val expected: Number = convertToNumber((Number(Math.E) * Number(Math.E)).materialize)
+    val expected: Number = convertToNumber((Number(Math.E) doMultiply Number(Math.E)))
     expected should ===(actual)
   }
   it should "work for E, Pi" in {
@@ -732,7 +732,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "**"
   it should "work for 2^2" in {
     val target = Number(2)
-    (target ^ 2).materialize shouldBe Number(4)
+    (target doPower 2) shouldBe Number(4)
   }
 
   behavior of "sqrt"
@@ -758,8 +758,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.sin shouldBe Number(0, Scalar)
   }
   it should "be one for pi/2" in {
-    val target = (Number.pi / 2).sin
-    target.materialize shouldBe Number.one
+    val target = (Number.pi doDivide 2).sin
+    target shouldBe Number.one
   }
   it should "work for Pi/2" in {
     val target = Number(Rational.half, Pi)
@@ -773,7 +773,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for Pi/3" in {
     val target = Number(Rational(1, 3), Pi)
     val sin = target.sin
-    sin should ===(Number(3).sqrt / 2)
+    sin should ===(Number(3).sqrt doDivide 2)
   }
 
   behavior of "cos"
@@ -790,33 +790,33 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.cos.isZero shouldBe true
   }
   it should "work for Pi/3" in {
-    val target = Number.pi / 3
-    target.cos.materialize shouldBe Number(Rational(1, 2), Scalar)
+    val target = Number.pi doDivide 3
+    target.cos shouldBe Number(Rational(1, 2), Scalar)
   }
   it should "work for Pi/6" in {
-    val target: Expression = Number.pi / 6
-    target.cos should ===(Number(3).sqrt / 2)
+    val target = Number.pi doDivide 6
+    target.cos should ===(Number(3).sqrt doDivide 2)
   }
 
   behavior of "tan"
   it should "be zero for 0" in {
-    val target: Expression = Number(0, Pi)
-    target.tan.materialize.isZero shouldBe true
+    val target = Number(0, Pi)
+    target.tan.isZero shouldBe true
   }
   it should "be zero for pi" in {
-    val target: Expression = Number.pi
-    target.tan.materialize.isZero shouldBe true
+    val target = Number.pi
+    target.tan.isZero shouldBe true
   }
   it should "work for Pi/2" in {
-    val target: Expression = Number(Rational.half, Pi)
-    target.tan.materialize.isInfinite shouldBe true
+    val target = Number(Rational.half, Pi)
+    target.tan.isInfinite shouldBe true
   }
   it should "work for Pi/3" in {
-    val target: Expression = Number.pi / 3
+    val target = Number.pi doDivide 3
     target.tan shouldEqual Number(3).sqrt
   }
   it should "work for Pi/6" in {
-    val target = Number.pi / 6
+    val target = Number.pi doDivide 6
     target.tan should ===(Number(3).sqrt.invert)
   }
 
@@ -827,7 +827,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "be pi/4 for 1/1" in {
     val target = Number.one
-    target.atan(Number.one) === (Number.pi / 4)
+    target.atan(Number.one) === (Number.pi doDivide 4)
   }
   it should "be 0Pi for 0/-1" in {
     val target = Number.negate(Number.one)
@@ -848,7 +848,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val opposite = Number.one
     val actual: Number = adjacent.atan(opposite)
     import Expression.ExpressionOps
-    val expected: Number = (Number.pi * 3 / 4).asNumber.get
+    val expected: Number = (ConstPi * 3 / 4).materialize.asNumber.get
     // TODO revert this so that it reads actual ... expected
     //  XXX  actual should ===(expected)
     actual shouldBe expected

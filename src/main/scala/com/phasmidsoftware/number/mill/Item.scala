@@ -61,6 +61,10 @@ case class Expr(x: Expression) extends Item {
   override def toString: String = x.toString
 }
 
+object Expr {
+  def apply(x: Number): Expr = Expr(Literal(x))
+}
+
 object Item {
   def apply(s: String): Item = s.toLowerCase match {
     // XXX Dyadic operators

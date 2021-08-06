@@ -40,6 +40,7 @@ trait Expression {
     */
   def simplify: Expression
 
+
   /**
     * Action to materialize this Expression as a Field,
     * that is to say we eagerly evaluate this Expression as a Field.
@@ -47,13 +48,6 @@ trait Expression {
     * @return the materialized Field.
     */
   def materialize: Field
-
-  /**
-    * Method to materialize this Expression as a Field and, if possible, convert it to a Number.
-    *
-    * @return an Option[Number].
-    */
-  def asNumber: Option[Number] = materialize.asNumber
 
   /**
     * Method to determine the depth of this Expression.
@@ -90,11 +84,7 @@ object Expression {
   /**
     * The following method is helpful in getting an expression from a Field.
     */
-  def apply(x: Field): Expression = x match {
-    case n@Number(_, _) => n
-    case c@Complex(_, _) => c
-    case _ => throw NumberException(s"logic error: $x is not a Number or a Complex")
-  }
+  def apply(x: Field): Expression = Literal(x)
 
   /**
     * The following method is helpful in getting an expression started.
@@ -148,14 +138,6 @@ object Expression {
     /**
       * Method to lazily multiply x by y.
       *
-      * @param y a Number.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def +(y: Number): Expression = this.+(Expression(y))
-
-    /**
-      * Method to lazily multiply x by y.
-      *
       * @param y a Field.
       * @return an Expression which is the lazy product of x and y.
       */
@@ -170,12 +152,12 @@ object Expression {
     def +(y: Int): Expression = this.+(Number(y))
 
     /**
-      * Method to lazily subtract the Number y from x.
+      * Method to lazily subtract the Field y from x.
       *
-      * @param y a Number.
+      * @param y a Field.
       * @return an Expression which is the lazy product of x and y.
       */
-    def -(y: Number): Expression = BiFunction(x, -Expression(y), Sum)
+    def -(y: Expression): Expression = BiFunction(x, -y, Sum)
 
     /**
       * Method to lazily subtract the Field y from x.
@@ -183,7 +165,15 @@ object Expression {
       * @param y a Field.
       * @return an Expression which is the lazy product of x and y.
       */
-    def -(y: Field): Expression = BiFunction(x, -Expression(y), Sum)
+    def -(y: Field): Expression = x - Expression(y)
+
+    /**
+      * Method to lazily subtract y from x.
+      *
+      * @param y an Int.
+      * @return an Expression which is the lazy product of x and y.
+      */
+    def -(y: Int): Expression = x.-(Number(y))
 
     /**
       * Method to lazily change the sign of this expression.
@@ -193,28 +183,12 @@ object Expression {
     def unary_- : Expression = BiFunction(x, MinusOne, Product)
 
     /**
-      * Method to lazily subtract y from x.
-      *
-      * @param y an Int.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def -(y: Int): Expression = this.-(Number(y))
-
-    /**
-      * Method to lazily multiply x by y.
-      *
-      * @param y another Expression.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def *(y: Expression): Expression = BiFunction(x, y, Product)
-
-    /**
       * Method to lazily multiply x by y.
       *
       * @param y a Number.
       * @return an Expression which is the lazy product of x and y.
       */
-    def *(y: Number): Expression = *(Expression(y))
+    def *(y: Expression): Expression = BiFunction(x, y, Product)
 
     /**
       * Method to lazily multiply x by y.
@@ -238,14 +212,6 @@ object Expression {
       * @return an Expression representing the reciprocal of x.
       */
     def reciprocal: Expression = BiFunction(x, MinusOne, Power)
-
-    /**
-      * Method to lazily divide x by y.
-      *
-      * @param y a Number.
-      * @return an Expression which is the lazy quotient of x and y.
-      */
-    def /(y: Number): Expression = *(Expression(y).reciprocal)
 
     /**
       * Method to lazily divide x by y.
@@ -292,7 +258,7 @@ object Expression {
       *
       * @return an Expression representing the square root of x.
       */
-    def sqrt: Expression = this ^ Number(2).reciprocal
+    def sqrt: Expression = this ^ Literal(2).reciprocal
 
     /**
       * Method to lazily get the sine of x.
@@ -358,6 +324,13 @@ trait AtomicExpression extends Expression {
     * @return 1.
     */
   def depth: Int = 1
+
+  override def hashCode(): Int = materialize.hashCode()
+
+  override def equals(obj: Any): Boolean = obj match {
+    case x: AtomicExpression => materialize == x.materialize
+    case _ => false
+  }
 }
 
 /**
@@ -370,11 +343,11 @@ abstract class CompositeExpression extends Expression {
 }
 
 /**
-  * A literal number.
+  * An AtomicExpression which represents a Number.
   *
   * @param x the Number.
   */
-case class Literal(x: Number) extends AtomicExpression {
+case class Literal(x: Field) extends AtomicExpression {
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
@@ -386,7 +359,10 @@ case class Literal(x: Number) extends AtomicExpression {
   /**
     * @return Some(factor).
     */
-  def maybeFactor: Option[Factor] = Some(x.factor)
+  def maybeFactor: Option[Factor] = x match {
+    case n: Number => Some(n.factor)
+    case c: Complex => if (c.real.factor == c.imag.factor) Some(c.real.factor) else None
+  }
 
   /**
     * Action to materialize this Expression as a Field,
@@ -394,7 +370,7 @@ case class Literal(x: Number) extends AtomicExpression {
     *
     * @return x.
     */
-  def materialize: Number = x
+  def materialize: Field = x
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -402,7 +378,7 @@ case class Literal(x: Number) extends AtomicExpression {
     *
     * @return a String representing the value of this expression.
     */
-  def render: String = x.render
+  def render: String = x.toString
 
   /**
     * Generate a String for debugging purposes.
@@ -414,6 +390,8 @@ case class Literal(x: Number) extends AtomicExpression {
 
 object Literal {
   def apply(x: Int): Literal = Literal(Number(x))
+
+  def apply(x: Double): Literal = Literal(Number(x))
 }
 
 /**
@@ -488,6 +466,18 @@ case object MinusOne extends Constant {
     * @return "1-".
     */
   override def render: String = "-1"
+}
+
+case object Two extends Constant {
+  /**
+    * Action to materialize this Expression as a Field,
+    * that is to say we eagerly evaluate this Expression as a Field.
+    *
+    * @return 2.
+    */
+  def materialize: Number = Number.two
+
+  def maybeFactor: Option[Factor] = Some(Scalar)
 }
 
 /**
@@ -635,7 +625,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an Expression tree which is the simpler equivalent of this.
     */
   def simplify: Expression =
-    if (isExact) value
+    if (isExact) value match {
+      case n: Field => Literal(n)
+    }
     else {
       import Expression._
       val z: em.MatchResult[Expression] = em.simplifier(this)

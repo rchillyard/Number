@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.Field.recover
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field extends AtomicExpression {
+trait Field {
 
   /**
     * Method to determine if this Field has infinite magnitude.
@@ -93,7 +93,7 @@ trait Field extends AtomicExpression {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  override def asNumber: Option[Number] =
+  def asNumber: Option[Number] =
     this match {
       case n@Number(_, _) => Some(n)
       case ComplexCartesian(x, y) if y == Number.zero => Some(x)
@@ -111,6 +111,13 @@ trait Field extends AtomicExpression {
     case n@Number(_, _) => Complex(n)
     case n@Complex(_, _) => n
   }
+
+  /**
+    * Method to render this Field in a presentable manner.
+    *
+    * @return a String
+    */
+  def render: String
 
   /**
     * Eagerly compare this Field with comparand.

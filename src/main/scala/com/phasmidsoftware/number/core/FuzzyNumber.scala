@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import scala.util.Left
 
 /**
@@ -209,7 +209,7 @@ object FuzzyNumber {
       (p, q) match {
         case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
         case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
-        case (_, _) => recover((p plus q).materialize.asNumber, FuzzyNumberException("logic error: plus"))
+        case (_, _) => p doAdd q
       }
   }
 
@@ -219,7 +219,7 @@ object FuzzyNumber {
       (p, q) match {
         case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
         case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
-        case (_, _) => recover((p multiply q).materialize.asNumber, FuzzyNumberException("logic error: times"))
+        case (_, _) => p doMultiply q
       }
   }
 

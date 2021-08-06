@@ -182,14 +182,14 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a Matcher[Expressions, Expression].
     */
-  def matchSumOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Product, Number(-1), Number.zero) :| "matchSumOffsetting"
+  def matchSumOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Product, MinusOne, Zero) :| "matchSumOffsetting"
 
   /**
     * Matcher to eliminate offsetting expressions such as x * 1 / x.
     *
     * @return a Matcher[Expressions, Expression].
     */
-  def matchProductOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Power, Number(-1), Number.one) :| "matchProductOffsetting"
+  def matchProductOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Power, MinusOne, One) :| "matchProductOffsetting"
 
   /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
@@ -511,16 +511,16 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     if (x.isAtomic && y.isAtomic)
       Match(x ~ y)
     else if (resultExact(Sum, x, y))
-      Match(x.materialize ~ y.materialize)
+      Match(Expression(x.materialize) ~ Expression(y.materialize))
     else
       matchBiFunction(x) match {
         // TODO we should test that, e.g. b + c is exact rather than simply b and c being exact individually.
         case Match(Sum ~ b ~ c) if resultExact(Sum, b, c) =>
-          gatherSumInner((b plus c).materialize, y)
+          gatherSumInner(Expression((b plus c).materialize), y)
         case Match(Sum ~ b ~ c) if resultExact(Sum, b, y) =>
-          gatherSumInner((b plus y).materialize, c)
+          gatherSumInner(Expression((b plus y).materialize), c)
         case Match(Sum ~ b ~ c) if resultExact(Sum, c, y) =>
-          gatherSumInner((c plus y).materialize, b)
+          gatherSumInner(Expression((c plus y).materialize), b)
         case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if p.isExact =>
           gatherSumInner(q plus y, p plus c)
         case Match(Sum ~ BiFunction(p, q, Sum) ~ c) if q.isExact =>
@@ -533,13 +533,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         case Match(Sum ~ b ~ c) =>
           matchBiFunction(y) match {
             case Match(Sum ~ d ~ e) if resultExact(Sum, b, d) =>
-              gatherSumInner((b plus d).materialize, BiFunction(c, e, Sum))
+              gatherSumInner(Expression((b plus d).materialize), BiFunction(c, e, Sum))
             case Match(Sum ~ d ~ e) if resultExact(Sum, b, e) =>
-              gatherSumInner((b plus e).materialize, BiFunction(c, d, Sum))
+              gatherSumInner(Expression((b plus e).materialize), BiFunction(c, d, Sum))
             case Match(Sum ~ d ~ e) if resultExact(Sum, c, d) =>
-              gatherSumInner((c plus d).materialize, BiFunction(b, e, Sum))
+              gatherSumInner(Expression((c plus d).materialize), BiFunction(b, e, Sum))
             case Match(Sum ~ d ~ e) if resultExact(Sum, c, e) =>
-              gatherSumInner((c plus e).materialize, BiFunction(b, d, Sum))
+              gatherSumInner(Expression((c plus e).materialize), BiFunction(b, d, Sum))
             case _ =>
               Match(x ~ y) // XXX Terminating condition.
           }
@@ -566,15 +566,15 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     if (x.isAtomic && y.isAtomic)
       Match(x ~ y)
     else if (resultExact(Product, x, y))
-      Match(x.materialize ~ y.materialize)
+      Match(Expression(x.materialize) ~ Expression(y.materialize))
     else
       matchBiFunction(x) match {
         case Match(Product ~ b ~ c) if resultExact(Product, b, c) =>
-          gatherProductInner((b * c).materialize, y)
+          gatherProductInner(Expression((b * c).materialize), y)
         case Match(Product ~ b ~ c) if resultExact(Product, b, y) =>
-          gatherProductInner((b * y).materialize, c)
+          gatherProductInner(Expression((b * y).materialize), c)
         case Match(Product ~ b ~ c) if resultExact(Product, c, y) =>
-          gatherProductInner((c * y).materialize, b)
+          gatherProductInner(Expression((c * y).materialize), b)
         case Match(Product ~ BiFunction(p, q, Product) ~ c) if p.isExact =>
           gatherProductInner(q * y, p * c)
         case Match(Product ~ BiFunction(p, q, Product) ~ c) if q.isExact =>
@@ -587,13 +587,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         case Match(Product ~ b ~ c) =>
           matchBiFunction(y) match {
             case Match(Product ~ d ~ e) if resultExact(Product, b, d) =>
-              gatherProductInner((b * d).materialize, BiFunction(c, e, Product))
+              gatherProductInner(Expression((b * d).materialize), BiFunction(c, e, Product))
             case Match(Product ~ d ~ e) if resultExact(Product, b, e) =>
-              gatherProductInner((b * e).materialize, BiFunction(c, d, Product))
+              gatherProductInner(Expression((b * e).materialize), BiFunction(c, d, Product))
             case Match(Product ~ d ~ e) if resultExact(Product, c, d) =>
-              gatherProductInner((c * d).materialize, BiFunction(b, e, Product))
+              gatherProductInner(Expression((c * d).materialize), BiFunction(b, e, Product))
             case Match(Product ~ d ~ e) if resultExact(Product, c, e) =>
-              gatherProductInner((c * e).materialize, BiFunction(b, d, Product))
+              gatherProductInner(Expression((c * e).materialize), BiFunction(b, d, Product))
             case _ =>
               Match(x ~ y) // XXX Terminating condition.
           }
@@ -636,16 +636,16 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         }
       case Product =>
         ((x * y).materialize, (x * z).materialize, (z * y).materialize) match {
-          case (n@ExactNumber(_, _), _, _) => Match(n * z)
-          case (_, n@ExactNumber(_, _), _) => Match(n * y)
-          case (_, _, n@ExactNumber(_, _)) => Match(n * x)
+          case (n@ExactNumber(_, _), _, _) => Match(Literal(n) * z)
+          case (_, n@ExactNumber(_, _), _) => Match(Literal(n) * y)
+          case (_, _, n@ExactNumber(_, _)) => Match(Literal(n) * x)
           case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
         }
       case Sum =>
         ((x plus y).materialize, (x plus z).materialize, (z plus y).materialize) match {
-          case (n@ExactNumber(_, _), _, _) => Match(n plus z)
-          case (_, n@ExactNumber(_, _), _) => Match(n plus y)
-          case (_, _, n@ExactNumber(_, _)) => Match(n plus x)
+          case (n@ExactNumber(_, _), _, _) => Match(Literal(n) plus z)
+          case (_, n@ExactNumber(_, _), _) => Match(Literal(n) plus y)
+          case (_, _, n@ExactNumber(_, _)) => Match(Literal(n) plus x)
           case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
         }
     }
@@ -653,7 +653,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   private def eliminateIdentity(f: ExpressionBiFunction, x: Expression, c: Expression): MatchResult[Expression] =
     (f, x.materialize, c.materialize) match {
       case (Power, _, Number.one) | (Product, _, Number.one) | (Sum, _, Number.zero) => Match(x)
-      case (Power, Number.one, _) => Match(Number.one)
+      case (Power, Number.one, _) => Match(One)
       case _ => Miss(s"eliminateIdentity $f, $x, $c missed", Number.NaN)
     }
 
