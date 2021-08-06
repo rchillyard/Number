@@ -113,6 +113,14 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def doMultiply(n: Number): Number
 
   /**
+    * Multiply this Number by n.
+    *
+    * @param n another Int.
+    * @return the product of this and n.
+    */
+  def doMultiply(n: Int): Number = doMultiply(Number(n))
+
+  /**
     * Divide this Number by n.
     *
     * @param n another Number.
@@ -519,6 +527,10 @@ object Number {
     * Exact value of 1
     */
   val one: Number = ExactNumber(Right(1), Scalar)
+  /**
+    * Exact value of -1
+    */
+  val negOne: Number = ExactNumber(Right(-1), Scalar)
   /**
     * Exact value of 1
     */

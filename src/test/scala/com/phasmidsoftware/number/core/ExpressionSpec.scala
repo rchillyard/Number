@@ -55,6 +55,19 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     eo.get shouldBe BiFunction(Literal(2), Literal(-1), Power)
   }
 
+  // NOTE these are the new tests (Aug 6th) which should be good
+  behavior of "materialize"
+  it should "work for Exp(1)" in {
+    val x = Function(One, Exp)
+    val result = x.materialize
+    result shouldBe Number.e
+  }
+  it should "work for Exp(Log(2))" in {
+    val x = Function(Function(Two, Log), Exp)
+    val result = x.materialize
+    result shouldBe Number.two
+  }
+
   behavior of "Expression"
 
   it should "materialize" in {
@@ -76,7 +89,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   it should "evaluate +" in {
     val x = Literal(1) + 2
-    x shouldEqual Number(3)
+    val y: Number = x
+    y shouldEqual Number(3)
   }
   it should "evaluate -" in {
     val x = Literal(1) - 2

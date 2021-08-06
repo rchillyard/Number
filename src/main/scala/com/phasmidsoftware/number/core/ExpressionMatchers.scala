@@ -61,13 +61,22 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
-  /**
-    * Matcher which either successfully simplifies the input expression, or evaluates it,
-    * by means of the evaluator Matcher (below).
-    *
-    * @return an Transformer.
-    */
-  def materializer: Transformer = simplifier
+  def replaceIfExact(x: Expression): Expression = exactMaterializer(x) match {
+    case Match(f) => Expression(f)
+    case _ => x
+  }
+
+  def exactMaterializer: ExpressionMatcher[Field] = Matcher[Expression, Field]("exactMaterializer")(exactMaterialization)
+
+  def exactMaterialization(t: Expression): MatchResult[Field] =
+    if (t.isExact) Match(t.evaluate)
+    else Miss("exactMaterialization: non-exact", t)
+
+  def simplifyAndEvaluate(x: Expression): Field =
+    simplifier(x) match {
+      case Match(e) => e.evaluate
+      case _ => x.evaluate
+    }
 
   /**
     * Matcher which materializes (in the expression sense) the given Expression.
@@ -82,7 +91,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return an Transformer.
     */
-  def simplifier: Transformer = matchesIfResultOK((biFunctionSimplifier | functionSimplifier) :| "simplifier", isSimpler)
+  def simplifier: Transformer = ExpressionMatcher {
+    case a@AtomicExpression(_) => Match(a)
+    case b@BiFunction(_, _, _) => biFunctionSimplifier(b)
+    case f@Function(_, _) => functionSimplifier(f)
+  } :| "simplifier"
 
   /**
     * Method to simplify a BiFunction.
@@ -94,6 +107,26 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def biFunctionSimplifier: Transformer = (matchBiFunction & biFunctionMatcher) :| "biFunctionSimplifier"
 
   /**
+    * Matcher which always succeeds.
+    * If either operand can be simplified, then it will be.
+    *
+    * @return
+    */
+  def matchSimplifyTerms: Matcher[DyadicTriple, DyadicTriple] = {
+    case f ~ x ~ y => Match(f ~ replaceIfExact(x) ~ replaceIfExact(y))
+  }
+
+  /**
+    * Matcher which always succeeds.
+    * If either operand can be simplified, then it will be.
+    *
+    * @return
+    */
+  def matchSimplifyTerm: Matcher[MonadicDuple, MonadicDuple] = {
+    case f ~ x => Match(f ~ replaceIfExact(x))
+  }
+
+  /**
     * Method to match an Expression which is a BiFunction and replace it with a simplified expression.
     *
     * NOTE: there may be some redundancies here.
@@ -101,7 +134,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return an Matcher[DyadicTriple, Expression].
     */
   def biFunctionMatcher: Matcher[DyadicTriple, Expression] =
-    (matchSimplifySum | matchSimplifyProduct | matchSimplifyPowerIdentity | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power) | distributor) :| "biFunctionMatcher"
+    ((matchSimplifyTerms & evaluateDyadicTriple) | matchDyadicTrivial | (matchTwoDyadicLevels & matchAndCancelTwoDyadicLevels) | (matchTwoDyadicLevelsL & matchAndCancelTwoDyadicLevelsL) | (matchTwoDyadicLevelsR & matchAndCancelTwoDyadicLevelsR)) :| "biFunctionMatcher"
+  //    (matchSimplifyBiFunction)
+  //  (matchSimplifyBiFunction | matchSimplifySum | matchSimplifyProduct | matchSimplifyPowerIdentity | matchGatherer(Sum) | matchGatherer(Product) | matchGatherer(Power) | distributor) :| "biFunctionMatcher"
 
   /**
     * Method to match an Expression which is a Function and replace it with a simplified expression.
@@ -109,7 +144,81 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return an Transformer.
     */
   def functionSimplifier: Transformer =
-    (matchFunction & matchMonadicDuple(always, ExpressionMatcher(always))) :| "functionSimplifier"
+    (matchFunction & ((matchSimplifyTerm & evaluateMonadicDuple) | (matchTwoMonadicLevels & matchAndCancelTwoMonadicLevels))) :| "functionSimplifier"
+  //  (matchFunction & matchSimplifyTerm & matchMonadicDuple(always, ExpressionMatcher(always))) :| "functionSimplifier"
+
+  def evaluateMonadicDuple: Matcher[MonadicDuple, Expression] = {
+    case f ~ x => exactMaterialization(Function(x, f)) map (Literal(_))
+  }
+
+  def matchTwoMonadicLevels: Matcher[MonadicDuple, ExpressionFunction ~ MonadicDuple] = {
+    case f ~ Function(x, g) => Match(f ~ (g ~ x))
+  }
+
+  def matchAndCancelTwoMonadicLevels: Matcher[ExpressionFunction ~ MonadicDuple, Expression] = {
+    case f ~ (g ~ x) if complementaryMonadic(f, g) => Match(x)
+    case f ~ (g ~ x) => Miss("cannot combine two monadic levels", f ~ (g ~ x))
+  }
+
+  def matchDyadicTrivial: Matcher[DyadicTriple, Expression] = Matcher("matchDyadicTrivial") {
+    case Sum ~ Zero ~ x => Match(x)
+    case Sum ~ x ~ Zero => Match(x)
+    case Product ~ One ~ x => Match(x)
+    case Product ~ x ~ One => Match(x)
+    case Power ~ x ~ One => Match(x)
+    case Power ~ _ ~ Zero => Match(One)
+  }
+
+  def evaluateDyadicTriple: Matcher[DyadicTriple, Expression] = {
+    case f ~ x ~ y => exactMaterialization(BiFunction(x, y, f)) map (Literal(_))
+  }
+
+  def matchTwoDyadicLevels: Matcher[DyadicTriple, ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple] = {
+    case f ~ BiFunction(w, x, g) ~ BiFunction(y, z, h) => Match(f ~ (g ~ w ~ x) ~ (h ~ y ~ z))
+  }
+
+  def matchTwoDyadicLevelsL: Matcher[DyadicTriple, ExpressionBiFunction ~ DyadicTriple ~ Expression] = {
+    case f ~ BiFunction(x, y, g) ~ z => Match(f ~ (g ~ x ~ y) ~ z)
+  }
+
+  def matchTwoDyadicLevelsR: Matcher[DyadicTriple, ExpressionBiFunction ~ Expression ~ DyadicTriple] = {
+    case f ~ z ~ BiFunction(x, y, g) => Match(f ~ z ~ (g ~ x ~ y))
+  }
+
+  def collectTerms(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, h: ExpressionBiFunction, y: Expression, z: Expression): MatchResult[Expression] = (f, g, h) match {
+    case (Product, Power, Power) if w == y => exactMaterialization(BiFunction(w, BiFunction(x, z, Sum), Power)) map (Literal(_))
+    case (Sum, Product, Product) if w == y => exactMaterialization(BiFunction(w, BiFunction(x, z, Sum), Product)) map (Literal(_))
+    case (Sum, Product, Product) if w == z => exactMaterialization(BiFunction(w, BiFunction(x, z, Sum), Product)) map (Literal(_))
+    case (Sum, Product, Product) if x == y => exactMaterialization(BiFunction(w, BiFunction(w, z, Sum), Product)) map (Literal(_))
+    case (Sum, Product, Product) if x == z => exactMaterialization(BiFunction(w, BiFunction(w, y, Sum), Product)) map (Literal(_))
+  }
+
+  def matchAndCancelTwoDyadicLevels: Matcher[ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple, Expression] = {
+    case f ~ (g ~ w ~ x) ~ (h ~ y ~ z) => collectTerms(f, g, w, x, h, y, z)
+  }
+
+  def matchAndCancelTwoDyadicLevelsL: Matcher[ExpressionBiFunction ~ DyadicTriple ~ Expression, Expression] = {
+    case f ~ (g ~ x ~ y) ~ z => associativeDyadic(f, g) match {
+      case Some(d) => exactMaterialization(BiFunction(x, BiFunction(z, y, d), f)) map (Literal(_))
+      case None => Miss(s"cannot combine two dyadic levels ($f and $g do not associate)", x)
+    }
+  }
+
+  def matchAndCancelTwoDyadicLevelsR: Matcher[ExpressionBiFunction ~ Expression ~ DyadicTriple, Expression] = (// NOTE this layout doesn't work for power but it would work for other operators.
+    //    case f ~ z ~ (g ~ x ~ y) if associativeDyadic(f, g) => Match(x ^ (z * y))
+    x => Miss("cannot combine two dyadic levels", x))
+
+  private def complementaryMonadic(f: ExpressionFunction, g: ExpressionFunction) = (f, g) match {
+    case (Exp, Log) => true
+    case (Log, Exp) => true
+    case _ => false
+  }
+
+  def associativeDyadic(f: ExpressionBiFunction, g: ExpressionBiFunction): Option[ExpressionBiFunction] = (f, g) match {
+    case (Power, Power) => Some(Product)
+    case _ => None
+  }
+
 
   /**
     * This simplification will succeed if an expression is of one of the following forms:
@@ -123,6 +232,20 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def distributePower: Matcher[Expressions, Expression] = (distributePowerProduct | distributePowerPower) :| "distributePower"
 
   def distributeProduct: Matcher[Expression ~ Expression, Expression] = *((distributeProductSum | distributeProductPower) :| "distributeProduct")
+
+  /**
+    * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
+    * In particular, we simplify this following expression (in RPN) to 0:
+    * x -1 * x
+    * Also, we can simplify expressions with repeated adjacent Sum operators.
+    *
+    * NOTE that the * operator in the following will invert the order of the incoming tuple if required.
+    *
+    * @return a Matcher[DyadicTriple, Expression]
+    */
+  def matchSimplifyBiFunction: Matcher[DyadicTriple, Expression] = Matcher("matchSimplifyBiFunction") {
+    case f ~ x ~ y if resultExact(f, x, y) => Match(Expression(f(x.materialize, y.materialize)))
+  }
 
   /**
     * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
@@ -363,8 +486,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       case x ~ y => x match {
         case BiFunction(a, b, Sum) => y match {
           case BiFunction(c, d, Sum) =>
+            // TODO eliminate simplify
             Match(BiFunction((simplifyProduct(a, c) plus simplifyProduct(a, d)).simplify, (simplifyProduct(b, c) plus simplifyProduct(b, d)).simplify, Sum).simplify)
           case _ =>
+            // TODO eliminate simplify
             Match(BiFunction((a * y).simplify, (b * y).simplify, Sum).simplify)
         }
         case t => Miss("distributeProductSum", t)
@@ -379,6 +504,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def distributePowerProduct: Matcher[Expressions, Expression] =
     Matcher("distributePowerProduct") {
       case x ~ y => x match {
+        // TODO eliminate simplify
         case BiFunction(a, b, Product) => Match(BiFunction((a ^ y).simplify, (b ^ y).simplify, Product).simplify)
         case t => Miss("distributePowerProduct", t)
       }
@@ -392,6 +518,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def distributePowerPower: Matcher[Expressions, Expression] =
     Matcher("distributePowerPower") {
       case x ~ y => x match {
+        // TODO eliminate simplify
         case BiFunction(a, b, Power) => Match(a ^ (b * y).simplify)
         case t => Miss("distributePowerPower", t)
       }
@@ -408,6 +535,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     Matcher("distributeProductPower") {
       case x ~ y => x match {
         case BiFunction(a, b, Power) => y match {
+          // TODO eliminate simplify
           case BiFunction(c, d, Power) if a.isExact && c.isExact && a.materialize == c.materialize => Match(a ^ (b plus d).simplify)
           case _ => Miss("distributeProductPower", x ~ y)
         }
@@ -436,6 +564,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param v the second expression.
     * @return a possibly simplified version of their product.
     */
+  // TODO eliminate simplify
   def simplifyProduct(u: Expression, v: Expression): Expression = (u * v).simplify
 
   /**
@@ -493,6 +622,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   // CONSIDER does this really make sense? We end up extracting just the expression, providing that the function matches OK.
   def matchMonadicDuple(fm: Matcher[ExpressionFunction, ExpressionFunction], om: Transformer): Matcher[MonadicDuple, Expression] =
     fm ~> om :| "matchMonadicDuple"
+
 
   /**
     * Inner method for gatherSum.
@@ -628,38 +758,40 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   private def combineGather(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] =
     f match {
-      case Power =>
-        // CONSIDER checking that y * z is a positive integer.
-        (y * z).materialize match {
-          case n@ExactNumber(_, _) => Match(x ^ n)
-          case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
-        }
-      case Product =>
-        ((x * y).materialize, (x * z).materialize, (z * y).materialize) match {
-          case (n@ExactNumber(_, _), _, _) => Match(Literal(n) * z)
-          case (_, n@ExactNumber(_, _), _) => Match(Literal(n) * y)
-          case (_, _, n@ExactNumber(_, _)) => Match(Literal(n) * x)
-          case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
-        }
-      case Sum =>
-        ((x plus y).materialize, (x plus z).materialize, (z plus y).materialize) match {
-          case (n@ExactNumber(_, _), _, _) => Match(Literal(n) plus z)
-          case (_, n@ExactNumber(_, _), _) => Match(Literal(n) plus y)
-          case (_, _, n@ExactNumber(_, _)) => Match(Literal(n) plus x)
-          case _ => Miss(s"combineGather $f, $x, $y, $z missed", Number.NaN)
-        }
+      // CONSIDER checking that y * z is a positive integer.
+      // CONSIDER doing these with Matchers
+      case Power if resultExact(Power, y, z) =>
+        Match(x ^ Literal((y * z).materialize))
+      case Product if resultExact(Product, x, y) =>
+        Match(Literal((x * y).materialize) * z)
+      case Product if resultExact(Product, y, z) =>
+        Match(Literal((y * z).materialize) * x)
+      case Product if resultExact(Product, z, x) =>
+        Match(Literal((z * x).materialize) * y)
+      case Sum if resultExact(Sum, x, y) =>
+        import com.phasmidsoftware.number.core.Expression.ExpressionOps
+        Match(Literal((x + y).materialize) + z)
+      case Sum if resultExact(Sum, y, z) =>
+        import com.phasmidsoftware.number.core.Expression.ExpressionOps
+        Match(Literal((y + z).materialize) + x)
+      case Sum if resultExact(Sum, z, x) =>
+        import com.phasmidsoftware.number.core.Expression.ExpressionOps
+        Match(Literal((z + x).materialize) + y)
     }
 
   private def eliminateIdentity(f: ExpressionBiFunction, x: Expression, c: Expression): MatchResult[Expression] =
-    (f, x.materialize, c.materialize) match {
-      case (Power, _, Number.one) | (Product, _, Number.one) | (Sum, _, Number.zero) => Match(x)
-      case (Power, Number.one, _) => Match(One)
-      case _ => Miss(s"eliminateIdentity $f, $x, $c missed", Number.NaN)
+    (f, x, c) match {
+      case (Power, _, One) | (Product, _, One) | (Sum, _, Zero) => Match(x)
+      case (Power, One, _) => Match(One)
+      case _ =>
+        Miss(s"eliminateIdentity $f, $x, $c missed", Number.NaN)
     }
 
   /**
     * Method to create a Matcher which tries to match on parameter m, and then checks the result
     * according to function f.
+    *
+    * NOTE: this seems an odd method to need. Surely there's a better way.
     *
     * CONSIDER look for a combination of matchers which already provide this functionality.
     *
@@ -678,7 +810,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         }
     }
 
-  private def isSimpler(t: Expression, r: Expression): Boolean = r.isExact || r.depth < t.depth
+  //  private def isSimpler(t: Expression, r: Expression): Boolean = r.isExact || r.depth < t.depth
 
   //noinspection ScalaUnusedSymbol
   // NOTE unused method but keeping it for now.

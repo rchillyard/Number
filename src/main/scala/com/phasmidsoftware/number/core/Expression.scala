@@ -40,14 +40,23 @@ trait Expression {
     */
   def simplify: Expression
 
+  /**
+    * Action to evaluate this Expression as a Field,
+    * NOTE no simplification occurs here.
+    * Therefore, if an expression cannot be evaluated exactly,
+    * then it will result in a fuzzy number.
+    *
+    * @return the value.
+    */
+  def evaluate: Field
 
   /**
-    * Action to materialize this Expression as a Field,
-    * that is to say we eagerly evaluate this Expression as a Field.
+    * Action to materialize this Expression as a Field.
+    * If possible, this Expression will be simplified first.
     *
     * @return the materialized Field.
     */
-  def materialize: Field
+  def materialize: Field = Expression.em.simplifyAndEvaluate(this)
 
   /**
     * Method to determine the depth of this Expression.
@@ -81,10 +90,27 @@ object Expression {
   implicit val logger: MatchLogger = MatchLogger(LogOff, classOf[Expression])
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
+  //  trait LoggableExpression extends Loggable[Expression] {
+  //    def toLog(t: Expression): String = t.render
+  //  }
+  //  implicit object LoggableExpression extends LoggableExpression
+  //
+  //  val flog = Flog[ExpressionMatchers]
+
   /**
     * The following method is helpful in getting an expression from a Field.
+    *
+    * CONSIDER improving the logic.
     */
-  def apply(x: Field): Expression = Literal(x)
+  def apply(x: Field): Expression = x match {
+    case Number.zero => Zero
+    case Number.one => One
+    case Number.negOne => MinusOne
+    case Number.two => Two
+    case Number.pi => ConstPi
+    case Number.e => ConstE
+    case _ => Literal(x)
+  }
 
   /**
     * The following method is helpful in getting an expression started.
@@ -333,6 +359,17 @@ trait AtomicExpression extends Expression {
   }
 }
 
+object AtomicExpression {
+  def unapply(arg: AtomicExpression): Option[Field] = arg match {
+    case c: Complex => Some(c)
+    case Literal(x) => Some(x)
+    case c: Constant => Some(c.evaluate)
+    case f: Field => Some(f)
+    case g: GeneralNumber => Some(g)
+    case _ => None
+  }
+}
+
 /**
   * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
   * with simplification.
@@ -365,12 +402,11 @@ case class Literal(x: Field) extends AtomicExpression {
   }
 
   /**
-    * Action to materialize this Expression as a Field,
-    * that is to say we eagerly evaluate this Expression as a Field.
+    * Action to evaluate this Expression as a Field,
     *
     * @return x.
     */
-  def materialize: Field = x
+  def evaluate: Field = x
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -390,6 +426,8 @@ case class Literal(x: Field) extends AtomicExpression {
 
 object Literal {
   def apply(x: Int): Literal = Literal(Number(x))
+
+  def apply(x: Rational): Literal = Literal(Number(x))
 
   def apply(x: Double): Literal = Literal(Number(x))
 }
@@ -414,7 +452,7 @@ abstract class Constant extends AtomicExpression {
     *
     * @return String form of this Constant.
     */
-  def render: String = materialize.render
+  def render: String = evaluate.render
 
   /**
     * Method to yield a String from this Constant.
@@ -426,36 +464,27 @@ abstract class Constant extends AtomicExpression {
 
 case object Zero extends Constant {
   /**
-    * Action to materialize this Expression as a Field,
-    * that is to say we eagerly evaluate this Expression as a Field.
-    *
     * @return Number.zero
     */
-  def materialize: Number = Number.zero
+  def evaluate: Number = Number.zero
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
 
 case object One extends Constant {
   /**
-    * Action to materialize this Expression as a Field,
-    * that is to say we eagerly evaluate this Expression as a Field.
-    *
     * @return 1.
     */
-  def materialize: Number = Number.one
+  def evaluate: Number = Number.one
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
 
 case object MinusOne extends Constant {
   /**
-    * Action to materialize this Expression as a Field,
-    * that is to say we eagerly evaluate this Expression as a Field.
-    *
     * @return -1.
     */
-  def materialize: Number = Number.negate(Number.one)
+  def evaluate: Number = Number.negate(Number.one)
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 
@@ -470,12 +499,9 @@ case object MinusOne extends Constant {
 
 case object Two extends Constant {
   /**
-    * Action to materialize this Expression as a Field,
-    * that is to say we eagerly evaluate this Expression as a Field.
-    *
     * @return 2.
     */
-  def materialize: Number = Number.two
+  def evaluate: Number = Number.two
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
@@ -486,12 +512,9 @@ case object Two extends Constant {
   */
 case object ConstPi extends Constant {
   /**
-    * Action to materialize this Expression as a Field,
-    * that is to say we eagerly evaluate this Expression as a Field.
-    *
     * @return pi.
     */
-  def materialize: Number = Number.pi
+  def evaluate: Number = Number.pi
 
   def maybeFactor: Option[Factor] = Some(Pi)
 }
@@ -502,12 +525,9 @@ case object ConstPi extends Constant {
   */
 case object ConstE extends Constant {
   /**
-    * Action to materialize this Expression as a Field,
-    * that is to say we eagerly evaluate this Expression as a Field.
-    *
     * @return e.
     */
-  def materialize: Number = Number.e
+  def evaluate: Number = Number.e
 
   def maybeFactor: Option[Factor] = Some(E)
 }
@@ -548,7 +568,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     *
     * @return the materialized Field.
     */
-  def materialize: Field = f(x.simplify.materialize)
+  def evaluate: Field = f(x.simplify.materialize) // TODO eliminate simplify
 
   /**
     * If it is possible to simplify this Expression, then we do so.
@@ -558,7 +578,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     * @return an Expression tree which is the simpler equivalent of this.
     */
   def simplify: Expression = {
-    val z = x.simplify
+    val z = x.simplify // TODO eliminate simplify
     if (z != x) Function(z, f)
     else this
   }
@@ -608,12 +628,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the materialized Field.
     */
-  def materialize: Field =
-    if (isExact) value else {
-      val simplified = simplify
-      if (simplified == this) value
-      else simplified.materialize
-    }
+  def evaluate: Field = value
+
+  //    if (isExact) value else {
+  //      val simplified = simplify
+  //      if (simplified == this) value
+  //      else simplified.materialize
+  //    }
 
   /**
     * If it is possible to simplify this Expression, then we do so.
@@ -621,6 +642,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * There is no compelling need to simplify exact expressions.
     *
     * TODO replace logic with something from Matchers (maybe?)
+    *
+    * TODO eliminate this
     *
     * @return an Expression tree which is the simpler equivalent of this.
     */
