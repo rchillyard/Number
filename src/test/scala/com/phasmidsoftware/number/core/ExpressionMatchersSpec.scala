@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers._
+import com.phasmidsoftware.number.core.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter

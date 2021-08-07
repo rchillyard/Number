@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -61,12 +60,14 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
-  def simplifyExpression(x: Expression): Expression = exactMaterializer(x) match {
+  def simplifyExpression(x: Expression): Expression = exactFieldMaterializer(x) match {
     case Match(f) => Expression(f)
     case Miss(_, _) => x
   }
 
-  def exactMaterializer: ExpressionMatcher[Field] = Matcher[Expression, Field]("exactMaterializer")(exactMaterialization)
+  def exactFieldMaterializer: ExpressionMatcher[Field] = Matcher[Expression, Field]("exactFieldMaterializer")(exactMaterialization)
+
+  def exactMaterializer: ExpressionMatcher[Expression] = exactFieldMaterializer map (Expression(_))
 
   // CONSIDER rewrite this as a Matcher
   def exactMaterialization(x: Expression): MatchResult[Field] =
@@ -172,7 +173,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   //  (matchFunction & matchSimplifyMonadicTerm & matchMonadicDuple(always, ExpressionMatcher(always))) :| "functionSimplifier"
 
   def evaluateMonadicDuple: Matcher[MonadicDuple, Expression] = Matcher("evaluateMonadicDuple") {
-    case f ~ x => exactMaterialization(Function(x, f)) map (Literal(_))
+    case f ~ x => exactMaterialization(Function(x, f)) map (Literal(_)) // CONSIDER use exactMaterializer
   }
 
   def matchTwoMonadicLevels: Matcher[MonadicDuple, ExpressionFunction ~ MonadicDuple] = Matcher("matchTwoMonadicLevels") {
@@ -246,19 +247,39 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         replaceExactBiFunction(BiFunction(x, y, Product)),
         replaceExactBiFunction(BiFunction(x, z, Product))
       )
-      val (good, bad) = terms partition (_.successful)
-      if (good.isEmpty) Miss("collectTerms: no *++ terms to collect", f ~ g ~ w ~ x ~ h ~ y ~ z)
-      else {
-        val goodSum: Number = good.foldLeft(Number.zero)((accum, term) => term match {
-          case Match(t) => accum doAdd t
-          case _ => accum
-        })
-        val result: Expression = bad.foldLeft(Expression(goodSum))((accum, term) => term match {
-          case Miss(_, t: BiFunction) => accum plus t
-          case _ => accum
-        })
-        Match(result) flatMap simplifier
+      combineTerms(Sum, terms, Miss("collectTerms: no *++ terms to collect", f ~ g ~ w ~ x ~ h ~ y ~ z))
+    case _ => Miss("collectTerms: functions don't match", f ~ g ~ w ~ x ~ h ~ y ~ z)
+  }
+
+  def combineTerms(function: ExpressionBiFunction, terms: List[MatchResult[Expression]], miss: MatchResult[Expression]): MatchResult[Expression] = {
+    val (good, bad) = terms partition (_.successful)
+    if (good.size < 2) miss
+    else {
+      val start = function match {
+        case Sum => Number.zero
+        case Product => Number.one
+        case _ => throw ExpressionException(s"combineTerms: function not supported: $function")
       }
+      val goodAccumulation: Number = good.foldLeft(start)((accum, term) => term match {
+        case Match(t) =>
+          function match {
+            case Sum => accum doAdd t
+            case Product => accum doMultiply t
+            case _ => throw ExpressionException(s"combineTerms: function not supported: $function")
+          }
+        case _ => accum
+      })
+      val result: Expression = bad.foldLeft(Expression(goodAccumulation))((accum, term) => term match {
+        case Miss(_, t: Expression) =>
+          function match {
+            case Sum => accum plus t
+            case Product => accum * t
+            case _ => throw ExpressionException(s"combineTerms: function not supported: $function")
+          }
+        case _ => accum
+      })
+      Match(result) flatMap simplifier
+    }
   }
 
   private def formBiFunction(x: Expression, function: ExpressionBiFunction): Expression => Expression = BiFunction(x, _, function)
@@ -270,7 +291,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
   // TODO redefine as a Matcher
   private def replaceExactBiFunction(function: BiFunction): MatchResult[Expression] =
-    (exactMaterialization(function) map (Expression(_))) || effectivelyExactMaterialization(function)
+    (exactMaterialization(function) map (Expression(_))) || effectivelyExactMaterialization(function)  // CONSIDER use exactMaterializer
 
   /**
     * @see #collectTerms
@@ -295,14 +316,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param z an expression.
     * @return a match of a new expression or a miss of the originals.
     */
-  def combineExact(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] = (x.isExact, y.isExact, z.isExact) match {
-    case (true, false, true) if f != Power => doCombineExact(f, x, z, y)
-    case (false, true, true) if f != Power => doCombineExact(f, z, y, x)
-    case (true, true, false) if f != Power => doCombineExact(f, x, y, z)
+  def combineExact(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] = {
+    val list = List(x, y, z) map (x => exactMaterializer(x))
+    combineTerms(f, list, Miss("nothing to combine", f ~ x ~ y ~ z))
   }
-
-  private def doCombineExact(f: ExpressionBiFunction, a: Expression, b: Expression, c: Expression) =
-    exactMaterialization(BiFunction(a, b, f)) map (e => BiFunction(c, Literal(e), f)) flatMap simplifier
 
   def matchAndCancelTwoDyadicLevelsL: Matcher[ExpressionBiFunction ~ DyadicTriple ~ Expression, Expression] = {
     case f ~ (g ~ x ~ y) ~ z if f == g && f != Power => combineExact(f, x, y, z)
