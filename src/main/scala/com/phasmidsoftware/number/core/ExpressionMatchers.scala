@@ -197,16 +197,28 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case f ~ (g ~ w ~ x) ~ (h ~ y ~ z) => collectTerms(f, g, w, x, h, y, z)
   }
 
+  def combineExact(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] = (x.isExact, y.isExact, z.isExact) match {
+    case (true, false, true) if f != Power =>
+      exactMaterialization(BiFunction(x, z, f)) map (e => BiFunction(y, Literal(e), f)) // flatMap  biFunctionSimplifier
+    case (false, true, true) if f != Power =>
+      exactMaterialization(BiFunction(y, z, f)) map (e => BiFunction(x, Literal(e), f)) // flatMap  biFunctionSimplifier
+    case (true, true, false) if f != Power =>
+      exactMaterialization(BiFunction(x, y, f)) map (e => BiFunction(z, Literal(e), f)) // flatMap  biFunctionSimplifier
+  }
+
   def matchAndCancelTwoDyadicLevelsL: Matcher[ExpressionBiFunction ~ DyadicTriple ~ Expression, Expression] = {
+    case f ~ (g ~ x ~ y) ~ z if f == g && f != Power => combineExact(f, x, y, z)
     case f ~ (g ~ x ~ y) ~ z => associativeDyadic(f, g) match {
       case Some(d) => exactMaterialization(BiFunction(x, BiFunction(z, y, d), f)) map (Literal(_))
       case None => Miss(s"cannot combine two dyadic levels ($f and $g do not associate)", x)
     }
   }
 
-  def matchAndCancelTwoDyadicLevelsR: Matcher[ExpressionBiFunction ~ Expression ~ DyadicTriple, Expression] = (// NOTE this layout doesn't work for power but it would work for other operators.
+  def matchAndCancelTwoDyadicLevelsR: Matcher[ExpressionBiFunction ~ Expression ~ DyadicTriple, Expression] = { // NOTE this layout doesn't work for power but it would work for other operators.
+    case f ~ z ~ (g ~ x ~ y) if f == g && f != Power => combineExact(f, x, y, z)
     //    case f ~ z ~ (g ~ x ~ y) if associativeDyadic(f, g) => Match(x ^ (z * y))
-    x => Miss("cannot combine two dyadic levels", x))
+    case x => Miss("matchAndCancelTwoDyadicLevelsR: cannot combine two dyadic levels", x)
+  }
 
   private def complementaryMonadic(f: ExpressionFunction, g: ExpressionFunction) = (f, g) match {
     case (Exp, Log) => true
@@ -214,6 +226,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case _ => false
   }
 
+  // CONSIDER inlining this
   def associativeDyadic(f: ExpressionBiFunction, g: ExpressionBiFunction): Option[ExpressionBiFunction] = (f, g) match {
     case (Power, Power) => Some(Product)
     case _ => None
