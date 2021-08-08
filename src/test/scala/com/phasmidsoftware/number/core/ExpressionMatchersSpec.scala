@@ -447,15 +447,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z shouldBe em.Match(Literal(9))
   }
   // FIXME this wos working just a few minutes ago :(
-  ignore should "distributeProductSum" in {
-    val p = em.matchAndCancelTwoDyadicLevels
-    val q = em.matchBiFunction
-    val a = BiFunction(Two, Literal(3), Sum)
-    val b = BiFunction(Literal(4), Two, Sum)
-    import em.TildeOps
-    val z = p(Sum ~ q(a).get ~ q(b).get)
-    z shouldBe em.Match(Literal(30))
-  }
+//  ignore should "distributeProductSum" in {
+//    val p = em.matchAndCollectTwoDyadicLevels
+//    val q = em.matchBiFunction
+//    val a = BiFunction(Two, Literal(3), Sum)
+//    val b = BiFunction(Literal(4), Two, Sum)
+//    import em.TildeOps
+//    val z = p(Sum ~ q(a).get ~ q(b).get)
+//    z shouldBe em.Match(Literal(30))
+//  }
   it should "distributeProductSum a" in {
     val p = em.distributeProductSum
     val a = BiFunction(One, Two, Sum)
@@ -692,15 +692,45 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     em.simplifier(Expression(5) * 2 * 3 * Number.e) shouldBe em.Match(ConstE * 30)
   }
 
-  behavior of "matchAndCancelTwoDyadicLevels"
+  behavior of "two levels"
+  it should "get 0 from -√3 + √3" in {
+    val p = em.matchDyadicTwoLevels
+    val root3: Number = Number(3).sqrt
+    val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Product)
+    val e: DyadicTriple = Sum ~ e1 ~ Literal(root3)
+    val result: em.MatchResult[Expression] = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Zero
+  }
+  it should "get 0 from √3 + -√3" in {
+    val p = em.matchDyadicTwoLevels
+    val root3: Number = Number(3).sqrt
+    val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Product)
+    val e: DyadicTriple = Sum ~ Literal(root3) ~ e1
+    val result: em.MatchResult[Expression] = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Zero
+  }
+  it should "get 1 from 1/√3 * √3" in {
+    val p = em.matchDyadicTwoLevels
+    val root3: Number = Number(3).sqrt
+    val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Power)
+    val e: DyadicTriple = Product ~ e1 ~ Literal(root3)
+    val result: em.MatchResult[Expression] = p(e)
+    result.successful shouldBe true
+    result.get shouldBe One
+  }
+
+
+  behavior of "matchAndCollectTwoDyadicLevels"
   it should "work for √3 * √3" in {
-    val p = em.matchAndCancelTwoDyadicLevels
+    val p = em.matchAndCollectTwoDyadicLevels
     val result: em.MatchResult[Expression] = p(Product ~ (Power ~ Literal(3) ~ Literal(Rational.half)) ~ (Power ~ Literal(3) ~ Literal(Rational.half)))
     result.successful shouldBe true
     result.get shouldBe Literal(3)
   }
   it should "work for (π + 1) * (π - 1)" in {
-    val p = em.matchAndCancelTwoDyadicLevels
+    val p = em.matchAndCollectTwoDyadicLevels
     val root3: Expression = Expression(3).sqrt
     val result: em.MatchResult[Expression] = p(Sum ~ (Product ~ root3 ~ One) ~ (Product ~ root3 ~ MinusOne))
     result.successful shouldBe true
@@ -735,6 +765,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.successful shouldBe true
     result.get shouldBe Literal(3)
   }
+  // FIXME Issue #55
   ignore should "get x" in {
     val p = em.matchMultiLevels
     val root3: Number = Number(3).sqrt

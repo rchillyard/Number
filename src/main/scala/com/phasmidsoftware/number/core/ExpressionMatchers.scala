@@ -165,25 +165,17 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a Matcher.
     */
-  def matchDyadicTwoLevels: Matcher[DyadicTriple, Expression] = matchSimplifyDyadicTermsTwoLevels &
-          ((matchTwoDyadicLevels & matchAndCancelTwoDyadicLevels) | (matchTwoDyadicLevelsL & matchAndCancelTwoDyadicLevelsL) | (matchTwoDyadicLevelsR & matchAndCancelTwoDyadicLevelsR) | fail("twoLevel")) :| "matchDyadicTwoLevels"
+  def matchDyadicTwoLevels: Matcher[DyadicTriple, Expression] = matchSimplifyDyadicTermsTwoLevels & (
+          (matchTwoDyadicLevels & matchAndCollectTwoDyadicLevels) |
+                  (matchTwoDyadicLevelsL & (matchAndCancelTwoDyadicLevelsL | matchAndCollectTwoDyadicLevelsL)) |
+                  (matchTwoDyadicLevelsR & (matchAndCancelTwoDyadicLevelsR | matchAndCollectTwoDyadicLevelsR)) |
+                  fail("twoLevel")
+          ) :| "matchDyadicTwoLevels"
 
   def matchMultiLevels: Matcher[DyadicTriple, Expression] = {
-    case f ~ x ~ y => matchMultiLevelsInner(f, Nil)(f ~ x ~ y)
-  }
-
-  def matchMultiLevelsInner(f: ExpressionBiFunction, matches: Seq[MatchResult[Expression]]): Matcher[DyadicTriple, Expression] = {
-    // TODO we need to check context, e.g.  Some(Scalar) if f is Sum. For Product, it's not a problem
-    case `f` ~ BiFunction(a, b, `f`) ~ BiFunction(c, d, `f`) if f != Power =>
-      matchMultiLevelsInner(f, matchMultiLevelsInner(f, matches)(f ~ a ~ b) +: matches)(f ~ c ~ d)
-    case `f` ~ x ~ BiFunction(a, b, `f`) if f != Power =>
-      matchMultiLevelsInner(f, exactMaterializer(x) +: matches)(f ~ a ~ b)
-    case `f` ~ BiFunction(a, b, `f`) ~ y if f != Power =>
-      matchMultiLevelsInner(f, exactMaterializer(y) +: matches)(f ~ a ~ b)
-    case `f` ~ x ~ y if f != Power =>
-      matchMultiLevelsInner(f, exactMaterializer(x) +: exactMaterializer(y) +: matches)(Power ~ Zero ~ Zero)
-    case x =>
-      combineTerms(f, matches, Miss("matchMultiLevelsInner", x))
+    case f ~ x ~ y =>
+      val result = matchMultiLevelsInner(f, Nil)(f ~ x ~ y)
+      combineTerms(f, result, Miss("matchMultiLevelsInner", x))
   }
 
   /**
@@ -219,8 +211,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Power ~ x ~ One => matchAndSimplify(x)
   }
 
-  private def matchAndSimplify(x: Expression): MatchResult[Expression] = Match(x) flatMap simplifier
-
   def evaluateExactDyadicTriple: Matcher[DyadicTriple, Expression] = Matcher("evaluateExactDyadicTriple") {
     case f ~ x ~ y => replaceExactBiFunction(None)(BiFunction(x, y, f))
   }
@@ -237,11 +227,28 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case f ~ z ~ BiFunction(x, y, g) => Match(f ~ z ~ (g ~ x ~ y))
   }
 
+  private def matchAndSimplify(x: Expression): MatchResult[Expression] = Match(x) flatMap simplifier
+
+  private def matchMultiLevelsInner(f: ExpressionBiFunction, matches: Seq[MatchResult[Expression]])(input: ExpressionBiFunction ~ Expression ~ Expression): Seq[MatchResult[Expression]] = input match {
+    // TODO we need to check context, e.g.  Some(Scalar) if f is Sum. For Product, it's not a problem
+    case `f` ~ BiFunction(a, b, `f`) ~ BiFunction(c, d, `f`) if f != Power =>
+      matchMultiLevelsInner(f, matchMultiLevelsInner(f, matches)(f ~ a ~ b) ++ matches)(f ~ c ~ d)
+    case `f` ~ x ~ BiFunction(a, b, `f`) if f != Power =>
+      matchMultiLevelsInner(f, exactMaterializer(x) +: matches)(f ~ a ~ b)
+    case `f` ~ BiFunction(a, b, `f`) ~ y if f != Power =>
+      matchMultiLevelsInner(f, exactMaterializer(y) +: matches)(f ~ a ~ b)
+    case `f` ~ x ~ y if f != Power => // NOTE: this is solely to terminate the recursion (we should have some other illegal ExpressionBiFunction to use).
+      matchMultiLevelsInner(f, exactMaterializer(x) +: exactMaterializer(y) +: matches)(Power ~ Zero ~ Zero)
+    case _ => matches
+  }
+
   /**
     * Collect equal terms (fuzzy terms since this method won't be called if all the terms are exact) from an expression of the following two types:
     *
     * w power x * y power z where w = y => x power (y + z)
     * w * x + y * z where w = y => w * (x + z)
+    *
+    * CONSIDER pulling the flatMap simplifier out of each case and putting after the result is known. Applies to similar methods.
     *
     * @param f the higher level function.
     * @param g the lower level function of the left branch.
@@ -252,7 +259,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param z the right/right expression.
     * @return a Match of the simplified expression, or a Miss.
     */
-  def collectTerms(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, h: ExpressionBiFunction, y: Expression, z: Expression): MatchResult[Expression] = (f, g, h) match {
+  private def collectTermsDyadicTwoLevels(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, h: ExpressionBiFunction, y: Expression, z: Expression): MatchResult[Expression] = (f, g, h) match {
     case (Product, Power, Power) if w == y =>
       replaceExactBiFunction(Some(Scalar))(BiFunction(x, z, Sum)) map formBiFunction(w, Power) flatMap simplifier
     case (Sum, Product, Product) if w == y =>
@@ -270,11 +277,71 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         replaceExactBiFunction(Some(Scalar))(BiFunction(x, y, Product)),
         replaceExactBiFunction(Some(Scalar))(BiFunction(x, z, Product))
       )
-      combineTerms(Sum, terms, Miss("collectTerms: no *++ terms to collect", f ~ g ~ w ~ x ~ h ~ y ~ z))
-    case _ => Miss("collectTerms: functions don't match", f ~ g ~ w ~ x ~ h ~ y ~ z)
+      combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevels: no *++ terms to collect", f ~ g ~ w ~ x ~ h ~ y ~ z))
+    case _ => Miss("collectTermsDyadicTwoLevels: functions don't match", f ~ g ~ w ~ x ~ h ~ y ~ z)
   }
 
-  def combineTerms(function: ExpressionBiFunction, terms: Seq[MatchResult[Expression]], miss: MatchResult[Expression]): MatchResult[Expression] = {
+  /**
+    * Collect equal terms (fuzzy terms since this method won't be called if all the terms are exact) from an expression of the following two types:
+    *
+    * w power x * y where w = y => w power (y + 1)
+    * w x + y where w = y => w * (x + 1)
+    *
+    * @param f the higher level function.
+    * @param g the lower level function of the left branch.
+    * @param w the left/left expression.
+    * @param x the left/right expression.
+    * @param y the right/right expression.
+    * @return a Match of the simplified expression, or a Miss.
+    */
+  private def collectTermsDyadicTwoLevelsL(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, y: Expression): MatchResult[Expression] = (f, g) match {
+    case (Product, Power) if w == y =>
+      replaceExactBiFunction(Some(Scalar))(BiFunction(One, x, Sum)) map formBiFunction(w, Power) flatMap simplifier // TODO refactor using method, etc...
+    case (Sum, Product) if w == y =>
+      replaceExactBiFunction(Some(Scalar))(BiFunction(One, x, Sum)) map formBiFunction(w, Product) flatMap simplifier
+    case (Sum, Product) if x == y =>
+      replaceExactBiFunction(Some(Scalar))(BiFunction(One, w, Sum)) map formBiFunction(x, Product) flatMap simplifier
+    case (Product, Sum) =>
+      val terms = List(
+        replaceExactBiFunction(Some(Scalar))(BiFunction(w, y, Product)),
+        replaceExactBiFunction(Some(Scalar))(BiFunction(x, y, Product)),
+      )
+      combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsL: no *++ terms to collect", f ~ g ~ w ~ x ~ y))
+    case _ => Miss("collectTermsDyadicTwoLevelsL: functions don't match", f ~ g ~ w ~ x ~ y)
+  }
+
+  /**
+    * Collect equal terms (fuzzy terms since this method won't be called if all the terms are exact) from an expression of the following two types:
+    *
+    * w * x power y where w = x => w power (y + 1)
+    * w + x * y where w = x => w * (y + 1)
+    *
+    * CONSIDER can we merge this code with collectTermsDyadicTwoLevelsL?
+    *
+    * @param f the higher level function.
+    * @param g the lower level function of the left branch.
+    * @param w the left/left expression.
+    * @param x the left/right expression.
+    * @param y the right/right expression.
+    * @return a Match of the simplified expression, or a Miss.
+    */
+  private def collectTermsDyadicTwoLevelsR(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, y: Expression): MatchResult[Expression] = (f, g) match {
+    case (Product, Power) if w == x =>
+      replaceExactBiFunction(Some(Scalar))(BiFunction(One, y, Sum)) map formBiFunction(w, Power) flatMap simplifier // TODO refactor using method, etc...
+    case (Sum, Product) if w == x =>
+      replaceExactBiFunction(Some(Scalar))(BiFunction(One, y, Sum)) map formBiFunction(w, Product) flatMap simplifier
+    case (Sum, Product) if w == y =>
+      replaceExactBiFunction(Some(Scalar))(BiFunction(One, x, Sum)) map formBiFunction(w, Product) flatMap simplifier
+    case (Product, Sum) =>
+      val terms = List(
+        replaceExactBiFunction(Some(Scalar))(BiFunction(w, x, Product)),
+        replaceExactBiFunction(Some(Scalar))(BiFunction(w, y, Product)),
+      )
+      combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsR: no *++ terms to collect", f ~ g ~ w ~ x ~ y))
+    case _ => Miss("collectTermsDyadicTwoLevelsR: functions don't match", f ~ g ~ w ~ x ~ y)
+  }
+
+  private def combineTerms(function: ExpressionBiFunction, terms: Seq[MatchResult[Expression]], miss: MatchResult[Expression]): MatchResult[Expression] = {
     val (good, bad) = terms partition (_.successful)
     if (good.size < 2) miss
     else {
@@ -308,7 +375,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   private def formBiFunction(x: Expression, function: ExpressionBiFunction): Expression => Expression = BiFunction(x, _, function)
 
   // TODO redefine as a Matcher
-  def effectivelyExactMaterialization(function: BiFunction): MatchResult[Expression] = function match {
+  private def effectivelyExactMaterialization(function: BiFunction): MatchResult[Expression] = function match {
     case BiFunction(a, b, f) => matchDyadicTwoLevels(f ~ a ~ b)
   }
 
@@ -317,15 +384,40 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     (exactMaterialization(maybeFactor)(function) map (Expression(_))) || effectivelyExactMaterialization(function)  // CONSIDER use exactMaterializer
 
   /**
-    * @see #collectTerms
+    * @see #collectTermsDyadicTwoLevels
     *      * Collect equal terms (fuzzy terms since this method won't be called if all the terms are exact) from an expression of the following two types:
     *
     *      w power x * y power z where w = y => x power (y + z)
     *      w * x + y * z where w = y => w * (x + z)
     * @return a Match of the simplified expression, or a Miss.
     */
-  def matchAndCancelTwoDyadicLevels: Matcher[ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple, Expression] = Matcher("matchAndCancelTwoDyadicLevels") {
-    case f ~ (g ~ w ~ x) ~ (h ~ y ~ z) => collectTerms(f, g, w, x, h, y, z)
+    // private
+   def matchAndCollectTwoDyadicLevels: Matcher[ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple, Expression] = Matcher("matchAndCollectTwoDyadicLevels") {
+    case f ~ (g ~ w ~ x) ~ (h ~ y ~ z) => collectTermsDyadicTwoLevels(f, g, w, x, h, y, z)
+  }
+
+  /**
+    * @see #collectTermsDyadicTwoLevels
+    *      * Collect equal terms (fuzzy terms since this method won't be called if all the terms are exact) from an expression of the following two types:
+    *
+    *      w power x * y power z where w = y => x power (y + z)
+    *      w * x + y * z where w = y => w * (x + z)
+    * @return a Match of the simplified expression, or a Miss.
+    */
+  private def matchAndCollectTwoDyadicLevelsL: Matcher[ExpressionBiFunction ~ DyadicTriple ~ Expression, Expression] = Matcher("matchAndCancelTwoDyadicLevelsL") {
+    case f ~ (g ~ w ~ x) ~ y => collectTermsDyadicTwoLevelsL(f, g, w, x, y)
+  }
+
+  /**
+    * @see #collectTermsDyadicTwoLevels
+    *      * Collect equal terms (fuzzy terms since this method won't be called if all the terms are exact) from an expression of the following two types:
+    *
+    *      w power x * y power z where w = y => x power (y + z)
+    *      w * x + y * z where w = y => w * (x + z)
+    * @return a Match of the simplified expression, or a Miss.
+    */
+  private def matchAndCollectTwoDyadicLevelsR: Matcher[ExpressionBiFunction ~ Expression ~ DyadicTriple, Expression] = Matcher("matchAndCancelTwoDyadicLevelsL") {
+    case f ~ x ~ (g ~ y ~ z) => collectTermsDyadicTwoLevelsR(f, g, x, y, z)
   }
 
   /**
@@ -339,13 +431,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param z an expression.
     * @return a match of a new expression or a miss of the originals.
     */
-  def combineExact(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] = {
+  private def combineExact(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] = {
     // TODO this is OK for multiplication but additive terms need to check that they are in the same factor context.
     val list = List(x, y, z) map (x => exactMaterializer(x))
     combineTerms(f, list, Miss("nothing to combine", f ~ x ~ y ~ z))
   }
 
-  def matchAndCancelTwoDyadicLevelsL: Matcher[ExpressionBiFunction ~ DyadicTriple ~ Expression, Expression] = {
+  private def matchAndCancelTwoDyadicLevelsL: Matcher[ExpressionBiFunction ~ DyadicTriple ~ Expression, Expression] = {
     case f ~ (g ~ x ~ y) ~ z if f == g && f != Power => combineExact(f, x, y, z)
     case f ~ (g ~ x ~ y) ~ z => associativeDyadic(f, g) match {
       case Some(d) => replaceExactBiFunction(Some(Scalar))(BiFunction(x, BiFunction(z, y, d), f))
@@ -353,7 +445,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     }
   }
 
-  def matchAndCancelTwoDyadicLevelsR: Matcher[ExpressionBiFunction ~ Expression ~ DyadicTriple, Expression] = { // NOTE this layout doesn't work for power but it would work for other operators.
+  private def matchAndCancelTwoDyadicLevelsR: Matcher[ExpressionBiFunction ~ Expression ~ DyadicTriple, Expression] = { // NOTE this layout doesn't work for power but it would work for other operators.
     case f ~ z ~ (g ~ x ~ y) if f == g && f != Power => combineExact(f, x, y, z)
     //    case f ~ z ~ (g ~ x ~ y) if associativeDyadic(f, g) => Match(x ^ (z * y))
     case x => Miss("matchAndCancelTwoDyadicLevelsR: cannot combine two dyadic levels", x)
@@ -366,11 +458,12 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   // CONSIDER inlining this
-  def associativeDyadic(f: ExpressionBiFunction, g: ExpressionBiFunction): Option[ExpressionBiFunction] = (f, g) match {
+  private def associativeDyadic(f: ExpressionBiFunction, g: ExpressionBiFunction): Option[ExpressionBiFunction] = (f, g) match {
     case (Power, Power) => Some(Product)
     case _ => None
   }
 
+  // OLD STUFF
 
   /**
     * This simplification will succeed if an expression is of one of the following forms:
