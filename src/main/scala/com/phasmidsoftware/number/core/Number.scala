@@ -6,7 +6,6 @@ import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -167,7 +166,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   /**
     * @return true if there is no fuzz.
     */
-  def isExact: Boolean = fuzz.isEmpty
+  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && (maybeFactor.isEmpty || maybeFactor.contains(factor))
 
   /**
     * Add x to this Number and return the result.

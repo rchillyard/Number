@@ -7,22 +7,13 @@ import com.phasmidsoftware.number.parse.ShuntingYardParser
 /**
   * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
   */
-trait Expression {
+trait Expression extends NumberLike {
   /**
     * Method to determine if this Expression cannot be simplified on account of it being atomic.
     *
     * @return true if this extends AtomicExpression
     */
   def isAtomic: Boolean
-
-  /**
-    * Method to determine if this Expression can be evaluated exactly.
-    *
-    * NOTE: the implementations of this don't always make perfect sense regarding maybeFactor.
-    *
-    * @return true if materialize will result in an ExactNumber, else false.
-    */
-  def isExact: Boolean
 
   /**
     * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
@@ -59,19 +50,18 @@ trait Expression {
   def materialize: Field = Expression.em.simplifyAndEvaluate(this)
 
   /**
+    * Method to determine if this Expression corresponds to a real Number.
+    *
+    * @return a Some(x) if this is a Number; otherwise return None.
+    */
+  def asNumber: Option[Number] = materialize.asNumber
+
+  /**
     * Method to determine the depth of this Expression.
     *
     * @return the depth (an atomic expression has depth of 1).
     */
   def depth: Int
-
-  /**
-    * Action to materialize this Expression and render it as a String,
-    * that is to say we eagerly evaluate this Expression as a String.
-    *
-    * @return a String representing the value of this expression.
-    */
-  def render: String
 
   /**
     * Eagerly compare this Expression with comparand.
@@ -391,7 +381,7 @@ case class Literal(x: Field) extends AtomicExpression {
     *
     * @return true if materialize will result in an ExactNumber, else false.
     */
-  def isExact: Boolean = x.isExact
+  def isExact(maybeFactor: Option[Factor]): Boolean = x.isExact(maybeFactor)
 
   /**
     * @return Some(factor).
@@ -425,6 +415,8 @@ case class Literal(x: Field) extends AtomicExpression {
 }
 
 object Literal {
+  def unapply(arg: Literal): Option[Field] = Some(arg.x)
+
   def apply(x: Int): Literal = Literal(Number(x))
 
   def apply(x: Rational): Literal = Literal(Number(x))
@@ -444,7 +436,7 @@ abstract class Constant extends AtomicExpression {
     *
     * @return true.
     */
-  def isExact: Boolean = maybeFactor.contains(Scalar)
+  def isExact(maybeFactor: Option[Factor]): Boolean = evaluate.isExact(maybeFactor)
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -543,11 +535,10 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   /**
     * Method to determine if this Expression can be evaluated exactly.
     *
-    * CONSIDER deal with each ExpressionFunction on an individual basis.
-    *
+    * @param maybeFactor the context in which we want to evaluate this Expression.
     * @return false.
     */
-  def isExact: Boolean = f(x.materialize).isExact
+  def isExact(maybeFactor: Option[Factor]): Boolean = f(x.materialize).isExact(maybeFactor)
 
   /**
     * TODO implement properly according to the actual function involved.
@@ -607,7 +598,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the value of exact which is based on a, b, and f.
     */
-  def isExact: Boolean = exact && maybeFactor.isDefined && value.isExact
+  def isExact(maybeFactor: Option[Factor]): Boolean = exact && value.isExact(maybeFactor)
 
   /**
     * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
@@ -648,7 +639,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an Expression tree which is the simpler equivalent of this.
     */
   def simplify: Expression =
-    if (isExact) value match {
+    if (isExact(Some(Scalar))) value match {
       case n: Field => Literal(n)
     }
     else {
@@ -707,7 +698,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ => false
   }
 
-  private lazy val exact: Boolean = a.isExact && b.isExact && (f.isExact || conditionallyExact(f, a, b))
+  private lazy val exact: Boolean = a.isExact(None) && b.isExact(None) && (f.isExact || conditionallyExact(f, a, b))
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")

@@ -8,7 +8,6 @@ import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -199,49 +198,48 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should """work for "1"""" in {
     val target = Number("1")
-    target.isExact shouldBe true
     target.value shouldBe Right(1)
   }
   it should """work for "2147483648"""" in {
     val target = Number("2147483648")
-    target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(bigBigInt)))
+    target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should """work for "3.1415927"""" in {
     val target = Number("3.1415927")
-    target.isExact shouldBe false
-    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+      target.isExact(None) shouldBe false
+      target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1416" in {
     val target = Number(3.1416)
-    target.isExact shouldBe false
-    target shouldEqual Number(Rational(3927, 1250))
+      target.isExact(None) shouldBe false
+      target shouldEqual Number(Rational(3927, 1250))
   }
   it should """work for "\uD835\uDED1""""" in {
     val target = Number("\uD835\uDED1")
-    target.isExact shouldBe true
-    target.value shouldBe Right(1)
+      target.isExact(None) shouldBe true
+      target.value shouldBe Right(1)
     target.factor shouldBe Pi
   }
   it should "work for 1" in {
     val target = numberOne
-    target.isExact shouldBe true
-    target.value shouldBe Right(1)
+      target.isExact(None) shouldBe true
+      target.value shouldBe Right(1)
   }
   it should "work for bigBigInt" in {
     val target = Number(bigBigInt)
-    target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(bigBigInt)))
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should "work for Rational(1,2)" in {
     val target = Number(Rational(1, 2))
-    target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(1, 2)))
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for math.pi" in {
     val target = Number(Math.PI)
-    target.isExact shouldBe false
-    target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
+      target.isExact(None) shouldBe false
+      target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
   }
   it should "work for nothing" in {
     val target = Number()
@@ -249,54 +247,54 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for BigDecimal(3.1415927)" in {
     val target = Number(BigDecimal(3.1415927))
-    target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1415927" in {
     val target = Number(3.1415927)
-    target.isExact shouldBe false
-    target shouldEqual Number(Rational(31415927, 10000000))
+      target.isExact(None) shouldBe false
+      target shouldEqual Number(Rational(31415927, 10000000))
   }
   it should """work for 3.1415926535897932384626433""" in {
     val target = Number(3.1415926535897932384626433)
-    target.isExact shouldBe false
-    target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
+      target.isExact(None) shouldBe false
+      target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
   }
   it should "work for 0.5" in {
     val target = Number(0.5)
-    target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(1, 2)))
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for 1.23" in {
     val target = Number(1.23)
-    target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(123, 100)))
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(123, 100)))
   }
   it should "work for 1.234" in {
     val target = Number(1.234)
-    target.isExact shouldBe false
-    target.value shouldBe Left(Left(Some(1.234)))
+      target.isExact(None) shouldBe false
+      target.value shouldBe Left(Left(Some(1.234)))
     target.toString shouldBe "1.234[5]"
   }
   it should "work for 1.23400" in {
     val target = Number(1.23400)
-    target.isExact shouldBe false
-    target.value shouldBe Left(Left(Some(1.234)))
+      target.isExact(None) shouldBe false
+      target.value shouldBe Left(Left(Some(1.234)))
     target.toString shouldBe "1.234[5]"
   }
   it should "support exact strings" in {
     val target = Number("3.141592700")
-    target.isExact shouldBe true
-    target should matchPattern { case ExactNumber(_, _) => }
+      target.isExact(None) shouldBe true
+      target should matchPattern { case ExactNumber(_, _) => }
     target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
 
   behavior of "Number.parse" // CONSIDER Moving these into NumberParserSpec
   it should "parse boltzmann" in {
     val zy = Number.parse(sBoltzmann)
-    zy should matchPattern { case Success(_) => }
-    zy.get.isExact shouldBe true
-    zy.get.toDouble shouldBe Some(1.380649E-23)
+      zy should matchPattern { case Success(_) => }
+      zy.get.isExact(None) shouldBe true
+      zy.get.toDouble shouldBe Some(1.380649E-23)
   }
   it should "fail to parse boltzmann with alternative minus" in {
     val zy = Number.parse("1.380649E−23")
@@ -304,33 +302,33 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "parse planck" in {
     val z = Number.parse(sPlanck)
-    z should matchPattern { case Success(_) => }
-    z.get.isExact shouldBe true
+      z should matchPattern { case Success(_) => }
+      z.get.isExact(None) shouldBe true
   }
   it should "parse c" in {
     val z = Number.parse(sC)
-    z should matchPattern { case Success(_) => }
-    z.get.isExact shouldBe true
+      z should matchPattern { case Success(_) => }
+      z.get.isExact(None) shouldBe true
   }
   it should "parse avagadro" in {
     val z = Number.parse(sAvagadro)
-    z should matchPattern { case Success(_) => }
-    z.get.isExact shouldBe true
+      z should matchPattern { case Success(_) => }
+      z.get.isExact(None) shouldBe true
   }
 
   behavior of "FuzzOps"
   it should "get mu" in {
     import Number.FuzzOps
     val x = 1836.15267343 ~ 11
-    x.isExact shouldBe false
-    x.toString shouldBe "1836.15267343(11)"
+      x.isExact(None) shouldBe false
+      x.toString shouldBe "1836.15267343(11)"
     x shouldEqual Constants.mu
   }
   it should "get G" in {
     import Number.FuzzOps
     val x = 6.67430E-11 ~ 15
-    x.isExact shouldBe false
-    x shouldEqual Constants.G
+      x.isExact(None) shouldBe false
+      x shouldEqual Constants.G
     // FIXME Issue #54
     //    x.toString shouldBe "6.67430(15)E-11"
   }

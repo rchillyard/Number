@@ -11,28 +11,21 @@ import com.phasmidsoftware.number.core.Field.recover
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field {
+trait Field extends NumberLike {
 
-  /**
-    * Method to determine if this Field has infinite magnitude.
-    *
-    * @return true if the magnitude of this Field is infinite.
-    */
-  def isInfinite: Boolean
+    /**
+      * Method to determine if this Field has infinite magnitude.
+      *
+      * @return true if the magnitude of this Field is infinite.
+      */
+    def isInfinite: Boolean
 
-  /**
-    * Method to determine if this Field has zero magnitude.
+    /**
+      * Method to determine if this Field has zero magnitude.
     *
     * @return true if the magnitude of this Field is zero.
     */
   def isZero: Boolean
-
-  /**
-    * Method to determine if this Field is exact.
-    *
-    * @return true if this is exact, else false if this is fuzzy.
-    */
-  def isExact: Boolean
 
   /**
     * Add x to this Field and return the result.
@@ -111,13 +104,6 @@ trait Field {
     case n@Number(_, _) => Complex(n)
     case n@Complex(_, _) => n
   }
-
-  /**
-    * Method to render this Field in a presentable manner.
-    *
-    * @return a String
-    */
-  def render: String
 
   /**
     * Eagerly compare this Field with comparand.

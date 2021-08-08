@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.util._
@@ -219,7 +218,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] =
     Operations.doTransformValueMonadic(value)(op.functions) flatMap {
       case v@Right(x)
-        if op.isExact(Rational(x)) => Some(make(v, f))
+        if op.isExact(x) => Some(make(v, f))
       case v@Left(Right(x))
         if op.isExact(x) => Some(make(v, f))
       case v =>

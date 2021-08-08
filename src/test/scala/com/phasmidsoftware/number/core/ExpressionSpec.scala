@@ -7,7 +7,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
@@ -145,21 +144,21 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (ConstE * 2).materialize.toString shouldBe "5.436563656918090[57]"
+    (ConstE * 2).materialize.toString shouldBe "5.436563656918090[67]"
   }
 
   behavior of "isExact"
   it should "be true for any constant Number" in {
-    Number.one.isExact shouldBe true
-    Number.pi.isExact shouldBe true
+    Number.one.isExact(None) shouldBe true
+    Number.pi.isExact(None) shouldBe true
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
-    (One + Number.two).isExact shouldBe true
-    (ConstPi + Number.pi).isExact shouldBe false
+    (One + Number.two).isExact(Some(Scalar)) shouldBe true
+    (ConstPi + Number.pi).isExact(Some(Pi)) shouldBe true
   }
   // FIXME new Aug 5th
   ignore should "be true for any product of exact Numbers of factor e" in {
-    (Literal(2) * Number.e).isExact shouldBe true
+    (Literal(2) * Number.e).isExact(None) shouldBe true
   }
 
   behavior of "depth"

@@ -209,7 +209,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = seven.sqrt
     val y: Expression = Literal(x) ^ two
     val result = convertToNumber(y.materialize)
-    result.isExact shouldBe false
+    result.isExact(None) shouldBe false
     result shouldEqual Number(7)
   }
   it should "cancel addition and subtraction" in {
@@ -260,7 +260,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918090[57]"
+    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918090[67]"
   }
 
   behavior of "matchSimplifyProductIdentity"
@@ -337,7 +337,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work for root(3) * root(3)" in {
     val x = Expression(3).sqrt
     val z = em.simplifyProduct(x, x)
-    z.isExact shouldBe true
+    z.isExact(None) shouldBe true
   }
 
   behavior of "biFunctionSimplifier"
@@ -359,11 +359,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "matchSimplifySum"
   // FIXME Issue #55
   ignore should "properly simplify 1 + root3 - root3 + 0" in {
-    val p = em.matchDyadicTwoLevels
+    val p = em.biFunctionMatcher
     val z: Expression = Literal(3).sqrt
     val x = z plus -z + Zero
     import em.TildeOps
     val r = p(Sum ~ One ~ x)
+    println(r)
     r.successful shouldBe true
     r.get shouldBe One
   }
@@ -374,7 +375,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = One + root3
     val z = Zero - root3
     import em.TildeOps
-    val r = p(Sum ~ x ~ z)
+    val expression: DyadicTriple = Sum ~ x ~ z
+    val r = p(expression)
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe One
   }
@@ -703,6 +705,45 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result: em.MatchResult[Expression] = p(Sum ~ (Product ~ root3 ~ One) ~ (Product ~ root3 ~ MinusOne))
     result.successful shouldBe true
     result.get shouldBe Zero
+  }
+
+  behavior of "matchMultiLevels"
+  it should "get 2" in {
+    val p = em.matchMultiLevels
+    val e1: BiFunction = BiFunction(Two, One, Sum)
+    val e2: BiFunction = BiFunction(Zero, MinusOne, Sum)
+    val e: DyadicTriple = Sum ~ e1 ~ e2
+    val result: em.MatchResult[Expression] = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Literal(2)
+  }
+  it should "get 1" in {
+    val p = em.matchMultiLevels
+    val e1: BiFunction = BiFunction(Literal(99), Literal(3), Sum)
+    val e2: BiFunction = BiFunction(Literal(-100), MinusOne, Sum)
+    val e: DyadicTriple = Sum ~ e1 ~ e2
+    val result: em.MatchResult[Expression] = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Literal(1)
+  }
+  it should "get 3" in {
+    val p = em.matchMultiLevels
+    val e1: BiFunction = BiFunction(Literal(99), Literal(3), Sum)
+    val e2: BiFunction = BiFunction(Literal(-100), BiFunction(ConstE, Zero, Power), Sum)
+    val e: DyadicTriple = Sum ~ e1 ~ e2
+    val result: em.MatchResult[Expression] = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Literal(3)
+  }
+  ignore should "get x" in {
+    val p = em.matchMultiLevels
+    val root3: Number = Number(3).sqrt
+    val e1: BiFunction = BiFunction(One, Literal(root3), Sum)
+    val e2: BiFunction = BiFunction(Zero, BiFunction(Literal(root3), MinusOne, Product), Sum)
+    val e: DyadicTriple = Sum ~ e1 ~ e2
+    val result: em.MatchResult[Expression] = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Literal(3)
   }
 
 }

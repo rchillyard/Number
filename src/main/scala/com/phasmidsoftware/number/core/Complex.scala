@@ -43,7 +43,7 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
     *
     * @return true if materialize will result in an exact Field, else false.
     */
-  def isExact: Boolean = real.isExact && imag.isExact
+  def isExact(maybeFactor: Option[Factor]): Boolean = real.isExact(maybeFactor) && imag.isExact(maybeFactor)
 
   /**
     * Action to materialize this Complex as a Field,
