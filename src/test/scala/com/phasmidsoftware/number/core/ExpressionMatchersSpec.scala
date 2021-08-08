@@ -357,7 +357,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "matchSimplifySum"
-  // FIXME Issue #55
+  // FIXME Issue #57
   ignore should "properly simplify 1 + root3 - root3 + 0" in {
     val p = em.biFunctionMatcher
     val z: Expression = Literal(3).sqrt
@@ -368,7 +368,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
     r.get shouldBe One
   }
-  // FIXME Issue #55
+  // FIXME Issue #57
   ignore should "properly simplify (1 + root3) + (zero - root3)" in {
     val p = em.biFunctionMatcher
     val root3 = Number(3).sqrt
@@ -381,8 +381,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe One
   }
 
-  behavior of "matchSimplifyProduct"
-  // FIXME Issue #55
+  behavior of "not very well grouped tests"
+  // FIXME Issue #57
   ignore should "properly simplify 1 * (root3 / root3 * 3)" in {
     val p = em.biFunctionMatcher
     val z: Expression = Literal(3).sqrt
@@ -392,7 +392,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe Literal(3)
   }
-  // FIXME Issue #55
+  // FIXME Issue #57
   ignore should "properly simplify (1 * root3) * (3 / root3)" in {
     val p = em.biFunctionMatcher
     val root3 = Literal(3).sqrt
@@ -403,7 +403,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe Literal(3)
   }
-  // FIXME Issue #55
+  // FIXME Issue #47
   ignore should "simplify e * 2 / 2" in {
     val p = em.biFunctionMatcher
     import em.TildeOps
@@ -411,6 +411,16 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Literal(e) * Number.two
     val y: Expression = Expression(Number.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(e)
+  }
+  it should "simplify e * 2 / 2 direct" in {
+    val p = em.matchTwoDyadicLevels & em.matchAndCollectTwoDyadicLevels
+    import em.TildeOps
+    val e: Number = Number.e
+    val x: Expression = Literal(e) * Number.two
+    val y: Expression = Expression(Number.two).reciprocal
+    val result = p(Product ~ x ~ y)
+    result.successful shouldBe true
+    result.get shouldBe ConstE
   }
   it should "simplify root3 * 2 / 2" in {
     val p = em.matchSimplifyProduct
@@ -427,14 +437,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Literal(root4) * Number.two
     val y: Expression = Expression(Number.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(Literal(root4))
-  }
-  // FIXME Issue #55
-  ignore should "simplify e * 2 / 2 * 1" in {
-    val p = em.biFunctionMatcher
-    import em.TildeOps
-    val x = Expression(Number.e) * Number.two
-    val y: Expression = Expression(Number.two).reciprocal * One
-    p(Product ~ x ~ y) shouldBe em.Match(Number.e)
   }
 
   behavior of "distributor"
@@ -498,12 +500,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val k: em.MatchResult[Expression] = z map (_.simplify)
     k shouldBe em.Match(Literal(-2))
   }
-  it should "distributePowerProduct" in {
-    val p = em.distributePowerProduct
+  // FIXME Issue #55
+  ignore should "simplify 2 root(3) all squared" in {
+    val p = em.biFunctionMatcher
     val x = Expression(3).sqrt
     val a = BiFunction(Two, x, Product)
     import em.TildeOps
-    val z = p(a ~ Two)
+    val z = p(Power ~ a ~ Two)
     z shouldBe em.Match(Literal(12))
   }
   it should "distributeProductPower on root(3) * root(3)" in {
@@ -517,7 +520,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "simplifyProduct"
-  // FIXME Issue #55
+  // FIXME Issue #57
   ignore should "work" in {
     val xo = Expression.parse("( 3 ^ ( 2 ^ -1 ) )")
     val yo = Expression.parse("( ( 3 ^ ( 2 ^ -1 ) ) * -1 )")
@@ -578,13 +581,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = One + 3 - 3
     val q = x.simplify
     q shouldBe One
-  }
-  // FIXME Issue #55
-  ignore should "cancel multiplication and division" in {
-    val x = Literal(Number.e) * 2 / 2
-    val result: Number = x
-    println(x)
-    result shouldBe Number.e
   }
 
   behavior of "value with logging"
@@ -684,7 +680,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe ConstE
   }
 
-  // FIXME this was working just yesterday
+  // FIXME Issue #57 this was working just yesterday
   ignore should "simplify multiple similar ops" in {
     em.simplifier(Expression(2) * 3 * Number.e * 5) shouldBe em.Match(ConstE * 30)
     // TODO we would like the following to be ConstE * 30
@@ -765,7 +761,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.successful shouldBe true
     result.get shouldBe Literal(3)
   }
-  // FIXME Issue #55
+  // FIXME Issue #57
   ignore should "get x" in {
     val p = em.matchMultiLevels
     val root3: Number = Number(3).sqrt

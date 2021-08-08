@@ -262,6 +262,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   private def collectTermsDyadicTwoLevels(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, h: ExpressionBiFunction, y: Expression, z: Expression): MatchResult[Expression] = (f, g, h) match {
     case (Product, Power, Power) if w == y =>
       replaceExactBiFunction(Some(Scalar))(BiFunction(x, z, Sum)) map formBiFunction(w, Power) flatMap simplifier
+    case (Product, Product, Power) if x == y && z == MinusOne =>
+      Match(w) // NOTE this is a special case and I'm not sure it really belongs here
     case (Sum, Product, Product) if w == y =>
       replaceExactBiFunction(Some(Scalar))(BiFunction(x, z, Sum)) map formBiFunction(w, Product) flatMap simplifier
     case (Sum, Product, Product) if w == z =>
