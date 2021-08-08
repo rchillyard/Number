@@ -297,14 +297,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(BiFunction(Two, One, Power)) shouldBe em.Match(Two)
     p(BiFunction(One, Two, Power)) shouldBe em.Match(One)
   }
-  // FIXME Issue #55
   it should "evaluate (√3 + 1)(√3 - 1) as 2 exactly" in {
     val root3: Expression = Expression(3).sqrt
     val x: Expression = (root3 + 1) * (root3 - 1)
     val p = em.biFunctionSimplifier
     val q: em.MatchResult[Expression] = p(x)
-    println(q)
     q.successful shouldBe true
+    q.get shouldBe Literal(2)
   }
   it should "evaluate (√3 + 1)(√3 + -1) as 2 exactly" in {
     val root3: Expression = Expression(3).sqrt
@@ -489,7 +488,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     eo map (z shouldBe em.Match(_)) orElse fail("could not parse expression")
   }
   // FIXME Issue #55
-  ignore should "distributeProductSum d" in {
+  ignore should "biFunctionSimplifier on (1 + x)(1 + y)" in {
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
     val y = -x
