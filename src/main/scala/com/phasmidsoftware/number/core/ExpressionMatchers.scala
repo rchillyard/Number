@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
 
-import scala.annotation.tailrec
 import scala.language.implicitConversions
 
 /**
@@ -198,6 +197,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Product ~ Zero ~ _ => Match(Zero)
     case Product ~ _ ~ Zero => Match(Zero)
     case Power ~ _ ~ Zero => Match(One)
+    case Power ~ One ~ _ => matchAndSimplify(One)
     case Sum ~ Zero ~ x => matchAndSimplify(x)
     case Sum ~ x ~ Zero => matchAndSimplify(x)
     case Product ~ One ~ x => matchAndSimplify(x)
@@ -484,74 +484,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-    * Matcher which takes a DyadicTriple on * and, if appropriate, simplifies it to an Expression.
-    * In particular, we simplify this following expression (in RPN) to 1:
-    * x -1 power x *
-    *
-    * NOTE that the * operator in the following will invert the order of the incoming tuple if required.
-    *
-    * @return a Matcher[DyadicTriple, Expression]
-    */
-  def matchSimplifyProduct: Matcher[DyadicTriple, Expression] =
-    ((matchDyadicBranches(Product) & (gatherProduct | *(matchProductOffsetsOrIdentities))) | matchSimplifyProductIdentity) :| "matchSimplifyProduct"
-
-  def matchProductOffsetsOrIdentities: Matcher[Expressions, Expression] = matchProductOffsetting | matchAndEliminateIdentity(Product)
-
-  /**
-    * Method to simplify together repeated operators where we can combine exact expressions.
-    *
-    * @return a Matcher[Expressions, Expressions].
-    */
-  def gatherProduct: Matcher[Expressions, Expression] = Matcher("gatherProduct") {
-    case x ~ y => gatherProductInner(x, y) flatMap {
-      case a ~ b if a != x && b != y => Match(BiFunction(a, b, Product).simplify)
-      case _ => Miss("gatherProduct recursion", BiFunction(x, y, Product))
-    }
-  }
-
-  /**
-    * Matcher to eliminate offsetting expressions such as x + - x.
-    *
-    * @return a Matcher[Expressions, Expression].
-    */
-  def matchSumOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Product, MinusOne, Zero) :| "matchSumOffsetting"
-
-  /**
-    * Matcher to eliminate offsetting expressions such as x * 1 / x.
-    *
-    * @return a Matcher[Expressions, Expression].
-    */
-  def matchProductOffsetting: Matcher[Expressions, Expression] = matchBiFunctionConstantResult(Power, MinusOne, One) :| "matchProductOffsetting"
-
-  /**
-    * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
-    * In particular, we simplify this following expression to x:  x + 0 or 0 + x.
-    *
-    * @return a Matcher[DyadicTriple, Expression]
-    */
-  def matchSimplifySumIdentity: Matcher[DyadicTriple, Expression] =
-    (matchDyadicBranches(Sum) & *(matchAndEliminateIdentity(Sum))) :| "matchSimplifySumIdentity"
-
-  /**
-    * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
-    * In particular, we simplify this following expression to x:  x * 1 or 1 * x.
-    *
-    * @return a Matcher[DyadicTriple, Expression]
-    */
-  def matchSimplifyProductIdentity: Matcher[DyadicTriple, Expression] =
-    (matchDyadicBranches(Product) & *(matchAndEliminateIdentity(Product))) :| "matchSimplifyProductIdentity"
-
-  /**
-    * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
-    * In particular, we simplify this following expression to x:  x to the power of 1.
-    * And furthermore, we simplify this following expression to 1:  1 to the power of x.
-    *
-    * @return a Matcher[DyadicTriple, Expression]
-    */
-  def matchSimplifyPowerIdentity: Matcher[DyadicTriple, Expression] =
-    (matchDyadicBranches(Power) & matchAndEliminateIdentity(Power)) :| "matchSimplifyPowerIdentity"
-
-  /**
     * Matcher which simplifies a specific ExpressionBiFunction f (such as Sum, Product, ...), a specific (typically, constant) Expression c,
     * and a specific result value, r (also an Expression).
     *
@@ -567,21 +499,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   // CONSIDER replacing true with f.commutes
   // NOTE that the naming operator doesn't have any effect when all composition is via the & operator.
     (matchEitherDyadic(commutes = true) & matchExpressionBiFunction(f) & matchAndSubstituteDyadicExpressions(c, r)) :| s"matchBiFunctionConstantResult($f, $c, $r)"
-
-  /**
-    * Matcher which takes a specific ExpressionBiFunction f (such as Sum, Product, ...),
-    * and determines whether a term/factor is an identity which can be eliminated.
-    *
-    * CONSIDER: this matcher is used in several places (is that correct?)
-    *
-    * @param f the ExpressionBiFunction which will determine if the input Expressions is an identity.
-    * @return a Matcher[Expressions, Expression].
-    */
-  def matchAndEliminateIdentity(f: ExpressionBiFunction): Matcher[Expressions, Expression] =
-    Matcher(s"matchAndEliminateIdentity for $f") {
-      case x ~ y => eliminateIdentity(f, x, y)
-      case t => Miss(s"matchAndEliminateIdentity for $f", t)
-    }
 
   /**
     * Matcher of x ~ y ~ b to r where b, x, y, r are all Expressions.
@@ -644,62 +561,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     Matcher("matchBiFunctionExpression") {
       case (f: BiFunction) ~ x => Match(f) ~ Match(x)
       case z => Miss("matchBiFunctionExpression", z)
-    }
-
-  /**
-    * Matcher of DyadicTriple to Expressions which succeeds if the ExpressionBiFunction of the DyadicTriple
-    * matches f.
-    *
-    * NOTE: the result of this match is a ~ in the same order as the second and third elements of the DyadicTriple.
-    * But, recall, that the ordering of those is essentially totally arbitrary. So, we will want to follow this
-    * matcher with swapIfNecessary.
-    *
-    * @param f an ExpressionBiFunction
-    * @return a Matcher[DyadicTriple, Expressions].
-    */
-  def matchDyadicBranches(f: ExpressionBiFunction): Matcher[DyadicTriple, Expressions] =
-    Matcher(s"matchDyadicBranches: $f") {
-      case `f` ~ l1 ~ r1 => Match(l1) ~ Match(r1)
-      case x => Miss("matchDyadicBranches", x)
-    }
-
-  /**
-    * Do the distribution of the form: (a + b) * c or (a + b) * (c + d).
-    *
-    * @return a Matcher[Expressions, Expression]
-    */
-  def distributeProductSum: Matcher[Expressions, Expression] =
-    Matcher("distributeProductSum") {
-      case x ~ y => x match {
-        case BiFunction(a, b, Sum) => y match {
-          case BiFunction(c, d, Sum) =>
-            // TODO eliminate simplify
-            Match(BiFunction((simplifyProduct(a, c) plus simplifyProduct(a, d)).simplify, (simplifyProduct(b, c) plus simplifyProduct(b, d)).simplify, Sum).simplify)
-          case _ =>
-            // TODO eliminate simplify
-            Match(BiFunction((a * y).simplify, (b * y).simplify, Sum).simplify)
-        }
-        case t => Miss("distributeProductSum", t)
-      }
-    }
-
-  /**
-    * Do the distribution of the form: (a power b) power c or (a power b) * (c power d)
-    *
-    * CONSIDER rename to simplifyProductPower.
-    *
-    * @return a Matcher[Expressions, Expression]
-    */
-  def distributeProductPower: Matcher[Expressions, Expression] =
-    Matcher("distributeProductPower") {
-      case x ~ y => x match {
-        case BiFunction(a, b, Power) => y match {
-          // TODO eliminate simplify
-          case BiFunction(c, d, Power) if a.isExact(None) && c.isExact(None) && a.materialize == c.materialize => Match(a ^ (b plus d).simplify)
-          case _ => Miss("distributeProductPower", x ~ y)
-        }
-        case t => Miss("distributeProductPower", t)
-      }
     }
 
   /**
@@ -766,75 +627,12 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case e => Miss("matchBiFunction", e)
   }.named("matchBiFunction")
 
-
-  /**
-    * Inner method for gatherProduct.
-    *
-    * TODO rewrite this in terms of Matchers.
-    *
-    * @param x first expression.
-    * @param y second expression.
-    * @return a MatchResult[Expression].
-    */
-  @tailrec
-  private def gatherProductInner(x: Expression, y: Expression): MatchResult[Expressions] =
-    if (x.isAtomic && y.isAtomic)
-      Match(x ~ y)
-    else if (resultExact(Product, x, y))
-      Match(Expression(x.materialize) ~ Expression(y.materialize))
-    else
-      matchBiFunction(x) match {
-        case Match(Product ~ b ~ c) if resultExact(Product, b, c) =>
-          gatherProductInner(Expression((b * c).materialize), y)
-        case Match(Product ~ b ~ c) if resultExact(Product, b, y) =>
-          gatherProductInner(Expression((b * y).materialize), c)
-        case Match(Product ~ b ~ c) if resultExact(Product, c, y) =>
-          gatherProductInner(Expression((c * y).materialize), b)
-        case Match(Product ~ BiFunction(p, q, Product) ~ c) if p.isExact(None) =>
-          gatherProductInner(q * y, p * c)
-        case Match(Product ~ BiFunction(p, q, Product) ~ c) if q.isExact(None) =>
-          gatherProductInner(p * y, q * c)
-        case Match(Product ~ b ~ BiFunction(p, q, Product)) if p.isExact(None) =>
-          gatherProductInner(q * y, p * b)
-        case Match(Product ~ b ~ BiFunction(p, q, Product)) if q.isExact(None) =>
-          gatherProductInner(p * y, q * b)
-        // NOTE At this point, x is not an exact Product (it's either inexact or not a Product).
-        case Match(Product ~ b ~ c) =>
-          matchBiFunction(y) match {
-            case Match(Product ~ d ~ e) if resultExact(Product, b, d) =>
-              gatherProductInner(Expression((b * d).materialize), BiFunction(c, e, Product))
-            case Match(Product ~ d ~ e) if resultExact(Product, b, e) =>
-              gatherProductInner(Expression((b * e).materialize), BiFunction(c, d, Product))
-            case Match(Product ~ d ~ e) if resultExact(Product, c, d) =>
-              gatherProductInner(Expression((c * d).materialize), BiFunction(b, e, Product))
-            case Match(Product ~ d ~ e) if resultExact(Product, c, e) =>
-              gatherProductInner(Expression((c * e).materialize), BiFunction(b, d, Product))
-            case _ =>
-              Match(x ~ y) // XXX Terminating condition.
-          }
-        case _ => // XXX x is not a Product of any sort.
-          matchBiFunction(y) match {
-            case Match(Product ~ _ ~ _) =>
-              gatherProductInner(y, x)
-            case _ =>
-              Miss("gatherProductInner", x ~ y) // XXX Terminating condition.
-          }
-      }
-
   // CONSIDER the actual result check may not be significant.
   // CONSIDER we should use conditionallyExact to be faster.
   // NOTE this is no longer used
   private def resultExact(f: ExpressionBiFunction, x: Expression, y: Expression) =
     x.isExact(None) && y.isExact(None) && BiFunction(x, y, f).materialize.isExact(None)
   //&& f.isExact //&& BiFunction(x, y, f).conditionallyExact(f, x, y)
-
-  private def eliminateIdentity(f: ExpressionBiFunction, x: Expression, c: Expression): MatchResult[Expression] =
-    (f, x, c) match {
-      case (Power, _, One) | (Product, _, One) | (Sum, _, Zero) => Match(x)
-      case (Power, One, _) => Match(One)
-      case _ =>
-        Miss(s"eliminateIdentity $f, $x, $c missed", Number.NaN)
-    }
 
   val logger: MatchLogger = matchLogger
 }
