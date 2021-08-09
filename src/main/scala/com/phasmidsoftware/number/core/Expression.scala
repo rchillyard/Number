@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.matchers.MatchLogger
 import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 
@@ -77,7 +77,7 @@ trait Expression extends NumberLike {
 object Expression {
 
   // NOTE this is where we turn logging on (by using LogDebug or LogInfo).
-  implicit val logger: MatchLogger = MatchLogger(LogOff, classOf[Expression])
+  implicit val logger: MatchLogger = MatchLogger(com.phasmidsoftware.matchers.LogOff, classOf[Expression])
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
   //  trait LoggableExpression extends Loggable[Expression] {

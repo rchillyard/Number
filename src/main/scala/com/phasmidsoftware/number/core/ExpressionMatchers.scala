@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -273,15 +274,22 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case (Sum, Product, Product) if x == z =>
       replaceExactBiFunction(Some(Scalar))(BiFunction(w, y, Sum)) map formBiFunction(x, Product) flatMap simplifier
     case (Product, Sum, Sum) =>
-      val terms = List(
-        replaceExactBiFunction(Some(Scalar))(BiFunction(w, y, Product)),
-        replaceExactBiFunction(Some(Scalar))(BiFunction(w, z, Product)),
-        replaceExactBiFunction(Some(Scalar))(BiFunction(x, y, Product)),
-        replaceExactBiFunction(Some(Scalar))(BiFunction(x, z, Product))
-      )
+      val terms = cartesianProduct(w ~ x, y ~ z) map matchExpressionPair(Product)
       combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevels: no *++ terms to collect", f ~ g ~ w ~ x ~ h ~ y ~ z))
     case _ => Miss("collectTermsDyadicTwoLevels: functions don't match", f ~ g ~ w ~ x ~ h ~ y ~ z)
   }
+
+  private def matchExpressionPair(function: ExpressionBiFunction)(e: Expressions): MatchResult[Expression] = {
+    val matchResult: MatchResult[Expression] = matchAndReplacePair(function, e.l, e.r)
+    println(s"matchResult: $matchResult")
+    matchResult
+  }
+
+  private def matchAndReplacePair(function: ExpressionBiFunction, x: Expression, y: Expression) =
+    replaceExactBiFunction(Some(Scalar))(BiFunction(x, y, function))
+
+  private def cartesianProduct(p1: Expression ~ Expression, p2: Expression ~ Expression): Seq[Expressions] =
+    Seq(p1.l ~ p2.l, p1.r ~ p2.l, p1.l ~ p2.r, p1.r ~ p2.r)
 
   /**
     * Collect equal terms (fuzzy terms since this method won't be called if all the terms are exact) from an expression of the following two types:
@@ -304,10 +312,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case (Sum, Product) if x == y =>
       replaceExactBiFunction(Some(Scalar))(BiFunction(One, w, Sum)) map formBiFunction(x, Product) flatMap simplifier
     case (Product, Sum) =>
-      val terms = List(
-        replaceExactBiFunction(Some(Scalar))(BiFunction(w, y, Product)),
-        replaceExactBiFunction(Some(Scalar))(BiFunction(x, y, Product)),
-      )
+      val terms = Seq(w ~ y, x ~ y) map ((e: Expressions) => matchExpressionPair(Product)(e))
       combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsL: no *++ terms to collect", f ~ g ~ w ~ x ~ y))
     case _ => Miss("collectTermsDyadicTwoLevelsL: functions don't match", f ~ g ~ w ~ x ~ y)
   }
@@ -335,10 +340,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case (Sum, Product) if w == y =>
       replaceExactBiFunction(Some(Scalar))(BiFunction(One, x, Sum)) map formBiFunction(w, Product) flatMap simplifier
     case (Product, Sum) =>
-      val terms = List(
-        replaceExactBiFunction(Some(Scalar))(BiFunction(w, x, Product)),
-        replaceExactBiFunction(Some(Scalar))(BiFunction(w, y, Product)),
-      )
+      val terms = Seq(w ~ x, w ~ y) map matchExpressionPair(Product)
       combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsR: no *++ terms to collect", f ~ g ~ w ~ x ~ y))
     case _ => Miss("collectTermsDyadicTwoLevelsR: functions don't match", f ~ g ~ w ~ x ~ y)
   }

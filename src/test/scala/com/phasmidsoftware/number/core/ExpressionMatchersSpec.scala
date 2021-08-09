@@ -313,6 +313,18 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     println(q)
     q.successful shouldBe true
   }
+  // FIXME Issue #55
+  ignore should "biFunctionSimplifier on (1 + √3 + 1)(1 - √3)" in {
+    val p = em.biFunctionSimplifier
+    val x = Expression(3).sqrt
+    val y = -x
+    val a = BiFunction(One, x, Sum)
+    val b = BiFunction(One, y, Sum)
+    val r = BiFunction(a, b, Product)
+    val z: em.MatchResult[Expression] = p(r)
+    val k: em.MatchResult[Expression] = z map (_.simplify)
+    k shouldBe em.Match(Literal(-2))
+  }
   // NOTE: this will succeed only if we allow simplifications which reduce depth (but are not necessarily exact)
   // FIXME problem with distributePowerPower
   ignore should "simplify 1" in {
@@ -486,18 +498,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = p(a ~ b)
     val eo = Expression.parse("( ( 3.00* + 0.5 ) + ( 2.00* * ( 3.00* + 0.5 ) ) )")
     eo map (z shouldBe em.Match(_)) orElse fail("could not parse expression")
-  }
-  // FIXME Issue #55
-  ignore should "biFunctionSimplifier on (1 + x)(1 + y)" in {
-    val p = em.biFunctionSimplifier
-    val x = Expression(3).sqrt
-    val y = -x
-    val a = BiFunction(One, x, Sum)
-    val b = BiFunction(One, y, Sum)
-    val r = BiFunction(a, b, Product)
-    val z: em.MatchResult[Expression] = p(r)
-    val k: em.MatchResult[Expression] = z map (_.simplify)
-    k shouldBe em.Match(Literal(-2))
   }
   // FIXME Issue #55
   ignore should "simplify 2 root(3) all squared" in {
