@@ -240,7 +240,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       matchMultiLevelsInner(f, exactMaterializer(y) +: matches)(f ~ a ~ b)
     case `f` ~ x ~ y if f != Power => // NOTE: this is solely to terminate the recursion (we should have some other illegal ExpressionBiFunction to use).
       matchMultiLevelsInner(f, exactMaterializer(x) +: exactMaterializer(y) +: matches)(Power ~ Zero ~ Zero)
-    case _ => matches
+    case _ =>
+      matches
   }
 
   /**
@@ -262,28 +263,32 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   private def collectTermsDyadicTwoLevels(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, h: ExpressionBiFunction, y: Expression, z: Expression): MatchResult[Expression] = (f, g, h) match {
     case (Product, Power, Power) if w == y =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(x, z, Sum)) map formBiFunction(w, Power) flatMap simplifier
+      replaceAndSimplify(x, z, w, Sum, Power)
     case (Product, Product, Power) if x == y && z == MinusOne =>
       Match(w) // NOTE this is a special case and I'm not sure it really belongs here
     case (Sum, Product, Product) if w == y =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(x, z, Sum)) map formBiFunction(w, Product) flatMap simplifier
+      replaceAndSimplify(x, z, w, Sum, Product)
     case (Sum, Product, Product) if w == z =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(x, y, Sum)) map formBiFunction(w, Product) flatMap simplifier
+      replaceAndSimplify(x, y, w, Sum, Product)
     case (Sum, Product, Product) if x == y =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(w, z, Sum)) map formBiFunction(x, Product) flatMap simplifier
+      replaceAndSimplify(w, z, x, Sum, Product)
     case (Sum, Product, Product) if x == z =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(w, y, Sum)) map formBiFunction(x, Product) flatMap simplifier
+      replaceAndSimplify(w, y, x, Sum, Product)
     case (Product, Sum, Sum) =>
       val terms = cartesianProduct(w ~ x, y ~ z) map matchExpressionPair(Product)
       combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevels: no *++ terms to collect", f ~ g ~ w ~ x ~ h ~ y ~ z))
-    case _ => Miss("collectTermsDyadicTwoLevels: functions don't match", f ~ g ~ w ~ x ~ h ~ y ~ z)
+    case _ =>
+      Miss("collectTermsDyadicTwoLevels: functions don't match", f ~ g ~ w ~ x ~ h ~ y ~ z)
   }
 
-  private def matchExpressionPair(function: ExpressionBiFunction)(e: Expressions): MatchResult[Expression] = {
-    val matchResult: MatchResult[Expression] = matchAndReplacePair(function, e.l, e.r)
-    println(s"matchResult: $matchResult")
-    matchResult
-  }
+  private def replaceAndSimplify(a: Expression, b: Expression, c: Expression, f: ExpressionBiFunction, g: ExpressionBiFunction) =
+    replaceExactBiFunction(Some(Scalar))(BiFunction(a, b, f)) map formBiFunction(c, g) flatMap simplifier
+
+  private def combineAndSimplify(w: Expression, x: Expression, function: ExpressionBiFunction) =
+    replaceAndSimplify(One, x, w, Sum, function)
+
+  private def matchExpressionPair(function: ExpressionBiFunction)(e: Expressions): MatchResult[Expression] =
+    matchAndReplacePair(function, e.l, e.r)
 
   private def matchAndReplacePair(function: ExpressionBiFunction, x: Expression, y: Expression) =
     replaceExactBiFunction(Some(Scalar))(BiFunction(x, y, function))
@@ -306,15 +311,16 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   private def collectTermsDyadicTwoLevelsL(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, y: Expression): MatchResult[Expression] = (f, g) match {
     case (Product, Power) if w == y =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(One, x, Sum)) map formBiFunction(w, Power) flatMap simplifier // TODO refactor using method, etc...
+      combineAndSimplify(w, x, Power)
     case (Sum, Product) if w == y =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(One, x, Sum)) map formBiFunction(w, Product) flatMap simplifier
+      combineAndSimplify(w, x, Product)
     case (Sum, Product) if x == y =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(One, w, Sum)) map formBiFunction(x, Product) flatMap simplifier
+      combineAndSimplify(x, w, Product)
     case (Product, Sum) =>
-      val terms = Seq(w ~ y, x ~ y) map ((e: Expressions) => matchExpressionPair(Product)(e))
+      val terms = Seq(w ~ y, x ~ y) map matchExpressionPair(Product)
       combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsL: no *++ terms to collect", f ~ g ~ w ~ x ~ y))
-    case _ => Miss("collectTermsDyadicTwoLevelsL: functions don't match", f ~ g ~ w ~ x ~ y)
+    case _ =>
+      Miss("collectTermsDyadicTwoLevelsL: functions don't match", f ~ g ~ w ~ x ~ y)
   }
 
   /**
@@ -334,15 +340,16 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   private def collectTermsDyadicTwoLevelsR(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, y: Expression): MatchResult[Expression] = (f, g) match {
     case (Product, Power) if w == x =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(One, y, Sum)) map formBiFunction(w, Power) flatMap simplifier // TODO refactor using method, etc...
+      combineAndSimplify(w, y, Power) // TODO refactor using method, etc...
     case (Sum, Product) if w == x =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(One, y, Sum)) map formBiFunction(w, Product) flatMap simplifier
+      combineAndSimplify(w, y, Product)
     case (Sum, Product) if w == y =>
-      replaceExactBiFunction(Some(Scalar))(BiFunction(One, x, Sum)) map formBiFunction(w, Product) flatMap simplifier
+      combineAndSimplify(w, x, Product)
     case (Product, Sum) =>
       val terms = Seq(w ~ x, w ~ y) map matchExpressionPair(Product)
       combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsR: no *++ terms to collect", f ~ g ~ w ~ x ~ y))
-    case _ => Miss("collectTermsDyadicTwoLevelsR: functions don't match", f ~ g ~ w ~ x ~ y)
+    case _ =>
+      Miss("collectTermsDyadicTwoLevelsR: functions don't match", f ~ g ~ w ~ x ~ y)
   }
 
   private def combineTerms(function: ExpressionBiFunction, terms: Seq[MatchResult[Expression]], miss: MatchResult[Expression]): MatchResult[Expression] = {
