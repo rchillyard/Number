@@ -509,20 +509,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   // OLD STUFF
 
   /**
-    * Matcher which takes a DyadicTriple on + and, if appropriate, simplifies it to an Expression.
-    * In particular, we simplify this following expression (in RPN) to 0:
-    * x -1 * x
-    * Also, we can simplify expressions with repeated adjacent Sum operators.
-    *
-    * NOTE that the * operator in the following will invert the order of the incoming tuple if required.
-    *
-    * @return a Matcher[DyadicTriple, Expression]
-    */
-  def matchSimplifyBiFunction: Matcher[DyadicTriple, Expression] = Matcher("matchSimplifyBiFunction") {
-    case f ~ x ~ y if resultExact(f, x, y) => Match(Expression(f(x.materialize, y.materialize)))
-  }
-
-  /**
     * Matcher which simplifies a specific ExpressionBiFunction f (such as Sum, Product, ...), a specific (typically, constant) Expression c,
     * and a specific result value, r (also an Expression).
     *
@@ -603,18 +589,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     }
 
   /**
-    * Method to simplify a product of two expressions.
-    *
-    * CONSIDER making this private and testing it via PrivateMethodTester.
-    *
-    * @param u the first expression.
-    * @param v the second expression.
-    * @return a possibly simplified version of their product.
-    */
-  // TODO eliminate simplify
-  def simplifyProduct(u: Expression, v: Expression): Expression = (u * v).simplify
-
-  /**
     * Matcher which matches on Expressions that directly represent Numbers.
     *
     * @return an ExpressionMatcher[Field].
@@ -665,13 +639,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case BiFunction(a, b, f) => Match(f ~ a ~ b)
     case e => Miss("matchBiFunction", e)
   }.named("matchBiFunction")
-
-  // CONSIDER the actual result check may not be significant.
-  // CONSIDER we should use conditionallyExact to be faster.
-  // NOTE this is no longer used
-  private def resultExact(f: ExpressionBiFunction, x: Expression, y: Expression) =
-    x.isExact(None) && y.isExact(None) && BiFunction(x, y, f).materialize.isExact(None)
-  //&& f.isExact //&& BiFunction(x, y, f).conditionallyExact(f, x, y)
 
   val logger: MatchLogger = matchLogger
 }
