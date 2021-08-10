@@ -6,6 +6,9 @@ import scala.util.Try
 
 /**
   * Parser for Number.
+  *
+  * TODO when we specify an exact number by following an integer by an exponent, we must precede the "E" with a decimal point.
+  * Try to eliminate that requirement.
   */
 class NumberParser extends RationalParser {
 
@@ -21,7 +24,7 @@ class NumberParser extends RationalParser {
   def parseNumber(w: String): Try[Number] = stringParser(number, w)
 
   trait WithFuzziness {
-    def fuzz: Option[Fuzz[Double]]
+    def fuzz: Option[Fuzziness[Double]]
   }
 
   /**
@@ -35,17 +38,24 @@ class NumberParser extends RationalParser {
 
     def value: Try[Rational] = realNumber.value.map(r => r.applyExponent(getExponent))
 
-    def fuzz: Option[Fuzz[Double]] = fuzziness match {
+    def fuzz: Option[Fuzziness[Double]] = fuzziness match {
       // XXX: first we deal with the "None" case
       case None => calculateFuzz(getExponent, realNumber.fractionalPart.length)
-      case Some(w) =>
+      case Some(z) =>
+        val gaussian = """\((\d*)\)""".r
+        val box = """\[(\d*)]""".r
+        val (shape, w) = z match {
+          case gaussian(f) => (Gaussian, f)
+          case box(f) => (Box, f)
+          case _ => throw SignificantSpaceParserException(s"fuzziness does not match either (xx) or [xx]: $z")
+        }
         val zo: Option[Int] = w match {
           case s if s.length >= 2 => s.substring(0, 2).toIntOption
           case s => s.toIntOption
         }
         zo map (x => {
           val i = getExponent - realNumber.fractionalPart.length
-          AbsoluteFuzz[Double](Rational(x).applyExponent(i).toDouble, Gaussian)
+          AbsoluteFuzz[Double](Rational(x).applyExponent(i).toDouble, shape)
         })
     }
 
@@ -59,19 +69,31 @@ class NumberParser extends RationalParser {
     case no ~ fo => optionalNumber(no, fo)
   }
 
-  def fuzz: Parser[Option[String]] = ("""\*""".r | """\.\.\.""".r | "(" ~> """\d+""".r <~ ")") :| "fuzz" ^^ {
-    case "*" => None
-    case "..." => None
-    case w => Some(w)
+  /**
+    * Method to parse fuzz, consisting of the strings "*", "...", or one or two digits enclosed in () or [].
+    *
+    * @return a Parser of an optional String.
+    *         If the String is None, then it is general fuzz (* or ...) otherwise Some(digits).
+    */
+  def fuzz: Parser[Option[String]] = {
+    // NOTE don't take the Analyzer's suggestion to remove escapes.
+    val fuzzyDigits = """[\(\[]\d{1,2}[\)\]]""".r
+    ("""\*""".r | """\.\.\.""".r | fuzzyDigits) :| "fuzz" ^^ {
+      case "*" => None
+      case "..." => None
+      case w => Some(w)
+    }
   }
 
   def generalNumber: Parser[ValuableNumber] = (numberWithFuzziness | rationalNumber) :| "generalNumber"
 
-  def numberWithFuzziness: Parser[NumberWithFuzziness] = (realNumber ~ fuzz ~ opt(rE ~> wholeNumber)) :| "numberWithFuzziness" ^^ {
+  def numberWithFuzziness: Parser[NumberWithFuzziness] = (realNumber ~ fuzz ~ opt(exponent)) :| "numberWithFuzziness" ^^ {
     case rn ~ f ~ expo => NumberWithFuzziness(rn, f, expo)
   }
 
-  def exponent: Parser[String] = ("[eE]".r ~> wholeNumber) :| "exponent"
+  // NOTE: if you copy numbers from HTML, you may end up with an illegal "-" character.
+  // Error message will be something like: string matching regex '-?\d+' expected but '−' found
+  def exponent: Parser[String] = (rE ~> wholeNumber) :| "exponent"
 
   private val rE = "[eE]".r
 
@@ -85,7 +107,7 @@ class NumberParser extends RationalParser {
         r <- ro.orElse(Some(WholeNumber.one));
         v <- r.value.toOption;
         f <- fo.orElse(Some(Scalar))) yield {
-        val z: Option[Fuzz[Double]] = r match {
+        val z: Option[Fuzziness[Double]] = r match {
           case n@NumberWithFuzziness(_, _, _) => n.fuzz
           case n@RealNumber(_, _, Some(f), _) if f.length > DPExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
           case _ => None
@@ -94,7 +116,7 @@ class NumberParser extends RationalParser {
       }
     else None
 
-  private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzz[Double]] = Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
+  private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzziness[Double]] = Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
 
   import com.phasmidsoftware.number.core.Factor._
 

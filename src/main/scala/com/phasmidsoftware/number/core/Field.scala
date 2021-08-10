@@ -11,27 +11,21 @@ import com.phasmidsoftware.number.core.Field.recover
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field extends AtomicExpression {
-  /**
-    * Method to determine if this Field has infinite magnitude.
-    *
-    * @return true if the magnitude of this Field is infinite.
-    */
-  def isInfinite: Boolean
+trait Field extends NumberLike {
 
-  /**
-    * Method to determine if this Field has zero magnitude.
+    /**
+      * Method to determine if this Field has infinite magnitude.
+      *
+      * @return true if the magnitude of this Field is infinite.
+      */
+    def isInfinite: Boolean
+
+    /**
+      * Method to determine if this Field has zero magnitude.
     *
     * @return true if the magnitude of this Field is zero.
     */
   def isZero: Boolean
-
-  /**
-    * Method to determine if this Field is exact.
-    *
-    * @return true if this is exact, else false if this is fuzzy.
-    */
-  def isExact: Boolean
 
   /**
     * Add x to this Field and return the result.
@@ -43,13 +37,7 @@ trait Field extends AtomicExpression {
   def add(x: Field): Field
 
   /**
-    * Change the sign of this Number.
-    */
-  def unary_- : Field
-
-  /**
     * Multiply this Field by x and return the result.
-    * See Number.times for more detail.
     *
     * * @param x the multiplicand.
     * * @return the product.
@@ -58,12 +46,16 @@ trait Field extends AtomicExpression {
 
   /**
     * Divide this Field by x and return the result.
-    * See * and invert for more detail.
     *
     * @param x the divisor.
     * @return the quotient.
     */
   def divide(x: Field): Field
+
+  /**
+    * Change the sign of this Field.
+    */
+  def unary_- : Field
 
   /**
     * Raise this Field to the power p.
@@ -94,20 +86,24 @@ trait Field extends AtomicExpression {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  def asNumber: Option[Number] = this match {
-    case n@Number(_, _) => Some(n)
-    case ComplexCartesian(x, y) if y == Number.zero => Some(x)
-    case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
-    case ComplexPolar(r, theta) if theta == Number.pi => Some(r.doNegate)
-    case _ => None
-  }
+  def asNumber: Option[Number] =
+    this match {
+      case n@Number(_, _) => Some(n)
+      case ComplexCartesian(x, y) if y == Number.zero => Some(x)
+      case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
+      case ComplexPolar(r, theta) if theta == Number.pi => Some(r.makeNegative)
+      case _ => None
+    }
 
   /**
-    * Evaluate the magnitude squared of this Complex number.
+    * Method to return this Field as a Complex.
     *
-    * @return the magnitude squared.
+    * @return either this or Complex(this) as appropriate.
     */
-  def magnitudeSquared: Expression
+  def asComplex: Complex = this match {
+    case n@Number(_, _) => Complex(n)
+    case n@Complex(_, _) => n
+  }
 
   /**
     * Eagerly compare this Field with comparand.
@@ -146,4 +142,67 @@ object Field {
     case Some(t) => t
     case None => throw x
   }
+}
+
+object Constants {
+  val sPhi = "1.618033988749894"
+  val sGamma = "0.57721566490153286060651209008240243104215933593992"
+  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
+  val sAlpha = "0.0072973525693(11)" // (dimensionless)
+  val sAvagadro = "6.0221407600E23" // mole ^ -1
+  val sBoltzmann = "1380649.E-29" // J K ^ -1
+  val sPlanck = "6.6260701500E-34" // J Hz ^ -1
+  val sC = "299792458" // m sec ^ -1
+  val sMu = "1836.15267343(11)" // (dimensionless)
+
+  val one: Number = Number.one
+  val zero: Number = Number.zero
+  val pi: Number = Number.pi
+  val e: Number = Number.e
+  val i: Complex = Complex.i
+
+  /**
+    * https://en.wikipedia.org/wiki/Golden_ratio
+    */
+  lazy val phi: Number = Number(sPhi)
+
+  /**
+    * https://en.wikipedia.org/wiki/Euler–Mascheroni_constant
+    */
+  lazy val gamma: Number = Number(sGamma)
+
+  /**
+    * https://en.wikipedia.org/wiki/Gravitational_constant
+    */
+  lazy val G: Number = Number(sG)
+
+  /**
+    * https://en.wikipedia.org/wiki/Fine-structure_constant
+    */
+  lazy val alpha: Number = Number(sAlpha)
+
+  /**
+    * https://en.wikipedia.org/wiki/Avogadro_constant
+    */
+  lazy val avagadro: Number = Number(sAvagadro)
+
+  /**
+    * https://en.wikipedia.org/wiki/Boltzmann_constant
+    */
+  lazy val boltzmann: Number = Number(sBoltzmann)
+
+  /**
+    * https://en.wikipedia.org/wiki/Planck_constant
+    */
+  lazy val planck: Number = Number(sPlanck)
+
+  /**
+    * https://en.wikipedia.org/wiki/Speed_of_light
+    */
+  lazy val c: Number = Number(sC)
+
+  /**
+    * https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio
+    */
+  lazy val mu: Number = Number(sMu)
 }

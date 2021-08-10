@@ -1,13 +1,14 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Constants.{sAvagadro, sBoltzmann, sC, sPlanck}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{negate, pi}
+import com.phasmidsoftware.number.core.Number.negate
+import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
-import scala.util.{Failure, Left, Try}
+import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
 
@@ -19,9 +20,16 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     }
   }
 
+  implicit object FieldEquality extends Equality[Field] {
+    def areEqual(a: Field, b: Any): Boolean = b match {
+      case n: Field => a.compare(n) == 0
+      case _ => false
+    }
+  }
+
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
-      case n: Number => new ExpressionOps(a).compare(n) == 0
+      case n: Number => new ExpressionOps(a).compare(Literal(n)) == 0
       case n: Expression => a.compare(n) == 0
       case _ => false
     }
@@ -51,7 +59,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.value should matchPattern { case Right(_) => }
   }
   it should "yield Right(1, Pi)" in {
-    val target = pi
+    val target = Number.pi
     target should matchPattern { case ExactNumber(_, _) => }
     target.value should matchPattern { case Right(_) => }
     target.factor shouldBe Pi
@@ -89,42 +97,47 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for Pi as scalar" in {
     val target = Number.pi.scale(Scalar)
-    target.toString shouldBe "3.1415926535897930[31]"
+    // NOTE that:       Pi is 3.1415926535897932384626433...
+    // NOTE that:  math.PI is 3.14159265358979323846
+    // In IEEE 754 binary, pi is 400921fb54442d18, which is:
+    //                        3.141592653589793
+    //    target.toString shouldBe "3.14159265358979300(41)" // TODO this is how it should be (not any more)
+    target.toString shouldBe "3.141592653589793..."
   }
   it should "work for E" in {
     Number.e.toString shouldBe "\uD835\uDF00"
   }
   it should "work for E as scalar" in {
     val target = Number.e.scale(Scalar)
-    target.toString shouldBe "2.7182818284590450[27]"
-    target.toString shouldBe "2.7182818284590450[27]"
+    target.toString shouldBe "2.7182818284590450[35]"
   }
   it should "work for E^2 as Real" in {
     val target = Number("2\uD835\uDF00")
-    target.scale(Scalar).toString shouldBe "7.3890560989306500[74]"
+    target.scale(Scalar).toString shouldBe "7.3890560989306500[95]"
   }
   it should "work for 1 scaled as Pi" in {
-    numberOne.scale(Pi).toString shouldBe "0.31830988618379070[32]\uD835\uDED1"
+    numberOne.scale(Pi).toString shouldBe "0.3183098861837907...\uD835\uDED1"
+    //    numberOne.scale(Pi).toString shouldBe "0.318309886183790700(42)\uD835\uDED1" // this is how it should be
   }
   it should "work for E^2" in {
-    val target = Number.e ^ 2
-    target.materialize.toString shouldBe "\uD835\uDF00\u00B2"
+    val target = Number.e doPower 2
+    target.toString shouldBe "\uD835\uDF00\u00B2"
   }
   it should "work for E^3" in {
-    val target = Number.e ^ 3
-    target.materialize.toString shouldBe "\uD835\uDF00\u00B3"
+    val target = Number.e doPower 3
+    target.toString shouldBe "\uD835\uDF00\u00B3"
   }
   it should "work for E^4" in {
-    val target = Number.e ^ 4
-    target.materialize.toString shouldBe "\uD835\uDF00\u2074"
+    val target = Number.e doPower 4
+    target.toString shouldBe "\uD835\uDF00\u2074"
   }
   it should "work for E^10" in {
-    val target = Number.e ^ 10
-    target.materialize.toString shouldBe "\uD835\uDF00^10"
+    val target = Number.e doPower 10
+    target.toString shouldBe "\uD835\uDF00^10"
   }
   it should "work for square root E" in {
     val target = Number.e.sqrt
-    target.materialize.toString shouldBe "√\uD835\uDF00"
+    target.toString shouldBe "√\uD835\uDF00"
   }
 
   behavior of "toDouble"
@@ -189,36 +202,44 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should """work for "2147483648"""" in {
     val target = Number("2147483648")
-    target.value shouldBe Left(Right(Rational(bigBigInt)))
+    target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should """work for "3.1415927"""" in {
     val target = Number("3.1415927")
-    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+      target.isExact(None) shouldBe false
+      target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1416" in {
     val target = Number(3.1416)
-    target shouldEqual Number(Rational(3927, 1250))
+      target.isExact(None) shouldBe false
+      target shouldEqual Number(Rational(3927, 1250))
   }
   it should """work for "\uD835\uDED1""""" in {
     val target = Number("\uD835\uDED1")
-    target.value shouldBe Right(1)
+      target.isExact(None) shouldBe true
+      target.value shouldBe Right(1)
     target.factor shouldBe Pi
   }
   it should "work for 1" in {
     val target = numberOne
-    target.value shouldBe Right(1)
+      target.isExact(None) shouldBe true
+      target.value shouldBe Right(1)
   }
   it should "work for bigBigInt" in {
     val target = Number(bigBigInt)
-    target.value shouldBe Left(Right(Rational(bigBigInt)))
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should "work for Rational(1,2)" in {
     val target = Number(Rational(1, 2))
-    target.value shouldBe Left(Right(Rational(1, 2)))
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for math.pi" in {
     val target = Number(Math.PI)
-    target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
+      target.isExact(None) shouldBe false
+      target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
   }
   it should "work for nothing" in {
     val target = Number()
@@ -226,25 +247,92 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for BigDecimal(3.1415927)" in {
     val target = Number(BigDecimal(3.1415927))
-    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1415927" in {
     val target = Number(3.1415927)
-    target shouldEqual Number(Rational(31415927, 10000000))
+      target.isExact(None) shouldBe false
+      target shouldEqual Number(Rational(31415927, 10000000))
   }
   it should """work for 3.1415926535897932384626433""" in {
     val target = Number(3.1415926535897932384626433)
-    target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
+      target.isExact(None) shouldBe false
+      target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
   }
   it should "work for 0.5" in {
     val target = Number(0.5)
-    target.value shouldBe Left(Right(Rational(1, 2)))
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(1, 2)))
+  }
+  it should "work for 1.23" in {
+    val target = Number(1.23)
+      target.isExact(None) shouldBe true
+      target.value shouldBe Left(Right(Rational(123, 100)))
+  }
+  it should "work for 1.234" in {
+    val target = Number(1.234)
+      target.isExact(None) shouldBe false
+      target.value shouldBe Left(Left(Some(1.234)))
+    target.toString shouldBe "1.234[5]"
+  }
+  it should "work for 1.23400" in {
+    val target = Number(1.23400)
+      target.isExact(None) shouldBe false
+      target.value shouldBe Left(Left(Some(1.234)))
+    target.toString shouldBe "1.234[5]"
   }
   it should "support exact strings" in {
     val target = Number("3.141592700")
-    target should matchPattern { case ExactNumber(_, _) => }
+      target.isExact(None) shouldBe true
+      target should matchPattern { case ExactNumber(_, _) => }
     target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
+
+  behavior of "Number.parse" // CONSIDER Moving these into NumberParserSpec
+  it should "parse boltzmann" in {
+    val zy = Number.parse(sBoltzmann)
+      zy should matchPattern { case Success(_) => }
+      zy.get.isExact(None) shouldBe true
+      zy.get.toDouble shouldBe Some(1.380649E-23)
+  }
+  it should "fail to parse boltzmann with alternative minus" in {
+    val zy = Number.parse("1.380649E−23")
+    zy should matchPattern { case Failure(_) => }
+  }
+  it should "parse planck" in {
+    val z = Number.parse(sPlanck)
+      z should matchPattern { case Success(_) => }
+      z.get.isExact(None) shouldBe true
+  }
+  it should "parse c" in {
+    val z = Number.parse(sC)
+      z should matchPattern { case Success(_) => }
+      z.get.isExact(None) shouldBe true
+  }
+  it should "parse avagadro" in {
+    val z = Number.parse(sAvagadro)
+      z should matchPattern { case Success(_) => }
+      z.get.isExact(None) shouldBe true
+  }
+
+  behavior of "FuzzOps"
+  it should "get mu" in {
+    import Number.FuzzOps
+    val x = 1836.15267343 ~ 11
+      x.isExact(None) shouldBe false
+      x.toString shouldBe "1836.15267343(11)"
+    x shouldEqual Constants.mu
+  }
+  it should "get G" in {
+    import Number.FuzzOps
+    val x = 6.67430E-11 ~ 15
+      x.isExact(None) shouldBe false
+      x shouldEqual Constants.G
+    // FIXME Issue #54
+    //    x.toString shouldBe "6.67430(15)E-11"
+  }
+
 
   behavior of "normalize"
   it should "work for 1" in {
@@ -309,153 +397,174 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 2E, Scalar" in {
     val target = Number(2, E)
     val actual: Number = target.scale(Scalar)
-    val expected: Number = convertToNumber((Number(Math.E) ^ 2).materialize)
+    val expected: Number = convertToNumber(Number(Math.E) doPower 2)
     actual should ===(expected)
   }
-  it should "work for Pi, E" in {
-    val target = Number(1, Pi)
-    target.scale(E) should ===(Number(Math.PI / Math.E, E))
+  it should "work for 2E, Scalar but comparing against E * E" in {
+    val target = Number(2, E)
+    val actual: Number = target.scale(Scalar)
+    val expected: Number = convertToNumber(Number(Math.E) doMultiply Number(Math.E))
+    actual should ===(expected)
+  }
+  it should "work for Scalar, 2E (same as before but with parameters to === reversed" in {
+    val target = Number(2, E)
+    val actual: Number = target.scale(Scalar)
+    val expected: Number = convertToNumber(Number(Math.E) doPower 2)
+    expected should ===(actual)
+  }
+  it should "work for Scalar, 2E (same as before but using E * E and parameters to === reversed" in {
+    val target = Number(2, E)
+    val actual: Number = target.scale(Scalar)
+    val expected: Number = convertToNumber(Number(Math.E) doMultiply Number(Math.E))
+    expected should ===(actual)
   }
   it should "work for E, Pi" in {
     val target = Number(1, E)
-    target.scale(Pi) should ===(Number(Math.E / Math.PI, Pi))
+    val expected = Number(Math.E / Math.PI, Pi)
+    target.scale(Pi) should ===(expected)
+  }
+  it should "not work for Pi, E (because E numbers are not linear)" in {
+    val target = Number(1, Pi)
+    val expected = Number(Math.PI / Math.E, E)
+    val result = target.scale(E)
+    result === expected shouldBe false
   }
 
   behavior of "alignFactors"
   it should "work for Scalar, Scalar" in {
     val target = numberOne
-    target.alignFactors(Number(2)) shouldBe(numberOne, Number(2))
+    target.asInstanceOf[GeneralNumber].alignFactors(Number(2)) shouldBe(numberOne, Number(2))
   }
   it should "work for Scalar, Pi" in {
     val target = numberOne
-    val (p, q) = target.alignFactors(Number(2, Pi))
+    val (p, q) = target.asInstanceOf[GeneralNumber].alignFactors(Number(2, Pi))
     p shouldBe numberOne
     q shouldEqual Number(2 * Math.PI)
   }
   it should "work for Pi, Scalar" in {
     val target = Number(2, Pi)
-    val (f, x) = target.alignFactors(numberOne)
+    val (f, x) = target.asInstanceOf[GeneralNumber].alignFactors(numberOne)
     f shouldEqual Number(2 * Math.PI)
     x shouldBe numberOne
   }
   it should "work for Pi, Pi" in {
     val target = Number(1, Pi)
-    target.alignFactors(Number(2, Pi)) shouldBe(Number(1, Pi), Number(2, Pi))
+    target.asInstanceOf[GeneralNumber].alignFactors(Number(2, Pi)) shouldBe(Number(1, Pi), Number(2, Pi))
   }
 
   behavior of "alignTypes"
   it should "work for Int,Int" in {
     val target = numberOne
-    target.alignTypes(Number(2)) shouldBe(numberOne, Number(2))
+    target.asInstanceOf[GeneralNumber].alignTypes(Number(2).asInstanceOf[GeneralNumber]) shouldBe(numberOne, Number(2))
   }
   it should "work for Int Int(Pi)" in {
-    val target = numberOne
+    val target: GeneralNumber = numberOne.asInstanceOf[GeneralNumber]
     target.alignTypes(Number(1, Pi)) shouldBe(numberOne, Number(1, Pi))
   }
   it should "work for Int,BigInt" in {
-    val target = numberOne
+    val target = numberOne.asInstanceOf[GeneralNumber]
     target.alignTypes(Number(bigBigInt)) shouldBe(Number(bigBigInt), Number(bigOne))
   }
   it should "work for BigInt,Int" in {
-    val target = Number(bigOne)
+    val target = Number(bigOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(2)) shouldBe(Number(bigOne), Number(BigInt(2)))
   }
   it should "work for Int,Rational" in {
-    val target = numberOne
+    val target = numberOne.asInstanceOf[GeneralNumber]
     target.alignTypes(Number(Rational(2, 3))) shouldBe(Number(Rational(2, 3)), Number(Rational(1)))
   }
   it should "work for Rational,Int" in {
-    val target = Number(Rational(1))
+    val target = Number(Rational(1)).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(2)) shouldBe(Number(Rational(1)), Number(Rational(2)))
   }
   it should "work for Int,Double" in {
-    val target = numberOne
+    val target = numberOne.asInstanceOf[GeneralNumber]
     val (p, q) = target.alignTypes(Number(Math.PI))
     p should ===(Number(Math.PI))
     q should ===(Number(doubleOne))
   }
   it should "work for Double,Int" in {
-    val target = Number(doubleOne)
+    val target = Number(doubleOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(2)) shouldBe(Number(doubleOne), Number(2.0))
   }
   it should "work for Int,None" in {
-    val target = numberOne
+    val target = numberOne.asInstanceOf[GeneralNumber]
     target.alignTypes(Number()) shouldBe(Number(), Number())
   }
   it should "work for None,Int" in {
-    val target = Number()
+    val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number(2)) shouldBe(Number(), Number())
   }
 
   it should "work for BigInt,BigInt" in {
-    val target = Number(bigOne)
+    val target = Number(bigOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(BigInt(2))) shouldBe(Number(bigOne), Number(BigInt(2)))
   }
   it should "work for BigInt,Rational" in {
-    val target = Number(bigOne)
+    val target = Number(bigOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(Rational(2, 3))) shouldBe(Number(Rational(2, 3)), Number(Rational(1)))
   }
   it should "work for Rational,BigInt" in {
-    val target = Number(Rational(1))
+    val target = Number(Rational(1)).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(BigInt(2))) shouldBe(Number(Rational(1)), Number(Rational(2)))
   }
   it should "work for BigInt,Double" in {
-    val target = Number(bigOne)
+    val target = Number(bigOne).asInstanceOf[GeneralNumber]
     val (p, q) = target.alignTypes(Number(Math.PI))
     p should ===(Number(Math.PI))
     q should ===(Number(doubleOne))
   }
   it should "work for Double,BigInt" in {
-    val target = Number(doubleOne)
+    val target = Number(doubleOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(BigInt(2))) shouldBe(Number(doubleOne), Number(2.0))
   }
   it should "work for BigInt,None" in {
-    val target = Number(bigOne)
+    val target = Number(bigOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number()) shouldBe(Number(), Number())
   }
   it should "work for None,BigInt" in {
-    val target = Number()
+    val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number(BigInt(2))) shouldBe(Number(), Number())
   }
 
   it should "work for Rational,Rational" in {
-    val target = Number(Rational(1))
+    val target = Number(Rational(1)).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(Rational(2))) shouldBe(Number(Rational(1)), Number(Rational(2)))
   }
   it should "work for Rational,Double" in {
-    val target = Number(Rational(1))
+    val target = Number(Rational(1)).asInstanceOf[GeneralNumber]
     val (p, q) = target.alignTypes(Number(Math.PI))
     p should ===(Number(Math.PI))
     q should ===(Number(doubleOne))
   }
   it should "work for Double,Rational" in {
-    val target = Number(doubleOne)
+    val target = Number(doubleOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(Rational(2))) shouldBe(Number(doubleOne), Number(2.0))
   }
   it should "work for Rational,None" in {
-    val target = Number(Rational(1))
+    val target = Number(Rational(1)).asInstanceOf[GeneralNumber]
     target.alignTypes(Number()) shouldBe(Number(), Number())
   }
   it should "work for None,Rational" in {
-    val target = Number()
+    val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number(Rational(2))) shouldBe(Number(), Number())
   }
 
   it should "work for Double,Double" in {
-    val target = Number(doubleOne)
+    val target = Number(doubleOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(2.0)) shouldBe(Number(doubleOne), Number(2.0))
   }
   it should "work for Double,None" in {
-    val target = Number(doubleOne)
+    val target = Number(doubleOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number()) shouldBe(Number(), Number())
   }
   it should "work for None,Double" in {
-    val target = Number()
+    val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number(2.0)) shouldBe(Number(), Number())
   }
 
   it should "work for None,None" in {
-    val target = Number()
+    val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number()) shouldBe(Number(), Number())
   }
 
@@ -493,7 +602,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 to pi" in {
     val x1 = Number.one
     val x2 = Number.pi
-    (x1 add x2).toString shouldBe "4.1415926535897930(36)"
+    (x1 add x2).toString shouldBe "4.141592653589793[5]"
   }
 
 
@@ -621,7 +730,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "**"
   it should "work for 2^2" in {
     val target = Number(2)
-    (target ^ 2).materialize shouldBe Number(4)
+    (target doPower 2) shouldBe Number(4)
   }
 
   behavior of "sqrt"
@@ -647,8 +756,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.sin shouldBe Number(0, Scalar)
   }
   it should "be one for pi/2" in {
-    val target = (Number.pi / 2).sin
-    target.materialize shouldBe Number.one
+    val target = (Number.pi doDivide 2).sin
+    target shouldBe Number.one
   }
   it should "work for Pi/2" in {
     val target = Number(Rational.half, Pi)
@@ -662,7 +771,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for Pi/3" in {
     val target = Number(Rational(1, 3), Pi)
     val sin = target.sin
-    sin should ===(Number(3).sqrt / 2)
+    sin should ===(Number(3).sqrt doDivide 2)
   }
 
   behavior of "cos"
@@ -679,33 +788,33 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.cos.isZero shouldBe true
   }
   it should "work for Pi/3" in {
-    val target = Number.pi / 3
-    target.cos.materialize shouldBe Number(Rational(1, 2), Scalar)
+    val target = Number.pi doDivide 3
+    target.cos shouldBe Number(Rational(1, 2), Scalar)
   }
   it should "work for Pi/6" in {
-    val target: Expression = Number.pi / 6
-    target.cos should ===(Number(3).sqrt / 2)
+    val target = Number.pi doDivide 6
+    target.cos should ===(Number(3).sqrt doDivide 2)
   }
 
   behavior of "tan"
   it should "be zero for 0" in {
-    val target: Expression = Number(0, Pi)
-    target.tan.materialize.isZero shouldBe true
+    val target = Number(0, Pi)
+    target.tan.isZero shouldBe true
   }
   it should "be zero for pi" in {
-    val target: Expression = Number.pi
-    target.tan.materialize.isZero shouldBe true
+    val target = Number.pi
+    target.tan.isZero shouldBe true
   }
   it should "work for Pi/2" in {
-    val target: Expression = Number(Rational.half, Pi)
-    target.tan.materialize.isInfinite shouldBe true
+    val target = Number(Rational.half, Pi)
+    target.tan.isInfinite shouldBe true
   }
   it should "work for Pi/3" in {
-    val target: Expression = Number.pi / 3
+    val target = Number.pi doDivide 3
     target.tan shouldEqual Number(3).sqrt
   }
   it should "work for Pi/6" in {
-    val target = Number.pi / 6
+    val target = Number.pi doDivide 6
     target.tan should ===(Number(3).sqrt.invert)
   }
 
@@ -716,24 +825,39 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "be pi/4 for 1/1" in {
     val target = Number.one
-    target.atan(Number.one) === (Number.pi / 4)
+    target.atan(Number.one) === (Number.pi doDivide 4)
   }
   it should "be 0Pi for 0/-1" in {
-    val target = negate(Number.one)
+    val target = Number.negate(Number.one)
     target.atan(Number.zero) shouldBe Number(1, Pi)
   }
-  it should "be pi/4 for 1/-1" in {
-    val target = negate(Number.one)
-    val actual = target.atan(Number.one)
-    import Expression.ExpressionOps
-    val expected: Expression = Number.pi * 7 / 4
+  it should "be Pi / 3 for root(3)" in {
+    Number.one.atan(Number(Rational(3)).sqrt) shouldEqual Number(r"1/3", Pi)
+  }
+  it should "be 7 Pi / 6 for 1/-root(3)" in {
+    // CONSIDER shouldn't this be 5 Pi / 6?
+    negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"7/6", Pi)
+  }
+  it should "be 11 Pi / 6 for -1/2" in {
+    Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"11/6", Pi)
+  }
+  it should "be 3 pi / 4 for 1/-1" in {
+    val adjacent = Number.negate(Number.one)
+    val opposite = Number.one
+    val actual: Number = adjacent.atan(opposite)
+    val expected: Number = (Number.pi doMultiply 3) doDivide 4
     // TODO revert this so that it reads actual ... expected
     //  XXX  actual should ===(expected)
-    expected should ===(actual)
+    actual shouldBe expected
   }
   // TODO need to operate appropriately on negZero.
-  ignore should "evaluate atan" in {
-    Number.one.atan(Number.negZero) shouldBe Number(3, Pi)
+  it should "evaluate atan of 1 over -0" in {
+    val number = Number.negZero.atan(Number.one)
+    number shouldBe Number(Rational(3, 2), Pi)
+  }
+  it should "evaluate atan of -1 over 0" in {
+    val number = Number.zero.atan(negate(Number.one))
+    number shouldBe Number(Rational(3, 2), Pi)
   }
 
 
