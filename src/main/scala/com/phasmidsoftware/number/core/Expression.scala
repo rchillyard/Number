@@ -698,6 +698,24 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ => false
   }
 
+  /**
+    * Regular hashCode method.
+    *
+    * @return an Int depending on f, a, and b.
+    */
+  override def hashCode(): Int = java.util.Objects.hash(f, a, b)
+
+  /**
+    * An equals method which considers two BiFunctions, which are non-identical but symmetric, to be equal.
+    *
+    * @param obj the other object.
+    * @return true if the values of these two expressions would be the same (without any evaluation).
+    */
+  override def equals(obj: Any): Boolean = obj match {
+    case BiFunction(c, d, g) => f == g && (a == c && b == d | f != Power && a == d && b == c)
+    case _ => false
+  }
+
   private lazy val exact: Boolean = a.isExact(None) && b.isExact(None) && (f.isExact || conditionallyExact(f, a, b))
 }
 

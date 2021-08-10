@@ -36,7 +36,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   val eml: ExpressionMatchers = new ExpressionMatchers()(sbLogger) {}
   private val two: Number = Number(2)
   private val one: Number = Number.one
-  private val zero: Number = Number.zero
   private val half: Number = convertToNumber(Number.two.invert)
 
 
@@ -86,7 +85,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     sb.append("cancel -1 and - 1:\n")
     val x: Expression = Expression.one
     val y = -x
-    val z = y + x
     val p = em.evaluateExactDyadicTriple
     import em.TildeOps
     val result = p(Sum ~ y ~ x)
@@ -164,7 +162,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val seven = Expression(7)
     val x: Expression = seven.sqrt
     val y = x ^ 2
-    val z = y.simplify
     val q = em.simplifier(y)
     q shouldBe em.Match(Literal(7))
   }
@@ -239,7 +236,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   it should "evaluate E * 2" in {
-    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918090[67]"
+    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918090[57]"
   }
 
   behavior of "biFunctionSimplifier"
@@ -336,16 +333,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Expression(3).sqrt
     val z = p(x)
     z shouldBe em.Match(BiFunction(Literal(3), Literal(0.5), Power))
-  }
-
-  behavior of "matchBiFunctionConstantResult"
-  it should "simplify" in {
-    val p: em.Matcher[em.Expressions, Expression] = em.matchBiFunctionConstantResult(Product, MinusOne, Zero)
-    import em.TildeOps
-    p(BiFunction(Two, MinusOne, Product) ~ Two) shouldBe em.Match(Zero)
-    p(Two ~ BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Zero)
-    p(BiFunction(MinusOne, Two, Product) ~ Two) shouldBe em.Match(Zero)
-    p(Two ~ BiFunction(MinusOne, Two, Product)) shouldBe em.Match(Zero)
   }
 
   behavior of "simplifyProduct"
@@ -668,6 +655,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result: em.MatchResult[Expression] = p(e)
     result.successful shouldBe true
     result.get shouldBe One
+  }
+
+  it should "simplify various" in {
+    val p: em.Matcher[em.DyadicTriple, Expression] = em.matchDyadicTwoLevels
+    import em.TildeOps
+    p(Sum ~ BiFunction(Two, MinusOne, Product) ~ Two) shouldBe em.Match(Zero)
+    p(Sum ~ Two ~ BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Zero)
+    p(Sum ~ BiFunction(MinusOne, Two, Product) ~ Two) shouldBe em.Match(Zero)
+    p(Sum ~ Two ~ BiFunction(MinusOne, Two, Product)) shouldBe em.Match(Zero)
   }
 
 

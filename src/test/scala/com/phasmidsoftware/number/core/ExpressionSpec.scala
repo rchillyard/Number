@@ -7,6 +7,7 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
@@ -144,7 +145,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (ConstE * 2).materialize.toString shouldBe "5.436563656918090[67]"
+    (ConstE * 2).materialize.toString shouldBe "5.436563656918090[57]"
   }
 
   behavior of "isExact"
