@@ -708,29 +708,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.get shouldBe Literal(3)
   }
 
-  behavior of "matchEitherDyadic"
-  it should "match (1, biFunction)" in {
-    val p = em.matchEitherDyadic(commutes = true)
-    import em.TildeOps
-    val r: em.MatchResult[BiFunction ~ Expression] = p(One ~ BiFunction(One, MinusOne, Product))
-    r.successful shouldBe true
-  }
-  it should "match (biFunction, 1)" in {
-    val p = em.matchEitherDyadic(commutes = true)
-    import em.TildeOps
-    val r: em.MatchResult[BiFunction ~ Expression] = p(BiFunction(One, MinusOne, Product) ~ One)
-    r.successful shouldBe true
-  }
-
-  behavior of "matchBiFunctionConstantResult"
-  it should "match 1" in {
-    val q = em.matchBiFunctionConstantResult(Product, MinusOne, Zero)
-    import em.TildeOps
-    val r: em.MatchResult[Expression] = q(One ~ BiFunction(One, MinusOne, Product))
-    r.successful shouldBe true
-    r.get shouldBe Zero
-  }
-
 }
 
 case class SBLogger(override val logLevel: LogLevel, sb: StringBuilder) extends MatchLogger(logLevel, { w => sb.append(s"$w\n"); () })
