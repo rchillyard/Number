@@ -1,9 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
-import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.util._
@@ -18,7 +16,7 @@ import scala.util._
   * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
   * @param fuzz   the (optional) fuzziness of this Number.
   */
-abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends AtomicExpression with Fuzz[Double] with Number {
+abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
 
   self =>
 
@@ -220,7 +218,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] =
     Operations.doTransformValueMonadic(value)(op.functions) flatMap {
       case v@Right(x)
-        if op.isExact(Rational(x)) => Some(make(v, f))
+        if op.isExact(x) => Some(make(v, f))
       case v@Left(Right(x))
         if op.isExact(x) => Some(make(v, f))
       case v =>
@@ -534,7 +532,7 @@ object GeneralNumber {
   def times(x: Number, y: Number): Number = x match {
     case a: GeneralNumber =>
       y match {
-        case n@FuzzyNumber(_, _, _) => recover((n multiply x).materialize.asNumber, NumberException("logic error: plusAligned"))
+        case n@FuzzyNumber(_, _, _) => n doMultiply x
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)
           p.factor + q.factor match {
@@ -548,7 +546,7 @@ object GeneralNumber {
   private def plusAligned(x: Number, y: Number): Number = (x, y) match {
     case (a: GeneralNumber, b: GeneralNumber) =>
       y match {
-        case n@FuzzyNumber(_, _, _) => recover((n plus x).materialize.asNumber, NumberException("logic error: plusAligned"))
+        case n@FuzzyNumber(_, _, _) => n doAdd x
         case _ =>
           val (p, q) = a.alignTypes(b)
           prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))

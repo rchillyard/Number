@@ -1,8 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
-import com.phasmidsoftware.number.core.Rational.toInt
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -160,7 +158,7 @@ case object MonadicOperationExp extends MonadicOperation {
     * @param r the input value (a Rational).
     * @return the success status of the result of expInt or expRat.
     */
-  def isExact(r: Rational): Boolean = toInt(r).flatMap(expInt).orElse(expRat(r)).isSuccess
+  def isExact(r: Rational): Boolean = true
 
   /**
     * Relative precision, as used by createFuzz.
@@ -203,7 +201,7 @@ case object MonadicOperationLog extends MonadicOperation {
     * @param r the input value (a Rational).
     * @return the success status of the result of expRat.
     */
-  def isExact(r: Rational): Boolean = toInt(r).flatMap(logInt).orElse(logRat(r)).isSuccess
+  def isExact(r: Rational): Boolean = true
 
   /**
     * Relative precision, as used by createFuzz.

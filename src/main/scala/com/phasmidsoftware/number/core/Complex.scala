@@ -2,15 +2,16 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar, narrow}
 import com.phasmidsoftware.number.core.Field.recover
+import com.phasmidsoftware.number.core.Number.negate
 
-abstract class Complex(val real: Number, val imag: Number) extends AtomicExpression with Field {
+abstract class Complex(val real: Number, val imag: Number) extends Field {
 
   /**
     * Evaluate the magnitude squared of this Complex number.
     *
     * @return the magnitude squared.
     */
-  def magnitudeSquared: Expression
+  def magnitudeSquared: Number
 
   /**
     * Method to determine the modulus of this Complex number.
@@ -42,7 +43,7 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
     *
     * @return true if materialize will result in an exact Field, else false.
     */
-  def isExact: Boolean = real.isExact && imag.isExact
+  def isExact(maybeFactor: Option[Factor]): Boolean = real.isExact(maybeFactor) && imag.isExact(maybeFactor)
 
   /**
     * Action to materialize this Complex as a Field,
@@ -95,13 +96,14 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
   def power(p: Number): Field = this match {
     case ComplexPolar(_, _) =>
       recover(
-        for (r <- real.^(p).materialize.asNumber; i <- (imag * p).materialize.asNumber) yield make(r, i),
+        for (r <- Literal(real).^(p).materialize.asNumber; i <- (Literal(imag) * p).materialize.asNumber) yield make(r, i),
         ComplexException("logic error: power")
       )
     case ComplexCartesian(_, _) => p.toInt match {
-      case Some(0) => ComplexCartesian(Number.one, Number.zero)
-      case Some(-1) => -this divide this.magnitudeSquared.materialize
-      case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.reduce[Expression]((a, b) => a * b).materialize
+      case Some(0) => Complex.unit
+      case Some(-1) => -this divide this.magnitudeSquared
+      case Some(1) => this
+      case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
       case _ => throw ComplexException(s"not implemented: power($p)")
     }
   }
@@ -147,12 +149,13 @@ abstract class Complex(val real: Number, val imag: Number) extends AtomicExpress
 
 object Complex {
   val i: ComplexCartesian = ComplexCartesian(0, 1)
+  val unit: ComplexCartesian = ComplexCartesian(1, 0)
 
   // TODO this is dangerous.
   def unapply(arg: Complex): Option[(Number, Number)] = Some(arg.real, arg.imag)
 
   def convertToPolar(c: ComplexCartesian): Complex = {
-    val ro: Option[Field] = for (p <- ((c.x multiply c.x) add (c.y multiply c.y)).asNumber; z = p.sqrt.materialize) yield z
+    val ro: Option[Field] = for (p <- ((Literal(c.x) * c.x) plus (Literal(c.y) * c.y)).materialize.asNumber; z = p.sqrt) yield z
     val z: Field = Field.recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
     apply(z, c.x atan c.y, ComplexPolar.apply, ComplexException(s"logic error: convertToPolar2: $c"))
   }
@@ -180,14 +183,14 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     *
     * @return the modulus of this Complex.
     */
-  def modulus: Number = magnitudeSquared.sqrt.asNumber.getOrElse(Number.NaN)
+  def modulus: Number = magnitudeSquared.sqrt
 
   /**
     * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
-  def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor if f2 == f1) yield f1 // CHECK
+  def maybeFactor: Option[Factor] = if (real.factor == imag.factor) Some(real.factor) else None
 
   def numberProduct(n: Number): Complex = make(x doMultiply n, y doMultiply n)
 
@@ -197,7 +200,7 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
 
   def isInfinite: Boolean = x.isInfinite || y.isInfinite
 
-  def magnitudeSquared: Expression = (x doMultiply x) plus (y doMultiply y)
+  def magnitudeSquared: Number = Literal(x) * x plus (Literal(y) * y)
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -214,7 +217,9 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     * @return the sum.
     */
   def doAdd(complex: Complex): Complex = complex match {
-    case ComplexCartesian(a, b) => Complex.apply((x plus a).materialize, (y plus b).materialize, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
+    case ComplexCartesian(a, b) =>
+      import com.phasmidsoftware.number.core.Expression.ExpressionOps
+      Complex.apply(Literal(x).+(a).materialize, (Literal(y) + b).materialize, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
     case c@ComplexPolar(_, _) => doAdd(convertToCartesian(c))
   }
 
@@ -226,9 +231,9 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     */
   def doMultiply(complex: Complex): Complex = complex match {
     case ComplexCartesian(a, b) =>
-      val real: Expression = a * x plus -(b * y)
-      val imag: Expression = a * y plus b * x
-      Complex.apply(real.materialize, imag.materialize, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
+      val real: Number = (a doMultiply x) doAdd negate(b doMultiply y)
+      val imag: Number = (a doMultiply y) doAdd (b doMultiply x)
+      Complex.apply(real, imag, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
     case ComplexPolar(_, _) => throw ComplexException("logic error: ComplexCartesian.doAdd")
   }
 }
@@ -255,7 +260,7 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
     *
     * @return Some(factor of r) if factor of theta is Pi; otherwise None.
     */
-  def maybeFactor: Option[Factor] = for (f1 <- real.maybeFactor; f2 <- imag.maybeFactor; if f2 == Pi) yield f1
+  def maybeFactor: Option[Factor] = if (real.factor == imag.factor) Some(real.factor) else None
 
   def numberProduct(n: Number): Complex = make(r doMultiply n, theta)
 
@@ -265,7 +270,7 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
 
   def isInfinite: Boolean = r.isInfinite
 
-  def magnitudeSquared: Expression = r * r
+  def magnitudeSquared: Number = Literal(r) * r
 
   /**
     * Action to materialize this Expression and render it as a String,

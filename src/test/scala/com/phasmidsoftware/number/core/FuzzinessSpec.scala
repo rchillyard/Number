@@ -35,21 +35,21 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   behavior of "maybeNumber"
   it should "" in {
     val z = p.parseAll(p.maybeNumber, sG)
-    z.get.get.isExact shouldBe false
-    z.get.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
+    z.get.get.isExact(None) shouldBe false
+      z.get.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
   behavior of "number"
   it should "" in {
     val z: p.ParseResult[Number] = p.parseAll(p.number, sG)
-    z.get.isExact shouldBe false
-    z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
+      z.get.isExact(None) shouldBe false
+      z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
   behavior of "StringParser"
   it should "" in {
     val x =    new NumberParser
     val q: Try[Number] = x.parseNumber(sG)
-    q.get.isExact shouldBe false
-    q.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
+      q.get.isExact(None) shouldBe false
+      q.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
 
   behavior of "fuzz"
@@ -83,8 +83,8 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "understand ..." in {
     import Number.FuzzOps
     val x = 3.1415927 ~ 12
-    x.isExact shouldBe false
-    x.toString shouldBe "3.1415927(12)"
+      x.isExact(None) shouldBe false
+      x.toString shouldBe "3.1415927(12)"
   }
 
   behavior of "exponent"
@@ -213,7 +213,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Box.wiggle"
   it should "be likely for 5.0040" in {
-    val xy: Option[Number] = for (a <- Number.parse("1.251").toOption; b <- Number.parse("4.00*").toOption; x <- (a * b).asNumber) yield x
+    val xy: Option[Number] = for (a <- Number.parse("1.251").toOption; b <- Number.parse("4.00*").toOption; x <- (Literal(a) * b).asNumber) yield x
     xy.isDefined shouldBe true
     val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz
@@ -231,7 +231,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Gaussian.wiggle"
   it should "be likely for 5.0040" in {
-    val xy: Option[Number] = for (a <- Number.parse("1.250(2)").toOption; b <- Number.parse("4.00*").toOption; x <- (a * b).asNumber) yield x
+    val xy: Option[Number] = for (a <- Number.parse("1.250(2)").toOption; b <- Number.parse("4.00*").toOption; x <- (Literal(a) * b).asNumber) yield x
     xy.isDefined shouldBe true
     val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz

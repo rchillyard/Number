@@ -153,6 +153,6 @@ class FuzzyParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
   }
   // FIXME parsing error
   ignore should "parse " in {
-    Number("16.5[2]").isExact shouldBe false
+      Number("16.5[2]").isExact(None) shouldBe false
   }
 }

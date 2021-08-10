@@ -6,7 +6,6 @@ import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -97,12 +96,28 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def doAdd(n: Number): Number
 
   /**
+    * Subtract n from this Number
+    *
+    * @param n another Number.
+    * @return the difference of this and n.
+    */
+  def doSubtract(n: Number): Number = doAdd(negate(n))
+
+  /**
     * Multiply this Number by n.
     *
     * @param n another Number.
     * @return the product of this and n.
     */
   def doMultiply(n: Number): Number
+
+  /**
+    * Multiply this Number by n.
+    *
+    * @param n another Int.
+    * @return the product of this and n.
+    */
+  def doMultiply(n: Int): Number = doMultiply(Number(n))
 
   /**
     * Divide this Number by n.
@@ -113,12 +128,28 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def doDivide(n: Number): Number
 
   /**
+    * Divide this Number by n.
+    *
+    * @param n an Int.
+    * @return this quotient of this and n, i.e. this/n.
+    */
+  def doDivide(n: Int): Number = doDivide(Number(n))
+
+  /**
     * Raise this Number to the power p.
     *
     * @param p a Number.
     * @return this Number raised to the power of p.
     */
   def doPower(p: Number): Number
+
+  /**
+    * Raise this Number to the power p.
+    *
+    * @param p an Int.
+    * @return this Number raised to the power of p.
+    */
+  def doPower(p: Int): Number = doPower(Number(p))
 
   // NOTE Following are methods defined in Field.
 
@@ -135,7 +166,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   /**
     * @return true if there is no fuzz.
     */
-  def isExact: Boolean = fuzz.isEmpty
+  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && (maybeFactor.isEmpty || maybeFactor.contains(factor))
 
   /**
     * Add x to this Number and return the result.
@@ -233,9 +264,9 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     case (Left(Right(r)), Pi) => r match {
       case Rational(Rational.bigOne, Rational.bigFour) | Rational(Rational.bigFive, Rational.bigFour) => Number.one
       case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) => negate(Number.one)
-      case _ => (sin / cos).asNumber.getOrElse(Number.NaN)
+      case _ => sin doDivide cos
     }
-    case _ => (sin / cos).asNumber.getOrElse(Number.NaN)
+    case _ => sin doDivide cos
   }
 
   /**
@@ -474,8 +505,13 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def isProbablyZero(p: Double): Boolean
 }
 
-
 object Number {
+  /**
+    * NOTE: this unapply method does not match on the fuzz of a Number.
+    *
+    * @param arg a Number to be unapplied.
+    * @return optional value and factor.
+    */
   def unapply(arg: Number): Option[(Value, Factor)] = Some(arg.value, arg.factor)
 
   /**
@@ -490,6 +526,10 @@ object Number {
     * Exact value of 1
     */
   val one: Number = ExactNumber(Right(1), Scalar)
+  /**
+    * Exact value of -1
+    */
+  val negOne: Number = ExactNumber(Right(-1), Scalar)
   /**
     * Exact value of 1
     */
@@ -522,7 +562,7 @@ object Number {
     * @return the equivalent Number.
     * @throws ExpressionException if x cannot be converted to a Number.
     */
-  implicit def convertToNumber(x: Expression): Number = x.asNumber match {
+  implicit def convertToNumber(x: Expression): Number = x.materialize.asNumber match {
     case Some(n) => n
     case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
   }
@@ -567,7 +607,7 @@ object Number {
       * @param y the divisor, a Number.
       * @return a Number whose value is x / y.
       */
-    def /(y: Number): Number = Number(x) doMultiply convertToNumber(y.invert)
+    def /(y: Number): Number = Number(x) doMultiply y.invert
 
     /**
       * Divide x by y (a Number) and yield a Number.

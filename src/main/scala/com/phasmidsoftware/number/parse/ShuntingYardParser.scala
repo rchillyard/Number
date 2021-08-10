@@ -67,7 +67,7 @@ class ShuntingYardParser extends MillParser {
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 
-    private def :+(number: Number) = ShuntingYard(values :+ Expr(number), operators)
+    private def :+(number: Number) = ShuntingYard(values :+ Expr(Expression(number)), operators)
 
     @tailrec
     private def :+(operator: String): ShuntingYard = Item(operator) match {
