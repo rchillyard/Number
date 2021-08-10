@@ -140,14 +140,14 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val z: String = n match {
       case p.NumberWithFuzziness(_, fo, _) => fo.get
     }
-    z shouldBe "5"
+    z shouldBe "(5)"
   }
 
   behavior of "fuzz"
   it should "parse (17)" in {
     val r: p.ParseResult[Option[String]] = p.parseAll(p.fuzz, "(17)")
     r should matchPattern { case p.Success(_, _) => }
-    r.get should matchPattern { case Some("17") => }
+    r.get should matchPattern { case Some("(17)") => }
   }
   it should "parse *" in {
     val r: p.ParseResult[Option[String]] = p.parseAll(p.fuzz, "*")

@@ -38,8 +38,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "fail for 2, 2" in {
     a[IllegalArgumentException] should be thrownBy new Rational(BigInt(2), 2L)
   }
-  it should "fail for 0, -1" in {
-    a[IllegalArgumentException] should be thrownBy new Rational(BigInt(0), -1L)
+  it should "succeed for 0, -1" in {
+    new Rational(BigInt(0), -1L).d shouldBe BigInt(-1)
+  }
+  it should "fail for 1, -1" in {
+    a[IllegalArgumentException] should be thrownBy new Rational(BigInt(1), -1L)
   }
 
   behavior of "apply(BigInt,Long)"
@@ -161,6 +164,18 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val pi = BigDecimal(math.Pi)
     val r = Rational(pi)
     r.toDouble shouldBe math.Pi
+  }
+
+  behavior of "isWhole"
+  it should "be true for integers" in {
+    Rational.zero.isWhole shouldBe true
+    Rational.one.isWhole shouldBe true
+    Rational.two.isWhole shouldBe true
+  }
+  it should "be false for reciprocals" in {
+    Rational.zero.invert.isWhole shouldBe false
+    Rational.one.invert.isWhole shouldBe true
+    Rational.two.invert.isWhole shouldBe false
   }
 
   behavior of "toBigInt"
@@ -339,6 +354,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     target.power(Rational(2, 3)) shouldBe Success(Rational(4, 9))
   }
 
+  it should "fail for non-exact powers" in {
+    val target = Rational(7, 28)
+    target.power(Rational(2, 3)).isFailure shouldBe true
+  }
+
   behavior of "exponent"
   it should "work for 2" in {
     val hundred = Rational.exponent(2)
@@ -414,7 +434,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "barf when Rational.toInt invoked" in {
     an[RationalException] should be thrownBy Rational.toInt(Rational(2, 3)).get
     val thrown = the[Exception] thrownBy Rational(2, 3).toInt
-    thrown.getMessage should equal("toBigInt: 2/3 is not whole")
+    thrown.getMessage should equal("2/3 is not whole")
   }
 
   behavior of "2/4"
@@ -726,5 +746,13 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     // NOTE: here we perform integer / on 2 and 3 and then implicitly convert 0 to a Rational
     val r: Rational = 2 / 3
     r shouldBe Rational.zero
+  }
+
+  behavior of "negZero"
+  it should "add to zero correctly" in {
+    Rational.negZero + Rational.zero shouldBe Rational.zero
+  }
+  it should "add to one correctly" in {
+    Rational.negZero + Rational.one shouldBe Rational.one
   }
 }
