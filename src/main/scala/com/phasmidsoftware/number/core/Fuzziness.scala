@@ -221,7 +221,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
     * @return an optional RelativeFuzz[T]
     */
   def relative(t: T): Option[RelativeFuzz[T]] =
-    Try(RelativeFuzz(tv.toDouble(tv.normalize(tv.div(magnitude, t))), shape)).toOption
+    Try(RelativeFuzz(tv.toDouble(tv.normalize(tv.div(magnitude, t))), shape)(tv)).toOption
 
   /**
     * Transform this Fuzziness[T] according to func.
