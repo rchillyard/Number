@@ -1,7 +1,6 @@
 /**
   * This is an example worksheet for Rational.
   */
-
 import com.phasmidsoftware.number.core.Rational
 import com.phasmidsoftware.number.core.Rational._
 

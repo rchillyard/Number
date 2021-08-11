@@ -8,9 +8,12 @@ import com.phasmidsoftware.number.core.{Expression, Literal, Number}
 
 val root3: Expression = Literal(3).sqrt
 
+// For some reason I haven't quite figure out, the "+" operator is masked by the implicits mechanism and can't be used.
+// "plus" is a synonym.
 val root3PlusOne = root3 plus Expression.one
 val root3MinusOne = root3 plus Expression(negate(one))
 
+// Note the use of an implicit converter from Expression to Number.
 val x: Number = root3PlusOne
 val y: Number = root3MinusOne
 val two: Number = root3PlusOne * root3MinusOne
