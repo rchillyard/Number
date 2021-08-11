@@ -1,10 +1,15 @@
 /**
-  * This is an example worksheet for GeneralNumber.
+  * This is an example worksheet for Number.
   */
 
-import com.phasmidsoftware.number.core.GeneralNumber
-import com.phasmidsoftware.number.core.GeneralNumber._
+import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.Number._
 
-val three = 2 + GeneralNumber.one // should be GeneralNumber 3
+val three = 2 + one // should be GeneralNumber 3
 
+// NOTE see the corresponding expression in Expression.sc
+val root3 = Number(3).sqrt
+val two = (root3 add one) multiply (root3 add negate(one))
+
+import com.phasmidsoftware.number.core.Number.NumberOps
 val infinity = 1 :/ 0 // should be infinity
