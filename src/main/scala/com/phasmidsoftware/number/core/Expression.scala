@@ -23,15 +23,6 @@ trait Expression extends NumberLike {
   def maybeFactor: Option[Factor]
 
   /**
-    * If it is possible to simplify this Expression, then we do so.
-    * Typically, we simplify non-exact expressions if possible.
-    * There is no compelling need to simplify exact expressions.
-    *
-    * @return an Expression tree which is the simpler equivalent of this.
-    */
-  def simplify: Expression
-
-  /**
     * Action to evaluate this Expression as a Field,
     * NOTE no simplification occurs here.
     * Therefore, if an expression cannot be evaluated exactly,
@@ -559,20 +550,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     *
     * @return the materialized Field.
     */
-  def evaluate: Field = f(x.simplify.materialize) // TODO eliminate simplify
-
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    * Typically, we simplify non-exact expressions if possible.
-    * There is no compelling need to simplify exact expressions.
-    *
-    * @return an Expression tree which is the simpler equivalent of this.
-    */
-  def simplify: Expression = {
-    val z = x.simplify // TODO eliminate simplify
-    if (z != x) Function(z, f)
-    else this
-  }
+  def evaluate: Field = f(x.materialize)
 
   /**
     * Action to materialize this Expression and render it as a String.

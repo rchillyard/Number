@@ -4,9 +4,9 @@
   */
 
 import com.phasmidsoftware.number.core.Number.{negate, one}
-import com.phasmidsoftware.number.core.{Expression, Literal, Number}
+import com.phasmidsoftware.number.core.{Expression, Number}
 
-val root3: Expression = Literal(3).sqrt
+val root3 = Expression(3).sqrt
 
 // For some reason I haven't quite figure out, the "+" operator is masked by the implicits mechanism and can't be used.
 // "plus" is a synonym.

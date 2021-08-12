@@ -322,7 +322,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val b = BiFunction(One, y, Sum)
     val r = BiFunction(a, b, Product)
     val z: em.MatchResult[Expression] = p(r)
-    val k: em.MatchResult[Expression] = z map (_.simplify)
+    val k: em.MatchResult[Expression] = z flatMap em.simplifier
     k shouldBe em.Match(Literal(-2))
   }
   // NOTE: this will succeed only if we allow simplifications which reduce depth (but are not necessarily exact)

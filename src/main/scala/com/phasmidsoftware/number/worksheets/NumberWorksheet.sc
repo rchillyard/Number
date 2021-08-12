@@ -2,8 +2,8 @@
   * This is an example worksheet for Number.
   */
 
-import com.phasmidsoftware.number.core.Number
 import com.phasmidsoftware.number.core.Number._
+import com.phasmidsoftware.number.core.{Field, Fuzzy, Number}
 
 val three = 2 + one // should be GeneralNumber 3
 
@@ -11,5 +11,10 @@ val three = 2 + one // should be GeneralNumber 3
 val root3 = Number(3).sqrt
 val two = (root3 add one) multiply (root3 add negate(one))
 
+import com.phasmidsoftware.number.core.Field._
+
+val ok = implicitly[Fuzzy[Field]].same(0.8)(two, Number.two)
+
 import com.phasmidsoftware.number.core.Number.NumberOps
+
 val infinity = 1 :/ 0 // should be infinity

@@ -142,6 +142,23 @@ object Field {
     case Some(t) => t
     case None => throw x
   }
+
+
+  /**
+    * Definition of concrete (implicit) type class object for Field being Fuzzy.
+    */
+  implicit object FieldIsFuzzy extends Fuzzy[Field] {
+    /**
+      * Method to determine if x1 and x2 can be considered the same with a probability of p.
+      *
+      * @param p  a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
+      * @param x1 a value of X.
+      * @param x2 a value of X.
+      * @return true if x1 and x2 are considered equal with probability p.
+      */
+    def same(p: Double)(x1: Field, x2: Field): Boolean = x1.add(-x2).asNumber.exists(_.isProbablyZero(p))
+  }
+
 }
 
 object Constants {
