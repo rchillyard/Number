@@ -7,6 +7,7 @@ import com.phasmidsoftware.number.core.Number.{negate, twoPi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -402,7 +403,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "exp"
   it should "work for non-exact 1" in {
-    val x = Number("1.00000000000*", E)
+    val x = Number("1.00000000000*", NatLog)
     x.scale(Scalar).render shouldBe "2.718281828459[14]"
   }
 

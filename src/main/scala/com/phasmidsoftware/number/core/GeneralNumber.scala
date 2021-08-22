@@ -14,7 +14,7 @@ import scala.util._
   * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
-  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
+  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and NatLog.
   * @param fuzz   the (optional) fuzziness of this Number.
   */
 abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
@@ -127,8 +127,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def log: Number = Number.log(this)
 
   /**
-    * Method to raise E to the power of this number.
-    * The result will be a Number with E factor.
+    * Method to raise NatLog to the power of this number.
+    * The result will be a Number with NatLog factor.
     *
     * @return the e to the power of this.
     */
@@ -249,7 +249,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   override def toString: String = {
     val sb = new StringBuilder()
     factor match {
-      case E =>
+      case NatLog =>
         sb.append(Number.asPowerOfE(value))
       case f =>
         sb.append(Number.valueToString(value))
@@ -342,7 +342,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     case Scalar => this
     // TEST me
     case Pi => Number.prepare(maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar)))
-    case E => throw NumberException("normalize: not implemented for E")
+    case NatLog => throw NumberException("normalize: not implemented for NatLog")
   }
 
   /**
@@ -524,7 +524,7 @@ object GeneralNumber {
     case z: GeneralNumber =>
       val (a, b) = z.alignFactors(y)
       a.factor match {
-        case E => plusAligned(a.scale(Scalar), b.scale(Scalar))
+        case NatLog => plusAligned(a.scale(Scalar), b.scale(Scalar))
         case _ => plusAligned(a, b)
       }
   }
@@ -537,7 +537,7 @@ object GeneralNumber {
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)
           p.factor + q.factor match {
-            case Some(E) => prepareWithSpecialize(p.composeDyadic(q, E)(DyadicOperationPlus))
+            case Some(NatLog) => prepareWithSpecialize(p.composeDyadic(q, NatLog)(DyadicOperationPlus))
             case Some(f) => prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationTimes))
             case None => times(x.scale(Scalar), y.scale(Scalar))
           }

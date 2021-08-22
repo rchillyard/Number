@@ -512,7 +512,7 @@ case object ConstE extends Constant {
     */
   def evaluate: Number = Number.e
 
-  def maybeFactor: Option[Factor] = Some(E)
+  def maybeFactor: Option[Factor] = Some(NatLog)
 }
 
 /**
@@ -643,9 +643,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   override def toString: String = if (exact) s"($a $f $b)" else s"{$a $f $b}"
 
-  // TODO note that E numbers don't behave like other numbers so really should be excluded from all cases
+  // TODO note that NatLog numbers don't behave like other numbers so really should be excluded from all cases
   private def factorsMatch(f: ExpressionBiFunction, f1: Factor, f2: Factor): Option[Factor] = f match {
-    case Sum if f1 == f2 && f1 != E =>
+    case Sum if f1 == f2 && f1 != NatLog =>
       Some(f1)
     case Product if f1 == f2 || f1 == Scalar || f2 == Scalar =>
       if (f1 == f2) Some(f1) else if (f2 == Scalar) Some(f1) else Some(f2)

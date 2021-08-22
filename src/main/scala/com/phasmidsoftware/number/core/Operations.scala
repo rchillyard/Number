@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -57,7 +58,7 @@ sealed trait MonadicOperation {
 /**
   * MonadicOperation to negate a Number.
   *
-  * NOTE: not valid on E-scaled values.
+  * NOTE: not valid on NatLog-scaled values.
   */
 case object MonadicOperationNegate extends MonadicOperation {
   val functions: MonadicFunctions = {

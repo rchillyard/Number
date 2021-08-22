@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.core
   * TODO implement scientific notation by having factors such os 10^3, 10^6, etc. (alternatively, add a separate parameter)
   *
   * @param value  the value of the Number, expressed as a nested Either type.
-  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
+  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and NatLog.
   */
 case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
 

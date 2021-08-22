@@ -88,8 +88,8 @@ sealed trait Factor {
 sealed trait PureNumber extends Factor {
   // NOTE duplicate of Logarithmic
   def +(other: Factor): Option[Factor] = other match {
-    case Scalar => if (this != E) Some(this) else None // TODO impossible
-    case E => if (this == E) Some(this) else None // TODO impossible
+    case Scalar => if (this != NatLog) Some(this) else None // TODO impossible
+    case NatLog => if (this == NatLog) Some(this) else None // TODO impossible
     case _ => throw NumberException("cannot add Pi factors together")
   }
 
@@ -114,8 +114,8 @@ object PureNumber {
 
 sealed trait Logarithmic extends Factor {
   def +(other: Factor): Option[Factor] = other match {
-    case Scalar => if (this != E) Some(this) else None
-    case E => if (this == E) Some(this) else None
+    case Scalar => if (this != NatLog) Some(this) else None
+    case NatLog => if (this == NatLog) Some(this) else None
     case _ => throw NumberException("cannot add Pi factors together")
   }
 
@@ -150,7 +150,7 @@ case object Scalar extends PureNumber {
     * @return Some(f) if the factors are compatible, otherwise None.
     */
   override def +(other: Factor): Option[Factor] = other match {
-    case E => None
+    case NatLog => None
     case _ => Some(other)
   }
 }
@@ -160,9 +160,9 @@ case object Scalar extends PureNumber {
   *
   * A number x with factor Pi (theoretically) evaluates to e raised to the power ix.
   * So, you could think of it as essentially a shorthand for writing both cosine and sine.
-  * NOTE however that, unlike, with the factor E, we currently do not treat Pi values in quite this way in the code.
+  * NOTE however that, unlike, with the factor NatLog, we currently do not treat Pi values in quite this way in the code.
   *
-  * CONSIDER implementing the Pi factor conversions in a manner similar to that of E.
+  * CONSIDER implementing the Pi factor conversions in a manner similar to that of NatLog.
   * This would entail conversion from a single number to a pair of Doubles when going from Pi to Scalar.
   * We could do that using a Complex number but I'd rather do it as a 2-tuple of Doubles.
   * Perhaps the whole idea of our Complex implementation is misguided (although it does allow us to represent
@@ -180,12 +180,12 @@ case object Pi extends PureNumber {
 /**
   * This factor essentially provides log/exponent arithmetic.
   *
-  * NOTE: A number in factor E will evaluate as e raised to that power.
+  * NOTE: A number in factor NatLog will evaluate as e raised to that power.
   * So, it is the natural log of a scalar value.
   *
   * Thus the range of such values is any positive number.
   */
-case object E extends Logarithmic {
+case object NatLog extends Logarithmic {
   val value: Double = Math.E
 
   override def toString: String = Factor.sE
@@ -200,7 +200,7 @@ object Factor {
 
   def apply(w: String): Factor = w match {
     case `sPi` | `sPiAlt0` | `sPiAlt1` | `sPiAlt2` => Pi
-    case `sE` => E
+    case `sE` => NatLog
     case _ => Scalar
   }
 }

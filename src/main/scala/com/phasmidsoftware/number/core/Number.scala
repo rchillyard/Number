@@ -31,7 +31,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
 
   /**
     * The factor of this Number.
-    * Ordinary numbers are of Scalar factor, angles have factor Pi, and natural logs have factor E.
+    * Ordinary numbers are of Scalar factor, angles have factor Pi, and natural logs have factor NatLog.
     *
     * @return the factor.
     */
@@ -287,8 +287,8 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def log: Number
 
   /**
-    * Method to raise E to the power of this number.
-    * The result will be a Number with E factor.
+    * Method to raise e to the power of this number.
+    * The result will be a Number with NatLog factor.
     *
     * @return the e to the power of this.
     */
@@ -554,7 +554,7 @@ object Number {
   /**
     * Exact value of e
     */
-  val e: Number = ExactNumber(Right(1), E)
+  val e: Number = ExactNumber(Right(1), NatLog)
 
   /**
     * Implicit converter from Expression to Number.
@@ -627,7 +627,7 @@ object Number {
     * However, note that this will change the behavior such that it is no longer possible to have the constant 2pi.
     *
     * @param value  the value of the Number, expressed as a nested Either type.
-    * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
+    * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and NatLog.
     * @param fuzz   the fuzziness of this Number, wrapped in Option.
     * @return a Number.
     */
@@ -640,7 +640,7 @@ object Number {
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
     *
     * @param value  the value of the Number, expressed as a nested Either type.
-    * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
+    * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and NatLog.
     * @return a Number.
     */
   def create(value: Value, factor: Factor): Number = create(value, factor, None)
@@ -888,16 +888,16 @@ object Number {
     */
   trait NumberIsOrdering extends Ordering[Number] {
     /**
-      * When we do a compare on E numbers, they are in the same order as Scalar numbers (i.e. monotonically increasing).
+      * When we do a compare on NatLog numbers, they are in the same order as Scalar numbers (i.e. monotonically increasing).
       * It's not necessary to convert exact numbers to fuzzy numbers for this purpose, we simply
-      * pretend that the E numbers are Scalar numbers.
+      * pretend that the NatLog numbers are Scalar numbers.
       *
       * @param x the first Number.
       * @param y the second Number.
       * @return an Int representing the order.
       */
     def compare(x: Number, y: Number): Int =
-      if (x.factor == E && y.factor == E)
+      if (x.factor == NatLog && y.factor == NatLog)
         compare(x.make(Scalar), y.make(Scalar))
       else
         GeneralNumber.plus(x, Number.negate(y)).signum
@@ -951,7 +951,7 @@ object Number {
   def doCompare(x: Number, y: Number): Int = NumberIsOrdering.compare(x, y)
 
   /**
-    * For fuzzy numbers, it's appropriate to use the the normal mechanism for compare, even for E numbers.
+    * For fuzzy numbers, it's appropriate to use the the normal mechanism for compare, even for NatLog numbers.
     *
     * NOTE, we first invoke same(p)(x, y) to determine if the Numbers are the same in a canonical manner.
     * However, we could actually skip this step and always just invoke the else part of the expression.
@@ -994,7 +994,7 @@ object Number {
   @tailrec
   private def power(x: Number, r: Rational): Number =
     x.factor match {
-      case E =>
+      case NatLog =>
         val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
         vo match {
           case Some(v) => x.make(v)
@@ -1040,7 +1040,7 @@ object Number {
   /**
     * Method to deal with a Scale factor change.
     *
-    * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then not for E conversions.
+    * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then not for NatLog conversions.
     *
     * @param n      the Number to be scaled.
     * @param factor the factor to which it should be converted.
@@ -1048,14 +1048,14 @@ object Number {
     */
   def scale(n: Number, factor: Factor): Number = (n.factor, factor) match {
     case (a, b) if a == b => n
-    case (E, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
-    case (Scalar, E) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
+    case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
+    case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
     case (PureNumber(_), PureNumber(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
-    case (E, PureNumber(_)) => scale(scale(n, Scalar), factor)
-    case (PureNumber(_), E) => scale(scale(n, Scalar), factor)
-    case (Scalar, Logarithmic(_)) => scale(scale(n, E), factor)
-    case (Logarithmic(_), PureNumber(_)) => scale(scale(n, E), factor)
+    case (NatLog, PureNumber(_)) => scale(scale(n, Scalar), factor)
+    case (PureNumber(_), NatLog) => scale(scale(n, Scalar), factor)
+    case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
+    case (Logarithmic(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
     case _ => throw NumberException("scaling between e and Pi factors is not supported")
   }
 
@@ -1083,9 +1083,9 @@ object Number {
 
   def atan(x: Number, y: Number): Number = prepareWithSpecialize((y doDivide x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
 
-  def log(x: Number): Number = x.scale(E).make(Scalar)
+  def log(x: Number): Number = x.scale(NatLog).make(Scalar)
 
-  def exp(x: Number): Number = x.scale(Scalar).make(E)
+  def exp(x: Number): Number = x.scale(Scalar).make(NatLog)
 
   // TODO use the method in Value.
   def scaleDouble(x: Double, fThis: Factor, fResult: Factor): Double = x * fThis.value / fResult.value

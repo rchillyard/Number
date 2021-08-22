@@ -184,7 +184,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for e" in {
     val xy: Try[Number] = Number.parse("1" + Factor.sE)
-    xy.get shouldBe Number(1, E)
+    xy.get shouldBe Number(1, NatLog)
   }
   it should "fail with x" in {
     Number.parse("1x") should matchPattern { case Failure(_) => }
@@ -387,48 +387,48 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(1, Pi)
     target.scale(Scalar) should ===(Number(Math.PI))
   }
-  it should "work for Scalar, E" in {
+  it should "work for Scalar, NatLog" in {
     val target = numberOne
-    target.scale(E) should ===(Number(math.log(1), E))
+    target.scale(NatLog) should ===(Number(math.log(1), NatLog))
   }
-  it should "work for E, Scalar" in {
-    val target = Number(1, E)
+  it should "work for NatLog, Scalar" in {
+    val target = Number(1, NatLog)
     target.scale(Scalar) should ===(Number(Math.E))
   }
   it should "work for 2E, Scalar" in {
-    val target = Number(2, E)
+    val target = Number(2, NatLog)
     val actual: Number = target.scale(Scalar)
     val expected: Number = convertToNumber(Number(Math.E) doPower 2)
     actual should ===(expected)
   }
-  it should "work for 2E, Scalar but comparing against E * E" in {
-    val target = Number(2, E)
+  it should "work for 2E, Scalar but comparing against NatLog * NatLog" in {
+    val target = Number(2, NatLog)
     val actual: Number = target.scale(Scalar)
     val expected: Number = convertToNumber(Number(Math.E) doMultiply Number(Math.E))
     actual should ===(expected)
   }
   it should "work for Scalar, 2E (same as before but with parameters to === reversed" in {
-    val target = Number(2, E)
+    val target = Number(2, NatLog)
     val actual: Number = target.scale(Scalar)
     val expected: Number = convertToNumber(Number(Math.E) doPower 2)
     expected should ===(actual)
   }
-  it should "work for Scalar, 2E (same as before but using E * E and parameters to === reversed" in {
-    val target = Number(2, E)
+  it should "work for Scalar, 2E (same as before but using NatLog * NatLog and parameters to === reversed" in {
+    val target = Number(2, NatLog)
     val actual: Number = target.scale(Scalar)
     val expected: Number = convertToNumber(Number(Math.E) doMultiply Number(Math.E))
     expected should ===(actual)
   }
-  it should "work for E, Pi" in {
-    val target = Number(1, E)
+  it should "work for NatLog, Pi" in {
+    val target = Number(1, NatLog)
     val expected = Number(Math.E / Math.PI, Pi)
     val result = target.scale(Pi)
     result should ===(expected)
   }
-  it should "work for Pi, E" in {
+  it should "work for Pi, NatLog" in {
     val target = Number(1, Pi)
-    val expected = Number(math.log(Math.PI), E)
-    val result = target.scale(E)
+    val expected = Number(math.log(Math.PI), NatLog)
+    val result = target.scale(NatLog)
     result === expected shouldBe true
   }
 
