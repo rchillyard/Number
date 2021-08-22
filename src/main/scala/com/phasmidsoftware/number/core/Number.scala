@@ -1040,7 +1040,6 @@ object Number {
   /**
     * Method to deal with a Scale factor change.
     *
-    * CONSIDER: re-implementing the Pi/Scalar and Scalar/Pi cases using MonadicOperationScale.
     * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then not for E conversions.
     *
     * @param n      the Number to be scaled.
@@ -1049,11 +1048,14 @@ object Number {
     */
   def scale(n: Number, factor: Factor): Number = (n.factor, factor) match {
     case (a, b) if a == b => n
-    case (Pi, Scalar) | (Scalar, Pi) => prepare(n.maybeDouble.map(x => n.make(scaleDouble(x, n.factor, factor), factor)))
     case (E, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, E) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
-    case (Pi, E) => scale(scale(n, Scalar), E)
-    case (E, Pi) => scale(scale(n, Scalar), E)
+    case (PureNumber(_), PureNumber(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
+    case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
+    case (E, PureNumber(_)) => scale(scale(n, Scalar), factor)
+    case (PureNumber(_), E) => scale(scale(n, Scalar), factor)
+    case (Scalar, Logarithmic(_)) => scale(scale(n, E), factor)
+    case (Logarithmic(_), PureNumber(_)) => scale(scale(n, E), factor)
     case _ => throw NumberException("scaling between e and Pi factors is not supported")
   }
 

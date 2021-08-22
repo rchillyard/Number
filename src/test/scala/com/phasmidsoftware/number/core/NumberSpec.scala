@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
@@ -421,13 +422,14 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for E, Pi" in {
     val target = Number(1, E)
     val expected = Number(Math.E / Math.PI, Pi)
-    target.scale(Pi) should ===(expected)
+    val result = target.scale(Pi)
+    result should ===(expected)
   }
-  it should "not work for Pi, E (because E numbers are not linear)" in {
+  it should "work for Pi, E" in {
     val target = Number(1, Pi)
-    val expected = Number(Math.PI / Math.E, E)
+    val expected = Number(math.log(Math.PI), E)
     val result = target.scale(E)
-    result === expected shouldBe false
+    result === expected shouldBe true
   }
 
   behavior of "alignFactors"
