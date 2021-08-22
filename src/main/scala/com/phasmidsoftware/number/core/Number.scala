@@ -31,7 +31,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
 
   /**
     * The factor of this Number.
-    * Ordinary numbers are of Scalar factor, angles have factor Pi, and natural logs have factor NatLog.
+    * Ordinary numbers are of Scalar factor, angles have factor Radian, and natural logs have factor NatLog.
     *
     * @return the factor.
     */
@@ -262,7 +262,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return the tangent
     */
   def tan: Number = (value, factor) match {
-    case (Left(Right(r)), Pi) => r match {
+    case (Left(Right(r)), Radian) => r match {
       case Rational(Rational.bigOne, Rational.bigFour) | Rational(Rational.bigFive, Rational.bigFour) => Number.one
       case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) => negate(Number.one)
       case _ => sin doDivide cos
@@ -493,7 +493,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
 
   /**
     * Method to ensure that the value is within some factor-specific range.
-    * In particular, Pi=based numbers are modulated to the range 0..2
+    * In particular, Radian=based numbers are modulated to the range 0..2
     *
     * @return this or an equivalent Number.
     */
@@ -539,17 +539,17 @@ object Number {
   /**
     * Exact value of pi
     */
-  val pi: Number = ExactNumber(Right(1), Pi)
+  val pi: Number = ExactNumber(Right(1), Radian)
 
   /**
     * Exact value of 2 pi
     */
-  val twoPi: Number = ExactNumber(Right(2), Pi)
+  val twoPi: Number = ExactNumber(Right(2), Radian)
 
   /**
     * Exact value of pi/2
     */
-  val piBy2: Number = ExactNumber(Left(Right(Rational.half)), Pi)
+  val piBy2: Number = ExactNumber(Left(Right(Rational.half)), Radian)
 
   /**
     * Exact value of e
@@ -623,11 +623,11 @@ object Number {
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
     *
-    * CONSIDER modulate the result so that, in the case of a multiple of Pi, we restrict the range to 0 to 2pi immediately.
+    * CONSIDER modulate the result so that, in the case of a multiple of Radian, we restrict the range to 0 to 2pi immediately.
     * However, note that this will change the behavior such that it is no longer possible to have the constant 2pi.
     *
     * @param value  the value of the Number, expressed as a nested Either type.
-    * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and NatLog.
+    * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
     * @param fuzz   the fuzziness of this Number, wrapped in Option.
     * @return a Number.
     */
@@ -640,7 +640,7 @@ object Number {
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
     *
     * @param value  the value of the Number, expressed as a nested Either type.
-    * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and NatLog.
+    * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
     * @return a Number.
     */
   def create(value: Value, factor: Factor): Number = create(value, factor, None)
@@ -670,7 +670,7 @@ object Number {
     * @return a Number based on x.
     */
   def apply(x: String, factor: Factor): Number = parse(x) match {
-    // CONSIDER we should perhaps process n (e.g. to modulate a Pi value)
+    // CONSIDER we should perhaps process n (e.g. to modulate a Radian value)
     case Success(n) => n.make(factor)
     case Failure(e) => throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
   }
@@ -683,7 +683,7 @@ object Number {
     * @return a Number based on x.
     */
   def apply(x: String): Number = parse(x) match {
-    // CONSIDER we should perhaps process n (e.g. to modulate a Pi value)
+    // CONSIDER we should perhaps process n (e.g. to modulate a Radian value)
     case Success(n) => n
     case Failure(e) => throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
   }
@@ -1001,7 +1001,7 @@ object Number {
           case None => throw NumberException("power: logic error")
         }
 
-      case Pi =>
+      case Radian =>
         power(x.scale(Scalar), r)
 
       case Scalar =>
@@ -1056,7 +1056,7 @@ object Number {
     case (PureNumber(_), NatLog) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
     case (Logarithmic(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
-    case _ => throw NumberException("scaling between e and Pi factors is not supported")
+    case _ => throw NumberException("scaling between e and Radian factors is not supported")
   }
 
   def negate(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationNegate))
@@ -1078,10 +1078,10 @@ object Number {
   }
 
   def sin(x: Number): Number =
-    if (x.signum >= 0) prepareWithSpecialize(x.scale(Pi).transformMonadic(Scalar)(MonadicOperationSin))
+    if (x.signum >= 0) prepareWithSpecialize(x.scale(Radian).transformMonadic(Scalar)(MonadicOperationSin))
     else negate(sin(negate(x)))
 
-  def atan(x: Number, y: Number): Number = prepareWithSpecialize((y doDivide x).transformMonadic(Pi)(MonadicOperationAtan(x.signum))).modulate
+  def atan(x: Number, y: Number): Number = prepareWithSpecialize((y doDivide x).transformMonadic(Radian)(MonadicOperationAtan(x.signum))).modulate
 
   def log(x: Number): Number = x.scale(NatLog).make(Scalar)
 
@@ -1092,13 +1092,13 @@ object Number {
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.
-    * Only Pi is currently fixed within a range (0 -> 2).
+    * Only Radian is currently fixed within a range (0 -> 2).
     *
     * @param x the Number to operate on.
     * @return either x or a number equivalent to x with value in defined range.
     */
   def modulate(x: Number): Number = x.factor match {
-    case f@Pi => prepare(x.transformMonadic(f)(MonadicOperationModulate))
+    case f@Radian => prepare(x.transformMonadic(f)(MonadicOperationModulate))
     case _ => x
   }
 

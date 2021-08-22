@@ -299,7 +299,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "sin"
   it should "work for 0" in {
-    val target = Number(0, Pi)
+    val target = Number(0, Radian)
     target.sin shouldBe Number(0, Scalar)
   }
   it should "work for pi" in {
@@ -334,7 +334,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "cos"
   it should "work for 0" in {
-    val target = Number(0, Pi)
+    val target = Number(0, Radian)
     target.cos shouldBe Number(1, Scalar)
   }
   it should "work for pi" in {
@@ -368,7 +368,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "tan"
   it should "work for 0" in {
-    val target = Number(0, Pi)
+    val target = Number(0, Radian)
     target.tan shouldBe Number(0, Scalar)
   }
   it should "work for pi" in {

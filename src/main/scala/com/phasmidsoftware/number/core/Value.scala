@@ -90,7 +90,7 @@ sealed trait PureNumber extends Factor {
   def +(other: Factor): Option[Factor] = other match {
     case Scalar => if (this != NatLog) Some(this) else None // TODO impossible
     case NatLog => if (this == NatLog) Some(this) else None // TODO impossible
-    case _ => throw NumberException("cannot add Pi factors together")
+    case _ => throw NumberException("cannot add Radian factors together")
   }
 
   /**
@@ -116,7 +116,7 @@ sealed trait Logarithmic extends Factor {
   def +(other: Factor): Option[Factor] = other match {
     case Scalar => if (this != NatLog) Some(this) else None
     case NatLog => if (this == NatLog) Some(this) else None
-    case _ => throw NumberException("cannot add Pi factors together")
+    case _ => throw NumberException("cannot add Radian factors together")
   }
 
   /**
@@ -158,20 +158,20 @@ case object Scalar extends PureNumber {
 /**
   * This factor is primarily used for rotation by an angle.
   *
-  * A number x with factor Pi (theoretically) evaluates to e raised to the power ix.
+  * A number x with factor Radian (theoretically) evaluates to e raised to the power ix.
   * So, you could think of it as essentially a shorthand for writing both cosine and sine.
-  * NOTE however that, unlike, with the factor NatLog, we currently do not treat Pi values in quite this way in the code.
+  * NOTE however that, unlike, with the factor NatLog, we currently do not treat Radian values in quite this way in the code.
   *
-  * CONSIDER implementing the Pi factor conversions in a manner similar to that of NatLog.
-  * This would entail conversion from a single number to a pair of Doubles when going from Pi to Scalar.
+  * CONSIDER implementing the Radian factor conversions in a manner similar to that of NatLog.
+  * This would entail conversion from a single number to a pair of Doubles when going from Radian to Scalar.
   * We could do that using a Complex number but I'd rather do it as a 2-tuple of Doubles.
   * Perhaps the whole idea of our Complex implementation is misguided (although it does allow us to represent
   * complex numbers in Polar form since, in that case, the real part is a Scalar number, and the imaginary part is coded in
-  * with factor Pi).
+  * with factor Radian).
   *
   * The range of such values is 0 thru 2pi.
   */
-case object Pi extends PureNumber {
+case object Radian extends PureNumber {
   val value: Double = Math.PI
 
   override def toString: String = Factor.sPi
@@ -195,11 +195,11 @@ object Factor {
   val sE = "\uD835\uDF00"
   val sPi = "\uD835\uDED1"
   val sPiAlt0 = "pi"
-  val sPiAlt1 = "Pi"
+  val sPiAlt1 = "Radian"
   val sPiAlt2 = "PI"
 
   def apply(w: String): Factor = w match {
-    case `sPi` | `sPiAlt0` | `sPiAlt1` | `sPiAlt2` => Pi
+    case `sPi` | `sPiAlt0` | `sPiAlt1` | `sPiAlt2` => Radian
     case `sE` => NatLog
     case _ => Scalar
   }

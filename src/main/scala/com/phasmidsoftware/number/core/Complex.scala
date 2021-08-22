@@ -258,7 +258,7 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
   /**
     * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
     *
-    * @return Some(factor of r) if factor of theta is Pi; otherwise None.
+    * @return Some(factor of r) if factor of theta is Radian; otherwise None.
     */
   def maybeFactor: Option[Factor] = if (real.factor == imag.factor) Some(real.factor) else None
 

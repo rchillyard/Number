@@ -14,7 +14,7 @@ import scala.util._
   * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
-  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and NatLog.
+  * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
   * @param fuzz   the (optional) fuzziness of this Number.
   */
 abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
@@ -108,7 +108,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return the cosine.
     */
-  def cos: Number = Number.negate(negate(scale(Pi)) doAdd Number(Rational.half, Pi).makeNegative).sin
+  def cos: Number = Number.negate(negate(scale(Radian)) doAdd Number(Rational.half, Radian).makeNegative).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -341,7 +341,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def normalize: Number = factor match {
     case Scalar => this
     // TEST me
-    case Pi => Number.prepare(maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar)))
+    case Radian => Number.prepare(maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar)))
     case NatLog => throw NumberException("normalize: not implemented for NatLog")
   }
 
@@ -433,7 +433,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * Method to ensure that the value is within some factor-specific range.
-    * In particular, Pi=based numbers are modulated to the range 0..2
+    * In particular, Radian=based numbers are modulated to the range 0..2
     *
     * @return this or an equivalent Number.
     */

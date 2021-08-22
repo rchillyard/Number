@@ -59,17 +59,17 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target should matchPattern { case FuzzyNumber(_, _, _) => }
     target.value should matchPattern { case Right(_) => }
   }
-  it should "yield Right(1, Pi)" in {
+  it should "yield Right(1, Radian)" in {
     val target = Number.pi
     target should matchPattern { case ExactNumber(_, _) => }
     target.value should matchPattern { case Right(_) => }
-    target.factor shouldBe Pi
+    target.factor shouldBe Radian
   }
-  it should "yield Right(1, Pi, Fuzz)" in {
-    val target = Number.create(Right(1), Pi, Some(standardFuzz))
+  it should "yield Right(1, Radian, Fuzz)" in {
+    val target = Number.create(Right(1), Radian, Some(standardFuzz))
     target should matchPattern { case FuzzyNumber(_, _, _) => }
     target.value should matchPattern { case Right(_) => }
-    target.factor shouldBe Pi
+    target.factor shouldBe Radian
   }
 
   behavior of "value"
@@ -93,10 +93,10 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number.create(Right(1))
     target.toString shouldBe "1"
   }
-  it should "work for Pi" in {
+  it should "work for Radian" in {
     Number.pi.toString shouldBe "1\uD835\uDED1"
   }
-  it should "work for Pi as scalar" in {
+  it should "work for Radian as scalar" in {
     val target = Number.pi.scale(Scalar)
     // NOTE that:       Pi is 3.1415926535897932384626433...
     // NOTE that:  math.PI is 3.14159265358979323846
@@ -116,8 +116,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number("2\uD835\uDF00")
     target.scale(Scalar).toString shouldBe "7.3890560989306500[95]"
   }
-  it should "work for 1 scaled as Pi" in {
-    numberOne.scale(Pi).toString shouldBe "0.3183098861837907...\uD835\uDED1"
+  it should "work for 1 scaled as Radian" in {
+    numberOne.scale(Radian).toString shouldBe "0.3183098861837907...\uD835\uDED1"
     //    numberOne.scale(Pi).toString shouldBe "0.318309886183790700(42)\uD835\uDED1" // this is how it should be
   }
   it should "work for E^2" in {
@@ -174,13 +174,13 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val xy: Try[Number] = Number.parse("2147483648")
     xy.get shouldBe Number.create(Left(Right(bigBigInt)))
   }
-  it should "work for Pi" in {
+  it should "work for Radian" in {
     val xy: Try[Number] = Number.parse("1" + Factor.sPi)
-    xy.get shouldBe Number(Pi)
+    xy.get shouldBe Number(Radian)
   }
   it should "work for pi" in {
     val xy: Try[Number] = Number.parse("1pi")
-    xy.get shouldBe Number(Pi)
+    xy.get shouldBe Number(Radian)
   }
   it should "work for e" in {
     val xy: Try[Number] = Number.parse("1" + Factor.sE)
@@ -219,8 +219,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should """work for "\uD835\uDED1""""" in {
     val target = Number("\uD835\uDED1")
       target.isExact(None) shouldBe true
-      target.value shouldBe Right(1)
-    target.factor shouldBe Pi
+    target.value shouldBe Right(1)
+    target.factor shouldBe Radian
   }
   it should "work for 1" in {
     val target = numberOne
@@ -375,16 +375,16 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = numberOne
     target.scale(Scalar) shouldBe numberOne
   }
-  it should "work for Pi, Pi" in {
-    val target = Number(1, Pi)
-    target.scale(Pi) shouldBe target
+  it should "work for Radian, Radian" in {
+    val target = Number(1, Radian)
+    target.scale(Radian) shouldBe target
   }
-  it should "work for Scalar, Pi" in {
+  it should "work for Scalar, Radian" in {
     val target = numberOne
-    target.scale(Pi) should ===(Number(1 / Math.PI, Pi))
+    target.scale(Radian) should ===(Number(1 / Math.PI, Radian))
   }
-  it should "work for Pi, Scalar" in {
-    val target = Number(1, Pi)
+  it should "work for Radian, Scalar" in {
+    val target = Number(1, Radian)
     target.scale(Scalar) should ===(Number(Math.PI))
   }
   it should "work for Scalar, NatLog" in {
@@ -419,14 +419,14 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val expected: Number = convertToNumber(Number(Math.E) doMultiply Number(Math.E))
     expected should ===(actual)
   }
-  it should "work for NatLog, Pi" in {
+  it should "work for NatLog, Radian" in {
     val target = Number(1, NatLog)
-    val expected = Number(Math.E / Math.PI, Pi)
-    val result = target.scale(Pi)
+    val expected = Number(Math.E / Math.PI, Radian)
+    val result = target.scale(Radian)
     result should ===(expected)
   }
-  it should "work for Pi, NatLog" in {
-    val target = Number(1, Pi)
+  it should "work for Radian, NatLog" in {
+    val target = Number(1, Radian)
     val expected = Number(math.log(Math.PI), NatLog)
     val result = target.scale(NatLog)
     result === expected shouldBe true
@@ -437,21 +437,21 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = numberOne
     target.asInstanceOf[GeneralNumber].alignFactors(Number(2)) shouldBe(numberOne, Number(2))
   }
-  it should "work for Scalar, Pi" in {
+  it should "work for Scalar, Radian" in {
     val target = numberOne
-    val (p, q) = target.asInstanceOf[GeneralNumber].alignFactors(Number(2, Pi))
+    val (p, q) = target.asInstanceOf[GeneralNumber].alignFactors(Number(2, Radian))
     p shouldBe numberOne
     q shouldEqual Number(2 * Math.PI)
   }
-  it should "work for Pi, Scalar" in {
-    val target = Number(2, Pi)
+  it should "work for Radian, Scalar" in {
+    val target = Number(2, Radian)
     val (f, x) = target.asInstanceOf[GeneralNumber].alignFactors(numberOne)
     f shouldEqual Number(2 * Math.PI)
     x shouldBe numberOne
   }
-  it should "work for Pi, Pi" in {
-    val target = Number(1, Pi)
-    target.asInstanceOf[GeneralNumber].alignFactors(Number(2, Pi)) shouldBe(Number(1, Pi), Number(2, Pi))
+  it should "work for Radian, Radian" in {
+    val target = Number(1, Radian)
+    target.asInstanceOf[GeneralNumber].alignFactors(Number(2, Radian)) shouldBe(Number(1, Radian), Number(2, Radian))
   }
 
   behavior of "alignTypes"
@@ -459,9 +459,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = numberOne
     target.asInstanceOf[GeneralNumber].alignTypes(Number(2).asInstanceOf[GeneralNumber]) shouldBe(numberOne, Number(2))
   }
-  it should "work for Int Int(Pi)" in {
+  it should "work for Int Int(Radian)" in {
     val target: GeneralNumber = numberOne.asInstanceOf[GeneralNumber]
-    target.alignTypes(Number(1, Pi)) shouldBe(numberOne, Number(1, Pi))
+    target.alignTypes(Number(1, Radian)) shouldBe(numberOne, Number(1, Radian))
   }
   it should "work for Int,BigInt" in {
     val target = numberOne.asInstanceOf[GeneralNumber]
@@ -591,15 +591,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val y = Number(2)
     (x add y) shouldBe Number(3)
   }
-  it should "add Double 1 and Pi" in {
+  it should "add Double 1 and Radian" in {
     val x = Number(doubleOne)
-    val y = Number(1, Pi)
+    val y = Number(1, Radian)
     convertToNumber(x add y) should ===(Number(Math.PI + 1))
   }
-  it should "add Pi and 2Pi" in {
-    val x = Number(1, Pi)
-    val y = Number(2, Pi)
-    convertToNumber(x add y) shouldBe Number(3, Pi)
+  it should "add Radian and 2Pi" in {
+    val x = Number(1, Radian)
+    val y = Number(2, Radian)
+    convertToNumber(x add y) shouldBe Number(3, Radian)
   }
   it should "add 1 to pi" in {
     val x1 = Number.one
@@ -669,15 +669,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val y = Number(2)
     (x multiply y) shouldBe Number(2)
   }
-  it should "multiply 2 and Pi" in {
+  it should "multiply 2 and Radian" in {
     val x = Number(2)
-    val y = Number(1, Pi)
-    (x multiply y) shouldBe Number(2, Pi)
+    val y = Number(1, Radian)
+    (x multiply y) shouldBe Number(2, Radian)
   }
-  it should "multiply Pi and 2" in {
-    val x = Number(1, Pi)
+  it should "multiply Radian and 2" in {
+    val x = Number(1, Radian)
     val y = Number(2)
-    (x multiply y) shouldBe Number(2, Pi)
+    (x multiply y) shouldBe Number(2, Radian)
   }
 
   behavior of "invert"
@@ -722,7 +722,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val y = Number(2)
     (x divide y) shouldBe Number(Rational.half)
   }
-  it should "divide Double 1 by Double Pi" in {
+  it should "divide Double 1 by Double Radian" in {
     val x = Number(doubleOne)
     val y = Number(Math.PI)
     convertToNumber(x divide y) should ===(Number(1 / Math.PI))
@@ -754,24 +754,24 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.sin shouldBe Number(0, Scalar)
   }
   it should "work for 0" in {
-    val target = Number(0, Pi)
+    val target = Number(0, Radian)
     target.sin shouldBe Number(0, Scalar)
   }
   it should "be one for pi/2" in {
     val target = (Number.pi doDivide 2).sin
     target shouldBe Number.one
   }
-  it should "work for Pi/2" in {
-    val target = Number(Rational.half, Pi)
+  it should "work for Radian/2" in {
+    val target = Number(Rational.half, Radian)
     val sin = target.sin
     sin shouldBe Number(1, Scalar)
   }
-  it should "work for Pi/6" in {
-    val target = Number(Rational(6).invert, Pi)
+  it should "work for Radian/6" in {
+    val target = Number(Rational(6).invert, Radian)
     target.sin shouldBe Number(Rational(1, 2), Scalar)
   }
-  it should "work for Pi/3" in {
-    val target = Number(Rational(1, 3), Pi)
+  it should "work for Radian/3" in {
+    val target = Number(Rational(1, 3), Radian)
     val sin = target.sin
     sin should ===(Number(3).sqrt doDivide 2)
   }
@@ -782,11 +782,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.cos === Number(-1)
   }
   it should "work for 0" in {
-    val target = Number(0, Pi)
+    val target = Number(0, Radian)
     target.cos shouldBe Number(1)
   }
   it should "work for Pi/2" in {
-    val target = Number(Rational.half, Pi)
+    val target = Number(Rational.half, Radian)
     target.cos.isZero shouldBe true
   }
   it should "work for Pi/3" in {
@@ -800,7 +800,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "tan"
   it should "be zero for 0" in {
-    val target = Number(0, Pi)
+    val target = Number(0, Radian)
     target.tan.isZero shouldBe true
   }
   it should "be zero for pi" in {
@@ -808,7 +808,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.tan.isZero shouldBe true
   }
   it should "work for Pi/2" in {
-    val target = Number(Rational.half, Pi)
+    val target = Number(Rational.half, Radian)
     target.tan.isInfinite shouldBe true
   }
   it should "work for Pi/3" in {
@@ -823,7 +823,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "atan"
   it should "be 0Pi for 0/1" in {
     val target = Number.one
-    target.atan(Number.zero) shouldBe Number(0, Pi)
+    target.atan(Number.zero) shouldBe Number(0, Radian)
   }
   it should "be pi/4 for 1/1" in {
     val target = Number.one
@@ -831,17 +831,17 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "be 0Pi for 0/-1" in {
     val target = Number.negate(Number.one)
-    target.atan(Number.zero) shouldBe Number(1, Pi)
+    target.atan(Number.zero) shouldBe Number(1, Radian)
   }
   it should "be Pi / 3 for root(3)" in {
-    Number.one.atan(Number(Rational(3)).sqrt) shouldEqual Number(r"1/3", Pi)
+    Number.one.atan(Number(Rational(3)).sqrt) shouldEqual Number(r"1/3", Radian)
   }
   it should "be 7 Pi / 6 for 1/-root(3)" in {
-    // CONSIDER shouldn't this be 5 Pi / 6?
-    negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"7/6", Pi)
+    // CONSIDER shouldn't this be 5 pi / 6?
+    negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"7/6", Radian)
   }
   it should "be 11 Pi / 6 for -1/2" in {
-    Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"11/6", Pi)
+    Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"11/6", Radian)
   }
   it should "be 3 pi / 4 for 1/-1" in {
     val adjacent = Number.negate(Number.one)
@@ -855,11 +855,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   // TODO need to operate appropriately on negZero.
   it should "evaluate atan of 1 over -0" in {
     val number = Number.negZero.atan(Number.one)
-    number shouldBe Number(Rational(3, 2), Pi)
+    number shouldBe Number(Rational(3, 2), Radian)
   }
   it should "evaluate atan of -1 over 0" in {
     val number = Number.zero.atan(negate(Number.one))
-    number shouldBe Number(Rational(3, 2), Pi)
+    number shouldBe Number(Rational(3, 2), Radian)
   }
 
 
@@ -952,7 +952,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     target.toInt shouldBe None
   }
   it should "work for pi" in {
-    val target = Number(1, Pi)
+    val target = Number(1, Radian)
     target.toInt shouldBe Some(1)
   }
 

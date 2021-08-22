@@ -499,7 +499,7 @@ case object ConstPi extends Constant {
     */
   def evaluate: Number = Number.pi
 
-  def maybeFactor: Option[Factor] = Some(Pi)
+  def maybeFactor: Option[Factor] = Some(Radian)
 }
 
 /**

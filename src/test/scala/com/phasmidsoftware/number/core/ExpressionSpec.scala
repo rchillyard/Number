@@ -120,8 +120,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate atan" in {
     Zero.atan(One).materialize.asNumber shouldBe Some(Number.piBy2)
-    One.atan(Zero).materialize.asNumber shouldBe Some(Number(0, Pi))
-    Number.one.atan(Number.zero) shouldBe Number(0, Pi)
+    One.atan(Zero).materialize.asNumber shouldBe Some(Number(0, Radian))
+    Number.one.atan(Number.zero) shouldBe Number(0, Radian)
   }
   it should "evaluate ln E" in {
     val x: Expression = ConstE
@@ -155,7 +155,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
     (One + Number.two).isExact(Some(Scalar)) shouldBe true
-    (ConstPi + Number.pi).isExact(Some(Pi)) shouldBe true
+    (ConstPi + Number.pi).isExact(Some(Radian)) shouldBe true
   }
   // FIXME new Aug 5th
   ignore should "be true for any product of exact Numbers of factor e" in {

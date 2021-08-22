@@ -130,7 +130,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "convertToPolar" in {
-    val expected = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Pi))
+    val expected = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Radian))
     val actual = convertToPolar(c1_2)
     actual shouldEqual expected
   }
@@ -151,6 +151,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   private def checkAtan2(opposite: Int, adjacent: Int): Unit = {
     val theta = math.atan2(opposite, adjacent)
+    // NOTE this isn't used
     val thetaAsFraction = theta / math.Pi
 //    println(s"atan2($opposite/$adjacent) is $thetaAsFraction")
     val result = math.tan(theta)
