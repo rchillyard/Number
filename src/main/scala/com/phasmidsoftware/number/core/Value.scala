@@ -40,28 +40,116 @@ object Value {
     * @return a Value.
     */
   def fromNothing(): Value = Left(Left(None))
+
+  /**
+    * Method to (optionally) convert a Value into a Double.
+    *
+    * @param value the Value to be represented as a Double.
+    * @return Some(x) where x is a Double if the conversion was possible, otherwise None.
+    */
+  def maybeDouble(value: Value): Option[Double] = optionMap(value)(_.toDouble, x => optionMap(x)(_.toDouble, identity))
+
+  /**
+    * Method to scale the given Double according to the provided scaling factors.
+    *
+    * @param x       the Double to be scaled.
+    * @param fThis   the value of the factor that x is associated with.
+    * @param fResult the value of the factor that the result will be associated with.
+    * @return a Double which will be paired with fResult.
+    */
+  def scaleDouble(x: Double, fThis: Double, fResult: Double): Double = x * fThis / fResult
 }
 
 sealed trait Factor {
+  /**
+    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    */
   val value: Double
 
+  /**
+    * A method to combine this Factor with another Factor and, if they are compatible, to return Some(factor).
+    *
+    * @param other the other factor.
+    * @return Some(f) if the factors are compatible, otherwise None.
+    */
   def +(other: Factor): Option[Factor]
+
+  /**
+    * Convert a value x from this factor to f if possible, using simple scaling.
+    * If the factors are incompatible, then None will be returned.
+    *
+    * @param x the value to be converted.
+    * @param f the factor of the result.
+    * @return an optional Value which, given factor f, represents the same quantity as x given this.
+    */
+  def convert(x: Value, f: Factor): Option[Value]
 }
 
-sealed abstract class NonScalarFactor extends Factor {
+sealed trait PureNumber extends Factor {
+  // NOTE duplicate of Logarithmic
+  def +(other: Factor): Option[Factor] = other match {
+    case Scalar => if (this != E) Some(this) else None // TODO impossible
+    case E => if (this == E) Some(this) else None // TODO impossible
+    case _ => throw NumberException("cannot add Pi factors together")
+  }
+
+  /**
+    * Convert a value x from this factor to f if possible, using simple scaling.
+    * If the factors are incompatible, then a Failure will be returned.
+    *
+    * @param v the value to be converted.
+    * @param f the factor of the result.
+    * @return a Try of Value which, given factor f, represents the same quantity as x given this.
+    */
+  def convert(v: Value, f: Factor): Option[Value] = f match {
+    case PureNumber(z) =>
+      Some(Value.fromDouble(Value.maybeDouble(v) map (x => Value.scaleDouble(x, this.value, z))))
+    case _ => None
+  }
+}
+
+object PureNumber {
+  def unapply(arg: PureNumber): Option[Double] = Some(arg.value)
+}
+
+sealed trait Logarithmic extends Factor {
   def +(other: Factor): Option[Factor] = other match {
     case Scalar => if (this != E) Some(this) else None
     case E => if (this == E) Some(this) else None
     case _ => throw NumberException("cannot add Pi factors together")
   }
+
+  /**
+    * Convert a value x from this factor to f if possible, using simple scaling.
+    * If the factors are incompatible, then a Failure will be returned.
+    *
+    * @param v the value to be converted.
+    * @param f the factor of the result.
+    * @return a Try of Value which, given factor f, represents the same quantity as x given this.
+    */
+  def convert(v: Value, f: Factor): Option[Value] = f match {
+    case Logarithmic(z) =>
+      Some(Value.fromDouble(Value.maybeDouble(v) map (x => Value.scaleDouble(x, this.value, z))))
+    case _ => None
+  }
 }
 
-case object Scalar extends Factor {
+object Logarithmic {
+  def unapply(arg: Logarithmic): Option[Double] = Some(arg.value)
+}
+
+case object Scalar extends PureNumber {
   val value: Double = 1
 
   override def toString: String = ""
 
-  def +(other: Factor): Option[Factor] = other match {
+  /**
+    * TODO check the logic here. Don't think we really need this method defined here.
+    *
+    * @param other the other factor.
+    * @return Some(f) if the factors are compatible, otherwise None.
+    */
+  override def +(other: Factor): Option[Factor] = other match {
     case E => None
     case _ => Some(other)
   }
@@ -83,7 +171,7 @@ case object Scalar extends Factor {
   *
   * The range of such values is 0 thru 2pi.
   */
-case object Pi extends NonScalarFactor {
+case object Pi extends PureNumber {
   val value: Double = Math.PI
 
   override def toString: String = Factor.sPi
@@ -97,7 +185,7 @@ case object Pi extends NonScalarFactor {
   *
   * Thus the range of such values is any positive number.
   */
-case object E extends NonScalarFactor {
+case object E extends Logarithmic {
   val value: Double = Math.E
 
   override def toString: String = Factor.sE

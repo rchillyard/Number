@@ -346,7 +346,7 @@ object AtomicExpression {
     case Literal(x) => Some(x)
     case c: Constant => Some(c.evaluate)
     case f: Field => Some(f)
-    case g: GeneralNumber => Some(g)
+//    case g: GeneralNumber => Some(g)
     case _ => None
   }
 }
@@ -666,7 +666,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * TODO refactor this method to remove all parameters since they are simply copies of the values in scope.
     *
     * @param f the function.
-    * @param a first operand.
+    * @param a first operand (currently ignored)
     * @param b second operand.
     * @return true if the result of the f(a,b) is exact.
     */

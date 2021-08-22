@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.util._
@@ -482,7 +483,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).
     */
-  def maybeDouble: Option[Double] = optionMap(value)(_.toDouble, x => optionMap(x)(_.toDouble, identity))
+  def maybeDouble: Option[Double] = Value.maybeDouble(value)
 
   /**
     * An optional Int that corresponds to the value of this Number (but ignoring the factor).

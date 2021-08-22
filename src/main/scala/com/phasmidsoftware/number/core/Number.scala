@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -1084,7 +1085,8 @@ object Number {
 
   def exp(x: Number): Number = x.scale(Scalar).make(E)
 
-  private def scaleDouble(x: Double, fThis: Factor, fResult: Factor) = x * fThis.value / fResult.value
+  // TODO use the method in Value.
+  def scaleDouble(x: Double, fThis: Factor, fResult: Factor): Double = x * fThis.value / fResult.value
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.
