@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.optionMap
+import com.phasmidsoftware.number.core.Render.renderValue
 
 import scala.math.BigInt
 import scala.util._
@@ -58,6 +59,18 @@ object Value {
     * @return a Double which will be paired with fResult.
     */
   def scaleDouble(x: Double, fThis: Double, fResult: Double): Double = x * fThis / fResult
+
+  /**
+    * Method to render a Value as a String.
+    *
+    * @param v the value to be rendered.
+    * @return a String.
+    */
+  def valueToString(v: Value): String = renderValue(v) match {
+    case (x, true) => x
+    case (x, false) => x + "..."
+  }
+
 }
 
 sealed trait Factor {
@@ -83,8 +96,19 @@ sealed trait Factor {
     * @return an optional Value which, given factor f, represents the same quantity as x given this.
     */
   def convert(x: Value, f: Factor): Option[Value]
+
+  /**
+    * Method to render a Value in the context of this Factor.
+    *
+    * @param x the Value.
+    * @return a String.
+    */
+  def render(x: Value): String
 }
 
+/**
+  * Trait to define a Factor which is a scaled version of a pure number.
+  */
 sealed trait PureNumber extends Factor {
   // NOTE duplicate of Logarithmic
   def +(other: Factor): Option[Factor] = other match {
@@ -112,6 +136,9 @@ object PureNumber {
   def unapply(arg: PureNumber): Option[Double] = Some(arg.value)
 }
 
+/**
+  * Trait to define a Factor which is a scaled version of the natural log.
+  */
 sealed trait Logarithmic extends Factor {
   def +(other: Factor): Option[Factor] = other match {
     case Scalar => if (this != NatLog) Some(this) else None
@@ -132,10 +159,32 @@ sealed trait Logarithmic extends Factor {
       Some(Value.fromDouble(Value.maybeDouble(v) map (x => Value.scaleDouble(x, this.value, z))))
     case _ => None
   }
+
+  def render(x: Value): String
+
+  def asPower(v: Value, f: String): String = v match {
+    case Right(1) => f
+    case Right(2) => f + "\u00B2"
+    case Right(3) => f + "\u00B3"
+    case Right(x) if x > 3 & x < 10 => f + Logarithmic.incrementUnicode("\u2070", 0, x)
+    case Left(Right(r)) if r * 2 == Rational.one => "\u221A" + f
+    case Left(Right(r)) if r * 3 == Rational.one => "\u221B" + f
+    case Left(Right(r)) if r * 4 == Rational.one => "\u221C" + f
+    case _ => f + "^" + Value.valueToString(v)
+  }
+
+
 }
 
 object Logarithmic {
   def unapply(arg: Logarithmic): Option[Double] = Some(arg.value)
+
+  private def incrementUnicode(str: String, index: Int, x: Int): String = {
+    val chars: Array[Char] = str.toArray
+    chars.update(index, (chars(index) + x).toChar)
+    new String(chars)
+  }
+
 }
 
 case object Scalar extends PureNumber {
@@ -153,6 +202,8 @@ case object Scalar extends PureNumber {
     case NatLog => None
     case _ => Some(other)
   }
+
+  def render(x: Value): String = x.toString
 }
 
 /**
@@ -175,6 +226,8 @@ case object Radian extends PureNumber {
   val value: Double = Math.PI
 
   override def toString: String = Factor.sPi
+
+  def render(x: Value): String = renderValue(x) + Factor.sPi
 }
 
 /**
@@ -186,9 +239,19 @@ case object Radian extends PureNumber {
   * Thus the range of such values is any positive number.
   */
 case object NatLog extends Logarithmic {
-  val value: Double = Math.E
+  val value: Double = 1.0
 
   override def toString: String = Factor.sE
+
+  def render(x: Value): String = asPower(x, Factor.sE)
+}
+
+case object Log2 extends Logarithmic {
+  val value: Double = math.log(2)
+
+  override def toString: String = "log2"
+
+  def render(x: Value): String = asPower(x, "2")
 }
 
 object Factor {
@@ -214,6 +277,14 @@ object Render {
 
   def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 
+  /**
+    * Method to render a Value.
+    *
+    * CONSIDER this doesn't belong here.
+    *
+    * @param v the Value to be rendered.
+    * @return a tuple of String and Boolean.
+    */
   def renderValue(v: Value): (String, Boolean) =
     optionMap[Either[Option[Double], Rational], Int, (String, Boolean)](v)(y => renderInt(y), x => optionMap[Option[Double], Rational, (String, Boolean)](x)(y => renderRational(y), {
       case Some(n) => Some(renderDouble(n))

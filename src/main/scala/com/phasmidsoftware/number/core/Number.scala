@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Rational.toInts
-import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
 
@@ -1102,27 +1101,7 @@ object Number {
     case _ => x
   }
 
-  def valueToString(v: Value): String = renderValue(v) match {
-    case (x, true) => x
-    case (x, false) => x + "..."
-  }
 
-  private def incrementUnicode(str: String, index: Int, x: Int): String = {
-    val chars: Array[Char] = str.toArray
-    chars.update(index, (chars(index) + x).toChar)
-    new String(chars)
-  }
-
-  def asPowerOfE(v: Value): String = v match {
-    case Right(1) => Factor.sE
-    case Right(2) => Factor.sE + "\u00B2"
-    case Right(3) => Factor.sE + "\u00B3"
-    case Right(x) if x > 3 & x < 10 => Factor.sE + incrementUnicode("\u2070", 0, x)
-    case Left(Right(r)) if r * 2 == Rational.one => "\u221A" + Factor.sE
-    case Left(Right(r)) if r * 3 == Rational.one => "\u221B" + Factor.sE
-    case Left(Right(r)) if r * 4 == Rational.one => "\u221C" + Factor.sE
-    case _ => Factor.sE + "^" + valueToString(v)
-  }
 }
 
 case class NumberException(str: String) extends Exception(str)

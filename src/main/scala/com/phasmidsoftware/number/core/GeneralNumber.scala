@@ -249,11 +249,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   override def toString: String = {
     val sb = new StringBuilder()
     factor match {
-      case NatLog =>
-        sb.append(Number.asPowerOfE(value))
-      case f =>
-        sb.append(Number.valueToString(value))
-        sb.append(f.toString)
+      case Logarithmic(_) =>
+        sb.append(factor.render(value))
+      case PureNumber(_) =>
+        sb.append(Value.valueToString(value))
+        sb.append(factor.toString)
     }
     sb.toString
   }

@@ -335,7 +335,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
 
-  behavior of "normalize"
+  behavior of "specialize"
   it should "work for 1" in {
     val target = numberOne
     target.specialize.value shouldBe Right(1)
@@ -430,6 +430,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val expected = Number(math.log(Math.PI), NatLog)
     val result = target.scale(NatLog)
     result === expected shouldBe true
+  }
+  it should "work for Log2, Scalar" in {
+    import com.phasmidsoftware.number.core.Rational.RationalOps
+    val target = Number(1 :/ 2, Log2)
+    target.render shouldBe "√2"
+    val expected = Number(math.sqrt(2), Scalar)
+    val result = target.scale(Scalar)
+    println(result)
+    result should ===(expected)
   }
 
   behavior of "alignFactors"
