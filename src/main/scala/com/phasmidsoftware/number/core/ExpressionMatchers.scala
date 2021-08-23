@@ -158,6 +158,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Matcher[MonadicDuple, MonadicDuple].
     */
   def matchSimplifyMonadicTerm: Matcher[MonadicDuple, MonadicDuple] = Matcher("matchSimplifyMonadicTerm") {
+    case Cosine ~ x => Match(Sine) ~ (Match(x plus ConstPi / 2) flatMap simplifier)
+    //    case Sine ~ x if (x*4).evaluate == Number.one => (x*4).evaluate match {
+    //      case 1 =>
+    //    }
     case f ~ x => Match(f) ~ exactMaterializer(x)
   }
 

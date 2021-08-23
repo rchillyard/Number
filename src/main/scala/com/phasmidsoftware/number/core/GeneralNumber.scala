@@ -254,6 +254,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
       case PureNumber(_) =>
         sb.append(Value.valueToString(value))
         sb.append(factor.toString)
+      case Root(_) =>
+        sb.append(factor.render(value))
     }
     sb.toString
   }

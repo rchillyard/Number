@@ -1067,6 +1067,7 @@ object Number {
     case (a, b) if a == b => n
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
+    case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
     case (NatLog, PureNumber(_)) => scale(scale(n, Scalar), factor)
     case (PureNumber(_), NatLog) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)

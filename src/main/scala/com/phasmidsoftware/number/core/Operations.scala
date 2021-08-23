@@ -240,6 +240,7 @@ case object MonadicOperationSin extends MonadicOperation {
     // CONSIDER do we really need this first clause?
     if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational(_))
     else x.invert.toInt match {
+      // CONSIDER eliminating the following...
       case 4 => Rational.half.sqrt
       case 3 => Rational(3).sqrt map (_ / 2)
       case _ => Failure(NumberException("sine cannot be Rational"))

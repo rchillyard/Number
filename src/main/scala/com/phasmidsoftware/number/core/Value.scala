@@ -91,13 +91,13 @@ sealed trait Factor {
     * Convert a value x from this factor to f if possible, using simple scaling.
     * If the factors are incompatible, then None will be returned.
     *
-    * NOTE: only PureNumber<->PureNumber or Logarithmic<->Logarithmic conversions can be effected.
+    * NOTE: only PureNumber<->PureNumber, Root<->Root or Logarithmic<->Logarithmic conversions can be effected.
     *
-    * @param x the value to be converted.
+    * @param v the value to be converted.
     * @param f the factor of the result.
-    * @return an optional Value which, given factor f, represents the same quantity as x given this.
+    * @return an optional Value which, given factor f, represents the same quantity as v given this.
     */
-  def convert(x: Value, f: Factor): Option[Value]
+  def convert(v: Value, f: Factor): Option[Value]
 
   /**
     * Method to render a Value in the context of this Factor.
@@ -121,7 +121,7 @@ sealed trait PureNumber extends Factor {
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
-    * If the factors are incompatible, then None will be returned.
+    * Result is defined only if f is a PureNumber.
     *
     * @param v the value to be converted.
     * @param f the factor of the result.
@@ -142,6 +142,7 @@ object PureNumber {
   * Trait to define a Factor which is a scaled version of the natural log.
   */
 sealed trait Logarithmic extends Factor {
+  // TODO rewrite this
   def +(other: Factor): Option[Factor] = other match {
     case Scalar => if (this != NatLog) Some(this) else None
     case NatLog => if (this == NatLog) Some(this) else None
@@ -150,19 +151,16 @@ sealed trait Logarithmic extends Factor {
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
-    * If the factors are incompatible, then None will be returned.
+    * Result is defined only if f is Logarithmic.
     *
     * @param v the value to be converted.
     * @param f the factor of the result.
     * @return a Try of Value which, given factor f, represents the same quantity as x given this.
     */
   def convert(v: Value, f: Factor): Option[Value] = f match {
-    case Logarithmic(z) =>
-      Some(Value.fromDouble(Value.maybeDouble(v) map (x => Value.scaleDouble(x, this.value, z))))
+    case Logarithmic(z) => Some(Value.fromDouble(Value.maybeDouble(v) map (x => Value.scaleDouble(x, this.value, z))))
     case _ => None
   }
-
-  def render(x: Value): String
 
   def asPower(v: Value, f: String): String = v match {
     case Right(1) => f
@@ -174,8 +172,6 @@ sealed trait Logarithmic extends Factor {
     case Left(Right(r)) if r * 4 == Rational.one => "\u221C" + f
     case _ => f + "^" + Value.valueToString(v)
   }
-
-
 }
 
 object Logarithmic {
@@ -186,6 +182,41 @@ object Logarithmic {
     chars.update(index, (chars(index) + x).toChar)
     new String(chars)
   }
+}
+
+sealed trait Root extends Factor {
+
+  /**
+    * A method to combine this Factor with another Factor and, if they are compatible, to return Some(factor).
+    *
+    * @param other the other factor.
+    * @return Some(f) if the factors are compatible, otherwise None.
+    */
+  // NOTE duplicate of Logarithmic
+  def +(other: Factor): Option[Factor] = other match {
+    case Scalar => if (this != NatLog) Some(this) else None // TODO impossible
+    case NatLog => if (this == NatLog) Some(this) else None // TODO impossible
+    case _ => throw NumberException("cannot add Radian factors together")
+  }
+
+  /**
+    * Convert a value x from this factor to f if possible, using simple scaling.
+    * Result is defined only if f is a Root.
+    *
+    * NOTE: only PureNumber<->PureNumber, Root<->Root or Logarithmic<->Logarithmic conversions can be effected.
+    *
+    * @param v the value to be converted.
+    * @param f the factor of the result.
+    * @return an optional Value which, given factor f, represents the same quantity as x given this.
+    */
+  def convert(v: Value, f: Factor): Option[Value] = f match {
+    case Root(z) => Some(Value.fromDouble(Value.maybeDouble(v) map (x => Value.scaleDouble(x, this.value, z))))
+    case _ => None
+  }
+}
+
+object Root {
+  def unapply(arg: Root): Option[Double] = Some(arg.value)
 
 }
 
@@ -270,6 +301,20 @@ case object Log5 extends Logarithmic {
   override def toString: String = "log5"
 
   def render(x: Value): String = asPower(x, "5")
+}
+
+/**
+  * This object represents the square root factor.
+  */
+case object Root2 extends Root {
+  /**
+    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    */
+  val value: Double = 2
+
+  override def toString: String = "log5"
+
+  def render(x: Value): String = s"√${Value.valueToString(x)}"
 }
 
 object Factor {
