@@ -91,6 +91,8 @@ sealed trait Factor {
     * Convert a value x from this factor to f if possible, using simple scaling.
     * If the factors are incompatible, then None will be returned.
     *
+    * NOTE: only PureNumber<->PureNumber or Logarithmic<->Logarithmic conversions can be effected.
+    *
     * @param x the value to be converted.
     * @param f the factor of the result.
     * @return an optional Value which, given factor f, represents the same quantity as x given this.
@@ -119,7 +121,7 @@ sealed trait PureNumber extends Factor {
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
-    * If the factors are incompatible, then a Failure will be returned.
+    * If the factors are incompatible, then None will be returned.
     *
     * @param v the value to be converted.
     * @param f the factor of the result.
@@ -148,7 +150,7 @@ sealed trait Logarithmic extends Factor {
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
-    * If the factors are incompatible, then a Failure will be returned.
+    * If the factors are incompatible, then None will be returned.
     *
     * @param v the value to be converted.
     * @param f the factor of the result.
@@ -252,6 +254,22 @@ case object Log2 extends Logarithmic {
   override def toString: String = "log2"
 
   def render(x: Value): String = asPower(x, "2")
+}
+
+case object Log3 extends Logarithmic {
+  val value: Double = math.log(3)
+
+  override def toString: String = "log3"
+
+  def render(x: Value): String = asPower(x, "3")
+}
+
+case object Log5 extends Logarithmic {
+  val value: Double = math.log(5)
+
+  override def toString: String = "log5"
+
+  def render(x: Value): String = asPower(x, "5")
 }
 
 object Factor {

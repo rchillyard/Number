@@ -178,6 +178,8 @@ object Constants {
   val e: Number = Number.e
   val i: Complex = Complex.i
 
+  val root5: Number = Number(Rational.half, Log5)
+
   /**
     * https://en.wikipedia.org/wiki/Golden_ratio
     */

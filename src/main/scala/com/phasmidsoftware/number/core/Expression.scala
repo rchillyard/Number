@@ -120,6 +120,11 @@ object Expression {
   val e: Expression = Expression(Number.e)
 
   /**
+    * Other useful expressions.
+    */
+  val phi: Expression = (one + Constants.root5) / Number.two
+
+  /**
     * Implicit class to allow various operations to be performed on an Expression.
     *
     * @param x an Expression.
@@ -598,12 +603,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return the materialized Field.
     */
   def evaluate: Field = value
-
-  //    if (isExact) value else {
-  //      val simplified = simplify
-  //      if (simplified == this) value
-  //      else simplified.materialize
-  //    }
 
   /**
     * If it is possible to simplify this Expression, then we do so.

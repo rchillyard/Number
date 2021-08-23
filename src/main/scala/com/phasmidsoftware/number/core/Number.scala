@@ -556,6 +556,21 @@ object Number {
   val e: Number = ExactNumber(Right(1), NatLog)
 
   /**
+    * Exact value of √2
+    */
+  val root2: Number = Number(Rational.half, Log2)
+
+  /**
+    * Exact value of √3
+    */
+  val root3: Number = Number(Rational.half, Log3)
+
+  /**
+    * Exact value of √5
+    */
+  val root5: Number = Number(Rational.half, Log5)
+
+  /**
     * Implicit converter from Expression to Number.
     *
     * @param x the Expression to be converted.
@@ -895,11 +910,14 @@ object Number {
       * @param y the second Number.
       * @return an Int representing the order.
       */
-    def compare(x: Number, y: Number): Int =
-      if (x.factor == NatLog && y.factor == NatLog)
+    def compare(x: Number, y: Number): Int = {
+      if (x == Number.NaN && y == Number.NaN) 0
+      else if (x == Number.NaN || y == Number.NaN) throw NumberException("cannot compare NaN with non-NaN")
+      else if (x.factor == NatLog && y.factor == NatLog)
         compare(x.make(Scalar), y.make(Scalar))
       else
         GeneralNumber.plus(x, Number.negate(y)).signum
+    }
   }
 
   implicit object NumberIsOrdering extends NumberIsOrdering
@@ -1049,11 +1067,11 @@ object Number {
     case (a, b) if a == b => n
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
-    case (PureNumber(_), PureNumber(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
-    case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (NatLog, PureNumber(_)) => scale(scale(n, Scalar), factor)
     case (PureNumber(_), NatLog) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
+    case (PureNumber(_), PureNumber(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
+    case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
     case _ => throw NumberException("scaling between e and Radian factors is not supported")
   }

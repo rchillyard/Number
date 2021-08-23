@@ -338,12 +338,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
-  def normalize: Number = factor match {
-    case Scalar => this
-    // TEST me
-    case Radian => Number.prepare(maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar)))
-    case NatLog => throw NumberException("normalize: not implemented for NatLog")
-  }
+  def normalize: Number = scale(Scalar)
 
   /**
     * Return a Number which uses the most restricted type possible.

@@ -334,7 +334,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     //    x.toString shouldBe "6.67430(15)E-11"
   }
 
-
   behavior of "specialize"
   it should "work for 1" in {
     val target = numberOne
@@ -440,6 +439,14 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     println(result)
     result should ===(expected)
   }
+  it should "work for Log3, Scalar" in {
+    val target = Number(Rational.half, Log3)
+    target.render shouldBe "√3"
+    val expected = Number(math.sqrt(3), Scalar)
+    val result = target.scale(Scalar)
+    println(result)
+    result should ===(expected)
+  }
 
   behavior of "alignFactors"
   it should "work for Scalar, Scalar" in {
@@ -506,7 +513,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number(2)) shouldBe(Number(), Number())
   }
-
   it should "work for BigInt,BigInt" in {
     val target = Number(bigOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(BigInt(2))) shouldBe(Number(bigOne), Number(BigInt(2)))
@@ -537,7 +543,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number(BigInt(2))) shouldBe(Number(), Number())
   }
-
   it should "work for Rational,Rational" in {
     val target = Number(Rational(1)).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(Rational(2))) shouldBe(Number(Rational(1)), Number(Rational(2)))
@@ -560,7 +565,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number(Rational(2))) shouldBe(Number(), Number())
   }
-
   it should "work for Double,Double" in {
     val target = Number(doubleOne).asInstanceOf[GeneralNumber]
     target.alignTypes(Number(2.0)) shouldBe(Number(doubleOne), Number(2.0))
@@ -573,7 +577,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number(2.0)) shouldBe(Number(), Number())
   }
-
   it should "work for None,None" in {
     val target = Number().asInstanceOf[GeneralNumber]
     target.alignTypes(Number()) shouldBe(Number(), Number())
@@ -615,7 +618,26 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val x2 = Number.pi
     (x1 add x2).toString shouldBe "4.141592653589793[5]"
   }
-
+  it should "add 1 to e" in {
+    val x1 = Number.one
+    val x2 = Number.e
+    (x1 add x2) should ===(Number(3.7182818284590450))
+  }
+  it should "add 1 to √2" in {
+    val x1 = Number.one
+    val x2 = Number.root2
+    (x1 add x2) should ===(Number(2.414213562373095))
+  }
+  it should "add 1 to √3" in {
+    val x1 = Number.one
+    val x2 = Number.root3
+    (x1 add x2) should ===(Number(2.732050807568878))
+  }
+  it should "add 1 to √5" in {
+    val x1 = Number.one
+    val x2 = Number.root5
+    (x1 add x2) should ===(Number(3.23606797749979))
+  }
 
   behavior of "minus"
   it should "negate 1" in {
@@ -871,7 +893,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     number shouldBe Number(Rational(3, 2), Radian)
   }
 
-
   // NOTE: Following are the tests of Ordering[Number]
 
   behavior of "compare"
@@ -1036,5 +1057,26 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 1 :/ 2" in {
     val x: Number = 1 :/ 2
     x shouldBe Number(Rational.half)
+  }
+
+  behavior of "pre-defined"
+  it should "have root5" in {
+    val root5 = Constants.root5
+    println(root5)
+    val value = root5.normalize
+    println(value)
+    value should ===(Number(math.sqrt(5)))
+  }
+
+  behavior of "constants"
+  // FIXME Issue #60
+  ignore should "have phi" in {
+    val phi = Constants.phi
+    val goldenRatio = Expression.phi
+    println(goldenRatio)
+    val maybeNumber: Option[Number] = goldenRatio.asNumber
+    maybeNumber.isDefined shouldBe true
+    println(maybeNumber)
+    maybeNumber.get should ===(phi)
   }
 }
