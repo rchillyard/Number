@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import java.util.NoSuchElementException
-
 import scala.language.implicitConversions
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
@@ -10,6 +9,18 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
   *
   */
 object FP {
+  /**
+    * Sequence method to invert the order of types Option/Try.
+    *
+    * @param xyo an Option of Try[X].
+    * @tparam X the underlying type.
+    * @return a Try of Option[X].
+    */
+  def sequence[X](xyo: Option[Try[X]]): Try[Option[X]] = xyo match {
+    case Some(Success(x)) => Success(Some(x))
+    case Some(Failure(x)) => Failure(x)
+    case None => Success(None)
+  }
 
   /**
     * This method and tryMap are (almost) twins (working for Option and Try respectively --

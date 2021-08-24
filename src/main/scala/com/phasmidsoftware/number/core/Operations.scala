@@ -522,6 +522,36 @@ case object QueryOperationSignum extends QueryOperation[Int] {
 }
 
 object Operations {
+
+  /**
+    * Evaluate a dyadic operator on value and other, using the various functions passed in.
+    *
+    * @param value     the first operand, a Value.
+    * @param other     the other operand, a Value.
+    * @param functions the tuple of four conversion functions.
+    * @return an optional Value which is result of applying the appropriate function to the operands value and other.
+    */
+  def doComposeValueDyadic(value: Value, other: Value)(functions: DyadicFunctions): Option[Value] = {
+    val (fInt, fRational, fDouble) = functions
+
+    def tryDouble(xo: Option[Double]): Try[Value] = xo match {
+      case Some(n) => FP.sequence(for (y <- Value.maybeDouble(other)) yield fDouble(n, y)) map Value.fromDouble
+      case None => Failure(NumberException("number is invalid")) // NOTE this case is not observed in practice
+    }
+
+    def tryConvert[X](x: X, msg: String)(extract: Value => Option[X], func: (X, X) => Try[X], g: X => Value): Try[Value] =
+      toTryWithThrowable(for (y <- extract(other)) yield func(x, y) map g, NumberException(s"other is not a $msg")).flatten
+
+    def tryRational(x: Rational): Try[Value] = tryConvert(x, "Rational")(v => Value.maybeRational(v), fRational, Value.fromRational)
+
+    def tryInt(x: Int): Try[Value] = tryConvert(x, "Int")(v => Value.maybeInt(v), fInt, Value.fromInt)
+
+    import Converters._
+    val xToZy1: Either[Option[Double], Rational] => Try[Value] = y => tryMap(y)(tryRational, tryDouble)
+
+    tryMap(value)(tryInt, xToZy1).toOption
+  }
+
   /**
     * Evaluate a monadic operator on this, using the various functions passed in.
     * The result is an Option[Value] rather than a Number, as in Number's doComposeMonadic.

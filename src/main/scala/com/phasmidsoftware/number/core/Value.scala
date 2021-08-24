@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.optionMap
+import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Render.renderValue
 
+import java.util.NoSuchElementException
 import scala.math.BigInt
 import scala.util._
 
@@ -49,6 +50,35 @@ object Value {
     * @return Some(x) where x is a Double if the conversion was possible, otherwise None.
     */
   def maybeDouble(value: Value): Option[Double] = optionMap(value)(_.toDouble, x => optionMap(x)(_.toDouble, identity))
+
+  /**
+    * An optional Rational that corresponds to the value of this Number (but ignoring the factor).
+    * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
+    * CONSIDER using query
+    */
+  def maybeRational(value: Value): Option[Rational] = {
+    import Converters._
+    val ry = tryMap(value)(tryF(Rational.apply), x => tryMap(x)(identityTry, fail("no Double=>Rational conversion")))
+    ry.toOption
+  }
+
+  /**
+    * An optional Int that corresponds to the value of this Number (but ignoring the factor).
+    *
+    * CONSIDER using query
+    */
+  def maybeInt(value: Value): Option[Int] = {
+    val xToZy0: Option[Double] => Try[Int] = {
+      case Some(n) if Math.round(n) == n => if (n <= Int.MaxValue && n >= Int.MinValue) Try(n.toInt)
+      else Failure(NumberException(s"double $n cannot be represented as an Int"))
+      case Some(n) => Failure(NumberException(s"toInt: $n is not integral"))
+      case None => Failure(new NoSuchElementException())
+    }
+    import Converters._
+    val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
+    tryMap(value)(identityTry, xToZy1).toOption
+  }
+
 
   /**
     * Method to scale the given Double according to the provided scaling factors.
@@ -203,14 +233,12 @@ sealed trait Root extends Factor {
     * Convert a value x from this factor to f if possible, using simple scaling.
     * Result is defined only if f is a Root.
     *
-    * NOTE: only PureNumber<->PureNumber, Root<->Root or Logarithmic<->Logarithmic conversions can be effected.
-    *
     * @param v the value to be converted.
     * @param f the factor of the result.
     * @return an optional Value which, given factor f, represents the same quantity as x given this.
     */
   def convert(v: Value, f: Factor): Option[Value] = f match {
-    case Root(z) => Some(Value.fromDouble(Value.maybeDouble(v) map (x => Value.scaleDouble(x, this.value, z))))
+    case Root(z) => Operations.doComposeValueDyadic(v, Number(z).specialize.value)(DyadicOperationPower.functions)
     case _ => None
   }
 }
@@ -312,9 +340,23 @@ case object Root2 extends Root {
     */
   val value: Double = 2
 
-  override def toString: String = "log5"
+  override def toString: String = "√"
 
   def render(x: Value): String = s"√${Value.valueToString(x)}"
+}
+
+/**
+  * This object represents the square root factor.
+  */
+case object Root3 extends Root {
+  /**
+    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    */
+  val value: Double = 3
+
+  override def toString: String = "³√"
+
+  def render(x: Value): String = s"³√${Value.valueToString(x)}"
 }
 
 object Factor {

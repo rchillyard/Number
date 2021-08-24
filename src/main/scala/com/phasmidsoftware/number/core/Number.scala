@@ -1011,6 +1011,7 @@ object Number {
   @tailrec
   private def power(x: Number, r: Rational): Number =
     x.factor match {
+      // NOTE need to expand the factor types here--indeed this whole method needs to be rewritten
       case NatLog =>
         val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
         vo match {
@@ -1073,8 +1074,9 @@ object Number {
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
     case (PureNumber(_), PureNumber(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
+    case (Root(_), Root(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
-    case _ => throw NumberException("scaling between e and Radian factors is not supported")
+    case _ => throw NumberException(s"scaling between ${n.factor} and $factor factors is not supported")
   }
 
   def negate(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationNegate))

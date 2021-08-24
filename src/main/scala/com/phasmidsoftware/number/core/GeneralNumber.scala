@@ -446,24 +446,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
   private def doComposeDyadic(other: Number, f: Factor)(functions: DyadicFunctions): Option[Number] = {
-    val (fInt, fRational, fDouble) = functions
-
-    def tryDouble(xo: Option[Double]): Try[Number] = xo match {
-      case Some(n) => toTryWithThrowable(for (y <- other.maybeDouble) yield fDouble(n, y) map (x => make(x, f)), NumberException("other is not a Double")).flatten
-      case None => Failure(NumberException("number is invalid")) // NOTE this case is not observed in practice
-    }
-
-    def tryConvert[X](x: X, msg: String)(extract: Number => Option[X], func: (X, X) => Try[X], g: (X, Factor) => Number): Try[Number] =
-      toTryWithThrowable(for (y <- extract(other)) yield func(x, y) map (g(_, f)), NumberException(s"other is not a $msg")).flatten
-
-    def tryRational(x: Rational): Try[Number] = tryConvert(x, "Rational")({ case n: GeneralNumber => n.maybeRational }, fRational, make)
-
-    def tryInt(x: Int): Try[Number] = tryConvert(x, "Int")({ case n: GeneralNumber => n.maybeInt }, fInt, make)
-
-    import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(tryRational, tryDouble)
-
-    tryMap(value)(tryInt, xToZy1).toOption
+    val vo: Option[Value] = Operations.doComposeValueDyadic(value, other.value)(functions)
+    for (v <- vo) yield make(v, f) // CONSIDER what about extra fuzz?
   }
 
   /**
@@ -471,11 +455,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query
     */
-  lazy val maybeRational: Option[Rational] = {
-    import Converters._
-    val ry = tryMap(value)(tryF(Rational.apply), x => tryMap(x)(identityTry, fail("no Double=>Rational conversion")))
-    ry.toOption
-  }
+  lazy val maybeRational: Option[Rational] = Value.maybeRational(value)
 
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).
@@ -484,20 +464,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * An optional Int that corresponds to the value of this Number (but ignoring the factor).
-    *
-    * CONSIDER using query
     */
-  private lazy val maybeInt: Option[Int] = {
-    val xToZy0: Option[Double] => Try[Int] = {
-      case Some(n) if Math.round(n) == n => if (n <= Int.MaxValue && n >= Int.MinValue) Try(n.toInt)
-      else Failure(NumberException(s"double $n cannot be represented as an Int"))
-      case Some(n) => Failure(NumberException(s"toInt: $n is not integral"))
-      case None => Failure(new NoSuchElementException())
-    }
-    import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
-    tryMap(value)(identityTry, xToZy1).toOption
-  }
+  private lazy val maybeInt: Option[Int] = Value.maybeInt(value)
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
 

@@ -445,11 +445,28 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val result = target.scale(Scalar)
     result should ===(expected)
   }
+  it should "work for Log2, NatLog" in {
+    import com.phasmidsoftware.number.core.Rational.RationalOps
+    val target = Number(1 :/ 2, Log2)
+    target.render shouldBe "√2"
+    val expected = Number(math.log(math.sqrt(2)), NatLog)
+    val result = target.scale(NatLog)
+    result should ===(expected)
+  }
   it should "work for Root2, Scalar" in {
     val target = Number(Rational.two, Root2)
     target.render shouldBe "√2"
     val expected = Number(math.sqrt(2), Scalar)
     val result = target.scale(Scalar)
+    result should ===(expected)
+  }
+  // FIXME make this conversion work
+  ignore should "work for Root2, Root3" in {
+    val target = Number(4, Root2)
+    target.render shouldBe "√4"
+    val expected = Number(8, Root3)
+    println(expected)
+    val result = target.scale(Root3)
     result should ===(expected)
   }
 
