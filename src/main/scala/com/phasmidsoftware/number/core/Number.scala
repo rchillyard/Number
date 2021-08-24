@@ -1048,7 +1048,7 @@ object Number {
 
   def sin(x: Number): Number =
     if (x.signum >= 0) {
-      val oneOverRoot2 = Number.root2.invert
+      val oneOverRoot2 = Number(Rational.half, Root2)
       val rootThreeQuarters = Number(Rational(3, 4), Root2)
       val z = x.scale(Radian)
       z.doMultiply(12).toInt match {

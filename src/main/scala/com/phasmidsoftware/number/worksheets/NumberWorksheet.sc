@@ -18,3 +18,9 @@ val ok = implicitly[Fuzzy[Field]].same(0.8)(two, Number.two)
 import com.phasmidsoftware.number.core.Number.NumberOps
 
 val infinity = 1 :/ 0 // should be infinity
+
+// NOTE Demonstrate that sin(π/4) is an exact number.
+val piBy4 = Number.pi doDivide 4
+val sinePiBy4 = piBy4.sin
+val oneHalf = (sinePiBy4 doMultiply sinePiBy4).normalize
+

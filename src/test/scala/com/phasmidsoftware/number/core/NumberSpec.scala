@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.{sAvagadro, sBoltzmann, sC, sPlanck}
 import com.phasmidsoftware.number.core.Expression.{ExpressionOps, one}
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.negate
+import com.phasmidsoftware.number.core.Number.{negate, root2}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -703,7 +703,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     (x add -y) shouldBe numberOne
   }
 
-  behavior of "times"
+  behavior of "multiply"
   it should "multiply 1 and 2" in {
     val x = numberOne
     val y = Number(2)
@@ -733,6 +733,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val x = Number(1, Radian)
     val y = Number(2)
     (x multiply y) shouldBe Number(2, Radian)
+  }
+  it should "multiply root2 and root2" in {
+    (root2 multiply root2).normalize shouldBe Number(2, Scalar)
+  }
+  it should "multiply sin by sin" in {
+    val piBy4 = Number.pi doDivide 4
+    val sinePiBy4 = piBy4.sin
+    val oneHalf = sinePiBy4 doMultiply sinePiBy4
+    oneHalf.normalize shouldBe Number.two.invert
   }
 
   behavior of "invert"
@@ -833,7 +842,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for Radian/4" in {
     val target = Number(Rational(1, 4), Radian)
     val sin = target.sin
-    sin shouldBe Number.root2.invert
+    sin shouldBe Number(Rational.half, Root2)
   }
 
   behavior of "cos"
