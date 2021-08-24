@@ -200,10 +200,15 @@ It is easy to convert between the two types of _Complex_.
 
 Factors
 =======
-There are three "factors:" Scalar (for ordinary dimensionless numbers), __Pi__ (used to represent radians or any multiple of pi),
-and __E__ (for powers of the Euler number).
+There are three types of "factor:"
+* _PureNumber_, in particular, _Scalar_ (for ordinary dimensionless numbers), __Radian__ (formerly called _Pi_ and used to represent radians or any multiple of pi);
+* _Logarithmic_, in particular, _NatLog_ (formerly called _E_), _Log2_, and _Log10_;
+* _Root_, in particular: _Root2_ (for square roots) and _Root3_ (for cube roots).
 
-Trigonometrical functions are designed to work with __Pi__ quantities.
+These allow certain quantities to be expressed exactly, for example, sin(π/3) is the square root of 3/4.
+The true (_Scalar_) values of the logarithmic numbers are e^x, 2^x, and 10^x respectively where x is the "value" of the _Number_.
+
+Trigonometrical functions are designed to work with __Radian__ quantities.
 Such values are limited (modulated) to be in the range 0..2pi.
 However, this happens as the result of operations, so it is still possible to define a value of 2pi.
 For example, if you want to check that the sine of pi/2 is equal to 1 exactly, then you should write the following:
@@ -211,7 +216,7 @@ For example, if you want to check that the sine of pi/2 is equal to 1 exactly, t
     val target = (Number.pi/2).sin
     target shouldBe Number.one
 
-Similarly, if you use the _atan_ method on a Scalar number, the result will be a number (possibly exact) whose factor is __Pi__.
+Similarly, if you use the _atan_ method on a Scalar number, the result will be a number (possibly exact) whose factor is __Radian__.
 
 The 𝜀 factor works quite differently.
 It is not a simple matter of scaling.
@@ -224,9 +229,9 @@ See Complex numbers.
 Constants
 =========
 
-The Number class defines a number of constant values for Number, such as Pi, e, one, zero, etc.
-The Constants object contains a number of fundamental constant definitions, in addition to those defined by Number.
-For example: c (speed of light), alpha (fine structure constant), etc.
+The _Number_ class defines a number of constant values for _Number_, such as Pi, e, one, zero, etc.
+The _Constants_ object contains a number of fundamental constant definitions, in addition to those defined by _Number_.
+For example: _c_ (speed of light), _alpha_ (fine structure constant), etc.
 
 Lazy Evaluation
 ===============
@@ -340,6 +345,7 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
+* Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.
 * Version 1.0.10: Many improvements and fixes:
     - added Constants,
     - implicit converter from Expression to Number,

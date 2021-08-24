@@ -1047,8 +1047,18 @@ object Number {
   }
 
   def sin(x: Number): Number =
-    if (x.signum >= 0) prepareWithSpecialize(x.scale(Radian).transformMonadic(Scalar)(MonadicOperationSin))
-    else negate(sin(negate(x)))
+    if (x.signum >= 0) {
+      val oneOverRoot2 = Number.root2.invert
+      val rootThreeQuarters = Number(Rational(3, 4), Root2)
+      val z = x.scale(Radian)
+      z.doMultiply(12).toInt match {
+        case Some(3) | Some(9) => oneOverRoot2
+        case Some(15) | Some(21) => Field.convertToNumber(-oneOverRoot2.normalize)
+        case Some(4) | Some(8) => rootThreeQuarters
+        case Some(15) | Some(21) => Field.convertToNumber(-rootThreeQuarters.invert.normalize)
+        case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin))
+      }
+    } else negate(sin(negate(x)))
 
   def atan(x: Number, y: Number): Number =
   // CONSIDER checking here for x being zero

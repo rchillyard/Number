@@ -828,7 +828,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for Radian/3" in {
     val target = Number(Rational(1, 3), Radian)
     val sin = target.sin
-    sin should ===(Number(3).sqrt doDivide 2)
+    sin shouldBe Number(Rational(3, 4), Root2)
+  }
+  it should "work for Radian/4" in {
+    val target = Number(Rational(1, 4), Radian)
+    val sin = target.sin
+    sin shouldBe Number.root2.invert
   }
 
   behavior of "cos"
