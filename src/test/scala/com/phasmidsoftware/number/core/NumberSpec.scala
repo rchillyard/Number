@@ -1,29 +1,32 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.{sAvagadro, sBoltzmann, sC, sPlanck}
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
+import com.phasmidsoftware.number.core.Expression.{ExpressionOps, one}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers {
 
   implicit object NumberEquality extends Equality[Number] {
+
+    import com.phasmidsoftware.number.core.Field.FieldIsFuzzy
     def areEqual(a: Number, b: Any): Boolean = b match {
-      case n: Number => a.compare(n) == 0
+      case n: Number => implicitly[Fuzzy[Field]].same(0.5)(a, n)
       case n: Expression => a.compare(n) == 0
       case _ => false
     }
   }
 
   implicit object FieldEquality extends Equality[Field] {
+
+    import com.phasmidsoftware.number.core.Field.FieldIsFuzzy
     def areEqual(a: Field, b: Any): Boolean = b match {
-      case n: Field => a.compare(n) == 0
+      case n: Field => implicitly[Fuzzy[Field]].same(0.5)(a, n)
       case _ => false
     }
   }
@@ -430,17 +433,16 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     result === expected shouldBe true
   }
   it should "work for Log2, Scalar" in {
-    import com.phasmidsoftware.number.core.Rational.RationalOps
-    val target = Number(1 :/ 2, Log2)
+    val target = Number(Rational.half, Log2)
     target.render shouldBe "√2"
     val expected = Number(math.sqrt(2), Scalar)
     val result = target.scale(Scalar)
     result should ===(expected)
   }
-  it should "work for Log3, Scalar" in {
-    val target = Number(Rational.half, Log3)
-    target.render shouldBe "√3"
-    val expected = Number(math.sqrt(3), Scalar)
+  it should "work for Log10, Scalar" in {
+    val target = Number(Rational.half, Log10)
+    target.render shouldBe "√10"
+    val expected = Number(math.sqrt(10), Scalar)
     val result = target.scale(Scalar)
     result should ===(expected)
   }
@@ -1112,11 +1114,20 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   // FIXME Issue #60
   ignore should "have phi" in {
     val phi = Constants.phi
+    val z = one + Constants.root5
+    println(Constants.root5.scale(Scalar))
+    println(z.asNumber)
     val goldenRatio = Expression.phi
     println(goldenRatio)
+    println(Expression.em.simplifier(goldenRatio))
     val maybeNumber: Option[Number] = goldenRatio.asNumber
     maybeNumber.isDefined shouldBe true
     println(maybeNumber)
     maybeNumber.get should ===(phi)
+  }
+  it should "have root2" in {
+    val root2: Number = Constants.root2
+    val expected = Number(Rational.half, Log2)
+    root2 should ===(expected)
   }
 }

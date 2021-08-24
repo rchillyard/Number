@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
-
 import scala.annotation.tailrec
 import scala.util._
 
@@ -468,7 +467,8 @@ object GeneralNumber {
     case z: GeneralNumber =>
       val (a, b) = z.alignFactors(y)
       a.factor match {
-        case NatLog => plusAligned(a.scale(Scalar), b.scale(Scalar))
+        case Logarithmic(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
+        case Root(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
         case _ => plusAligned(a, b)
       }
   }

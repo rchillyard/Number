@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -558,17 +557,17 @@ object Number {
   /**
     * Exact value of √2
     */
-  val root2: Number = Number(Rational.half, Log2)
+  val root2: Number = Number(2, Root2)
 
   /**
     * Exact value of √3
     */
-  val root3: Number = Number(Rational.half, Log3)
+  val root3: Number = Number(3, Root2)
 
   /**
     * Exact value of √5
     */
-  val root5: Number = Number(Rational.half, Log5)
+  val root5: Number = Number(5, Root2)
 
   /**
     * Implicit converter from Expression to Number.
@@ -1011,7 +1010,7 @@ object Number {
   /**
     * Method to deal with a Scale factor change.
     *
-    * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then not for NatLog conversions.
+    * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then perhaps not for NatLog conversions.
     *
     * @param n      the Number to be scaled.
     * @param factor the factor to which it should be converted.
@@ -1022,20 +1021,14 @@ object Number {
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
     case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
-    // CONSIDER combine the following three into one case
-    case (NatLog, PureNumber(_)) => scale(scale(n, Scalar), factor)
-    case (PureNumber(_), NatLog) => scale(scale(n, Scalar), factor)
-    case (Logarithmic(_), Root(f)) => scale(scale(n, Scalar), factor)
+    case (NatLog, PureNumber(_)) | (PureNumber(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
     case (Scalar, Root(f)) => convertScalarToRoot(n, factor, f)
     case (Root(f), NatLog) => convertRootToNatLog(n, factor, f)
     case (PureNumber(_), PureNumber(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Root(_), Root(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
-    // CONSIDER combine the following three into one case
-    case (Logarithmic(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
-    case (Root(_), Logarithmic(_)) => scale(scale(n, NatLog), factor)
-    case (Root(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
+    case (Logarithmic(_), PureNumber(_)) | (Root(_), Logarithmic(_)) | (Root(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
     case _ => throw NumberException(s"scaling between ${n.factor} and $factor factors is not supported")
   }
 

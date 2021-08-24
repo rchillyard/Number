@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Render.renderValue
-
 import java.util.NoSuchElementException
 import scala.math.BigInt
 import scala.util._
@@ -151,10 +150,8 @@ sealed trait Factor {
   * Trait to define a Factor which is a scaled version of a pure number.
   */
 sealed trait PureNumber extends Factor {
-  // NOTE duplicate of Logarithmic
   def +(other: Factor): Option[Factor] = other match {
-    case Scalar => if (this != NatLog) Some(this) else None // TODO impossible
-    case NatLog => if (this == NatLog) Some(this) else None // TODO impossible
+    case Scalar => Some(this) // NOTE this logic seems to think that Scalar and Pi are able to be combined exactly.
     case _ => throw NumberException("cannot add Radian factors together")
   }
 
@@ -181,12 +178,8 @@ object PureNumber {
   * Trait to define a Factor which is a scaled version of the natural log.
   */
 sealed trait Logarithmic extends Factor {
-  // TODO rewrite this
-  def +(other: Factor): Option[Factor] = other match {
-    case Scalar => if (this != NatLog) Some(this) else None
-    case NatLog => if (this == NatLog) Some(this) else None
-    case _ => throw NumberException("cannot add Radian factors together")
-  }
+  // CONSIDER there might be some other factors which can be combined.
+  def +(other: Factor): Option[Factor] = if (this == other) Some(this) else None
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
@@ -233,12 +226,8 @@ sealed trait Root extends Factor {
     * @param other the other factor.
     * @return Some(f) if the factors are compatible, otherwise None.
     */
-  // NOTE duplicate of Logarithmic
-  def +(other: Factor): Option[Factor] = other match {
-    case Scalar => if (this != NatLog) Some(this) else None // TODO impossible
-    case NatLog => if (this == NatLog) Some(this) else None // TODO impossible
-    case _ => throw NumberException("cannot add Radian factors together")
-  }
+  // CONSIDER there might be some other factors which can be combined.
+  def +(other: Factor): Option[Factor] = if (this == other) Some(this) else None
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
@@ -328,20 +317,12 @@ case object Log2 extends Logarithmic {
   override def render(x: Value): String = asPower(x, "2")
 }
 
-case object Log3 extends Logarithmic {
-  val value: Double = math.log(3)
+case object Log10 extends Logarithmic {
+  val value: Double = math.log(10)
 
-  override def toString: String = "log3"
+  override def toString: String = "log10"
 
-  override def render(x: Value): String = asPower(x, "3")
-}
-
-case object Log5 extends Logarithmic {
-  val value: Double = math.log(5)
-
-  override def toString: String = "log5"
-
-  override def render(x: Value): String = asPower(x, "5")
+  override def render(x: Value): String = asPower(x, "10")
 }
 
 /**
