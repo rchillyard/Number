@@ -235,7 +235,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y shouldEqual Number(7)
   }
   it should "evaluate E * 2" in {
-    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918090[57]"
+    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918090[67]"
   }
 
   behavior of "biFunctionSimplifier"

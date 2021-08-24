@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
+import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Render.renderValue
 
 import java.util.NoSuchElementException
@@ -238,7 +239,9 @@ sealed trait Root extends Factor {
     * @return an optional Value which, given factor f, represents the same quantity as x given this.
     */
   def convert(v: Value, f: Factor): Option[Value] = f match {
-    case Root(z) => Operations.doComposeValueDyadic(v, Number(z).specialize.value)(DyadicOperationPower.functions)
+    case Root(z) =>
+      val vo = doComposeValueDyadic(v, Number(z).specialize.value)(DyadicOperationPower.functions)
+      vo flatMap (doComposeValueDyadic(_, Number(value).specialize.invert.value)(DyadicOperationPower.functions))
     case _ => None
   }
 }

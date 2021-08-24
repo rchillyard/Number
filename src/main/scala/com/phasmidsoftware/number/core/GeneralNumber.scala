@@ -1,9 +1,7 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
 
-import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.util._
 
@@ -157,7 +155,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param f the new factor for the result.
     * @return a Number based on this and factor.
     */
-  def scale(f: Factor): Number = Number.scale(this, f)
+  def scale(f: Factor): Number = Number.scale(this, f).specialize
 
   /**
     * Action to render this GeneralNumber as a String.

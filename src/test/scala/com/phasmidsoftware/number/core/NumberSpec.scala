@@ -103,22 +103,21 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     // In IEEE 754 binary, pi is 400921fb54442d18, which is:
     //                        3.141592653589793
     //    target.toString shouldBe "3.14159265358979300(41)" // TODO this is how it should be (not any more)
-    target.toString shouldBe "3.141592653589793..."
+    target.toString shouldBe "3.141592653589793[5]"
   }
   it should "work for E" in {
     Number.e.toString shouldBe "\uD835\uDF00"
   }
   it should "work for E as scalar" in {
     val target = Number.e.scale(Scalar)
-    target.toString shouldBe "2.7182818284590450[35]"
+    target.toString shouldBe "2.7182818284590450[85]"
   }
   it should "work for E^2 as Real" in {
     val target = Number("2\uD835\uDF00")
-    target.scale(Scalar).toString shouldBe "7.3890560989306500[95]"
+    target.scale(Scalar).toString shouldBe "7.389056098930650[59]"
   }
   it should "work for 1 scaled as Radian" in {
-    numberOne.scale(Radian).toString shouldBe "0.3183098861837907...\uD835\uDED1"
-    //    numberOne.scale(Pi).toString shouldBe "0.318309886183790700(42)\uD835\uDED1" // this is how it should be
+    numberOne.scale(Radian).toString shouldBe "0.3183098861837907[5]\uD835\uDED1"
   }
   it should "work for E^2" in {
     val target = Number.e doPower 2
@@ -460,14 +459,14 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val result = target.scale(Scalar)
     result should ===(expected)
   }
-  // FIXME make this conversion work
-  ignore should "work for Root2, Root3" in {
+  it should "work for Root2, Root3" in {
     val target = Number(4, Root2)
     target.render shouldBe "√4"
     val expected = Number(8, Root3)
     println(expected)
     val result = target.scale(Root3)
-    result should ===(expected)
+    println(result)
+    result shouldBe expected
   }
 
   behavior of "alignFactors"
@@ -638,7 +637,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 to pi" in {
     val x1 = Number.one
     val x2 = Number.pi
-    (x1 add x2).toString shouldBe "4.141592653589793[5]"
+    (x1 add x2).toString shouldBe "4.1415926535897930(41)"
   }
   it should "add 1 to e" in {
     val x1 = Number.one
