@@ -136,7 +136,15 @@ sealed trait Factor {
     * @param x the Value.
     * @return a String.
     */
-  def render(x: Value): String
+  def render(x: Value): String = render(Value.valueToString(x))
+
+  /**
+    * Method to render a Value (which has already been converted to a String) in the context of this Factor.
+    *
+    * @param v a String representing the Value.
+    * @return a String.
+    */
+  def render(v: String): String
 }
 
 /**
@@ -203,6 +211,8 @@ sealed trait Logarithmic extends Factor {
     case Left(Right(r)) if r * 4 == Rational.one => "\u221C" + f
     case _ => f + "^" + Value.valueToString(v)
   }
+
+  def render(v: String): String = throw NumberException(s"${this.getClass}.render($v): logic error")
 }
 
 object Logarithmic {
@@ -267,7 +277,7 @@ case object Scalar extends PureNumber {
     case _ => Some(other)
   }
 
-  def render(x: Value): String = x.toString
+  def render(x: String): String = x
 }
 
 /**
@@ -291,7 +301,7 @@ case object Radian extends PureNumber {
 
   override def toString: String = Factor.sPi
 
-  def render(x: Value): String = renderValue(x) + Factor.sPi
+  def render(x: String): String = x + Factor.sPi
 }
 
 /**
@@ -307,7 +317,7 @@ case object NatLog extends Logarithmic {
 
   override def toString: String = Factor.sE
 
-  def render(x: Value): String = asPower(x, Factor.sE)
+  override def render(x: Value): String = asPower(x, Factor.sE)
 }
 
 case object Log2 extends Logarithmic {
@@ -315,7 +325,7 @@ case object Log2 extends Logarithmic {
 
   override def toString: String = "log2"
 
-  def render(x: Value): String = asPower(x, "2")
+  override def render(x: Value): String = asPower(x, "2")
 }
 
 case object Log3 extends Logarithmic {
@@ -323,7 +333,7 @@ case object Log3 extends Logarithmic {
 
   override def toString: String = "log3"
 
-  def render(x: Value): String = asPower(x, "3")
+  override def render(x: Value): String = asPower(x, "3")
 }
 
 case object Log5 extends Logarithmic {
@@ -331,7 +341,7 @@ case object Log5 extends Logarithmic {
 
   override def toString: String = "log5"
 
-  def render(x: Value): String = asPower(x, "5")
+  override def render(x: Value): String = asPower(x, "5")
 }
 
 /**
@@ -345,7 +355,7 @@ case object Root2 extends Root {
 
   override def toString: String = "√"
 
-  def render(x: Value): String = s"√${Value.valueToString(x)}"
+  def render(x: String): String = s"√$x"
 }
 
 /**
@@ -359,7 +369,7 @@ case object Root3 extends Root {
 
   override def toString: String = "³√"
 
-  def render(x: Value): String = s"³√${Value.valueToString(x)}"
+  def render(x: String): String = s"³√$x"
 }
 
 object Factor {
@@ -386,7 +396,8 @@ object Render {
   def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 
   /**
-    * Method to render a Value.
+    * Method to render a Value as a tuple of String and Boolean where the latter represents whether or not we were able
+    * to render the value exactly or not.
     *
     * CONSIDER this doesn't belong here.
     *

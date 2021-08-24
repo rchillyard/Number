@@ -122,10 +122,18 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
       case Some(f) => f.toString(toDouble.getOrElse(0.0))
       case None => Value.valueToString(value)
     }
-    sb.append(w)
-    sb.append(factor.toString)
+    factor match {
+      case Logarithmic(_) =>
+        sb.append(factor.render(w))
+      case PureNumber(_) =>
+        sb.append(w)
+        sb.append(factor.toString)
+      case Root(_) =>
+        sb.append(factor.render(w))
+    }
     sb.toString
   }
+
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.

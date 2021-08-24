@@ -470,10 +470,22 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number(4, Root2)
     target.render shouldBe "√4"
     val expected = Number(8, Root3)
-    println(expected)
     val result = target.scale(Root3)
-    println(result)
     result shouldBe expected
+  }
+  it should "work for Scalar, Root2" in {
+    val target = Number(3)
+    val expected = Number(9, Root2)
+    val result = target.scale(Root2)
+    result shouldBe expected
+    result.toString shouldBe "√9"
+  }
+  it should "work for NatLog, Root2" in {
+    val target = Number.e
+    val expected = Number(math.E * math.E, Root2)
+    val result: Number = target.scale(Root2)
+    result.render shouldBe "√7.38905609893064[2]"
+    result should ===(expected)
   }
 
   behavior of "alignFactors"

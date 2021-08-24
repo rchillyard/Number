@@ -99,4 +99,24 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
   def isProbablyZero(p: Double): Boolean = isZero
+
+  /**
+    * Render this ExactNumber in String form, including the factor.
+    *
+    * @return a String
+    */
+  override def toString: String = {
+    val sb = new StringBuilder()
+    factor match {
+      case Logarithmic(_) =>
+        sb.append(factor.render(value))
+      case PureNumber(_) =>
+        sb.append(Value.valueToString(value))
+        sb.append(factor.toString)
+      case Root(_) =>
+        sb.append(factor.render(value))
+    }
+    sb.toString
+  }
+
 }

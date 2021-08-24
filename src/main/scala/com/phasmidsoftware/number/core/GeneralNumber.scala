@@ -240,25 +240,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def query[T](op: QueryOperation[T], defaultVal: => T): T = Operations.doQuery(value, op.getFunctions).getOrElse(defaultVal)
 
   /**
-    * Render this Number in String form, including the factor.
-    *
-    * @return
-    */
-  override def toString: String = {
-    val sb = new StringBuilder()
-    factor match {
-      case Logarithmic(_) =>
-        sb.append(factor.render(value))
-      case PureNumber(_) =>
-        sb.append(Value.valueToString(value))
-        sb.append(factor.toString)
-      case Root(_) =>
-        sb.append(factor.render(value))
-    }
-    sb.toString
-  }
-
-  /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Only the factor will change.
     * This method does not need to be followed by a call to specialize.

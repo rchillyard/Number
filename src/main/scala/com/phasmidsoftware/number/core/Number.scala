@@ -1022,13 +1022,17 @@ object Number {
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
     case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
+    // CONSIDER combine the following three into one case
     case (NatLog, PureNumber(_)) => scale(scale(n, Scalar), factor)
     case (PureNumber(_), NatLog) => scale(scale(n, Scalar), factor)
+    case (Logarithmic(_), Root(f)) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
+    case (Scalar, Root(f)) => convertScalarToRoot(n, factor, f)
     case (Root(f), NatLog) => convertRootToNatLog(n, factor, f)
     case (PureNumber(_), PureNumber(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Root(_), Root(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
+    // CONSIDER combine the following three into one case
     case (Logarithmic(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
     case (Root(_), Logarithmic(_)) => scale(scale(n, NatLog), factor)
     case (Root(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
@@ -1125,6 +1129,9 @@ object Number {
     case 2 => Some(Number.sqrt(n))
     case _ => None
   }
+
+  private def convertScalarToRoot(n: Number, factor: Factor, f: Double) =
+    n.doPower(ExactNumber(Value.fromDouble(Some(f)), Scalar)).make(factor)
 
   private def convertRootToNatLog(n: Number, factor: Factor, f: Double) = {
     val yo = for (x <- n.maybeDouble; z = math.log(x)) yield z / f
