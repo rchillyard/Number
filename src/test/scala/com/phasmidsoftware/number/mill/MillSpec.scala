@@ -1,24 +1,14 @@
 package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.{ConstE, Expression, Literal, Number, Rational}
+import com.phasmidsoftware.number.core.{Expression, Field, FuzzyEquality, Literal, NatLog, Number, Rational}
 import com.phasmidsoftware.number.parse.MillParser
-import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.{Assertion, Succeeded}
-
 import scala.util.{Success, Try}
 
-class MillSpec extends AnyFlatSpec with should.Matchers {
-
-  implicit object NumberEquality extends Equality[Number] {
-    def areEqual(a: Number, b: Any): Boolean = b match {
-      case n: Number => a.compare(n) == 0
-      case n: Expression => a.compare(n) == 0
-      case _ => false
-    }
-  }
+class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 
   behavior of "Mill"
 
@@ -142,7 +132,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
     val my: Try[Mill] = p.parseMill("2 exp")
     my should matchPattern { case Success(_) => }
     val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
-    eo shouldBe Some((ConstE * Number.e).materialize)
+    eo shouldBe Some(Number(2, NatLog))
   }
 
   // See https://hansklav.home.xs4all.nl/rpn/
@@ -222,8 +212,8 @@ class MillSpec extends AnyFlatSpec with should.Matchers {
   }
 
   private def checkMill(expected: Number, mill: Mill): Assertion = {
-    val q = mill.evaluate map (_.materialize)
+    val q: Option[Field] = mill.evaluate map (_.materialize)
     q should matchPattern { case Some(_) => }
-    q.get shouldBe expected
+    q.get should ===(expected)
   }
 }

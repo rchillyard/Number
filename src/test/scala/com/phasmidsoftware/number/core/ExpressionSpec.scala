@@ -7,29 +7,14 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Success}
 
-class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
+class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
 
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
       case n: GeneralNumber => new ExpressionOps(a).compare(Literal(n)) == 0
       case n: Expression => a.compare(n) == 0
-      case _ => false
-    }
-  }
-
-  implicit object FieldEquality extends Equality[Field] {
-    def areEqual(a: Field, b: Any): Boolean = b match {
-      case n: Field => a.compare(n) == 0
-      case _ => false
-    }
-  }
-
-  implicit object NumberEquality extends Equality[Number] {
-    def areEqual(a: Number, b: Any): Boolean = b match {
-      case n: Number => a.compare(n) == 0
       case _ => false
     }
   }
@@ -82,7 +67,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.render shouldBe "4.1415926535897930(41)"
+    e.render shouldBe "4.141592653589793(5)"
   }
 
   behavior of "ExpressionOps"
@@ -145,7 +130,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    (ConstE * 2).materialize.toString shouldBe "5.436563656918090[67]"
+    val z: Field = (ConstE * 2).materialize
+    val q = convertToNumber(z).scale(Scalar)
+    q.toString shouldBe "5.43656365691809[2]"
   }
 
   behavior of "isExact"

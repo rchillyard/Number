@@ -178,6 +178,8 @@ object PureNumber {
   * Trait to define a Factor which is a scaled version of the natural log.
   */
 sealed trait Logarithmic extends Factor {
+  val base: String
+
   // CONSIDER there might be some other factors which can be combined.
   def +(other: Factor): Option[Factor] = if (this == other) Some(this) else None
 
@@ -194,18 +196,18 @@ sealed trait Logarithmic extends Factor {
     case _ => None
   }
 
-  def asPower(v: Value, f: String): String = v match {
-    case Right(1) => f
-    case Right(2) => f + "\u00B2"
-    case Right(3) => f + "\u00B3"
-    case Right(x) if x > 3 & x < 10 => f + Logarithmic.incrementUnicode("\u2070", 0, x)
-    case Left(Right(r)) if r * 2 == Rational.one => "\u221A" + f
-    case Left(Right(r)) if r * 3 == Rational.one => "\u221B" + f
-    case Left(Right(r)) if r * 4 == Rational.one => "\u221C" + f
-    case _ => f + "^" + Value.valueToString(v)
+  def asPower(v: Value): String = v match {
+    case Right(1) => base
+    case Right(2) => base + "\u00B2"
+    case Right(3) => base + "\u00B3"
+    case Right(x) if x > 3 & x < 10 => base + Logarithmic.incrementUnicode("\u2070", 0, x)
+    case Left(Right(r)) if r * 2 == Rational.one => "\u221A" + base
+    case Left(Right(r)) if r * 3 == Rational.one => "\u221B" + base
+    case Left(Right(r)) if r * 4 == Rational.one => "\u221C" + base
+    case _ => base + "^" + Value.valueToString(v)
   }
 
-  def render(v: String): String = throw NumberException(s"${this.getClass}.render($v): logic error")
+  def render(v: String): String = base + "^" + v
 }
 
 object Logarithmic {
@@ -302,27 +304,33 @@ case object Radian extends PureNumber {
   * Thus the range of such values is any positive number.
   */
 case object NatLog extends Logarithmic {
+  val base: String = Factor.sE
+
   val value: Double = 1.0
 
   override def toString: String = Factor.sE
 
-  override def render(x: Value): String = asPower(x, Factor.sE)
+  override def render(x: Value): String = asPower(x)
 }
 
 case object Log2 extends Logarithmic {
+  val base: String = "2"
+
   val value: Double = math.log(2)
 
   override def toString: String = "log2"
 
-  override def render(x: Value): String = asPower(x, "2")
+  override def render(x: Value): String = asPower(x)
 }
 
 case object Log10 extends Logarithmic {
+  val base: String = "10"
+
   val value: Double = math.log(10)
 
   override def toString: String = "log10"
 
-  override def render(x: Value): String = asPower(x, "10")
+  override def render(x: Value): String = asPower(x)
 }
 
 /**

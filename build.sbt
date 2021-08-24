@@ -15,7 +15,6 @@ lazy val root = (project in file(".")).dependsOn(matchers, flog)
 lazy val matchers = RootProject(uri("git://github.com/rchillyard/Matchers#V1_0_5"))
 lazy val flog = RootProject(uri("git://github.com/rchillyard/Flog"))
 
-
 libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.0.0",

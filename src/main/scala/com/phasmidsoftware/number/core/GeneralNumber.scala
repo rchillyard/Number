@@ -480,10 +480,18 @@ object GeneralNumber {
         case n@FuzzyNumber(_, _, _) => n doMultiply x
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)
-          p.factor + q.factor match {
-            case Some(NatLog) => prepareWithSpecialize(p.composeDyadic(q, NatLog)(DyadicOperationPlus))
-            case Some(f) => prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationTimes))
-            case None => times(x.scale(Scalar), y.scale(Scalar))
+          (p.factor, q.factor) match {
+            case (PureNumber(_), Scalar) =>
+              prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationTimes))
+            case (Scalar, PureNumber(_)) =>
+              prepareWithSpecialize(p.composeDyadic(q, q.factor)(DyadicOperationTimes))
+            case (f: Logarithmic, Scalar) =>
+              if (q.signum > 0)
+                prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
+              else
+                times(p.scale(Scalar), q)
+            case (Root(_), Root(_)) => times(p, q.scale(p.factor))
+            case _ => times(p.scale(Scalar), q.scale(Scalar))
           }
       }
   }

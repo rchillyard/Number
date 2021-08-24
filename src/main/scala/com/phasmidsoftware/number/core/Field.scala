@@ -81,6 +81,13 @@ trait Field extends NumberLike {
   def invert: Field
 
   /**
+    * Method to "normalize" a field.
+    *
+    * @return a Field which is in canonical form.
+    */
+  def normalize: Field
+
+  /**
     * Method to determine if this Field is actually a real Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *

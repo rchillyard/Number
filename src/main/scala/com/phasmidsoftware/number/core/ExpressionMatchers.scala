@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
-
 import scala.language.implicitConversions
 
 /**
@@ -90,12 +89,19 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * This method is called by materializer and therefore will return a Field, regardless of whether any simplifications
     * were possible.
     *
+    * CONSIDER both cases should be normalized.
+    *
     * @param x the Expression to be evaluated as a Field.
     * @return the value of the original Expression or a simplified version of the Expression.
     */
   def simplifyAndEvaluate(x: Expression): Field =
     simplifier(x) match {
-      case Match(e) => e.evaluate
+      case Match(e) =>
+        val result: Field = e.evaluate
+        if (result.isExact(None))
+          result
+        else
+          result.normalize
       case _ => x.evaluate
     }
 
@@ -125,8 +131,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Match of an exact expression.
     */
   def matchSimplifyDyadicTerms: Matcher[DyadicTriple, Expression] = Matcher("matchSimplifyDyadicTerms") {
-    case f ~ x ~ y =>
-      exactMaterializer(x).combine(evaluateExpression(f))(exactMaterializer(y))
+    case f ~ x ~ y => exactMaterializer(x).combine(evaluateExpression(f))(exactMaterializer(y))
   }
 
 

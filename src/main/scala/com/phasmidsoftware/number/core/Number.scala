@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Rational.toInts
@@ -228,8 +229,10 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * Yields the inverse of this Number.
     * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
     * factors.
+    *
+    * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
     */
-  def invert: Number = Number.inverse(normalize)
+  def invert: Number = Number.inverse(convertToNumber(normalize))
 
   /**
     * Yields the square root of this Number.
@@ -469,13 +472,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return a Number.
     */
   def make(fo: Option[Fuzziness[Double]]): Number
-
-  /**
-    * Method to "normalize" a number, that's to say make it a Scalar.
-    *
-    * @return a new Number with factor of Scalar but with the same magnitude as this.
-    */
-  def normalize: Number
 
   /**
     * Return a Number which uses the most restricted type possible.
@@ -1054,7 +1050,9 @@ object Number {
     if (x.signum >= 0) prepareWithSpecialize(x.scale(Radian).transformMonadic(Scalar)(MonadicOperationSin))
     else negate(sin(negate(x)))
 
-  def atan(x: Number, y: Number): Number = prepareWithSpecialize((y doDivide x).transformMonadic(Radian)(MonadicOperationAtan(x.signum))).modulate
+  def atan(x: Number, y: Number): Number =
+  // CONSIDER checking here for x being zero
+    prepareWithSpecialize((y doDivide x).transformMonadic(Radian)(MonadicOperationAtan(x.signum))).modulate
 
   def log(x: Number): Number = x.scale(NatLog).make(Scalar)
 

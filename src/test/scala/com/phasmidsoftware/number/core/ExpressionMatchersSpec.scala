@@ -8,7 +8,7 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
+class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
 
   val sb = new StringBuilder
   implicit val logger: MatchLogger = SBLogger(LogOff, sb)
@@ -22,14 +22,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     if (sb.nonEmpty) println(sb.toString())
     if (sbLogger.logLevel != com.phasmidsoftware.matchers.LogOff)
       println("===============================\n")
-  }
-
-  implicit object NumberEquality extends Equality[Number] {
-    def areEqual(a: Number, b: Any): Boolean = b match {
-      case n: Number => a.compare(n) == 0
-      case n: Expression => a.compare(n) == 0
-      case _ => false
-    }
   }
 
   val em: ExpressionMatchers = Expression.em
@@ -235,7 +227,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y shouldEqual Number(7)
   }
   it should "evaluate E * 2" in {
-    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918090[67]"
+    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918091[15]"
   }
 
   behavior of "biFunctionSimplifier"
