@@ -459,6 +459,13 @@ class NumberSpec extends AnyFlatSpec with should.Matchers {
     val result = target.scale(Scalar)
     result should ===(expected)
   }
+  it should "work for Root3, Scalar" in {
+    val target = Number(Rational.two, Root3)
+    target.render shouldBe "³√2"
+    val expected = Number(math.pow(2, 1.0 / 3), Scalar)
+    val result = target.scale(Scalar)
+    result should ===(expected)
+  }
   it should "work for Root2, Root3" in {
     val target = Number(4, Root2)
     target.render shouldBe "√4"

@@ -1008,53 +1008,6 @@ object Number {
         prepareWithSpecialize(zo)
     }
 
-  @tailrec
-  private def power(x: Number, r: Rational): Number =
-    x.factor match {
-      // NOTE need to expand the factor types here--indeed this whole method needs to be rewritten
-      case NatLog =>
-        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
-        vo match {
-          case Some(v) => x.make(v)
-          case None => throw NumberException("power: logic error")
-        }
-
-      case Radian =>
-        power(x.scale(Scalar), r)
-
-      case Scalar =>
-        toInts(r) match {
-          case Some((n, d)) =>
-            root(power(x, n), d) match {
-              case Some(q) => q
-              case None => Number(r.toDouble)
-            }
-          case _ =>
-            throw NumberException("rational power cannot be represented as two Ints")
-        }
-    }
-
-  private def power(n: Number, i: Int) = i match {
-    case x if x > 0 => LazyList.continually(n).take(x).product
-    case x => LazyList.continually(Number.inverse(n)).take(-x).product
-  }
-
-  /**
-    * Method to take the ith root of n.
-    *
-    * CONSIDER a special factor which is basically a root.
-    *
-    * @param n the Number whose root is required.
-    * @param i the ordinal of the root (2: square root, etc.).
-    * @return the root.
-    */
-  private def root(n: Number, i: Int): Option[Number] = i match {
-    case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
-    case 1 => Some(n)
-    case 2 => Some(Number.sqrt(n))
-    case _ => None
-  }
-
   /**
     * Method to deal with a Scale factor change.
     *
@@ -1072,10 +1025,13 @@ object Number {
     case (NatLog, PureNumber(_)) => scale(scale(n, Scalar), factor)
     case (PureNumber(_), NatLog) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
+    case (Root(f), NatLog) => convertRootToNatLog(n, factor, f)
     case (PureNumber(_), PureNumber(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Root(_), Root(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
+    case (Root(_), Logarithmic(_)) => scale(scale(n, NatLog), factor)
+    case (Root(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
     case _ => throw NumberException(s"scaling between ${n.factor} and $factor factors is not supported")
   }
 
@@ -1123,6 +1079,57 @@ object Number {
   }
 
 
+  @tailrec
+  private def power(x: Number, r: Rational): Number =
+    x.factor match {
+      // NOTE need to expand the factor types here--indeed this whole method needs to be rewritten
+      case NatLog =>
+        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
+        vo match {
+          case Some(v) => x.make(v)
+          case None => throw NumberException("power: logic error")
+        }
+
+      case Radian =>
+        power(x.scale(Scalar), r)
+
+      case Scalar =>
+        toInts(r) match {
+          case Some((n, d)) =>
+            root(power(x, n), d) match {
+              case Some(q) => q
+              case None => Number(r.toDouble)
+            }
+          case _ =>
+            throw NumberException("rational power cannot be represented as two Ints")
+        }
+    }
+
+  private def power(n: Number, i: Int) = i match {
+    case x if x > 0 => LazyList.continually(n).take(x).product
+    case x => LazyList.continually(Number.inverse(n)).take(-x).product
+  }
+
+  /**
+    * Method to take the ith root of n.
+    *
+    * CONSIDER a special factor which is basically a root.
+    *
+    * @param n the Number whose root is required.
+    * @param i the ordinal of the root (2: square root, etc.).
+    * @return the root.
+    */
+  private def root(n: Number, i: Int): Option[Number] = i match {
+    case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
+    case 1 => Some(n)
+    case 2 => Some(Number.sqrt(n))
+    case _ => None
+  }
+
+  private def convertRootToNatLog(n: Number, factor: Factor, f: Double) = {
+    val yo = for (x <- n.maybeDouble; z = math.log(x)) yield z / f
+    n.make(Value.fromDouble(yo), factor).specialize
+  }
 }
 
 case class NumberException(str: String) extends Exception(str)
