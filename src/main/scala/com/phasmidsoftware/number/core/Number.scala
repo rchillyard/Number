@@ -1103,7 +1103,19 @@ object Number {
   }
 
 
-  def exp(x: Number): Number = x.scale(Scalar).make(NatLog).simplify
+  /**
+    * Yield the exponential of x i.e. e to the power of x.
+    * If the factor is Scalar, then we force the factor to be NatLog and simplify.
+    * Otherwise, we convert to a Scalar number and call exp recursively.
+    *
+    * @param x a Number whose factor is NatLog.
+    * @return the value of e raised to the power of x.
+    */
+  @tailrec
+  def exp(x: Number): Number = x.factor match {
+    case Scalar => x.make(NatLog).simplify
+    case _ => exp(x.scale(Scalar))
+  }
 
   // TODO use the method in Value.
   def scaleDouble(x: Double, fThis: Factor, fResult: Factor): Double = x * fThis.value / fResult.value

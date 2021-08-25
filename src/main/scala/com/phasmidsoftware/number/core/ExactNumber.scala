@@ -27,7 +27,6 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     case _ => this
   }
 
-
   /**
     * Add this Number to n.
     *
