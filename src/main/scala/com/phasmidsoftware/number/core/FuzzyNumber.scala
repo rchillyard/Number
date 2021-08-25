@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.util.Left
 
 /**
@@ -24,6 +23,15 @@ import scala.util.Left
   * @param fuzz   the fuzziness of this Number.
   */
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
+
+  /**
+    *
+    * @return either this Number or a simplified Number.
+    */
+  def simplify: Number = fuzz match {
+    case None => ExactNumber(value, factor).simplify
+    case _ => this
+  }
 
   /**
     * Add a Number to this FuzzyNumber.

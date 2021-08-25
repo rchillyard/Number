@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions

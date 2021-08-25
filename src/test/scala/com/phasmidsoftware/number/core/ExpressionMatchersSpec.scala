@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.matchers._
 import com.phasmidsoftware.number.core.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -588,7 +587,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
   }
 
-  behavior of "matchSimplifyBiFunction"
+  behavior of "evaluateMonadicDuple"
 
   import com.phasmidsoftware.matchers.Matchers.matchers.TildeOps
 
@@ -597,6 +596,21 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
     r.get shouldBe ConstE
   }
+
+  it should "simplify log(E)" in {
+    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Log ~ ConstE)
+    r.successful shouldBe true
+    r.get shouldBe One
+  }
+
+  it should "simplify log(1)" in {
+    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Log ~ One)
+    r.successful shouldBe true
+    r.get shouldBe Zero
+  }
+
+  // TODO move the following
+  behavior of "matchSimplifyBiFunction"
 
   // FIXME Issue #57 this was working just yesterday
   ignore should "simplify multiple similar ops" in {

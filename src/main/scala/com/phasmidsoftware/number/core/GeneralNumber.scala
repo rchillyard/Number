@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
-
 import scala.annotation.tailrec
 import scala.util._
 
@@ -180,18 +179,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return this but with fuzziness which is the convolution of fuzz and f.
     */
   def addFuzz(f: Fuzziness[Double]): Number = FuzzyNumber.addFuzz(this, f)
-  //
-  //  /**
-  //    * Be careful when implementing this method that you do not invoke a method recursively.
-  //    *
-  //    * CONSIDER is there really any need for this to be different from ExactNumber?
-  //    *
-  //    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
-  //    * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
-  //    */
-  //  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = f(this) match {
-  //    case x: GeneralNumber => x.addFuzz(Fuzziness.createFuzz(relativePrecision))
-  //  }
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -485,7 +472,7 @@ object GeneralNumber {
             case (PureNumber(_), Scalar) => doTimes(p, q, p.factor)
             case (Scalar, PureNumber(_)) => doTimes(p, q, q.factor)
             case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
-            case (f: Logarithmic, Scalar) => times(p.scale(Scalar), q)
+            case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
             case (Root(_), Root(_)) if p == q => p.make(Scalar)
             case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
             case _ => times(p.scale(Scalar), q.scale(Scalar))

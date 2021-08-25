@@ -76,7 +76,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @param f the factor.
     * @return an ExactNumber.
     */
-  def make(v: Value, f: Factor): Number = ExactNumber(v, f).simplify
+  def make(v: Value, f: Factor): Number = ExactNumber(v, f)
 
   /**
     * We cannot add fuzziness to an Exact number so we return the equivalent FuzzyNumber.

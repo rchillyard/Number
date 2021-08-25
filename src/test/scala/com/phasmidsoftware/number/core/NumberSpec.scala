@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.sBoltzmann
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{negate, root2}
+import com.phasmidsoftware.number.core.Number.{negate, one, root2, zero}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -381,7 +381,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for Scalar, NatLog" in {
     val target = numberOne
-    val result = target.scale(NatLog)
+    val result = target.scale(NatLog).simplify
     // NOTE that the simplify method brings this back to being just one.
     result shouldBe numberOne
   }
@@ -471,7 +471,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for Scalar, Root2" in {
     val target = Number(3)
     val expected = Number(3)
-    val result = target.scale(Root2)
+    val result = target.scale(Root2).simplify
     result shouldBe expected
     result.toString shouldBe "3"
   }
@@ -940,6 +940,35 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "evaluate atan of -1 over 0" in {
     val number = Number.zero.atan(negate(Number.one))
     number shouldBe Number(Rational(3, 2), Radian)
+  }
+
+  behavior of "exp"
+  it should "be E for 1" in {
+    val target = Number.one
+    target.exp shouldBe Number.e
+  }
+  it should "be 1 for 0" in {
+    val target = Number.zero
+    target.exp shouldBe one
+  }
+  it should "be e^2 for 2" in {
+    val target = Number.two
+    target.exp should ===(Expression(Number.e) * Number.e)
+  }
+
+  behavior of "log"
+  it should "be 1 for E" in {
+    val target = Number.e
+    target.log shouldBe one
+  }
+  it should "be 0 for 1" in {
+    val target = Number.one
+    val log = target.log
+    log shouldBe zero
+  }
+  it should "be 2 for E^2" in {
+    val target: Number = Expression(Number.e) * Number.e
+    target.log should ===(Number.two)
   }
 
   // NOTE: Following are the tests of Ordering[Number]

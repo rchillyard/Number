@@ -6,7 +6,6 @@ import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -44,6 +43,13 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return true if this is a valid Number
     */
   def isValid: Boolean
+
+  /**
+    * Method to make some trivial simplifications of this Number (only if exact).
+    *
+    * @return either this Number or a simplified Number.
+    */
+  def simplify: Number
 
   /**
     * Method to get the value of this Number as an optional Double.
@@ -1080,9 +1086,24 @@ object Number {
   // CONSIDER checking here for x being zero
     prepareWithSpecialize((y doDivide x).transformMonadic(Radian)(MonadicOperationAtan(x.signum))).modulate
 
-  def log(x: Number): Number = x.scale(NatLog).make(Scalar)
+  /**
+    * Yield the natural log of x.
+    * If the factor is NatLog, then we force the factor to be Scalar and simplify.
+    * Otherwise, if the factor is Scalar, we first convert it to a NatLog number, then call log recursively.
+    * Otherwise, we convert to a Scalar number and call log recursively.
+    *
+    * @param x a Number.
+    * @return the natural log of x.
+    */
+  @tailrec
+  def log(x: Number): Number = x.factor match {
+    case NatLog => x.make(Scalar).simplify
+    case Scalar => log(x.scale(NatLog))
+    case _ => log(x.scale(Scalar))
+  }
 
-  def exp(x: Number): Number = x.scale(Scalar).make(NatLog)
+
+  def exp(x: Number): Number = x.scale(Scalar).make(NatLog).simplify
 
   // TODO use the method in Value.
   def scaleDouble(x: Double, fThis: Factor, fResult: Factor): Double = x * fThis.value / fResult.value
