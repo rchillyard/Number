@@ -1068,6 +1068,14 @@ object Number {
     case z: GeneralNumber => z.query(QueryOperationSignum, 0)
   }
 
+  /**
+    * Implement sin of a Number.
+    *
+    * CONSIDER implementing this (and cos) as part of exp method (providing a Complex parameter, of course).
+    *
+    * @param x a Number, typically in Radians, but if not, then will be converted.
+    * @return a Scalar Number which represents the sine of x.
+    */
   def sin(x: Number): Number =
     if (x.signum >= 0) {
       val oneOverRoot2 = Number(Rational.half, Root2)
