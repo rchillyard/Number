@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Expression.{ExpressionOps, one}
+import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -15,71 +15,87 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     }
   }
 
-  private val sAlpha = "0.0072973525693(11)"
-  //
-  //  val sPhi = "1.618033988749894"
-  //  val sGamma = "0.57721566490153286060651209008240243104215933593992"
-  //  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
-  //  val sAvagadro = "6.0221407600E23" // mole ^ -1
-  //  val sBoltzmann = "1380649.E-29" // J K ^ -1
-  //  val sPlanck = "6.6260701500E-34" // J Hz ^ -1
-  //  val sC = "299792458" // m sec ^ -1
-  //  val sMu = "1836.15267343(11)" // (dimensionless)
-  //  val one: Number = Number.one
-  //  val zero: Number = Number.zero
-  //  val pi: Number = Number.pi
-  //  val e: Number = Number.e
-  //  val i: Complex = Complex.i
-  //  val root2: Number = Number.root2
-  //  val root3: Number = Number.root3
-  //  val root5: Number = Number.root5
-  //  import com.phasmidsoftware.number.core.Number.FuzzOps
-  //  lazy val phi: Number = Number(sPhi)
-  //  lazy val gamma: Number = Number(sGamma)
-  //  lazy val G: Number = Number(sG)
-  //  lazy val alpha: Number = 0.0072973525693~11 // (dimensionless)
-  //  lazy val avagadro: Number = Number(6.0221407600E23)
-  //  lazy val boltzmann: Number = Number(sBoltzmann)
-  //  lazy val planck: Number = Number(sPlanck)
-  //  lazy val c: Number = Number(sC)
-  //  lazy val mu: Number = Number(sMu)
+  import com.phasmidsoftware.number.core.Number.FuzzOps
+
+  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
+  val sBoltzmann = "1380649.E-29" // J K ^ -1
+  val sPlanck = "6.6260701500E-34" // J Hz ^ -1
+  val sC = "299792458" // m sec ^ -1
+  val sMu = "1836.15267343(11)" // (dimensionless)
 
   behavior of "constants"
   it should "have root2" in {
-    val root2 = Constants.root2
-    val value = root2.normalize
+    val target = Constants.root2
+    target.isExact(None) shouldBe true
+    target.isExact(Some(Scalar)) shouldBe false
+    val value = target.normalize
     value should ===(Number(math.sqrt(2)))
-    root2.multiply(root2) shouldBe Number(2)
+    target.multiply(target) shouldBe Number(2)
   }
   it should "have root2 a" in {
-    val root2: Number = Constants.root2
+    val target: Number = Constants.root2
     val expected = Number(Rational.half, Log2)
-    root2 should ===(expected)
+    target should ===(expected)
   }
   it should "have root3" in {
-    val root3 = Constants.root3
-    val value = root3.normalize
+    val target = Constants.root3
+    target.isExact(None) shouldBe true
+    val value = target.normalize
     value should ===(Number(math.sqrt(3)))
-    root3.multiply(root3) shouldBe Number(3)
+    target.multiply(target) shouldBe Number(3)
   }
   it should "have root5" in {
-    val root5 = Constants.root5
-    val value = root5.normalize
+    val target = Constants.root5
+    target.isExact(None) shouldBe true
+    val value = target.normalize
     value should ===(Number(math.sqrt(5)))
-    root5.multiply(root5) shouldBe Number(5)
+    target.multiply(target) shouldBe Number(5)
   }
-
+  it should "have G" in {
+    val target = Constants.G
+    target.isExact(None) shouldBe false
+    target should ===(Number(6.67430E-11))
+    target.render shouldBe sG
+  }
+  it should "have avagadro" in {
+    val target = Constants.avagadro
+    target.isExact(None) shouldBe true
+    target shouldBe Number(6.0221407600E23)
+    target.render shouldBe "602214076000000000000000"
+  }
+  it should "have boltzmann" in {
+    val target = Constants.boltzmann
+    target.isExact(None) shouldBe true
+    target shouldBe Number("1.38064900E-23")
+    target.render shouldBe "1.380649E-23"
+  }
+  it should "have planck" in {
+    val target = Constants.planck
+    target.isExact(None) shouldBe true
+    // TODO find out why we have to put the following in quotes (compare with avagadro above).
+    target shouldBe Number("6.6260701500E-34")
+    target.render shouldBe "6.62607015E-34"
+  }
+  it should "have c" in {
+    val target = Constants.c
+    target.isExact(None) shouldBe true
+    target.toInt shouldBe Some(299792458)
+    target.render shouldBe sC
+  }
+  it should "have mu" in {
+    val target = Constants.mu
+    target.isExact(None) shouldBe false
+    target shouldBe 1836.15267343 ~ 11
+    target.render shouldBe sMu
+  }
   it should "have phi" in {
-    val phi = Constants.phi
-    val z = one + Constants.root5
-    println(Constants.root5.scale(Scalar))
-    println(z.asNumber)
+    val target = Constants.phi
+    target.isExact(None) shouldBe false
     val goldenRatio = Expression.phi
-    println(goldenRatio)
-    println(Expression.em.simplifier(goldenRatio))
     val maybeNumber: Option[Number] = goldenRatio.asNumber
     maybeNumber.isDefined shouldBe true
-    println(maybeNumber)
-    maybeNumber.get should ===(phi)
+    maybeNumber.get should ===(target)
+    val result: Number = goldenRatio
+    result.render shouldBe "1.618033988749895(24)"
   }
 }

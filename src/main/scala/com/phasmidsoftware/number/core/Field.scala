@@ -172,11 +172,7 @@ object Constants {
   val sPhi = "1.618033988749894"
   val sGamma = "0.57721566490153286060651209008240243104215933593992"
   val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
-  val sAvagadro = "6.0221407600E23" // mole ^ -1
   val sBoltzmann = "1380649.E-29" // J K ^ -1
-  val sPlanck = "6.6260701500E-34" // J Hz ^ -1
-  val sC = "299792458" // m sec ^ -1
-  val sMu = "1836.15267343(11)" // (dimensionless)
 
   val one: Number = Number.one
   val zero: Number = Number.zero
@@ -224,15 +220,15 @@ object Constants {
   /**
     * https://en.wikipedia.org/wiki/Planck_constant
     */
-  lazy val planck: Number = Number(sPlanck)
+  lazy val planck: Number = Number("6.6260701500E-34") // J Hz ^ -1
 
   /**
     * https://en.wikipedia.org/wiki/Speed_of_light
     */
-  lazy val c: Number = Number(sC)
+  lazy val c: Number = Number("299792458") // m sec ^ -1
 
   /**
     * https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio
     */
-  lazy val mu: Number = Number(sMu)
+  lazy val mu: Number = 1836.15267343 ~ 11 // (dimensionless)
 }

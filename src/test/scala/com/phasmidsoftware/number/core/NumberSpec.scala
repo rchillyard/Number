@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Constants.{sAvagadro, sBoltzmann, sC, sPlanck}
+import com.phasmidsoftware.number.core.Constants.sBoltzmann
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{negate, root2}
@@ -8,7 +8,6 @@ import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -28,6 +27,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   private val bigBigInt = BigInt(2147483648L)
   private val standardFuzz = AbsoluteFuzz[Double](1E-7, Gaussian)
   private val sAlpha = "0.0072973525693(11)"
+  private val sPlanck = "6.6260701500E-34" // J Hz ^ -1
+  private val sAvagadro = "6.0221407600E23" // mole ^ -1
 
   behavior of "create"
   it should "yield Right(1)" in {
@@ -292,9 +293,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
       z.get.isExact(None) shouldBe true
   }
   it should "parse c" in {
-    val z = Number.parse(sC)
-      z should matchPattern { case Success(_) => }
-      z.get.isExact(None) shouldBe true
+    val z = Number.parse("299792458") // m sec ^ -1
+    z should matchPattern { case Success(_) => }
+    z.get.isExact(None) shouldBe true
   }
   it should "parse avagadro" in {
     val z = Number.parse(sAvagadro)

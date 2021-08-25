@@ -1,13 +1,12 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Constants.{sGamma, sMu, sPhi}
+import com.phasmidsoftware.number.core.Constants.{sGamma, sPhi}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{negate, twoPi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -18,6 +17,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
       case _ => false
     }
   }
+
+  private val sMu = "1836.15267343(11)" // (dimensionless)
 
   behavior of "create"
   it should "yield 1 with absolute fuzz" in {
