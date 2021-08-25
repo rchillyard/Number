@@ -196,14 +196,14 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val np: p.ParseResult[core.Number] = p.parseAll(p.number, "\uD835\uDED1")
     np should matchPattern { case p.Success(_, _) => }
     val n = np.get
-    n should matchPattern { case ExactNumber(_, Pi) => }
+    n should matchPattern { case ExactNumber(_, Radian) => }
     n.value shouldBe Right(1)
   }
   it should "parse 1\uD835\uDED1" in {
     val np: p.ParseResult[core.Number] = p.parseAll(p.number, "1\uD835\uDED1")
     np should matchPattern { case p.Success(_, _) => }
     val n = np.get
-    n should matchPattern { case ExactNumber(_, Pi) => }
+    n should matchPattern { case ExactNumber(_, Radian) => }
     n.value shouldBe Right(1)
   }
   it should "reject 1 \uD835\uDED1" in {

@@ -1,8 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
-import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.util._
 
@@ -13,7 +11,7 @@ import scala.util._
   * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
-  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
+  * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
   * @param fuzz   the (optional) fuzziness of this Number.
   */
 abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
@@ -107,7 +105,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return the cosine.
     */
-  def cos: Number = Number.negate(negate(scale(Pi)) doAdd Number(Rational.half, Pi).makeNegative).sin
+  def cos: Number = Number.negate(negate(scale(Radian)) doAdd Number(Rational.half, Radian).makeNegative).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -126,8 +124,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def log: Number = Number.log(this)
 
   /**
-    * Method to raise E to the power of this number.
-    * The result will be a Number with E factor.
+    * Method to raise NatLog to the power of this number.
+    * The result will be a Number with NatLog factor.
     *
     * @return the e to the power of this.
     */
@@ -156,7 +154,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param f the new factor for the result.
     * @return a Number based on this and factor.
     */
-  def scale(f: Factor): Number = Number.scale(this, f)
+  def scale(f: Factor): Number = Number.scale(this, f).specialize
 
   /**
     * Action to render this GeneralNumber as a String.
@@ -181,18 +179,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return this but with fuzziness which is the convolution of fuzz and f.
     */
   def addFuzz(f: Fuzziness[Double]): Number = FuzzyNumber.addFuzz(this, f)
-  //
-  //  /**
-  //    * Be careful when implementing this method that you do not invoke a method recursively.
-  //    *
-  //    * CONSIDER is there really any need for this to be different from ExactNumber?
-  //    *
-  //    * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
-  //    * @return a Number which is the the result, possibly fuzzy, of invoking f on this.
-  //    */
-  //  protected def makeFuzzyIfAppropriate(f: Number => Number, relativePrecision: Int): Number = f(this) match {
-  //    case x: GeneralNumber => x.addFuzz(Fuzziness.createFuzz(relativePrecision))
-  //  }
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -239,23 +225,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a Boolean.
     */
   def query[T](op: QueryOperation[T], defaultVal: => T): T = Operations.doQuery(value, op.getFunctions).getOrElse(defaultVal)
-
-  /**
-    * Render this Number in String form, including the factor.
-    *
-    * @return
-    */
-  override def toString: String = {
-    val sb = new StringBuilder()
-    factor match {
-      case E =>
-        sb.append(Number.asPowerOfE(value))
-      case f =>
-        sb.append(Number.valueToString(value))
-        sb.append(f.toString)
-    }
-    sb.toString
-  }
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -337,12 +306,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
-  def normalize: Number = factor match {
-    case Scalar => this
-    // TEST me
-    case Pi => Number.prepare(maybeDouble map (x => self.make(x * factor.value).specialize.make(Scalar)))
-    case E => throw NumberException("normalize: not implemented for E")
-  }
+  def normalize: Number = scale(Scalar)
 
   /**
     * Return a Number which uses the most restricted type possible.
@@ -432,7 +396,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * Method to ensure that the value is within some factor-specific range.
-    * In particular, Pi=based numbers are modulated to the range 0..2
+    * In particular, Radian=based numbers are modulated to the range 0..2
     *
     * @return this or an equivalent Number.
     */
@@ -448,24 +412,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
   private def doComposeDyadic(other: Number, f: Factor)(functions: DyadicFunctions): Option[Number] = {
-    val (fInt, fRational, fDouble) = functions
-
-    def tryDouble(xo: Option[Double]): Try[Number] = xo match {
-      case Some(n) => toTryWithThrowable(for (y <- other.maybeDouble) yield fDouble(n, y) map (x => make(x, f)), NumberException("other is not a Double")).flatten
-      case None => Failure(NumberException("number is invalid")) // NOTE this case is not observed in practice
-    }
-
-    def tryConvert[X](x: X, msg: String)(extract: Number => Option[X], func: (X, X) => Try[X], g: (X, Factor) => Number): Try[Number] =
-      toTryWithThrowable(for (y <- extract(other)) yield func(x, y) map (g(_, f)), NumberException(s"other is not a $msg")).flatten
-
-    def tryRational(x: Rational): Try[Number] = tryConvert(x, "Rational")({ case n: GeneralNumber => n.maybeRational }, fRational, make)
-
-    def tryInt(x: Int): Try[Number] = tryConvert(x, "Int")({ case n: GeneralNumber => n.maybeInt }, fInt, make)
-
-    import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Number] = y => tryMap(y)(tryRational, tryDouble)
-
-    tryMap(value)(tryInt, xToZy1).toOption
+    val vo: Option[Value] = Operations.doComposeValueDyadic(value, other.value)(functions)
+    for (v <- vo) yield make(v, f) // CONSIDER what about extra fuzz?
   }
 
   /**
@@ -473,33 +421,17 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query
     */
-  lazy val maybeRational: Option[Rational] = {
-    import Converters._
-    val ry = tryMap(value)(tryF(Rational.apply), x => tryMap(x)(identityTry, fail("no Double=>Rational conversion")))
-    ry.toOption
-  }
+  lazy val maybeRational: Option[Rational] = Value.maybeRational(value)
 
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).
     */
-  def maybeDouble: Option[Double] = optionMap(value)(_.toDouble, x => optionMap(x)(_.toDouble, identity))
+  def maybeDouble: Option[Double] = Value.maybeDouble(value)
 
   /**
     * An optional Int that corresponds to the value of this Number (but ignoring the factor).
-    *
-    * CONSIDER using query
     */
-  private lazy val maybeInt: Option[Int] = {
-    val xToZy0: Option[Double] => Try[Int] = {
-      case Some(n) if Math.round(n) == n => if (n <= Int.MaxValue && n >= Int.MinValue) Try(n.toInt)
-      else Failure(NumberException(s"double $n cannot be represented as an Int"))
-      case Some(n) => Failure(NumberException(s"toInt: $n is not integral"))
-      case None => Failure(new NoSuchElementException())
-    }
-    import Converters._
-    val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
-    tryMap(value)(identityTry, xToZy1).toOption
-  }
+  private lazy val maybeInt: Option[Int] = Value.maybeInt(value)
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
 
@@ -523,7 +455,8 @@ object GeneralNumber {
     case z: GeneralNumber =>
       val (a, b) = z.alignFactors(y)
       a.factor match {
-        case E => plusAligned(a.scale(Scalar), b.scale(Scalar))
+        case Logarithmic(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
+        case Root(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
         case _ => plusAligned(a, b)
       }
   }
@@ -535,12 +468,21 @@ object GeneralNumber {
         case n@FuzzyNumber(_, _, _) => n doMultiply x
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)
-          p.factor + q.factor match {
-            case Some(E) => prepareWithSpecialize(p.composeDyadic(q, E)(DyadicOperationPlus))
-            case Some(f) => prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationTimes))
-            case None => times(x.scale(Scalar), y.scale(Scalar))
+          (p.factor, q.factor) match {
+            case (PureNumber(_), Scalar) => doTimes(p, q, p.factor)
+            case (Scalar, PureNumber(_)) => doTimes(p, q, q.factor)
+            case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
+            case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
+            case (Root(_), Root(_)) if p == q => p.make(Scalar)
+            case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
+            case _ => times(p.scale(Scalar), q.scale(Scalar))
           }
       }
+  }
+
+  private def doTimes(p: Number, q: Number, factor: Factor) = {
+    val maybeNumber = p.composeDyadic(q, factor)(DyadicOperationTimes)
+    prepareWithSpecialize(maybeNumber)
   }
 
   private def plusAligned(x: Number, y: Number): Number = (x, y) match {

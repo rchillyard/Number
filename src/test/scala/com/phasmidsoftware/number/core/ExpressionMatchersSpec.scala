@@ -3,12 +3,11 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.matchers._
 import com.phasmidsoftware.number.core.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
+class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
 
   val sb = new StringBuilder
   implicit val logger: MatchLogger = SBLogger(LogOff, sb)
@@ -22,14 +21,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     if (sb.nonEmpty) println(sb.toString())
     if (sbLogger.logLevel != com.phasmidsoftware.matchers.LogOff)
       println("===============================\n")
-  }
-
-  implicit object NumberEquality extends Equality[Number] {
-    def areEqual(a: Number, b: Any): Boolean = b match {
-      case n: Number => a.compare(n) == 0
-      case n: Expression => a.compare(n) == 0
-      case _ => false
-    }
   }
 
   val em: ExpressionMatchers = Expression.em
@@ -235,7 +226,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y shouldEqual Number(7)
   }
   it should "evaluate E * 2" in {
-    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918090[57]"
+    (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918091[15]"
   }
 
   behavior of "biFunctionSimplifier"
@@ -596,7 +587,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
   }
 
-  behavior of "matchSimplifyBiFunction"
+  behavior of "evaluateMonadicDuple"
 
   import com.phasmidsoftware.matchers.Matchers.matchers.TildeOps
 
@@ -605,6 +596,21 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
     r.get shouldBe ConstE
   }
+
+  it should "simplify log(E)" in {
+    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Log ~ ConstE)
+    r.successful shouldBe true
+    r.get shouldBe One
+  }
+
+  it should "simplify log(1)" in {
+    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Log ~ One)
+    r.successful shouldBe true
+    r.get shouldBe Zero
+  }
+
+  // TODO move the following
+  behavior of "matchSimplifyBiFunction"
 
   // FIXME Issue #57 this was working just yesterday
   ignore should "simplify multiple similar ops" in {

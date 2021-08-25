@@ -12,8 +12,8 @@ This project is about numbers and their mathematics.
 The chief features of this library are:
 * all numbers are exact wherever it is possible;
 * inexact numbers are represented along with their error bounds;
-* lazy evaluation to help avoid temporary inexact values which become part of a result;
-* there are several domains of _Number_ (expressed with different "factors") to support angles, logarithms. 
+* lazy evaluation to help avoid temporary inexact values from becoming part of a result;
+* there are several domains of _Number_ (expressed with different "factors") to support angles, logarithms, roots.
 
 There is no such thing as accidental loss of precision (at least, provided that code follows the recommendations).
 For example, if you write:
@@ -37,8 +37,7 @@ This implies that when comparing numbers, any significant overlap of their error
 as equal (according to the _compare_ function, but not the _equals_ function).
 
 Numbers are represented internally as either _Int_, _Rational_, or _Double_.
-For more detail, see Representation below.
-
+_Rational_ is simply a case class with _BigInt_ elements for the numerator and denominator.
 It is of course perfectly possible to use the _Rational_ classes directly, without using the _Number_ (or _Expression_) classes.
 
 Parsing
@@ -103,21 +102,20 @@ However, if you want to force a number like 3.1415927 to be exact, then you will
 
     Number("3.141592700")
 
-For fuzzy numbers in standard scientific notation, there is an operator "~" which, when following a Double,
+For fuzzy numbers in standard scientific notation, there is an operator "~" which, when following a _Double_,
 will add the next one or two integer digits as the standard deviation.
-For example (proton-electron mass ratio, and the gravitational constant):
+For example, the proton-electron mass ratio:
 
     1836.15267343~11
-    6.67430E-11~15
 
 Rendering
 =========
-Generally speaking, the output String corresponding to a Number will be the same as the input String,
+Generally speaking, the output _String_ corresponding to a _Number_ will be the same as the input _String_,
 although at this stage of the software, that is not guaranteed.
 Numbers followed by "(xx)" show standard scientific notation where xx represents the standard deviation of the error
 with respect to the last two digits (sometimes there is only one x which corresponds to the last digit).
 If a Number is followed by "\[x\]" or "\[xx\]" this corresponds to a "box" (i.e. truncated uniform) probability density function.
-It's unlikely that you'll need to use this form since box is the default shape when specifying fuzzy numbers with a String.
+It's unlikely that you'll need to use this form since box is the default shape when specifying fuzzy numbers with a _String_.
 
 Fuzzy
 =====
@@ -164,12 +162,12 @@ to build a Mill.
   
 Field
 =====
-The most general form of mathematical quantity is a Field (added in V1.0.9).
+The most general form of mathematical quantity is represented by a _Field_ (added in V1.0.9).
 See https://en.wikipedia.org/wiki/Field_(mathematics).
 A field supports operations such as addition, subtraction, multiplication, and division.
 We also support powers because, at least for integer powers, raising to a power is simply iterating over a number of multiplications.
 
-The two types of Field supported are Number (see below) and Complex.
+The two types of _Field_ supported are _Number_ (see below) and _Complex_.
 
 Number
 ======
@@ -187,8 +185,7 @@ There is also an invalid _Number_ case which is represented by _Left(Left(Left(N
 
 This _Value_ is always of the rightmost type possible: given the various possible specializations.
 Thus, an _Int_ x which is in range will be represented by _Right(x)_.
-Thus, a _BigInt_ x outside the _Int_ range will be represented by _Left(Right(Rational(x)))_.
-Similarly, a _Rational_ with numerator _x_ and unit denominator, where _x_ is in the range of an _Int_, will be represented by _Right(x)_.
+Thus, a _Rational_ with numerator _x_ and unit denominator, where _x_ is in the range of an _Int_, will be represented by _Right(x)_.
 It is also possible that a _Double_ _x_ will be represented by a _Left(Right(Rational(x)))_.
 For this to happen, the value in question must have fewer than three decimal places (similar to the parsing scheme).
 
@@ -200,10 +197,15 @@ It is easy to convert between the two types of _Complex_.
 
 Factors
 =======
-There are three "factors:" Scalar (for ordinary dimensionless numbers), __Pi__ (used to represent radians or any multiple of pi),
-and __E__ (for powers of the Euler number).
+There are three types of "factor:"
+* _PureNumber_, in particular, _Scalar_ (for ordinary dimensionless numbers), __Radian__ (formerly called _Pi_ and used to represent radians or any multiple of pi);
+* _Logarithmic_, in particular, _NatLog_ (formerly called _E_), _Log2_, and _Log10_;
+* _Root_, in particular: _Root2_ (for square roots) and _Root3_ (for cube roots).
 
-Trigonometrical functions are designed to work with __Pi__ quantities.
+These allow certain quantities to be expressed exactly, for example, sin(π/3) is the square root of 3/4.
+The true (_Scalar_) values of the logarithmic numbers are e^x, 2^x, and 10^x respectively where x is the "value" of the _Number_.
+
+Trigonometrical functions are designed to work with __Radian__ quantities.
 Such values are limited (modulated) to be in the range 0..2pi.
 However, this happens as the result of operations, so it is still possible to define a value of 2pi.
 For example, if you want to check that the sine of pi/2 is equal to 1 exactly, then you should write the following:
@@ -211,7 +213,7 @@ For example, if you want to check that the sine of pi/2 is equal to 1 exactly, t
     val target = (Number.pi/2).sin
     target shouldBe Number.one
 
-Similarly, if you use the _atan_ method on a Scalar number, the result will be a number (possibly exact) whose factor is __Pi__.
+Similarly, if you use the _atan_ method on a _Scalar_ number, the result will be a number (possibly exact) whose factor is __Radian__.
 
 The 𝜀 factor works quite differently.
 It is not a simple matter of scaling.
@@ -224,9 +226,9 @@ See Complex numbers.
 Constants
 =========
 
-The Number class defines a number of constant values for Number, such as Pi, e, one, zero, etc.
-The Constants object contains a number of fundamental constant definitions, in addition to those defined by Number.
-For example: c (speed of light), alpha (fine structure constant), etc.
+The _Number_ class defines a number of constant values for _Number_, such as Pi, e, one, zero, etc.
+The _Constants_ object contains a number of fundamental constant definitions, in addition to those defined by _Number_.
+For example: _c_ (speed of light), _alpha_ (fine structure constant), etc.
 
 Lazy Evaluation
 ===============
@@ -239,7 +241,7 @@ The simplification mechanism which is invoked when materializing an expression g
 An example of this is the expression (√3 + 1)(√3 - 1).
 It is easy to see that this should have a value of exactly 2.
 However, it is not trivial to do the appropriate matching to achieve this simplification.
-This is why Number uses the Matchers package (https://github.com/rchillyard/Matchers).
+This is why _Number_ uses the **Matchers** package (https://github.com/rchillyard/Matchers).
 
 The simplification mechanism uses its own _ExpressionMatchers_, which is an extension of _Matchers_.
 The current set of expression optimizations is somewhat limited, but it catches the most important cases.
@@ -340,6 +342,7 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
+* Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.
 * Version 1.0.10: Many improvements and fixes:
     - added Constants,
     - implicit converter from Expression to Number,

@@ -7,9 +7,25 @@ package com.phasmidsoftware.number.core
   * TODO implement scientific notation by having factors such os 10^3, 10^6, etc. (alternatively, add a separate parameter)
   *
   * @param value  the value of the Number, expressed as a nested Either type.
-  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
+  * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
   */
 case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
+  /**
+    * Method to make some trivial simplifications of this ExactNumber.
+    *
+    * @return either this Number or a simplified Number.
+    */
+  def simplify: Number = (factor, value) match {
+    case (Logarithmic(_), Right(0)) => Number.one
+    case (Root(2), v) => v match {
+      case Right(x) =>
+        (Rational.squareRoots.get(x) map (make(_, Scalar))).getOrElse(this)
+      case Left(Right(r)) =>
+        (for (n <- Rational.squareRoots.get(r.n.toInt); d <- Rational.squareRoots.get(r.d.toInt)) yield make(Rational(n, d))).getOrElse(this)
+      case _ => this
+    }
+    case _ => this
+  }
 
   /**
     * Add this Number to n.
@@ -52,6 +68,8 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Both the value and the factor will be changed.
+    *
+    * CONSIDER should be invoke simplify from other make methods?
     *
     * @param v the value.
     * @param f the factor.
@@ -99,4 +117,24 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
   def isProbablyZero(p: Double): Boolean = isZero
+
+  /**
+    * Render this ExactNumber in String form, including the factor.
+    *
+    * @return a String
+    */
+  override def toString: String = {
+    val sb = new StringBuilder()
+    factor match {
+      case Logarithmic(_) =>
+        sb.append(factor.render(value))
+      case PureNumber(_) =>
+        sb.append(Value.valueToString(value))
+        sb.append(factor.toString)
+      case Root(_) =>
+        sb.append(factor.render(value))
+    }
+    sb.toString
+  }
+
 }

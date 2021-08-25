@@ -90,12 +90,19 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * This method is called by materializer and therefore will return a Field, regardless of whether any simplifications
     * were possible.
     *
+    * CONSIDER both cases should be normalized.
+    *
     * @param x the Expression to be evaluated as a Field.
     * @return the value of the original Expression or a simplified version of the Expression.
     */
   def simplifyAndEvaluate(x: Expression): Field =
     simplifier(x) match {
-      case Match(e) => e.evaluate
+      case Match(e) =>
+        val result: Field = e.evaluate
+        if (result.isExact(None))
+          result
+        else
+          result.normalize
       case _ => x.evaluate
     }
 
@@ -125,8 +132,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Match of an exact expression.
     */
   def matchSimplifyDyadicTerms: Matcher[DyadicTriple, Expression] = Matcher("matchSimplifyDyadicTerms") {
-    case f ~ x ~ y =>
-      exactMaterializer(x).combine(evaluateExpression(f))(exactMaterializer(y))
+    case f ~ x ~ y => exactMaterializer(x).combine(evaluateExpression(f))(exactMaterializer(y))
   }
 
 
@@ -152,12 +158,15 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-    * Matcher which always succeeds.
     * If the operand can be simplified, then it will be.
     *
     * @return a Matcher[MonadicDuple, MonadicDuple].
     */
   def matchSimplifyMonadicTerm: Matcher[MonadicDuple, MonadicDuple] = Matcher("matchSimplifyMonadicTerm") {
+    case Cosine ~ x => Match(Sine) ~ (Match(x plus ConstPi / 2) flatMap simplifier)
+    //    case Sine ~ x if (x*4).evaluate == Number.one => (x*4).evaluate match {
+    //      case 1 =>
+    //    }
     case f ~ x => Match(f) ~ exactMaterializer(x)
   }
 

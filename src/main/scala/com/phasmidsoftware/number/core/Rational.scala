@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero}
 import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
-
 import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -245,7 +244,7 @@ object Rational {
     * @return a Rational such that the difference between the result and x is less than epsilon.
     */
   def approximateAny(x: Double)(implicit epsilon: Tolerance): Rational =
-    if (x == Double.NaN) NaN
+    if (Double.box(x).isNaN) NaN
     else if (x.isPosInfinity) infinity
     else if (x.isNegInfinity) infinity.negate
     else if (x > 0) approximatePositive(x)

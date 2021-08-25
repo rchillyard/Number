@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar, narrow}
-import com.phasmidsoftware.number.core.Field.recover
+import com.phasmidsoftware.number.core.Complex.{convertToCartesian, narrow}
+import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
 import com.phasmidsoftware.number.core.Number.negate
 
 abstract class Complex(val real: Number, val imag: Number) extends Field {
@@ -196,11 +196,13 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
 
   def make(a: Number, b: Number): Complex = ComplexCartesian(a, b)
 
-  def isZero: Boolean = convertToPolar(this).real.isProbablyZero(0.5)
+  def isZero: Boolean = x.isProbablyZero(0.5) && y.isProbablyZero(0.5)
 
   def isInfinite: Boolean = x.isInfinite || y.isInfinite
 
   def magnitudeSquared: Number = Literal(x) * x plus (Literal(y) * y)
+
+  def normalize: Complex = ComplexCartesian(convertToNumber(x.normalize), convertToNumber(y.normalize))
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -258,7 +260,7 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
   /**
     * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
     *
-    * @return Some(factor of r) if factor of theta is Pi; otherwise None.
+    * @return Some(factor of r) if factor of theta is Radian; otherwise None.
     */
   def maybeFactor: Option[Factor] = if (real.factor == imag.factor) Some(real.factor) else None
 
@@ -271,6 +273,8 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
   def isInfinite: Boolean = r.isInfinite
 
   def magnitudeSquared: Number = Literal(r) * r
+
+  def normalize: Complex = ComplexCartesian(r.scale(NatLog), theta.scale(Radian))
 
   /**
     * Action to materialize this Expression and render it as a String,

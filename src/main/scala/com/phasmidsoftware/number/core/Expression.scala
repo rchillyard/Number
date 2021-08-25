@@ -120,6 +120,11 @@ object Expression {
   val e: Expression = Expression(Number.e)
 
   /**
+    * Other useful expressions.
+    */
+  val phi: Expression = (one + Constants.root5) / Number.two
+
+  /**
     * Implicit class to allow various operations to be performed on an Expression.
     *
     * @param x an Expression.
@@ -346,7 +351,7 @@ object AtomicExpression {
     case Literal(x) => Some(x)
     case c: Constant => Some(c.evaluate)
     case f: Field => Some(f)
-    case g: GeneralNumber => Some(g)
+//    case g: GeneralNumber => Some(g)
     case _ => None
   }
 }
@@ -499,7 +504,7 @@ case object ConstPi extends Constant {
     */
   def evaluate: Number = Number.pi
 
-  def maybeFactor: Option[Factor] = Some(Pi)
+  def maybeFactor: Option[Factor] = Some(Radian)
 }
 
 /**
@@ -512,7 +517,7 @@ case object ConstE extends Constant {
     */
   def evaluate: Number = Number.e
 
-  def maybeFactor: Option[Factor] = Some(E)
+  def maybeFactor: Option[Factor] = Some(NatLog)
 }
 
 /**
@@ -599,12 +604,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def evaluate: Field = value
 
-  //    if (isExact) value else {
-  //      val simplified = simplify
-  //      if (simplified == this) value
-  //      else simplified.materialize
-  //    }
-
   /**
     * If it is possible to simplify this Expression, then we do so.
     * Typically, we simplify non-exact expressions if possible.
@@ -643,9 +642,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   override def toString: String = if (exact) s"($a $f $b)" else s"{$a $f $b}"
 
-  // TODO note that E numbers don't behave like other numbers so really should be excluded from all cases
+  // TODO note that NatLog numbers don't behave like other numbers so really should be excluded from all cases
   private def factorsMatch(f: ExpressionBiFunction, f1: Factor, f2: Factor): Option[Factor] = f match {
-    case Sum if f1 == f2 && f1 != E =>
+    case Sum if f1 == f2 && f1 != NatLog =>
       Some(f1)
     case Product if f1 == f2 || f1 == Scalar || f2 == Scalar =>
       if (f1 == f2) Some(f1) else if (f2 == Scalar) Some(f1) else Some(f2)
@@ -666,7 +665,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * TODO refactor this method to remove all parameters since they are simply copies of the values in scope.
     *
     * @param f the function.
-    * @param a first operand.
+    * @param a first operand (currently ignored)
     * @param b second operand.
     * @return true if the result of the f(a,b) is exact.
     */

@@ -81,6 +81,13 @@ trait Field extends NumberLike {
   def invert: Field
 
   /**
+    * Method to "normalize" a field.
+    *
+    * @return a Field which is in canonical form.
+    */
+  def normalize: Field
+
+  /**
     * Method to determine if this Field is actually a real Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *
@@ -165,18 +172,19 @@ object Constants {
   val sPhi = "1.618033988749894"
   val sGamma = "0.57721566490153286060651209008240243104215933593992"
   val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
-  val sAlpha = "0.0072973525693(11)" // (dimensionless)
-  val sAvagadro = "6.0221407600E23" // mole ^ -1
   val sBoltzmann = "1380649.E-29" // J K ^ -1
-  val sPlanck = "6.6260701500E-34" // J Hz ^ -1
-  val sC = "299792458" // m sec ^ -1
-  val sMu = "1836.15267343(11)" // (dimensionless)
 
   val one: Number = Number.one
   val zero: Number = Number.zero
   val pi: Number = Number.pi
   val e: Number = Number.e
   val i: Complex = Complex.i
+
+  val root2: Number = Number.root2
+  val root3: Number = Number.root3
+  val root5: Number = Number.root5
+
+  import com.phasmidsoftware.number.core.Number.FuzzOps
 
   /**
     * https://en.wikipedia.org/wiki/Golden_ratio
@@ -190,18 +198,19 @@ object Constants {
 
   /**
     * https://en.wikipedia.org/wiki/Gravitational_constant
+    * We must use the string sG because of FIXME Issue #54
     */
   lazy val G: Number = Number(sG)
 
   /**
     * https://en.wikipedia.org/wiki/Fine-structure_constant
     */
-  lazy val alpha: Number = Number(sAlpha)
+  lazy val alpha: Number = 0.0072973525693 ~ 11 // (dimensionless)
 
   /**
     * https://en.wikipedia.org/wiki/Avogadro_constant
     */
-  lazy val avagadro: Number = Number(sAvagadro)
+  lazy val avagadro: Number = Number(6.0221407600E23)
 
   /**
     * https://en.wikipedia.org/wiki/Boltzmann_constant
@@ -211,15 +220,15 @@ object Constants {
   /**
     * https://en.wikipedia.org/wiki/Planck_constant
     */
-  lazy val planck: Number = Number(sPlanck)
+  lazy val planck: Number = Number("6.6260701500E-34") // J Hz ^ -1
 
   /**
     * https://en.wikipedia.org/wiki/Speed_of_light
     */
-  lazy val c: Number = Number(sC)
+  lazy val c: Number = Number("299792458") // m sec ^ -1
 
   /**
     * https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio
     */
-  lazy val mu: Number = Number(sMu)
+  lazy val mu: Number = 1836.15267343 ~ 11 // (dimensionless)
 }

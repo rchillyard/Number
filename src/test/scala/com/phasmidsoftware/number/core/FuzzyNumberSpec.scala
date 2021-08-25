@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Constants.{sAlpha, sGamma, sMu, sPhi}
+import com.phasmidsoftware.number.core.Constants.{sGamma, sPhi}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{negate, twoPi}
@@ -17,6 +17,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
       case _ => false
     }
   }
+
+  private val sMu = "1836.15267343(11)" // (dimensionless)
 
   behavior of "create"
   it should "yield 1 with absolute fuzz" in {
@@ -92,6 +94,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
       z.get.isExact(None) shouldBe false
       z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
+  val sAlpha = "0.0072973525693(11)"
   it should "parse alpha" in {
     val z = Number.parse(sAlpha)
       z should matchPattern { case Success(_) => }
@@ -298,7 +301,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "sin"
   it should "work for 0" in {
-    val target = Number(0, Pi)
+    val target = Number(0, Radian)
     target.sin shouldBe Number(0, Scalar)
   }
   it should "work for pi" in {
@@ -333,7 +336,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "cos"
   it should "work for 0" in {
-    val target = Number(0, Pi)
+    val target = Number(0, Radian)
     target.cos shouldBe Number(1, Scalar)
   }
   it should "work for pi" in {
@@ -367,7 +370,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "tan"
   it should "work for 0" in {
-    val target = Number(0, Pi)
+    val target = Number(0, Radian)
     target.tan shouldBe Number(0, Scalar)
   }
   it should "work for pi" in {
@@ -402,7 +405,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "exp"
   it should "work for non-exact 1" in {
-    val x = Number("1.00000000000*", E)
+    val x = Number("1.00000000000*", NatLog)
     x.scale(Scalar).render shouldBe "2.718281828459[14]"
   }
 
@@ -498,7 +501,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
 
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.006570290056530478, Box)) // changed Aug 5th
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.006570290056531114, Box)) // changed Aug 5th
     //    length.get.fuzz shouldBe Some(RelativeFuzz(0.0065702900565341804, Box))
 
     println(length.get)
@@ -519,7 +522,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.005 +- 0.0002
 
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.0051393836483213245, Gaussian)) // changed Aug 5th
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648321508, Gaussian)) // changed Aug 5th
     //    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648321391, Gaussian))
 
     println(length.get)

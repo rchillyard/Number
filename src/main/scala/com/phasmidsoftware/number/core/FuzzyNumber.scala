@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.util.Left
 
 /**
@@ -20,10 +19,19 @@ import scala.util.Left
   * CONSIDER implementing equals (but be careful!). Don't implement it in terms of compare(...)==0 or Same.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
-  * @param factor the scale factor of the Number: valid scales are: Scalar, Pi, and E.
+  * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
   * @param fuzz   the fuzziness of this Number.
   */
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
+
+  /**
+    *
+    * @return either this Number or a simplified Number.
+    */
+  def simplify: Number = fuzz match {
+    case None => ExactNumber(value, factor).simplify
+    case _ => this
+  }
 
   /**
     * Add a Number to this FuzzyNumber.
@@ -120,12 +128,20 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     val sb = new StringBuilder()
     val w = fuzz match {
       case Some(f) => f.toString(toDouble.getOrElse(0.0))
-      case None => Number.valueToString(value)
+      case None => Value.valueToString(value)
     }
-    sb.append(w)
-    sb.append(factor.toString)
+    factor match {
+      case Logarithmic(_) =>
+        sb.append(factor.render(w))
+      case PureNumber(_) =>
+        sb.append(w)
+        sb.append(factor.toString)
+      case Root(_) =>
+        sb.append(factor.render(w))
+    }
     sb.toString
   }
+
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
