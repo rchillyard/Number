@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.{sAvagadro, sBoltzmann, sC, sPlanck}
-import com.phasmidsoftware.number.core.Expression.{ExpressionOps, one}
+import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{negate, root2}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
@@ -27,6 +27,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   private val doubleOne = 1.0
   private val bigBigInt = BigInt(2147483648L)
   private val standardFuzz = AbsoluteFuzz[Double](1E-7, Gaussian)
+  private val sAlpha = "0.0072973525693(11)"
 
   behavior of "create"
   it should "yield Right(1)" in {
@@ -312,10 +313,17 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "get G" in {
     import Number.FuzzOps
     val x = 6.67430E-11 ~ 15
-      x.isExact(None) shouldBe false
-      x shouldEqual Constants.G
+    x.isExact(None) shouldBe false
+    x shouldEqual Constants.G
     // FIXME Issue #54
-    //    x.toString shouldBe "6.67430(15)E-11"
+    //        x.toString shouldBe "6.67430(15)E-11"
+  }
+  it should "get alpha" in {
+    import Number.FuzzOps
+    val x = 0.0072973525693 ~ 11
+    x.isExact(None) shouldBe false
+    x shouldEqual Number(sAlpha)
+    x.toString shouldBe "0.0072973525693(11)"
   }
 
   behavior of "specialize"
@@ -1097,34 +1105,5 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for 1 :/ 2" in {
     val x: Number = 1 :/ 2
     x shouldBe Number(Rational.half)
-  }
-
-  behavior of "pre-defined"
-  it should "have root5" in {
-    val root5 = Constants.root5
-    println(root5)
-    val value = root5.normalize
-    println(value)
-    value should ===(Number(math.sqrt(5)))
-  }
-
-  behavior of "constants"
-  it should "have phi" in {
-    val phi = Constants.phi
-    val z = one + Constants.root5
-    println(Constants.root5.scale(Scalar))
-    println(z.asNumber)
-    val goldenRatio = Expression.phi
-    println(goldenRatio)
-    println(Expression.em.simplifier(goldenRatio))
-    val maybeNumber: Option[Number] = goldenRatio.asNumber
-    maybeNumber.isDefined shouldBe true
-    println(maybeNumber)
-    maybeNumber.get should ===(phi)
-  }
-  it should "have root2" in {
-    val root2: Number = Constants.root2
-    val expected = Number(Rational.half, Log2)
-    root2 should ===(expected)
   }
 }

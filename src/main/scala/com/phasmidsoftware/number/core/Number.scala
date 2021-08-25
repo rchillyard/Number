@@ -578,7 +578,22 @@ object Number {
     case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
   }
 
+  /**
+    * Implicit class which takes a Double, and using method ~ and an Int parameter,
+    * yields a Number with the appropriate degree of fuzziness.
+    * This class provides an alternative to having to parse a fuzzy number from a String.
+    *
+    * @param x a Double.
+    */
   implicit class FuzzOps(x: Double) {
+    /**
+      * Method to yield a (scalar) Number, whose value is x, and whose fuzziness is Gaussian with standard deviation
+      * defined by y.
+      * The magnitude of the fuzziness is determined by the number of decimal places of x.
+      *
+      * @param y a two-digit Int.
+      * @return a Number with absolute, Gaussian fuzziness, whose std. dev. is y.
+      */
     def ~(y: Int): Number = if (y >= 10 && y < 100) {
       val p = y * math.pow(10.0, -BigDecimal(x).scale)
       Number(x, Scalar, Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))

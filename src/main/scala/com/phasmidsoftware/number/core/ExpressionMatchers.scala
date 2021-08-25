@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
+
 import scala.language.implicitConversions
 
 /**
@@ -157,7 +158,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-    * Matcher which always succeeds.
     * If the operand can be simplified, then it will be.
     *
     * @return a Matcher[MonadicDuple, MonadicDuple].

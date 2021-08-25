@@ -172,7 +172,6 @@ object Constants {
   val sPhi = "1.618033988749894"
   val sGamma = "0.57721566490153286060651209008240243104215933593992"
   val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
-  val sAlpha = "0.0072973525693(11)" // (dimensionless)
   val sAvagadro = "6.0221407600E23" // mole ^ -1
   val sBoltzmann = "1380649.E-29" // J K ^ -1
   val sPlanck = "6.6260701500E-34" // J Hz ^ -1
@@ -189,6 +188,8 @@ object Constants {
   val root3: Number = Number.root3
   val root5: Number = Number.root5
 
+  import com.phasmidsoftware.number.core.Number.FuzzOps
+
   /**
     * https://en.wikipedia.org/wiki/Golden_ratio
     */
@@ -201,18 +202,19 @@ object Constants {
 
   /**
     * https://en.wikipedia.org/wiki/Gravitational_constant
+    * We must use the string sG because of FIXME Issue #54
     */
   lazy val G: Number = Number(sG)
 
   /**
     * https://en.wikipedia.org/wiki/Fine-structure_constant
     */
-  lazy val alpha: Number = Number(sAlpha)
+  lazy val alpha: Number = 0.0072973525693 ~ 11 // (dimensionless)
 
   /**
     * https://en.wikipedia.org/wiki/Avogadro_constant
     */
-  lazy val avagadro: Number = Number(sAvagadro)
+  lazy val avagadro: Number = Number(6.0221407600E23)
 
   /**
     * https://en.wikipedia.org/wiki/Boltzmann_constant

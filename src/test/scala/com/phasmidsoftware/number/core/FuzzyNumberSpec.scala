@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Constants.{sAlpha, sGamma, sMu, sPhi}
+import com.phasmidsoftware.number.core.Constants.{sGamma, sMu, sPhi}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{negate, twoPi}
@@ -93,6 +93,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
       z.get.isExact(None) shouldBe false
       z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
+  val sAlpha = "0.0072973525693(11)"
   it should "parse alpha" in {
     val z = Number.parse(sAlpha)
       z should matchPattern { case Success(_) => }

@@ -1,14 +1,16 @@
 package com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.Constants.{sAlpha, sG}
+import com.phasmidsoftware.number.core.Constants.sG
 import com.phasmidsoftware.number.core.Fuzziness.createFuzz
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Left, Try}
 
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   private val p = new NumberParser
+  val sAlpha = "0.0072973525693(11)"
 
   behavior of "generalNumber"
   it should "parse 1." in {
