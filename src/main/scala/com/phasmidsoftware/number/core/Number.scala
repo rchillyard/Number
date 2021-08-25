@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -512,43 +513,43 @@ object Number {
   /**
     * Exact value of 0
     */
-  val zero: Number = ExactNumber(Right(0), Scalar)
+  val zero: Number = ExactNumber(Value.fromInt(0), Scalar)
   /**
     * Exact value of -0
     */
-  val negZero: Number = ExactNumber(Left(Right(Rational.negZero)), Scalar)
+  val negZero: Number = ExactNumber(Value.fromRational(Rational.negZero), Scalar)
   /**
     * Exact value of 1
     */
-  val one: Number = ExactNumber(Right(1), Scalar)
+  val one: Number = ExactNumber(Value.fromInt(1), Scalar)
   /**
     * Exact value of -1
     */
-  val negOne: Number = ExactNumber(Right(-1), Scalar)
+  val negOne: Number = ExactNumber(Value.fromInt(-1), Scalar)
   /**
     * Exact value of 1
     */
-  val two: Number = ExactNumber(Right(2), Scalar)
+  val two: Number = ExactNumber(Value.fromInt(2), Scalar)
 
   /**
     * Exact value of pi
     */
-  val pi: Number = ExactNumber(Right(1), Radian)
+  val pi: Number = ExactNumber(Value.fromInt(1), Radian)
 
   /**
     * Exact value of 2 pi
     */
-  val twoPi: Number = ExactNumber(Right(2), Radian)
+  val twoPi: Number = ExactNumber(Value.fromInt(2), Radian)
 
   /**
     * Exact value of pi/2
     */
-  val piBy2: Number = ExactNumber(Left(Right(Rational.half)), Radian)
+  val piBy2: Number = ExactNumber(Value.fromRational(Rational.half), Radian)
 
   /**
     * Exact value of e
     */
-  val e: Number = ExactNumber(Right(1), NatLog)
+  val e: Number = ExactNumber(Value.fromInt(1), NatLog)
 
   /**
     * Exact value of √2
@@ -620,7 +621,7 @@ object Number {
     def /(y: Number): Number = Number(x) doMultiply y.invert
 
     /**
-      * Divide x by y (a Number) and yield a Number.
+      * Divide x by y (an Int) and yield a Number.
       * NOTE: the colon is necessary in order to coerce the left hand operand to be a Number.
       *
       * @param y the divisor, an Int.

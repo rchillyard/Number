@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
+
 import scala.annotation.tailrec
 import scala.util._
 
@@ -483,11 +484,9 @@ object GeneralNumber {
           (p.factor, q.factor) match {
             case (PureNumber(_), Scalar) => doTimes(p, q, p.factor)
             case (Scalar, PureNumber(_)) => doTimes(p, q, q.factor)
-            case (f: Logarithmic, Scalar) =>
-              if (q.signum > 0)
-                prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
-              else
-                times(p.scale(Scalar), q)
+            case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
+            case (f: Logarithmic, Scalar) => times(p.scale(Scalar), q)
+            case (Root(_), Root(_)) if p == q => p.make(Scalar)
             case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
             case _ => times(p.scale(Scalar), q.scale(Scalar))
           }
@@ -495,7 +494,8 @@ object GeneralNumber {
   }
 
   private def doTimes(p: Number, q: Number, factor: Factor) = {
-    prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
+    val maybeNumber = p.composeDyadic(q, factor)(DyadicOperationTimes)
+    prepareWithSpecialize(maybeNumber)
   }
 
   private def plusAligned(x: Number, y: Number): Number = (x, y) match {

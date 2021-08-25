@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Render.renderValue
+
 import java.util.NoSuchElementException
 import scala.math.BigInt
 import scala.util._
@@ -222,6 +223,13 @@ object Logarithmic {
 
 sealed trait Root extends Factor {
 
+  def root: Int
+
+  /**
+    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    */
+  val value: Double = root
+
   /**
     * A method to combine this Factor with another Factor and, if they are compatible, to return Some(factor).
     *
@@ -248,7 +256,7 @@ sealed trait Root extends Factor {
 }
 
 object Root {
-  def unapply(arg: Root): Option[Double] = Some(arg.value)
+  def unapply(arg: Root): Option[Int] = Some(arg.root)
 
 }
 
@@ -337,28 +345,24 @@ case object Log10 extends Logarithmic {
   * This object represents the square root factor.
   */
 case object Root2 extends Root {
-  /**
-    * A value which can be used to convert a value associated with this Factor to a different Factor.
-    */
-  val value: Double = 2
 
   override def toString: String = "√"
 
   def render(x: String): String = s"√$x"
+
+  def root: Int = 2
 }
 
 /**
   * This object represents the square root factor.
   */
 case object Root3 extends Root {
-  /**
-    * A value which can be used to convert a value associated with this Factor to a different Factor.
-    */
-  val value: Double = 3
 
   override def toString: String = "³√"
 
   def render(x: String): String = s"³√$x"
+
+  def root: Int = 3
 }
 
 object Factor {

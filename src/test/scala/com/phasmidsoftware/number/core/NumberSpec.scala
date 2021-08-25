@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -372,7 +373,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for Scalar, NatLog" in {
     val target = numberOne
     val result = target.scale(NatLog)
-    result shouldBe Number(0, NatLog)
+    // NOTE that the simplify method brings this back to being just one.
+    result shouldBe numberOne
   }
   it should "work for NatLog, Scalar" in {
     val target = Number(1, NatLog)
@@ -459,10 +461,10 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for Scalar, Root2" in {
     val target = Number(3)
-    val expected = Number(9, Root2)
+    val expected = Number(3)
     val result = target.scale(Root2)
     result shouldBe expected
-    result.toString shouldBe "√9"
+    result.toString shouldBe "3"
   }
   it should "work for NatLog, Root2" in {
     val target = Number.e
