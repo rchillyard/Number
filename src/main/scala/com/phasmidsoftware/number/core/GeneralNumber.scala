@@ -41,6 +41,15 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def isValid: Boolean = maybeDouble.isDefined
 
   /**
+    * Method to apply a function to this Number.
+    *
+    * @param f      a function Double=>Double.
+    * @param dfByDx the first derivative of f.
+    * @return a Try[Number] which is the result of applying f to this Number.
+    */
+  def applyFunc(f: Double => Double, dfByDx: Double => Double): Try[Number] = GeneralNumber.applyFunc(f, dfByDx)(this)
+
+  /**
     * Method to get the value of this Number as an optional Double.
     *
     * @return an Some(Double) which is the closest possible value to the nominal value, otherwise None if this is invalid.
@@ -211,14 +220,10 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
         if op.isExact(x) => Some(make(v, f))
       case v =>
         make(v, f) match {
-          case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(monadicFuzziness(op, t, x))
+          case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, x, fuzz))
         }
     }
 
-  private def monadicFuzziness(op: MonadicOperation, t: Double, x: Double): Option[Fuzziness[Double]] = {
-    val functionalFuzz = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz)
-    Fuzziness.combine(t, t, relative = true, independent = true)((functionalFuzz, Some(Fuzziness.createFuzz(op.fuzz))))
-  }
 
   /**
     * Evaluate a query operator on this.
@@ -453,6 +458,18 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 }
 
 object GeneralNumber {
+  def applyFunc(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] = {
+    val op: MonadicOperation = MonadicOperationFunc(f, dfByDx)
+    val no: Option[Number] = Operations.doTransformValueMonadic(x.value)(op.functions) flatMap {
+      v =>
+        x.make(v, Scalar) match {
+          case n: GeneralNumber =>
+            for (t <- x.toDouble; z <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, z, x.fuzz))
+        }
+    }
+    FP.toTry(no, Failure(NumberException("applyFunc: logic error")))
+  }
+
   def plus(x: Number, y: Number): Number = x match {
     case z: GeneralNumber =>
       val (a, b) = z.alignFactors(y)
@@ -565,4 +582,10 @@ object GeneralNumber {
           prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
       }
   }
+
+  def getMonadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz1: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
+    val functionalFuzz = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz1)
+    Fuzziness.combine(t, t, relative = true, independent = true)((functionalFuzz, Some(Fuzziness.createFuzz(op.fuzz))))
+  }
+
 }

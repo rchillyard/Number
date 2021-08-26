@@ -52,6 +52,15 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def simplify: Number
 
   /**
+    * Method to apply a function to this Number.
+    *
+    * @param f      a function Double=>Double.
+    * @param dfByDx the first derivative of f.
+    * @return a Try[Number] which is the result of applying f to this Number.
+    */
+  def applyFunc(f: Double => Double, dfByDx: Double => Double): Try[Number]
+
+  /**
     * Method to get the value of this Number as an optional Double.
     *
     * @return an Some(Double) which is the closest possible value to the nominal value, otherwise None if this is invalid.

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -431,6 +432,22 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
     * Relative precision, as used by createFuzz.
     */
   val fuzz: Int = 0
+}
+
+/**
+  * MonadicOperation to apply a generic function to a Number.
+  *
+  */
+case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) extends MonadicOperation {
+  val functions: MonadicFunctions = (fail("no apply"), fail("no apply"), tryF(f))
+
+  val derivative: Double => Double = dfByDx
+
+  val absolute: Boolean = true // not used
+
+  def isExact(r: Rational): Boolean = false
+
+  val fuzz: Int = 1
 }
 
 /**
