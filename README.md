@@ -33,6 +33,10 @@ NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
 
 Introduction
 ============
+There are three articles on Medium regarding this library.
+They are https://medium.com/codex/number-part-1-c98313903714 and
+https://scala-prof.medium.com/number-part-2-7925400624d5 and...
+
 The Number project provides mathematical utilities where error bounds are tracked (and not forgotten).
 All functions handle the transformation or convolution of error bounds appropriately.
 When the error bound is sufficiently large compared to a number, that number is considered to be zero.
