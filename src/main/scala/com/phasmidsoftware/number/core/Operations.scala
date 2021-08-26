@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
-
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -278,19 +277,7 @@ case object MonadicOperationSin extends MonadicOperation {
   */
 case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 
-  val atanRat: Rational => Try[Rational] = r => {
-    val flip = r.signum < 0
-    (r.abs match {
-      case Rational.infinity => Success(Rational.half)
-      case Rational.zero => Success(Rational.zero)
-      case Rational.one => Success(Rational.one / 4)
-      case _ => Failure(NumberException("atan cannot be Rational"))
-    }) map {
-      r => if (flip) -r else r
-    } map (
-      r => if (sign < 0) Rational.one + r else r
-      )
-  }
+  val atanRat: Rational => Try[Rational] = r => modulateAngle(doAtan(r.abs), r.signum < 0)
 
   def atan(x: Double): Try[Double] =
     Try {
@@ -318,6 +305,17 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     * Relative precision, as used by createFuzz.
     */
   val fuzz: Int = 4
+
+  def modulateAngle(ry: Try[Rational], flip: Boolean): Try[Rational] = ry map (r => if (flip) -r else r) map (r => if (sign < 0) Rational.one + r else r)
+
+  private def doAtan(r: Rational) = {
+    r match {
+      case Rational.infinity => Success(Rational.half)
+      case Rational.zero => Success(Rational.zero)
+      case Rational.one => Success(Rational.one / 4)
+      case _ => Failure(NumberException("atan cannot be Rational"))
+    }
+  }
 }
 
 /**
@@ -337,9 +335,9 @@ case object MonadicOperationModulate extends MonadicOperation {
   }
 
   val functions: MonadicFunctions = (
-    tryF(z => modulate(z, 0, 2)),
-    tryF(z => modulate(z, Rational.zero, Rational.two)),
-    tryF(z => modulate(z, 0, 2))
+          tryF(z => modulate(z, 0, 2)),
+          tryF(z => modulate(z, Rational.zero, Rational.two)),
+          tryF(z => modulate(z, 0, 2))
   )
 
   val derivative: Double => Double = _ => 1

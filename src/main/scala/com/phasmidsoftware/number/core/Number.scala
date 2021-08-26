@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -519,6 +518,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
 }
 
 object Number {
+
   /**
     * NOTE: this unapply method does not match on the fuzz of a Number.
     *
@@ -544,45 +544,41 @@ object Number {
     */
   val negOne: Number = ExactNumber(Value.fromInt(-1), Scalar)
   /**
-    * Exact value of 1
+    * Exact value of 2
     */
   val two: Number = ExactNumber(Value.fromInt(2), Scalar)
-
+  /**
+    * Exact value of 1/2
+    */
+  val half: Number = ExactNumber(Value.fromRational(Rational.half), Scalar)
   /**
     * Exact value of pi
     */
   val pi: Number = ExactNumber(Value.fromInt(1), Radian)
-
   /**
     * Exact value of 2 pi
     */
   val twoPi: Number = ExactNumber(Value.fromInt(2), Radian)
-
   /**
     * Exact value of pi/2
     */
   val piBy2: Number = ExactNumber(Value.fromRational(Rational.half), Radian)
-
   /**
     * Exact value of e
     */
   val e: Number = ExactNumber(Value.fromInt(1), NatLog)
-
   /**
     * Exact value of √2
     */
   val root2: Number = Number(2, Root2)
-
   /**
     * Exact value of √3
     */
   val root3: Number = Number(3, Root2)
-
   /**
     * Exact value of √5
     */
   val root5: Number = Number(5, Root2)
-
   /**
     * Implicit converter from Expression to Number.
     *
@@ -1050,9 +1046,17 @@ object Number {
     case _ => throw NumberException(s"scaling between ${n.factor} and $factor factors is not supported")
   }
 
-  def negate(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationNegate))
+  @tailrec
+  def negate(x: Number): Number = x.factor match {
+    case p@PureNumber(_) => prepare(x.transformMonadic(p)(MonadicOperationNegate))
+    case _ => negate(x.scale(Scalar))
+  }
 
-  def inverse(x: Number): Number = prepare(x.transformMonadic(x.factor)(MonadicOperationInvert))
+  def inverse(x: Number): Number = x.factor match {
+    case Scalar => prepare(x.transformMonadic(Scalar)(MonadicOperationInvert))
+    case f@Root(_) => prepare(x.transformMonadic(f)(MonadicOperationInvert))
+    case _ => negate(x.scale(Scalar))
+  }
 
   def isZero(x: Number): Boolean = x.query(QueryOperationIsZero, false)
 
@@ -1090,9 +1094,8 @@ object Number {
       }
     } else negate(sin(negate(x)))
 
-  def atan(x: Number, y: Number): Number =
   // CONSIDER checking here for x being zero
-    prepareWithSpecialize((y doDivide x).transformMonadic(Radian)(MonadicOperationAtan(x.signum))).modulate
+  def atan(x: Number, y: Number): Number = doAtan(y doDivide x, x.signum)
 
   /**
     * Yield the natural log of x.
@@ -1124,6 +1127,17 @@ object Number {
     case _ => exp(x.scale(Scalar))
   }
 
+  /**
+    * Method to yield the square root of a Number.
+    *
+    * @param x the Number whose square root we need.
+    * @return the square root of x.
+    */
+  def sqrt(x: Number): Number = x.factor match {
+    case Scalar => x.make(Root2).simplify
+    case _ => Field.convertToNumber(x.power(Number.half))
+  }
+
   // TODO use the method in Value.
   def scaleDouble(x: Double, fThis: Factor, fResult: Factor): Double = x * fThis.value / fResult.value
 
@@ -1139,6 +1153,21 @@ object Number {
     case _ => x
   }
 
+  @tailrec
+  private def doAtan(number: Number, sign: Int): Number = number.factor match {
+    case Scalar => prepareWithSpecialize(number.transformMonadic(Radian)(MonadicOperationAtan(sign))).modulate
+    case Root(2) =>
+      val ro = number.toRational
+      val ry: Try[Rational] = ro map (_.abs) match {
+        case Some(Rational(Rational.bigThree, Rational.bigOne)) => Success(Rational(1, 3))
+        case Some(Rational(Rational.bigOne, Rational.bigThree)) => Success(Rational(1, 6))
+        case None => Failure(NumberException("input to atan is not rational"))
+      }
+      (for (flip <- ro map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
+        case Some(r) => Number(r, Radian)
+        case None => doAtan(number.scale(Scalar), sign)
+      }
+  }
 
   private def convertScalarToRoot(n: Number, factor: Factor, f: Double) =
     n.doPower(ExactNumber(Value.fromDouble(Some(f)), Scalar)).make(factor)

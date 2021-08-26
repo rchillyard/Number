@@ -28,6 +28,9 @@ However, if you write the idiomatically correct form:
 
 then _x_ will be a _Number_ with value __exactly__ one half.
 
+You probably want to see some code: so go to the worksheets package and take a look, starting with
+NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
+
 Introduction
 ============
 The Number project provides mathematical utilities where error bounds are tracked (and not forgotten).

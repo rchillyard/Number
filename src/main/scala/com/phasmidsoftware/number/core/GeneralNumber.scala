@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
 import com.phasmidsoftware.number.core.Rational.toInts
-
 import scala.annotation.tailrec
 import scala.util._
 
@@ -98,9 +97,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * Yields the square root of this Number.
-    * If possible, the result will be exact.
+    * The result will be exact.
     */
-  def sqrt: Number = GeneralNumber.power(this, Number(Rational.half))
+  def sqrt: Number = Number.sqrt(this)
 
   /**
     * Method to determine the sine of this Number.
@@ -482,8 +481,12 @@ object GeneralNumber {
 
   @tailrec
   def times(x: Number, y: Number): Number = x match {
+    case ExactNumber(Right(0), Scalar) => Number.zero
+    case ExactNumber(Right(1), Scalar) => y
     case a: GeneralNumber =>
       y match {
+        case ExactNumber(Right(0), Scalar) => Number.zero
+        case ExactNumber(Right(1), Scalar) => x
         case n@FuzzyNumber(_, _, _) => n doMultiply x
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)

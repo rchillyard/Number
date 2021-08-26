@@ -156,9 +156,16 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val q = em.simplifier(y)
     q shouldBe em.Match(Literal(7))
   }
-  it should "show that lazy evaluation only works when you use it (a)" in {
+  it should "show that lazy evaluation sometimes works even when you don't use it (a)" in {
     val seven = Number(7)
     val x: Number = seven.sqrt
+    val y = x doPower two
+    y.isExact(None) shouldBe true
+    y shouldBe seven
+  }
+  it should "show that lazy evaluation only works when you use it (a)" in {
+    val seven = Number(7)
+    val x: Number = convertToNumber(seven.power(Number.half))
     val y = x doPower two
     y should matchPattern { case FuzzyNumber(_, _, _) => }
   }
@@ -206,7 +213,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "materialize (a)"
   it should "show that lazy evaluation only works when you use it" in {
     val seven = Number(7)
-    val x: Number = seven.sqrt
+    val x: Number = convertToNumber(seven.power(Number.half))
     val y = Literal(x) ^ 2
     y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
   }
@@ -215,12 +222,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = seven.sqrt
     val y: Expression = Literal(x) ^ two
     val result = convertToNumber(y.materialize)
-    result.isExact(None) shouldBe false
+    result.isExact(None) shouldBe true
     result shouldEqual Number(7)
   }
   it should "show ^2 and sqrt for illustrative purposes" in {
     val seven = Number(7)
-    val x = Literal(seven.sqrt)
+    val x = Literal(seven.power(Number.half))
     val y = convertToNumber((x ^ 2).materialize)
     y should matchPattern { case FuzzyNumber(_, _, _) => }
     y shouldEqual Number(7)

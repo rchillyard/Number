@@ -501,8 +501,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
 
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.0065702900565315, Box)) // changed Aug 5th
-    //    length.get.fuzz shouldBe Some(RelativeFuzz(0.0065702900565341804, Box))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.00657029005653496, Box))
 
     println(length.get)
   }
@@ -522,8 +521,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.005 +- 0.0002
 
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648321731, Gaussian)) // changed Aug 5th
-    //    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648321391, Gaussian))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648325369, Gaussian))
 
     println(length.get)
   }
