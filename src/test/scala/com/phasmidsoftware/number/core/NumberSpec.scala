@@ -479,7 +479,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number.e
     val expected = Number(math.E * math.E, Root2)
     val result: Number = target.scale(Root2)
-    result.render shouldBe "√7.38905609893064[2]"
+    result.render shouldBe "√7.389056098930649[47]"
     result should ===(expected)
   }
 
@@ -854,6 +854,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number(Rational(1, 4), Radian)
     val sin = target.sin
     sin shouldBe Number(Rational.half, Root2)
+  }
+  it should "work for One" in {
+    val target = Number.one
+    val sin = target.sin
+    import com.phasmidsoftware.number.core.Number.FuzzOps
+    sin should ===(0.8414709848078965 ~ 21)
   }
 
   behavior of "cos"

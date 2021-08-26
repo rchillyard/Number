@@ -406,7 +406,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "exp"
   it should "work for non-exact 1" in {
     val x = Number("1.00000000000*", NatLog)
-    x.scale(Scalar).render shouldBe "2.718281828459[14]"
+    x.normalize.render shouldBe "2.718281828459[14]"
   }
 
   // Following are the tests of Ordering[Number]
@@ -501,7 +501,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
 
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.006570290056531114, Box)) // changed Aug 5th
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.0065702900565315, Box)) // changed Aug 5th
     //    length.get.fuzz shouldBe Some(RelativeFuzz(0.0065702900565341804, Box))
 
     println(length.get)
@@ -522,7 +522,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.005 +- 0.0002
 
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648321508, Gaussian)) // changed Aug 5th
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648321731, Gaussian)) // changed Aug 5th
     //    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648321391, Gaussian))
 
     println(length.get)

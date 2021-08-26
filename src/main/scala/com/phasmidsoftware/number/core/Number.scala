@@ -1110,7 +1110,6 @@ object Number {
     case _ => log(x.scale(Scalar))
   }
 
-
   /**
     * Yield the exponential of x i.e. e to the power of x.
     * If the factor is Scalar, then we force the factor to be NatLog and simplify.

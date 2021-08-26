@@ -131,7 +131,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "various operations"
   it should "evaluate E * 2" in {
     val z: Field = (ConstE * 2).materialize
-    val q = convertToNumber(z).scale(Scalar)
+    val q = convertToNumber(z).normalize
     q.toString shouldBe "5.43656365691809[2]"
   }
 
