@@ -848,7 +848,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Number(bigBigInt).sqrt should ===(Number(Rational(2317047500592079L, 50000000000L)))
   }
   it should "work for easy Rational" in {
-    Number(Rational(9, 4)).sqrt shouldBe Number(Rational(3, 2))
+    val z = Number(Rational(9, 4)).sqrt
+    z.normalize shouldBe Number(Rational(3, 2))
   }
 
   behavior of "sin"

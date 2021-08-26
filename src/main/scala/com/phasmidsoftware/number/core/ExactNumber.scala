@@ -17,11 +17,14 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     */
   def simplify: Number = (factor, value) match {
     case (Logarithmic(_), Right(0)) => Number.one
+    // TODO implement for Root(3) also
     case (Root(2), v) => v match {
       case Right(x) =>
         (Rational.squareRoots.get(x) map (make(_, Scalar))).getOrElse(this)
-      case Left(Right(r)) =>
-        (for (n <- Rational.squareRoots.get(r.n.toInt); d <- Rational.squareRoots.get(r.d.toInt)) yield make(Rational(n, d))).getOrElse(this)
+      case Left(Right(r)) => r.root(2) match {
+        case Some(x) => ExactNumber(Value.fromRational(x), Scalar)
+        case _ => this
+      }
       case _ => this
     }
     case _ => this
@@ -89,6 +92,8 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
+    *
+    * TEST me
     *
     * @param v  the value (a Double).
     * @param f  Factor.

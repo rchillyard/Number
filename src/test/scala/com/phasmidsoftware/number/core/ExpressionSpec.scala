@@ -96,7 +96,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate sqrt 36" in {
     val x: Expression = Literal(36).sqrt
-    x.materialize.asNumber shouldEqual Some(Number(6))
+    x.materialize.normalize.asNumber shouldEqual Some(Number(6))
   }
   it should "evaluate sin pi/2" in {
     val x: Expression = ConstPi / 2

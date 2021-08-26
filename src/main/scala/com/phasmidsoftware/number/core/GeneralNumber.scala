@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
 import com.phasmidsoftware.number.core.Rational.toInts
-
 import scala.annotation.tailrec
 import scala.util._
 
@@ -19,18 +18,6 @@ import scala.util._
 abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
 
   self =>
-
-  /**
-    * Action to materialize this Expression.
-    *
-    * @return this ExactNumber.
-    */
-  def materialize: Number = this
-
-  /**
-    * @return Some(factor).
-    */
-  def maybeFactor: Option[Factor] = Some(factor)
 
   /**
     * Method to determine if this is a valid Number.
@@ -98,9 +85,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * Yields the square root of this Number.
-    * If possible, the result will be exact.
+    * The result will be exact.
     */
-  def sqrt: Number = GeneralNumber.power(this, Number(Rational.half))
+  def sqrt: Number = Number.sqrt(this)
 
   /**
     * Method to determine the sine of this Number.
@@ -184,14 +171,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def fuzzyCompare(other: Number, p: Double): Int = Number.fuzzyCompare(this, other, p)
 
   /**
-    * Make a copy of this FuzzyNumber but with additional fuzz given by f.
-    *
-    * @param f the additional fuzz.
-    * @return this but with fuzziness which is the convolution of fuzz and f.
-    */
-  def addFuzz(f: Fuzziness[Double]): Number = FuzzyNumber.addFuzz(this, f)
-
-  /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
@@ -214,14 +193,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] =
     Operations.doTransformValueMonadic(value)(op.functions) flatMap {
-      case v@Right(x)
-        if op.isExact(x) => Some(make(v, f))
-      case v@Left(Right(x))
-        if op.isExact(x) => Some(make(v, f))
-      case v =>
-        make(v, f) match {
-          case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, x, fuzz))
-        }
+      case v@Right(_) => Some(make(v, f))
+      case v@Left(Right(_)) => Some(make(v, f))
+      case v => make(v, f) match {
+        case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, x, fuzz))
+      }
     }
 
 
@@ -302,6 +278,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
+    * TEST me
+    *
     * @param x the value (a Double).
     * @param f Factor.
     * @return a Number.
@@ -314,6 +292,14 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
   def normalize: Number = scale(Scalar)
+
+  /**
+    * Method to ensure that the value is within some factor-specific range.
+    * In particular, Radian=based numbers are modulated to the range 0..2
+    *
+    * @return this or an equivalent Number.
+    */
+  def modulate: Number = Number.modulate(this)
 
   /**
     * Return a Number which uses the most restricted type possible.
@@ -349,6 +335,14 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     // XXX Invalid case
     case _ => this
   }
+
+  /**
+    * Make a copy of this FuzzyNumber but with additional fuzz given by f.
+    *
+    * @param f the additional fuzz.
+    * @return this but with fuzziness which is the convolution of fuzz and f.
+    */
+  def addFuzz(f: Fuzziness[Double]): Number = FuzzyNumber.addFuzz(this, f)
 
   /**
     * Method to align the factors of this and x such that the resulting Numbers (in the tuple) each have the same factor.
@@ -402,14 +396,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   }
 
   /**
-    * Method to ensure that the value is within some factor-specific range.
-    * In particular, Radian=based numbers are modulated to the range 0..2
-    *
-    * @return this or an equivalent Number.
-    */
-  def modulate: Number = Number.modulate(this)
-
-  /**
     * Evaluate a dyadic operator on this and other, using the various functions passed in.
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
@@ -440,17 +426,31 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   private lazy val maybeInt: Option[Int] = Value.maybeInt(value)
 
+  /**
+    * CONSIDER do we really need this?
+    */
   def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
 
+  /**
+    * Ensure that this is consistent with hashCode.
+    *
+    * @param other the other Any.
+    * @return true if this and Any are, logically the same.
+    */
   override def equals(other: Any): Boolean = other match {
     case that: GeneralNumber =>
       (that canEqual this) &&
-        value == that.value &&
-        factor == that.factor &&
-        fuzz == that.fuzz
+              value == that.value &&
+              factor == that.factor &&
+              fuzz == that.fuzz
     case _ => false
   }
 
+  /**
+    * TEST me
+    *
+    * @return
+    */
   override def hashCode(): Int = {
     val state = Seq(value, factor, fuzz)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
@@ -471,19 +471,27 @@ object GeneralNumber {
   }
 
   def plus(x: Number, y: Number): Number = x match {
+    case ExactNumber(Right(0), Scalar) => y
     case z: GeneralNumber =>
-      val (a, b) = z.alignFactors(y)
-      a.factor match {
-        case Logarithmic(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
-        case Root(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
-        case _ => plusAligned(a, b)
+      if (y == ExactNumber(Right(0), Scalar)) x
+      else {
+        val (a, b) = z.alignFactors(y)
+        a.factor match {
+          case Logarithmic(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
+          case Root(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
+          case _ => plusAligned(a, b)
+        }
       }
   }
 
   @tailrec
   def times(x: Number, y: Number): Number = x match {
+    case ExactNumber(Right(0), Scalar) => Number.zero
+    case ExactNumber(Right(1), Scalar) => y
     case a: GeneralNumber =>
       y match {
+        case ExactNumber(Right(0), Scalar) => Number.zero
+        case ExactNumber(Right(1), Scalar) => x
         case n@FuzzyNumber(_, _, _) => n doMultiply x
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)
@@ -516,7 +524,9 @@ object GeneralNumber {
     }
 
   @tailrec
-  private def power(x: Number, r: Rational): Number =
+  private def power(x: Number, r: Rational): Number = if (r.isZero) Number.one
+  else if (r.isUnity || x == Number.one) x
+  else
     x.factor match {
       case Logarithmic(_) =>
         val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
@@ -548,8 +558,6 @@ object GeneralNumber {
   /**
     * Method to take the ith root of n.
     *
-    * CONSIDER a special factor which is basically a root.
-    *
     * @param n the Number whose root is required.
     * @param i the ordinal of the root (2: square root, etc.).
     * @return the root.
@@ -557,11 +565,10 @@ object GeneralNumber {
   private def root(n: Number, i: Int): Option[Number] = i match {
     case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
     case 1 => Some(n)
-    case 2 => Some(sqrt(n))
+    case 2 => Some(n.make(Root2))
+    case 3 => Some(n.make(Root3)) // TEST me
     case _ => None
   }
-
-  private def sqrt(n: Number): Number = prepareWithSpecialize(n.scale(Scalar).transformMonadic(Scalar)(MonadicOperationSqrt))
 
   private def power(n: Number, i: Int) = i match {
     case x if x > 0 => LazyList.continually(n).take(x).product
