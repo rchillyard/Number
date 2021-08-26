@@ -470,12 +470,16 @@ object GeneralNumber {
   }
 
   def plus(x: Number, y: Number): Number = x match {
+    case ExactNumber(Right(0), Scalar) => y
     case z: GeneralNumber =>
-      val (a, b) = z.alignFactors(y)
-      a.factor match {
-        case Logarithmic(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
-        case Root(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
-        case _ => plusAligned(a, b)
+      if (y == ExactNumber(Right(0), Scalar)) x
+      else {
+        val (a, b) = z.alignFactors(y)
+        a.factor match {
+          case Logarithmic(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
+          case Root(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
+          case _ => plusAligned(a, b)
+        }
       }
   }
 
