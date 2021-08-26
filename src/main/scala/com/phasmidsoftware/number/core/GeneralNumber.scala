@@ -20,18 +20,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   self =>
 
   /**
-    * Action to materialize this Expression.
-    *
-    * @return this ExactNumber.
-    */
-  def materialize: Number = this
-
-  /**
-    * @return Some(factor).
-    */
-  def maybeFactor: Option[Factor] = Some(factor)
-
-  /**
     * Method to determine if this is a valid Number.
     * An invalid number has a value of form Left(Left(Left(None)))
     *
@@ -183,14 +171,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def fuzzyCompare(other: Number, p: Double): Int = Number.fuzzyCompare(this, other, p)
 
   /**
-    * Make a copy of this FuzzyNumber but with additional fuzz given by f.
-    *
-    * @param f the additional fuzz.
-    * @return this but with fuzziness which is the convolution of fuzz and f.
-    */
-  def addFuzz(f: Fuzziness[Double]): Number = FuzzyNumber.addFuzz(this, f)
-
-  /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
@@ -213,14 +193,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] =
     Operations.doTransformValueMonadic(value)(op.functions) flatMap {
-      case v@Right(x)
-        if op.isExact(x) => Some(make(v, f))
-      case v@Left(Right(x))
-        if op.isExact(x) => Some(make(v, f))
-      case v =>
-        make(v, f) match {
-          case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, x, fuzz))
-        }
+      case v@Right(_) => Some(make(v, f))
+      case v@Left(Right(_)) => Some(make(v, f))
+      case v => make(v, f) match {
+        case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, x, fuzz))
+      }
     }
 
 
@@ -301,6 +278,8 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
+    * TEST me
+    *
     * @param x the value (a Double).
     * @param f Factor.
     * @return a Number.
@@ -313,6 +292,14 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
   def normalize: Number = scale(Scalar)
+
+  /**
+    * Method to ensure that the value is within some factor-specific range.
+    * In particular, Radian=based numbers are modulated to the range 0..2
+    *
+    * @return this or an equivalent Number.
+    */
+  def modulate: Number = Number.modulate(this)
 
   /**
     * Return a Number which uses the most restricted type possible.
@@ -348,6 +335,14 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     // XXX Invalid case
     case _ => this
   }
+
+  /**
+    * Make a copy of this FuzzyNumber but with additional fuzz given by f.
+    *
+    * @param f the additional fuzz.
+    * @return this but with fuzziness which is the convolution of fuzz and f.
+    */
+  def addFuzz(f: Fuzziness[Double]): Number = FuzzyNumber.addFuzz(this, f)
 
   /**
     * Method to align the factors of this and x such that the resulting Numbers (in the tuple) each have the same factor.
@@ -401,14 +396,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   }
 
   /**
-    * Method to ensure that the value is within some factor-specific range.
-    * In particular, Radian=based numbers are modulated to the range 0..2
-    *
-    * @return this or an equivalent Number.
-    */
-  def modulate: Number = Number.modulate(this)
-
-  /**
     * Evaluate a dyadic operator on this and other, using the various functions passed in.
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
@@ -439,17 +426,31 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   private lazy val maybeInt: Option[Int] = Value.maybeInt(value)
 
+  /**
+    * CONSIDER do we really need this?
+    */
   def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
 
+  /**
+    * Ensure that this is consistent with hashCode.
+    *
+    * @param other the other Any.
+    * @return true if this and Any are, logically the same.
+    */
   override def equals(other: Any): Boolean = other match {
     case that: GeneralNumber =>
       (that canEqual this) &&
-        value == that.value &&
-        factor == that.factor &&
-        fuzz == that.fuzz
+              value == that.value &&
+              factor == that.factor &&
+              fuzz == that.fuzz
     case _ => false
   }
 
+  /**
+    * TEST me
+    *
+    * @return
+    */
   override def hashCode(): Int = {
     val state = Seq(value, factor, fuzz)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
@@ -565,11 +566,9 @@ object GeneralNumber {
     case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
     case 1 => Some(n)
     case 2 => Some(n.make(Root2))
-    case 3 => Some(n.make(Root3))
+    case 3 => Some(n.make(Root3)) // TEST me
     case _ => None
   }
-
-  private def sqrt(n: Number): Number = prepareWithSpecialize(n.scale(Scalar).transformMonadic(Scalar)(MonadicOperationSqrt))
 
   private def power(n: Number, i: Int) = i match {
     case x if x > 0 => LazyList.continually(n).take(x).product

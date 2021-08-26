@@ -38,17 +38,6 @@ sealed trait MonadicOperation {
   val absolute: Boolean
 
   /**
-    * Determine if, given an exact Rational (or Int) output value, this MonadicOperation returns an exact result.
-    *
-    * NOTE: it seems that all implementations of this method simply return true.
-    * CONSIDER eliminate.
-    *
-    * @param r the input value (a Rational).
-    * @return true if the result is exact.
-    */
-  def isExact(r: Rational): Boolean
-
-  /**
     * Relative precision, as used by createFuzz.
     */
   val fuzz: Int
@@ -73,14 +62,6 @@ case object MonadicOperationNegate extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
-
-  /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
-    *
-    * @param r the input value (ignored).
-    * @return true.
-    */
-  def isExact(r: Rational): Boolean = true
 
   /**
     * Relative precision, as used by createFuzz.
@@ -109,14 +90,6 @@ case object MonadicOperationInvert extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
-
-  /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
-    *
-    * @param r the input value (ignored).
-    * @return true.
-    */
-  def isExact(r: Rational): Boolean = true
 
   /**
     * Relative precision, as used by createFuzz.
@@ -151,14 +124,6 @@ case object MonadicOperationExp extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
-
-  /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
-    *
-    * @param r the input value (a Rational).
-    * @return the success status of the result of expInt or expRat.
-    */
-  def isExact(r: Rational): Boolean = true
 
   /**
     * Relative precision, as used by createFuzz.
@@ -196,14 +161,6 @@ case object MonadicOperationLog extends MonadicOperation {
   val absolute: Boolean = false //not used
 
   /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
-    *
-    * @param r the input value (a Rational).
-    * @return the success status of the result of expRat.
-    */
-  def isExact(r: Rational): Boolean = true
-
-  /**
     * Relative precision, as used by createFuzz.
     */
   val fuzz: Int = 3
@@ -236,14 +193,8 @@ case object MonadicOperationSin extends MonadicOperation {
     }
 
   private val sinRatInexact: Rational => Try[Rational] = x =>
-    // CONSIDER do we really need this first clause?
     if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational(_))
-    else x.invert.toInt match {
-      // CONSIDER eliminating the following...
-      case 4 => Rational.half.sqrt
-      case 3 => Rational(3).sqrt map (_ / 2)
-      case _ => Failure(NumberException("sine cannot be Rational"))
-    }
+    else Failure(NumberException("MonadicOperationSin: logic error: whole Rational"))
 
   private def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))
 
@@ -255,14 +206,6 @@ case object MonadicOperationSin extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
-
-  /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
-    *
-    * @param r the input value (a Rational).
-    * @return the success status of the result of expRat.
-    */
-  def isExact(r: Rational): Boolean = true
 
   /**
     * Relative precision, as used by createFuzz.
@@ -292,14 +235,6 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
-
-  /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
-    *
-    * @param r the input value (a Rational).
-    * @return the success status of the result of expRat.
-    */
-  def isExact(r: Rational): Boolean = true
 
   /**
     * Relative precision, as used by createFuzz.
@@ -348,14 +283,6 @@ case object MonadicOperationModulate extends MonadicOperation {
   val absolute: Boolean = true // not used
 
   /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
-    *
-    * @param r the input value (ignored).
-    * @return the success status of the result of expRat.
-    */
-  def isExact(r: Rational): Boolean = true
-
-  /**
     * Relative precision, as used by createFuzz.
     */
   val fuzz: Int = 0
@@ -380,15 +307,6 @@ case object MonadicOperationSqrt extends MonadicOperation {
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false // not used
-
-  /**
-    * Determine if, given an exact Rational (or Int) output value, this MonadicOperation returns an exact result.
-    *
-    * @param r the output value (ignored).
-    * @return the success status of the result of expRat.
-    */
-  def isExact(r: Rational): Boolean = true
-  //    s"isExact: $r" !! toInt(r).flatMap(sqrtInt).orElse(sqrtRat(r)).isSuccess
 
   /**
     * Relative precision, as used by createFuzz.
@@ -419,14 +337,6 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
   val absolute: Boolean = false // not used
 
   /**
-    * Determine if, given an exact Rational (or Int) input, this MonadicOperation returns an exact result.
-    *
-    * @param r the input value (ignored).
-    * @return the success status of the result of expRat.
-    */
-  def isExact(r: Rational): Boolean = true
-
-  /**
     * Relative precision, as used by createFuzz.
     */
   val fuzz: Int = 0
@@ -442,8 +352,6 @@ case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) e
   val derivative: Double => Double = dfByDx
 
   val absolute: Boolean = true // not used
-
-  def isExact(r: Rational): Boolean = false
 
   val fuzz: Int = 1
 }
@@ -491,7 +399,6 @@ case object DyadicOperationPower extends DyadicOperation {
   def powerInt(x: Int, p: Int): Try[Int] =
     if (p >= 0) Rational.narrow(BigInt(x).pow(p), Int.MinValue, Int.MaxValue).map(_.toInt)
     else Failure(NumberException("negative power (Int)"))
-
 }
 
 

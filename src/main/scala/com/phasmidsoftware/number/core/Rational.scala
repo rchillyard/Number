@@ -327,6 +327,8 @@ object Rational {
   /**
     * Method to construct a Rational from a BigInt with sign defined by "negative".
     *
+    * TEST me
+    *
     * @param n        the value.
     * @param negative if true then the sign of the result will be flipped.
     * @return a Rational with the same value as n.

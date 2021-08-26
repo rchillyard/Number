@@ -1,17 +1,10 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Complex.{convertToCartesian, narrow}
+import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar, narrow}
 import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
 import com.phasmidsoftware.number.core.Number.negate
 
 abstract class Complex(val real: Number, val imag: Number) extends Field {
-
-  /**
-    * Evaluate the magnitude squared of this Complex number.
-    *
-    * @return the magnitude squared.
-    */
-  def magnitudeSquared: Number
 
   /**
     * Method to determine the modulus of this Complex number.
@@ -21,11 +14,11 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
   def modulus: Number
 
   /**
-    * Method to determine the complement of this Complex number.
+    * Method to determine the argument (angle) of this Complex number.
     *
-    * @return the complement of this Complex.
+    * @return a Number (in radians).
     */
-  def complement: Complex = make(real, imag.makeNegative)
+  def argument: Number
 
   /**
     * Instance method to make a Complex number from a real and an imaginary part.
@@ -37,6 +30,30 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
   def make(a: Number, b: Number): Complex
 
   /**
+    * Method to add this Complex to another Complex.
+    *
+    * @param complex the other Complex.
+    * @return the sum of the Complexes.
+    */
+  def doAdd(complex: Complex): Complex
+
+  /**
+    * Method to multiply this Complex by another Complex.
+    *
+    * @param complex the other Complex.
+    * @return the product of the Complexes.
+    */
+  def doMultiply(complex: Complex): Complex
+
+  /**
+    * Method to scale this Complex by a Number.
+    *
+    * @param n the Number.
+    * @return a Complex with the same argument as this but a different magnitude.
+    */
+  def numberProduct(n: Number): Complex
+
+  /**
     * Method to determine if this Complex can be evaluated exactly.
     *
     * NOTE: the implementations of this don't always make perfect sense regarding maybeFactor.
@@ -44,13 +61,6 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
     * @return true if materialize will result in an exact Field, else false.
     */
   def isExact(maybeFactor: Option[Factor]): Boolean = real.isExact(maybeFactor) && imag.isExact(maybeFactor)
-
-  /**
-    * Action to materialize this Complex as a Field,
-    *
-    * @return this.
-    */
-  def materialize: Field = this
 
   /**
     * Add x to this Complex and return the result.
@@ -64,8 +74,6 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
     * Change the sign of this Number.
     */
   def unary_- : Field = make(real, Number.negate(imag))
-
-  def numberProduct(n: Number): Complex
 
   /**
     * Multiply this Complex by x and return the result.
@@ -101,7 +109,7 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
       )
     case ComplexCartesian(_, _) => p.toInt match {
       case Some(0) => Complex.unit
-      case Some(-1) => -this divide this.magnitudeSquared
+      case Some(-1) => -this divide (modulus doMultiply modulus)
       case Some(1) => this
       case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
       case _ => throw ComplexException(s"not implemented: power($p)")
@@ -116,6 +124,13 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
   def invert: Field = power(-1)
 
   /**
+    * Method to determine the complement of this Complex number.
+    *
+    * @return the complement of this Complex.
+    */
+  def complement: Complex = make(real, imag.makeNegative)
+
+  /**
     * Method to add this to the given parameter (a Cartesian).
     *
     * @param addend the complex addend.
@@ -125,8 +140,6 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
     case ComplexCartesian(_, _) => doAdd(addend)
     case ComplexPolar(_, _) => narrow(this, polar = false) doAdd addend
   }
-
-  def doAdd(complex: Complex): Complex
 
   /**
     * Method to multiply this by the given parameter (a Polar).
@@ -141,8 +154,6 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
       case ComplexPolar(_, _) => narrow(this, polar = true) doMultiply multiplicand
     }
   }
-
-  def doMultiply(complex: Complex): Complex
 
   protected def showImaginary: String = s"${if (imag.isPositive) "" else "-"}i${imag.abs}"
 }
@@ -183,7 +194,13 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     *
     * @return the modulus of this Complex.
     */
-  def modulus: Number = magnitudeSquared.sqrt
+  def modulus: Number = convertToPolar(this).real
+
+  /**
+    *
+    * @return a Number (in radians).
+    */
+  def argument: Number = convertToPolar(this).argument
 
   /**
     * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
@@ -198,10 +215,18 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
 
   def isZero: Boolean = x.isProbablyZero(0.5) && y.isProbablyZero(0.5)
 
+  /**
+    * TEST me
+    *
+    * @return true if the magnitude of this Field is infinite.
+    */
   def isInfinite: Boolean = x.isInfinite || y.isInfinite
 
-  def magnitudeSquared: Number = Literal(x) * x plus (Literal(y) * y)
-
+  /**
+    * TEST me
+    *
+    * @return a Field which is in canonical form.
+    */
   def normalize: Complex = ComplexCartesian(convertToNumber(x.normalize), convertToNumber(y.normalize))
 
   /**
@@ -258,6 +283,12 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
   def modulus: Number = r
 
   /**
+    *
+    * @return a Number (in radians).
+    */
+  def argument: Number = theta
+
+  /**
     * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
     *
     * @return Some(factor of r) if factor of theta is Radian; otherwise None.
@@ -271,8 +302,6 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
   def isZero: Boolean = r.isZero
 
   def isInfinite: Boolean = r.isInfinite
-
-  def magnitudeSquared: Number = Literal(r) * r
 
   def normalize: Complex = ComplexCartesian(r.scale(NatLog), theta.scale(Radian))
 

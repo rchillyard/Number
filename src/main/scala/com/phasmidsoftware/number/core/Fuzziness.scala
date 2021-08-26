@@ -76,14 +76,6 @@ trait Fuzziness[T] {
   def toString(t: T): String
 
   /**
-    * Yields the actual probability density for the value t.
-    *
-    * @param t a particular T value, for which we want the probability density.
-    * @return the probability density.
-    */
-  def probabilityDensity(t: T): Double
-
-  /**
     * Determine the range +- t within which a deviation is considered within tolerance and where
     * l signifies the extent of the PDF.
     * In other words get the wiggle room.
@@ -176,16 +168,6 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * @return a String which is the textual rendering of t with this Fuzziness applied.
     */
   def toString(t: T): String = absolute(t).map(_.toString(t)).getOrElse("")
-
-  /**
-    * Yields the actual probability density for the value t.
-    *
-    * TEST me (not used)
-    *
-    * @param t a particular T value, for which we want the probability density.
-    * @return the probability density.
-    */
-  def probabilityDensity(t: T): Double = shape.probabilityDensity(tv.toDouble(t), tolerance)
 
   /**
     * Determine the range +- t within which a deviation is considered within tolerance and where
@@ -316,14 +298,6 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
   }
 
   /**
-    * Yields the actual probability density for the value t.
-    *
-    * @param t a particular T value, for which we want the probability density.
-    * @return the probability density.
-    */
-  def probabilityDensity(t: T): Double = shape.probabilityDensity(tv.toDouble(t), tv.toDouble(magnitude))
-
-  /**
     * Determine the range +- x within which a deviation is considered within tolerance and where
     * l signifies the extent of the PDF.
     * In other words get the wiggle room.
@@ -346,15 +320,6 @@ object AbsoluteFuzz {
 }
 
 object Fuzziness {
-
-  /**
-    * Method to return a transform function which multiplies a T value by another T value.
-    *
-    * @param k a constant T value (the scale factor).
-    * @tparam T the underlying type of the input and output.
-    * @return a function which can be used by transform.
-    */
-  def scale[T: Valuable](k: T): T => T = implicitly[Valuable[T]].times(_, k)
 
   /**
     * Method to yield a transformation (i.e. a Fuzziness[T] => Fuzziness[T]) based on a scale constant k.
@@ -485,14 +450,6 @@ object Fuzziness {
   * NOTE: this isn't suitable for discrete distributions, obviously.
   */
 trait Shape {
-  /**
-    * Determine the approximate probability density for this shape at the point x where l signifies the extent of the PDF.
-    *
-    * @param x the x value.
-    * @param l the extent of the PDF (for example, the standard deviation, for a Gaussian).
-    * @return the value of the probability density at x.
-    */
-  def probabilityDensity(x: Double, l: Double): Double
 
   /**
     * Determine the range +- x within which a deviation is considered within tolerance.
@@ -530,15 +487,6 @@ case object Box extends Shape {
     * @return t/2 which will be used as the standard deviation.
     */
   def toGaussianAbsolute[T: Valuable](t: T): T = implicitly[Valuable[T]].scale(t, uniformToGaussian)
-
-  /**
-    * Determine the probability density for this shape at the point x where l signifies the extent of the PDF.
-    *
-    * @param x the x value (ignored)
-    * @param l the half-width of a Box.
-    * @return the value of the probability density at x.
-    */
-  def probabilityDensity(x: Double, l: Double): Double = 0.5 / l
 
   /**
     * Determine the range +- x within which a deviation is considered within tolerance and where
@@ -594,26 +542,6 @@ case object Gaussian extends Shape {
   def convolutionProduct(sigma1: Double, sigma2: Double, independent: Boolean): Double =
     if (independent) math.sqrt(sigma1 * sigma1 + sigma2 * sigma2 + sigma1 * sigma2)
     else sigma1 + sigma2
-
-  /**
-    * Determine the APPROXIMATE probability density for this shape at the point x where l signifies the extent of the PDF.
-    * This is not intended for precision.
-    *
-    * TODO use erf instead.
-    *
-    * @param x     the x value.
-    * @param sigma the standard deviation of a Box.
-    * @return the value of the probability density at x.
-    */
-  def probabilityDensity(x: Double, sigma: Double): Double = {
-    val y = math.abs(x)
-    if (y < 1E-1) 1
-    else if (y < 0.47) 0.51
-    else if (y < 1) 0.32
-    else if (y < 2) 0.05
-    else if (y < 3) 0.0025
-    else 0
-  }
 
   /**
     * Determine the "wiggle room" for a particular probability of confidence,

@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Render.renderValue
-
 import java.util.NoSuchElementException
 import scala.math.BigInt
 import scala.util._
@@ -39,6 +38,8 @@ object Value {
 
   /**
     * Convert nothing to an invalid Value.
+    *
+    * TEST me
     *
     * @return a Value.
     */
@@ -111,14 +112,6 @@ sealed trait Factor {
   val value: Double
 
   /**
-    * A method to combine this Factor with another Factor and, if they are compatible, to return Some(factor).
-    *
-    * @param other the other factor.
-    * @return Some(f) if the factors are compatible, otherwise None.
-    */
-  def +(other: Factor): Option[Factor]
-
-  /**
     * Convert a value x from this factor to f if possible, using simple scaling.
     * If the factors are incompatible, then None will be returned.
     *
@@ -151,10 +144,6 @@ sealed trait Factor {
   * Trait to define a Factor which is a scaled version of a pure number.
   */
 sealed trait PureNumber extends Factor {
-  def +(other: Factor): Option[Factor] = other match {
-    case Scalar => Some(this) // NOTE this logic seems to think that Scalar and Pi are able to be combined exactly.
-    case _ => throw NumberException("cannot add Radian factors together")
-  }
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
@@ -180,9 +169,6 @@ object PureNumber {
   */
 sealed trait Logarithmic extends Factor {
   val base: String
-
-  // CONSIDER there might be some other factors which can be combined.
-  def +(other: Factor): Option[Factor] = if (this == other) Some(this) else None
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
@@ -231,15 +217,6 @@ sealed trait Root extends Factor {
   val value: Double = root
 
   /**
-    * A method to combine this Factor with another Factor and, if they are compatible, to return Some(factor).
-    *
-    * @param other the other factor.
-    * @return Some(f) if the factors are compatible, otherwise None.
-    */
-  // CONSIDER there might be some other factors which can be combined.
-  def +(other: Factor): Option[Factor] = if (this == other) Some(this) else None
-
-  /**
     * Convert a value x from this factor to f if possible, using simple scaling.
     * Result is defined only if f is a Root.
     *
@@ -264,17 +241,6 @@ case object Scalar extends PureNumber {
   val value: Double = 1
 
   override def toString: String = ""
-
-  /**
-    * TODO check the logic here. Don't think we really need this method defined here.
-    *
-    * @param other the other factor.
-    * @return Some(f) if the factors are compatible, otherwise None.
-    */
-  override def +(other: Factor): Option[Factor] = other match {
-    case NatLog => None
-    case _ => Some(other)
-  }
 
   def render(x: String): String = x
 }

@@ -93,6 +93,8 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
+    * TEST me
+    *
     * @param v  the value (a Double).
     * @param f  Factor.
     * @param fo optional fuzz.
