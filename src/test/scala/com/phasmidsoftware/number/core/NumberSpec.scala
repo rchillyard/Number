@@ -810,6 +810,34 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     (target doPower 2) shouldBe Number(4)
   }
 
+  behavior of "power"
+  it should "work for squaring Scalar" in {
+    val target = Number.two
+    target.power(2) shouldBe Number(4)
+  }
+  it should "work for squaring Root2" in {
+    val target = Number.root2
+    target.power(2) shouldBe Number.two
+  }
+  it should "work for squaring Root3" in {
+    val target = Number.root3
+    target.power(2) shouldBe Number(3)
+  }
+  it should "work for cubing cube-root2" in {
+    val target = Number(2, Root3)
+    target.power(3) shouldBe Number.two
+  }
+  it should "work for squaring NatLog" in {
+    val target = Number(Rational.half, NatLog)
+    target.power(2) shouldBe Number.e
+  }
+  it should "work for squaring Log2" in {
+    val target = Number(Rational.half, Log2)
+    val result = target.power(2)
+    // TODO this should be equal to just plain old Number.two (need to simplify result).
+    result shouldBe Number(1, Log2)
+  }
+
   behavior of "sqrt"
   it should "work for easy ints" in {
     Number(1).sqrt shouldBe Number(1)

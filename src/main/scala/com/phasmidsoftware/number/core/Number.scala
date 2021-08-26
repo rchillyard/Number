@@ -3,9 +3,9 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Number.negate
-import com.phasmidsoftware.number.core.Rational.toInts
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -152,6 +152,8 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
 
   /**
     * Raise this Number to the power p.
+    *
+    * NOTE: this method is only ever used by Specs.
     *
     * @param p an Int.
     * @return this Number raised to the power of p.
@@ -1014,17 +1016,6 @@ object Number {
 
   def prepareWithSpecialize(no: Option[Number]): Number = prepare(no).specialize
 
-  private def sqrt(n: Number): Number = prepareWithSpecialize(n.scale(Scalar).transformMonadic(Scalar)(MonadicOperationSqrt))
-
-  def power(x: Number, y: Number): Number =
-    y.scale(Scalar).toRational match {
-      case Some(r) => power(x, r)
-      case None =>
-        // NOTE this is not used, but it doesn't seem to handle fuzziness properly either.
-        val zo = for (p <- x.toDouble; q <- y.toDouble) yield Number(math.pow(p, q))
-        prepareWithSpecialize(zo)
-    }
-
   /**
     * Method to deal with a Scale factor change.
     *
@@ -1139,53 +1130,6 @@ object Number {
     case _ => x
   }
 
-
-  @tailrec
-  private def power(x: Number, r: Rational): Number =
-    x.factor match {
-      // NOTE need to expand the factor types here--indeed this whole method needs to be rewritten
-      case NatLog =>
-        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
-        vo match {
-          case Some(v) => x.make(v)
-          case None => throw NumberException("power: logic error")
-        }
-
-      case Radian =>
-        power(x.scale(Scalar), r)
-
-      case Scalar =>
-        toInts(r) match {
-          case Some((n, d)) =>
-            root(power(x, n), d) match {
-              case Some(q) => q
-              case None => Number(r.toDouble)
-            }
-          case _ =>
-            throw NumberException("rational power cannot be represented as two Ints")
-        }
-    }
-
-  private def power(n: Number, i: Int) = i match {
-    case x if x > 0 => LazyList.continually(n).take(x).product
-    case x => LazyList.continually(Number.inverse(n)).take(-x).product
-  }
-
-  /**
-    * Method to take the ith root of n.
-    *
-    * CONSIDER a special factor which is basically a root.
-    *
-    * @param n the Number whose root is required.
-    * @param i the ordinal of the root (2: square root, etc.).
-    * @return the root.
-    */
-  private def root(n: Number, i: Int): Option[Number] = i match {
-    case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
-    case 1 => Some(n)
-    case 2 => Some(Number.sqrt(n))
-    case _ => None
-  }
 
   private def convertScalarToRoot(n: Number, factor: Factor, f: Double) =
     n.doPower(ExactNumber(Value.fromDouble(Some(f)), Scalar)).make(factor)

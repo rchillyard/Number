@@ -55,7 +55,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @param p a Number.
     * @return this Number raised to the power of p.
     */
-  def doPower(p: Number): Number = Number.power(this, p)
+  def doPower(p: Number): Number = GeneralNumber.power(this, p)
 
   /**
     * Method to compare this Number with another.

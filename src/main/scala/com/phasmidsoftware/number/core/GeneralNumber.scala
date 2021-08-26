@@ -1,6 +1,8 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
+import com.phasmidsoftware.number.core.Rational.toInts
+
 import scala.annotation.tailrec
 import scala.util._
 
@@ -89,7 +91,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * Yields the square root of this Number.
     * If possible, the result will be exact.
     */
-  def sqrt: Number = Number.power(this, Number(Rational.half))
+  def sqrt: Number = GeneralNumber.power(this, Number(Rational.half))
 
   /**
     * Method to determine the sine of this Number.
@@ -478,6 +480,75 @@ object GeneralNumber {
             case _ => times(p.scale(Scalar), q.scale(Scalar))
           }
       }
+  }
+
+  /**
+    * NOTE: This method is invoked by sqrt (in GeneralNumber) and doPower (in ExactNumber).
+    *
+    * @param x the base Number.
+    * @param y the power.
+    * @return x raised to the power of y.
+    */
+  def power(x: Number, y: Number): Number =
+    y.scale(Scalar).toRational match {
+      case Some(r) => power(x, r).specialize
+      case None =>
+        // NOTE this is not used, but it doesn't seem to handle fuzziness properly either.
+        val zo = for (p <- x.toDouble; q <- y.toDouble) yield Number(math.pow(p, q))
+        prepareWithSpecialize(zo)
+    }
+
+  @tailrec
+  private def power(x: Number, r: Rational): Number =
+    x.factor match {
+      case Logarithmic(_) =>
+        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
+        vo match {
+          case Some(v) => x.make(v)
+          case None => throw NumberException("power: logic error")
+        }
+
+      case Radian =>
+        power(x.scale(Scalar), r)
+
+      case Scalar =>
+        toInts(r) match {
+          case Some((n, d)) =>
+            root(power(x, n), d) match {
+              case Some(q) => q
+              case None => Number(r.toDouble)
+            }
+          case _ =>
+            throw NumberException("rational power cannot be represented as two Ints")
+        }
+
+      // TODO we should also handle some situations where r.d is not 1.
+      case Root(n) if r.n == n && r.d == 1 => x.make(Scalar)
+      case _ => power(x.scale(Scalar), r)
+
+    }
+
+  /**
+    * Method to take the ith root of n.
+    *
+    * CONSIDER a special factor which is basically a root.
+    *
+    * @param n the Number whose root is required.
+    * @param i the ordinal of the root (2: square root, etc.).
+    * @return the root.
+    */
+  private def root(n: Number, i: Int): Option[Number] = i match {
+    case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
+    case 1 => Some(n)
+    case 2 => Some(sqrt(n))
+    case _ => None
+  }
+
+  private def sqrt(n: Number): Number = prepareWithSpecialize(n.scale(Scalar).transformMonadic(Scalar)(MonadicOperationSqrt))
+
+  private def power(n: Number, i: Int) = i match {
+    case x if x > 0 => LazyList.continually(n).take(x).product
+    case x => LazyList.continually(Number.inverse(n)).take(-x).product
   }
 
   private def doTimes(p: Number, q: Number, factor: Factor) = {

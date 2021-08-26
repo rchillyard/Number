@@ -196,7 +196,8 @@ object FuzzyNumber {
 
   def apply(): Number = Number.apply()
 
-  private def power(number: FuzzyNumber, p: Number): Number = composeDyadic(number.scale(Scalar), p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
+  private def power(number: FuzzyNumber, p: Number): Number =
+    composeDyadic(number.scale(Scalar), p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
 
   /**
     * Get the fuzz coefficients for calculating the fuzz on a power operation.
