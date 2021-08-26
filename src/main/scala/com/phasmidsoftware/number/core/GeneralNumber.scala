@@ -523,7 +523,9 @@ object GeneralNumber {
     }
 
   @tailrec
-  private def power(x: Number, r: Rational): Number =
+  private def power(x: Number, r: Rational): Number = if (r.isZero) Number.one
+  else if (r.isUnity || x == Number.one) x
+  else
     x.factor match {
       case Logarithmic(_) =>
         val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
@@ -555,8 +557,6 @@ object GeneralNumber {
   /**
     * Method to take the ith root of n.
     *
-    * CONSIDER a special factor which is basically a root.
-    *
     * @param n the Number whose root is required.
     * @param i the ordinal of the root (2: square root, etc.).
     * @return the root.
@@ -564,7 +564,8 @@ object GeneralNumber {
   private def root(n: Number, i: Int): Option[Number] = i match {
     case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
     case 1 => Some(n)
-    case 2 => Some(sqrt(n))
+    case 2 => Some(n.make(Root2))
+    case 3 => Some(n.make(Root3))
     case _ => None
   }
 
