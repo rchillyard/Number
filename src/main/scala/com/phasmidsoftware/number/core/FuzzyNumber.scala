@@ -194,6 +194,21 @@ object FuzzyNumber {
     def same(p: Double)(x1: Number, x2: Number): Boolean = x1.doAdd(x2.makeNegative).isProbablyZero(p)
   }
 
+  /**
+    * For fuzzy numbers, it's appropriate to use the the normal mechanism for compare, even for NatLog numbers.
+    *
+    * NOTE, we first invoke same(p)(x, y) to determine if the Numbers are the same in a canonical manner.
+    * However, we could actually skip this step and always just invoke the else part of the expression.
+    *
+    * @param x the first number.
+    * @param y the second number.
+    * @param p the probability criterion.
+    * @return an Int representing the order.
+    */
+  def fuzzyCompare(x: Number, y: Number, p: Double): Int =
+    if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
+    else GeneralNumber.plus(x, Number.negate(y)).signum(p)
+
   def apply(): Number = Number.apply()
 
   private def power(number: FuzzyNumber, p: Number): Number =

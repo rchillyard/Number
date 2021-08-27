@@ -1,10 +1,10 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -949,7 +949,7 @@ object Number {
   /**
     * Following are the definitions required by Numeric[Number]
     */
-  trait NumberIsNumeric extends Numeric[Number] {
+  trait NumberIsNumeric extends Numeric[Number] with NumberIsOrdering {
     def plus(x: Number, y: Number): Number = GeneralNumber.plus(x, y)
 
     def minus(x: Number, y: Number): Number = GeneralNumber.plus(x, negate(y))
@@ -992,24 +992,9 @@ object Number {
   def doCompare(x: Number, y: Number): Int = NumberIsOrdering.compare(x, y)
 
   /**
-    * For fuzzy numbers, it's appropriate to use the the normal mechanism for compare, even for NatLog numbers.
-    *
-    * NOTE, we first invoke same(p)(x, y) to determine if the Numbers are the same in a canonical manner.
-    * However, we could actually skip this step and always just invoke the else part of the expression.
-    *
-    * @param x the first number.
-    * @param y the second number.
-    * @param p the probability criterion.
-    * @return an Int representing the order.
-    */
-  def fuzzyCompare(x: Number, y: Number, p: Double): Int =
-    if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
-    else GeneralNumber.plus(x, Number.negate(y)).signum(p)
-
-  /**
     * Following are the definitions required by Fractional[Number]
     */
-  trait NumberIsFractional extends Fractional[Number] {
+  trait NumberIsFractional extends Fractional[Number] with NumberIsNumeric {
     def div(x: Number, y: Number): Number = GeneralNumber.times(x, Number.inverse(y))
   }
 
@@ -1137,9 +1122,6 @@ object Number {
     case Scalar => x.make(Root2).simplify
     case _ => Field.convertToNumber(x.power(Number.half))
   }
-
-  // TODO use the method in Value.
-  def scaleDouble(x: Double, fThis: Factor, fResult: Factor): Double = x * fThis.value / fResult.value
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.

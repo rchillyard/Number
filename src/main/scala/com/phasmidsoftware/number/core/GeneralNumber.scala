@@ -168,7 +168,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
     * @return -1, 0, 1 as usual.
     */
-  def fuzzyCompare(other: Number, p: Double): Int = Number.fuzzyCompare(this, other, p)
+  def fuzzyCompare(other: Number, p: Double): Int = FuzzyNumber.fuzzyCompare(this, other, p)
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
