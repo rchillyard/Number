@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -46,6 +47,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "asNumber" in {
     c2_0.asNumber shouldBe Some(Number.two)
     c1_2.asNumber shouldBe None
+    p1_pi_2.asNumber shouldBe Some(Number.i)
+    ComplexCartesian(0, Number.two).asNumber shouldBe Some(Number(-4, Root2))
   }
 
   it should "add1" in {
@@ -126,8 +129,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "convertToPolar" in {
-    val expected = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Radian))
-    val actual = convertToPolar(c1_2)
+    val expected: Complex = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Radian))
+    val actual: Complex = convertToPolar(c1_2)
     actual shouldEqual expected
   }
 
@@ -173,5 +176,26 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "work" in {
     c2_0.asComplex shouldBe c2_0
     Number(2).asComplex shouldBe c2_0
+  }
+
+  behavior of "numberProduct"
+  it should "work" in {
+    ComplexCartesian(1, 0).numberProduct(Number.two) shouldBe c2_0
+    ComplexCartesian(0, -2).numberProduct(Number.i) shouldBe c2_0
+  }
+
+  behavior of "i"
+  it should "render as √-1" in {
+    // CONSIDER should we have it render as "i" instead?
+    Number.i.render shouldBe "√-1"
+  }
+  it should "convertToNumber" in {
+    convertToNumber(Number.i) shouldBe Number.i
+  }
+  it should "scale(Scalar)" in {
+    a[NumberException] should be thrownBy Number.i.scale(Scalar)
+  }
+  it should "normalize" in {
+    Number.i.normalize shouldBe ComplexCartesian(0, 1)
   }
 }

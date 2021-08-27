@@ -384,7 +384,7 @@ case class Literal(x: Field) extends AtomicExpression {
     */
   def maybeFactor: Option[Factor] = x match {
     case n: Number => Some(n.factor)
-    case c: Complex => if (c.real.factor == c.imag.factor) Some(c.real.factor) else None
+    case c: BaseComplex => if (c.real.factor == c.imag.factor) Some(c.real.factor) else None
   }
 
   /**

@@ -168,7 +168,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
     * @return -1, 0, 1 as usual.
     */
-  def fuzzyCompare(other: Number, p: Double): Int = Number.fuzzyCompare(this, other, p)
+  def fuzzyCompare(other: Number, p: Double): Int = FuzzyNumber.fuzzyCompare(this, other, p)
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -291,7 +291,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
-  def normalize: Number = scale(Scalar)
+  def normalize: Field = factor match {
+    case Scalar => this
+    case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
+    case _ => scale(Scalar)
+  }
 
   /**
     * Method to ensure that the value is within some factor-specific range.
@@ -458,6 +462,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 }
 
 object GeneralNumber {
+  def isImaginary(x: Number): Boolean = x.factor match {
+    case Root2 if Value.signum(x.value) < 0 => true
+    case _ => false
+  }
+
   def applyFunc(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] = {
     val op: MonadicOperation = MonadicOperationFunc(f, dfByDx)
     val no: Option[Number] = Operations.doTransformValueMonadic(x.value)(op.functions) flatMap {
@@ -590,7 +599,15 @@ object GeneralNumber {
       }
   }
 
-  def getMonadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz1: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
+
+  private def normalizeRoot(value: Value, r: Root) = {
+    Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
+      case Some(q) => ComplexCartesian(Number.zero, ExactNumber(q, r).scale(Scalar))
+      case None => throw NumberException("GeneralNumber.normalize: logic error")
+    }
+  }
+
+  private def getMonadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz1: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
     val functionalFuzz = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz1)
     Fuzziness.combine(t, t, relative = true, independent = true)((functionalFuzz, Some(Fuzziness.createFuzz(op.fuzz))))
   }

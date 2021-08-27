@@ -233,7 +233,7 @@ See Complex numbers.
 Constants
 =========
 
-The _Number_ class defines a number of constant values for _Number_, such as Pi, e, one, zero, etc.
+The _Number_ class defines a number of constant values for _Number_, such as Pi, e, one, zero, i, etc.
 The _Constants_ object contains a number of fundamental constant definitions, in addition to those defined by _Number_.
 For example: _c_ (speed of light), _alpha_ (fine structure constant), etc.
 
@@ -279,6 +279,7 @@ using a custom equality test, we can at least make _y shouldEqual 7_ work.
 
 NOTE: from V1.0.12 onwards, there are more special cases implemented in the _Number_ code and so many of these issues
 which required the use of _Expressions_ will now work just using _Numbers_.
+This is particularly true of the example above involving the square root of 7.
 
 There is an implicit class _ExpressionOps_ which provides methods which allow _Number_ operations to behave as expressions.
 So, for example, you can write:

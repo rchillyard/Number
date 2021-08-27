@@ -3,11 +3,12 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.sBoltzmann
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{negate, one, root2, zero}
+import com.phasmidsoftware.number.core.Number.{NumberIsOrdering, negate, one, root2, zero}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -851,6 +852,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val z = Number(Rational(9, 4)).sqrt
     z.normalize shouldBe Number(Rational(3, 2))
   }
+  it should "work for negative numbers" in {
+    Number(-1).sqrt shouldBe Number.i
+    Number(-4).sqrt shouldBe Number(-4, Root2)
+    Number(-4).power(Number(Rational.half)) shouldBe Number(-4, Root2)
+  }
 
   behavior of "sin"
   it should "be zero for pi" in {
@@ -1006,72 +1012,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.log should ===(Number.two)
   }
 
-  // NOTE: Following are the tests of Ordering[Number]
-
-  behavior of "compare"
-  it should "work for 1, 1" in {
-    val x = numberOne
-    val y = numberOne
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 0
-  }
-  it should "work for 1, 2" in {
-    val x = numberOne
-    val y = Number(2)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe -1
-  }
-  it should "work for 2, 1" in {
-    val x = Number(2)
-    val y = numberOne
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 1
-  }
-  it should "work for BigInt 1, 1" in {
-    val x = Number(bigOne)
-    val y = Number(bigOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 0
-  }
-  it should "work for BigInt 1, 2" in {
-    val x = Number(bigOne)
-    val y = Number(BigInt(2))
-    implicitly[Numeric[Number]].compare(x, y) shouldBe -1
-  }
-  it should "work for BigInt 2, 1" in {
-    val x = Number(BigInt(2))
-    val y = Number(bigOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 1
-  }
-  it should "work for Rational 1, 1" in {
-    val x = Number(ratOne)
-    val y = Number(ratOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 0
-  }
-  it should "work for Rational 1, 2" in {
-    val x = Number(ratOne)
-    val y = Number(Rational.two)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe -1
-  }
-  it should "work for Rational 2, 1" in {
-    val x = Number(Rational.two)
-    val y = Number(ratOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 1
-  }
-  it should "work for Double 1, 1" in {
-    val x = Number(doubleOne)
-    val y = Number(doubleOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 0
-  }
-  it should "work for Double 1, 2" in {
-    val x = Number(doubleOne)
-    val y = Number(2.0)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe -1
-  }
-  it should "work for Double 2, 1" in {
-    val x = Number(2.0)
-    val y = Number(doubleOne)
-    implicitly[Numeric[Number]].compare(x, y) shouldBe 1
-  }
-
-  // NOTE: Following are the tests of Numeric[Number]
-
   behavior of "toInt"
   it should "work for 1" in {
     val target = numberOne
@@ -1099,60 +1039,223 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.toInt shouldBe Some(1)
   }
 
-  // XXX Following are the tests of Numeric[Number]
+  // NOTE: Following are tests of Ordering[Number]
+  private val no: Ordering[Number] = NumberIsOrdering
+
+  behavior of "compare"
+  it should "work for 1, 1" in {
+    val x = numberOne
+    val y = numberOne
+    no.compare(x, y) shouldBe 0
+  }
+  it should "work for 1, 2" in {
+    val x = numberOne
+    val y = Number(2)
+    no.compare(x, y) shouldBe -1
+  }
+  it should "work for 2, 1" in {
+    val x = Number(2)
+    val y = numberOne
+    no.compare(x, y) shouldBe 1
+  }
+  it should "work for BigInt 1, 1" in {
+    val x = Number(bigOne)
+    val y = Number(bigOne)
+    no.compare(x, y) shouldBe 0
+  }
+  it should "work for BigInt 1, 2" in {
+    val x = Number(bigOne)
+    val y = Number(BigInt(2))
+    no.compare(x, y) shouldBe -1
+  }
+  it should "work for BigInt 2, 1" in {
+    val x = Number(BigInt(2))
+    val y = Number(bigOne)
+    no.compare(x, y) shouldBe 1
+  }
+  it should "work for Rational 1, 1" in {
+    val x = Number(ratOne)
+    val y = Number(ratOne)
+    no.compare(x, y) shouldBe 0
+  }
+  it should "work for Rational 1, 2" in {
+    val x = Number(ratOne)
+    val y = Number(Rational.two)
+    no.compare(x, y) shouldBe -1
+  }
+  it should "work for Rational 2, 1" in {
+    val x = Number(Rational.two)
+    val y = Number(ratOne)
+    no.compare(x, y) shouldBe 1
+  }
+  it should "work for Double 1, 1" in {
+    val x = Number(doubleOne)
+    val y = Number(doubleOne)
+    no.compare(x, y) shouldBe 0
+  }
+  it should "work for Double 1, 2" in {
+    val x = Number(doubleOne)
+    val y = Number(2.0)
+    no.compare(x, y) shouldBe -1
+  }
+  it should "work for Double 2, 1" in {
+    val x = Number(2.0)
+    val y = Number(doubleOne)
+    no.compare(x, y) shouldBe 1
+  }
+
+  // NOTE: Following are tests of Numeric[Number]
+  private val nn: Numeric[Number] = implicitly[Numeric[Number]]
 
   behavior of "Numeric toInt"
   it should "work for 1" in {
     val target = numberOne
-    implicitly[Numeric[Number]].toInt(target) shouldBe 1
+    nn.toInt(target) shouldBe 1
   }
   it should "work for BigInt 1" in {
     val target = Number(bigOne)
-    implicitly[Numeric[Number]].toInt(target) shouldBe 1
+    nn.toInt(target) shouldBe 1
   }
   it should "work for Rational 1" in {
     val target = Number(ratOne)
-    implicitly[Numeric[Number]].toInt(target) shouldBe 1
+    nn.toInt(target) shouldBe 1
   }
   it should "work for 1.0" in {
     val target = Number(doubleOne)
-    implicitly[Numeric[Number]].toInt(target) shouldBe 1
+    nn.toInt(target) shouldBe 1
   }
 
   behavior of "Numeric toLong"
   it should "work for 1" in {
     val target = numberOne
-    implicitly[Numeric[Number]].toLong(target) shouldBe 1L
+    nn.toLong(target) shouldBe 1L
   }
   it should "work for BigInt 1" in {
     val target = Number(bigOne)
-    implicitly[Numeric[Number]].toLong(target) shouldBe 1L
+    nn.toLong(target) shouldBe 1L
   }
   it should "work for Rational 1" in {
     val target = Number(ratOne)
-    implicitly[Numeric[Number]].toLong(target) shouldBe 1L
+    nn.toLong(target) shouldBe 1L
   }
   it should "work for 1.0" in {
     val target = Number(doubleOne)
-    implicitly[Numeric[Number]].toLong(target) shouldBe 1L
+    nn.toLong(target) shouldBe 1L
   }
 
   behavior of "Numeric toDouble"
   it should "work for 1" in {
     val target = numberOne
-    implicitly[Numeric[Number]].toDouble(target) shouldBe 1.0
+    nn.toDouble(target) shouldBe 1.0
   }
   it should "work for BigInt 1" in {
     val target = Number(bigOne)
-    implicitly[Numeric[Number]].toDouble(target) shouldBe 1.0
+    nn.toDouble(target) shouldBe 1.0
   }
   it should "work for Rational 1" in {
     val target = Number(ratOne)
-    implicitly[Numeric[Number]].toDouble(target) shouldBe 1.0
+    nn.toDouble(target) shouldBe 1.0
   }
   it should "work for 1.0" in {
     val target = Number(doubleOne)
-    implicitly[Numeric[Number]].toDouble(target) shouldBe 1.0
+    nn.toDouble(target) shouldBe 1.0
+  }
+
+  behavior of "Numeric toFloat"
+  it should "work for 1" in {
+    val target = numberOne
+    nn.toFloat(target) shouldBe 1.0f
+  }
+  it should "work for BigInt 1" in {
+    val target = Number(bigOne)
+    nn.toFloat(target) shouldBe 1.0f
+  }
+  it should "work for Rational 1" in {
+    val target = Number(ratOne)
+    nn.toFloat(target) shouldBe 1.0f
+  }
+  it should "work for 1.0" in {
+    val target = Number(doubleOne)
+    nn.toFloat(target) shouldBe 1.0f
+  }
+
+  behavior of "Numeric plus"
+  it should "work for 1" in {
+    val target = numberOne
+    nn.plus(target, Number.two) shouldBe Number(3)
+  }
+  it should "work for BigInt 1" in {
+    val target = Number(bigOne)
+    nn.plus(target, Number.one) shouldBe Number.two
+  }
+  it should "work for Rational 1" in {
+    val target = Number(ratOne)
+    nn.plus(target, Number.one) shouldBe Number.two
+  }
+  it should "work for 1.0" in {
+    val target = Number(doubleOne)
+    nn.plus(target, Number.one) shouldBe Number.two
+  }
+
+  behavior of "Numeric minus"
+  it should "work for 1" in {
+    val target = numberOne
+    nn.minus(target, Number.two) shouldBe Number.negOne
+  }
+  it should "work for BigInt 1" in {
+    val target = Number(bigOne)
+    nn.minus(target, Number.one) shouldBe Number.zero
+  }
+  it should "work for Rational 1" in {
+    val target = Number(ratOne)
+    nn.minus(target, Number.one) shouldBe Number.zero
+  }
+  it should "work for 1.0" in {
+    val target = Number(doubleOne)
+    nn.minus(target, Number.one) shouldBe Number.zero
+  }
+
+  behavior of "Numeric fromInt"
+  it should "work for -1" in {
+    nn.fromInt(-1) shouldBe Number.negOne
+  }
+  it should "work for 0" in {
+    nn.fromInt(0) shouldBe Number.zero
+  }
+  it should "work for 1" in {
+    nn.fromInt(1) shouldBe Number.one
+  }
+
+  behavior of "Numeric parseString"
+  it should "work for -1" in {
+    nn.parseString("-1") shouldBe Some(Number.negOne)
+  }
+  it should "work for 0" in {
+    nn.parseString("0") shouldBe Some(Number.zero)
+  }
+  it should "work for 1" in {
+    nn.parseString("1") shouldBe Some(Number.one)
+  }
+  it should "work for 6.67430(15)E-11" in {
+    nn.parseString("6.67430(15)E-11") shouldBe Some(Constants.G)
+  }
+
+  // NOTE: Following are tests of Fractional[Number]
+  private val nf: Fractional[Number] = implicitly[Fractional[Number]]
+
+  behavior of "Numeric div"
+  it should "work for 1/2" in {
+    val target = numberOne
+    nf.div(target, Number.two) shouldBe Number.half
+  }
+  it should "work for 2/2" in {
+    val target = Number.two
+    nf.div(target, Number.two) shouldBe Number.one
+  }
+  it should "work for 2/3" in {
+    val target = Number.two
+    import com.phasmidsoftware.number.core.Rational.RationalOps
+    nf.div(target, Number(3)) shouldBe Number(2 :/ 3)
   }
 
   behavior of "NumberOps"
@@ -1170,5 +1273,30 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for 1 :/ 2" in {
     val x: Number = 1 :/ 2
     x shouldBe Number(Rational.half)
+  }
+
+  behavior of "isImaginary"
+  it should "be true for i" in {
+    Number.i.isImaginary shouldBe true
+  }
+  it should "be false for all ordinary numbers" in {
+    Number.one.isImaginary shouldBe false
+    Number.pi.isImaginary shouldBe false
+    Constants.G.isImaginary shouldBe false
+    Number.root2.isImaginary shouldBe false
+  }
+
+  behavior of "multiply"
+  it should "work for pure numbers" in {
+    Number.root2 multiply Number.root2 shouldBe Number.two
+    Number.two multiply Number.two shouldBe Number(4)
+  }
+  it should "work for complex numbers" in {
+    Number.two multiply ComplexCartesian(2, 3) shouldBe ComplexCartesian(4, 6)
+    ComplexCartesian(2, 3) multiply Number.two shouldBe ComplexCartesian(4, 6)
+  }
+  it should "work for i" in {
+    Number.two multiply Number.i shouldBe ComplexCartesian(0, 2)
+    ComplexCartesian(2, 3) multiply Number.i shouldBe ComplexCartesian(-3, 2)
   }
 }

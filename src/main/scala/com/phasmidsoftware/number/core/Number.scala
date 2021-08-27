@@ -1,10 +1,10 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -42,6 +42,14 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return true if this is a valid Number
     */
   def isValid: Boolean
+
+  /**
+    * Method to determine if this is an imaginary Number,
+    * that's to say a number with negative value and Root2 as its factor.
+    *
+    * @return true if imaginary.
+    */
+  def isImaginary: Boolean = GeneralNumber.isImaginary(this)
 
   /**
     * Method to make some trivial simplifications of this Number (only if exact).
@@ -193,7 +201,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     */
   def add(x: Field): Field = x match {
     case n@Number(_, _) => doAdd(n)
-    case c@Complex(_, _) => c.add(x)
+    case c@BaseComplex(_, _) => c.add(x)
   }
 
   /**
@@ -203,8 +211,9 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return the product.
     */
   def multiply(x: Field): Field = x match {
+    case Number.i => multiply(ComplexCartesian(0, 1))
     case n@Number(_, _) => doMultiply(n)
-    case c@Complex(_, _) => c.multiply(x)
+    case c@BaseComplex(_, _) => c.multiply(this)
   }
 
   /**
@@ -215,7 +224,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     */
   def divide(x: Field): Field = x match {
     case n@Number(_, _) => doDivide(n)
-    case c@Complex(_, _) => c.divide(x)
+    case c@BaseComplex(_, _) => c.divide(x)
   }
 
   /**
@@ -334,6 +343,11 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return this if its positive, else - this.
     */
   def abs: Number
+
+  /**
+    * @return Some(this).
+    */
+  def asNumber: Option[Number] = Some(this)
 
   /**
     * Method to create a new version of this, but with factor f.
@@ -530,43 +544,51 @@ object Number {
   /**
     * Exact value of 0
     */
-  val zero: Number = ExactNumber(Value.fromInt(0), Scalar)
+  val zero: Number = Number(0)
   /**
     * Exact value of -0
     */
-  val negZero: Number = ExactNumber(Value.fromRational(Rational.negZero), Scalar)
+  val negZero: Number = Number(Rational.negZero)
   /**
     * Exact value of 1
     */
-  val one: Number = ExactNumber(Value.fromInt(1), Scalar)
+  val one: Number = Number(1)
   /**
     * Exact value of -1
     */
-  val negOne: Number = ExactNumber(Value.fromInt(-1), Scalar)
+  val negOne: Number = Number(-1)
   /**
     * Exact value of 2
     */
-  val two: Number = ExactNumber(Value.fromInt(2), Scalar)
+  val two: Number = Number(2)
   /**
     * Exact value of 1/2
     */
-  val half: Number = ExactNumber(Value.fromRational(Rational.half), Scalar)
+  val half: Number = Number(Rational.half)
   /**
     * Exact value of pi
     */
-  val pi: Number = ExactNumber(Value.fromInt(1), Radian)
+  val pi: Number = Number(1, Radian)
   /**
     * Exact value of 2 pi
     */
-  val twoPi: Number = ExactNumber(Value.fromInt(2), Radian)
+  val twoPi: Number = Number(2, Radian)
   /**
     * Exact value of pi/2
     */
-  val piBy2: Number = ExactNumber(Value.fromRational(Rational.half), Radian)
+  val piBy2: Number = Number(Rational.half, Radian)
+  /**
+    * Exact value of zero radians
+    */
+  val zeroR: Number = Number(0, Radian)
   /**
     * Exact value of e
     */
   val e: Number = ExactNumber(Value.fromInt(1), NatLog)
+  /**
+    * Exact value of i
+    */
+  val i: Number = ExactNumber(Value.fromInt(-1), Root2)
   /**
     * Exact value of √2
     */
@@ -949,7 +971,7 @@ object Number {
   /**
     * Following are the definitions required by Numeric[Number]
     */
-  trait NumberIsNumeric extends Numeric[Number] {
+  trait NumberIsNumeric extends Numeric[Number] with NumberIsOrdering {
     def plus(x: Number, y: Number): Number = GeneralNumber.plus(x, y)
 
     def minus(x: Number, y: Number): Number = GeneralNumber.plus(x, negate(y))
@@ -992,24 +1014,9 @@ object Number {
   def doCompare(x: Number, y: Number): Int = NumberIsOrdering.compare(x, y)
 
   /**
-    * For fuzzy numbers, it's appropriate to use the the normal mechanism for compare, even for NatLog numbers.
-    *
-    * NOTE, we first invoke same(p)(x, y) to determine if the Numbers are the same in a canonical manner.
-    * However, we could actually skip this step and always just invoke the else part of the expression.
-    *
-    * @param x the first number.
-    * @param y the second number.
-    * @param p the probability criterion.
-    * @return an Int representing the order.
-    */
-  def fuzzyCompare(x: Number, y: Number, p: Double): Int =
-    if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
-    else GeneralNumber.plus(x, Number.negate(y)).signum(p)
-
-  /**
     * Following are the definitions required by Fractional[Number]
     */
-  trait NumberIsFractional extends Fractional[Number] {
+  trait NumberIsFractional extends Fractional[Number] with NumberIsNumeric {
     def div(x: Number, y: Number): Number = GeneralNumber.times(x, Number.inverse(y))
   }
 
@@ -1034,6 +1041,7 @@ object Number {
     case (a, b) if a == b => n
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
+    case (Root2, Scalar) if Value.signum(n.value) < 0 => throw NumberException(s"Number.scale: logic error cannot scale $n to Scalar. Use normalize instead.")
     case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
     case (NatLog, PureNumber(_)) | (PureNumber(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
@@ -1043,7 +1051,7 @@ object Number {
     case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Root(_), Root(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), PureNumber(_)) | (Root(_), Logarithmic(_)) | (Root(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
-    case _ => throw NumberException(s"scaling between ${n.factor} and $factor factors is not supported")
+    case _ => throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
   }
 
   @tailrec
@@ -1137,9 +1145,6 @@ object Number {
     case Scalar => x.make(Root2).simplify
     case _ => Field.convertToNumber(x.power(Number.half))
   }
-
-  // TODO use the method in Value.
-  def scaleDouble(x: Double, fThis: Factor, fResult: Factor): Double = x * fThis.value / fResult.value
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.
