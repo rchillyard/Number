@@ -392,14 +392,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe Literal(3)
   }
-  // FIXME Issue #47
-  ignore should "simplify e * 2 / 2" in {
+  it should "simplify e * 2 / 2" in {
     val p = em.biFunctionMatcher
     import em.TildeOps
     val e: Number = Number.e
     val x: Expression = Literal(e) * Number.two
     val y: Expression = Expression(Number.two).reciprocal
-    p(Product ~ x ~ y) shouldBe em.Match(e)
+    p(Product ~ x ~ y) shouldBe em.Match(Expression(e))
   }
   it should "simplify root3 * 2 / 2" in {
     val p = em.biFunctionMatcher
