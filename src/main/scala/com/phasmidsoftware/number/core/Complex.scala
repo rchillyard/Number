@@ -2,6 +2,8 @@ package com.phasmidsoftware.number.core
 
 /**
   * Trait which defines the behavior of a type of Field called a Complex.
+  * A Complex is a Field and also supports the various methods defined below.
+  *
   */
 trait Complex extends Field {
 
@@ -58,9 +60,27 @@ trait Complex extends Field {
   def complement: Complex
 }
 
+/**
+  * Companion object to Complex.
+  *
+  */
 object Complex {
+  /**
+    * i in Cartesian form.
+    */
   val i: ComplexCartesian = ComplexCartesian(0, 1)
+  /**
+    * i in Cartesian form.
+    */
+  val iP: ComplexPolar = ComplexPolar(1, Number.piBy2)
+  /**
+    * Unit Complex in Cartesian form
+    */
   val unit: ComplexCartesian = ComplexCartesian(1, 0)
+  /**
+    * Unit Complex in Cartesian form
+    */
+  val unitP: Any = ComplexPolar(1, Number.zeroR)
 
   def convertToPolar(c: ComplexCartesian): BaseComplex = {
     val ro: Option[Field] = for (p <- ((Literal(c.x) * c.x) plus (Literal(c.y) * c.y)).materialize.asNumber; z = p.sqrt) yield z
@@ -76,5 +96,4 @@ object Complex {
     Field.recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
 
   def apply(x: Number): BaseComplex = ComplexCartesian(x, Number.zero)
-
 }

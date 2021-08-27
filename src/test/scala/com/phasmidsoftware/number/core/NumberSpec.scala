@@ -852,6 +852,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val z = Number(Rational(9, 4)).sqrt
     z.normalize shouldBe Number(Rational(3, 2))
   }
+  it should "work for negative numbers" in {
+    Number(-1).sqrt shouldBe Number.i
+    Number(-4).sqrt shouldBe Number(-4, Root2)
+    Number(-4).power(Number(Rational.half)) shouldBe Number(-4, Root2)
+  }
 
   behavior of "sin"
   it should "be zero for pi" in {

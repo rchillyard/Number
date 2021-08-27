@@ -544,39 +544,43 @@ object Number {
   /**
     * Exact value of 0
     */
-  val zero: Number = ExactNumber(Value.fromInt(0), Scalar)
+  val zero: Number = Number(0)
   /**
     * Exact value of -0
     */
-  val negZero: Number = ExactNumber(Value.fromRational(Rational.negZero), Scalar)
+  val negZero: Number = Number(Rational.negZero)
   /**
     * Exact value of 1
     */
-  val one: Number = ExactNumber(Value.fromInt(1), Scalar)
+  val one: Number = Number(1)
   /**
     * Exact value of -1
     */
-  val negOne: Number = ExactNumber(Value.fromInt(-1), Scalar)
+  val negOne: Number = Number(-1)
   /**
     * Exact value of 2
     */
-  val two: Number = ExactNumber(Value.fromInt(2), Scalar)
+  val two: Number = Number(2)
   /**
     * Exact value of 1/2
     */
-  val half: Number = ExactNumber(Value.fromRational(Rational.half), Scalar)
+  val half: Number = Number(Rational.half)
   /**
     * Exact value of pi
     */
-  val pi: Number = ExactNumber(Value.fromInt(1), Radian)
+  val pi: Number = Number(1, Radian)
   /**
     * Exact value of 2 pi
     */
-  val twoPi: Number = ExactNumber(Value.fromInt(2), Radian)
+  val twoPi: Number = Number(2, Radian)
   /**
     * Exact value of pi/2
     */
-  val piBy2: Number = ExactNumber(Value.fromRational(Rational.half), Radian)
+  val piBy2: Number = Number(Rational.half, Radian)
+  /**
+    * Exact value of zero radians
+    */
+  val zeroR: Number = Number(0, Radian)
   /**
     * Exact value of e
     */
