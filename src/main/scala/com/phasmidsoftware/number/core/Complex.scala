@@ -30,6 +30,13 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
   def make(a: Number, b: Number): Complex
 
   /**
+    * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).
+    *
+    * @return the value of this * i.
+    */
+  def rotate: Complex
+
+  /**
     * Method to add this Complex to another Complex.
     *
     * @param complex the other Complex.
@@ -155,6 +162,22 @@ abstract class Complex(val real: Number, val imag: Number) extends Field {
     }
   }
 
+  /**
+    * Method to determine if this Field is actually a real (or imaginary) Number (i.e. not complex).
+    * NOTE: to force this as a Number, use convertToNumber in the companion Object.
+    *
+    * @return a Some(x) if this is a Number; otherwise return None.
+    */
+  def asNumber: Option[Number] =
+    this match {
+      case ComplexCartesian(x, y) if y == Number.zero => Some(x)
+      case ComplexCartesian(x, y) if x == Number.zero => Some((y doMultiply y).makeNegative.make(Root2))
+      case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
+      case ComplexPolar(r, theta) if theta == Number.pi => Some(r.makeNegative)
+      case p@ComplexPolar(_, theta) if (theta doMultiply 2).abs == Number.pi => convertToCartesian(p).asNumber
+      case _ => None
+    }
+
   protected def showImaginary: String = s"${if (imag.isPositive) "" else "-"}i${imag.abs}"
 }
 
@@ -209,7 +232,18 @@ case class ComplexCartesian(x: Number, y: Number) extends Complex(x, y) {
     */
   def maybeFactor: Option[Factor] = if (real.factor == imag.factor) Some(real.factor) else None
 
-  def numberProduct(n: Number): Complex = make(x doMultiply n, y doMultiply n)
+  /**
+    * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).
+    *
+    * @return the value of this * i.
+    */
+  def rotate: Complex = ComplexCartesian(imag.makeNegative, real)
+
+  def numberProduct(n: Number): Complex =
+  // TODO this first option currently works only for i, not for multiples of i.
+    if (n.isImaginary) rotate
+    else
+      make(x doMultiply n, y doMultiply n)
 
   def make(a: Number, b: Number): Complex = ComplexCartesian(a, b)
 
@@ -271,6 +305,8 @@ object ComplexCartesian {
   def apply(x: Int, y: Number): ComplexCartesian = ComplexCartesian(Number(x), y)
 
   def apply(x: Number, y: Int): ComplexCartesian = ComplexCartesian(x, Number(y))
+
+  def apply(x: Number): ComplexCartesian = ComplexCartesian(x, 0)
 }
 
 case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
@@ -295,7 +331,18 @@ case class ComplexPolar(r: Number, theta: Number) extends Complex(r, theta) {
     */
   def maybeFactor: Option[Factor] = if (real.factor == imag.factor) Some(real.factor) else None
 
-  def numberProduct(n: Number): Complex = make(r doMultiply n, theta)
+  /**
+    * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).
+    *
+    * @return the value of this * i.
+    */
+  def rotate: Complex = ComplexPolar(real, imag doAdd Number.piBy2)
+
+  def numberProduct(n: Number): Complex = {
+    // TODO this first option currently works only for i, not for multiples of i.
+    if (n.isImaginary) convertToCartesian(this).rotate
+    else make(r doMultiply n, theta)
+  }
 
   def make(a: Number, b: Number): Complex = ComplexPolar(a, b.modulate)
 

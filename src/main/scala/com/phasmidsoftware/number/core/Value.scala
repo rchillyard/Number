@@ -81,6 +81,18 @@ object Value {
     tryMap(value)(identityTry, xToZy1).toOption
   }
 
+  /**
+    * Method to get the sign of a Value.
+    *
+    * @param value the value whose sign we need.
+    * @return an Int.
+    */
+  def signum(value: Value): Int = value match {
+    case Right(x) => x.sign
+    case Left(Right(x)) => x.signum
+    case Left(Left(Some(x))) => x.sign.toInt
+    case _ => 0
+  }
 
   /**
     * Method to scale the given Double according to the provided scaling factors.

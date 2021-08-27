@@ -44,6 +44,14 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def isValid: Boolean
 
   /**
+    * Method to determine if this is an imaginary Number,
+    * that's to say a number with negative value and Root2 as its factor.
+    *
+    * @return true if imaginary.
+    */
+  def isImaginary: Boolean = GeneralNumber.isImaginary(this)
+
+  /**
     * Method to make some trivial simplifications of this Number (only if exact).
     *
     * @return either this Number or a simplified Number.
@@ -203,8 +211,9 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return the product.
     */
   def multiply(x: Field): Field = x match {
+    case Number.i => multiply(ComplexCartesian(0, 1))
     case n@Number(_, _) => doMultiply(n)
-    case c@Complex(_, _) => c.multiply(x)
+    case c@Complex(_, _) => c.multiply(this)
   }
 
   /**
@@ -334,6 +343,11 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return this if its positive, else - this.
     */
   def abs: Number
+
+  /**
+    * @return Some(this).
+    */
+  def asNumber: Option[Number] = Some(this)
 
   /**
     * Method to create a new version of this, but with factor f.
@@ -567,6 +581,10 @@ object Number {
     * Exact value of e
     */
   val e: Number = ExactNumber(Value.fromInt(1), NatLog)
+  /**
+    * Exact value of i
+    */
+  val i: Number = ExactNumber(Value.fromInt(-1), Root2)
   /**
     * Exact value of √2
     */

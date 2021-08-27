@@ -1269,4 +1269,29 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val x: Number = 1 :/ 2
     x shouldBe Number(Rational.half)
   }
+
+  behavior of "isImaginary"
+  it should "be true for i" in {
+    Number.i.isImaginary shouldBe true
+  }
+  it should "be false for all ordinary numbers" in {
+    Number.one.isImaginary shouldBe false
+    Number.pi.isImaginary shouldBe false
+    Constants.G.isImaginary shouldBe false
+    Number.root2.isImaginary shouldBe false
+  }
+
+  behavior of "multiply"
+  it should "work for pure numbers" in {
+    Number.root2 multiply Number.root2 shouldBe Number.two
+    Number.two multiply Number.two shouldBe Number(4)
+  }
+  it should "work for complex numbers" in {
+    Number.two multiply ComplexCartesian(2, 3) shouldBe ComplexCartesian(4, 6)
+    ComplexCartesian(2, 3) multiply Number.two shouldBe ComplexCartesian(4, 6)
+  }
+  it should "work for i" in {
+    Number.two multiply Number.i shouldBe ComplexCartesian(0, 2)
+    ComplexCartesian(2, 3) multiply Number.i shouldBe ComplexCartesian(-3, 2)
+  }
 }

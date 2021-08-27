@@ -46,6 +46,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "asNumber" in {
     c2_0.asNumber shouldBe Some(Number.two)
     c1_2.asNumber shouldBe None
+    p1_pi_2.asNumber shouldBe Some(Number.i)
+    ComplexCartesian(0, Number.two).asNumber shouldBe Some(Number(-4, Root2))
   }
 
   it should "add1" in {
@@ -173,5 +175,11 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "work" in {
     c2_0.asComplex shouldBe c2_0
     Number(2).asComplex shouldBe c2_0
+  }
+
+  behavior of "numberProduct"
+  it should "work" in {
+    ComplexCartesian(1, 0).numberProduct(Number.two) shouldBe c2_0
+    ComplexCartesian(0, -2).numberProduct(Number.i) shouldBe c2_0
   }
 }

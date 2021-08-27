@@ -458,6 +458,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 }
 
 object GeneralNumber {
+  def isImaginary(x: Number): Boolean = x.factor match {
+    case Root2 if Value.signum(x.value) < 0 => true
+    case _ => false
+  }
+
   def applyFunc(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] = {
     val op: MonadicOperation = MonadicOperationFunc(f, dfByDx)
     val no: Option[Number] = Operations.doTransformValueMonadic(x.value)(op.functions) flatMap {

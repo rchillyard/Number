@@ -86,21 +86,6 @@ trait Field extends NumberLike {
   def normalize: Field
 
   /**
-    * Method to determine if this Field is actually a real Number (i.e. not complex).
-    * NOTE: to force this as a Number, use convertToNumber in the companion Object.
-    *
-    * @return a Some(x) if this is a Number; otherwise return None.
-    */
-  def asNumber: Option[Number] =
-    this match {
-      case n@Number(_, _) => Some(n)
-      case ComplexCartesian(x, y) if y == Number.zero => Some(x)
-      case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
-      case ComplexPolar(r, theta) if theta == Number.pi => Some(r.makeNegative)
-      case _ => None
-    }
-
-  /**
     * Method to return this Field as a Complex.
     *
     * @return either this or Complex(this) as appropriate.
