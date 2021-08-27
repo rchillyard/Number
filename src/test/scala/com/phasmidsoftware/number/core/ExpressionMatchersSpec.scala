@@ -347,7 +347,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = z plus -z + Zero
     import em.TildeOps
     val r = p(Sum ~ One ~ x)
-    println(r)
     r.successful shouldBe true
     r.get shouldBe One
   }
@@ -371,8 +370,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = p(Product ~ a ~ b)
     z shouldBe em.Match(Literal(9))
   }
-  // FIXME Issue #57
-  ignore should "properly simplify 1 * (root3 / root3 * 3)" in {
+  it should "properly simplify 1 * (root3 / root3 * 3)" in {
     val p = em.biFunctionMatcher
     val z: Expression = Literal(3).sqrt
     val x = z * z.reciprocal * Number(3)

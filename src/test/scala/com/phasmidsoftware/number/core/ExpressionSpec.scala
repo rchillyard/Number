@@ -144,9 +144,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (One + Number.two).isExact(Some(Scalar)) shouldBe true
     (ConstPi + Number.pi).isExact(Some(Radian)) shouldBe true
   }
-  // FIXME new Aug 5th
-  ignore should "be true for any product of exact Numbers of factor e" in {
-    (Literal(2) * Number.e).isExact(None) shouldBe true
+  it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
+    (Literal(2) * Number.e).isExact(None) shouldBe false
+  }
+  it should "be true for product of one exact Numbers and a NatLog factor" in {
+    (Literal(1) * Number.e).isExact(None) shouldBe true
+  }
+  it should "be true for product of zero exact Numbers and a NatLog factor" in {
+    (Literal(0) * Number.e).isExact(None) shouldBe true
   }
 
   behavior of "depth"

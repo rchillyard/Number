@@ -326,8 +326,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     // NOTE: this is rather a low probability value (normally, we use 0.5)
     result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
   }
-  // FIXME Aug 5th
-  ignore should "work for 3.141592653589793 backwards" in {
+  it should "work for 3.141592653589793 backwards" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
     // NOTE: this is rather a low probability value (normally, we use 0.5)
@@ -395,8 +394,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     // NOTE: this is rather a low probability value (normally, we use 0.5)
     result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
   }
-  // Aug 5th
-  ignore should "work for 3.141592653589793 backwards" in {
+  it should "work for 3.141592653589793 backwards" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.tan
     // NOTE: this is rather a low probability value (normally, we use 0.5)

@@ -151,8 +151,7 @@ class FuzzyParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
       case f@_ => fail(s"should be Exact but is $f")
     }
   }
-  // FIXME parsing error
-  ignore should "parse " in {
-      Number("16.5[2]").isExact(None) shouldBe false
+  it should "parse 16.5[2]" in {
+    Number("16.5[2]").isExact(None) shouldBe false
   }
 }
