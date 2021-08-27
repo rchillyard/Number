@@ -96,7 +96,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate sqrt 36" in {
     val x: Expression = Literal(36).sqrt
-    x.materialize.asNumber shouldEqual Some(Number(6))
+    x.materialize.normalize.asNumber shouldEqual Some(Number(6))
   }
   it should "evaluate sin pi/2" in {
     val x: Expression = ConstPi / 2
@@ -131,7 +131,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "various operations"
   it should "evaluate E * 2" in {
     val z: Field = (ConstE * 2).materialize
-    val q = convertToNumber(z).scale(Scalar)
+    val q = convertToNumber(z).normalize
     q.toString shouldBe "5.43656365691809[2]"
   }
 
@@ -144,9 +144,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (One + Number.two).isExact(Some(Scalar)) shouldBe true
     (ConstPi + Number.pi).isExact(Some(Radian)) shouldBe true
   }
-  // FIXME new Aug 5th
-  ignore should "be true for any product of exact Numbers of factor e" in {
-    (Literal(2) * Number.e).isExact(None) shouldBe true
+  it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
+    (Literal(2) * Number.e).isExact(None) shouldBe false
+  }
+  it should "be true for product of one exact Numbers and a NatLog factor" in {
+    (Literal(1) * Number.e).isExact(None) shouldBe true
+  }
+  it should "be true for product of zero exact Numbers and a NatLog factor" in {
+    (Literal(0) * Number.e).isExact(None) shouldBe true
   }
 
   behavior of "depth"

@@ -156,11 +156,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val q = em.simplifier(y)
     q shouldBe em.Match(Literal(7))
   }
-  it should "show that lazy evaluation only works when you use it (a)" in {
+  it should "show that lazy evaluation sometimes works even when you don't use it (a)" in {
     val seven = Number(7)
     val x: Number = seven.sqrt
     val y = x doPower two
-    y should matchPattern { case FuzzyNumber(_, _, _) => }
+    y.isExact(None) shouldBe true
+    y shouldBe seven
   }
   it should "cancel addition and subtraction (a)" in {
     val x = One + 3 - 3
@@ -204,26 +205,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "materialize (a)"
-  it should "show that lazy evaluation only works when you use it" in {
-    val seven = Number(7)
-    val x: Number = seven.sqrt
-    val y = Literal(x) ^ 2
-    y.materialize should matchPattern { case FuzzyNumber(_, _, _) => }
-  }
   it should "show ^2 and sqrt for illustrative purposes (a)" in {
     val seven = Number(7)
     val x = seven.sqrt
     val y: Expression = Literal(x) ^ two
     val result = convertToNumber(y.materialize)
-    result.isExact(None) shouldBe false
+    result.isExact(None) shouldBe true
     result shouldEqual Number(7)
-  }
-  it should "show ^2 and sqrt for illustrative purposes" in {
-    val seven = Number(7)
-    val x = Literal(seven.sqrt)
-    val y = convertToNumber((x ^ 2).materialize)
-    y should matchPattern { case FuzzyNumber(_, _, _) => }
-    y shouldEqual Number(7)
   }
   it should "evaluate E * 2" in {
     (Literal(Number.e) * 2).materialize.toString shouldBe "5.436563656918091[15]"
@@ -359,7 +347,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = z plus -z + Zero
     import em.TildeOps
     val r = p(Sum ~ One ~ x)
-    println(r)
     r.successful shouldBe true
     r.get shouldBe One
   }
@@ -383,8 +370,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = p(Product ~ a ~ b)
     z shouldBe em.Match(Literal(9))
   }
-  // FIXME Issue #57
-  ignore should "properly simplify 1 * (root3 / root3 * 3)" in {
+  it should "properly simplify 1 * (root3 / root3 * 3)" in {
     val p = em.biFunctionMatcher
     val z: Expression = Literal(3).sqrt
     val x = z * z.reciprocal * Number(3)
@@ -404,14 +390,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe Literal(3)
   }
-  // FIXME Issue #47
-  ignore should "simplify e * 2 / 2" in {
+  it should "simplify e * 2 / 2" in {
     val p = em.biFunctionMatcher
     import em.TildeOps
     val e: Number = Number.e
     val x: Expression = Literal(e) * Number.two
     val y: Expression = Expression(Number.two).reciprocal
-    p(Product ~ x ~ y) shouldBe em.Match(e)
+    p(Product ~ x ~ y) shouldBe em.Match(Expression(e))
   }
   it should "simplify root3 * 2 / 2" in {
     val p = em.biFunctionMatcher

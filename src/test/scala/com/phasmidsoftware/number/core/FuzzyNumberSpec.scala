@@ -326,8 +326,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     // NOTE: this is rather a low probability value (normally, we use 0.5)
     result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
   }
-  // FIXME Aug 5th
-  ignore should "work for 3.141592653589793 backwards" in {
+  it should "work for 3.141592653589793 backwards" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
     // NOTE: this is rather a low probability value (normally, we use 0.5)
@@ -395,8 +394,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     // NOTE: this is rather a low probability value (normally, we use 0.5)
     result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
   }
-  // Aug 5th
-  ignore should "work for 3.141592653589793 backwards" in {
+  it should "work for 3.141592653589793 backwards" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.tan
     // NOTE: this is rather a low probability value (normally, we use 0.5)
@@ -406,7 +404,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "exp"
   it should "work for non-exact 1" in {
     val x = Number("1.00000000000*", NatLog)
-    x.scale(Scalar).render shouldBe "2.718281828459[14]"
+    x.normalize.render shouldBe "2.718281828459[14]"
   }
 
   // Following are the tests of Ordering[Number]
@@ -501,8 +499,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
 
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.006570290056531114, Box)) // changed Aug 5th
-    //    length.get.fuzz shouldBe Some(RelativeFuzz(0.0065702900565341804, Box))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.00657029005653496, Box))
 
     println(length.get)
   }
@@ -522,8 +519,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.005 +- 0.0002
 
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648321508, Gaussian)) // changed Aug 5th
-    //    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648321391, Gaussian))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648325369, Gaussian))
 
     println(length.get)
   }

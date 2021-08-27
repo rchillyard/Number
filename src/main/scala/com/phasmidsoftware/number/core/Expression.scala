@@ -517,6 +517,11 @@ case object ConstE extends Constant {
     */
   def evaluate: Number = Number.e
 
+  /**
+    * TEST me
+    *
+    * @return Some(factor) if expression only involves that factor; otherwise None.
+    */
   def maybeFactor: Option[Factor] = Some(NatLog)
 }
 
@@ -539,12 +544,16 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   /**
     * TODO implement properly according to the actual function involved.
     *
+    * TEST me
+    *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
   def maybeFactor: Option[Factor] = None
 
   /**
     * Method to determine the depth of this Expression.
+    *
+    * TEST me
     *
     * @return the 1 + depth of x.
     */
@@ -560,10 +569,17 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   /**
     * Action to materialize this Expression and render it as a String.
     *
+    * TEST me.
+    *
     * @return a String representing the value of this expression.
     */
   def render: String = materialize.toString
 
+  /**
+    * TEST me
+    *
+    * @return
+    */
   override def toString: String = s"$f($x)"
 }
 
@@ -603,30 +619,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return the materialized Field.
     */
   def evaluate: Field = value
-
-  /**
-    * If it is possible to simplify this Expression, then we do so.
-    * Typically, we simplify non-exact expressions if possible.
-    * There is no compelling need to simplify exact expressions.
-    *
-    * TODO replace logic with something from Matchers (maybe?)
-    *
-    * TODO eliminate this
-    *
-    * @return an Expression tree which is the simpler equivalent of this.
-    */
-  def simplify: Expression =
-    if (isExact(Some(Scalar))) value match {
-      case n: Field => Literal(n)
-    }
-    else {
-      import Expression._
-      val z: em.MatchResult[Expression] = em.simplifier(this)
-      z match {
-        case em.Match(e) => e
-        case _ => this
-      }
-    }
 
   /**
     * Action to materialize this Expression and render it as a String.

@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
-import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -106,6 +105,11 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi.modulus shouldBe Number.one
   }
 
+  it should "argument" in {
+    c2_0.argument.isZero shouldBe true
+    p1_pi.argument shouldBe Number.pi
+  }
+
   it should "complement (1)" in {
     c2_0.complement shouldBe c2_0
     c1_2.complement shouldBe ComplexCartesian(1, -2)
@@ -116,17 +120,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi.complement shouldBe p1_pi
   }
 
-  it should "doAdd" in {
-
-  }
-
   it should "invert" in {
     val z = c1_2.invert
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
-  }
-
-  it should "apply" in {
-
   }
 
   it should "convertToPolar" in {
@@ -160,21 +156,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
       result shouldBe expected +- 1E-6
   }
 
-  it should "unapply" in {
-
-  }
-
-  it should "narrow" in {
-
-  }
-
   it should "convertToCartesian" in {
     convertToCartesian(p1_pi) shouldBe ComplexCartesian(Number(-1), Number.zero)
-  }
-
-  it should "magnitudeSquared" in {
-    val c3 = p1_pi add c2_0
-    convertToNumber(c3.asComplex.magnitudeSquared) shouldBe Number.one
   }
 
   behavior of "render"

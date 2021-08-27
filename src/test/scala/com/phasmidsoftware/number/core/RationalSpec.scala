@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
-
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -754,5 +753,25 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "add to one correctly" in {
     Rational.negZero + Rational.one shouldBe Rational.one
+  }
+
+  behavior of "Rat..."
+  it should "parse a String" in {
+    implicitly[Numeric[Rational]].parseString("3.1415927") shouldBe Some(Rational(31415927, 10000000))
+  }
+  it should "convert from an Int" in {
+    implicitly[Numeric[Rational]].fromInt(299792458) shouldBe Rational(299792458, 1)
+  }
+  it should "convert to an Int" in {
+    implicitly[Numeric[Rational]].toInt(Rational(299792458)) shouldBe 299792458
+  }
+  it should "convert to a Long" in {
+    implicitly[Numeric[Rational]].toLong(Rational(299792458000L)) shouldBe 299792458000L
+  }
+  it should "convert to a Float" in {
+    implicitly[Numeric[Rational]].toFloat(Rational(3.1415927)) shouldBe 3.1415927f
+  }
+  it should "convert infinity to a Double" in {
+    implicitly[Numeric[Rational]].toDouble(Rational.infinity) shouldBe Double.PositiveInfinity
   }
 }

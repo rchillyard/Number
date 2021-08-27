@@ -28,8 +28,15 @@ However, if you write the idiomatically correct form:
 
 then _x_ will be a _Number_ with value __exactly__ one half.
 
+You probably want to see some code: so go to the worksheets package and take a look, starting with
+NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
+
 Introduction
 ============
+There are three articles on Medium regarding this library.
+They are https://medium.com/codex/number-part-1-c98313903714 and
+https://scala-prof.medium.com/number-part-2-7925400624d5 and...
+
 The Number project provides mathematical utilities where error bounds are tracked (and not forgotten).
 All functions handle the transformation or convolution of error bounds appropriately.
 When the error bound is sufficiently large compared to a number, that number is considered to be zero.
@@ -270,6 +277,9 @@ It's important to realize that, to get the benefit of this behavior, you must us
 The second test fails with "7.000000000000001 was not equal to 7," although if we do a fuzzy compare,
 using a custom equality test, we can at least make _y shouldEqual 7_ work.
 
+NOTE: from V1.0.12 onwards, there are more special cases implemented in the _Number_ code and so many of these issues
+which required the use of _Expressions_ will now work just using _Numbers_.
+
 There is an implicit class _ExpressionOps_ which provides methods which allow _Number_ operations to behave as expressions.
 So, for example, you can write:
 
@@ -342,6 +352,7 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
+* Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
 * Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.
 * Version 1.0.10: Many improvements and fixes:
     - added Constants,

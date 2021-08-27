@@ -479,7 +479,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number.e
     val expected = Number(math.E * math.E, Root2)
     val result: Number = target.scale(Root2)
-    result.render shouldBe "√7.38905609893064[2]"
+    result.render shouldBe "√7.389056098930649[47]"
     result should ===(expected)
   }
 
@@ -810,6 +810,34 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     (target doPower 2) shouldBe Number(4)
   }
 
+  behavior of "power"
+  it should "work for squaring Scalar" in {
+    val target = Number.two
+    target.power(2) shouldBe Number(4)
+  }
+  it should "work for squaring Root2" in {
+    val target = Number.root2
+    target.power(2) shouldBe Number.two
+  }
+  it should "work for squaring Root3" in {
+    val target = Number.root3
+    target.power(2) shouldBe Number(3)
+  }
+  it should "work for cubing cube-root2" in {
+    val target = Number(2, Root3)
+    target.power(3) shouldBe Number.two
+  }
+  it should "work for squaring NatLog" in {
+    val target = Number(Rational.half, NatLog)
+    target.power(2) shouldBe Number.e
+  }
+  it should "work for squaring Log2" in {
+    val target = Number(Rational.half, Log2)
+    val result = target.power(2)
+    // TODO this should be equal to just plain old Number.two (need to simplify result).
+    result shouldBe Number(1, Log2)
+  }
+
   behavior of "sqrt"
   it should "work for easy ints" in {
     Number(1).sqrt shouldBe Number(1)
@@ -820,7 +848,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Number(bigBigInt).sqrt should ===(Number(Rational(2317047500592079L, 50000000000L)))
   }
   it should "work for easy Rational" in {
-    Number(Rational(9, 4)).sqrt shouldBe Number(Rational(3, 2))
+    val z = Number(Rational(9, 4)).sqrt
+    z.normalize shouldBe Number(Rational(3, 2))
   }
 
   behavior of "sin"
@@ -854,6 +883,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number(Rational(1, 4), Radian)
     val sin = target.sin
     sin shouldBe Number(Rational.half, Root2)
+  }
+  it should "work for One" in {
+    val target = Number.one
+    val sin = target.sin
+    import com.phasmidsoftware.number.core.Number.FuzzOps
+    sin should ===(0.8414709848078965 ~ 21)
   }
 
   behavior of "cos"
