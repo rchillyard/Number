@@ -92,7 +92,7 @@ trait Field extends NumberLike {
     */
   def asComplex: Complex = this match {
     case n@Number(_, _) => Complex(n)
-    case n@Complex(_, _) => n
+    case n@BaseComplex(_, _) => n
   }
 }
 

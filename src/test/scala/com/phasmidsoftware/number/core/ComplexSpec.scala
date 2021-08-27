@@ -128,8 +128,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "convertToPolar" in {
-    val expected = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Radian))
-    val actual = convertToPolar(c1_2)
+    val expected: Complex = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Radian))
+    val actual: Complex = convertToPolar(c1_2)
     actual shouldEqual expected
   }
 

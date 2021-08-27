@@ -201,7 +201,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     */
   def add(x: Field): Field = x match {
     case n@Number(_, _) => doAdd(n)
-    case c@Complex(_, _) => c.add(x)
+    case c@BaseComplex(_, _) => c.add(x)
   }
 
   /**
@@ -213,7 +213,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def multiply(x: Field): Field = x match {
     case Number.i => multiply(ComplexCartesian(0, 1))
     case n@Number(_, _) => doMultiply(n)
-    case c@Complex(_, _) => c.multiply(this)
+    case c@BaseComplex(_, _) => c.multiply(this)
   }
 
   /**
@@ -224,7 +224,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     */
   def divide(x: Field): Field = x match {
     case n@Number(_, _) => doDivide(n)
-    case c@Complex(_, _) => c.divide(x)
+    case c@BaseComplex(_, _) => c.divide(x)
   }
 
   /**
