@@ -1041,6 +1041,7 @@ object Number {
     case (a, b) if a == b => n
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
+    case (Root2, Scalar) if Value.signum(n.value) < 0 => throw NumberException(s"Number.scale: logic error cannot scale $n to Scalar. Use normalize instead.")
     case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
     case (NatLog, PureNumber(_)) | (PureNumber(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
@@ -1050,7 +1051,7 @@ object Number {
     case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Root(_), Root(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), PureNumber(_)) | (Root(_), Logarithmic(_)) | (Root(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
-    case _ => throw NumberException(s"scaling between ${n.factor} and $factor factors is not supported")
+    case _ => throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
   }
 
   @tailrec

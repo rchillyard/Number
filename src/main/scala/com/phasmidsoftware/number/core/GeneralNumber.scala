@@ -291,7 +291,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
-  def normalize: Number = scale(Scalar)
+  def normalize: Field = factor match {
+    case Scalar => this
+    case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
+    case _ => scale(Scalar)
+  }
 
   /**
     * Method to ensure that the value is within some factor-specific range.
@@ -595,7 +599,15 @@ object GeneralNumber {
       }
   }
 
-  def getMonadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz1: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
+
+  private def normalizeRoot(value: Value, r: Root) = {
+    Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
+      case Some(q) => ComplexCartesian(Number.zero, ExactNumber(q, r).scale(Scalar))
+      case None => throw NumberException("GeneralNumber.normalize: logic error")
+    }
+  }
+
+  private def getMonadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz1: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
     val functionalFuzz = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz1)
     Fuzziness.combine(t, t, relative = true, independent = true)((functionalFuzz, Some(Fuzziness.createFuzz(op.fuzz))))
   }

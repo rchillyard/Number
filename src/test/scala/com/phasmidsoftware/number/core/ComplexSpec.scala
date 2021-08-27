@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
+import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -181,5 +182,20 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "work" in {
     ComplexCartesian(1, 0).numberProduct(Number.two) shouldBe c2_0
     ComplexCartesian(0, -2).numberProduct(Number.i) shouldBe c2_0
+  }
+
+  behavior of "i"
+  it should "render as √-1" in {
+    // CONSIDER should we have it render as "i" instead?
+    Number.i.render shouldBe "√-1"
+  }
+  it should "convertToNumber" in {
+    convertToNumber(Number.i) shouldBe Number.i
+  }
+  it should "scale(Scalar)" in {
+    a[NumberException] should be thrownBy Number.i.scale(Scalar)
+  }
+  it should "normalize" in {
+    Number.i.normalize shouldBe ComplexCartesian(0, 1)
   }
 }

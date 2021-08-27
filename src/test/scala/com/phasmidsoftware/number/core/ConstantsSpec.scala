@@ -96,6 +96,6 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     maybeNumber.isDefined shouldBe true
     maybeNumber.get should ===(target)
     val result: Number = goldenRatio
-    result.render shouldBe "1.618033988749895(24)"
+    result.render shouldBe "1.618033988749895(21)"
   }
 }
