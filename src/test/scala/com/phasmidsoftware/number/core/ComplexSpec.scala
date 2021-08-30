@@ -150,9 +150,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   private def checkAtan2(opposite: Int, adjacent: Int): Unit = {
     val theta = math.atan2(opposite, adjacent)
-    // NOTE this isn't used
-    val thetaAsFraction = theta / math.Pi
-//    println(s"atan2($opposite/$adjacent) is $thetaAsFraction")
+    //noinspection ScalaUnusedSymbol
+// NOTE this isn't used
+val thetaAsFraction = theta / math.Pi
+    //    println(s"atan2($opposite/$adjacent) is $thetaAsFraction")
     val result = math.tan(theta)
     val expected = opposite * 1.0 / adjacent
     if (expected != Double.PositiveInfinity)
@@ -164,12 +165,16 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "render"
-  it should "work" in {
+  it should "work for various Complex values" in {
     c2_0.render shouldBe "(2+i0)"
     c1_2.render shouldBe "(1+i2)"
-    p1_pi.render shouldBe "1e^i1\uD835\uDED1"
+    p1_pi.render shouldBe "1e^i\uD835\uDED1"
     p1_pi_2.render shouldBe "1e^i0.5\uD835\uDED1"
     p1_pi_2.complement.render shouldBe "1e^i1.5\uD835\uDED1"
+  }
+  it should "work for iPi" in {
+    val target = Number.iPi
+    target.toString shouldBe "ComplexCartesian(0,\uD835\uDED1)"
   }
 
   behavior of "asComplex"

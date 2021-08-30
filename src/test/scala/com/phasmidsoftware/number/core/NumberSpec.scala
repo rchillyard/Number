@@ -8,7 +8,6 @@ import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -81,8 +80,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number.create(Right(1))
     target.toString shouldBe "1"
   }
-  it should "work for Radian" in {
-    Number.pi.toString shouldBe "1\uD835\uDED1"
+  it should "work for Pi" in {
+    Number.pi.toString shouldBe "\uD835\uDED1"
   }
   it should "work for Radian as scalar" in {
     val target = Number.pi.scale(Scalar)
@@ -126,6 +125,10 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for square root E" in {
     val target = Number.e.sqrt
     target.toString shouldBe "√\uD835\uDF00"
+  }
+  it should "work for i" in {
+    val target = Number.i
+    target.toString shouldBe "√-1"
   }
 
   behavior of "toDouble"

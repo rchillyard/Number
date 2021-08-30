@@ -128,18 +128,20 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     *
     * @return a String
     */
-  override def toString: String = {
-    val sb = new StringBuilder()
-    factor match {
-      case Logarithmic(_) =>
-        sb.append(factor.render(value))
-      case PureNumber(_) =>
-        sb.append(Value.valueToString(value))
-        sb.append(factor.toString)
-      case Root(_) =>
-        sb.append(factor.render(value))
-    }
-    sb.toString
+  override def toString: String = this match {
+    case Number.pi => Radian.toString
+    case _ =>
+      val sb = new StringBuilder()
+      factor match {
+        case Logarithmic(_) =>
+          sb.append(factor.render(value))
+        case PureNumber(_) =>
+          sb.append(Value.valueToString(value))
+          sb.append(factor.toString)
+        case Root(_) =>
+          sb.append(factor.render(value))
+      }
+      sb.toString
   }
 
 }
