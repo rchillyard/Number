@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.MatchLogger
-import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
+import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 
 /**
@@ -255,7 +255,7 @@ object Expression {
       * @param y the power to which x should be raised (a Number).
       * @return an Expression representing x to the power of y.
       */
-    def ^(y: Number): Expression = ^(Expression(y))
+    def ^(y: Field): Expression = ^(Expression(y))
 
     /**
       * Method to lazily raise the Field x to the power of y.
@@ -702,7 +702,7 @@ case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = f
 
 case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*", isExact = true)
 
-case object Power extends ExpressionBiFunction((x, y) => x.power(convertToNumber(y)), "^", isExact = false, commutes = false)
+case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExact = false, commutes = false)
 
 /**
   * A lazy monadic expression function.

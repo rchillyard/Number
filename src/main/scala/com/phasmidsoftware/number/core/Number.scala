@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -210,10 +209,11 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @param x the multiplicand.
     * @return the product.
     */
-  def multiply(x: Field): Field = x match {
-    case Number.i => multiply(ComplexCartesian(0, 1))
-    case n@Number(_, _) => doMultiply(n)
-    case c@BaseComplex(_, _) => c.multiply(this)
+  def multiply(x: Field): Field = (this, x) match {
+    case (Number.i, Number.pi) | (Number.pi, Number.i) => Number.iPi
+    case (t, Number.i) => multiply(ComplexCartesian(0, 1))
+    case (t, n@Number(_, _)) => doMultiply(n)
+    case (t, c@BaseComplex(_, _)) => c.multiply(this)
   }
 
   /**
@@ -235,11 +235,12 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   /**
     * Raise this Number to the power p.
     *
-    * @param p a Number.
+    * @param p a Field.
     * @return this Number raised to power p.
     */
-  def power(p: Number): Field = p match {
+  def power(p: Field): Field = p match {
     case n@Number(_, _) => doPower(n)
+    case ComplexCartesian(x, y) => ComplexPolar(doPower(x), y)
     case _ => throw NumberException("logic error: power not supported for non-Number powers")
   }
 
@@ -589,6 +590,10 @@ object Number {
     * Exact value of i
     */
   val i: Number = ExactNumber(Value.fromInt(-1), Root2)
+  /**
+    * Exact value of iPi.
+    */
+  val iPi = ComplexCartesian(0, Number.pi)
   /**
     * Exact value of √2
     */

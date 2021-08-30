@@ -54,19 +54,24 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @param p a Number.
     * @return this Number raised to power p.
     */
-  def power(p: Number): Field = this match {
-    case ComplexPolar(_, _) =>
-      recover(
-        for (r <- Literal(real).^(p).materialize.asNumber; i <- (Literal(imag) * p).materialize.asNumber) yield make(r, i),
-        ComplexException("logic error: power")
-      )
-    case ComplexCartesian(_, _) => p.toInt match {
-      case Some(0) => Complex.unit
-      case Some(-1) => -this divide (modulus doMultiply modulus)
-      case Some(1) => this
-      case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
-      case _ => throw ComplexException(s"not implemented: power($p)")
-    }
+  def power(p: Field): Field = p match {
+    case n: Number =>
+      this match {
+        case ComplexPolar(_, _) =>
+          recover(
+            for (r <- Literal(real).^(n).materialize.asNumber; i <- (Literal(imag) * p).materialize.asNumber) yield make(r, i),
+            ComplexException("logic error: power")
+          )
+        case ComplexCartesian(_, _) => n.toInt match {
+          case Some(0) => Complex.unit
+          case Some(-1) => -this divide (modulus doMultiply modulus)
+          case Some(1) => this
+          case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
+          case _ => throw ComplexException(s"not implemented: power($p)")
+        }
+      }
+    case ComplexCartesian(x, y) => ComplexPolar(convertToNumber(power(x)), y.make(NatLog))
+    case _ => throw NumberException(s"power not supported for $this ^ $p")
   }
 
   def power(p: Int): Field = power(Number(p))

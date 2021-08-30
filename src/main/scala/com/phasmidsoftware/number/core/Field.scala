@@ -58,10 +58,10 @@ trait Field extends NumberLike {
   /**
     * Raise this Field to the power p.
     *
-    * @param p a Number.
+    * @param p a Field.
     * @return this Field raised to power p.
     */
-  def power(p: Number): Field
+  def power(p: Field): Field
 
   /**
     * Raise this Field to the power p.

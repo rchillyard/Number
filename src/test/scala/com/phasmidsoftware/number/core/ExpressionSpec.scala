@@ -167,4 +167,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val expression = Expression(7).sqrt ^ 2
     expression.depth shouldBe 4
   }
+
+  behavior of "Euler"
+  it should "work" in {
+    val iPi = ComplexCartesian(0, Number.pi)
+    val euler: Expression = Expression(Number.e) ^ iPi
+    euler.asNumber shouldBe Some(Number.negOne)
+  }
 }
