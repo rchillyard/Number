@@ -3,7 +3,7 @@ import com.phasmidsoftware.number.core.Number.{e, i, pi, piBy2}
 import com.phasmidsoftware.number.core.{Expression, Number}
 
 /**
-  * This worksheet demonstrates some of the trignometric expressions and identities.
+  * This worksheet demonstrates some of the trigonometric expressions and identities.
   */
 
 val iPi = Expression(i) * pi
