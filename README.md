@@ -25,9 +25,10 @@ your _x_ will be an _Int_ of value 0.
 
 However, if you write the idiomatically correct form:
 
-    val x: Number = 1 / 2
+    val x = 1 :/ 2
 
 then _x_ will be a _Number_ with value __exactly__ one half.
+You will have to import com.phasmidsoftware.number.core.Number.NumberOps first, however.
 
 You probably want to see some code: so go to the worksheets package and take a look, starting with
 NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
