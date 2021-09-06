@@ -1,8 +1,10 @@
 import com.phasmidsoftware.number.applications.Approximation
-import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.Number.{e, i, pi, piBy2, twoPi}
+import com.phasmidsoftware.number.core.{Expression, Number}
 
 /**
-  * This is a demonstration of Newton's method of approximation for his original polynomial x**3 + 6 x**2 + 10 x - 1.
+  * This is a demonstration of Newton's method of approximation for his original polynomial:
+  * x**3 + 6 x**2 + 10 x - 1.
   */
 val newtonsPolynomial: Double => Double = x => x * x * x + 6 * x * x + 10 * x - 1
 val newtonsDerivative: Double => Double = x => 3 * x * x + 12 * x + 10
@@ -16,4 +18,23 @@ val x = 0.15625
 val inverseSquareRoot: Double => Double = y => y * y - 1.0/x
 val inverseDerivative: Double => Double = y => 2 * y
 
-Approximation.solve(0.9, inverseSquareRoot, inverseDerivative)(Number(2.5))
+val result = Approximation.solve(0.9, inverseSquareRoot, inverseDerivative)(Number(2.5))
+
+/**
+  * This is a demonstration of how to calculate the length of Foucault's pendulum.
+  */
+val g = Expression(Number("9.81*"))
+val t = Expression(Number("16.5*"))
+val expression = g * ((t / twoPi) ^ 2)
+val length: Number = expression
+
+/**
+  * Some trigonometric identities.
+ */
+val iPi = Expression(i) * pi
+val euler = Expression(e) ^ iPi
+euler.asNumber
+
+piBy2.cos
+piBy2.sin
+piBy2.tan
