@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.BigInt
@@ -933,7 +934,7 @@ object Number {
     */
   val NaN: Number = Number(None)
 
-  private val numberParser = new NumberParser()
+  private val numberParser = NumberParser
 
   /**
     * Method to parse a String and yield a Try[Number].

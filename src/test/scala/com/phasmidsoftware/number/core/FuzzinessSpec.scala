@@ -9,7 +9,7 @@ import scala.util.{Left, Try}
 
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
-  private val p = new NumberParser
+  private val p = NumberParser
   val sAlpha = "0.0072973525693(11)"
 
   behavior of "generalNumber"
@@ -48,7 +48,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
   behavior of "StringParser"
   it should "" in {
-    val x =    new NumberParser
+    val x = NumberParser
     val q: Try[Number] = x.parseNumber(sG)
       q.get.isExact(None) shouldBe false
       q.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)

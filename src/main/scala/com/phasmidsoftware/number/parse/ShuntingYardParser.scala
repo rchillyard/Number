@@ -16,7 +16,7 @@ import scala.util.Try
   *
   * CONSIDER using a TokenParser instead of a RegexParser.
   */
-class ShuntingYardParser extends MillParser {
+object ShuntingYardParser extends BaseMillParser {
 
   /**
     * Parse the string w as an infix expression.

@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.parse.MillParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.{Assertion, Succeeded}
+
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -88,7 +89,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   behavior of "parse and evaluate"
-  val p = new MillParser
+  private val p = MillParser
 
   it should "parse and evaluate: 2 37 + 2 *" in {
     val value: Try[Mill] = p.parseMill("42 37 + 2 *")

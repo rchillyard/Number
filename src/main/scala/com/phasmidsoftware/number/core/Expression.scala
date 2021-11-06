@@ -109,7 +109,7 @@ object Expression {
     * The idea is for render and parse.get to be inverses.
     * NOTE that it might be a problem with render instead.
     */
-  def parse(x: String): Option[Expression] = new ShuntingYardParser().parseInfix(x).toOption flatMap (_.evaluate)
+  def parse(x: String): Option[Expression] = ShuntingYardParser.parseInfix(x).toOption flatMap (_.evaluate)
 
   /**
     * The following constants are helpful in getting an expression started.

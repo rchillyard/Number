@@ -10,7 +10,7 @@ import scala.util.Try
   * TODO when we specify an exact number by following an integer by an exponent, we must precede the "E" with a decimal point.
   * Try to eliminate that requirement.
   */
-class NumberParser extends RationalParser {
+abstract class BaseNumberParser extends BaseRationalParser {
 
   /**
     * Parse the string w as a Number.
@@ -122,4 +122,6 @@ class NumberParser extends RationalParser {
 
   def factor: Parser[Factor] = (sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("factor")) :| "factor" ^^ { w => Factor(w) }
 }
+
+object NumberParser extends BaseNumberParser
 

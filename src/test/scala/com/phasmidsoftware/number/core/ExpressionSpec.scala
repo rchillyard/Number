@@ -7,6 +7,7 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
@@ -20,7 +21,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "parse"
-  val syp = new ShuntingYardParser()
+  private val syp = ShuntingYardParser
   it should "parse 1" in {
     syp.parseInfix("1") should matchPattern { case Success(_) => }
     syp.parseInfix("(1)") should matchPattern { case Failure(_) => } // tokens must currently be separated by white space

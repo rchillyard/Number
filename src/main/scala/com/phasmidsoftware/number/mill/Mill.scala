@@ -287,7 +287,7 @@ object Mill {
     * @param w the input String.
     * @return a Mill, wrapped in Try.
     */
-  def parse(w: String): Try[Mill] = (new MillParser).parseMill(w)
+  def parse(w: String): Try[Mill] = MillParser.parseMill(w)
 
   /**
     * Method to parse a String in infix notation (may extend over multiple lines) into a Mill.
@@ -295,7 +295,7 @@ object Mill {
     * @param w the input String.
     * @return a Mill, wrapped in Try.
     */
-  def parseInfix(w: String): Try[Mill] = (new ShuntingYardParser).parseInfix(w)
+  def parseInfix(w: String): Try[Mill] = ShuntingYardParser.parseInfix(w)
 }
 
 case class MillException(s: String) extends Exception(s)

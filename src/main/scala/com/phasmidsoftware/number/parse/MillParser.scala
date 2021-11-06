@@ -13,7 +13,7 @@ import scala.util.Try
   *
   * CONSIDER using a TokenParser instead of a RegexParser.
   */
-class MillParser extends NumberParser {
+abstract class BaseMillParser extends BaseNumberParser {
 
   /**
     * Parse the string w as a RPN expression.
@@ -131,4 +131,6 @@ class MillParser extends NumberParser {
   def neutralOperator1: Parser[String] = """clr|sto""".r :| "neutralOperator1"
 
 }
+
+object MillParser extends BaseMillParser
 
