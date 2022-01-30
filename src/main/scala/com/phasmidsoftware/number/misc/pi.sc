@@ -43,7 +43,8 @@ val N = 1000000
 val p = 2
 
 val (result, milliseconds) = 1.times {
-  val xfs: Seq[Future[Double]] = Seq.fill(p)(calculatePi(N))
+  val eventualDouble: Future[Double] = calculatePi(N)
+  val xfs: Seq[Future[Double]] = Seq.fill(p)(eventualDouble)
   val xs: Seq[Double] = Await.result(Future.sequence(xfs), 100 second)
   xs.sum / xs.length
 }
