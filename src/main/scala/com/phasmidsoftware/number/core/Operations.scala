@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
+
 import java.util.NoSuchElementException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -258,12 +259,12 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   */
 case object MonadicOperationModulate extends MonadicOperation {
   private def modulate[X: Numeric](z: X, min: X, max: X): X = {
-    val nx = implicitly[Numeric[X]]
+    import scala.math.Numeric.Implicits.infixNumericOps
 
     @tailrec
     def inner(result: X): X =
-      if (result < min) inner(nx.plus(result, nx.plus(max, nx.negate(min))))
-      else if (result > max) inner(nx.plus(result, nx.plus(min, nx.negate(max))))
+      if (result < min) inner(result + max - min)
+      else if (result > max) inner(result + min - max)
       else result
 
     inner(z)
