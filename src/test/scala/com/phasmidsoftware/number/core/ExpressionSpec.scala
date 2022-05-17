@@ -105,7 +105,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate atan" in {
     Zero.atan(One).materialize.asNumber shouldBe Some(Number.piBy2)
-    One.atan(Zero).materialize.asNumber shouldBe Some(Number(0, Radian))
+    Zero.atan(1).materialize.asNumber shouldBe Some(Number.piBy2)
+    One.atan(0).materialize.asNumber shouldBe Some(Number(0, Radian))
     Number.one.atan(Number.zero) shouldBe Number(0, Radian)
   }
   it should "evaluate ln E" in {

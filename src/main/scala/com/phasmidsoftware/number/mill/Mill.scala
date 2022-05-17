@@ -7,7 +7,15 @@ import com.phasmidsoftware.number.parse.{MillParser, ShuntingYardParser}
 import scala.language.postfixOps
 import scala.util.Try
 
-trait Mill {
+/**
+  * Trait to define the behavior of a "mill."
+  *
+  * TODO rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
+  *
+  */
+trait Mill extends Iterable[Item] {
+  self =>
+
   /**
     * Method to create a new Mill with x on the "top".
     *
@@ -34,6 +42,20 @@ trait Mill {
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     */
   def evaluate: Option[Expression]
+
+  def iterator: Iterator[Item] = {
+    var mill = this
+
+    new Iterator[Item] {
+      def hasNext: Boolean = mill.nonEmpty
+
+      def next(): Item = {
+        val (xo, m) = mill.pop
+        mill = m
+        xo.get
+      }
+    }
+  }
 }
 
 case class Stack(stack: List[Item]) extends Mill {
@@ -59,7 +81,7 @@ case class Stack(stack: List[Item]) extends Mill {
   /**
     * @return false.
     */
-  def isEmpty: Boolean = false
+  override def isEmpty: Boolean = false
 
 
   /**
@@ -249,7 +271,7 @@ case object Empty extends Mill {
   /**
     * @return true.
     */
-  def isEmpty: Boolean = true
+  override def isEmpty: Boolean = true
 
   /**
     * @return None.
