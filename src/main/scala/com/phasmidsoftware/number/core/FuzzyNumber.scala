@@ -138,6 +138,8 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
         sb.append(factor.toString)
       case Root(_) =>
         sb.append(factor.render(w))
+      case _ =>
+        throw NumberException(s"factor is not matched: $factor")
     }
     sb.toString
   }

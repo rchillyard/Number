@@ -43,12 +43,24 @@ trait Mill extends Iterable[Item] {
     */
   def evaluate: Option[Expression]
 
+  /**
+    * Method required by Iterable[Item].
+    *
+    * @return an Iterator[Item].
+    */
   def iterator: Iterator[Item] = {
+    // XXX using a var here, but the entire concept of an iterator pretty much requires mutability.
     var mill = this
 
     new Iterator[Item] {
+      /**
+        * @return the value of mill.nonEmpty
+        */
       def hasNext: Boolean = mill.nonEmpty
 
+      /**
+        * @return the next item and update the mill variable.
+        */
       def next(): Item = {
         val (xo, m) = mill.pop
         mill = m
@@ -58,6 +70,11 @@ trait Mill extends Iterable[Item] {
   }
 }
 
+/**
+  * A case class to represent a stack of Items, providing behavior of Mill.
+  *
+  * @param stack a List[Item] which will represent the stack.
+  */
 case class Stack(stack: List[Item]) extends Mill {
   /**
     * Method to push an Item on to this Stack.
@@ -82,7 +99,6 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return false.
     */
   override def isEmpty: Boolean = false
-
 
   /**
     * Method to evaluate this Mill.

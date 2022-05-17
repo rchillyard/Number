@@ -5,6 +5,12 @@ import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPol
 import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
 import com.phasmidsoftware.number.core.Number.negate
 
+/**
+  * Abstract base class which implements Complex.
+  *
+  * @param real the real component.
+  * @param imag the imaginary component.
+  */
 abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   /**
     * Method to determine if this Complex can be evaluated exactly.
@@ -74,10 +80,18 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case _ => throw NumberException(s"power not supported for $this ^ $p")
   }
 
+  /**
+    * Method to raise this Complex value to the (integer) power p.
+    *
+    * @param p an Int.
+    * @return this Field raised to power p.
+    */
   def power(p: Int): Field = power(Number(p))
 
   /**
     * Yields the inverse of this Complex.
+    *
+    * @return the result of invoking power(-1).
     */
   def invert: Field = power(-1)
 
@@ -138,15 +152,36 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     }
   }
 
+  /**
+    * Method to render the imaginary value as a String.
+    *
+    * @return a String representing the imaginary value.
+    */
   protected def showImaginary: String = s"${if (imag.isPositive) "" else "-"}i${imag.abs}"
 }
 
+/**
+  * Companion object to BaseComplex.
+  */
 object BaseComplex {
 
-  // TODO this is dangerous.
-  def unapply(arg: BaseComplex): Option[(Number, Number)] = Some(arg.real, arg.imag)
+  /**
+    * Method used by pattern-matching to yield the real and imaginary parts of a BaseComplex.
+    *
+    * NOTE this is dangerous.
+    *
+    * @param complex a BaseComplex.
+    * @return an optional tuple of two Numbers (real, imag).
+    */
+  def unapply(complex: BaseComplex): Option[(Number, Number)] = Some(complex.real, complex.imag)
 
-
+  /**
+    * Method to take a field and narrow it to a BaseComplex.
+    *
+    * @param x     a Field.
+    * @param polar whether we want a polar result or a cartesian result.
+    * @return a BaseComplex.
+    */
   def narrow(x: Field, polar: Boolean): BaseComplex = x match {
     case c@ComplexCartesian(_, _) => if (polar) convertToPolar(c) else c
     case c@ComplexPolar(_, _) => if (!polar) convertToCartesian(c) else c
@@ -154,6 +189,12 @@ object BaseComplex {
   }
 }
 
+/**
+  * Case class to represent a Cartesian complex object.
+  *
+  * @param x the real part.
+  * @param y the imaginary part.
+  */
 case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
 
   /**
@@ -183,19 +224,37 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     */
   def rotate: BaseComplex = ComplexCartesian(imag.makeNegative, real)
 
+  /**
+    * Method to multiply this BaseComplex by a Number.
+    *
+    * @param n the Number.
+    * @return a Complex with the same argument as this but a different magnitude.
+    */
   def numberProduct(n: Number): Complex =
-  // TODO this first option currently works only for i, not for multiples of i.
-    if (n.isImaginary) rotate
+  // FIXME this first option currently works only for i, not for multiples of i.
+    if
+    (n.isImaginary) rotate
     else
       make(x doMultiply n, y doMultiply n)
 
+  /**
+    * Method to make a BaseComplex from a pair of numbers (treated as the real and imaginary parts of a
+    * Cartesian Complex number).
+    *
+    * @param a the real part.
+    * @param b the imaginary part.
+    * @return a Complex number, either ComplexCartesian or ComplexPolar
+    */
   def make(a: Number, b: Number): BaseComplex = ComplexCartesian(a, b)
 
+  /**
+    * Method to determine if this complex number is probably zero (with probability of 1/2).
+    *
+    * @return true if the magnitude of this Field is zero.
+    */
   def isZero: Boolean = x.isProbablyZero(0.5) && y.isProbablyZero(0.5)
 
   /**
-    * TEST me
-    *
     * @return true if the magnitude of this Field is infinite.
     */
   def isInfinite: Boolean = x.isInfinite || y.isInfinite
@@ -243,13 +302,25 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   }
 }
 
+/**
+  * Companion object to ComplexCartesian.
+  */
 object ComplexCartesian {
+  /**
+    * Method to create a ComplexCartesian from two Int parameters.
+    *
+    * @param x the real part.
+    * @param y the imaginary part.
+    * @return a ComplexCartesian made of up x and y.
+    */
   def apply(x: Int, y: Int): ComplexCartesian = ComplexCartesian(Number(x), Number(y))
 
-  def apply(x: Int, y: Number): ComplexCartesian = ComplexCartesian(Number(x), y)
-
-  def apply(x: Number, y: Int): ComplexCartesian = ComplexCartesian(x, Number(y))
-
+  /**
+    * Method to create a real-valued ComplexCartesian.
+    *
+    * @param x the real value.
+    * @return a ComplexCartesian with values x and 0.
+    */
   def apply(x: Number): ComplexCartesian = ComplexCartesian(x, 0)
 }
 
