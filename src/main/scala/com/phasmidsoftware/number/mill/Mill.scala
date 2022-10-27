@@ -7,7 +7,15 @@ import com.phasmidsoftware.number.parse.{MillParser, ShuntingYardParser}
 import scala.language.postfixOps
 import scala.util.Try
 
-trait Mill {
+/**
+  * Trait to define the behavior of a "mill."
+  *
+  * TODO rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
+  *
+  */
+trait Mill extends Iterable[Item] {
+  self =>
+
   /**
     * Method to create a new Mill with x on the "top".
     *
@@ -34,8 +42,39 @@ trait Mill {
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     */
   def evaluate: Option[Expression]
+
+  /**
+    * Method required by Iterable[Item].
+    *
+    * @return an Iterator[Item].
+    */
+  def iterator: Iterator[Item] = {
+    // XXX using a var here, but the entire concept of an iterator pretty much requires mutability.
+    var mill = this
+
+    new Iterator[Item] {
+      /**
+        * @return the value of mill.nonEmpty
+        */
+      def hasNext: Boolean = mill.nonEmpty
+
+      /**
+        * @return the next item and update the mill variable.
+        */
+      def next(): Item = {
+        val (xo, m) = mill.pop
+        mill = m
+        xo.get
+      }
+    }
+  }
 }
 
+/**
+  * A case class to represent a stack of Items, providing behavior of Mill.
+  *
+  * @param stack a List[Item] which will represent the stack.
+  */
 case class Stack(stack: List[Item]) extends Mill {
   /**
     * Method to push an Item on to this Stack.
@@ -59,8 +98,7 @@ case class Stack(stack: List[Item]) extends Mill {
   /**
     * @return false.
     */
-  def isEmpty: Boolean = false
-
+  override def isEmpty: Boolean = false
 
   /**
     * Method to evaluate this Mill.
@@ -249,7 +287,7 @@ case object Empty extends Mill {
   /**
     * @return true.
     */
-  def isEmpty: Boolean = true
+  override def isEmpty: Boolean = true
 
   /**
     * @return None.

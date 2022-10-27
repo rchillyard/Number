@@ -135,14 +135,6 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def doMultiply(n: Number): Number
 
   /**
-    * Multiply this Number by n.
-    *
-    * @param n another Int.
-    * @return the product of this and n.
-    */
-  def doMultiply(n: Int): Number = doMultiply(Number(n))
-
-  /**
     * Divide this Number by n.
     *
     * @param n another Number.
@@ -151,30 +143,12 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def doDivide(n: Number): Number
 
   /**
-    * Divide this Number by n.
-    *
-    * @param n an Int.
-    * @return this quotient of this and n, i.e. this/n.
-    */
-  def doDivide(n: Int): Number = doDivide(Number(n))
-
-  /**
     * Raise this Number to the power p.
     *
     * @param p a Number.
     * @return this Number raised to the power of p.
     */
   def doPower(p: Number): Number
-
-  /**
-    * Raise this Number to the power p.
-    *
-    * NOTE: this method is only ever used by Specs.
-    *
-    * @param p an Int.
-    * @return this Number raised to the power of p.
-    */
-  def doPower(p: Int): Number = doPower(Number(p))
 
   // NOTE Following are methods defined in Field.
 
@@ -607,6 +581,7 @@ object Number {
     * Exact value of √5
     */
   val root5: Number = Number(5, Root2)
+
   /**
     * Implicit converter from Expression to Number.
     *
@@ -614,10 +589,18 @@ object Number {
     * @return the equivalent Number.
     * @throws ExpressionException if x cannot be converted to a Number.
     */
-  implicit def convertToNumber(x: Expression): Number = x.materialize.asNumber match {
+  implicit def convertExpression(x: Expression): Number = x.materialize.asNumber match {
     case Some(n) => n
     case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
   }
+
+  /**
+    * Implicit converter from Int to Number.
+    *
+    * @param x the Int to be converted.
+    * @return the equivalent Number.
+    */
+  implicit def convertInt(x: Int): Number = Number(x)
 
   /**
     * Implicit class which takes a Double, and using method ~ and an Int parameter,
@@ -1103,6 +1086,7 @@ object Number {
         case Some(3) | Some(9) => oneOverRoot2
         case Some(15) | Some(21) => Field.convertToNumber(-oneOverRoot2.normalize)
         case Some(4) | Some(8) => rootThreeQuarters
+        // FIXME unreachable.
         case Some(15) | Some(21) => Field.convertToNumber(-rootThreeQuarters.invert.normalize)
         case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin))
       }
@@ -1173,11 +1157,13 @@ object Number {
         case Some(Rational(Rational.bigThree, Rational.bigOne)) => Success(Rational(1, 3))
         case Some(Rational(Rational.bigOne, Rational.bigThree)) => Success(Rational(1, 6))
         case None => Failure(NumberException("input to atan is not rational"))
+        case _ => Failure(NumberException("rational is not matched"))
       }
       (for (flip <- ro map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
         case Some(r) => Number(r, Radian)
         case None => doAtan(number.scale(Scalar), sign)
       }
+    case _ => throw NumberException("number.factor is not matched")
   }
 
   private def convertScalarToRoot(n: Number, factor: Factor, f: Double) =

@@ -36,12 +36,20 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "isExact" in {
-      c1_2.isExact(None) shouldBe true
-      c2_0.isExact(None) shouldBe true
-      p1_pi.isExact(None) shouldBe true
-      (c1_2 add c2_0).isExact(None) shouldBe true
-      // FIXME Caused by July 1st commit
-      //    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
+    c1_2.isExact(None) shouldBe true
+    c2_0.isExact(None) shouldBe true
+    p1_pi.isExact(None) shouldBe true
+    (c1_2 add c2_0).isExact(None) shouldBe true
+    // FIXME Caused by July 1st commit
+    //    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
+  }
+
+  it should "isInfinite" in {
+
+    p1_pi_2.divide(Number.zero).isInfinite shouldBe true
+    p1_pi.isInfinite shouldBe false
+    c2_0.divide(Number.one).isInfinite shouldBe false
+    c1_2.isInfinite shouldBe false
   }
 
   it should "asNumber" in {

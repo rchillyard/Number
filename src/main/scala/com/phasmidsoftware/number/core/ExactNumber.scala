@@ -140,6 +140,8 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
           sb.append(factor.toString)
         case Root(_) =>
           sb.append(factor.render(value))
+        case _ =>
+          throw NumberException(s"factor is not matched: $factor")
       }
       sb.toString
   }
