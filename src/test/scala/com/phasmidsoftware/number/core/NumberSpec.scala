@@ -862,6 +862,18 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Number(-4).sqrt shouldBe Number(-4, Root2)
     Number(-4).power(Number(Rational.half)) shouldBe Number(-4, Root2)
   }
+  it should "work for the Basel approximation of pi" in {
+    def inverseSquare(x: Int): Rational = Rational.one / (x * x)
+
+    val terms: LazyList[Rational] = LazyList.from(1) map inverseSquare
+    val significantTerms = terms takeWhile (x => x.toDouble > 1E-6) to List
+    val insignificantTerms = terms map (x => x.toDouble) dropWhile (x => x > 1E-6) takeWhile (x => x > 1E-8) to List
+    val basel: Rational = significantTerms.sum * 6
+    val error: Double = insignificantTerms.sum * 6
+    val piSquared: Number = Number.create(Value.fromRational(basel), AbsoluteFuzz(error, Box))
+    val pi = piSquared.sqrt
+    pi.toString shouldBe "3.14063[86]"
+  }
 
   behavior of "sin"
   it should "be zero for pi" in {
@@ -1304,4 +1316,5 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Number.two multiply Number.i shouldBe ComplexCartesian(0, 2)
     ComplexCartesian(2, 3) multiply Number.i shouldBe ComplexCartesian(-3, 2)
   }
+
 }

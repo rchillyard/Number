@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-import scala.util.Left
 
 /**
   * This class is designed to model a fuzzy Number.
@@ -29,8 +28,13 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @return either this Number or a simplified Number.
     */
   def simplify: Number = fuzz match {
-    case None => ExactNumber(value, factor).simplify
-    case _ => this
+      case None => ExactNumber(value, factor).simplify
+      case _ =>
+          factor match {
+              case Root(_) => scale(Scalar)
+              case _ => this
+          }
+
   }
 
   /**
