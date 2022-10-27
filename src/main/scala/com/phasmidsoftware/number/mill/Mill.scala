@@ -64,7 +64,7 @@ trait Mill extends Iterable[Item] {
       def next(): Item = {
         val (xo, m) = mill.pop
         mill = m
-        xo.get
+        xo.get // XXX this call to get is protected by the hasNext method. That's the way iterators are.
       }
     }
   }
@@ -285,6 +285,9 @@ case object Empty extends Mill {
   def pop: (Option[Item], Mill) = (None, Empty)
 
   /**
+    * Overriding the isEmpty method of IterableOnceOps.
+    * NOTE: don't worry about Codacy complaint: it's just that this object is called "Empty."
+    *
     * @return true.
     */
   override def isEmpty: Boolean = true
