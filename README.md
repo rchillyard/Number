@@ -355,6 +355,7 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Versions
 ========
+* Version 1.0.13: Mostly cleanup together with some fixes related to Root factors.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
 * Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.
 * Version 1.0.10: Many improvements and fixes:
