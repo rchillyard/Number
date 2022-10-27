@@ -159,7 +159,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return a String.
     */
-  def render: String = toString
+  def render: String = simplify.toString
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.

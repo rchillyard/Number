@@ -97,7 +97,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for E as scalar" in {
     val target = Number.e.scale(Scalar)
-    // XXX seems to be a difference between Intel chip and "Applie M1" chip
+    // XXX seems to be a difference between Intel chip and "Apple M1" chip
     target.toString.substring(0, 17) shouldBe "2.718281828459045"
   }
   it should "work for E^2 as Real" in {
@@ -468,7 +468,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for Root2, Root3" in {
     val target = Number(4, Root2)
-    target.render shouldBe "√4"
+    target.render shouldBe "2"
     val expected = Number(8, Root3)
     val result = target.scale(Root3)
     result shouldBe expected
@@ -480,12 +480,16 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     result shouldBe expected
     result.toString shouldBe "3"
   }
+  it should "work for E, Root2" in {
+    val target = Number(math.E * math.E)
+    val result: Number = target.sqrt
+    result.render shouldBe "2.7182818284590450[86]"
+  }
   it should "work for NatLog, Root2" in {
     val target = Number.e
     val expected = Number(math.E * math.E, Root2)
     val result: Number = target.scale(Root2)
-    // XXX seems to be a difference between Intel chip and "Applie M1" chip
-    result.render.substring(0, 16) shouldBe "√7.3890560989306"
+    result.render shouldBe "2.7182818284590455[61]"
     result should ===(expected)
   }
 

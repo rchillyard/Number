@@ -17,14 +17,15 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     */
   def simplify: Number = (factor, value) match {
     case (Logarithmic(_), Right(0)) => Number.one
-    // TODO implement for Root(3) also
-    case (Root(2), v) => v match {
+    // XXX this handles all roots (of which there are currently only Root2 and Root3)
+    case (Root(n), v) => v match {
       case Right(x) =>
         (Rational.squareRoots.get(x) map (make(_, Scalar))).getOrElse(this)
-      case Left(Right(r)) => r.root(2) match {
+      case Left(Right(r)) => r.root(n) match {
         case Some(x) => ExactNumber(Value.fromRational(x), Scalar)
         case _ => this
       }
+      case Left(Left(Some(_))) => scale(Scalar)
       case _ => this
     }
     case _ => this
