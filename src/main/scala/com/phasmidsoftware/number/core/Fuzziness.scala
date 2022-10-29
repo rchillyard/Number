@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.Valuable.ValuableDouble
 import org.apache.commons.math3.special.Erf.erfInv
 import scala.math.Numeric.DoubleIsFractional
-import scala.math.Ordering
 import scala.util.Try
 
 /**
@@ -448,6 +447,8 @@ object Fuzziness {
 /**
   * Describes a probability density function for a continuous distribution.
   * NOTE: this isn't suitable for discrete distributions, obviously.
+  *
+  * TODO: implement additional shapes, for example O(f(x)). This would be used for the Basel problem, for example.
   */
 trait Shape {
 

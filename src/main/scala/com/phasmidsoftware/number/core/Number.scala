@@ -4,10 +4,8 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
-import scala.math.BigInt
 import scala.util._
 
 /**
@@ -163,7 +161,8 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def isZero: Boolean = Number.isZero(this)
 
   /**
-    * @return true if there is no fuzz.
+    * @param maybeFactor an optional Factor to be matched.
+    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
     */
   def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && (maybeFactor.isEmpty || maybeFactor.contains(factor))
 

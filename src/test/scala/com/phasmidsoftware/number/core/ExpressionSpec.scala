@@ -7,7 +7,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
@@ -143,17 +142,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Number.pi.isExact(None) shouldBe true
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
-    (One + Number.two).isExact(Some(Scalar)) shouldBe true
+    (One + Number.two).isExact shouldBe true
     (ConstPi + Number.pi).isExact(Some(Radian)) shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Literal(2) * Number.e).isExact(None) shouldBe false
+    (Literal(2) * Number.e).isExact shouldBe false
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
     (Literal(1) * Number.e).isExact(None) shouldBe true
   }
   it should "be true for product of zero exact Numbers and a NatLog factor" in {
-    (Literal(0) * Number.e).isExact(None) shouldBe true
+    (Literal(0) * Number.e).isExact shouldBe true
   }
 
   behavior of "depth"

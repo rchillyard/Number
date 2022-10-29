@@ -12,6 +12,13 @@ trait NumberLike {
     def isExact(maybeFactor: Option[Factor]): Boolean
 
     /**
+      * Method to determine if this NumberLike object can be evaluated exactly in the context of a Scalar.
+      *
+      * @return true if this NumberLike object is exact in the context of Scalar, else false.
+      */
+    def isExact: Boolean = isExact(Some(Scalar))
+
+    /**
       * Method to determine if this Field is actually a real Number (i.e. not complex).
       * NOTE: to force this as a Number, use convertToNumber in the companion Object.
       *
