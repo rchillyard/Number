@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.matchers.MatchLogger
 import com.phasmidsoftware.number.core.Field.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
+
 import scala.language.implicitConversions
 
 /**
@@ -54,6 +55,13 @@ trait Expression extends NumberLike {
     * @return the depth (an atomic expression has depth of 1).
     */
   def depth: Int
+
+  /**
+    * Method to determine if this Expression evaluates to a Complex number.
+    *
+    * @return true if this Expression evaluates to a Complex number.
+    */
+  def isComplex: Boolean = evaluate.isComplex
 
   /**
     * Eagerly compare this Expression with comparand.

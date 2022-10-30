@@ -185,7 +185,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
     // Lazy list of numbers greater than n, that could conceivably be primes: viz. 2, 5, and all numbers ending with 1, 3, 7, or 9.
     val ys: LazyList[BigInt] = bigInts(n + 1).filter { x =>
       x == 2 || x == 5 || {
-        val r = x % 10;
+        val r = x % 10
         r == 1 || r == 3 || r == 7 || r == 9
       }
     }
@@ -670,7 +670,7 @@ object MillerRabin {
       val rand = new Random()
       var a: BigInt = 0
       while (a == 0) {
-        a = BigInt("" + (rand.nextDouble * n.doubleValue).toInt)
+        a = BigInt("" + (rand.nextDouble() * n.doubleValue).toInt)
       }
       if (!miller_rabin_pass(a, n)) return false
     }

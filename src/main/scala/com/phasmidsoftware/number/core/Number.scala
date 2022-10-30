@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._
@@ -78,7 +79,27 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def maybeDouble: Option[Double]
 
   /**
-    * Method to get the value of this Number as a Rational.
+    * Method to determine if this Number is actually represented as an Integer.
+    *
+    * @return true if exact and rational.
+    */
+  def isInteger: Boolean = value match {
+    case Right(_) => true
+    case _ => false
+  }
+
+  /**
+    * Method to determine if this Number is actually represented as a Rational.
+    *
+    * @return true if exact and rational.
+    */
+  def isRational: Boolean = value match {
+    case Left(Right(_)) => true
+    case _ => false
+  }
+
+  /**
+    * Method to get the value of this Number as an (optional) Rational.
     * If this is actually a Double, it will be converted to a Rational according to the implicit conversion from Double to Rational.
     * See Rational.convertDouble(x).
     *
@@ -92,6 +113,18 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return an Option of Int. If this Number cannot be converted to an Int, then None will be returned.
     */
   def toInt: Option[Int]
+
+  /**
+    * Method to get the value of this Number as an (optional) BigInt.
+    * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
+    *
+    * @return an Option of BigInt.
+    */
+  def toBigInt: Option[BigInt] = value match {
+    case Right(x) => Some(BigInt(x))
+    case Left(Right(r)) if r.isWhole => Some(r.n)
+    case _ => None
+  }
 
   /**
     * Method to determine if this Number is positive.

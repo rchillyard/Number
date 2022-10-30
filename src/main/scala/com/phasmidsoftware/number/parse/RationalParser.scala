@@ -19,6 +19,13 @@ trait ValuableNumber {
   */
 abstract class BaseRationalParser extends SignificantSpaceParsers {
 
+  /**
+    * A "Whole" number. According to this definition all integers (Z) are whole numbers.
+    * More mathematically speaking, the "whole" numbers are the Natural numbers (N) together with zero.
+    *
+    * @param sign   whether the parser detected a minus sign.
+    * @param digits the digits read in.
+    */
   case class WholeNumber(sign: Boolean, digits: String) extends ValuableNumber {
     def value: Try[Rational] = scala.util.Success(Rational(BigInt(digits)).applySign(sign))
   }

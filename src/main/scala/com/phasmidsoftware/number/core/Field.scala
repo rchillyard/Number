@@ -11,19 +11,29 @@ package com.phasmidsoftware.number.core
   */
 trait Field extends NumberLike {
 
-    /**
-      * Method to determine if this Field has infinite magnitude.
-      *
-      * @return true if the magnitude of this Field is infinite.
-      */
-    def isInfinite: Boolean
+  /**
+    * Method to determine if this Field has infinite magnitude.
+    *
+    * @return true if the magnitude of this Field is infinite.
+    */
+  def isInfinite: Boolean
 
-    /**
-      * Method to determine if this Field has zero magnitude.
+  /**
+    * Method to determine if this Field has zero magnitude.
     *
     * @return true if the magnitude of this Field is zero.
     */
   def isZero: Boolean
+
+  /**
+    * Method to determine if this Field is represented by a Complex number.
+    *
+    * @return true if this is Complex.
+    */
+  def isComplex: Boolean = this match {
+    case ComplexCartesian(_, _) | ComplexPolar(_, _) => true
+    case _ => false
+  }
 
   /**
     * Add x to this Field and return the result.

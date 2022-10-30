@@ -264,7 +264,10 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return a Field which is in canonical form.
     */
-  def normalize: BaseComplex = ComplexCartesian(convertToNumber(x.normalize), convertToNumber(y.normalize))
+  def normalize: Field = ComplexCartesian(convertToNumber(x.normalize), convertToNumber(y.normalize)) match {
+    case ComplexCartesian(real, imag) if imag.isZero => real
+    case c => c
+  }
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -365,7 +368,7 @@ case class ComplexPolar(r: Number, theta: Number) extends BaseComplex(r, theta) 
 
   def isInfinite: Boolean = r.isInfinite
 
-  def normalize: BaseComplex = ComplexCartesian(r.scale(NatLog), theta.scale(Radian))
+  def normalize: Field = ComplexCartesian(r.scale(NatLog), theta.scale(Radian)).normalize
 
   /**
     * Action to materialize this Expression and render it as a String,
