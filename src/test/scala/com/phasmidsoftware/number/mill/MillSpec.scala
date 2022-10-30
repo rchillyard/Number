@@ -30,7 +30,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val mill = Mill(one)
     val i = mill.iterator
     i.hasNext shouldBe true
-    i.next shouldBe one
+    i.next() shouldBe one
     i.hasNext shouldBe false
   }
   it should "empty" in {

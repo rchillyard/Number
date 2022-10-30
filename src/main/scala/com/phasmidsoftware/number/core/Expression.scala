@@ -589,18 +589,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * Determine if this dyadic expression has an exact result, according to f, the function.
     * NOTE that Product is always true, but it is possible that Sum or Power could be false.
     *
-    * CONSIDER not checking a and b as exact because we wouldn't be here if they weren't.
-    *
-    * TODO refactor this method to remove all parameters since they are simply copies of the values in scope.
-    *
-    * @param f the function.
-    * @param a first operand (currently ignored)
-    * @param b second operand.
     * @return true if the result of the f(a,b) is exact.
+    *         NOTE: this appears to be an inaccurate description of the result.
     */
-  def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
+  private lazy val conditionallyExact: Boolean = f match {
     case Power => b.materialize.asNumber.flatMap(x => x.toInt).isDefined
     case Sum => maybeFactor.isDefined
+    case Product => true
     case _ => false
   }
 
@@ -622,7 +617,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ => false
   }
 
-  private lazy val exact: Boolean = a.isExact(None) && b.isExact(None) && (f.isExact || conditionallyExact(f, a, b))
+  private lazy val exact: Boolean = a.isExact(None) && b.isExact(None) && (f.isExact || conditionallyExact)
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")

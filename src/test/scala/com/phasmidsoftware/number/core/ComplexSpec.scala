@@ -159,11 +159,12 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   private def checkAtan2(opposite: Int, adjacent: Int): Unit = {
     val theta = math.atan2(opposite, adjacent)
     //noinspection ScalaUnusedSymbol
-// NOTE this isn't used
-val thetaAsFraction = theta / math.Pi
+    // NOTE this isn't used
+    val thetaAsFraction = theta / math.Pi
     //    println(s"atan2($opposite/$adjacent) is $thetaAsFraction")
     val result = math.tan(theta)
     val expected = opposite * 1.0 / adjacent
+    // CONSIDER what's going on here? When might it be pos inf?
     if (expected != Double.PositiveInfinity)
       result shouldBe expected +- 1E-6
   }

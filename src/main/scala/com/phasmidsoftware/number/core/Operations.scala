@@ -2,10 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
 
-import java.util.NoSuchElementException
 import scala.annotation.tailrec
-import scala.language.implicitConversions
-import scala.math.BigInt
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
 
@@ -242,7 +239,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     */
   val fuzz: Int = 4
 
-  def modulateAngle(ry: Try[Rational], flip: Boolean): Try[Rational] = ry map (r => if (flip) -r else r) map (r => if (sign < 0) Rational.one + r else r)
+  def modulateAngle(ry: Try[Rational], flip: Boolean): Try[Rational] = ry map (r => if (flip) r.negate else r) map (r => if (sign < 0) Rational.one + r else r)
 
   private def doAtan(r: Rational) = {
     r match {

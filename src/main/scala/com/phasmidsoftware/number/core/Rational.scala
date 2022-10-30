@@ -1,7 +1,8 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero}
-import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
+import com.phasmidsoftware.number.parse.RationalParser
+
 import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -502,7 +503,7 @@ object Rational {
     }
 
   // CONSIDER eliminating this, but it is currently employed by Operations.
-  val squareRoots = Map(0 -> 0, 1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)
+  val squareRoots: Map[Int, Int] = Map(0 -> 0, 1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)
 
   /**
     * Method to process the numerator and denominator to ensure that the denominator is never zero and never shares a common factor with the numerator.
