@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
 import scala.language.implicitConversions
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
@@ -191,6 +190,8 @@ object FP {
     * @return a function X => Try[Z]
     */
   def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
+
+  def optional[T](f: T => Boolean)(t: T): Option[T] = Some(t).filter(f)
 }
 
 /**
