@@ -39,7 +39,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     c1_2.isExact(None) shouldBe true
     c2_0.isExact(None) shouldBe true
     p1_pi.isExact(None) shouldBe true
-    (c1_2 add c2_0).isExact(None) shouldBe true
+    (c1_2 add c2_0).isExact shouldBe true
     // FIXME Caused by July 1st commit
     //    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
   }

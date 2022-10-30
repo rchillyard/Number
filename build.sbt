@@ -8,7 +8,7 @@ scalaVersion := "2.13.6"
 
 scalacOptions ++= Seq( "-target:jvm-1.8", "-encoding", "UTF-8", "-unchecked", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused" )
 
-val scalaTestVersion = "3.2.9"
+val scalaTestVersion = "3.2.14"
 
 //lazy val root = (project in file(".")).dependsOn(matchers)
 
@@ -19,10 +19,10 @@ libraryDependencies ++= Seq(
     "com.phasmidsoftware" %% "flog" % "1.0.8",
     "com.phasmidsoftware" %% "matchers" % "1.0.5",
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.0.0",
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1",
     "org.apache.commons" % "commons-math3" % "3.6.1",
     "ch.qos.logback" % "logback-classic" % "1.2.5" % "test",
-    "org.scalacheck" %% "scalacheck" % "1.15.4" % "test" // This is used for testing Rational
+    "org.scalacheck" %% "scalacheck" % "1.17.0" % "test" // This is used for testing Rational
 )
 
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
