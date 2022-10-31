@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
 import com.phasmidsoftware.number.core.Rational.toInts
-
 import scala.annotation.tailrec
 import scala.util._
 
@@ -70,6 +69,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return true if this Number is greater than or equal to 0.
     */
   def isPositive: Boolean = signum >= 0
+
+  def isImaginary: Boolean = factor match {
+    case Root2 if Value.signum(value) < 0 => true
+    case _ => false
+  }
 
   /**
     * Negative of this Number.
@@ -466,10 +470,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 }
 
 object GeneralNumber {
-  def isImaginary(x: Number): Boolean = x.factor match {
-    case Root2 if Value.signum(x.value) < 0 => true
-    case _ => false
-  }
 
   def applyFunc(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] = {
     val op: MonadicOperation = MonadicOperationFunc(f, dfByDx)

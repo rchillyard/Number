@@ -48,7 +48,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     *
     * @return true if imaginary.
     */
-  def isImaginary: Boolean = GeneralNumber.isImaginary(this)
+  def isImaginary: Boolean
 
   /**
     * Method to make some trivial simplifications of this Number (only if exact).
