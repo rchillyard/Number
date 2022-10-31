@@ -3,6 +3,8 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
 
+import scala.collection.mutable
+
 /**
   * This class is designed to model a fuzzy Number.
   * See GeneralNumber for more details on the actual representation.
@@ -129,8 +131,9 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @return
     */
   override def toString: String = {
-    val sb = new StringBuilder()
+    val sb = new mutable.StringBuilder()
     val w = fuzz match {
+      // FIXME #69
       case Some(f) => f.toString(toDouble.getOrElse(0.0))
       case None => Value.valueToString(value)
     }

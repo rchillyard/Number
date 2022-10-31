@@ -18,7 +18,7 @@ class NumberSetSpec extends AnyFlatSpec with should.Matchers {
   it should "isMember" in {
     N.isMember(Number.one) shouldBe true
     Z.isMember(Number.zero) shouldBe true
-    Q.isMember(Number(Rational.half)) shouldBe true
+    Q.isMember(Number.half) shouldBe true
     R.isMember(Number.pi) shouldBe true
     C.isMember(Number.i) shouldBe true
   }
@@ -26,7 +26,7 @@ class NumberSetSpec extends AnyFlatSpec with should.Matchers {
   it should "belongsToSetExclusively" in {
     N.belongsToSetExclusively(Number.one) shouldBe true
     Z.belongsToSetExclusively(Number.zero) shouldBe true
-    Q.belongsToSetExclusively(Number(Rational.half)) shouldBe true
+    Q.belongsToSetExclusively(Number.half) shouldBe true
     R.belongsToSetExclusively(Number.pi) shouldBe true
     C.belongsToSetExclusively(Number.i) shouldBe true
   }
@@ -38,10 +38,26 @@ class NumberSetSpec extends AnyFlatSpec with should.Matchers {
     C.belongsToSetExclusively(Number.pi) shouldBe false
     Q.belongsToSetExclusively(Number.one) shouldBe false
     R.belongsToSetExclusively(Number.zero) shouldBe false
-    C.belongsToSetExclusively(Number(Rational.half)) shouldBe false
+    C.belongsToSetExclusively(Number.half) shouldBe false
     R.belongsToSetExclusively(Number.one) shouldBe false
     C.belongsToSetExclusively(Number.zero) shouldBe false
     C.belongsToSetExclusively(Number.one) shouldBe false
   }
 
+  behavior of "NumberLike"
+  it should "memberOf" in {
+    Number.one.memberOf shouldBe Some(N)
+    Number.zero.memberOf shouldBe Some(Z)
+    Number.half.memberOf shouldBe Some(Q)
+    Number.pi.memberOf shouldBe Some(R)
+    Number.i.memberOf shouldBe Some(C)
+  }
+
+  it should "memberOf(set)" in {
+    Number.one.memberOf(N) shouldBe true
+    Number.zero.memberOf(Z) shouldBe true
+    Number.half.memberOf(Q) shouldBe true
+    Number.pi.memberOf(R) shouldBe true
+    Number.i.memberOf(C) shouldBe true
+  }
 }

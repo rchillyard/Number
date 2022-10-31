@@ -127,6 +127,21 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   }
 
   /**
+    * Method to get the value of this Number as an (optional) BigInt.
+    * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
+    *
+    * TESTME
+    * 
+    * @return an Option of BigDecimal.
+    */
+  def toBigDecimal: Option[BigDecimal] = value match {
+    case Right(x) => Some(BigDecimal(x))
+    case Left(Right(r)) => Some(r.toBigDecimal)
+    case Left(Left(Some(x))) => Some(BigDecimal(x))
+    case _ => None
+  }
+
+  /**
     * Method to determine if this Number is positive.
     * Use case: does the String representation not start with a "-"?
     *

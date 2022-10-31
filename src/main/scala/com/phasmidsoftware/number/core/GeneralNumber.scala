@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
 import com.phasmidsoftware.number.core.Rational.toInts
+
 import scala.annotation.tailrec
 import scala.util._
 
@@ -422,6 +423,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).
+    * If
+    *
+    * @return Some(x) if value can be converted properly to a Double, otherwise None.
     */
   def maybeDouble: Option[Double] = Value.maybeDouble(value)
 

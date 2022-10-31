@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Constants.sGamma
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -56,6 +57,13 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     target.isExact(None) shouldBe false
     target should ===(Number(6.67430E-11))
     target.render shouldBe sG
+  }
+  // FIXME #69 this is important but will require a major refactoring to accomplish
+  ignore should "have gamma" in {
+    val target = Constants.gamma
+    target.isExact(None) shouldBe false
+    target should ===(Number(0.577215664901533))
+    target.render shouldBe sGamma
   }
   it should "have avagadro" in {
     val target = Constants.avagadro

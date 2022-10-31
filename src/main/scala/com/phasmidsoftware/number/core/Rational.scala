@@ -94,6 +94,8 @@ case class Rational(n: BigInt, d: BigInt) {
 
   lazy val toDouble: Double = Rational.toDouble(this)
 
+  lazy val maybeDouble: Option[Double] = if (isExactDouble) Some(toDouble) else None
+
   /**
     * Method to get the xth power of this Rational, exactly.
     *
@@ -159,8 +161,9 @@ case class Rational(n: BigInt, d: BigInt) {
     else if (isZero && d < 0) "-0"
     else if (isInfinity) (if (n > 0) "+ve" else "-ve") + " infinity"
     else if (isWhole) toBigInt.toString
-    else if (d > 100000L || isExactDouble) toDouble.toString
-    else toRationalString
+    else if (isExactDouble) toDouble.toString
+    else if (d <= 100000L) toRationalString
+    else toBigDecimal.toString() // XXX fix for issue #70
 }
 
 object Rational {
@@ -287,12 +290,13 @@ object Rational {
   val bigFive: BigInt = BigInt(5)
   val bigSeven: BigInt = BigInt(7)
   val bigNegOne: BigInt = BigInt(-1)
+  val bigTen: BigInt = BigInt(10)
   val zero: Rational = Rational(0)
   lazy val infinity: Rational = zero.invert
   lazy val negInfinity: Rational = negZero.invert
-  val one: Rational = Rational(1)
-  val ten: Rational = Rational(10)
-  val two: Rational = Rational(2)
+  val one: Rational = Rational(bigOne)
+  val ten: Rational = Rational(bigTen)
+  val two: Rational = Rational(bigTwo)
   lazy val half: Rational = two.invert
   lazy val NaN = new Rational(0, 0)
   lazy val negZero = new Rational(0, -1)

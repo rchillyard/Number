@@ -57,13 +57,6 @@ trait Expression extends NumberLike {
   def depth: Int
 
   /**
-    * Method to determine if this Expression evaluates to a Complex number.
-    *
-    * @return true if this Expression evaluates to a Complex number.
-    */
-  def isComplex: Boolean = evaluate.isComplex
-
-  /**
     * Eagerly compare this Expression with comparand.
     *
     * TODO this will work only for Numbers. We need to be able to determine if two Complex numbers are essentially the same.
