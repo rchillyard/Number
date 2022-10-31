@@ -186,9 +186,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     target.toString shouldBe "ComplexCartesian(0,\uD835\uDED1)"
   }
 
-  behavior of "asComplex"
+  behavior of "Number.asComplex"
   it should "work" in {
-    c2_0.asComplex shouldBe c2_0
     Number(2).asComplex shouldBe c2_0
   }
 

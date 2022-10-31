@@ -4,13 +4,13 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._
 
 /**
   * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
+  * That's to say that Numbers have linear domain and all belong, directly or indirectly, to the set R (real numbers).
   *
   * Every number has three properties:
   * * value: Value
@@ -371,6 +371,13 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return Some(this).
     */
   def asNumber: Option[Number] = Some(this)
+
+  /**
+    * Method to return this Number as a Complex.
+    *
+    * @return Complex(this) as appropriate.
+    */
+  def asComplex: Complex = Complex(this)
 
   /**
     * Method to create a new version of this, but with factor f.

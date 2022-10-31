@@ -86,16 +86,6 @@ trait Field extends NumberLike {
     * @return a Field which is in canonical form.
     */
   def normalize: Field
-
-  /**
-    * Method to return this Field as a Complex.
-    *
-    * @return either this or Complex(this) as appropriate.
-    */
-  def asComplex: Complex = this match {
-    case n@Number(_, _) => Complex(n)
-    case n@BaseComplex(_, _) => n
-  }
 }
 
 object Field {
