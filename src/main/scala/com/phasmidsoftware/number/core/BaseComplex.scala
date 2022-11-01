@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.BaseComplex.narrow
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.{convertToNumber, recover}
-import com.phasmidsoftware.number.core.Number.negate
+import com.phasmidsoftware.number.core.Number.{negate, zero}
 
 /**
   * Abstract base class which implements Complex.
@@ -231,9 +231,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return a Complex with the same argument as this but a different magnitude.
     */
   def numberProduct(n: Number): Complex =
-  // FIXME this first option currently works only for i, not for multiples of i.
-    if
-    (n.isImaginary) rotate
+    if (n.isImaginary) doMultiply(ComplexCartesian.fromImaginary(n))
     else
       make(x doMultiply n, y doMultiply n)
 
@@ -309,6 +307,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   * Companion object to ComplexCartesian.
   */
 object ComplexCartesian {
+
   /**
     * Method to create a ComplexCartesian from two Int parameters.
     *
@@ -325,6 +324,12 @@ object ComplexCartesian {
     * @return a ComplexCartesian with values x and 0.
     */
   def apply(x: Number): ComplexCartesian = ComplexCartesian(x, 0)
+
+  def fromImaginary(number: Number): Complex = number match {
+    case Number(v, Root2) if Value.signum(v) < 0 => ComplexCartesian(zero, Number.create(Value.abs(v)))
+    case _ => throw ComplexException(s"fromImaginary: logic error for $number")
+  }
+
 }
 
 case class ComplexPolar(r: Number, theta: Number) extends BaseComplex(r, theta) {

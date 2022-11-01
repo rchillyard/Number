@@ -3,8 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Render.renderValue
-import java.util.NoSuchElementException
-import scala.math.BigInt
 import scala.util._
 
 /**
@@ -92,6 +90,19 @@ object Value {
     case Left(Right(x)) => x.signum
     case Left(Left(Some(x))) => x.sign.toInt
     case _ => 0
+  }
+
+  /**
+    * Method to get the sign of a Value.
+    *
+    * @param value the value whose sign we need.
+    * @return an Int.
+    */
+  def abs(value: Value): Value = value match {
+    case Right(x) => Right(math.abs(x))
+    case Left(Right(x)) => Left(Right(x.abs))
+    case Left(Left(Some(x))) => Left(Left(Some(math.abs(x))))
+    case _ => Value.fromNothing()
   }
 
   /**

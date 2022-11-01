@@ -19,4 +19,11 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
     z.materialize shouldBe ComplexCartesian(-1, 0)
   }
 
+  it should "add" in {
+    val one = Number.one
+    val i = Number.i
+    val result = one add i
+    result shouldBe ComplexCartesian(1, 1)
+  }
+
 }

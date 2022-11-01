@@ -61,6 +61,44 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def toInt: Option[Int] = maybeInt
 
   /**
+    * Method to get the value of this Number as an (optional) BigInt.
+    * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
+    *
+    * @return an Option of BigInt.
+    */
+  def toBigInt: Option[BigInt] = value match {
+    case Right(x) => Some(BigInt(x))
+    case Left(Right(r)) if r.isWhole => Some(r.n)
+    case _ => None
+  }
+
+  /**
+    * Method to get the value of this Number as an (optional) BigInt.
+    * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
+    *
+    * TESTME
+    *
+    * @return an Option of BigDecimal.
+    */
+  def toBigDecimal: Option[BigDecimal] = value match {
+    case Right(x) => Some(BigDecimal(x))
+    case Left(Right(r)) => Some(r.toBigDecimal)
+    case Left(Left(Some(x))) => Some(BigDecimal(x))
+    case _ => None
+  }
+
+  /**
+    * @param maybeFactor an optional Factor to be matched.
+    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
+    */
+  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && (maybeFactor.isEmpty || maybeFactor.contains(factor))
+
+  /**
+    * @return true if this Number is equal to zero.
+    */
+  def isInfinite: Boolean = GeneralNumber.isInfinite(this)
+
+  /**
     * Method to determine if this Number is positive.
     * Use case: does the String representation not start with a "-"?
     *
@@ -70,6 +108,32 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   def isPositive: Boolean = signum >= 0
 
+  /**
+    * Method to determine if this Number is actually represented as an Integer.
+    *
+    * @return true if exact and rational.
+    */
+  def isInteger: Boolean = value match {
+    case Right(_) => true
+    case _ => false
+  }
+
+  /**
+    * Method to determine if this Number is actually represented as a Rational.
+    *
+    * @return true if exact and rational.
+    */
+  def isRational: Boolean = value match {
+    case Left(Right(_)) => true
+    case _ => false
+  }
+
+  /**
+    * Method to determine if this is an imaginary Number,
+    * that's to say a number with negative value and Root2 as its factor.
+    *
+    * @return true if imaginary.
+    */
   def isImaginary: Boolean = factor match {
     case Root2 if Value.signum(value) < 0 => true
     case _ => false
@@ -483,6 +547,10 @@ object GeneralNumber {
     FP.toTry(no, Failure(NumberException("applyFunc: logic error")))
   }
 
+  def isZero(x: Number): Boolean = x.query(QueryOperationIsZero, false)
+
+  def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite, false)
+
   def plus(x: Number, y: Number): Number = x match {
     case ExactNumber(Right(0), Scalar) => y
     case z: GeneralNumber =>
@@ -607,7 +675,7 @@ object GeneralNumber {
   private def normalizeRoot(value: Value, r: Root) = {
     Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
       case Some(q) => ComplexCartesian(Number.zero, ExactNumber(q, r).scale(Scalar))
-      case None => throw NumberException("GeneralNumber.normalize: logic error")
+      case None => throw NumberException("GeneralNumber.normalizeRoot: logic error")
     }
   }
 

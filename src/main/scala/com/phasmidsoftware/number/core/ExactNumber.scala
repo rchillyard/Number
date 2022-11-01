@@ -10,6 +10,12 @@ package com.phasmidsoftware.number.core
   * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
   */
 case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
+
+  /**
+    * @return true if this Number is equal to zero.
+    */
+  def isZero: Boolean = GeneralNumber.isZero(this)
+
   /**
     * Method to make some trivial simplifications of this ExactNumber.
     *

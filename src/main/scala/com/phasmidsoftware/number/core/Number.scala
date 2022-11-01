@@ -83,20 +83,14 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     *
     * @return true if exact and rational.
     */
-  def isInteger: Boolean = value match {
-    case Right(_) => true
-    case _ => false
-  }
+  def isInteger: Boolean
 
   /**
     * Method to determine if this Number is actually represented as a Rational.
     *
     * @return true if exact and rational.
     */
-  def isRational: Boolean = value match {
-    case Left(Right(_)) => true
-    case _ => false
-  }
+  def isRational: Boolean
 
   /**
     * Method to get the value of this Number as an (optional) Rational.
@@ -120,26 +114,15 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     *
     * @return an Option of BigInt.
     */
-  def toBigInt: Option[BigInt] = value match {
-    case Right(x) => Some(BigInt(x))
-    case Left(Right(r)) if r.isWhole => Some(r.n)
-    case _ => None
-  }
+  def toBigInt: Option[BigInt]
 
   /**
     * Method to get the value of this Number as an (optional) BigInt.
     * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
     *
-    * TESTME
-    * 
     * @return an Option of BigDecimal.
     */
-  def toBigDecimal: Option[BigDecimal] = value match {
-    case Right(x) => Some(BigDecimal(x))
-    case Left(Right(r)) => Some(r.toBigDecimal)
-    case Left(Left(Some(x))) => Some(BigDecimal(x))
-    case _ => None
-  }
+  def toBigDecimal: Option[BigDecimal]
 
   /**
     * Method to determine if this Number is positive.
@@ -199,30 +182,15 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   // NOTE Following are methods defined in Field.
 
   /**
-    * @return true if this Number is equal to zero.
-    */
-  def isInfinite: Boolean = Number.isInfinite(this)
-
-  /**
-    * @return true if this Number is equal to zero.
-    */
-  def isZero: Boolean = Number.isZero(this)
-
-  /**
-    * @param maybeFactor an optional Factor to be matched.
-    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
-    */
-  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && (maybeFactor.isEmpty || maybeFactor.contains(factor))
-
-  /**
     * Add x to this Number and return the result.
     *
     * @param x the addend.
     * @return the sum.
     */
   def add(x: Field): Field = x match {
+    case n@Number(_, _) if n.isImaginary => ComplexCartesian.fromImaginary(n) doAdd Complex(this)
     case n@Number(_, _) => doAdd(n)
-    case c@BaseComplex(_, _) => c.add(x)
+    case c@BaseComplex(_, _) => c.add(this)
   }
 
   /**
@@ -377,7 +345,10 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     *
     * @return Complex(this) as appropriate.
     */
-  def asComplex: Complex = Complex(this)
+  def asComplex: Complex = if (isImaginary)
+    ComplexCartesian.fromImaginary(this)
+  else
+    Complex(this)
 
   /**
     * Method to create a new version of this, but with factor f.
@@ -1108,10 +1079,6 @@ object Number {
     case f@Root(_) => prepare(x.transformMonadic(f)(MonadicOperationInvert))
     case _ => negate(x.scale(Scalar))
   }
-
-  def isZero(x: Number): Boolean = x.query(QueryOperationIsZero, false)
-
-  def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite, false)
 
   /**
     * TODO move this to GeneralNumber as an instance method.

@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.collection.mutable
 
 /**
@@ -79,13 +78,13 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     *
     * @return true if this Number is equivalent to zero with at least 50% confidence.
     */
-  override lazy val isZero: Boolean = isProbablyZero(0.5)
+  lazy val isZero: Boolean = isProbablyZero(0.5)
 
   /**
     * @param p the confidence desired. Ignored if isZero is true.
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  def isProbablyZero(p: Double): Boolean = super.isZero || (for (f <- fuzz; x <- toDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
+  def isProbablyZero(p: Double): Boolean = GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
