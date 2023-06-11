@@ -28,6 +28,12 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def isValid: Boolean = maybeDouble.isDefined
 
   /**
+    *
+    * @return true if the value of this GeneralNumber is one.
+    */
+  def isUnity: Boolean = doSubtract(Number.one).isZero
+
+  /**
     * Method to apply a function to this Number.
     *
     * @param f      a function Double=>Double.

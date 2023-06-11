@@ -22,6 +22,12 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   def isExact(maybeFactor: Option[Factor]): Boolean = real.isExact(maybeFactor) && imag.isExact(maybeFactor)
 
   /**
+    *
+    * @return true if the magnitude of this Complex is one.
+    */
+  def isUnity: Boolean = modulus.doSubtract(Number.one).isZero
+
+  /**
     * Add x to this Complex and return the result.
     *
     * @param x the addend.

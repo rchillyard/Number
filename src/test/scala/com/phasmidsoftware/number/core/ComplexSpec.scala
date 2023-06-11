@@ -196,11 +196,12 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     ComplexCartesian(1, 0).numberProduct(Number.two) shouldBe c2_0
     ComplexCartesian(0, -2).numberProduct(Number.i) shouldBe c2_0
   }
-  it should "work when i is scaled" in {
-    ComplexCartesian(1, 0).numberProduct(Number.two) shouldBe c2_0
-    ComplexCartesian(0, -2).numberProduct(Number.i) shouldBe c2_0
-    val i2: Field = Number.two multiply Number.i
-    i2 shouldBe ComplexCartesian(0, 2)
+  it should "work when i is scaled by two (prefix)" in {
+    Number.two multiply Number.i shouldBe ComplexCartesian(0, 2)
+  }
+  // FIXME Issue 71
+  ignore should "work when i is scaled by two (postfix)" in {
+    Number.i multiply Number.two shouldBe ComplexCartesian(0, 2)
   }
 
   behavior of "i"

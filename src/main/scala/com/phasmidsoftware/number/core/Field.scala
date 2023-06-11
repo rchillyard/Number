@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 /**
   * Trait which describes the behavior of all Numbers and Complex instances.
-  * See https://en.wikipedia.org/wiki/Field_(mathematics).
+  * See [[https://en.wikipedia.org/wiki/Field_(mathematics)]].
   *
   * Currently, the only sub-classes of Field are Number and Complex.
   *
@@ -20,10 +20,19 @@ trait Field extends NumberLike {
 
   /**
     * Method to determine if this Field has zero magnitude.
+    * Zero is the additive identity.
     *
     * @return true if the magnitude of this Field is zero.
     */
   def isZero: Boolean
+
+  /**
+    * Method to determine if this Field has unity magnitude.
+    * Unity is the multiplicative identity.
+    *
+    * @return true if the magnitude of this Field is one.
+    */
+  def isUnity: Boolean
 
   /**
     * Method to determine if this Field is represented by a Complex number.
