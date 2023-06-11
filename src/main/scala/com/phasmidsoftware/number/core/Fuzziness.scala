@@ -2,8 +2,8 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.Valuable.ValuableDouble
+import java.text.DecimalFormat
 import org.apache.commons.math3.special.Erf.erfInv
-
 import scala.math.Numeric.DoubleIsFractional
 import scala.util.Try
 
@@ -74,6 +74,13 @@ trait Fuzziness[T] {
     * @return a String which is the textual rendering of t with this Fuzziness applied.
     */
   def toString(t: T): String
+
+  /**
+    * A variation on toString where we render this Fuzziness as a percentage.
+    *
+    * @return a String which ends with the '%' character (provided that this Fuzziness is relative).
+    */
+  def asPercentage: String
 
   /**
     * Determine the range +- t within which a deviation is considered within tolerance and where
@@ -168,6 +175,20 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * @return a String which is the textual rendering of t with this Fuzziness applied.
     */
   def toString(t: T): String = absolute(t).map(_.toString(t)).getOrElse("")
+
+  /**
+    * A variation on toString where we render this relative Fuzziness as a percentage.
+    *
+    * @return a String which ends with the '%' character.
+    */
+  def asPercentage: String = {
+    val df = new DecimalFormat("#.#")
+    df.setMaximumFractionDigits(100)
+    val result = df.format(tolerance * 100)
+    val point = result.indexOf(".")
+    val decimals = result.substring(point+1,result.length)
+    result.substring(0, point + 1) + decimals.substring(0, decimals.indexWhere(p => p != '0') +2) + "%"
+  }
 
   /**
     * Determine the range +- t within which a deviation is considered within tolerance and where
@@ -297,6 +318,8 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
     new String(zPrefix) + "." + Fuzziness.zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix
   }
 
+  def asPercentage: String = "absolute fuzz cannot be shown as percentage"
+
   /**
     * Determine the range +- x within which a deviation is considered within tolerance and where
     * l signifies the extent of the PDF.
@@ -331,6 +354,13 @@ object Fuzziness {
   def scaleTransform[T: Valuable](k: Double): Fuzziness[T] => Fuzziness[T] =
     tf => tf.transform(_ => implicitly[Valuable[T]].fromDouble(k))(implicitly[Valuable[T]].fromInt(1))
 
+  /**
+    * Method to represent an optional Fuzziness as a String.
+    *
+    * @param fo the fuzziness.
+    * @return a String which either shows a percentage (ending in '%') or "<exact>".
+    */
+  def showPercentage(fo: Option[Fuzziness[Double]]): String = fo map (_.asPercentage) getOrElse "<exact>"
 
   /**
     * Scale the fuzz values by the two given coefficients.

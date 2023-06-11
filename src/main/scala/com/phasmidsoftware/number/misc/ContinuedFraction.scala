@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.{NumberException, Rational}
-
+import com.phasmidsoftware.number.misc.ContinuedFraction.Hurwitz
 import scala.annotation.tailrec
 import scala.util.Try
 
@@ -20,7 +20,7 @@ import scala.util.Try
   * @param markov   the Markov constant for this particular ContinuedFraction
   *                 (defaults to Hurwitz, i.e. the square root of 5)
   */
-case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Double = ContinuedFraction.Hurwitz) {
+case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Double = Hurwitz) {
 
   /**
     * Method to prepend a pair to the start of a continued fraction.
@@ -519,7 +519,8 @@ object ConFrac {
   private val lE: LazyList[Long] = 2L #:: LazyList.iterate(Seq(1L, 2, 1)) { case Seq(x, y, z) => Seq(x, y + 2, z) }.flatten
 
   /**
-    * NOTE: there is no repeating sequence for this LazyList so we just use all of the elements defined on Wikipedia.
+    * Continued Fraction for Pi from the sequence [[https://oeis.org/A001203]].
+    * NOTE: there is no repeating sequence.
     */
   val lPi: LazyList[Long] = LazyList(3L, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1, 84, 2, 1, 1, 15, 3, 13, 1, 4, 2, 6, 6, 99, 1, 2, 2, 6, 3, 5, 1, 1, 6, 8, 1, 7, 1, 2, 3, 7, 1, 2, 1, 1, 12, 1, 1, 1, 3, 1, 1, 8, 1, 1, 2, 1, 6, 1, 1, 5, 2, 2, 3, 1, 2, 4, 4, 16, 1, 161, 45, 1, 22, 1, 2, 2, 1, 4, 1, 2, 24, 1, 2, 1, 3, 1, 2, 1)
 

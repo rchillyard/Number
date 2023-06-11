@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.core.Fuzziness.showPercentage
+import com.phasmidsoftware.number.core.{Number, Rational}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.misc.ConFrac.LongLazyListFrom
 import com.phasmidsoftware.number.misc.ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
@@ -73,10 +74,30 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val target = ConFrac.PiSimple
     val rs = target.convergents.toList
     rs.head shouldBe Rational(3)
-    rs(1) shouldBe r"22/7"
-    rs(2) shouldBe r"333/106"
-    rs(3) shouldBe r"355/113"
-    rs(4) shouldBe r"103993/33102"
+    val c1 = rs(1)
+    c1 shouldBe r"22/7"
+    showPercentage(Number(c1).asComparedWith(Number.pi)) shouldBe "0.020%"
+    val c2 = rs(2)
+    c2 shouldBe r"333/106"
+    showPercentage(Number(c2).asComparedWith(Number.pi)) shouldBe "0.0013%"
+    val c3 = rs(3)
+    c3 shouldBe r"355/113"
+    showPercentage(Number(c3).asComparedWith(Number.pi)) shouldBe "0.0000042%"
+    val c4 = rs(4)
+    c4 shouldBe r"103993/33102"
+    showPercentage(Number(c4).asComparedWith(Number.pi)) shouldBe "0.0000000091%"
+    val c5 = rs(5)
+    c5 shouldBe r"104348/33215"
+    showPercentage(Number(c5).asComparedWith(Number.pi)) shouldBe "0.0000000052%"
+    val c6 = rs(6)
+    c6 shouldBe r"208341/66317"
+    showPercentage(Number(c6).asComparedWith(Number.pi)) shouldBe "0.0000000019%"
+    val c7 = rs(7)
+    c7 shouldBe r"312689/99532"
+    showPercentage(Number(c7).asComparedWith(Number.pi)) shouldBe "0.00000000046%"
+    val c8 = rs(8)
+    c8.toRationalString shouldBe "833719/265381"
+    showPercentage(Number(c8).asComparedWith(Number.pi)) shouldBe "0.00000000013%"
   }
 
   it should "get convergents for e" in {

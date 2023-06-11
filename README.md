@@ -353,6 +353,18 @@ at zero is sufficiently high to consider the difference to be zero.
 If the probability is greater than 50% (the default--although there are method signatures that allow for different values),
 then we consider that the different is zero (method isZero) or that it has a signum of 0.
 
+Continued Fractions
+===================
+
+This library includes a facility to create continued fractions which can be used to define (or approximate)
+constant values.
+See the type _ContinuedFraction_ and its specification: _ContinuedFractionSpec_.
+For example, the golden ratio (phi) can be evaluated using an infinite continued fraction where
+the coefficients are all 1.
+Continued fractions can be used to generate "convergents" which are rational numbers and which
+approximate a value.
+For example, the convergents for pi include with the familiar 22/7, 355/113, etc. 
+
 Versions
 ========
 * Version 1.0.13: Mostly cleanup together with some fixes related to Root factors.

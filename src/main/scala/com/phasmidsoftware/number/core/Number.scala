@@ -371,6 +371,15 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def fuzzyCompare(other: Number, p: Double): Int
 
   /**
+    * Return optional Fuzziness of Box shape, such that
+    * <code>this</code> would be considered just within the resulting tolerance.
+    *
+    * @param other another Number: the ideal or target value.
+    * @return an optional relative Fuzziness.
+    */
+  def asComparedWith(other: Number): Option[Fuzziness[Double]]
+
+  /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *

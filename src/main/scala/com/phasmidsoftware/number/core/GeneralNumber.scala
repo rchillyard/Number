@@ -233,11 +233,23 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
     *
+    * TESTME
+    *
     * @param other the Number to be compared with.
     * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
     * @return -1, 0, 1 as usual.
     */
   def fuzzyCompare(other: Number, p: Double): Int = FuzzyNumber.fuzzyCompare(this, other, p)
+
+  def asComparedWith(other: Number): Option[Fuzziness[Double]] = {
+    val diff = doSubtract(other)
+    val zo: Option[Fuzziness[Double]] = for {
+      q <- diff.toDouble
+      r <- other.scale(Scalar).toDouble
+      p <- AbsoluteFuzz(math.abs(q) / 2, Box).relative(r)
+    } yield p
+    zo
+  }
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
