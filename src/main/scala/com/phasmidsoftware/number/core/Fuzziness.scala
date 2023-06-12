@@ -71,9 +71,9 @@ trait Fuzziness[T] {
     * Method to yield a String to render the given T value.
     *
     * @param t a T value.
-    * @return a String which is the textual rendering of t with this Fuzziness applied.
+    * @return a tuple of a Boolean (indicating if the value is embedded in the result) and a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def toString(t: T): String
+  def toString(t: T): (Boolean, String)
 
   /**
     * A variation on toString where we render this Fuzziness as a percentage.
@@ -174,7 +174,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * @param t the T value.
     * @return a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def toString(t: T): String = absolute(t).map(_.toString(t)).getOrElse("")
+  def toString(t: T): (Boolean, String) = false -> asPercentage
 
   /**
     * A variation on toString where we render this relative Fuzziness as a percentage.
@@ -284,13 +284,14 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
 
   /**
     * Method to render this Fuzziness according to the nominal value t.
+    * NOTE that we are actually embedding the fuzziness into the nominal value and returning that.
     *
     * CONSIDER cleaning this method up a bit.
     *
     * @param t a T value.
-    * @return a String which is the textual rendering of t with this Fuzziness applied.
+    * @return a tuple of a Boolean (indicating if the value is embedded in the result) and a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def toString(t: T): String = {
+  def toString(t: T): (Boolean, String) = {
     val eString = tv.render(t) match {
       case AbsoluteFuzz.numberR(e) => e
       case _ => noExponent
@@ -315,7 +316,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
     // CONSIDER changing the padding "0" value to be "5".
     val mask = new String(qPrefix) + "0" * (2 + adjust) + brackets.head + yq + brackets.tail.head
     val (zPrefix, zSuffix) = tv.render(scaledT).toCharArray.span(_ != '.')
-    new String(zPrefix) + "." + Fuzziness.zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix
+    true -> (new String(zPrefix) + "." + Fuzziness.zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix)
   }
 
   def asPercentage: String = "absolute fuzz cannot be shown as percentage"
@@ -447,7 +448,7 @@ object Fuzziness {
     * @tparam T the underlying type of the Fuzziness.
     * @return the optional Fuzziness value which is equivalent (or identical) to fuzz, according to the value of relative.
     */
-  def doNormalize[T](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
+  private def doNormalize[T](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
     fuzz.flatMap(f => doNormalize(t, relative, f))
 
   def zipStrings(v: String, t: String): String = {

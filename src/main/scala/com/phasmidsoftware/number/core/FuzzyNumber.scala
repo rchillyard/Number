@@ -23,18 +23,33 @@ import scala.collection.mutable
   * @param fuzz   the fuzziness of this Number.
   */
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
+  /**
+    * Method to force the fuzziness of this FuzzyNumber to be absolute.
+    *
+    * @return the same FuzzyNumber but with absolute fuzziness.
+    */
+  def normalizeFuzz: Field = this match {
+    case FuzzyNumber(value, factor, maybeFuzz) =>
+      val relativeFuzz = for {
+        x <- toDouble
+        fuzz <- maybeFuzz
+        normalized <- fuzz.normalize(x, relative = false)
+      } yield normalized
+      FuzzyNumber(value, factor, relativeFuzz)
+    case x => x
+  }
 
   /**
     *
     * @return either this Number or a simplified Number.
     */
   def simplify: Number = fuzz match {
-      case None => ExactNumber(value, factor).simplify
-      case _ =>
-          factor match {
-              case Root(_) => scale(Scalar)
-              case _ => this
-          }
+    case None => ExactNumber(value, factor).simplify
+    case _ =>
+      factor match {
+        case Root(_) => scale(Scalar)
+        case _ => this
+      }
 
   }
 
@@ -131,11 +146,16 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     */
   override def toString: String = {
     val sb = new mutable.StringBuilder()
-    val w = fuzz match {
+    lazy val valueAsString = Value.valueToString(value)
+    val z = fuzz match {
       // FIXME #69
       case Some(f) => f.toString(toDouble.getOrElse(0.0))
       // CONSIDER the following case makes no sense and is never really used
-      case None => Value.valueToString(value)
+      case None => true -> valueAsString
+    }
+    val w = z match {
+      case (true, s) => s
+      case (false, s) => valueAsString + "\u00B1" + s
     }
     factor match {
       case Logarithmic(_) =>

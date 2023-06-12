@@ -374,14 +374,18 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def make(x: Double, f: Factor): Number = make(Value.fromDouble(Some(x)), f)
 
   /**
-    * Method to "normalize" a number, that's to say make it a Scalar.
+    * Method to "normalize" a number, that's to say make it a Scalar and also to force
+    * any fuzziness to be absolute.
     *
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
-  def normalize: Field = factor match {
+  def normalize: Field = (factor match {
     case Scalar => this
     case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
     case _ => scale(Scalar)
+  }) match {
+    case fuzzyNumber: FuzzyNumber => fuzzyNumber.normalizeFuzz
+    case x => x
   }
 
   /**
