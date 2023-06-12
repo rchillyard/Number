@@ -199,8 +199,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "work when i is scaled by two (prefix)" in {
     Number.two multiply Number.i shouldBe ComplexCartesian(0, 2)
   }
-  // FIXME Issue 71
-  ignore should "work when i is scaled by two (postfix)" in {
+  it should "work when i is scaled by two (postfix)" in {
     Number.i multiply Number.two shouldBe ComplexCartesian(0, 2)
   }
 

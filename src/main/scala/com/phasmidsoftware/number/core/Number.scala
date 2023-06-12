@@ -202,6 +202,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def multiply(x: Field): Field = (this, x) match {
     case (Number.i, Number.pi) | (Number.pi, Number.i) => Number.iPi
     case (_, Number.i) => multiply(ComplexCartesian(0, 1))
+    case (Number.i, _) => x.multiply(ComplexCartesian(0, 1))
     case (_, n@Number(_, _)) => doMultiply(n)
     case (_, c@BaseComplex(_, _)) => c.multiply(this)
   }
