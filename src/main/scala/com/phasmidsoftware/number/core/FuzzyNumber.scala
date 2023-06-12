@@ -134,6 +134,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     val w = fuzz match {
       // FIXME #69
       case Some(f) => f.toString(toDouble.getOrElse(0.0))
+      // CONSIDER the following case makes no sense and is never really used
       case None => Value.valueToString(value)
     }
     factor match {

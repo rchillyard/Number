@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.FP.recover
+
 /**
   * Trait which describes the behavior of all Numbers and Complex instances.
   * See [[https://en.wikipedia.org/wiki/Field_(mathematics)]].
@@ -106,19 +108,6 @@ object Field {
     * @return a Number if field is a Number, otherwise, this will throw a NumberException.
     */
   def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
-
-  /**
-    * TODO: move this to a utility class.
-    *
-    * @param to an Option[T].
-    * @param x  a Throwable to be thrown if to is None.
-    * @tparam T the underlying type of to.
-    * @return t if to is Some(t); otherwise x will be thrown.
-    */
-  def recover[T](to: Option[T], x: Throwable): T = to match {
-    case Some(t) => t
-    case None => throw x
-  }
 
   /**
     * Definition of concrete (implicit) type class object for Field being Fuzzy.

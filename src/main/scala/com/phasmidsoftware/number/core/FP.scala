@@ -22,6 +22,19 @@ object FP {
   }
 
   /**
+    * Method to convert a None value to a given exception (rather than the NoSuchElement exception).
+    *
+    * @param to an Option[T].
+    * @param x  a Throwable to be thrown if to is None.
+    * @tparam T the underlying type of to.
+    * @return t if to is Some(t); otherwise x will be thrown.
+    */
+  def recover[T](to: Option[T], x: => Throwable): T = to match {
+    case Some(t) => t
+    case None => throw x
+  }
+
+  /**
     * This method and tryMap are (almost) twins (working for Option and Try respectively --
     * although there are a few differences other than the monad type).
     * To yield the (optional) result, we map the right-hand member of the input (lRe) with a function rToZ.
@@ -84,10 +97,6 @@ object FP {
       case Some(Failure(_)) => tryMapLeft(transpose(lRe), l2Zy)
       case None => tryMapLeft(lRe, l2Zy)
     }
-
-  /**
-    * This method operates on the left member of xYe with xToZy and is invoked if tryMap fails.
-    */
 
   /**
     * This method is invoked by tryMap when the input is "left" or when the r2Zy method fails.

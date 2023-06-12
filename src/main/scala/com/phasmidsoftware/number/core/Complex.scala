@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.FP.recover
+
 /**
   * Trait which defines the behavior of a type of Field called a Complex.
   * A Complex is a Field and also supports the various methods defined below.
@@ -70,30 +72,21 @@ object Complex {
     */
   val i: ComplexCartesian = ComplexCartesian(0, 1)
   /**
-    * i in Cartesian form.
-    */
-  val iP: ComplexPolar = ComplexPolar(1, Number.piBy2)
-  /**
     * Unit Complex in Cartesian form
     */
   val unit: ComplexCartesian = ComplexCartesian(1, 0)
-  /**
-    * Unit Complex in Cartesian form
-    */
-  val unitP: Any = ComplexPolar(1, Number.zeroR)
 
   def convertToPolar(c: ComplexCartesian): BaseComplex = {
     val ro: Option[Field] = for (p <- ((Literal(c.x) * c.x) plus (Literal(c.y) * c.y)).materialize.asNumber; z = p.sqrt) yield z
-    val z: Field = Field.recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
+    val z: Field = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
     apply(z, c.x atan c.y, ComplexPolar.apply, ComplexException(s"logic error: convertToPolar2: $c"))
   }
 
   def convertToCartesian(c: ComplexPolar): BaseComplex =
     apply(c.r multiply c.theta.cos, c.r multiply c.theta.sin, ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
 
-
   def apply(a: Field, b: Field, f: (Number, Number) => BaseComplex, x: ComplexException): BaseComplex =
-    Field.recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
+    recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
 
   def apply(x: Number): BaseComplex = ComplexCartesian(x, Number.zero)
 }

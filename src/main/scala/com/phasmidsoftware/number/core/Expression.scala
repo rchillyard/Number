@@ -1,9 +1,8 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.MatchLogger
-import com.phasmidsoftware.number.core.Field.recover
+import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
-
 import scala.language.implicitConversions
 
 /**
