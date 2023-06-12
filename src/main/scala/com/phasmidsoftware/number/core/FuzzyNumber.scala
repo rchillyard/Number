@@ -148,9 +148,9 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     val sb = new mutable.StringBuilder()
     lazy val valueAsString = Value.valueToString(value)
     val z = fuzz match {
-      // FIXME #69
-      case Some(f) => f.toString(toDouble.getOrElse(0.0))
-      // CONSIDER the following case makes no sense and is never really used
+      // CONSIDER will the following test work in all cases?
+      case Some(f) if f.wiggle(0.5) > 1E-15 => f.toString(toDouble.getOrElse(0.0))
+      case Some(_) => true -> (valueAsString + (if (valueAsString.endsWith("...")) "" else "*"))
       case None => true -> valueAsString
     }
     val w = z match {
