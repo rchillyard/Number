@@ -41,7 +41,7 @@ object Value {
     *
     * @return a Value.
     */
-  def fromNothing(): Value = Left(Left(None))
+  private def fromNothing(): Value = Left(Left(None))
 
   /**
     * Method to (optionally) convert a Value into a Double.
@@ -282,10 +282,17 @@ case object Scalar extends PureNumber {
   * complex numbers in Polar form since, in that case, the real part is a Scalar number, and the imaginary part is coded in
   * with factor Radian).
   *
-  * The range of such values is 0 thru 2pi.
+  * The range of these values is 0 thru 2, which represents the radian values of 0 thru 2pi.
   */
 case object Radian extends PureNumber {
   val value: Double = Math.PI
+
+  def normalize(v: Value): Value = v match {
+    case Right(x) => Right((x + 2) % 2) // TODO this needs to handle any negative value.
+    case Left(Right(_)) => v // TODO normalize this
+    case Left(Left(Some(x))) => Left(Left(Some((x + 2) % 2)))// TODO this needs to handle any negative value.
+    case _ => throw NumberException(s"Radian.normalize: value $v is invalid")
+  }
 
   override def toString: String = Factor.sPi
 
@@ -369,13 +376,13 @@ object Factor {
 }
 
 object Render {
-  def renderInt(x: Int): (String, Boolean) = (x.toString, true)
+  private def renderInt(x: Int): (String, Boolean) = (x.toString, true)
 
   def renderBigInt(x: BigInt): (String, Boolean) = (x.toString, true)
 
-  def renderRational(x: Rational): (String, Boolean) = (x.toString, true)
+  private def renderRational(x: Rational): (String, Boolean) = (x.toString, true)
 
-  def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
+  private def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 
   /**
     * Method to render a Value as a tuple of String and Boolean where the latter represents whether or not we were able

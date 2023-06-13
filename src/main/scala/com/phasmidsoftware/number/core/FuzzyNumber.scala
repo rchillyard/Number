@@ -81,7 +81,8 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
   /**
     * Method to compare this FuzzyNumber with another Number.
     *
-    * NOTE this method can be eliminated but the unit tests will be off. Need to understand exactly why.
+    * NOTE it appears that this method can be eliminated but the unit tests would not work without it.
+    * Presumably, this is because the implicit equality checks in ScalaTest invoke compare. (?)
     *
     * @param other the other Number.
     * @return -1, 0, or 1 according to whether x is <, =, or > y.

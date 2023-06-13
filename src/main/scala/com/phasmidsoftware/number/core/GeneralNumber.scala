@@ -20,6 +20,19 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   self =>
 
   /**
+    * Method to compare this Number with that Field.
+    * Required by implementing Ordered[Field].
+    *
+    * @param that (a Field).
+    * @return the comparison.
+    */
+  def compare(that: Field): Int = (this, that) match {
+    case (x: FuzzyNumber, y: Number) => x.compare(y)
+    case (x: ExactNumber, y: Number) => x.compare(y)
+    case _ => that.compare(this)
+  }
+
+  /**
     * Method to determine if this is a valid Number.
     * An invalid number has a value of form Left(Left(Left(None)))
     *
@@ -239,7 +252,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
     *
-    * TESTME
+    * NOTE: This method is used, although it doesn't appear so.
     *
     * @param other the Number to be compared with.
     * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
@@ -382,6 +395,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def normalize: Field = (factor match {
     case Scalar => this
     case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
+    case Radian => make(Radian.normalize(value), Radian)
     case _ => scale(Scalar)
   }) match {
     case fuzzyNumber: FuzzyNumber => fuzzyNumber.normalizeFuzz
@@ -527,7 +541,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * CONSIDER do we really need this?
     */
-  def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
+  private def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
 
   /**
     * Ensure that this is consistent with hashCode.

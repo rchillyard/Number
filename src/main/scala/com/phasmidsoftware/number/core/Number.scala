@@ -17,7 +17,7 @@ import scala.util._
   * * factor: Factor
   * * fuzz: (from extending Fuzz[Double]).
   */
-trait Number extends Fuzz[Double] with Field with Ordered[Number] {
+trait Number extends Fuzz[Double] with Field {
 
   /**
     * The value of this Number.
@@ -230,8 +230,10 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return this Number raised to power p.
     */
   def power(p: Field): Field = p match {
+    case Number.zero => Number.one
+    case Number.one => this
     case n@Number(_, _) => doPower(n)
-    case ComplexCartesian(x, y) => ComplexPolar(doPower(x), y)
+    case ComplexCartesian(x, y) => ComplexPolar(doPower(x), y) // CONSIDER is this correct?
     case _ => throw NumberException("logic error: power not supported for non-Number powers")
   }
 
@@ -583,7 +585,8 @@ object Number {
   /**
     * Exact value of 𝛑
     */
-  val `𝛑`: Number = pi
+//noinspection NonAsciiCharacters
+val `𝛑`: Number = pi
   /**
     * Exact value of 2 pi
     */
@@ -628,10 +631,11 @@ object Number {
     * @return the equivalent Number.
     * @throws ExpressionException if x cannot be converted to a Number.
     */
-  implicit def convertExpression(x: Expression): Number = x.materialize.asNumber match {
-    case Some(n) => n
-    case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
-  }
+//noinspection Annotator
+implicit def convertExpression(x: Expression): Number = x.materialize.asNumber match {
+  case Some(n) => n
+  case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
+}
 
   /**
     * Implicit converter from Int to Number.
@@ -988,9 +992,11 @@ object Number {
       if (x == Number.NaN && y == Number.NaN) 0
       else if (x == Number.NaN || y == Number.NaN) throw NumberException("cannot compare NaN with non-NaN")
       else if (x.factor == NatLog && y.factor == NatLog)
-        compare(x.make(Scalar), y.make(Scalar))
-      else
+        compare(x.make(Scalar), y.make(Scalar)) // TESTME why do we need to convert to Scalar?
+      else {
+        // CONSIDER invoking the compare method in GeneralNumber.
         GeneralNumber.plus(x, Number.negate(y)).signum
+      }
     }
   }
 

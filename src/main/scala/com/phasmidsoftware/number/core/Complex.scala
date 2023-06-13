@@ -62,11 +62,11 @@ trait Complex extends Field {
   def numberProduct(n: Number): Complex
   
   /**
-    * Method to determine the complement of this Complex number.
+    * Method to determine the conjugate of this Complex number.
     *
-    * @return the complement of this Complex.
+    * @return the conjugate of this Complex.
     */
-  def complement: Complex
+  def conjugate: Complex
 }
 
 /**

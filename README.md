@@ -123,11 +123,15 @@ For example, the proton-electron mass ratio:
 
 Rendering
 =========
+The _render_ method is defined in the trait _NumberLike_ and thus is defined by all subtypes,
+including _Field_, _Number_, etc.
+For the prettiest output, you should use _render_ rather than _toString_.
+
 Generally speaking, the output _String_ corresponding to a _Number_ will be the same as the input _String_,
-although at this stage of the software, that is not guaranteed.
-Numbers followed by "(xx)" show standard scientific notation where xx represents the standard deviation of the error
-with respect to the last two digits (sometimes there is only one x which corresponds to the last digit).
-If a Number is followed by "\[x\]" or "\[xx\]" this corresponds to a "box" (i.e. truncated uniform) probability density function.
+although that is not guaranteed.
+Numeric quantities followed by "(xx)" show standard scientific notation where _xx_ represents the standard deviation of the error
+with respect to the last two digits (sometimes there is only one _x_ which corresponds to the last digit).
+If a number is followed by "\[x\]" or "\[xx\]" this corresponds to a "box" (i.e. truncated uniform) probability density function.
 It's unlikely that you'll need to use this form since box is the default shape when specifying fuzzy numbers with a _String_.
 
 Fuzzy
@@ -139,23 +143,33 @@ There is exactly one method defined and that is _same_:
 
 Given a confidence value _p_ (a probability between 0 and 1), this method will determine if any two objects of type _X_
 can be considered the same.
+If _p_ is 0, then all _Fuzzy_ quantities will be considered the same (i.e. _same_ returns true).
+If _p_ is 1, then _Fuzzy_ quantities will only be considered the same if the numbers actually are exactly the same
+(in practice, this generally means that passing 1 for _p_ will result in a false return).
 
-The _fuzzyCompare_ method of _FuzzyNumber_ does use this method.
+The _fuzzyCompare_ method of _FuzzyNumber_ does use the _same_ method.
 
-Note that the Fuzzy trait assumes nothing at all about the representation of _X_, or even if _X_ is numeric.
+Note that the _Fuzzy_ trait assumes nothing at all about the representation of _X_, or even if _X_ is numeric.
 The spec file shows an example where _X_ is represents a color.
+In the vast majority of cases, the _X_ of _Fuzzy_ will be _Double_.
 
 Comparison
 ==========
-Comparison between _Numbers_ is based on, first, equality of value.
-If, after any scaling for the factors is taken into account, the two values compare equal, then the Numbers are equal.
+Comparison between _Numbers_ is based on their values, providing that they belong to the same domain (see Factor, below).
+If they are from different domains, one number will be converted to the domain of the other.
+If, after any conversion is taken into account, the two values compare equal, then the _Numbers_ are equal.
 For _ExactNumber_, comparison ends there.
+
 However, for _FuzzyNumber_, it is then determined whether there is significant overlap
 between the fuzz of the two numbers.
+See _Fuzzy_, above.
+The _FuzzyNumber_ object has a method _fuzzyCompare_, which invokes _same_ for two fuzzy numbers, given a confidence value (_p_).
+This, in turn, is invoked by _fuzzyCompare_ of _GeneralNumber_, which compares this with another _Number_.
+
 If the overlap is sufficient that there is deemed to be a 50% probability that the numbers are really the same,
 then the comparison yields 0 (equal).
-Note the use of _Fuzzy_, above.
-Additionally, each of the methods involved has a signature which includes a p value (the confidence probability).
+Additionally, each of the comparison methods involved has a signature which includes a _p_ value (the confidence probability).
+The _compare(Number)_ method of _FuzzyNumber_ (arbitrarily) sets the _p_ value to be 0.5.
 
 Mill
 ====
@@ -175,8 +189,8 @@ to build a Mill.
   
 Field
 =====
-The most general form of mathematical quantity is represented by a _Field_ (added in V1.0.9).
-See https://en.wikipedia.org/wiki/Field_(mathematics).
+The most general form of mathematical quantity is represented by a _Field_.
+See [Field](https://en.wikipedia.org/wiki/Field_(mathematics)).
 A field supports operations such as addition, subtraction, multiplication, and division.
 We also support powers because, at least for integer powers, raising to a power is simply iterating over a number of multiplications.
 

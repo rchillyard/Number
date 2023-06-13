@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.FP.recover
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field extends NumberLike {
+trait Field extends NumberLike with Ordered[Field] {
 
   /**
     * Method to determine if this Field has infinite magnitude.
@@ -55,6 +55,8 @@ trait Field extends NumberLike {
     */
   def add(x: Field): Field
 
+  def +(x: Field): Field = add(x)
+
   /**
     * Multiply this Field by x and return the result.
     *
@@ -63,6 +65,8 @@ trait Field extends NumberLike {
     */
   def multiply(x: Field): Field
 
+  def *(x: Field): Field = multiply(x)
+
   /**
     * Divide this Field by x and return the result.
     *
@@ -70,6 +74,8 @@ trait Field extends NumberLike {
     * @return the quotient.
     */
   def divide(x: Field): Field
+
+  def /(x: Field): Field = divide(x)
 
   /**
     * Change the sign of this Field.

@@ -13,6 +13,28 @@ import com.phasmidsoftware.number.core.Number.{negate, zero}
   * @param imag the imaginary component.
   */
 abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
+
+  /**
+    * Method to compare this BaseComplex with that Field.
+    * Required by implementing Ordered[Field].
+    * NOTE if the difference is a Complex number, we try to do fuzzy comparison (with confidence of 0.5).
+    *
+    * @param that (a Field).
+    * @return the comparison.
+    */
+  def compare(that: Field): Int = that match {
+    case y: Complex =>
+      val difference = this + -y
+      if (difference.isZero) 0
+      else difference match {
+        case c: Complex if c.modulus.isProbablyZero(0.5) => 0
+        case c: Complex => c.modulus.compare(Number.zero) // TESTME is this right?
+        case _ => throw ComplexException(s"not implemented")
+      }
+    case y: Number =>
+      compare(ComplexCartesian(y))
+  }
+
   /**
     * Method to determine if this Complex can be evaluated exactly.
     *
@@ -39,7 +61,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   /**
     * Change the sign of this Number.
     */
-  def unary_- : Field = make(real, Number.negate(imag))
+  def unary_- : Field = make(Number.negate(real), Number.negate(imag))
 
   /**
     * Multiply this Complex by x and return the result.
@@ -75,13 +97,16 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
             for (r <- Literal(real).^(n).materialize.asNumber; i <- (Literal(imag) * p).materialize.asNumber) yield make(r, i),
             ComplexException("logic error: power")
           )
-        case ComplexCartesian(_, _) => n.toInt match {
-          case Some(0) => Complex.unit
-          case Some(-1) => -this divide (modulus doMultiply modulus)
-          case Some(1) => this
-          case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
-          case _ => throw ComplexException(s"not implemented: power($p)")
-        }
+        case ComplexCartesian(_, _) if n.isInteger =>
+          n.toInt match {
+            case Some(0) => Complex.unit
+            case Some(-1) => this.conjugate divide (modulus doMultiply modulus) // FIXME this looks totally wrong!
+            case Some(1) => this
+            case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
+            case _ => throw ComplexException(s"not implemented: power($p)")
+          }
+        case c@ComplexCartesian(_, _) =>
+          convertToPolar(c).power(n)
       }
     case ComplexCartesian(x, y) => ComplexPolar(convertToNumber(power(x)), y.make(NatLog))
     case _ => throw NumberException(s"power not supported for $this ^ $p")
@@ -93,7 +118,11 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @param p an Int.
     * @return this Field raised to power p.
     */
-  def power(p: Int): Field = power(Number(p))
+  def power(p: Int): Field = p match {
+    case 0 => Number.one
+    case 1 => this
+    case _ => power(Number(p))
+  }
 
   /**
     * Yields the inverse of this Complex.
@@ -119,11 +148,11 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     }
 
   /**
-    * Method to determine the complement of this Complex number.
+    * Method to determine the conjugate of this Complex number.
     *
-    * @return the complement of this Complex.
+    * @return the conjugate of this Complex.
     */
-  def complement: Complex = make(real, imag.makeNegative)
+  def conjugate: Complex = make(real, imag.makeNegative)
 
   /**
     * Instance method to make a Complex number from a real and an imaginary part.
@@ -404,7 +433,7 @@ case class ComplexPolar(r: Number, theta: Number) extends BaseComplex(r, theta) 
 
   def isInfinite: Boolean = r.isInfinite
 
-  def normalize: Field = ComplexCartesian(r.scale(NatLog), theta.scale(Radian)).normalize
+  def normalize: Field = ComplexCartesian(r.scale(NatLog), theta.normalize.asInstanceOf[Number]).normalize
 
   /**
     * Action to materialize this Expression and render it as a String,
