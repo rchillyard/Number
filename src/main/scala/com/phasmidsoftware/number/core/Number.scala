@@ -581,6 +581,10 @@ object Number {
     */
   val pi: Number = Number(1, Radian)
   /**
+    * Exact value of 𝛑
+    */
+  val `𝛑`: Number = pi
+  /**
     * Exact value of 2 pi
     */
   val twoPi: Number = Number(2, Radian)

@@ -164,7 +164,17 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return a String representing the imaginary value.
     */
-  protected def showImaginary: String = s"${if (imag.isPositive) "" else "-"}i${imag.abs}"
+  protected def showImaginary(polar: Boolean): String = imag match {
+    case Number.zero => ""
+    case x =>
+      val sign = (x, polar) match {
+        case (Number.zero, true) => ""
+        case (_, true) => ""
+        case _ if x.isPositive => "+"
+        case _ => "-"
+      }
+      s"${sign}i${x.abs}"
+  }
 }
 
 /**
@@ -203,6 +213,13 @@ object BaseComplex {
   * @param y the imaginary part.
   */
 case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
+
+  /**
+    * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
+    *
+    * @return true is y is zero.
+    */
+  def isReal: Boolean = y.isZero
 
   /**
     * Method to determine the modulus of this Complex number.
@@ -280,7 +297,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return a String representing the value of this expression.
     */
-  def render: String = s"""($x+$showImaginary)"""
+  def render: String = if (isReal) x.toString else s"""($x${showImaginary(false)})"""
 
   /**
     * Add two Cartesian Complex numbers.
@@ -342,6 +359,13 @@ object ComplexCartesian {
 case class ComplexPolar(r: Number, theta: Number) extends BaseComplex(r, theta) {
 
   /**
+    * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
+    *
+    * @return true if the angle theta is a multiple of pi.
+    */
+  def isReal: Boolean = theta.doDivide(Number.pi).isInteger
+
+  /**
     * Method to determine the modulus of this Complex number.
     *
     * @return the modulus of this Complex.
@@ -388,7 +412,11 @@ case class ComplexPolar(r: Number, theta: Number) extends BaseComplex(r, theta) 
     *
     * @return a String representing the value of this expression.
     */
-  def render: String = s"${r}e^$showImaginary"
+  def render: String = (r, theta) match {
+    case (Number.one, Number.zero) => "1"
+    case (Number.one, Number.pi) => "-1"
+    case _ => s"${r}e^${showImaginary(true)}"
+  }
 
   def doAdd(complex: Complex): Complex = convertToCartesian(this).doAdd(complex)
 

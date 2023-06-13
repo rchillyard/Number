@@ -8,7 +8,7 @@ scalaVersion := "2.13.6"
 
 scalacOptions ++= Seq( "-target:jvm-1.8", "-encoding", "UTF-8", "-unchecked", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused" )
 
-val scalaTestVersion = "3.2.14"
+val scalaTestVersion = "3.2.15"
 
 //lazy val root = (project in file(".")).dependsOn(matchers)
 

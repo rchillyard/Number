@@ -135,6 +135,8 @@ object Constants {
   val one: Number = Number.one
   val zero: Number = Number.zero
   val pi: Number = Number.pi
+  //noinspection NonAsciiCharacters
+  val `𝛑`: Number = Number.`𝛑`
   val e: Number = Number.e
   val i: Complex = Complex.i
 

@@ -10,6 +10,13 @@ import com.phasmidsoftware.number.core.FP.recover
 trait Complex extends Field {
 
   /**
+    * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
+    *
+    * @return
+    */
+  def isReal: Boolean
+
+  /**
     * Method to determine the modulus of this Complex number.
     *
     * @return the modulus of this Complex.
@@ -85,7 +92,7 @@ object Complex {
   def convertToCartesian(c: ComplexPolar): BaseComplex =
     apply(c.r multiply c.theta.cos, c.r multiply c.theta.sin, ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
 
-  def apply(a: Field, b: Field, f: (Number, Number) => BaseComplex, x: ComplexException): BaseComplex =
+  def apply(a: Field, b: Field, f: (Number, Number) => BaseComplex, x: => ComplexException): BaseComplex =
     recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
 
   def apply(x: Number): BaseComplex = ComplexCartesian(x, Number.zero)
