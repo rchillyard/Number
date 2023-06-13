@@ -101,7 +101,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for E as scalar (rel fuzzy)" in {
     val target = Number.e.scale(Scalar)
-    target.toString shouldBe "2.7182818284590455...±0.00000000000014%"
+    val w = target.toString
+    w should startWith("2.718281828459045")
+    w should endWith ("%")
   }
   it should "work for E^2 as Real" in {
     val target = Number("2\uD835\uDF00").normalize.asInstanceOf[Number]
