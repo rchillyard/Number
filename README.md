@@ -11,7 +11,7 @@
 # Number
 This project is about numbers and their mathematics.
 The chief features of this library are:
-* all numbers are exact wherever it is possible;
+* all numbers are exact wherever it is possible, including &#xD835;&#xDF00; and &#xD835;&#xDED1;;
 * inexact numbers are represented along with their error bounds;
 * lazy evaluation to help avoid temporary inexact values from becoming part of a result;
 * there are several domains of _Number_ (expressed with different "factors") to support angles, logarithms, roots.
@@ -25,10 +25,10 @@ your _x_ will be an _Int_ of value 0.
 
 However, if you write the idiomatically correct form:
 
+    import com.phasmidsoftware.number.core.Number.NumberOps
     val x = 1 :/ 2
 
 then _x_ will be a _Number_ with value __exactly__ one half.
-You will have to import com.phasmidsoftware.number.core.Number.NumberOps first, however.
 
 You probably want to see some code: so go to the worksheets package and take a look, starting with
 NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
@@ -36,18 +36,22 @@ NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
 Introduction
 ============
 There are three articles on Medium regarding this library.
-They are https://medium.com/codex/number-part-1-c98313903714 and
-https://scala-prof.medium.com/number-part-2-7925400624d5 and...
+They are [Number (part 1)](https://medium.com/codex/number-part-1-c98313903714),
+[Number (part 2)](https://scala-prof.medium.com/number-part-2-7925400624d5), and 
+[Fuzzy, lazy, functional numeric computing in Scala](https://medium.com/codex/fuzzy-lazy-functional-numeric-computing-in-scala-4b47588d310f)
 
 The Number project provides mathematical utilities where error bounds are tracked (and not forgotten).
 All functions handle the transformation or convolution of error bounds appropriately.
 When the error bound is sufficiently large compared to a number, that number is considered to be zero.
-This implies that when comparing numbers, any significant overlap of their error bounds will result in them testing
+This implies that, when comparing numbers, any significant overlap of their error bounds will result in them testing
 as equal (according to the _compare_ function, but not the _equals_ function).
 
-Numbers are represented internally as either _Int_, _Rational_, or _Double_.
+The values of Numbers are represented internally as either _Int_, _Rational_, or _Double_.
 _Rational_ is simply a case class with _BigInt_ elements for the numerator and denominator.
 It is of course perfectly possible to use the _Rational_ classes directly, without using the _Number_ (or _Expression_) classes.
+
+There are four domains of values, each identified by a Factor (see _Factors_ below).
+These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
 
 Parsing
 =======
@@ -62,7 +66,7 @@ Here are some examples:
 You can always override this behavior by adding "*" or "..." to the end of a number with fewer than two DPs,
 or by adding two 0s to the end of a number with more than two decimal places.
 
-The rules are a little different if you define a number using a floating-point literal such as Number(1.23400),
+The rules are a little different if you define a number using a floating-point literal such as _Number(1.23400)_,
 the compiler will treat that as a fuzzy number, even though it ends with two zeroes because the compiler essentially ignores them.
 However, _Number(1.23)_ will be considered exact while _Number(1.234)_ will not.
 It's best always to use a String if you want to override the default behavior.
@@ -82,7 +86,7 @@ In general, the form of a number to be parsed from a String is:
 
 Note that the __e__ and __pi__ symbols are, respectively,
 (in unicode):   \uD835\uDF00 and \uD835\uDED1 (&#xD835;&#xDF00; and &#xD835;&#xDED1;)  
-A number must have at least one of the value or factor components.
+A number must have at least one of either the value or the factor components.
 If no explicit factor is specified, then the number will be a _Scalar_ (an ordinary number).
 If you want to get exact trigonometric values, then it's important to specify the factor as pi (or e).
 
@@ -212,7 +216,8 @@ There are three types of "factor:"
 * _Root_, in particular: _Root2_ (for square roots) and _Root3_ (for cube roots).
 
 These allow certain quantities to be expressed exactly, for example, sin(π/3) is the square root of 3/4.
-The true (_Scalar_) values of the logarithmic numbers are e^x, 2^x, and 10^x respectively where x is the "value" of the _Number_.
+The true (_Scalar_) values of the logarithmic numbers are
+e^x, 2^x, and 10^x respectively where x is the "value" of the _Number_.
 
 Trigonometrical functions are designed to work with __Radian__ quantities.
 Such values are limited (modulated) to be in the range 0..2pi.
@@ -226,7 +231,7 @@ Similarly, if you use the _atan_ method on a _Scalar_ number, the result will be
 
 The 𝜀 factor works quite differently.
 It is not a simple matter of scaling.
-A Number of the form Number(x, e) actually evaluates to e^x rather than e x.
+A _Number_ of the form _Number(x, e)_ actually evaluates to e^x rather than e x.
 
 It would be possible to implement pi values similarly to 𝜀 values (as evaluations of e^ix).
 However, this is not currently done (future enhancement?).
@@ -358,7 +363,8 @@ Continued Fractions
 
 This library includes a facility to create continued fractions which can be used to define (or approximate)
 constant values.
-See the type _ContinuedFraction_ and its specification: _ContinuedFractionSpec_.
+See the worksheet _ContinuedFractions.sc_.
+
 For example, the golden ratio (phi) can be evaluated using an infinite continued fraction where
 the coefficients are all 1.
 Continued fractions can be used to generate "convergents" which are rational numbers and which
@@ -367,7 +373,7 @@ For example, the convergents for pi include with the familiar 22/7, 355/113, etc
 
 Versions
 ========
-* Version 1.0.13: Mostly cleanup together with some fixes related to Root factors.
+* Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
 * Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.
 * Version 1.0.10: Many improvements and fixes:

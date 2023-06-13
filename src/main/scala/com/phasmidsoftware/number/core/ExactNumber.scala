@@ -154,3 +154,10 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   }
 
 }
+
+object ExactNumber {
+
+  def apply(x: Int, factor: Factor): ExactNumber = new ExactNumber(Value.fromInt(x), factor)
+
+  def apply(x: Int): ExactNumber = apply(x, Scalar)
+}

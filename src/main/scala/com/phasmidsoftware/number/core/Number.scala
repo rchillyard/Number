@@ -595,11 +595,11 @@ object Number {
   /**
     * Exact value of e
     */
-  val e: Number = ExactNumber(Value.fromInt(1), NatLog)
+  val e: Number = ExactNumber(1, NatLog)
   /**
     * Exact value of i
     */
-  val i: Number = ExactNumber(Value.fromInt(-1), Root2)
+  val i: Number = ExactNumber(-1, Root2)
   /**
     * Exact value of iPi.
     */

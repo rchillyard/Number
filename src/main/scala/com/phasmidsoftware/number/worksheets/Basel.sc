@@ -1,6 +1,8 @@
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Number, Rational, Value}
+/**
+  * This worksheet illustrates the solution to the Basel problem -- approximation of pi.
+  */
 
-com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Number, Rational, Value}
 
 def inverseSquare(x: Int): Rational = Rational.one / (x * x)
 
@@ -10,8 +12,6 @@ def calculatePiByBaselMethod(tolerance: Double) = {
     val significantTerms = terms takeWhile (x => x.toDouble > tolerance) to List
 
     val insignificantTerms = terms map (x => x.toDouble) dropWhile (x => x > tolerance) takeWhile (x => x > tolerance/10000) to List
-
-    val size = insignificantTerms.size
 
     val pi: Rational = significantTerms.sum * 6
 
