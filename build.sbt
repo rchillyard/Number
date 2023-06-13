@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
     "com.phasmidsoftware" %% "flog" % "1.0.8",
     "com.phasmidsoftware" %% "matchers" % "1.0.5",
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1",
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.2.0",
     "org.apache.commons" % "commons-math3" % "3.6.1",
     "ch.qos.logback" % "logback-classic" % "1.2.12" % "test",
     "org.scalacheck" %% "scalacheck" % "1.17.0" % "test" // This is used for testing Rational
