@@ -140,11 +140,16 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "c1_2^1/2" in {
     val result: Field = c1_2 power half
     // result should be 1.27201965 + i0.786151378
-    result should matchPattern { case ComplexPolar(_, _) => }
+    result should matchPattern { case ComplexPolar(_, _, _) => }
     result match {
-      case c@ComplexPolar(_, _) => c.modulus.toDouble.get shouldBe 1.495348781221220 +- 1E-9
+      case c@ComplexPolar(_, _, _) => c.modulus.toDouble.get shouldBe 1.495348781221220 +- 1E-9
     }
     (result * result).compare(c1_2) shouldBe 0
+  }
+  it should "c2_0^1/2" in {
+    val result: Field = c2_0 power half
+    result should matchPattern { case ComplexPolar(_, _, 2) => }
+    (result * result).compare(c2_0) shouldBe 0
   }
 
   it should "p1_pi_2^1" in {
@@ -165,11 +170,12 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "p1_pi_2^-1" in {
     val z: Field = p1_pi_2 power -1
     (z * p1_pi_2).normalize shouldBe Number.one
-    z shouldBe p1_pi_2.conjugate
+    val normalized = z.normalize
+    normalized shouldBe p1_pi_2.conjugate
   }
 
   it should "p1_1^-1/2" in {
-    p1_1 power half shouldBe ComplexPolar(Number.one, Number.half)
+    p1_1 power half shouldBe ComplexPolar(Number.one, Number.half, 2)
   }
 
 
@@ -261,6 +267,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for zero" in {
     p1_pi.add(Number.one).render shouldBe "0"
+  }
+  it should "work for root 2 in c2_0^1/2" in {
+    val result: Field = c2_0 power half
+    result.render shouldBe "±√2"
   }
 
   behavior of "Number.asComplex"

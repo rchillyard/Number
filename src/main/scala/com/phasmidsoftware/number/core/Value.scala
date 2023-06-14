@@ -126,6 +126,25 @@ object Value {
     case (x, false) => x + "..."
   }
 
+  /**
+    * Unapply method which will yield an optional array.
+    * If there is only one item returned, it is an Int;
+    * if there are two items returned, they are null followed by a Rational;
+    * if there are three items returned, they are two nulls followed by a Double;
+    * otherwise, if the given value is not defined, then None is returned.
+    *
+    * @param v the value.
+    * @return Some(List[Int](x)) or Some(List[Rational](null,x)) or Some(List[Double](null,null,x)) or None.
+    */
+  def unapplySeq(v: Value): Option[List[Any]] = {
+    val result = v match {
+      case Right(x) => Some(List(x))
+      case Left(Right(x)) => Some(List(null, x))
+      case Left(Left(Some(x))) => Some(List(null, null, x))
+      case _ => None
+    }
+    result
+  }
 }
 
 sealed trait Factor {
@@ -286,13 +305,6 @@ case object Scalar extends PureNumber {
   */
 case object Radian extends PureNumber {
   val value: Double = Math.PI
-
-  def normalize(v: Value): Value = v match {
-    case Right(x) => Right((x + 2) % 2) // TODO this needs to handle any negative value.
-    case Left(Right(_)) => v // TODO normalize this
-    case Left(Left(Some(x))) => Left(Left(Some((x + 2) % 2)))// TODO this needs to handle any negative value.
-    case _ => throw NumberException(s"Radian.normalize: value $v is invalid")
-  }
 
   override def toString: String = Factor.sPi
 

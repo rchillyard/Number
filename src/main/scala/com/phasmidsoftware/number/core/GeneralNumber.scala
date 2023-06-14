@@ -395,7 +395,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def normalize: Field = (factor match {
     case Scalar => this
     case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
-    case Radian => make(Radian.normalize(value), Radian)
+    case Radian => Number.modulate(this)
     case _ => scale(Scalar)
   }) match {
     case fuzzyNumber: FuzzyNumber => fuzzyNumber.normalizeFuzz

@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
-
 import scala.annotation.tailrec
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
@@ -253,6 +252,8 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 
 /**
   * MonadicOperation to yield the modulus a Number.
+  *
+  * CONSIDER this description is not very helpful. Is it really the modulus?
   */
 case object MonadicOperationModulate extends MonadicOperation {
   private def modulate[X: Numeric](z: X, min: X, max: X): X = {
