@@ -97,9 +97,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
             for {
               z <- n.toRational
               r <- Literal(re).^(n).materialize.asNumber
-              i <- (Literal(im) * p).materialize.asNumber
               branches <- (z.invert * w).maybeInt
-            } yield ComplexPolar(r, i, branches),
+            } yield ComplexPolar(r, im.doMultiple(z), branches),
             ComplexException("logic error: power")
           )
         case ComplexPolar(re, im, w) =>
@@ -206,6 +205,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   protected def showImaginary(polar: Boolean, branch: Int = 0, n: Int = 1): String = (imag, branch, n) match {
     case (Number.zero, 0, 1) | (Number.zeroR, 0, 1) => "0"
     case (x, 0, 1) =>
+      // TODO Try to merge this code with the following case
       val sign = (x, polar) match {
         case (Number.zero, true) => ""
         case (_, true) => ""
@@ -413,6 +413,9 @@ object ComplexCartesian {
   */
 case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComplex(r, theta) {
 
+  if (theta.factor != Radian)
+    println(s"polar theta is not in radians: $this")
+
   /**
     * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
     *
@@ -479,17 +482,15 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     case (_, _, 2) => theta.value match {
       case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => "\u00b1" + r
       case _ => s"${r}e^${showImaginary(polar = true)}"
-
     }
     case (_, _, 3) => theta.value match {
-      case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) =>
-        s"{$r, ±${r}e^${showImaginary(polar = true, 1, 3)}}"
+      case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => s"{$r, ±${r}e^${showImaginary(polar = true, 1, 3)}}"
       case _ => s"${r}e^${showImaginary(polar = true)}"
-
     }
     // TODO handle the case where n is greater than 2
     case _ =>
-      s"${r}e^${showImaginary(polar = true)}"
+      val w = showImaginary(polar = true)
+      if (w == "0") r.toString else s"${r}e^$w"
   }
 
   def doAdd(complex: Complex): Complex = convertToCartesian(this).doAdd(complex)

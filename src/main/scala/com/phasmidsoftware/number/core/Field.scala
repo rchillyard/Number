@@ -145,10 +145,18 @@ object Constants {
   val `𝛑`: Number = Number.`𝛑`
   val e: Number = Number.e
   val i: Complex = Complex.i
+  /**
+    * Exact value of iPi.
+    */
+  val iPi: Complex = ComplexCartesian(0, Number.pi)
 
   val root2: Number = Number.root2
   val root3: Number = Number.root3
   val root5: Number = Number.root5
+  /**
+    * Exact value of the Complex Number √2
+    */
+  val root2s: Field = ComplexPolar(Number.root2, Number.zeroR, 2)
 
   import com.phasmidsoftware.number.core.Number.FuzzOps
 

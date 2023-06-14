@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
+import com.phasmidsoftware.number.core.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.Rational.toInts
 import scala.annotation.tailrec
 import scala.util._
@@ -646,8 +647,7 @@ object GeneralNumber {
   else
     x.factor match {
       case Logarithmic(_) =>
-        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
-        vo match {
+        doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions) match {
           case Some(v) => x.make(v)
           case None => throw NumberException("power: logic error")
         }

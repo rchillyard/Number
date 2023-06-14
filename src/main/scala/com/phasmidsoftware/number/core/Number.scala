@@ -164,6 +164,22 @@ trait Number extends Fuzz[Double] with Field {
   def doMultiply(n: Number): Number
 
   /**
+    * Perform an exact scalar multiplication of this Number by the scale factor z.
+    *
+    * @param z a Rational.
+    * @return a new Number which is this Number scaled by z.
+    */
+  def doMultiple(z: Rational): Number = GeneralNumber.times(this, Number(z))
+
+  /**
+    * Perform an exact scalar multiplication of this Number by the scale factor z.
+    *
+    * @param z an Int.
+    * @return a new Number which is this Number scaled by z.
+    */
+  def doMultiple(z: Int): Number = doMultiple(Rational(z))
+
+  /**
     * Divide this Number by n.
     *
     * @param n another Number.
@@ -200,7 +216,7 @@ trait Number extends Fuzz[Double] with Field {
     * @return the product.
     */
   def multiply(x: Field): Field = (this, x) match {
-    case (Number.i, Number.pi) | (Number.pi, Number.i) => Number.iPi
+    case (Number.i, Number.pi) | (Number.pi, Number.i) => Constants.iPi
     case (_, Number.i) => multiply(ComplexCartesian(0, 1))
     case (Number.i, _) => x.multiply(ComplexCartesian(0, 1))
     case (_, n@Number(_, _)) => doMultiply(n)
@@ -608,11 +624,7 @@ val `𝛑`: Number = pi
     */
   val i: Number = ExactNumber(-1, Root2)
   /**
-    * Exact value of iPi.
-    */
-  val iPi: Complex = ComplexCartesian(0, Number.pi)
-  /**
-    * Exact value of √2
+    * Exact value of the Number √2 (not Complex)
     */
   val root2: Number = Number(2, Root2)
   /**

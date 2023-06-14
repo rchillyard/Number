@@ -43,7 +43,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   /**
     * 1
     */
-  private val p1_0 = ComplexPolar(Number.one, Number.zero)
+  private val p1_0 = ComplexPolar(Number.one, Number.zeroR)
   /**
     * i
     */
@@ -51,7 +51,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   /**
     * e to the power of i
     */
-  private val p1_1 = ComplexPolar(Number.one, Number.one)
+  private val p1_1 = ComplexPolar(Number.one, ExactNumber(1, Radian))
 
   it should "real" in {
     c1_2.real shouldBe Number.one
@@ -176,7 +176,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "p1_1^-1/2" in {
     // TODO this seems wrong. The imaginary part should be in Radians, surely.
-    p1_1 power half shouldBe ComplexPolar(Number.one, Number.half, 2)
+    p1_1 power half shouldBe ComplexPolar(Number.one, Number.piBy2, 2)
   }
 
   it should "c2_0^1/3" in {
@@ -190,7 +190,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     c1_2.maybeFactor shouldBe Some(Scalar)
     ComplexCartesian(Number.one, Number.pi).maybeFactor shouldBe None
     p1_pi.maybeFactor shouldBe None
-    ComplexPolar(Number.one, Number.one).maybeFactor shouldBe Some(Scalar)
+    ComplexPolar(Number.one, Number.pi).maybeFactor shouldBe None
   }
 
   it should "modulus" in {
@@ -267,7 +267,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi_2.conjugate.render shouldBe "1e^i1.5\uD835\uDED1"
   }
   it should "work for iPi" in {
-    val target = Number.iPi
+    val target = Constants.iPi
     target.toString shouldBe "ComplexCartesian(0,\uD835\uDED1)"
   }
   it should "work for zero" in {
@@ -281,7 +281,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
     cubeRootOfTwo.render shouldBe "{³√2, ±³√2e^i2/3\uD835\uDED1}"
   }
-
+  it should "render root2s" in {
+    val target = Constants.root2s
+    target.render shouldBe "±√2"
+  }
 
   behavior of "Number.asComplex"
   it should "work" in {
