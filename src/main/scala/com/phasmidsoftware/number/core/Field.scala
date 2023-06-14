@@ -42,7 +42,7 @@ trait Field extends NumberLike with Ordered[Field] {
     * @return true if this is Complex.
     */
   def isComplex: Boolean = this match {
-    case ComplexCartesian(_, _) | ComplexPolar(_, _) => true
+    case ComplexCartesian(_, _) | ComplexPolar(_, _, _) => true
     case _ => false
   }
 
