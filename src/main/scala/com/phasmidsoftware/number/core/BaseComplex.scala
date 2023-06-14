@@ -203,9 +203,18 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return a String representing the imaginary value.
     */
-  protected def showImaginary(polar: Boolean): String = imag match {
-    case Number.zero => ""
-    case x =>
+  protected def showImaginary(polar: Boolean, branch: Int = 0, n: Int = 1): String = (imag, branch, n) match {
+    case (Number.zero, 0, 1) | (Number.zeroR, 0, 1) => "0"
+    case (x, 0, 1) =>
+      val sign = (x, polar) match {
+        case (Number.zero, true) => ""
+        case (_, true) => ""
+        case _ if x.isPositive => "+"
+        case _ => "-"
+      }
+      s"${sign}i${x.abs}"
+    case (Number.zeroR, z, n) =>
+      val x = Number.zeroR.doAdd(Number.twoPi.doMultiply(Number(z)).doDivide(n))
       val sign = (x, polar) match {
         case (Number.zero, true) => ""
         case (_, true) => ""
@@ -336,7 +345,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return a String representing the value of this expression.
     */
-  def render: String = if (isReal) x.toString else s"""($x${showImaginary(false)})"""
+  def render: String = if (isReal) x.toString else s"""($x${showImaginary(polar = false)})"""
 
   /**
     * Add two Cartesian Complex numbers.
@@ -469,12 +478,18 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     case (Number.one, Number.pi, 1) => "-1"
     case (_, _, 2) => theta.value match {
       case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => "\u00b1" + r
-      case _ =>  s"${r}e^${showImaginary(true)}"
+      case _ => s"${r}e^${showImaginary(polar = true)}"
+
+    }
+    case (_, _, 3) => theta.value match {
+      case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) =>
+        s"{$r, ±${r}e^${showImaginary(polar = true, 1, 3)}}"
+      case _ => s"${r}e^${showImaginary(polar = true)}"
 
     }
     // TODO handle the case where n is greater than 2
     case _ =>
-      s"${r}e^${showImaginary(true)}"
+      s"${r}e^${showImaginary(polar = true)}"
   }
 
   def doAdd(complex: Complex): Complex = convertToCartesian(this).doAdd(complex)

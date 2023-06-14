@@ -175,9 +175,14 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "p1_1^-1/2" in {
+    // TODO this seems wrong. The imaginary part should be in Radians, surely.
     p1_1 power half shouldBe ComplexPolar(Number.one, Number.half, 2)
   }
 
+  it should "c2_0^1/3" in {
+    val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
+    cubeRootOfTwo shouldBe ComplexPolar(Number(2, Root3), Number.zeroR, 3)
+  }
 
   behavior of "other"
 
@@ -272,6 +277,11 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val result: Field = c2_0 power half
     result.render shouldBe "±√2"
   }
+  it should "render c2_0^1/3" in {
+    val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
+    cubeRootOfTwo.render shouldBe "{³√2, ±³√2e^i2/3\uD835\uDED1}"
+  }
+
 
   behavior of "Number.asComplex"
   it should "work" in {
