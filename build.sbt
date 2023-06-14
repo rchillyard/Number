@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.2.0",
     "org.apache.commons" % "commons-math3" % "3.6.1",
-    "ch.qos.logback" % "logback-classic" % "1.3.7" % "test",
+    "ch.qos.logback" % "logback-classic" % "1.2.12" % "test",
     "org.scalacheck" %% "scalacheck" % "1.17.0" % "test" // This is used for testing Rational
 )
 
