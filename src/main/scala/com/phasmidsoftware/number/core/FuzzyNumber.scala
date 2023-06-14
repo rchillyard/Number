@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-import scala.util.Left
+import scala.collection.mutable
 
 /**
   * This class is designed to model a fuzzy Number.
@@ -23,6 +23,21 @@ import scala.util.Left
   * @param fuzz   the fuzziness of this Number.
   */
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
+  /**
+    * Method to force the fuzziness of this FuzzyNumber to be absolute.
+    *
+    * @return the same FuzzyNumber but with absolute fuzziness.
+    */
+  def normalizeFuzz: Field = this match {
+    case FuzzyNumber(value, factor, maybeFuzz) =>
+      val relativeFuzz = for {
+        x <- toDouble
+        fuzz <- maybeFuzz
+        normalized <- fuzz.normalize(x, relative = false)
+      } yield normalized
+      FuzzyNumber(value, factor, relativeFuzz)
+    case x => x
+  }
 
   /**
     *
@@ -30,7 +45,12 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     */
   def simplify: Number = fuzz match {
     case None => ExactNumber(value, factor).simplify
-    case _ => this
+    case _ =>
+      factor match {
+        case Root(_) => scale(Scalar)
+        case _ => this
+      }
+
   }
 
   /**
@@ -61,7 +81,8 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
   /**
     * Method to compare this FuzzyNumber with another Number.
     *
-    * NOTE this method can be eliminated but the unit tests will be off. Need to understand exactly why.
+    * NOTE it appears that this method can be eliminated but the unit tests would not work without it.
+    * Presumably, this is because the implicit equality checks in ScalaTest invoke compare. (?)
     *
     * @param other the other Number.
     * @return -1, 0, or 1 according to whether x is <, =, or > y.
@@ -73,13 +94,13 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     *
     * @return true if this Number is equivalent to zero with at least 50% confidence.
     */
-  override lazy val isZero: Boolean = isProbablyZero(0.5)
+  lazy val isZero: Boolean = isProbablyZero(0.5)
 
   /**
     * @param p the confidence desired. Ignored if isZero is true.
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  def isProbablyZero(p: Double): Boolean = super.isZero || (for (f <- fuzz; x <- toDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
+  def isProbablyZero(p: Double): Boolean = GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
@@ -125,10 +146,17 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @return
     */
   override def toString: String = {
-    val sb = new StringBuilder()
-    val w = fuzz match {
-      case Some(f) => f.toString(toDouble.getOrElse(0.0))
-      case None => Value.valueToString(value)
+    val sb = new mutable.StringBuilder()
+    lazy val valueAsString = Value.valueToString(value)
+    val z = fuzz match {
+      // CONSIDER will the following test work in all cases?
+      case Some(f) if f.wiggle(0.5) > 1E-16 => f.toString(toDouble.getOrElse(0.0))
+      case Some(_) => true -> (valueAsString + (if (valueAsString.endsWith("...")) "" else "*"))
+      case None => true -> valueAsString
+    }
+    val w = z match {
+      case (true, s) => s
+      case (false, s) => valueAsString + "\u00B1" + s
     }
     factor match {
       case Logarithmic(_) =>
@@ -138,6 +166,8 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
         sb.append(factor.toString)
       case Root(_) =>
         sb.append(factor.render(w))
+      case _ =>
+        throw NumberException(s"factor is not matched: $factor")
     }
     sb.toString
   }

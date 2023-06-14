@@ -1,4 +1,10 @@
+import com.phasmidsoftware.number.core.Number
 import scala.util.Random
+
+// The following are all ways of getting 𝛑 as an exact constant...
+Number.pi
+Number.`𝛑`
+Number("1\uD835\uDED1")
 
 def getPoints(n: Int)(implicit r: Random): LazyList[(Double, Double)] = {
   def getCoordinate: Double = (r.nextDouble() - 0.5) * 2

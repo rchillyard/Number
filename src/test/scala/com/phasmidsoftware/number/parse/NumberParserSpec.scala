@@ -11,7 +11,7 @@ import scala.util.{Left, Try}
   * @author scalaprof
   */
 class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
-  val p = new NumberParser
+  private val p = NumberParser
 
   behavior of "numberWithFuzziness"
   it should "parse 1.0*" in {

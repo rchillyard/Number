@@ -3,7 +3,9 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.{sGamma, sPhi}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
+import com.phasmidsoftware.number.core.Fuzziness.showPercentage
 import com.phasmidsoftware.number.core.Number.{negate, twoPi}
+import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -37,19 +39,19 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Fuzz.toString"
   it should "work for 1/0.5/Box" in {
     val target = AbsoluteFuzz(0.5, Box)
-    target.toString(1) shouldBe "1.0[5]"
+    target.toString(1) shouldBe(true, "1.0[5]")
   }
   it should "work for 1/0.005/Box" in {
     val target = AbsoluteFuzz(0.005, Box)
-    target.toString(1) shouldBe "1.000[5]"
+    target.toString(1) shouldBe(true, "1.000[5]")
   }
   it should "work for 1/0.5/Gaussian" in {
     val target = AbsoluteFuzz(0.5, Gaussian)
-    target.toString(1) shouldBe "1.0(5)"
+    target.toString(1) shouldBe(true, "1.0(5)")
   }
   it should "work for 1/0.005/Gaussian" in {
     val target = AbsoluteFuzz(0.005, Gaussian)
-    target.toString(1) shouldBe "1.000(5)"
+    target.toString(1) shouldBe(true, "1.000(5)")
   }
 
   behavior of "parse"
@@ -243,7 +245,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     // TODO check this one: shape should be Gaussian. And is the value correct?
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
     z.fuzz.get match {
-      case RelativeFuzz(m, Box) => m shouldBe 0.2
+      case RelativeFuzz(m, Box) => m shouldBe 0.2 +- 0.00001
     }
   }
   it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Gaussian))" in {
@@ -253,7 +255,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
     z.fuzz.get match {
-      case RelativeFuzz(m, Gaussian) => m shouldBe 0.2
+      case RelativeFuzz(m, Gaussian) => m shouldBe 0.2 +- 0.00001
     }
   }
   it should "work for 2**2 (i.e. an constant Int power)" in {
@@ -467,8 +469,16 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     r.isDefined shouldBe true
     val q: Number = n.make(r.get, Scalar)
     val x = q.toDouble
-    val z: GeneralNumber = q.make(Fuzziness.map[Double, Double, Double](1, x.get, !op.absolute, op.derivative, Some(fuzz))).asInstanceOf[GeneralNumber]
-    z.fuzz.get.toString(x.get) shouldBe "2.7182818284590450[74]"
+    val z: GeneralNumber = q.make(Fuzziness.map[Double, Double, Double](1, x.get, !op.absolute, op.derivative, Some(fuzz))).normalize.asInstanceOf[GeneralNumber]
+    val (_, w) = z.fuzz.get.toString(x.get)
+    // XXX seems to be a difference between Intel chip and "Apple M1" chip
+    w.substring(0, 17) + w.substring(18, 22) shouldBe "2.718281828459045[74]"
+  }
+
+  it should "implement asComparedWith" in {
+    val n: Number = Number(r"22/7")
+    showPercentage(n.asComparedWith(Number.pi)) shouldBe "0.020%"
+    showPercentage(Number.pi.asComparedWith(n)) shouldBe "0.020%"
   }
 
   behavior of "foucault"

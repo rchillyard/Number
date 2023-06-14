@@ -20,7 +20,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "parse"
-  val syp = new ShuntingYardParser()
+  private val syp = ShuntingYardParser
   it should "parse 1" in {
     syp.parseInfix("1") should matchPattern { case Success(_) => }
     syp.parseInfix("(1)") should matchPattern { case Failure(_) => } // tokens must currently be separated by white space
@@ -105,7 +105,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate atan" in {
     Zero.atan(One).materialize.asNumber shouldBe Some(Number.piBy2)
-    One.atan(Zero).materialize.asNumber shouldBe Some(Number(0, Radian))
+    Zero.atan(1).materialize.asNumber shouldBe Some(Number.piBy2)
+    One.atan(0).materialize.asNumber shouldBe Some(Number(0, Radian))
     Number.one.atan(Number.zero) shouldBe Number(0, Radian)
   }
   it should "evaluate ln E" in {
@@ -141,17 +142,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Number.pi.isExact(None) shouldBe true
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
-    (One + Number.two).isExact(Some(Scalar)) shouldBe true
+    (One + Number.two).isExact shouldBe true
     (ConstPi + Number.pi).isExact(Some(Radian)) shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Literal(2) * Number.e).isExact(None) shouldBe false
+    (Literal(2) * Number.e).isExact shouldBe false
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
     (Literal(1) * Number.e).isExact(None) shouldBe true
   }
   it should "be true for product of zero exact Numbers and a NatLog factor" in {
-    (Literal(0) * Number.e).isExact(None) shouldBe true
+    (Literal(0) * Number.e).isExact shouldBe true
   }
 
   behavior of "depth"

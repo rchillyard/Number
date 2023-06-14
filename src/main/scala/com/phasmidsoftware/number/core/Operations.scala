@@ -1,10 +1,8 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
-import java.util.NoSuchElementException
+
 import scala.annotation.tailrec
-import scala.language.implicitConversions
-import scala.math.BigInt
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
 
@@ -241,7 +239,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     */
   val fuzz: Int = 4
 
-  def modulateAngle(ry: Try[Rational], flip: Boolean): Try[Rational] = ry map (r => if (flip) -r else r) map (r => if (sign < 0) Rational.one + r else r)
+  def modulateAngle(ry: Try[Rational], flip: Boolean): Try[Rational] = ry map (r => if (flip) r.negate else r) map (r => if (sign < 0) Rational.one + r else r)
 
   private def doAtan(r: Rational) = {
     r match {
@@ -258,12 +256,12 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   */
 case object MonadicOperationModulate extends MonadicOperation {
   private def modulate[X: Numeric](z: X, min: X, max: X): X = {
-    val nx = implicitly[Numeric[X]]
+    import scala.math.Numeric.Implicits.infixNumericOps
 
     @tailrec
     def inner(result: X): X =
-      if (result < min) inner(nx.plus(result, nx.plus(max, nx.negate(min))))
-      else if (result > max) inner(nx.plus(result, nx.plus(min, nx.negate(max))))
+      if (result < min) inner(result + max - min)
+      else if (result > max) inner(result + min - max)
       else result
 
     inner(z)

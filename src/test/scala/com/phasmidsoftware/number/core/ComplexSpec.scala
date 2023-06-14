@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
+import com.phasmidsoftware.number.core.Number.half
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -9,19 +10,48 @@ import org.scalatest.matchers.should
 
 class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
-  implicit object ComplexEquality extends Equality[Complex] {
-    def areEqual(a: Complex, b: Any): Boolean = b match {
-      case n: Complex => (Literal(a) - n).materialize.isZero
+  implicit object ComplexCartesianEquality extends Equality[ComplexCartesian] {
+    def areEqual(a: ComplexCartesian, b: Any): Boolean = b match {
+      case n: Complex =>
+        (Literal(a) - n).materialize.isZero
+      case _ => false
+    }
+  }
+
+  implicit object ComplexPolarEquality extends Equality[ComplexPolar] {
+    def areEqual(a: ComplexPolar, b: Any): Boolean = b match {
+      case n: ComplexPolar =>
+        (Literal(a) - n).materialize.isZero
       case _ => false
     }
   }
 
   behavior of "Complex"
 
+  /**
+    * (1,2)
+    */
   private val c1_2 = ComplexCartesian(Number.one, Number.two)
+  /**
+    * 2
+    */
   private val c2_0 = Complex(Number.two)
+  /**
+    * -1
+    */
   private val p1_pi = ComplexPolar(Number.one, Number.pi)
-  private val p1_pi_2 = ComplexPolar(Number.one, Number.pi doDivide Number.two)
+  /**
+    * 1
+    */
+  private val p1_0 = ComplexPolar(Number.one, Number.zero)
+  /**
+    * i
+    */
+  private val p1_pi_2 = ComplexPolar(Number.one, Number.piBy2)
+  /**
+    * e to the power of i
+    */
+  private val p1_1 = ComplexPolar(Number.one, Number.one)
 
   it should "real" in {
     c1_2.real shouldBe Number.one
@@ -36,12 +66,20 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "isExact" in {
-      c1_2.isExact(None) shouldBe true
-      c2_0.isExact(None) shouldBe true
-      p1_pi.isExact(None) shouldBe true
-      (c1_2 add c2_0).isExact(None) shouldBe true
-      // FIXME Caused by July 1st commit
-      //    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
+    c1_2.isExact(None) shouldBe true
+    c2_0.isExact(None) shouldBe true
+    p1_pi.isExact(None) shouldBe true
+    (c1_2 add c2_0).isExact shouldBe true
+    // FIXME Caused by July 1st commit
+    //    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
+  }
+
+  it should "isInfinite" in {
+
+    p1_pi_2.divide(Number.zero).isInfinite shouldBe true
+    p1_pi.isInfinite shouldBe false
+    c2_0.divide(Number.one).isInfinite shouldBe false
+    c1_2.isInfinite shouldBe false
   }
 
   it should "asNumber" in {
@@ -67,34 +105,75 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "unary_$minus" in {
     val z = -c1_2
-    z shouldBe ComplexCartesian(Number.one, Number(-2))
+    z shouldBe ComplexCartesian(Number.negOne, Number(-2))
   }
 
   it should "divide" in {
     val z = ComplexCartesian(Number.two, Number(4))
-    val z1 = Literal(z) / c2_0
+    val z1: Expression = Literal(z) / c2_0
+    (z1 * Expression(c2_0)).materialize shouldBe z
     z1.materialize shouldBe c1_2
   }
 
-  it should "power0" in {
+  behavior of "power"
+
+  it should "c1_2^1" in {
     val z: Field = c1_2 power 1
     z shouldBe c1_2
   }
 
-  it should "power1" in {
+  it should "c1_2^2" in {
     val z: Field = c1_2 power 2
     z should matchPattern { case ComplexCartesian(ExactNumber(Right(-3), Scalar), ExactNumber(Right(4), Scalar)) => }
   }
 
-  it should "power2" in {
+  it should "c1_2^0" in {
     val z = c1_2 power 0
-    z should matchPattern { case ComplexCartesian(ExactNumber(Right(1), Scalar), ExactNumber(Right(0), Scalar)) => }
+    z shouldBe Number.one
   }
 
-  it should "power3" in {
+  it should "c1_2^-1" in {
     val z = c1_2 power -1
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
+
+  it should "c1_2^1/2" in {
+    val result: Field = c1_2 power half
+    // result should be 1.27201965 + i0.786151378
+    result should matchPattern { case ComplexPolar(_, _) => }
+    result match {
+      case c@ComplexPolar(_, _) => c.modulus.toDouble.get shouldBe 1.495348781221220 +- 1E-9
+    }
+    (result * result).compare(c1_2) shouldBe 0
+  }
+
+  it should "p1_pi_2^1" in {
+    val z: Field = p1_pi_2 power 1
+    z shouldBe p1_pi_2
+  }
+
+  it should "p1_pi_2^2" in {
+    val z: Field = p1_pi_2 power 2
+    z shouldBe p1_pi
+  }
+
+  it should "p1_pi_2^0" in {
+    val z = p1_pi_2 power 0
+    z shouldBe Number.one
+  }
+
+  it should "p1_pi_2^-1" in {
+    val z: Field = p1_pi_2 power -1
+    (z * p1_pi_2).normalize shouldBe Number.one
+    z shouldBe p1_pi_2.conjugate
+  }
+
+  it should "p1_1^-1/2" in {
+    p1_1 power half shouldBe ComplexPolar(Number.one, Number.half)
+  }
+
+
+  behavior of "other"
 
   it should "maybeFactor" in {
     c1_2.maybeFactor shouldBe Some(Scalar)
@@ -113,14 +192,14 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi.argument shouldBe Number.pi
   }
 
-  it should "complement (1)" in {
-    c2_0.complement shouldBe c2_0
-    c1_2.complement shouldBe ComplexCartesian(1, -2)
-    (p1_pi_2.complement doAdd p1_pi_2).modulus shouldBe Number.zero
+  it should "conjugate (1)" in {
+    c2_0.conjugate shouldBe c2_0
+    c1_2.conjugate shouldBe ComplexCartesian(1, -2)
+    (p1_pi_2.conjugate doAdd p1_pi_2).modulus shouldBe Number.zero
   }
 
-  it should "complement (2)" in {
-    p1_pi.complement shouldBe p1_pi
+  it should "conjugate (2)" in {
+    p1_pi.conjugate shouldBe p1_pi
   }
 
   it should "invert" in {
@@ -130,7 +209,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "convertToPolar" in {
     val expected: Complex = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Radian))
-    val actual: Complex = convertToPolar(c1_2)
+    val actual: ComplexPolar = convertToPolar(c1_2).asInstanceOf[ComplexPolar]
+    convertToCartesian(actual).compare(c1_2) shouldBe 0
+    actual.compare(c1_2) shouldBe 0
     actual shouldEqual expected
   }
 
@@ -151,11 +232,12 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   private def checkAtan2(opposite: Int, adjacent: Int): Unit = {
     val theta = math.atan2(opposite, adjacent)
     //noinspection ScalaUnusedSymbol
-// NOTE this isn't used
-val thetaAsFraction = theta / math.Pi
+    // NOTE this isn't used
+    val thetaAsFraction = theta / math.Pi
     //    println(s"atan2($opposite/$adjacent) is $thetaAsFraction")
     val result = math.tan(theta)
     val expected = opposite * 1.0 / adjacent
+    // CONSIDER what's going on here? When might it be pos inf?
     if (expected != Double.PositiveInfinity)
       result shouldBe expected +- 1E-6
   }
@@ -166,20 +248,23 @@ val thetaAsFraction = theta / math.Pi
 
   behavior of "render"
   it should "work for various Complex values" in {
-    c2_0.render shouldBe "(2+i0)"
+    c2_0.render shouldBe "2"
     c1_2.render shouldBe "(1+i2)"
-    p1_pi.render shouldBe "1e^i\uD835\uDED1"
+    p1_0.render shouldBe "1"
+    p1_pi.render shouldBe "-1"
     p1_pi_2.render shouldBe "1e^i0.5\uD835\uDED1"
-    p1_pi_2.complement.render shouldBe "1e^i1.5\uD835\uDED1"
+    p1_pi_2.conjugate.render shouldBe "1e^i1.5\uD835\uDED1"
   }
   it should "work for iPi" in {
     val target = Number.iPi
     target.toString shouldBe "ComplexCartesian(0,\uD835\uDED1)"
   }
+  it should "work for zero" in {
+    p1_pi.add(Number.one).render shouldBe "0"
+  }
 
-  behavior of "asComplex"
+  behavior of "Number.asComplex"
   it should "work" in {
-    c2_0.asComplex shouldBe c2_0
     Number(2).asComplex shouldBe c2_0
   }
 
@@ -187,6 +272,12 @@ val thetaAsFraction = theta / math.Pi
   it should "work" in {
     ComplexCartesian(1, 0).numberProduct(Number.two) shouldBe c2_0
     ComplexCartesian(0, -2).numberProduct(Number.i) shouldBe c2_0
+  }
+  it should "work when i is scaled by two (prefix)" in {
+    Number.two multiply Number.i shouldBe ComplexCartesian(0, 2)
+  }
+  it should "work when i is scaled by two (postfix)" in {
+    Number.i multiply Number.two shouldBe ComplexCartesian(0, 2)
   }
 
   behavior of "i"

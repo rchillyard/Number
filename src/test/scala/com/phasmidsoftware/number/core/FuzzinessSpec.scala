@@ -4,12 +4,11 @@ import com.phasmidsoftware.number.core.Fuzziness.createFuzz
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Left, Try}
 
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
-  private val p = new NumberParser
+  private val p = NumberParser
   val sAlpha = "0.0072973525693(11)"
 
   behavior of "generalNumber"
@@ -48,7 +47,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
   behavior of "StringParser"
   it should "" in {
-    val x =    new NumberParser
+    val x = NumberParser
     val q: Try[Number] = x.parseNumber(sG)
       q.get.isExact(None) shouldBe false
       q.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
@@ -121,33 +120,33 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Fuzz.toString"
   it should "work for 1/0.5/Box" in {
     val target = AbsoluteFuzz(0.5, Box)
-    target.toString(1) shouldBe "1.0[5]"
+    target.toString(1) shouldBe(true, "1.0[5]")
   }
   it should "work for 1/0.005/Box" in {
     val target = AbsoluteFuzz(0.005, Box)
-    target.toString(1) shouldBe "1.000[5]"
+    target.toString(1) shouldBe(true, "1.000[5]")
   }
   it should "work for 1/0.5/Gaussian" in {
     val target = AbsoluteFuzz(0.5, Gaussian)
-    target.toString(1) shouldBe "1.0(5)"
+    target.toString(1) shouldBe(true, "1.0(5)")
   }
   it should "work for 1/0.005/Gaussian" in {
     val target = AbsoluteFuzz(0.005, Gaussian)
-    target.toString(1) shouldBe "1.000(5)"
+    target.toString(1) shouldBe(true, "1.000(5)")
   }
   it should "work for Planck" in {
     val target = AbsoluteFuzz(5E-41, Gaussian)
-    target.toString(6.62607015E-34) shouldBe "6.6260701(5)E-34"
+    target.toString(6.62607015E-34) shouldBe(true, "6.6260701(5)E-34")
   }
   it should "work for Avagadro" in {
     val target = AbsoluteFuzz(5E16, Gaussian)
-    target.toString(6.02214076E23) shouldBe "6.0221407(5)E+23"
+    target.toString(6.02214076E23) shouldBe(true, "6.0221407(5)E+23")
   }
   it should "work for 3.1415927" in {
     val xy: Try[Number] = Number.parse("3.1415927")
     xy.get shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), Scalar, Some(AbsoluteFuzz(0.00000005, Box)))
     val z: Number = xy.get
-    val q: Option[String] = z.fuzz.map(f => f.toString(3.1415927))
+    val q: Option[String] = z.fuzz.map(f => f.toString(3.1415927)._2)
     q should matchPattern { case Some("3.14159270[5]") => }
   }
   it should "work for 3.1416" in {
@@ -269,7 +268,9 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val x = q.toDouble
     val v = x.get
     val z: Option[Fuzziness[Double]] = Fuzziness.map[Double, Double, Double](1, v, !op.absolute, op.derivative, Some(fuzz))
-    z.toString shouldBe "Some(RelativeFuzz(2.718281828459045E-15,Box))"
+    val w = z.toString
+    // XXX seems to be a difference between Intel chip and "Apple M1" chip
+    w.substring(0, 34) + w.substring(35) shouldBe "Some(RelativeFuzz(2.71828182845904E-15,Box))"
   }
 
   behavior of "power"

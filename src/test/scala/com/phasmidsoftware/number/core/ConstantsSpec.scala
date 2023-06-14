@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Constants.sGamma
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -57,6 +58,12 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     target should ===(Number(6.67430E-11))
     target.render shouldBe sG
   }
+  it should "have gamma" in {
+    val target = Constants.gamma
+    target.isExact(None) shouldBe false
+    target should ===(Number(0.577215664901533))
+    target.render shouldBe (sGamma.substring(0, sGamma.length - 2) + "*")
+  }
   it should "have avagadro" in {
     val target = Constants.avagadro
     target.isExact(None) shouldBe true
@@ -96,6 +103,6 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     maybeNumber.isDefined shouldBe true
     maybeNumber.get should ===(target)
     val result: Number = goldenRatio
-    result.render shouldBe "1.618033988749895(21)"
+    result.render shouldBe "1.618033988749895(19)"
   }
 }

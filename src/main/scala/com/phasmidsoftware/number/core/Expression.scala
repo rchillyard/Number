@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.MatchLogger
-import com.phasmidsoftware.number.core.Field.recover
+import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
+import scala.language.implicitConversions
 
 /**
   * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
@@ -109,7 +110,7 @@ object Expression {
     * The idea is for render and parse.get to be inverses.
     * NOTE that it might be a problem with render instead.
     */
-  def parse(x: String): Option[Expression] = new ShuntingYardParser().parseInfix(x).toOption flatMap (_.evaluate)
+  def parse(x: String): Option[Expression] = ShuntingYardParser.parseInfix(x).toOption flatMap (_.evaluate)
 
   /**
     * The following constants are helpful in getting an expression started.
@@ -123,6 +124,10 @@ object Expression {
     * Other useful expressions.
     */
   val phi: Expression = (one + Constants.root5) / Number.two
+
+  implicit def convertFieldToExpression(f: Field): Expression = Expression(f)
+
+  implicit def convertIntToExpression(x: Int): Expression = Number(x)
 
   /**
     * Implicit class to allow various operations to be performed on an Expression.
@@ -148,44 +153,12 @@ object Expression {
     def +(y: Expression): Expression = x plus y
 
     /**
-      * Method to lazily multiply x by y.
-      *
-      * @param y a Field.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def +(y: Field): Expression = this.+(Expression(y))
-
-    /**
-      * Method to lazily add x to y.
-      *
-      * @param y an Int.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def +(y: Int): Expression = this.+(Number(y))
-
-    /**
       * Method to lazily subtract the Field y from x.
       *
       * @param y a Field.
       * @return an Expression which is the lazy product of x and y.
       */
     def -(y: Expression): Expression = BiFunction(x, -y, Sum)
-
-    /**
-      * Method to lazily subtract the Field y from x.
-      *
-      * @param y a Field.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def -(y: Field): Expression = x - Expression(y)
-
-    /**
-      * Method to lazily subtract y from x.
-      *
-      * @param y an Int.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def -(y: Int): Expression = x.-(Number(y))
 
     /**
       * Method to lazily change the sign of this expression.
@@ -203,22 +176,6 @@ object Expression {
     def *(y: Expression): Expression = BiFunction(x, y, Product)
 
     /**
-      * Method to lazily multiply x by y.
-      *
-      * @param y a Field.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def *(y: Field): Expression = *(Expression(y))
-
-    /**
-      * Method to lazily multiply x by y.
-      *
-      * @param y an Int.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def *(y: Int): Expression = *(Number(y))
-
-    /**
       * Method to lazily yield the reciprocal of x.
       *
       * @return an Expression representing the reciprocal of x.
@@ -228,18 +185,10 @@ object Expression {
     /**
       * Method to lazily divide x by y.
       *
-      * @param y a Field.
-      * @return an Expression which is the lazy quotient of x and y.
+      * @param y a Number.
+      * @return an Expression which is the lazy quotient of x / y.
       */
-    def /(y: Field): Expression = *(Expression(y).reciprocal)
-
-    /**
-      * Method to lazily multiply x by y.
-      *
-      * @param y another Field.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def /(y: Int): Expression = /(Number(y))
+    def /(y: Expression): Expression = *(y.reciprocal)
 
     /**
       * Method to lazily raise x to the power of y.
@@ -248,22 +197,6 @@ object Expression {
       * @return an Expression representing x to the power of y.
       */
     def ^(y: Expression): Expression = BiFunction(x, y, Power)
-
-    /**
-      * Method to lazily raise x to the power of y.
-      *
-      * @param y the power to which x should be raised (a Number).
-      * @return an Expression representing x to the power of y.
-      */
-    def ^(y: Field): Expression = ^(Expression(y))
-
-    /**
-      * Method to lazily raise the Field x to the power of y.
-      *
-      * @param y the power.
-      * @return an Expression which is the lazy power of x to the y.
-      */
-    def ^(y: Int): Expression = ^(Number(y))
 
     /**
       * Method to lazily get the square root of x.
@@ -307,7 +240,11 @@ object Expression {
       */
     def exp: Expression = Function(x, Exp)
 
-    // TODO add atan method.
+    /**
+      * Method to lazily get the value of atan2(x, y), i.e. if the result is z, then tan(z) = y/x.
+      *
+      * @return an Expression representing atan2(x, y).
+      */
     def atan(y: Expression): Expression = BiFunction(x, y, Atan)
 
     /**
@@ -652,18 +589,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * Determine if this dyadic expression has an exact result, according to f, the function.
     * NOTE that Product is always true, but it is possible that Sum or Power could be false.
     *
-    * CONSIDER not checking a and b as exact because we wouldn't be here if they weren't.
-    *
-    * TODO refactor this method to remove all parameters since they are simply copies of the values in scope.
-    *
-    * @param f the function.
-    * @param a first operand (currently ignored)
-    * @param b second operand.
     * @return true if the result of the f(a,b) is exact.
+    *         NOTE: this appears to be an inaccurate description of the result.
     */
-  def conditionallyExact(f: ExpressionBiFunction, a: Expression, b: Expression): Boolean = f match {
+  private lazy val conditionallyExact: Boolean = f match {
     case Power => b.materialize.asNumber.flatMap(x => x.toInt).isDefined
     case Sum => maybeFactor.isDefined
+    case Product => true
     case _ => false
   }
 
@@ -685,7 +617,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ => false
   }
 
-  private lazy val exact: Boolean = a.isExact(None) && b.isExact(None) && (f.isExact || conditionallyExact(f, a, b))
+  private lazy val exact: Boolean = a.isExact(None) && b.isExact(None) && (f.isExact || conditionallyExact)
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")

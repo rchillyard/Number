@@ -1,7 +1,8 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero}
-import com.phasmidsoftware.number.parse.{RationalParser, RationalParserException}
+import com.phasmidsoftware.number.parse.RationalParser
+
 import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -93,6 +94,8 @@ case class Rational(n: BigInt, d: BigInt) {
 
   lazy val toDouble: Double = Rational.toDouble(this)
 
+  lazy val maybeDouble: Option[Double] = if (isExactDouble) Some(toDouble) else None
+
   /**
     * Method to get the xth power of this Rational, exactly.
     *
@@ -158,8 +161,9 @@ case class Rational(n: BigInt, d: BigInt) {
     else if (isZero && d < 0) "-0"
     else if (isInfinity) (if (n > 0) "+ve" else "-ve") + " infinity"
     else if (isWhole) toBigInt.toString
-    else if (d > 100000L || isExactDouble) toDouble.toString
-    else toRationalString
+    else if (isExactDouble) toDouble.toString
+    else if (d <= 100000L) toRationalString
+    else toBigDecimal.toString() // XXX fix for issue #70
 }
 
 object Rational {
@@ -286,12 +290,13 @@ object Rational {
   val bigFive: BigInt = BigInt(5)
   val bigSeven: BigInt = BigInt(7)
   val bigNegOne: BigInt = BigInt(-1)
+  val bigTen: BigInt = BigInt(10)
   val zero: Rational = Rational(0)
   lazy val infinity: Rational = zero.invert
   lazy val negInfinity: Rational = negZero.invert
-  val one: Rational = Rational(1)
-  val ten: Rational = Rational(10)
-  val two: Rational = Rational(2)
+  val one: Rational = Rational(bigOne)
+  val ten: Rational = Rational(bigTen)
+  val two: Rational = Rational(bigTwo)
   lazy val half: Rational = two.invert
   lazy val NaN = new Rational(0, 0)
   lazy val negZero = new Rational(0, -1)
@@ -502,7 +507,7 @@ object Rational {
     }
 
   // CONSIDER eliminating this, but it is currently employed by Operations.
-  val squareRoots = Map(0 -> 0, 1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)
+  val squareRoots: Map[Int, Int] = Map(0 -> 0, 1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)
 
   /**
     * Method to process the numerator and denominator to ensure that the denominator is never zero and never shares a common factor with the numerator.

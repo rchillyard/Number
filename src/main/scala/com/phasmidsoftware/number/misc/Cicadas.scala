@@ -7,13 +7,16 @@ package com.phasmidsoftware.number.misc
   * @param period years between emergences
   */
 case class Cicada(next: Int, period: Int) extends (Int => Boolean) {
+
+  import com.phasmidsoftware.number.core.Divides._
+
   /**
     * Determine if year x is an emergence year
     *
     * @param x the year given
     * @return true if this Cicada brood will emerge in year x
     */
-  override def apply(x: Int): Boolean = (x - next) % period == 0
+  override def apply(x: Int): Boolean = period |> (x - next)
 }
 
 /**

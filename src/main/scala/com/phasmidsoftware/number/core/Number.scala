@@ -6,18 +6,18 @@ import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
 import scala.annotation.tailrec
 import scala.language.implicitConversions
-import scala.math.BigInt
 import scala.util._
 
 /**
   * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
+  * That's to say that Numbers have linear domain and all belong, directly or indirectly, to the set R (real numbers).
   *
   * Every number has three properties:
   * * value: Value
   * * factor: Factor
   * * fuzz: (from extending Fuzz[Double]).
   */
-trait Number extends Fuzz[Double] with Field with Ordered[Number] {
+trait Number extends Fuzz[Double] with Field {
 
   /**
     * The value of this Number.
@@ -48,7 +48,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     *
     * @return true if imaginary.
     */
-  def isImaginary: Boolean = GeneralNumber.isImaginary(this)
+  def isImaginary: Boolean
 
   /**
     * Method to make some trivial simplifications of this Number (only if exact).
@@ -79,7 +79,21 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def maybeDouble: Option[Double]
 
   /**
-    * Method to get the value of this Number as a Rational.
+    * Method to determine if this Number is actually represented as an Integer.
+    *
+    * @return true if exact and rational.
+    */
+  def isInteger: Boolean
+
+  /**
+    * Method to determine if this Number is actually represented as a Rational.
+    *
+    * @return true if exact and rational.
+    */
+  def isRational: Boolean
+
+  /**
+    * Method to get the value of this Number as an (optional) Rational.
     * If this is actually a Double, it will be converted to a Rational according to the implicit conversion from Double to Rational.
     * See Rational.convertDouble(x).
     *
@@ -93,6 +107,22 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return an Option of Int. If this Number cannot be converted to an Int, then None will be returned.
     */
   def toInt: Option[Int]
+
+  /**
+    * Method to get the value of this Number as an (optional) BigInt.
+    * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
+    *
+    * @return an Option of BigInt.
+    */
+  def toBigInt: Option[BigInt]
+
+  /**
+    * Method to get the value of this Number as an (optional) BigInt.
+    * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
+    *
+    * @return an Option of BigDecimal.
+    */
+  def toBigDecimal: Option[BigDecimal]
 
   /**
     * Method to determine if this Number is positive.
@@ -134,28 +164,12 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def doMultiply(n: Number): Number
 
   /**
-    * Multiply this Number by n.
-    *
-    * @param n another Int.
-    * @return the product of this and n.
-    */
-  def doMultiply(n: Int): Number = doMultiply(Number(n))
-
-  /**
     * Divide this Number by n.
     *
     * @param n another Number.
     * @return this quotient of this and n, i.e. this/n.
     */
   def doDivide(n: Number): Number
-
-  /**
-    * Divide this Number by n.
-    *
-    * @param n an Int.
-    * @return this quotient of this and n, i.e. this/n.
-    */
-  def doDivide(n: Int): Number = doDivide(Number(n))
 
   /**
     * Raise this Number to the power p.
@@ -165,32 +179,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     */
   def doPower(p: Number): Number
 
-  /**
-    * Raise this Number to the power p.
-    *
-    * NOTE: this method is only ever used by Specs.
-    *
-    * @param p an Int.
-    * @return this Number raised to the power of p.
-    */
-  def doPower(p: Int): Number = doPower(Number(p))
-
   // NOTE Following are methods defined in Field.
-
-  /**
-    * @return true if this Number is equal to zero.
-    */
-  def isInfinite: Boolean = Number.isInfinite(this)
-
-  /**
-    * @return true if this Number is equal to zero.
-    */
-  def isZero: Boolean = Number.isZero(this)
-
-  /**
-    * @return true if there is no fuzz.
-    */
-  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && (maybeFactor.isEmpty || maybeFactor.contains(factor))
 
   /**
     * Add x to this Number and return the result.
@@ -199,8 +188,9 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return the sum.
     */
   def add(x: Field): Field = x match {
+    case n@Number(_, _) if n.isImaginary => ComplexCartesian.fromImaginary(n) doAdd Complex(this)
     case n@Number(_, _) => doAdd(n)
-    case c@BaseComplex(_, _) => c.add(x)
+    case c@BaseComplex(_, _) => c.add(this)
   }
 
   /**
@@ -212,6 +202,7 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def multiply(x: Field): Field = (this, x) match {
     case (Number.i, Number.pi) | (Number.pi, Number.i) => Number.iPi
     case (_, Number.i) => multiply(ComplexCartesian(0, 1))
+    case (Number.i, _) => x.multiply(ComplexCartesian(0, 1))
     case (_, n@Number(_, _)) => doMultiply(n)
     case (_, c@BaseComplex(_, _)) => c.multiply(this)
   }
@@ -239,8 +230,10 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return this Number raised to power p.
     */
   def power(p: Field): Field = p match {
+    case Number.zero => Number.one
+    case Number.one => this
     case n@Number(_, _) => doPower(n)
-    case ComplexCartesian(x, y) => ComplexPolar(doPower(x), y)
+    case ComplexCartesian(x, y) => ComplexPolar(doPower(x), y) // CONSIDER is this correct?
     case _ => throw NumberException("logic error: power not supported for non-Number powers")
   }
 
@@ -351,6 +344,16 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
   def asNumber: Option[Number] = Some(this)
 
   /**
+    * Method to return this Number as a Complex.
+    *
+    * @return Complex(this) as appropriate.
+    */
+  def asComplex: Complex = if (isImaginary)
+    ComplexCartesian.fromImaginary(this)
+  else
+    Complex(this)
+
+  /**
     * Method to create a new version of this, but with factor f.
     * NOTE: the result will have the same absolute magnitude as this.
     * In other words,  in the case where f is not factor, the numerical value of the result's value will be different
@@ -369,6 +372,15 @@ trait Number extends Fuzz[Double] with Field with Ordered[Number] {
     * @return -1, 0, 1 as usual.
     */
   def fuzzyCompare(other: Number, p: Double): Int
+
+  /**
+    * Return optional Fuzziness of Box shape, such that
+    * <code>this</code> would be considered just within the resulting tolerance.
+    *
+    * @param other another Number: the ideal or target value.
+    * @return an optional relative Fuzziness.
+    */
+  def asComparedWith(other: Number): Option[Fuzziness[Double]]
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -571,6 +583,11 @@ object Number {
     */
   val pi: Number = Number(1, Radian)
   /**
+    * Exact value of 𝛑
+    */
+//noinspection NonAsciiCharacters
+val `𝛑`: Number = pi
+  /**
     * Exact value of 2 pi
     */
   val twoPi: Number = Number(2, Radian)
@@ -585,11 +602,11 @@ object Number {
   /**
     * Exact value of e
     */
-  val e: Number = ExactNumber(Value.fromInt(1), NatLog)
+  val e: Number = ExactNumber(1, NatLog)
   /**
     * Exact value of i
     */
-  val i: Number = ExactNumber(Value.fromInt(-1), Root2)
+  val i: Number = ExactNumber(-1, Root2)
   /**
     * Exact value of iPi.
     */
@@ -606,6 +623,7 @@ object Number {
     * Exact value of √5
     */
   val root5: Number = Number(5, Root2)
+
   /**
     * Implicit converter from Expression to Number.
     *
@@ -613,10 +631,19 @@ object Number {
     * @return the equivalent Number.
     * @throws ExpressionException if x cannot be converted to a Number.
     */
-  implicit def convertToNumber(x: Expression): Number = x.materialize.asNumber match {
-    case Some(n) => n
-    case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
-  }
+//noinspection Annotator
+implicit def convertExpression(x: Expression): Number = x.materialize.asNumber match {
+  case Some(n) => n
+  case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
+}
+
+  /**
+    * Implicit converter from Int to Number.
+    *
+    * @param x the Int to be converted.
+    * @return the equivalent Number.
+    */
+  implicit def convertInt(x: Int): Number = Number(x)
 
   /**
     * Implicit class which takes a Double, and using method ~ and an Int parameter,
@@ -933,7 +960,7 @@ object Number {
     */
   val NaN: Number = Number(None)
 
-  private val numberParser = new NumberParser()
+  private val numberParser = NumberParser
 
   /**
     * Method to parse a String and yield a Try[Number].
@@ -965,9 +992,11 @@ object Number {
       if (x == Number.NaN && y == Number.NaN) 0
       else if (x == Number.NaN || y == Number.NaN) throw NumberException("cannot compare NaN with non-NaN")
       else if (x.factor == NatLog && y.factor == NatLog)
-        compare(x.make(Scalar), y.make(Scalar))
-      else
+        compare(x.make(Scalar), y.make(Scalar)) // TESTME why do we need to convert to Scalar?
+      else {
+        // CONSIDER invoking the compare method in GeneralNumber.
         GeneralNumber.plus(x, Number.negate(y)).signum
+      }
     }
   }
 
@@ -1071,10 +1100,6 @@ object Number {
     case _ => negate(x.scale(Scalar))
   }
 
-  def isZero(x: Number): Boolean = x.query(QueryOperationIsZero, false)
-
-  def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite, false)
-
   /**
     * TODO move this to GeneralNumber as an instance method.
     *
@@ -1102,6 +1127,7 @@ object Number {
         case Some(3) | Some(9) => oneOverRoot2
         case Some(15) | Some(21) => Field.convertToNumber(-oneOverRoot2.normalize)
         case Some(4) | Some(8) => rootThreeQuarters
+        // FIXME unreachable.
         case Some(15) | Some(21) => Field.convertToNumber(-rootThreeQuarters.invert.normalize)
         case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin))
       }
@@ -1172,11 +1198,13 @@ object Number {
         case Some(Rational(Rational.bigThree, Rational.bigOne)) => Success(Rational(1, 3))
         case Some(Rational(Rational.bigOne, Rational.bigThree)) => Success(Rational(1, 6))
         case None => Failure(NumberException("input to atan is not rational"))
+        case _ => Failure(NumberException("rational is not matched"))
       }
       (for (flip <- ro map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
         case Some(r) => Number(r, Radian)
         case None => doAtan(number.scale(Scalar), sign)
       }
+    case _ => throw NumberException("number.factor is not matched")
   }
 
   private def convertScalarToRoot(n: Number, factor: Factor, f: Double) =

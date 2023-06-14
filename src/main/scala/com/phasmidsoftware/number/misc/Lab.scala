@@ -7,7 +7,7 @@ object Lab extends App {
 
   val n = 10000
 
-  def xs = List.fill(n)(Random.nextDouble)
+  def xs = List.fill(n)(Random.nextDouble())
 
   // transform your list such that each element is between -1 and 1.
   // zip two such lists together

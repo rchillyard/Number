@@ -16,3 +16,4 @@ piBy2.tan
 
 val p: Number = (Expression(piBy2) / 2).cos
 val q: Number = (Expression(piBy2) / 3).cos
+val x: Number = (Expression(pi) / 3).sin

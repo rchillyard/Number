@@ -11,7 +11,7 @@ class MillParserSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "MillParser"
 
-  val p = new MillParser
+  private val p = MillParser
 
   it should "parse monadicOperator" in {
     p.parseAll(p.monadicOperator, "chs") should matchPattern { case p.Success(_, _) => }

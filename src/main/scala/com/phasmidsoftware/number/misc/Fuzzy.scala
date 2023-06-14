@@ -259,7 +259,7 @@ object Fuzzy {
 
   implicit def intToFuzzy(x: Int): Exact = Exact(x)
 
-  val parser = new FuzzyParser
+  val parser: FuzzyParser = new FuzzyParser
 
   def apply(i: String, x: Option[String], f: Option[String], e: Option[String]): Fuzzy = {
     def exponent(n: Int) = math.pow(10, n)
@@ -297,7 +297,7 @@ object Fuzzy {
   def parse(s: String): Try[Fuzzy] = {
     // CONSIDER using stringParser in SignificantSpaceParsers
     parser.parseAll(parser.fuzzy, s) match {
-      case parser.Success(x, _) => Success(x)
+      case parser.Success(x: Fuzzy, _) => Success(x)
       case parser.Failure(_, z) => Failure(new RuntimeException(s"parser failure: $z"))
       case parser.Error(_, f) => Failure(new RuntimeException(s"parser error: $f"))
     }
@@ -345,8 +345,6 @@ object Fuzzy {
     def fromInt(x: Int): Fuzzy = Exact(x)
 
     def parseString(str: String): Option[Fuzzy] = Fuzzy.parse(str).toOption
-
-    def rem(x: Fuzzy, y: Fuzzy): Fuzzy = zero // TODO what is this?
 
     def toInt(g: Fuzzy): Int = toLong(g).toInt
 

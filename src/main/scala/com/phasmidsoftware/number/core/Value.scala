@@ -3,8 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Render.renderValue
-import java.util.NoSuchElementException
-import scala.math.BigInt
 import scala.util._
 
 /**
@@ -43,7 +41,7 @@ object Value {
     *
     * @return a Value.
     */
-  def fromNothing(): Value = Left(Left(None))
+  private def fromNothing(): Value = Left(Left(None))
 
   /**
     * Method to (optionally) convert a Value into a Double.
@@ -92,6 +90,19 @@ object Value {
     case Left(Right(x)) => x.signum
     case Left(Left(Some(x))) => x.sign.toInt
     case _ => 0
+  }
+
+  /**
+    * Method to get the sign of a Value.
+    *
+    * @param value the value whose sign we need.
+    * @return an Int.
+    */
+  def abs(value: Value): Value = value match {
+    case Right(x) => Right(math.abs(x))
+    case Left(Right(x)) => Left(Right(x.abs))
+    case Left(Left(Some(x))) => Left(Left(Some(math.abs(x))))
+    case _ => Value.fromNothing()
   }
 
   /**
@@ -271,10 +282,17 @@ case object Scalar extends PureNumber {
   * complex numbers in Polar form since, in that case, the real part is a Scalar number, and the imaginary part is coded in
   * with factor Radian).
   *
-  * The range of such values is 0 thru 2pi.
+  * The range of these values is 0 thru 2, which represents the radian values of 0 thru 2pi.
   */
 case object Radian extends PureNumber {
   val value: Double = Math.PI
+
+  def normalize(v: Value): Value = v match {
+    case Right(x) => Right((x + 2) % 2) // TODO this needs to handle any negative value.
+    case Left(Right(_)) => v // TODO normalize this
+    case Left(Left(Some(x))) => Left(Left(Some((x + 2) % 2)))// TODO this needs to handle any negative value.
+    case _ => throw NumberException(s"Radian.normalize: value $v is invalid")
+  }
 
   override def toString: String = Factor.sPi
 
@@ -358,13 +376,13 @@ object Factor {
 }
 
 object Render {
-  def renderInt(x: Int): (String, Boolean) = (x.toString, true)
+  private def renderInt(x: Int): (String, Boolean) = (x.toString, true)
 
   def renderBigInt(x: BigInt): (String, Boolean) = (x.toString, true)
 
-  def renderRational(x: Rational): (String, Boolean) = (x.toString, true)
+  private def renderRational(x: Rational): (String, Boolean) = (x.toString, true)
 
-  def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
+  private def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 
   /**
     * Method to render a Value as a tuple of String and Boolean where the latter represents whether or not we were able

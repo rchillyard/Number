@@ -10,6 +10,12 @@ package com.phasmidsoftware.number.core
   * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
   */
 case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
+
+  /**
+    * @return true if this Number is equal to zero.
+    */
+  def isZero: Boolean = GeneralNumber.isZero(this)
+
   /**
     * Method to make some trivial simplifications of this ExactNumber.
     *
@@ -17,14 +23,15 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     */
   def simplify: Number = (factor, value) match {
     case (Logarithmic(_), Right(0)) => Number.one
-    // TODO implement for Root(3) also
-    case (Root(2), v) => v match {
+    // XXX this handles all roots (of which there are currently only Root2 and Root3)
+    case (Root(n), v) => v match {
       case Right(x) =>
         (Rational.squareRoots.get(x) map (make(_, Scalar))).getOrElse(this)
-      case Left(Right(r)) => r.root(2) match {
+      case Left(Right(r)) => r.root(n) match {
         case Some(x) => ExactNumber(Value.fromRational(x), Scalar)
         case _ => this
       }
+      case Left(Left(Some(_))) => scale(Scalar)
       case _ => this
     }
     case _ => this
@@ -140,8 +147,17 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
           sb.append(factor.toString)
         case Root(_) =>
           sb.append(factor.render(value))
+        case _ =>
+          throw NumberException(s"factor is not matched: $factor")
       }
       sb.toString
   }
 
+}
+
+object ExactNumber {
+
+  def apply(x: Int, factor: Factor): ExactNumber = new ExactNumber(Value.fromInt(x), factor)
+
+  def apply(x: Int): ExactNumber = apply(x, Scalar)
 }

@@ -509,6 +509,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "work with value on FuzzyNumber" in {
     import eml.MatcherOps
+    // CONSIDER this appears to be a debugging logger--that doesn't seem right.
     implicit val logger: MatchLogger = eml.matchLogger
     val f = eml.value :| "value"
     f(Literal(FuzzyNumber(Right(1), Scalar, None))).successful shouldBe true
@@ -573,8 +574,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "evaluateMonadicDuple"
-
-  import com.phasmidsoftware.matchers.Matchers.matchers.TildeOps
 
   it should "simplify E" in {
     val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Exp ~ One)

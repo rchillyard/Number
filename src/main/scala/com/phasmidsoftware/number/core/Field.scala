@@ -1,29 +1,50 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.FP.recover
+
 /**
   * Trait which describes the behavior of all Numbers and Complex instances.
-  * See https://en.wikipedia.org/wiki/Field_(mathematics).
+  * See [[https://en.wikipedia.org/wiki/Field_(mathematics)]].
   *
   * Currently, the only sub-classes of Field are Number and Complex.
   *
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field extends NumberLike {
+trait Field extends NumberLike with Ordered[Field] {
 
-    /**
-      * Method to determine if this Field has infinite magnitude.
-      *
-      * @return true if the magnitude of this Field is infinite.
-      */
-    def isInfinite: Boolean
+  /**
+    * Method to determine if this Field has infinite magnitude.
+    *
+    * @return true if the magnitude of this Field is infinite.
+    */
+  def isInfinite: Boolean
 
-    /**
-      * Method to determine if this Field has zero magnitude.
+  /**
+    * Method to determine if this Field has zero magnitude.
+    * Zero is the additive identity.
     *
     * @return true if the magnitude of this Field is zero.
     */
   def isZero: Boolean
+
+  /**
+    * Method to determine if this Field has unity magnitude.
+    * Unity is the multiplicative identity.
+    *
+    * @return true if the magnitude of this Field is one.
+    */
+  def isUnity: Boolean
+
+  /**
+    * Method to determine if this Field is represented by a Complex number.
+    *
+    * @return true if this is Complex.
+    */
+  def isComplex: Boolean = this match {
+    case ComplexCartesian(_, _) | ComplexPolar(_, _) => true
+    case _ => false
+  }
 
   /**
     * Add x to this Field and return the result.
@@ -34,6 +55,8 @@ trait Field extends NumberLike {
     */
   def add(x: Field): Field
 
+  def +(x: Field): Field = add(x)
+
   /**
     * Multiply this Field by x and return the result.
     *
@@ -42,6 +65,8 @@ trait Field extends NumberLike {
     */
   def multiply(x: Field): Field
 
+  def *(x: Field): Field = multiply(x)
+
   /**
     * Divide this Field by x and return the result.
     *
@@ -49,6 +74,8 @@ trait Field extends NumberLike {
     * @return the quotient.
     */
   def divide(x: Field): Field
+
+  def /(x: Field): Field = divide(x)
 
   /**
     * Change the sign of this Field.
@@ -64,14 +91,6 @@ trait Field extends NumberLike {
   def power(p: Field): Field
 
   /**
-    * Raise this Field to the power p.
-    *
-    * @param p an Int.
-    * @return this Field raised to power p.
-    */
-  def power(p: Int): Field
-
-  /**
     * Yields the inverse of this Field.
     * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
     * factors.
@@ -84,16 +103,6 @@ trait Field extends NumberLike {
     * @return a Field which is in canonical form.
     */
   def normalize: Field
-
-  /**
-    * Method to return this Field as a Complex.
-    *
-    * @return either this or Complex(this) as appropriate.
-    */
-  def asComplex: Complex = this match {
-    case n@Number(_, _) => Complex(n)
-    case n@BaseComplex(_, _) => n
-  }
 }
 
 object Field {
@@ -105,20 +114,6 @@ object Field {
     * @return a Number if field is a Number, otherwise, this will throw a NumberException.
     */
   def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
-
-  /**
-    * TODO: move this to a utility class.
-    *
-    * @param to an Option[T].
-    * @param x  a Throwable to be thrown if to is None.
-    * @tparam T the underlying type of to.
-    * @return t if to is Some(t); otherwise x will be thrown.
-    */
-  def recover[T](to: Option[T], x: Throwable): T = to match {
-    case Some(t) => t
-    case None => throw x
-  }
-
 
   /**
     * Definition of concrete (implicit) type class object for Field being Fuzzy.
@@ -139,13 +134,15 @@ object Field {
 
 object Constants {
   val sPhi = "1.618033988749894"
-  val sGamma = "0.57721566490153286060651209008240243104215933593992"
+  val sGamma = "0.57721566490153286060651209008240243104215933593992*"
   val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
   val sBoltzmann = "1380649.E-29" // J K ^ -1
 
   val one: Number = Number.one
   val zero: Number = Number.zero
   val pi: Number = Number.pi
+  //noinspection NonAsciiCharacters
+  val `𝛑`: Number = Number.`𝛑`
   val e: Number = Number.e
   val i: Complex = Complex.i
 

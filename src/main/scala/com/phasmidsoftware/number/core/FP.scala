@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import java.util.NoSuchElementException
 import scala.language.implicitConversions
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
@@ -20,6 +19,19 @@ object FP {
     case Some(Success(x)) => Success(Some(x))
     case Some(Failure(x)) => Failure(x)
     case None => Success(None)
+  }
+
+  /**
+    * Method to convert a None value to a given exception (rather than the NoSuchElement exception).
+    *
+    * @param to an Option[T].
+    * @param x  a Throwable to be thrown if to is None.
+    * @tparam T the underlying type of to.
+    * @return t if to is Some(t); otherwise x will be thrown.
+    */
+  def recover[T](to: Option[T], x: => Throwable): T = to match {
+    case Some(t) => t
+    case None => throw x
   }
 
   /**
@@ -85,10 +97,6 @@ object FP {
       case Some(Failure(_)) => tryMapLeft(transpose(lRe), l2Zy)
       case None => tryMapLeft(lRe, l2Zy)
     }
-
-  /**
-    * This method operates on the left member of xYe with xToZy and is invoked if tryMap fails.
-    */
 
   /**
     * This method is invoked by tryMap when the input is "left" or when the r2Zy method fails.
@@ -191,6 +199,8 @@ object FP {
     * @return a function X => Try[Z]
     */
   def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
+
+  def optional[T](f: T => Boolean)(t: T): Option[T] = Some(t).filter(f)
 }
 
 /**

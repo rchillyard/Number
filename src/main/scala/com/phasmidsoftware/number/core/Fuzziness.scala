@@ -2,9 +2,9 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.Valuable.ValuableDouble
+import java.text.DecimalFormat
 import org.apache.commons.math3.special.Erf.erfInv
 import scala.math.Numeric.DoubleIsFractional
-import scala.math.Ordering
 import scala.util.Try
 
 /**
@@ -71,9 +71,16 @@ trait Fuzziness[T] {
     * Method to yield a String to render the given T value.
     *
     * @param t a T value.
-    * @return a String which is the textual rendering of t with this Fuzziness applied.
+    * @return a tuple of a Boolean (indicating if the value is embedded in the result) and a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def toString(t: T): String
+  def toString(t: T): (Boolean, String)
+
+  /**
+    * A variation on toString where we render this Fuzziness as a percentage.
+    *
+    * @return a String which ends with the '%' character (provided that this Fuzziness is relative).
+    */
+  def asPercentage: String
 
   /**
     * Determine the range +- t within which a deviation is considered within tolerance and where
@@ -167,7 +174,21 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * @param t the T value.
     * @return a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def toString(t: T): String = absolute(t).map(_.toString(t)).getOrElse("")
+  def toString(t: T): (Boolean, String) = false -> asPercentage
+
+  /**
+    * A variation on toString where we render this relative Fuzziness as a percentage.
+    *
+    * @return a String which ends with the '%' character.
+    */
+  def asPercentage: String = {
+    val df = new DecimalFormat("#.#")
+    df.setMaximumFractionDigits(100)
+    val result = df.format(tolerance * 100)
+    val point = result.indexOf(".")
+    val decimals = result.substring(point+1,result.length)
+    result.substring(0, point + 1) + decimals.substring(0, decimals.indexWhere(p => p != '0') +2) + "%"
+  }
 
   /**
     * Determine the range +- t within which a deviation is considered within tolerance and where
@@ -263,13 +284,14 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
 
   /**
     * Method to render this Fuzziness according to the nominal value t.
+    * NOTE that we are actually embedding the fuzziness into the nominal value and returning that.
     *
     * CONSIDER cleaning this method up a bit.
     *
     * @param t a T value.
-    * @return a String which is the textual rendering of t with this Fuzziness applied.
+    * @return a tuple of a Boolean (indicating if the value is embedded in the result) and a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def toString(t: T): String = {
+  def toString(t: T): (Boolean, String) = {
     val eString = tv.render(t) match {
       case AbsoluteFuzz.numberR(e) => e
       case _ => noExponent
@@ -294,8 +316,10 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
     // CONSIDER changing the padding "0" value to be "5".
     val mask = new String(qPrefix) + "0" * (2 + adjust) + brackets.head + yq + brackets.tail.head
     val (zPrefix, zSuffix) = tv.render(scaledT).toCharArray.span(_ != '.')
-    new String(zPrefix) + "." + Fuzziness.zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix
+    true -> (new String(zPrefix) + "." + Fuzziness.zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix)
   }
+
+  def asPercentage: String = "absolute fuzz cannot be shown as percentage"
 
   /**
     * Determine the range +- x within which a deviation is considered within tolerance and where
@@ -331,6 +355,13 @@ object Fuzziness {
   def scaleTransform[T: Valuable](k: Double): Fuzziness[T] => Fuzziness[T] =
     tf => tf.transform(_ => implicitly[Valuable[T]].fromDouble(k))(implicitly[Valuable[T]].fromInt(1))
 
+  /**
+    * Method to represent an optional Fuzziness as a String.
+    *
+    * @param fo the fuzziness.
+    * @return a String which either shows a percentage (ending in '%') or "<exact>".
+    */
+  def showPercentage(fo: Option[Fuzziness[Double]]): String = fo map (_.asPercentage) getOrElse "<exact>"
 
   /**
     * Scale the fuzz values by the two given coefficients.
@@ -362,7 +393,7 @@ object Fuzziness {
     * @tparam T the underlying type of the Fuzziness.
     * @return an Option of Fuzziness[T].
     */
-  def combine[T: Valuable](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] = {
+  def combine[T](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] = {
     val f1o = doNormalize(fuzz._1, t1, relative)
     val f2o = doNormalize(fuzz._2, t2, relative)
     (f1o, f2o) match {
@@ -389,7 +420,7 @@ object Fuzziness {
     * @tparam V the underlying type of the result divided by the input.
     * @return an Option of Fuzziness[T].
     */
-  def map[T: Valuable, U: Valuable, V: Valuable](t: T, u: U, relative: Boolean, g: T => V, fuzz: Option[Fuzziness[T]]): Option[Fuzziness[U]] = {
+  def map[T, U: Valuable, V: Valuable](t: T, u: U, relative: Boolean, g: T => V, fuzz: Option[Fuzziness[T]]): Option[Fuzziness[U]] = {
     val q: Option[Fuzziness[U]] = fuzz match {
       case Some(f1) => Some(f1.transform(g)(t))
       case _ => None
@@ -417,7 +448,7 @@ object Fuzziness {
     * @tparam T the underlying type of the Fuzziness.
     * @return the optional Fuzziness value which is equivalent (or identical) to fuzz, according to the value of relative.
     */
-  def doNormalize[T: Valuable](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
+  private def doNormalize[T](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
     fuzz.flatMap(f => doNormalize(t, relative, f))
 
   def zipStrings(v: String, t: String): String = {
@@ -448,6 +479,8 @@ object Fuzziness {
 /**
   * Describes a probability density function for a continuous distribution.
   * NOTE: this isn't suitable for discrete distributions, obviously.
+  *
+  * TODO: implement additional shapes, for example O(f(x)). This would be used for the Basel problem, for example.
   */
 trait Shape {
 

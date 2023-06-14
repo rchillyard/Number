@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen}
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
+
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -473,6 +474,13 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "work for negative Infinity" in {
     Rational.infinity.negate.toString shouldBe "-ve infinity"
+  }
+  // XXX this is the diagnostic for Issue #70
+  it should "work for gamma" in {
+    val n = BigInt("57721566490153286060651209008240243104215933593992")
+    val d = bigTen.pow(50)
+    val r = Rational(n, d)
+    r.toString shouldBe "0.5772156649015328606065120900824024310421593359399"
   }
 
   behavior of "Rational(String)"

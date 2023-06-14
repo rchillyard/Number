@@ -20,7 +20,7 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "ShuntingYardParser"
 
-  val p = new ShuntingYardParser
+  private val p = ShuntingYardParser
 
   it should "parseInfix 1" in {
     val sy = p.parseInfix("1")

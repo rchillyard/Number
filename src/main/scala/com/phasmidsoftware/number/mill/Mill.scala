@@ -7,7 +7,15 @@ import com.phasmidsoftware.number.parse.{MillParser, ShuntingYardParser}
 import scala.language.postfixOps
 import scala.util.Try
 
-trait Mill {
+/**
+  * Trait to define the behavior of a "mill."
+  *
+  * TODO rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
+  *
+  */
+trait Mill extends Iterable[Item] {
+  self =>
+
   /**
     * Method to create a new Mill with x on the "top".
     *
@@ -34,8 +42,39 @@ trait Mill {
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     */
   def evaluate: Option[Expression]
+
+  /**
+    * Method required by Iterable[Item].
+    *
+    * @return an Iterator[Item].
+    */
+  def iterator: Iterator[Item] = {
+    // XXX using a var here, but the entire concept of an iterator pretty much requires mutability.
+    var mill = this
+
+    new Iterator[Item] {
+      /**
+        * @return the value of mill.nonEmpty
+        */
+      def hasNext: Boolean = mill.nonEmpty
+
+      /**
+        * @return the next item and update the mill variable.
+        */
+      def next(): Item = {
+        val (xo, m) = mill.pop
+        mill = m
+        xo.get // XXX this call to get is protected by the hasNext method. That's the way iterators are.
+      }
+    }
+  }
 }
 
+/**
+  * A case class to represent a stack of Items, providing behavior of Mill.
+  *
+  * @param stack a List[Item] which will represent the stack.
+  */
 case class Stack(stack: List[Item]) extends Mill {
   /**
     * Method to push an Item on to this Stack.
@@ -59,8 +98,7 @@ case class Stack(stack: List[Item]) extends Mill {
   /**
     * @return false.
     */
-  def isEmpty: Boolean = false
-
+  override def isEmpty: Boolean = false
 
   /**
     * Method to evaluate this Mill.
@@ -247,9 +285,12 @@ case object Empty extends Mill {
   def pop: (Option[Item], Mill) = (None, Empty)
 
   /**
+    * Overriding the isEmpty method of IterableOnceOps.
+    * NOTE: don't worry about Codacy complaint: it's just that this object is called "Empty."
+    *
     * @return true.
     */
-  def isEmpty: Boolean = true
+  override def isEmpty: Boolean = true
 
   /**
     * @return None.
@@ -287,7 +328,7 @@ object Mill {
     * @param w the input String.
     * @return a Mill, wrapped in Try.
     */
-  def parse(w: String): Try[Mill] = (new MillParser).parseMill(w)
+  def parse(w: String): Try[Mill] = MillParser.parseMill(w)
 
   /**
     * Method to parse a String in infix notation (may extend over multiple lines) into a Mill.
@@ -295,7 +336,7 @@ object Mill {
     * @param w the input String.
     * @return a Mill, wrapped in Try.
     */
-  def parseInfix(w: String): Try[Mill] = (new ShuntingYardParser).parseInfix(w)
+  def parseInfix(w: String): Try[Mill] = ShuntingYardParser.parseInfix(w)
 }
 
 case class MillException(s: String) extends Exception(s)

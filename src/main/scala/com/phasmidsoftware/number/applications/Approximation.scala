@@ -7,6 +7,9 @@ import com.phasmidsoftware.number.core.Number
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
+/**
+  * Object which deals with the approximations of function values.
+  */
 object Approximation {
 
   /**
@@ -34,9 +37,25 @@ object Approximation {
       } yield t
   }
 
+  /**
+    * Method to determine of the approximation can be considered converged.
+    *
+    * @param f the function.
+    * @param p a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
+    * @param x a Number which will be compared with zero.
+    * @return a Try[Boolean].
+    */
   def converged(f: Double => Double)(p: Double)(x: Number): Try[Boolean] =
     evaluate(f)(x) map (n => NumberIsFuzzy.same(p)(n, Number.zero))
 
+  /**
+    * Method to evaluate function f at value x.
+    * We ignore the derivative of the function at x.
+    *
+    * @param f the function.
+    * @param x the value to pass into f.
+    * @return the function's value at x.
+    */
   def evaluate(f: Double => Double)(x: Number): Try[Number] = x.applyFunc(f, _ => 0)
 
   /**

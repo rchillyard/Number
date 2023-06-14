@@ -20,12 +20,31 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   self =>
 
   /**
+    * Method to compare this Number with that Field.
+    * Required by implementing Ordered[Field].
+    *
+    * @param that (a Field).
+    * @return the comparison.
+    */
+  def compare(that: Field): Int = (this, that) match {
+    case (x: FuzzyNumber, y: Number) => x.compare(y)
+    case (x: ExactNumber, y: Number) => x.compare(y)
+    case _ => that.compare(this)
+  }
+
+  /**
     * Method to determine if this is a valid Number.
     * An invalid number has a value of form Left(Left(Left(None)))
     *
     * @return true if this is a valid Number
     */
   def isValid: Boolean = maybeDouble.isDefined
+
+  /**
+    *
+    * @return true if the value of this GeneralNumber is one.
+    */
+  def isUnity: Boolean = doSubtract(Number.one).isZero
 
   /**
     * Method to apply a function to this Number.
@@ -61,6 +80,44 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def toInt: Option[Int] = maybeInt
 
   /**
+    * Method to get the value of this Number as an (optional) BigInt.
+    * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
+    *
+    * @return an Option of BigInt.
+    */
+  def toBigInt: Option[BigInt] = value match {
+    case Right(x) => Some(BigInt(x))
+    case Left(Right(r)) if r.isWhole => Some(r.n)
+    case _ => None
+  }
+
+  /**
+    * Method to get the value of this Number as an (optional) BigInt.
+    * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
+    *
+    * TESTME
+    *
+    * @return an Option of BigDecimal.
+    */
+  def toBigDecimal: Option[BigDecimal] = value match {
+    case Right(x) => Some(BigDecimal(x))
+    case Left(Right(r)) => Some(r.toBigDecimal)
+    case Left(Left(Some(x))) => Some(BigDecimal(x))
+    case _ => None
+  }
+
+  /**
+    * @param maybeFactor an optional Factor to be matched.
+    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
+    */
+  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && (maybeFactor.isEmpty || maybeFactor.contains(factor))
+
+  /**
+    * @return true if this Number is equal to zero.
+    */
+  def isInfinite: Boolean = GeneralNumber.isInfinite(this)
+
+  /**
     * Method to determine if this Number is positive.
     * Use case: does the String representation not start with a "-"?
     *
@@ -69,6 +126,37 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return true if this Number is greater than or equal to 0.
     */
   def isPositive: Boolean = signum >= 0
+
+  /**
+    * Method to determine if this Number is actually represented as an Integer.
+    *
+    * @return true if exact and rational.
+    */
+  def isInteger: Boolean = value match {
+    case Right(_) => true
+    case _ => false
+  }
+
+  /**
+    * Method to determine if this Number is actually represented as a Rational.
+    *
+    * @return true if exact and rational.
+    */
+  def isRational: Boolean = value match {
+    case Left(Right(_)) => true
+    case _ => false
+  }
+
+  /**
+    * Method to determine if this is an imaginary Number,
+    * that's to say a number with negative value and Root2 as its factor.
+    *
+    * @return true if imaginary.
+    */
+  def isImaginary: Boolean = factor match {
+    case Root2 if Value.signum(value) < 0 => true
+    case _ => false
+  }
 
   /**
     * Negative of this Number.
@@ -159,16 +247,28 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return a String.
     */
-  def render: String = toString
+  def render: String = simplify.toString
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
+    *
+    * NOTE: This method is used, although it doesn't appear so.
     *
     * @param other the Number to be compared with.
     * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
     * @return -1, 0, 1 as usual.
     */
   def fuzzyCompare(other: Number, p: Double): Int = FuzzyNumber.fuzzyCompare(this, other, p)
+
+  def asComparedWith(other: Number): Option[Fuzziness[Double]] = {
+    val diff = doSubtract(other)
+    val zo: Option[Fuzziness[Double]] = for {
+      q <- diff.toDouble
+      r <- other.scale(Scalar).toDouble
+      p <- AbsoluteFuzz(math.abs(q) / 2, Box).relative(r)
+    } yield p
+    zo
+  }
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -287,14 +387,19 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def make(x: Double, f: Factor): Number = make(Value.fromDouble(Some(x)), f)
 
   /**
-    * Method to "normalize" a number, that's to say make it a Scalar.
+    * Method to "normalize" a number, that's to say make it a Scalar and also to force
+    * any fuzziness to be absolute.
     *
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
-  def normalize: Field = factor match {
+  def normalize: Field = (factor match {
     case Scalar => this
     case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
+    case Radian => make(Radian.normalize(value), Radian)
     case _ => scale(Scalar)
+  }) match {
+    case fuzzyNumber: FuzzyNumber => fuzzyNumber.normalizeFuzz
+    case x => x
   }
 
   /**
@@ -422,6 +527,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).
+    * If
+    *
+    * @return Some(x) if value can be converted properly to a Double, otherwise None.
     */
   def maybeDouble: Option[Double] = Value.maybeDouble(value)
 
@@ -433,7 +541,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * CONSIDER do we really need this?
     */
-  def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
+  private def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
 
   /**
     * Ensure that this is consistent with hashCode.
@@ -462,10 +570,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 }
 
 object GeneralNumber {
-  def isImaginary(x: Number): Boolean = x.factor match {
-    case Root2 if Value.signum(x.value) < 0 => true
-    case _ => false
-  }
 
   def applyFunc(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] = {
     val op: MonadicOperation = MonadicOperationFunc(f, dfByDx)
@@ -478,6 +582,10 @@ object GeneralNumber {
     }
     FP.toTry(no, Failure(NumberException("applyFunc: logic error")))
   }
+
+  def isZero(x: Number): Boolean = x.query(QueryOperationIsZero, false)
+
+  def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite, false)
 
   def plus(x: Number, y: Number): Number = x match {
     case ExactNumber(Right(0), Scalar) => y
@@ -603,7 +711,7 @@ object GeneralNumber {
   private def normalizeRoot(value: Value, r: Root) = {
     Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
       case Some(q) => ComplexCartesian(Number.zero, ExactNumber(q, r).scale(Scalar))
-      case None => throw NumberException("GeneralNumber.normalize: logic error")
+      case None => throw NumberException("GeneralNumber.normalizeRoot: logic error")
     }
   }
 
