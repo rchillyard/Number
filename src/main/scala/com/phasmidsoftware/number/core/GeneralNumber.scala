@@ -626,21 +626,29 @@ object GeneralNumber {
   }
 
   /**
-    * NOTE: This method is invoked by sqrt (in GeneralNumber) and doPower (in ExactNumber).
+    * Method to raise an (exact) Number to a power.
+    * NOTE: This method is invoked only by doPower (in ExactNumber).
     *
-    * @param x the base Number.
-    * @param y the power.
+    * @param x the base Number (always exact).
+    * @param y the power (may not be exact).
     * @return x raised to the power of y.
     */
   def power(x: Number, y: Number): Number =
     y.scale(Scalar).toRational match {
       case Some(r) => power(x, r).specialize
       case None =>
-        // NOTE this is not used, but it doesn't seem to handle fuzziness properly either.
+        // NOTE this is not used, but it doesn't seem to handle fuzziness (of the exponent) properly either.
         val zo = for (p <- x.toDouble; q <- y.toDouble) yield Number(math.pow(p, q))
         prepareWithSpecialize(zo)
     }
 
+  /**
+    * Method to raise an (exact) Number to a Rational power.
+    *
+    * @param x the base Number.
+    * @param r the power.
+    * @return an exact Number (CHECK is that correct?)
+    */
   @tailrec
   private def power(x: Number, r: Rational): Number = if (r.isZero) Number.one
   else if (r.isUnity || x == Number.one) x

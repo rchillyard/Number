@@ -12,6 +12,8 @@ import scala.util._
   * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
   * That's to say that Numbers have linear domain and all belong, directly or indirectly, to the set R (real numbers).
   *
+  * TODO eliminate extending Field
+  *
   * Every number has three properties:
   * * value: Value
   * * factor: Factor
@@ -367,7 +369,7 @@ trait Number extends Fuzz[Double] with Field {
   def asComplex: Complex = if (isImaginary)
     ComplexCartesian.fromImaginary(this)
   else
-    Complex(this)
+    ComplexPolar(this)
 
   /**
     * Method to create a new version of this, but with factor f.

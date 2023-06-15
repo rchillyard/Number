@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.half
+import com.phasmidsoftware.number.core.Number.{half, zeroR}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -288,7 +288,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Number.asComplex"
   it should "work" in {
-    Number(2).asComplex shouldBe c2_0
+    Number(2).asComplex shouldBe ComplexPolar(2, zeroR, 1)
   }
 
   behavior of "numberProduct"

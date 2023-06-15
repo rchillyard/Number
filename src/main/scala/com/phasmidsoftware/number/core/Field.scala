@@ -103,6 +103,14 @@ trait Field extends NumberLike with Ordered[Field] {
     * @return a Field which is in canonical form.
     */
   def normalize: Field
+
+  /**
+    * Method to return this Field as a Complex.
+    * If this is a Real number x, return ComplexPolar(x) otherwise, return this.
+    *
+    * @return a Complex.
+    */
+  def asComplex: Complex
 }
 
 object Field {

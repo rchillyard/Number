@@ -11,7 +11,7 @@
 # Number
 This project is about numbers and their mathematics.
 The chief features of this library are:
-* all numbers are exact wherever it is possible, including &#xD835;&#xDF00; and &#xD835;&#xDED1;;
+* all numbers are exact wherever it is possible, including &#xD835;&#xDF00; and &#xD835;&#xDED1; (e and pi);
 * inexact numbers are represented along with their error bounds;
 * lazy evaluation to help avoid temporary inexact values from becoming part of a result;
 * there are several domains of _Number_ (expressed with different "factors") to support angles, logarithms, roots.
@@ -194,7 +194,8 @@ See [Field](https://en.wikipedia.org/wiki/Field_(mathematics)).
 A field supports operations such as addition, subtraction, multiplication, and division.
 We also support powers because, at least for integer powers, raising to a power is simply iterating over a number of multiplications.
 
-The two types of _Field_ supported are _Number_ (see below) and _Complex_.
+The two types of _Field_ supported are _Real_ and _Complex_.
+_Real_ is a wrapper around a _Number_ (see below).
 
 Number
 ======
@@ -219,8 +220,12 @@ For this to happen, the value in question must have fewer than three decimal pla
 Complex
 =======
 There are two types of _Complex_: _ComplexCartesian_ and _ComplexPolar_.
-Complex numbers support all the Field operations, as well as _modulus_ and _complement_.
+Complex numbers support all the _Field_ operations, as well as _modulus_ and _conjugate_.
 It is easy to convert between the two types of _Complex_.
+
+The _ComplexPlanar_ object has an additional member (as well as the real and imaginary parts):
+the number of branches.
+For example, the square root of 2 should have two branches: ±√2.
 
 Factors
 =======
@@ -387,6 +392,7 @@ For example, the convergents for pi include with the familiar 22/7, 355/113, etc
 
 Versions
 ========
+* Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type.
 * Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
 * Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.

@@ -15,6 +15,14 @@ import com.phasmidsoftware.number.core.Number.{negate, zero}
 abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
 
   /**
+    * Method to return this Field as a Complex.
+    * If this is a Real number x, return ComplexPolar(x) otherwise, return this.
+    *
+    * @return a Complex.
+    */
+  def asComplex: Complex = this
+
+  /**
     * Method to compare this BaseComplex with that Field.
     * Required by implementing Ordered[Field].
     * NOTE if the difference is a Complex number, we try to do fuzzy comparison (with confidence of 0.5).
@@ -101,11 +109,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
             } yield ComplexPolar(r, im.doMultiple(z), branches),
             ComplexException("logic error: power")
           )
-        case ComplexPolar(re, im, w) =>
-          recover(
-            for (r <- Literal(re).^(n).materialize.asNumber; i <- (Literal(im) * p).materialize.asNumber) yield ComplexPolar(r, i, w),
-            ComplexException("logic error: power")
-          )
+        case ComplexPolar(re, im, w) => ComplexPolar(re.doPower(n), im.doMultiply(n), w)
         case ComplexCartesian(_, _) if n.isInteger =>
           n.toInt match {
             case Some(0) => Complex.unit
@@ -505,6 +509,8 @@ object ComplexPolar {
   def apply(r: Number, theta: Number, n: Int): ComplexPolar = new ComplexPolar(r, theta, n)
 
   def apply(r: Number, theta: Number): ComplexPolar = apply(r, theta, 1)
+
+  def apply(r: Number): ComplexPolar = apply(r, Number.zeroR)
 
   def apply(r: Int, theta: Number): ComplexPolar = apply(Number(r), theta)
 }
