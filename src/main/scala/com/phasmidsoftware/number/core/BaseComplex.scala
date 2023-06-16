@@ -126,6 +126,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
         z <- n.toRational
         r <- Literal(re).^(n).evaluate match {
           case x: Number => Some(x.simplify)
+          case Real(x) => Some(x.simplify)
           case x => x.asNumber
         }
         branches <- (z.invert * w).maybeInt
@@ -266,6 +267,8 @@ object BaseComplex {
     case c@ComplexCartesian(_, _) => if (polar) convertToPolar(c) else c
     case c@ComplexPolar(_, _, _) => if (!polar) convertToCartesian(c) else c
     case n@Number(_, _) => ComplexCartesian(n, Number.zero)
+    case Real(x) => ComplexCartesian(x, Number.zero)
+    case _ => throw NumberException(s"BaseComplex: narrow: x can't be matched: $x")
   }
 }
 

@@ -200,13 +200,12 @@ object Real {
         case _ => throw NumberException(s"Real.createFromNumberField: x is not a Number: $x")
     }
 
-
     /**
       * Implicit class to operate on Numbers introduced as integers.
       *
       * CONSIDER generalizing this to inputs of Values (or Rationals, Doubles).
       *
-      * @param x an Int to be treated as a Number.
+      * @param x an Int to be treated as a Real.
       */
     implicit class RealOps(x: Int) {
 

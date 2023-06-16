@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.recover
+import scala.language.implicitConversions
 
 /**
   * Trait which describes the behavior of all Numbers and Complex instances.
@@ -122,6 +123,8 @@ object Field {
     * @return a Number if field is a Number, otherwise, this will throw a NumberException.
     */
   def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
+
+  implicit def convertRationalToField(r: Rational): Field = Real(Number(r))
 
   /**
     * Definition of concrete (implicit) type class object for Field being Fuzzy.

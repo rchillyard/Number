@@ -2,10 +2,10 @@
   * This is an example worksheet for Number.
   */
 
-import com.phasmidsoftware.number.core.Number._
+import com.phasmidsoftware.number.core.Number.{NumberOps, _}
 import com.phasmidsoftware.number.core.{Field, Fuzzy, Number}
 
-val three = 2 + one // should be GeneralNumber 3
+val three: Number = 2 + one // should be GeneralNumber 3
 
 // NOTE see the corresponding expression in Expression.sc
 val root3 = Number(3).sqrt
@@ -15,7 +15,6 @@ import com.phasmidsoftware.number.core.Field._
 
 val ok = implicitly[Fuzzy[Field]].same(0.8)(two, Number.two)
 
-import com.phasmidsoftware.number.core.Number.NumberOps
 
 val half = 1 :/ 2
 
