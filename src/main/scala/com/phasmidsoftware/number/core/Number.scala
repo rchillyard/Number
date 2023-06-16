@@ -206,6 +206,7 @@ trait Number extends Fuzz[Double] with Field {
     * @return the sum.
     */
   def add(x: Field): Field = x match {
+    case Real(r) => doAdd(r)
     case n@Number(_, _) if n.isImaginary => ComplexCartesian.fromImaginary(n) doAdd Complex(this)
     case n@Number(_, _) => doAdd(n)
     case c@BaseComplex(_, _) => c.add(this)
@@ -218,6 +219,7 @@ trait Number extends Fuzz[Double] with Field {
     * @return the product.
     */
   def multiply(x: Field): Field = (this, x) match {
+    case (_, Real(r)) => multiply(r).normalize
     case (Number.i, Number.pi) | (Number.pi, Number.i) => Constants.iPi
     case (_, Number.i) => multiply(ComplexCartesian(0, 1))
     case (Number.i, _) => x.multiply(ComplexCartesian(0, 1))

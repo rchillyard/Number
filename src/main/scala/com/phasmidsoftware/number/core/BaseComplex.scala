@@ -4,7 +4,7 @@ import com.phasmidsoftware.number.core.BaseComplex.narrow
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{negate, zero}
+import com.phasmidsoftware.number.core.Number.{negate, zero, zeroR}
 
 /**
   * Abstract base class which implements Complex.
@@ -98,31 +98,42 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return this Number raised to power p.
     */
   def power(p: Field): Field = p match {
+    case r: Real => power(r.x)
     case n: Number =>
       this match {
-        case ComplexPolar(re, im, w) if n.isRational =>
-          recover(
-            for {
-              z <- n.toRational
-              r <- Literal(re).^(n).materialize.asNumber
-              branches <- (z.invert * w).maybeInt
-            } yield ComplexPolar(r, im.doMultiple(z), branches),
-            ComplexException("logic error: power")
-          )
+        case ComplexPolar(re, im, w) if n.isRational => doRationalPowerForComplexPolar(n, re, im, w)
         case ComplexPolar(re, im, w) => ComplexPolar(re.doPower(n), im.doMultiply(n), w)
-        case ComplexCartesian(_, _) if n.isInteger =>
-          n.toInt match {
-            case Some(0) => Complex.unit
-            case Some(-1) => this.conjugate divide (modulus doMultiply modulus)
-            case Some(1) => this
-            case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
-            case _ => throw ComplexException(s"not implemented: power($p)")
-          }
-        case c@ComplexCartesian(_, _) =>
-          convertToPolar(c).power(n)
+        case ComplexCartesian(_, _) if n.isInteger => doIntPowerForComplexCartesian(p, n)
+        case c@ComplexCartesian(_, _) => convertToPolar(c).power(n)
       }
     case ComplexCartesian(x, y) => ComplexPolar(convertToNumber(power(x)), y.make(NatLog))
-    case _ => throw NumberException(s"power not supported for $this ^ $p")
+    case _ => throw NumberException(s"power not supported for polar complex powers: $this ^ $p")
+  }
+
+  private def doIntPowerForComplexCartesian(p: Field, n: Number) = {
+    n.toInt match {
+      case Some(0) => Complex.unit
+      case Some(-1) => this.conjugate divide (modulus doMultiply modulus)
+      case Some(1) => this
+      case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
+      case _ => throw ComplexException(s"not implemented: power($p)")
+    }
+  }
+
+  private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = {
+    recover(
+      for {
+        z <- n.toRational
+        r <- Literal(re).^(n).evaluate match {
+          case x: Number => Some(x.simplify)
+          case x => x.asNumber
+        }
+        branches <- (z.invert * w).maybeInt
+      }
+      yield
+        ComplexPolar(r, im.doMultiple(z), branches),
+      ComplexException("logic error: power")
+    )
   }
 
   /**
@@ -466,10 +477,10 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
 
   def isInfinite: Boolean = r.isInfinite
 
-  def normalize: Field = (r.normalize, Number.modulate(theta), n) match {
+  def normalize: Field = (r, Number.modulate(theta), n) match {
     case (z, ExactNumber(Value(0), Radian), 1) => z
     case (z, ExactNumber(Value(1), Radian), 1) => -z
-    case (z, t, n) => ComplexPolar(z.asInstanceOf[Number], t, n)
+    case (z, t, n) => ComplexPolar(z, t, n)
   }
 
   /**
@@ -497,6 +508,8 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
       if (w == "0") r.toString else s"${r}e^$w"
   }
 
+  override def toString: String = render
+
   def doAdd(complex: Complex): Complex = convertToCartesian(this).doAdd(complex)
 
   def doMultiply(complex: Complex): Complex = complex match {
@@ -513,6 +526,15 @@ object ComplexPolar {
   def apply(r: Number): ComplexPolar = apply(r, Number.zeroR)
 
   def apply(r: Int, theta: Number): ComplexPolar = apply(Number(r), theta)
+
+  /**
+    * Method to create a ComplexPolar object with two branches.
+    *
+    * @param x a Number representing the real part.
+    * @return a ComplexPolar of magnitude x, and two points along the x-axis the 0 mid-way between.
+    */
+//noinspection NonAsciiCharacters
+def ±(x: Number): Field = ComplexPolar(x, zeroR, 2)
 }
 
 case class ComplexException(str: String) extends Exception(str)
