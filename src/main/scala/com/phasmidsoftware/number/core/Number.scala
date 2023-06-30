@@ -111,6 +111,13 @@ trait Number extends Fuzz[Double] with Field {
   def toInt: Option[Int]
 
   /**
+    * Method to get the value of this Number as an Int.
+    *
+    * @return an Option of Long. If this Number cannot be converted to a Long, then None will be returned.
+    */
+  def toLong: Option[Long] = toRational map (_.toLong)
+
+  /**
     * Method to get the value of this Number as an (optional) BigInt.
     * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
     *

@@ -558,7 +558,7 @@ object Rational {
     if (min <= x && x <= max) Success(x)
     else Failure(RationalException("narrow: loss of precision"))
 
-  private def toLong(x: Rational): Try[Long] = narrow(x, Long.MinValue, Long.MaxValue) map (_.toLong)
+  def toLong(x: Rational): Try[Long] = narrow(x, Long.MinValue, Long.MaxValue) map (_.toLong)
 
   /**
     * This method gets an Int from a Rational.

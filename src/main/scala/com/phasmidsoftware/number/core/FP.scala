@@ -201,6 +201,17 @@ object FP {
   def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
 
   def optional[T](f: T => Boolean)(t: T): Option[T] = Some(t).filter(f)
+
+  /**
+    * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
+    *
+    * @param xo an optional value of X (called by name).
+    * @param t  a throwable.
+    * @tparam X the underlying type of xo and the type of the result.
+    * @return the value of xo or throws t.
+    * @throws Throwable t
+    */
+  def getOrThrow[X](xo: => Option[X], t: => Throwable): X = xo.getOrElse(throw t)
 }
 
 /**
