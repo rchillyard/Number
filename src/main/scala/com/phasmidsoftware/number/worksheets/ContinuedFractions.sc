@@ -21,4 +21,8 @@ conv map (r => r.toDouble)
 val targetPi = ConFrac.PiSimple
 val rs = targetPi.convergents.take(10).toList.map(r => r.toRationalString)
 
+val ramanujan2 = ConFrac.simple(LazyList.from(1) map (_.toLong) take 50)
+println(ramanujan2.convergents.take(20).toList.map(_.toRationalString))
+println(ramanujan2.toRational)
 
+//1.433127426722311758317183455775992
