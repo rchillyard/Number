@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.sG
-import com.phasmidsoftware.number.core.Fuzziness.createFuzz
+import com.phasmidsoftware.number.core.Fuzziness.{createFuzz, monadicFuzziness}
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -280,5 +280,14 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val relativeErrorOfTwo = 0.01
     val z: Number = Number.exp(two).scale(Scalar)
     z.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe (nominalValueOfTwo * relativeErrorOfTwo) +- 1.0E-10
+  }
+
+  behavior of "fuzz"
+  it should "work" in {
+    val op = MonadicOperationInvert
+    val t = -0.009003823032986082
+    val x = -111.06393321330684
+    val fuzz1 = Some(RelativeFuzz(1.0846958231396446E-9, Gaussian))
+    monadicFuzziness(op, t, x, fuzz1)
   }
 }

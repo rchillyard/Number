@@ -70,14 +70,14 @@ case object MonadicOperationNegate extends MonadicOperation {
   * MonadicOperation to invert a Number.
   */
 case object MonadicOperationInvert extends MonadicOperation {
-  def invertInt(x: Int): Try[Int] = x match {
+  private def invertInt(x: Int): Try[Int] = x match {
     case 1 => Success(1)
     case _ => Failure(NumberException("can't invert Int"))
   }
 
   private val xf: Fractional[Double] = implicitly[Fractional[Double]]
 
-  def invertDouble(x: Double): Try[Double] = Try(xf.div(xf.one, x))
+  private def invertDouble(x: Double): Try[Double] = Try(xf.div(xf.one, x))
 
   val functions: MonadicFunctions = (invertInt, tryF[Rational, Rational](x => x.invert), invertDouble)
 
@@ -98,22 +98,22 @@ case object MonadicOperationInvert extends MonadicOperation {
   * MonadicOperation to raise e (Euler's number) to the power of a Number.
   */
 case object MonadicOperationExp extends MonadicOperation {
-  def expInt(x: Int): Try[Int] = x match {
+  private def expInt(x: Int): Try[Int] = x match {
     case 0 => Success(1)
     case _ => Failure(NumberException("can't exp Int"))
   }
 
-  val expRat: Rational => Try[Rational] = {
+  private val expRat: Rational => Try[Rational] = {
     case r if r.isInfinity && r.signum < 0 => Success(Rational.zero)
     case r => fail("can't do exp Rational=>Rational for non-zero parameter")(r)
   }
 
-  def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
+  private def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
 
   val functions: MonadicFunctions = (
-    expInt,
-    expRat,
-    expDouble)
+          expInt,
+          expRat,
+          expDouble)
 
   val derivative: Double => Double = x => Math.exp(x)
 
@@ -133,7 +133,7 @@ case object MonadicOperationExp extends MonadicOperation {
   */
 case object MonadicOperationLog extends MonadicOperation {
 
-  def logInt(x: Int): Try[Int] = x match {
+  private def logInt(x: Int): Try[Int] = x match {
     case 1 => Success(0)
     case _ => Failure(NumberException("can't log Int"))
   }
@@ -143,10 +143,10 @@ case object MonadicOperationLog extends MonadicOperation {
     case r => fail("can't do log Rational=>Rational for parameter")(r)
   }
 
-  def logDouble(x: Double): Try[Double] = Try(Math.log(x))
+  private def logDouble(x: Double): Try[Double] = Try(Math.log(x))
 
   val functions: MonadicFunctions = (
-    logInt,
+          logInt,
     logRat,
     logDouble)
 
@@ -217,7 +217,7 @@ case object MonadicOperationSin extends MonadicOperation {
   */
 case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 
-  val atanRat: Rational => Try[Rational] = r => modulateAngle(doAtan(r.abs), r.signum < 0)
+  private val atanRat: Rational => Try[Rational] = r => modulateAngle(doAtan(r.abs), r.signum < 0)
 
   def atan(x: Double): Try[Double] =
     Try {
@@ -293,10 +293,10 @@ case object MonadicOperationModulate extends MonadicOperation {
   * CONSIDER eliminating this and using power only.
   */
 case object MonadicOperationSqrt extends MonadicOperation {
-  val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
+  private val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
     x => toTryWithThrowable(Rational.squareRoots.get(x), NumberException("Cannot create Int from Double"))
 
-  val sqrtRat: Rational => Try[Rational] = x => FP.toTry(x.root(2), Failure(NumberException("Cannot get exact square root")))
+  private val sqrtRat: Rational => Try[Rational] = x => FP.toTry(x.root(2), Failure(NumberException("Cannot get exact square root")))
 
   val functions: MonadicFunctions = (sqrtInt, sqrtRat, tryF(x => math.sqrt(x)))
 
@@ -395,7 +395,7 @@ case object DyadicOperationPower extends DyadicOperation {
 
   val absolute: Boolean = false
 
-  def powerInt(x: Int, p: Int): Try[Int] =
+  private def powerInt(x: Int, p: Int): Try[Int] =
     if (p >= 0) Rational.narrow(BigInt(x).pow(p), Int.MinValue, Int.MaxValue).map(_.toInt)
     else Failure(NumberException("negative power (Int)"))
 }

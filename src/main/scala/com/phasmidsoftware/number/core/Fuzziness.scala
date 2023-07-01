@@ -469,6 +469,12 @@ object Fuzziness {
     */
   def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
+  def monadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz1: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
+    val functionalFuzz = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz1)
+    Fuzziness.combine(t, t, relative = true, independent = true)((functionalFuzz, Some(Fuzziness.createFuzz(op.fuzz))))
+  }
+
+
   private def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) => if (relative) a.relative(t) else Some(f)

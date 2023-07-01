@@ -297,7 +297,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
       case v@Right(_) => Some(make(v, f))
       case v@Left(Right(_)) => Some(make(v, f))
       case v => make(v, f) match {
-        case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, x, fuzz))
+        case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, x, fuzz))
       }
     }
 
@@ -578,7 +578,7 @@ object GeneralNumber {
       v =>
         x.make(v, Scalar) match {
           case n: GeneralNumber =>
-            for (t <- x.toDouble; z <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, z, x.fuzz))
+            for (t <- x.toDouble; z <- n.toDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, z, x.fuzz))
         }
     }
     FP.toTry(no, Failure(NumberException("applyFunc: logic error")))
@@ -723,9 +723,5 @@ object GeneralNumber {
     }
   }
 
-  private def getMonadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz1: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
-    val functionalFuzz = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz1)
-    Fuzziness.combine(t, t, relative = true, independent = true)((functionalFuzz, Some(Fuzziness.createFuzz(op.fuzz))))
-  }
 
 }
