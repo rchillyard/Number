@@ -23,6 +23,13 @@ import scala.collection.mutable
   * @param fuzz   the fuzziness of this Number.
   */
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
+
+  // WARNING do not commit
+//  val wiggle: Double = fuzz.map(_.wiggle(0.5)).getOrElse(0)
+//  if (wiggle > 1E-6) {
+//    println(s"lots of fuzz: $value, $factor, $fuzz")
+//  }
+
   /**
     * Method to force the fuzziness of this FuzzyNumber to be absolute.
     *
@@ -142,6 +149,8 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
 
   /**
     * Render this FuzzyNumber in String form, including the factor, and the fuzz.
+    *
+    * TODO fuzzy zero (use createFuzzy(0)) renders as "0*" which I think is incorrect.
     *
     * @return
     */

@@ -751,6 +751,10 @@ implicit def convertExpression(x: Expression): Number = x.materialize.asNumber m
     case _ => FuzzyNumber(value, factor, fuzz)
   }).specialize
 
+  def createFromDouble(x: Double, factor: Factor): Number = apply(x, factor, Some(AbsoluteFuzz(DoublePrecisionTolerance, Box)))
+
+  def createFromDouble(x: Double): Number = createFromDouble(x, Scalar)
+
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
     *

@@ -274,6 +274,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "power"
+
   it should "work for e^x" in {
     val two = Number("2.00[2]")
     val nominalValueOfTwo = 2
@@ -285,9 +286,9 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   behavior of "fuzz"
   it should "work" in {
     val op = MonadicOperationInvert
-    val t = -0.009003823032986082
-    val x = -111.06393321330684
-    val fuzz1 = Some(RelativeFuzz(1.0846958231396446E-9, Gaussian))
-    monadicFuzziness(op, t, x, fuzz1)
+    val t = -0.009003823032986082 // the input to the inversion.
+    val x = -111.06393321330684 // the output from the inversion.
+    val fuzz = Some(RelativeFuzz(1.0846958231396446E-9, Gaussian))
+    monadicFuzziness(op, t, x, fuzz)
   }
 }

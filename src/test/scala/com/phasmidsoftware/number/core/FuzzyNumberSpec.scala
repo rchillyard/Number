@@ -222,8 +222,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(-1)
     zy.get.factor shouldBe Scalar
-    // XXX zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
+    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
+//    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
   }
 
   behavior of "negate"

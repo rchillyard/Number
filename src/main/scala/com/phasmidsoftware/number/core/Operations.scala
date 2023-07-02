@@ -30,12 +30,20 @@ sealed trait MonadicOperation {
   val derivative: Double => Double
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double
+
+  /**
     * True if fuzziness is to be considered absolute.
+    *
+    * NOTE: this is very confusing and appears wrong in the cases where it is set to true.
     */
   val absolute: Boolean
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int
 }
@@ -56,12 +64,18 @@ case object MonadicOperationNegate extends MonadicOperation {
   val derivative: Double => Double = _ => -1
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = _ => 1
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
 }
@@ -84,12 +98,20 @@ case object MonadicOperationInvert extends MonadicOperation {
   val derivative: Double => Double = x => -1.0 / x / x
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    *
+    * For any power that is not 0, the result is simply x times the power.
+    */
+  val relativeFuzz: Double => Double = _ => -1
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
 }
@@ -118,12 +140,18 @@ case object MonadicOperationExp extends MonadicOperation {
   val derivative: Double => Double = x => Math.exp(x)
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = x => x
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
 }
@@ -147,10 +175,16 @@ case object MonadicOperationLog extends MonadicOperation {
 
   val functions: MonadicFunctions = (
           logInt,
-    logRat,
-    logDouble)
+          logRat,
+          logDouble)
 
   val derivative: Double => Double = x => 1 / x
+
+  /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = x => 1 / math.log(x) // the reciprocal of the natural log of x
 
   /**
     * True if fuzziness is to be considered absolute.
@@ -158,7 +192,7 @@ case object MonadicOperationLog extends MonadicOperation {
   val absolute: Boolean = false //not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
 }
@@ -200,12 +234,18 @@ case object MonadicOperationSin extends MonadicOperation {
   val derivative: Double => Double = x => math.cos(x)
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = x => x / math.tan(x)
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
 }
@@ -229,12 +269,18 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   val derivative: Double => Double = x => 1 / (1 + x * x)
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = x => x / math.atan2(x, 1) / derivative(x) / math.Pi // CONSIDER using atan method in this class.
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 4
 
@@ -277,12 +323,18 @@ case object MonadicOperationModulate extends MonadicOperation {
   val derivative: Double => Double = _ => 1
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = _ => 1
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
 }
@@ -303,12 +355,20 @@ case object MonadicOperationSqrt extends MonadicOperation {
   val derivative: Double => Double = x => 1 / math.sqrt(x) / 2
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    *
+    * For any power that is not 0, the result is simply x times the power.
+    */
+  val relativeFuzz: Double => Double = _ => 0.5
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
 }
@@ -331,12 +391,18 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
   val derivative: Double => Double = _ => c
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = _ => 1
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
 }
@@ -349,6 +415,14 @@ case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) e
   val functions: MonadicFunctions = (fail("no apply"), fail("no apply"), tryF(f))
 
   val derivative: Double => Double = dfByDx
+
+  /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    *
+    * This is the general formula for a monadic operation. All others derive from this formula.
+    */
+  val relativeFuzz: Double => Double = x => x * dfByDx(x) / f(x)
 
   val absolute: Boolean = true // not used
 

@@ -162,7 +162,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * Negative of this Number.
     */
-  def makeNegative: Number = doMultiply(Number(-1))
+  def makeNegative: Number = negate(this) //doMultiply(Number(-1))
 
   /**
     * Divide this Number by n.

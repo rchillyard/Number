@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.applications
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
+import com.phasmidsoftware.number.core.Number.createFromDouble
 import com.phasmidsoftware.number.core.{Field, Number}
 import scala.annotation.tailrec
 import scala.math.Fractional.Implicits.infixFractionalOps
@@ -46,8 +47,9 @@ object Approximation {
     * @param x      a Number which will be compared with zero.
     * @return a Try[Boolean].
     */
-  def converged(f: Double => Double, dfByDx: Double => Double)(p: Double)(x: Number): Try[Boolean] =
-    evaluate(f, dfByDx)(x) map (n => NumberIsFuzzy.same(p)(n, Number.zero))
+  def converged(f: Double => Double, dfByDx: Double => Double)(p: Double)(x: Number, target: Number): Try[Boolean] = {
+    evaluate(f, dfByDx)(x) map (n => NumberIsFuzzy.same(p)(n, target))
+  }
 
   /**
     * Method to evaluate function f at value x.
@@ -81,11 +83,12 @@ object Approximation {
     * @param probability the confidence we need for the resulting root to be the same as zero.
     * @param functions   a list of the derivative functions: f[0](x), f[1](x), f[2](x), f[3](x), etc.
     * @param x0          the initial guess.
+    * @param target      the target value, by default this will be a fuzzy version of (Double) zero.
     */
-  def solve(probability: Double, functions: (Double => Double)*)(x0: Number): Try[Number] = {
+  def solve(probability: Double, functions: (Double => Double)*)(x0: Number, target: Number = createFromDouble(0)): Try[Number] = {
     require(functions.size > 1, "solve: insufficient functions provided")
 
-    val tester: Number => Try[Boolean] = converged(functions(0), functions(1))(probability)
+    val tester: Number => Try[Boolean] = converged(functions(0), functions(1))(probability)(_, target)
     val iterator: Number => Try[Number] = iterate(functions: _*)
 
     @tailrec
@@ -108,7 +111,7 @@ object Approximation {
     * @param r the ratio of f(x) to f'(x).
     * @param q the value of f'(x).
     * @param x the value of x.
-    * @param f the list of derivate functions: f, f', f&#39;&#39;, etc.
+    * @param f the list of derivative functions: f, f', f&#39;&#39;, etc.
     * @return the correction term.
     */
   private def correction(r: Field, q: Field, x: Number, f: Seq[Double => Double]): Try[Number] = f.length match {

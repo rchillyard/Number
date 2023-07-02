@@ -29,7 +29,7 @@ trait Fuzziness[T] {
 
   /**
     * Transform this Fuzziness[T] according to func.
-    * Typically, func will be the derivative of the relevant Number function.
+    * Typically, func will be the relative fuzz function arising from a monadic operation.
     *
     * @param func the function to apply to this Fuzziness[T].
     * @return an (optional) transformed version of Fuzziness[T].
@@ -348,6 +348,8 @@ object Fuzziness {
   /**
     * Method to yield a transformation (i.e. a Fuzziness[T] => Fuzziness[T]) based on a scale constant k.
     *
+    * XXX we need a unit test for this.
+    *
     * @param k the scale constant.
     * @tparam T the underlying type.
     * @return a function which will transform a Fuzziness[T] into a Fuzziness[T].
@@ -412,6 +414,7 @@ object Fuzziness {
     * (we could combine Box shapes into trapezoids but who needs that?).
     *
     * @param t        the magnitude of the input Number.
+    * @param u        the magnitude of the output Number.
     * @param relative true if we are multiplying, false if we are adding.
     * @param g        the function with which to transform the given Fuzziness value
     * @param fuzz     one of the (optional) Fuzziness values.
@@ -469,17 +472,36 @@ object Fuzziness {
     */
   def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
-  def monadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz1: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
-    val functionalFuzz = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz1)
-    Fuzziness.combine(t, t, relative = true, independent = true)((functionalFuzz, Some(Fuzziness.createFuzz(op.fuzz))))
-  }
-
 
   private def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) => if (relative) a.relative(t) else Some(f)
       case r@RelativeFuzz(_, _) => if (relative) Some(f) else r.absolute(t)
     }
+
+  /**
+    * Calculate the fuzziness for the result of a MonadicOperation.
+    *
+    * @param op   the monadic operation.
+    * @param t    the magnitude of the input to the monadic operation.
+    * @param x    the magnitude of the result of the monadic operation.
+    * @param fuzz the (optional) fuzziness of input to the monadic operation.
+    * @return the optional fuzziness for the result of the monadic operation.
+    */
+  def monadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
+    val relativeFuzz: Option[Fuzziness[Double]] = fuzz flatMap (_.normalize(t, relative = true))
+    //    val functionalFuzz: Option[Fuzziness[Double]] = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz)
+    val opFuzz = Fuzziness.createFuzz(op.fuzz)
+    // CONSIDER using map again (which itself uses transform).
+    val resultFuzz: Option[Fuzziness[Double]] = relativeFuzz map (_.transform(op.relativeFuzz)(t))
+    val result: Option[Fuzziness[Double]] = Fuzziness.combine(t, t, relative = true, independent = true)((resultFuzz, Some(opFuzz)))
+//    val wiggle: Double = result.map(_.wiggle(0.5)).getOrElse(0)
+//    if (wiggle > 1E-6) {
+//      println(s"lots of fuzz: $wiggle; op=$op, t=$t, x=$x, fuzz=$fuzz, relativeFuzz=$relativeFuzz, opFuzz=$opFuzz, result=$result")
+//    }
+    result
+  }
+
 }
 
 /**
