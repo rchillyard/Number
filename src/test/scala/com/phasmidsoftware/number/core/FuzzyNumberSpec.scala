@@ -222,8 +222,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(-1)
     zy.get.factor shouldBe Scalar
-    // XXX zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
+    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
+//    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
   }
 
   behavior of "negate"
@@ -484,7 +484,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "foucault"
   it should "do part of the calculation" in {
     val t = Number("16.5*")
-    println(s"x fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
+    println(s"y fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
 
     val square: Option[Number] = (t doPower 2).asNumber
     println(s"square fuzz: ${square.get.fuzz}")
@@ -497,7 +497,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val g = Number("9.81*")
     println(s"g fuzz: ${g.fuzz.map(_.normalize(9.81, relative = true))}")
     val t = Number("16.5*")
-    println(s"x fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
+      println(s"y fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
 
     val tScaled: Option[Number] = (t doDivide twoPi).asNumber
     println(s"tScaled fuzz: ${tScaled.get.fuzz}")
@@ -518,7 +518,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val g = Number("9.81*")
     println(s"g fuzz: ${g.fuzz.map(_.normalize(9.81, relative = true))}")
     val t = Number("16.487(41)")
-    println(s"x fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
+      println(s"y fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
 
     val tScaled: Option[Number] = (t doDivide twoPi).asNumber
     println(s"tScaled fuzz: ${tScaled.get.fuzz}")

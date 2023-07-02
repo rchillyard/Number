@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero}
 import com.phasmidsoftware.number.parse.RationalParser
-
 import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -80,6 +79,8 @@ case class Rational(n: BigInt, d: BigInt) {
   lazy val isInfinity: Boolean = d == 0L
 
   lazy val isNaN: Boolean = isZero && isInfinity
+
+  lazy val maybeInt: Option[Int] = if (isWhole) Some(toInt) else None
 
   // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
   lazy val toInt: Int = Rational.toInt(this).get
@@ -557,7 +558,7 @@ object Rational {
     if (min <= x && x <= max) Success(x)
     else Failure(RationalException("narrow: loss of precision"))
 
-  private def toLong(x: Rational): Try[Long] = narrow(x, Long.MinValue, Long.MaxValue) map (_.toLong)
+  def toLong(x: Rational): Try[Long] = narrow(x, Long.MinValue, Long.MaxValue) map (_.toLong)
 
   /**
     * This method gets an Int from a Rational.

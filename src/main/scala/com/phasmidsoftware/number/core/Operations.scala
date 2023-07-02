@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
-
 import scala.annotation.tailrec
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
@@ -31,12 +30,20 @@ sealed trait MonadicOperation {
   val derivative: Double => Double
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double
+
+  /**
     * True if fuzziness is to be considered absolute.
+    *
+    * NOTE: this is very confusing and appears wrong in the cases where it is set to true.
     */
   val absolute: Boolean
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int
 }
@@ -57,12 +64,18 @@ case object MonadicOperationNegate extends MonadicOperation {
   val derivative: Double => Double = _ => -1
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = _ => 1
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
 }
@@ -71,18 +84,26 @@ case object MonadicOperationNegate extends MonadicOperation {
   * MonadicOperation to invert a Number.
   */
 case object MonadicOperationInvert extends MonadicOperation {
-  def invertInt(x: Int): Try[Int] = x match {
+  private def invertInt(x: Int): Try[Int] = x match {
     case 1 => Success(1)
     case _ => Failure(NumberException("can't invert Int"))
   }
 
   private val xf: Fractional[Double] = implicitly[Fractional[Double]]
 
-  def invertDouble(x: Double): Try[Double] = Try(xf.div(xf.one, x))
+  private def invertDouble(x: Double): Try[Double] = Try(xf.div(xf.one, x))
 
   val functions: MonadicFunctions = (invertInt, tryF[Rational, Rational](x => x.invert), invertDouble)
 
   val derivative: Double => Double = x => -1.0 / x / x
+
+  /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    *
+    * For any power that is not 0, the result is simply x times the power.
+    */
+  val relativeFuzz: Double => Double = _ => -1
 
   /**
     * True if fuzziness is to be considered absolute.
@@ -90,7 +111,7 @@ case object MonadicOperationInvert extends MonadicOperation {
   val absolute: Boolean = true // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
 }
@@ -99,24 +120,30 @@ case object MonadicOperationInvert extends MonadicOperation {
   * MonadicOperation to raise e (Euler's number) to the power of a Number.
   */
 case object MonadicOperationExp extends MonadicOperation {
-  def expInt(x: Int): Try[Int] = x match {
+  private def expInt(x: Int): Try[Int] = x match {
     case 0 => Success(1)
     case _ => Failure(NumberException("can't exp Int"))
   }
 
-  val expRat: Rational => Try[Rational] = {
+  private val expRat: Rational => Try[Rational] = {
     case r if r.isInfinity && r.signum < 0 => Success(Rational.zero)
     case r => fail("can't do exp Rational=>Rational for non-zero parameter")(r)
   }
 
-  def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
+  private def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
 
   val functions: MonadicFunctions = (
-    expInt,
-    expRat,
-    expDouble)
+          expInt,
+          expRat,
+          expDouble)
 
   val derivative: Double => Double = x => Math.exp(x)
+
+  /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = x => x
 
   /**
     * True if fuzziness is to be considered absolute.
@@ -124,7 +151,7 @@ case object MonadicOperationExp extends MonadicOperation {
   val absolute: Boolean = false
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
 }
@@ -134,7 +161,7 @@ case object MonadicOperationExp extends MonadicOperation {
   */
 case object MonadicOperationLog extends MonadicOperation {
 
-  def logInt(x: Int): Try[Int] = x match {
+  private def logInt(x: Int): Try[Int] = x match {
     case 1 => Success(0)
     case _ => Failure(NumberException("can't log Int"))
   }
@@ -144,14 +171,20 @@ case object MonadicOperationLog extends MonadicOperation {
     case r => fail("can't do log Rational=>Rational for parameter")(r)
   }
 
-  def logDouble(x: Double): Try[Double] = Try(Math.log(x))
+  private def logDouble(x: Double): Try[Double] = Try(Math.log(x))
 
   val functions: MonadicFunctions = (
-    logInt,
-    logRat,
-    logDouble)
+          logInt,
+          logRat,
+          logDouble)
 
   val derivative: Double => Double = x => 1 / x
+
+  /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = x => 1 / math.log(x) // the reciprocal of the natural log of x
 
   /**
     * True if fuzziness is to be considered absolute.
@@ -159,7 +192,7 @@ case object MonadicOperationLog extends MonadicOperation {
   val absolute: Boolean = false //not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
 }
@@ -201,12 +234,18 @@ case object MonadicOperationSin extends MonadicOperation {
   val derivative: Double => Double = x => math.cos(x)
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = x => x / math.tan(x)
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
 }
@@ -218,7 +257,7 @@ case object MonadicOperationSin extends MonadicOperation {
   */
 case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 
-  val atanRat: Rational => Try[Rational] = r => modulateAngle(doAtan(r.abs), r.signum < 0)
+  private val atanRat: Rational => Try[Rational] = r => modulateAngle(doAtan(r.abs), r.signum < 0)
 
   def atan(x: Double): Try[Double] =
     Try {
@@ -230,12 +269,18 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   val derivative: Double => Double = x => 1 / (1 + x * x)
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = x => x / math.atan2(x, 1) / derivative(x) / math.Pi // CONSIDER using atan method in this class.
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 4
 
@@ -253,6 +298,8 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 
 /**
   * MonadicOperation to yield the modulus a Number.
+  *
+  * CONSIDER this description is not very helpful. Is it really the modulus?
   */
 case object MonadicOperationModulate extends MonadicOperation {
   private def modulate[X: Numeric](z: X, min: X, max: X): X = {
@@ -276,12 +323,18 @@ case object MonadicOperationModulate extends MonadicOperation {
   val derivative: Double => Double = _ => 1
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = _ => 1
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = true // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
 }
@@ -292,14 +345,22 @@ case object MonadicOperationModulate extends MonadicOperation {
   * CONSIDER eliminating this and using power only.
   */
 case object MonadicOperationSqrt extends MonadicOperation {
-  val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
+  private val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
     x => toTryWithThrowable(Rational.squareRoots.get(x), NumberException("Cannot create Int from Double"))
 
-  val sqrtRat: Rational => Try[Rational] = x => FP.toTry(x.root(2), Failure(NumberException("Cannot get exact square root")))
+  private val sqrtRat: Rational => Try[Rational] = x => FP.toTry(x.root(2), Failure(NumberException("Cannot get exact square root")))
 
   val functions: MonadicFunctions = (sqrtInt, sqrtRat, tryF(x => math.sqrt(x)))
 
   val derivative: Double => Double = x => 1 / math.sqrt(x) / 2
+
+  /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    *
+    * For any power that is not 0, the result is simply x times the power.
+    */
+  val relativeFuzz: Double => Double = _ => 0.5
 
   /**
     * True if fuzziness is to be considered absolute.
@@ -307,7 +368,7 @@ case object MonadicOperationSqrt extends MonadicOperation {
   val absolute: Boolean = false // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
 }
@@ -330,12 +391,18 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
   val derivative: Double => Double = _ => c
 
   /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    */
+  val relativeFuzz: Double => Double = _ => 1
+
+  /**
     * True if fuzziness is to be considered absolute.
     */
   val absolute: Boolean = false // not used
 
   /**
-    * Relative precision, as used by createFuzz.
+    * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
 }
@@ -348,6 +415,14 @@ case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) e
   val functions: MonadicFunctions = (fail("no apply"), fail("no apply"), tryF(f))
 
   val derivative: Double => Double = dfByDx
+
+  /**
+    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
+    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    *
+    * This is the general formula for a monadic operation. All others derive from this formula.
+    */
+  val relativeFuzz: Double => Double = x => x * dfByDx(x) / f(x)
 
   val absolute: Boolean = true // not used
 
@@ -394,7 +469,7 @@ case object DyadicOperationPower extends DyadicOperation {
 
   val absolute: Boolean = false
 
-  def powerInt(x: Int, p: Int): Try[Int] =
+  private def powerInt(x: Int, p: Int): Try[Int] =
     if (p >= 0) Rational.narrow(BigInt(x).pow(p), Int.MinValue, Int.MaxValue).map(_.toInt)
     else Failure(NumberException("negative power (Int)"))
 }

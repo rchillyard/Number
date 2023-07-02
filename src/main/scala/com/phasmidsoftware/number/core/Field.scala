@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.recover
+import scala.language.implicitConversions
 
 /**
   * Trait which describes the behavior of all Numbers and Complex instances.
@@ -42,7 +43,7 @@ trait Field extends NumberLike with Ordered[Field] {
     * @return true if this is Complex.
     */
   def isComplex: Boolean = this match {
-    case ComplexCartesian(_, _) | ComplexPolar(_, _) => true
+    case ComplexCartesian(_, _) | ComplexPolar(_, _, _) => true
     case _ => false
   }
 
@@ -103,6 +104,14 @@ trait Field extends NumberLike with Ordered[Field] {
     * @return a Field which is in canonical form.
     */
   def normalize: Field
+
+  /**
+    * Method to return this Field as a Complex.
+    * If this is a Real number x, return ComplexPolar(x) otherwise, return this.
+    *
+    * @return a Complex.
+    */
+  def asComplex: Complex
 }
 
 object Field {
@@ -114,6 +123,8 @@ object Field {
     * @return a Number if field is a Number, otherwise, this will throw a NumberException.
     */
   def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
+
+  implicit def convertRationalToField(r: Rational): Field = Real(Number(r))
 
   /**
     * Definition of concrete (implicit) type class object for Field being Fuzzy.
@@ -145,10 +156,18 @@ object Constants {
   val `𝛑`: Number = Number.`𝛑`
   val e: Number = Number.e
   val i: Complex = Complex.i
+  /**
+    * Exact value of iPi.
+    */
+  val iPi: Complex = ComplexCartesian(0, Number.pi)
 
   val root2: Number = Number.root2
   val root3: Number = Number.root3
   val root5: Number = Number.root5
+  /**
+    * Exact value of the Complex Number √2
+    */
+  val root2s: Field = ComplexPolar(Number.root2, Number.zeroR, 2)
 
   import com.phasmidsoftware.number.core.Number.FuzzOps
 

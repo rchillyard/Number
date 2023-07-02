@@ -4,7 +4,7 @@ import com.phasmidsoftware.number.core.BaseComplex.narrow
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{negate, zero}
+import com.phasmidsoftware.number.core.Number.{negate, zero, zeroR}
 
 /**
   * Abstract base class which implements Complex.
@@ -13,6 +13,14 @@ import com.phasmidsoftware.number.core.Number.{negate, zero}
   * @param imag the imaginary component.
   */
 abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
+
+  /**
+    * Method to return this Field as a Complex.
+    * If this is a Real number x, return ComplexPolar(x) otherwise, return this.
+    *
+    * @return a Complex.
+    */
+  def asComplex: Complex = this
 
   /**
     * Method to compare this BaseComplex with that Field.
@@ -90,26 +98,43 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return this Number raised to power p.
     */
   def power(p: Field): Field = p match {
+    case r: Real => power(r.x)
     case n: Number =>
       this match {
-        case ComplexPolar(_, _) =>
-          recover(
-            for (r <- Literal(real).^(n).materialize.asNumber; i <- (Literal(imag) * p).materialize.asNumber) yield make(r, i),
-            ComplexException("logic error: power")
-          )
-        case ComplexCartesian(_, _) if n.isInteger =>
-          n.toInt match {
-            case Some(0) => Complex.unit
-            case Some(-1) => this.conjugate divide (modulus doMultiply modulus) // FIXME this looks totally wrong!
-            case Some(1) => this
-            case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
-            case _ => throw ComplexException(s"not implemented: power($p)")
-          }
-        case c@ComplexCartesian(_, _) =>
-          convertToPolar(c).power(n)
+        case ComplexPolar(re, im, w) if n.isRational => doRationalPowerForComplexPolar(n, re, im, w)
+        case ComplexPolar(re, im, w) => ComplexPolar(re.doPower(n), im.doMultiply(n), w)
+        case ComplexCartesian(_, _) if n.isInteger => doIntPowerForComplexCartesian(p, n)
+        case c@ComplexCartesian(_, _) => convertToPolar(c).power(n)
       }
     case ComplexCartesian(x, y) => ComplexPolar(convertToNumber(power(x)), y.make(NatLog))
-    case _ => throw NumberException(s"power not supported for $this ^ $p")
+    case _ => throw NumberException(s"power not supported for polar complex powers: $this ^ $p")
+  }
+
+  private def doIntPowerForComplexCartesian(p: Field, n: Number) = {
+    n.toInt match {
+      case Some(0) => Complex.unit
+      case Some(-1) => this.conjugate divide (modulus doMultiply modulus)
+      case Some(1) => this
+      case Some(x) if x > 0 => LazyList.continually(this).take(x).toList.foldLeft[Complex](Complex.unit)((a, b) => a doMultiply b)
+      case _ => throw ComplexException(s"not implemented: power($p)")
+    }
+  }
+
+  private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = {
+    recover(
+      for {
+        z <- n.toRational
+        r <- Literal(re).^(n).evaluate match {
+          case x: Number => Some(x.simplify)
+          case Real(x) => Some(x.simplify)
+          case x => x.asNumber
+        }
+        branches <- (z.invert * w).maybeInt
+      }
+      yield
+        ComplexPolar(r, im.doMultiple(z), branches),
+      ComplexException("logic error: power")
+    )
   }
 
   /**
@@ -141,9 +166,9 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     this match {
       case ComplexCartesian(x, y) if y == Number.zero => Some(x)
       case ComplexCartesian(x, y) if x == Number.zero => Some((y doMultiply y).makeNegative.make(Root2))
-      case ComplexPolar(r, theta) if theta == Number.zero => Some(r)
-      case ComplexPolar(r, theta) if theta == Number.pi => Some(r.makeNegative)
-      case p@ComplexPolar(_, theta) if (theta doMultiply 2).abs == Number.pi => convertToCartesian(p).asNumber
+      case ComplexPolar(r, theta, _) if theta == Number.zero => Some(r)
+      case ComplexPolar(r, theta, _) if theta == Number.pi => Some(r.makeNegative)
+      case p@ComplexPolar(_, theta, _) if (theta doMultiply 2).abs == Number.pi => convertToCartesian(p).asNumber
       case _ => None
     }
 
@@ -171,7 +196,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     */
   def sum(addend: Complex): Complex = this match {
     case ComplexCartesian(_, _) => doAdd(addend)
-    case ComplexPolar(_, _) => narrow(this, polar = false) doAdd addend
+    case ComplexPolar(_, _, _) => narrow(this, polar = false) doAdd addend
   }
 
   /**
@@ -181,10 +206,10 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return the product of this and multiplicand.
     */
   def product(multiplicand: Complex): Complex = this match {
-    case ComplexPolar(_, _) => doMultiply(multiplicand)
+    case ComplexPolar(_, _, _) => doMultiply(multiplicand)
     case ComplexCartesian(_, _) => multiplicand match {
       case ComplexCartesian(_, _) => doMultiply(multiplicand)
-      case ComplexPolar(_, _) => narrow(this, polar = true) doMultiply multiplicand
+      case ComplexPolar(_, _, _) => narrow(this, polar = true) doMultiply multiplicand
     }
   }
 
@@ -193,9 +218,19 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return a String representing the imaginary value.
     */
-  protected def showImaginary(polar: Boolean): String = imag match {
-    case Number.zero => ""
-    case x =>
+  protected def showImaginary(polar: Boolean, branch: Int = 0, n: Int = 1): String = (imag, branch, n) match {
+    case (Number.zero, 0, 1) | (Number.zeroR, 0, 1) => "0"
+    case (x, 0, 1) =>
+      // TODO Try to merge this code with the following case
+      val sign = (x, polar) match {
+        case (Number.zero, true) => ""
+        case (_, true) => ""
+        case _ if x.isPositive => "+"
+        case _ => "-"
+      }
+      s"${sign}i${x.abs}"
+    case (Number.zeroR, z, n) =>
+      val x = Number.zeroR.doAdd(Number.twoPi.doMultiply(Number(z)).doDivide(n))
       val sign = (x, polar) match {
         case (Number.zero, true) => ""
         case (_, true) => ""
@@ -230,8 +265,10 @@ object BaseComplex {
     */
   def narrow(x: Field, polar: Boolean): BaseComplex = x match {
     case c@ComplexCartesian(_, _) => if (polar) convertToPolar(c) else c
-    case c@ComplexPolar(_, _) => if (!polar) convertToCartesian(c) else c
+    case c@ComplexPolar(_, _, _) => if (!polar) convertToCartesian(c) else c
     case n@Number(_, _) => ComplexCartesian(n, Number.zero)
+    case Real(x) => ComplexCartesian(x, Number.zero)
+    case _ => throw NumberException(s"BaseComplex: narrow: x can't be matched: $x")
   }
 }
 
@@ -326,7 +363,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return a String representing the value of this expression.
     */
-  def render: String = if (isReal) x.toString else s"""($x${showImaginary(false)})"""
+  def render: String = if (isReal) x.toString else s"""($x${showImaginary(polar = false)})"""
 
   /**
     * Add two Cartesian Complex numbers.
@@ -338,7 +375,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     case ComplexCartesian(a, b) =>
       import com.phasmidsoftware.number.core.Expression.ExpressionOps
       Complex.apply(Literal(x).+(a).materialize, (Literal(y) + b).materialize, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
-    case c@ComplexPolar(_, _) => doAdd(convertToCartesian(c))
+    case c@ComplexPolar(_, _, _) => doAdd(convertToCartesian(c))
   }
 
   /**
@@ -352,7 +389,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
       val real: Number = (a doMultiply x) doAdd negate(b doMultiply y)
       val imag: Number = (a doMultiply y) doAdd (b doMultiply x)
       Complex.apply(real, imag, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
-    case ComplexPolar(_, _) => throw ComplexException("logic error: ComplexCartesian.doAdd")
+    case ComplexPolar(_, _, _) => throw ComplexException("logic error: ComplexCartesian.doAdd")
   }
 }
 
@@ -382,10 +419,20 @@ object ComplexCartesian {
     case Number(v, Root2) if Value.signum(v) < 0 => ComplexCartesian(zero, Number.create(Value.abs(v)))
     case _ => throw ComplexException(s"fromImaginary: logic error for $number")
   }
-
 }
 
-case class ComplexPolar(r: Number, theta: Number) extends BaseComplex(r, theta) {
+/**
+  * Class to represent a family of Complex numbers in polar form.
+  * An instance of this class actually represents n different complex numbers.
+  *
+  * @param r     the real part (the magnitude) of the number(s).
+  * @param theta the imaginary part (the angle) of the 0th branch of the number.
+  * @param n     the number of "branches" in this set of complex numbers.
+  */
+case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComplex(r, theta) {
+
+  if (theta.factor != Radian)
+    println(s"polar theta is not in radians: $this")
 
   /**
     * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
@@ -433,30 +480,64 @@ case class ComplexPolar(r: Number, theta: Number) extends BaseComplex(r, theta) 
 
   def isInfinite: Boolean = r.isInfinite
 
-  def normalize: Field = ComplexCartesian(r.scale(NatLog), theta.normalize.asInstanceOf[Number]).normalize
+  def normalize: Field = (r, Number.modulate(theta), n) match {
+    case (z, ExactNumber(Value(0), Radian), 1) => z
+    case (z, ExactNumber(Value(1), Radian), 1) => -z
+    case (z, t, n) => ComplexPolar(z, t, n)
+  }
 
   /**
     * Action to materialize this Expression and render it as a String,
     * that is to say we eagerly evaluate this Expression as a String.
     *
+    * NOTE that some of these special cases that are handled here should be eliminated by a prior call to normalize.
+    *
     * @return a String representing the value of this expression.
     */
-  def render: String = (r, theta) match {
-    case (Number.one, Number.zero) => "1"
-    case (Number.one, Number.pi) => "-1"
-    case _ => s"${r}e^${showImaginary(true)}"
+  def render: String = (r, theta, n) match {
+    case (Number.one, Number.zero, 1) => "1"
+    case (Number.one, Number.pi, 1) => "-1"
+    case (_, _, 2) => theta.value match {
+      case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => "\u00b1" + r
+      case _ => s"${r}e^${showImaginary(polar = true)}"
+    }
+    case (_, _, 3) => theta.value match {
+      case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => s"{$r, ±${r}e^${showImaginary(polar = true, 1, 3)}}"
+      case _ => s"${r}e^${showImaginary(polar = true)}"
+    }
+    // TODO handle the case where n is greater than 2
+    case _ =>
+      val w = showImaginary(polar = true)
+      if (w == "0") r.toString else s"${r}e^$w"
   }
+
+  override def toString: String = render
 
   def doAdd(complex: Complex): Complex = convertToCartesian(this).doAdd(complex)
 
   def doMultiply(complex: Complex): Complex = complex match {
-    case ComplexPolar(a, b) => make(r doMultiply a, theta doAdd b)
+    case ComplexPolar(a, b, _) => make(r doMultiply a, theta doAdd b)
     case _ => throw ComplexException("logic error: ComplexPolar.doMultiply")
   }
 }
 
 object ComplexPolar {
-  def apply(r: Int, theta: Number): ComplexPolar = ComplexPolar(Number(r), theta)
+  def apply(r: Number, theta: Number, n: Int): ComplexPolar = new ComplexPolar(r, theta, n)
+
+  def apply(r: Number, theta: Number): ComplexPolar = apply(r, theta, 1)
+
+  def apply(r: Number): ComplexPolar = apply(r, Number.zeroR)
+
+  def apply(r: Int, theta: Number): ComplexPolar = apply(Number(r), theta)
+
+  /**
+    * Method to create a ComplexPolar object with two branches.
+    *
+    * @param x a Number representing the real part.
+    * @return a ComplexPolar of magnitude x, and two points along the x-axis the 0 mid-way between.
+    */
+//noinspection NonAsciiCharacters
+def ±(x: Number): Field = ComplexPolar(x, zeroR, 2)
 }
 
 case class ComplexException(str: String) extends Exception(str)

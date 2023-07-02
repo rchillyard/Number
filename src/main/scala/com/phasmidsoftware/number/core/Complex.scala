@@ -86,7 +86,7 @@ object Complex {
   def convertToPolar(c: ComplexCartesian): BaseComplex = {
     val ro: Option[Field] = for (p <- ((Literal(c.x) * c.x) plus (Literal(c.y) * c.y)).materialize.asNumber; z = p.sqrt) yield z
     val z: Field = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
-    apply(z, c.x atan c.y, ComplexPolar.apply, ComplexException(s"logic error: convertToPolar2: $c"))
+    apply(z, c.x atan c.y, ComplexPolar.apply(_, _, 1), ComplexException(s"logic error: convertToPolar2: $c"))
   }
 
   def convertToCartesian(c: ComplexPolar): BaseComplex =

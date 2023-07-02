@@ -12,6 +12,8 @@ import scala.util._
   * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
   * That's to say that Numbers have linear domain and all belong, directly or indirectly, to the set R (real numbers).
   *
+  * TODO eliminate extending Field
+  *
   * Every number has three properties:
   * * value: Value
   * * factor: Factor
@@ -109,6 +111,13 @@ trait Number extends Fuzz[Double] with Field {
   def toInt: Option[Int]
 
   /**
+    * Method to get the value of this Number as an Int.
+    *
+    * @return an Option of Long. If this Number cannot be converted to a Long, then None will be returned.
+    */
+  def toLong: Option[Long] = toRational map (_.toLong)
+
+  /**
     * Method to get the value of this Number as an (optional) BigInt.
     * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
     *
@@ -164,6 +173,22 @@ trait Number extends Fuzz[Double] with Field {
   def doMultiply(n: Number): Number
 
   /**
+    * Perform an exact scalar multiplication of this Number by the scale factor z.
+    *
+    * @param z a Rational.
+    * @return a new Number which is this Number scaled by z.
+    */
+  def doMultiple(z: Rational): Number = GeneralNumber.times(this, Number(z))
+
+  /**
+    * Perform an exact scalar multiplication of this Number by the scale factor z.
+    *
+    * @param z an Int.
+    * @return a new Number which is this Number scaled by z.
+    */
+  def doMultiple(z: Int): Number = doMultiple(Rational(z))
+
+  /**
     * Divide this Number by n.
     *
     * @param n another Number.
@@ -188,6 +213,7 @@ trait Number extends Fuzz[Double] with Field {
     * @return the sum.
     */
   def add(x: Field): Field = x match {
+    case Real(r) => doAdd(r)
     case n@Number(_, _) if n.isImaginary => ComplexCartesian.fromImaginary(n) doAdd Complex(this)
     case n@Number(_, _) => doAdd(n)
     case c@BaseComplex(_, _) => c.add(this)
@@ -200,7 +226,8 @@ trait Number extends Fuzz[Double] with Field {
     * @return the product.
     */
   def multiply(x: Field): Field = (this, x) match {
-    case (Number.i, Number.pi) | (Number.pi, Number.i) => Number.iPi
+    case (_, Real(r)) => multiply(r).normalize
+    case (Number.i, Number.pi) | (Number.pi, Number.i) => Constants.iPi
     case (_, Number.i) => multiply(ComplexCartesian(0, 1))
     case (Number.i, _) => x.multiply(ComplexCartesian(0, 1))
     case (_, n@Number(_, _)) => doMultiply(n)
@@ -351,7 +378,7 @@ trait Number extends Fuzz[Double] with Field {
   def asComplex: Complex = if (isImaginary)
     ComplexCartesian.fromImaginary(this)
   else
-    Complex(this)
+    ComplexPolar(this)
 
   /**
     * Method to create a new version of this, but with factor f.
@@ -579,6 +606,10 @@ object Number {
     */
   val half: Number = Number(Rational.half)
   /**
+    * Exact value of 10
+    */
+  val ten: Number = Number(Rational.ten)
+  /**
     * Exact value of pi
     */
   val pi: Number = Number(1, Radian)
@@ -608,11 +639,7 @@ val `𝛑`: Number = pi
     */
   val i: Number = ExactNumber(-1, Root2)
   /**
-    * Exact value of iPi.
-    */
-  val iPi: Complex = ComplexCartesian(0, Number.pi)
-  /**
-    * Exact value of √2
+    * Exact value of the Number √2 (not Complex)
     */
   val root2: Number = Number(2, Root2)
   /**
@@ -727,6 +754,10 @@ implicit def convertExpression(x: Expression): Number = x.materialize.asNumber m
     case None => ExactNumber(value, factor)
     case _ => FuzzyNumber(value, factor, fuzz)
   }).specialize
+
+  def createFromDouble(x: Double, factor: Factor): Number = apply(x, factor, Some(AbsoluteFuzz(DoublePrecisionTolerance, Box)))
+
+  def createFromDouble(x: Double): Number = createFromDouble(x, Scalar)
 
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.

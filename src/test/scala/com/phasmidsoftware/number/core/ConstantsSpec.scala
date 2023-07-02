@@ -105,4 +105,11 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val result: Number = goldenRatio
     result.render shouldBe "1.618033988749895(19)"
   }
+
+  behavior of "toString"
+
+  it should "work for G" in {
+    val target = Constants.G
+    target.toString shouldBe sG
+  }
 }

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
+import com.phasmidsoftware.number.core.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.Rational.toInts
 import scala.annotation.tailrec
 import scala.util._
@@ -161,7 +162,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   /**
     * Negative of this Number.
     */
-  def makeNegative: Number = doMultiply(Number(-1))
+  def makeNegative: Number = negate(this) //doMultiply(Number(-1))
 
   /**
     * Divide this Number by n.
@@ -296,7 +297,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
       case v@Right(_) => Some(make(v, f))
       case v@Left(Right(_)) => Some(make(v, f))
       case v => make(v, f) match {
-        case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, x, fuzz))
+        case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, x, fuzz))
       }
     }
 
@@ -395,7 +396,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def normalize: Field = (factor match {
     case Scalar => this
     case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
-    case Radian => make(Radian.normalize(value), Radian)
+    case Radian => Number.modulate(this)
     case _ => scale(Scalar)
   }) match {
     case fuzzyNumber: FuzzyNumber => fuzzyNumber.normalizeFuzz
@@ -577,7 +578,7 @@ object GeneralNumber {
       v =>
         x.make(v, Scalar) match {
           case n: GeneralNumber =>
-            for (t <- x.toDouble; z <- n.toDouble) yield n.make(GeneralNumber.getMonadicFuzziness(op, t, z, x.fuzz))
+            for (t <- x.toDouble; z <- n.toDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, z, x.fuzz))
         }
     }
     FP.toTry(no, Failure(NumberException("applyFunc: logic error")))
@@ -625,29 +626,36 @@ object GeneralNumber {
   }
 
   /**
-    * NOTE: This method is invoked by sqrt (in GeneralNumber) and doPower (in ExactNumber).
+    * Method to raise an (exact) Number to a power.
+    * NOTE: This method is invoked only by doPower (in ExactNumber).
     *
-    * @param x the base Number.
-    * @param y the power.
+    * @param x the base Number (always exact).
+    * @param y the power (may not be exact).
     * @return x raised to the power of y.
     */
   def power(x: Number, y: Number): Number =
     y.scale(Scalar).toRational match {
       case Some(r) => power(x, r).specialize
       case None =>
-        // NOTE this is not used, but it doesn't seem to handle fuzziness properly either.
+        // NOTE this is not used, but it doesn't seem to handle fuzziness (of the exponent) properly either.
         val zo = for (p <- x.toDouble; q <- y.toDouble) yield Number(math.pow(p, q))
         prepareWithSpecialize(zo)
     }
 
+  /**
+    * Method to raise an (exact) Number to a Rational power.
+    *
+    * @param x the base Number.
+    * @param r the power.
+    * @return an exact Number (CHECK is that correct?)
+    */
   @tailrec
   private def power(x: Number, r: Rational): Number = if (r.isZero) Number.one
   else if (r.isUnity || x == Number.one) x
   else
     x.factor match {
       case Logarithmic(_) =>
-        val vo: Option[Value] = Operations.doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions)
-        vo match {
+        doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions) match {
           case Some(v) => x.make(v)
           case None => throw NumberException("power: logic error")
         }
@@ -715,9 +723,5 @@ object GeneralNumber {
     }
   }
 
-  private def getMonadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz1: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
-    val functionalFuzz = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz1)
-    Fuzziness.combine(t, t, relative = true, independent = true)((functionalFuzz, Some(Fuzziness.createFuzz(op.fuzz))))
-  }
 
 }

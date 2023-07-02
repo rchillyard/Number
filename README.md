@@ -11,7 +11,7 @@
 # Number
 This project is about numbers and their mathematics.
 The chief features of this library are:
-* all numbers are exact wherever it is possible, including &#xD835;&#xDF00; and &#xD835;&#xDED1;;
+* all numbers are exact wherever it is possible, including &#xD835;&#xDF00; and &#xD835;&#xDED1; (e and pi);
 * inexact numbers are represented along with their error bounds;
 * lazy evaluation to help avoid temporary inexact values from becoming part of a result;
 * there are several domains of _Number_ (expressed with different "factors") to support angles, logarithms, roots.
@@ -52,6 +52,45 @@ It is of course perfectly possible to use the _Rational_ classes directly, witho
 
 There are four domains of values, each identified by a Factor (see _Factors_ below).
 These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
+
+Java API
+========
+In addition to the Scala API, version 1.0.14 introduces a Java API where it is harder to invoke the
+Scala classes directly from Java.
+These situations involve classes which have similar names (or have no Java equivalent).
+
+Here are the current API specifications:
+
+RationalJ:
+----------
+
+    def bigDecimalToRational(x: java.math.BigDecimal): Rational
+    def rationalToBigDecimal(r: Rational): java.math.BigDecimal
+    def bigIntegerToRational(x: BigInteger): Rational
+    def rationalToBigInteger(r: Rational): BigInteger
+    def longToRational(l: java.lang.Long): Rational
+    def rationalToLong(r: Rational): java.lang.Long
+    def doubleToRational(x: java.lang.Double): Rational
+    def rationalToDouble(r: Rational): java.lang.Double
+    def stringToRational(s: String): Rational
+
+NumberJ
+-------
+
+    def bigDecimalToNumber(x: java.math.BigDecimal): Number
+    def numberToBigDecimal(x: Number): java.math.BigDecimal
+    def bigIntegerToNumber(x: BigInteger): Number
+    def numberToBigInteger(x: Number): BigInteger
+    def longToNumber(l: java.lang.Long): Number
+    def numberToLong(x: Number): java.lang.Long
+    def doubleToNumber(x: java.lang.Double): Number
+    def stringToNumber(s: String): Number
+
+ExpressionJ
+-----------
+
+    def add(x: Expression, y: Expression): Expression
+    def multiply(x: Expression, y: Expression): Expression
 
 Parsing
 =======
@@ -194,7 +233,8 @@ See [Field](https://en.wikipedia.org/wiki/Field_(mathematics)).
 A field supports operations such as addition, subtraction, multiplication, and division.
 We also support powers because, at least for integer powers, raising to a power is simply iterating over a number of multiplications.
 
-The two types of _Field_ supported are _Number_ (see below) and _Complex_.
+The two types of _Field_ supported are _Real_ and _Complex_.
+_Real_ is a wrapper around a _Number_ (see below).
 
 Number
 ======
@@ -219,8 +259,12 @@ For this to happen, the value in question must have fewer than three decimal pla
 Complex
 =======
 There are two types of _Complex_: _ComplexCartesian_ and _ComplexPolar_.
-Complex numbers support all the Field operations, as well as _modulus_ and _complement_.
+Complex numbers support all the _Field_ operations, as well as _modulus_ and _conjugate_.
 It is easy to convert between the two types of _Complex_.
+
+The _ComplexPlanar_ object has an additional member (as well as the real and imaginary parts):
+the number of branches.
+For example, the square root of 2 should have two branches: ±√2.
 
 Factors
 =======
@@ -372,6 +416,12 @@ at zero is sufficiently high to consider the difference to be zero.
 If the probability is greater than 50% (the default--although there are method signatures that allow for different values),
 then we consider that the different is zero (method isZero) or that it has a signum of 0.
 
+Approximation
+=============
+The _Approximation_ object provides a method _solve_ which will implement the Newton-Raphson method of approximation
+and also Halley's method (if you need it).
+See Newton.sc for examples.
+
 Continued Fractions
 ===================
 
@@ -387,6 +437,7 @@ For example, the convergents for pi include with the familiar 22/7, 355/113, etc
 
 Versions
 ========
+* Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
 * Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
 * Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.

@@ -464,6 +464,13 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val result = target.scale(Scalar)
     result should ===(expected)
   }
+  it should "work for Root2s" in {
+    val target = Number(Rational.two, Root2)
+    target.render shouldBe "√2"
+    val expected = Number(math.sqrt(2), Scalar)
+    val result = target.scale(Scalar)
+    result should ===(expected)
+  }
   it should "work for Root3, Scalar" in {
     val target = Number(Rational.two, Root3)
     target.render shouldBe "³√2"

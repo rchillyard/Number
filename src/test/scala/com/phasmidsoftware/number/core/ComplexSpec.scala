@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.half
+import com.phasmidsoftware.number.core.Number.{half, zeroR}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -43,7 +43,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   /**
     * 1
     */
-  private val p1_0 = ComplexPolar(Number.one, Number.zero)
+  private val p1_0 = ComplexPolar(Number.one, Number.zeroR)
   /**
     * i
     */
@@ -51,7 +51,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   /**
     * e to the power of i
     */
-  private val p1_1 = ComplexPolar(Number.one, Number.one)
+  private val p1_1 = ComplexPolar(Number.one, ExactNumber(1, Radian))
 
   it should "real" in {
     c1_2.real shouldBe Number.one
@@ -140,11 +140,16 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "c1_2^1/2" in {
     val result: Field = c1_2 power half
     // result should be 1.27201965 + i0.786151378
-    result should matchPattern { case ComplexPolar(_, _) => }
+    result should matchPattern { case ComplexPolar(_, _, _) => }
     result match {
-      case c@ComplexPolar(_, _) => c.modulus.toDouble.get shouldBe 1.495348781221220 +- 1E-9
+      case c@ComplexPolar(_, _, _) => c.modulus.toDouble.get shouldBe 1.495348781221220 +- 1E-9
     }
     (result * result).compare(c1_2) shouldBe 0
+  }
+  it should "c2_0^1/2" in {
+    val result: Field = c2_0 power half
+    result should matchPattern { case ComplexPolar(_, _, 2) => }
+    (result * result).compare(c2_0) shouldBe 0
   }
 
   it should "p1_pi_2^1" in {
@@ -165,13 +170,19 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "p1_pi_2^-1" in {
     val z: Field = p1_pi_2 power -1
     (z * p1_pi_2).normalize shouldBe Number.one
-    z shouldBe p1_pi_2.conjugate
+    val normalized = z.normalize
+    normalized shouldBe p1_pi_2.conjugate
   }
 
   it should "p1_1^-1/2" in {
-    p1_1 power half shouldBe ComplexPolar(Number.one, Number.half)
+    // TODO this seems wrong. The imaginary part should be in Radians, surely.
+    p1_1 power half shouldBe ComplexPolar(Number.one, Number.piBy2, 2)
   }
 
+  it should "c2_0^1/3" in {
+    val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
+    cubeRootOfTwo shouldBe ComplexPolar(Number(2, Root3), Number.zeroR, 3)
+  }
 
   behavior of "other"
 
@@ -179,7 +190,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     c1_2.maybeFactor shouldBe Some(Scalar)
     ComplexCartesian(Number.one, Number.pi).maybeFactor shouldBe None
     p1_pi.maybeFactor shouldBe None
-    ComplexPolar(Number.one, Number.one).maybeFactor shouldBe Some(Scalar)
+    ComplexPolar(Number.one, Number.pi).maybeFactor shouldBe None
   }
 
   it should "modulus" in {
@@ -256,16 +267,28 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi_2.conjugate.render shouldBe "1e^i1.5\uD835\uDED1"
   }
   it should "work for iPi" in {
-    val target = Number.iPi
+    val target = Constants.iPi
     target.toString shouldBe "ComplexCartesian(0,\uD835\uDED1)"
   }
   it should "work for zero" in {
     p1_pi.add(Number.one).render shouldBe "0"
   }
+  it should "work for root 2 in c2_0^1/2" in {
+    val result: Field = c2_0 power half
+    result.render shouldBe "±√2"
+  }
+  it should "render c2_0^1/3" in {
+    val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
+    cubeRootOfTwo.render shouldBe "{³√2, ±³√2e^i2/3\uD835\uDED1}"
+  }
+  it should "render root2s" in {
+    val target = Constants.root2s
+    target.render shouldBe "±√2"
+  }
 
   behavior of "Number.asComplex"
   it should "work" in {
-    Number(2).asComplex shouldBe c2_0
+    Number(2).asComplex shouldBe ComplexPolar(2, zeroR, 1)
   }
 
   behavior of "numberProduct"
