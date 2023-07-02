@@ -1,16 +1,19 @@
 package com.phasmidsoftware.number.applications
 
 import com.phasmidsoftware.number.applications.Approximation.evaluateWithoutDerivative
-import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.{FuzzyEquality, Number}
 import org.scalatest.PrivateMethodTester
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Success, Try}
 
-class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMethodTester {
+class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMethodTester with FuzzyEquality {
 
   behavior of "Approximation"
 
+  /**
+    * NOTE you can find a discussion of the solution of this polynomial at [[https://en.wikipedia.org/wiki/Householder%27s_method#Example]].
+    */
   val newtonsPolynomial: Double => Double = x => x * x * x + 6 * x * x + 10 * x - 1
   val newtonsDerivative: Double => Double = x => 3 * x * x + 12 * x + 10
   val newtonsSecondDerivative: Double => Double = x => 6 * x + 12
@@ -20,12 +23,12 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
   val cosineSecondDerivative: Double => Double = x => -math.cos(x)
 
   it should "solve Newton's original problem" in {
-    val result = Approximation.solve(0.9,
+    val result = Approximation.solve(0.99,
       newtonsPolynomial,
       newtonsDerivative
-    )(Number.zero)
+    )(Number.ten.invert)
     result.isSuccess shouldBe true
-    println(result.get) // change to an assertEquals
+    result.get should ===(Number(0.0945514815423))
   }
 
   it should "solve cosine problem" in {
@@ -34,7 +37,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
       cosineDerivative
     )(Number.half)
     result.isSuccess shouldBe true
-    println(result.get) // change to an assertEquals
+    result.get should ===(Number(0.73908513321516))
   }
 
   it should "solve cosine problem using Halley's method" in {
@@ -44,11 +47,21 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
       cosineSecondDerivative
     )(Number.half)
     result.isSuccess shouldBe true
-    println(result.get) // change to an assertEquals
+    result.get should ===(Number(0.73908513321516))
   }
 
-  // FIXME #74
-  ignore should "solve Newton's original problem using Halley's method" in {
+  // NOTE: the iteration values are not exactly the same as in Wikipedia
+  it should "solve Newton's original problem using Halley's method" in {
+    val result = Approximation.solve(0.9,
+      newtonsPolynomial,
+      newtonsDerivative,
+      newtonsSecondDerivative,
+    )(Number.ten.invert)
+    result.isSuccess shouldBe true
+    result.get should ===(Number(0.09455148154))
+  }
+
+  it should "solve Wikipedia example using Halley's method" in {
     val result = Approximation.solve(0.1,
       newtonsPolynomial,
       newtonsDerivative,
@@ -114,10 +127,10 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val py = evaluateWithoutDerivative(newtonsPolynomial)(x) // x^3 + 6x^2 + 10x - 1
     val qy = evaluateWithoutDerivative(newtonsDerivative)(x) // 3x^2 + 12x + 10
     val ry = for (p <- py; q <- qy) yield p divide q
-    val cy: Try[Number] = Approximation invokePrivate z(ry.get, qy.get, x, Seq(newtonsPolynomial, newtonsDerivative, newtonsSecondDerivative))
+    val cy: Try[Number] = Approximation invokePrivate z(py.get, qy.get, x, -ry.get, Seq(newtonsPolynomial, newtonsDerivative, newtonsSecondDerivative))
     cy.isSuccess shouldBe true
     cy.get.toDouble.isDefined shouldBe true
-    cy.get.toDouble.get shouldBe -0.001024882810531 +- 1E-7
+    cy.get.toDouble.get shouldBe -0.00544848 +- 1E-7
   }
 
   it should "do correction for cosine problem" in {
@@ -127,10 +140,10 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val py = evaluateWithoutDerivative(cosineFunction)(x) // cos(x) - x
     val qy = evaluateWithoutDerivative(cosineDerivative)(x) // -sin(x) - 1
     val ry = for (p <- py; q <- qy) yield p divide q
-    val cy: Try[Number] = Approximation invokePrivate z(ry.get, qy.get, x, Seq(cosineFunction, cosineDerivative, cosineSecondDerivative))
+    val cy: Try[Number] = Approximation invokePrivate z(py.get, qy.get, x, -ry.get, Seq(cosineFunction, cosineDerivative, cosineSecondDerivative))
     cy.isSuccess shouldBe true
     cy.get.toDouble.isDefined shouldBe true
-    cy.get.toDouble.get shouldBe -0.177386686 +- 1E-7
+    cy.get.toDouble.get shouldBe 0.23726217439 +- 1E-7
   }
 
 }

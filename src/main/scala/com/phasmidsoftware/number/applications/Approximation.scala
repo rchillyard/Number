@@ -2,10 +2,9 @@ package com.phasmidsoftware.number.applications
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
-import com.phasmidsoftware.number.core.Number.createFromDouble
-import com.phasmidsoftware.number.core.{Field, Number}
+import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.Number.{createFromDouble, negate}
 import scala.annotation.tailrec
-import scala.math.Fractional.Implicits.infixFractionalOps
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -29,11 +28,11 @@ object Approximation {
       val dfByDx = functions(1)
       for {
         p <- evaluate(f, dfByDx)(x)
-//        _ = println(s"iterate: x=$x; f(x)=$p")
         q <- evaluateWithoutDerivative(dfByDx)(x)
-        r = p.divide(q)
-        s <- correction(r, q, x, functions)
-        t = x.doSubtract(convertToNumber(s))
+        r = negate(convertToNumber(p.divide(q)))
+        s <- correction(p, q, x, r, functions)
+//        _ = println(s"iterate: x=$x; f(x)=$p; delta=$s")
+        t = x.doAdd(convertToNumber(s))
       } yield t
   }
 
@@ -108,21 +107,21 @@ object Approximation {
     * This method evaluates the correction for higher derivatives.
     * NOTE only the Halley version is currently implemented (where n = 3).
     *
-    * @param r the ratio of f(x) to f'(x).
-    * @param q the value of f'(x).
-    * @param x the value of x.
-    * @param f the list of derivative functions: f, f', f&#39;&#39;, etc.
+    * @param f     the value of f(x).
+    * @param fDash the value of f'(x).
+    * @param x     the value of x.
+    * @param h     the negative of the ratio of f(x) to f'(x), i.e. the correction according to Newton's method.
+    * @param fs    the list of derivative functions: f, f', f&#39;&#39;, etc. (the first two are ignored here).
     * @return the correction term.
     */
-  private def correction(r: Field, q: Field, x: Number, f: Seq[Double => Double]): Try[Number] = f.length match {
+  private def correction(f: Number, fDash: Number, x: Number, h: Number, fs: Seq[Double => Double]) = fs.length match {
     case n if n < 3 =>
-      Success(convertToNumber(r))
+      Success(h)
     case 3 => // Halley's method
       for {
-        y <- evaluateWithoutDerivative(f(2))(x)
-        z = y divide (r * Number.two)
-        w = r.divide(Number.one - convertToNumber(r * convertToNumber(z)))
-      } yield convertToNumber(w)
+        fDashDash <- evaluateWithoutDerivative(fs(2))(x)
+        correction = fDashDash divide fDash multiply h divide Number.two add Number.one
+      } yield convertToNumber(h / correction)
     case n =>
       Failure(com.phasmidsoftware.number.core.NumberException(s"Approximation.iterate: does not implement correction with $n functions"))
   }

@@ -15,9 +15,7 @@ Approximation.solve(0.9, newtonsPolynomial, newtonsDerivative)(Number.zero)
   * This is a demonstration of Newton's method of approximation to discover the value of x such that:
   * x = cos(x).
   * The value should be 0.7390851332151607(27) if we use Newton,
-  * or 0.73908513321509(78) if we use Halley.
-  *
-  * NOTE: these results should be the same of course, but there is currently a problem with Halley's method.
+  * or 0.7390851332151607(12) if we use Halley.
   *
   * Here, we use Halley's method (which includes the second derivative).
   */

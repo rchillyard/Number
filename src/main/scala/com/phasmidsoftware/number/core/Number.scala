@@ -606,6 +606,10 @@ object Number {
     */
   val half: Number = Number(Rational.half)
   /**
+    * Exact value of 10
+    */
+  val ten: Number = Number(Rational.ten)
+  /**
     * Exact value of pi
     */
   val pi: Number = Number(1, Radian)

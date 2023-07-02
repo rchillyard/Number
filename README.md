@@ -418,7 +418,8 @@ then we consider that the different is zero (method isZero) or that it has a sig
 
 Approximation
 =============
-The _Approximation_ object provides a method _solve_ which will implement the Newton-Raphson method of approximation.
+The _Approximation_ object provides a method _solve_ which will implement the Newton-Raphson method of approximation
+and also Halley's method (if you need it).
 See Newton.sc for examples.
 
 Continued Fractions
