@@ -535,6 +535,13 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def maybeDouble: Option[Double] = Value.maybeDouble(value)
 
   /**
+    * Method to return this ExactNumber as a Real.
+    *
+    * @return Some(Real(this)).
+    */
+  def asReal: Option[Real] = Some(Real(this))
+
+  /**
     * An optional Int that corresponds to the value of this Number (but ignoring the factor).
     */
   private lazy val maybeInt: Option[Int] = Value.maybeInt(value)

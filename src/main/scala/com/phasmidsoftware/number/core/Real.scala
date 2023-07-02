@@ -4,6 +4,13 @@ import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.Real.createFromNumberField
 
+/**
+  * Sub-class of Field: as opposed to Complex.
+  *
+  * TODO remove (direct) Number references and replace with Real.
+  *
+  * @param x a Number which represents the value of this Real.
+  */
 case class Real(x: Number) extends Field {
     /**
       * Method to determine if this Real has infinite magnitude.
@@ -57,8 +64,6 @@ case class Real(x: Number) extends Field {
       * Change the sign of this Real.
       */
     def unary_- : Field = createFromNumberField(-x)
-
-    def power(p: Int): Field = power(Real(p))
 
     /**
       * Raise this Real to the power p.
@@ -168,6 +173,19 @@ case class Real(x: Number) extends Field {
       */
     def asNumber: Option[Number] = Some(x)
 
+    /**
+      * Method to return this Real as an Option[Real]..
+      *
+      * @return Some(this).
+      */
+    def asReal: Option[Real] = Some(this)
+
+    /**
+      * Method to return this Real as a Complex.
+      * If this is a Real number x, return ComplexPolar(x) otherwise, return this.
+      *
+      * @return a Complex.
+      */
     def asComplex: Complex = ComplexPolar(x)
 
     /**
@@ -187,12 +205,22 @@ object Real {
 
     def apply(d: Double): Real = Real(Number(d))
 
-    val one: Real = Real(1)
     val zero: Real = Real(0)
-    val pi: Real = Real(Number.pi)
-    val e: Real = Real(Number.e)
+    val one: Real = Real(1)
     val two: Real = Real(2)
     val three: Real = Real(3)
+    val ten: Real = Real(10)
+    val pi: Real = Real(Constants.pi)
+    val e: Real = Real(Constants.e)
+    lazy val phi: Real = Real(Constants.phi)
+    lazy val gamma: Real = Real(Constants.gamma)
+    lazy val G: Real = Real(Constants.G)
+    lazy val alpha: Real = Real(Constants.alpha)
+    lazy val avagadro: Real = Real(Constants.avagadro)
+    lazy val boltzmann: Real = Real(Constants.boltzmann)
+    lazy val planck: Real = Real(Constants.planck)
+    lazy val c: Real = Real(Constants.c)
+    lazy val mu: Real = Real(Constants.mu)
 
     def createFromNumberField(x: Field): Real = x match {
         case n: Number => Real(n)

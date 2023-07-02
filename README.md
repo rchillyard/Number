@@ -437,6 +437,7 @@ For example, the convergents for pi include with the familiar 22/7, 355/113, etc
 
 Versions
 ========
+* Version 1.0.15: 
 * Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
 * Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.

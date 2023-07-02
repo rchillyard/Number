@@ -265,14 +265,6 @@ trait Number extends Fuzz[Double] with Field {
   }
 
   /**
-    * Raise this Number to the power p.
-    *
-    * @param p an Int.
-    * @return this Number raised to power p.
-    */
-  def power(p: Int): Field = power(Number(p))
-
-  /**
     * Yields the inverse of this Number.
     * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
     * factors.

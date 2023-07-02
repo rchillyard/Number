@@ -152,7 +152,6 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
       }
       sb.toString
   }
-
 }
 
 object ExactNumber {

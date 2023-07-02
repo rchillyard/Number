@@ -86,6 +86,18 @@ trait Field extends NumberLike with Ordered[Field] {
   /**
     * Raise this Field to the power p.
     *
+    * @param p an Int.
+    * @return this Field raised to power p.
+    */
+  def power(p: Int): Field = p match {
+    case 0 => Number.one
+    case 1 => this
+    case _ => power(Number(p))
+  }
+
+  /**
+    * Raise this Field to the power p.
+    *
     * @param p a Field.
     * @return this Field raised to power p.
     */
@@ -112,6 +124,14 @@ trait Field extends NumberLike with Ordered[Field] {
     * @return a Complex.
     */
   def asComplex: Complex
+
+  /**
+    * Method to return this Field as a Real, if possible.
+    * If this is a Real number x, return Some(x) otherwise, return None.
+    *
+    * @return an Option[Real].
+    */
+  def asReal: Option[Real]
 }
 
 object Field {
