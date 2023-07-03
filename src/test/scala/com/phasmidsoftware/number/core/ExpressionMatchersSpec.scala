@@ -340,28 +340,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "biFunctionMatcher"
-  // FIXME Issue #57
-  ignore should "properly simplify 1 + root3 - root3 + 0" in {
-    val p = em.biFunctionMatcher
-    val z: Expression = Literal(3).sqrt
-    val x = z plus -z + Zero
-    import em.TildeOps
-    val r = p(Sum ~ One ~ x)
-    r.successful shouldBe true
-    r.get shouldBe One
-  }
-  // FIXME Issue #57
-  ignore should "properly simplify (1 + root3) + (zero - root3)" in {
-    val p = em.biFunctionMatcher
-    val root3 = Number(3).sqrt
-    val x: Expression = One + root3
-    val z = Zero - root3
-    import em.TildeOps
-    val expression: DyadicTriple = Sum ~ x ~ z
-    val r = p(expression)
-    r should matchPattern { case em.Match(_) => }
-    r.get shouldBe One
-  }
   it should "simplify (1+2)*(2+1)" in {
     val p = em.biFunctionMatcher
     val a = BiFunction(One, Two, Sum)
@@ -376,17 +354,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = z * z.reciprocal * Number(3)
     import em.TildeOps
     val r = p(Product ~ One ~ x)
-    r should matchPattern { case em.Match(_) => }
-    r.get shouldBe Literal(3)
-  }
-  // FIXME Issue #57
-  ignore should "properly simplify (1 * root3) * (3 / root3)" in {
-    val p = em.biFunctionMatcher
-    val root3 = Literal(3).sqrt
-    val x: Expression = One * root3
-    val z = Literal(3) * root3.reciprocal
-    import em.TildeOps
-    val r = p(Product ~ x ~ z)
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe Literal(3)
   }
@@ -440,6 +407,24 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = p(Product ~ a ~ b)
     z shouldBe em.Match(Literal(10.5))
   }
+  it should "distributeProductPower on root(3) * root(3)" in {
+    val p = em.biFunctionMatcher
+    val x = Expression(3).sqrt
+    import em.TildeOps
+    val q: em.MatchResult[Expression] = p(Product ~ x ~ x)
+    q should matchPattern { case em.Match(_) => }
+    q.get.materialize shouldBe Number(3)
+  }
+  it should "gather powers of 2 and * 1/2" in {
+    val x: Expression = Literal(7)
+    val y = x.sqrt
+    val z = y ^ 2
+    em.biFunctionSimplifier(z) shouldBe em.Match(Literal(7))
+  }
+
+  // The following behaviors are all problematic.
+  behavior of "problematic biFunctionMatcher"
+
   // NOTE This expression won't simplify because it is inexact (and distribution doesn't reduce the depth).
   ignore should "distributeProductSum c" in {
     val p = em.biFunctionMatcher
@@ -452,7 +437,44 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val eo = Expression.parse("( ( 3.00* + 0.5 ) + ( 2.00* * ( 3.00* + 0.5 ) ) )")
     eo map (z shouldBe em.Match(_)) orElse fail("could not parse expression")
   }
-  // FIXME Issue #55
+
+  // FIXME Issue #57
+  ignore should "properly simplify 1 + root3 - root3 + 0" in {
+    val p = em.biFunctionMatcher
+    val z: Expression = Literal(3).sqrt
+    val x = z plus -z + Zero
+    import em.TildeOps
+    val r = p(Sum ~ One ~ x)
+    r.successful shouldBe true
+    r.get shouldBe One
+  }
+
+  // FIXME Issue #57
+  ignore should "properly simplify (1 + root3) + (zero - root3)" in {
+    val p = em.biFunctionMatcher
+    val root3 = Number(3).sqrt
+    val x: Expression = One + root3
+    val z = Zero - root3
+    import em.TildeOps
+    val expression: DyadicTriple = Sum ~ x ~ z
+    val r = p(expression)
+    r should matchPattern { case em.Match(_) => }
+    r.get shouldBe One
+  }
+
+  // FIXME Issue #57
+  ignore should "properly simplify (1 * root3) * (3 / root3)" in {
+    val p = em.biFunctionMatcher
+    val root3 = Literal(3).sqrt
+    val x: Expression = One * root3
+    val z = Literal(3) * root3.reciprocal
+    import em.TildeOps
+    val r = p(Product ~ x ~ z)
+    r should matchPattern { case em.Match(_) => }
+    r.get shouldBe Literal(3)
+  }
+
+  // FIXME Issue #57
   ignore should "simplify 2 root(3) all squared" in {
     val p = em.biFunctionMatcher
     val x = Expression(3).sqrt
@@ -461,14 +483,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = p(Power ~ a ~ Two)
     z shouldBe em.Match(Literal(12))
   }
-  it should "distributeProductPower on root(3) * root(3)" in {
-    val p = em.biFunctionMatcher
-    val x = Expression(3).sqrt
-    import em.TildeOps
-    val q: em.MatchResult[Expression] = p(Product ~ x ~ x)
-    q should matchPattern { case em.Match(_) => }
-    q.get.materialize shouldBe Number(3)
-  }
+
   // FIXME Issue #57
   ignore should "work" in {
     val xo = Expression.parse("( 3 ^ ( 2 ^ -1 ) )")
@@ -477,13 +492,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     zo should matchPattern { case Some(_) => }
     zo.get shouldBe BiFunction(Literal(3), Literal(-1), Product)
   }
-  it should "gather powers of 2 and * 1/2" in {
-    val x: Expression = Literal(7)
-    val y = x.sqrt
-    val z = y ^ 2
-    em.biFunctionSimplifier(z) shouldBe em.Match(Literal(7))
-  }
-
 
   behavior of "value with logging"
   it should "work with value on Literal" in {

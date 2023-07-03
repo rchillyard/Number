@@ -24,12 +24,6 @@ import scala.collection.mutable
   */
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
 
-  // WARNING do not commit
-//  val wiggle: Double = fuzz.map(_.wiggle(0.5)).getOrElse(0)
-//  if (wiggle > 1E-6) {
-//    println(s"lots of fuzz: $value, $factor, $fuzz")
-//  }
-
   /**
     * Method to force the fuzziness of this FuzzyNumber to be absolute.
     *
@@ -248,7 +242,61 @@ object FuzzyNumber {
     if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
     else GeneralNumber.plus(x, Number.negate(y)).signum(p)
 
+  /**
+    * Method to construct an invalid Number.
+    *
+    * @return Number.apply()
+    */
   def apply(): Number = Number.apply()
+
+  /**
+    * Method to add a FuzzyNumber and a (general) Number.
+    *
+    * @param x a FuzzyNumber.
+    * @param y a Number.
+    * @return the sum of x and y.
+    */
+  def plus(x: FuzzyNumber, y: Number): Number = x.alignFactors(y) match {
+    case (a: GeneralNumber, b: GeneralNumber) =>
+      val (p, q) = a.alignTypes(b)
+      (p, q) match {
+        case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
+        case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
+        case (_, _) => p doAdd q
+      }
+  }
+
+  /**
+    * Method to multiply two Numbers, the first a GeneralNumber.
+    *
+    * CONSIDER why do we have this as well as the times method in GeneralNumber?
+    * Perhaps the type of x should be FuzzyNumber.
+    *
+    * @param x a GeneralNumber.
+    * @param y a Number.
+    * @return the product of x and y.
+    */
+  def times(x: GeneralNumber, y: Number): Number = x.alignFactors(y) match {
+    case (a: GeneralNumber, b: GeneralNumber) =>
+      val (p, q) = a.alignTypes(b)
+      (p, q) match {
+        case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
+        case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
+        case (_, _) => p doMultiply q
+      }
+  }
+
+  /**
+    * Method to add fuzz to a FuzzyNumber.
+    *
+    * @param n the Number to be fuzzied.
+    * @param f the fuzziness to be added.
+    * @return a fuzzied version of n.
+    */
+  def addFuzz(n: Number, f: Fuzziness[Double]): Number = (n.value, n.fuzz) match {
+    case (v@Left(Left(Some(_))), fo) => addFuzz(n, v, fo, f)
+    case _ => n
+  }
 
   private def power(number: FuzzyNumber, p: Number): Number =
     composeDyadic(number.scale(Scalar), p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
@@ -273,31 +321,6 @@ object FuzzyNumber {
     * @return true if x is within the tolerance range of f, given confidence level p. Otherwise, false
     */
   private def withinWiggleRoom(p: Double, f: Fuzziness[Double], x: Double) = f.normalizeShape.wiggle(p) > math.abs(x)
-
-  def plus(x: FuzzyNumber, y: Number): Number = x.alignFactors(y) match {
-    case (a: GeneralNumber, b: GeneralNumber) =>
-      val (p, q) = a.alignTypes(b)
-      (p, q) match {
-        case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
-        case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
-        case (_, _) => p doAdd q
-      }
-  }
-
-  def times(x: GeneralNumber, y: Number): Number = x.alignFactors(y) match {
-    case (a: GeneralNumber, b: GeneralNumber) =>
-      val (p, q) = a.alignTypes(b)
-      (p, q) match {
-        case (n: FuzzyNumber, _) => composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
-        case (_, n: FuzzyNumber) => composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
-        case (_, _) => p doMultiply q
-      }
-  }
-
-  def addFuzz(n: Number, f: Fuzziness[Double]): Number = (n.value, n.fuzz) match {
-    case (v@Left(Left(Some(_))), fo) => addFuzz(n, v, fo, f)
-    case _ => n
-  }
 
   private def addFuzz(number: Number, v: Value, fo: Option[Fuzziness[Double]], fAdditional: Fuzziness[Double]) = {
     val combinedFuzz = for (f <- fo.orElse(Some(AbsoluteFuzz(0.0, Box))); p <- number.toDouble; g <- Fuzziness.combine(p, 0, f.style, independent = false)((fo, fAdditional.normalize(p, f.style)))) yield g

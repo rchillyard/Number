@@ -100,7 +100,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
-    * TEST me
+    * TESTME
     *
     * @param v  the value (a Double).
     * @param f  Factor.
@@ -117,7 +117,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
     * the result will be zero.
     *
-    * TEST me
+    * TESTME
     *
     * @param p the confidence desired (ignored).
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
@@ -125,8 +125,11 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def signum(p: Double): Int = signum
 
   /**
-    * @param p the confidence desired. Ignored if isZero is true.
-    * @return true if this Number is equivalent to zero with at least p confidence.
+    * Method to determine if this Number is probably zero.
+    * It is used particularly when comparing two Numbers to see if they are the same.
+    *
+    * @param p the confidence desired. Ignored.
+    * @return true if this Number is zero.
     */
   def isProbablyZero(p: Double): Boolean = isZero
 

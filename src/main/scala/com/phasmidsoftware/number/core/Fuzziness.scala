@@ -687,6 +687,8 @@ trait Valuable[T] extends Fractional[T] {
     *
     * This is essentially the inverse of the scale method.
     *
+    * TESTME
+    *
     * @param t1 a T value.
     * @param t2 a T value.
     * @return t1/t2 as a Double.
@@ -706,6 +708,8 @@ trait Valuable[T] extends Fractional[T] {
 
   /**
     * Method to divide a U by a V, resulting in a T.
+    *
+    * TESTME
     *
     * @param u a value of U.
     * @param v a value of V.
