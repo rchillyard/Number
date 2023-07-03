@@ -4,8 +4,6 @@ import com.phasmidsoftware.number.core.Primes.piApprox
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-import scala.language.postfixOps
-
 class PrimesSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Prime"
@@ -62,7 +60,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.primeFactors(23) shouldBe Seq(23).map(Prime(_))
     Prime.primeFactors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
     Prime.primeFactors(70906) shouldBe Seq(2, 11, 11, 293).map(Prime(_))
-    Prime.primeFactors(7894609062L) shouldBe Seq(2, 11411, 3, 67, 1721).map(Prime(_))
+    Prime.primeFactors(7894609062L).sorted shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
   }
 
   it should "implement primeFactorMultiplicity" in {
@@ -139,11 +137,11 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "validate" in {
-    (Prime(2) validate) shouldBe true
-    (Prime(4) validate) shouldBe false
-    (p7 validate) shouldBe true
-    (Prime(120) validate) shouldBe false
-    (Prime(7919) validate) shouldBe true
+    (Prime(2).validated) shouldBe true
+    (Prime(4).validated) shouldBe false
+    (p7.validated) shouldBe true
+    (Prime(120).validated) shouldBe false
+    (Prime(7919).validated) shouldBe true
   }
 
   it should "next" in {
@@ -200,13 +198,13 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "create Mersenne prime" in {
-    Prime.createMersennePrime(0) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(1) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(2) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(3) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(4) map (_.validate) shouldBe None
-    Prime.createMersennePrime(5) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(6) map (_.validate) shouldBe Some(true)
+    Prime.createMersennePrime(0) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(1) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(2) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(3) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(4) map (_.validated) shouldBe None
+    Prime.createMersennePrime(5) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(6) map (_.validated) shouldBe Some(true)
 //    Prime.createMersennePrime(7) map (_.validate) shouldBe Some(true)
   }
 

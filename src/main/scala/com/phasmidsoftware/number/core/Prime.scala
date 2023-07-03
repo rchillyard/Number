@@ -17,9 +17,11 @@ import scala.util.{Failure, Random, Try}
   *
   * NOTE: just because we have an instance of Prime does not mean that it is a prime number.
   *
+  * NOTE: Prime is no longer an AnyVal because we want to have lazy val validated.
+  *
   * @param n the value of the (possible) prime number (should be greater than zero, although this is not checked)
   */
-case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
+case class Prime(n: BigInt) extends Ordered[Prime] {
 
   /**
     * Method to evaluate Euler's Totient function for this Prime raised to power r.
@@ -125,14 +127,10 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
   }
 
   /**
-    * Validate whether this number really is prime.
-    *
-    * NOTE: This is a very expensive operation as it essentially performs an E-sieve on the given prime.
-    *
-    * @return true if this number is prime.
+    * True if this is a valid prime number,
+    * As this is a lazy val, it will only be evaluated at most once and, often, not at all.
     */
-  @unused
-  def validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
+  lazy val validated = validate
 
   /**
     * Get the remainder from the division x/n.
@@ -232,6 +230,16 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
     * @return true or false.
     */
   def isCoprimeTo(x: BigInt): Boolean = coprime(x, n)
+
+  /**
+    * Validate whether this number really is prime.
+    *
+    * NOTE: This is a very expensive operation as it essentially performs an E-sieve on the given prime.
+    *
+    * @return true if this number is prime.
+    */
+  @unused
+  private def validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
 
   /**
     * Return a Boolean which is true if a.pow(c/q) != 1 mod n for all q where q is a prime factor of c.
@@ -530,10 +538,9 @@ object Prime {
   }
 
   /**
-    * Function to lift a Prime to an Option[Prime] whose values depends on the result of invoking isProbablePrime
-    * and, if the number of bits is below some threshold, we check that it is a real prime.
+    * Function to lift a Prime to an Option[Prime] whose values depends on the result of checking validated.
     */
-  private val optionalPrime: Prime => Option[Prime] = FP.optional[Prime](_.isProbablePrime)
+  private val optionalPrime: Prime => Option[Prime] = FP.optional[Prime](_.validated)
 }
 
 object Primes {
