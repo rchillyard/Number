@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 
 import com.phasmidsoftware.number.core.Divides.IntDivides
+import com.phasmidsoftware.number.core.FP.readFromResource
 import com.phasmidsoftware.number.core.Prime.coprime
 import com.phasmidsoftware.number.core.Primes._
 import com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time
@@ -130,7 +131,7 @@ case class Prime(n: BigInt) extends Ordered[Prime] {
     * True if this is a valid prime number,
     * As this is a lazy val, it will only be evaluated at most once and, often, not at all.
     */
-  lazy val validated = validate
+  lazy val validated: Boolean = validate
 
   /**
     * Get the remainder from the division x/n.
@@ -331,6 +332,23 @@ object Prime {
   }
 
   /**
+    * Method to determine how many prime numbers there are which are less than x.
+    *
+    * @param x a BigInt.
+    * @return the number of primes that are less than x.
+    */
+  def primeCountingFunction(x: BigInt): Int = LazyList.from(1).map(BigInt(_)).takeWhile(_ < x).count(_.isProbablePrime(30))
+
+
+  /**
+    * Method to determine how many prime numbers there are which are less than x.
+    *
+    * @param x a BigInt.
+    * @return the number of primes that are less than x.
+    */
+  def primeCountingFunctionExact(x: BigInt): Int = LazyList.from(1).map(Prime(_)).takeWhile(_.n < x).count(_.validate)
+
+  /**
     * Get the multiplicativeInverse for a BigInt (a) modulus n.
     *
     * NOTE: if is assumed that n is not a prime number. Assuming that n is coprime to a, then we return a.modPow(totient(n)-1), otherwise a.modInverse(n).
@@ -507,11 +525,19 @@ object Prime {
     * @return true if n is a Carmichael Number.
     */
   def isCarmichaelNumber(n: BigInt): Boolean =
-    carmichael.contains(n) || !isSmallPrime(n) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
+    carmichael.contains(n) || carmichaelFile.contains(n) || !isSmallPrime(n) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
+
+  /**
+    * If necessary, we do a look up in the first 10,000 Carmichael numbers.
+    *
+    * TODO determine whether this is faster or slower than checking the rest of the conditions for isCarmichaelNumber.
+    */
+  private lazy val carmichaelFile: Seq[BigInt] =
+    readFromResource("/carmichael.txt", wa => wa.lastOption).getOrElse(Nil)
 
   private def carmichaelTheoremApplies(n: BigInt) = {
     val factors: Map[Prime, Int] = primeFactorMultiplicity(n)
-    val tests = for ((p, r) <- factors) yield r == 1 && (n - 1) % (p.n - 1) == 0
+    val tests: Iterable[Boolean] = for ((p, r) <- factors) yield r == 1 && (n - 1) % (p.n - 1) == 0
     factors.size > 2 && tests.forall(p => p)
   }
 
@@ -544,8 +570,6 @@ object Prime {
 }
 
 object Primes {
-
-  val MAX_VALIDATION_BITS: Int = 20
 
   /**
     * Method to yield the "prime counting function" aka "piApprox" for a given number.
