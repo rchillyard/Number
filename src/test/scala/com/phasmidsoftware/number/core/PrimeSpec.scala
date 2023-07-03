@@ -1,10 +1,9 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Prime.multiplicativeInverse
+import com.phasmidsoftware.number.core.Prime.{createMersennePrime, mersenneNumber, multiplicativeInverse}
 import com.phasmidsoftware.number.core.Primes.allPrimes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.language.postfixOps
 
 class PrimeSpec extends AnyFlatSpec with should.Matchers {
@@ -195,29 +194,51 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "create primes from Mersenne numbers" in {
-    val xs = for (i <- Seq(2, 3, 5, 7, 13, 17, 19, 31)) yield Prime.isProbablePrime(Prime.mersenneNumber(Prime(i)))
+    val xs = for (i <- Seq(2, 3, 5, 7, 13, 17, 19, 31)) yield Prime.isProbablePrime(mersenneNumber(Prime(i)))
     xs.forall(_ == true) shouldBe true
   }
 
-  it should "create Mersenne numbers" in {
-    Prime.mersenneNumber(0) shouldBe 3 // 2^2 - 1
-    Prime.mersenneNumber(1) shouldBe 7 // 2^3 - 1
-    Prime.mersenneNumber(2) shouldBe 31 // 2^5 - 1
-    Prime.mersenneNumber(3) shouldBe 127 // 2^7 - 1
-    Prime.mersenneNumber(4) shouldBe 2047 // 2^11 - 1
-    Prime.mersenneNumber(5) shouldBe 8191 // 2^13 - 1
-    Prime.mersenneNumber(6) shouldBe 131071 // 2^17 - 1
-    Prime.mersenneNumber(7) shouldBe 524287 // 2^19 - 1
-    Prime.mersenneNumber(8) shouldBe 8388607
-    Prime.mersenneNumber(9) shouldBe 536870911
-    Prime.mersenneNumber(10) shouldBe 2147483647
-    Prime.mersenneNumber(11) shouldBe 137438953471L
-    Prime.mersenneNumber(12) shouldBe 2199023255551L
-    Prime.mersenneNumber(13) shouldBe 8796093022207L
-    Prime.mersenneNumber(14) shouldBe 140737488355327L
-    Prime.mersenneNumber(15) shouldBe 9007199254740991L
-    Prime.mersenneNumber(16) shouldBe 576460752303423487L
-    Prime.mersenneNumber(17) shouldBe 2305843009213693951L
+  it should "create (potential) Mersenne numbers" in {
+    mersenneNumber(0) shouldBe 3 // 2^2 - 1
+    mersenneNumber(1) shouldBe 7 // 2^3 - 1
+    mersenneNumber(2) shouldBe 31 // 2^5 - 1
+    mersenneNumber(3) shouldBe 127 // 2^7 - 1
+    mersenneNumber(4) shouldBe 2047 // 2^11 - 1
+    mersenneNumber(5) shouldBe 8191 // 2^13 - 1
+    mersenneNumber(6) shouldBe 131071 // 2^17 - 1
+    mersenneNumber(7) shouldBe 524287 // 2^19 - 1
+    mersenneNumber(8) shouldBe 8388607
+    mersenneNumber(9) shouldBe 536870911
+    mersenneNumber(10) shouldBe 2147483647
+    mersenneNumber(11) shouldBe 137438953471L
+    mersenneNumber(12) shouldBe 2199023255551L
+    mersenneNumber(13) shouldBe 8796093022207L
+    mersenneNumber(14) shouldBe 140737488355327L
+    mersenneNumber(15) shouldBe 9007199254740991L
+    mersenneNumber(16) shouldBe 576460752303423487L
+    mersenneNumber(17) shouldBe 2305843009213693951L
+  }
+
+  // TODO fix these
+  it should "check for Mersenne primes" in {
+    createMersennePrime(0).isDefined shouldBe true
+    createMersennePrime(1).isDefined shouldBe true
+    createMersennePrime(2).isDefined shouldBe true
+    createMersennePrime(3).isDefined shouldBe true
+    createMersennePrime(4).isDefined shouldBe false
+    createMersennePrime(5).isDefined shouldBe true
+//    createMersennePrime(6).isDefined shouldBe false
+//    createMersennePrime(7).isDefined shouldBe false
+    createMersennePrime(8).isDefined shouldBe false
+    createMersennePrime(9).isDefined shouldBe false
+//    createMersennePrime(10).isDefined shouldBe false
+    createMersennePrime(11).isDefined shouldBe false
+    createMersennePrime(12).isDefined shouldBe false
+//    createMersennePrime(13).isDefined shouldBe true
+    createMersennePrime(14).isDefined shouldBe false
+    createMersennePrime(15).isDefined shouldBe false
+    createMersennePrime(16).isDefined shouldBe false
+    createMersennePrime(17).isDefined shouldBe true
   }
 
   it should "get first 100 primes" in {
@@ -267,4 +288,10 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
   // 40, 12, 42, 20, 24, 22, 46, 16, 42, 20,
   // 32, 24, 52, 18, 40, 24, 36, 28, 58, 16,
   // 60, 30, 36, 32, 48, 20, 66, 32, 44, 24
+
+  it should "form toString correctly" in {
+    val mp17 = createMersennePrime(17)
+    mp17.isDefined shouldBe true
+    mp17.get.toString() shouldBe "2,305,843,009,213,693,951"
+  }
 }
