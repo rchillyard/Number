@@ -97,6 +97,16 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.isExact(None) shouldBe true
   }
 
+  behavior of "asReal"
+
+  it should "work for real" in {
+    val x = Real.one
+    x.asReal shouldBe Some(Real.one)
+  }
+  it should "work for number" in {
+    val x = Number.one
+    x.asReal shouldBe Some(Real.one)
+  }
 
   behavior of "plus"
   it should "add 1 and 2" in {

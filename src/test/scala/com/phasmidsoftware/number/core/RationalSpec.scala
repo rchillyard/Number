@@ -3,7 +3,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen}
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
-
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -72,6 +71,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val b: Int = -113
     val r = Rational(a, b)
     Rational.hasCorrectRatio(r, a, b) shouldBe true
+  }
+  it should "work for -355 (2)" in {
+    val a: Rational = Rational(BigInt(355), negative = true)
+    a shouldBe Rational(-355L)
   }
 
   behavior of "apply(Long,Long)"
@@ -244,6 +247,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = r1 + r2
     Rational.hasCorrectRatio(r, BigInt("18050442446843353054"), 1L) shouldBe true
   }
+  it should "add 0 to large number (2)" in {
+    val r1 = Rational(0)
+    val r2 = BigInt("18050442446843353054")
+    val r = r1 + r2
+    Rational.hasCorrectRatio(r, BigInt("18050442446843353054"), 1L) shouldBe true
+  }
   it should "add 1 to large number" in {
     val r1 = Rational(1)
     val r2 = Rational(BigInt("18050442446843353054"), 2)
@@ -255,6 +264,39 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r2 = Rational(BigInt("816512980"), -1)
     val r = r1 + r2
     Rational.hasCorrectRatio(r, 816512980 - BigInt("-9223372036854775808"), -1) shouldBe true
+  }
+
+  behavior of "*"
+  it should "return 4 for 2*2" in {
+    val r1 = Rational(2)
+    val r2 = Rational(2)
+    val r = r1 * r2
+    r shouldBe Rational(4, 1)
+  }
+  it should "return result for 0 * -236274181" in {
+    val n1 = BigInt(0)
+    val d1 = -1L
+    val n2 = BigInt(-2362741811L)
+    val d2 = 1L
+    val r = Rational(n1, d1) * Rational(n2, d2)
+    r shouldBe Rational.zero
+  }
+  it should "multiply 2 by large number" in {
+    val r1 = Rational(2)
+    val r2 = Rational(BigInt("18050442446843353054"), 2)
+    val r = r1 * r2
+    r shouldBe Rational(BigInt("18050442446843353054"))
+  }
+  it should "multiply large number by smaller one" in {
+    val r1 = Rational(BigInt("-9223372036854775808"), 1)
+    val r2 = Rational(BigInt("816512980"), -1)
+    val r = r1 * r2
+    r shouldBe Rational(BigInt("-9223372036854775808") * BigInt(-816512980L))
+  }
+  it should "multiply large number by short" in {
+    val r1 = Rational(BigInt("-9223372036854775808"), 1)
+    val r = r1 * 15.toShort
+    r shouldBe Rational(BigInt(-9223372036854775808L) * BigInt(15))
   }
 
   behavior of "negate"
@@ -352,6 +394,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for Rational power (3)" in {
     val target = Rational(8, 27)
     target.power(Rational(2, 3)) shouldBe Success(Rational(4, 9))
+  }
+
+  it should "work for Rational power (4)" in {
+    val target = Rational(8, 27)
+    target ^ Rational(2, 3) shouldBe Success(Rational(4, 9))
   }
 
   it should "fail for non-exact powers" in {
