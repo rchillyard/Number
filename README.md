@@ -284,18 +284,18 @@ For example, the square root of 2 should have two branches: ±√2.
 Factors
 =======
 There are three types of "factor:"
-* _PureNumber_, in particular, _Scalar_ (for ordinary dimensionless numbers), __Radian__ (formerly called _Pi_ and used to represent radians or any multiple of pi);
+* _PureNumber_, in particular, _Scalar_ (for ordinary dimensionless numbers), __Radian__ (formerly called _Pi_ and used to represent radians or any multiple of $\pi$);
 * _Logarithmic_, in particular, _NatLog_ (formerly called _E_), _Log2_, and _Log10_;
 * _Root_, in particular: _Root2_ (for square roots) and _Root3_ (for cube roots).
 
-These allow certain quantities to be expressed exactly, for example, sin(π/3) is the square root of 3/4.
+These allow certain quantities to be expressed exactly, for example, $sin(\frac{\pi}{3})$ is the square root of $\frac{3}{4}$.
 The true (_Scalar_) values of the logarithmic numbers are
-e^x, 2^x, and 10^x respectively where x is the "value" of the _Number_.
+$e^x$, $2^x$, and $10^x$ respectively where $x$ is the "value" of the _Number_.
 
 Trigonometrical functions are designed to work with __Radian__ quantities.
 Such values are limited (modulated) to be in the range 0..2pi.
 However, this happens as the result of operations, so it is still possible to define a value of 2pi.
-For example, if you want to check that the sine of pi/2 is equal to 1 exactly, then you should write the following:
+For example, if you want to check that the sine of $\frac{\pi}{2}$ is equal to 1 exactly, then you should write the following:
 
     val target = (Number.pi/2).sin
     target shouldBe Number.one
@@ -304,16 +304,16 @@ Similarly, if you use the _atan_ method on a _Scalar_ number, the result will be
 
 The 𝜀 factor works quite differently.
 It is not a simple matter of scaling.
-A _Number_ of the form _Number(x, e)_ actually evaluates to e^x rather than e x.
+A _Number_ of the form _Number(x, e)_ actually evaluates to $e^x$ rather than e x.
 
-It would be possible to implement pi values similarly to 𝜀 values (as evaluations of e^ix).
+It would be possible to implement $\pi$ values similarly to 𝜀 values (as evaluations of $e^{ix}$).
 However, this is not currently done (future enhancement?).
 See Complex numbers.
 
 Constants
 =========
 
-The _Number_ class defines a number of constant values for _Number_, such as Pi, e, one, zero, i, etc.
+The _Number_ class defines a number of constant values for _Number_, such as _pi_, _e_, _one_, _zero_, _i_, etc.
 The _Constants_ object contains a number of fundamental constant definitions, in addition to those defined by _Number_.
 For example: _c_ (speed of light), _alpha_ (fine structure constant), etc.
 
@@ -393,14 +393,14 @@ So, whenever we combine fuzz (using convolution), we operate on _Gaussian_ PDFs 
 
 So, why is relative fuzz usually the best? Well consider scaling--multiplying by a constant.
 The relative fuzz doesn't change at all.
-In the following, $$ is a constant factor.
+In the following, $f$ is a constant factor.
 Let's assume that $y=fx$.
 
 Differentiating, we get,
 
 $$Δy=fΔx$$
     
-Dividing both sides by _f_, yields
+Dividing both sides by _y_, yields
 
 $$\frac{Δy}{y}=\frac{Δx}{x}$$
     
@@ -438,7 +438,7 @@ Again, these formulas can be looked up in the code.
 Comparing two fuzzy numbers involves subtracting the two numbers and then determining if the probability
 at zero is sufficiently high to consider the difference to be zero.
 If the probability is greater than 50% (the default--although there are method signatures that allow for different values),
-then we consider that the different is zero (method isZero) or that it has a signum of 0.
+then we consider that the different is zero (method _isZero_) or that it has a signum of 0.
 
 Approximation
 =============
@@ -453,11 +453,11 @@ This library includes a facility to create continued fractions which can be used
 constant values.
 See the worksheet _ContinuedFractions.sc_.
 
-For example, the golden ratio (phi) can be evaluated using an infinite continued fraction where
+For example, the golden ratio ($\phi$) can be evaluated using an infinite continued fraction where
 the coefficients are all 1.
 Continued fractions can be used to generate "convergents" which are rational numbers and which
 approximate a value.
-For example, the convergents for pi include with the familiar 22/7, 355/113, etc. 
+For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, etc. 
 
 Versions
 ========
