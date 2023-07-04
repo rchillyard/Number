@@ -22,16 +22,9 @@ sealed trait MonadicOperation {
   val functions: MonadicFunctions
 
   /**
-    * Yield a function which provides the derivative of this MonadicOperation, i.e. f(x), with respect to x, at x.
-    * The dimensions of the derivative are those of f / x.
-    *
-    * @return a function Double => Double
-    */
-  val derivative: Double => Double
-
-  /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
+    *
+    * The general formula for a monadic operation is: x * dfByDx(x) / f(x)
     */
   val relativeFuzz: Double => Double
 
@@ -54,11 +47,8 @@ case object MonadicOperationNegate extends MonadicOperation {
     (fInt, fRational, fDouble)
   }
 
-  val derivative: Double => Double = _ => -1
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
   val relativeFuzz: Double => Double = _ => 1
 
@@ -83,13 +73,10 @@ case object MonadicOperationInvert extends MonadicOperation {
 
   val functions: MonadicFunctions = (invertInt, tryF[Rational, Rational](x => x.invert), invertDouble)
 
-  val derivative: Double => Double = x => -1.0 / x / x
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     *
-    * For any power that is not 0, the result is simply x times the power.
+    * For any power that is not 0, the result is simply the power.
     */
   val relativeFuzz: Double => Double = _ => -1
 
@@ -120,11 +107,8 @@ case object MonadicOperationExp extends MonadicOperation {
           expRat,
           expDouble)
 
-  val derivative: Double => Double = x => Math.exp(x)
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
   val relativeFuzz: Double => Double = x => x
 
@@ -156,11 +140,8 @@ case object MonadicOperationLog extends MonadicOperation {
           logRat,
           logDouble)
 
-  val derivative: Double => Double = x => 1 / x
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
   val relativeFuzz: Double => Double = x => 1 / math.log(x) // the reciprocal of the natural log of x
 
@@ -204,11 +185,8 @@ case object MonadicOperationSin extends MonadicOperation {
 
   val functions: MonadicFunctions = (sinInt, r => sinRatExact(r) orElse sinRatInexact(r), sinDouble)
 
-  val derivative: Double => Double = x => math.cos(x)
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
   val relativeFuzz: Double => Double = x => x / math.tan(x)
 
@@ -234,13 +212,10 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 
   val functions: MonadicFunctions = (fail("atan cannot be Int"), atanRat, atan)
 
-  val derivative: Double => Double = x => 1 / (1 + x * x)
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
-  val relativeFuzz: Double => Double = x => x / math.atan2(x, 1) / derivative(x) / math.Pi // CONSIDER using atan method in this class.
+  val relativeFuzz: Double => Double = x => x / (1 + math.pow(x, 2)) / math.atan2(x, sign)
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
@@ -283,11 +258,8 @@ case object MonadicOperationModulate extends MonadicOperation {
           tryF(z => modulate(z, 0, 2))
   )
 
-  val derivative: Double => Double = _ => 1
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
   val relativeFuzz: Double => Double = _ => 1
 
@@ -310,13 +282,10 @@ case object MonadicOperationSqrt extends MonadicOperation {
 
   val functions: MonadicFunctions = (sqrtInt, sqrtRat, tryF(x => math.sqrt(x)))
 
-  val derivative: Double => Double = x => 1 / math.sqrt(x) / 2
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     *
-    * For any power that is not 0, the result is simply x times the power.
+    * For any power, the result is simply the power.
     */
   val relativeFuzz: Double => Double = _ => 0.5
 
@@ -341,11 +310,8 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
     (fInt, fRational, fDouble)
   }
 
-  val derivative: Double => Double = _ => c
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
   val relativeFuzz: Double => Double = _ => 1
 
@@ -362,11 +328,8 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
 case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) extends MonadicOperation {
   val functions: MonadicFunctions = (fail("no apply"), fail("no apply"), tryF(f))
 
-  val derivative: Double => Double = dfByDx
-
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     *
     * This is the general formula for a monadic operation. All others derive from this formula.
     */
