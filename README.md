@@ -393,38 +393,31 @@ So, whenever we combine fuzz (using convolution), we operate on _Gaussian_ PDFs 
 
 So, why is relative fuzz usually the best? Well consider scaling--multiplying by a constant.
 The relative fuzz doesn't change at all.
-In the following, _f_ is a constant factor.
-Let's assume that _y = f x._
+In the following, $$ is a constant factor.
+Let's assume that $y=fx$.
 
 Differentiating, we get,
 
-    Δy = f Δx
+$$Δy=fΔx$$
     
 Dividing both sides by _f_, yields
 
-    Δy / y = Δx / x
+$$\frac{Δy}{y}=\frac{Δx}{x}$$
     
 Thus, the relative fuzz of _y_ is equal to the relative fuzz of _x_.
 
-In general, when we apply a monadic operator _f(x)_ (such as constant factor, as above, or power, or one of the trignonometric operators),
-the formula for the relative fuzz of the result Δy/y based on the relative fuzz of the input Δx/x is:
-
-$$\frac{Δy}{y}=\frac{x \frac{dy}{dx}(x)}{f(x)}$$
-
-Constants cancel, powers survive as is, and so on.
-
 When we multiply two fuzzy numbers together, we add the relative fuzzes together:
 
-    z + Δz = (x + Δx) (y + Δy)
+$$z+Δz=(x+Δx)(y+Δy)$$
 
-Therefore (ignoring the term which is _ΔxΔy_),
+Therefore (ignoring the term which is $ΔxΔy$),
 
-    Δz = y Δx + x Δy
+$$Δz=yΔx+xΔy$$
     
-Dividing both sides by _z_:
+Dividing both sides by $z$:
 
-    Δz / z = Δx / x + Δy / y
-    
+$$\frac{Δz}{z}=\frac{Δx}{x}+\frac{Δy}{y}$$
+ 
 Thus, the relative fuzz of _z_ is equal to the sum of the relative fuzzes of _x_ and _y_.
     
 But, when _Δx_ and _Δy_ are taken from a _Gaussian_ probability density function, the convolution of those two PDFs,
@@ -432,7 +425,14 @@ is given by slightly different expressions depending on whether the PDFs are ind
 See the code (_Fuzz_) for details.
 
 Things get only slightly more complex when applying monadic (single operand) functions or applying a function such
-as _z = x ^ y._
+as $z=x^y$:
+
+In general, when we apply a monadic operator _y=f(x)_ (such as constant factor, as above, or power, or one of the trignonometric operators),
+the formula for the relative fuzz of the result $\frac{Δy}{y}$ based on the relative fuzz of the input $\frac{Δx}{x}$ is:
+
+$$\frac{Δy}{y}=\frac{x \frac{dy}{dx}(x)}{f(x)}\frac{Δx}{x}$$
+
+Constants cancel, powers survive as is, and so on.
 Again, these formulas can be looked up in the code.
 
 Comparing two fuzzy numbers involves subtracting the two numbers and then determining if the probability
