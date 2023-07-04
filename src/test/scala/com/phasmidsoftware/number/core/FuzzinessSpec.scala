@@ -267,7 +267,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val q = n.make(r.get, Scalar)
     val x = q.toDouble
     val v = x.get
-    val z: Option[Fuzziness[Double]] = Fuzziness.map[Double, Double, Double](1, v, !op.absolute, op.derivative, Some(fuzz))
+    val z: Option[Fuzziness[Double]] = Fuzziness.map[Double, Double, Double](1, v, relative = true, op.derivative, Some(fuzz))
     val w = z.toString
     // XXX seems to be a difference between Intel chip and "Apple M1" chip
     w.substring(0, 34) + w.substring(35) shouldBe "Some(RelativeFuzz(2.71828182845904E-15,Box))"

@@ -36,13 +36,6 @@ sealed trait MonadicOperation {
   val relativeFuzz: Double => Double
 
   /**
-    * True if fuzziness is to be considered absolute.
-    *
-    * NOTE: this is very confusing and appears wrong in the cases where it is set to true.
-    */
-  val absolute: Boolean
-
-  /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int
@@ -68,11 +61,6 @@ case object MonadicOperationNegate extends MonadicOperation {
     * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
   val relativeFuzz: Double => Double = _ => 1
-
-  /**
-    * True if fuzziness is to be considered absolute.
-    */
-  val absolute: Boolean = true // not used
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
@@ -104,11 +92,6 @@ case object MonadicOperationInvert extends MonadicOperation {
     * For any power that is not 0, the result is simply x times the power.
     */
   val relativeFuzz: Double => Double = _ => -1
-
-  /**
-    * True if fuzziness is to be considered absolute.
-    */
-  val absolute: Boolean = true // not used
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
@@ -146,11 +129,6 @@ case object MonadicOperationExp extends MonadicOperation {
   val relativeFuzz: Double => Double = x => x
 
   /**
-    * True if fuzziness is to be considered absolute.
-    */
-  val absolute: Boolean = false
-
-  /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
@@ -185,11 +163,6 @@ case object MonadicOperationLog extends MonadicOperation {
     * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
   val relativeFuzz: Double => Double = x => 1 / math.log(x) // the reciprocal of the natural log of x
-
-  /**
-    * True if fuzziness is to be considered absolute.
-    */
-  val absolute: Boolean = false //not used
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
@@ -240,11 +213,6 @@ case object MonadicOperationSin extends MonadicOperation {
   val relativeFuzz: Double => Double = x => x / math.tan(x)
 
   /**
-    * True if fuzziness is to be considered absolute.
-    */
-  val absolute: Boolean = false
-
-  /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 3
@@ -273,11 +241,6 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     * NOTE this is preferable to using derivative and ultimately, derivative should disappear.
     */
   val relativeFuzz: Double => Double = x => x / math.atan2(x, 1) / derivative(x) / math.Pi // CONSIDER using atan method in this class.
-
-  /**
-    * True if fuzziness is to be considered absolute.
-    */
-  val absolute: Boolean = false
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
@@ -329,11 +292,6 @@ case object MonadicOperationModulate extends MonadicOperation {
   val relativeFuzz: Double => Double = _ => 1
 
   /**
-    * True if fuzziness is to be considered absolute.
-    */
-  val absolute: Boolean = true // not used
-
-  /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
@@ -361,11 +319,6 @@ case object MonadicOperationSqrt extends MonadicOperation {
     * For any power that is not 0, the result is simply x times the power.
     */
   val relativeFuzz: Double => Double = _ => 0.5
-
-  /**
-    * True if fuzziness is to be considered absolute.
-    */
-  val absolute: Boolean = false // not used
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
@@ -397,11 +350,6 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
   val relativeFuzz: Double => Double = _ => 1
 
   /**
-    * True if fuzziness is to be considered absolute.
-    */
-  val absolute: Boolean = false // not used
-
-  /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
   val fuzz: Int = 0
@@ -423,8 +371,6 @@ case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) e
     * This is the general formula for a monadic operation. All others derive from this formula.
     */
   val relativeFuzz: Double => Double = x => x * dfByDx(x) / f(x)
-
-  val absolute: Boolean = true // not used
 
   val fuzz: Int = 1
 }

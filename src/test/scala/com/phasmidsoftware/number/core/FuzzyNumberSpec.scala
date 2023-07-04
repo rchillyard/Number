@@ -469,7 +469,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     r.isDefined shouldBe true
     val q: Number = n.make(r.get, Scalar)
     val x = q.toDouble
-    val z: GeneralNumber = q.make(Fuzziness.map[Double, Double, Double](1, x.get, !op.absolute, op.derivative, Some(fuzz))).normalize.asInstanceOf[GeneralNumber]
+    val z: GeneralNumber = q.make(Fuzziness.map[Double, Double, Double](1, x.get, relative = true, op.derivative, Some(fuzz))).normalize.asInstanceOf[GeneralNumber]
     val (_, w) = z.fuzz.get.toString(x.get)
     // XXX seems to be a difference between Intel chip and "Apple M1" chip
     w.substring(0, 17) + w.substring(18, 22) shouldBe "2.718281828459045[74]"
