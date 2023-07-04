@@ -28,7 +28,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
       newtonsDerivative
     )(Number.ten.invert)
     result.isSuccess shouldBe true
-    result.get should ===(Number(0.0945514815423))
+    result.get should ===(Number(0.0945514815423)) // 0.094551481542326 according to Wikipedia (after 10 iterations)
   }
 
   it should "solve cosine problem" in {
