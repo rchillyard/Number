@@ -220,12 +220,27 @@ For example:
 yields the optional _Expression_ with a materialized value of 158.
 See the code for other methods for defining _Mill_ operations.
 
-The _Mill.parse_ method in turn invokes methods of _MillParser_.
+The _Mill\.parse_ method in turn invokes methods of _MillParser_.
 
-The Mill offers two parsers: one is a pure RPN parser (as described above).
+The _Mill_ offers two parsers: one is a pure RPN parser (as described above).
 The other is an infix parser which uses [Dijkstra's Shunting Yard algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
-to build a Mill.
-  
+to build a _Mill_.
+
+Some of the operators of _Mill_ are as follows:
+
+    ^: Power
+    +: Add
+    -: Subtract
+    *: Multiply (also ×)
+    /: Divide (also ÷)
+    v: Sqrt
+    <>: Swap
+    : Noop
+    (: Open
+    ): Close
+
+Additional operators include _clr_, _chs_, _inv_, _ln_, _exp_, _sin_, _cos_.
+
 Field
 =====
 The most general form of mathematical quantity is represented by a _Field_.
@@ -390,10 +405,19 @@ Dividing both sides by _f_, yields
     Δy / y = Δx / x
     
 Thus, the relative fuzz of _y_ is equal to the relative fuzz of _x_.
-    
-The same will be true, more or less, when we multiply two fuzzy numbers together.
-This time, _z = x y_.
-Therefore,
+
+In general, when we apply a monadic operator _f(x)_ (such as constant factor, as above, or power, or one of the trignonometric operators),
+the formula for the relative fuzz of the result Δy/y based on the relative fuzz of the input Δx/x is:
+
+$$\frac{Δy}{y}=\frac{x \frac{dy}{dx}(x)}{f(x)}$$
+
+Constants cancel, powers survive as is, and so on.
+
+When we multiply two fuzzy numbers together, we add the relative fuzzes together:
+
+    z + Δz = (x + Δx) (y + Δy)
+
+Therefore (ignoring the term which is _ΔxΔy_),
 
     Δz = y Δx + x Δy
     

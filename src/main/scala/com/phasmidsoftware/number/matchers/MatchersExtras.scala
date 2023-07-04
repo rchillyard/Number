@@ -3,8 +3,10 @@ package com.phasmidsoftware.number.matchers
 import com.phasmidsoftware.matchers.{MatcherException, Matchers, ~}
 
 /**
-  * This trait defines a set of Matchers which operate in a parallel fashion to the Parsers of the Scala
+  * This trait extends a set of Matchers which operate in a parallel fashion to the Parsers of the Scala
   * Parser Combinator library.
+  *
+  * CONSIDER why to we need this trait?
   */
 trait MatchersExtras extends Matchers {
 
