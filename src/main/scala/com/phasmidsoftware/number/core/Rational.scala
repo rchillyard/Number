@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero}
+import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero, findRepeatingSequence}
 import com.phasmidsoftware.number.parse.RationalParser
 import java.lang.Math._
 import scala.annotation.tailrec
@@ -163,8 +163,15 @@ case class Rational(n: BigInt, d: BigInt) {
     else if (isInfinity) (if (n > 0) "+ve" else "-ve") + " infinity"
     else if (isWhole) toBigInt.toString
     else if (isExactDouble) toDouble.toString
-    else if (d <= 100000L) toRationalString
-    else toBigDecimal.toString() // XXX fix for issue #70
+    else d match {
+      case x if x.isProbablePrime(40) => findRepeatingSequence(n, x) getOrElse asString
+      case _ => asString
+    }
+
+  def asString: String = d match {
+    case x if x <= 100000L => toRationalString
+    case _ => toBigDecimal.toString() // XXX fix for issue #70
+  }
 }
 
 object Rational {
@@ -588,6 +595,35 @@ object Rational {
     */
   def toInts(x: Rational): Option[(Int, Int)] = toLongs(x) map { case (n, d) => (math.toIntExact(n), math.toIntExact(d)) }
 
+  /**
+    * Generate the String representation of n/d where d is a Prime number (at least, very probably).
+    *
+    * TODO this does not always work if the numerator is more than 1.
+    *
+    * @param n the numerator.
+    * @param d the (prime) denominator.
+    * @return a String of repeated digits.
+    */
+  def findRepeatingSequence(n: BigInt, d: BigInt): Try[String] = Prime(d) match {
+    case p if p.validated =>
+      (n.isValidInt, p.toIntOption) match {
+        case (true, Some(bottom)) =>
+          val bigNumber = BigNumber.value(n).divide(BigNumber.value(d)).toString
+          val i = bigNumber.indexOf('.')
+          val w = if (i >= 0) bigNumber.substring(i + 1) else bigNumber // TODO take care here
+
+          @tailrec
+          def inner(candidates: List[Int]): Try[String] = candidates match {
+            case Nil => Failure[String](NumberException(s"Rational.findRepeatingSequence: no sequence"))
+            case h :: _ if testSequence(w, h) => Success(bigNumber.substring(0, i + 1) + "<" + w.substring(0, h) + ">")
+            case _ :: t => inner(t)
+          }
+
+          inner(Range(1, bottom).toList)
+      }
+    case _ => Failure(NumberException(s"Rational.findRepeatingSequence: $d is not prime"))
+  }
+
   // CONSIDER making this public
   private def toBigInt(x: Rational): Try[BigInt] = if (x.isWhole) Success(x.n) else Failure(RationalException(s"toBigInt: $x is " + (if (x.d == 0L)
     "infinite" else "not whole")))
@@ -595,6 +631,11 @@ object Rational {
   private def toInt(x: BigInt): Option[Int] = if (x.isValidInt) Some(x.toInt) else None
 
   private def div(x: Rational, y: Rational): Rational = x / y
+
+  private def testSequence(w: String, n: Int) = w.grouped(n).toSeq match {
+    case Nil => true
+    case h :: t => t.forall(x => h startsWith x)
+  }
 
   private def compare(x: Rational, y: Rational): Int = minus(x, y).signum
 

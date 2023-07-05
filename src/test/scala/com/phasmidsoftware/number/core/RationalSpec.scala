@@ -481,7 +481,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "barf when Rational.toInt invoked" in {
     an[RationalException] should be thrownBy Rational.toInt(Rational(2, 3)).get
     val thrown = the[Exception] thrownBy Rational(2, 3).toInt
-    thrown.getMessage should equal("2/3 is not whole")
+    thrown.getMessage should equal("0.<6> is not whole")
   }
 
   behavior of "2/4"
@@ -505,9 +505,9 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(1, 2)
     r.toString() shouldBe "0.5"
   }
-  it should "be rational when not exact: 2/3" in {
+  it should "be recurring when not exact: 2/3" in {
     val r = Rational(2, 3)
-    r.toString() shouldBe "2/3"
+    r.toString() shouldBe "0.<6>"
   }
   it should "be decimal when not exact: pi" in {
     val pi = Rational(BigDecimal(math.Pi))
@@ -528,6 +528,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val d = bigTen.pow(50)
     val r = Rational(n, d)
     r.toString shouldBe "0.5772156649015328606065120900824024310421593359399"
+  }
+  it should "work when denominator is prime" in {
+    val r = Rational(17).invert
+    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    sequence shouldBe Success("0.<0588235294117647>")
   }
 
   behavior of "Rational(String)"

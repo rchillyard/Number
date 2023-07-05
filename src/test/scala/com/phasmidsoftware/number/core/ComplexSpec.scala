@@ -279,7 +279,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "render c2_0^1/3" in {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
-    cubeRootOfTwo.render shouldBe "{³√2, ±³√2e^i2/3\uD835\uDED1}"
+    cubeRootOfTwo.render shouldBe "{³√2, ±³√2e^i0.<6>\uD835\uDED1}"
   }
   it should "render root2s" in {
     val target = Constants.root2s

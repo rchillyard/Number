@@ -27,3 +27,16 @@ val piBy4 = Number.pi doDivide 4
 val sinePiBy4 = piBy4.sin
 val oneHalf = (sinePiBy4 doMultiply sinePiBy4).normalize
 
+// Parsing from Strings: Exact
+Real("1.1") // only one decimal place
+Real("1.00") // ends in two zeroes
+Real("1.0100") // ditto
+Real("1.100") // ditto
+
+// Parsing from Strings: Fuzzy
+Real("1.010") // more than two decimal places
+Real("1.100*") // ends in "*"
+Real("1.100...") // ends in "..."
+Real("1.1000[5]") // has explicit (box) error bounds
+Real("1.1000(5)") // has explicit (Gaussian) error bounds
+

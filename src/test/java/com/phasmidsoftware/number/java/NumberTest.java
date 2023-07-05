@@ -21,7 +21,7 @@ public class NumberTest {
     public void stringToNumber1() {
         String pi = "22/7";
         Number x = NumberJ.stringToNumber(pi);
-        assertEquals(pi, x.toString());
+        assertEquals("3.<142857>", x.toString());
     }
 
     @Test
