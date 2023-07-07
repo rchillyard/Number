@@ -1,12 +1,13 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.Fuzziness.showPercentage
-import com.phasmidsoftware.number.core.{Number, Rational}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.core.{Number, Rational}
 import com.phasmidsoftware.number.misc.ConFrac.LongLazyListFrom
 import com.phasmidsoftware.number.misc.ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
+import org.scalatest.tagobjects.Slow
 
 class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
 
@@ -450,7 +451,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
   /**
     * NOTE: this representation of pi converges very slowly which is why we normally ignore it.
     */
-  ignore should "define ContinuedFraction.FourOverPiLeibniz" in {
+  it should "define ContinuedFraction.FourOverPiLeibniz" taggedAs (Slow) in {
     val z: ContinuedFraction = ContinuedFraction.FourOverPiLeibniz
     val q: Rational = z.toRational(1000).invert
     q.toDouble shouldBe math.Pi / 4 +- 2.5E-4

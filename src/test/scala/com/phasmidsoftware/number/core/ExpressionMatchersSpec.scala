@@ -305,6 +305,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   // NOTE: this will succeed only if we allow simplifications which reduce depth (but are not necessarily exact)
   // FIXME problem with distributePowerPower
+  // CONSIDER that this is actually working as it should.
   ignore should "simplify 1" in {
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
