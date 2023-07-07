@@ -610,8 +610,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "work when denominator is composite 2" in {
     val r = Rational(1, 119) // 7 * 17
-    val sequence = findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(1, 119)
     sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
+  }
+  it should "fail when denominator has too many prime factors" in {
+    findRepeatingSequence(1, 257) should matchPattern { case Failure(NumberException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
   }
 
   behavior of "Rational(String)"

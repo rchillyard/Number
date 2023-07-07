@@ -181,7 +181,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
   }
 
   private def asString: String = d match {
-    case x if x <= 100000L => // XXX arbitrary limit.
+    case x if x <= 100000L => // XXX arbitrary limit of one hundred thousand.
       toRationalString
     case _ =>
       // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
@@ -685,7 +685,7 @@ object Rational {
     }
   }
 
-  private def getPeriods(d: BigInt): Try[Seq[Int]] = {
+  private def expandProducts(bs: List[Int]) = {
     def squares(bs: List[Int]) = for (b1 <- bs; b2 <- bs) yield b1 * b2
 
     def cubes(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs) yield b1 * b2 * b3
@@ -696,7 +696,7 @@ object Rational {
 
     def sexts(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs; b5 <- bs; b6 <- bs) yield b1 * b2 * b3 * b4 * b5 * b6
 
-    def expandProducts(bs: List[Int]) = Try {
+    Try {
       bs.size match {
         case 0 => Nil
         case 1 => bs
@@ -709,6 +709,9 @@ object Rational {
         case _ => throw NumberException(s"Rational.getPeriods: not yet implemented for: $bs")
       }
     }
+  }
+
+  private def getPeriods(d: BigInt): Try[Seq[Int]] = {
 
     def getCandidatePatternLengths(h: Int, t: List[Int]) = {
       val z: BigInt = t.foldLeft(BigInt(h))((b, y) => b * y)
