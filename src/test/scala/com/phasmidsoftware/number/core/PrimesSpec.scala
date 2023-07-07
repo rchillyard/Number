@@ -4,6 +4,9 @@ import com.phasmidsoftware.number.core.Primes.piApprox
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+/**
+  * CONSIDER moving this to an integration testing directory since it is a bit slow.
+  */
 class PrimesSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Prime"

@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Divides.IntDivides
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero, findRepeatingSequence}
 import com.phasmidsoftware.number.parse.RationalParser
@@ -21,7 +22,7 @@ import scala.util.{Failure, Success, Try}
   *
   * @author scalaprof
   */
-case class Rational(n: BigInt, d: BigInt) {
+case class Rational(n: BigInt, d: BigInt) extends NumberLike {
 
   // Pre-conditions
 
@@ -169,13 +170,13 @@ case class Rational(n: BigInt, d: BigInt) {
   def render(exact: Boolean): (String, Boolean) = if (exact) renderExact -> true
   else toBigDecimal.toString() -> false // NOTE string is ignored if boolean is false
 
-  private def renderExact = this match {
+  def renderExact: String = this match {
     case _ if isNaN => "NaN"
     case _ if isZero && d < 0 => "-0"
     case _ if isInfinity => (if (n > 0) "+ve" else "-ve") + " infinity"
     case _ if isWhole => toBigInt.toString
     case _ if isExactDouble => toDouble.toString
-    case _ if d.mod(BigInt(10)) == 0 => toBigDecimal.toString
+    case _ if (2 |> d) || (5 |> d) => toBigDecimal.toString
     case _ => findRepeatingSequence(n, d) getOrElse asString
   }
 
@@ -187,6 +188,32 @@ case class Rational(n: BigInt, d: BigInt) {
       // It is not fuzzy.
       toBigDecimal.toString() + Ellipsis
   }
+
+  /**
+    * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
+    *
+    * CONSIDER whether this method should really be defined in NumberLike since it makes no sense here.
+    *
+    * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
+    *                    if factor is None then, the result will depend solely on whether this is exact.
+    * @return true if this NumberLike object is exact in the context of factor, else false.
+    */
+  def isExact(maybeFactor: Option[Factor]): Boolean = true
+
+  /**
+    * Method to determine if this Field is actually a real Number (i.e. not complex).
+    * NOTE: to force this as a Number, use convertToNumber in the companion Object.
+    *
+    * @return a Some(x) if this is a Number; otherwise return None.
+    */
+  def asNumber: Option[Number] = Some(Number(this))
+
+  /**
+    * Method to render this NumberLike in a presentable manner.
+    *
+    * @return a String
+    */
+  def render: String = renderExact
 }
 
 object Rational {

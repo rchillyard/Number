@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen}
+import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, findRepeatingSequence}
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
 import scala.language.postfixOps
@@ -529,41 +529,46 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(n, d)
     r.toString shouldBe "0.5772156649015328606065120900824024310421593359399"
   }
+  it should "work for various prime denominators" in {
+    import com.phasmidsoftware.number.core.Rational._
+
+    (3 :/ 4 toString) shouldBe "0.75"
+    (4 :/ 5 toString) shouldBe "0.8" // TODO figure out why this is wrong
+    (6 :/ 7 toString) shouldBe "0.<857142>"
+    (10 :/ 11 toString) shouldBe "0.<90>"
+    (12 :/ 13 toString) shouldBe "0.<923076>"
+    (16 :/ 17 toString) shouldBe "0.<9411764705882352>"
+  }
+
+  behavior of "findRepeatingSequence"
+  it should "fail for 4/5" in {
+    findRepeatingSequence(4, 5) should matchPattern { case Failure(_) => }
+  }
   it should "work when denominator is prime" in {
     val r = Rational(17).invert
-    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d)
     sequence shouldBe Success("0.<0588235294117647>")
   }
   it should "work when numerator and denominator are prime 1" in {
     val r = Rational(2, 17)
-    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d)
     sequence shouldBe Success("0.<1176470588235294>")
   }
   it should "work when numerator and denominator are prime 2" in {
     val r = Rational(23, 17)
-    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d)
     sequence shouldBe Success("1.<3529411764705882>")
   }
   it should "work when denominator is composite 1" in {
     val r = Rational(1, 85) // 5 * 17
-    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d)
     println(r.toDouble)
     sequence shouldBe Success("0.0<1176470588235294>")
   }
   it should "work when denominator is composite 2" in {
     val r = Rational(1, 119) // 7 * 17
-    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d)
     sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
-  }
-  it should "work for various prime denominators" in {
-    import com.phasmidsoftware.number.core.Rational._
-
-    (3 :/ 4 toString) shouldBe "0.75"
-//    (4 :/ 5 toString) shouldBe "0.8" // TODO figure out why this is wrong
-    (6 :/ 7 toString) shouldBe "0.<857142>"
-    (10 :/ 11 toString) shouldBe "0.<90>"
-    (12 :/ 13 toString) shouldBe "0.<923076>"
-    (16 :/ 17 toString) shouldBe "0.<9411764705882352>"
   }
 
   behavior of "Rational(String)"

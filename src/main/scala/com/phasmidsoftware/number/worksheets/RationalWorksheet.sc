@@ -21,7 +21,7 @@ val twoThirds = 2 :/ 3 // should be 0.<6>
 
 val threeFourths = 3 :/ 4 // should be 0.75
 
-val fourFifths = 4 :/ 5 // should be 0.8 (but for now it is 4/5)
+val fourFifths = 4 :/ 5 // should be 0.8
 
 val sixSevenths = 6 :/ 7 // should be 0.<857142>
 

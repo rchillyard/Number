@@ -38,7 +38,7 @@ trait NumberLike {
   def memberOf(set: NumberSet): Boolean = set.isMember(this)
 
   /**
-    * Method to determine if this Field is actually a real Number (i.e. not complex).
+    * Method to determine if this NumberLike is actually a real Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *
     * @return a Some(x) if this is a Number; otherwise return None.
@@ -46,7 +46,7 @@ trait NumberLike {
   def asNumber: Option[Number]
 
   /**
-    * Method to render this Field in a presentable manner.
+    * Method to render this NumberLike in a presentable manner.
     *
     * @return a String
     */

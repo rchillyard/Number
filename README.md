@@ -166,7 +166,7 @@ For example, the proton-electron mass ratio:
 Rendering
 =========
 The _render_ method is defined in the trait _NumberLike_ and thus is defined by all subtypes,
-including _Field_, _Number_, etc.
+including _Field_, _Number_, _Rational_, etc.
 For the prettiest output, you should use _render_ rather than _toString_.
 
 Generally speaking, the output _String_ corresponding to a _Number_ will be the same as the input _String_,
@@ -175,6 +175,14 @@ Numeric quantities followed by "(xx)" show standard scientific notation where _x
 with respect to the last two digits (sometimes there is only one _x_ which corresponds to the last digit).
 If a number is followed by "\[x\]" or "\[xx\]" this corresponds to a "box" (i.e. truncated uniform) probability density function.
 It's unlikely that you'll need to use this form since box is the default shape when specifying fuzzy numbers with a _String_.
+
+For _Rational_ numbers, it is most likely that the number will be rendered as exactly as possible.
+For values which are exactly renderable using decimal notation, that will be the result.
+For values which have a repeating sequence in decimal notation, the repeating sequence will be enclosed within &lt; and &gt;.
+If the repeating sequence is too long (or too hard to identify), and if the denominator is less than 100,000,
+the number will render as a rational, i.e. numerator/denominator.
+Otherwise, the number will render as many digits as possible, with "..." added to the end.
+
 
 Fuzzy
 =====
@@ -430,7 +438,7 @@ See the code (_Fuzz_) for details.
 Things get only slightly more complex when applying monadic (single operand) functions or applying a function such
 as $z=x^y$:
 
-In general, when we apply a monadic operator _y=f(x)_ (such as constant factor, as above, or power, or one of the trignonometric operators),
+In general, when we apply a monadic operator _y=f(x)_ (such as constant factor, as above, or power, or one of the trigonometric operators),
 the formula for the relative fuzz of the result $\frac{Δy}{y}$ based on the relative fuzz of the input $\frac{Δx}{x}$ is:
 
 $$\frac{Δy}{y}=\frac{x \frac{dy}{dx}(x)}{f(x)}\frac{Δx}{x}$$
@@ -464,7 +472,7 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
-* Version 1.0.15: 
+* Version 1.0.15: Significant improvements to the rendering of rational numbers.
 * Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
 * Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
