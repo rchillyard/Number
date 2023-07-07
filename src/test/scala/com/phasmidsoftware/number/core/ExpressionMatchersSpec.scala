@@ -18,9 +18,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   after {
-    if (sb.nonEmpty) println(sb.toString())
-    if (sbLogger.logLevel != com.phasmidsoftware.matchers.LogOff)
-      println("===============================\n")
+//    if (sb.nonEmpty) println(sb.toString())
+//    if (sbLogger.logLevel != com.phasmidsoftware.matchers.LogOff)
+//      println("===============================\n")
   }
 
   val em: ExpressionMatchers = Expression.em
@@ -289,7 +289,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = (root3 + 1) * (root3 + MinusOne)
     val p = em.biFunctionSimplifier
     val q: em.MatchResult[Expression] = p(x)
-    println(q)
     q.successful shouldBe true
   }
   // FIXME Issue #55

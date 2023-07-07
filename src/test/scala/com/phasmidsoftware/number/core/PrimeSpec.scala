@@ -136,7 +136,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     // Why do we never get the other roots (6, 7, 11) here? Oh, duh, because it's less than 20 and so we go in sequence.
     p6.primitiveRoot shouldBe BigInt(2)
     val root23 = p9.primitiveRoot
-    println(root23)
     Seq(BigInt(5), BigInt(7), BigInt(10), BigInt(11), BigInt(14), BigInt(15), BigInt(17), BigInt(19), BigInt(20), BigInt(21)) contains root23 shouldBe true
   }
 
@@ -219,6 +218,7 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     mersenneNumber(17) shouldBe 2305843009213693951L // 2^61 - 1
   }
 
+  // CONSIDER removing parentheses (but I think CircleCI requires them).
   it should "check for Mersenne primes" taggedAs (Slow) in {
     createMersennePrime(0).isDefined shouldBe true
     createMersennePrime(1).isDefined shouldBe true

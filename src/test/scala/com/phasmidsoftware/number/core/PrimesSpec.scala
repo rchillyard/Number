@@ -112,7 +112,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     // Why do we never get the other roots (6, 7, 11) here? Oh, duh, because it's less than 20 and so we go in sequence.
     p13.primitiveRoot shouldBe BigInt(2)
     val root23 = p23.primitiveRoot
-    println(root23)
     Seq(BigInt(5), BigInt(7), BigInt(10), BigInt(11), BigInt(14), BigInt(15), BigInt(17), BigInt(19), BigInt(20), BigInt(21)) contains root23 shouldBe true
   }
 

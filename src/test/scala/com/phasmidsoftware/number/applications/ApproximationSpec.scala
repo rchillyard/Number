@@ -109,13 +109,11 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
   it should "iterate" in {
     val iterate: Number => Try[Number] = Approximation.iterate(newtonsPolynomial, newtonsDerivative)
     val zy = iterate(Number(0.1))
-    println(zy)
     zy.isSuccess shouldBe true
   }
 
   it should "delta" in {
     val zy = Approximation.evaluate(newtonsPolynomial, newtonsDerivative)(Number(0.09456812110))
-    println(zy)
     zy.isSuccess shouldBe true
 
   }
