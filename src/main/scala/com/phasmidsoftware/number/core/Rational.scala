@@ -181,7 +181,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
   }
 
   private def asString: String = d match {
-    case x if x <= 100000L =>
+    case x if x <= 100000L => // XXX arbitrary limit.
       toRationalString
     case _ =>
       // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
@@ -720,7 +720,7 @@ object Rational {
             case Success(products) => Success(products.sorted.distinct)
             case x => x
           }
-        case _ => Failure(NumberException(s"Rational.findRepeatingSequence: logic error: $ps"))
+        case _ => Failure(NumberException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $ps"))
       }
     }
 
@@ -730,8 +730,10 @@ object Rational {
     }
 
     FP.sequence(Prime.primeFactors(d) map (_.reciprocalPeriod)) match {
-      case None =>
+      case None if d < BigNumber.MAXDECIMALDIGITS => // XXX The reason for this is that we only generate 1000 characters for the rendering
         getCandidates(Seq(d.toInt - 1))
+      case None =>
+        Failure(NumberException(s"Rational.getPeriods: no suitable candidates for repeating sequence length"))
       case Some(xs) =>
         getCandidates(xs)
     }

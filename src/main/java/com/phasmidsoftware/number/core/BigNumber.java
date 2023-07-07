@@ -454,7 +454,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * number is exact.
      * CONSIDER looking for repeated sequences to shorten this.
      */
-    private static final int MAXDECIMALDIGITS = 1000;
+    public static final int MAXDECIMALDIGITS = 1000;
     /**
      * This is the greatest number of digits that a long number can have.
      */

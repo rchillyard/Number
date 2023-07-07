@@ -28,3 +28,7 @@ val sixSevenths = 6 :/ 7 // should be 0.<857142>
 val tenElevenths = 10 :/ 11 // should be 0.<90>
 
 val twelveThirteenths = 12 :/ 13 // should be 0.<923076>
+
+// The following does not find a repeating sequence because we only generate 1000 characters in a rational string
+val z = 7918 :/ 7919 // should be 7918/7919
+

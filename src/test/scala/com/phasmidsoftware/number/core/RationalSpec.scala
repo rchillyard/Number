@@ -533,11 +533,54 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     import com.phasmidsoftware.number.core.Rational._
 
     (3 :/ 4 toString) shouldBe "0.75"
-    (4 :/ 5 toString) shouldBe "0.8" // TODO figure out why this is wrong
+    (4 :/ 5 toString) shouldBe "0.8"
     (6 :/ 7 toString) shouldBe "0.<857142>"
     (10 :/ 11 toString) shouldBe "0.<90>"
     (12 :/ 13 toString) shouldBe "0.<923076>"
     (16 :/ 17 toString) shouldBe "0.<9411764705882352>"
+    (7918 :/ 7919 toString) shouldBe "7918/7919"
+  }
+
+  behavior of "render"
+  it should "be decimal when exact" in {
+    val r = Rational(1, 2)
+    r.render shouldBe "0.5"
+  }
+  it should "be recurring when exact: 2/3" in {
+    val r = Rational(2, 3)
+    r.render shouldBe "0.<6>"
+  }
+  it should "be decimal when not exact: pi" in {
+    val pi = Rational(BigDecimal(math.Pi))
+    pi.render shouldBe "3.141592653589793"
+  }
+  it should "work for NaN" in {
+    Rational.NaN.render shouldBe "NaN"
+  }
+  it should "work for Infinity" in {
+    Rational.infinity.render shouldBe "+ve infinity"
+  }
+  it should "work for negative Infinity" in {
+    Rational.infinity.negate.render shouldBe "-ve infinity"
+  }
+// XXX this is the diagnostic for Issue #70
+  it should "work for gamma" in {
+    val n = BigInt("57721566490153286060651209008240243104215933593992")
+    val d = bigTen.pow(50)
+    val r = Rational(n, d)
+    // XXX why doesn't this end in a 2?
+    r.render shouldBe "0.5772156649015328606065120900824024310421593359399"
+  }
+  it should "work for various prime denominators" in {
+    import com.phasmidsoftware.number.core.Rational._
+
+    (3 :/ 4 render) shouldBe "0.75"
+    (4 :/ 5 render) shouldBe "0.8"
+    (6 :/ 7 render) shouldBe "0.<857142>"
+    (10 :/ 11 render) shouldBe "0.<90>"
+    (12 :/ 13 render) shouldBe "0.<923076>"
+    (16 :/ 17 render) shouldBe "0.<9411764705882352>"
+    (7918 :/ 7919 render) shouldBe "7918/7919"
   }
 
   behavior of "findRepeatingSequence"
