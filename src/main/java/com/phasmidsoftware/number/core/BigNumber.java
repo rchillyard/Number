@@ -83,8 +83,8 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @return a new BigNumber.
      */
     public static BigNumber value(long whole, long decimals, boolean sign) {
-        if (whole < 0) throw new RuntimeException("value: whole must be non-negative");
-        if (decimals < 0) throw new RuntimeException("value: decimals must be non-negative");
+        if (whole < 0) throw new BigNumberException("value: whole must be non-negative");
+        if (decimals < 0) throw new BigNumberException("value: decimals must be non-negative");
         int[] dec = new int[MAXLONGDIGITS];
         int i = dec.length;
         long x = decimals;
@@ -228,6 +228,14 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return sign ? result : -result;
     }
 
+    /**
+     * Add a BigNumber <code>that</code> to <code>this</code>.
+     * <p>
+     * TODO fix the high cyclomatic complexity of this method.
+     *
+     * @param that a BigNumber.
+     * @return the sum of <code>this</code> and <code>that</code>.
+     */
     public BigNumber add(BigNumber that) {
         if (!sign && !that.sign) return this.negate().add(that.negate()).negate();
         if (!sign) return that.add(this);
@@ -264,6 +272,12 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return new BigNumber(wholeSum, dec, true);
     }
 
+    /**
+     * Method to compare <code>this</code> with <code>that</code>.
+     *
+     * @param that the object to be compared.
+     * @return a negative, zero, or positive int.
+     */
     public int compareTo(BigNumber that) {
         if (this.equals(that)) {
             return 0;
@@ -392,7 +406,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param sign     true if the result is to a positive number.
      */
     public BigNumber(BigInteger whole, int[] decimals, boolean sign) {
-        if (whole.signum() < 0) throw new RuntimeException("BigNumber constructor: whole must be non-negative");
+        if (whole.signum() < 0) throw new BigNumberException("BigNumber constructor: whole must be non-negative");
         this.whole = whole;
         this.decimals = trim(decimals);
         this.sign = sign;

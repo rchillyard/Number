@@ -555,6 +555,16 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val sequence = Rational.findRepeatingSequence(r.n, r.d)
     sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
   }
+  it should "work for various prime denominators" in {
+    import com.phasmidsoftware.number.core.Rational._
+
+    (3 :/ 4 toString) shouldBe "0.75"
+//    (4 :/ 5 toString) shouldBe "0.8" // TODO figure out why this is wrong
+    (6 :/ 7 toString) shouldBe "0.<857142>"
+    (10 :/ 11 toString) shouldBe "0.<90>"
+    (12 :/ 13 toString) shouldBe "0.<923076>"
+    (16 :/ 17 toString) shouldBe "0.<9411764705882352>"
+  }
 
   behavior of "Rational(String)"
   it should "work for 0.1" in {

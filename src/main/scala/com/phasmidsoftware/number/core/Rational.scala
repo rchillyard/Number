@@ -160,26 +160,24 @@ case class Rational(n: BigInt, d: BigInt) {
 
   override def toString: String = render(true)._1
 
-  def render(exact: Boolean): (String, Boolean) = if (exact) {
-    if (isNaN)
-      "NaN"
-    else if (isZero && d < 0)
-      "-0"
-    else if (isInfinity)
-      (if (n > 0) "+ve" else "-ve") + " infinity"
-    else if (isWhole)
-      toBigInt.toString
-    else if (isExactDouble)
-      toDouble.toString
-    else if (d.mod(BigInt(10)) == 0)
-      toBigDecimal.toString
-    else d match {
-      case x => findRepeatingSequence(n, x) getOrElse asString
-      case _ => asString
-    }
-  } -> true
-  else
-    toBigDecimal.toString() -> false // NOTE string is ignored if boolean is false
+  /**
+    * Render this Rational as a String.
+    *
+    * @param exact true if this Rational is the value of an exact number.
+    * @return a String of various different forms.
+    */
+  def render(exact: Boolean): (String, Boolean) = if (exact) renderExact -> true
+  else toBigDecimal.toString() -> false // NOTE string is ignored if boolean is false
+
+  private def renderExact = this match {
+    case _ if isNaN => "NaN"
+    case _ if isZero && d < 0 => "-0"
+    case _ if isInfinity => (if (n > 0) "+ve" else "-ve") + " infinity"
+    case _ if isWhole => toBigInt.toString
+    case _ if isExactDouble => toDouble.toString
+    case _ if d.mod(BigInt(10)) == 0 => toBigDecimal.toString
+    case _ => findRepeatingSequence(n, d) getOrElse asString
+  }
 
   private def asString: String = d match {
     case x if x <= 100000L =>
@@ -642,7 +640,6 @@ object Rational {
             case None =>
               inner(t)
           }
-        case _ :: t => inner(t)
       }
 
       inner(ps.sorted.toList)
