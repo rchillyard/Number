@@ -38,6 +38,7 @@ val pif = for {p1 <- Future(calculatePi(N))
                } yield (p1 + p2) / 2 // (p1 + p2 + p3 + p4) / 4
 
 import scala.language.postfixOps
+
 Await.result(pif, 100 second)
 
 "That's all folks"

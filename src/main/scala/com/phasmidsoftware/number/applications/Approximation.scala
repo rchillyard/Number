@@ -64,9 +64,9 @@ object Approximation {
   /**
     * Method to evaluate function f at value x.
     *
-    * @param f the function.
+    * @param f      the function.
     * @param dfByDx the derivative of the function.
-    * @param x the value to pass into f.
+    * @param x      the value to pass into f.
     * @return the function's value at x.
     */
   def evaluate(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] = x.applyFunc(f, dfByDx)

@@ -65,10 +65,10 @@ object FP {
       * @return a Try of Option[X].
       */
     def sequence[X](xyo: Option[Try[X]]): Try[Option[X]] = xyo match {
-        case Some(Success(x)) => Success(Some(x))
-    case Some(Failure(x)) => Failure(x)
-    case None => Success(None)
-  }
+      case Some(Success(x)) => Success(Some(x))
+      case Some(Failure(x)) => Failure(x)
+      case None => Success(None)
+    }
 
   /**
     * Method to convert a None value to a given exception (rather than the NoSuchElement exception).
@@ -141,42 +141,42 @@ object FP {
     * @return a Try[Z]
     */
   def tryMap[L, R, Z](lRe: Either[L, R])(r2Zy: R => Try[Z], l2Zy: L => Try[Z])(implicit r2L: R => L): Try[Z] =
-      lRe.toOption.map(r2Zy) match {
-          case Some(Success(z)) => Success(z)
-          case Some(Failure(_)) => tryMapLeft(transpose(lRe), l2Zy)
-          case None => tryMapLeft(lRe, l2Zy)
-      }
-
-    /**
-      * Method to yield a URL for a given resourceForClass in the classpath for C.
-      *
-      * @param resourceName the name of the resourceForClass.
-      * @tparam C a class of the package containing the resourceForClass.
-      * @return a Try[URL].
-      */
-    def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
-
-    /**
-      * Method to yield a Try[URL] for a resource name and a given class.
-      *
-      * @param resourceName the name of the resource.
-      * @param clazz        the class, relative to which, the resource can be found (defaults to the caller's class).
-      * @return a Try[URL]
-      */
-    def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
-        case Some(u) => Success(u)
-        case None => Failure(new Exception(s"$resourceName is not a valid resource for $clazz"))
+    lRe.toOption.map(r2Zy) match {
+      case Some(Success(z)) => Success(z)
+      case Some(Failure(_)) => tryMapLeft(transpose(lRe), l2Zy)
+      case None => tryMapLeft(lRe, l2Zy)
     }
 
-    /**
-      * This method is invoked by tryMap when the input is "left" or when the r2Zy method fails.
-      * To yield the (tried) result, we map the left-hand member of the input (lRe) with a function l2Zy.
-      * The wrapped value of this is then returned (unless empty, in which case a Failure is returned).
-      *
-      * @param lRe  the input, an Either[L,R].
-      * @param l2Zy a function L => Try[Z]
-      * @tparam L the type of the left-side of the Either.
-      * @tparam R the type of the right-side of the Either.
+  /**
+    * Method to yield a URL for a given resourceForClass in the classpath for C.
+    *
+    * @param resourceName the name of the resourceForClass.
+    * @tparam C a class of the package containing the resourceForClass.
+    * @return a Try[URL].
+    */
+  def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
+
+  /**
+    * Method to yield a Try[URL] for a resource name and a given class.
+    *
+    * @param resourceName the name of the resource.
+    * @param clazz        the class, relative to which, the resource can be found (defaults to the caller's class).
+    * @return a Try[URL]
+    */
+  def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
+    case Some(u) => Success(u)
+    case None => Failure(new Exception(s"$resourceName is not a valid resource for $clazz"))
+  }
+
+  /**
+    * This method is invoked by tryMap when the input is "left" or when the r2Zy method fails.
+    * To yield the (tried) result, we map the left-hand member of the input (lRe) with a function l2Zy.
+    * The wrapped value of this is then returned (unless empty, in which case a Failure is returned).
+    *
+    * @param lRe  the input, an Either[L,R].
+    * @param l2Zy a function L => Try[Z]
+    * @tparam L the type of the left-side of the Either.
+    * @tparam R the type of the right-side of the Either.
     * @tparam Z the underlying type of the result.
     * @return a Try[Z]
     */
@@ -272,25 +272,25 @@ object FP {
 
   def optional[T](f: T => Boolean)(t: T): Option[T] = Some(t).filter(f)
 
-    /**
-      * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
-      *
-      * @param xo an optional value of X (called by name).
-      * @param t  a throwable.
-      * @tparam X the underlying type of xo and the type of the result.
-      * @return the value of xo or throws t.
-      * @throws Throwable t
-      */
-    def getOrThrow[X](xo: => Option[X], t: => Throwable): X = xo.getOrElse(throw t)
+  /**
+    * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
+    *
+    * @param xo an optional value of X (called by name).
+    * @param t  a throwable.
+    * @tparam X the underlying type of xo and the type of the result.
+    * @return the value of xo or throws t.
+    * @throws Throwable t
+    */
+  def getOrThrow[X](xo: => Option[X], t: => Throwable): X = xo.getOrElse(throw t)
 
-    def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
-        TryUsing(FP.resource(filename) map (Source.fromURL(_))) {
-            source =>
-                val bn = implicitly[Numeric[BigInt]]
-                val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
-                val bos: Iterator[Option[BigInt]] = for (p <- wos) yield for (q <- p; qq <- bn.parseString(q)) yield qq
-                FP.toTry(FP.sequence(bos.toList), Failure(NumberException(s"invalid input in file: $filename")))
-        }
+  def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
+    TryUsing(FP.resource(filename) map (Source.fromURL(_))) {
+      source =>
+        val bn = implicitly[Numeric[BigInt]]
+        val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
+        val bos: Iterator[Option[BigInt]] = for (p <- wos) yield for (q <- p; qq <- bn.parseString(q)) yield qq
+        FP.toTry(FP.sequence(bos.toList), Failure(NumberException(s"invalid input in file: $filename")))
+    }
 
 }
 

@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.mill.Mill
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {

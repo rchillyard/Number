@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.Success
 
 class OperationsSpec extends AnyFlatSpec with should.Matchers {

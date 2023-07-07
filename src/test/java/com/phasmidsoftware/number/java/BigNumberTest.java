@@ -217,7 +217,7 @@ public class BigNumberTest {
         assertEquals(BigNumber.value(0L, 157079635L, true), target.divide(BigNumber.value(20)));
     }
 
-//    @Test
+    //    @Test
     public void testPrimeReciprocal() {
         BigNumber target = BigNumber.one.divide(17L);
 //        BigNumber target = BigNumber.one.divide(524287L);

@@ -421,7 +421,7 @@ When we multiply two fuzzy numbers together, we add the relative fuzzes together
 
 $$z+Δz=(x+Δx)(y+Δy)$$
 
-Therefore (ignoring the term which is $ΔxΔy$),
+Therefore, (ignoring the term which is $ΔxΔy$),
 
 $$Δz=yΔx+xΔy$$
     
@@ -472,6 +472,7 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
+* Version 1.0.16: 
 * Version 1.0.15: Significant improvements to the rendering of rational numbers.
 * Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
 * Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.

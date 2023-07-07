@@ -103,9 +103,9 @@ case object MonadicOperationExp extends MonadicOperation {
   private def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
 
   val functions: MonadicFunctions = (
-          expInt,
-          expRat,
-          expDouble)
+      expInt,
+      expRat,
+      expDouble)
 
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
@@ -136,9 +136,9 @@ case object MonadicOperationLog extends MonadicOperation {
   private def logDouble(x: Double): Try[Double] = Try(Math.log(x))
 
   val functions: MonadicFunctions = (
-          logInt,
-          logRat,
-          logDouble)
+      logInt,
+      logRat,
+      logDouble)
 
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
@@ -253,9 +253,9 @@ case object MonadicOperationModulate extends MonadicOperation {
   }
 
   val functions: MonadicFunctions = (
-          tryF(z => modulate(z, 0, 2)),
-          tryF(z => modulate(z, Rational.zero, Rational.two)),
-          tryF(z => modulate(z, 0, 2))
+      tryF(z => modulate(z, 0, 2)),
+      tryF(z => modulate(z, Rational.zero, Rational.two)),
+      tryF(z => modulate(z, 0, 2))
   )
 
   /**

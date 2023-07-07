@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.misc
 
 import org.apache.commons.math3.distribution._
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._

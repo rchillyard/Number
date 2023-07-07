@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.core.{ExactNumber, Scalar}
 import com.phasmidsoftware.number.mill.{Add, Swap}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Success}
 
 class MillParserSpec extends AnyFlatSpec with should.Matchers {

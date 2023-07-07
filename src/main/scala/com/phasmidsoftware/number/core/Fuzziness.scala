@@ -186,8 +186,8 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     df.setMaximumFractionDigits(100)
     val result = df.format(tolerance * 100)
     val point = result.indexOf(".")
-    val decimals = result.substring(point+1,result.length)
-    result.substring(0, point + 1) + decimals.substring(0, decimals.indexWhere(p => p != '0') +2) + "%"
+    val decimals = result.substring(point + 1, result.length)
+    result.substring(0, point + 1) + decimals.substring(0, decimals.indexWhere(p => p != '0') + 2) + "%"
   }
 
   /**

@@ -60,7 +60,7 @@ trait Complex extends Field {
     * @return a Complex with the same argument as this but a different magnitude.
     */
   def numberProduct(n: Number): Complex
-  
+
   /**
     * Method to determine the conjugate of this Complex number.
     *

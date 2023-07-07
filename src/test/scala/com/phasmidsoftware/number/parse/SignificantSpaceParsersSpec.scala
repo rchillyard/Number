@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.parse
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Success}
 
 class SignificantSpaceParsersSpec extends AnyFlatSpec with should.Matchers {

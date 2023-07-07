@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
-
 import scala.language.implicitConversions
 
 /**
@@ -186,11 +185,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Matcher.
     */
   def matchDyadicTwoLevels: Matcher[DyadicTriple, Expression] = (matchSimplifyDyadicTermsTwoLevels |
-    (matchTwoDyadicLevels & matchAndCollectTwoDyadicLevels) |
-    (matchTwoDyadicLevelsL & (matchAndCancelTwoDyadicLevelsL | matchAndCollectTwoDyadicLevelsL)) |
-    (matchTwoDyadicLevelsR & (matchAndCancelTwoDyadicLevelsR | matchAndCollectTwoDyadicLevelsR)) |
-    fail("twoLevel")
-    ) :| "matchDyadicTwoLevels"
+      (matchTwoDyadicLevels & matchAndCollectTwoDyadicLevels) |
+      (matchTwoDyadicLevelsL & (matchAndCancelTwoDyadicLevelsL | matchAndCollectTwoDyadicLevelsL)) |
+      (matchTwoDyadicLevelsR & (matchAndCancelTwoDyadicLevelsR | matchAndCollectTwoDyadicLevelsR)) |
+      fail("twoLevel")
+      ) :| "matchDyadicTwoLevels"
 
   /**
     * Matcher which runs depth-first search on an Expression tree, as long as the functions are the same.
@@ -502,7 +501,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Match of the simplified expression, or a Miss.
     */
   // private but used by unit tests
-   def matchAndCollectTwoDyadicLevels: Matcher[ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple, Expression] = Matcher("matchAndCollectTwoDyadicLevels") {
+  def matchAndCollectTwoDyadicLevels: Matcher[ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple, Expression] = Matcher("matchAndCollectTwoDyadicLevels") {
     case f ~ (g ~ w ~ x) ~ (h ~ y ~ z) => collectTermsDyadicTwoLevels(f, g, w, x, h, y, z)
   }
 

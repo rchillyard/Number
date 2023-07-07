@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.problems
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.language.postfixOps
 import scala.util.Random
 
