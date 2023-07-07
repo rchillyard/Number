@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.parse
 
+import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core._
-
 import scala.util.Try
 
 /**
@@ -80,7 +80,8 @@ abstract class BaseNumberParser extends BaseRationalParser {
     val fuzzyDigits = """[\(\[]\d{1,2}[\)\]]""".r
     ("""\*""".r | """\.\.\.""".r | fuzzyDigits) :| "fuzz" ^^ {
       case "*" => None
-      case "..." => None
+      // TODO Ellipsis should indicate a quasi-exact rational number that could not be expressed exactly in decimal form.
+      case Ellipsis => None
       case w => Some(w)
     }
   }
@@ -99,7 +100,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
   // NOTE: maximum length for an exact number.
   //  Any number with a longer fractional part is assumed to be fuzzy.
-  val DPExact = 2
+  private val DPExact = 2
 
   private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[Number] =
     if (ro.isDefined || fo.isDefined)

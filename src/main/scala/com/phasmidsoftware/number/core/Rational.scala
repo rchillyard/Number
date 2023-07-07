@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero, findRepeatingSequence}
 import com.phasmidsoftware.number.parse.RationalParser
 import java.lang.Math._
@@ -157,20 +158,36 @@ case class Rational(n: BigInt, d: BigInt) {
     Rational(n + other.n, d + other.d)
   else Rational.NaN
 
-  override def toString: String =
-    if (isNaN) "NaN"
-    else if (isZero && d < 0) "-0"
-    else if (isInfinity) (if (n > 0) "+ve" else "-ve") + " infinity"
-    else if (isWhole) toBigInt.toString
-    else if (isExactDouble) toDouble.toString
+  override def toString: String = render(true)._1
+
+  def render(exact: Boolean): (String, Boolean) = if (exact) {
+    if (isNaN)
+      "NaN"
+    else if (isZero && d < 0)
+      "-0"
+    else if (isInfinity)
+      (if (n > 0) "+ve" else "-ve") + " infinity"
+    else if (isWhole)
+      toBigInt.toString
+    else if (isExactDouble)
+      toDouble.toString
+    else if (d.mod(BigInt(10)) == 0)
+      toBigDecimal.toString
     else d match {
-      case x if x.isProbablePrime(40) => findRepeatingSequence(n, x) getOrElse asString
+      case x => findRepeatingSequence(n, x) getOrElse asString
       case _ => asString
     }
+  } -> true
+  else
+    toBigDecimal.toString() -> false // NOTE string is ignored if boolean is false
 
-  def asString: String = d match {
-    case x if x <= 100000L => toRationalString
-    case _ => toBigDecimal.toString() // XXX fix for issue #70
+  private def asString: String = d match {
+    case x if x <= 100000L =>
+      toRationalString
+    case _ =>
+      // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
+      // It is not fuzzy.
+      toBigDecimal.toString() + Ellipsis
   }
 }
 
@@ -604,24 +621,96 @@ object Rational {
     * @param d the (prime) denominator.
     * @return a String of repeated digits.
     */
-  def findRepeatingSequence(n: BigInt, d: BigInt): Try[String] = Prime(d) match {
-    case p if p.validated =>
-      (n.isValidInt, p.toIntOption) match {
-        case (true, Some(bottom)) =>
-          val bigNumber = BigNumber.value(n).divide(BigNumber.value(d)).toString
-          val i = bigNumber.indexOf('.')
-          val w = if (i >= 0) bigNumber.substring(i + 1) else bigNumber // TODO take care here
+  def findRepeatingSequence(n: BigInt, d: BigInt): Try[String] = {
+    def findRepeatingPattern(bigNumber: String, h: Int): Option[Int] = {
+      val range = Range(0, bigNumber.length / 2) // This is somewhat arbitrary
+      range.foldLeft[Option[Int]](None) { (b, x) => b.orElse(testSequence(bigNumber, h, x)) }
+    }
 
-          @tailrec
-          def inner(candidates: List[Int]): Try[String] = candidates match {
-            case Nil => Failure[String](NumberException(s"Rational.findRepeatingSequence: no sequence"))
-            case h :: _ if testSequence(w, h) => Success(bigNumber.substring(0, i + 1) + "<" + w.substring(0, h) + ">")
-            case _ :: t => inner(t)
+    def createRecurrenceString(ps: Seq[Int]) = {
+      val bigNumber = BigNumber.value(n).divide(BigNumber.value(d)).toString
+
+      @tailrec
+      def inner(candidates: List[Int]): Try[String] = candidates match {
+        case Nil =>
+          Failure[String](NumberException(s"Rational.findRepeatingSequence: no sequence"))
+        case h :: t =>
+          findRepeatingPattern(bigNumber, h) match {
+            case Some(z) =>
+//                    println(s"n=$n; d=$d; ps=$ps; z=$z; h=$h; BigNumber is $bigNumber")
+              Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
+            case None =>
+              inner(t)
           }
-
-          inner(Range(1, bottom).toList)
+        case _ :: t => inner(t)
       }
-    case _ => Failure(NumberException(s"Rational.findRepeatingSequence: $d is not prime"))
+
+      inner(ps.sorted.toList)
+    }
+
+    (n.isValidInt, d.isValidInt) match {
+      case (true, true) =>
+        getPeriods(d) match {
+          case Success(ps) =>
+            createRecurrenceString(ps)
+          case Failure(x) =>
+            Failure(x)
+        }
+      case _ =>
+        Failure[String](NumberException(s"Rational.numerator and denominator are not both of type Int"))
+    }
+  }
+
+  private def getPeriods(d: BigInt): Try[Seq[Int]] = {
+    def squares(bs: List[Int]) = for (b1 <- bs; b2 <- bs) yield b1 * b2
+
+    def cubes(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs) yield b1 * b2 * b3
+
+    def quads(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs) yield b1 * b2 * b3 * b4
+
+    def quints(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs; b5 <- bs) yield b1 * b2 * b3 * b4 * b5
+
+    def sexts(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs; b5 <- bs; b6 <- bs) yield b1 * b2 * b3 * b4 * b5 * b6
+
+    def expandProducts(bs: List[Int]) = Try {
+      bs.size match {
+        case 0 => Nil
+        case 1 => bs
+        case 2 => bs :+ bs.product
+        case 3 => bs ++ squares(bs) :+ bs.product
+        case 4 => bs ++ squares(bs) ++ cubes(bs) :+ bs.product
+        case 5 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) :+ bs.product
+        case 6 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) :+ bs.product
+        case 7 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) ++ sexts(bs) :+ bs.product
+        case _ => throw NumberException(s"Rational.getPeriods: not yet implemented for: $bs")
+      }
+    }
+
+    def getCandidatePatternLengths(h: Int, t: List[Int]) = {
+      val z: BigInt = t.foldLeft(BigInt(h))((b, y) => b * y)
+      val ps = Prime.primeFactors(z).map(_.toIntOption)
+      FP.sequence(ps) match {
+        case Some(Nil) if z == BigInt(1) => Success(Seq(1))
+        case Some(h :: t) =>
+          expandProducts(1 :: h :: t) match {
+            case Success(products) => Success(products.sorted.distinct)
+            case x => x
+          }
+        case _ => Failure(NumberException(s"Rational.findRepeatingSequence: logic error: $ps"))
+      }
+    }
+
+    def getCandidates(xs: Seq[Int]) = xs filterNot (x => x == 0) match {
+      case Nil => Success(Nil) // the only factors in the denominator are 2 or 5
+      case h :: t => getCandidatePatternLengths(h, t)
+    }
+
+    FP.sequence(Prime.primeFactors(d) map (_.reciprocalPeriod)) match {
+      case None =>
+        getCandidates(Seq(d.toInt - 1))
+      case Some(xs) =>
+        getCandidates(xs)
+    }
   }
 
   // CONSIDER making this public
@@ -632,9 +721,10 @@ object Rational {
 
   private def div(x: Rational, y: Rational): Rational = x / y
 
-  private def testSequence(w: String, n: Int) = w.grouped(n).toSeq match {
-    case Nil => true
-    case h :: t => t.forall(x => h startsWith x)
+  private def testSequence(w: String, n: Int, i: Int): Option[Int] = w.substring(i).grouped(n).toSeq match {
+    case Nil => Some(i)
+    case h :: t if t.forall(x => h startsWith x) => Some(i)
+    case _ => None
   }
 
   private def compare(x: Rational, y: Rational): Int = minus(x, y).signum

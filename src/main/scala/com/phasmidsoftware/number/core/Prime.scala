@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Divides.IntDivides
 import com.phasmidsoftware.number.core.FP.readFromResource
-import com.phasmidsoftware.number.core.Prime.coprime
+import com.phasmidsoftware.number.core.Prime.{coprime, reciprocalPeriods}
 import com.phasmidsoftware.number.core.Primes._
 import com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time
 import java.math.BigInteger
@@ -233,6 +233,14 @@ case class Prime(n: BigInt) extends Ordered[Prime] {
   def isCoprimeTo(x: BigInt): Boolean = coprime(x, n)
 
   /**
+    * Method to get the reciprocal period for decimal expansion for this Prime.
+    * TODO as of now, this is a simple lookup.
+    * If None is returned, then either this is not actually prime or it is not in the first hundred primes or in the list of reciprocal primes.
+    */
+  lazy val reciprocalPeriod: Option[Int] =
+    for (i <- FP.optional[Int](t => t >= 0)(hundredPrimes.toList.indexOf(this)); h <- reciprocalPeriods.drop(i).headOption) yield h
+
+  /**
     * Validate whether this number really is prime.
     *
     * NOTE: This is a very expensive operation as it essentially performs an E-sieve on the given prime.
@@ -262,7 +270,7 @@ object Prime {
 
   import Divides._
 
-  val BigOne: BigInt = BigInt(1)
+  private val BigOne: BigInt = BigInt(1)
 
   /**
     * Method to determine if two BigInts are coprime, i.e. relatively prime.
@@ -367,7 +375,12 @@ object Prime {
     *
     * @return a Seq[Prime].
     */
-  def primeFactors(x: BigInt): Seq[Prime] = for ((k, v) <- primeFactorMultiplicity(x).toSeq; z <- Prime.fill(v)(k)) yield z
+  def primeFactors(x: BigInt): Seq[Prime] = {
+    for {
+      (k, v) <- primeFactorMultiplicity(x).toSeq
+      z <- Prime.fill(v)(k)
+    } yield z
+  }
 
   /**
     * Method to yield a Map of prime factors.
@@ -526,6 +539,17 @@ object Prime {
     */
   def isCarmichaelNumber(n: BigInt): Boolean =
     carmichael.contains(n) || carmichaelFile.contains(n) || !isSmallPrime(n) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
+
+  /**
+    * This is the sequence of periods of decimal expansions of reciprocals of Prime numbers, starting with 2.
+    * The values for 2 and 5 (factors of 10) are 0.
+    * In general, for a prime p, the period is p-1 or a factor of p-1.
+    *
+    * The source of this list is [[https://oeis.org/A002371]].
+    *
+    * @return the length of the sequence for each successive prime reciprocal.
+    */
+  private val reciprocalPeriods: Seq[Int] = Seq(0, 1, 0, 6, 2, 6, 16, 18, 22, 28, 15, 3, 5, 21, 46, 13, 58, 60, 33, 35, 8, 13, 41, 44, 96, 4, 34, 53, 108, 112, 42, 130, 8, 46, 148, 75, 78, 81, 166, 43, 178, 180, 95, 192, 98, 99, 30, 222, 113, 228, 232, 7, 30, 50, 256, 262, 268, 5, 69, 28, 141, 146, 153, 155, 312, 79, 110)
 
   /**
     * If necessary, we do a look up in the first 10,000 Carmichael numbers.

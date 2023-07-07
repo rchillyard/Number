@@ -202,7 +202,7 @@ object Constants {
   lazy val gamma: Number = Number(sGamma)
 
   /**
-    * https://en.wikipedia.org/wiki/Gravitational_constant
+    * https://en.wikipedia.org/wiki/Gravitational_constant (exact).
     * We must use the string sG because of FIXME Issue #54
     */
   lazy val G: Number = Number(sG)
@@ -213,22 +213,22 @@ object Constants {
   lazy val alpha: Number = 0.0072973525693 ~ 11 // (dimensionless)
 
   /**
-    * https://en.wikipedia.org/wiki/Avogadro_constant
+    * https://en.wikipedia.org/wiki/Avogadro_constant (exact).
     */
   lazy val avagadro: Number = Number(6.0221407600E23)
 
   /**
-    * https://en.wikipedia.org/wiki/Boltzmann_constant
+    * https://en.wikipedia.org/wiki/Boltzmann_constant (exact).
     */
   lazy val boltzmann: Number = Number(sBoltzmann)
 
   /**
-    * https://en.wikipedia.org/wiki/Planck_constant
+    * https://en.wikipedia.org/wiki/Planck_constant (exact).
     */
   lazy val planck: Number = Number("6.6260701500E-34") // J Hz ^ -1
 
   /**
-    * https://en.wikipedia.org/wiki/Speed_of_light
+    * https://en.wikipedia.org/wiki/Speed_of_light (exact).
     */
   lazy val c: Number = Number("299792458") // m sec ^ -1
 

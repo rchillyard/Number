@@ -505,7 +505,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(1, 2)
     r.toString() shouldBe "0.5"
   }
-  it should "be recurring when not exact: 2/3" in {
+  it should "be recurring when exact: 2/3" in {
     val r = Rational(2, 3)
     r.toString() shouldBe "0.<6>"
   }
@@ -533,6 +533,27 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(17).invert
     val sequence = Rational.findRepeatingSequence(r.n, r.d)
     sequence shouldBe Success("0.<0588235294117647>")
+  }
+  it should "work when numerator and denominator are prime 1" in {
+    val r = Rational(2, 17)
+    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    sequence shouldBe Success("0.<1176470588235294>")
+  }
+  it should "work when numerator and denominator are prime 2" in {
+    val r = Rational(23, 17)
+    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    sequence shouldBe Success("1.<3529411764705882>")
+  }
+  it should "work when denominator is composite 1" in {
+    val r = Rational(1, 85) // 5 * 17
+    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    println(r.toDouble)
+    sequence shouldBe Success("0.0<1176470588235294>")
+  }
+  it should "work when denominator is composite 2" in {
+    val r = Rational(1, 119) // 7 * 17
+    val sequence = Rational.findRepeatingSequence(r.n, r.d)
+    sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
   }
 
   behavior of "Rational(String)"

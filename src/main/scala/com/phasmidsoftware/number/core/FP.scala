@@ -32,11 +32,11 @@ object FP {
     def sequence[X](xos: Iterator[Option[X]]): Option[Iterator[X]] = sequence(xos.to(List)).map(_.iterator)
 
     /**
-      * Sequence method to combine elements of Try.
+      * Sequence method to combine elements of type Option[X].
       *
       * @param xos an Iterable of Option[X].
       * @tparam X the underlying type.
-      * @return an Option of Seq[X].
+      * @return if <code>xos</code> contains any Nones, the result will be None, otherwise Some(...).
       *         NOTE: that the output collection type will be Seq, regardless of the input type
       */
     def sequence[X](xos: Iterable[Option[X]]): Option[Seq[X]] =

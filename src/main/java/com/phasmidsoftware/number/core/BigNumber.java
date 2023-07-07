@@ -15,6 +15,10 @@ import java.util.regex.Pattern;
  * The representation of the decimal part is as a true decimal (not binary) number.
  * <p>
  * Addition of Comparable and fixes to add method due to Amrita Dubey.
+ * <p>
+ * If you're wondering why this isn't written in Scala, it's simply because
+ * I created it for an assignment for a class for which Java is the required language.
+ * </p>
  */
 public class BigNumber extends java.lang.Number implements Comparable<BigNumber> {
     /**

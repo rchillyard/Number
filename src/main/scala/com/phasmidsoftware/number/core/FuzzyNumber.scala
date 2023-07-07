@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FuzzyNumber.withinWiggleRoom
+import com.phasmidsoftware.number.core.FuzzyNumber.{Ellipsis, withinWiggleRoom}
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
 import scala.collection.mutable
 
@@ -154,7 +154,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     val z = fuzz match {
       // CONSIDER will the following test work in all cases?
       case Some(f) if f.wiggle(0.5) > 1E-16 => f.toString(toDouble.getOrElse(0.0))
-      case Some(_) => true -> (valueAsString + (if (valueAsString.endsWith("...")) "" else "*"))
+      case Some(_) => true -> (valueAsString.replace(Ellipsis, "") + "*")
       case None => true -> valueAsString
     }
     val w = z match {
@@ -211,6 +211,8 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
 }
 
 object FuzzyNumber {
+
+  val Ellipsis = "..."
 
   /**
     * Definition of concrete (implicit) type class object for FuzzyNumber being Fuzzy.

@@ -173,11 +173,11 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "validated" in {
-    (Prime(2).validated) shouldBe true
-    (Prime(4).validated) shouldBe false
-    (p4.validated) shouldBe true
-    (Prime(120).validated) shouldBe false
-    (Prime(7919).validated) shouldBe true
+    Prime(2).validated shouldBe true
+    Prime(4).validated shouldBe false
+    p4.validated shouldBe true
+    Prime(120).validated shouldBe false
+    Prime(7919).validated shouldBe true
   }
 
   it should "next" in {
@@ -292,5 +292,18 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
   it should "form toString correctly" in {
     val mp17 = Prime(mersenneNumber(17))
     mp17.toString() shouldBe "2,305,843,009,213,693,951"
+  }
+
+  it should "get the reciprocal period" in {
+    Prime(2).reciprocalPeriod shouldBe Some(0)
+    Prime(3).reciprocalPeriod shouldBe Some(1)
+    Prime(5).reciprocalPeriod shouldBe Some(0)
+    Prime(7).reciprocalPeriod shouldBe Some(6)
+    Prime(11).reciprocalPeriod shouldBe Some(2)
+    Prime(13).reciprocalPeriod shouldBe Some(6)
+    Prime(17).reciprocalPeriod shouldBe Some(16)
+    Prime(19).reciprocalPeriod shouldBe Some(18)
+    Prime(541).reciprocalPeriod shouldBe None // TODO we should get the correct number for this
+    Prime(1).reciprocalPeriod shouldBe None
   }
 }
