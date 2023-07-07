@@ -96,12 +96,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(1, 0)
     r.isInfinity shouldBe true
     r shouldBe Rational.infinity
-    r.toString shouldBe "+ve infinity"
+    r.render shouldBe "+ve infinity"
   }
   it should "work for -1, 0" in {
     val r = Rational(-1, 0)
     r.isInfinity shouldBe true
-    r.toString shouldBe "-ve infinity"
+    r.render shouldBe "-ve infinity"
   }
   it should "work for -1, -2" in {
     val r = Rational(-1, -2)
@@ -481,7 +481,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "barf when Rational.toInt invoked" in {
     an[RationalException] should be thrownBy Rational.toInt(Rational(2, 3)).get
     val thrown = the[Exception] thrownBy Rational(2, 3).toInt
-    thrown.getMessage should equal("0.<6> is not whole")
+    thrown.getMessage should equal("Rational(2,3) is not whole")
   }
 
   behavior of "2/4"
@@ -503,42 +503,42 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "toString"
   it should "be decimal when exact" in {
     val r = Rational(1, 2)
-    r.toString() shouldBe "0.5"
+    r.toString shouldBe "Rational(1,2)"
   }
   it should "be recurring when exact: 2/3" in {
     val r = Rational(2, 3)
-    r.toString() shouldBe "0.<6>"
+    r.toString shouldBe "Rational(2,3)"
   }
   it should "be decimal when not exact: pi" in {
     val pi = Rational(BigDecimal(math.Pi))
-    pi.toString() shouldBe "3.141592653589793"
+    pi.toString shouldBe "Rational(3141592653589793,1000000000000000)"
   }
   it should "work for NaN" in {
-    Rational.NaN.toString shouldBe "NaN"
+    Rational.NaN.toString shouldBe "Rational(0,0)"
   }
   it should "work for Infinity" in {
-    Rational.infinity.toString shouldBe "+ve infinity"
+    Rational.infinity.toString shouldBe "Rational(1,0)"
   }
   it should "work for negative Infinity" in {
-    Rational.infinity.negate.toString shouldBe "-ve infinity"
+    Rational.infinity.negate.toString shouldBe "Rational(-1,0)"
   }
   // XXX this is the diagnostic for Issue #70
   it should "work for gamma" in {
     val n = BigInt("57721566490153286060651209008240243104215933593992")
     val d = bigTen.pow(50)
     val r = Rational(n, d)
-    r.toString shouldBe "0.5772156649015328606065120900824024310421593359399"
+    r.toString shouldBe "Rational(7215195811269160757581401126030030388026991699249,12500000000000000000000000000000000000000000000000)"
   }
   it should "work for various prime denominators" in {
     import com.phasmidsoftware.number.core.Rational._
 
-    (3 :/ 4 toString) shouldBe "0.75"
-    (4 :/ 5 toString) shouldBe "0.8"
-    (6 :/ 7 toString) shouldBe "0.<857142>"
-    (10 :/ 11 toString) shouldBe "0.<90>"
-    (12 :/ 13 toString) shouldBe "0.<923076>"
-    (16 :/ 17 toString) shouldBe "0.<9411764705882352>"
-    (7918 :/ 7919 toString) shouldBe "7918/7919"
+    (3 :/ 4 toString) shouldBe "Rational(3,4)"
+    (4 :/ 5 toString) shouldBe "Rational(4,5)"
+    (6 :/ 7 toString) shouldBe "Rational(6,7)"
+    (10 :/ 11 toString) shouldBe "Rational(10,11)"
+    (12 :/ 13 toString) shouldBe "Rational(12,13)"
+    (16 :/ 17 toString) shouldBe "Rational(16,17)"
+    (7918 :/ 7919 toString) shouldBe "Rational(7918,7919)"
   }
 
   behavior of "render"
@@ -609,8 +609,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     sequence shouldBe Success("0.0<1176470588235294>")
   }
   it should "work when denominator is composite 2" in {
-    val r = Rational(1, 119) // 7 * 17
-    val sequence = findRepeatingSequence(1, 119)
+    val sequence = findRepeatingSequence(1, 119) // 7 * 17
     sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
   }
   it should "fail when denominator has too many prime factors" in {
