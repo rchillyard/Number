@@ -1,6 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero}
+import com.phasmidsoftware.number.core.Divides.IntDivides
+import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
+import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero, findRepeatingSequence}
 import com.phasmidsoftware.number.parse.RationalParser
 import java.lang.Math._
 import scala.annotation.tailrec
@@ -20,7 +22,7 @@ import scala.util.{Failure, Success, Try}
   *
   * @author scalaprof
   */
-case class Rational(n: BigInt, d: BigInt) {
+case class Rational(n: BigInt, d: BigInt) extends NumberLike {
 
   // Pre-conditions
 
@@ -157,14 +159,61 @@ case class Rational(n: BigInt, d: BigInt) {
     Rational(n + other.n, d + other.d)
   else Rational.NaN
 
-  override def toString: String =
-    if (isNaN) "NaN"
-    else if (isZero && d < 0) "-0"
-    else if (isInfinity) (if (n > 0) "+ve" else "-ve") + " infinity"
-    else if (isWhole) toBigInt.toString
-    else if (isExactDouble) toDouble.toString
-    else if (d <= 100000L) toRationalString
-    else toBigDecimal.toString() // XXX fix for issue #70
+  override def toString: String = s"$n/$d"
+
+  /**
+    * Render this Rational as a String.
+    *
+    * @param exact true if this Rational is the value of an exact number.
+    * @return a String of various different forms.
+    */
+  def render(exact: Boolean): (String, Boolean) = if (exact) renderExact -> true
+  else toBigDecimal.toString() -> false // NOTE string is ignored if boolean is false
+
+  def renderExact: String = this match {
+    case _ if isNaN => "NaN"
+    case _ if isZero && d < 0 => "-0"
+    case _ if isInfinity => (if (n > 0) "+ve" else "-ve") + " infinity"
+    case _ if isWhole => toBigInt.toString
+    case _ if isExactDouble => toDouble.toString
+    case _ if (2 |> d) || (5 |> d) => toBigDecimal.toString
+    case _ => findRepeatingSequence(n, d) getOrElse asString
+  }
+
+  private def asString: String = d match {
+    case x if x <= 100000L => // XXX arbitrary limit of one hundred thousand.
+      toRationalString
+    case _ =>
+      // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
+      // It is not fuzzy.
+      toBigDecimal.toString() + Ellipsis
+  }
+
+  /**
+    * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
+    *
+    * CONSIDER whether this method should really be defined in NumberLike since it makes no sense here.
+    *
+    * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
+    *                    if factor is None then, the result will depend solely on whether this is exact.
+    * @return true if this NumberLike object is exact in the context of factor, else false.
+    */
+  def isExact(maybeFactor: Option[Factor]): Boolean = true
+
+  /**
+    * Method to determine if this Field is actually a real Number (i.e. not complex).
+    * NOTE: to force this as a Number, use convertToNumber in the companion Object.
+    *
+    * @return a Some(x) if this is a Number; otherwise return None.
+    */
+  def asNumber: Option[Number] = Some(Number(this))
+
+  /**
+    * Method to render this NumberLike in a presentable manner.
+    *
+    * @return a String
+    */
+  def render: String = renderExact
 }
 
 object Rational {
@@ -588,6 +637,111 @@ object Rational {
     */
   def toInts(x: Rational): Option[(Int, Int)] = toLongs(x) map { case (n, d) => (math.toIntExact(n), math.toIntExact(d)) }
 
+  /**
+    * Generate the String representation of n/d where d is a Prime number (at least, very probably).
+    *
+    * TODO this does not always work if the numerator is more than 1.
+    *
+    * @param n the numerator.
+    * @param d the (prime) denominator.
+    * @return a String of repeated digits.
+    */
+  def findRepeatingSequence(n: BigInt, d: BigInt): Try[String] = {
+    def findRepeatingPattern(bigNumber: String, h: Int): Option[Int] = {
+      val range = Range(0, bigNumber.length / 2) // This is somewhat arbitrary
+      range.foldLeft[Option[Int]](None) { (b, x) => b.orElse(testSequence(bigNumber, h, x)) }
+    }
+
+    def createRecurrenceString(ps: Seq[Int]) = {
+      val bigNumber = BigNumber.value(n).divide(BigNumber.value(d)).toString
+
+      @tailrec
+      def inner(candidates: List[Int]): Try[String] = candidates match {
+        case Nil =>
+          Failure[String](NumberException(s"Rational.findRepeatingSequence: no sequence"))
+        case h :: t =>
+          findRepeatingPattern(bigNumber, h) match {
+            case Some(z) =>
+//                    println(s"n=$n; d=$d; ps=$ps; z=$z; h=$h; BigNumber is $bigNumber")
+              Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
+            case None =>
+              inner(t)
+          }
+      }
+
+      inner(ps.sorted.toList)
+    }
+
+    (n.isValidInt, d.isValidInt) match {
+      case (true, true) =>
+        getPeriods(d) match {
+          case Success(ps) =>
+            createRecurrenceString(ps)
+          case Failure(x) =>
+            Failure(x)
+        }
+      case _ =>
+        Failure[String](NumberException(s"Rational.numerator and denominator are not both of type Int"))
+    }
+  }
+
+  private def expandProducts(bs: List[Int]) = {
+    def squares(bs: List[Int]) = for (b1 <- bs; b2 <- bs) yield b1 * b2
+
+    def cubes(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs) yield b1 * b2 * b3
+
+    def quads(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs) yield b1 * b2 * b3 * b4
+
+    def quints(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs; b5 <- bs) yield b1 * b2 * b3 * b4 * b5
+
+    def sexts(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs; b5 <- bs; b6 <- bs) yield b1 * b2 * b3 * b4 * b5 * b6
+
+    Try {
+      bs.size match {
+        case 0 => Nil
+        case 1 => bs
+        case 2 => bs :+ bs.product
+        case 3 => bs ++ squares(bs) :+ bs.product
+        case 4 => bs ++ squares(bs) ++ cubes(bs) :+ bs.product
+        case 5 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) :+ bs.product
+        case 6 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) :+ bs.product
+        case 7 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) ++ sexts(bs) :+ bs.product
+        case _ => throw NumberException(s"Rational.getPeriods: not yet implemented for: $bs")
+      }
+    }
+  }
+
+  private def getPeriods(d: BigInt): Try[Seq[Int]] = {
+
+    def getCandidatePatternLengths(h: Int, t: List[Int]) = {
+      val z: BigInt = t.foldLeft(BigInt(h))((b, y) => b * y)
+      val ps = Prime.primeFactors(z).map(_.toIntOption)
+      FP.sequence(ps) match {
+        case Some(Nil) if z == BigInt(1) => Success(Seq(1))
+        case Some(h :: t) =>
+          expandProducts(1 :: h :: t) match {
+            case Success(products) => Success(products.sorted.distinct)
+            case x => x
+          }
+        case _ => Failure(NumberException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $ps"))
+      }
+    }
+
+    def getCandidates(xs: Seq[Int]) = xs filterNot (x => x == 0) match {
+      case Nil => Success(Nil) // the only factors in the denominator are 2 or 5
+      case h :: t => getCandidatePatternLengths(h, t)
+    }
+
+    FP.sequence(Prime.primeFactors(d) map (_.reciprocalPeriod)) match {
+      case None if d < BigNumber.MAXDECIMALDIGITS => // XXX The reason for this is that we only generate 1000 characters for the rendering
+        getCandidates(Seq(d.toInt - 1))
+      case None =>
+        Failure(NumberException(s"Rational.getPeriods: no suitable candidates for repeating sequence length"))
+      case Some(xs) =>
+        getCandidates(xs)
+    }
+  }
+
   // CONSIDER making this public
   private def toBigInt(x: Rational): Try[BigInt] = if (x.isWhole) Success(x.n) else Failure(RationalException(s"toBigInt: $x is " + (if (x.d == 0L)
     "infinite" else "not whole")))
@@ -595,6 +749,12 @@ object Rational {
   private def toInt(x: BigInt): Option[Int] = if (x.isValidInt) Some(x.toInt) else None
 
   private def div(x: Rational, y: Rational): Rational = x / y
+
+  private def testSequence(w: String, n: Int, i: Int): Option[Int] = w.substring(i).grouped(n).toSeq match {
+    case Nil => Some(i)
+    case h :: t if t.forall(x => h startsWith x) => Some(i)
+    case _ => None
+  }
 
   private def compare(x: Rational, y: Rational): Int = minus(x, y).signum
 

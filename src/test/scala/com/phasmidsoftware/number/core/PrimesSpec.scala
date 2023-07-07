@@ -4,8 +4,9 @@ import com.phasmidsoftware.number.core.Primes.piApprox
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-import scala.language.postfixOps
-
+/**
+  * CONSIDER moving this to an integration testing directory since it is a bit slow.
+  */
 class PrimesSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Prime"
@@ -62,7 +63,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.primeFactors(23) shouldBe Seq(23).map(Prime(_))
     Prime.primeFactors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
     Prime.primeFactors(70906) shouldBe Seq(2, 11, 11, 293).map(Prime(_))
-    Prime.primeFactors(7894609062L) shouldBe Seq(2, 11411, 3, 67, 1721).map(Prime(_))
+    Prime.primeFactors(7894609062L).sorted shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
   }
 
   it should "implement primeFactorMultiplicity" in {
@@ -111,7 +112,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     // Why do we never get the other roots (6, 7, 11) here? Oh, duh, because it's less than 20 and so we go in sequence.
     p13.primitiveRoot shouldBe BigInt(2)
     val root23 = p23.primitiveRoot
-    println(root23)
     Seq(BigInt(5), BigInt(7), BigInt(10), BigInt(11), BigInt(14), BigInt(15), BigInt(17), BigInt(19), BigInt(20), BigInt(21)) contains root23 shouldBe true
   }
 
@@ -139,11 +139,11 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "validate" in {
-    (Prime(2) validate) shouldBe true
-    (Prime(4) validate) shouldBe false
-    (p7 validate) shouldBe true
-    (Prime(120) validate) shouldBe false
-    (Prime(7919) validate) shouldBe true
+    Prime(2).validated shouldBe true
+    Prime(4).validated shouldBe false
+    p7.validated shouldBe true
+    Prime(120).validated shouldBe false
+    Prime(7919).validated shouldBe true
   }
 
   it should "next" in {
@@ -173,6 +173,10 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     tests.forall(p => p) shouldBe true
   }
 
+  it should "isCarmichaelNumber3" in {
+    Prime.isCarmichaelNumber(530881) shouldBe true
+  }
+
   it should "create primes from Mersenne numbers" in {
     val xs = for (i <- Seq(2, 3, 5, 7, 13, 17, 19, 31)) yield Prime.isProbablePrime(Prime.mersenneNumber(Prime(i)))
     xs.forall(p => p) shouldBe true
@@ -200,13 +204,13 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "create Mersenne prime" in {
-    Prime.createMersennePrime(0) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(1) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(2) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(3) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(4) map (_.validate) shouldBe None
-    Prime.createMersennePrime(5) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(6) map (_.validate) shouldBe Some(true)
+    Prime.createMersennePrime(0) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(1) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(2) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(3) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(4) map (_.validated) shouldBe None
+    Prime.createMersennePrime(5) map (_.validated) shouldBe Some(true)
+    Prime.createMersennePrime(6) map (_.validated) shouldBe Some(true)
 //    Prime.createMersennePrime(7) map (_.validate) shouldBe Some(true)
   }
 

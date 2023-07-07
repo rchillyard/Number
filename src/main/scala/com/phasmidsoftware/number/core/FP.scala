@@ -1,22 +1,71 @@
 package com.phasmidsoftware.number.core
 
+import java.net.URL
+import scala.io.Source
 import scala.language.implicitConversions
-import scala.util.{Either, Failure, Left, Right, Success, Try}
+import scala.reflect.ClassTag
+import scala.util.Using.Releasable
+import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
 
 /**
   * This module is concerned with the generic operations for operating on Numbers.
   *
   */
 object FP {
-  /**
-    * Sequence method to invert the order of types Option/Try.
-    *
-    * @param xyo an Option of Try[X].
-    * @tparam X the underlying type.
-    * @return a Try of Option[X].
-    */
-  def sequence[X](xyo: Option[Try[X]]): Try[Option[X]] = xyo match {
-    case Some(Success(x)) => Success(Some(x))
+
+    /**
+      * Sequence method to combine elements of Try.
+      *
+      * @param xys an Iterator of Try[X]
+      * @tparam X the underlying type
+      * @return a Try of Iterator[X]
+      */
+    def sequence[X](xys: Iterator[Try[X]]): Try[Iterator[X]] = sequence(xys.to(List)).map(_.iterator)
+
+    /**
+      * Sequence method to combine elements of Try.
+      *
+      * @param xos an Iterator of Try[X]
+      * @tparam X the underlying type
+      * @return a Try of Iterator[X]
+      */
+    def sequence[X](xos: Iterator[Option[X]]): Option[Iterator[X]] = sequence(xos.to(List)).map(_.iterator)
+
+    /**
+      * Sequence method to combine elements of type Option[X].
+      *
+      * @param xos an Iterable of Option[X].
+      * @tparam X the underlying type.
+      * @return if <code>xos</code> contains any Nones, the result will be None, otherwise Some(...).
+      *         NOTE: that the output collection type will be Seq, regardless of the input type
+      */
+    def sequence[X](xos: Iterable[Option[X]]): Option[Seq[X]] =
+        xos.foldLeft(Option(Seq[X]())) {
+            (xso, xo) => for (xs <- xso; x <- xo) yield xs :+ x
+        }
+
+    /**
+      * Sequence method to combine elements of Try.
+      *
+      * @param xys an Iterable of Try[X]
+      * @tparam X the underlying type
+      * @return a Try of Seq[X]
+      *         NOTE: that the output collection type will be Seq, regardless of the input type
+      */
+    def sequence[X](xys: Iterable[Try[X]]): Try[Seq[X]] =
+        xys.foldLeft(Try(Seq[X]())) {
+            (xsy, xy) => for (xs <- xsy; x <- xy) yield xs :+ x
+        }
+
+    /**
+      * Sequence method to invert the order of types Option/Try.
+      *
+      * @param xyo an Option of Try[X].
+      * @tparam X the underlying type.
+      * @return a Try of Option[X].
+      */
+    def sequence[X](xyo: Option[Try[X]]): Try[Option[X]] = xyo match {
+        case Some(Success(x)) => Success(Some(x))
     case Some(Failure(x)) => Failure(x)
     case None => Success(None)
   }
@@ -92,21 +141,42 @@ object FP {
     * @return a Try[Z]
     */
   def tryMap[L, R, Z](lRe: Either[L, R])(r2Zy: R => Try[Z], l2Zy: L => Try[Z])(implicit r2L: R => L): Try[Z] =
-    lRe.toOption.map(r2Zy) match {
-      case Some(Success(z)) => Success(z)
-      case Some(Failure(_)) => tryMapLeft(transpose(lRe), l2Zy)
-      case None => tryMapLeft(lRe, l2Zy)
+      lRe.toOption.map(r2Zy) match {
+          case Some(Success(z)) => Success(z)
+          case Some(Failure(_)) => tryMapLeft(transpose(lRe), l2Zy)
+          case None => tryMapLeft(lRe, l2Zy)
+      }
+
+    /**
+      * Method to yield a URL for a given resourceForClass in the classpath for C.
+      *
+      * @param resourceName the name of the resourceForClass.
+      * @tparam C a class of the package containing the resourceForClass.
+      * @return a Try[URL].
+      */
+    def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
+
+    /**
+      * Method to yield a Try[URL] for a resource name and a given class.
+      *
+      * @param resourceName the name of the resource.
+      * @param clazz        the class, relative to which, the resource can be found (defaults to the caller's class).
+      * @return a Try[URL]
+      */
+    def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
+        case Some(u) => Success(u)
+        case None => Failure(new Exception(s"$resourceName is not a valid resource for $clazz"))
     }
 
-  /**
-    * This method is invoked by tryMap when the input is "left" or when the r2Zy method fails.
-    * To yield the (tried) result, we map the left-hand member of the input (lRe) with a function l2Zy.
-    * The wrapped value of this is then returned (unless empty, in which case a Failure is returned).
-    *
-    * @param lRe  the input, an Either[L,R].
-    * @param l2Zy a function L => Try[Z]
-    * @tparam L the type of the left-side of the Either.
-    * @tparam R the type of the right-side of the Either.
+    /**
+      * This method is invoked by tryMap when the input is "left" or when the r2Zy method fails.
+      * To yield the (tried) result, we map the left-hand member of the input (lRe) with a function l2Zy.
+      * The wrapped value of this is then returned (unless empty, in which case a Failure is returned).
+      *
+      * @param lRe  the input, an Either[L,R].
+      * @param l2Zy a function L => Try[Z]
+      * @tparam L the type of the left-side of the Either.
+      * @tparam R the type of the right-side of the Either.
     * @tparam Z the underlying type of the result.
     * @return a Try[Z]
     */
@@ -202,23 +272,59 @@ object FP {
 
   def optional[T](f: T => Boolean)(t: T): Option[T] = Some(t).filter(f)
 
-  /**
-    * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
-    *
-    * @param xo an optional value of X (called by name).
-    * @param t  a throwable.
-    * @tparam X the underlying type of xo and the type of the result.
-    * @return the value of xo or throws t.
-    * @throws Throwable t
-    */
-  def getOrThrow[X](xo: => Option[X], t: => Throwable): X = xo.getOrElse(throw t)
+    /**
+      * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
+      *
+      * @param xo an optional value of X (called by name).
+      * @param t  a throwable.
+      * @tparam X the underlying type of xo and the type of the result.
+      * @return the value of xo or throws t.
+      * @throws Throwable t
+      */
+    def getOrThrow[X](xo: => Option[X], t: => Throwable): X = xo.getOrElse(throw t)
+
+    def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
+        TryUsing(FP.resource(filename) map (Source.fromURL(_))) {
+            source =>
+                val bn = implicitly[Numeric[BigInt]]
+                val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
+                val bos: Iterator[Option[BigInt]] = for (p <- wos) yield for (q <- p; qq <- bn.parseString(q)) yield qq
+                FP.toTry(FP.sequence(bos.toList), Failure(NumberException(s"invalid input in file: $filename")))
+        }
+
 }
 
 /**
   * These converters are used by the tryMap and transpose.
   */
 object Converters {
-  implicit def convertIntToRational(x: Int): Either[Option[Double], Rational] = Right(Rational(x))
+    implicit def convertIntToRational(x: Int): Either[Option[Double], Rational] = Right(Rational(x))
 
-  implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] = Try(x.toDouble).toOption
+    implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] = Try(x.toDouble).toOption
+}
+
+
+object TryUsing {
+    /**
+      * This method is to Using.apply as flatMap is to Map.
+      *
+      * @param resource a resource which is used by f and will be managed via Using.apply
+      * @param f        a function of R => Try[A].
+      * @tparam R the resource type.
+      * @tparam A the underlying type of the result.
+      * @return a Try[A]
+      */
+    def apply[R: Releasable, A](resource: => R)(f: R => Try[A]): Try[A] = Using(resource)(f).flatten
+
+    /**
+      * This method is similar to apply(r) but it takes a Try[R] as its parameter.
+      * The definition of f is the same as in the other apply, however.
+      *
+      * @param ry a Try[R] which is passed into f and will be managed via Using.apply
+      * @param f  a function of R => Try[A].
+      * @tparam R the resource type.
+      * @tparam A the underlying type of the result.
+      * @return a Try[A]
+      */
+    def apply[R: Releasable, A](ry: Try[R])(f: R => Try[A]): Try[A] = for (r <- ry; a <- apply(r)(f)) yield a
 }

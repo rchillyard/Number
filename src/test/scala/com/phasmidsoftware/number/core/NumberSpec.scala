@@ -784,6 +784,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val oneHalf = sinePiBy4 doMultiply sinePiBy4
     oneHalf.normalize shouldBe Number.two.invert
   }
+  it should "multiply rational by Int" in {
+    val target = Number("3/5")
+    val nineTenths = target.doMultiple(Rational("3/2"))
+    nineTenths.toRational shouldBe Some(Rational("9/10"))
+    nineTenths.doMultiple(10) shouldBe Number(9)
+  }
 
   behavior of "invert"
   it should "invert 1" in {
@@ -1341,4 +1347,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     ComplexCartesian(2, 3) multiply Number.i shouldBe ComplexCartesian(-3, 2)
   }
 
+  behavior of "field operations"
+  it should "work with asReal" in {
+    val target = Number.one
+    target.asReal shouldBe Some(Real(1))
+  }
 }

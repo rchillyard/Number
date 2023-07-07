@@ -175,18 +175,18 @@ trait Number extends Fuzz[Double] with Field {
   /**
     * Perform an exact scalar multiplication of this Number by the scale factor z.
     *
-    * @param z a Rational.
+    * @param r a Rational.
     * @return a new Number which is this Number scaled by z.
     */
-  def doMultiple(z: Rational): Number = GeneralNumber.times(this, Number(z))
+  def doMultiple(r: Rational): Number = GeneralNumber.times(this, Number(r))
 
   /**
     * Perform an exact scalar multiplication of this Number by the scale factor z.
     *
-    * @param z an Int.
+    * @param x an Int.
     * @return a new Number which is this Number scaled by z.
     */
-  def doMultiple(z: Int): Number = doMultiple(Rational(z))
+  def doMultiple(x: Int): Number = doMultiple(Rational(x))
 
   /**
     * Divide this Number by n.
@@ -263,14 +263,6 @@ trait Number extends Fuzz[Double] with Field {
     case ComplexCartesian(x, y) => ComplexPolar(doPower(x), y) // CONSIDER is this correct?
     case _ => throw NumberException("logic error: power not supported for non-Number powers")
   }
-
-  /**
-    * Raise this Number to the power p.
-    *
-    * @param p an Int.
-    * @return this Number raised to power p.
-    */
-  def power(p: Int): Field = power(Number(p))
 
   /**
     * Yields the inverse of this Number.
@@ -616,8 +608,8 @@ object Number {
   /**
     * Exact value of 𝛑
     */
-//noinspection NonAsciiCharacters
-val `𝛑`: Number = pi
+  //noinspection NonAsciiCharacters
+  val `𝛑`: Number = pi
   /**
     * Exact value of 2 pi
     */
@@ -658,11 +650,11 @@ val `𝛑`: Number = pi
     * @return the equivalent Number.
     * @throws ExpressionException if x cannot be converted to a Number.
     */
-//noinspection Annotator
-implicit def convertExpression(x: Expression): Number = x.materialize.asNumber match {
-  case Some(n) => n
-  case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
-}
+  //noinspection Annotator
+  implicit def convertExpression(x: Expression): Number = x.materialize.asNumber match {
+    case Some(n) => n
+    case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
+  }
 
   /**
     * Implicit converter from Int to Number.

@@ -1,9 +1,8 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen}
+import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, findRepeatingSequence}
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
-
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -73,6 +72,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(a, b)
     Rational.hasCorrectRatio(r, a, b) shouldBe true
   }
+  it should "work for -355 (2)" in {
+    val a: Rational = Rational(BigInt(355), negative = true)
+    a shouldBe Rational(-355L)
+  }
 
   behavior of "apply(Long,Long)"
   it should "work for 0, 1" in {
@@ -93,12 +96,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(1, 0)
     r.isInfinity shouldBe true
     r shouldBe Rational.infinity
-    r.toString shouldBe "+ve infinity"
+    r.render shouldBe "+ve infinity"
   }
   it should "work for -1, 0" in {
     val r = Rational(-1, 0)
     r.isInfinity shouldBe true
-    r.toString shouldBe "-ve infinity"
+    r.render shouldBe "-ve infinity"
   }
   it should "work for -1, -2" in {
     val r = Rational(-1, -2)
@@ -244,6 +247,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = r1 + r2
     Rational.hasCorrectRatio(r, BigInt("18050442446843353054"), 1L) shouldBe true
   }
+  it should "add 0 to large number (2)" in {
+    val r1 = Rational(0)
+    val r2 = BigInt("18050442446843353054")
+    val r = r1 + r2
+    Rational.hasCorrectRatio(r, BigInt("18050442446843353054"), 1L) shouldBe true
+  }
   it should "add 1 to large number" in {
     val r1 = Rational(1)
     val r2 = Rational(BigInt("18050442446843353054"), 2)
@@ -255,6 +264,39 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r2 = Rational(BigInt("816512980"), -1)
     val r = r1 + r2
     Rational.hasCorrectRatio(r, 816512980 - BigInt("-9223372036854775808"), -1) shouldBe true
+  }
+
+  behavior of "*"
+  it should "return 4 for 2*2" in {
+    val r1 = Rational(2)
+    val r2 = Rational(2)
+    val r = r1 * r2
+    r shouldBe Rational(4, 1)
+  }
+  it should "return result for 0 * -236274181" in {
+    val n1 = BigInt(0)
+    val d1 = -1L
+    val n2 = BigInt(-2362741811L)
+    val d2 = 1L
+    val r = Rational(n1, d1) * Rational(n2, d2)
+    r shouldBe Rational.zero
+  }
+  it should "multiply 2 by large number" in {
+    val r1 = Rational(2)
+    val r2 = Rational(BigInt("18050442446843353054"), 2)
+    val r = r1 * r2
+    r shouldBe Rational(BigInt("18050442446843353054"))
+  }
+  it should "multiply large number by smaller one" in {
+    val r1 = Rational(BigInt("-9223372036854775808"), 1)
+    val r2 = Rational(BigInt("816512980"), -1)
+    val r = r1 * r2
+    r shouldBe Rational(BigInt("-9223372036854775808") * BigInt(-816512980L))
+  }
+  it should "multiply large number by short" in {
+    val r1 = Rational(BigInt("-9223372036854775808"), 1)
+    val r = r1 * 15.toShort
+    r shouldBe Rational(BigInt(-9223372036854775808L) * BigInt(15))
   }
 
   behavior of "negate"
@@ -352,6 +394,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for Rational power (3)" in {
     val target = Rational(8, 27)
     target.power(Rational(2, 3)) shouldBe Success(Rational(4, 9))
+  }
+
+  it should "work for Rational power (4)" in {
+    val target = Rational(8, 27)
+    target ^ Rational(2, 3) shouldBe Success(Rational(4, 9))
   }
 
   it should "fail for non-exact powers" in {
@@ -456,31 +503,116 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "toString"
   it should "be decimal when exact" in {
     val r = Rational(1, 2)
-    r.toString() shouldBe "0.5"
+    r.toString shouldBe "1/2"
   }
-  it should "be rational when not exact: 2/3" in {
+  it should "be recurring when exact: 2/3" in {
     val r = Rational(2, 3)
-    r.toString() shouldBe "2/3"
+    r.toString shouldBe "2/3"
   }
   it should "be decimal when not exact: pi" in {
     val pi = Rational(BigDecimal(math.Pi))
-    pi.toString() shouldBe "3.141592653589793"
+    pi.toString shouldBe "3141592653589793/1000000000000000"
   }
   it should "work for NaN" in {
-    Rational.NaN.toString shouldBe "NaN"
+    Rational.NaN.toString shouldBe "0/0"
   }
   it should "work for Infinity" in {
-    Rational.infinity.toString shouldBe "+ve infinity"
+    Rational.infinity.toString shouldBe "1/0"
   }
   it should "work for negative Infinity" in {
-    Rational.infinity.negate.toString shouldBe "-ve infinity"
+    Rational.infinity.negate.toString shouldBe "-1/0"
   }
   // XXX this is the diagnostic for Issue #70
   it should "work for gamma" in {
     val n = BigInt("57721566490153286060651209008240243104215933593992")
     val d = bigTen.pow(50)
     val r = Rational(n, d)
-    r.toString shouldBe "0.5772156649015328606065120900824024310421593359399"
+    r.toString shouldBe "7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000"
+  }
+  it should "work for various prime denominators" in {
+    import com.phasmidsoftware.number.core.Rational._
+
+    (3 :/ 4 toString) shouldBe "3/4"
+    (4 :/ 5 toString) shouldBe "4/5"
+    (6 :/ 7 toString) shouldBe "6/7"
+    (10 :/ 11 toString) shouldBe "10/11"
+    (12 :/ 13 toString) shouldBe "12/13"
+    (16 :/ 17 toString) shouldBe "16/17"
+    (7918 :/ 7919 toString) shouldBe "7918/7919"
+  }
+
+  behavior of "render"
+  it should "be decimal when exact" in {
+    val r = Rational(1, 2)
+    r.render shouldBe "0.5"
+  }
+  it should "be recurring when exact: 2/3" in {
+    val r = Rational(2, 3)
+    r.render shouldBe "0.<6>"
+  }
+  it should "be decimal when not exact: pi" in {
+    val pi = Rational(BigDecimal(math.Pi))
+    pi.render shouldBe "3.141592653589793"
+  }
+  it should "work for NaN" in {
+    Rational.NaN.render shouldBe "NaN"
+  }
+  it should "work for Infinity" in {
+    Rational.infinity.render shouldBe "+ve infinity"
+  }
+  it should "work for negative Infinity" in {
+    Rational.infinity.negate.render shouldBe "-ve infinity"
+  }
+// XXX this is the diagnostic for Issue #70
+  it should "work for gamma" in {
+    val n = BigInt("57721566490153286060651209008240243104215933593992")
+    val d = bigTen.pow(50)
+    val r = Rational(n, d)
+    // XXX why doesn't this end in a 2?
+    r.render shouldBe "0.5772156649015328606065120900824024310421593359399"
+  }
+  it should "work for various prime denominators" in {
+    import com.phasmidsoftware.number.core.Rational._
+
+    (3 :/ 4 render) shouldBe "0.75"
+    (4 :/ 5 render) shouldBe "0.8"
+    (6 :/ 7 render) shouldBe "0.<857142>"
+    (10 :/ 11 render) shouldBe "0.<90>"
+    (12 :/ 13 render) shouldBe "0.<923076>"
+    (16 :/ 17 render) shouldBe "0.<9411764705882352>"
+    (7918 :/ 7919 render) shouldBe "7918/7919"
+  }
+
+  behavior of "findRepeatingSequence"
+  it should "fail for 4/5" in {
+    findRepeatingSequence(4, 5) should matchPattern { case Failure(_) => }
+  }
+  it should "work when denominator is prime" in {
+    val r = Rational(17).invert
+    val sequence = findRepeatingSequence(r.n, r.d)
+    sequence shouldBe Success("0.<0588235294117647>")
+  }
+  it should "work when numerator and denominator are prime 1" in {
+    val r = Rational(2, 17)
+    val sequence = findRepeatingSequence(r.n, r.d)
+    sequence shouldBe Success("0.<1176470588235294>")
+  }
+  it should "work when numerator and denominator are prime 2" in {
+    val r = Rational(23, 17)
+    val sequence = findRepeatingSequence(r.n, r.d)
+    sequence shouldBe Success("1.<3529411764705882>")
+  }
+  it should "work when denominator is composite 1" in {
+    val r = Rational(1, 85) // 5 * 17
+    val sequence = findRepeatingSequence(r.n, r.d)
+    sequence shouldBe Success("0.0<1176470588235294>")
+  }
+  it should "work when denominator is composite 2" in {
+    val sequence = findRepeatingSequence(1, 119) // 7 * 17
+    sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
+  }
+  it should "fail when denominator has too many prime factors" in {
+    findRepeatingSequence(1, 257) should matchPattern { case Failure(NumberException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
   }
 
   behavior of "Rational(String)"

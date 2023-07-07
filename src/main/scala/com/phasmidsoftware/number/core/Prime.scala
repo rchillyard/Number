@@ -2,7 +2,8 @@ package com.phasmidsoftware.number.core
 
 
 import com.phasmidsoftware.number.core.Divides.IntDivides
-import com.phasmidsoftware.number.core.Prime.coprime
+import com.phasmidsoftware.number.core.FP.readFromResource
+import com.phasmidsoftware.number.core.Prime.{coprime, reciprocalPeriods}
 import com.phasmidsoftware.number.core.Primes._
 import com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time
 import java.math.BigInteger
@@ -17,9 +18,11 @@ import scala.util.{Failure, Random, Try}
   *
   * NOTE: just because we have an instance of Prime does not mean that it is a prime number.
   *
+  * NOTE: Prime is no longer an AnyVal because we want to have lazy val validated.
+  *
   * @param n the value of the (possible) prime number (should be greater than zero, although this is not checked)
   */
-case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
+case class Prime(n: BigInt) extends Ordered[Prime] {
 
   /**
     * Method to evaluate Euler's Totient function for this Prime raised to power r.
@@ -125,14 +128,10 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
   }
 
   /**
-    * Validate whether this number really is prime.
-    *
-    * NOTE: This is a very expensive operation as it essentially performs an E-sieve on the given prime.
-    *
-    * @return true if this number is prime.
+    * True if this is a valid prime number,
+    * As this is a lazy val, it will only be evaluated at most once and, often, not at all.
     */
-  @unused
-  def validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
+  lazy val validated: Boolean = validate
 
   /**
     * Get the remainder from the division x/n.
@@ -204,7 +203,14 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
     */
   def compare(that: Prime): Int = n.compare(that.n)
 
-  override def toString: String = Prime.formatWithCommas(n)
+  /**
+    * Method to render this Prime number as a String with a delimiter every third place.
+    *
+    * TODO get the delimiter from the Java i18n features.
+    *
+    * @return a String representing a Prime number.
+    */
+  override def toString: String = Prime.formatWithCommas(n, ",")
 
   /**
     * Method to yield base raised to the power exponent modulo n (i.e., this prime number).
@@ -227,6 +233,24 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
   def isCoprimeTo(x: BigInt): Boolean = coprime(x, n)
 
   /**
+    * Method to get the reciprocal period for decimal expansion for this Prime.
+    * TODO as of now, this is a simple lookup.
+    * If None is returned, then either this is not actually prime or it is not in the first hundred primes or in the list of reciprocal primes.
+    */
+  lazy val reciprocalPeriod: Option[Int] =
+    for (i <- FP.optional[Int](t => t >= 0)(hundredPrimes.toList.indexOf(this)); h <- reciprocalPeriods.drop(i).headOption) yield h
+
+  /**
+    * Validate whether this number really is prime.
+    *
+    * NOTE: This is a very expensive operation as it essentially performs an E-sieve on the given prime.
+    *
+    * @return true if this number is prime.
+    */
+  @unused
+  private def validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
+
+  /**
     * Return a Boolean which is true if a.pow(c/q) != 1 mod n for all q where q is a prime factor of c.
     *
     * CONSIDER renaming this to something more descriptive.
@@ -246,7 +270,7 @@ object Prime {
 
   import Divides._
 
-  val BigOne: BigInt = BigInt(1)
+  private val BigOne: BigInt = BigInt(1)
 
   /**
     * Method to determine if two BigInts are coprime, i.e. relatively prime.
@@ -264,7 +288,7 @@ object Prime {
     * @param y a BigInt.
     * @return a BigInt that is the least common multiple of x and y.
     */
-  def lcm(x: BigInt, y: BigInt): BigInt = x * y / x.gcd(y)
+  private def lcm(x: BigInt, y: BigInt): BigInt = x * y / x.gcd(y)
 
   /**
     * Method to yield the value of the Euler's Totient function (phi) for this Prime.
@@ -289,6 +313,8 @@ object Prime {
   /**
     * Method to calculate the Carmichael (or "reduced") totient for x.
     *
+    * TESTME
+    *
     * @param x a BigInt for which we require Carmichael's totient function.
     * @return a BigInt, which represents the Carmichael totient function.
     */
@@ -302,6 +328,8 @@ object Prime {
     * Carmichael's totient function for a prime power.
     * NOTE: often, this will be the same as Euler's totient function, but sometimes it will be one half.
     *
+    * TESTME
+    *
     * @param factor a tuple of Prime and exponent.
     * @return Carmichael's totient function for this Prime power.
     */
@@ -310,6 +338,23 @@ object Prime {
       val phi = totient(factor)
       if (p.n == 2 && r >= 3) phi / 2 else phi
   }
+
+  /**
+    * Method to determine how many prime numbers there are which are less than x.
+    *
+    * @param x a BigInt.
+    * @return the number of primes that are less than x.
+    */
+  def primeCountingFunction(x: BigInt): Int = LazyList.from(1).map(BigInt(_)).takeWhile(_ < x).count(_.isProbablePrime(30))
+
+
+  /**
+    * Method to determine how many prime numbers there are which are less than x.
+    *
+    * @param x a BigInt.
+    * @return the number of primes that are less than x.
+    */
+  def primeCountingFunctionExact(x: BigInt): Int = LazyList.from(1).map(Prime(_)).takeWhile(_.n < x).count(_.validate)
 
   /**
     * Get the multiplicativeInverse for a BigInt (a) modulus n.
@@ -330,7 +375,12 @@ object Prime {
     *
     * @return a Seq[Prime].
     */
-  def primeFactors(x: BigInt): Seq[Prime] = for ((k, v) <- primeFactorMultiplicity(x).toSeq; z <- Prime.fill(v)(k)) yield z
+  def primeFactors(x: BigInt): Seq[Prime] = {
+    for {
+      (k, v) <- primeFactorMultiplicity(x).toSeq
+      z <- Prime.fill(v)(k)
+    } yield z
+  }
 
   /**
     * Method to yield a Map of prime factors.
@@ -376,9 +426,16 @@ object Prime {
     factorsR(Map(), x, allPrimes.filter(p => p.toBigInt |> x))
   }
 
-  val commaFormatter = new java.text.DecimalFormat("#,###")
-
-  def formatWithCommas(x: BigInt): String = commaFormatter.format(x)
+  /**
+    * Format a BigInt with a delimiter.
+    *
+    * NOTE that I tried to use new java.text.DecimalFormat("#,###") but it didn't work correctly!
+    *
+    * @param x a BigInt.
+    * @return a String
+    */
+  def formatWithCommas(x: BigInt, delimiter: String): String =
+    x.toString().reverse.grouped(3).toList.reverse.map(x => x.reverse).mkString(delimiter)
 
   /**
     * Method to construct a new Prime, provided that it is positive.
@@ -395,7 +452,7 @@ object Prime {
     * Method to create a (probable) Prime from a String.
     *
     * @param s the String.
-    * @return an optional Prime whose value is the String.
+    * @return an optional Prime whose value is the String and whose value is probably a prime.
     */
   def create(s: String): Option[Prime] = create(BigInt(s))
 
@@ -406,11 +463,6 @@ object Prime {
     * @return an Option[Prime]
     */
   def create(p: BigInt): Option[Prime] = optionalPrime(Prime(p))
-
-  /**
-    * Function to lift a Prime to an Option[Prime] whose values depends on the result of invoking isProbablePrime.
-    */
-  val optionalPrime: Prime => Option[Prime] = FP.optional[Prime](_.isProbablePrime)
 
   /**
     * Create an (optional) Mersenne Prime of form (2 to the power of the ith prime) - 1.
@@ -486,11 +538,30 @@ object Prime {
     * @return true if n is a Carmichael Number.
     */
   def isCarmichaelNumber(n: BigInt): Boolean =
-    carmichael.contains(n) || !isSmallPrime(n) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
+    carmichael.contains(n) || carmichaelFile.contains(n) || !isSmallPrime(n) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
+
+  /**
+    * This is the sequence of periods of decimal expansions of reciprocals of Prime numbers, starting with 2.
+    * The values for 2 and 5 (factors of 10) are 0.
+    * In general, for a prime p, the period is p-1 or a factor of p-1.
+    *
+    * The source of this list is [[https://oeis.org/A002371]].
+    *
+    * @return the length of the sequence for each successive prime reciprocal.
+    */
+  private val reciprocalPeriods: Seq[Int] = Seq(0, 1, 0, 6, 2, 6, 16, 18, 22, 28, 15, 3, 5, 21, 46, 13, 58, 60, 33, 35, 8, 13, 41, 44, 96, 4, 34, 53, 108, 112, 42, 130, 8, 46, 148, 75, 78, 81, 166, 43, 178, 180, 95, 192, 98, 99, 30, 222, 113, 228, 232, 7, 30, 50, 256, 262, 268, 5, 69, 28, 141, 146, 153, 155, 312, 79, 110)
+
+  /**
+    * If necessary, we do a look up in the first 10,000 Carmichael numbers.
+    *
+    * TODO determine whether this is faster or slower than checking the rest of the conditions for isCarmichaelNumber.
+    */
+  private lazy val carmichaelFile: Seq[BigInt] =
+    readFromResource("/carmichael.txt", wa => wa.lastOption).getOrElse(Nil)
 
   private def carmichaelTheoremApplies(n: BigInt) = {
     val factors: Map[Prime, Int] = primeFactorMultiplicity(n)
-    val tests = for ((p, r) <- factors) yield r == 1 && (n - 1) % (p.n - 1) == 0
+    val tests: Iterable[Boolean] = for ((p, r) <- factors) yield r == 1 && (n - 1) % (p.n - 1) == 0
     factors.size > 2 && tests.forall(p => p)
   }
 
@@ -515,6 +586,11 @@ object Prime {
     if (pMinus1 < n) Range(2, p.toInt).map(BigInt(_))
     else RandomState.lazyList(System.nanoTime()).map(_.value(pMinus1 - 1) + 2) take n
   }
+
+  /**
+    * Function to lift a Prime to an Option[Prime] whose values depends on the result of checking validated.
+    */
+  private val optionalPrime: Prime => Option[Prime] = FP.optional[Prime](_.validated)
 }
 
 object Primes {
@@ -540,7 +616,7 @@ object Primes {
     * The measure of certainty that we use.
     * Probability of a false positive prime is 2.pow(-100).
     */
-  val CERTAINTY = 100
+  private val CERTAINTY = 100
 
   /**
     * Method to generate a random prime of size bits bits.
@@ -645,7 +721,7 @@ object Primes {
   */
 object MillerRabin {
   // This code is attributed to: 'https://www.literateprograms.org/miller-rabin_primality_test__scala_.html'
-  def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
+  private def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
     val (d, s) = decompose(n)
     // TODO avoid this mutable variable.
     var a_to_power: BigInt = a.modPow(d, n)

@@ -348,7 +348,7 @@ object Fuzziness {
   /**
     * Method to yield a transformation (i.e. a Fuzziness[T] => Fuzziness[T]) based on a scale constant k.
     *
-    * XXX we need a unit test for this.
+    * TESTME
     *
     * @param k the scale constant.
     * @tparam T the underlying type.
@@ -472,7 +472,6 @@ object Fuzziness {
     */
   def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
-
   private def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) => if (relative) a.relative(t) else Some(f)
@@ -489,17 +488,15 @@ object Fuzziness {
     * @return the optional fuzziness for the result of the monadic operation.
     */
   def monadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
+    // CONSIDER using map again (which itself uses transform) -- but be careful!
+    // First, ensure that the fuzz we are given is relative.
     val relativeFuzz: Option[Fuzziness[Double]] = fuzz flatMap (_.normalize(t, relative = true))
-    //    val functionalFuzz: Option[Fuzziness[Double]] = Fuzziness.map(t, x, !op.absolute, op.derivative, fuzz)
-    val opFuzz = Fuzziness.createFuzz(op.fuzz)
-    // CONSIDER using map again (which itself uses transform).
-    val resultFuzz: Option[Fuzziness[Double]] = relativeFuzz map (_.transform(op.relativeFuzz)(t))
-    val result: Option[Fuzziness[Double]] = Fuzziness.combine(t, t, relative = true, independent = true)((resultFuzz, Some(opFuzz)))
-//    val wiggle: Double = result.map(_.wiggle(0.5)).getOrElse(0)
-//    if (wiggle > 1E-6) {
-//      println(s"lots of fuzz: $wiggle; op=$op, t=$t, x=$x, fuzz=$fuzz, relativeFuzz=$relativeFuzz, opFuzz=$opFuzz, result=$result")
-//    }
-    result
+    // Next, calculate the relative fuzziness of the result, according to the function being applied.
+    val functionFuzz: Option[Fuzziness[Double]] = relativeFuzz map (_.transform(op.relativeFuzz)(t))
+    // Finally, we calculate the precision loss (if any) occasioned by the actual implementation of the operation function itself.
+    val operationFuzz = createFuzz(op.fuzz)
+    // Combine the functionFuzz with the operationFuzz
+    combine(t, t, relative = true, independent = true)((functionFuzz, Some(operationFuzz)))
   }
 
 }
@@ -687,6 +684,8 @@ trait Valuable[T] extends Fractional[T] {
     *
     * This is essentially the inverse of the scale method.
     *
+    * TESTME
+    *
     * @param t1 a T value.
     * @param t2 a T value.
     * @return t1/t2 as a Double.
@@ -706,6 +705,8 @@ trait Valuable[T] extends Fractional[T] {
 
   /**
     * Method to divide a U by a V, resulting in a T.
+    *
+    * TESTME
     *
     * @param u a value of U.
     * @param v a value of V.

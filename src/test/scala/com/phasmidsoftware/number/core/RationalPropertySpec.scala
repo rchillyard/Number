@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
-
 import scala.util.control.NonFatal
 
 /**
@@ -43,4 +42,10 @@ class RationalPropertySpec extends Properties("Rational") {
     (r * s).toDouble === 1.0 +- 1E-6
   }
 
+  property("Division") = forAll { (a: Short, b: Short) =>
+    try Rational(a, b).render != ""
+    catch {
+      case NonFatal(x) => throw new Exception(s"${Rational(a, b)} caused by ${x.getLocalizedMessage}")
+    }
+  }
 }

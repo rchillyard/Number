@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Render.renderValue
+import com.phasmidsoftware.number.core.Value.{fromDouble, scaleDouble, valueToString}
 import scala.util._
 
 /**
@@ -102,7 +103,7 @@ object Value {
     case Right(x) => Right(math.abs(x))
     case Left(Right(x)) => Left(Right(x.abs))
     case Left(Left(Some(x))) => Left(Left(Some(math.abs(x))))
-    case _ => Value.fromNothing()
+    case _ => fromNothing()
   }
 
   /**
@@ -123,7 +124,7 @@ object Value {
     */
   def valueToString(v: Value): String = renderValue(v) match {
     case (x, true) => x
-    case (x, false) => x + "..."
+    case (x, false) => x + "*"
   }
 
   /**
@@ -171,7 +172,7 @@ sealed trait Factor {
     * @param x the Value.
     * @return a String.
     */
-  def render(x: Value): String = render(Value.valueToString(x))
+  def render(x: Value): String = render(valueToString(x))
 
   /**
     * Method to render a Value (which has already been converted to a String) in the context of this Factor.
@@ -197,7 +198,7 @@ sealed trait PureNumber extends Factor {
     */
   def convert(v: Value, f: Factor): Option[Value] = f match {
     case PureNumber(z) =>
-      Some(Value.fromDouble(Value.maybeDouble(v) map (x => Value.scaleDouble(x, this.value, z))))
+      Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, z))))
     case _ => None
   }
 }
@@ -221,7 +222,7 @@ sealed trait Logarithmic extends Factor {
     * @return a Try of Value which, given factor f, represents the same quantity as x given this.
     */
   def convert(v: Value, f: Factor): Option[Value] = f match {
-    case Logarithmic(z) => Some(Value.fromDouble(Value.maybeDouble(v) map (x => Value.scaleDouble(x, this.value, z))))
+    case Logarithmic(z) => Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, z))))
     case _ => None
   }
 
@@ -233,7 +234,7 @@ sealed trait Logarithmic extends Factor {
     case Left(Right(r)) if r * 2 == Rational.one => "\u221A" + base
     case Left(Right(r)) if r * 3 == Rational.one => "\u221B" + base
     case Left(Right(r)) if r * 4 == Rational.one => "\u221C" + base
-    case _ => base + "^" + Value.valueToString(v)
+    case _ => base + "^" + valueToString(v)
   }
 
   def render(v: String): String = base + "^" + v
@@ -390,9 +391,13 @@ object Factor {
 object Render {
   private def renderInt(x: Int): (String, Boolean) = (x.toString, true)
 
-  def renderBigInt(x: BigInt): (String, Boolean) = (x.toString, true)
-
-  private def renderRational(x: Rational): (String, Boolean) = (x.toString, true)
+  /**
+    * Add exact parameter.
+    *
+    * @param x the Rational value to be rendered.
+    * @return a String.
+    */
+  private def renderRational(x: Rational): (String, Boolean) = x.render(true)
 
   private def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 
@@ -400,15 +405,19 @@ object Render {
     * Method to render a Value as a tuple of String and Boolean where the latter represents whether or not we were able
     * to render the value exactly or not.
     *
-    * CONSIDER this doesn't belong here.
-    *
     * @param v the Value to be rendered.
     * @return a tuple of String and Boolean.
+    *         If the value is an Int or a Rational, then the Boolean returned is true; otherwise, it's false.
     */
   def renderValue(v: Value): (String, Boolean) =
-    optionMap[Either[Option[Double], Rational], Int, (String, Boolean)](v)(y => renderInt(y), x => optionMap[Option[Double], Rational, (String, Boolean)](x)(y => renderRational(y), {
-      case Some(n) => Some(renderDouble(n))
-      case None => None
-    })).getOrElse(("<undefined>", true))
+    optionMap(v)(
+      y => renderInt(y),
+      x => optionMap(x)(
+        y => renderRational(y),
+        {
+          case Some(n) => Some(renderDouble(n))
+          case None => None
+        })
+    ).getOrElse(("<undefined>", true))
 }
 

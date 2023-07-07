@@ -28,7 +28,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
       newtonsDerivative
     )(Number.ten.invert)
     result.isSuccess shouldBe true
-    result.get should ===(Number(0.0945514815423))
+    result.get should ===(Number(0.0945514815423)) // 0.094551481542326 according to Wikipedia (after 10 iterations)
   }
 
   it should "solve cosine problem" in {
@@ -109,13 +109,11 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
   it should "iterate" in {
     val iterate: Number => Try[Number] = Approximation.iterate(newtonsPolynomial, newtonsDerivative)
     val zy = iterate(Number(0.1))
-    println(zy)
     zy.isSuccess shouldBe true
   }
 
   it should "delta" in {
     val zy = Approximation.evaluate(newtonsPolynomial, newtonsDerivative)(Number(0.09456812110))
-    println(zy)
     zy.isSuccess shouldBe true
 
   }

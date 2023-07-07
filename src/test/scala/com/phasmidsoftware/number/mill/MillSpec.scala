@@ -2,11 +2,11 @@ package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.{Expression, Field, FuzzyEquality, Literal, NatLog, Number, Rational}
+import com.phasmidsoftware.number.mill.Mill.parseInfix
 import com.phasmidsoftware.number.parse.MillParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.{Assertion, Succeeded}
-
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -84,7 +84,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     checkMill(Number(9), List("3", "2", "^")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items: 7, chs" in {
-    checkMill(Number(-7), List("7", "chs")) should matchPattern { case Succeeded => }
+    checkMill(Number(-7), List("7", "CHS")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items: 42, 37, +, 2, *" in {
     checkMill(Number(158), List("42", "37", "+", "2", "*")) should matchPattern { case Succeeded => }
@@ -210,6 +210,12 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
     value map (checkMill(Number(-220364696), _)) should matchPattern { case Success(_) => }
+  }
+
+  it should "parse infix" in {
+    val result: Option[Field] = parseInfix("12 + 34  +  56  -  78  +  90  -  12").toOption.flatMap(_.evaluate).map(_.materialize)
+    result.isDefined shouldBe true
+    result.get shouldBe Number(102)
   }
 
   private def checkMill(expected: Number, list: List[String]): Assertion = {

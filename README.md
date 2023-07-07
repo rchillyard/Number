@@ -97,17 +97,20 @@ Parsing
 A String representing a number with two or fewer decimal places is considered exact--a number with more than two decimal places is
 considered fuzzy, unless it ends in two zeroes in which case it is considered exact.
 Here are some examples:
-* Number("1.00"): exact
-* Number("1.0100"): exact
-* Number("1.100"): exact
-* Number("1.010"): fuzzy
+* Real("1.00"): exact
+* Real("1.0100"): exact
+* Real("1.100"): exact
+* Real("1.010"): fuzzy
 
 You can always override this behavior by adding "*" or "..." to the end of a number with fewer than two DPs,
 or by adding two 0s to the end of a number with more than two decimal places.
+* Real("1.100*")" fuzzy
+
+See _RealWorksheet.sc_
 
 The rules are a little different if you define a number using a floating-point literal such as _Number(1.23400)_,
 the compiler will treat that as a fuzzy number, even though it ends with two zeroes because the compiler essentially ignores them.
-However, _Number(1.23)_ will be considered exact while _Number(1.234)_ will not.
+However, _Real(1.23)_ will be considered exact while _Real(1.234)_ will not.
 It's best always to use a String if you want to override the default behavior.
 
 In general, the form of a number to be parsed from a String is:
@@ -163,7 +166,7 @@ For example, the proton-electron mass ratio:
 Rendering
 =========
 The _render_ method is defined in the trait _NumberLike_ and thus is defined by all subtypes,
-including _Field_, _Number_, etc.
+including _Field_, _Number_, _Rational_, etc.
 For the prettiest output, you should use _render_ rather than _toString_.
 
 Generally speaking, the output _String_ corresponding to a _Number_ will be the same as the input _String_,
@@ -172,6 +175,14 @@ Numeric quantities followed by "(xx)" show standard scientific notation where _x
 with respect to the last two digits (sometimes there is only one _x_ which corresponds to the last digit).
 If a number is followed by "\[x\]" or "\[xx\]" this corresponds to a "box" (i.e. truncated uniform) probability density function.
 It's unlikely that you'll need to use this form since box is the default shape when specifying fuzzy numbers with a _String_.
+
+For _Rational_ numbers, it is most likely that the number will be rendered as exactly as possible.
+For values which are exactly renderable using decimal notation, that will be the result.
+For values which have a repeating sequence in decimal notation, the repeating sequence will be enclosed within &lt; and &gt;.
+If the repeating sequence is too long (or too hard to identify), and if the denominator is less than 100,000,
+the number will render as a rational, i.e. numerator/denominator.
+Otherwise, the number will render as many digits as possible, with "..." added to the end.
+
 
 Fuzzy
 =====
@@ -220,12 +231,27 @@ For example:
 yields the optional _Expression_ with a materialized value of 158.
 See the code for other methods for defining _Mill_ operations.
 
-The _Mill.parse_ method in turn invokes methods of _MillParser_.
+The _Mill\.parse_ method in turn invokes methods of _MillParser_.
 
-The Mill offers two parsers: one is a pure RPN parser (as described above).
+The _Mill_ offers two parsers: one is a pure RPN parser (as described above).
 The other is an infix parser which uses [Dijkstra's Shunting Yard algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
-to build a Mill.
-  
+to build a _Mill_.
+
+Some of the operators of _Mill_ are as follows:
+
+    ^: Power
+    +: Add
+    -: Subtract
+    *: Multiply (also ×)
+    /: Divide (also ÷)
+    v: Sqrt
+    <>: Swap
+    : Noop
+    (: Open
+    ): Close
+
+Additional operators include _clr_, _chs_, _inv_, _ln_, _exp_, _sin_, _cos_.
+
 Field
 =====
 The most general form of mathematical quantity is represented by a _Field_.
@@ -269,18 +295,18 @@ For example, the square root of 2 should have two branches: ±√2.
 Factors
 =======
 There are three types of "factor:"
-* _PureNumber_, in particular, _Scalar_ (for ordinary dimensionless numbers), __Radian__ (formerly called _Pi_ and used to represent radians or any multiple of pi);
+* _PureNumber_, in particular, _Scalar_ (for ordinary dimensionless numbers), __Radian__ (formerly called _Pi_ and used to represent radians or any multiple of $\pi$);
 * _Logarithmic_, in particular, _NatLog_ (formerly called _E_), _Log2_, and _Log10_;
 * _Root_, in particular: _Root2_ (for square roots) and _Root3_ (for cube roots).
 
-These allow certain quantities to be expressed exactly, for example, sin(π/3) is the square root of 3/4.
+These allow certain quantities to be expressed exactly, for example, $sin(\frac{\pi}{3})$ is the square root of $\frac{3}{4}$.
 The true (_Scalar_) values of the logarithmic numbers are
-e^x, 2^x, and 10^x respectively where x is the "value" of the _Number_.
+$e^x$, $2^x$, and $10^x$ respectively where $x$ is the "value" of the _Number_.
 
 Trigonometrical functions are designed to work with __Radian__ quantities.
 Such values are limited (modulated) to be in the range 0..2pi.
 However, this happens as the result of operations, so it is still possible to define a value of 2pi.
-For example, if you want to check that the sine of pi/2 is equal to 1 exactly, then you should write the following:
+For example, if you want to check that the sine of $\frac{\pi}{2}$ is equal to 1 exactly, then you should write the following:
 
     val target = (Number.pi/2).sin
     target shouldBe Number.one
@@ -289,16 +315,16 @@ Similarly, if you use the _atan_ method on a _Scalar_ number, the result will be
 
 The 𝜀 factor works quite differently.
 It is not a simple matter of scaling.
-A _Number_ of the form _Number(x, e)_ actually evaluates to e^x rather than e x.
+A _Number_ of the form _Number(x, e)_ actually evaluates to $e^x$ rather than e x.
 
-It would be possible to implement pi values similarly to 𝜀 values (as evaluations of e^ix).
+It would be possible to implement $\pi$ values similarly to 𝜀 values (as evaluations of $e^{ix}$).
 However, this is not currently done (future enhancement?).
 See Complex numbers.
 
 Constants
 =========
 
-The _Number_ class defines a number of constant values for _Number_, such as Pi, e, one, zero, i, etc.
+The _Number_ class defines a number of constant values for _Number_, such as _pi_, _e_, _one_, _zero_, _i_, etc.
 The _Constants_ object contains a number of fundamental constant definitions, in addition to those defined by _Number_.
 For example: _c_ (speed of light), _alpha_ (fine structure constant), etc.
 
@@ -378,29 +404,31 @@ So, whenever we combine fuzz (using convolution), we operate on _Gaussian_ PDFs 
 
 So, why is relative fuzz usually the best? Well consider scaling--multiplying by a constant.
 The relative fuzz doesn't change at all.
-In the following, _f_ is a constant factor.
-Let's assume that _y = f x._
+In the following, $f$ is a constant factor.
+Let's assume that $y=fx$.
 
 Differentiating, we get,
 
-    Δy = f Δx
+$$Δy=fΔx$$
     
-Dividing both sides by _f_, yields
+Dividing both sides by _y_, yields
 
-    Δy / y = Δx / x
+$$\frac{Δy}{y}=\frac{Δx}{x}$$
     
 Thus, the relative fuzz of _y_ is equal to the relative fuzz of _x_.
-    
-The same will be true, more or less, when we multiply two fuzzy numbers together.
-This time, _z = x y_.
-Therefore,
 
-    Δz = y Δx + x Δy
-    
-Dividing both sides by _z_:
+When we multiply two fuzzy numbers together, we add the relative fuzzes together:
 
-    Δz / z = Δx / x + Δy / y
+$$z+Δz=(x+Δx)(y+Δy)$$
+
+Therefore (ignoring the term which is $ΔxΔy$),
+
+$$Δz=yΔx+xΔy$$
     
+Dividing both sides by $z$:
+
+$$\frac{Δz}{z}=\frac{Δx}{x}+\frac{Δy}{y}$$
+ 
 Thus, the relative fuzz of _z_ is equal to the sum of the relative fuzzes of _x_ and _y_.
     
 But, when _Δx_ and _Δy_ are taken from a _Gaussian_ probability density function, the convolution of those two PDFs,
@@ -408,13 +436,20 @@ is given by slightly different expressions depending on whether the PDFs are ind
 See the code (_Fuzz_) for details.
 
 Things get only slightly more complex when applying monadic (single operand) functions or applying a function such
-as _z = x ^ y._
+as $z=x^y$:
+
+In general, when we apply a monadic operator _y=f(x)_ (such as constant factor, as above, or power, or one of the trigonometric operators),
+the formula for the relative fuzz of the result $\frac{Δy}{y}$ based on the relative fuzz of the input $\frac{Δx}{x}$ is:
+
+$$\frac{Δy}{y}=\frac{x \frac{dy}{dx}(x)}{f(x)}\frac{Δx}{x}$$
+
+Constants cancel, powers survive as is, and so on.
 Again, these formulas can be looked up in the code.
 
 Comparing two fuzzy numbers involves subtracting the two numbers and then determining if the probability
 at zero is sufficiently high to consider the difference to be zero.
 If the probability is greater than 50% (the default--although there are method signatures that allow for different values),
-then we consider that the different is zero (method isZero) or that it has a signum of 0.
+then we consider that the different is zero (method _isZero_) or that it has a signum of 0.
 
 Approximation
 =============
@@ -429,14 +464,15 @@ This library includes a facility to create continued fractions which can be used
 constant values.
 See the worksheet _ContinuedFractions.sc_.
 
-For example, the golden ratio (phi) can be evaluated using an infinite continued fraction where
+For example, the golden ratio ($\phi$) can be evaluated using an infinite continued fraction where
 the coefficients are all 1.
 Continued fractions can be used to generate "convergents" which are rational numbers and which
 approximate a value.
-For example, the convergents for pi include with the familiar 22/7, 355/113, etc. 
+For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, etc. 
 
 Versions
 ========
+* Version 1.0.15: Significant improvements to the rendering of rational numbers.
 * Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
 * Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.

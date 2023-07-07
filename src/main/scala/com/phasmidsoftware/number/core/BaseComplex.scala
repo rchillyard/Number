@@ -138,18 +138,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   }
 
   /**
-    * Method to raise this Complex value to the (integer) power p.
-    *
-    * @param p an Int.
-    * @return this Field raised to power p.
-    */
-  def power(p: Int): Field = p match {
-    case 0 => Number.one
-    case 1 => this
-    case _ => power(Number(p))
-  }
-
-  /**
     * Yields the inverse of this Complex.
     *
     * @return the result of invoking power(-1).
@@ -391,6 +379,14 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
       Complex.apply(real, imag, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
     case ComplexPolar(_, _, _) => throw ComplexException("logic error: ComplexCartesian.doAdd")
   }
+
+  /**
+    * Method to return this Complex as a Real, if possible.
+    * If this is a Real number x, return Some(x) otherwise, return None.
+    *
+    * @return an Option[Real].
+    */
+  def asReal: Option[Real] = if (isReal) Some(Real(x)) else None
 }
 
 /**
@@ -519,6 +515,14 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     case ComplexPolar(a, b, _) => make(r doMultiply a, theta doAdd b)
     case _ => throw ComplexException("logic error: ComplexPolar.doMultiply")
   }
+
+  /**
+    * Method to return this Field as a Real, if possible.
+    * If this is a Real number x, return Some(x) otherwise, return None.
+    *
+    * @return an Option[Real].
+    */
+  def asReal: Option[Real] = if (isReal) convertToCartesian(this).asReal else None
 }
 
 object ComplexPolar {

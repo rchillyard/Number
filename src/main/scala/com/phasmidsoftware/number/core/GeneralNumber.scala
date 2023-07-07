@@ -61,7 +61,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return an Some(Double) which is the closest possible value to the nominal value, otherwise None if this is invalid.
     */
-
   def toDouble: Option[Double] = maybeDouble
 
   /**
@@ -261,15 +260,18 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   def fuzzyCompare(other: Number, p: Double): Int = FuzzyNumber.fuzzyCompare(this, other, p)
 
-  def asComparedWith(other: Number): Option[Fuzziness[Double]] = {
-    val diff = doSubtract(other)
-    val zo: Option[Fuzziness[Double]] = for {
-      q <- diff.toDouble
+  /**
+    * Method to derive a fuzziness that covers the discrepancy between this and other.
+    *
+    * @param other another Number: the ideal or target value.
+    * @return an optional relative Fuzziness.
+    */
+  def asComparedWith(other: Number): Option[Fuzziness[Double]] =
+    for {
+      q <- doSubtract(other).toDouble
       r <- other.scale(Scalar).toDouble
       p <- AbsoluteFuzz(math.abs(q) / 2, Box).relative(r)
     } yield p
-    zo
-  }
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -300,7 +302,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
         case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, x, fuzz))
       }
     }
-
 
   /**
     * Evaluate a query operator on this.
@@ -506,20 +507,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   }
 
   /**
-    * Evaluate a dyadic operator on this and other, using the various functions passed in.
-    * NOTE: this and other must have been aligned by type so that they have the same structure.
-    *
-    * @param other     the other operand, a Number.
-    * @param f         the factor to apply to the result.
-    * @param functions the tuple of four conversion functions.
-    * @return a new Number which is result of applying the appropriate function to the operands this and other.
-    */
-  private def doComposeDyadic(other: Number, f: Factor)(functions: DyadicFunctions): Option[Number] = {
-    val vo: Option[Value] = Operations.doComposeValueDyadic(value, other.value)(functions)
-    for (v <- vo) yield make(v, f) // CONSIDER what about extra fuzz?
-  }
-
-  /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the factor).
     * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query
@@ -535,14 +522,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def maybeDouble: Option[Double] = Value.maybeDouble(value)
 
   /**
-    * An optional Int that corresponds to the value of this Number (but ignoring the factor).
+    * Method to return this ExactNumber as a Real.
+    *
+    * @return Some(Real(this)).
     */
-  private lazy val maybeInt: Option[Int] = Value.maybeInt(value)
-
-  /**
-    * CONSIDER do we really need this?
-    */
-  private def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
+  def asReal: Option[Real] = Some(Real(this))
 
   /**
     * Ensure that this is consistent with hashCode.
@@ -568,6 +552,30 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     val state = Seq(value, factor, fuzz)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+
+  /**
+    * Evaluate a dyadic operator on this and other, using the various functions passed in.
+    * NOTE: this and other must have been aligned by type so that they have the same structure.
+    *
+    * @param other     the other operand, a Number.
+    * @param f         the factor to apply to the result.
+    * @param functions the tuple of four conversion functions.
+    * @return a new Number which is result of applying the appropriate function to the operands this and other.
+    */
+  private def doComposeDyadic(other: Number, f: Factor)(functions: DyadicFunctions): Option[Number] = {
+    val vo: Option[Value] = Operations.doComposeValueDyadic(value, other.value)(functions)
+    for (v <- vo) yield make(v, f) // CONSIDER what about extra fuzz?
+  }
+
+  /**
+    * An optional Int that corresponds to the value of this Number (but ignoring the factor).
+    */
+  private lazy val maybeInt: Option[Int] = Value.maybeInt(value)
+
+  /**
+    * CONSIDER do we really need this?
+    */
+  private def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
 }
 
 object GeneralNumber {
@@ -715,13 +723,10 @@ object GeneralNumber {
       }
   }
 
-
   private def normalizeRoot(value: Value, r: Root) = {
     Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
       case Some(q) => ComplexCartesian(Number.zero, ExactNumber(q, r).scale(Scalar))
       case None => throw NumberException("GeneralNumber.normalizeRoot: logic error")
     }
   }
-
-
 }

@@ -1,11 +1,10 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Prime.multiplicativeInverse
+import com.phasmidsoftware.number.core.Prime.{createMersennePrime, mersenneNumber, multiplicativeInverse}
 import com.phasmidsoftware.number.core.Primes.allPrimes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
-import scala.language.postfixOps
+import org.scalatest.tagobjects.Slow
 
 class PrimeSpec extends AnyFlatSpec with should.Matchers {
 
@@ -90,7 +89,7 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.primeFactors(23) shouldBe Seq(23).map(Prime(_))
     Prime.primeFactors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
     Prime.primeFactors(70906) shouldBe Seq(2, 11, 11, 293).map(Prime(_))
-    Prime.primeFactors(7894609062L) shouldBe Seq(2, 11411, 3, 67, 1721).map(Prime(_))
+    Prime.primeFactors(7894609062L).sorted shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
   }
 
   it should "implement primeFactorMultiplicity" in {
@@ -137,7 +136,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     // Why do we never get the other roots (6, 7, 11) here? Oh, duh, because it's less than 20 and so we go in sequence.
     p6.primitiveRoot shouldBe BigInt(2)
     val root23 = p9.primitiveRoot
-    println(root23)
     Seq(BigInt(5), BigInt(7), BigInt(10), BigInt(11), BigInt(14), BigInt(15), BigInt(17), BigInt(19), BigInt(20), BigInt(21)) contains root23 shouldBe true
   }
 
@@ -173,12 +171,12 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     p7.modPow(z, 12) shouldBe g
   }
 
-  it should "validate" in {
-    (Prime(2) validate) shouldBe true
-    (Prime(4) validate) shouldBe false
-    (p4 validate) shouldBe true
-    (Prime(120) validate) shouldBe false
-    (Prime(7919) validate) shouldBe true
+  it should "validated" in {
+    Prime(2).validated shouldBe true
+    Prime(4).validated shouldBe false
+    p4.validated shouldBe true
+    Prime(120).validated shouldBe false
+    Prime(7919).validated shouldBe true
   }
 
   it should "next" in {
@@ -195,29 +193,52 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "create primes from Mersenne numbers" in {
-    val xs = for (i <- Seq(2, 3, 5, 7, 13, 17, 19, 31)) yield Prime.isProbablePrime(Prime.mersenneNumber(Prime(i)))
+    val xs = for (i <- Seq(2, 3, 5, 7, 13, 17, 19, 31)) yield Prime.isProbablePrime(mersenneNumber(Prime(i)))
     xs.forall(_ == true) shouldBe true
   }
+// 2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127, 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609, 57885161
+  it should "create (potential) Mersenne numbers" in {
+    mersenneNumber(0) shouldBe 3 // 2^2 - 1
+    mersenneNumber(1) shouldBe 7 // 2^3 - 1
+    mersenneNumber(2) shouldBe 31 // 2^5 - 1
+    mersenneNumber(3) shouldBe 127 // 2^7 - 1
+    mersenneNumber(4) shouldBe 2047 // 2^11 - 1 NOT a prime
+    mersenneNumber(5) shouldBe 8191 // 2^13 - 1
+    mersenneNumber(6) shouldBe 131071 // 2^17 - 1
+    mersenneNumber(7) shouldBe 524287 // 2^19 - 1
+    mersenneNumber(8) shouldBe 8388607 // 2^23 - 1 NOT a prime
+    mersenneNumber(9) shouldBe 536870911 // 2^29 - 1 NOT a prime
+    mersenneNumber(10) shouldBe 2147483647 // 2^31 - 1
+    mersenneNumber(11) shouldBe 137438953471L // 2^37 - 1 NOT a prime
+    mersenneNumber(12) shouldBe 2199023255551L // 2^41 - 1 NOT a prime
+    mersenneNumber(13) shouldBe 8796093022207L // 2^43 - 1 NOT a prime
+    mersenneNumber(14) shouldBe 140737488355327L // 2^47 - 1 NOT a prime
+    mersenneNumber(15) shouldBe 9007199254740991L // 2^53 - 1 NOT a prime
+    mersenneNumber(16) shouldBe 576460752303423487L // 2^59 - 1 NOT a prime
+    mersenneNumber(17) shouldBe 2305843009213693951L // 2^61 - 1
+  }
 
-  it should "create Mersenne numbers" in {
-    Prime.mersenneNumber(0) shouldBe 3 // 2^2 - 1
-    Prime.mersenneNumber(1) shouldBe 7 // 2^3 - 1
-    Prime.mersenneNumber(2) shouldBe 31 // 2^5 - 1
-    Prime.mersenneNumber(3) shouldBe 127 // 2^7 - 1
-    Prime.mersenneNumber(4) shouldBe 2047 // 2^11 - 1
-    Prime.mersenneNumber(5) shouldBe 8191 // 2^13 - 1
-    Prime.mersenneNumber(6) shouldBe 131071 // 2^17 - 1
-    Prime.mersenneNumber(7) shouldBe 524287 // 2^19 - 1
-    Prime.mersenneNumber(8) shouldBe 8388607
-    Prime.mersenneNumber(9) shouldBe 536870911
-    Prime.mersenneNumber(10) shouldBe 2147483647
-    Prime.mersenneNumber(11) shouldBe 137438953471L
-    Prime.mersenneNumber(12) shouldBe 2199023255551L
-    Prime.mersenneNumber(13) shouldBe 8796093022207L
-    Prime.mersenneNumber(14) shouldBe 140737488355327L
-    Prime.mersenneNumber(15) shouldBe 9007199254740991L
-    Prime.mersenneNumber(16) shouldBe 576460752303423487L
-    Prime.mersenneNumber(17) shouldBe 2305843009213693951L
+  // CONSIDER removing parentheses (but I think CircleCI requires them).
+  it should "check for Mersenne primes" taggedAs (Slow) in {
+    createMersennePrime(0).isDefined shouldBe true
+    createMersennePrime(1).isDefined shouldBe true
+    createMersennePrime(2).isDefined shouldBe true
+    createMersennePrime(3).isDefined shouldBe true
+    createMersennePrime(4).isDefined shouldBe false
+    createMersennePrime(5).isDefined shouldBe true
+    createMersennePrime(6).isDefined shouldBe true
+    createMersennePrime(7).isDefined shouldBe true
+    createMersennePrime(8).isDefined shouldBe false
+    createMersennePrime(9).isDefined shouldBe false
+    // After here, it just takes too long to validate
+//    createMersennePrime(10).isDefined shouldBe true
+//    createMersennePrime(11).isDefined shouldBe false
+//    createMersennePrime(12).isDefined shouldBe false
+//    createMersennePrime(13).isDefined shouldBe false
+//    createMersennePrime(14).isDefined shouldBe false
+//    createMersennePrime(15).isDefined shouldBe false
+//    createMersennePrime(16).isDefined shouldBe false
+//    createMersennePrime(17).isDefined shouldBe true
   }
 
   it should "get first 100 primes" in {
@@ -267,4 +288,22 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
   // 40, 12, 42, 20, 24, 22, 46, 16, 42, 20,
   // 32, 24, 52, 18, 40, 24, 36, 28, 58, 16,
   // 60, 30, 36, 32, 48, 20, 66, 32, 44, 24
+
+  it should "form toString correctly" in {
+    val mp17 = Prime(mersenneNumber(17))
+    mp17.toString() shouldBe "2,305,843,009,213,693,951"
+  }
+
+  it should "get the reciprocal period" in {
+    Prime(2).reciprocalPeriod shouldBe Some(0)
+    Prime(3).reciprocalPeriod shouldBe Some(1)
+    Prime(5).reciprocalPeriod shouldBe Some(0)
+    Prime(7).reciprocalPeriod shouldBe Some(6)
+    Prime(11).reciprocalPeriod shouldBe Some(2)
+    Prime(13).reciprocalPeriod shouldBe Some(6)
+    Prime(17).reciprocalPeriod shouldBe Some(16)
+    Prime(19).reciprocalPeriod shouldBe Some(18)
+    Prime(541).reciprocalPeriod shouldBe None // TODO we should get the correct number for this
+    Prime(1).reciprocalPeriod shouldBe None
+  }
 }

@@ -86,6 +86,18 @@ trait Field extends NumberLike with Ordered[Field] {
   /**
     * Raise this Field to the power p.
     *
+    * @param p an Int.
+    * @return this Field raised to power p.
+    */
+  def power(p: Int): Field = p match {
+    case 0 => Number.one
+    case 1 => this
+    case _ => power(Number(p))
+  }
+
+  /**
+    * Raise this Field to the power p.
+    *
     * @param p a Field.
     * @return this Field raised to power p.
     */
@@ -112,6 +124,14 @@ trait Field extends NumberLike with Ordered[Field] {
     * @return a Complex.
     */
   def asComplex: Complex
+
+  /**
+    * Method to return this Field as a Real, if possible.
+    * If this is a Real number x, return Some(x) otherwise, return None.
+    *
+    * @return an Option[Real].
+    */
+  def asReal: Option[Real]
 }
 
 object Field {
@@ -182,7 +202,7 @@ object Constants {
   lazy val gamma: Number = Number(sGamma)
 
   /**
-    * https://en.wikipedia.org/wiki/Gravitational_constant
+    * https://en.wikipedia.org/wiki/Gravitational_constant (exact).
     * We must use the string sG because of FIXME Issue #54
     */
   lazy val G: Number = Number(sG)
@@ -193,22 +213,22 @@ object Constants {
   lazy val alpha: Number = 0.0072973525693 ~ 11 // (dimensionless)
 
   /**
-    * https://en.wikipedia.org/wiki/Avogadro_constant
+    * https://en.wikipedia.org/wiki/Avogadro_constant (exact).
     */
   lazy val avagadro: Number = Number(6.0221407600E23)
 
   /**
-    * https://en.wikipedia.org/wiki/Boltzmann_constant
+    * https://en.wikipedia.org/wiki/Boltzmann_constant (exact).
     */
   lazy val boltzmann: Number = Number(sBoltzmann)
 
   /**
-    * https://en.wikipedia.org/wiki/Planck_constant
+    * https://en.wikipedia.org/wiki/Planck_constant (exact).
     */
   lazy val planck: Number = Number("6.6260701500E-34") // J Hz ^ -1
 
   /**
-    * https://en.wikipedia.org/wiki/Speed_of_light
+    * https://en.wikipedia.org/wiki/Speed_of_light (exact).
     */
   lazy val c: Number = Number("299792458") // m sec ^ -1
 
