@@ -159,7 +159,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     Rational(n + other.n, d + other.d)
   else Rational.NaN
 
-//  override def toString: String = render(true)._1
+  override def toString: String = s"$n/$d"
 
   /**
     * Render this Rational as a String.

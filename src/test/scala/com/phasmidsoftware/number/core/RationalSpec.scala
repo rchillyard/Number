@@ -481,7 +481,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "barf when Rational.toInt invoked" in {
     an[RationalException] should be thrownBy Rational.toInt(Rational(2, 3)).get
     val thrown = the[Exception] thrownBy Rational(2, 3).toInt
-    thrown.getMessage should equal("Rational(2,3) is not whole")
+    thrown.getMessage should equal("2/3 is not whole")
   }
 
   behavior of "2/4"
@@ -503,42 +503,42 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "toString"
   it should "be decimal when exact" in {
     val r = Rational(1, 2)
-    r.toString shouldBe "Rational(1,2)"
+    r.toString shouldBe "1/2"
   }
   it should "be recurring when exact: 2/3" in {
     val r = Rational(2, 3)
-    r.toString shouldBe "Rational(2,3)"
+    r.toString shouldBe "2/3"
   }
   it should "be decimal when not exact: pi" in {
     val pi = Rational(BigDecimal(math.Pi))
-    pi.toString shouldBe "Rational(3141592653589793,1000000000000000)"
+    pi.toString shouldBe "3141592653589793/1000000000000000"
   }
   it should "work for NaN" in {
-    Rational.NaN.toString shouldBe "Rational(0,0)"
+    Rational.NaN.toString shouldBe "0/0"
   }
   it should "work for Infinity" in {
-    Rational.infinity.toString shouldBe "Rational(1,0)"
+    Rational.infinity.toString shouldBe "1/0"
   }
   it should "work for negative Infinity" in {
-    Rational.infinity.negate.toString shouldBe "Rational(-1,0)"
+    Rational.infinity.negate.toString shouldBe "-1/0"
   }
   // XXX this is the diagnostic for Issue #70
   it should "work for gamma" in {
     val n = BigInt("57721566490153286060651209008240243104215933593992")
     val d = bigTen.pow(50)
     val r = Rational(n, d)
-    r.toString shouldBe "Rational(7215195811269160757581401126030030388026991699249,12500000000000000000000000000000000000000000000000)"
+    r.toString shouldBe "7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000"
   }
   it should "work for various prime denominators" in {
     import com.phasmidsoftware.number.core.Rational._
 
-    (3 :/ 4 toString) shouldBe "Rational(3,4)"
-    (4 :/ 5 toString) shouldBe "Rational(4,5)"
-    (6 :/ 7 toString) shouldBe "Rational(6,7)"
-    (10 :/ 11 toString) shouldBe "Rational(10,11)"
-    (12 :/ 13 toString) shouldBe "Rational(12,13)"
-    (16 :/ 17 toString) shouldBe "Rational(16,17)"
-    (7918 :/ 7919 toString) shouldBe "Rational(7918,7919)"
+    (3 :/ 4 toString) shouldBe "3/4"
+    (4 :/ 5 toString) shouldBe "4/5"
+    (6 :/ 7 toString) shouldBe "6/7"
+    (10 :/ 11 toString) shouldBe "10/11"
+    (12 :/ 13 toString) shouldBe "12/13"
+    (16 :/ 17 toString) shouldBe "16/17"
+    (7918 :/ 7919 toString) shouldBe "7918/7919"
   }
 
   behavior of "render"

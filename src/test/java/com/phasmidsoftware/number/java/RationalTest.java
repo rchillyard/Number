@@ -28,7 +28,7 @@ public class RationalTest {
     public void stringToRational2() {
         String pi = "3.1415927";
         Rational r = RationalJ.stringToRational(pi);
-        assertEquals(pi, r.toString()); // NOTE the use of toString
+        assertEquals(pi, r.render());
     }
 
     @Test
