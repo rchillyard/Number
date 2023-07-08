@@ -14,9 +14,12 @@ three.render // should be Rational 3
 val tenOverThree = 10 :/ 3
 tenOverThree.render // should be 3.<3> indicating a recurrence
 
-val ten = tenOverThree * 3 // should be Rational 10, NOT 9.999999999999
+// Rationals are good at ensuring no loss of (apparent) precision. For example...
+val good: Rational = (6 :/ 10) / 3
+good.render // should be 0.2, NOT 0.19999999999999998
 
-val notSoGood = (10.0 / 3) * 3 // will likely be rendered as 9.999999999999 but might render as 10.0 if we're lucky
+// Whereas, if we just use Double precision arithmetic, this happens...
+val notSoGood: Double = 6.0 / 10.0 / 3 // will likely be rendered as 0.19999999999999998
 
 val infinity = 1 :/ 0
 infinity.render // should be +ve infinity
