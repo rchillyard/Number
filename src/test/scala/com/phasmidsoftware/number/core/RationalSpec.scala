@@ -574,7 +574,6 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for various prime denominators" in {
     import com.phasmidsoftware.number.core.Rational._
 
-//    (1 :/ 6).render shouldBe "0.1<6>" FIXME in next commit
     (3 :/ 4 render) shouldBe "0.75"
     (4 :/ 5 render) shouldBe "0.8"
     (6 :/ 7 render) shouldBe "0.<857142>"
@@ -583,37 +582,43 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     (16 :/ 17 render) shouldBe "0.<9411764705882352>"
     (7918 :/ 7919 render) shouldBe "7918/7919"
   }
+  it should "work for various composite denominators" in {
+    import com.phasmidsoftware.number.core.Rational._
+
+    (1 :/ 6).render shouldBe "0.1<6>"
+    (1 :/ 14 render) shouldBe "0.0<714285>"
+  }
 
   behavior of "findRepeatingSequence"
   it should "fail for 4/5" in {
-    findRepeatingSequence(4, 5) should matchPattern { case Failure(_) => }
+    findRepeatingSequence(4, 5, Seq(Prime(5))) should matchPattern { case Failure(_) => }
   }
   it should "work when denominator is prime" in {
     val r = Rational(17).invert
-    val sequence = findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d, Seq(Prime(17)))
     sequence shouldBe Success("0.<0588235294117647>")
   }
   it should "work when numerator and denominator are prime 1" in {
     val r = Rational(2, 17)
-    val sequence = findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d, Seq(Prime(17)))
     sequence shouldBe Success("0.<1176470588235294>")
   }
   it should "work when numerator and denominator are prime 2" in {
     val r = Rational(23, 17)
-    val sequence = findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d, Seq(Prime(17)))
     sequence shouldBe Success("1.<3529411764705882>")
   }
   it should "work when denominator is composite 1" in {
     val r = Rational(1, 85) // 5 * 17
-    val sequence = findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d, Seq(Prime(5), Prime(17)))
     sequence shouldBe Success("0.0<1176470588235294>")
   }
   it should "work when denominator is composite 2" in {
-    val sequence = findRepeatingSequence(1, 119) // 7 * 17
+    val sequence = findRepeatingSequence(1, 119, Seq(Prime(7), Prime(17))) // 7 * 17
     sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
   }
   it should "fail when denominator has too many prime factors" in {
-    findRepeatingSequence(1, 257) should matchPattern { case Failure(NumberException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
+    findRepeatingSequence(1, 257, Seq(Prime(257))) should matchPattern { case Failure(NumberException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
   }
 
   behavior of "Rational(String)"

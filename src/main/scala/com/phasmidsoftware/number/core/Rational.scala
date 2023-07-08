@@ -1,8 +1,7 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Divides.IntDivides
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
-import com.phasmidsoftware.number.core.Rational.{bigNegOne, bigZero, findRepeatingSequence}
+import com.phasmidsoftware.number.core.Rational.{bigFive, bigNegOne, bigTwo, bigZero}
 import com.phasmidsoftware.number.parse.RationalParser
 import java.lang.Math._
 import scala.annotation.tailrec
@@ -43,7 +42,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
 
   def -(that: BigInt): Rational = this - Rational(that)
 
-  lazy val unary_- : Rational = negate
+  def unary_- : Rational = negate
 
   lazy val negate: Rational = Rational.negate(this)
 
@@ -83,6 +82,13 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
   lazy val isInfinity: Boolean = d == 0L
 
   lazy val isNaN: Boolean = isZero && isInfinity
+
+  /**
+    * Method to determine if this Rational can be represented exactly as a decimal string.
+    *
+    * @return true if the prime factors only include 2 and/or 5.
+    */
+  def isDecimal: Boolean = denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
 
   lazy val maybeInt: Option[Int] = if (isWhole) Some(toInt) else None
 
@@ -181,17 +187,10 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     case _ if isInfinity => (if (n > 0) "+ve" else "-ve") + " infinity"
     case _ if isWhole => toBigInt.toString
     case _ if isExactDouble => toDouble.toString
-    case _ if (2 |> d) || (5 |> d) => toBigDecimal.toString
-    case _ => findRepeatingSequence(n, d) getOrElse asString
-  }
-
-  private def asString: String = d match {
-    case x if x <= 100000L => // XXX arbitrary limit of one hundred thousand.
-      toRationalString
+    case _ if isDecimal =>
+      toBigDecimal.toString
     case _ =>
-      // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
-      // It is not fuzzy.
-      toBigDecimal.toString() + Ellipsis
+      findRepeatingSequence getOrElse asString
   }
 
   /**
@@ -219,6 +218,20 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     * @return a String
     */
   def render: String = renderExact
+
+  private def asString: String = d match {
+    case x if x <= 100000L => // XXX arbitrary limit of one hundred thousand.
+      toRationalString
+    case _ =>
+      // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
+      // It is not fuzzy.
+      toBigDecimal.toString() + Ellipsis
+  }
+
+  private lazy val denominatorPrimeFactors = Prime.primeFactors(d)
+
+  def findRepeatingSequence: Try[String] = Rational.findRepeatingSequence(n, d, denominatorPrimeFactors)
+
 }
 
 object Rational {
@@ -651,7 +664,7 @@ object Rational {
     * @param d the (prime) denominator.
     * @return a String of repeated digits.
     */
-  def findRepeatingSequence(n: BigInt, d: BigInt): Try[String] = {
+  def findRepeatingSequence(n: BigInt, d: BigInt, primeFactors: Seq[Prime]): Try[String] = {
     def findRepeatingPattern(bigNumber: String, h: Int): Option[Int] = {
       val range = Range(0, bigNumber.length / 2) // This is somewhat arbitrary
       range.foldLeft[Option[Int]](None) { (b, x) => b.orElse(testSequence(bigNumber, h, x)) }
@@ -666,11 +679,8 @@ object Rational {
           Failure[String](NumberException(s"Rational.findRepeatingSequence: no sequence"))
         case h :: t =>
           findRepeatingPattern(bigNumber, h) match {
-            case Some(z) =>
-//                    println(s"n=$n; d=$d; ps=$ps; z=$z; h=$h; BigNumber is $bigNumber")
-              Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
-            case None =>
-              inner(t)
+            case Some(z) => Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
+            case None => inner(t)
           }
       }
 
@@ -679,7 +689,7 @@ object Rational {
 
     (n.isValidInt, d.isValidInt) match {
       case (true, true) =>
-        getPeriods(d) match {
+        getPeriods(d, primeFactors) match {
           case Success(ps) =>
             createRecurrenceString(ps)
           case Failure(x) =>
@@ -716,7 +726,7 @@ object Rational {
     }
   }
 
-  private def getPeriods(d: BigInt): Try[Seq[Int]] = {
+  private def getPeriods(d: BigInt, primeFactors: Seq[Prime]): Try[Seq[Int]] = {
 
     def getCandidatePatternLengths(h: Int, t: List[Int]) = {
       val z: BigInt = t.foldLeft(BigInt(h))((b, y) => b * y)
@@ -737,7 +747,7 @@ object Rational {
       case h :: t => getCandidatePatternLengths(h, t)
     }
 
-    FP.sequence(Prime.primeFactors(d) map (_.reciprocalPeriod)) match {
+    FP.sequence(primeFactors map (_.reciprocalPeriod)) match {
       case None if d < BigNumber.MAXDECIMALDIGITS => // XXX The reason for this is that we only generate 1000 characters for the rendering
         getCandidates(Seq(d.toInt - 1))
       case None =>
