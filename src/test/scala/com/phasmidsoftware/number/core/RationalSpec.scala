@@ -574,6 +574,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for various prime denominators" in {
     import com.phasmidsoftware.number.core.Rational._
 
+//    (1 :/ 6).render shouldBe "0.1<6>" FIXME in next commit
     (3 :/ 4 render) shouldBe "0.75"
     (4 :/ 5 render) shouldBe "0.8"
     (6 :/ 7 render) shouldBe "0.<857142>"

@@ -212,7 +212,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       // TODO Try to merge this code with the following case
       val sign = (x, polar) match {
         case (Number.zero, true) => ""
-        case (_, true) => ""
+        case (_, true) if x.isPositive => ""
         case _ if x.isPositive => "+"
         case _ => "-"
       }
@@ -470,7 +470,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     else make(r doMultiply n, theta)
   }
 
-  def make(a: Number, b: Number): BaseComplex = ComplexPolar(a, b.modulate)
+  def make(a: Number, b: Number): BaseComplex = ComplexPolar(a, b)
 
   def isZero: Boolean = r.isZero
 
@@ -493,6 +493,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   def render: String = (r, theta, n) match {
     case (Number.one, Number.zero, 1) => "1"
     case (Number.one, Number.pi, 1) => "-1"
+    case (Number.one, Number.minusPi, 1) => "-1"
     case (_, _, 2) => theta.value match {
       case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => "\u00b1" + r
       case _ => s"${r}e^${showImaginary(polar = true)}"
@@ -526,7 +527,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
 }
 
 object ComplexPolar {
-  def apply(r: Number, theta: Number, n: Int): ComplexPolar = new ComplexPolar(r, theta, n)
+  def apply(r: Number, theta: Number, n: Int): ComplexPolar = new ComplexPolar(r, theta.modulate, n)
 
   def apply(r: Number, theta: Number): ComplexPolar = apply(r, theta, 1)
 

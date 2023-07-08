@@ -345,6 +345,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     target.cos shouldBe Number(-1, Scalar)
   }
   it should "work for 2pi" in {
+    // NOTE this involves evaluating sin of 2.5 pi
     val target = Number.twoPi
     target.cos shouldBe Number(1, Scalar)
   }

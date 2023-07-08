@@ -619,6 +619,10 @@ object Number {
     */
   val piBy2: Number = Number(Rational.half, Radian)
   /**
+    * Exact value of -pi
+    */
+  val minusPi: Number = negate(pi)
+  /**
     * Exact value of zero radians
     */
   val zeroR: Number = Number(0, Radian)
@@ -1135,26 +1139,36 @@ object Number {
 
   /**
     * Implement sin of a Number.
+    * See [[https://en.wikipedia.org/wiki/Sine_and_cosine]].
     *
     * CONSIDER implementing this (and cos) as part of exp method (providing a Complex parameter, of course).
+    *
+    * CONSIDER implementing this (and cos) by using MonadicOperationSin throughout. But NOTE that said operation will need enhancement before it can work identically.
+    *
+    * CONSIDER returning an Expression rather than a Number. That would enable an exact result for 1/12 and 5/12 pi.
     *
     * @param x a Number, typically in Radians, but if not, then will be converted.
     * @return a Scalar Number which represents the sine of x.
     */
   def sin(x: Number): Number =
-    if (x.signum >= 0) {
-      val oneOverRoot2 = Number(Rational.half, Root2)
-      val rootThreeQuarters = Number(Rational(3, 4), Root2)
-      val z = x.scale(Radian)
-      z.doMultiply(12).toInt match {
-        case Some(3) | Some(9) => oneOverRoot2
-        case Some(15) | Some(21) => Field.convertToNumber(-oneOverRoot2.normalize)
-        case Some(4) | Some(8) => rootThreeQuarters
-        // FIXME unreachable.
-        case Some(15) | Some(21) => Field.convertToNumber(-rootThreeQuarters.invert.normalize)
-        case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin))
-      }
-    } else negate(sin(negate(x)))
+    x.scale(Radian).transformMonadic(Radian)(MonadicOperationModulate(-1, 1, circular = true)) match {
+      case Some(z) =>
+        if (z.signum >= 0) {
+          lazy val oneOverRoot2 = Number(Rational.half, Root2)
+          lazy val rootThreeQuarters = Number(Rational(3, 4), Root2)
+          lazy val rootSix = Number(6, Root2)
+          val z = x.scale(Radian)
+          z.doMultiply(12).toInt match {
+            case Some(3) | Some(9) => oneOverRoot2  // pi/4 and 3pi/4
+            case Some(4) | Some(8) => rootThreeQuarters // pi/3 and 2pi/3
+            case Some(1) | Some(11) => rootSix doSubtract root2 doDivide Number(4) // pi/12 and 11pi/12 would be nice for this to be an Expression
+            case Some(5) | Some(7) => rootSix doAdd root2 doDivide Number(4) // 5pi/12 and 7pi/12 ditto
+            case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
+          }
+        } else negate(sin(negate(x)))
+
+      case None => throw NumberException(s"Number.sin: logic error")
+    }
 
   // CONSIDER checking here for x being zero
   def atan(x: Number, y: Number): Number = doAtan(y doDivide x, x.signum)
@@ -1202,13 +1216,13 @@ object Number {
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.
-    * Only Radian is currently fixed within a range (0 -> 2).
+    * Only Radian is currently fixed within a range (-1 -> 1).
     *
     * @param x the Number to operate on.
     * @return either x or a number equivalent to x with value in defined range.
     */
   def modulate(x: Number): Number = x.factor match {
-    case f@Radian => prepare(x.transformMonadic(f)(MonadicOperationModulate))
+    case f@Radian => prepare(x.transformMonadic(f)(MonadicOperationModulate(-1, 1, circular = true)))
     case _ => x
   }
 

@@ -264,7 +264,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_0.render shouldBe "1"
     p1_pi.render shouldBe "-1"
     p1_pi_2.render shouldBe "1e^i0.5\uD835\uDED1"
-    p1_pi_2.conjugate.render shouldBe "1e^i1.5\uD835\uDED1"
+  }
+  it should "work for negative polar angle" in {
+    val conjugate = p1_pi_2.conjugate
+    conjugate.render shouldBe "1e^-i0.5\uD835\uDED1"
   }
   it should "work for iPi" in {
     val target = Constants.iPi

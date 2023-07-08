@@ -943,6 +943,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     import com.phasmidsoftware.number.core.Number.FuzzOps
     sin should ===(0.8414709848078965 ~ 21)
   }
+  it should "work for 1/12" in {
+    val target = Number(Rational(12).invert, Radian)
+    val sin = target.sin
+    import com.phasmidsoftware.number.core.Number.FuzzOps
+    sin should ===(0.2588190451025207 ~ 10)
+  }
 
   behavior of "cos"
   it should "be zero for pi" in {
@@ -980,10 +986,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.tan.isInfinite shouldBe true
   }
   it should "work for Pi/3" in {
+    // NOTE that at some point, the angle becomes non-exact (0.8333333...)
     val target = Number.pi doDivide 3
     target.tan shouldEqual Number(3).sqrt
   }
   it should "work for Pi/6" in {
+    // NOTE that at some point, the angle becomes non-exact (0.1666666...)
     val target = Number.pi doDivide 6
     target.tan should ===(Number(3).sqrt.invert)
   }
@@ -1006,10 +1014,10 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "be 7 Pi / 6 for 1/-root(3)" in {
     // CONSIDER shouldn't this be 5 pi / 6?
-    negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"7/6", Radian)
+    negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"-5/6", Radian)
   }
   it should "be 11 Pi / 6 for -1/2" in {
-    Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"11/6", Radian)
+    Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"-1/6", Radian)
   }
   it should "be 3 pi / 4 for 1/-1" in {
     val adjacent = Number.negate(Number.one)
@@ -1023,11 +1031,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   // TODO need to operate appropriately on negZero.
   it should "evaluate atan of 1 over -0" in {
     val number = Number.negZero.atan(Number.one)
-    number shouldBe Number(Rational(3, 2), Radian)
+    number shouldBe Number(Rational(-1, 2), Radian)
   }
   it should "evaluate atan of -1 over 0" in {
     val number = Number.zero.atan(negate(Number.one))
-    number shouldBe Number(Rational(3, 2), Radian)
+    number shouldBe Number(Rational(-1, 2), Radian)
   }
 
   behavior of "exp"

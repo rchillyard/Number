@@ -70,6 +70,8 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
   // Other methods appropriate to Rational
   lazy val signum: Int = n.signum
 
+  lazy val isNegative: Boolean = signum < 0
+
   lazy val invert: Rational = Rational(d, n)
 
   lazy val isWhole: Boolean = d == 1L
@@ -159,7 +161,10 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     Rational(n + other.n, d + other.d)
   else Rational.NaN
 
-  override def toString: String = s"$n/$d"
+  override def toString: String = this match {
+    case Rational(top, Rational.bigOne) => s"$top"
+    case Rational(top, bottom) => s"$top/$bottom"
+  }
 
   /**
     * Render this Rational as a String.
