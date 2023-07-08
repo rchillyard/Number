@@ -672,6 +672,7 @@ object Rational {
 
     def createRecurrenceString(ps: Seq[Int]) = {
       val bigNumber = BigNumber.value(n).divide(BigNumber.value(d)).toString
+      val l = bigNumber.length
 
       @tailrec
       def inner(candidates: List[Int]): Try[String] = candidates match {
@@ -679,7 +680,8 @@ object Rational {
           Failure[String](NumberException(s"Rational.findRepeatingSequence: no sequence"))
         case h :: t =>
           findRepeatingPattern(bigNumber, h) match {
-            case Some(z) => Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
+            case Some(z) if z + h < l => Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
+            case Some(z) => Failure[String](NumberException(s"Rational.findRepeatingSequence: logic error: pattern exhausts bigNumber: ${z + h} > $l"))
             case None => inner(t)
           }
       }
