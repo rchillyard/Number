@@ -19,7 +19,8 @@ object RationalJ {
       * @param r a Rational.
       * @return a java.math.BigDecimal.
       */
-    def rationalToBigDecimal(r: Rational): java.math.BigDecimal = r.toBigDecimal.bigDecimal
+    def rationalToBigDecimal(r: Rational): java.math.BigDecimal =
+        r.toBigDecimal.getOrElse(r.forceToBigDecimal).bigDecimal
 
     /**
       * Method to convert a Java BigInteger to a Rational.

@@ -141,13 +141,13 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
   def root(x: Int): Option[Rational] =
     for (a <- Rational.root(n, x); b <- Rational.root(d, x)) yield Rational(a, b)
 
-  lazy val toBigDecimal: BigDecimal = BigDecimal(n) / BigDecimal(d)
+  lazy val toBigDecimal: Option[BigDecimal] = if (isDecimal) Some(forceToBigDecimal) else None
 
   def compare(other: Rational): Int = Rational.compare(this, other)
 
   lazy val toRationalString = s"$n/$d"
 
-  lazy val isExactDouble: Boolean = toBigDecimal.isExactDouble // Only work with Scala 2.11 or above
+  lazy val isExactDouble: Boolean = toBigDecimal.exists(_.isExactDouble) // Only work with Scala 2.11 or above
 
   def applySign(negative: Boolean): Rational = if (negative) negate else this
 
@@ -178,8 +178,9 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     * @param exact true if this Rational is the value of an exact number.
     * @return a String of various different forms.
     */
-  def render(exact: Boolean): (String, Boolean) = if (exact) renderExact -> true
-  else toBigDecimal.toString() -> false // NOTE string is ignored if boolean is false
+  def render(exact: Boolean): (String, Boolean) =
+    if (exact) renderExact -> true
+    else "" -> false // NOTE string is ignored if boolean is false
 
   def renderExact: String = this match {
     case _ if isNaN => "NaN"
@@ -187,10 +188,11 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     case _ if isInfinity => (if (n > 0) "+ve" else "-ve") + " infinity"
     case _ if isWhole => toBigInt.toString
     case _ if isExactDouble => toDouble.toString
-    case _ if isDecimal =>
-      toBigDecimal.toString
     case _ =>
-      findRepeatingSequence getOrElse asString
+      toBigDecimal match {
+        case Some(x) => x.toString
+        case None => findRepeatingSequence getOrElse asString
+      }
   }
 
   /**
@@ -225,8 +227,10 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     case _ =>
       // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
       // It is not fuzzy.
-      toBigDecimal.toString() + Ellipsis
+      forceToBigDecimal.toString + Ellipsis
   }
+
+  def forceToBigDecimal: BigDecimal = BigDecimal(n) / BigDecimal(d)
 
   private lazy val denominatorPrimeFactors = Prime.primeFactors(d)
 

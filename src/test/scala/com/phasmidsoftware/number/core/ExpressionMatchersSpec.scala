@@ -291,7 +291,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val q: em.MatchResult[Expression] = p(x)
     q.successful shouldBe true
   }
-  // FIXME Issue #55
+  // FIXME Issue #57 (or something like that)
   ignore should "biFunctionSimplifier on (1 + √3 + 1)(1 - √3)" in {
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt

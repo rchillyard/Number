@@ -197,7 +197,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for pi" in {
     val pi = BigDecimal(Math.PI)
     val r = Rational(pi)
-    r.toBigDecimal shouldBe pi
+    r.toBigDecimal shouldBe Some(pi)
     r.toDouble shouldBe Math.PI +- 1E-15
   }
 
@@ -216,7 +216,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.zero.invert shouldBe infinitySymbol
   }
   it should "equal BigDecimal.ZERO" in {
-    Rational.zero.toBigDecimal shouldBe BigDecimal(0)
+    Rational.zero.toBigDecimal shouldBe Some(BigDecimal(0))
   }
   it should "equal r when added to r" in {
     val r = Rational(22, 7) // we could choose anything here
@@ -363,7 +363,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.one.invert shouldBe Rational.one
   }
   it should "equal BigDecimal.one" in {
-    Rational.one.toBigDecimal shouldBe BigDecimal(1)
+    Rational.one.toBigDecimal shouldBe Some(BigDecimal(1))
   }
   it should "equal r when multiplied by r" in {
     val r = Rational(22, 7) // we could choose anything here
@@ -448,7 +448,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     (Rational.ten / 10) shouldBe Rational.one
   }
   it should "equal BigDecimal(10)" in {
-    Rational.ten.toBigDecimal shouldBe BigDecimal(10)
+    Rational.ten.toBigDecimal shouldBe Some(BigDecimal(10))
   }
   it should "equal a million when raised to 6th power" in {
     (Rational.ten ^ 6) shouldBe Rational(1000000)
