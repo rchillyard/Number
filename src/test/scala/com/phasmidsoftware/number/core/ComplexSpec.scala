@@ -174,7 +174,6 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "p1_1^-1/2" in {
-    // TODO this seems wrong. The imaginary part should be in Radians, surely.
     p1_1 power half shouldBe ComplexPolar(Number.one, Number.piBy2, 2)
   }
 

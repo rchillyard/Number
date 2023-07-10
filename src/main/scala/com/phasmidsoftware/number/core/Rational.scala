@@ -312,7 +312,7 @@ object Rational {
     * NOTE: this method is designed for true Doubles, not floating-point representations of decimal numbers.
     * Such decimal numbers should be converted to BigDecimal first using BigDecimal.valueOf(x).
     *
-    * TODO what we need here is to pass in a function and a desired Rational result,
+    * CONSIDER what we need here is to pass in a function and a desired Rational result,
     * and perhaps even the first derivative of the function, so that we can approximate the solution (root) of the function.
     *
     * @param x       the value to approximate.
@@ -661,8 +661,6 @@ object Rational {
 
   /**
     * Generate the String representation of n/d where d is a Prime number (at least, very probably).
-    *
-    * TODO this does not always work if the numerator is more than 1.
     *
     * @param n the numerator.
     * @param d the (prime) denominator.

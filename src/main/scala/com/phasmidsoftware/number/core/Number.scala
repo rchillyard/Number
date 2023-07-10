@@ -14,7 +14,7 @@ import scala.util._
   * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
   * That's to say that Numbers have linear domain and all belong, directly or indirectly, to the set R (real numbers).
   *
-  * TODO eliminate extending Field
+  * CONSIDER eliminate extending Field
   *
   * Every number has three properties:
   * * value: Value
@@ -1173,7 +1173,7 @@ object Number {
   }
 
   /**
-    * TODO move this to GeneralNumber as an instance method.
+    * CONSIDER move this to GeneralNumber as an instance method.
     *
     * @param x a Number.
     * @return -1, 0, or 1 according to its sign.

@@ -7,6 +7,7 @@ trait NumberLike {
 
   /**
     * Method to determine the NumberSet, if any, to which this NumberLike object belongs.
+    * NOTE that we don't yet support H, the quaternions.
     *
     * @return Some(numberSet) or None if it doesn't belong to any (for example it is fuzzy).
     */
@@ -40,6 +41,8 @@ trait NumberLike {
   /**
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
+    *
+    * CONSIDER redefining this as Option[Field].
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */

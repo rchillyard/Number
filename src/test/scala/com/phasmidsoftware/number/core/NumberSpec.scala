@@ -89,7 +89,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     // NOTE that:  math.PI is 3.14159265358979323846
     // In IEEE 754 binary, pi is 400921fb54442d18, which is:
     //                        3.141592653589793
-    //    target.toString shouldBe "3.14159265358979300(41)" // TODO this is how it should be (not any more)
     target.toString shouldBe "3.141592653589793[5]"
   }
   it should "work for E" in {
@@ -321,18 +320,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     x.toString shouldBe "1836.15267343(11)"
     x shouldEqual Constants.mu
   }
-  it should "get G" in {
+  it should "get G using FuzzStringOps" in {
     import Number.FuzzStringOps
     val xy = "6.67430E-11" ~ 15
     xy.isSuccess shouldBe true
-    val y = Constants.G
     val x = xy.get
-    println(s"$x, $y")
     x.isExact(None) shouldBe false
     val fuzzyX = x.asInstanceOf[FuzzyNumber]
     fuzzyX.fuzz shouldBe Some(AbsoluteFuzz(1.5E-15, Gaussian))
     x shouldEqual Constants.G // "6.67430(15)E-11"
-    // FIXME Issue #54
     x.toString shouldBe "6.67430(15)E-11"
   }
   it should "get alpha" in {
@@ -503,7 +499,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val result: Number = target.sqrt.normalize.asInstanceOf[Number]
     result.render shouldBe "2.7182818284590450[86]"
   }
-  // FIXME this fails in CircleCI
+  // TODO fix this--it fails in CircleCI
   ignore should "work for NatLog, Root2" in {
     val target = Number.e
     val expected = Number(math.E * math.E, Root2)
@@ -873,11 +869,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number(Rational.half, NatLog)
     target.power(2) shouldBe Number.e
   }
+  // TODO fix Issue #78
   it should "work for squaring Log2" in {
-    val target = Number(Rational.half, Log2)
-    val result = target.power(2)
-    // TODO this should be equal to just plain old Number.two (need to simplify result).
+    val target = Number(Rational.half, Log2) // square root of 2
+    println(target)
+    val result = target.power(2) // 2
+    println(result)
     result shouldBe Number(1, Log2)
+    // NOTE this should actually be equal to just plain old Number.two (need to simplify result).
+    result should ===(Number.two)
   }
 
   behavior of "sqrt"
@@ -1030,11 +1030,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val opposite = Number.one
     val actual: Number = adjacent.atan(opposite)
     val expected: Number = (Number.pi doMultiply 3) doDivide 4
-    // TODO revert this so that it reads actual ... expected
+    // CONSIDER revert this so that it reads actual ... expected
     //  XXX  actual should ===(expected)
     actual shouldBe expected
   }
-  // TODO need to operate appropriately on negZero.
+  // CONSIDER need to operate appropriately on negZero.
   it should "evaluate atan of 1 over -0" in {
     val number = Number.negZero.atan(Number.one)
     number shouldBe Number(Rational(-1, 2), Radian)

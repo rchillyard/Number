@@ -206,7 +206,7 @@ case class Prime(n: BigInt) extends Ordered[Prime] {
   /**
     * Method to render this Prime number as a String with a delimiter every third place.
     *
-    * TODO get the delimiter from the Java i18n features.
+    * CONSIDER get the delimiter from the Java i18n features.
     *
     * @return a String representing a Prime number.
     */
@@ -234,7 +234,7 @@ case class Prime(n: BigInt) extends Ordered[Prime] {
 
   /**
     * Method to get the reciprocal period for decimal expansion for this Prime.
-    * TODO as of now, this is a simple lookup.
+    * NOTE as of now, this is a simple lookup.
     * If None is returned, then either this is not actually prime or it is not in the first hundred primes or in the list of reciprocal primes.
     */
   lazy val reciprocalPeriod: Option[Int] =
@@ -723,9 +723,9 @@ object MillerRabin {
   // This code is attributed to: 'https://www.literateprograms.org/miller-rabin_primality_test__scala_.html'
   private def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
     val (d, s) = decompose(n)
-    // TODO avoid this mutable variable.
+    // CONSIDER avoid this mutable variable.
     var a_to_power: BigInt = a.modPow(d, n)
-    // TODO re-write so that we don't have to use return.
+    // CONSIDER re-write so that we don't have to use return.
     if (a_to_power == 1) return true
     else for (_ <- 1 to s) {
       if (a_to_power == n - 1) return true
@@ -748,12 +748,12 @@ object MillerRabin {
     for (_ <- 1 to k) {
       // CONSIDER a less predictable Random source.
       val rand = new Random()
-      // TODO avoid mutable variables and while loops
+      // CONSIDER avoid mutable variables and while loops
       var a: BigInt = 0
       while (a == 0) {
         a = BigInt("" + (rand.nextDouble() * n.doubleValue).toInt)
       }
-      // TODO avoid return
+      // CONSIDER avoid return
       if (!miller_rabin_pass(a, n)) return false
     }
     true

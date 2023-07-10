@@ -92,7 +92,7 @@ trait Field extends NumberLike with Ordered[Field] {
   def power(p: Int): Field = p match {
     case 0 => Number.one
     case 1 => this
-    case _ => power(Number(p))
+    case _ => power(Number(p)) // TODO need to simplify the result. See NumberSpec: power/work for squaring Log2
   }
 
   /**

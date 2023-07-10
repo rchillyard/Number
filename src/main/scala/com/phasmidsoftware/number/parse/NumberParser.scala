@@ -7,8 +7,8 @@ import scala.util.Try
 /**
   * Parser for Number.
   *
-  * TODO when we specify an exact number by following an integer by an exponent, we must precede the "E" with a decimal point.
-  * Try to eliminate that requirement.
+  * NOTE when we specify an exact number by following an integer by an exponent, we must precede the "E" with a decimal point.
+  * CONSIDER Try to eliminate that requirement.
   */
 abstract class BaseNumberParser extends BaseRationalParser {
 
@@ -80,7 +80,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
     val fuzzyDigits = """[\(\[]\d{1,2}[\)\]]""".r
     ("""\*""".r | """\.\.\.""".r | fuzzyDigits) :| "fuzz" ^^ {
       case "*" => None
-      // TODO Ellipsis should indicate a quasi-exact rational number that could not be expressed exactly in decimal form.
+      // NOTE Ellipsis should indicate a quasi-exact rational number that could not be expressed exactly in decimal form.
       case Ellipsis => None
       case w => Some(w)
     }

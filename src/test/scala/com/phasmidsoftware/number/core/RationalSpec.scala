@@ -302,7 +302,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "division"
   it should "work for 6 / 10 / 3" in {
     import com.phasmidsoftware.number.core.Rational.RationalOps
-    // TODO why do we have to use parentheses here?
+    // CONSIDER why do we have to use parentheses here?
     val r: Rational = (6 :/ 10) / 3
     r shouldBe Rational(5).invert
   }
@@ -468,8 +468,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational(2, 3) should not be wholeSymbol
   }
   it should "equal 2 when multiplied by 3" in {
-    // TODO try to understand what the Analyzer sees as wrong here.
-    (Rational(2, 3) * 3 toInt) shouldBe 2
+    (Rational(2, 3) * 3).toInt shouldBe 2
   }
   it should "equal 3/2 when inverted" in {
     Rational(2, 3).invert shouldBe Rational(3, 2)

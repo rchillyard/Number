@@ -321,7 +321,7 @@ object Fuzzy {
       case Exact(q) => Exact(p + q);
       case _ => sum(y, x)
     }
-    // TODO try to eliminate the following cast
+    // CONSIDER try to eliminate the following cast
     case _ => x.asInstanceOf[FuzzyBase].combine(y, _ + _, (_, _) => 1, (_, _) => 1)
   }
 

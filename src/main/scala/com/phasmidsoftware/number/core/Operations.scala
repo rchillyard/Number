@@ -158,7 +158,7 @@ case object MonadicOperationLog extends MonadicOperation {
   * NOTE that this evaluator for sine is not as useful as the evaluator in the Number class.
   * That's because this type of operation does not change the factor.
   *
-  * TODO allow Monadic operations to change factor.
+  * CONSIDER allow Monadic operations to change factor.
   *
   * See https://en.wikipedia.org/wiki/List_of_trigonometric_identities
   */
@@ -222,7 +222,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   def atan(x: Double): Try[Double] =
     Try {
       math.atan2(x, sign) / math.Pi
-    } // TODO use scale // TEST me
+    } // CONSIDER use scale // TEST me
 
   val functions: MonadicFunctions = (fail("atan cannot be Int"), atanRat, atan)
 
@@ -489,7 +489,7 @@ object Operations {
   }
 
   def doQuery[T](v: Value, functions: QueryFunctions[T]): Option[T] = {
-    val (fInt, fRational, fDouble) = (functions.fInt, functions.fRat, functions.fDouble) // TODO improve this
+    val (fInt, fRational, fDouble) = (functions.fInt, functions.fRat, functions.fDouble) // CONSIDER improve this (what's the problem?)
     val xToZy0: Option[Double] => Try[T] = {
       case Some(n) => fDouble(n)
       case None => Failure(new NoSuchElementException())

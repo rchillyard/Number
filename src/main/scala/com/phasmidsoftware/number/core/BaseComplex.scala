@@ -209,7 +209,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   protected def showImaginary(polar: Boolean, branch: Int = 0, n: Int = 1): String = (imag, branch, n) match {
     case (Number.zero, 0, 1) | (Number.zeroR, 0, 1) => "0"
     case (x, 0, 1) =>
-      // TODO Try to merge this code with the following case
+      // CONSIDER Try to merge this code with the following case
       val sign = (x, polar) match {
         case (Number.zero, true) => ""
         case (_, true) if x.isPositive => ""

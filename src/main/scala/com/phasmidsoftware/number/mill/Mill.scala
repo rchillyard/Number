@@ -9,7 +9,7 @@ import scala.util.Try
 /**
   * Trait to define the behavior of a "mill."
   *
-  * TODO rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
+  * CONSIDER rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
   *
   */
 trait Mill extends Iterable[Item] {

@@ -303,7 +303,7 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime(13).reciprocalPeriod shouldBe Some(6)
     Prime(17).reciprocalPeriod shouldBe Some(16)
     Prime(19).reciprocalPeriod shouldBe Some(18)
-    Prime(541).reciprocalPeriod shouldBe None // TODO we should get the correct number for this
+    Prime(541).reciprocalPeriod shouldBe None // CONSIDER we should get the correct number for this
     Prime(1).reciprocalPeriod shouldBe None
   }
 }
