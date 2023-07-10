@@ -1,9 +1,10 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.FP.{optional, toTry}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
-import com.phasmidsoftware.number.parse.NumberParser
+import com.phasmidsoftware.number.parse.{NumberParser, RationalParser}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._
@@ -693,6 +694,47 @@ object Number {
   }
 
   /**
+    * Implicit class which takes a Double, and using method ~ and an Int parameter,
+    * yields a Number with the appropriate degree of fuzziness.
+    * This class provides an alternative to having to parse a fuzzy number from a String.
+    *
+    * @param w a String.
+    */
+  implicit class FuzzStringOps(w: String) {
+    /**
+      * Method to yield a (scalar) Number, whose value is x, and whose fuzziness is Gaussian with standard deviation
+      * defined by y.
+      * The magnitude of the fuzziness is determined by the number of decimal places of x.
+      *
+      * @param n a two-digit Int.
+      * @return a Number with absolute, Gaussian fuzziness, whose std. dev. is y.
+      */
+    def ~(n: Int): Try[Number] =
+      for {
+        x <- parse(w) // We don't strictly need this now we also have components
+        components <- parseComponents(w)
+        f <- toTry(components._3, Failure(NumberException(s"no fractional part: " + w)))
+        exp = components._4.getOrElse("0")
+        e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(NumberException(s"Logic error: " + exp)))
+        y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
+        p = y * math.pow(10, e - f.length)
+      } yield x.make(Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
+  }
+
+  /**
+    * Method to parse the components of the input string used by the ~ method.
+    *
+    * TODO move this logic into RationalParser.
+    *
+    * @return
+    */
+  private def parseComponents(w: String): Try[(Boolean, String, Option[String], Option[String])] = RationalParser.parseAll(RationalParser.realNumber, w) match {
+    case RationalParser.Success(p, _) => scala.util.Success(p.components)
+    case RationalParser.Failure(z, pos) => scala.util.Failure(RationalException(s"cannot parse realNumber: $z, $pos"))
+    case RationalParser.Error(z, pos) => scala.util.Failure(RationalException(s"cannot parse realNumber: $z, $pos"))
+  }
+
+  /**
     * Implicit class to operate on Numbers introduced as integers.
     *
     * CONSIDER generalizing this to inputs of Values (or Rationals, Doubles).
@@ -751,7 +793,7 @@ object Number {
     case _ => FuzzyNumber(value, factor, fuzz)
   }).specialize
 
-  def createFromDouble(x: Double, factor: Factor): Number = apply(x, factor, Some(AbsoluteFuzz(DoublePrecisionTolerance, Box)))
+  def createFromDouble(x: Double, factor: Factor): Number = apply(x, factor, Some(RelativeFuzz(DoublePrecisionTolerance, Box)))
 
   def createFromDouble(x: Double): Number = createFromDouble(x, Scalar)
 

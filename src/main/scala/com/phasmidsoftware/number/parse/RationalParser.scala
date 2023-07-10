@@ -45,6 +45,8 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
       val exp = exponent.getOrElse("0").toInt
       Try(Rational(bigInt).applySign(sign).applyExponent(exp - fractionalPart.length))
     }
+
+    def components: (Boolean, String, Option[String], Option[String]) = (sign, integerPart, maybeFractionalPart, exponent)
   }
 
   def rationalNumber: Parser[ValuableNumber] = (realNumber | ratioNumber) :| "rationalNumber"

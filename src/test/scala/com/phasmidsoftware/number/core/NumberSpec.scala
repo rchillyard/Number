@@ -321,10 +321,16 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     x.toString shouldBe "1836.15267343(11)"
     x shouldEqual Constants.mu
   }
-  ignore should "get G" in {
-    import Number.FuzzOps
-    val x = 6.67430E-11 ~ 15
+  it should "get G" in {
+    import Number.FuzzStringOps
+    val xy = "6.67430E-11" ~ 15
+    xy.isSuccess shouldBe true
+    val y = Constants.G
+    val x = xy.get
+    println(s"$x, $y")
     x.isExact(None) shouldBe false
+    val fuzzyX = x.asInstanceOf[FuzzyNumber]
+    fuzzyX.fuzz shouldBe Some(AbsoluteFuzz(1.5E-15, Gaussian))
     x shouldEqual Constants.G // "6.67430(15)E-11"
     // FIXME Issue #54
     x.toString shouldBe "6.67430(15)E-11"
