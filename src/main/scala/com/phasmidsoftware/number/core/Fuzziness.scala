@@ -433,12 +433,21 @@ object Fuzziness {
 
   /**
     * This method creates fuzz based on the practical limitations of representations and functions in double-precision arithmetic.
+    * See also the method doublePrecision.
     *
     * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
     * @return the approximate precision for a floating point operation, expressed in terms of RelativeFuzz.
     */
-  def createFuzz(relativePrecision: Int): RelativeFuzz[Double] =
+  def createFuzz(relativePrecision: Int): Fuzziness[Double] =
     RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)(ValuableDouble)
+
+  /**
+    * This is the (approximate) fuzziness caused in general by trying to represent numbers in double precision.
+    * Of course, many numbers can be represented exactly by double-precision. But not all.
+    *
+    * @return a Fuzziness[Double].
+    */
+  def doublePrecision: Fuzziness[Double] = createFuzz(0)
 
   /**
     * Normalize the magnitude qualifier of the given fuzz according to relative.

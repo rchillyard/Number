@@ -787,7 +787,16 @@ object Number {
     case _ => FuzzyNumber(value, factor, fuzz)
   }).specialize
 
-  def createFromDouble(x: Double, factor: Factor): Number = apply(x, factor, Some(RelativeFuzz(DoublePrecisionTolerance, Box)))
+  /**
+    * CONSIDER why do we need this method?
+    *
+    * NOTE not all double values should be given fuzz.
+    *
+    * @param x      a Double.
+    * @param factor a Factor.
+    * @return a Number formed from x and factor using standard double precision fuzziness.
+    */
+  def createFromDouble(x: Double, factor: Factor): Number = apply(x, factor, Some(Fuzziness.doublePrecision))
 
   def createFromDouble(x: Double): Number = createFromDouble(x, Scalar)
 
