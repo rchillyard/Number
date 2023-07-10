@@ -292,6 +292,16 @@ The _ComplexPlanar_ object has an additional member (as well as the real and ima
 the number of branches.
 For example, the square root of 2 should have two branches: ±√2.
 
+There are two ways to parse a _String_ as a _Complex_ (in each case, the parsing of the _String_ is identical):
+* _Complex.parse(String)_: will return a _Try\[Complex]_;
+* **C**"...": will return a Complex (or throw an exception).
+
+For example (see also _Complex.sc_),
+
+    C"1i0" : ComplexCartesian(1,0)
+    C"1-i1" : ComplexCartesian(1,-1)
+    C"1ipi" : ComplexPolar(1,pi)
+
 Factors
 =======
 There are three types of "factor:"

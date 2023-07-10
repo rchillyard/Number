@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
+import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{half, zeroR}
@@ -317,5 +317,31 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "normalize" in {
     Number.i.normalize shouldBe ComplexCartesian(0, 1)
+  }
+
+  behavior of "C interpolator"
+  it should "parse" in {
+    C"1i0" should matchPattern { case ComplexCartesian(Number.one, Number.zero) => }
+    C"1i1" should matchPattern { case ComplexCartesian(Number.one, Number.one) => }
+    C"0i1" should matchPattern { case ComplexCartesian(Number.zero, Number.one) => }
+    C"1ipi" should matchPattern { case ComplexPolar(Number.one, Number.pi, 1) => }
+    C"1i0.5pi" should matchPattern { case ComplexPolar(Number.one, Number.piBy2, 1) => }
+    C"0ipi" should matchPattern { case ComplexPolar(Number.zero, Number.pi, 1) => }
+
+    C"1+i0" should matchPattern { case ComplexCartesian(Number.one, Number.zero) => }
+    C"1+i1" should matchPattern { case ComplexCartesian(Number.one, Number.one) => }
+    C"0+i1" should matchPattern { case ComplexCartesian(Number.zero, Number.one) => }
+    C"1+ipi" should matchPattern { case ComplexPolar(Number.one, Number.pi, 1) => }
+    C"1i0.5pi" should matchPattern { case ComplexPolar(Number.one, Number.piBy2, 1) => }
+    C"0+ipi" should matchPattern { case ComplexPolar(Number.zero, Number.pi, 1) => }
+
+    C"1-i0" should matchPattern { case ComplexCartesian(Number.one, Number.zero) => }
+    C"1-i1" should matchPattern { case ComplexCartesian(Number.one, Number.negOne) => }
+    C"1-i-1" should matchPattern { case ComplexCartesian(Number.one, Number.one) => }
+    C"0-i1" should matchPattern { case ComplexCartesian(Number.zero, Number.negOne) => }
+    C"1-ipi" should matchPattern { case ComplexPolar(Number.one, Number.pi, 1) => }
+//    C"1-i0.5pi" should matchPattern { case (ComplexPolar(Number.one, negate(Number.piBy2), 1)) => }
+    C"0-ipi" should matchPattern { case ComplexPolar(Number.zero, Number.pi, 1) => }
+
   }
 }

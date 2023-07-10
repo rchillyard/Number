@@ -428,7 +428,10 @@ object ComplexCartesian {
 case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComplex(r, theta) {
 
   if (theta.factor != Radian)
-    println(s"polar theta is not in radians: $this")
+    println(s"polar theta is not in radians: $this") // TODO make this a requirement
+
+  if (r.isZero)
+    println(s"polar r is zero: $this") // TODO make this a requirement
 
   /**
     * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).

@@ -1,6 +1,8 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.recover
+import com.phasmidsoftware.number.parse.ComplexParser
+import scala.util._
 
 /**
   * Trait which defines the behavior of a type of Field called a Complex.
@@ -74,6 +76,20 @@ trait Complex extends Field {
   *
   */
 object Complex {
+  def create(ro: Option[Number], so: Option[String], io: Option[Number]): Complex = {
+    val real = ro getOrElse Number.zero
+    val s = so getOrElse "+"
+    val i = io getOrElse Number.zero
+    val imag = s match {
+      case "-" => i.makeNegative
+      case _ => i
+    }
+    i.factor match {
+      case Radian => ComplexPolar(real, imag)
+      case _ => ComplexCartesian(real, imag)
+    }
+  }
+
   /**
     * i in Cartesian form.
     */
@@ -97,4 +113,38 @@ object Complex {
     recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
 
   def apply(x: Number): BaseComplex = ComplexCartesian(x, Number.zero)
+
+  def parse(w: String): Try[Complex] = ComplexParser.parse(w)
+
+
+  /**
+    * Implicit class RationalHelper to allow definition of Rationals by Strings of the form r"n/d".
+    *
+    * @param sc a StringContext.
+    */
+  implicit class ComplexHelper(val sc: StringContext) extends AnyVal {
+    def C(args: Any*): Complex = {
+      val strings = sc.parts.iterator
+      val expressions = args.iterator
+      val sb = new StringBuffer()
+      while (strings.hasNext) {
+        val s = strings.next()
+        if (s.isEmpty) {
+          if (expressions.hasNext)
+            sb.append(expressions.next())
+          else
+            throw NumberException("C: logic error: missing expression")
+        }
+        else
+          sb.append(s)
+      }
+      if (expressions.hasNext)
+        throw NumberException(s"C: ignored: ${expressions.next()}")
+      else
+        Complex.parse(sb.toString) match {
+          case Success(value) => value
+          case Failure(x) => throw x
+        }
+    }
+  }
 }
