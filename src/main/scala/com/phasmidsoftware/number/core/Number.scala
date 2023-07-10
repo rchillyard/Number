@@ -4,7 +4,8 @@ import com.phasmidsoftware.number.core.FP.{optional, toTry}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
-import com.phasmidsoftware.number.parse.{NumberParser, RationalParser}
+import com.phasmidsoftware.number.parse.NumberParser
+import com.phasmidsoftware.number.parse.RationalParser.parseComponents
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._
@@ -681,6 +682,7 @@ object Number {
       * Method to yield a (scalar) Number, whose value is x, and whose fuzziness is Gaussian with standard deviation
       * defined by y.
       * The magnitude of the fuzziness is determined by the number of decimal places of x.
+      * However, if the decimal part of the number ends in a zero, you should use the method in FuzzStringOps instead.
       *
       * @param y a two-digit Int.
       * @return a Number with absolute, Gaussian fuzziness, whose std. dev. is y.
@@ -694,9 +696,14 @@ object Number {
   }
 
   /**
-    * Implicit class which takes a Double, and using method ~ and an Int parameter,
+    * Implicit class which takes a String, and using method ~ and an Int parameter,
     * yields a Number with the appropriate degree of fuzziness.
     * This class provides an alternative to having to parse a fuzzy number from a String.
+    * Really, the only function it provides is the ability to put the error bounds after the exponent.
+    * It is parallel to FuzzOps except for two differences:
+    * the input is a String, and this is is so that trailing zeros in the fractional part don't get ignored,
+    * thus messing up the fuzziness;
+    * And, secondly, the result of ~ is a Try[Number], not just a Number.
     *
     * @param w a String.
     */
@@ -707,7 +714,7 @@ object Number {
       * The magnitude of the fuzziness is determined by the number of decimal places of x.
       *
       * @param n a two-digit Int.
-      * @return a Number with absolute, Gaussian fuzziness, whose std. dev. is y.
+      * @return a Try[Number] with absolute, Gaussian fuzziness, whose std. dev. is y.
       */
     def ~(n: Int): Try[Number] =
       for {
@@ -719,19 +726,6 @@ object Number {
         y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
         p = y * math.pow(10, e - f.length)
       } yield x.make(Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
-  }
-
-  /**
-    * Method to parse the components of the input string used by the ~ method.
-    *
-    * TODO move this logic into RationalParser.
-    *
-    * @return
-    */
-  private def parseComponents(w: String): Try[(Boolean, String, Option[String], Option[String])] = RationalParser.parseAll(RationalParser.realNumber, w) match {
-    case RationalParser.Success(p, _) => scala.util.Success(p.components)
-    case RationalParser.Failure(z, pos) => scala.util.Failure(RationalException(s"cannot parse realNumber: $z, $pos"))
-    case RationalParser.Error(z, pos) => scala.util.Failure(RationalException(s"cannot parse realNumber: $z, $pos"))
   }
 
   /**

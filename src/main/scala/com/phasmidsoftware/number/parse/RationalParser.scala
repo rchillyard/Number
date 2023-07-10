@@ -72,6 +72,20 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
 
 object RationalParser extends BaseRationalParser {
   def parse(s: String): Try[Rational] = stringParser(rationalNumber, s).flatMap(_.value)
+
+
+  /**
+    * Method to parse the components (sign, integerPart, maybeFractionalPart, maybeExponent) of the input string.
+    *
+    * @param w the String to be parsed.
+    * @return a tuple of the four components.
+    */
+  def parseComponents(w: String): Try[(Boolean, String, Option[String], Option[String])] = parseAll(realNumber, w) match {
+    case Success(p, _) => scala.util.Success(p.components)
+    case Failure(z, pos) => scala.util.Failure(RationalParserException(s"cannot parse realNumber: $z, $pos"))
+    case Error(z, pos) => scala.util.Failure(RationalParserException(s"cannot parse realNumber: $z, $pos"))
+  }
+
 }
 
 case class RationalParserException(m: String) extends Exception(m)
