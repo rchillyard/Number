@@ -14,7 +14,9 @@ import java.util.regex.Pattern;
  * The representation of the whole part is a BigInteger.
  * The representation of the decimal part is as a true decimal (not binary) number.
  * <p>
- * Addition of Comparable and fixes to add method due to Amrita Dubey.
+ * Addition of Comparable and fixes to add method, as well as long division of BigNumber
+ * and Karatsuba's algorithm (together with main program):
+ * all due to Amrita Dubey.
  * <p>
  * If you're wondering why this isn't written in Scala, it's simply because
  * I created it for an assignment for a class for which Java is the required language.
@@ -26,6 +28,8 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      */
     public static final BigNumber zero = new BigNumber(0);
     public static final BigNumber one = new BigNumber(1);
+    public static final BigNumber ten = new BigNumber(10);
+    public static final BigNumber two = new BigNumber(2);
     // NOTE that the following is an exact number. It is defined as the closest approximation to pi with 100 digits.
     // But, we know that it is not pi itself.
     public static final BigNumber pi = BigNumber.parse("3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067");
@@ -306,6 +310,159 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return new BigNumber(whole, decimals, !sign);
     }
 
+    /**
+     * Method to multiply Big Numbers using Karatsuba Algorithm.
+     *
+     * @param other a BigNumber value.
+     * @return a BigNumber.
+     */
+    public BigNumber multiplyWithKaratsuba(BigNumber other) {
+        BigNumber thisW = BigNumber.value(this.whole);
+        BigNumber thatW = BigNumber.value(other.whole);
+
+        if (this.isWhole() && other.isWhole())
+            return thisW.multiply(thatW);
+
+        int[] first = this.decimals;
+        int[] second = other.decimals;
+
+        if (first.length < second.length) {
+            first = Arrays.copyOf(first, second.length);
+        } else {
+            second = Arrays.copyOf(second, first.length);
+        }
+
+        BigNumber thisF = new BigNumber(BigInteger.ZERO, first, true);
+        BigNumber thatF = new BigNumber(BigInteger.ZERO, second, true);
+        BigNumber result1 = thisW.multiply(thatW);
+        BigNumber result2 = thisW.multiply(thatF);
+        BigNumber result3 = thatW.multiply(thisF);
+
+        int[] result = recursiveKarat(first, second, 0, first.length - 1, 2 * first.length);
+        BigNumber result4 = new BigNumber(BigInteger.ZERO, result, true);
+        return  result1.add(result2).add(result3).add(result4);
+    }
+
+    private int[] multiplyArrays(int[] arr1, int[] arr2, int start, int end, int resultSize) {
+        StringBuilder b = new StringBuilder();
+        for (int i = start; i <= end; i++) {
+            b.append(arr1[i]);
+        }
+        BigInteger b1 = new BigInteger(b.toString());
+
+        b.setLength(0);
+        for (int i = start; i <= end; i++) {
+            b.append(arr2[i]);
+        }
+        BigInteger b2 = new BigInteger(b.toString());
+
+        String res = b2.multiply(b1).toString();
+        int[] result = new int[resultSize];
+
+        int resIdx = resultSize - 1;
+        for (int i = res.length() - 1; i >= 0; i--) {
+            result[resIdx--] = res.charAt(i) - 48;
+        }
+        return result;
+    }
+
+    private int[] recursiveKarat(int[] first, int[] second, int start, int end, int resSize) {
+        // adaptively ignore leading zeros
+        for (int i = start; i <= end; i++) {
+            if (first[i] != 0 || second[i] != 0) {
+                start = i;
+                break;
+            }
+        }
+
+        int numDigits = end - start + 1;
+        if (numDigits == 0) {
+            return new int[resSize];
+        }
+        if (numDigits <= 160) {
+            // return an array of size `resSize`
+            return multiplyArrays(first, second, start, end, resSize);
+        }
+
+        int middle = (end + start) / 2;
+        int m = end - middle;
+        int[] z0 = recursiveKarat(first, second, start, middle, resSize);
+        int[] z2 = recursiveKarat(first, second, middle + 1, end, resSize);
+
+        int[] sum1 = add(first, start, middle, end, numDigits + 1);
+        int[] sum2 = add(second, start, middle, end, numDigits + 1);
+        int[] prod = recursiveKarat(sum1, sum2, 0, sum1.length - 1, 2 * numDigits);
+        difference(prod, z0);
+        difference(prod, z2);
+
+        leftShift(prod, m);
+        leftShift(z0, 2 * m);
+
+        addInPlace(z0, prod);
+        addInPlace(z0, z2);
+        return z0;
+    }
+
+    private void leftShift(int[] arr, int offset) {
+        int i = 0;
+        while (i < arr.length && arr[i] == 0) {
+            i++;
+        }
+        for (; i < arr.length; i++) {
+            arr[i - offset] = arr[i];
+            arr[i] = 0;
+        }
+    }
+
+    private int[] add(int[] first, int start, int middle, int end, int resSize) {
+        int[] result = new int[resSize];
+        int carry = 0;
+        int val, toAdd;
+        int k = resSize - 1;
+        for (int i = end, j = middle; j >= start; i--, j--, k--) {
+            if (i <= middle) {
+                toAdd = 0;
+            } else {
+                toAdd = first[i];
+            }
+            val = toAdd + first[j] + carry;
+            if (val >= 10) {
+                carry = 1;
+                result[k] = val - 10;
+            } else {
+                carry = 0;
+                result[k] = val;
+            }
+        }
+        result[k] = carry;
+        return result;
+    }
+
+    private void addInPlace(int[] first, int[] second) {
+        int j = first.length - 1;
+        int carry = 0;
+        int val;
+        for (int i = first.length - 1, k = second.length - 1; k >= 0; i--, k--, j--) {
+            val = first[i] + second[k] + carry;
+            first[j] = val % 10;
+            carry = val / 10;
+        }
+        if (carry != 0) {
+            first[j] += carry;
+        }
+    }
+
+    private void difference(int[] first, int[] second) {
+        for (int i = first.length - 1, j = second.length - 1; i >= 0; i--, j--) {
+            if (first[i] >= second[j]) {
+                first[i] -= second[j];
+            } else {
+                first[i] = first[i] + 10 - second[j];
+                first[i - 1]--; // carry
+            }
+        }
+    }
+
     public BigNumber multiply(BigNumber that) {
         BigInteger bigTen = BigInteger.valueOf(10);
         int thisLength = decimals.length + 1, thatLength = that.decimals.length + 1;
@@ -324,11 +481,20 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return new BigNumber(carry.add(BigInteger.valueOf(results[0])), dec, sign == that.sign);
     }
 
+    /**
+     * Method to divide this BigNumber by a BigNumber.
+     *
+     * @param x a BigNumber value.
+     * @return a BigNumber y such that x * y = this.
+     */
     public BigNumber divide(BigNumber x) {
-        if (x.decimals.length > 0)
-            // TODO implement long division.
-            throw new BigNumberException("divide is not supported for division by non-whole numbers");
-        else {
+        if (x.decimals.length > 0) {
+            int n = x.decimals.length;
+            BigNumber target = this.multiply(BigNumber.value(BigInteger.TEN.pow(n)));
+            BigNumber divisor = x.multiply(BigNumber.value(BigInteger.TEN.pow(n)));
+            BigNumber result = target.divide(divisor);
+            return x.sign ? result : result.negate();
+        } else {
             BigNumber quotient = divide(x.whole);
             return x.sign ? quotient : quotient.negate();
         }
@@ -469,5 +635,47 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         public BigNumberException(String s) {
             super(s);
         }
+    }
+
+    public static void main(String[] args) {
+        String seed = "3.80264732771409300520864834438671209698720957589958651119907375222849430002967817359000866255197344412894598244154180957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418448117483823635540800639306781065132028198662321859262596212005648226134579249871801970850380282492694242171297757609737902183514884179014706720272008148141514118681922046978558050713877551342513339470002439445599760202735750907375222849430002967817359000866255197344412894598244154184811748382363554080063930678106513202819866232185926259621200564822613457924987180197085038028249269424217129775760973790218351488417901470672027200814814151411868192204697855805071387755134251333947000243944559976020273575090737522284943000296781735900086625519734441289459824415418481174838236355408006393067810651320281986623218592625962120056482261345792498718019708503802824926942421712977576097379021835148841790147067202720081481415141186819220469785580507138775513425133394700024394455997602027357506449179433722141754241393658320727321911046813620076340538390386873407571606319347045589812102646318413325303681054856";
+        System.out.println("Seed length: " + seed.length());
+        String seed1 = seed.substring(0, 800);
+        BigNumber b = parse(seed1);
+        System.out.println(seed1.length());
+        long [] arr = new long[10];
+        for(int i=0; i<10; i++){
+            long st = System.currentTimeMillis();
+            BigNumber res = b.multiply(b);
+            long et= System.currentTimeMillis();
+            long time = et-st;
+            arr[i] = time;
+        }
+        long averageTime = 0;
+        for(long time : arr){
+            averageTime+=time;
+        }
+        double totalTime = (double)averageTime/10;
+        System.out.println("Standard: " + totalTime);
+
+
+
+        long [] arr1 = new long[10];
+        for(int i=0; i<10; i++){
+            long st = System.currentTimeMillis();
+            BigNumber res = b.multiplyWithKaratsuba(b);
+            long et= System.currentTimeMillis();
+            long time = et-st;
+            arr1[i] = time;
+        }
+        long averageTime2 = 0;
+        for(long time : arr1){
+            averageTime2+=time;
+        }
+        double totalTime2 = (double)averageTime2/10;
+        System.out.println("Karatsuba: " + totalTime2);
+
+        System.out.println(((totalTime-totalTime2)/totalTime)*100);
+
     }
 }

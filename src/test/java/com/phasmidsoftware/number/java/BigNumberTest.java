@@ -224,7 +224,7 @@ public class BigNumberTest {
         assertEquals("", target.toString());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testDivideBigNumber2() {
         BigNumber target = BigNumber.value(3, 333333, true);
         BigNumber divisor = BigNumber.value(1, 111111, true);
