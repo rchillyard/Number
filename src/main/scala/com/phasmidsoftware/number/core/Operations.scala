@@ -103,9 +103,9 @@ case object MonadicOperationExp extends MonadicOperation {
   private def expDouble(x: Double): Try[Double] = Try(Math.exp(x))
 
   val functions: MonadicFunctions = (
-          expInt,
-          expRat,
-          expDouble)
+      expInt,
+      expRat,
+      expDouble)
 
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
@@ -136,9 +136,9 @@ case object MonadicOperationLog extends MonadicOperation {
   private def logDouble(x: Double): Try[Double] = Try(Math.log(x))
 
   val functions: MonadicFunctions = (
-          logInt,
-          logRat,
-          logDouble)
+      logInt,
+      logRat,
+      logDouble)
 
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
@@ -155,23 +155,37 @@ case object MonadicOperationLog extends MonadicOperation {
   * MonadicOperation to calculate the sine of a Number.
   * The number is a factor of pi, i.e. it is in radians.
   *
+  * NOTE that this evaluator for sine is not as useful as the evaluator in the Number class.
+  * That's because this type of operation does not change the factor.
+  *
+  * CONSIDER allow Monadic operations to change factor.
+  *
   * See https://en.wikipedia.org/wiki/List_of_trigonometric_identities
   */
 case object MonadicOperationSin extends MonadicOperation {
+  // XXX any integral angle (in radians) results in a zero sine value.
   private val sinInt: Int => Try[Int] = tryF(_ => 0)
 
   private val (two, six) = (BigInt(2), BigInt(6))
 
-  private val sinRatExact: Rational => Try[Rational] = x =>
-    (x.n, x.d) match {
+  /**
+    * NOTE that we declare this as a def so that we can invoke it for negative values.
+    * Also NOTE that the modulo 4 and modulo 12 checks aren't necessary if the value has been modulated to -1 to 1.
+    *
+    * @param x a Rational.
+    * @return a Try[Rational].
+    */
+  private def sinRatExact(x: Rational): Try[Rational] =
+    if (x.isNegative) sinRatExact(x.negate).map(_.negate)
+    else (x.n, x.d) match {
       case (n, `two`) if n.isValidInt => n.toInt match {
-        case 1 => Success(Rational.one)
-        case 3 => Success(Rational.one.negate)
+        case t if t % 4 == 1 => Success(Rational.one)
+        case t if t % 4 == 3 => Success(Rational.one.negate)
         case _ => Failure(NumberException("sine cannot be exact Rational"))
       }
       case (n, `six`) if n.isValidInt => n.toInt match {
-        case 1 | 5 => Success(Rational.half)
-        case 7 | 11 => Success(Rational.half.negate)
+        case t if t % 12 == 1 || t % 12 == 5 => Success(Rational.half)
+        case t if t % 12 == 7 || t % 12 == 11 => Success(Rational.half.negate)
         case _ => Failure(NumberException("sine cannot be exact Rational"))
       }
       case _ => Failure(NumberException("sine cannot be exact Rational"))
@@ -208,7 +222,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   def atan(x: Double): Try[Double] =
     Try {
       math.atan2(x, sign) / math.Pi
-    } // TODO use scale // TEST me
+    } // CONSIDER use scale // TEST me
 
   val functions: MonadicFunctions = (fail("atan cannot be Int"), atanRat, atan)
 
@@ -239,7 +253,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   *
   * CONSIDER this description is not very helpful. Is it really the modulus?
   */
-case object MonadicOperationModulate extends MonadicOperation {
+case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) extends MonadicOperation {
   private def modulate[X: Numeric](z: X, min: X, max: X): X = {
     import scala.math.Numeric.Implicits.infixNumericOps
 
@@ -247,15 +261,16 @@ case object MonadicOperationModulate extends MonadicOperation {
     def inner(result: X): X =
       if (result < min) inner(result + max - min)
       else if (result > max) inner(result + min - max)
+      else if (circular && result == min) max
       else result
 
     inner(z)
   }
 
   val functions: MonadicFunctions = (
-          tryF(z => modulate(z, 0, 2)),
-          tryF(z => modulate(z, Rational.zero, Rational.two)),
-          tryF(z => modulate(z, 0, 2))
+      tryF(z => modulate(z, min, max)),
+      tryF(z => modulate(z, Rational(min), Rational(max))),
+      tryF(z => modulate(z, min, max))
   )
 
   /**
@@ -474,7 +489,7 @@ object Operations {
   }
 
   def doQuery[T](v: Value, functions: QueryFunctions[T]): Option[T] = {
-    val (fInt, fRational, fDouble) = (functions.fInt, functions.fRat, functions.fDouble) // TODO improve this
+    val (fInt, fRational, fDouble) = (functions.fInt, functions.fRat, functions.fDouble) // CONSIDER improve this (what's the problem?)
     val xToZy0: Option[Double] => Try[T] = {
       case Some(n) => fDouble(n)
       case None => Failure(new NoSuchElementException())

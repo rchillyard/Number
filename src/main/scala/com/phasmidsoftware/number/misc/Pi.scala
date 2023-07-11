@@ -28,7 +28,6 @@ object Pi extends App {
   }
 
   import com.phasmidsoftware.number.misc.Benchmark._
-
   import scala.concurrent.duration.DurationInt
   import scala.language.postfixOps
 

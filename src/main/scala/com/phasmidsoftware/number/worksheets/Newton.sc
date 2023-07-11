@@ -29,7 +29,7 @@ Approximation.solve(0.9, cosineFunction, cosineDerivative, cosineSecondDerivativ
   * This is a demonstration of Newton's method of approximation for the inverse square root problem.
   */
 val x = 0.15625
-val inverseSquareRoot: Double => Double = y => y * y - 1.0/x
+val inverseSquareRoot: Double => Double = y => y * y - 1.0 / x
 val inverseDerivative: Double => Double = y => 2 * y
 
 val result = Approximation.solve(0.9, inverseSquareRoot, inverseDerivative)(Number(2.5))
@@ -44,7 +44,7 @@ val length: Number = expression
 
 /**
   * Some trigonometric identities.
- */
+  */
 val iPi = Expression(i) * pi
 val euler = Expression(e) ^ iPi
 euler.asNumber

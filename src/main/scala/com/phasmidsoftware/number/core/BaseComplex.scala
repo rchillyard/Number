@@ -209,10 +209,10 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   protected def showImaginary(polar: Boolean, branch: Int = 0, n: Int = 1): String = (imag, branch, n) match {
     case (Number.zero, 0, 1) | (Number.zeroR, 0, 1) => "0"
     case (x, 0, 1) =>
-      // TODO Try to merge this code with the following case
+      // CONSIDER Try to merge this code with the following case
       val sign = (x, polar) match {
         case (Number.zero, true) => ""
-        case (_, true) => ""
+        case (_, true) if x.isPositive => ""
         case _ if x.isPositive => "+"
         case _ => "-"
       }
@@ -428,7 +428,10 @@ object ComplexCartesian {
 case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComplex(r, theta) {
 
   if (theta.factor != Radian)
-    println(s"polar theta is not in radians: $this")
+    println(s"polar theta is not in radians: $this") // TODO make this a requirement
+
+  if (r.isZero)
+    println(s"polar r is zero: $this") // TODO make this a requirement
 
   /**
     * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
@@ -470,7 +473,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     else make(r doMultiply n, theta)
   }
 
-  def make(a: Number, b: Number): BaseComplex = ComplexPolar(a, b.modulate)
+  def make(a: Number, b: Number): BaseComplex = ComplexPolar(a, b)
 
   def isZero: Boolean = r.isZero
 
@@ -493,6 +496,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   def render: String = (r, theta, n) match {
     case (Number.one, Number.zero, 1) => "1"
     case (Number.one, Number.pi, 1) => "-1"
+    case (Number.one, Number.minusPi, 1) => "-1"
     case (_, _, 2) => theta.value match {
       case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => "\u00b1" + r
       case _ => s"${r}e^${showImaginary(polar = true)}"
@@ -526,7 +530,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
 }
 
 object ComplexPolar {
-  def apply(r: Number, theta: Number, n: Int): ComplexPolar = new ComplexPolar(r, theta, n)
+  def apply(r: Number, theta: Number, n: Int): ComplexPolar = new ComplexPolar(r, theta.modulate, n)
 
   def apply(r: Number, theta: Number): ComplexPolar = apply(r, theta, 1)
 

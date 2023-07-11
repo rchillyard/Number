@@ -11,9 +11,9 @@ val names = List("Alice", "Bob", "Carol")
 val phones = List(1, 2, 3)
 
 def matchUp(name: String): Option[(String, Int)] = {
-  for (n <- names.get(name))
+    for (n <- names.get(name))
 
-    matchUp("Alice")
+      matchUp("Alice")
 }
 matchUp("Robin")
 matchUp("Alice")

@@ -89,7 +89,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     // NOTE that:  math.PI is 3.14159265358979323846
     // In IEEE 754 binary, pi is 400921fb54442d18, which is:
     //                        3.141592653589793
-    //    target.toString shouldBe "3.14159265358979300(41)" // TODO this is how it should be (not any more)
     target.toString shouldBe "3.141592653589793[5]"
   }
   it should "work for E" in {
@@ -103,7 +102,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number.e.scale(Scalar)
     val w = target.toString
     w should startWith("2.718281828459045")
-    w should endWith ("%")
+    w should endWith("%")
   }
   it should "work for E^2 as Real" in {
     val target = Number("2\uD835\uDF00").normalize.asInstanceOf[Number]
@@ -200,43 +199,43 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should """work for "2147483648"""" in {
     val target = Number("2147483648")
     target.isExact(None) shouldBe true
-      target.value shouldBe Left(Right(Rational(bigBigInt)))
+    target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should """work for "3.1415927"""" in {
     val target = Number("3.1415927")
-      target.isExact(None) shouldBe false
-      target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+    target.isExact(None) shouldBe false
+    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1416" in {
     val target = Number(3.1416)
-      target.isExact(None) shouldBe false
-      target shouldEqual Number(Rational(3927, 1250))
+    target.isExact(None) shouldBe false
+    target shouldEqual Number(Rational(3927, 1250))
   }
   it should """work for "\uD835\uDED1""""" in {
     val target = Number("\uD835\uDED1")
-      target.isExact(None) shouldBe true
+    target.isExact(None) shouldBe true
     target.value shouldBe Right(1)
     target.factor shouldBe Radian
   }
   it should "work for 1" in {
     val target = numberOne
-      target.isExact(None) shouldBe true
-      target.value shouldBe Right(1)
+    target.isExact(None) shouldBe true
+    target.value shouldBe Right(1)
   }
   it should "work for bigBigInt" in {
     val target = Number(bigBigInt)
-      target.isExact(None) shouldBe true
-      target.value shouldBe Left(Right(Rational(bigBigInt)))
+    target.isExact(None) shouldBe true
+    target.value shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should "work for Rational(1,2)" in {
     val target = Number(Rational(1, 2))
-      target.isExact(None) shouldBe true
-      target.value shouldBe Left(Right(Rational(1, 2)))
+    target.isExact(None) shouldBe true
+    target.value shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for math.pi" in {
     val target = Number(Math.PI)
-      target.isExact(None) shouldBe false
-      target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
+    target.isExact(None) shouldBe false
+    target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
   }
   it should "work for nothing" in {
     val target = Number()
@@ -244,54 +243,54 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for BigDecimal(3.1415927)" in {
     val target = Number(BigDecimal(3.1415927))
-      target.isExact(None) shouldBe true
-      target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+    target.isExact(None) shouldBe true
+    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1415927" in {
     val target = Number(3.1415927)
-      target.isExact(None) shouldBe false
-      target shouldEqual Number(Rational(31415927, 10000000))
+    target.isExact(None) shouldBe false
+    target shouldEqual Number(Rational(31415927, 10000000))
   }
   it should """work for 3.1415926535897932384626433""" in {
     val target = Number(3.1415926535897932384626433)
-      target.isExact(None) shouldBe false
-      target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
+    target.isExact(None) shouldBe false
+    target shouldEqual Number(Rational(3141592653589793L, 1000000000000000L))
   }
   it should "work for 0.5" in {
     val target = Number(0.5)
-      target.isExact(None) shouldBe true
-      target.value shouldBe Left(Right(Rational(1, 2)))
+    target.isExact(None) shouldBe true
+    target.value shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for 1.23" in {
     val target = Number(1.23)
-      target.isExact(None) shouldBe true
-      target.value shouldBe Left(Right(Rational(123, 100)))
+    target.isExact(None) shouldBe true
+    target.value shouldBe Left(Right(Rational(123, 100)))
   }
   it should "work for 1.234" in {
     val target = Number(1.234)
-      target.isExact(None) shouldBe false
-      target.value shouldBe Left(Left(Some(1.234)))
+    target.isExact(None) shouldBe false
+    target.value shouldBe Left(Left(Some(1.234)))
     target.toString shouldBe "1.234[5]"
   }
   it should "work for 1.23400" in {
     val target = Number(1.23400)
-      target.isExact(None) shouldBe false
-      target.value shouldBe Left(Left(Some(1.234)))
+    target.isExact(None) shouldBe false
+    target.value shouldBe Left(Left(Some(1.234)))
     target.toString shouldBe "1.234[5]"
   }
   it should "support exact strings" in {
     val target = Number("3.141592700")
-      target.isExact(None) shouldBe true
-      target should matchPattern { case ExactNumber(_, _) => }
+    target.isExact(None) shouldBe true
+    target should matchPattern { case ExactNumber(_, _) => }
     target.value shouldBe Left(Right(Rational(31415927, 10000000)))
   }
 
   behavior of "Number.parse" // CONSIDER Moving these into NumberParserSpec
   it should "parse boltzmann" in {
     val zy = Number.parse(sBoltzmann)
-      zy should matchPattern { case Success(_) => }
-      zy.get.isExact(None) shouldBe true
-      zy.get.toDouble shouldBe Some(1.380649E-23)
+    zy should matchPattern { case Success(_) => }
+    zy.get.isExact(None) shouldBe true
+    zy.get.toDouble shouldBe Some(1.380649E-23)
   }
   it should "fail to parse boltzmann with alternative minus" in {
     val zy = Number.parse("1.380649E−23")
@@ -299,8 +298,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "parse planck" in {
     val z = Number.parse(sPlanck)
-      z should matchPattern { case Success(_) => }
-      z.get.isExact(None) shouldBe true
+    z should matchPattern { case Success(_) => }
+    z.get.isExact(None) shouldBe true
   }
   it should "parse c" in {
     val z = Number.parse("299792458") // m sec ^ -1
@@ -309,25 +308,28 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "parse avagadro" in {
     val z = Number.parse(sAvagadro)
-      z should matchPattern { case Success(_) => }
-      z.get.isExact(None) shouldBe true
+    z should matchPattern { case Success(_) => }
+    z.get.isExact(None) shouldBe true
   }
 
   behavior of "FuzzOps"
   it should "get mu" in {
     import Number.FuzzOps
     val x = 1836.15267343 ~ 11
-      x.isExact(None) shouldBe false
-      x.toString shouldBe "1836.15267343(11)"
+    x.isExact(None) shouldBe false
+    x.toString shouldBe "1836.15267343(11)"
     x shouldEqual Constants.mu
   }
-  it should "get G" in {
-    import Number.FuzzOps
-    val x = 6.67430E-11 ~ 15
+  it should "get G using FuzzStringOps" in {
+    import Number.FuzzStringOps
+    val xy = "6.67430E-11" ~ 15
+    xy.isSuccess shouldBe true
+    val x = xy.get
     x.isExact(None) shouldBe false
-    x shouldEqual Constants.G
-    // FIXME Issue #54
-    //        x.toString shouldBe "6.67430(15)E-11"
+    val fuzzyX = x.asInstanceOf[FuzzyNumber]
+    fuzzyX.fuzz shouldBe Some(AbsoluteFuzz(1.5E-15, Gaussian))
+    x shouldEqual Constants.G // "6.67430(15)E-11"
+    x.toString shouldBe "6.67430(15)E-11"
   }
   it should "get alpha" in {
     import Number.FuzzOps
@@ -497,7 +499,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val result: Number = target.sqrt.normalize.asInstanceOf[Number]
     result.render shouldBe "2.7182818284590450[86]"
   }
-  // FIXME this fails in CircleCI
+  // TODO fix this--it fails in CircleCI
   ignore should "work for NatLog, Root2" in {
     val target = Number.e
     val expected = Number(math.E * math.E, Root2)
@@ -509,7 +511,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number.e
     val expected = Number(math.E * math.E, Root2)
     val result: Number = target.scale(Root2).normalize.asInstanceOf[Number]
-    result.render.substring(0,17) shouldBe "2.718281828459045"
+    result.render.substring(0, 17) shouldBe "2.718281828459045"
     result should ===(expected)
   }
 
@@ -867,11 +869,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number(Rational.half, NatLog)
     target.power(2) shouldBe Number.e
   }
+  // TODO fix Issue #78
   it should "work for squaring Log2" in {
-    val target = Number(Rational.half, Log2)
-    val result = target.power(2)
-    // TODO this should be equal to just plain old Number.two (need to simplify result).
+    val target = Number(Rational.half, Log2) // square root of 2
+    println(target)
+    val result = target.power(2) // 2
+    println(result)
     result shouldBe Number(1, Log2)
+    // NOTE this should actually be equal to just plain old Number.two (need to simplify result).
+    result should ===(Number.two)
   }
 
   behavior of "sqrt"
@@ -943,6 +949,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     import com.phasmidsoftware.number.core.Number.FuzzOps
     sin should ===(0.8414709848078965 ~ 21)
   }
+  it should "work for 1/12" in {
+    val target = Number(Rational(12).invert, Radian)
+    val sin = target.sin
+    import com.phasmidsoftware.number.core.Number.FuzzOps
+    sin should ===(0.2588190451025207 ~ 10)
+  }
 
   behavior of "cos"
   it should "be zero for pi" in {
@@ -980,10 +992,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.tan.isInfinite shouldBe true
   }
   it should "work for Pi/3" in {
+    // NOTE that at some point, the angle becomes non-exact (0.8333333...)
     val target = Number.pi doDivide 3
     target.tan shouldEqual Number(3).sqrt
   }
   it should "work for Pi/6" in {
+    // NOTE that at some point, the angle becomes non-exact (0.1666666...)
     val target = Number.pi doDivide 6
     target.tan should ===(Number(3).sqrt.invert)
   }
@@ -1006,28 +1020,28 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "be 7 Pi / 6 for 1/-root(3)" in {
     // CONSIDER shouldn't this be 5 pi / 6?
-    negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"7/6", Radian)
+    negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"-5/6", Radian)
   }
   it should "be 11 Pi / 6 for -1/2" in {
-    Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"11/6", Radian)
+    Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"-1/6", Radian)
   }
   it should "be 3 pi / 4 for 1/-1" in {
     val adjacent = Number.negate(Number.one)
     val opposite = Number.one
     val actual: Number = adjacent.atan(opposite)
     val expected: Number = (Number.pi doMultiply 3) doDivide 4
-    // TODO revert this so that it reads actual ... expected
+    // CONSIDER revert this so that it reads actual ... expected
     //  XXX  actual should ===(expected)
     actual shouldBe expected
   }
-  // TODO need to operate appropriately on negZero.
+  // CONSIDER need to operate appropriately on negZero.
   it should "evaluate atan of 1 over -0" in {
     val number = Number.negZero.atan(Number.one)
-    number shouldBe Number(Rational(3, 2), Radian)
+    number shouldBe Number(Rational(-1, 2), Radian)
   }
   it should "evaluate atan of -1 over 0" in {
     val number = Number.zero.atan(negate(Number.one))
-    number shouldBe Number(Rational(3, 2), Radian)
+    number shouldBe Number(Rational(-1, 2), Radian)
   }
 
   behavior of "exp"

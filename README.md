@@ -292,6 +292,16 @@ The _ComplexPlanar_ object has an additional member (as well as the real and ima
 the number of branches.
 For example, the square root of 2 should have two branches: ±√2.
 
+There are two ways to parse a _String_ as a _Complex_ (in each case, the parsing of the _String_ is identical):
+* _Complex.parse(String)_: will return a _Try\[Complex]_;
+* **C**"...": will return a Complex (or throw an exception).
+
+For example (see also _Complex.sc_),
+
+    C"1i0" : ComplexCartesian(1,0)
+    C"1-i1" : ComplexCartesian(1,-1)
+    C"1ipi" : ComplexPolar(1,pi)
+
 Factors
 =======
 There are three types of "factor:"
@@ -421,7 +431,7 @@ When we multiply two fuzzy numbers together, we add the relative fuzzes together
 
 $$z+Δz=(x+Δx)(y+Δy)$$
 
-Therefore (ignoring the term which is $ΔxΔy$),
+Therefore, (ignoring the term which is $ΔxΔy$),
 
 $$Δz=yΔx+xΔy$$
     
@@ -472,6 +482,7 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
+* Version 1.0.16: 
 * Version 1.0.15: Significant improvements to the rendering of rational numbers.
 * Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
 * Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.

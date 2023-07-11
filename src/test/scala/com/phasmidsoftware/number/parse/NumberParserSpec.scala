@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core._
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
-
 import scala.util.{Left, Try}
 
 /**

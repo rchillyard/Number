@@ -10,7 +10,6 @@ def helloWorld: Future[String] = Future {
 Await.result(Future.sequence(Seq.fill(10)(helloWorld)), 20.second)
 
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 
 def getPoints(n: Int)(implicit r: Random): LazyList[(Double, Double)] = {
@@ -34,8 +33,6 @@ def calculatePi(n: Int)(implicit r: Random): Future[Double] = Future {
 }
 
 import com.phasmidsoftware.number.misc.Benchmark._
-
-import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
 implicit val r: Random = Random

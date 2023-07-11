@@ -101,7 +101,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   def toBigDecimal: Option[BigDecimal] = value match {
     case Right(x) => Some(BigDecimal(x))
-    case Left(Right(r)) => Some(r.toBigDecimal)
+    case Left(Right(r)) => r.toBigDecimal
     case Left(Left(Some(x))) => Some(BigDecimal(x))
     case _ => None
   }
@@ -438,10 +438,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
       // In general, if you wish to have more control over this, then define your input using a String.
       // CONSIDER will this handle numbers correctly which are not close to 1?
       val r = Rational(x)
-      r.toBigDecimal.scale match {
-        case 0 | 1 | 2 => make(r).specialize
+      r.toBigDecimal.map(_.scale) match {
+        case Some(0) | Some(1) | Some(2) => make(r).specialize
         // CONSIDER in following line adding fuzz only if this Number is exact.
-        case n => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -n), Box))
+        case Some(n) => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -n), Box))
+        case _ => FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
       }
     // XXX Invalid case
     case _ => this
@@ -537,9 +538,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   override def equals(other: Any): Boolean = other match {
     case that: GeneralNumber =>
       (that canEqual this) &&
-              value == that.value &&
-              factor == that.factor &&
-              fuzz == that.fuzz
+          value == that.value &&
+          factor == that.factor &&
+          fuzz == that.fuzz
     case _ => false
   }
 

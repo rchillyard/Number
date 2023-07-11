@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.mill.Mill
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
@@ -93,7 +92,7 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     value should matchPattern { case Some(_) => }
     val z: Option[Expression] = value flatMap (_.evaluate)
     val q = z map (_.materialize)
-    // TODO test the result.
+    // TESTME the result.
   }
 
 

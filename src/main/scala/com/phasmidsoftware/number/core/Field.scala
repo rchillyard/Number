@@ -92,7 +92,7 @@ trait Field extends NumberLike with Ordered[Field] {
   def power(p: Int): Field = p match {
     case 0 => Number.one
     case 1 => this
-    case _ => power(Number(p))
+    case _ => power(Number(p)) // TODO need to simplify the result. See NumberSpec: power/work for squaring Log2
   }
 
   /**
@@ -185,55 +185,54 @@ object Constants {
   val root3: Number = Number.root3
   val root5: Number = Number.root5
   /**
-    * Exact value of the Complex Number √2
+    * Exact value of the Complex Number ±√2
     */
   val root2s: Field = ComplexPolar(Number.root2, Number.zeroR, 2)
 
   import com.phasmidsoftware.number.core.Number.FuzzOps
 
   /**
-    * https://en.wikipedia.org/wiki/Golden_ratio
+    * [[https://en.wikipedia.org/wiki/Golden_ratio]]
     */
   lazy val phi: Number = Number(sPhi)
 
   /**
-    * https://en.wikipedia.org/wiki/Euler–Mascheroni_constant
+    * [[https://en.wikipedia.org/wiki/Euler–Mascheroni_constant]].
     */
   lazy val gamma: Number = Number(sGamma)
 
   /**
-    * https://en.wikipedia.org/wiki/Gravitational_constant (exact).
-    * We must use the string sG because of FIXME Issue #54
+    * [[https://en.wikipedia.org/wiki/Gravitational_constant]]
     */
   lazy val G: Number = Number(sG)
 
   /**
-    * https://en.wikipedia.org/wiki/Fine-structure_constant
+    * [[https://en.wikipedia.org/wiki/Fine-structure_constant]]
     */
   lazy val alpha: Number = 0.0072973525693 ~ 11 // (dimensionless)
 
   /**
-    * https://en.wikipedia.org/wiki/Avogadro_constant (exact).
+    * [[https://en.wikipedia.org/wiki/Avogadro_constant]] (exact)
     */
   lazy val avagadro: Number = Number(6.0221407600E23)
 
   /**
-    * https://en.wikipedia.org/wiki/Boltzmann_constant (exact).
+    * [[https://en.wikipedia.org/wiki/Boltzmann_constant]] (exact).
     */
   lazy val boltzmann: Number = Number(sBoltzmann)
 
   /**
-    * https://en.wikipedia.org/wiki/Planck_constant (exact).
+    * [[https://en.wikipedia.org/wiki/Planck_constant]] (exact).
     */
   lazy val planck: Number = Number("6.6260701500E-34") // J Hz ^ -1
 
   /**
-    * https://en.wikipedia.org/wiki/Speed_of_light (exact).
+    * [[https://en.wikipedia.org/wiki/Speed_of_light]] (exact).
     */
   lazy val c: Number = Number("299792458") // m sec ^ -1
 
   /**
-    * https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio
+    * [[https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio]]
     */
   lazy val mu: Number = 1836.15267343 ~ 11 // (dimensionless)
 }

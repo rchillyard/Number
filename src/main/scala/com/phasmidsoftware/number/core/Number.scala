@@ -1,9 +1,11 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.FP.{optional, toTry}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
+import com.phasmidsoftware.number.parse.RationalParser.parseComponents
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._
@@ -12,7 +14,7 @@ import scala.util._
   * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
   * That's to say that Numbers have linear domain and all belong, directly or indirectly, to the set R (real numbers).
   *
-  * TODO eliminate extending Field
+  * CONSIDER eliminate extending Field
   *
   * Every number has three properties:
   * * value: Value
@@ -619,6 +621,10 @@ object Number {
     */
   val piBy2: Number = Number(Rational.half, Radian)
   /**
+    * Exact value of -pi
+    */
+  val minusPi: Number = negate(pi)
+  /**
     * Exact value of zero radians
     */
   val zeroR: Number = Number(0, Radian)
@@ -676,6 +682,7 @@ object Number {
       * Method to yield a (scalar) Number, whose value is x, and whose fuzziness is Gaussian with standard deviation
       * defined by y.
       * The magnitude of the fuzziness is determined by the number of decimal places of x.
+      * However, if the decimal part of the number ends in a zero, you should use the method in FuzzStringOps instead.
       *
       * @param y a two-digit Int.
       * @return a Number with absolute, Gaussian fuzziness, whose std. dev. is y.
@@ -686,6 +693,39 @@ object Number {
     }
     else
       throw NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
+  }
+
+  /**
+    * Implicit class which takes a String, and using method ~ and an Int parameter,
+    * yields a Number with the appropriate degree of fuzziness.
+    * This class provides an alternative to having to parse a fuzzy number from a String.
+    * Really, the only function it provides is the ability to put the error bounds after the exponent.
+    * It is parallel to FuzzOps except for two differences:
+    * the input is a String, and this is is so that trailing zeros in the fractional part don't get ignored,
+    * thus messing up the fuzziness;
+    * And, secondly, the result of ~ is a Try[Number], not just a Number.
+    *
+    * @param w a String.
+    */
+  implicit class FuzzStringOps(w: String) {
+    /**
+      * Method to yield a (scalar) Number, whose value is x, and whose fuzziness is Gaussian with standard deviation
+      * defined by y.
+      * The magnitude of the fuzziness is determined by the number of decimal places of x.
+      *
+      * @param n a two-digit Int.
+      * @return a Try[Number] with absolute, Gaussian fuzziness, whose std. dev. is y.
+      */
+    def ~(n: Int): Try[Number] =
+      for {
+        x <- parse(w) // We don't strictly need this now we also have components
+        components <- parseComponents(w)
+        f <- toTry(components._3, Failure(NumberException(s"no fractional part: " + w)))
+        exp = components._4.getOrElse("0")
+        e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(NumberException(s"Logic error: " + exp)))
+        y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
+        p = y * math.pow(10, e - f.length)
+      } yield x.make(Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
   }
 
   /**
@@ -747,7 +787,16 @@ object Number {
     case _ => FuzzyNumber(value, factor, fuzz)
   }).specialize
 
-  def createFromDouble(x: Double, factor: Factor): Number = apply(x, factor, Some(AbsoluteFuzz(DoublePrecisionTolerance, Box)))
+  /**
+    * CONSIDER why do we need this method?
+    *
+    * NOTE not all double values should be given fuzz.
+    *
+    * @param x      a Double.
+    * @param factor a Factor.
+    * @return a Number formed from x and factor using standard double precision fuzziness.
+    */
+  def createFromDouble(x: Double, factor: Factor): Number = apply(x, factor, Some(Fuzziness.doublePrecision))
 
   def createFromDouble(x: Double): Number = createFromDouble(x, Scalar)
 
@@ -1124,7 +1173,7 @@ object Number {
   }
 
   /**
-    * TODO move this to GeneralNumber as an instance method.
+    * CONSIDER move this to GeneralNumber as an instance method.
     *
     * @param x a Number.
     * @return -1, 0, or 1 according to its sign.
@@ -1135,26 +1184,36 @@ object Number {
 
   /**
     * Implement sin of a Number.
+    * See [[https://en.wikipedia.org/wiki/Sine_and_cosine]].
     *
     * CONSIDER implementing this (and cos) as part of exp method (providing a Complex parameter, of course).
+    *
+    * CONSIDER implementing this (and cos) by using MonadicOperationSin throughout. But NOTE that said operation will need enhancement before it can work identically.
+    *
+    * CONSIDER returning an Expression rather than a Number. That would enable an exact result for 1/12 and 5/12 pi.
     *
     * @param x a Number, typically in Radians, but if not, then will be converted.
     * @return a Scalar Number which represents the sine of x.
     */
   def sin(x: Number): Number =
-    if (x.signum >= 0) {
-      val oneOverRoot2 = Number(Rational.half, Root2)
-      val rootThreeQuarters = Number(Rational(3, 4), Root2)
-      val z = x.scale(Radian)
-      z.doMultiply(12).toInt match {
-        case Some(3) | Some(9) => oneOverRoot2
-        case Some(15) | Some(21) => Field.convertToNumber(-oneOverRoot2.normalize)
-        case Some(4) | Some(8) => rootThreeQuarters
-        // FIXME unreachable.
-        case Some(15) | Some(21) => Field.convertToNumber(-rootThreeQuarters.invert.normalize)
-        case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin))
-      }
-    } else negate(sin(negate(x)))
+    x.scale(Radian).transformMonadic(Radian)(MonadicOperationModulate(-1, 1, circular = true)) match {
+      case Some(z) =>
+        if (z.signum >= 0) {
+          lazy val oneOverRoot2 = Number(Rational.half, Root2)
+          lazy val rootThreeQuarters = Number(Rational(3, 4), Root2)
+          lazy val rootSix = Number(6, Root2)
+          val z = x.scale(Radian)
+          z.doMultiply(12).toInt match {
+            case Some(3) | Some(9) => oneOverRoot2  // pi/4 and 3pi/4
+            case Some(4) | Some(8) => rootThreeQuarters // pi/3 and 2pi/3
+            case Some(1) | Some(11) => rootSix doSubtract root2 doDivide Number(4) // pi/12 and 11pi/12 would be nice for this to be an Expression
+            case Some(5) | Some(7) => rootSix doAdd root2 doDivide Number(4) // 5pi/12 and 7pi/12 ditto
+            case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
+          }
+        } else negate(sin(negate(x)))
+
+      case None => throw NumberException(s"Number.sin: logic error")
+    }
 
   // CONSIDER checking here for x being zero
   def atan(x: Number, y: Number): Number = doAtan(y doDivide x, x.signum)
@@ -1202,13 +1261,13 @@ object Number {
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.
-    * Only Radian is currently fixed within a range (0 -> 2).
+    * Only Radian is currently fixed within a range (-1 -> 1).
     *
     * @param x the Number to operate on.
     * @return either x or a number equivalent to x with value in defined range.
     */
   def modulate(x: Number): Number = x.factor match {
-    case f@Radian => prepare(x.transformMonadic(f)(MonadicOperationModulate))
+    case f@Radian => prepare(x.transformMonadic(f)(MonadicOperationModulate(-1, 1, circular = true)))
     case _ => x
   }
 

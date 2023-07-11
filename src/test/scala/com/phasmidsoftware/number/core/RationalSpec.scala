@@ -197,7 +197,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for pi" in {
     val pi = BigDecimal(Math.PI)
     val r = Rational(pi)
-    r.toBigDecimal shouldBe pi
+    r.toBigDecimal shouldBe Some(pi)
     r.toDouble shouldBe Math.PI +- 1E-15
   }
 
@@ -216,7 +216,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.zero.invert shouldBe infinitySymbol
   }
   it should "equal BigDecimal.ZERO" in {
-    Rational.zero.toBigDecimal shouldBe BigDecimal(0)
+    Rational.zero.toBigDecimal shouldBe Some(BigDecimal(0))
   }
   it should "equal r when added to r" in {
     val r = Rational(22, 7) // we could choose anything here
@@ -299,6 +299,14 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     r shouldBe Rational(BigInt(-9223372036854775808L) * BigInt(15))
   }
 
+  behavior of "division"
+  it should "work for 6 / 10 / 3" in {
+    import com.phasmidsoftware.number.core.Rational.RationalOps
+    // CONSIDER why do we have to use parentheses here?
+    val r: Rational = (6 :/ 10) / 3
+    r shouldBe Rational(5).invert
+  }
+
   behavior of "negate"
   it should "work for -1" in {
     val r = Rational(-1)
@@ -355,7 +363,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.one.invert shouldBe Rational.one
   }
   it should "equal BigDecimal.one" in {
-    Rational.one.toBigDecimal shouldBe BigDecimal(1)
+    Rational.one.toBigDecimal shouldBe Some(BigDecimal(1))
   }
   it should "equal r when multiplied by r" in {
     val r = Rational(22, 7) // we could choose anything here
@@ -440,7 +448,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     (Rational.ten / 10) shouldBe Rational.one
   }
   it should "equal BigDecimal(10)" in {
-    Rational.ten.toBigDecimal shouldBe BigDecimal(10)
+    Rational.ten.toBigDecimal shouldBe Some(BigDecimal(10))
   }
   it should "equal a million when raised to 6th power" in {
     (Rational.ten ^ 6) shouldBe Rational(1000000)
@@ -460,7 +468,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational(2, 3) should not be wholeSymbol
   }
   it should "equal 2 when multiplied by 3" in {
-    (Rational(2, 3) * 3 toInt) shouldBe 2
+    (Rational(2, 3) * 3).toInt shouldBe 2
   }
   it should "equal 3/2 when inverted" in {
     Rational(2, 3).invert shouldBe Rational(3, 2)
@@ -582,37 +590,43 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     (16 :/ 17 render) shouldBe "0.<9411764705882352>"
     (7918 :/ 7919 render) shouldBe "7918/7919"
   }
+  it should "work for various composite denominators" in {
+    import com.phasmidsoftware.number.core.Rational._
+
+    (1 :/ 6).render shouldBe "0.1<6>"
+    (1 :/ 14 render) shouldBe "0.0<714285>"
+  }
 
   behavior of "findRepeatingSequence"
   it should "fail for 4/5" in {
-    findRepeatingSequence(4, 5) should matchPattern { case Failure(_) => }
+    findRepeatingSequence(4, 5, Seq(Prime(5))) should matchPattern { case Failure(_) => }
   }
   it should "work when denominator is prime" in {
     val r = Rational(17).invert
-    val sequence = findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d, Seq(Prime(17)))
     sequence shouldBe Success("0.<0588235294117647>")
   }
   it should "work when numerator and denominator are prime 1" in {
     val r = Rational(2, 17)
-    val sequence = findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d, Seq(Prime(17)))
     sequence shouldBe Success("0.<1176470588235294>")
   }
   it should "work when numerator and denominator are prime 2" in {
     val r = Rational(23, 17)
-    val sequence = findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d, Seq(Prime(17)))
     sequence shouldBe Success("1.<3529411764705882>")
   }
   it should "work when denominator is composite 1" in {
     val r = Rational(1, 85) // 5 * 17
-    val sequence = findRepeatingSequence(r.n, r.d)
+    val sequence = findRepeatingSequence(r.n, r.d, Seq(Prime(5), Prime(17)))
     sequence shouldBe Success("0.0<1176470588235294>")
   }
   it should "work when denominator is composite 2" in {
-    val sequence = findRepeatingSequence(1, 119) // 7 * 17
+    val sequence = findRepeatingSequence(1, 119, Seq(Prime(7), Prime(17))) // 7 * 17
     sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
   }
   it should "fail when denominator has too many prime factors" in {
-    findRepeatingSequence(1, 257) should matchPattern { case Failure(NumberException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
+    findRepeatingSequence(1, 257, Seq(Prime(257))) should matchPattern { case Failure(NumberException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
   }
 
   behavior of "Rational(String)"

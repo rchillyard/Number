@@ -7,7 +7,7 @@ import scala.util.parsing.combinator._
   * @author scalaprof
   */
 abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[T]) {
-  self =>
+    self =>
 
   def apply(s: String): Try[T]
 

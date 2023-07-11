@@ -8,7 +8,7 @@ import scala.collection.mutable
   * This class is designed to model a fuzzy Number.
   * See GeneralNumber for more details on the actual representation.
   *
-  * TODO FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz.
+  * CONSIDER FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz.
   * I suspect that this inversion of logic might be the cause of some stack overflows that occur for some ignored tests.
   *
   * TODO ensure that every Double calculation contributes fuzziness.

@@ -11,7 +11,7 @@ val terms: LazyList[Rational] = LazyList.from(1) map inverseSquare
 def calculatePiByBaselMethod(tolerance: Double) = {
     val significantTerms = terms takeWhile (x => x.toDouble > tolerance) to List
 
-    val insignificantTerms = terms map (x => x.toDouble) dropWhile (x => x > tolerance) takeWhile (x => x > tolerance/10000) to List
+    val insignificantTerms = terms map (x => x.toDouble) dropWhile (x => x > tolerance) takeWhile (x => x > tolerance / 10000) to List
 
     val pi: Rational = significantTerms.sum * 6
 

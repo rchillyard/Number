@@ -2,18 +2,13 @@ organization := "com.phasmidsoftware"
 
 name := "Number"
 
-version := "1.0.15"
+version := "1.0.16"
 
 scalaVersion := "2.13.6"
 
 scalacOptions ++= Seq( "-target:jvm-1.8", "-encoding", "UTF-8", "-unchecked", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused" )
 
 val scalaTestVersion = "3.2.15"
-
-//lazy val root = (project in file(".")).dependsOn(matchers)
-
-//lazy val matchers = RootProject(uri("git://github.com/rchillyard/Matchers#V1_0_5"))
-//lazy val flog = RootProject(uri("git://github.com/rchillyard/Flog"))
 
 libraryDependencies ++= Seq(
     "com.phasmidsoftware" %% "flog" % "1.0.8",

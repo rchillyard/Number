@@ -571,7 +571,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   override def toString: String = if (exact) s"($a $f $b)" else s"{$a $f $b}"
 
-  // TODO note that NatLog numbers don't behave like other numbers so really should be excluded from all cases
+  // NOTE that NatLog numbers don't behave like other numbers so...
+  // CONSIDER really should be excluded from all cases
   private def factorsMatch(f: ExpressionBiFunction, f1: Factor, f2: Factor): Option[Factor] = f match {
     case Sum if f1 == f2 && f1 != NatLog =>
       Some(f1)

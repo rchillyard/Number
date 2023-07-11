@@ -186,8 +186,8 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     df.setMaximumFractionDigits(100)
     val result = df.format(tolerance * 100)
     val point = result.indexOf(".")
-    val decimals = result.substring(point+1,result.length)
-    result.substring(0, point + 1) + decimals.substring(0, decimals.indexWhere(p => p != '0') +2) + "%"
+    val decimals = result.substring(point + 1, result.length)
+    result.substring(0, point + 1) + decimals.substring(0, decimals.indexWhere(p => p != '0') + 2) + "%"
   }
 
   /**
@@ -433,12 +433,21 @@ object Fuzziness {
 
   /**
     * This method creates fuzz based on the practical limitations of representations and functions in double-precision arithmetic.
+    * See also the method doublePrecision.
     *
     * @param relativePrecision the approximate number of bits of additional imprecision caused by evaluating a function.
     * @return the approximate precision for a floating point operation, expressed in terms of RelativeFuzz.
     */
-  def createFuzz(relativePrecision: Int): RelativeFuzz[Double] =
+  def createFuzz(relativePrecision: Int): Fuzziness[Double] =
     RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)(ValuableDouble)
+
+  /**
+    * This is the (approximate) fuzziness caused in general by trying to represent numbers in double precision.
+    * Of course, many numbers can be represented exactly by double-precision. But not all.
+    *
+    * @return a Fuzziness[Double].
+    */
+  def doublePrecision: Fuzziness[Double] = createFuzz(0)
 
   /**
     * Normalize the magnitude qualifier of the given fuzz according to relative.
@@ -505,7 +514,7 @@ object Fuzziness {
   * Describes a probability density function for a continuous distribution.
   * NOTE: this isn't suitable for discrete distributions, obviously.
   *
-  * TODO: implement additional shapes, for example O(f(x)). This would be used for the Basel problem, for example.
+  * CONSIDER: implement additional shapes, for example O(f(x)). This would be used for the Basel problem, for example.
   */
 trait Shape {
 

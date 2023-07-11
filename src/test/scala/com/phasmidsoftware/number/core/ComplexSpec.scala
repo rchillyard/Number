@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
+import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
+import com.phasmidsoftware.number.core.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{half, zeroR}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
@@ -70,12 +71,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     c2_0.isExact(None) shouldBe true
     p1_pi.isExact(None) shouldBe true
     (c1_2 add c2_0).isExact shouldBe true
-    // FIXME Caused by July 1st commit
-    //    (c1_2 add p1_pi_2).materialize.isExact shouldBe false
+    (c1_2 add p1_pi_2).materialize.isExact shouldBe true
   }
 
   it should "isInfinite" in {
-
     p1_pi_2.divide(Number.zero).isInfinite shouldBe true
     p1_pi.isInfinite shouldBe false
     c2_0.divide(Number.one).isInfinite shouldBe false
@@ -175,7 +174,6 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "p1_1^-1/2" in {
-    // TODO this seems wrong. The imaginary part should be in Radians, surely.
     p1_1 power half shouldBe ComplexPolar(Number.one, Number.piBy2, 2)
   }
 
@@ -264,7 +262,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_0.render shouldBe "1"
     p1_pi.render shouldBe "-1"
     p1_pi_2.render shouldBe "1e^i0.5\uD835\uDED1"
-    p1_pi_2.conjugate.render shouldBe "1e^i1.5\uD835\uDED1"
+  }
+  it should "work for negative polar angle" in {
+    val conjugate = p1_pi_2.conjugate
+    conjugate.render shouldBe "1e^-i0.5\uD835\uDED1"
   }
   it should "work for iPi" in {
     val target = Constants.iPi
@@ -316,5 +317,31 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "normalize" in {
     Number.i.normalize shouldBe ComplexCartesian(0, 1)
+  }
+
+  behavior of "C interpolator"
+  it should "parse" in {
+    C"1i0" should matchPattern { case ComplexCartesian(Number.one, Number.zero) => }
+    C"1i1" should matchPattern { case ComplexCartesian(Number.one, Number.one) => }
+    C"0i1" should matchPattern { case ComplexCartesian(Number.zero, Number.one) => }
+    C"1ipi" should matchPattern { case ComplexPolar(Number.one, Number.pi, 1) => }
+    C"1i0.5pi" should matchPattern { case ComplexPolar(Number.one, Number.piBy2, 1) => }
+    C"0ipi" should matchPattern { case ComplexPolar(Number.zero, Number.pi, 1) => }
+
+    C"1+i0" should matchPattern { case ComplexCartesian(Number.one, Number.zero) => }
+    C"1+i1" should matchPattern { case ComplexCartesian(Number.one, Number.one) => }
+    C"0+i1" should matchPattern { case ComplexCartesian(Number.zero, Number.one) => }
+    C"1+ipi" should matchPattern { case ComplexPolar(Number.one, Number.pi, 1) => }
+    C"1i0.5pi" should matchPattern { case ComplexPolar(Number.one, Number.piBy2, 1) => }
+    C"0+ipi" should matchPattern { case ComplexPolar(Number.zero, Number.pi, 1) => }
+
+    C"1-i0" should matchPattern { case ComplexCartesian(Number.one, Number.zero) => }
+    C"1-i1" should matchPattern { case ComplexCartesian(Number.one, Number.negOne) => }
+    C"1-i-1" should matchPattern { case ComplexCartesian(Number.one, Number.one) => }
+    C"0-i1" should matchPattern { case ComplexCartesian(Number.zero, Number.negOne) => }
+    C"1-ipi" should matchPattern { case ComplexPolar(Number.one, Number.pi, 1) => }
+//    C"1-i0.5pi" should matchPattern { case (ComplexPolar(Number.one, negate(Number.piBy2), 1)) => }
+    C"0-ipi" should matchPattern { case ComplexPolar(Number.zero, Number.pi, 1) => }
+
   }
 }

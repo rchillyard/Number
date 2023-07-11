@@ -3,14 +3,13 @@ package com.phasmidsoftware.number.mill
 import com.phasmidsoftware.number.core.Expression
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.parse.{MillParser, ShuntingYardParser}
-
 import scala.language.postfixOps
 import scala.util.Try
 
 /**
   * Trait to define the behavior of a "mill."
   *
-  * TODO rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
+  * CONSIDER rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
   *
   */
 trait Mill extends Iterable[Item] {

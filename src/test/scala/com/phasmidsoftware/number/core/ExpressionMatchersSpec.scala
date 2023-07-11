@@ -291,7 +291,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val q: em.MatchResult[Expression] = p(x)
     q.successful shouldBe true
   }
-  // FIXME Issue #55
+  // TODO fix Issue #57 (or something like that)
   ignore should "biFunctionSimplifier on (1 + √3 + 1)(1 - √3)" in {
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
@@ -304,7 +304,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     k shouldBe em.Match(Literal(-2))
   }
   // NOTE: this will succeed only if we allow simplifications which reduce depth (but are not necessarily exact)
-  // FIXME problem with distributePowerPower
+  // TODO fix problem with distributePowerPower
   // CONSIDER that this is actually working as it should.
   ignore should "simplify 1" in {
     val p = em.biFunctionSimplifier
@@ -438,7 +438,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     eo map (z shouldBe em.Match(_)) orElse fail("could not parse expression")
   }
 
-  // FIXME Issue #57
+  // TODO fix Issue #57
   ignore should "properly simplify 1 + root3 - root3 + 0" in {
     val p = em.biFunctionMatcher
     val z: Expression = Literal(3).sqrt
@@ -449,7 +449,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe One
   }
 
-  // FIXME Issue #57
+  // TODO fix Issue #57
   ignore should "properly simplify (1 + root3) + (zero - root3)" in {
     val p = em.biFunctionMatcher
     val root3 = Number(3).sqrt
@@ -462,7 +462,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe One
   }
 
-  // FIXME Issue #57
+  // TODO fix Issue #57
   ignore should "properly simplify (1 * root3) * (3 / root3)" in {
     val p = em.biFunctionMatcher
     val root3 = Literal(3).sqrt
@@ -474,7 +474,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe Literal(3)
   }
 
-  // FIXME Issue #57
+  // TODO fix Issue #57
   ignore should "simplify 2 root(3) all squared" in {
     val p = em.biFunctionMatcher
     val x = Expression(3).sqrt
@@ -484,7 +484,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z shouldBe em.Match(Literal(12))
   }
 
-  // FIXME Issue #57
+  // TODO fix Issue #57
   ignore should "work" in {
     val xo = Expression.parse("( 3 ^ ( 2 ^ -1 ) )")
     val yo = Expression.parse("( ( 3 ^ ( 2 ^ -1 ) ) * -1 )")
@@ -601,10 +601,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe Zero
   }
 
-  // TODO move the following
+  // CONSIDER move the following
   behavior of "matchSimplifyBiFunction"
 
-  // FIXME Issue #57 this was working just yesterday
+  // TODO fix Issue #57
   ignore should "simplify multiple similar ops" in {
     em.simplifier(Expression(2) * 3 * Number.e * 5) shouldBe em.Match(ConstE * 30)
     // TODO we would like the following to be ConstE * 30
@@ -694,7 +694,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.successful shouldBe true
     result.get shouldBe Literal(3)
   }
-  // FIXME Issue #57
+  // TODO fix Issue #57
   ignore should "get x" in {
     val p = em.matchMultiLevels
     val root3: Number = Number(3).sqrt

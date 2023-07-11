@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
-
 import scala.language.implicitConversions
 
 /**
@@ -186,11 +185,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Matcher.
     */
   def matchDyadicTwoLevels: Matcher[DyadicTriple, Expression] = (matchSimplifyDyadicTermsTwoLevels |
-    (matchTwoDyadicLevels & matchAndCollectTwoDyadicLevels) |
-    (matchTwoDyadicLevelsL & (matchAndCancelTwoDyadicLevelsL | matchAndCollectTwoDyadicLevelsL)) |
-    (matchTwoDyadicLevelsR & (matchAndCancelTwoDyadicLevelsR | matchAndCollectTwoDyadicLevelsR)) |
-    fail("twoLevel")
-    ) :| "matchDyadicTwoLevels"
+      (matchTwoDyadicLevels & matchAndCollectTwoDyadicLevels) |
+      (matchTwoDyadicLevelsL & (matchAndCancelTwoDyadicLevelsL | matchAndCollectTwoDyadicLevelsL)) |
+      (matchTwoDyadicLevelsR & (matchAndCancelTwoDyadicLevelsR | matchAndCollectTwoDyadicLevelsR)) |
+      fail("twoLevel")
+      ) :| "matchDyadicTwoLevels"
 
   /**
     * Matcher which runs depth-first search on an Expression tree, as long as the functions are the same.
@@ -438,7 +437,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   private def collectTermsDyadicTwoLevelsR(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, y: Expression): MatchResult[Expression] = (f, g) match {
     case (Product, Power) if w == x =>
-      combineAndSimplify(w, y, Power) // TODO refactor using method, etc...  // TEST me
+      combineAndSimplify(w, y, Power) // CONSIDER refactor using method, etc...  // TEST me
     case (Sum, Product) if w == x =>
       combineAndSimplify(w, y, Product)
     case (Sum, Product) if w == y =>
@@ -483,12 +482,12 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
   private def formBiFunction(x: Expression, function: ExpressionBiFunction): Expression => Expression = BiFunction(x, _, function)
 
-  // TODO redefine as a Matcher
+  // CONSIDER redefine as a Matcher
   private def effectivelyExactMaterialization(function: BiFunction): MatchResult[Expression] = function match {
     case BiFunction(a, b, f) => matchDyadicTwoLevels(f ~ a ~ b)
   }
 
-  // TODO redefine as a Matcher
+  // CONSIDER redefine as a Matcher
   // NOTE: doesn't the second part (effectively...) do the exact same thing as matchDyadicTwoLevels which is still to be invoked from above/
   private def replaceExactBiFunction(maybeFactor: Option[Factor])(function: BiFunction): MatchResult[Expression] =
     (exactMaterialization(maybeFactor)(function) map (Expression(_))) || effectivelyExactMaterialization(function)  // CONSIDER use exactMaterializer
@@ -502,7 +501,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Match of the simplified expression, or a Miss.
     */
   // private but used by unit tests
-   def matchAndCollectTwoDyadicLevels: Matcher[ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple, Expression] = Matcher("matchAndCollectTwoDyadicLevels") {
+  def matchAndCollectTwoDyadicLevels: Matcher[ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple, Expression] = Matcher("matchAndCollectTwoDyadicLevels") {
     case f ~ (g ~ w ~ x) ~ (h ~ y ~ z) => collectTermsDyadicTwoLevels(f, g, w, x, h, y, z)
   }
 
