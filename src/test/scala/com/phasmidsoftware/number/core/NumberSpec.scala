@@ -1337,8 +1337,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   behavior of "isImaginary"
-  it should "be true for i" in {
+  it should "be true for i and its multiples" in {
     Number.i.isImaginary shouldBe true
+    Number.i.multiply(Number.two).asNumber map (_.isImaginary) shouldBe Some(true)
   }
   it should "be false for all ordinary numbers" in {
     Number.one.isImaginary shouldBe false

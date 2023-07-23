@@ -251,7 +251,7 @@ object BaseComplex {
     * @param polar whether we want a polar result or a cartesian result.
     * @return a BaseComplex.
     */
-  def narrow(x: Field, polar: Boolean): BaseComplex = x match {
+  def narrow(x: Field, polar: Boolean): Complex = x match {
     case c@ComplexCartesian(_, _) => if (polar) convertToPolar(c) else c
     case c@ComplexPolar(_, _, _) => if (!polar) convertToCartesian(c) else c
     case n@Number(_, _) => ComplexCartesian(n, Number.zero)
@@ -278,9 +278,11 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   /**
     * Method to determine the modulus of this Complex number.
     *
+    * CONSIDER implementing real in the Complex trait (not just BaseComplex).
+    *
     * @return the modulus of this Complex.
     */
-  def modulus: Number = convertToPolar(this).real
+  def modulus: Number = convertToPolar(this).asInstanceOf[BaseComplex].real
 
   /**
     *
@@ -310,8 +312,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     */
   def numberProduct(n: Number): Complex =
     if (n.isImaginary) doMultiply(ComplexCartesian.fromImaginary(n))
-    else
-      make(x doMultiply n, y doMultiply n)
+    else make(x doMultiply n, y doMultiply n)
 
   /**
     * Method to make a BaseComplex from a pair of numbers (treated as the real and imaginary parts of a
@@ -427,11 +428,11 @@ object ComplexCartesian {
   */
 case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComplex(r, theta) {
 
-  if (theta.factor != Radian)
-    println(s"polar theta is not in radians: $this") // TODO make this a requirement
+  require(theta.factor == Radian, "polar theta is not in radians")
 
+//  require(!r.isZero, "polar radius is zero")
   if (r.isZero)
-    println(s"polar r is zero: $this") // TODO make this a requirement
+    println(s"Warning: Polar r is zero: $this") // TODO make this a requirement
 
   /**
     * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).

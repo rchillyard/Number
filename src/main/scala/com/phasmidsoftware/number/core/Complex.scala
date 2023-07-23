@@ -99,7 +99,15 @@ object Complex {
     */
   val unit: ComplexCartesian = ComplexCartesian(1, 0)
 
-  def convertToPolar(c: ComplexCartesian): BaseComplex = {
+  /**
+    * Method to convert a ComplexCartesian into a ComplexPolar.
+    *
+    * TODO: determine what to do about 0,0
+    *
+    * @param c the cartesian complex.
+    * @return a Complex.
+    */
+  def convertToPolar(c: ComplexCartesian): Complex = {
     // CONSIDER can we improve upon this? Basically, we should only need MonadicOperationAtan.
     val ro: Option[Field] = for (p <- ((Literal(c.x) * c.x) plus (Literal(c.y) * c.y)).materialize.asNumber; z = p.sqrt) yield z
     val z: Field = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))

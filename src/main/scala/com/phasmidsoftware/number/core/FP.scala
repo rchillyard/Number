@@ -270,7 +270,15 @@ object FP {
     */
   def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
 
-  def optional[T](f: T => Boolean)(t: T): Option[T] = Some(t).filter(f)
+  /**
+    * Method to yield an Option of T according to whether the predicate p yields true.
+    *
+    * @param p a predicate on T.
+    * @param t an actual value of T.
+    * @tparam T the type of t (and the underlying type of the result).
+    * @return Some(t) if p(t) is true, otherwise None.
+    */
+  def optional[T](p: T => Boolean)(t: T): Option[T] = Some(t).filter(p)
 
   /**
     * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.

@@ -216,6 +216,12 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
+  it should "numberProduct" in {
+    ComplexCartesian(1,1).numberProduct(Number.two) shouldBe ComplexCartesian(2,2)
+    Number.i.asComplex.numberProduct(Number.two) shouldBe ComplexCartesian(0,2)
+    Number.i.asComplex.numberProduct(Number.i) shouldBe ComplexCartesian(-1,0)
+  }
+
   it should "convertToPolar" in {
     val expected: Complex = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Radian))
     val actual: ComplexPolar = convertToPolar(c1_2).asInstanceOf[ComplexPolar]
