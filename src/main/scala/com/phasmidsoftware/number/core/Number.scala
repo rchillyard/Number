@@ -1147,7 +1147,8 @@ object Number {
     case (a, b) if a == b => n
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
-    case (Root2, Scalar) if Value.signum(n.value) < 0 => throw NumberException(s"Number.scale: logic error cannot scale $n to Scalar. Use normalize instead.")
+    case (Root(_), Scalar) if Value.signum(n.value) < 0 =>
+      Number.NaN
     case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
     case (NatLog, PureNumber(_)) | (PureNumber(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)

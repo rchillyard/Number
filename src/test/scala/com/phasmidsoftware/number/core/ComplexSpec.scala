@@ -319,7 +319,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     convertToNumber(Number.i) shouldBe Number.i
   }
   it should "scale(Scalar)" in {
-    a[NumberException] should be thrownBy Number.i.scale(Scalar)
+    Number.i.scale(Scalar) shouldBe Number.NaN
   }
   it should "normalize" in {
     Number.i.normalize shouldBe ComplexCartesian(0, 1)

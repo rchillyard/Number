@@ -285,6 +285,11 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   def modulus: Number = convertToPolar(this).asInstanceOf[BaseComplex].real
 
   /**
+    * Change the sign of this Number.
+    */
+  def unary_- : Field = make(Number.negate(real), Number.negate(imag))
+
+  /**
     *
     * @return a Number (in radians).
     */
@@ -466,7 +471,20 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the value of this * i.
     */
-  def rotate: BaseComplex = ComplexPolar(real, imag doAdd Number.piBy2)
+  def rotate: BaseComplex = rotate(Number.piBy2)
+
+
+  /**
+    * Rotate this Complex number by phi counter-clockwise.
+    *
+    * @return the value of this, rotated by phi.
+    */
+  def rotate(phi: Number): ComplexPolar = ComplexPolar(real, imag doAdd phi)
+
+  /**
+    * Change the sign of this Number.
+    */
+  def unary_- : Field = rotate(Number.pi)
 
   def numberProduct(n: Number): Complex = {
     // TODO this first option currently works only for i, not for multiples of i.
