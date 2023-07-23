@@ -160,7 +160,7 @@ case class Expr(x: Expression) extends Item {
 }
 
 /**
-  * Companionn object to Expr.
+  * Companion object to Expr.
   */
 object Expr {
   /**

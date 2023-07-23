@@ -539,6 +539,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
+        // NOTE That if you replace this as recommended, you must ensure that Java is compiling on CircleCI with the correct compiler
         if ( !(o instanceof BigNumber ) ) return false;
         BigNumber bigNumber = (BigNumber) o;
         return whole.equals(bigNumber.whole) && sign == bigNumber.sign && Arrays.equals(decimals, bigNumber.decimals);
