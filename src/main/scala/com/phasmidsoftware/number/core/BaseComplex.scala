@@ -67,11 +67,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   def add(x: Field): Field = sum(narrow(x, polar = false))
 
   /**
-    * Change the sign of this Number.
-    */
-  def unary_- : Field = make(Number.negate(real), Number.negate(imag))
-
-  /**
     * Multiply this Complex by x and return the result.
     *
     * * @param x the multiplicand.
