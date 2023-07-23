@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Constants.minusOne
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.negate
 import scala.language.implicitConversions

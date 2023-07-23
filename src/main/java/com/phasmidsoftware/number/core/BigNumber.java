@@ -340,7 +340,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
         int[] result = recursiveKarat(first, second, 0, first.length - 1, 2 * first.length);
         BigNumber result4 = new BigNumber(BigInteger.ZERO, result, true);
-        return  result1.add(result2).add(result3).add(result4);
+        return result1.add(result2).add(result3).add(result4);
     }
 
     private int[] multiplyArrays(int[] arr1, int[] arr2, int start, int end, int resultSize) {
@@ -643,39 +643,38 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         String seed1 = seed.substring(0, 800);
         BigNumber b = parse(seed1);
         System.out.println(seed1.length());
-        long [] arr = new long[10];
-        for(int i=0; i<10; i++){
+        long[] arr = new long[10];
+        for (int i = 0; i < 10; i++) {
             long st = System.currentTimeMillis();
             BigNumber res = b.multiply(b);
-            long et= System.currentTimeMillis();
-            long time = et-st;
+            long et = System.currentTimeMillis();
+            long time = et - st;
             arr[i] = time;
         }
         long averageTime = 0;
-        for(long time : arr){
-            averageTime+=time;
+        for (long time : arr) {
+            averageTime += time;
         }
-        double totalTime = (double)averageTime/10;
+        double totalTime = (double) averageTime / 10;
         System.out.println("Standard: " + totalTime);
 
 
-
-        long [] arr1 = new long[10];
-        for(int i=0; i<10; i++){
+        long[] arr1 = new long[10];
+        for (int i = 0; i < 10; i++) {
             long st = System.currentTimeMillis();
             BigNumber res = b.multiplyWithKaratsuba(b);
-            long et= System.currentTimeMillis();
-            long time = et-st;
+            long et = System.currentTimeMillis();
+            long time = et - st;
             arr1[i] = time;
         }
         long averageTime2 = 0;
-        for(long time : arr1){
-            averageTime2+=time;
+        for (long time : arr1) {
+            averageTime2 += time;
         }
-        double totalTime2 = (double)averageTime2/10;
+        double totalTime2 = (double) averageTime2 / 10;
         System.out.println("Karatsuba: " + totalTime2);
 
-        System.out.println(((totalTime-totalTime2)/totalTime)*100);
+        System.out.println(((totalTime - totalTime2) / totalTime) * 100);
 
     }
 }

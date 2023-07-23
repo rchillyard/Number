@@ -217,9 +217,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "numberProduct" in {
-    ComplexCartesian(1,1).numberProduct(Number.two) shouldBe ComplexCartesian(2,2)
-    Number.i.asComplex.numberProduct(Number.two) shouldBe ComplexCartesian(0,2)
-    Number.i.asComplex.numberProduct(Number.i) shouldBe ComplexCartesian(-1,0)
+    ComplexCartesian(1, 1).numberProduct(Number.two) shouldBe ComplexCartesian(2, 2)
+    Number.i.asComplex.numberProduct(Number.two) shouldBe ComplexCartesian(0, 2)
+    Number.i.asComplex.numberProduct(Number.i) shouldBe ComplexCartesian(-1, 0)
   }
 
   it should "convertToPolar" in {
