@@ -267,4 +267,15 @@ public class BigNumberTest {
         assertEquals("3.1", BigNumber.value(3, 1, true).toString());
         assertEquals("3.1415927", BigNumber.value(3, 1415927, true).toString());
     }
+
+    @Test
+    public void testKaratsuba() {
+        BigNumber ePi = BigNumber.e.multiplyWithKaratsuba(BigNumber.pi);
+        assertEquals("8.53973422267356", ePi.toString().substring(0, 16));
+    }
+
+    @Test
+    public void testDoMain() {
+        BigNumber.doMain();
+    }
 }

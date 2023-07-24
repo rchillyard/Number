@@ -33,6 +33,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     // NOTE that the following is an exact number. It is defined as the closest approximation to pi with 100 digits.
     // But, we know that it is not pi itself.
     public static final BigNumber pi = BigNumber.parse("3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067");
+    public static final BigNumber e = BigNumber.parse("2.71828182845904523536028747135266249775724709369995");
 
     /**
      * Factory method to throw an exception.
@@ -41,7 +42,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @throws BigNumberException because BigNumber is an EXACT representation whereas double is not.
      */
     @SuppressWarnings("UnusedReturnValue")
-    public static BigNumber value(double ignoredX) {
+    public static BigNumber value(final double ignoredX) {
         throw new BigNumberException("value(double): This is an inappropriate operation. Please use parse or another value call.");
     }
 
@@ -51,7 +52,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param x a long.
      * @return a new BigNumber.
      */
-    public static BigNumber value(long x) {
+    public static BigNumber value(final long x) {
         return value(BigInteger.valueOf(x));
     }
 
@@ -61,8 +62,8 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param x a BigDecimal number.
      * @return a new BigNumber.
      */
-    public static BigNumber value(BigDecimal x) {
-        BigNumber result = BigNumber.value(x.unscaledValue().longValue());
+    public static BigNumber value(final BigDecimal x) {
+        final BigNumber result = BigNumber.value(x.unscaledValue().longValue());
         return result.divide(BigInteger.TEN.pow(x.scale()));
     }
 
@@ -72,9 +73,9 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param x a Rational number.
      * @return a new BigNumber which may or may not be exact.
      */
-    public static BigNumber value(Rational x) {
-        BigNumber n = BigNumber.value(x.n().bigInteger());
-        BigNumber d = BigNumber.value(x.d().bigInteger());
+    public static BigNumber value(final Rational x) {
+        final BigNumber n = BigNumber.value(x.n().bigInteger());
+        final BigNumber d = BigNumber.value(x.d().bigInteger());
         return n.divide(d);
     }
 
@@ -86,10 +87,10 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param sign     true if the result should be positive.
      * @return a new BigNumber.
      */
-    public static BigNumber value(long whole, long decimals, boolean sign) {
+    public static BigNumber value(final long whole, final long decimals, final boolean sign) {
         if (whole < 0) throw new BigNumberException("value: whole must be non-negative");
         if (decimals < 0) throw new BigNumberException("value: decimals must be non-negative");
-        int[] dec = new int[MAXLONGDIGITS];
+        final int[] dec = new int[MAXLONGDIGITS];
         int i = dec.length;
         long x = decimals;
         while (x > 0) {
@@ -107,7 +108,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param decimals a non-negative long, for example 14 for a 3.14 valued result.
      * @return a new BigNumber.
      */
-    public static BigNumber value(long whole, long decimals) {
+    public static BigNumber value(final long whole, final long decimals) {
         return value(whole, decimals, true);
     }
 
@@ -117,7 +118,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param x a BigInteger.
      * @return a new BigNumber.
      */
-    public static BigNumber value(BigInteger x) {
+    public static BigNumber value(final BigInteger x) {
         return new BigNumber(x);
     }
 
@@ -128,12 +129,12 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @return a new BigNumber.
      */
     public static BigNumber parse(String s) {
-        Pattern p = Pattern.compile("(-?)(\\d+)(\\.?(\\d*)?)");
-        Matcher matcher = p.matcher(s);
+        final Pattern p = Pattern.compile("(-?)(\\d+)(\\.?(\\d*)?)");
+        final Matcher matcher = p.matcher(s);
         if (matcher.find()) {
-            String group4 = matcher.group(4);
-            int decimals = group4.length();
-            int[] dec = new int[decimals];
+            final String group4 = matcher.group(4);
+            final int decimals = group4.length();
+            final int[] dec = new int[decimals];
             for (int i = 0; i < decimals; i++) dec[i] = group4.charAt(i) - '0';
             return new BigNumber(BigInteger.valueOf(Long.parseLong(matcher.group(2))), dec, !matcher.group(1).equals("-"));
         } else throw new BigNumberException("cannot parse input string: " + s);
@@ -166,12 +167,12 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @return a BigDecimal.
      */
     public BigDecimal toBigDecimal() {
-        int scale = decimals.length;
+        final int scale = decimals.length;
         BigInteger value = whole;
-        for (int decimal : decimals) {
+        for (final int decimal : decimals) {
             value = value.multiply(BigInteger.TEN).add(BigInteger.valueOf(decimal));
         }
-        BigDecimal result = new BigDecimal(value, scale);
+        final BigDecimal result = new BigDecimal(value, scale);
         return sign ? result : result.negate();
     }
 
@@ -184,7 +185,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     @Override
     public int intValue() {
         if (isWhole()) {
-            int value = whole.intValueExact(); // NOTE: can throw an ArithmeticException
+            final int value = whole.intValueExact(); // NOTE: can throw an ArithmeticException
             return sign ? value : -value;
         } else throw new BigNumberException("intValue: cannot represent this BigNumber as an int: " + this);
     }
@@ -198,7 +199,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     @Override
     public long longValue() {
         if (isWhole()) {
-            long value = whole.longValueExact(); // NOTE: can throw an ArithmeticException
+            final long value = whole.longValueExact(); // NOTE: can throw an ArithmeticException
             return sign ? value : -value;
         } else throw new BigNumberException("longValue: cannot represent this BigNumber as a long: " + this);
     }
@@ -240,20 +241,20 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param that a BigNumber.
      * @return the sum of <code>this</code> and <code>that</code>.
      */
-    public BigNumber add(BigNumber that) {
+    public BigNumber add(final BigNumber that) {
         if (!sign && !that.sign) return this.negate().add(that.negate()).negate();
         if (!sign) return that.add(this);
         if (this.compareTo(that) < 0) {
             return that.negate().add(this.negate()).negate();
         }
         // NOTE at this point, sign is always true.
-        int thisLength = decimals.length;
-        int thatLength = that.decimals.length;
-        int resultLength = Math.max(thisLength, thatLength);
-        int[] dec = new int[resultLength];
+        final int thisLength = decimals.length;
+        final int thatLength = that.decimals.length;
+        final int resultLength = Math.max(thisLength, thatLength);
+        final int[] dec = new int[resultLength];
         int carry = 0;
         boolean borrow = false;
-        boolean subtract = !that.sign;
+        final boolean subtract = !that.sign;
         for (int i = resultLength - 1; i >= 0; i--) {
             int sum = carry;
             borrow = false;
@@ -282,7 +283,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param that the object to be compared.
      * @return a negative, zero, or positive int.
      */
-    public int compareTo(BigNumber that) {
+    public int compareTo(final BigNumber that) {
         if (this.equals(that)) {
             return 0;
         } else {
@@ -290,9 +291,9 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
             if (wholeComparison != 0) {
                 return this.sign ? wholeComparison : -wholeComparison;
             } else {
-                int[] thisDecimals = this.decimals;
-                int[] thatDecimals = that.decimals;
-                int maxLength = Math.max(thisDecimals.length, thatDecimals.length);
+                final int[] thisDecimals = this.decimals;
+                final int[] thatDecimals = that.decimals;
+                final int maxLength = Math.max(thisDecimals.length, thatDecimals.length);
                 for (int i = 0; i < maxLength; i++) {
                     int thisNumber = (i < thisDecimals.length) ? thisDecimals[i] : 0;
                     int thatNumber = (i < thatDecimals.length) ? thatDecimals[i] : 0;
@@ -316,9 +317,9 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param other a BigNumber value.
      * @return a BigNumber.
      */
-    public BigNumber multiplyWithKaratsuba(BigNumber other) {
-        BigNumber thisW = BigNumber.value(this.whole);
-        BigNumber thatW = BigNumber.value(other.whole);
+    public BigNumber multiplyWithKaratsuba(final BigNumber other) {
+        final BigNumber thisW = BigNumber.value(this.whole);
+        final BigNumber thatW = BigNumber.value(other.whole);
 
         if (this.isWhole() && other.isWhole())
             return thisW.multiply(thatW);
@@ -332,18 +333,18 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
             second = Arrays.copyOf(second, first.length);
         }
 
-        BigNumber thisF = new BigNumber(BigInteger.ZERO, first, true);
-        BigNumber thatF = new BigNumber(BigInteger.ZERO, second, true);
-        BigNumber result1 = thisW.multiply(thatW);
-        BigNumber result2 = thisW.multiply(thatF);
-        BigNumber result3 = thatW.multiply(thisF);
+        final BigNumber thisF = new BigNumber(BigInteger.ZERO, first, true);
+        final BigNumber thatF = new BigNumber(BigInteger.ZERO, second, true);
+        final BigNumber result1 = thisW.multiply(thatW);
+        final BigNumber result2 = thisW.multiply(thatF);
+        final BigNumber result3 = thatW.multiply(thisF);
 
-        int[] result = recursiveKarat(first, second, 0, first.length - 1, 2 * first.length);
-        BigNumber result4 = new BigNumber(BigInteger.ZERO, result, true);
+        final int[] result = recursiveKarat(first, second, 0, first.length - 1, 2 * first.length);
+        final BigNumber result4 = new BigNumber(BigInteger.ZERO, result, true);
         return result1.add(result2).add(result3).add(result4);
     }
 
-    private int[] multiplyArrays(int[] arr1, int[] arr2, int start, int end, int resultSize) {
+    private int[] multiplyArrays(final int[] arr1, final int[] arr2, final int start, final int end, final int resultSize) {
         StringBuilder b = new StringBuilder();
         for (int i = start; i <= end; i++) {
             b.append(arr1[i]);
@@ -354,9 +355,9 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         for (int i = start; i <= end; i++) {
             b.append(arr2[i]);
         }
-        BigInteger b2 = new BigInteger(b.toString());
+        final BigInteger b2 = new BigInteger(b.toString());
 
-        String res = b2.multiply(b1).toString();
+        final String res = b2.multiply(b1).toString();
         int[] result = new int[resultSize];
 
         int resIdx = resultSize - 1;
@@ -366,32 +367,33 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return result;
     }
 
-    private int[] recursiveKarat(int[] first, int[] second, int start, int end, int resSize) {
+    private int[] recursiveKarat(final int[] first, final int[] second, final int start, final int end, final int resSize) {
+        int j = start;
         // adaptively ignore leading zeros
-        for (int i = start; i <= end; i++) {
+        for (int i = j; i <= end; i++) {
             if (first[i] != 0 || second[i] != 0) {
-                start = i;
+                j = i;
                 break;
             }
         }
 
-        int numDigits = end - start + 1;
+        final int numDigits = end - j + 1;
         if (numDigits == 0) {
             return new int[resSize];
         }
         if (numDigits <= 160) {
             // return an array of size `resSize`
-            return multiplyArrays(first, second, start, end, resSize);
+            return multiplyArrays(first, second, j, end, resSize);
         }
 
-        int middle = (end + start) / 2;
-        int m = end - middle;
-        int[] z0 = recursiveKarat(first, second, start, middle, resSize);
-        int[] z2 = recursiveKarat(first, second, middle + 1, end, resSize);
+        final int middle = (end + j) / 2;
+        final int m = end - middle;
+        final int[] z0 = recursiveKarat(first, second, j, middle, resSize);
+        final int[] z2 = recursiveKarat(first, second, middle + 1, end, resSize);
 
-        int[] sum1 = add(first, start, middle, end, numDigits + 1);
-        int[] sum2 = add(second, start, middle, end, numDigits + 1);
-        int[] prod = recursiveKarat(sum1, sum2, 0, sum1.length - 1, 2 * numDigits);
+        final int[] sum1 = add(first, j, middle, end, numDigits + 1);
+        final int[] sum2 = add(second, j, middle, end, numDigits + 1);
+        final int[] prod = recursiveKarat(sum1, sum2, 0, sum1.length - 1, 2 * numDigits);
         difference(prod, z0);
         difference(prod, z2);
 
@@ -403,7 +405,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return z0;
     }
 
-    private void leftShift(int[] arr, int offset) {
+    private void leftShift(final int[] arr, final int offset) {
         int i = 0;
         while (i < arr.length && arr[i] == 0) {
             i++;
@@ -414,8 +416,8 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         }
     }
 
-    private int[] add(int[] first, int start, int middle, int end, int resSize) {
-        int[] result = new int[resSize];
+    private int[] add(final int[] first, final int start, final int middle, final int end, final int resSize) {
+        final int[] result = new int[resSize];
         int carry = 0;
         int val, toAdd;
         int k = resSize - 1;
@@ -438,7 +440,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return result;
     }
 
-    private void addInPlace(int[] first, int[] second) {
+    private void addInPlace(final int[] first, final int[] second) {
         int j = first.length - 1;
         int carry = 0;
         int val;
@@ -452,7 +454,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         }
     }
 
-    private void difference(int[] first, int[] second) {
+    private void difference(final int[] first, final int[] second) {
         for (int i = first.length - 1, j = second.length - 1; i >= 0; i--, j--) {
             if (first[i] >= second[j]) {
                 first[i] -= second[j];
@@ -463,18 +465,18 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         }
     }
 
-    public BigNumber multiply(BigNumber that) {
-        BigInteger bigTen = BigInteger.valueOf(10);
-        int thisLength = decimals.length + 1, thatLength = that.decimals.length + 1;
-        long[] results = new long[thisLength + thatLength];
-        int[] dec = new int[thisLength + thatLength - 1];
+    public BigNumber multiply(final BigNumber that) {
+        final BigInteger bigTen = BigInteger.valueOf(10);
+        final int thisLength = decimals.length + 1, thatLength = that.decimals.length + 1;
+        final long[] results = new long[thisLength + thatLength];
+        final int[] dec = new int[thisLength + thatLength - 1];
         for (int i = 0; i < thisLength; i++)
             for (int j = 0; j < thatLength; j++)
                 results[i + j] += element(i) * that.element(j);
         BigInteger carry = BigInteger.ZERO;
         for (int k = results.length; k > 1; k--) {
-            BigInteger value = carry.add(BigInteger.valueOf(results[k - 1]));
-            BigInteger[] qr = value.divideAndRemainder(bigTen);
+            final BigInteger value = carry.add(BigInteger.valueOf(results[k - 1]));
+            final BigInteger[] qr = value.divideAndRemainder(bigTen);
             carry = qr[0];
             dec[k - 2] = qr[1].intValue();
         }
@@ -487,15 +489,15 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param x a BigNumber value.
      * @return a BigNumber y such that x * y = this.
      */
-    public BigNumber divide(BigNumber x) {
+    public BigNumber divide(final BigNumber x) {
         if (x.decimals.length > 0) {
-            int n = x.decimals.length;
-            BigNumber target = this.multiply(BigNumber.value(BigInteger.TEN.pow(n)));
-            BigNumber divisor = x.multiply(BigNumber.value(BigInteger.TEN.pow(n)));
-            BigNumber result = target.divide(divisor);
+            final int n = x.decimals.length;
+            final BigNumber target = this.multiply(BigNumber.value(BigInteger.TEN.pow(n)));
+            final BigNumber divisor = x.multiply(BigNumber.value(BigInteger.TEN.pow(n)));
+            final BigNumber result = target.divide(divisor);
             return x.sign ? result : result.negate();
         } else {
-            BigNumber quotient = divide(x.whole);
+            final BigNumber quotient = divide(x.whole);
             return x.sign ? quotient : quotient.negate();
         }
     }
@@ -506,20 +508,20 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param x a BigInteger value.
      * @return a BigNumber y such that x * y = this.
      */
-    public BigNumber divide(BigInteger x) {
+    public BigNumber divide(final BigInteger x) {
         if (x.signum() < 0) return divide(x.negate()).negate();
-        BigInteger[] quotientRemainder = whole.divideAndRemainder(x);
+        final BigInteger[] quotientRemainder = whole.divideAndRemainder(x);
         BigInteger remainder = quotientRemainder[1];
-        List<BigInteger> dividends = new ArrayList<>();
-        BigInteger ten = BigInteger.valueOf(10);
+        final List<BigInteger> dividends = new ArrayList<>();
+        final BigInteger ten = BigInteger.valueOf(10);
         for (int i = 0; i < MAXDECIMALDIGITS; i++) {
-            BigInteger p = remainder.multiply(ten).add(BigInteger.valueOf(i < decimals.length ? decimals[i] : 0));
-            BigInteger[] qr = p.divideAndRemainder(x);
+            final BigInteger p = remainder.multiply(ten).add(BigInteger.valueOf(i < decimals.length ? decimals[i] : 0));
+            final BigInteger[] qr = p.divideAndRemainder(x);
             remainder = qr[1];
             dividends.add(qr[0]);
             if (remainder.signum() == 0 && i > decimals.length) break;
         }
-        int[] dec = new int[dividends.size()];
+        final int[] dec = new int[dividends.size()];
         for (int i = 0; i < dec.length; i++)
             dec[i] = (int) dividends.get(i).longValue();
         return new BigNumber(quotientRemainder[0], dec, true);
@@ -532,16 +534,16 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param x a long value.
      * @return a BigNumber y such that x * y = this.
      */
-    public BigNumber divide(long x) {
+    public BigNumber divide(final long x) {
         return divide(BigInteger.valueOf(x));
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
-        // NOTE That if you replace this as recommended, you must ensure that Java is compiling on CircleCI with the correct compiler
+        // NOTE That if you replace this as recommended, you must ensure that Java is compiling on CircleCI with the correct compiler (Java 16).
         if ( !(o instanceof BigNumber ) ) return false;
-        BigNumber bigNumber = (BigNumber) o;
+        final BigNumber bigNumber = (BigNumber) o;
         return whole.equals(bigNumber.whole) && sign == bigNumber.sign && Arrays.equals(decimals, bigNumber.decimals);
     }
 
@@ -558,9 +560,9 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     }
 
     public String toString() {
-        StringBuilder result = new StringBuilder(sign ? "" : "-");
+        final StringBuilder result = new StringBuilder(sign ? "" : "-");
         result.append(whole);
-        String dec = decimalsToString();
+        final String dec = decimalsToString();
         if (dec.length() > 0) result.append('.');
         result.append(dec);
         return result.toString();
@@ -573,7 +575,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param decimals the array of decimal digits.
      * @param sign     true if the result is to a positive number.
      */
-    public BigNumber(BigInteger whole, int[] decimals, boolean sign) {
+    public BigNumber(final BigInteger whole, final int[] decimals, final boolean sign) {
         if (whole.signum() < 0) throw new BigNumberException("BigNumber constructor: whole must be non-negative");
         this.whole = whole;
         this.decimals = trim(decimals);
@@ -585,7 +587,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      *
      * @param whole any BigInteger value (positive or negative).
      */
-    public BigNumber(BigInteger whole) {
+    public BigNumber(final BigInteger whole) {
         this(whole.abs(), new int[]{}, whole.signum() >= 0);
     }
 
@@ -594,23 +596,23 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      *
      * @param whole any BigInteger value (positive or negative).
      */
-    public BigNumber(long whole) {
+    public BigNumber(final long whole) {
         this(BigInteger.valueOf(whole));
     }
 
     private String decimalsToString() {
-        StringBuilder stringBuilder = new StringBuilder();
+        final StringBuilder stringBuilder = new StringBuilder();
         for (int x : decimals) stringBuilder.append(x);
         return stringBuilder.toString();
     }
 
-    private static int[] trim(int[] array) {
+    private static int[] trim(final int[] array) {
         int i = array.length;
         for (; i > 0; i--) if (array[i - 1] != 0) break;
         return Arrays.copyOf(array, i);
     }
 
-    private long element(int i) {
+    private long element(final int i) {
         if (i == 0) return whole.longValueExact();
         else if (i > 0) return decimals[i - 1];
         else return 0; // TESTME CONSIDER throwing an exception.
@@ -633,49 +635,52 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     private final boolean sign;
 
     static class BigNumberException extends RuntimeException {
-        public BigNumberException(String s) {
+        public BigNumberException(final String s) {
             super(s);
         }
     }
 
-    public static void main(String[] args) {
-        String seed = "3.80264732771409300520864834438671209698720957589958651119907375222849430002967817359000866255197344412894598244154180957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418448117483823635540800639306781065132028198662321859262596212005648226134579249871801970850380282492694242171297757609737902183514884179014706720272008148141514118681922046978558050713877551342513339470002439445599760202735750907375222849430002967817359000866255197344412894598244154184811748382363554080063930678106513202819866232185926259621200564822613457924987180197085038028249269424217129775760973790218351488417901470672027200814814151411868192204697855805071387755134251333947000243944559976020273575090737522284943000296781735900086625519734441289459824415418481174838236355408006393067810651320281986623218592625962120056482261345792498718019708503802824926942421712977576097379021835148841790147067202720081481415141186819220469785580507138775513425133394700024394455997602027357506449179433722141754241393658320727321911046813620076340538390386873407571606319347045589812102646318413325303681054856";
+    public static void main(final String[] args) {
+        doMain();
+    }
+
+    public static void doMain() {
+        final String seed = "3.80264732771409300520864834438671209698720957589958651119907375222849430002967817359000866255197344412894598244154180957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418448117483823635540800639306781065132028198662321859262596212005648226134579249871801970850380282492694242171297757609737902183514884179014706720272008148141514118681922046978558050713877551342513339470002439445599760202735750907375222849430002967817359000866255197344412894598244154184811748382363554080063930678106513202819866232185926259621200564822613457924987180197085038028249269424217129775760973790218351488417901470672027200814814151411868192204697855805071387755134251333947000243944559976020273575090737522284943000296781735900086625519734441289459824415418481174838236355408006393067810651320281986623218592625962120056482261345792498718019708503802824926942421712977576097379021835148841790147067202720081481415141186819220469785580507138775513425133394700024394455997602027357506449179433722141754241393658320727321911046813620076340538390386873407571606319347045589812102646318413325303681054856";
         System.out.println("Seed length: " + seed.length());
-        String seed1 = seed.substring(0, 800);
-        BigNumber b = parse(seed1);
+        final String seed1 = seed.substring(0, 800);
+        final BigNumber b = parse(seed1);
         System.out.println(seed1.length());
-        long[] arr = new long[10];
+        final long[] arr = new long[10];
+        // CONSIDER using StopWatch or Timer.
         for (int i = 0; i < 10; i++) {
-            long st = System.currentTimeMillis();
-            BigNumber res = b.multiply(b);
-            long et = System.currentTimeMillis();
-            long time = et - st;
+            final long st = System.currentTimeMillis();
+            final BigNumber res = b.multiply(b); // NOTE: we need this!!!
+            final long et = System.currentTimeMillis();
+            final long time = et - st;
             arr[i] = time;
         }
         long averageTime = 0;
         for (long time : arr) {
             averageTime += time;
         }
-        double totalTime = (double) averageTime / 10;
+        final double totalTime = (double) averageTime / 10;
         System.out.println("Standard: " + totalTime);
 
-
-        long[] arr1 = new long[10];
+        final long[] arr1 = new long[10];
         for (int i = 0; i < 10; i++) {
-            long st = System.currentTimeMillis();
-            BigNumber res = b.multiplyWithKaratsuba(b);
-            long et = System.currentTimeMillis();
-            long time = et - st;
+            final long st = System.currentTimeMillis();
+            final BigNumber res = b.multiplyWithKaratsuba(b);
+            final long et = System.currentTimeMillis();
+            final long time = et - st;
             arr1[i] = time;
         }
         long averageTime2 = 0;
-        for (long time : arr1) {
+        for (final long time : arr1) {
             averageTime2 += time;
         }
-        double totalTime2 = (double) averageTime2 / 10;
+        final double totalTime2 = (double) averageTime2 / 10;
         System.out.println("Karatsuba: " + totalTime2);
 
         System.out.println(((totalTime - totalTime2) / totalTime) * 100);
-
     }
 }
