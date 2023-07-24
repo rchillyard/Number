@@ -188,6 +188,12 @@ public class BigNumberTest {
     }
 
     @Test
+    public void testMultiply4() {
+        BigNumber ePi = BigNumber.e.multiply(BigNumber.pi);
+        assertEquals("8.53973422267356706546355086954657449503488853576508", ePi.toString().substring(0,52));
+    }
+
+    @Test
     public void testDivideLong1() {
         BigNumber target = BigNumber.value(3, 1415927, true);
         assertEquals(BigNumber.value(1L, 57079635L, true), target.divide(2));
@@ -271,7 +277,7 @@ public class BigNumberTest {
     @Test
     public void testKaratsuba() {
         BigNumber ePi = BigNumber.e.multiplyWithKaratsuba(BigNumber.pi);
-        assertEquals("8.53973422267356", ePi.toString().substring(0, 16));
+        assertEquals("8.53973422267356706546355086954657449503488853576508", ePi.toString().substring(0,52));
     }
 
     @Test
