@@ -275,9 +275,15 @@ public class BigNumberTest {
     }
 
     @Test
-    public void testKaratsuba() {
+    public void testKaratsuba1() {
         BigNumber ePi = BigNumber.e.multiplyWithKaratsuba(BigNumber.pi);
         assertEquals("8.53973422267356706546355086954657449503488853576508", ePi.toString().substring(0,52));
+    }
+
+    @Test
+    public void testKaratsuba2() {
+        BigNumber eSquared = BigNumber.e.multiplyWithKaratsuba(BigNumber.e);
+        assertEquals("7.389056098930650227230427", eSquared.toString().substring(0,26));
     }
 
     @Test
