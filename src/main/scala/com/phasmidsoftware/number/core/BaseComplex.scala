@@ -43,6 +43,19 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       compare(ComplexCartesian(y))
   }
 
+
+  /**
+    * Method to determine if this Field is equivalent to another Field (x).
+    *
+    * @param x the other field.
+    * @return true if they are the same, otherwise false.
+    */
+  def isSame(x: Field): Boolean = x match {
+    case n: Number => this isSame n.asComplex
+    case Real(n) => this isSame n.asComplex
+    case c: Complex => (this subtract c).isZero
+  }
+
   /**
     * Method to determine if this Complex can be evaluated exactly.
     *
@@ -388,6 +401,15 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return an Option[Real].
     */
   def asReal: Option[Real] = if (isReal) Some(Real(x)) else None
+
+  /**
+    * Determine the "sign" of this field.
+    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
+    * For a complex number, we get the signum of the real part.
+    *
+    * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
+    */
+  def signum: Int = x.signum
 }
 
 /**
@@ -541,6 +563,15 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return an Option[Real].
     */
   def asReal: Option[Real] = if (isReal) convertToCartesian(this).asReal else None
+
+  /**
+    * Determine the "sign" of this field.
+    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
+    * For a complex number, we get the signum of the real part.
+    *
+    * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
+    */
+  def signum: Int = convertToCartesian(this).signum
 }
 
 object ComplexPolar {

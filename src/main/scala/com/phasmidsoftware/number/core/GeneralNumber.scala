@@ -34,6 +34,18 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   }
 
   /**
+    * Method to determine if this Field is equivalent to another Field (x).
+    *
+    * @param x the other field.
+    * @return true if they are the same, otherwise false.
+    */
+  def isSame(x: Field): Boolean = x match {
+    case n: GeneralNumber => (this subtract n).isZero
+    case c: Complex => c.isSame(this)
+    case Real(n) => isSame(n)
+  }
+
+  /**
     * Method to determine if this is a valid Number.
     * An invalid number has a value of form Left(Left(Left(None)))
     *
@@ -633,6 +645,37 @@ object GeneralNumber {
           }
       }
   }
+//  def times(x: Number, y: Number): Number = (x, y) match {
+//    case (_, Number.zero) | (Number.zero, _) => Number.zero
+//    case (a, Number.one) => a
+//    case (Number.one, b) => b
+//    case (a: ExactNumber, b: FuzzyNumber) => b doMultiply a
+//    case (a: FuzzyNumber, b) => a doMultiply b
+//    case (a: ExactNumber, b: ExactNumber) => ExactNumber.product(a, b)
+//    case _ => throw NumberException(s"GeneralNumber.times($x, $y): no match")
+//  }
+
+//    x match {
+//    case ExactNumber(Right(0), Scalar) => Number.zero
+//    case ExactNumber(Right(1), Scalar) => y
+//    case a: GeneralNumber =>
+//      y match {
+//        case ExactNumber(Right(0), Scalar) => Number.zero
+//        case ExactNumber(Right(1), Scalar) => x
+//        case n@FuzzyNumber(_, _, _) => n doMultiply x
+//        case z: GeneralNumber =>
+//          val (p, q) = a.alignTypes(z)
+//          (p.factor, q.factor) match {
+//            case (PureNumber(_), Scalar) => doTimes(p, q, p.factor)
+//            case (Scalar, PureNumber(_)) => doTimes(p, q, q.factor)
+//            case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
+//            case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
+//            case (Root(_), Root(_)) if p == q => p.make(Scalar)
+//            case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
+//            case _ => times(p.scale(Scalar), q.scale(Scalar))
+//          }
+//      }
+//  }
 
   /**
     * Method to raise an (exact) Number to a power.
@@ -709,7 +752,7 @@ object GeneralNumber {
     case x => LazyList.continually(Number.inverse(n)).take(-x).product
   }
 
-  private def doTimes(p: Number, q: Number, factor: Factor) = {
+  def doTimes(p: Number, q: Number, factor: Factor): Number = {
     val maybeNumber = p.composeDyadic(q, factor)(DyadicOperationTimes)
     prepareWithSpecialize(maybeNumber)
   }

@@ -28,6 +28,14 @@ case class Real(x: Number) extends Field {
   def isZero: Boolean = x.isZero
 
   /**
+    * Method to determine if this Field is equivalent to another Field (x).
+    *
+    * @param f the other field.
+    * @return true if they are the same, otherwise false.
+    */
+  def isSame(f: Field): Boolean = x.isSame(f)
+
+  /**
     * Method to determine if this Real has unity magnitude.
     * Unity is the multiplicative identity.
     *
@@ -207,6 +215,7 @@ object Real {
 
   val zero: Real = Real(0)
   val one: Real = Real(1)
+  val negOne: Real = Real(-1)
   val two: Real = Real(2)
   val three: Real = Real(3)
   val ten: Real = Real(10)

@@ -49,12 +49,21 @@ trait Field extends NumberLike with Ordered[Field] {
   }
 
   /**
+    * Determine the "sign" of this field.
+    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
+    * For a complex number, we get the signum of the real part.
+    *
+    * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
+    */
+  def signum: Int
+
+  /**
     * Method to determine if this Field is equivalent to another Field (x).
     *
     * @param x the other field.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(x: Field): Boolean = (this subtract x).isZero
+  def isSame(x: Field): Boolean
 
   /**
     * Add x to this Field and return the result.
