@@ -482,7 +482,7 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
-* Version 1.0.17: 
+* Version 1.0.17: Minor changes.
 * Version 1.0.16: Added C-interpolator for Complex objects; various other fixes, including radian values now range from -pi to pi.
 * Version 1.0.15: Significant improvements to the rendering of rational numbers.
 * Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
