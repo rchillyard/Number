@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.recover
-import com.phasmidsoftware.number.core.Number.negate
 import scala.language.implicitConversions
 
 /**
@@ -13,30 +12,7 @@ import scala.language.implicitConversions
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field extends NumberLike with Ordered[Field] {
-
-  /**
-    * Method to determine if this Field has infinite magnitude.
-    *
-    * @return true if the magnitude of this Field is infinite.
-    */
-  def isInfinite: Boolean
-
-  /**
-    * Method to determine if this Field has zero magnitude.
-    * Zero is the additive identity.
-    *
-    * @return true if the magnitude of this Field is zero.
-    */
-  def isZero: Boolean
-
-  /**
-    * Method to determine if this Field has unity magnitude.
-    * Unity is the multiplicative identity.
-    *
-    * @return true if the magnitude of this Field is one.
-    */
-  def isUnity: Boolean
+trait Field extends NumberLike with Ordered[Field] with Numerical {
 
   /**
     * Method to determine if this Field is represented by a Complex number.
@@ -47,15 +23,6 @@ trait Field extends NumberLike with Ordered[Field] {
     case ComplexCartesian(_, _) | ComplexPolar(_, _, _) => true
     case _ => false
   }
-
-  /**
-    * Determine the "sign" of this field.
-    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
-    * For a complex number, we get the signum of the real part.
-    *
-    * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
-    */
-  def signum: Int
 
   /**
     * Method to determine if this Field is equivalent to another Field (x).
@@ -116,12 +83,15 @@ trait Field extends NumberLike with Ordered[Field] {
     */
   def divide(x: Field): Field
 
-  def /(x: Field): Field = divide(x)
-
   /**
-    * Change the sign of this Field.
+    * Divide this Field by another Field.
+    *
+    * TESTME
+    *
+    * @param x the other Field.
+    * @return the quotient of this and x.
     */
-  def unary_- : Field
+  def /(x: Field): Field = divide(x)
 
   /**
     * Raise this Field to the power p.
@@ -130,10 +100,12 @@ trait Field extends NumberLike with Ordered[Field] {
     * @return this Field raised to power p.
     */
   def power(p: Int): Field = p match {
-    case 0 => Number.one
+    case 0 => Real(Number.one)
     case 1 => this
     case _ => power(Number(p)) // TODO need to simplify the result. See NumberSpec: power/work for squaring Log2
   }
+
+  def power(p: Number): Field
 
   /**
     * Raise this Field to the power p.
@@ -143,35 +115,6 @@ trait Field extends NumberLike with Ordered[Field] {
     */
   def power(p: Field): Field
 
-  /**
-    * Yields the inverse of this Field.
-    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
-    * factors.
-    */
-  def invert: Field
-
-  /**
-    * Method to "normalize" a field.
-    *
-    * @return a Field which is in canonical form.
-    */
-  def normalize: Field
-
-  /**
-    * Method to return this Field as a Complex.
-    * If this is a Real number x, return ComplexPolar(x) otherwise, return this.
-    *
-    * @return a Complex.
-    */
-  def asComplex: Complex
-
-  /**
-    * Method to return this Field as a Real, if possible.
-    * If this is a Real number x, return Some(x) otherwise, return None.
-    *
-    * @return an Option[Real].
-    */
-  def asReal: Option[Real]
 }
 
 object Field {
@@ -209,22 +152,24 @@ object Constants {
   val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
   val sBoltzmann = "1380649.E-29" // J K ^ -1
 
-  val one: Number = Number.one
-  val minusOne: Number = negate(Number.one)
-  val zero: Number = Number.zero
-  val pi: Number = Number.pi
+  val one: Real = Real.one
+  val minusOne: Field = -one
+  val two: Real = Real.two
+  val zero: Real = Real.zero
+  val pi: Real = Real.pi
   //noinspection NonAsciiCharacters
-  val `𝛑`: Number = Number.`𝛑`
-  val e: Number = Number.e
+  val `𝛑`: Real = Real(Number.`𝛑`)
+  val e: Real = Real.e
   val i: Complex = Complex.i
   /**
     * Exact value of iPi.
     */
   val iPi: Complex = ComplexCartesian(0, Number.pi)
 
-  val root2: Number = Number.root2
-  val root3: Number = Number.root3
-  val root5: Number = Number.root5
+  // CONSIDER making the following Complex
+  val root2: Real = Real(Number.root2)
+  val root3: Real = Real(Number.root3)
+  val root5: Real = Real(Number.root5)
   /**
     * Exact value of the Complex Number ±√2
     */

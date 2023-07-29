@@ -404,7 +404,7 @@ object Rational {
   /**
     * Method to construct a Rational from a BigInt with sign defined by "negative".
     *
-    * TEST me
+    * TESTME
     *
     * @param n        the value.
     * @param negative if true then the sign of the result will be flipped.
@@ -620,7 +620,7 @@ object Rational {
 
   private def toDouble(x: Rational): Double = Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
 
-  // TEST me
+  // TESTME
   private def toFloat(x: Rational): Float = toDouble(x).toFloat
 
   private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z

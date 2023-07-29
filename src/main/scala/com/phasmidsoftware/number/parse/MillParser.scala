@@ -30,7 +30,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     def toItems: Seq[Item] = this match {
       case AnadicTerm(x) => x match {
         case Left(w) => Seq(Item(w))
-        case Right(n) => Seq(Expr(Expression(n)))
+        case Right(n) => Seq(Expr(Expression(Real(n))))
       }
       case MonadicTerm(x, os, p) => x.toItems ++ os.map(Item(_)) :+ Item(p)
       case DyadicTerm(x, p) => x.toItems ++ p.toItems
@@ -66,7 +66,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     * @param t  a Term, typically a Number or another term.
     * @param op a MonadicTerm.
     */
-  case class DyadicTerm(t: Term, op: MonadicTerm) extends Term {
+  private case class DyadicTerm(t: Term, op: MonadicTerm) extends Term {
     override def toString: String = s"$t $op"
   }
 

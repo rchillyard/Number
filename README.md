@@ -482,6 +482,7 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
+* Version 1.1.0: Number is no longer a subtype of Field. Code should use the wrapper Real(number) to form a Field.
 * Version 1.0.17: Minor changes.
 * Version 1.0.16: Added C-interpolator for Complex objects; various other fixes, including radian values now range from -pi to pi.
 * Version 1.0.15: Significant improvements to the rendering of rational numbers.

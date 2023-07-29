@@ -109,16 +109,55 @@ object Complex {
     */
   def convertToPolar(c: ComplexCartesian): Complex = {
     // CONSIDER can we improve upon this? Basically, we should only need MonadicOperationAtan.
-    val ro: Option[Field] = for (p <- ((Literal(c.x) * c.x) plus (Literal(c.y) * c.y)).materialize.asNumber; z = p.sqrt) yield z
-    val z: Field = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
-    apply(z, c.x atan c.y, ComplexPolar.apply(_, _, 1), ComplexException(s"logic error: convertToPolar2: $c"))
+    val ro: Option[Number] = for (p <- ((Literal(c.x) * Real(c.x)) plus (Literal(c.y) * Real(c.y))).materialize.asNumber; z = p.sqrt) yield z
+    val z: Number = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
+    ComplexPolar(z, c.x atan c.y, 1)
   }
 
+  /**
+    * Method to convert a ComplexPolar into a ComplexCartesian.
+    *
+    * @param c the ComplexPolar.
+    * @return the equivalent ComplexCartesian.
+    */
   def convertToCartesian(c: ComplexPolar): BaseComplex =
-    apply(c.r multiply c.theta.cos, c.r multiply c.theta.sin, ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
+    apply(Real(c.r doMultiply c.theta.cos), Real(c.r doMultiply c.theta.sin), ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
 
+  /**
+    * Method to construct a Complex from two fields, a (Number,Number)=>BaseComplex function, and an exception.
+    *
+    * @param a the first field.
+    * @param b the second field.
+    * @param f the function.
+    * @param x the exception (call-by-name).
+    * @return a new BaseComplex.
+    */
   def apply(a: Field, b: Field, f: (Number, Number) => BaseComplex, x: => ComplexException): BaseComplex =
-    recover(for (a <- a.asNumber; b <- b.asNumber) yield f(a, b), x)
+    recover(for (u <- a.asNumber; v <- b.asNumber) yield f(u, v), x)
+
+  /**
+    * Method to construct a Complex from a Field, a Number, a (Number,Number)=>BaseComplex function, and an exception.
+    *
+    * @param a the field.
+    * @param b the number.
+    * @param f the function.
+    * @param x the exception (call-by-name).
+    * @return a new BaseComplex.
+    */
+  def apply(a: Field, b: Number, f: (Number, Number) => BaseComplex, x: => ComplexException): BaseComplex =
+    recover(for (u <- a.asNumber) yield f(u, b), x)
+
+  /**
+    * Method to construct a Complex from a Field, a Number, a (Number,Number)=>BaseComplex function, and an exception.
+    *
+    * @param a the number.
+    * @param b the field.
+    * @param f the function.
+    * @param x the exception (call-by-name).
+    * @return a new BaseComplex.
+    */
+  def apply(a: Number, b: Field, f: (Number, Number) => BaseComplex, x: => ComplexException): BaseComplex =
+    recover(for (u <- b.asNumber) yield f(a, u), x)
 
   def apply(x: Number): BaseComplex = ComplexCartesian(x, Number.zero)
 

@@ -30,27 +30,30 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     target.isExact(None) shouldBe true
     target.isExact(Some(Scalar)) shouldBe false
     val value = target.normalize
-    value should ===(Number(math.sqrt(2)))
-    target.multiply(target) shouldBe Number(2)
+    value match {
+      case Real(n) => n should ===(Number(math.sqrt(2)))
+      case _ => fail(s"wrong result: $value")
+    }
+    target.multiply(target) shouldBe Real.two
   }
   it should "have root2 a" in {
-    val target: Number = Constants.root2
-    val expected = Number(Rational.half, Log2)
+    val target: Real = Constants.root2
+    val expected = Real(Number(Rational.half, Log2))
     target should ===(expected)
   }
   it should "have root3" in {
     val target = Constants.root3
     target.isExact(None) shouldBe true
     val value = target.normalize
-    value should ===(Number(math.sqrt(3)))
-    target.multiply(target) shouldBe Number(3)
+    value should ===(Real(math.sqrt(3)))
+    target.multiply(target) shouldBe Real(3)
   }
   it should "have root5" in {
     val target = Constants.root5
     target.isExact(None) shouldBe true
     val value = target.normalize
-    value should ===(Number(math.sqrt(5)))
-    target.multiply(target) shouldBe Number(5)
+    value should ===(Real(math.sqrt(5)))
+    target.multiply(target) shouldBe Real(5)
   }
   it should "have G" in {
     val target = Constants.G

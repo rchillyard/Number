@@ -222,7 +222,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   def atan(x: Double): Try[Double] =
     Try {
       math.atan2(x, sign) / math.Pi
-    } // CONSIDER use scale // TEST me
+    } // CONSIDER use scale // TESTME
 
   val functions: MonadicFunctions = (fail("atan cannot be Int"), atanRat, atan)
 

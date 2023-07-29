@@ -29,6 +29,8 @@ object ShuntingYardParser extends BaseMillParser {
   /**
     * A ShuntingYard consisting of two structures: a queue of values and a stack of operators.
     *
+    * NOTE: apparently, this is never used!
+    *
     * @param values    a list of values and operators. The former are added directly to values.
     *                  However, operators are only added indirectly, after a closing parenthesis
     *                  (or the end of the string) is reached.
@@ -66,7 +68,7 @@ object ShuntingYardParser extends BaseMillParser {
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 
-    private def :+(number: Number) = ShuntingYard(values :+ Expr(Expression(number)), operators)
+    private def :+(number: Number) = ShuntingYard(values :+ Expr(Expression(Real(number))), operators)
 
     @tailrec
     private def :+(operator: String): ShuntingYard = Item(operator) match {
@@ -134,7 +136,7 @@ object ShuntingYardParser extends BaseMillParser {
     *
     * @return a Parser[InfixToken].
     */
-  def infixToken: Parser[InfixToken] = (maybeNumber ?| operator) :| "infixToken" ^^ {
+  private def infixToken: Parser[InfixToken] = (maybeNumber ?| operator) :| "infixToken" ^^ {
     case Right(x) => InfixToken(Some(Right(x)), paren = false)
     case Left("(") => InfixToken(None, paren = true)
     case Left(")") => InfixToken(None, paren = false)
@@ -149,8 +151,8 @@ object ShuntingYardParser extends BaseMillParser {
     */
   def operator: Parser[String] = (dyadicOperator | monadicOperator | anadicOperator | neutralOperator2 | openParenthesis | closeParenthesis) :| "operator"
 
-  val openParenthesis: String = "("
+  private val openParenthesis: String = "("
 
-  val closeParenthesis: String = ")"
+  private val closeParenthesis: String = ")"
 }
 

@@ -42,7 +42,7 @@ trait NumberLike {
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *
-    * CONSIDER redefining this as Option[Field].
+    * CONSIDER redefining this as Option[Field] or Option[Real].
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */

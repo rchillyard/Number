@@ -29,7 +29,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     *
     * @return the same FuzzyNumber but with absolute fuzziness.
     */
-  def normalizeFuzz: Field = this match {
+  def normalizeFuzz: Number = this match {
     case FuzzyNumber(value, factor, maybeFuzz) =>
       val relativeFuzz = for {
         x <- toDouble
@@ -51,8 +51,13 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
         case Root(_) => scale(Scalar)
         case _ => this
       }
-
   }
+
+  /**
+    * @param maybeFactor an optional Factor to be matched.
+    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
+    */
+  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && factorAsIs(maybeFactor)
 
   /**
     * Add a Number to this FuzzyNumber.

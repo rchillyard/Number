@@ -215,28 +215,34 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Box.wiggle"
   it should "be likely for 5.0040" in {
-    val xy: Option[Number] = for (a <- Number.parse("1.251").toOption; b <- Number.parse("4.00*").toOption; x <- (Literal(a) * b).asNumber) yield x
+    val xy: Option[Number] = for {
+      a <- Number.parse("1.251").toOption
+      b <- Number.parse("4.00*").toOption
+      x <- (Literal(a) * Real(b)).asNumber
+    } yield x
     xy.isDefined shouldBe true
     val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz
     z.isDefined shouldBe true
     val q: Fuzziness[Double] = z.get
-    q should matchPattern { case RelativeFuzz(_, _) => }
+    q should matchPattern { case AbsoluteFuzz(_, _) => }
     q.shape should matchPattern { case Box => }
-    q.style shouldBe true
-    val r = q.asInstanceOf[RelativeFuzz[Double]].tolerance
+    q.style shouldBe false
+    val h: Option[Fuzziness[Double]] = q.normalize(x.toDouble.getOrElse(Double.NaN), relative = true)
+    val r = h.get.asInstanceOf[RelativeFuzz[Double]].tolerance
     r shouldBe 0.0016496802557953638 +- 0.0000000001
-    q.shape.wiggle(r, 0.0) shouldBe Double.PositiveInfinity
-    q.shape.wiggle(r, 0.9) shouldBe 8.248401278976819E-4 +- 0.00001
-    q.shape.wiggle(r, 1) shouldBe 0
+    h.get.shape.wiggle(r, 0.0) shouldBe Double.PositiveInfinity
+    h.get.shape.wiggle(r, 0.9) shouldBe 8.248401278976819E-4 +- 0.00001
+    h.get.shape.wiggle(r, 1) shouldBe 0
   }
 
   behavior of "Gaussian.wiggle"
   it should "be likely for 5.0040" in {
-    val xy: Option[Number] = for (a <- Number.parse("1.250(2)").toOption; b <- Number.parse("4.00*").toOption; x <- (Literal(a) * b).asNumber) yield x
+    val xy: Option[Number] = for (a <- Number.parse("1.250(2)").toOption; b <- Number.parse("4.00*").toOption; x <- (Literal(a) * Real(b)).asNumber) yield x
     xy.isDefined shouldBe true
     val x: Number = xy.get
-    val z: Option[Fuzziness[Double]] = x.fuzz
+    val z: Option[Fuzziness[Double]] = for (y <- x.fuzz; w <- x.toDouble; v <- y.normalize(w, relative = true)) yield v
+//    x.fuzz flatMap (_.normalize(x.toDouble, true))
     z.isDefined shouldBe true
     val q: Fuzziness[Double] = z.get
     q should matchPattern { case RelativeFuzz(_, _) => }

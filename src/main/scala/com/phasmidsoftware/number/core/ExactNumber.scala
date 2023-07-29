@@ -17,6 +17,12 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def isZero: Boolean = GeneralNumber.isZero(this)
 
   /**
+    * @param maybeFactor an optional Factor to be matched.
+    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
+    */
+  def isExact(maybeFactor: Option[Factor]): Boolean = factorAsIs(maybeFactor)
+
+  /**
     * Method to make some trivial simplifications of this ExactNumber.
     *
     * @return either this Number or a simplified Number.
@@ -67,6 +73,14 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     */
   def doPower(p: Number): Number = GeneralNumber.power(this, p)
 
+  /**
+    * Method to scale this ExactNumber by a constant factor.
+    *
+    * TESTME
+    *
+    * @param v the factor.
+    * @return
+    */
   def scale(v: Value): Number = GeneralNumber.doTimes(this, ExactNumber(v, Scalar), factor)
 
   /**
@@ -140,7 +154,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     *
     * @return a String
     */
-  override def toString: String = this match {
+  override def toString: String = modulate match {
     case Number.pi => Radian.toString
     case _ =>
       val sb = new StringBuilder()

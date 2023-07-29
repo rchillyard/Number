@@ -2,8 +2,8 @@ package com.phasmidsoftware.number.applications
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
-import com.phasmidsoftware.number.core.Number
 import com.phasmidsoftware.number.core.Number.{createFromDouble, negate}
+import com.phasmidsoftware.number.core.{Number, Real}
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
@@ -29,10 +29,9 @@ object Approximation {
       for {
         p <- evaluate(f, dfByDx)(x)
         q <- evaluateWithoutDerivative(dfByDx)(x)
-        r = negate(convertToNumber(p.divide(q)))
+        r = negate(convertToNumber(p.divide(Real(q))))
         s <- correction(p, q, x, r, functions)
-//        _ = println(s"iterate: x=$x; f(x)=$p; delta=$s")
-        t = x.doAdd(convertToNumber(s))
+        t = x.doAdd(convertToNumber(Real(s)))
       } yield t
   }
 
@@ -120,8 +119,8 @@ object Approximation {
     case 3 => // Halley's method
       for {
         fDashDash <- evaluateWithoutDerivative(fs(2))(x)
-        correction = fDashDash divide fDash multiply h divide Number.two add Number.one
-      } yield convertToNumber(h / correction)
+        correction = fDashDash doDivide fDash doMultiply h doDivide Number.two doAdd Number.one
+      } yield h doDivide correction
     case n =>
       Failure(com.phasmidsoftware.number.core.NumberException(s"Approximation.iterate: does not implement correction with $n functions"))
   }
