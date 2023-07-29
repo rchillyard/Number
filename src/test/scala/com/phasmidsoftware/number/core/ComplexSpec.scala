@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{half, zeroR}
+import com.phasmidsoftware.number.core.Number.{half, negate, one, zeroR}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -114,6 +114,24 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z1.materialize shouldBe c1_2
   }
 
+  it should "- Real" in {
+    -Real.one shouldBe Real.negOne
+  }
+
+  it should "- Number" in {
+    -Number.one shouldBe Number.negOne
+  }
+
+  it should "- ComplexPolar" in {
+    val field = -ComplexPolar(one, Number.piBy2)
+    field shouldBe ComplexPolar(one, negate(Number.piBy2))
+  }
+
+  it should "- ComplexCartesian" in {
+    val field = -ComplexCartesian(one, Number.piBy2)
+    field shouldBe ComplexCartesian(negate(one), negate(Number.piBy2))
+  }
+
   behavior of "power"
 
   it should "c1_2^1" in {
@@ -216,6 +234,14 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
+  it should "numberProduct" in {
+    ComplexCartesian(1, 1).numberProduct(Number.two) shouldBe ComplexCartesian(2, 2)
+    Number.i.asComplex.numberProduct(Number.two) shouldBe ComplexCartesian(0, 2)
+    val actual = Number.i.asComplex.numberProduct(Number.two).numberProduct(Number.half)
+    actual.isSame(Number.i) shouldBe true
+    Number.i.asComplex.numberProduct(Number.i) shouldBe ComplexCartesian(-1,0)
+  }
+
   it should "convertToPolar" in {
     val expected: Complex = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Radian))
     val actual: ComplexPolar = convertToPolar(c1_2).asInstanceOf[ComplexPolar]
@@ -313,7 +339,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     convertToNumber(Number.i) shouldBe Number.i
   }
   it should "scale(Scalar)" in {
-    a[NumberException] should be thrownBy Number.i.scale(Scalar)
+    Number.i.scale(Scalar) shouldBe Number.NaN
   }
   it should "normalize" in {
     Number.i.normalize shouldBe ComplexCartesian(0, 1)

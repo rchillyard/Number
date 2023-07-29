@@ -188,6 +188,12 @@ public class BigNumberTest {
     }
 
     @Test
+    public void testMultiply4() {
+        BigNumber ePi = BigNumber.e.multiply(BigNumber.pi);
+        assertEquals("8.53973422267356706546355086954657449503488853576508", ePi.toString().substring(0,52));
+    }
+
+    @Test
     public void testDivideLong1() {
         BigNumber target = BigNumber.value(3, 1415927, true);
         assertEquals(BigNumber.value(1L, 57079635L, true), target.divide(2));
@@ -224,7 +230,7 @@ public class BigNumberTest {
         assertEquals("", target.toString());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testDivideBigNumber2() {
         BigNumber target = BigNumber.value(3, 333333, true);
         BigNumber divisor = BigNumber.value(1, 111111, true);
@@ -266,5 +272,22 @@ public class BigNumberTest {
         assertEquals("3", new BigNumber(3).toString());
         assertEquals("3.1", BigNumber.value(3, 1, true).toString());
         assertEquals("3.1415927", BigNumber.value(3, 1415927, true).toString());
+    }
+
+    @Test
+    public void testKaratsuba1() {
+        BigNumber ePi = BigNumber.e.multiplyWithKaratsuba(BigNumber.pi);
+        assertEquals("8.53973422267356706546355086954657449503488853576508", ePi.toString().substring(0,52));
+    }
+
+    @Test
+    public void testKaratsuba2() {
+        BigNumber eSquared = BigNumber.e.multiplyWithKaratsuba(BigNumber.e);
+        assertEquals("7.389056098930650227230427", eSquared.toString().substring(0,26));
+    }
+
+    @Test
+    public void testDoMain() {
+        BigNumber.doMain();
     }
 }

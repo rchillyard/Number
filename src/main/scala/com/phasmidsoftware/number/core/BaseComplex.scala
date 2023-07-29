@@ -43,6 +43,19 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       compare(ComplexCartesian(y))
   }
 
+
+  /**
+    * Method to determine if this Field is equivalent to another Field (x).
+    *
+    * @param x the other field.
+    * @return true if they are the same, otherwise false.
+    */
+  def isSame(x: Field): Boolean = x match {
+    case n: Number => this isSame n.asComplex
+    case Real(n) => this isSame n.asComplex
+    case c: Complex => (this subtract c).isZero
+  }
+
   /**
     * Method to determine if this Complex can be evaluated exactly.
     *
@@ -65,11 +78,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return the sum.
     */
   def add(x: Field): Field = sum(narrow(x, polar = false))
-
-  /**
-    * Change the sign of this Number.
-    */
-  def unary_- : Field = make(Number.negate(real), Number.negate(imag))
 
   /**
     * Multiply this Complex by x and return the result.
@@ -251,7 +259,7 @@ object BaseComplex {
     * @param polar whether we want a polar result or a cartesian result.
     * @return a BaseComplex.
     */
-  def narrow(x: Field, polar: Boolean): BaseComplex = x match {
+  def narrow(x: Field, polar: Boolean): Complex = x match {
     case c@ComplexCartesian(_, _) => if (polar) convertToPolar(c) else c
     case c@ComplexPolar(_, _, _) => if (!polar) convertToCartesian(c) else c
     case n@Number(_, _) => ComplexCartesian(n, Number.zero)
@@ -278,9 +286,16 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   /**
     * Method to determine the modulus of this Complex number.
     *
+    * CONSIDER implementing real in the Complex trait (not just BaseComplex).
+    *
     * @return the modulus of this Complex.
     */
-  def modulus: Number = convertToPolar(this).real
+  def modulus: Number = convertToPolar(this).asInstanceOf[BaseComplex].real
+
+  /**
+    * Change the sign of this Number.
+    */
+  def unary_- : Field = make(Number.negate(real), Number.negate(imag))
 
   /**
     *
@@ -310,8 +325,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     */
   def numberProduct(n: Number): Complex =
     if (n.isImaginary) doMultiply(ComplexCartesian.fromImaginary(n))
-    else
-      make(x doMultiply n, y doMultiply n)
+    else make(x doMultiply n, y doMultiply n)
 
   /**
     * Method to make a BaseComplex from a pair of numbers (treated as the real and imaginary parts of a
@@ -387,6 +401,15 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return an Option[Real].
     */
   def asReal: Option[Real] = if (isReal) Some(Real(x)) else None
+
+  /**
+    * Determine the "sign" of this field.
+    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
+    * For a complex number, we get the signum of the real part.
+    *
+    * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
+    */
+  def signum: Int = x.signum
 }
 
 /**
@@ -427,11 +450,11 @@ object ComplexCartesian {
   */
 case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComplex(r, theta) {
 
-  if (theta.factor != Radian)
-    println(s"polar theta is not in radians: $this") // TODO make this a requirement
+  require(theta.factor == Radian, "polar theta is not in radians")
 
+//  require(!r.isZero, "polar radius is zero")
   if (r.isZero)
-    println(s"polar r is zero: $this") // TODO make this a requirement
+    println(s"Warning: Polar r is zero: $this") // TODO make this a requirement
 
   /**
     * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
@@ -465,7 +488,20 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the value of this * i.
     */
-  def rotate: BaseComplex = ComplexPolar(real, imag doAdd Number.piBy2)
+  def rotate: BaseComplex = rotate(Number.piBy2)
+
+
+  /**
+    * Rotate this Complex number by phi counter-clockwise.
+    *
+    * @return the value of this, rotated by phi.
+    */
+  def rotate(phi: Number): ComplexPolar = ComplexPolar(real, imag doAdd phi)
+
+  /**
+    * Change the sign of this Number.
+    */
+  def unary_- : Field = rotate(Number.pi)
 
   def numberProduct(n: Number): Complex = {
     // TODO this first option currently works only for i, not for multiples of i.
@@ -527,6 +563,15 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return an Option[Real].
     */
   def asReal: Option[Real] = if (isReal) convertToCartesian(this).asReal else None
+
+  /**
+    * Determine the "sign" of this field.
+    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
+    * For a complex number, we get the signum of the real part.
+    *
+    * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
+    */
+  def signum: Int = convertToCartesian(this).signum
 }
 
 object ComplexPolar {

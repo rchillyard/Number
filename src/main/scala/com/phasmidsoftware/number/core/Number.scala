@@ -1147,7 +1147,8 @@ object Number {
     case (a, b) if a == b => n
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
-    case (Root2, Scalar) if Value.signum(n.value) < 0 => throw NumberException(s"Number.scale: logic error cannot scale $n to Scalar. Use normalize instead.")
+    case (Root(_), Scalar) if Value.signum(n.value) < 0 =>
+      Number.NaN
     case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
     case (NatLog, PureNumber(_)) | (PureNumber(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
@@ -1160,9 +1161,19 @@ object Number {
     case _ => throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
   }
 
+  /**
+    * Method to change the sign of this Number.
+    * The meaning of "change the sign" is in terms of pure numbers (Scalar, Radian).
+    * For any other factor, we convert <code>x</code> into Scalar form (which will most likely introduce fuzziness).
+    * Imaginary numbers cannot be negated--they must first be converted to Complex form and then negated.
+    *
+    * @param x a Number to be negated.
+    * @return <code>-x</code> unless the negative cannot be represented, in which case a NumberException will be thrown.
+    */
   @tailrec
   def negate(x: Number): Number = x.factor match {
     case p@PureNumber(_) => prepare(x.transformMonadic(p)(MonadicOperationNegate))
+    case Root(_) if Value.signum(x.value) < 0 => throw NumberException(s"cannot negate imaginary number: $x")
     case _ => negate(x.scale(Scalar))
   }
 
@@ -1196,6 +1207,7 @@ object Number {
     * @return a Scalar Number which represents the sine of x.
     */
   def sin(x: Number): Number =
+  // TODO much of the logic here is a repeat of what's in transformMonadic.
     x.scale(Radian).transformMonadic(Radian)(MonadicOperationModulate(-1, 1, circular = true)) match {
       case Some(z) =>
         if (z.signum >= 0) {

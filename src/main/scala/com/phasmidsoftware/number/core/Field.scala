@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.recover
+import com.phasmidsoftware.number.core.Number.negate
 import scala.language.implicitConversions
 
 /**
@@ -48,6 +49,23 @@ trait Field extends NumberLike with Ordered[Field] {
   }
 
   /**
+    * Determine the "sign" of this field.
+    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
+    * For a complex number, we get the signum of the real part.
+    *
+    * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
+    */
+  def signum: Int
+
+  /**
+    * Method to determine if this Field is equivalent to another Field (x).
+    *
+    * @param x the other field.
+    * @return true if they are the same, otherwise false.
+    */
+  def isSame(x: Field): Boolean
+
+  /**
     * Add x to this Field and return the result.
     * See Number.plus for more detail.
     *
@@ -56,7 +74,29 @@ trait Field extends NumberLike with Ordered[Field] {
     */
   def add(x: Field): Field
 
+  /**
+    * Synonym for add.
+    *
+    * @param x the addend.
+    * @return the result.
+    */
   def +(x: Field): Field = add(x)
+
+  /**
+    * Subtract x from this Field and return the result.
+    *
+    * @param x the subtrahend.
+    * @return the difference of this - x.
+    */
+  def subtract(x: Field): Field = this + -x
+
+  /**
+    * Synonym for subtract.
+    *
+    * @param x the subtrahend.
+    * @return <code>this - x</code>.
+    */
+  def -(x: Field): Field = subtract(x)
 
   /**
     * Multiply this Field by x and return the result.
@@ -170,6 +210,7 @@ object Constants {
   val sBoltzmann = "1380649.E-29" // J K ^ -1
 
   val one: Number = Number.one
+  val minusOne: Number = negate(Number.one)
   val zero: Number = Number.zero
   val pi: Number = Number.pi
   //noinspection NonAsciiCharacters

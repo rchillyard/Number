@@ -54,7 +54,7 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
   }
 
   it should "be 6 when added to one and three" in {
-    (fuzz2 + fuzz1 + LazyFuzzy(Exact(3))).get shouldBe (Exact(6))
+    (fuzz2 + fuzz1 + LazyFuzzy(Exact(3))).get shouldBe Exact(6)
   }
 
   ignore should "be 3 when added to one by explicit function" in {

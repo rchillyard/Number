@@ -67,6 +67,8 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     */
   def doPower(p: Number): Number = GeneralNumber.power(this, p)
 
+  def scale(v: Value): Number = GeneralNumber.doTimes(this, ExactNumber(v, Scalar), factor)
+
   /**
     * Method to compare this Number with another.
     *
@@ -162,4 +164,24 @@ object ExactNumber {
   def apply(x: Int, factor: Factor): ExactNumber = new ExactNumber(Value.fromInt(x), factor)
 
   def apply(x: Int): ExactNumber = apply(x, Scalar)
+//
+//  def product(x: ExactNumber, y: ExactNumber): Number = (x, y) match {
+//    case (ExactNumber(w, Scalar), b) => b.scale(w)
+//    case (a, ExactNumber(w, Scalar)) => a.scale(w)
+//    case (a, b) => // Neither a nor b has factor Scalar
+//              val (p, q) = a.alignTypes(b)
+//              (p.factor, q.factor) match {
+//                case (f@PureNumber(_), Scalar) => doTimes(p, q, f)
+//                case (Scalar, f@PureNumber(_)) => doTimes(p, q, f)
+//                case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
+//                case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
+//                case (Root(_), Root(_)) if p == q => p.make(Scalar)
+//                case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
+//                case _ => times(p.scale(Scalar), q.scale(Scalar))
+//              }
+//
+//  }
+//
+//  private def doTimes(p: Number, q: Number, factor: Factor) = prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
+
 }

@@ -13,62 +13,62 @@ import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
   */
 object FP {
 
-    /**
-      * Sequence method to combine elements of Try.
-      *
-      * @param xys an Iterator of Try[X]
-      * @tparam X the underlying type
-      * @return a Try of Iterator[X]
-      */
-    def sequence[X](xys: Iterator[Try[X]]): Try[Iterator[X]] = sequence(xys.to(List)).map(_.iterator)
+  /**
+    * Sequence method to combine elements of Try.
+    *
+    * @param xys an Iterator of Try[X]
+    * @tparam X the underlying type
+    * @return a Try of Iterator[X]
+    */
+  def sequence[X](xys: Iterator[Try[X]]): Try[Iterator[X]] = sequence(xys.to(List)).map(_.iterator)
 
-    /**
-      * Sequence method to combine elements of Try.
-      *
-      * @param xos an Iterator of Try[X]
-      * @tparam X the underlying type
-      * @return a Try of Iterator[X]
-      */
-    def sequence[X](xos: Iterator[Option[X]]): Option[Iterator[X]] = sequence(xos.to(List)).map(_.iterator)
+  /**
+    * Sequence method to combine elements of Try.
+    *
+    * @param xos an Iterator of Try[X]
+    * @tparam X the underlying type
+    * @return a Try of Iterator[X]
+    */
+  def sequence[X](xos: Iterator[Option[X]]): Option[Iterator[X]] = sequence(xos.to(List)).map(_.iterator)
 
-    /**
-      * Sequence method to combine elements of type Option[X].
-      *
-      * @param xos an Iterable of Option[X].
-      * @tparam X the underlying type.
-      * @return if <code>xos</code> contains any Nones, the result will be None, otherwise Some(...).
-      *         NOTE: that the output collection type will be Seq, regardless of the input type
-      */
-    def sequence[X](xos: Iterable[Option[X]]): Option[Seq[X]] =
-        xos.foldLeft(Option(Seq[X]())) {
-            (xso, xo) => for (xs <- xso; x <- xo) yield xs :+ x
-        }
-
-    /**
-      * Sequence method to combine elements of Try.
-      *
-      * @param xys an Iterable of Try[X]
-      * @tparam X the underlying type
-      * @return a Try of Seq[X]
-      *         NOTE: that the output collection type will be Seq, regardless of the input type
-      */
-    def sequence[X](xys: Iterable[Try[X]]): Try[Seq[X]] =
-        xys.foldLeft(Try(Seq[X]())) {
-            (xsy, xy) => for (xs <- xsy; x <- xy) yield xs :+ x
-        }
-
-    /**
-      * Sequence method to invert the order of types Option/Try.
-      *
-      * @param xyo an Option of Try[X].
-      * @tparam X the underlying type.
-      * @return a Try of Option[X].
-      */
-    def sequence[X](xyo: Option[Try[X]]): Try[Option[X]] = xyo match {
-      case Some(Success(x)) => Success(Some(x))
-      case Some(Failure(x)) => Failure(x)
-      case None => Success(None)
+  /**
+    * Sequence method to combine elements of type Option[X].
+    *
+    * @param xos an Iterable of Option[X].
+    * @tparam X the underlying type.
+    * @return if <code>xos</code> contains any Nones, the result will be None, otherwise Some(...).
+    *         NOTE: that the output collection type will be Seq, regardless of the input type
+    */
+  def sequence[X](xos: Iterable[Option[X]]): Option[Seq[X]] =
+    xos.foldLeft(Option(Seq[X]())) {
+      (xso, xo) => for (xs <- xso; x <- xo) yield xs :+ x
     }
+
+  /**
+    * Sequence method to combine elements of Try.
+    *
+    * @param xys an Iterable of Try[X]
+    * @tparam X the underlying type
+    * @return a Try of Seq[X]
+    *         NOTE: that the output collection type will be Seq, regardless of the input type
+    */
+  def sequence[X](xys: Iterable[Try[X]]): Try[Seq[X]] =
+    xys.foldLeft(Try(Seq[X]())) {
+      (xsy, xy) => for (xs <- xsy; x <- xy) yield xs :+ x
+    }
+
+  /**
+    * Sequence method to invert the order of types Option/Try.
+    *
+    * @param xyo an Option of Try[X].
+    * @tparam X the underlying type.
+    * @return a Try of Option[X].
+    */
+  def sequence[X](xyo: Option[Try[X]]): Try[Option[X]] = xyo match {
+    case Some(Success(x)) => Success(Some(x))
+    case Some(Failure(x)) => Failure(x)
+    case None => Success(None)
+  }
 
   /**
     * Method to convert a None value to a given exception (rather than the NoSuchElement exception).
@@ -270,7 +270,15 @@ object FP {
     */
   def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
 
-  def optional[T](f: T => Boolean)(t: T): Option[T] = Some(t).filter(f)
+  /**
+    * Method to yield an Option of T according to whether the predicate p yields true.
+    *
+    * @param p a predicate on T.
+    * @param t an actual value of T.
+    * @tparam T the type of t (and the underlying type of the result).
+    * @return Some(t) if p(t) is true, otherwise None.
+    */
+  def optional[T](p: T => Boolean)(t: T): Option[T] = Some(t).filter(p)
 
   /**
     * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
@@ -298,33 +306,33 @@ object FP {
   * These converters are used by the tryMap and transpose.
   */
 object Converters {
-    implicit def convertIntToRational(x: Int): Either[Option[Double], Rational] = Right(Rational(x))
+  implicit def convertIntToRational(x: Int): Either[Option[Double], Rational] = Right(Rational(x))
 
-    implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] = Try(x.toDouble).toOption
+  implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] = Try(x.toDouble).toOption
 }
 
 
 object TryUsing {
-    /**
-      * This method is to Using.apply as flatMap is to Map.
-      *
-      * @param resource a resource which is used by f and will be managed via Using.apply
-      * @param f        a function of R => Try[A].
-      * @tparam R the resource type.
-      * @tparam A the underlying type of the result.
-      * @return a Try[A]
-      */
-    def apply[R: Releasable, A](resource: => R)(f: R => Try[A]): Try[A] = Using(resource)(f).flatten
+  /**
+    * This method is to Using.apply as flatMap is to Map.
+    *
+    * @param resource a resource which is used by f and will be managed via Using.apply
+    * @param f        a function of R => Try[A].
+    * @tparam R the resource type.
+    * @tparam A the underlying type of the result.
+    * @return a Try[A]
+    */
+  def apply[R: Releasable, A](resource: => R)(f: R => Try[A]): Try[A] = Using(resource)(f).flatten
 
-    /**
-      * This method is similar to apply(r) but it takes a Try[R] as its parameter.
-      * The definition of f is the same as in the other apply, however.
-      *
-      * @param ry a Try[R] which is passed into f and will be managed via Using.apply
-      * @param f  a function of R => Try[A].
-      * @tparam R the resource type.
-      * @tparam A the underlying type of the result.
-      * @return a Try[A]
-      */
-    def apply[R: Releasable, A](ry: Try[R])(f: R => Try[A]): Try[A] = for (r <- ry; a <- apply(r)(f)) yield a
+  /**
+    * This method is similar to apply(r) but it takes a Try[R] as its parameter.
+    * The definition of f is the same as in the other apply, however.
+    *
+    * @param ry a Try[R] which is passed into f and will be managed via Using.apply
+    * @param f  a function of R => Try[A].
+    * @tparam R the resource type.
+    * @tparam A the underlying type of the result.
+    * @return a Try[A]
+    */
+  def apply[R: Releasable, A](ry: Try[R])(f: R => Try[A]): Try[A] = for (r <- ry; a <- apply(r)(f)) yield a
 }

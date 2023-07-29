@@ -11,19 +11,19 @@ import flog._
 import scala.util.Try
 
 implicit object LoggableRational extends Loggable[Rational] {
-    def toLog(t: Rational): String = t.toString
+  def toLog(t: Rational): String = t.toString
 }
 
 implicit object LoggableValue extends Loggable[Value] {
-    def toLog(t: Value): String = Value.valueToString(t)
+  def toLog(t: Value): String = Value.valueToString(t)
 }
 
 implicit object LoggableNumber extends Loggable[Number] {
-    def toLog(t: Number): String = t.render
+  def toLog(t: Number): String = t.render
 }
 
 implicit object LoggableField extends Loggable[Field] {
-    def toLog(t: Field): String = t.render
+  def toLog(t: Field): String = t.render
 }
 
 implicit val tryIntLoggable: Loggable[Try[Int]] = new Loggables {}.tryLoggable
