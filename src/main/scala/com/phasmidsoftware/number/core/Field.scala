@@ -140,7 +140,7 @@ object Field {
     */
   def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
 
-  implicit def convertRationalToField(r: Rational): Field = Real(Number(r))
+  implicit def convertRationalToField(r: Rational): Field = Real(r)
 
   /**
     * Definition of concrete (implicit) type class object for Field being Fuzzy.

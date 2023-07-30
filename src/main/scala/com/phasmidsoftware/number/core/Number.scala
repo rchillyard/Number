@@ -180,7 +180,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @param r a Rational.
     * @return a new Number which is this Number scaled by z.
     */
-  def doMultiple(r: Rational): Number = GeneralNumber.times(this, Number(r))
+  def doMultiple(r: Rational): Number = GeneralNumber.times(this, r)
 
   /**
     * Perform an exact scalar multiplication of this Number by the scale factor z.
@@ -197,7 +197,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return this quotient of this and n, i.e. this/n.
     */
   def doDivide(n: Number): Number
-
 
   /**
     * Yields the inverse of this Number.
@@ -595,31 +594,31 @@ object Number {
   /**
     * Exact value of 0
     */
-  val zero: Number = Number(0)
+  val zero: Number = 0
   /**
     * Exact value of -0
     */
-  val negZero: Number = Number(Rational.negZero)
+  val negZero: Number = Rational.negZero
   /**
     * Exact value of 1
     */
-  val one: Number = Number(1)
+  val one: Number = 1
   /**
     * Exact value of -1
     */
-  val negOne: Number = Number(-1)
+  val negOne: Number = -1
   /**
     * Exact value of 2
     */
-  val two: Number = Number(2)
+  val two: Number = 2
   /**
     * Exact value of 1/2
     */
-  val half: Number = Number(Rational.half)
+  val half: Number = Rational.half
   /**
     * Exact value of 10
     */
-  val ten: Number = Number(Rational.ten)
+  val ten: Number = Rational.ten
   /**
     * Exact value of pi
     */
@@ -789,7 +788,7 @@ object Number {
       * @param y the divisor, an Int.
       * @return a Number whose value is x / y.
       */
-    def :/(y: Int): Number = /(Number(y))
+    def :/(y: Int): Number = /(y)
 
     /**
       * Raise x to the power of y (an Int) and yield a Number.
@@ -806,8 +805,6 @@ object Number {
       * @return a Number whose value is x / y.
       */
     def ^(y: Rational): Number = x ^ y
-
-//    def unary_√ : Number = x ^ Rational.half
   }
 
   /**
@@ -1256,8 +1253,8 @@ object Number {
           z.doMultiply(12).toInt match {
             case Some(3) | Some(9) => oneOverRoot2  // pi/4 and 3pi/4
             case Some(4) | Some(8) => rootThreeQuarters // pi/3 and 2pi/3
-            case Some(1) | Some(11) => rootSix doSubtract root2 doDivide Number(4) // pi/12 and 11pi/12 would be nice for this to be an Expression
-            case Some(5) | Some(7) => rootSix doAdd root2 doDivide Number(4) // 5pi/12 and 7pi/12 ditto
+            case Some(1) | Some(11) => rootSix doSubtract root2 doDivide 4 // pi/12 and 11pi/12 would be nice for this to be an Expression
+            case Some(5) | Some(7) => rootSix doAdd root2 doDivide 4 // 5pi/12 and 7pi/12 ditto
             case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
           }
         } else negate(sin(negate(x)))

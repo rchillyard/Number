@@ -27,7 +27,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   val em: ExpressionMatchers = Expression.em
   val eml: ExpressionMatchers = new ExpressionMatchers()(sbLogger) {}
-  private val two: Number = Number(2)
+  private val two: Number = 2
   private val one: Number = Number.one
   private val half: Number = convertToNumber(Number.two.invert)
 
@@ -95,7 +95,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result should matchPattern { case em.Match(Zero) => }
   }
   it should "simplify sqrt(7)^2" in {
-    val x: Expression = Literal(Number(7))
+    val x: Expression = Literal(7)
     val y = x.sqrt
     val z = y ^ 2
     val q = em.simplifier(z)
@@ -369,7 +369,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify root3 * 2 / 2" in {
     val p = em.biFunctionMatcher
     import em.TildeOps
-    val root3: Number = Number(3).sqrt
+    val root3: Number = √(3)
     val x: Expression = Literal(root3) * Constants.two
     val y: Expression = Expression(Constants.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(Literal(root3))
@@ -377,7 +377,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify root4 * 2 / 2" in {
     val p = em.biFunctionMatcher
     import em.TildeOps
-    val root4: Number = Number(4).sqrt
+    val root4: Number = √(4)
     val x = Literal(root4) * Constants.two
     val y: Expression = Expression(Constants.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(Literal(root4))
@@ -616,7 +616,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "two levels"
   it should "get 0 from -√3 + √3" in {
     val p = em.matchDyadicTwoLevels
-    val root3: Number = Number(3).sqrt
+    val root3: Number = √(3)
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Product)
     val e: DyadicTriple = Sum ~ e1 ~ Literal(root3)
     val result: em.MatchResult[Expression] = p(e)
@@ -625,7 +625,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "get 0 from √3 + -√3" in {
     val p = em.matchDyadicTwoLevels
-    val root3: Number = Number(3).sqrt
+    val root3: Number = √(3)
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Product)
     val e: DyadicTriple = Sum ~ Literal(root3) ~ e1
     val result: em.MatchResult[Expression] = p(e)
@@ -634,7 +634,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "get 1 from 1/√3 * √3" in {
     val p = em.matchDyadicTwoLevels
-    val root3: Number = Number(3).sqrt
+    val root3: Number = √(3)
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Power)
     val e: DyadicTriple = Product ~ e1 ~ Literal(root3)
     val result: em.MatchResult[Expression] = p(e)
@@ -698,7 +698,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   // TODO fix Issue #57
   ignore should "get x" in {
     val p = em.matchMultiLevels
-    val root3: Number = Number(3).sqrt
+    val root3: Number = √(3)
     val e1: BiFunction = BiFunction(One, Literal(root3), Sum)
     val e2: BiFunction = BiFunction(Zero, BiFunction(Literal(root3), MinusOne, Product), Sum)
     val e: DyadicTriple = Sum ~ e1 ~ e2

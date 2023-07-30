@@ -212,7 +212,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  def asNumber: Option[Number] = Some(Number(this))
+  def asNumber: Option[Number] = Some(this)
 
   /**
     * Method to render this NumberLike in a presentable manner.

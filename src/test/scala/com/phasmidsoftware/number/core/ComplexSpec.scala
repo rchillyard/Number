@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{half, negate, one, zeroR}
+import com.phasmidsoftware.number.core.Number.{half, negate, one, zeroR, √}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -99,16 +99,16 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "multiply" in {
     val z1 = Expression(c1_2) * c2_0
-    z1.materialize shouldBe ComplexCartesian(Number.two, Number(4))
+    z1.materialize shouldBe ComplexCartesian(Number.two, 4)
   }
 
   it should "unary_$minus" in {
     val z = -c1_2
-    z shouldBe ComplexCartesian(Number.negOne, Number(-2))
+    z shouldBe ComplexCartesian(Number.negOne, -2)
   }
 
   it should "divide" in {
-    val z = ComplexCartesian(Number.two, Number(4))
+    val z = ComplexCartesian(Number.two, 4)
     val z1: Expression = Literal(z) / c2_0
     (z1 * Expression(c2_0)).materialize shouldBe z
     z1.materialize shouldBe c1_2
@@ -231,7 +231,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "invert" in {
     val z = c1_2.invert
-    z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
+    z shouldBe ComplexCartesian(r"1/5", r"-2/5")
   }
 
   it should "numberProduct" in {
@@ -243,11 +243,17 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "convertToPolar" in {
-    val expected: Complex = ComplexPolar(Number(5).sqrt, Number(0.35241638235, Radian))
+    val expected: Complex = ComplexPolar(√(5), Number(0.35241638235, Radian))
     val actual: ComplexPolar = convertToPolar(c1_2).asInstanceOf[ComplexPolar]
     convertToCartesian(actual).compare(c1_2) shouldBe 0
     actual.compare(c1_2) shouldBe 0
     actual shouldEqual expected
+  }
+
+  it should "convertToPolar 2" in {
+    val z: Complex = √(5).asComplex
+    z shouldBe ComplexPolar(√(5), zeroR, 2)
+    z.render shouldBe "±√5"
   }
 
   it should "check that math.atan really works" in {
@@ -278,7 +284,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "convertToCartesian" in {
-    convertToCartesian(p1_pi) shouldBe ComplexCartesian(Number(-1), Number.zero)
+    convertToCartesian(p1_pi) shouldBe ComplexCartesian(-1, 0)
   }
 
   behavior of "render"

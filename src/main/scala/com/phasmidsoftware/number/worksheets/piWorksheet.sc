@@ -1,10 +1,14 @@
-import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.{Constants, Number, Real}
 import scala.util.Random
 
 // The following are all ways of getting 𝛑 as an exact constant...
 Number.pi
 Number.`𝛑`
 Number("1\uD835\uDED1")
+Constants.pi
+Constants.`𝛑`
+Real("\uD835\uDED1")
+
 
 def getPoints(n: Int)(implicit r: Random): LazyList[(Double, Double)] = {
   def getCoordinate: Double = (r.nextDouble() - 0.5) * 2
@@ -38,6 +42,8 @@ val pif = for {p1 <- Future(calculatePi(N))
                } yield (p1 + p2) / 2 // (p1 + p2 + p3 + p4) / 4
 
 import scala.language.postfixOps
+
+println("Don't worry--we're waiting for 100 seconds")
 
 Await.result(pif, 100 second)
 

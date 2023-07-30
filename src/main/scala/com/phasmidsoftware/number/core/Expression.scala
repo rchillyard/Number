@@ -90,6 +90,7 @@ object Expression {
     case Constants.minusOne => MinusOne
     case Constants.two => Two
     case Constants.pi => ConstPi
+    case Constants.twoPi => ConstPi * 2
     case Constants.e => ConstE
     case _ => Literal(x)
   }
@@ -351,7 +352,7 @@ object Literal {
 
   def apply(x: Int): Literal = Literal(Real(x))
 
-  def apply(x: Rational): Literal = Literal(Number(x))
+  def apply(x: Rational): Literal = Literal(Real(x))
 
   def apply(x: Double): Literal = Literal(Real(x))
 
@@ -656,7 +657,7 @@ class ExpressionFunction(val f: Number => Number, val name: String) extends (Fie
     * @return the result of f(x).
     */
   override def apply(x: Field): Field =
-    recover((x.asNumber map f map (Real(_))), ExpressionException(s"logic error: ExpressionFunction.apply($x)"))
+    recover(x.asNumber map f map (Real(_)), ExpressionException(s"logic error: ExpressionFunction.apply($x)"))
 
   /**
     * Generate helpful debugging information about this ExpressionFunction.

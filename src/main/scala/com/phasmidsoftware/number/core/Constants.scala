@@ -14,6 +14,7 @@ object Constants {
   val half: Real = Real(Number.half)
   val zero: Real = Real(Number.zero)
   val pi: Real = Real(Number.pi)
+  val twoPi: Real = Real(Number.twoPi)
   val piBy2: Real = Real(Number.piBy2)
   //noinspection NonAsciiCharacters
   val `𝛑`: Real = Real(Number.`𝛑`)
@@ -73,7 +74,7 @@ object Constants {
   /**
     * [[https://en.wikipedia.org/wiki/Speed_of_light]] (exact).
     */
-  lazy val c: Real = Real(Number("299792458")) // m sec ^ -1
+  lazy val c: Real = Real("299792458") // m sec ^ -1
 
   /**
     * [[https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio]]

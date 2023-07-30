@@ -208,7 +208,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       }
       s"${sign}i${x.abs}"
     case (Number.zeroR, z, n) =>
-      val x = Number.zeroR.doAdd(Number.twoPi.doMultiply(Number(z)).doDivide(n))
+      val x = Number.zeroR.doAdd(Number.twoPi.doMultiply(z).doDivide(n))
       val sign = (x, polar) match {
         case (Number.zero, true) => ""
         case (_, true) => ""
@@ -634,7 +634,11 @@ object ComplexPolar {
 
   def apply(r: Number, theta: Number): ComplexPolar = apply(r, theta, 1)
 
-  def apply(r: Number): ComplexPolar = apply(r, Number.zeroR)
+  def apply(r: Number): ComplexPolar = r match {
+    case Number(_, Root(n)) => apply(r, Number.zeroR, n)
+    case _ => apply(r, Number.zeroR)
+  }
+
 
   def apply(r: Int, theta: Number): ComplexPolar = apply(Number(r), theta)
 
