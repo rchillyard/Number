@@ -46,12 +46,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for Exp(1)" in {
     val x = Function(One, Exp)
     val result = x.materialize
-    result shouldBe Real.e
+    result shouldBe Constants.e
   }
   it should "work for Exp(Log(2))" in {
     val x = Function(Function(Two, Log), Exp)
     val result = x.materialize
-    result shouldBe Real.two
+    result shouldBe Constants.two
   }
 
   behavior of "Expression"
@@ -102,7 +102,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate sin pi/2" in {
     val x: Expression = ConstPi / 2
     val y: Expression = x.sin
-    y.materialize shouldBe Real.one
+    y.materialize shouldBe Constants.one
   }
   it should "evaluate atan" in {
     Zero.atan(One).materialize.asNumber shouldBe Some(Number.piBy2)
@@ -113,7 +113,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate ln E" in {
     val x: Expression = ConstE
     val y: Expression = x.log
-    y.materialize shouldBe Real.one
+    y.materialize shouldBe Constants.one
   }
   it should "evaluate ln 2E" in {
     val x: Expression = ConstE * 2
@@ -143,18 +143,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Number.pi.isExact(None) shouldBe true
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
-    (One + Real.two).isExact shouldBe true
-    (ConstPi + Real.pi).isExact(Some(Radian)) shouldBe true
+    (One + Constants.two).isExact shouldBe true
+    (ConstPi + Constants.pi).isExact(Some(Radian)) shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Literal(2) * Real.e).isExact shouldBe false
+    (Literal(2) * Constants.e).isExact shouldBe false
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
-    val expression = Literal(1) * Real.e
+    val expression = Literal(1) * Constants.e
     expression.isExact(None) shouldBe true
   }
   it should "be true for product of zero exact Numbers and a NatLog factor" in {
-    (Literal(0) * Real.e).isExact shouldBe true
+    (Literal(0) * Constants.e).isExact shouldBe true
   }
 
   behavior of "depth"
@@ -174,7 +174,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "Euler"
   it should "work" in {
     val iPi = ComplexCartesian(0, Number.pi)
-    val euler: Expression = Expression(Real.e) ^ iPi
-    euler.materialize shouldBe Real.negOne
+    val euler: Expression = Expression(Constants.e) ^ iPi
+    euler.materialize shouldBe Constants.minusOne
   }
 }

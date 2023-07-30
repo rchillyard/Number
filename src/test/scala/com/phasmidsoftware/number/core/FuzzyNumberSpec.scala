@@ -115,14 +115,14 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
   it should "add 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
-    val z = convertToNumber(x add Real.two)
+    val z = convertToNumber(x add Constants.two)
     z.value shouldBe Right(3)
     z.factor shouldBe Scalar
     z.fuzz should matchPattern { case None => }
   }
   it should "add 1.* and 2" in {
     val xy: Try[Number] = Number.parse("1.*")
-    val yy = Success(Real.two)
+    val yy = Success(Constants.two)
     val zy = for (x <- xy; y <- yy) yield convertToNumber(x add y)
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
@@ -144,7 +144,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     xy.get.fuzz.get.normalizeShape should matchPattern { case AbsoluteFuzz(0.2886751345948129, Gaussian) => }
     val yy = Number.parse("2.*")
     yy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
-    val zy = for (x <- xy; y <- yy) yield convertToNumber(x add Real(y))
+    val zy: Try[Number] = for (x <- xy; y <- yy) yield convertToNumber(x add Real(y))
     zy should matchPattern { case Success(_) => }
     zy.get.value shouldBe Right(3)
     zy.get.factor shouldBe Scalar
@@ -155,7 +155,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "times"
   it should "multiply 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), Scalar, None)
-    val y = Real.two
+    val y = Constants.two
     val z: Number = convertToNumber((Literal(x) * y).materialize)
     z.value shouldBe Right(2)
     z.factor shouldBe Scalar
@@ -163,7 +163,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "multiply 1.* and 2" in {
     val xy: Try[Number] = Number.parse("1.*")
-    val yy = Success(Real.two)
+    val yy = Success(Constants.two)
     val zy = for (x <- xy; y <- yy) yield Literal(x) * y
     zy should matchPattern { case Success(_) => }
     val result = convertToNumber(zy.get.materialize)
@@ -174,7 +174,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "multiply 1 and 2.*" in {
     val xy = Number.parse("2.*")
-    val yy = Success(Real.one)
+    val yy = Success(Constants.one)
     val zy: Try[Expression] = for (x <- xy; y <- yy) yield Literal(x) * y
     zy should matchPattern { case Success(_) => }
     val result = convertToNumber(zy.get.materialize)

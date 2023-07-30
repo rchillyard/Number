@@ -30,7 +30,7 @@ object Approximation {
         p <- evaluate(f, dfByDx)(x)
         q <- evaluateWithoutDerivative(dfByDx)(x)
         r = negate(convertToNumber(p.divide(Real(q))))
-        s <- correction(p, q, x, r, functions)
+        s <- correction(q, x, r, functions)
         t = x.doAdd(convertToNumber(Real(s)))
       } yield t
   }
@@ -106,14 +106,13 @@ object Approximation {
     * This method evaluates the correction for higher derivatives.
     * NOTE only the Halley version is currently implemented (where n = 3).
     *
-    * @param f     the value of f(x).
     * @param fDash the value of f'(x).
     * @param x     the value of x.
     * @param h     the negative of the ratio of f(x) to f'(x), i.e. the correction according to Newton's method.
     * @param fs    the list of derivative functions: f, f', f&#39;&#39;, etc. (the first two are ignored here).
     * @return the correction term.
     */
-  private def correction(f: Number, fDash: Number, x: Number, h: Number, fs: Seq[Double => Double]) = fs.length match {
+  private def correction(fDash: Number, x: Number, h: Number, fs: Seq[Double => Double]) = fs.length match {
     case n if n < 3 =>
       Success(h)
     case 3 => // Halley's method

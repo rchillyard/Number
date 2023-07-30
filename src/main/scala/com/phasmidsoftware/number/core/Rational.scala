@@ -241,6 +241,8 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
 
 object Rational {
 
+  implicit def convertToNumber(x: Rational): Number = Number(x)
+
   /**
     * Implicit class RationalOps to allow an Int to be treated as a Rational for the purpose
     * of allowing operations with right-hand Rational arguments or for division by an Int.

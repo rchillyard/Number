@@ -85,12 +85,12 @@ object Expression {
     * CONSIDER improving the logic.
     */
   def apply(x: Field): Expression = x match {
-    case Real.zero => Zero
-    case Real.one => One
-    case Real.negOne => MinusOne
-    case Real.two => Two
-    case Real.pi => ConstPi
-    case Real.e => ConstE
+    case Constants.zero => Zero
+    case Constants.one => One
+    case Constants.minusOne => MinusOne
+    case Constants.two => Two
+    case Constants.pi => ConstPi
+    case Constants.e => ConstE
     case _ => Literal(x)
   }
 
@@ -117,8 +117,8 @@ object Expression {
     */
   val zero: Expression = Zero
   val one: Expression = One
-  val pi: Expression = Expression(Real.pi)
-  val e: Expression = Expression(Real.e)
+  val pi: Expression = Expression(Constants.pi)
+  val e: Expression = Expression(Constants.e)
 
   /**
     * Other useful expressions.
@@ -626,7 +626,7 @@ case object Sine extends ExpressionFunction(x => x.sin, "sin")
 
 case object Cosine extends ExpressionFunction(x => x.cos, "cos")
 
-case object Atan extends ExpressionBiFunction((x, y) => Real((for (a <- x.asNumber; b <- y.asNumber) yield a atan b).getOrElse(Number.NaN)), "atan", false, false)
+case object Atan extends ExpressionBiFunction((x: Field, y: Field) => (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN)), "atan", false, false)
 
 case object Log extends ExpressionFunction(x => x.log, "log")
 
@@ -656,7 +656,7 @@ class ExpressionFunction(val f: Number => Number, val name: String) extends (Fie
     * @return the result of f(x).
     */
   override def apply(x: Field): Field =
-    Real(recover(x.asNumber map f, ExpressionException(s"logic error: ExpressionFunction.apply($x)")))
+    recover((x.asNumber map f map (Real(_))), ExpressionException(s"logic error: ExpressionFunction.apply($x)"))
 
   /**
     * Generate helpful debugging information about this ExpressionFunction.

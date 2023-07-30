@@ -1,8 +1,10 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers._
+import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.Field.convertToNumber
+import com.phasmidsoftware.number.core.Number.√
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -55,18 +57,18 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchValue"
   it should "work with value 1" in {
-    val f: em.ExpressionMatcher[Field] = em.matchValue(Real.one)
+    val f: em.ExpressionMatcher[Field] = em.matchValue(Constants.one)
     val e = Literal(one)
     f(e).successful shouldBe true
   }
 
   behavior of "|"
   it should "work with | 1 or 2" in {
-    val f = em.matchValue(Real.one)
-    val g = f | em.matchValue(Real.pi)
+    val f = em.matchValue(Constants.one)
+    val g = f | em.matchValue(Constants.pi)
     f(Literal(one)).successful shouldBe true
-    g(Literal(Real.pi)).successful shouldBe true
-    g(Literal(Real.e)).successful shouldBe false
+    g(Literal(Constants.pi)).successful shouldBe true
+    g(Literal(Constants.e)).successful shouldBe false
   }
 
   import com.phasmidsoftware.number.core.Expression.ExpressionOps
@@ -106,7 +108,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = x + y
     val p = em.simplifier
     val result = p(z) map (_.materialize)
-    result should matchPattern { case em.Match(Real.zero) => }
+    result should matchPattern { case em.Match(Constants.zero) => }
   }
   it should "cancel -1 and - 1" in {
     sb.append("cancel -1 and - 1:\n")
@@ -115,7 +117,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = y + x
     val p = em.simplifier
     val result = p(z) map (_.materialize)
-    result should matchPattern { case em.Match(Real.zero) => }
+    result should matchPattern { case em.Match(Constants.zero) => }
   }
   it should "cancel 1 and - -1 b" in {
     sb.append("cancel 1 and - -1 b:\n")
@@ -123,7 +125,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = MinusOne * x
     val z = x + y
     val result = em.simplifier(z) map (_.materialize)
-    result should matchPattern { case em.Match(Real.zero) => }
+    result should matchPattern { case em.Match(Constants.zero) => }
   }
   it should "cancel -1 and - 1 b" in {
     sb.append("cancel -1 and - 1 b:\n")
@@ -131,7 +133,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = MinusOne * x
     val z = y + x
     val result = em.simplifier(z) map (_.materialize)
-    result should matchPattern { case em.Match(Real.zero) => }
+    result should matchPattern { case em.Match(Constants.zero) => }
   }
   it should "cancel 2 * 1/2 (a)" in {
     val x = Expression.one * 2
@@ -210,7 +212,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "show ^2 and sqrt for illustrative purposes (a)" in {
     val seven = Number(7)
     val x = seven.sqrt
-    val y: Expression = Literal(x) ^ Real.two
+    val y: Expression = Literal(x) ^ Constants.two
     val result = convertToNumber(y.materialize)
     result.isExact(None) shouldBe true
     result shouldEqual Number(7)
@@ -305,14 +307,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val k: em.MatchResult[Expression] = z flatMap em.simplifier
     k shouldBe em.Match(Literal(-2))
   }
-  // NOTE: this will succeed only if we allow simplifications which reduce depth (but are not necessarily exact)
-  // TODO fix problem with distributePowerPower
-  // CONSIDER that this is actually working as it should.
-  ignore should "simplify 1" in {
+  it should "simplify 1" in {
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
     val z = p(x)
-    z shouldBe em.Match(BiFunction(Literal(3), Literal(0.5), Power))
+    z shouldBe em.Match(Literal(±(√(3))))
   }
   it should "simplify 1 + 2 - 2" in {
     val p = em.biFunctionSimplifier
@@ -334,8 +333,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = em.matchTwoDyadicLevels & em.matchAndCollectTwoDyadicLevels
     import em.TildeOps
     val e: Number = Number.e
-    val x: Expression = Literal(e) * Real.two
-    val y: Expression = Expression(Real.two).reciprocal
+    val x: Expression = Literal(e) * Constants.two
+    val y: Expression = Expression(Constants.two).reciprocal
     val result = p(Product ~ x ~ y)
     result.successful shouldBe true
     result.get shouldBe ConstE
@@ -362,25 +361,25 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify e * 2 / 2" in {
     val p = em.biFunctionMatcher
     import em.TildeOps
-    val e: Real = Real.e
-    val x: Expression = Literal(e) * Real.two
-    val y: Expression = Expression(Real.two).reciprocal
+    val e: Field = Constants.e
+    val x: Expression = Literal(e) * Constants.two
+    val y: Expression = Expression(Constants.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(Expression(e))
   }
   it should "simplify root3 * 2 / 2" in {
     val p = em.biFunctionMatcher
     import em.TildeOps
     val root3: Number = Number(3).sqrt
-    val x: Expression = Literal(root3) * Real.two
-    val y: Expression = Expression(Real.two).reciprocal
+    val x: Expression = Literal(root3) * Constants.two
+    val y: Expression = Expression(Constants.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(Literal(root3))
   }
   it should "simplify root4 * 2 / 2" in {
     val p = em.biFunctionMatcher
     import em.TildeOps
     val root4: Number = Number(4).sqrt
-    val x = Literal(root4) * Real.two
-    val y: Expression = Expression(Real.two).reciprocal
+    val x = Literal(root4) * Constants.two
+    val y: Expression = Expression(Constants.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(Literal(root4))
   }
   it should "distribute" in {
@@ -608,10 +607,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   // TODO fix Issue #57
   ignore should "simplify multiple similar ops" in {
-    em.simplifier(Expression(2) * 3 * Real.e * 5) shouldBe em.Match(ConstE * 30)
+    em.simplifier(Expression(2) * 3 * Constants.e * 5) shouldBe em.Match(ConstE * 30)
     // TODO we would like the following to be ConstE * 30
     //    em.simplifier(ConstE * 2 * 3 * 5) shouldBe em.Match(ConstE * 2 * 15)
-    em.simplifier(Expression(5) * 2 * 3 * Real.e) shouldBe em.Match(ConstE * 30)
+    em.simplifier(Expression(5) * 2 * 3 * Constants.e) shouldBe em.Match(ConstE * 30)
   }
 
   behavior of "two levels"

@@ -413,13 +413,11 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
       case Scalar => Real(this)
       case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
       case Radian => Real(this) // Number.modulate(this) NOTE: we do modulation at other times
-      case _ =>
-        val number = scale(Scalar)
-        Real(number)
+      case _ => Real(scale(Scalar))
     }
     z match {
       case Real(fuzzyNumber: FuzzyNumber) => Real(fuzzyNumber.normalizeFuzz)
-      case Real(x) => Real(x)
+      case r@Real(_) => r
       case x: Complex => x
       case x => throw NumberException(s"normalize problem: $x")
     }

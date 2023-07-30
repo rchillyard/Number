@@ -50,9 +50,11 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @param x the other field.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(x: Field): Boolean = x match {
-    case Real(n) => this isSame n.asComplex
-    case c: Complex => (this subtract c).isZero
+  def isSame(x: Field): Boolean = (this, x) match {
+    case (z, Real(n)) => z isSame n.asComplex
+    case (c1@ComplexCartesian(_, _), c2@ComplexPolar(_, _, _)) => c2.isSame(c1)
+    case (c1@ComplexPolar(_, _, _), c2@ComplexCartesian(_, _)) => c1.isSame(convertToPolar(c2))
+    case (c1, c2) => (c1 subtract c2).isZero
   }
 
   /**
@@ -116,11 +118,11 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return this Number raised to power p.
     */
   def power(p: Field): Field = (this, p) match {
-    case (_, Real.zero) => Real.one
-    case (_, Real.one) => this
-    case (_, Real.negOne) => invert
-    case (ComplexPolar(Number.e, Number.zeroR, _), ComplexCartesian(Number.zero, Number.pi)) => Real.negOne
-    case (ComplexCartesian(_, Number.zeroR), Real(x)) => power(x)
+    case (_, Constants.zero) => Constants.one
+    case (_, Constants.one) => this
+    case (_, Constants.minusOne) => invert
+    case (ComplexPolar(Number.e, Number.zeroR, _), ComplexCartesian(Number.zero, Number.pi)) => Constants.minusOne
+    case (ComplexCartesian(_, Number.zeroR), x) => power(x)
     case _ => throw NumberException(s"power not supported for: $this ^ $p")
   }
 

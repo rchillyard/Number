@@ -227,7 +227,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def add(x: Field): Field = x match {
     case Real(n) if n.isImaginary => ComplexCartesian.fromImaginary(n) doAdd Complex(this)
     case Real(n) => Real(doAdd(n))
-    case c@BaseComplex(_, _) => c.add(Real(this))
+    case c@BaseComplex(_, _) => c.add(this.asComplex)
   }
 
   /**
@@ -237,14 +237,14 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return the product.
     */
   def multiply(x: Field): Field = (this, x) match {
-    case (Number.zero, _) | (_, Real.zero) => Real(Number.zero)
+    case (Number.zero, _) | (_, Constants.zero) => Constants.zero
     case (Number.one, _) => x
-    case (_, Real.one) => Real(this)
-    case (Number.i, Real.pi) | (Number.pi, Real.i) => Constants.iPi
-    case (_, Real.i) => multiply(ComplexCartesian(0, 1))
+    case (_, Constants.one) => Real(this)
+    case (Number.i, Constants.pi) | (Number.pi, Constants.i) => Constants.iPi
+    case (n, Constants.i) => n.asComplex.rotate
     case (Number.i, _) => x.multiply(ComplexCartesian(0, 1))
     case (_, Real(n)) => doMultiply(n).normalize
-    case (_, c@BaseComplex(_, _)) => c.multiply(Real(this))
+    case (_, c@BaseComplex(_, _)) => c.multiply(this.asComplex)
   }
 
   /**
@@ -687,6 +687,10 @@ object Number {
     */
   implicit def convertInt(x: Int): Number = Number(x)
 
+//  implicit def convertToReal(x: Number): Real = Real(x)
+
+//  implicit def convertToField(x: Number): Field = Real(x)
+
   /**
     * Implicit class which takes a Double, and using method ~ and an Int parameter,
     * yields a Number with the appropriate degree of fuzziness.
@@ -786,6 +790,24 @@ object Number {
       * @return a Number whose value is x / y.
       */
     def :/(y: Int): Number = /(Number(y))
+
+    /**
+      * Raise x to the power of y (an Int) and yield a Number.
+      *
+      * @param y the exponent, an Int.
+      * @return a Number whose value is x / y.
+      */
+    def ^(y: Int): Number = x ^ y
+
+    /**
+      * Raise x to the power of y (an Rational) and yield a Number.
+      *
+      * @param y the exponent, a Rational.
+      * @return a Number whose value is x / y.
+      */
+    def ^(y: Rational): Number = x ^ y
+
+//    def unary_√ : Number = x ^ Rational.half
   }
 
   /**
@@ -1164,8 +1186,7 @@ object Number {
     case (a, b) if a == b => n
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
-    case (Root(_), Scalar) if Value.signum(n.value) < 0 =>
-      Number.NaN
+    case (Root(_), Scalar) if Value.signum(n.value) < 0 => Number.NaN
     case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
     case (NatLog, PureNumber(_)) | (PureNumber(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
@@ -1287,6 +1308,8 @@ object Number {
     case Scalar => x.make(Root2).simplify
     case _ => x.power(Number.half)
   }
+
+  def √(x: Int): Number = x.sqrt
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.

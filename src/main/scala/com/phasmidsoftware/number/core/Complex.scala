@@ -12,20 +12,6 @@ import scala.util._
 trait Complex extends Field {
 
   /**
-    * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
-    *
-    * @return true if the imaginary part is zero (argument is a multiple of pi).
-    */
-  def isReal: Boolean
-
-  /**
-    * Method to determine if this Complex is imaginary-valued (i.e. the point lies on the imaginary axis).
-    *
-    * @return true if the real part is zero (argument is a multiple of pi/2).
-    */
-  def isImaginary: Boolean
-
-  /**
     * Method to determine the modulus of this Complex number.
     *
     * @return the modulus of this Complex.

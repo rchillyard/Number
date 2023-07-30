@@ -25,6 +25,20 @@ trait Field extends NumberLike with Ordered[Field] with Numerical {
   }
 
   /**
+    * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
+    *
+    * @return true if the imaginary.
+    */
+  def isReal: Boolean
+
+  /**
+    * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
+    *
+    * @return true if this is imaginary.
+    */
+  def isImaginary: Boolean
+
+  /**
     * Method to determine if this Field is equivalent to another Field (x).
     *
     * @param x the other field.
@@ -114,7 +128,6 @@ trait Field extends NumberLike with Ordered[Field] with Numerical {
     * @return this Field raised to power p.
     */
   def power(p: Field): Field
-
 }
 
 object Field {
@@ -143,82 +156,4 @@ object Field {
       */
     def same(p: Double)(x1: Field, x2: Field): Boolean = x1.add(-x2).asNumber.exists(_.isProbablyZero(p))
   }
-
-}
-
-object Constants {
-  val sPhi = "1.618033988749894"
-  val sGamma = "0.57721566490153286060651209008240243104215933593992*"
-  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
-  val sBoltzmann = "1380649.E-29" // J K ^ -1
-
-  val one: Real = Real.one
-  val minusOne: Field = -one
-  val two: Real = Real.two
-  val zero: Real = Real.zero
-  val pi: Real = Real.pi
-  //noinspection NonAsciiCharacters
-  val `𝛑`: Real = Real(Number.`𝛑`)
-  val e: Real = Real.e
-  val i: Complex = Complex.i
-  /**
-    * Exact value of iPi.
-    */
-  val iPi: Complex = ComplexCartesian(0, Number.pi)
-
-  // CONSIDER making the following Complex
-  val root2: Real = Real(Number.root2)
-  val root3: Real = Real(Number.root3)
-  val root5: Real = Real(Number.root5)
-  /**
-    * Exact value of the Complex Number ±√2
-    */
-  val root2s: Field = ComplexPolar(Number.root2, Number.zeroR, 2)
-
-  import com.phasmidsoftware.number.core.Number.FuzzOps
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Golden_ratio]]
-    */
-  lazy val phi: Number = Number(sPhi)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Euler–Mascheroni_constant]].
-    */
-  lazy val gamma: Number = Number(sGamma)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Gravitational_constant]]
-    */
-  lazy val G: Number = Number(sG)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Fine-structure_constant]]
-    */
-  lazy val alpha: Number = 0.0072973525693 ~ 11 // (dimensionless)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Avogadro_constant]] (exact)
-    */
-  lazy val avagadro: Number = Number(6.0221407600E23)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Boltzmann_constant]] (exact).
-    */
-  lazy val boltzmann: Number = Number(sBoltzmann)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Planck_constant]] (exact).
-    */
-  lazy val planck: Number = Number("6.6260701500E-34") // J Hz ^ -1
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Speed_of_light]] (exact).
-    */
-  lazy val c: Number = Number("299792458") // m sec ^ -1
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio]]
-    */
-  lazy val mu: Number = 1836.15267343 ~ 11 // (dimensionless)
 }

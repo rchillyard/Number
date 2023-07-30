@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.Real.createFromRealField
+import scala.language.implicitConversions
 import scala.util.Try
 
 /**
@@ -27,6 +28,20 @@ case class Real(x: Number) extends Field {
     * @return true if the magnitude of this Field is zero.
     */
   def isZero: Boolean = x.isZero
+
+  /**
+    * Method to determine if this Complex is real-valued.
+    *
+    * @return true if this is not imaginary.
+    */
+  def isReal: Boolean = !isImaginary
+
+  /**
+    * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
+    *
+    * @return true if this is a root of a negative number.
+    */
+  def isImaginary: Boolean = x.isImaginary
 
   /**
     * Method to determine if this Field is equivalent to another Field (x).
@@ -87,7 +102,7 @@ case class Real(x: Number) extends Field {
     * @return this Real raised to power p.
     */
   def power(p: Number): Field = p match {
-    case y@ExactNumber(Value(_), _) => Real(x.power(y)) // FIXME
+    case y@ExactNumber(Value(_), _) => x.power(Real(y))
     case ExactNumber(Value(_, _: Rational), _) => asComplex.power(p)
     case n => asComplex.power(n)
   }
@@ -103,7 +118,7 @@ case class Real(x: Number) extends Field {
     */
   def power(p: Field): Field = p match {
     case Real(m) if m.isRational => asComplex power m
-    case Real(m) => Real(x.power(m))
+    case Real(m) => x.power(Real(m))
     case c: Complex => asComplex power c
   }
 //
@@ -112,7 +127,7 @@ case class Real(x: Number) extends Field {
 //    case _ => throw NumberException(s"Real.createFromNumberField: x is not a Real: $x")
 //  }
 
-  def sqrt: Field = power(Real(Number(Rational.half)))
+  def sqrt: Field = power(Real(Rational.half))
 
   /**
     * Yields the inverse of this Real.
@@ -127,7 +142,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the sine of this.
     */
-  def sin: Real = Real(x.sin)
+  def sin: Field = Real(x.sin)
 
   /**
     * Method to determine the cosine of this Real.
@@ -135,7 +150,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the cosine.
     */
-  def cos: Real = Real(x.cos)
+  def cos: Field = Real(x.cos)
 
   /**
     * Method to determine the tangent of this Real.
@@ -143,7 +158,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the tangent
     */
-  def tan: Real = Real(x.tan)
+  def tan: Field = Real(x.tan)
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -151,7 +166,7 @@ case class Real(x: Number) extends Field {
     * @param y the opposite length
     * @return the angle defined by x = this, y = y
     */
-  def atan(y: Real): Real = Real(x.atan(y.x))
+  def atan(y: Real): Field = Real(x.atan(y.x))
 
   /**
     * Method to determine the natural log of this Real.
@@ -159,7 +174,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the natural log of this.
     */
-  def log: Real = Real(x.log)
+  def log: Field = Real(x.log)
 
   /**
     * Method to raise e to the power of this Real.
@@ -167,7 +182,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the e to the power of this.
     */
-  def exp: Real = Real(x.exp)
+  def exp: Field = Real(x.exp)
 
   /**
     * Method to determine the sense of this Real: negative, zero, or positive.
@@ -239,29 +254,29 @@ object Real {
   def apply(r: Rational): Real = Real(Number(r))
 
   // TODO remove the ones that are already defined in Constants
-  val zero: Real = Real(0)
-  val one: Real = Real(1)
-  val negOne: Real = Real(-1)
-  val two: Real = Real(2)
-  val three: Real = Real(3)
-  val half: Real = Real(Rational.half)
-  val ten: Real = Real(10)
-  val pi: Real = Real(Number.pi)
-  val piBy2: Real = Real(Number.piBy2)
-  val e: Real = Real(Number.e)
-  val i: Real = Real(Number.i)
-  val root2: Real = Real(Number.root2)
-  val NaN: Real = Real(Number.NaN)
+//  val zero: Real = Real(0)
+//  val one: Real = Real(1)
+//  val negOne: Real = Real(-1)
+//  val two: Real = Real(2)
+//  val three: Real = Real(3)
+//  val half: Real = Real(Rational.half)
+//  val ten: Real = Real(10)
+//  val pi: Real = Real(Number.pi)
+//  val piBy2: Real = Real(Number.piBy2)
+//  val e: Real = Real(Number.e)
+//  val i: Real = Real(Number.i)
+//  val root2: Real = Real(Number.root2)
+//  val NaN: Real = Real(Number.NaN)
 
-  lazy val phi: Real = Real(Constants.phi)
-  lazy val gamma: Real = Real(Constants.gamma)
-  lazy val G: Real = Real(Constants.G)
-  lazy val alpha: Real = Real(Constants.alpha)
-  lazy val avagadro: Real = Real(Constants.avagadro)
-  lazy val boltzmann: Real = Real(Constants.boltzmann)
-  lazy val planck: Real = Real(Constants.planck)
-  lazy val c: Real = Real(Constants.c)
-  lazy val mu: Real = Real(Constants.mu)
+//  lazy val phi: Real = Real(Constants.phi)
+//  lazy val gamma: Real = Real(Constants.gamma)
+//  lazy val G: Real = Real(Constants.G)
+//  lazy val alpha: Real = Real(Constants.alpha)
+//  lazy val avagadro: Real = Real(Constants.avagadro)
+//  lazy val boltzmann: Real = Real(Constants.boltzmann)
+//  lazy val planck: Real = Real(Constants.planck)
+//  lazy val c: Real = Real(Constants.c)
+//  lazy val mu: Real = Real(Constants.mu)
 
   def createFromRealField(x: Field): Real = x match {
     case r: Real => r
@@ -277,6 +292,8 @@ object Real {
     * @return a Number.
     */
   def parse(w: String): Try[Real] = Number.parse(w) map (Real(_))
+
+  implicit def convertFromNumber(x: Number): Field = Real(x)
 
   /**
     * Implicit class to operate on Numbers introduced as integers.
