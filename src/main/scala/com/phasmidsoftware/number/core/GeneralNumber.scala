@@ -451,6 +451,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
         case Success(b) => make(b).specialize
         case _ => this
       }
+    case Left(Left(Some(x))) if x.isNaN => Number.NaN
     // XXX Double case
     case d@Left(Left(Some(x))) =>
       // NOTE: here we attempt to deal with Doubles.

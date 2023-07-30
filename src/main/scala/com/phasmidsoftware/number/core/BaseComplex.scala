@@ -272,13 +272,20 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   def isReal: Boolean = y.isZero
 
   /**
+    * Method to determine if this Complex is imaginary-valued (i.e. the point lies on the imaginary axis).
+    *
+    * @return true if the real part is zero (argument is a multiple of pi/2).
+    */
+  def isImaginary: Boolean = x.isZero
+
+  /**
     * Method to determine the modulus of this Complex number.
     *
     * CONSIDER implementing real in the Complex trait (not just BaseComplex).
     *
     * @return the modulus of this Complex.
     */
-  def modulus: Number = convertToPolar(this).asInstanceOf[BaseComplex].real
+  def modulus: Number = if (isReal) real else if (isImaginary) imag else convertToPolar(this).asInstanceOf[BaseComplex].real
 
   /**
     * Change the sign of this Number.
@@ -476,6 +483,13 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   def isReal: Boolean = theta.doDivide(Number.pi).isInteger
 
   /**
+    * Method to determine if this Complex is imaginary-valued (i.e. the point lies on the imaginary axis).
+    *
+    * @return true if the real part is zero (argument is a multiple of pi/2).
+    */
+  def isImaginary: Boolean = rotate.isReal
+
+  /**
     * Method to determine the modulus of this Complex number.
     *
     * @return the modulus of this Complex.
@@ -500,7 +514,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the value of this * i.
     */
-  def rotate: BaseComplex = rotate(Number.piBy2)
+  def rotate: ComplexPolar = rotate(Number.piBy2)
 
   def modulusSquared: Number = r power two
 

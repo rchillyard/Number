@@ -88,7 +88,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if the prime factors only include 2 and/or 5.
     */
-  def isDecimal: Boolean = denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
+  def isDecimal: Boolean = isZero || denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
 
   lazy val maybeInt: Option[Int] = if (isWhole) Some(toInt) else None
 
@@ -230,7 +230,8 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
       forceToBigDecimal.toString + Ellipsis
   }
 
-  def forceToBigDecimal: BigDecimal = BigDecimal(n) / BigDecimal(d)
+  def forceToBigDecimal: BigDecimal = if (!isInfinity) BigDecimal(n) / BigDecimal(d) else
+    throw RationalException(s"cannot convert infinity to BigDecimal: $this")
 
   private lazy val denominatorPrimeFactors = Prime.primeFactors(d)
 
