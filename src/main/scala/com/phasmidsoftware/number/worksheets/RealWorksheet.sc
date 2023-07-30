@@ -1,22 +1,23 @@
 /**
-  * This is an example worksheet for Real.
-  * NOTE that Number is deprecated for application use -- it's designed for internal use.
-  */
+ * This is an example worksheet for Real.
+ * NOTE that Number is deprecated for application use -- it's designed for internal use.
+ */
 
+import com.phasmidsoftware.number.core.Number.one
 import com.phasmidsoftware.number.core.Rational.RationalHelper
-import com.phasmidsoftware.number.core.Real.{RealOps, _}
-import com.phasmidsoftware.number.core.{Field, Fuzzy, Number, Real}
+import com.phasmidsoftware.number.core.Real.RealOps
+import com.phasmidsoftware.number.core.{Field, Fuzzy, Number, Rational, Real}
 
-val three: Field = 2 + one
+val three: Number = 2 + one
 
 // NOTE see the corresponding expression in Expression.sc
-val half: Field = Real(Number(r"1/2"))
-val root3: Field = three power half
+val half: Rational = r"1/2"
+val root3: Field = three.doPower(Number(half))
 val twoFuzzy: Field = (root3 add one) multiply (root3 add -one)
 
-val ok = implicitly[Fuzzy[Field]].same(0.8)(twoFuzzy, Real.two)
+val ok = implicitly[Fuzzy[Field]].same(0.8)(twoFuzzy, Number.two)
 
-val two: Real = 1 + Real.one
+val two: Number = 1 + one
 
 val halfToo = 1 :/ 2
 

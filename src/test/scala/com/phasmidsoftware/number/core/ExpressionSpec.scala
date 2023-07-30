@@ -175,4 +175,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val euler: Expression = Expression(Number.e) ^ iPi
     euler.asNumber shouldBe Some(Number.negOne)
   }
+
+  behavior of "Foucault"
+  it should "Foucault1" in {
+    val g = Expression(Real("9.81*"))
+    val t = Expression(Real("16.5*"))
+    val tDividedBy2Pi = t / Number.twoPi
+    val tBy2PiSquared = tDividedBy2Pi ^ 2
+    val expression = g * tBy2PiSquared
+
+    // NOTE the length should be 67.65(25)
+    val length: Field = expression.materialize
+    val zo = for (n <- length.asNumber; x <- n.toDouble; f <- n.fuzz) yield x -> f
+    zo shouldBe Some(67.65145773485139 -> AbsoluteFuzz(0.2472742297247993, Gaussian))
+  }
 }

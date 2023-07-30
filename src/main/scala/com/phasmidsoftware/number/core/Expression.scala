@@ -90,6 +90,7 @@ object Expression {
     case Number.negOne => MinusOne
     case Number.two => Two
     case Number.pi => ConstPi
+    case Number.twoPi => ConstPi * 2
     case Number.e => ConstE
     case _ => Literal(x)
   }
