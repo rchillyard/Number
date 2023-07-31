@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
@@ -39,17 +43,17 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
     * Type alias for the kind of ExpressionMatcher which results in a possibly different Expression.
     */
-  type Transformer = ExpressionMatcher[Expression]
+  private type Transformer = ExpressionMatcher[Expression]
 
   /**
     * Type alias for a pair of expressions (purpose of this is solely for brevity).
     */
-  type Expressions = Expression ~ Expression
+  private type Expressions = Expression ~ Expression
 
   /**
     * Type alias for a monadic duple (purpose of this is solely for brevity).
     */
-  type MonadicDuple = ExpressionFunction ~ Expression
+  private type MonadicDuple = ExpressionFunction ~ Expression
 
   /**
     * Type alias for a dyadic triple (purpose of this is solely for brevity).
@@ -133,7 +137,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def matchSimplifyDyadicTerms: Matcher[DyadicTriple, Expression] = Matcher("matchSimplifyDyadicTerms") {
     case f ~ x ~ y => exactMaterializer(x).combine(evaluateExpression(f))(exactMaterializer(y))
   }
-
 
   /**
     * Matcher which succeeds if either of the BiFunction components of the input can be simplified to be exact.
@@ -274,7 +277,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def value: ExpressionMatcher[Field] = {
     case Literal(x) => Match(x)
-    case x@Number(_, _) => Match(x)
+    case x@Number(_, _) => Match(Real(x))
     case x: Constant => Match(x.materialize)
     case x => Miss("value", x)
   }
@@ -332,9 +335,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case `f` ~ BiFunction(a, b, `f`) ~ BiFunction(c, d, `f`) if f != Power =>
       matchMultiLevelsInner(f, matchMultiLevelsInner(f, matches)(f ~ a ~ b) ++ matches)(f ~ c ~ d)
     case `f` ~ x ~ BiFunction(a, b, `f`) if f != Power =>
-      matchMultiLevelsInner(f, exactMaterializer(x) +: matches)(f ~ a ~ b) // TEST me
+      matchMultiLevelsInner(f, exactMaterializer(x) +: matches)(f ~ a ~ b) // TESTME
     case `f` ~ BiFunction(a, b, `f`) ~ y if f != Power =>
-      matchMultiLevelsInner(f, exactMaterializer(y) +: matches)(f ~ a ~ b) // TEST me
+      matchMultiLevelsInner(f, exactMaterializer(y) +: matches)(f ~ a ~ b) // TESTME
     case `f` ~ x ~ y if f != Power => // NOTE: this is solely to terminate the recursion (we should have some other illegal ExpressionBiFunction to use).
       matchMultiLevelsInner(f, exactMaterializer(x) +: exactMaterializer(y) +: matches)(Power ~ Zero ~ Zero)
     case _ =>
@@ -366,11 +369,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case (Sum, Product, Product) if w == y =>
       replaceAndSimplify(x, z, w, Sum, Product)
     case (Sum, Product, Product) if w == z =>
-      replaceAndSimplify(x, y, w, Sum, Product) // TEST me
+      replaceAndSimplify(x, y, w, Sum, Product) // TESTME
     case (Sum, Product, Product) if x == y =>
-      replaceAndSimplify(w, z, x, Sum, Product) // TEST me
+      replaceAndSimplify(w, z, x, Sum, Product) // TESTME
     case (Sum, Product, Product) if x == z =>
-      replaceAndSimplify(w, y, x, Sum, Product) // TEST me
+      replaceAndSimplify(w, y, x, Sum, Product) // TESTME
     case (Product, Sum, Sum) =>
       val terms = cartesianProduct(w ~ x, y ~ z) map matchExpressionPair(Product)
       combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevels: no *++ terms to collect", f ~ g ~ w ~ x ~ h ~ y ~ z))
@@ -412,10 +415,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case (Sum, Product) if w == y =>
       combineAndSimplify(w, x, Product)
     case (Sum, Product) if x == y =>
-      combineAndSimplify(x, w, Product) // TEST me
+      combineAndSimplify(x, w, Product) // TESTME
     case (Product, Sum) =>
       val terms = Seq(w ~ y, x ~ y) map matchExpressionPair(Product)
-      combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsL: no *++ terms to collect", f ~ g ~ w ~ x ~ y)) // TEST me
+      combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsL: no *++ terms to collect", f ~ g ~ w ~ x ~ y)) // TESTME
     case _ =>
       Miss("collectTermsDyadicTwoLevelsL: functions don't match", f ~ g ~ w ~ x ~ y)
   }
@@ -437,14 +440,14 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   private def collectTermsDyadicTwoLevelsR(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, y: Expression): MatchResult[Expression] = (f, g) match {
     case (Product, Power) if w == x =>
-      combineAndSimplify(w, y, Power) // CONSIDER refactor using method, etc...  // TEST me
+      combineAndSimplify(w, y, Power) // CONSIDER refactor using method, etc...  // TESTME
     case (Sum, Product) if w == x =>
       combineAndSimplify(w, y, Product)
     case (Sum, Product) if w == y =>
-      combineAndSimplify(w, x, Product) // TEST me
+      combineAndSimplify(w, x, Product) // TESTME
     case (Product, Sum) =>
       val terms = Seq(w ~ x, w ~ y) map matchExpressionPair(Product)
-      combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsR: no *++ terms to collect", f ~ g ~ w ~ x ~ y)) // TEST me
+      combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevelsR: no *++ terms to collect", f ~ g ~ w ~ x ~ y)) // TESTME
     case _ =>
       Miss("collectTermsDyadicTwoLevelsR: functions don't match", f ~ g ~ w ~ x ~ y)
   }
@@ -458,7 +461,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         case Product => Number.one
         case _ => throw ExpressionException(s"combineTerms: function not supported: $function")
       }
-      val goodAccumulation: Number = good.foldLeft(start)((accum, term) => term match {
+      val goodAccumulation: Real = Real(good.foldLeft(start)((accum, term) => term match {
         case Match(t) =>
           function match {
             case Sum => accum doAdd t
@@ -466,7 +469,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
             case _ => throw ExpressionException(s"combineTerms: function not supported: $function")
           }
         case _ => accum
-      })
+      }))
       val result: Expression = bad.foldLeft(Expression(goodAccumulation))((accum, term) => term match {
         case Miss(_, t: Expression) =>
           function match {
@@ -562,7 +565,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
   private def complementaryMonadic(f: ExpressionFunction, g: ExpressionFunction) = (f, g) match {
     case (Exp, Log) => true
-    case (Log, Exp) => true  // TEST me
+    case (Log, Exp) => true  // TESTME
     case _ => false
   }
 

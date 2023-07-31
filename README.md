@@ -11,9 +11,9 @@
 # Number
 This project is about numbers and their mathematics.
 The chief features of this library are:
-* all numbers are exact wherever it is possible, including &#xD835;&#xDF00; and &#xD835;&#xDED1; (e and pi);
+* all numbers are exact _wherever it is possible_, including $e$ (Unicode: xD835DF00) and $\pi$ (Unicode: xD835DED1);
 * inexact numbers are represented along with their error bounds;
-* lazy evaluation to help avoid temporary inexact values from becoming part of a result;
+* lazy evaluation of _expressions_ to help avoid temporary inexact values from becoming part of a result;
 * there are several domains of _Number_ (expressed with different "factors") to support angles, logarithms, roots.
 
 There is no such thing as accidental loss of precision (at least, provided that code follows the recommendations).
@@ -21,7 +21,7 @@ For example, if you write:
 
     val x = 1 / 2
 
-your _x_ will be an _Int_ of value 0.
+your _x_ will be an _Int_ of value 0, because of the way Java-style operators work (in this case, integer division).
 
 However, if you write the idiomatically correct form:
 
@@ -40,9 +40,9 @@ They are [Number (part 1)](https://medium.com/codex/number-part-1-c98313903714),
 [Number (part 2)](https://scala-prof.medium.com/number-part-2-7925400624d5), and 
 [Fuzzy, lazy, functional numeric computing in Scala](https://medium.com/codex/fuzzy-lazy-functional-numeric-computing-in-scala-4b47588d310f)
 
-The Number project provides mathematical utilities where error bounds are tracked (and not forgotten).
+The _Number_ project provides mathematical utilities where error bounds are tracked (and not forgotten).
 All functions handle the transformation or convolution of error bounds appropriately.
-When the error bound is sufficiently large compared to a number, that number is considered to be zero.
+When the error bound is sufficiently large compared to a number, that number is considered to be zero (see **Comparison**).
 This implies that, when comparing numbers, any significant overlap of their error bounds will result in them testing
 as equal (according to the _compare_ function, but not the _equals_ function).
 
@@ -259,14 +259,24 @@ See [Field](https://en.wikipedia.org/wiki/Field_(mathematics)).
 A field supports operations such as addition, subtraction, multiplication, and division.
 We also support powers because, at least for integer powers, raising to a power is simply iterating over a number of multiplications.
 
+_Field_ extends _Numerical_ which, in turn, extends _NumberLike_ (see definitions below).
+
 The two types of _Field_ supported are _Real_ and _Complex_.
-_Real_ is a wrapper around a _Number_ (see below).
+_Real_ is a wrapper around a _Number_ (see below) while _Complex_ (see below) is a wrapper around two _Number_s (more or less).
 
 Number
 ======
-There are two kinds of _Number_: _ExactNumber_ and _FuzzyNumber_.
-A _FuzzyNumber_ has a fuzz quantity which is an optional _Fuzz[Double]_.
+_Number_ is a trait which extends _Numerical_ (but not _Field_).
 
+There are two subtypes of _Number_: _ExactNumber_ and _FuzzyNumber_.
+Each of these types extends an abstract type called _GeneralNumber_ (although this relationship is expected to change at some future point).
+_GeneralNumber_ has three members:
+* value (type _Value_): the numerical value of the number;
+* factor (type _Factor_): the domain of the value (scalar, radian, log, root, etc.);
+* (optional) fuzz (type _Fuzz\[Double]_): the fuzziness of the number (always _None_ for an _ExactNumber_).
+
+Value
+=====
 The "value" of a _Number_ is represented by the following type:
 
     type Value = Either[Either[Option[Double], Rational], Int]
@@ -274,10 +284,10 @@ The "value" of a _Number_ is represented by the following type:
 Thus, an integer _x_ is represented by _Right(x)_.
 A _Rational_ _x_ is represented by a _Left(Right(x))_.
 A _Double_ _x_ is represented by a _Left(Left(Some(x)))_.
-There is also an invalid _Number_ case which is represented by _Left(Left(Left(None)))_.
+There is also an invalid _Number_ case (_NaN_) which is represented by _Left(Left(Left(None)))_.
 
 This _Value_ is always of the rightmost type possible: given the various possible specializations.
-Thus, an _Int_ x which is in range will be represented by _Right(x)_.
+Thus, an _Int_ _x_ which is in range will be represented by _Right(x)_.
 Thus, a _Rational_ with numerator _x_ and unit denominator, where _x_ is in the range of an _Int_, will be represented by _Right(x)_.
 It is also possible that a _Double_ _x_ will be represented by a _Left(Right(Rational(x)))_.
 For this to happen, the value in question must have fewer than three decimal places (similar to the parsing scheme).
@@ -285,12 +295,12 @@ For this to happen, the value in question must have fewer than three decimal pla
 Complex
 =======
 There are two types of _Complex_: _ComplexCartesian_ and _ComplexPolar_.
-Complex numbers support all the _Field_ operations, as well as _modulus_ and _conjugate_.
+Complex numbers support all the _Field_ operations, as well as _modulus_, _argument_, _rotate_, and _conjugate_.
 It is easy to convert between the two types of _Complex_.
 
-The _ComplexPlanar_ object has an additional member (as well as the real and imaginary parts):
+The _ComplexPolar_ object has an additional member (as well as the real and imaginary parts):
 the number of branches.
-For example, the square root of 2 should have two branches: ±√2.
+For example, the square root of 2 should have two branches, yielding: $±√2$.
 
 There are two ways to parse a _String_ as a _Complex_ (in each case, the parsing of the _String_ is identical):
 * _Complex.parse(String)_: will return a _Try\[Complex]_;
@@ -302,20 +312,20 @@ For example (see also _Complex.sc_),
     C"1-i1" : ComplexCartesian(1,-1)
     C"1ipi" : ComplexPolar(1,pi)
 
-Factors
-=======
+Factor
+======
 There are three types of "factor:"
-* _PureNumber_, in particular, _Scalar_ (for ordinary dimensionless numbers), __Radian__ (formerly called _Pi_ and used to represent radians or any multiple of $\pi$);
-* _Logarithmic_, in particular, _NatLog_ (formerly called _E_), _Log2_, and _Log10_;
-* _Root_, in particular: _Root2_ (for square roots) and _Root3_ (for cube roots).
+* _PureNumber_, in particular, _Scalar_ (for ordinary dimensionless numbers), _Radian_ (used to represent radians or any multiple of $\pi$);
+* _Logarithmic_, in particular, _NatLog_, _Log2_, and _Log10_;
+* _Root(n)_, in particular: _Root2_ (for square roots) and _Root3_ (for cube roots).
 
 These allow certain quantities to be expressed exactly, for example, $sin(\frac{\pi}{3})$ is the square root of $\frac{3}{4}$.
 The true (_Scalar_) values of the logarithmic numbers are
 $e^x$, $2^x$, and $10^x$ respectively where $x$ is the "value" of the _Number_.
 
-Trigonometrical functions are designed to work with __Radian__ quantities.
-Such values are limited (modulated) to be in the range 0..2pi.
-However, this happens as the result of operations, so it is still possible to define a value of 2pi.
+Trigonometrical functions are designed to work with _Radian_ quantities.
+Such values are limited (modulated) to be in the range $-\pi...\pi$.
+However, this modulation typically happens inside operations or as part of _render_, so it is still possible to define a value of $2\pi$.
 For example, if you want to check that the sine of $\frac{\pi}{2}$ is equal to 1 exactly, then you should write the following:
 
     val target = (Number.pi/2).sin
@@ -325,7 +335,7 @@ Similarly, if you use the _atan_ method on a _Scalar_ number, the result will be
 
 The 𝜀 factor works quite differently.
 It is not a simple matter of scaling.
-A _Number_ of the form _Number(x, e)_ actually evaluates to $e^x$ rather than e x.
+A _Number_ of the form _Number(x, NatLog)_ actually evaluates to $e^x$ rather than $e x$.
 
 It would be possible to implement $\pi$ values similarly to 𝜀 values (as evaluations of $e^{ix}$).
 However, this is not currently done (future enhancement?).
@@ -334,9 +344,43 @@ See Complex numbers.
 Constants
 =========
 
-The _Number_ class defines a number of constant values for _Number_, such as _pi_, _e_, _one_, _zero_, _i_, etc.
-The _Constants_ object contains a number of fundamental constant definitions, in addition to those defined by _Number_.
+Constant values of fields are defined in the _Constants_ object.
+Many of the values are dependent on constants in the _Number_ class which defines  values for _pi_, $\pi$, _e_, _one_, _zero_, _i_, etc.
+
+The _Constants_ object also contains a number of fundamental (physical and mathematical) constant definitions, in addition to those defined by _Number_.
 For example: _c_ (speed of light), _alpha_ (fine structure constant), etc.
+
+NumberLike
+==========
+NumberLike defines behavior which is of the most general number-like nature.
+The specific methods defined are:
+
+    def isExact(maybeFactor: Option[Factor]): Boolean // determines if this object is exact in the domain of the (optional) factor
+    def isExact: Boolean = isExact(None)
+    def asNumber: Option[Number]
+    def render: String
+
+Additionally, there are two methods relating to the Set of which this _NumberLike_ object is a member, such as:
+the integers ($\mathbb{Z}$)
+
+    def memberOf: Option[NumberSet]
+    def memberOf(set: NumberSet): Boolean
+
+Numerical
+=========
+_Numerical_ extends _NumberLike_.
+Additional methods include:
+
+    def isSame(x: Numerical): Boolean // determines if this and x are equivalent, numerically.
+    def isInfinite: Boolean
+    def isZero: Boolean
+    def isUnity: Boolean
+    def signum: Int
+    def unary_- : Field
+    def invert: Field
+    def normalize: Field
+    def asComplex: Complex
+    def asReal: Option[Real]
 
 Lazy Evaluation
 ===============
@@ -448,12 +492,17 @@ See the code (_Fuzz_) for details.
 Things get only slightly more complex when applying monadic (single operand) functions or applying a function such
 as $z=x^y$:
 
-In general, when we apply a monadic operator _y=f(x)_ (such as constant factor, as above, or power, or one of the trigonometric operators),
+In general, when we apply a monadic operator $y=f(x)$ (such as constant factor, as above, or power, or one of the trigonometric operators),
 the formula for the relative fuzz of the result $\frac{Δy}{y}$ based on the relative fuzz of the input $\frac{Δx}{x}$ is:
 
 $$\frac{Δy}{y}=\frac{x \frac{dy}{dx}(x)}{f(x)}\frac{Δx}{x}$$
 
 Constants cancel, powers survive as is, and so on.
+
+For example, if $y=e^x$ then 
+
+$$\frac{Δy}{y}=x\frac{Δx}{x}$$
+
 Again, these formulas can be looked up in the code.
 
 Comparing two fuzzy numbers involves subtracting the two numbers and then determining if the probability
@@ -482,6 +531,9 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
+* Version 1.1.0: Significant refactoring:
+    - Number is no longer a subtype of Field. Code should use the wrapper Real(number) to form a Field.
+    - Some of the worksheets were broken and have been fixed.
 * Version 1.0.17: Minor changes.
 * Version 1.0.16: Added C-interpolator for Complex objects; various other fixes, including radian values now range from -pi to pi.
 * Version 1.0.15: Significant improvements to the rendering of rational numbers.

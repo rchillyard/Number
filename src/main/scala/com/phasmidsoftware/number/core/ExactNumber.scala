@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 /**
@@ -12,9 +16,28 @@ package com.phasmidsoftware.number.core
 case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
 
   /**
+    * Method to determine if this ExactNumber is equivalent to another Numerical (x).
+    *
+    * @param x the other numerical.
+    * @return true if they are the same, otherwise false.
+    */
+  def isSame(x: Numerical): Boolean = x match {
+    case Real(n) => isSame(n)
+    case n: FuzzyNumber => n.isSame(this)
+    case n: ExactNumber => doSubtract(n).isZero
+    case c: Complex => c.isSame(Real(this))
+  }
+
+  /**
     * @return true if this Number is equal to zero.
     */
   def isZero: Boolean = GeneralNumber.isZero(this)
+
+  /**
+    * @param maybeFactor an optional Factor to be matched.
+    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
+    */
+  def isExact(maybeFactor: Option[Factor]): Boolean = factorAsIs(maybeFactor)
 
   /**
     * Method to make some trivial simplifications of this ExactNumber.
@@ -67,6 +90,14 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     */
   def doPower(p: Number): Number = GeneralNumber.power(this, p)
 
+  /**
+    * Method to scale this ExactNumber by a constant factor.
+    *
+    * TESTME
+    *
+    * @param v the factor.
+    * @return
+    */
   def scale(v: Value): Number = GeneralNumber.doTimes(this, ExactNumber(v, Scalar), factor)
 
   /**
@@ -140,7 +171,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     *
     * @return a String
     */
-  override def toString: String = this match {
+  override def toString: String = modulate match {
     case Number.pi => Radian.toString
     case _ =>
       val sb = new StringBuilder()
@@ -164,22 +195,21 @@ object ExactNumber {
   def apply(x: Int, factor: Factor): ExactNumber = new ExactNumber(Value.fromInt(x), factor)
 
   def apply(x: Int): ExactNumber = apply(x, Scalar)
-//
+
 //  def product(x: ExactNumber, y: ExactNumber): Number = (x, y) match {
 //    case (ExactNumber(w, Scalar), b) => b.scale(w)
 //    case (a, ExactNumber(w, Scalar)) => a.scale(w)
 //    case (a, b) => // Neither a nor b has factor Scalar
-//              val (p, q) = a.alignTypes(b)
-//              (p.factor, q.factor) match {
-//                case (f@PureNumber(_), Scalar) => doTimes(p, q, f)
-//                case (Scalar, f@PureNumber(_)) => doTimes(p, q, f)
-//                case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
-//                case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
-//                case (Root(_), Root(_)) if p == q => p.make(Scalar)
-//                case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
-//                case _ => times(p.scale(Scalar), q.scale(Scalar))
-//              }
-//
+//      val (p, q) = a.alignTypes(b)
+//      (p.factor, q.factor) match {
+//        case (f@PureNumber(_), Scalar) => doTimes(p, q, f)
+//        case (Scalar, f@PureNumber(_)) => doTimes(p, q, f)
+//        case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
+//        case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
+//        case (Root(_), Root(_)) if p == q => p.make(Scalar)
+//        case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
+//        case _ => times(p.scale(Scalar), q.scale(Scalar))
+//      }
 //  }
 //
 //  private def doTimes(p: Number, q: Number, factor: Factor) = prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))

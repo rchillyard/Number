@@ -3,20 +3,21 @@
   * NOTE that Number is deprecated for application use -- it's designed for internal use.
   */
 
+import com.phasmidsoftware.number.core.Constants.one
 import com.phasmidsoftware.number.core.Rational.RationalHelper
-import com.phasmidsoftware.number.core.Real.{RealOps, _}
-import com.phasmidsoftware.number.core.{Field, Fuzzy, Number, Real}
+import com.phasmidsoftware.number.core.Real.RealOps
+import com.phasmidsoftware.number.core.{Constants, Field, Fuzzy, Number, Real}
 
 val three: Field = 2 + one
 
 // NOTE see the corresponding expression in Expression.sc
-val half: Field = Real(Number(r"1/2"))
+val half: Field = Real(r"1/2")
 val root3: Field = three power half
 val twoFuzzy: Field = (root3 add one) multiply (root3 add -one)
 
-val ok = implicitly[Fuzzy[Field]].same(0.8)(twoFuzzy, Real.two)
+val ok = implicitly[Fuzzy[Field]].same(0.8)(twoFuzzy, Constants.two)
 
-val two: Real = 1 + Real.one
+val two: Real = 1 + one
 
 val halfToo = 1 :/ 2
 

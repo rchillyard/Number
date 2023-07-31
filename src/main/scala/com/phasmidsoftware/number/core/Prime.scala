@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 
@@ -400,7 +404,8 @@ object Prime {
     def factorCount(p: Prime, x: BigInt): (Int, BigInt) = {
       @tailrec
       def inner(r: (Int, BigInt)): (Int, BigInt) = r match {
-        case (c, d) => if (p.toBigInt |> d) inner(c + 1, d / p.toBigInt) else r
+        case (c, d) if p.toBigInt |> d => inner(c + 1, d / p.toBigInt)
+        case _ => r
       }
 
       inner(0 -> x)

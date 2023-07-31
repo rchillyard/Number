@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
@@ -88,7 +92,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if the prime factors only include 2 and/or 5.
     */
-  def isDecimal: Boolean = denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
+  def isDecimal: Boolean = isZero || denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
 
   lazy val maybeInt: Option[Int] = if (isWhole) Some(toInt) else None
 
@@ -212,7 +216,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  def asNumber: Option[Number] = Some(Number(this))
+  def asNumber: Option[Number] = Some(this)
 
   /**
     * Method to render this NumberLike in a presentable manner.
@@ -230,7 +234,8 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
       forceToBigDecimal.toString + Ellipsis
   }
 
-  def forceToBigDecimal: BigDecimal = BigDecimal(n) / BigDecimal(d)
+  def forceToBigDecimal: BigDecimal = if (!isInfinity) BigDecimal(n) / BigDecimal(d) else
+    throw RationalException(s"cannot convert infinity to BigDecimal: $this")
 
   private lazy val denominatorPrimeFactors = Prime.primeFactors(d)
 
@@ -239,6 +244,8 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
 }
 
 object Rational {
+
+  implicit def convertToNumber(x: Rational): Number = Number(x)
 
   /**
     * Implicit class RationalOps to allow an Int to be treated as a Rational for the purpose
@@ -404,7 +411,7 @@ object Rational {
   /**
     * Method to construct a Rational from a BigInt with sign defined by "negative".
     *
-    * TEST me
+    * TESTME
     *
     * @param n        the value.
     * @param negative if true then the sign of the result will be flipped.
@@ -620,7 +627,7 @@ object Rational {
 
   private def toDouble(x: Rational): Double = Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
 
-  // TEST me
+  // TESTME
   private def toFloat(x: Rational): Float = toDouble(x).toFloat
 
   private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z

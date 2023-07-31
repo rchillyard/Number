@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.MatchLogger
@@ -85,12 +89,13 @@ object Expression {
     * CONSIDER improving the logic.
     */
   def apply(x: Field): Expression = x match {
-    case Number.zero => Zero
-    case Number.one => One
-    case Number.negOne => MinusOne
-    case Number.two => Two
-    case Number.pi => ConstPi
-    case Number.e => ConstE
+    case Constants.zero => Zero
+    case Constants.one => One
+    case Constants.minusOne => MinusOne
+    case Constants.two => Two
+    case Constants.pi => ConstPi
+    case Constants.twoPi => ConstPi * 2
+    case Constants.e => ConstE
     case _ => Literal(x)
   }
 
@@ -100,7 +105,7 @@ object Expression {
   def apply(x: Int): Expression = x match {
     case 0 => Zero
     case 1 => One
-    case _ => Expression(Number(x))
+    case _ => Expression(Real(x))
   }
 
   /**
@@ -117,17 +122,17 @@ object Expression {
     */
   val zero: Expression = Zero
   val one: Expression = One
-  val pi: Expression = Expression(Number.pi)
-  val e: Expression = Expression(Number.e)
+  val pi: Expression = Expression(Constants.pi)
+  val e: Expression = Expression(Constants.e)
 
   /**
     * Other useful expressions.
     */
-  val phi: Expression = (one + Constants.root5) / Number.two
+  val phi: Expression = (one + Constants.root5) / Literal(Number.two)
 
   implicit def convertFieldToExpression(f: Field): Expression = Expression(f)
 
-  implicit def convertIntToExpression(x: Int): Expression = Number(x)
+  implicit def convertIntToExpression(x: Int): Expression = Literal(x)
 
   /**
     * Implicit class to allow various operations to be performed on an Expression.
@@ -162,6 +167,8 @@ object Expression {
 
     /**
       * Method to lazily change the sign of this expression.
+      *
+      * TESTME
       *
       * @return an Expression which is this negated.
       */
@@ -222,6 +229,8 @@ object Expression {
     /**
       * Method to lazily get the tangent of x.
       *
+      * TESTME
+      *
       * @return an Expression representing the tan(x).
       */
     def tan: Expression = sin * cos.reciprocal
@@ -263,11 +272,6 @@ object Expression {
 trait AtomicExpression extends Expression {
 
   def isAtomic: Boolean = true
-
-  /**
-    * @return this.
-    */
-  def simplify: Expression = this
 
   /**
     * @return 1.
@@ -320,7 +324,7 @@ case class Literal(x: Field) extends AtomicExpression {
     * @return Some(factor).
     */
   def maybeFactor: Option[Factor] = x match {
-    case n: Number => Some(n.factor)
+    case Real(n) => Some(n.factor)
     case c: BaseComplex => if (c.real.factor == c.imag.factor) Some(c.real.factor) else None
   }
 
@@ -350,11 +354,13 @@ case class Literal(x: Field) extends AtomicExpression {
 object Literal {
   def unapply(arg: Literal): Option[Field] = Some(arg.x)
 
-  def apply(x: Int): Literal = Literal(Number(x))
+  def apply(x: Int): Literal = Literal(Real(x))
 
-  def apply(x: Rational): Literal = Literal(Number(x))
+  def apply(x: Rational): Literal = Literal(Real(x))
 
-  def apply(x: Double): Literal = Literal(Number(x))
+  def apply(x: Double): Literal = Literal(Real(x))
+
+  def apply(x: Number): Literal = Literal(Real(x))
 }
 
 /**
@@ -391,7 +397,7 @@ case object Zero extends Constant {
   /**
     * @return Number.zero
     */
-  def evaluate: Number = Number.zero
+  def evaluate: Field = Constants.zero
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
@@ -400,7 +406,7 @@ case object One extends Constant {
   /**
     * @return 1.
     */
-  def evaluate: Number = Number.one
+  def evaluate: Field = Constants.one
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
@@ -409,7 +415,7 @@ case object MinusOne extends Constant {
   /**
     * @return -1.
     */
-  def evaluate: Number = Number.negate(Number.one)
+  def evaluate: Field = Constants.minusOne
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 
@@ -426,7 +432,7 @@ case object Two extends Constant {
   /**
     * @return 2.
     */
-  def evaluate: Number = Number.two
+  def evaluate: Field = Constants.two
 
   def maybeFactor: Option[Factor] = Some(Scalar)
 }
@@ -439,7 +445,7 @@ case object ConstPi extends Constant {
   /**
     * @return pi.
     */
-  def evaluate: Number = Number.pi
+  def evaluate: Field = Constants.pi
 
   def maybeFactor: Option[Factor] = Some(Radian)
 }
@@ -452,10 +458,10 @@ case object ConstE extends Constant {
   /**
     * @return e.
     */
-  def evaluate: Number = Number.e
+  def evaluate: Field = Constants.e
 
   /**
-    * TEST me
+    * TESTME
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
@@ -481,7 +487,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   /**
     * TODO implement properly according to the actual function involved.
     *
-    * TEST me
+    * TESTME
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
@@ -490,7 +496,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   /**
     * Method to determine the depth of this Expression.
     *
-    * TEST me
+    * TESTME
     *
     * @return the 1 + depth of x.
     */
@@ -506,14 +512,14 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   /**
     * Action to materialize this Expression and render it as a String.
     *
-    * TEST me.
+    * TESTME.
     *
     * @return a String representing the value of this expression.
     */
   def render: String = materialize.toString
 
   /**
-    * TEST me
+    * TESTME
     *
     * @return
     */
@@ -625,7 +631,7 @@ case object Sine extends ExpressionFunction(x => x.sin, "sin")
 
 case object Cosine extends ExpressionFunction(x => x.cos, "cos")
 
-case object Atan extends ExpressionBiFunction((x, y) => (for (a <- x.asNumber; b <- y.asNumber) yield a atan b).getOrElse(Number.NaN), "atan", false, false)
+case object Atan extends ExpressionBiFunction((x: Field, y: Field) => (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN)), "atan", false, false)
 
 case object Log extends ExpressionFunction(x => x.log, "log")
 
@@ -655,7 +661,7 @@ class ExpressionFunction(val f: Number => Number, val name: String) extends (Fie
     * @return the result of f(x).
     */
   override def apply(x: Field): Field =
-    recover(x.asNumber map f, ExpressionException(s"logic error: ExpressionFunction.apply($x)"))
+    recover(x.asNumber map f map (Real(_)), ExpressionException(s"logic error: ExpressionFunction.apply($x)"))
 
   /**
     * Generate helpful debugging information about this ExpressionFunction.

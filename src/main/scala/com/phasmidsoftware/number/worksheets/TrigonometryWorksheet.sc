@@ -1,5 +1,5 @@
+import com.phasmidsoftware.number.core.Constants.{e, i, pi, piBy2}
 import com.phasmidsoftware.number.core.Expression.ExpressionOps
-import com.phasmidsoftware.number.core.Number.{e, i, pi, piBy2}
 import com.phasmidsoftware.number.core.{Expression, Number}
 
 /**

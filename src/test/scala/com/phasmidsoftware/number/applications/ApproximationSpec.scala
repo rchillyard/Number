@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.applications
 
 import com.phasmidsoftware.number.applications.Approximation.evaluateWithoutDerivative
+import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.core.{FuzzyEquality, Number}
 import org.scalatest.PrivateMethodTester
 import org.scalatest.flatspec.AnyFlatSpec
@@ -26,7 +27,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val result = Approximation.solve(0.99,
       newtonsPolynomial,
       newtonsDerivative
-    )(Number.ten.invert)
+    )(Number.ten.doInvert)
     result.isSuccess shouldBe true
     result.get should ===(Number(0.0945514815423)) // 0.094551481542326 according to Wikipedia (after 10 iterations)
   }
@@ -56,7 +57,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
       newtonsPolynomial,
       newtonsDerivative,
       newtonsSecondDerivative,
-    )(Number.ten.invert)
+    )(Number.ten.doInvert)
     result.isSuccess shouldBe true
     result.get should ===(Number(0.09455148154))
   }
@@ -124,8 +125,8 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val x = Number(0.1)
     val py = evaluateWithoutDerivative(newtonsPolynomial)(x) // x^3 + 6x^2 + 10x - 1
     val qy = evaluateWithoutDerivative(newtonsDerivative)(x) // 3x^2 + 12x + 10
-    val ry = for (p <- py; q <- qy) yield p divide q
-    val cy: Try[Number] = Approximation invokePrivate z(py.get, qy.get, x, -ry.get, Seq(newtonsPolynomial, newtonsDerivative, newtonsSecondDerivative))
+    val ry = for (p <- py; q <- qy) yield p doDivide q
+    val cy: Try[Number] = Approximation invokePrivate z(qy.get, x, negate(ry.get), Seq(newtonsPolynomial, newtonsDerivative, newtonsSecondDerivative))
     cy.isSuccess shouldBe true
     cy.get.toDouble.isDefined shouldBe true
     cy.get.toDouble.get shouldBe -0.00544848 +- 1E-7
@@ -137,8 +138,8 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val x = Number.half
     val py = evaluateWithoutDerivative(cosineFunction)(x) // cos(x) - x
     val qy = evaluateWithoutDerivative(cosineDerivative)(x) // -sin(x) - 1
-    val ry = for (p <- py; q <- qy) yield p divide q
-    val cy: Try[Number] = Approximation invokePrivate z(py.get, qy.get, x, -ry.get, Seq(cosineFunction, cosineDerivative, cosineSecondDerivative))
+    val ry = for (p <- py; q <- qy) yield p doDivide q
+    val cy: Try[Number] = Approximation invokePrivate z(qy.get, x, negate(ry.get), Seq(cosineFunction, cosineDerivative, cosineSecondDerivative))
     cy.isSuccess shouldBe true
     cy.get.toDouble.isDefined shouldBe true
     cy.get.toDouble.get shouldBe 0.23726217439 +- 1E-7

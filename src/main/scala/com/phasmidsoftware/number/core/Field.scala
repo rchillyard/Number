@@ -1,7 +1,10 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.recover
-import com.phasmidsoftware.number.core.Number.negate
 import scala.language.implicitConversions
 
 /**
@@ -13,30 +16,7 @@ import scala.language.implicitConversions
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field extends NumberLike with Ordered[Field] {
-
-  /**
-    * Method to determine if this Field has infinite magnitude.
-    *
-    * @return true if the magnitude of this Field is infinite.
-    */
-  def isInfinite: Boolean
-
-  /**
-    * Method to determine if this Field has zero magnitude.
-    * Zero is the additive identity.
-    *
-    * @return true if the magnitude of this Field is zero.
-    */
-  def isZero: Boolean
-
-  /**
-    * Method to determine if this Field has unity magnitude.
-    * Unity is the multiplicative identity.
-    *
-    * @return true if the magnitude of this Field is one.
-    */
-  def isUnity: Boolean
+trait Field extends Numerical with Ordered[Field] {
 
   /**
     * Method to determine if this Field is represented by a Complex number.
@@ -49,21 +29,18 @@ trait Field extends NumberLike with Ordered[Field] {
   }
 
   /**
-    * Determine the "sign" of this field.
-    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
-    * For a complex number, we get the signum of the real part.
+    * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
     *
-    * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
+    * @return true if the imaginary.
     */
-  def signum: Int
+  def isReal: Boolean
 
   /**
-    * Method to determine if this Field is equivalent to another Field (x).
+    * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
     *
-    * @param x the other field.
-    * @return true if they are the same, otherwise false.
+    * @return true if this is imaginary.
     */
-  def isSame(x: Field): Boolean
+  def isImaginary: Boolean
 
   /**
     * Add x to this Field and return the result.
@@ -116,12 +93,15 @@ trait Field extends NumberLike with Ordered[Field] {
     */
   def divide(x: Field): Field
 
-  def /(x: Field): Field = divide(x)
-
   /**
-    * Change the sign of this Field.
+    * Divide this Field by another Field.
+    *
+    * TESTME
+    *
+    * @param x the other Field.
+    * @return the quotient of this and x.
     */
-  def unary_- : Field
+  def /(x: Field): Field = divide(x)
 
   /**
     * Raise this Field to the power p.
@@ -130,10 +110,12 @@ trait Field extends NumberLike with Ordered[Field] {
     * @return this Field raised to power p.
     */
   def power(p: Int): Field = p match {
-    case 0 => Number.one
+    case 0 => Real(Number.one)
     case 1 => this
     case _ => power(Number(p)) // TODO need to simplify the result. See NumberSpec: power/work for squaring Log2
   }
+
+  def power(p: Number): Field
 
   /**
     * Raise this Field to the power p.
@@ -142,36 +124,6 @@ trait Field extends NumberLike with Ordered[Field] {
     * @return this Field raised to power p.
     */
   def power(p: Field): Field
-
-  /**
-    * Yields the inverse of this Field.
-    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
-    * factors.
-    */
-  def invert: Field
-
-  /**
-    * Method to "normalize" a field.
-    *
-    * @return a Field which is in canonical form.
-    */
-  def normalize: Field
-
-  /**
-    * Method to return this Field as a Complex.
-    * If this is a Real number x, return ComplexPolar(x) otherwise, return this.
-    *
-    * @return a Complex.
-    */
-  def asComplex: Complex
-
-  /**
-    * Method to return this Field as a Real, if possible.
-    * If this is a Real number x, return Some(x) otherwise, return None.
-    *
-    * @return an Option[Real].
-    */
-  def asReal: Option[Real]
 }
 
 object Field {
@@ -184,7 +136,7 @@ object Field {
     */
   def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
 
-  implicit def convertRationalToField(r: Rational): Field = Real(Number(r))
+  implicit def convertRationalToField(r: Rational): Field = Real(r)
 
   /**
     * Definition of concrete (implicit) type class object for Field being Fuzzy.
@@ -200,80 +152,4 @@ object Field {
       */
     def same(p: Double)(x1: Field, x2: Field): Boolean = x1.add(-x2).asNumber.exists(_.isProbablyZero(p))
   }
-
-}
-
-object Constants {
-  val sPhi = "1.618033988749894"
-  val sGamma = "0.57721566490153286060651209008240243104215933593992*"
-  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
-  val sBoltzmann = "1380649.E-29" // J K ^ -1
-
-  val one: Number = Number.one
-  val minusOne: Number = negate(Number.one)
-  val zero: Number = Number.zero
-  val pi: Number = Number.pi
-  //noinspection NonAsciiCharacters
-  val `𝛑`: Number = Number.`𝛑`
-  val e: Number = Number.e
-  val i: Complex = Complex.i
-  /**
-    * Exact value of iPi.
-    */
-  val iPi: Complex = ComplexCartesian(0, Number.pi)
-
-  val root2: Number = Number.root2
-  val root3: Number = Number.root3
-  val root5: Number = Number.root5
-  /**
-    * Exact value of the Complex Number ±√2
-    */
-  val root2s: Field = ComplexPolar(Number.root2, Number.zeroR, 2)
-
-  import com.phasmidsoftware.number.core.Number.FuzzOps
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Golden_ratio]]
-    */
-  lazy val phi: Number = Number(sPhi)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Euler–Mascheroni_constant]].
-    */
-  lazy val gamma: Number = Number(sGamma)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Gravitational_constant]]
-    */
-  lazy val G: Number = Number(sG)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Fine-structure_constant]]
-    */
-  lazy val alpha: Number = 0.0072973525693 ~ 11 // (dimensionless)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Avogadro_constant]] (exact)
-    */
-  lazy val avagadro: Number = Number(6.0221407600E23)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Boltzmann_constant]] (exact).
-    */
-  lazy val boltzmann: Number = Number(sBoltzmann)
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Planck_constant]] (exact).
-    */
-  lazy val planck: Number = Number("6.6260701500E-34") // J Hz ^ -1
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Speed_of_light]] (exact).
-    */
-  lazy val c: Number = Number("299792458") // m sec ^ -1
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio]]
-    */
-  lazy val mu: Number = 1836.15267343 ~ 11 // (dimensionless)
 }

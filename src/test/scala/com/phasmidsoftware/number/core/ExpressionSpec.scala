@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Expression.{ExpressionOps, pi}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.parse.ShuntingYardParser
@@ -45,12 +46,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for Exp(1)" in {
     val x = Function(One, Exp)
     val result = x.materialize
-    result shouldBe Number.e
+    result shouldBe Constants.e
   }
   it should "work for Exp(Log(2))" in {
     val x = Function(Function(Two, Log), Exp)
     val result = x.materialize
-    result shouldBe Number.two
+    result shouldBe Constants.two
   }
 
   behavior of "Expression"
@@ -96,12 +97,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate sqrt 36" in {
     val x: Expression = Literal(36).sqrt
-    x.materialize.normalize.asNumber shouldEqual Some(Number(6))
+    x.materialize.normalize shouldEqual ±(6)
   }
   it should "evaluate sin pi/2" in {
     val x: Expression = ConstPi / 2
     val y: Expression = x.sin
-    y.materialize shouldBe Number.one
+    y.materialize shouldBe Constants.one
   }
   it should "evaluate atan" in {
     Zero.atan(One).materialize.asNumber shouldBe Some(Number.piBy2)
@@ -112,13 +113,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate ln E" in {
     val x: Expression = ConstE
     val y: Expression = x.log
-    y.materialize shouldBe Number.one
+    y.materialize shouldBe Constants.one
   }
   it should "evaluate ln 2E" in {
     val x: Expression = ConstE * 2
     val y: Expression = x.log
     val result = y.materialize
-    val expected = Number("1.693147180559945(13)")
+    val expected = Real("1.693147180559945(13)")
     result shouldEqual expected
   }
 
@@ -142,17 +143,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Number.pi.isExact(None) shouldBe true
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
-    (One + Number.two).isExact shouldBe true
-    (ConstPi + Number.pi).isExact(Some(Radian)) shouldBe true
+    (One + Constants.two).isExact shouldBe true
+    (ConstPi + Constants.pi).isExact(Some(Radian)) shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Literal(2) * Number.e).isExact shouldBe false
+    (Literal(2) * Constants.e).isExact shouldBe false
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
-    (Literal(1) * Number.e).isExact(None) shouldBe true
+    val expression = Literal(1) * Constants.e
+    expression.isExact(None) shouldBe true
   }
   it should "be true for product of zero exact Numbers and a NatLog factor" in {
-    (Literal(0) * Number.e).isExact shouldBe true
+    (Literal(0) * Constants.e).isExact shouldBe true
   }
 
   behavior of "depth"
@@ -172,7 +174,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "Euler"
   it should "work" in {
     val iPi = ComplexCartesian(0, Number.pi)
-    val euler: Expression = Expression(Number.e) ^ iPi
-    euler.asNumber shouldBe Some(Number.negOne)
+    val euler: Expression = Expression(Constants.e) ^ iPi
+    euler.materialize shouldBe Constants.minusOne
   }
 }

@@ -1,8 +1,11 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core.{Complex, NumberException}
 import scala.util.Try
-
 
 /**
   * A parser of Rational objects.

@@ -1,13 +1,17 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{optional, toTry}
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.negate
+import com.phasmidsoftware.number.core.Number.{inverse, negate}
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.parse.RationalParser.parseComponents
 import scala.annotation.tailrec
-import scala.language.implicitConversions
+import scala.language.{implicitConversions, postfixOps}
 import scala.util._
 
 /**
@@ -21,7 +25,7 @@ import scala.util._
   * * factor: Factor
   * * fuzz: (from extending Fuzz[Double]).
   */
-trait Number extends Fuzz[Double] with Field {
+trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * The value of this Number.
@@ -180,7 +184,7 @@ trait Number extends Fuzz[Double] with Field {
     * @param r a Rational.
     * @return a new Number which is this Number scaled by z.
     */
-  def doMultiple(r: Rational): Number = GeneralNumber.times(this, Number(r))
+  def doMultiple(r: Rational): Number = GeneralNumber.times(this, r)
 
   /**
     * Perform an exact scalar multiplication of this Number by the scale factor z.
@@ -199,6 +203,15 @@ trait Number extends Fuzz[Double] with Field {
   def doDivide(n: Number): Number
 
   /**
+    * Yields the inverse of this Number.
+    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
+    * factors.
+    *
+    * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
+    */
+  def doInvert: Number = Number.inverse(convertToNumber(normalize))
+
+  /**
     * Raise this Number to the power p.
     *
     * @param p a Number.
@@ -215,10 +228,9 @@ trait Number extends Fuzz[Double] with Field {
     * @return the sum.
     */
   def add(x: Field): Field = x match {
-    case Real(r) => doAdd(r)
-    case n@Number(_, _) if n.isImaginary => ComplexCartesian.fromImaginary(n) doAdd Complex(this)
-    case n@Number(_, _) => doAdd(n)
-    case c@BaseComplex(_, _) => c.add(this)
+    case Real(n) if n.isImaginary => ComplexCartesian.fromImaginary(n) doAdd Complex(this)
+    case Real(n) => Real(doAdd(n))
+    case c@BaseComplex(_, _) => c.add(this.asComplex)
   }
 
   /**
@@ -228,12 +240,14 @@ trait Number extends Fuzz[Double] with Field {
     * @return the product.
     */
   def multiply(x: Field): Field = (this, x) match {
-    case (_, Real(r)) => multiply(r).normalize
-    case (Number.i, Number.pi) | (Number.pi, Number.i) => Constants.iPi
-    case (_, Number.i) => multiply(ComplexCartesian(0, 1))
+    case (Number.zero, _) | (_, Constants.zero) => Constants.zero
+    case (Number.one, _) => x
+    case (_, Constants.one) => Real(this)
+    case (Number.i, Constants.pi) | (Number.pi, Constants.i) => Constants.iPi
+    case (n, Constants.i) => n.asComplex.rotate
     case (Number.i, _) => x.multiply(ComplexCartesian(0, 1))
-    case (_, n@Number(_, _)) => doMultiply(n)
-    case (_, c@BaseComplex(_, _)) => c.multiply(this)
+    case (_, Real(n)) => doMultiply(n).normalize
+    case (_, c@BaseComplex(_, _)) => c.multiply(this.asComplex)
   }
 
   /**
@@ -243,14 +257,22 @@ trait Number extends Fuzz[Double] with Field {
     * @return the quotient.
     */
   def divide(x: Field): Field = x match {
-    case n@Number(_, _) => doDivide(n)
+    case Real(n) => Real(doDivide(n))
     case c@BaseComplex(_, _) => c.divide(x)
   }
 
   /**
     * Change the sign of this Number.
     */
-  def unary_- : Field = makeNegative
+  def unary_- : Field = Real(makeNegative)
+
+  def power(p: Number): Number = p match {
+    case Number.zero => Number.one
+    case Number.one => this
+    case Number.negOne => inverse(this)
+    case Number.two => this doMultiply this
+    case _ => doPower(p)
+  }
 
   /**
     * Raise this Number to the power p.
@@ -259,9 +281,7 @@ trait Number extends Fuzz[Double] with Field {
     * @return this Number raised to power p.
     */
   def power(p: Field): Field = p match {
-    case Number.zero => Number.one
-    case Number.one => this
-    case n@Number(_, _) => doPower(n)
+    case Real(n) => Real(doPower(n))
     case ComplexCartesian(x, y) => ComplexPolar(doPower(x), y) // CONSIDER is this correct?
     case _ => throw NumberException("logic error: power not supported for non-Number powers")
   }
@@ -273,7 +293,7 @@ trait Number extends Fuzz[Double] with Field {
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
     */
-  def invert: Number = Number.inverse(convertToNumber(normalize))
+  def invert: Field = Real(doInvert)
 
   /**
     * Yields the square root of this Number.
@@ -303,7 +323,7 @@ trait Number extends Fuzz[Double] with Field {
     *
     * @return the tangent
     */
-  def tan: Number = (value, factor) match {
+  def tan: Number = (value, factor) match { // CONSIDER modulating first.
     case (Left(Right(r)), Radian) => r match {
       case Rational(Rational.bigOne, Rational.bigFour) | Rational(Rational.bigFive, Rational.bigFour) => Number.one
       case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) => negate(Number.one)
@@ -446,7 +466,7 @@ trait Number extends Fuzz[Double] with Field {
     * Only the factor will change.
     * This method does not need to be followed by a call to specialize.
     *
-    * TEST me
+    * TESTME
     *
     * @param f the factor.
     * @return either a Number.
@@ -531,7 +551,7 @@ trait Number extends Fuzz[Double] with Field {
   /**
     * Make a copy of this Number, with the same value and factor but with a different value of fuzziness.
     *
-    * TEST me
+    * TESTME
     *
     * @param fo the (optional) fuzziness.
     * @return a Number.
@@ -578,31 +598,31 @@ object Number {
   /**
     * Exact value of 0
     */
-  val zero: Number = Number(0)
+  val zero: Number = 0
   /**
     * Exact value of -0
     */
-  val negZero: Number = Number(Rational.negZero)
+  val negZero: Number = Rational.negZero
   /**
     * Exact value of 1
     */
-  val one: Number = Number(1)
+  val one: Number = 1
   /**
     * Exact value of -1
     */
-  val negOne: Number = Number(-1)
+  val negOne: Number = -1
   /**
     * Exact value of 2
     */
-  val two: Number = Number(2)
+  val two: Number = 2
   /**
     * Exact value of 1/2
     */
-  val half: Number = Number(Rational.half)
+  val half: Number = Rational.half
   /**
     * Exact value of 10
     */
-  val ten: Number = Number(Rational.ten)
+  val ten: Number = Rational.ten
   /**
     * Exact value of pi
     */
@@ -669,6 +689,10 @@ object Number {
     * @return the equivalent Number.
     */
   implicit def convertInt(x: Int): Number = Number(x)
+
+//  implicit def convertToReal(x: Number): Real = Real(x)
+
+//  implicit def convertToField(x: Number): Field = Real(x)
 
   /**
     * Implicit class which takes a Double, and using method ~ and an Int parameter,
@@ -759,7 +783,7 @@ object Number {
       * @param y the divisor, a Number.
       * @return a Number whose value is x / y.
       */
-    def /(y: Number): Number = Number(x) doMultiply y.invert
+    def /(y: Number): Number = convertToNumber(Number(x) multiply y.invert)
 
     /**
       * Divide x by y (an Int) and yield a Number.
@@ -768,7 +792,23 @@ object Number {
       * @param y the divisor, an Int.
       * @return a Number whose value is x / y.
       */
-    def :/(y: Int): Number = /(Number(y))
+    def :/(y: Int): Number = /(y)
+
+    /**
+      * Raise x to the power of y (an Int) and yield a Number.
+      *
+      * @param y the exponent, an Int.
+      * @return a Number whose value is x / y.
+      */
+    def ^(y: Int): Number = x ^ y
+
+    /**
+      * Raise x to the power of y (an Rational) and yield a Number.
+      *
+      * @param y the exponent, a Rational.
+      * @return a Number whose value is x / y.
+      */
+    def ^(y: Rational): Number = x ^ y
   }
 
   /**
@@ -1123,7 +1163,7 @@ object Number {
     * Following are the definitions required by Fractional[Number]
     */
   trait NumberIsFractional extends Fractional[Number] with NumberIsNumeric {
-    def div(x: Number, y: Number): Number = GeneralNumber.times(x, Number.inverse(y))
+    def div(x: Number, y: Number): Number = GeneralNumber.times(x, y doInvert)
   }
 
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering
@@ -1147,8 +1187,7 @@ object Number {
     case (a, b) if a == b => n
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
-    case (Root(_), Scalar) if Value.signum(n.value) < 0 =>
-      Number.NaN
+    case (Root(_), Scalar) if Value.signum(n.value) < 0 => Number.NaN
     case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
     case (NatLog, PureNumber(_)) | (PureNumber(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
@@ -1218,8 +1257,8 @@ object Number {
           z.doMultiply(12).toInt match {
             case Some(3) | Some(9) => oneOverRoot2  // pi/4 and 3pi/4
             case Some(4) | Some(8) => rootThreeQuarters // pi/3 and 2pi/3
-            case Some(1) | Some(11) => rootSix doSubtract root2 doDivide Number(4) // pi/12 and 11pi/12 would be nice for this to be an Expression
-            case Some(5) | Some(7) => rootSix doAdd root2 doDivide Number(4) // 5pi/12 and 7pi/12 ditto
+            case Some(1) | Some(11) => rootSix doSubtract root2 doDivide 4 // pi/12 and 11pi/12 would be nice for this to be an Expression
+            case Some(5) | Some(7) => rootSix doAdd root2 doDivide 4 // 5pi/12 and 7pi/12 ditto
             case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
           }
         } else negate(sin(negate(x)))
@@ -1268,8 +1307,10 @@ object Number {
     */
   def sqrt(x: Number): Number = x.factor match {
     case Scalar => x.make(Root2).simplify
-    case _ => Field.convertToNumber(x.power(Number.half))
+    case _ => x.power(Number.half)
   }
+
+  def √(x: Int): Number = x.sqrt
 
   /**
     * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.

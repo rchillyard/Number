@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
@@ -28,21 +32,9 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return the comparison.
     */
   def compare(that: Field): Int = (this, that) match {
-    case (x: FuzzyNumber, y: Number) => x.compare(y)
-    case (x: ExactNumber, y: Number) => x.compare(y)
-    case _ => that.compare(this)
-  }
-
-  /**
-    * Method to determine if this Field is equivalent to another Field (x).
-    *
-    * @param x the other field.
-    * @return true if they are the same, otherwise false.
-    */
-  def isSame(x: Field): Boolean = x match {
-    case n: GeneralNumber => (this subtract n).isZero
-    case c: Complex => c.isSame(this)
-    case Real(n) => isSame(n)
+    case (x: FuzzyNumber, Real(y)) => x.compare(y)
+    case (x: ExactNumber, Real(y)) => x.compare(y)
+    case _ => that.compare(Real(this))
   }
 
   /**
@@ -117,12 +109,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     case Left(Left(Some(x))) => Some(BigDecimal(x))
     case _ => None
   }
-
-  /**
-    * @param maybeFactor an optional Factor to be matched.
-    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
-    */
-  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && (maybeFactor.isEmpty || maybeFactor.contains(factor))
 
   /**
     * @return true if this Number is equal to zero.
@@ -324,6 +310,15 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def query[T](op: QueryOperation[T], defaultVal: => T): T = Operations.doQuery(value, op.getFunctions).getOrElse(defaultVal)
 
   /**
+    * Method to determine if this Number can stay "as is" under transformation according to maybeFactor.
+    *
+    * @param maybeFactor an optional Factor.
+    * @return true if maybeFactor is empty or contains this factor.
+    */
+  protected def factorAsIs(maybeFactor: Option[Factor]): Boolean =
+    maybeFactor.isEmpty || maybeFactor.contains(factor) // CONSIDER using forAll
+
+  /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Only the factor will change.
     * This method does not need to be followed by a call to specialize.
@@ -392,7 +387,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * Only the value and factor will change.
     * This method should be followed by a call to specialize.
     *
-    * TEST me
+    * TESTME
     *
     * @param x the value (a Double).
     * @param f Factor.
@@ -406,14 +401,19 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return a new Number with factor of Scalar but with the same magnitude as this.
     */
-  def normalize: Field = (factor match {
-    case Scalar => this
-    case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
-    case Radian => Number.modulate(this)
-    case _ => scale(Scalar)
-  }) match {
-    case fuzzyNumber: FuzzyNumber => fuzzyNumber.normalizeFuzz
-    case x => x
+  def normalize: Field = {
+    val z: Field = factor match {
+      case Scalar => Real(this)
+      case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
+      case Radian => Real(this) // Number.modulate(this) NOTE: we do modulation at other times
+      case _ => Real(scale(Scalar))
+    }
+    z match {
+      case Real(fuzzyNumber: FuzzyNumber) => Real(fuzzyNumber.normalizeFuzz)
+      case r@Real(_) => r
+      case x: Complex => x
+      case x => throw NumberException(s"normalize problem: $x")
+    }
   }
 
   /**
@@ -442,6 +442,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
         case Success(b) => make(b).specialize
         case _ => this
       }
+    case Left(Left(Some(x))) if x.isNaN => Number.NaN
     // XXX Double case
     case d@Left(Left(Some(x))) =>
       // NOTE: here we attempt to deal with Doubles.
@@ -557,7 +558,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   }
 
   /**
-    * TEST me
+    * TESTME
     *
     * @return
     */
@@ -625,20 +626,24 @@ object GeneralNumber {
 
   @tailrec
   def times(x: Number, y: Number): Number = x match {
-    case ExactNumber(Right(0), Scalar) => Number.zero
-    case ExactNumber(Right(1), Scalar) => y
+    case Number.zero => Number.zero
+    case Number.one => y
     case a: GeneralNumber =>
       y match {
-        case ExactNumber(Right(0), Scalar) => Number.zero
-        case ExactNumber(Right(1), Scalar) => x
+        case Number.zero => Number.zero
+        case Number.one => x
         case n@FuzzyNumber(_, _, _) => n doMultiply x
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)
           (p.factor, q.factor) match {
             case (PureNumber(_), Scalar) => doTimes(p, q, p.factor)
             case (Scalar, PureNumber(_)) => doTimes(p, q, q.factor)
+            case (f: Logarithmic, g: Logarithmic) if f == g =>
+              prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationPlus))
             case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
             case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
+            case (Root(m), Root(n)) if m == 2 && n == 2 =>
+              GeneralNumber.doTimes(p, q, p.factor)
             case (Root(_), Root(_)) if p == q => p.make(Scalar)
             case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
             case _ => times(p.scale(Scalar), q.scale(Scalar))
@@ -719,7 +724,7 @@ object GeneralNumber {
         toInts(r) match {
           case Some((n, d)) =>
             root(power(x, n), d) match {
-              case Some(q) => q
+              case Some(q) => q.simplify
               case None => Number(r.toDouble)
             }
           case _ =>
@@ -743,7 +748,7 @@ object GeneralNumber {
     case 0 => throw NumberException(s"root: logic error: cannot take ${i}th root")
     case 1 => Some(n)
     case 2 => Some(n.make(Root2))
-    case 3 => Some(n.make(Root3)) // TEST me
+    case 3 => Some(n.make(Root3)) // TESTME
     case _ => None
   }
 

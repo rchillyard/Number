@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
@@ -222,7 +226,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
   def atan(x: Double): Try[Double] =
     Try {
       math.atan2(x, sign) / math.Pi
-    } // CONSIDER use scale // TEST me
+    } // CONSIDER use scale // TESTME
 
   val functions: MonadicFunctions = (fail("atan cannot be Int"), atanRat, atan)
 

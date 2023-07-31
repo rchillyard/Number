@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
@@ -38,7 +42,7 @@ object Value {
   /**
     * Convert nothing to an invalid Value.
     *
-    * TEST me
+    * TESTME
     *
     * @return a Value.
     */
@@ -270,7 +274,7 @@ sealed trait Root extends Factor {
   def convert(v: Value, f: Factor): Option[Value] = f match {
     case Root(z) =>
       val vo = doComposeValueDyadic(v, Number(z).specialize.value)(DyadicOperationPower.functions)
-      vo flatMap (doComposeValueDyadic(_, Number(value).specialize.invert.value)(DyadicOperationPower.functions))
+      vo flatMap (doComposeValueDyadic(_, Number(value).specialize.doInvert.value)(DyadicOperationPower.functions))
     case _ => None
   }
 }

@@ -1,17 +1,13 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 /**
   * Trait to define the behavior of things that are number-like.
   */
 trait NumberLike {
-
-  /**
-    * Method to determine the NumberSet, if any, to which this NumberLike object belongs.
-    * NOTE that we don't yet support H, the quaternions.
-    *
-    * @return Some(numberSet) or None if it doesn't belong to any (for example it is fuzzy).
-    */
-  def memberOf: Option[NumberSet] = Seq(C, R, Q, Z, N).find(set => set.isMember(this))
 
   /**
     * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
@@ -31,18 +27,10 @@ trait NumberLike {
   def isExact: Boolean = isExact(None)
 
   /**
-    * Method to determine if this NumberLike object is a member of the given set.
-    *
-    * @param set the candidate NumberSet.
-    * @return true if this is exact and belongs to set.
-    */
-  def memberOf(set: NumberSet): Boolean = set.isMember(this)
-
-  /**
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *
-    * CONSIDER redefining this as Option[Field].
+    * CONSIDER redefining this as Option[Field] or Option[Real].
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
@@ -54,4 +42,20 @@ trait NumberLike {
     * @return a String
     */
   def render: String
+
+  /**
+    * Method to determine the NumberSet, if any, to which this NumberLike object belongs.
+    * NOTE that we don't yet support H, the quaternions.
+    *
+    * @return Some(numberSet) or None if it doesn't belong to any (for example it is fuzzy).
+    */
+  def memberOf: Option[NumberSet] = Seq(C, R, Q, Z, N).find(set => set.isMember(this))
+
+  /**
+    * Method to determine if this NumberLike object is a member of the given set.
+    *
+    * @param set the candidate NumberSet.
+    * @return true if this is exact and belongs to set.
+    */
+  def memberOf(set: NumberSet): Boolean = set.isMember(this)
 }

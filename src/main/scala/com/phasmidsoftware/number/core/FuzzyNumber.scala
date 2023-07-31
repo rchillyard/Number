@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.{Ellipsis, withinWiggleRoom}
@@ -25,11 +29,23 @@ import scala.collection.mutable
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
 
   /**
+    * Method to determine if this FuzzyNumber is equivalent to another Numerical (x).
+    *
+    * @param x the other numerical.
+    * @return true if they are the same, otherwise false.
+    */
+  def isSame(x: Numerical): Boolean = x match {
+    case Real(n) => isSame(n)
+    case n: Number => fuzzyCompare(n, 0.5) == 0
+    case c: Complex => c.isSame(Real(this))
+  }
+
+  /**
     * Method to force the fuzziness of this FuzzyNumber to be absolute.
     *
     * @return the same FuzzyNumber but with absolute fuzziness.
     */
-  def normalizeFuzz: Field = this match {
+  def normalizeFuzz: Number = this match {
     case FuzzyNumber(value, factor, maybeFuzz) =>
       val relativeFuzz = for {
         x <- toDouble
@@ -51,8 +67,13 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
         case Root(_) => scale(Scalar)
         case _ => this
       }
-
   }
+
+  /**
+    * @param maybeFactor an optional Factor to be matched.
+    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
+    */
+  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && factorAsIs(maybeFactor)
 
   /**
     * Add a Number to this FuzzyNumber.

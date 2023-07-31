@@ -1,5 +1,12 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
+/**
+  * Object containing an implicit class which can be used to determine factorization.
+  */
 object Divides {
 
   /**
@@ -35,6 +42,8 @@ object Divides {
 
     /**
       * Method to test if x does not divide y.
+      *
+      * TESTME and all other not methods.
       *
       * @param y an Int.
       * @return false if x divides y.toLong.

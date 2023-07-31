@@ -1,8 +1,14 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.{NumberIsFractional, NumberIsOrdering}
-import com.phasmidsoftware.number.core.Real.createFromNumberField
+import com.phasmidsoftware.number.core.Real.createFromRealField
+import scala.language.implicitConversions
+import scala.util.Try
 
 /**
   * Sub-class of Field: as opposed to Complex.
@@ -28,12 +34,30 @@ case class Real(x: Number) extends Field {
   def isZero: Boolean = x.isZero
 
   /**
+    * Method to determine if this Complex is real-valued.
+    *
+    * @return true if this is not imaginary.
+    */
+  def isReal: Boolean = !isImaginary
+
+  /**
+    * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
+    *
+    * @return true if this is a root of a negative number.
+    */
+  def isImaginary: Boolean = x.isImaginary
+
+  /**
     * Method to determine if this Field is equivalent to another Field (x).
     *
     * @param f the other field.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(f: Field): Boolean = x.isSame(f)
+  def isSame(f: Numerical): Boolean = f match {
+    case Real(y) => (x doSubtract y).isZero
+    case c: Complex => c.isSame(this)
+    case n: Number => isSame(Real(n))
+  }
 
   /**
     * Method to determine if this Real has unity magnitude.
@@ -50,7 +74,7 @@ case class Real(x: Number) extends Field {
     * @param y the addend.
     * @return the sum.
     */
-  def add(y: Field): Field = createFromNumberField(x.add(y))
+  def add(y: Field): Field = createFromRealField(x.add(y))
 
   /**
     * Multiply this Real by y and return the result.
@@ -58,7 +82,7 @@ case class Real(x: Number) extends Field {
     * * @param y the multiplicand.
     * * @return the product.
     */
-  def multiply(y: Field): Field = createFromNumberField(x.multiply(y))
+  def multiply(y: Field): Field = x.multiply(y)
 
   /**
     * Divide this Real by y and return the result.
@@ -66,12 +90,27 @@ case class Real(x: Number) extends Field {
     * @param y the divisor.
     * @return the quotient.
     */
-  def divide(y: Field): Field = createFromNumberField(x.divide(y))
+  def divide(y: Field): Field = createFromRealField(x.divide(y))
 
   /**
     * Change the sign of this Real.
     */
-  def unary_- : Field = createFromNumberField(-x)
+  def unary_- : Field = createFromRealField(-x)
+
+  /**
+    * Raise this Real to the power p where p is a Number.
+    *
+    * If the Number of this Real is exact and if the exponent p is rational, then we convert x to a ComplexPolar first
+    * and raise that to power p.
+    *
+    * @param p a Number.
+    * @return this Real raised to power p.
+    */
+  def power(p: Number): Field = p match {
+    case y@ExactNumber(Value(_), _) => x.power(Real(y))
+    case ExactNumber(Value(_, _: Rational), _) => asComplex.power(p)
+    case n => asComplex.power(n)
+  }
 
   /**
     * Raise this Real to the power p.
@@ -80,23 +119,27 @@ case class Real(x: Number) extends Field {
     * and raise that to power p.
     *
     * @param p a Field.
-    * @return this Field raised to power p.
+    * @return this Real raised to power p.
     */
-  def power(p: Field): Field = p.asNumber match {
-    case Some(y@ExactNumber(Value(_), _)) => createFromNumberField(x.power(y))
-    case Some(ExactNumber(Value(_, _: Rational), _)) => asComplex.power(p)
-    case Some(n) => asComplex.power(n)
-    case _ => throw NumberException("Real.power: $p is not a Number")
+  def power(p: Field): Field = p match {
+    case Real(m) if m.isRational => asComplex power m
+    case Real(m) => x.power(Real(m))
+    case c: Complex => asComplex power c
   }
+//
+//  def createFromNumberField(x: Field): Real = x match {
+//    case r: Real => r
+//    case _ => throw NumberException(s"Real.createFromNumberField: x is not a Real: $x")
+//  }
 
-  def sqrt: Field = power(Real(Number(Rational.half)))
+  def sqrt: Field = power(Real(Rational.half))
 
   /**
     * Yields the inverse of this Real.
     * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
     * factors.
     */
-  def invert: Field = createFromNumberField(x.invert)
+  def invert: Field = createFromRealField(x.invert)
 
   /**
     * Method to determine the sine of this Real.
@@ -104,7 +147,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the sine of this.
     */
-  def sin: Real = Real(x.sin)
+  def sin: Field = Real(x.sin)
 
   /**
     * Method to determine the cosine of this Real.
@@ -112,7 +155,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the cosine.
     */
-  def cos: Real = Real(x.cos)
+  def cos: Field = Real(x.cos)
 
   /**
     * Method to determine the tangent of this Real.
@@ -120,7 +163,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the tangent
     */
-  def tan: Real = Real(x.tan)
+  def tan: Field = Real(x.tan)
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -128,7 +171,7 @@ case class Real(x: Number) extends Field {
     * @param y the opposite length
     * @return the angle defined by x = this, y = y
     */
-  def atan(y: Real): Real = Real(x.atan(y.x))
+  def atan(y: Real): Field = Real(x.atan(y.x))
 
   /**
     * Method to determine the natural log of this Real.
@@ -136,7 +179,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the natural log of this.
     */
-  def log: Real = Real(x.log)
+  def log: Field = Real(x.log)
 
   /**
     * Method to raise e to the power of this Real.
@@ -144,7 +187,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the e to the power of this.
     */
-  def exp: Real = Real(x.exp)
+  def exp: Field = Real(x.exp)
 
   /**
     * Method to determine the sense of this Real: negative, zero, or positive.
@@ -158,10 +201,10 @@ case class Real(x: Number) extends Field {
     *
     * @return a Real which is in canonical form.
     */
-  def normalize: Field = createFromNumberField(x.normalize)
+  def normalize: Field = createFromRealField(x.normalize)
 
   def compare(that: Field): Int = that match {
-    case y: Number => x.compare(y)
+    case Real(y) => x.compare(y)
     case z: Complex => asComplex.compare(z)
   }
 
@@ -213,29 +256,49 @@ object Real {
 
   def apply(d: Double): Real = Real(Number(d))
 
-  val zero: Real = Real(0)
-  val one: Real = Real(1)
-  val negOne: Real = Real(-1)
-  val two: Real = Real(2)
-  val three: Real = Real(3)
-  val ten: Real = Real(10)
-  val pi: Real = Real(Constants.pi)
-  val e: Real = Real(Constants.e)
-  lazy val phi: Real = Real(Constants.phi)
-  lazy val gamma: Real = Real(Constants.gamma)
-  lazy val G: Real = Real(Constants.G)
-  lazy val alpha: Real = Real(Constants.alpha)
-  lazy val avagadro: Real = Real(Constants.avagadro)
-  lazy val boltzmann: Real = Real(Constants.boltzmann)
-  lazy val planck: Real = Real(Constants.planck)
-  lazy val c: Real = Real(Constants.c)
-  lazy val mu: Real = Real(Constants.mu)
+  def apply(r: Rational): Real = Real(Number(r))
 
-  def createFromNumberField(x: Field): Real = x match {
-    case n: Number => Real(n)
+  // TODO remove the ones that are already defined in Constants
+//  val zero: Real = Real(0)
+//  val one: Real = Real(1)
+//  val negOne: Real = Real(-1)
+//  val two: Real = Real(2)
+//  val three: Real = Real(3)
+//  val half: Real = Real(Rational.half)
+//  val ten: Real = Real(10)
+//  val pi: Real = Real(Number.pi)
+//  val piBy2: Real = Real(Number.piBy2)
+//  val e: Real = Real(Number.e)
+//  val i: Real = Real(Number.i)
+//  val root2: Real = Real(Number.root2)
+//  val NaN: Real = Real(Number.NaN)
+
+//  lazy val phi: Real = Real(Constants.phi)
+//  lazy val gamma: Real = Real(Constants.gamma)
+//  lazy val G: Real = Real(Constants.G)
+//  lazy val alpha: Real = Real(Constants.alpha)
+//  lazy val avagadro: Real = Real(Constants.avagadro)
+//  lazy val boltzmann: Real = Real(Constants.boltzmann)
+//  lazy val planck: Real = Real(Constants.planck)
+//  lazy val c: Real = Real(Constants.c)
+//  lazy val mu: Real = Real(Constants.mu)
+
+  def createFromRealField(x: Field): Real = x match {
     case r: Real => r
-    case _ => throw NumberException(s"Real.createFromNumberField: x is not a Number: $x")
+    case _ => throw NumberException(s"Real.createFromRealField: x is not a Real: $x")
   }
+
+  /**
+    * Method to parse a String and yield a Try[Number].
+    *
+    * NOTE: this method indirectly invokes apply(Rational, Factor, Option of Fuzz[Double] )
+    *
+    * @param w the String to be parsed.
+    * @return a Number.
+    */
+  def parse(w: String): Try[Real] = Number.parse(w) map (Real(_))
+
+  implicit def convertFromNumber(x: Number): Field = Real(x)
 
   /**
     * Implicit class to operate on Numbers introduced as integers.
@@ -252,7 +315,7 @@ object Real {
       * @param y the addend, a Real.
       * @return a Real whose value is x + y.
       */
-    def +(y: Real): Real = createFromNumberField(Real(x) add y)
+    def +(y: Real): Real = createFromRealField(Real(x) add y)
 
     /**
       * Multiply x by y (a Real) and yield a Real.
@@ -260,7 +323,7 @@ object Real {
       * @param y the multiplicand, a Real.
       * @return a Real whose value is x * y.
       */
-    def *(y: Real): Real = createFromNumberField(Real(x) multiply y)
+    def *(y: Real): Real = createFromRealField(Real(x) multiply y)
 
     /**
       * Divide x by y (a Real) and yield a Real.
@@ -268,7 +331,7 @@ object Real {
       * @param y the divisor, a Real.
       * @return a Real whose value is x / y.
       */
-    def /(y: Real): Real = *(createFromNumberField(y.invert))
+    def /(y: Real): Real = *(createFromRealField(y.invert))
 
     /**
       * Divide x by y (an Int) and yield a Real.
@@ -302,13 +365,13 @@ object Real {
     * Following are the definitions required by Numeric[Real]
     */
   trait RealIsNumeric extends Numeric[Real] with RealIsOrdering {
-    def plus(x: Real, y: Real): Real = createFromNumberField(x add y)
+    def plus(x: Real, y: Real): Real = createFromRealField(x add y)
 
     def minus(x: Real, y: Real): Real = plus(x, negate(y))
 
-    def times(x: Real, y: Real): Real = createFromNumberField(x multiply y)
+    def times(x: Real, y: Real): Real = createFromRealField(x multiply y)
 
-    def negate(x: Real): Real = createFromNumberField(-x)
+    def negate(x: Real): Real = createFromRealField(-x)
 
     def fromInt(x: Int): Real = Real(x)
 
@@ -336,7 +399,7 @@ object Real {
     * Following are the definitions required by Fractional[Real]
     */
   trait RealIsFractional extends Fractional[Real] with RealIsNumeric {
-    def div(x: Real, y: Real): Real = times(x, createFromNumberField(y.invert))
+    def div(x: Real, y: Real): Real = times(x, createFromRealField(y.invert))
   }
 
   implicit object RealIsFractional extends RealIsFractional with RealIsNumeric with RealIsOrdering
