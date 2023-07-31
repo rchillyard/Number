@@ -3,6 +3,14 @@ package com.phasmidsoftware.number.core
 trait Numerical extends NumberLike {
 
   /**
+    * Method to determine if this Numerical is equivalent to another Numerical object (x).
+    *
+    * @param x the other Numerical.
+    * @return true if they are most probably the same, otherwise false.
+    */
+  def isSame(x: Numerical): Boolean
+
+  /**
     * Method to determine if this Field has infinite magnitude.
     *
     * @return true if the magnitude of this Field is infinite.

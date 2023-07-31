@@ -11,9 +11,9 @@
 # Number
 This project is about numbers and their mathematics.
 The chief features of this library are:
-* all numbers are exact wherever it is possible, including &#xD835;&#xDF00; and &#xD835;&#xDED1; (e and pi);
+* all numbers are exact _wherever it is possible_, including $e$ (Unicode: xD835DF00) and $\pi$ (Unicode: xD835DED1);
 * inexact numbers are represented along with their error bounds;
-* lazy evaluation to help avoid temporary inexact values from becoming part of a result;
+* lazy evaluation of _expressions_ to help avoid temporary inexact values from becoming part of a result;
 * there are several domains of _Number_ (expressed with different "factors") to support angles, logarithms, roots.
 
 There is no such thing as accidental loss of precision (at least, provided that code follows the recommendations).
@@ -21,7 +21,7 @@ For example, if you write:
 
     val x = 1 / 2
 
-your _x_ will be an _Int_ of value 0.
+your _x_ will be an _Int_ of value 0, because of the way Java-style operators work (in this case, integer division).
 
 However, if you write the idiomatically correct form:
 
@@ -40,9 +40,9 @@ They are [Number (part 1)](https://medium.com/codex/number-part-1-c98313903714),
 [Number (part 2)](https://scala-prof.medium.com/number-part-2-7925400624d5), and 
 [Fuzzy, lazy, functional numeric computing in Scala](https://medium.com/codex/fuzzy-lazy-functional-numeric-computing-in-scala-4b47588d310f)
 
-The Number project provides mathematical utilities where error bounds are tracked (and not forgotten).
+The _Number_ project provides mathematical utilities where error bounds are tracked (and not forgotten).
 All functions handle the transformation or convolution of error bounds appropriately.
-When the error bound is sufficiently large compared to a number, that number is considered to be zero.
+When the error bound is sufficiently large compared to a number, that number is considered to be zero (see **Comparison**).
 This implies that, when comparing numbers, any significant overlap of their error bounds will result in them testing
 as equal (according to the _compare_ function, but not the _equals_ function).
 

@@ -49,9 +49,10 @@ case class Real(x: Number) extends Field {
     * @param f the other field.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(f: Field): Boolean = f match {
+  def isSame(f: Numerical): Boolean = f match {
     case Real(y) => (x doSubtract y).isZero
     case c: Complex => c.isSame(this)
+    case n: Number => isSame(Real(n))
   }
 
   /**

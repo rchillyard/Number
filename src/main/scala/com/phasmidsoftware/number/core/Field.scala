@@ -39,14 +39,6 @@ trait Field extends NumberLike with Ordered[Field] with Numerical {
   def isImaginary: Boolean
 
   /**
-    * Method to determine if this Field is equivalent to another Field (x).
-    *
-    * @param x the other field.
-    * @return true if they are the same, otherwise false.
-    */
-  def isSame(x: Field): Boolean
-
-  /**
     * Add x to this Field and return the result.
     * See Number.plus for more detail.
     *

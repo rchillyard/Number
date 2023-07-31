@@ -25,6 +25,18 @@ import scala.collection.mutable
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
 
   /**
+    * Method to determine if this FuzzyNumber is equivalent to another Numerical (x).
+    *
+    * @param x the other numerical.
+    * @return true if they are the same, otherwise false.
+    */
+  def isSame(x: Numerical): Boolean = x match {
+    case Real(n) => isSame(n)
+    case n: Number => fuzzyCompare(n, 0.5) == 0
+    case c: Complex => c.isSame(Real(this))
+  }
+
+  /**
     * Method to force the fuzziness of this FuzzyNumber to be absolute.
     *
     * @return the same FuzzyNumber but with absolute fuzziness.

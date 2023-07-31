@@ -12,6 +12,19 @@ package com.phasmidsoftware.number.core
 case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
 
   /**
+    * Method to determine if this ExactNumber is equivalent to another Numerical (x).
+    *
+    * @param x the other numerical.
+    * @return true if they are the same, otherwise false.
+    */
+  def isSame(x: Numerical): Boolean = x match {
+    case Real(n) => isSame(n)
+    case n: FuzzyNumber => n.isSame(this)
+    case n: ExactNumber => doSubtract(n).isZero
+    case c: Complex => c.isSame(Real(this))
+  }
+
+  /**
     * @return true if this Number is equal to zero.
     */
   def isZero: Boolean = GeneralNumber.isZero(this)

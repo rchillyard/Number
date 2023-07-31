@@ -50,11 +50,12 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @param x the other field.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(x: Field): Boolean = (this, x) match {
+  def isSame(x: Numerical): Boolean = (this, x) match {
     case (z, Real(n)) => z isSame n.asComplex
     case (c1@ComplexCartesian(_, _), c2@ComplexPolar(_, _, _)) => c2.isSame(c1)
     case (c1@ComplexPolar(_, _, _), c2@ComplexCartesian(_, _)) => c1.isSame(convertToPolar(c2))
-    case (c1, c2) => (c1 subtract c2).isZero
+    case (c1, c2: Complex) => (c1 subtract c2).isZero
+    case (z, x: Number) => z isSame Real(x)
   }
 
   /**

@@ -34,17 +34,6 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   }
 
   /**
-    * Method to determine if this Field is equivalent to another Field (x).
-    *
-    * @param x the other field.
-    * @return true if they are the same, otherwise false.
-    */
-  def isSame(x: Field): Boolean = x match {
-    case Real(n) => (this doSubtract n).isZero
-    case c: Complex => c.isSame(Real(this))
-  }
-
-  /**
     * Method to determine if this is a valid Number.
     * An invalid number has a value of form Left(Left(Left(None)))
     *
