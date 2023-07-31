@@ -490,6 +490,10 @@ object Fuzziness {
   /**
     * Calculate the fuzziness for the result of a MonadicOperation.
     *
+    * NOTE: the parameter x is not actually used in this method. It seems like it ought to be used for functionFuzz
+    * but the values produced this way do seem to be correct.
+    * It is possible that the values are correct for relative error bounds but maybe not for absolute error bounds.
+    *
     * @param op   the monadic operation.
     * @param t    the magnitude of the input to the monadic operation.
     * @param x    the magnitude of the result of the monadic operation.

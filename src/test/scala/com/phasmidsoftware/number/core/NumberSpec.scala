@@ -211,7 +211,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.isExact(None) shouldBe false
     target shouldEqual Number(Rational(3927, 1250))
   }
-  it should """work for "\uD835\uDED1""""" in {
+  it should """work for "𝛑" """ in {
     val target = Number("\uD835\uDED1")
     target.isExact(None) shouldBe true
     target.value shouldBe Right(1)

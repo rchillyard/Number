@@ -4,9 +4,9 @@ name := "Number"
 
 version := "1.1.0"
 
-scalaVersion := "2.13.6"
+scalaVersion := "2.13.11"
 
-scalacOptions ++= Seq( "-target:jvm-1.11", "-encoding", "UTF-8", "-unchecked", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused" )
+scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused" )
 
 val scalaTestVersion = "3.2.15"
 

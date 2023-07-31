@@ -260,7 +260,7 @@ A field supports operations such as addition, subtraction, multiplication, and d
 We also support powers because, at least for integer powers, raising to a power is simply iterating over a number of multiplications.
 
 The two types of _Field_ supported are _Real_ and _Complex_.
-_Real_ is a wrapper around a _Number_ (see below).
+_Real_ is a wrapper around a _Number_ (see below) while _Complex_ (see below) is a wrapper around two _Number_s (more or less).
 
 Number
 ======
@@ -285,7 +285,7 @@ For this to happen, the value in question must have fewer than three decimal pla
 Complex
 =======
 There are two types of _Complex_: _ComplexCartesian_ and _ComplexPolar_.
-Complex numbers support all the _Field_ operations, as well as _modulus_ and _conjugate_.
+Complex numbers support all the _Field_ operations, as well as _modulus_, _argument_, _rotate_, and _conjugate_.
 It is easy to convert between the two types of _Complex_.
 
 The _ComplexPlanar_ object has an additional member (as well as the real and imaginary parts):
@@ -448,12 +448,17 @@ See the code (_Fuzz_) for details.
 Things get only slightly more complex when applying monadic (single operand) functions or applying a function such
 as $z=x^y$:
 
-In general, when we apply a monadic operator _y=f(x)_ (such as constant factor, as above, or power, or one of the trigonometric operators),
+In general, when we apply a monadic operator $y=f(x)$ (such as constant factor, as above, or power, or one of the trigonometric operators),
 the formula for the relative fuzz of the result $\frac{Δy}{y}$ based on the relative fuzz of the input $\frac{Δx}{x}$ is:
 
 $$\frac{Δy}{y}=\frac{x \frac{dy}{dx}(x)}{f(x)}\frac{Δx}{x}$$
 
 Constants cancel, powers survive as is, and so on.
+
+For example, if $y=e^x$ then 
+
+$$\frac{Δy}{y}=x\frac{Δx}{x}$$
+
 Again, these formulas can be looked up in the code.
 
 Comparing two fuzzy numbers involves subtracting the two numbers and then determining if the probability

@@ -17,7 +17,7 @@ trait MatchersExtras extends Matchers {
     * TESTME
     *
     * @param m a Matcher[(T0, T1), R].
-    * @param f a function (T0, T1) => P.
+    * @param f a function (T0, T1) => P. This is required only by the compiler, not used at run-time.
     * @tparam T0 the first element type.
     * @tparam T1 the second element type.
     * @tparam P  the Product type.
@@ -53,7 +53,7 @@ trait MatchersExtras extends Matchers {
     * TESTME
     *
     * @param m a Matcher[(T0, T1), R].
-    * @param f a function (T0, T1) => P.
+    * @param f a function (T0, T1) => P. This is required only by the compiler, not used at run-time.
     * @tparam T0 the first element type.
     * @tparam T1 the second element type.
     * @tparam T2 the third element type.

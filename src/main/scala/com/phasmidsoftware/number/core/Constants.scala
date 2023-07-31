@@ -1,7 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import scala.language.implicitConversions
-
 object Constants {
   val sPhi = "1.618033988749894"
   val sGamma = "0.57721566490153286060651209008240243104215933593992*"

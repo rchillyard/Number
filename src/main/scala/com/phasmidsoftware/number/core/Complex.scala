@@ -26,6 +26,13 @@ trait Complex extends Field {
   def argument: Number
 
   /**
+    * Method to determine the conjugate of this Complex number.
+    *
+    * @return the conjugate of this Complex.
+    */
+  def conjugate: Complex
+
+  /**
     * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).
     *
     * @return the value of this * i.
@@ -55,13 +62,6 @@ trait Complex extends Field {
     * @return a Complex with the same argument as this but a different magnitude.
     */
   def numberProduct(n: Number): Complex
-
-  /**
-    * Method to determine the conjugate of this Complex number.
-    *
-    * @return the conjugate of this Complex.
-    */
-  def conjugate: Complex
 }
 
 /**
