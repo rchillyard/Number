@@ -12,7 +12,7 @@ import scala.language.implicitConversions
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field extends NumberLike with Ordered[Field] with Numerical {
+trait Field extends Numerical with Ordered[Field] {
 
   /**
     * Method to determine if this Field is represented by a Complex number.

@@ -1,5 +1,8 @@
 package com.phasmidsoftware.number.core
 
+/**
+  * Trait defining the behavior of "numerical" objects.
+  */
 trait Numerical extends NumberLike {
 
   /**
