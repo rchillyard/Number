@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.matchers
 
 import com.phasmidsoftware.matchers.{MatcherException, Matchers, ~}

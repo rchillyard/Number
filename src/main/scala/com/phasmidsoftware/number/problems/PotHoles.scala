@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.problems
 
 import scala.annotation.tailrec

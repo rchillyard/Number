@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import scala.language.postfixOps
 import scala.math.Numeric.Implicits.infixNumericOps
 
 class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -109,6 +110,12 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val result: Field = goldenRatio.materialize
     result.render shouldBe "1.618033988749895(19)"
   }
+it should "have alpha" in {
+  val target = Constants.alpha
+  target.isExact shouldBe false
+  val alpha = for (number <- (target invert).asNumber; x <- number.toDouble) yield x
+  alpha.get shouldBe 137.0 +- 0.04
+}
 
   behavior of "toString"
 

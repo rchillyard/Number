@@ -1,11 +1,13 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
+/**
+  * Definitions of constant fields.
+  */
 object Constants {
-  val sPhi = "1.618033988749894"
-  val sGamma = "0.57721566490153286060651209008240243104215933593992*"
-  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
-  val sBoltzmann = "1380649.E-29" // J K ^ -1
-
   val one: Real = Real(Number.one)
   val minusOne: Field = -one
   val two: Real = Real(Number.two)
@@ -78,4 +80,10 @@ object Constants {
     * [[https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio]]
     */
   lazy val mu: Real = Real(1836.15267343 ~ 11) // (dimensionless)
+
+  val sPhi = "1.618033988749894"
+  val sGamma = "0.57721566490153286060651209008240243104215933593992*"
+  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
+  val sBoltzmann = "1380649.E-29" // J K ^ -1
+
 }

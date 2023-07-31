@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.{Ellipsis, withinWiggleRoom}

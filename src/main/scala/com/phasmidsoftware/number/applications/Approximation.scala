@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.applications
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
