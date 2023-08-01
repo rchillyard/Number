@@ -15,12 +15,20 @@ class NumberSetSpec extends AnyFlatSpec with should.Matchers {
     N.maybeSuperSet shouldBe Some(Z)
   }
 
-  it should "isMember" in {
+  it should "isMember (Number)" in {
     N.isMember(Number.one) shouldBe true
     Z.isMember(Number.zero) shouldBe true
     Q.isMember(Number.half) shouldBe true
     R.isMember(Number.pi) shouldBe true
     C.isMember(Number.i) shouldBe true
+  }
+
+  it should "isMember (Real)" in {
+    N.isMember(Constants.one) shouldBe true
+    Z.isMember(Constants.zero) shouldBe true
+    Q.isMember(Constants.half) shouldBe true
+    R.isMember(Constants.pi) shouldBe true
+    C.isMember(Constants.i) shouldBe true
   }
 
   it should "belongsToSetExclusively" in {
