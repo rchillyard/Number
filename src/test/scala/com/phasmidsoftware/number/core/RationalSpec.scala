@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, findRepeatingSequence}
+import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, findRepeatingSequence, pi_5000}
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
 import scala.language.postfixOps
@@ -627,6 +627,25 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "fail when denominator has too many prime factors" in {
     findRepeatingSequence(1, 257, Seq(Prime(257))) should matchPattern { case Failure(NumberException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
+  }
+
+  behavior of "renderApproximate"
+  it should "work" in {
+    Rational.one.renderApproximate(5) shouldBe "1    "
+    Rational.one.negate.renderApproximate(5) shouldBe "-1   "
+    Rational("0.1").renderApproximate(5) shouldBe "0.1  "
+    pi_5000.renderApproximate(2) shouldBe " 3"
+    pi_5000.renderApproximate(3) shouldBe "3.1"
+    pi_5000.renderApproximate(4) shouldBe "3.14"
+    pi_5000.renderApproximate(5) shouldBe "3.142"
+    pi_5000.renderApproximate(6) shouldBe "3.1416"
+    pi_5000.renderApproximate(7) shouldBe "3.14159"
+    pi_5000.renderApproximate(8) shouldBe "3.141593"
+    pi_5000.renderApproximate(9) shouldBe "3.1415927"
+    pi_5000.renderApproximate(10) shouldBe "3.14159265"
+  }
+  it should "fail" in {
+    a[RationalException] should be thrownBy pi_5000.renderApproximate(1)
   }
 
   behavior of "Rational(String)"
