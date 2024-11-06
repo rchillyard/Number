@@ -630,7 +630,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
 
   behavior of "renderApproximate"
-  it should "work" in {
+  it should "work with one parameter" in {
     Rational.one.renderApproximate(5) shouldBe "1    "
     Rational.one.negate.renderApproximate(5) shouldBe "-1   "
     Rational("0.1").renderApproximate(5) shouldBe "0.1  "
@@ -644,8 +644,25 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     pi_5000.renderApproximate(9) shouldBe "3.1415927"
     pi_5000.renderApproximate(10) shouldBe "3.14159265"
   }
-  it should "fail" in {
+  it should "fail with one parameter" in {
     a[RationalException] should be thrownBy pi_5000.renderApproximate(1)
+  }
+  it should "work with two parameters" in {
+    Rational.one.renderApproximate(5, Some(0)) shouldBe "    1"
+    Rational.one.negate.renderApproximate(5, Some(0)) shouldBe "   -1"
+    Rational("0.1").renderApproximate(5, Some(2)) shouldBe " 0.10"
+    pi_5000.renderApproximate(2, Some(0)) shouldBe " 3"
+    pi_5000.renderApproximate(3, Some(1)) shouldBe "3.1"
+    pi_5000.renderApproximate(4, Some(2)) shouldBe "3.14"
+    pi_5000.renderApproximate(5, Some(2)) shouldBe " 3.14"
+    pi_5000.renderApproximate(6, Some(2)) shouldBe "  3.14"
+    pi_5000.renderApproximate(7, Some(2)) shouldBe "   3.14"
+    pi_5000.renderApproximate(8, Some(2)) shouldBe "    3.14"
+    pi_5000.renderApproximate(9, Some(2)) shouldBe "     3.14"
+    pi_5000.renderApproximate(10, Some(2)) shouldBe "      3.14"
+  }
+  it should "fail with two parameters" in {
+    a[RationalException] should be thrownBy pi_5000.renderApproximate(1, Some(5))
   }
 
   behavior of "Rational(String)"

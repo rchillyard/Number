@@ -167,7 +167,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
   /**
     * Yield a Fuzziness[T] that is Gaussian (either this or derivative of this).
     */
-  lazy val normalizeShape: Fuzziness[T] = shape match {
+  def normalizeShape: Fuzziness[T] = shape match {
     case Gaussian => this
     case Box => RelativeFuzz(Box.toGaussianRelative(tolerance), Gaussian)
   }
@@ -272,7 +272,7 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
     else
       throw FuzzyNumberException("* operation on different shapes")
 
-  lazy val normalizeShape: Fuzziness[T] = shape match {
+  def normalizeShape: Fuzziness[T] = shape match {
     case Gaussian => this
     case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
   }

@@ -525,7 +525,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query
     */
-  lazy val maybeRational: Option[Rational] = Value.maybeRational(value)
+  def maybeRational: Option[Rational] = Value.maybeRational(value)
 
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).
