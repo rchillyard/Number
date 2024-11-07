@@ -258,6 +258,8 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
       forceToBigDecimal.toString + Ellipsis
   }
 
+  def renderAsPercent(places: Int): String = (this * 100).renderApproximate(4 + places, Some(places)) + "%"
+
   def forceToBigDecimal: BigDecimal = if (!isInfinity) BigDecimal(n) / BigDecimal(d) else
     throw RationalException(s"cannot convert infinity to BigDecimal: $this")
 

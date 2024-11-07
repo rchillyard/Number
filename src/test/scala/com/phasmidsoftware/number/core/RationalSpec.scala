@@ -665,6 +665,13 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     a[RationalException] should be thrownBy pi_5000.renderApproximate(1, Some(5))
   }
 
+  behavior of "renderAsPercent"
+  it should "work" in {
+    Rational.one.renderAsPercent(2) shouldBe "100.00%"
+    Rational("1/10").renderAsPercent(2) shouldBe " 10.00%"
+    Rational("1/3").renderAsPercent(2) shouldBe " 33.33%"
+  }
+
   behavior of "Rational(String)"
   it should "work for 0.1" in {
     val r = Rational("0.1")
