@@ -116,4 +116,24 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   it should "transpose" in {
     // TESTME transpose
   }
+
+  behavior of "toTry"
+
+  private val hello = "hello"
+
+  it should "toTry" in {
+    toTry(Some(1), Failure(new NoSuchElementException)) should matchPattern { case Success(1) => }
+    toTry(None, Failure(new NoSuchElementException)) should matchPattern { case Failure(_: NoSuchElementException) => }
+  }
+
+  it should "toTryWithThrowable" in {
+    toTryWithThrowable(Some(1), RationalException(hello)) should matchPattern { case Success(1) => }
+    toTryWithThrowable(None, RationalException(hello)) should matchPattern { case Failure(RationalException(`hello`)) => }
+  }
+
+  it should "toTryWithRationalException" in {
+    toTryWithRationalException(Some(1), hello) should matchPattern { case Success(1) => }
+    toTryWithRationalException(None, hello) should matchPattern { case Failure(RationalException(`hello`)) => }
+  }
+
 }

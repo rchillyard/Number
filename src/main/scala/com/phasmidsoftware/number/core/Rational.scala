@@ -4,8 +4,9 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.FP.toTryWithRationalException
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
-import com.phasmidsoftware.number.core.Rational.{bigFive, bigNegOne, bigTwo, bigZero}
+import com.phasmidsoftware.number.core.Rational.{bigFive, bigNegOne, bigTwo, bigZero, minus, rootOfBigInt, times}
 import com.phasmidsoftware.number.parse.RationalParser
 import java.lang.Math._
 import scala.annotation.tailrec
@@ -13,19 +14,20 @@ import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
 /**
-  * Rational.
-  *
-  * This case class represents Rational numbers by a BigInt numerator and a BigInt denominator.
-  * The numerator (n) and the denominator (d) may never share a common factor: if you try to construct a Rational with "new" where there is
-  * a common factor, then an exception will be thrown. However, all of the apply methods ensure valid Rational instances by factoring out any such common factors.
+  * `Rational`: a case class that represents rational numbers by a `BigInt` numerator and a `BigInt` denominator.
+  * The numerator (`n`) and the denominator (`d`) may not share a common factor:
+  * if you try to construct a `Rational` with `new` where there is a common factor,
+  * then an exception will be thrown.
+  * However, all the `apply` methods ensure valid `Rational` instances by factoring out any common factors.
   * Similarly, the denominator may not be negative: again, the apply methods will take care of this situation.
+  * This is the reason that the constructor of `Rational` is marked package-private.
   *
-  * The domain of Rational includes values with 0 denominator and any numerator (either -ve or +ve infinity) as well as
-  * the value with 0 numerator and denominator (NaN).
+  * The domain of `Rational` includes values with a zero value in the denominator and any numerator (either -ve or +ve infinity)
+  * as well as the value with 0 as both the numerator and denominator (`NaN`).
   *
   * @author scalaprof
   */
-case class Rational(n: BigInt, d: BigInt) extends NumberLike {
+case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
 
   // Pre-conditions
 
@@ -42,21 +44,22 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
 
   def +(that: Long): Rational = this + Rational(that)
 
-  def -(that: Rational): Rational = Rational.minus(this, that)
+  def -(that: Rational): Rational = minus(this, that)
 
   def -(that: BigInt): Rational = this - Rational(that)
 
+  // NOTE this IS used, whatever the compiler thinks.
   def unary_- : Rational = negate
 
   def negate: Rational = Rational.negate(this)
 
-  def *(that: Rational): Rational = Rational.times(this, that)
+  def *(that: Rational): Rational = times(this, that)
 
   def *(that: BigInt): Rational = this * Rational(that)
 
-  def *(that: Long): Rational = Rational.times(this, that)
+  def *(that: Long): Rational = this * Rational(that)
 
-  def *(that: Short): Rational = Rational.times(this, that.toLong)
+  def *(that: Short): Rational = this * Rational(that)
 
   def /(that: Rational): Rational = this * that.invert
 
@@ -71,6 +74,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
   def sqrt: Try[Rational] = power(Rational.half)
 
   // Other methods appropriate to Rational
+
   def signum: Int = n.signum
 
   def isNegative: Boolean = signum < 0
@@ -96,13 +100,34 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
 
   def maybeInt: Option[Int] = if (isWhole) Some(toInt) else None
 
-  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
+  /**
+    * Method to convert `this` `Rational` into an `Int`.
+    * It is better to use `maybeInt`.
+    *
+    * NOTE this will throw an exception if `this` `Rational` is not whole or its numerator is too large for an `Int`.
+    *
+    * @return an `Int`.
+    */
   def toInt: Int = Rational.toInt(this).get
 
-  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
+  /**
+    * Method to convert `this` `Rational` into a `Long`.
+    * It is better to use `Rational.toLong`.
+    *
+    * NOTE this will throw an exception if `this` `Rational` is not whole or its numerator is too large for a `Long`.
+    *
+    * @return a `Long`.
+    */
   def toLong: Long = Rational.toLong(this).get
 
-  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
+  /**
+    * Method to convert `this` `Rational` into a `BigInt`.
+    * It is better to use `Rational.toBigInt`.
+    *
+    * NOTE this will throw an exception if `this` `Rational` is not whole.
+    *
+    * @return a `BigInt`.
+    */
   def toBigInt: BigInt = Rational.toBigInt(this).get
 
   def toFloat: Float = Rational.toFloat(this)
@@ -112,24 +137,31 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
   def maybeDouble: Option[Double] = if (isExactDouble) Some(toDouble) else None
 
   /**
-    * Method to get the xth power of this Rational, exactly.
+    * Method to get the xth power of this `Rational`, exactly.
     *
-    * @param x the power (any Rational).
-    * @return Success(...) if the result can be calculated exactly, else Failure.
+    * @param x the power (any `Rational`) whose numerator and denominator can each be represented by an `Int`.
+    * @return `Success(...)` if the result can be calculated exactly, else `Failure`.
     */
-  def power(x: Rational): Try[Rational] = {
-    val maybeNum: Try[Int] = FP.toTry(Rational.toInt(x.n), Failure(RationalException("can't get exact root")))
-    val maybeDenom: Try[Int] = FP.toTry(Rational.toInt(x.d), Failure(RationalException("can't get exact root")))
-    for (p <- maybeNum; r <- maybeDenom; z <- FP.toTryWithThrowable(this.power(p).root(r), RationalException("can't get exact root"))) yield z
-  }
+  def power(x: Rational): Try[Rational] = for {
+    p <- toTryWithRationalException(Rational.toInt(x.n), s"power($x): numerator is not an Int")
+    r <- toTryWithRationalException(Rational.toInt(x.d), s"power($x): denominator is not an Int")
+    z <- toTryWithRationalException(power(p).root(r), s"power($x): cannot calculate result exactly")
+  } yield z
 
-  def power(x: Int): Rational = {
+  /**
+    * Method to calculate the value of this Rational raised to the power of `p`.
+    *
+    * @param p an Int which may be negative, zero, or positive.
+    * @return this raised to the power of `p`.
+    */
+  def power(p: Int): Rational = {
     @tailrec def inner(r: Rational, x: Int): Rational = if (x == 0) r else inner(r * this, x - 1)
 
-    if (x == 0) Rational.one
+    if (p == 0) Rational.one
+    else if (p == 1 || isUnity) this
     else {
-      val rational = inner(Rational.one, math.abs(x))
-      if (x > 0) rational
+      val rational = inner(Rational.one, math.abs(p))
+      if (p > 0) rational
       else rational.invert
     }
   }
@@ -143,7 +175,8 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     *         In the event that it's not possible to get the exact root, then None is returned.
     */
   def root(x: Int): Option[Rational] =
-    for (a <- Rational.root(n, x); b <- Rational.root(d, x)) yield Rational(a, b)
+    if (x == 1 || isUnity) Some(this)
+    else for (a <- rootOfBigInt(n, x); b <- rootOfBigInt(d, x)) yield Rational(a, b)
 
   def toBigDecimal: Option[BigDecimal] = if (isDecimal) Some(forceToBigDecimal) else None
 
@@ -606,7 +639,7 @@ object Rational {
     * @param x an Int.
     * @return an optional BigInt which, when raised to the power of x, equals b.
     */
-  def root(b: BigInt, x: Int): Option[BigInt] =
+  def rootOfBigInt(b: BigInt, x: Int): Option[BigInt] =
     Try(BigInt(math.round(math.pow(b.toDouble, 1.0 / x)))) match {
       case Success(z) if z.pow(x) == b => Some(z)
       case _ => None
@@ -713,11 +746,11 @@ object Rational {
       @tailrec
       def inner(candidates: List[Int]): Try[String] = candidates match {
         case Nil =>
-          Failure[String](NumberException(s"Rational.findRepeatingSequence: no sequence"))
+          Failure[String](RationalException(s"Rational.findRepeatingSequence: no sequence"))
         case h :: t =>
           findRepeatingPattern(bigNumber, h) match {
             case Some(z) if z + h < l => Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
-            case Some(z) => Failure[String](NumberException(s"Rational.findRepeatingSequence: logic error: pattern exhausts bigNumber: ${z + h} > $l"))
+            case Some(z) => Failure[String](RationalException(s"Rational.findRepeatingSequence: logic error: pattern exhausts bigNumber: ${z + h} > $l"))
             case None => inner(t)
           }
       }
@@ -734,7 +767,7 @@ object Rational {
             Failure(x)
         }
       case _ =>
-        Failure[String](NumberException(s"Rational.numerator and denominator are not both of type Int"))
+        Failure[String](RationalException(s"Rational.numerator and denominator are not both of type Int"))
     }
   }
 
@@ -759,7 +792,7 @@ object Rational {
         case 5 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) :+ bs.product
         case 6 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) :+ bs.product
         case 7 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) ++ sexts(bs) :+ bs.product
-        case _ => throw NumberException(s"Rational.getPeriods: not yet implemented for: $bs")
+        case _ => throw RationalException(s"Rational.getPeriods: not yet implemented for: $bs")
       }
     }
   }
@@ -776,7 +809,7 @@ object Rational {
             case Success(products) => Success(products.sorted.distinct)
             case x => x
           }
-        case _ => Failure(NumberException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $ps"))
+        case _ => Failure(RationalException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $ps"))
       }
     }
 
@@ -789,7 +822,7 @@ object Rational {
       case None if d < BigNumber.MAXDECIMALDIGITS => // XXX The reason for this is that we only generate 1000 characters for the rendering
         getCandidates(Seq(d.toInt - 1))
       case None =>
-        Failure(NumberException(s"Rational.getPeriods: no suitable candidates for repeating sequence length"))
+        Failure(RationalException(s"Rational.getPeriods: no suitable candidates for repeating sequence length"))
       case Some(xs) =>
         getCandidates(xs)
     }

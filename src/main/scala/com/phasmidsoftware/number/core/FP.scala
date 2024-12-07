@@ -199,31 +199,35 @@ object FP {
     case Right(y) => Left(rToL(y))
     case Left(_) => lRe
   }
+  /**
+    * Method to convert an `Option` into a `Try`.
+    *
+    * @param xo      an `Option[X]`.
+    * @param default a `Try[X]`.
+    * @tparam X the underlying type of both input and output.
+    * @return if `xo` is `Some(x)` then `Success(x)` else `default`.
+    */
+  def toTry[X](xo: Option[X], default: => Try[X]): Try[X] = xo map (Success(_)) getOrElse default
 
   /**
-    * This method fills a gap in the Scala library.
-    * It converts an Option[X] to a Try[X] with the benefit of a default value.
+    * Method to convert an `Option` into a `Try` where the default is an exception, i.e., a `Throwable`.
     *
-    * @param xo      an Option[X].
-    * @param default the value of Try[X] to be returned in the event that xo is empty.
-    * @tparam X the underlying type of input and output.
-    * @return a Try[X]
+    * @param xo      an `Option[X]`.
+    * @param default a `Throwable`.
+    * @tparam X the underlying type of both input and output.
+    * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(default)`.
     */
-  def toTry[X](xo: Option[X], default: => Try[X]): Try[X] = xo match {
-    case Some(x) => Success(x)
-    case None => default
-  }
+  def toTryWithThrowable[X](xo: Option[X], default: => Throwable): Try[X] = xo.toRight(default).toTry // toTry(xo, Failure(default))
 
   /**
-    * This method fills a gap in the Scala library.
-    * It converts an Option[X] to a Try[X] with the benefit of a default value.
+    * Method to convert an `Option` into a `Try` where the default is a `String`.
     *
-    * @param xo      an Option[X].
-    * @param default a Throwable to be returned as a Failure in the event that xo is empty.
-    * @tparam X the underlying type of input and output.
-    * @return a Try[X]
+    * @param xo      an `Option[X]`.
+    * @param default a `Throwable`.
+    * @tparam X the underlying type of both input and output.
+    * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(RationalException(default))`.
     */
-  def toTryWithThrowable[X](xo: Option[X], default: => Throwable): Try[X] = toTry(xo, Failure(default))
+  def toTryWithRationalException[X](xo: Option[X], default: => String): Try[X] = toTryWithThrowable(xo, RationalException(default))
 
   /**
     * This method is a substitute for Try.apply in the case that we want it as a function

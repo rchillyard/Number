@@ -307,6 +307,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     r shouldBe Rational(5).invert
   }
 
+  behavior of "-"
+  it should "work for -1" in {
+    val r = Rational(-1)
+    -r shouldBe Rational.one
+  }
+
   behavior of "negate"
   it should "work for -1" in {
     val r = Rational(-1)
@@ -409,9 +415,17 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     target ^ Rational(2, 3) shouldBe Success(Rational(4, 9))
   }
 
+  it should "work for Rational power (5)" in {
+    val target = Rational.one
+    target.power(Rational(2, 3)) shouldBe Success(Rational.one)
+  }
+
   it should "fail for non-exact powers" in {
     val target = Rational(7, 28)
-    target.power(Rational(2, 3)).isFailure shouldBe true
+    target.power(Rational(2, 3)) match {
+      case Failure(x) => x.getLocalizedMessage shouldBe "power(2/3): cannot calculate result exactly"
+      case _ => fail("this power should fail")
+    }
   }
 
   behavior of "exponent"
@@ -626,7 +640,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
   }
   it should "fail when denominator has too many prime factors" in {
-    findRepeatingSequence(1, 257, Seq(Prime(257))) should matchPattern { case Failure(NumberException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
+    findRepeatingSequence(1, 257, Seq(Prime(257))) should matchPattern { case Failure(RationalException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
   }
 
   behavior of "renderApproximate"
@@ -898,10 +912,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational(9, 4).sqrt shouldBe Success(Rational(3, 2))
   }
 
-  behavior of "root"
+  behavior of "rootOfBigInt"
   it should "work for sqrt(4)" in {
     val b = BigInt(4)
-    Rational.root(b, 2) shouldBe Some(2)
+    Rational.rootOfBigInt(b, 2) shouldBe Some(2)
   }
 
   behavior of "RationalOps"
