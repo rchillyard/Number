@@ -83,12 +83,12 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should """work for "𝛑" """ in {
     val target = Real("\uD835\uDED1")
-    target.isExact(None) shouldBe true
+    target.isExact shouldBe true
     target shouldBe Constants.pi
   }
   it should "work for 1" in {
     val target = Real(1)
-    target.isExact(None) shouldBe true
+    target.isExact shouldBe true
   }
 
   behavior of "asReal"

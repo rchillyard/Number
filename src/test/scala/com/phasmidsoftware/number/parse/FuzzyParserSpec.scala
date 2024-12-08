@@ -152,6 +152,6 @@ class FuzzyParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     }
   }
   it should "parse 16.5[2]" in {
-    Number("16.5[2]").isExact(None) shouldBe false
+    Number("16.5[2]").isExact shouldBe false
   }
 }

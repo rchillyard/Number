@@ -73,7 +73,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @param maybeFactor an optional Factor to be matched.
     * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && factorAsIs(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && factorAsIs(maybeFactor)
 
   /**
     * Add a Number to this FuzzyNumber.

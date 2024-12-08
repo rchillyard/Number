@@ -210,7 +210,7 @@ case class Real(x: Number) extends Field {
     *                    if factor is None then, the result will depend solely on whether this is exact.
     * @return true if this NumberLike object is exact in the context of factor, else false.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = x.isExact(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = x.isExactByFactor(maybeFactor)
 
   /**
     * Method to return the x of this Real.
