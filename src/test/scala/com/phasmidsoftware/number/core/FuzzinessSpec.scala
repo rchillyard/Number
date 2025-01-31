@@ -37,20 +37,20 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   behavior of "maybeNumber"
   it should "" in {
     val z = p.parseAll(p.maybeNumber, sG)
-    z.get.get.isExact(None) shouldBe false
+    z.get.get.isExact shouldBe false
     z.get.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
   behavior of "number"
   it should "" in {
     val z: p.ParseResult[Number] = p.parseAll(p.number, sG)
-    z.get.isExact(None) shouldBe false
+    z.get.isExact shouldBe false
     z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
   behavior of "StringParser"
   it should "" in {
     val x = NumberParser
     val q: Try[Number] = x.parseNumber(sG)
-    q.get.isExact(None) shouldBe false
+    q.get.isExact shouldBe false
     q.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
 
@@ -85,7 +85,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "understand ..." in {
     import Number.FuzzOps
     val x = 3.1415927 ~ 12
-    x.isExact(None) shouldBe false
+    x.isExact shouldBe false
     x.toString shouldBe "3.1415927(12)"
   }
 

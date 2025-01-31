@@ -85,7 +85,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def exactMaterialization(maybeFactor: Option[Factor]): ExpressionMatcher[Field] = {
     x =>
-      if (x.isExact(maybeFactor)) Match(x.evaluate)
+      if (x.isExactByFactor(maybeFactor)) Match(x.evaluate)
       else Miss("exactMaterialization: non-exact", x)
   }
 
@@ -102,7 +102,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     simplifier(x) match {
       case Match(e) =>
         val result: Field = e.evaluate
-        if (result.isExact(None))
+        if (result.isExactByFactor(None))
           result
         else
           result.normalize

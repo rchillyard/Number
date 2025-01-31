@@ -126,11 +126,6 @@ case class Real(x: Number) extends Field {
     case Real(m) => x.power(Real(m))
     case c: Complex => asComplex power c
   }
-//
-//  def createFromNumberField(x: Field): Real = x match {
-//    case r: Real => r
-//    case _ => throw NumberException(s"Real.createFromNumberField: x is not a Real: $x")
-//  }
 
   def sqrt: Field = power(Real(Rational.half))
 
@@ -215,7 +210,7 @@ case class Real(x: Number) extends Field {
     *                    if factor is None then, the result will depend solely on whether this is exact.
     * @return true if this NumberLike object is exact in the context of factor, else false.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = x.isExact(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = x.isExactByFactor(maybeFactor)
 
   /**
     * Method to return the x of this Real.
@@ -257,31 +252,6 @@ object Real {
   def apply(d: Double): Real = Real(Number(d))
 
   def apply(r: Rational): Real = Real(Number(r))
-
-  // TODO remove the ones that are already defined in Constants
-//  val zero: Real = Real(0)
-//  val one: Real = Real(1)
-//  val negOne: Real = Real(-1)
-//  val two: Real = Real(2)
-//  val three: Real = Real(3)
-//  val half: Real = Real(Rational.half)
-//  val ten: Real = Real(10)
-//  val pi: Real = Real(Number.pi)
-//  val piBy2: Real = Real(Number.piBy2)
-//  val e: Real = Real(Number.e)
-//  val i: Real = Real(Number.i)
-//  val root2: Real = Real(Number.root2)
-//  val NaN: Real = Real(Number.NaN)
-
-//  lazy val phi: Real = Real(Constants.phi)
-//  lazy val gamma: Real = Real(Constants.gamma)
-//  lazy val G: Real = Real(Constants.G)
-//  lazy val alpha: Real = Real(Constants.alpha)
-//  lazy val avagadro: Real = Real(Constants.avagadro)
-//  lazy val boltzmann: Real = Real(Constants.boltzmann)
-//  lazy val planck: Real = Real(Constants.planck)
-//  lazy val c: Real = Real(Constants.c)
-//  lazy val mu: Real = Real(Constants.mu)
 
   def createFromRealField(x: Field): Real = x match {
     case r: Real => r

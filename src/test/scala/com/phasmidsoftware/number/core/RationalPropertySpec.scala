@@ -6,6 +6,9 @@ import scala.util.control.NonFatal
 
 /**
   * Created by scalaprof on 10/4/16.
+  *
+  * NOTE: it is possible that these tests will fail due to randomly generating a Double precision number out of range of Double (E311).
+  * Recommend just re-run.
   */
 class RationalPropertySpec extends Properties("Rational") {
 

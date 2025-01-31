@@ -75,7 +75,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val zy = Number.parse(sGamma)
     zy should matchPattern { case Success(_) => }
     val z = zy.get
-    z.isExact(None) shouldBe false
+    z.isExact shouldBe false
     z.value should matchPattern { case Left(Right(Rational(_, _))) => }
     z.fuzz.get shouldBe AbsoluteFuzz(5.0E-51, Box)
     z.toDouble.get shouldBe 0.5772156649015329 +- 1E-14
@@ -86,27 +86,27 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val zy = Number.parse(sPhi)
     zy should matchPattern { case Success(_) => }
     val z = zy.get
-    z.isExact(None) shouldBe false
+    z.isExact shouldBe false
     z.fuzz.get shouldBe AbsoluteFuzz(5.0E-16, Box)
     z.toDouble.get shouldBe 1.618033988749894 +- 1E-13
   }
   it should "parse G" in {
     val z = Number.parse("6.67430(15)E-11")
     z should matchPattern { case Success(_) => }
-    z.get.isExact(None) shouldBe false
+    z.get.isExact shouldBe false
     z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
   val sAlpha = "0.0072973525693(11)"
   it should "parse alpha" in {
     val z = Number.parse(sAlpha)
     z should matchPattern { case Success(_) => }
-    z.get.isExact(None) shouldBe false
+    z.get.isExact shouldBe false
     z.get.fuzz.get shouldBe AbsoluteFuzz(1.1E-12, Gaussian)
   }
   it should "parse mu" in {
     val z = Number.parse(sMu)
     z should matchPattern { case Success(_) => }
-    z.get.isExact(None) shouldBe false
+    z.get.isExact shouldBe false
     z.get.fuzz.get shouldBe AbsoluteFuzz(1.1E-7, Gaussian)
   }
 

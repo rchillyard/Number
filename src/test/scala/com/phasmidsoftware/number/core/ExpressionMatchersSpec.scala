@@ -162,7 +162,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val seven = Number(7)
     val x: Number = seven.sqrt
     val y = x doPower two
-    y.isExact(None) shouldBe true
+    y.isExact shouldBe true
     y shouldBe seven
   }
   it should "cancel addition and subtraction (a)" in {
@@ -214,7 +214,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = seven.sqrt
     val y: Expression = Literal(x) ^ Constants.two
     val result = convertToNumber(y.materialize)
-    result.isExact(None) shouldBe true
+    result.isExact shouldBe true
     result shouldEqual Number(7)
   }
   it should "evaluate E * 2" in {

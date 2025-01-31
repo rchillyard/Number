@@ -69,7 +69,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return true if materialize will result in an exact Field, else false.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = real.isExact(maybeFactor) && imag.isExact(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = real.isExactByFactor(maybeFactor) && imag.isExactByFactor(maybeFactor)
 
   /**
     *

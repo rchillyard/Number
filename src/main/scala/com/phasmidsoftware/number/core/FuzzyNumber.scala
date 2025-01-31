@@ -73,7 +73,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     * @param maybeFactor an optional Factor to be matched.
     * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && factorAsIs(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && factorAsIs(maybeFactor)
 
   /**
     * Add a Number to this FuzzyNumber.
@@ -116,7 +116,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     *
     * @return true if this Number is equivalent to zero with at least 50% confidence.
     */
-  lazy val isZero: Boolean = isProbablyZero(0.5)
+  def isZero: Boolean = isProbablyZero(0.5)
 
   /**
     * @param p the confidence desired. Ignored if isZero is true.
@@ -132,7 +132,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  override lazy val signum: Int = signum(0.5)
+  override def signum: Int = signum(0.5)
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.

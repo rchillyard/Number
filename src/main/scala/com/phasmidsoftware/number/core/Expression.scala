@@ -318,7 +318,7 @@ case class Literal(x: Field) extends AtomicExpression {
     *
     * @return true if materialize will result in an ExactNumber, else false.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = x.isExact(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = x.isExactByFactor(maybeFactor)
 
   /**
     * @return Some(factor).
@@ -375,7 +375,7 @@ abstract class Constant extends AtomicExpression {
     *
     * @return true.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = evaluate.isExact(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = evaluate.isExactByFactor(maybeFactor)
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -482,7 +482,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     * @param maybeFactor the context in which we want to evaluate this Expression.
     * @return false.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = f(x.materialize).isExact(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = f(x.materialize).isExactByFactor(maybeFactor)
 
   /**
     * TODO implement properly according to the actual function involved.
@@ -540,7 +540,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the value of exact which is based on a, b, and f.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = exact && value.isExact(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = exact && value.isExactByFactor(maybeFactor)
 
   /**
     * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
@@ -624,7 +624,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ => false
   }
 
-  private lazy val exact: Boolean = a.isExact(None) && b.isExact(None) && (f.isExact || conditionallyExact)
+  private lazy val exact: Boolean = a.isExact && b.isExact && (f.isExact || conditionallyExact)
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")

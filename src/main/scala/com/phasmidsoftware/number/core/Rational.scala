@@ -4,8 +4,9 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.FP.toTryWithRationalException
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
-import com.phasmidsoftware.number.core.Rational.{bigFive, bigNegOne, bigTwo, bigZero}
+import com.phasmidsoftware.number.core.Rational.{NaN, bigFive, bigNegOne, bigTwo, bigZero, half, minus, one, rootOfBigInt, times}
 import com.phasmidsoftware.number.parse.RationalParser
 import java.lang.Math._
 import scala.annotation.tailrec
@@ -13,19 +14,20 @@ import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
 /**
-  * Rational.
-  *
-  * This case class represents Rational numbers by a BigInt numerator and a BigInt denominator.
-  * The numerator (n) and the denominator (d) may never share a common factor: if you try to construct a Rational with "new" where there is
-  * a common factor, then an exception will be thrown. However, all of the apply methods ensure valid Rational instances by factoring out any such common factors.
+  * `Rational`: a case class that represents rational numbers by a `BigInt` numerator and a `BigInt` denominator.
+  * The numerator (`n`) and the denominator (`d`) may not share a common factor:
+  * if you try to construct a `Rational` with `new` where there is a common factor,
+  * then an exception will be thrown.
+  * However, all the `apply` methods ensure valid `Rational` instances by factoring out any common factors.
   * Similarly, the denominator may not be negative: again, the apply methods will take care of this situation.
+  * This is the reason that the constructor of `Rational` is marked package-private.
   *
-  * The domain of Rational includes values with 0 denominator and any numerator (either -ve or +ve infinity) as well as
-  * the value with 0 numerator and denominator (NaN).
+  * The domain of `Rational` includes values with a zero value in the denominator and any numerator (either -ve or +ve infinity)
+  * as well as the value with 0 as both the numerator and denominator (`NaN`).
   *
   * @author scalaprof
   */
-case class Rational(n: BigInt, d: BigInt) extends NumberLike {
+case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
 
   // Pre-conditions
 
@@ -42,21 +44,22 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
 
   def +(that: Long): Rational = this + Rational(that)
 
-  def -(that: Rational): Rational = Rational.minus(this, that)
+  def -(that: Rational): Rational = minus(this, that)
 
   def -(that: BigInt): Rational = this - Rational(that)
 
+  // NOTE this IS used, whatever the compiler thinks.
   def unary_- : Rational = negate
 
-  lazy val negate: Rational = Rational.negate(this)
+  def negate: Rational = Rational.negate(this)
 
-  def *(that: Rational): Rational = Rational.times(this, that)
+  def *(that: Rational): Rational = times(this, that)
 
   def *(that: BigInt): Rational = this * Rational(that)
 
-  def *(that: Long): Rational = Rational.times(this, that)
+  def *(that: Long): Rational = this * Rational(that)
 
-  def *(that: Short): Rational = Rational.times(this, that.toLong)
+  def *(that: Short): Rational = this * Rational(that)
 
   def /(that: Rational): Rational = this * that.invert
 
@@ -68,24 +71,25 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
 
   def abs: Rational = if (signum < 0) negate else this
 
-  lazy val sqrt: Try[Rational] = power(Rational.half)
+  def sqrt: Try[Rational] = power(half)
 
   // Other methods appropriate to Rational
-  lazy val signum: Int = n.signum
 
-  lazy val isNegative: Boolean = signum < 0
+  def signum: Int = n.signum
 
-  lazy val invert: Rational = Rational(d, n)
+  def isNegative: Boolean = signum < 0
 
-  lazy val isWhole: Boolean = d == 1L
+  def invert: Rational = Rational(d, n)
 
-  lazy val isZero: Boolean = n == 0L
+  def isWhole: Boolean = d == 1L
 
-  lazy val isUnity: Boolean = n == 1L && isWhole
+  def isZero: Boolean = n == 0L
 
-  lazy val isInfinity: Boolean = d == 0L
+  def isUnity: Boolean = n == 1L && isWhole
 
-  lazy val isNaN: Boolean = isZero && isInfinity
+  def isInfinity: Boolean = d == 0L
+
+  def isNaN: Boolean = isZero && isInfinity
 
   /**
     * Method to determine if this Rational can be represented exactly as a decimal string.
@@ -94,42 +98,70 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     */
   def isDecimal: Boolean = isZero || denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
 
-  lazy val maybeInt: Option[Int] = if (isWhole) Some(toInt) else None
-
-  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
-  lazy val toInt: Int = Rational.toInt(this).get
-
-  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
-  lazy val toLong: Long = Rational.toLong(this).get
-
-  // NOTE this will throw an exception if the value is too large for an Int (like math.toIntExact)
-  lazy val toBigInt: BigInt = Rational.toBigInt(this).get
-
-  lazy val toFloat: Float = Rational.toFloat(this)
-
-  lazy val toDouble: Double = Rational.toDouble(this)
-
-  lazy val maybeDouble: Option[Double] = if (isExactDouble) Some(toDouble) else None
+  def maybeInt: Option[Int] = if (isWhole) Some(toInt) else None
 
   /**
-    * Method to get the xth power of this Rational, exactly.
+    * Method to convert `this` `Rational` into an `Int`.
+    * It is better to use `maybeInt`.
     *
-    * @param x the power (any Rational).
-    * @return Success(...) if the result can be calculated exactly, else Failure.
+    * NOTE this will throw an exception if `this` `Rational` is not whole or its numerator is too large for an `Int`.
+    *
+    * @return an `Int`.
     */
-  def power(x: Rational): Try[Rational] = {
-    val maybeNum: Try[Int] = FP.toTry(Rational.toInt(x.n), Failure(RationalException("can't get exact root")))
-    val maybeDenom: Try[Int] = FP.toTry(Rational.toInt(x.d), Failure(RationalException("can't get exact root")))
-    for (p <- maybeNum; r <- maybeDenom; z <- FP.toTryWithThrowable(this.power(p).root(r), RationalException("can't get exact root"))) yield z
-  }
+  def toInt: Int = Rational.toInt(this).get
 
-  def power(x: Int): Rational = {
+  /**
+    * Method to convert `this` `Rational` into a `Long`.
+    * It is better to use `Rational.toLong`.
+    *
+    * NOTE this will throw an exception if `this` `Rational` is not whole or its numerator is too large for a `Long`.
+    *
+    * @return a `Long`.
+    */
+  def toLong: Long = Rational.toLong(this).get
+
+  /**
+    * Method to convert `this` `Rational` into a `BigInt`.
+    * It is better to use `Rational.toBigInt`.
+    *
+    * NOTE this will throw an exception if `this` `Rational` is not whole.
+    *
+    * @return a `BigInt`.
+    */
+  def toBigInt: BigInt = Rational.toBigInt(this).get
+
+  def toFloat: Float = Rational.toFloat(this)
+
+  def toDouble: Double = Rational.toDouble(this)
+
+  def maybeDouble: Option[Double] = if (isExactDouble) Some(toDouble) else None
+
+  /**
+    * Method to get the xth power of this `Rational`, exactly.
+    *
+    * @param x the power (any `Rational`) whose numerator and denominator can each be represented by an `Int`.
+    * @return `Success(...)` if the result can be calculated exactly, else `Failure`.
+    */
+  def power(x: Rational): Try[Rational] = for {
+    p <- toTryWithRationalException(Rational.toInt(x.n), s"power($x): numerator is not an Int")
+    r <- toTryWithRationalException(Rational.toInt(x.d), s"power($x): denominator is not an Int")
+    z <- toTryWithRationalException(power(p).root(r), s"power($x): cannot calculate result exactly")
+  } yield z
+
+  /**
+    * Method to calculate the value of this Rational raised to the power of `p`.
+    *
+    * @param p an Int which may be negative, zero, or positive.
+    * @return this raised to the power of `p`.
+    */
+  def power(p: Int): Rational = {
     @tailrec def inner(r: Rational, x: Int): Rational = if (x == 0) r else inner(r * this, x - 1)
 
-    if (x == 0) Rational.one
+    if (p == 0) one
+    else if (p == 1 || isUnity) this
     else {
-      val rational = inner(Rational.one, math.abs(x))
-      if (x > 0) rational
+      val rational = inner(one, math.abs(p))
+      if (p > 0) rational
       else rational.invert
     }
   }
@@ -143,15 +175,17 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     *         In the event that it's not possible to get the exact root, then None is returned.
     */
   def root(x: Int): Option[Rational] =
-    for (a <- Rational.root(n, x); b <- Rational.root(d, x)) yield Rational(a, b)
+    if (x == 1 || isUnity) Some(this)
+    else if (x <= 0) None
+    else for (a <- rootOfBigInt(n, x); b <- rootOfBigInt(d, x)) yield Rational(a, b)
 
-  lazy val toBigDecimal: Option[BigDecimal] = if (isDecimal) Some(forceToBigDecimal) else None
+  def toBigDecimal: Option[BigDecimal] = if (isDecimal) Some(forceToBigDecimal) else None
 
   def compare(other: Rational): Int = Rational.compare(this, other)
 
   lazy val toRationalString = s"$n/$d"
 
-  lazy val isExactDouble: Boolean = toBigDecimal.exists(_.isExactDouble) // Only work with Scala 2.11 or above
+  def isExactDouble: Boolean = toBigDecimal.exists(_.isExactDouble) // Only work with Scala 2.11 or above
 
   def applySign(negative: Boolean): Rational = if (negative) negate else this
 
@@ -169,15 +203,34 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     */
   def mediant(other: Rational): Rational = if (signum >= 0 && other.signum >= 0 && !isInfinity && !other.isInfinity)
     Rational(n + other.n, d + other.d)
-  else Rational.NaN
+  else NaN
 
   override def toString: String = this match {
     case Rational(top, Rational.bigOne) => s"$top"
     case Rational(top, bottom) => s"$top/$bottom"
   }
 
+  def renderApproximate(maxLength: Int, maybePlaces: Option[Int] = None): String = {
+    val w = renderExact
+    if (w.length <= maxLength && maybePlaces.isEmpty) w.padTo(maxLength, ' ') else {
+      val x = toDouble
+      val places = maybePlaces getOrElse maxLength - x.toInt.toString.length - 1
+      if (places < 0) throw RationalException(s"renderApproximate: $this cannot be rendered in $maxLength characters")
+      val result = String.format(s"%$maxLength.${places}f", roundDouble(x, places))
+      if (result.length > maxLength) throw RationalException(s"renderApproximate: $this cannot be rendered in $maxLength characters with $places places")
+      if (result.length < maxLength) " " * (maxLength - result.length) + result else result
+    }
+  }
+
+  private def roundDouble(x: Double, places: Int) = {
+    val factor: Double = math.pow(10, places)
+    math.round(x * factor) / factor
+  }
+
   /**
     * Render this Rational as a String.
+    *
+    * CONSIDER: why not return an Option[String] ?
     *
     * @param exact true if this Rational is the value of an exact number.
     * @return a String of various different forms.
@@ -186,6 +239,11 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     if (exact) renderExact -> true
     else "" -> false // NOTE string is ignored if boolean is false
 
+  /**
+    * Method to render a Rational in a manner other than as a rational number (for that, use toString).
+    *
+    * @return an exact String representation of this Rational.
+    */
   def renderExact: String = this match {
     case _ if isNaN => "NaN"
     case _ if isZero && d < 0 => "-0"
@@ -208,7 +266,7 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
     *                    if factor is None then, the result will depend solely on whether this is exact.
     * @return true if this NumberLike object is exact in the context of factor, else false.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = true
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = true
 
   /**
     * Method to determine if this Field is actually a real Number (i.e. not complex).
@@ -234,10 +292,12 @@ case class Rational(n: BigInt, d: BigInt) extends NumberLike {
       forceToBigDecimal.toString + Ellipsis
   }
 
+  def renderAsPercent(places: Int): String = (this * 100).renderApproximate(4 + places, Some(places)) + "%"
+
   def forceToBigDecimal: BigDecimal = if (!isInfinity) BigDecimal(n) / BigDecimal(d) else
     throw RationalException(s"cannot convert infinity to BigDecimal: $this")
 
-  private lazy val denominatorPrimeFactors = Prime.primeFactors(d)
+  private def denominatorPrimeFactors = Prime.primeFactors(d)
 
   def findRepeatingSequence: Try[String] = Rational.findRepeatingSequence(n, d, denominatorPrimeFactors)
 
@@ -358,7 +418,7 @@ object Rational {
         else inner(mediant, r2)
       }
 
-    inner(Rational.zero, Rational.one)
+    inner(zero, one)
   }
 
   val bigZero: BigInt = BigInt(0)
@@ -371,14 +431,16 @@ object Rational {
   val bigNegOne: BigInt = BigInt(-1)
   val bigTen: BigInt = BigInt(10)
   val zero: Rational = Rational(0)
-  lazy val infinity: Rational = zero.invert
+  val infinity: Rational = zero.invert
   lazy val negInfinity: Rational = negZero.invert
   val one: Rational = Rational(bigOne)
   val ten: Rational = Rational(bigTen)
   val two: Rational = Rational(bigTwo)
-  lazy val half: Rational = two.invert
-  lazy val NaN = new Rational(0, 0)
-  lazy val negZero = new Rational(0, -1)
+  val half: Rational = two.invert
+  val NaN = new Rational(0, 0)
+  val negZero = new Rational(0, -1) // NOTE: corresponds to negative zero.
+  lazy val pi_5000: Rational = Rational("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989380952572010654858632788659361533818279682303019520353018529689957736225994138912497217752834791315155748572424541506959508295331168617278558890750983817546374649393192550604009277016711390098488240128583616035637076601047101819429555961989467678374494482553797747268471040475346462080466842590694912933136770289891521047521620569660240580381501935112533824300355876402474964732639141992726042699227967823547816360093417216412199245863150302861829745557067498385054945885869269956909272107975093029553211653449872027559602364806654991198818347977535663698074265425278625518184175746728909777727938000816470600161452491921732172147723501414419735685481613611573525521334757418494684385233239073941433345477624168625189835694855620992192221842725502542568876717904946016534668049886272327917860857843838279679766814541009538837863609506800642251252051173929848960841284886269456042419652850222106611863067442786220391949450471237137869609563643719172874677646575739624138908658326459958133904780275900994657640789512694683983525957098258226205224894077267194782684826014769909026401363944374553050682034962524517493996514314298091906592509372216964615157098583874105978859597729754989301617539284681382686838689427741559918559252459539594310499725246808459872736446958486538367362226260991246080512438843904512441365497627807977156914359977001296160894416948685558484063534220722258284886481584560285060168427394522674676788952521385225499546667278239864565961163548862305774564980355936345681743241125150760694794510965960940252288797108931456691368672287489405601015033086179286809208747609178249385890097149096759852613655497818931297848216829989487226588048575640142704775551323796414515237462343645428584447952658678210511413547357395231134271661021359695362314429524849371871101457654035902799344037420073105785390621983874478084784896833214457138687519435064302184531910484810053706146806749192781911979399520614196634287544406437451237181921799983910159195618146751426912397489409071864942319615679452080951465502252316038819301420937621378559566389377870830390697920773467221825625996615014215030680384477345492026054146659252014974428507325186660021324340881907104863317346496514539057962685610055081066587969981635747363840525714591028970641401109712062804390397595156771577004203378699360072305587631763594218731251471205329281918261861258673215791984148488291644706095752706957220917567116722910981690915280173506712748583222871835209353965725121083579151369882091444210067510334671103141267111369908658516398315019701651511685171437657618351556508849099898599823873455283316355076479185358932261854896321329330898570642046752590709154814165498594616371802709819943099244889575712828905923233260972997120844335732654893823911932597463667305836041428138830320382490375898524374417029132765618093773444030707469211201913020330380197621101100449293215160842444859637669838952286847831235526582131449576857262433441893039686426243410773226978028073189154411010446823252716201052652272111660396665573092547110557853763466820653109896526918620564769312570586356620185581007293606598764861179104533488503461136576867532494416680396265797877185560845529654126654085306143444318586769751456614068007002378776591344017127494704205622305389945613140711270004078547332699390814546646458807972708266830634328587856983052358089330657574067954571637752542021149557615814002501262285941302164715509792592309907965473761255176567513575178296664547791745011299614890304639947132962107340437518957359614589019389713111790429782856475032031986915140287080859904801094121472213179476477726224142548545403321571853061422881375850430633217518297986622371721591607716692547487389866549494501146540628433663937900397692656721463853067360965712091807638327166416274888800786925602902284721040317211860820419000422966171196377921337575114959501566049631862947265473642523081770367515906735023507283540567040386743513622224771589150495309844489333096340878076932599397805419341447377441842631298608099888687413260472")
+  val negZeroDouble: Double = "-0.0".toDouble // negative zero as a Double
 
   /**
     * Method to construct a Rational from two BigInt values.
@@ -447,7 +509,11 @@ object Rational {
     * @param x the Double value.
     * @return a Rational which closely approximates x.
     */
-  def apply(x: Double): Rational = Try(apply(BigDecimal.valueOf(x))).getOrElse(approximateAny(x))
+  def apply(x: Double): Rational =
+    if (x.compare(negZeroDouble) == 0)
+      negZero
+    else
+      Try(apply(BigDecimal.valueOf(x))).getOrElse(approximateAny(x))
 
   /**
     * Method to construct a Rational based on a BigDecimal.
@@ -579,7 +645,7 @@ object Rational {
     * @param x an Int.
     * @return an optional BigInt which, when raised to the power of x, equals b.
     */
-  def root(b: BigInt, x: Int): Option[BigInt] =
+  def rootOfBigInt(b: BigInt, x: Int): Option[BigInt] =
     Try(BigInt(math.round(math.pow(b.toDouble, 1.0 / x)))) match {
       case Success(z) if z.pow(x) == b => Some(z)
       case _ => None
@@ -597,12 +663,12 @@ object Rational {
     */
   @scala.annotation.tailrec
   private def normalize(n: BigInt, d: BigInt): Rational = (n, d) match {
-    case (Rational.bigZero, Rational.bigNegOne) => new Rational(n, d)
+    case (Rational.bigZero, Rational.bigNegOne) => new Rational(n, d) // negative zero: leave as is
     case _ if d < 0 => normalize(-n, -d)
     case _ =>
       val g = n.gcd(d)
       g.signum match {
-        case 0 => Rational.NaN
+        case 0 => NaN
         case _ => new Rational(n / g, d / g)
       }
   }
@@ -625,7 +691,9 @@ object Rational {
 
   private def toDoubleViaString(x: BigInt) = x.toString().toDouble
 
-  private def toDouble(x: Rational): Double = Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
+  private def toDouble(x: Rational): Double =
+    if (x eq negZero) -0.0
+    else Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
 
   // TESTME
   private def toFloat(x: Rational): Float = toDouble(x).toFloat
@@ -686,11 +754,11 @@ object Rational {
       @tailrec
       def inner(candidates: List[Int]): Try[String] = candidates match {
         case Nil =>
-          Failure[String](NumberException(s"Rational.findRepeatingSequence: no sequence"))
+          Failure[String](RationalException(s"Rational.findRepeatingSequence: no sequence"))
         case h :: t =>
           findRepeatingPattern(bigNumber, h) match {
             case Some(z) if z + h < l => Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
-            case Some(z) => Failure[String](NumberException(s"Rational.findRepeatingSequence: logic error: pattern exhausts bigNumber: ${z + h} > $l"))
+            case Some(z) => Failure[String](RationalException(s"Rational.findRepeatingSequence: logic error: pattern exhausts bigNumber: ${z + h} > $l"))
             case None => inner(t)
           }
       }
@@ -707,7 +775,7 @@ object Rational {
             Failure(x)
         }
       case _ =>
-        Failure[String](NumberException(s"Rational.numerator and denominator are not both of type Int"))
+        Failure[String](RationalException(s"Rational.numerator and denominator are not both of type Int"))
     }
   }
 
@@ -732,7 +800,7 @@ object Rational {
         case 5 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) :+ bs.product
         case 6 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) :+ bs.product
         case 7 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) ++ sexts(bs) :+ bs.product
-        case _ => throw NumberException(s"Rational.getPeriods: not yet implemented for: $bs")
+        case _ => throw RationalException(s"Rational.getPeriods: not yet implemented for: $bs")
       }
     }
   }
@@ -749,7 +817,7 @@ object Rational {
             case Success(products) => Success(products.sorted.distinct)
             case x => x
           }
-        case _ => Failure(NumberException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $ps"))
+        case _ => Failure(RationalException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $ps"))
       }
     }
 
@@ -762,7 +830,7 @@ object Rational {
       case None if d < BigNumber.MAXDECIMALDIGITS => // XXX The reason for this is that we only generate 1000 characters for the rendering
         getCandidates(Seq(d.toInt - 1))
       case None =>
-        Failure(NumberException(s"Rational.getPeriods: no suitable candidates for repeating sequence length"))
+        Failure(RationalException(s"Rational.getPeriods: no suitable candidates for repeating sequence length"))
       case Some(xs) =>
         getCandidates(xs)
     }
@@ -789,7 +857,7 @@ object Rational {
     else {
       val e: Int = getExponent(x)
       val scale = pow(2, -e)
-      approximateSmall(x * scale) * Rational.two.power(e)
+      approximateSmall(x * scale) * two.power(e)
     }
 
   private def approximateSmall(x: Double)(implicit epsilon: Tolerance) =

@@ -292,6 +292,26 @@ Thus, a _Rational_ with numerator _x_ and unit denominator, where _x_ is in the 
 It is also possible that a _Double_ _x_ will be represented by a _Left(Right(Rational(x)))_.
 For this to happen, the value in question must have fewer than three decimal places (similar to the parsing scheme).
 
+Real
+====
+_Real_ is a wrapper around a _Number_ and implements _Field_.
+Most of the things you can do with a _Number_, you can also do with a _Real_.
+In general, a Real will be part of the domain $\mathbb{R}$ but specific instances might belong to $\mathbb{N}$, $\mathbb{Z}$, or $\mathbb{Q}$.
+It's even possible to have a _Real_ which belongs to $\mathbb{C}$, in the case of a root of a negative quantity.
+
+In addition to the properties of _Field_, the following methods are defined:
+
+    def sqrt: Field
+    def sin: Field
+    def cos: Field
+    def tan: Field
+    def atan(y: Real): Field
+    def log: Field
+    def exp: Field
+    def toDouble: Double
+
+For examples of usage, especially constructing _Real_ objects, please see _RealWorksheet.sc_.
+
 Complex
 =======
 There are two types of _Complex_: _ComplexCartesian_ and _ComplexPolar_.
@@ -343,7 +363,6 @@ See Complex numbers.
 
 Constants
 =========
-
 Constant values of fields are defined in the _Constants_ object.
 Many of the values are dependent on constants in the _Number_ class which defines  values for _pi_, $\pi$, _e_, _one_, _zero_, _i_, etc.
 
@@ -352,7 +371,7 @@ For example: _c_ (speed of light), _alpha_ (fine structure constant), etc.
 
 NumberLike
 ==========
-NumberLike defines behavior which is of the most general number-like nature.
+_NumberLike_ is a trait that defines behavior which is of the most general number-like nature.
 The specific methods defined are:
 
     def isExact(maybeFactor: Option[Factor]): Boolean // determines if this object is exact in the domain of the (optional) factor
@@ -381,6 +400,21 @@ Additional methods include:
     def normalize: Field
     def asComplex: Complex
     def asReal: Option[Real]
+
+NumberSet
+=========
+_NumberSet_ is a trait which recognizes the following sets:
+* N: $\mathbb{N}$ (the counting numbers);
+* Z: $\mathbb{Z}$ (the integers);
+* Q: $\mathbb{Q}$ (the rationals);
+* R: $\mathbb{R}$ (the reals);
+* C: $\mathbb{C}$ (the complex numbers);
+
+The most important method is:
+
+    def isMember(x: NumberLike): Boolean
+
+which will yield the most exclusive set that x belongs to.
 
 Lazy Evaluation
 ===============
@@ -531,6 +565,7 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
+* Version 1.1.1: 
 * Version 1.1.0: Significant refactoring:
     - Number is no longer a subtype of Field. Code should use the wrapper Real(number) to form a Field.
     - Some of the worksheets were broken and have been fixed.
