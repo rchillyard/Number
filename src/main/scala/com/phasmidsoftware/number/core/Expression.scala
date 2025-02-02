@@ -628,6 +628,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   private lazy val exact: Boolean = a.isExact && b.isExact && (f.isExact || conditionallyExact)
 }
 
+/**
+ * Represents a composite expression that computes the total of a sequence of expressions.
+ * The sequence must be non-empty.
+ *
+ * @constructor Constructs a Total instance with a sequence of expressions.
+ * @param xs A non-empty sequence of expressions to be totaled.
+ */
 case class Total(xs: Seq[Expression]) extends CompositeExpression {
 
   require(xs.nonEmpty, "Empty Sequence")
@@ -673,20 +680,101 @@ case class Total(xs: Seq[Expression]) extends CompositeExpression {
   def render: String = xs.mkString("+")
 }
 
+/**
+ * Companion object for the `Total` case class.
+ *
+ * Provides a utility method to create a `Total` instance by converting a sequence of `Field` inputs
+ * into `Literal` expressions and wrapping them in a `Total`.
+ */
+object Total {
+  /**
+   * Creates a `Total` instance from the given sequence of `Field` inputs.
+   * Each `Field` is converted to a `Literal` expression and combined into a `Total`.
+   *
+   * @param xs The sequence of `Field` instances used to create the `Total`.
+   * @return A `Total` instance containing the converted `Literal` expressions.
+   */
+  def create(xs: Field*): Total = new Total(xs map Literal.apply)
+}
+
+/**
+ * Represents the sine function as an expression function.
+ * It applies the sine operation to a given input.
+ *
+ * This is implemented as an instance of `ExpressionFunction`,
+ * wrapping the method `sin` to calculate the sine of a number.
+ *
+ * The name of the function is "sin".
+ */
 case object Sine extends ExpressionFunction(x => x.sin, "sin")
 
+/**
+ * Represents the cosine mathematical trigonometric function as an `ExpressionFunction`.
+ *
+ * This object applies the cosine operation on a given numerical input
+ * and returns the cosine of that value.
+ *
+ * The function is initialized using the `cos` method of the `Number` type.
+ */
 case object Cosine extends ExpressionFunction(x => x.cos, "cos")
 
+/**
+ * Represents an arctangent operation as a binary function.
+ * Calculates the angle (in radians) whose tangent is the quotient of the two provided fields.
+ * If either input is not a real number, the result will be `NaN` encapsulated in a `Real`.
+ *
+ * - Operates on two `Field` values as the input.
+ * - Uses the `atan` function to compute the angle between the two numbers.
+ * - Returns a `Real` result if both inputs can be interpreted as numbers; otherwise, returns `Real(Number.NaN)`.
+ *
+ * Constraints:
+ * - This operation is not commutative.
+ * - May yield inexact results if the inputs are not exact.
+ */
 case object Atan extends ExpressionBiFunction((x: Field, y: Field) => (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN)), "atan", false, false)
 
+/**
+ * Represents the natural logarithmic function as an ExpressionFunction.
+ *
+ * This object provides functionality to compute the natural logarithm (ln) of a given Number.
+ * The underlying implementation utilizes the `log` method of the Number type.
+ */
 case object Log extends ExpressionFunction(x => x.log, "log")
 
+/**
+ * Represents a mathematical exponential function, exp(x), where e is the base of natural logarithms.
+ * This case object extends ExpressionFunction and applies the exp operation on a given number.
+ * It defines the exponential operation for transformation or evaluation within expressions.
+ */
 case object Exp extends ExpressionFunction(x => x.exp, "exp")
 
+/**
+ * Represents a sum operation as a binary function that adds two `Field` values.
+ *
+ * This object extends `ExpressionBiFunction` by defining its operation as addition (`add`)
+ * with the corresponding symbol "+" and is flagged as not always exact (`isExact = false`).
+ */
 case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = false)
 
+/**
+ * Represents a specific implementation of the `ExpressionBiFunction` that performs multiplication between two `Field` values.
+ *
+ * This object embodies a binary operation where the function takes two inputs and computes their product using the `multiply` method
+ * defined on `Field`. The operation is represented by the symbol "*".
+ *
+ * - The operation is marked as exact, ensuring the result is always precise when the inputs are exact.
+ * - It inherits the commutative property from `ExpressionBiFunction`, as multiplication is commutative.
+ */
 case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*", isExact = true)
 
+/**
+ * Represents the power operation as a binary function within expressions.
+ * This operation raises the first operand to the power of the second operand.
+ * It is not exact for all inputs and does not commute.
+ *
+ * Extends `ExpressionBiFunction` where the specific function is implemented
+ * using the `power` method from the `Field` class.
+ */
 case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExact = false, commutes = false)
 
 /**

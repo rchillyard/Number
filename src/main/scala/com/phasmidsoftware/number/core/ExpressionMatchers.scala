@@ -6,6 +6,8 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
+
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 
 /**
@@ -116,8 +118,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def simplifier: Transformer = ExpressionMatcher {
     case a@AtomicExpression(_) => Match(a)
-    case b@BiFunction(_, _, _) => biFunctionSimplifier(b)
-    case f@Function(_, _) => functionSimplifier(f)
+    case e => e match {
+      case b@BiFunction(_, _, _) => biFunctionSimplifier(b)
+      case f@Function(_, _) => functionSimplifier(f)
+      case t@Total(_) => totalSimplifier(t)
+    }
   } :| "simplifier"
 
   /**
@@ -129,13 +134,61 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def biFunctionSimplifier: Transformer = (matchBiFunction & biFunctionMatcher) :| "biFunctionSimplifier"
 
   /**
+   * Method to simplify a Total if possible.
+   * If the input is a Total, simplification is if all elements are exact and can be reduced to zero, one, or two elements.
+   *
+   * @return a Transformer.
+   */
+  def totalSimplifier: Transformer = (matchTotal & totalMatcher) :| "totalSimplifier"
+
+  /**
+   * Matcher which always succeeds.
+   * If either operand can be simplified, then it will be.
+   *
+   * @return a Match of an exact expression.
+   */
+  private def matchSimplifyTotalTerms: Matcher[Expression, Expression] = Matcher("matchSimplifyTotalTerms") {
+    case Total(xs) =>
+      if (xs.forall(_.asNumber.isDefined)) {
+        // NOTE we should handle the very rare cases where the final get fails
+        val sorted = xs.sortBy(x => Math.abs(x.asNumber.get.toDouble.get))
+
+        @tailrec
+        def inner(es: Seq[Expression], first: Boolean): Seq[Expression] = {
+          val zs: Seq[Expression] = es.grouped(2).foldLeft(Seq.empty[Expression]) {
+            case (accum, Seq(x1, x2)) =>
+              val q = x1 plus x2
+              val isExact = q.isExactByFactor(None)
+              if (isExact) accum :+ q.evaluate
+              else accum :+ x1 :+ x2
+            case (accum, Seq(x)) => accum :+ x
+            case (_, Nil) => throw new NoSuchFieldError("matchSimplifyTotalTerms: inner: logic error")
+          }
+          if (zs.size < es.size)
+            inner(zs, first)
+          else if (first && zs.size > 2)
+            inner(zs.tail, first = false)
+          else
+            zs
+        }
+
+        inner(sorted, true) match {
+          case Nil => Match(Constants.zero)
+          case x :: Nil => Match(x)
+          case x :: y :: Nil => Match(x plus y)
+          case _ => Miss("matchSimplifyTotalTerms: cannot be simplified", xs)
+        }
+      } else Miss("matchSimplifyTotalTerms: not all elements are numbers", xs)
+  }
+
+  /**
     * Matcher which always succeeds.
     * If either operand can be simplified, then it will be.
     *
     * @return a Match of an exact expression.
     */
   def matchSimplifyDyadicTerms: Matcher[DyadicTriple, Expression] = Matcher("matchSimplifyDyadicTerms") {
-    case f ~ x ~ y => exactMaterializer(x).combine(evaluateExpression(f))(exactMaterializer(y))
+    case f ~ x ~ y => exactMaterializer(x).combine(evaluateExpressionBiFunction(f))(exactMaterializer(y))
   }
 
   /**
@@ -183,6 +236,14 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     (matchSimplifyDyadicTerms | evaluateExactDyadicTriple | matchDyadicTrivial | matchDyadicTwoLevels | matchMultiLevels) :| "biFunctionMatcher"
 
   /**
+   * Method to match an Expression which is a Total and replace it with a simplified expression.
+   *
+   * @return an Matcher[Expression, Expression].
+   */
+  def totalMatcher: Matcher[Expression, Expression] =
+    matchSimplifyTotalTerms :| "totalMatcher"
+
+  /**
     * This method defines a single Matcher which combines the various two-level matchers which can be applied to an Expression.
     *
     * @return a Matcher.
@@ -219,6 +280,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
   def matchTwoMonadicLevels: Matcher[MonadicDuple, ExpressionFunction ~ MonadicDuple] = Matcher("matchTwoMonadicLevels") {
     case f ~ Function(x, g) => Match(f ~ (g ~ x))
+    case x => Miss("matchTwoMonadicLevels: not a Function", x)
   }
 
   def matchAndCancelTwoMonadicLevels: Matcher[ExpressionFunction ~ MonadicDuple, Expression] = Matcher("matchAndCancelTwoMonadicLevels") {
@@ -256,18 +318,29 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def evaluateExactDyadicTriple: Matcher[DyadicTriple, Expression] = Matcher("evaluateExactDyadicTriple") {
     case f ~ x ~ y =>
       replaceExactBiFunction(None)(BiFunction(x, y, f)) flatMap simplifier
+    case z =>
+      Miss("evaluateExactDyadicTriple: not an dyadic expression", z)
   }
 
   def matchTwoDyadicLevels: Matcher[DyadicTriple, ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple] = Matcher("matchTwoDyadicLevels") {
-    case f ~ BiFunction(w, x, g) ~ BiFunction(y, z, h) => Match(f ~ (g ~ w ~ x) ~ (h ~ y ~ z))
+    case f ~ BiFunction(w, x, g) ~ BiFunction(y, z, h) =>
+      Match(f ~ (g ~ w ~ x) ~ (h ~ y ~ z))
+    case z =>
+      Miss("matchTwoDyadicLevels: not two BiFunctions", z)
   }
 
   def matchTwoDyadicLevelsL: Matcher[DyadicTriple, ExpressionBiFunction ~ DyadicTriple ~ Expression] = Matcher("matchTwoDyadicLevelsL") {
-    case f ~ BiFunction(x, y, g) ~ z => Match(f ~ (g ~ x ~ y) ~ z)
+    case f ~ BiFunction(x, y, g) ~ z =>
+      Match(f ~ (g ~ x ~ y) ~ z)
+    case z =>
+      Miss("matchTwoDyadicLevelsL: not a DyadicTriple of a (left) BiFunction", z)
   }
 
   def matchTwoDyadicLevelsR: Matcher[DyadicTriple, ExpressionBiFunction ~ Expression ~ DyadicTriple] = Matcher("matchTwoDyadicLevelsR") {
-    case f ~ z ~ BiFunction(x, y, g) => Match(f ~ z ~ (g ~ x ~ y))
+    case f ~ z ~ BiFunction(x, y, g) =>
+      Match(f ~ z ~ (g ~ x ~ y))
+    case z =>
+      Miss("matchTwoDyadicLevelsR: not a DyadicTriple of a (right) BiFunction", z)
   }
 
   /**
@@ -322,11 +395,26 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case e => Miss("matchBiFunction", e)
   }.named("matchBiFunction")
 
+  /**
+   * Matcher which matches a BiFunction and results in a DyadicTriple.
+   *
+   * @return ExpressionMatcher[DyadicTriple]
+   */
+  def matchTotal: ExpressionMatcher[Expression] = ExpressionMatcher {
+    case t@Total(xs) => matchAll[Expression](exactMaterializer).apply(xs) match {
+      case Match(_) => Match(t)
+      case Miss(m, e) => Miss(m, e)
+      case Error(x) => Error(x)
+      case _ => Miss("matchTotal: not all elements are exact", t) // NOTE: we shouldn't need this
+    }
+    case e => Miss("matchTotal: not a Total expression", e)
+  }.named("matchTotal")
+
   private def exactFieldMaterializer: ExpressionMatcher[Field] = Matcher[Expression, Field]("exactFieldMaterializer")(exactMaterialization(None))
 
   private val matcher3: (MatchResult[Expression], MatchResult[Expression], MatchResult[ExpressionBiFunction]) => MatchResult[BiFunction] = matchResult3(BiFunction)
 
-  private def evaluateExpression(f: ExpressionBiFunction): (Expression, Expression) => Expression = (x, y) => Expression(BiFunction(x, y, f).evaluate)
+  private def evaluateExpressionBiFunction(f: ExpressionBiFunction): (Expression, Expression) => Expression = (x, y) => Expression(BiFunction(x, y, f).evaluate)
 
   private def matchAndSimplify(x: Expression): MatchResult[Expression] = Match(x) flatMap simplifier
 

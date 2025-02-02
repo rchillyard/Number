@@ -208,6 +208,21 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     em.simplifier(x) shouldBe em.Match(One)
   }
 
+  behavior of "simplify total"
+  it should "simplify total a" in {
+    val x: Expression = Total(Seq(One, Literal(3), Literal(-3)))
+    val result: em.MatchResult[Field] = em.simplifier(x) map (_.materialize)
+    result should matchPattern { case em.Match(Constants.one) => }
+  }
+  it should "simplify total b" in {
+    val x: Expression = Total(Seq(ConstPi, -ConstPi))
+    val result: em.MatchResult[Field] = em.simplifier(x) map (_.materialize)
+    result match {
+      case em.Match(x: Field) => convertToNumber(x) shouldBe ExactNumber(0, Radian)
+      case _ => fail("expected a Field")
+    }
+  }
+
   behavior of "materialize (a)"
   it should "show ^2 and sqrt for illustrative purposes (a)" in {
     val seven = Number(7)
