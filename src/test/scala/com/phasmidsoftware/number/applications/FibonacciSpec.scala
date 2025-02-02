@@ -39,7 +39,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 
   it should "fib1" in {
     val diff: Expression = phi - psi
-    diff shouldBe BiFunction(phi, psi.unary_-, Sum)
+    diff shouldBe BiFunction(phi, -psi, Sum)
     val fib1 = diff / diff
     fib1.materialize shouldBe Constants.one
   }
@@ -49,34 +49,50 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val psi2: Expression = psi ^ 2
     val top: Expression = phi2 - psi2
     val bottom = phi - psi
-    bottom shouldBe BiFunction(phi, psi.unary_-, Sum)
+    bottom shouldBe BiFunction(phi, -psi, Sum)
+    bottom.materialize should ===(Constants.root5)
     // TODO reinsert the following
-    //    bottom.materialize shouldBe Constants.root5
-    //    val fib2 = top / bottom
-    //    fib2.materialize shouldBe Constants.one
+    val fib2 = top / bottom
+    val fib2M = fib2.materialize
+    top match {
+      case BiFunction(x, y, f) =>
+        println(s"x:$x y:$y f:$f")
+        val t1 = x / Constants.root5
+        val t2 = y / Constants.root5
+        val q = t1 plus t2
+        println(s"t1:$t1")
+        println(s"t2:$t2")
+        println(s"q:$q")
+        // TODO restore the following
+        //        q shouldBe Constants.one
+        q.materialize should ===(Constants.one)
+    }
+    fib2M should ===(Constants.one)
+    // TODO restore the following
+    //    fib2M shouldBe Constants.one
   }
 
   it should "psiFuzzy" in {
-    val expected: Field = ((one - root5) / two)
+    val expected: Field = (one - root5) / two
     val actual: Field = Fibonacci.psi.materialize
     actual should ===(expected)
   }
 
   it should "fibFuzzy" in {
-    Fibonacci.fibExpression(0).materialize should ===((core.Constants.zero))
-    Fibonacci.fibExpression(1).materialize should ===((core.Constants.one))
-    Fibonacci.fibExpression(2).materialize should ===((core.Constants.one))
-    Fibonacci.fibExpression(3).materialize should ===((core.Constants.two))
+    Fibonacci.fibExpression(0).materialize should ===(core.Constants.zero)
+    Fibonacci.fibExpression(1).materialize should ===(core.Constants.one)
+    Fibonacci.fibExpression(2).materialize should ===(core.Constants.one)
+    Fibonacci.fibExpression(3).materialize should ===(core.Constants.two)
   }
 
   it should "fib" in {
     Fibonacci.fib(0) shouldBe BigInt(0)
     // TODO reinsert the following
-    //    Fibonacci.fib(1) shouldBe BigInt(1)
-    //    Fibonacci.fib(2) shouldBe BigInt(1)
-    //    Fibonacci.fib(3) shouldBe BigInt(2)
-    //    Fibonacci.fib(4) shouldBe BigInt(3)
-    //    Fibonacci.fib(5) shouldBe BigInt(5)
+    //        Fibonacci.fib(1) shouldBe BigInt(1)
+    //        Fibonacci.fib(2) shouldBe BigInt(1)
+    //        Fibonacci.fib(3) shouldBe BigInt(2)
+    //        Fibonacci.fib(4) shouldBe BigInt(3)
+    //        Fibonacci.fib(5) shouldBe BigInt(5)
   }
 
 }

@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.matchers.MatchLogger
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
+
 import scala.language.implicitConversions
 
 /**
@@ -625,6 +626,51 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   private lazy val exact: Boolean = a.isExact && b.isExact && (f.isExact || conditionallyExact)
+}
+
+case class Total(xs: Seq[Expression]) extends CompositeExpression {
+
+  require(xs.nonEmpty, "Empty Sequence")
+
+  /**
+   * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
+   *
+   * @return Some(factor) if expression only involves that factor; otherwise None.
+   */
+  def maybeFactor: Option[Factor] = if (xs.forall(_.maybeFactor.isDefined)) xs.head.maybeFactor else None
+
+  /**
+   * Action to evaluate this Expression as a Field,
+   * NOTE no simplification occurs here.
+   * Therefore, if an expression cannot be evaluated exactly,
+   * then it will result in a fuzzy number.
+   *
+   * @return the value.
+   */
+  def evaluate: Field = xs.foldLeft[Field](Constants.zero)(_ + _.evaluate)
+
+  /**
+   * Method to determine the depth of this Expression.
+   *
+   * @return the depth (an atomic expression has depth of 1).
+   */
+  def depth: Int = xs.map(_.depth).max + 1
+
+  /**
+   * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
+   *
+   * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
+   *                    if factor is None then, the result will depend solely on whether this is exact.
+   * @return true if this NumberLike object is exact in the context of factor, else false.
+   */
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = xs.forall(_.isExactByFactor(maybeFactor))
+
+  /**
+   * Method to render this NumberLike in a presentable manner.
+   *
+   * @return a String
+   */
+  def render: String = xs.mkString("+")
 }
 
 case object Sine extends ExpressionFunction(x => x.sin, "sin")

@@ -1,12 +1,13 @@
 package com.phasmidsoftware.number.applications
 
-import com.phasmidsoftware.number.core.Expression.{ExpressionOps, one, phi}
+import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Value.maybeRational
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Expression, Literal, Number, Real, Scalar}
+import com.phasmidsoftware.number.core._
 
 object Fibonacci {
 
-  val psi: Expression = (one - Constants.root5) / Literal(Number.two)
+  val phi: Expression = (Expression(Constants.one) plus Constants.root5) / Constants.two
+  val psi: Expression = (Expression(Constants.one) - Constants.root5) / Constants.two
 
   def fib(n: Int): BigInt = {
     val expression = fibExpression(n)
