@@ -4,7 +4,7 @@ import com.phasmidsoftware.matchers._
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.√
+import com.phasmidsoftware.number.core.Number.{root2, √}
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -209,17 +209,54 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "simplify total"
-  it should "simplify total a" in {
+  it should "simplify total 1" in {
     val x: Expression = Total(Seq(One, Literal(3), Literal(-3)))
     val result: em.MatchResult[Field] = em.simplifier(x) map (_.materialize)
     result should matchPattern { case em.Match(Constants.one) => }
   }
-  it should "simplify total b" in {
-    val x: Expression = Total(Seq(ConstPi, -ConstPi))
-    val result: em.MatchResult[Field] = em.simplifier(x) map (_.materialize)
+
+  it should "simplify total 2a" in {
+    val target: Expression = Total(Seq(ConstPi, -ConstPi))
+    val expected = ExactNumber(0, Radian)
+    val result: em.MatchResult[Field] = em.simplifier(target) map (_.materialize)
     result match {
-      case em.Match(x: Field) => convertToNumber(x) shouldBe ExactNumber(0, Radian)
+      case em.Match(x: Field) =>
+        convertToNumber(x) shouldBe expected
       case _ => fail("expected a Field")
+    }
+  }
+
+  it should "simplify total 2b" in {
+    // NOTE: this does not create a Total but instead creates a BiFunction.
+    val target: Expression = CompositeExpression(ConstPi, -ConstPi)
+    val expected = ExactNumber(0, Radian)
+    val result: em.MatchResult[Field] = em.simplifier(target) map (_.materialize)
+    result match {
+      case em.Match(x: Field) =>
+        convertToNumber(x) shouldBe expected
+      case _ => fail("expected a Field")
+    }
+  }
+
+  // FIXME Issue #84
+  ignore should "simplify total 3a" in {
+    val target: Expression = Total(Seq(Literal(root2), Literal(root2) * Constants.minusOne))
+    val value1 = em.simplifier(target)
+    val result = value1 map (_.materialize)
+    result match {
+      case em.Match(x: Field) => convertToNumber(x) shouldBe Number.zero
+      case x => fail(s"expected a Match(Field) but got $x")
+    }
+  }
+
+  it should "simplify total 3b" in {
+    val target: Expression = CompositeExpression(Literal(root2), -Literal(root2))
+    val result: em.MatchResult[Field] = em.simplifier(target) map (_.materialize)
+    result match {
+      case em.Match(x: Field) =>
+        val value = convertToNumber(x)
+        value shouldBe Number.zero
+      case x => fail(s"expected a Field but got $x")
     }
   }
 
@@ -378,8 +415,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     import em.TildeOps
     val e: Field = Constants.e
     val x: Expression = Literal(e) * Constants.two
-    val y: Expression = Expression(Constants.two).reciprocal
-    p(Product ~ x ~ y) shouldBe em.Match(Expression(e))
+    val y: Expression = Literal(Constants.two).reciprocal
+    val z: em.MatchResult[Expression] = p(Product ~ x ~ y)
+    z shouldBe em.Match(Expression(e))
   }
   it should "simplify root3 * 2 / 2" in {
     val p = em.biFunctionMatcher

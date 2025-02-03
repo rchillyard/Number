@@ -538,10 +538,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 
   /**
     * Method to determine if this Expression can be evaluated exactly.
+   *
+   * Issue #84 This should properly use the commented out code
     *
     * @return the value of exact which is based on a, b, and f.
     */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = exact && value.isExactByFactor(maybeFactor)
+  def isExactByFactor(maybeFactor: Option[Factor]): Boolean =
+    //    exact && (maybeFactor.isEmpty || value.isExactByFactor(maybeFactor))
+    exact && value.isExactByFactor(maybeFactor)
 
   /**
     * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
@@ -596,8 +600,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   /**
     * Determine if this dyadic expression has an exact result, according to f, the function.
     * NOTE that Product is always true, but it is possible that Sum or Power could be false.
-    *
-    * @return true if the result of the f(a,b) is exact.
+   *
+   * TODO surely only positive integer powers are conditionallyExact?
+   *
+   * @return  true if the result of the f(a,b) is exact where a and b are known to be exact.
     *         NOTE: this appears to be an inaccurate description of the result.
     */
   private lazy val conditionallyExact: Boolean = f match {
@@ -686,7 +692,8 @@ case class Total(xs: Seq[Expression]) extends CompositeExpression {
  * Provides a utility method to create a `Total` instance by converting a sequence of `Field` inputs
  * into `Literal` expressions and wrapping them in a `Total`.
  */
-object Total {
+object CompositeExpression {
+
   /**
    * Creates a `Total` instance from the given sequence of `Field` inputs.
    * Each `Field` is converted to a `Literal` expression and combined into a `Total`.
@@ -694,7 +701,21 @@ object Total {
    * @param xs The sequence of `Field` instances used to create the `Total`.
    * @return A `Total` instance containing the converted `Literal` expressions.
    */
-  def create(xs: Field*): Total = new Total(xs map Literal.apply)
+  def apply(xs: Expression*): Expression = xs.toList match {
+    case Nil => throw new IllegalArgumentException("Empty Sequence")
+    case h :: Nil => h
+    case h :: j :: Nil => BiFunction(h, j, Sum)
+    case _ => Total(xs)
+  }
+
+  /**
+   * Creates a `Total` instance from the given sequence of `Field` inputs.
+   * Each `Field` is converted to a `Literal` expression and combined into a `Total`.
+   *
+   * @param xs The sequence of `Field` instances used to create the `Total`.
+   * @return A `Total` instance containing the converted `Literal` expressions.
+   */
+  def create(xs: Field*): Expression = apply((xs map Literal.apply): _*)
 }
 
 /**

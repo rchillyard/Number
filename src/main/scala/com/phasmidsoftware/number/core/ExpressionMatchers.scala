@@ -72,11 +72,19 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
   /**
+   * Creates and returns an expression matcher that filters expressions based on the `isExact` property.
+   *
+   * @return An ExpressionMatcher that matches only expressions with the `isExact` property set to true.
+   */
+  def exactExpressionMatcher: ExpressionMatcher[Expression] = ExpressionMatcher[Expression](filter(_.isExact))
+
+  /**
     * Matcher which tries to evaluate the input exactly and then wraps the result as an Expression.
     *
     * @return Matcher[Expression, Expression]
     */
-  def exactMaterializer: ExpressionMatcher[Expression] = exactFieldMaterializer map (Expression(_))
+  def exactMaterializer: ExpressionMatcher[Expression] =
+    exactFieldMaterializer map (Expression(_))
 
   /**
     * Matcher which takes an optional Factor and, if the input Expression is exact, it returns a Match of the value.
@@ -87,8 +95,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def exactMaterialization(maybeFactor: Option[Factor]): ExpressionMatcher[Field] = {
     x =>
-      if (x.isExactByFactor(maybeFactor)) Match(x.evaluate)
-      else Miss("exactMaterialization: non-exact", x)
+      if (x.isExactByFactor(maybeFactor))
+        Match(x.evaluate)
+      else
+        Miss("exactMaterialization: non-exact", x)
   }
 
   /**
@@ -104,7 +114,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     simplifier(x) match {
       case Match(e) =>
         val result: Field = e.evaluate
-        if (result.isExactByFactor(None))
+        if (result.isExact)
           result
         else
           result.normalize
@@ -158,8 +168,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           val zs: Seq[Expression] = es.grouped(2).foldLeft(Seq.empty[Expression]) {
             case (accum, Seq(x1, x2)) =>
               val q = x1 plus x2
-              val isExact = q.isExactByFactor(None)
-              if (isExact) accum :+ q.evaluate
+              if (q.isExact) accum :+ q
               else accum :+ x1 :+ x2
             case (accum, Seq(x)) => accum :+ x
             case (_, Nil) => throw new NoSuchFieldError("matchSimplifyTotalTerms: inner: logic error")
