@@ -302,24 +302,62 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z.get.materialize shouldBe Real(12)
   }
 
-  behavior of "matchDyadicTrivial"
-  it should "eliminate 1" in {
-    val p = em.matchDyadicTrivial
+  behavior of "matchSimplifyDyadicTerms"
+  it should "handle Sum" in {
+    val p = em.matchSimplifyDyadicTerms
     import em.TildeOps
+    p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
+    p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
+    p(Sum ~ Two ~ Two) shouldBe em.Match(Literal(4))
+    p(Sum ~ One ~ Two) shouldBe em.Match(Literal(3))
+    // NOTE the following should Miss but instead, it generates an inexact match.
+    //    p(Sum ~ One ~ Literal(root2)) should matchPattern { case em.Miss(_,_) => }
+  }
+  it should "handle Product" in {
+    val p = em.matchSimplifyDyadicTerms
+    import em.TildeOps
+    p(Product ~ One ~ Zero) shouldBe em.Match(Zero)
+    p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
     p(Product ~ Two ~ One) shouldBe em.Match(Two)
     p(Product ~ One ~ Two) shouldBe em.Match(Two)
+    p(Product ~ Two ~ Two) shouldBe em.Match(Literal(4))
+    p(Product ~ Two ~ Literal(3)) shouldBe em.Match(Literal(6))
   }
-  it should "eliminate 0" in {
+  it should "handle Power" in {
+    val p = em.matchSimplifyDyadicTerms
+    import em.TildeOps
+    p(Power ~ Two ~ Zero) shouldBe em.Match(One)
+    p(Power ~ Two ~ One) shouldBe em.Match(Two)
+    p(Power ~ One ~ Two) shouldBe em.Match(One)
+    p(Power ~ Two ~ Two) shouldBe em.Match(Literal(4))
+  }
+
+  behavior of "matchDyadicTrivial"
+  it should "handle Sum" in {
     val p = em.matchDyadicTrivial
     import em.TildeOps
     p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
+    p(Sum ~ Two ~ Two) shouldBe em.Match(Literal(4))
+    p(Sum ~ One ~ Two) should matchPattern { case em.Miss(_, _) => }
   }
-  it should "eliminate 1 in power" in {
+  it should "handle Product" in {
     val p = em.matchDyadicTrivial
     import em.TildeOps
+    p(Product ~ One ~ Zero) shouldBe em.Match(Zero)
+    p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
+    p(Product ~ Two ~ One) shouldBe em.Match(Two)
+    p(Product ~ One ~ Two) shouldBe em.Match(Two)
+    p(Product ~ Two ~ Two) shouldBe em.Match(Literal(4))
+    p(Product ~ Two ~ Literal(3)) should matchPattern { case em.Miss(_, _) => }
+  }
+  it should "handle Power" in {
+    val p = em.matchDyadicTrivial
+    import em.TildeOps
+    p(Power ~ Two ~ Zero) shouldBe em.Match(One)
     p(Power ~ Two ~ One) shouldBe em.Match(Two)
     p(Power ~ One ~ Two) shouldBe em.Match(One)
+    p(Power ~ Two ~ Two) should matchPattern { case em.Miss(_, _) => }
   }
 
   behavior of "biFunctionSimplifier"

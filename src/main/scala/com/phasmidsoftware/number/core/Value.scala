@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value.{fromDouble, scaleDouble, valueToString}
+
 import scala.util._
 
 /**
@@ -159,7 +160,7 @@ sealed trait Factor {
   val value: Double
 
   /**
-    * Convert a value x from this factor to f if possible, using simple scaling.
+   * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
     * If the factors are incompatible, then None will be returned.
     *
     * NOTE: only PureNumber<->PureNumber, Root<->Root or Logarithmic<->Logarithmic conversions can be effected.
@@ -254,8 +255,26 @@ object Logarithmic {
   }
 }
 
+/**
+ * A sealed trait extending the `Factor` trait, representing a mathematical root-based factorization.
+ *
+ * A number with value x and factor Root(n) represents the nth root of x.
+ * For example, ExactNumber(5, Root2) is the square root of 5, where Root2 is an alias for Root(2).
+ *
+ * This trait provides mechanisms to convert values associated with one root-based factor
+ * to another, when such conversions are mathematically possible.
+ */
 sealed trait Root extends Factor {
 
+  /**
+   * Retrieves the root degree represented by this factor.
+   *
+   * The root degree indicates the mathematical nth root applicable to this factor.
+   * For instance, a root degree of 2 represents a square root, a root degree of 3
+   * represents a cube root, and so on.
+   *
+   * @return the integer value of the root degree.
+   */
   def root: Int
 
   /**
@@ -264,13 +283,14 @@ sealed trait Root extends Factor {
   val value: Double = root
 
   /**
-    * Convert a value x from this factor to f if possible, using simple scaling.
-    * Result is defined only if f is a Root.
-    *
-    * @param v the value to be converted.
-    * @param f the factor of the result.
-    * @return an optional Value which, given factor f, represents the same quantity as x given this.
-    */
+   * Converts a given Value `v` from one Factor `this` to another Factor `f`, if possible.
+   * Specifically handles cases where the target factor `f` is of type Root.
+   *
+   * @param v the value to be converted.
+   * @param f the target factor for the conversion.
+   * @return an optional Value which represents the same quantity as `v` under the factor `f`, or `None` if the
+   *         conversion is not possible.
+   */
   def convert(v: Value, f: Factor): Option[Value] = f match {
     case Root(z) =>
       val vo = doComposeValueDyadic(v, Number(z).specialize.value)(DyadicOperationPower.functions)

@@ -79,18 +79,20 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def exactExpressionMatcher: ExpressionMatcher[Expression] = ExpressionMatcher[Expression](filter(_.isExact))
 
   /**
-    * Matcher which tries to evaluate the input exactly and then wraps the result as an Expression.
+   * Matcher which tries to evaluate the input exactly as a Scalar and then wraps the result as an Expression.
     *
     * @return Matcher[Expression, Expression]
     */
   def exactMaterializer: ExpressionMatcher[Expression] =
-    exactFieldMaterializer map (Expression(_))
+    // TODO change None to Some(Scalar)
+    exactFieldMaterializer(None) map (Expression(_))
 
   /**
     * Matcher which takes an optional Factor and, if the input Expression is exact, it returns a Match of the value.
     *
     * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
     *                    if factor is None then, the result will depend solely on whether this is exact.
+   *                     CONSIDER renaming all of these maybeFactor parameters as context.
     * @return a Matcher[Expression, Field]
     */
   def exactMaterialization(maybeFactor: Option[Factor]): ExpressionMatcher[Field] = {
@@ -242,7 +244,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return an Matcher[DyadicTriple, Expression].
     */
   def biFunctionMatcher: Matcher[DyadicTriple, Expression] =
-    (matchSimplifyDyadicTerms | evaluateExactDyadicTriple | matchDyadicTrivial | matchDyadicTwoLevels | matchMultiLevels) :| "biFunctionMatcher"
+    (matchSimplifyDyadicTerms | matchDyadicTrivial | evaluateExactDyadicTriple | matchDyadicTwoLevels | matchMultiLevels) :| "biFunctionMatcher"
 
   /**
    * Method to match an Expression which is a Total and replace it with a simplified expression.
@@ -304,25 +306,27 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Match if one of the trivial situations is matched, else a Miss.
     */
   def matchDyadicTrivial: Matcher[DyadicTriple, Expression] = Matcher("matchDyadicTrivial") {
-    case Product ~ Zero ~ _ => Match(Zero)
-    case Product ~ _ ~ Zero => Match(Zero)
-    case Power ~ _ ~ Zero => Match(One)
-    case Power ~ One ~ _ => matchAndSimplify(One)
     case Sum ~ Zero ~ x => matchAndSimplify(x)
     case Sum ~ x ~ Zero => matchAndSimplify(x)
+    case Sum ~ x ~ y if x == y => matchAndSimplify(BiFunction(Two, x, Product))
+    case Product ~ Zero ~ _ => Match(Zero)
+    case Product ~ _ ~ Zero => Match(Zero)
     case Product ~ One ~ x => matchAndSimplify(x)
     case Product ~ x ~ One => matchAndSimplify(x)
+    case Product ~ x ~ y if x == y => matchAndSimplify(BiFunction(x, Two, Power))
+    case Power ~ _ ~ Zero => Match(One)
+    case Power ~ One ~ _ => Match(One)
     case Power ~ x ~ One => matchAndSimplify(x)
     case x => Miss("not a trivial dyadic function", x)
   }
 
   /**
     * Matcher which takes a DyadicTriple (which is not exact -- otherwise this method would not be called).
+   * CONSIDER is it exact or not exact?
     *
-    * CONSIDER this is redundant. Or perhaps should come after the trivial check as it's unlikely that
-    * the replaceExactBiFunction method will find a match.
+   * CONSIDER this is redundant.
     *
-    * @return
+   * @return a `Matcher[DyadicTriple, Expression]`
     */
   def evaluateExactDyadicTriple: Matcher[DyadicTriple, Expression] = Matcher("evaluateExactDyadicTriple") {
     case f ~ x ~ y =>
@@ -419,7 +423,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case e => Miss("matchTotal: not a Total expression", e)
   }.named("matchTotal")
 
-  private def exactFieldMaterializer: ExpressionMatcher[Field] = Matcher[Expression, Field]("exactFieldMaterializer")(exactMaterialization(None))
+  private def exactFieldMaterializer(context: Option[Factor]): ExpressionMatcher[Field] = Matcher[Expression, Field]("exactFieldMaterializer")(exactMaterialization(context))
 
   private val matcher3: (MatchResult[Expression], MatchResult[Expression], MatchResult[ExpressionBiFunction]) => MatchResult[BiFunction] = matchResult3(BiFunction)
 

@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.Number.{inverse, negate}
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.parse.RationalParser.parseComponents
+
 import scala.annotation.tailrec
 import scala.language.{implicitConversions, postfixOps}
 import scala.util._
@@ -1188,7 +1189,7 @@ object Number {
     case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
     case (Root(_), Scalar) if Value.signum(n.value) < 0 => Number.NaN
-    case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt))
+    case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt)) // CONSIDER use of convert
     case (NatLog, PureNumber(_)) | (PureNumber(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, Scalar), factor)
     case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
     case (Scalar, Root(f)) => convertScalarToRoot(n, factor, f)
