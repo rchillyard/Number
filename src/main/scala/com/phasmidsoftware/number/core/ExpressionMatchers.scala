@@ -129,11 +129,15 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return an Transformer.
     */
   def simplifier: Transformer = ExpressionMatcher {
-    case a@AtomicExpression(_) => Match(a)
+    case a@AtomicExpression(_) =>
+      Match(a)
     case e => e match {
-      case b@BiFunction(_, _, _) => biFunctionSimplifier(b)
-      case f@Function(_, _) => functionSimplifier(f)
-      case t@Total(_) => totalSimplifier(t)
+      case b@BiFunction(_, _, _) =>
+        biFunctionSimplifier(b)
+      case f@Function(_, _) =>
+        functionSimplifier(f)
+      case t@Total(_) =>
+        totalSimplifier(t)
     }
   } :| "simplifier"
 
@@ -244,7 +248,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return an Matcher[DyadicTriple, Expression].
     */
   def biFunctionMatcher: Matcher[DyadicTriple, Expression] =
-    (matchSimplifyDyadicTerms | matchDyadicTrivial | evaluateExactDyadicTriple | matchDyadicTwoLevels | matchMultiLevels) :| "biFunctionMatcher"
+    (matchDyadicTrivial | matchSimplifyDyadicTerms | evaluateExactDyadicTriple | matchDyadicTwoLevels | matchMultiLevels) :| "biFunctionMatcher"
 
   /**
    * Method to match an Expression which is a Total and replace it with a simplified expression.
