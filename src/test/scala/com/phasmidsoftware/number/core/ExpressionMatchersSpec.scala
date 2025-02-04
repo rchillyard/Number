@@ -74,12 +74,39 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   import com.phasmidsoftware.number.core.Expression.ExpressionOps
 
   behavior of "evaluateExactDyadicTriple"
-  it should "cancel -1 and - 1" in {
-    sb.append("cancel -1 and - 1:\n")
-    val x: Expression = Expression.one
-    val y = -x
+  it should "handle Sum" in {
     val p = em.evaluateExactDyadicTriple
     import em.TildeOps
+    p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
+    p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
+    p(Sum ~ Two ~ Two) shouldBe em.Match(Literal(4))
+    p(Sum ~ One ~ Two) shouldBe em.Match(Literal(3))
+    p(Sum ~ One ~ Literal(root2)) should matchPattern { case em.Miss(_, _) => }
+  }
+  it should "handle Product" in {
+    val p = em.evaluateExactDyadicTriple
+    import em.TildeOps
+    p(Product ~ One ~ Zero) shouldBe em.Match(Zero)
+    p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
+    p(Product ~ Two ~ One) shouldBe em.Match(Two)
+    p(Product ~ One ~ Two) shouldBe em.Match(Two)
+    p(Product ~ Two ~ Two) shouldBe em.Match(Literal(4))
+    p(Product ~ Two ~ Literal(3)) shouldBe em.Match(Literal(6))
+  }
+  it should "handle Power" in {
+    val p = em.evaluateExactDyadicTriple
+    import em.TildeOps
+    p(Power ~ Two ~ Zero) shouldBe em.Match(One)
+    p(Power ~ Two ~ One) shouldBe em.Match(Two)
+    p(Power ~ One ~ Two) shouldBe em.Match(One)
+    p(Power ~ Two ~ Two) shouldBe em.Match(Literal(4))
+  }
+  it should "cancel -1 and - 1" in {
+    sb.append("cancel -1 and - 1:\n")
+    val p = em.evaluateExactDyadicTriple
+    import em.TildeOps
+    val x: Expression = Expression.one
+    val y = -x
     val result = p(Sum ~ y ~ x)
     result should matchPattern { case em.Match(Zero) => }
   }
@@ -330,6 +357,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ Two ~ One) shouldBe em.Match(Two)
     p(Power ~ One ~ Two) shouldBe em.Match(One)
     p(Power ~ Two ~ Two) shouldBe em.Match(Literal(4))
+  }
+  it should "cancel -1 and - 1" in {
+    sb.append("cancel -1 and - 1:\n")
+    val p = em.matchSimplifyDyadicTerms
+    import em.TildeOps
+    val x: Expression = Expression.one
+    val y = -x
+    val result = p(Sum ~ y ~ x)
+    result should matchPattern { case em.Match(Zero) => }
   }
 
   behavior of "matchDyadicTrivial"
