@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.Real.createFromRealField
+
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -206,11 +207,11 @@ case class Real(x: Number) extends Field {
   /**
     * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
     *
-    * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
+   * @param context      the (optional) context in which we want to evaluate this Expression.
     *                    if factor is None then, the result will depend solely on whether this is exact.
     * @return true if this NumberLike object is exact in the context of factor, else false.
     */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = x.isExactByFactor(maybeFactor)
+  def isExactByFactor(context: Context): Boolean = x.isExactByFactor(context)
 
   /**
     * Method to return the x of this Real.

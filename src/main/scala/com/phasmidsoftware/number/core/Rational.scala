@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.FP.toTryWithRationalException
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.Rational.{NaN, bigFive, bigNegOne, bigTwo, bigZero, half, minus, one, rootOfBigInt, times}
 import com.phasmidsoftware.number.parse.RationalParser
+
 import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -262,11 +263,11 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     *
     * CONSIDER whether this method should really be defined in NumberLike since it makes no sense here.
     *
-    * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
+   * @param context      the (optional) context in which we want to evaluate this Expression.
     *                    if factor is None then, the result will depend solely on whether this is exact.
     * @return true if this NumberLike object is exact in the context of factor, else false.
     */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = true
+  def isExactByFactor(context: Context): Boolean = true
 
   /**
     * Method to determine if this Field is actually a real Number (i.e. not complex).

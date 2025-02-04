@@ -202,11 +202,11 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "other"
 
-  it should "maybeFactor" in {
-    c1_2.maybeFactor shouldBe Some(Scalar)
-    ComplexCartesian(Number.one, Number.pi).maybeFactor shouldBe None
-    p1_pi.maybeFactor shouldBe None
-    ComplexPolar(Number.one, Number.pi).maybeFactor shouldBe None
+  it should "context" in {
+    c1_2.context shouldBe Some(Scalar)
+    ComplexCartesian(Number.one, Number.pi).context shouldBe None
+    p1_pi.context shouldBe None
+    ComplexPolar(Number.one, Number.pi).context shouldBe None
   }
 
   it should "modulus" in {

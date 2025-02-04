@@ -26,7 +26,7 @@ trait Expression extends NumberLike {
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
-  def maybeFactor: Option[Factor]
+  def context: Context
 
   /**
     * Action to evaluate this Expression as a Field,
@@ -319,12 +319,12 @@ case class Literal(x: Field) extends AtomicExpression {
     *
     * @return true if materialize will result in an ExactNumber, else false.
     */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = x.isExactByFactor(maybeFactor)
+  def isExactByFactor(context: Context): Boolean = x.isExactByFactor(context)
 
   /**
     * @return Some(factor).
     */
-  def maybeFactor: Option[Factor] = x match {
+  def context: Context = x match {
     case Real(n) => Some(n.factor)
     case c: BaseComplex => if (c.real.factor == c.imag.factor) Some(c.real.factor) else None
   }
@@ -370,13 +370,13 @@ object Literal {
 abstract class Constant extends AtomicExpression {
 
   /**
-    * Method to determine if this Expression can be evaluated exactly.
-    *
-    * Important NOTE: Some constants will be fuzzy in which case this method must be overridden.
-    *
-    * @return true.
-    */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = evaluate.isExactByFactor(maybeFactor)
+   * Determines if this `Constant` can be evaluated exactly in the given `context`.
+   *
+   * @param context an optional `Factor` that defines the evaluation `context`. 
+   *                If `None`, the result depends solely on whether the constant itself is exact.
+   * @return true if the constant is exact in the context of `context`; false otherwise.
+   */
+  def isExactByFactor(context: Context): Boolean = evaluate.isExactByFactor(context)
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -400,7 +400,7 @@ case object Zero extends Constant {
     */
   def evaluate: Field = Constants.zero
 
-  def maybeFactor: Option[Factor] = Some(Scalar)
+  def context: Context = Some(Scalar)
 }
 
 case object One extends Constant {
@@ -409,7 +409,7 @@ case object One extends Constant {
     */
   def evaluate: Field = Constants.one
 
-  def maybeFactor: Option[Factor] = Some(Scalar)
+  def context: Context = Some(Scalar)
 }
 
 case object MinusOne extends Constant {
@@ -418,7 +418,7 @@ case object MinusOne extends Constant {
     */
   def evaluate: Field = Constants.minusOne
 
-  def maybeFactor: Option[Factor] = Some(Scalar)
+  def context: Context = Some(Scalar)
 
   /**
     * Action to materialize this Expression and render it as a String,
@@ -435,7 +435,7 @@ case object Two extends Constant {
     */
   def evaluate: Field = Constants.two
 
-  def maybeFactor: Option[Factor] = Some(Scalar)
+  def context: Context = Some(Scalar)
 }
 
 /**
@@ -448,7 +448,7 @@ case object ConstPi extends Constant {
     */
   def evaluate: Field = Constants.pi
 
-  def maybeFactor: Option[Factor] = Some(Radian)
+  def context: Context = Some(Radian)
 }
 
 /**
@@ -466,7 +466,7 @@ case object ConstE extends Constant {
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
-  def maybeFactor: Option[Factor] = Some(NatLog)
+  def context: Context = Some(NatLog)
 }
 
 /**
@@ -480,10 +480,10 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   /**
     * Method to determine if this Expression can be evaluated exactly.
     *
-    * @param maybeFactor the context in which we want to evaluate this Expression.
+   * @param context the context in which we want to evaluate this Expression.
     * @return false.
     */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = f(x.materialize).isExactByFactor(maybeFactor)
+  def isExactByFactor(context: Context): Boolean = f(x.materialize).isExactByFactor(context)
 
   /**
     * TODO implement properly according to the actual function involved.
@@ -492,7 +492,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
-  def maybeFactor: Option[Factor] = None
+  def context: Context = None
 
   /**
     * Method to determine the depth of this Expression.
@@ -537,22 +537,23 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
 case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends CompositeExpression {
 
   /**
-    * Method to determine if this Expression can be evaluated exactly.
-   *
+   * Determines whether the current `BiFunction` instance is exact in the context of an optional `Factor`.
    * Issue #84 This should properly use the commented out code
-    *
-    * @return the value of exact which is based on a, b, and f.
-    */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean =
-    //    exact && (maybeFactor.isEmpty || value.isExactByFactor(maybeFactor))
-    exact && value.isExactByFactor(maybeFactor)
+   *
+   * @param context an optional `Factor` within which to evaluate the expression's exactness. 
+   *                If `context` is `None`, the exactness will depend solely on the properties of this instance.
+   * @return true if the current `BiFunction` instance is exact in the context of the given factor; otherwise, false.
+   */
+  def isExactByFactor(context: Context): Boolean =
+    //    exact && (context.isEmpty || value.isExactByFactor(context))
+    exact && value.isExactByFactor(context)
 
   /**
     * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
     *
-    * @return the value of factorsMatch for the function f and the results of invoking maybeFactor on each operand..
+   * @return the value of factorsMatch for the function f and the results of invoking context on each operand..
     */
-  def maybeFactor: Option[Factor] = for (f1 <- a.maybeFactor; f2 <- b.maybeFactor; r <- factorsMatch(f, f1, f2)) yield r
+  def context: Context = for (f1 <- a.context; f2 <- b.context; r <- factorsMatch(f, f1, f2)) yield r
 
   /**
     * Method to determine the depth of this Expression.
@@ -584,7 +585,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 
   // NOTE that NatLog numbers don't behave like other numbers so...
   // CONSIDER really should be excluded from all cases
-  private def factorsMatch(f: ExpressionBiFunction, f1: Factor, f2: Factor): Option[Factor] = f match {
+  private def factorsMatch(f: ExpressionBiFunction, f1: Factor, f2: Factor): Context = f match {
     case Sum if f1 == f2 && f1 != NatLog =>
       Some(f1)
     case Product if f1 == f2 || f1 == Scalar || f2 == Scalar =>
@@ -608,7 +609,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   private lazy val conditionallyExact: Boolean = f match {
     case Power => b.materialize.asNumber.flatMap(x => x.toInt).isDefined
-    case Sum => maybeFactor.isDefined
+    case Sum => context.isDefined
     case Product => true
     case _ => false
   }
@@ -650,7 +651,7 @@ case class Total(xs: Seq[Expression]) extends CompositeExpression {
    *
    * @return Some(factor) if expression only involves that factor; otherwise None.
    */
-  def maybeFactor: Option[Factor] = if (xs.forall(_.maybeFactor.isDefined)) xs.head.maybeFactor else None
+  def context: Context = if (xs.forall(_.context.isDefined)) xs.head.context else None
 
   /**
    * Action to evaluate this Expression as a Field,
@@ -672,11 +673,11 @@ case class Total(xs: Seq[Expression]) extends CompositeExpression {
   /**
    * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
    *
-   * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
+   * @param context     the (optional) context in which we want to evaluate this Expression.
    *                    if factor is None then, the result will depend solely on whether this is exact.
    * @return true if this NumberLike object is exact in the context of factor, else false.
    */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = xs.forall(_.isExactByFactor(maybeFactor))
+  def isExactByFactor(context: Context): Boolean = xs.forall(_.isExactByFactor(context))
 
   /**
    * Method to render this NumberLike in a presentable manner.
@@ -715,7 +716,7 @@ object CompositeExpression {
    * @param xs The sequence of `Field` instances used to create the `Total`.
    * @return A `Total` instance containing the converted `Literal` expressions.
    */
-  def create(xs: Field*): Expression = apply((xs map Literal.apply): _*)
+  def create(xs: Field*): Expression = apply(xs map Literal.apply: _*)
 }
 
 /**

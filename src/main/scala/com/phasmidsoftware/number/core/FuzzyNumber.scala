@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.{Ellipsis, withinWiggleRoom}
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+
 import scala.collection.mutable
 
 /**
@@ -70,10 +71,10 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
   }
 
   /**
-    * @param maybeFactor an optional Factor to be matched.
-    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
+   * @param context an optional Factor to be matched.
+   * @return true if there is no fuzz AND if context is defined then it should match factor.
     */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = fuzz.isEmpty && factorAsIs(maybeFactor)
+  def isExactByFactor(context: Context): Boolean = fuzz.isEmpty && factorAsIs(context)
 
   /**
     * Add a Number to this FuzzyNumber.

@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
 import com.phasmidsoftware.number.core.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.Rational.toInts
+
 import scala.annotation.tailrec
 import scala.util._
 
@@ -310,13 +311,13 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def query[T](op: QueryOperation[T], defaultVal: => T): T = Operations.doQuery(value, op.getFunctions).getOrElse(defaultVal)
 
   /**
-    * Method to determine if this Number can stay "as is" under transformation according to maybeFactor.
+   * Method to determine if this Number can stay "as is" under transformation according to context.
     *
-    * @param maybeFactor an optional Factor.
-    * @return true if maybeFactor is empty or contains this factor.
+   * @param context an optional Factor.
+   * @return true if context is empty or contains this factor.
     */
-  protected def factorAsIs(maybeFactor: Option[Factor]): Boolean =
-    maybeFactor.isEmpty || maybeFactor.contains(factor) // CONSIDER using forAll
+  protected def factorAsIs(context: Context): Boolean =
+    context.isEmpty || context.contains(factor) // CONSIDER using forAll
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.

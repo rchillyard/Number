@@ -26,6 +26,15 @@ package object core {
   type MonadicFunctions = (Int => Try[Int], Rational => Try[Rational], Double => Try[Double])
 
   /**
+   * Represents the context in which an evaluation occurs.
+   *
+   * If a `Factor` is defined, it signifies the factor (PureNumber, Log, Radian, etc.)
+   * in which an expression must be evaluated.
+   * Otherwise, there is no explicit factor.
+   */
+  type Context = Option[Factor]
+
+  /**
     * Type alias for the Boolean query functions.
     */
   type BooleanQueryFunctions = QueryFunctions[Boolean]

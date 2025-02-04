@@ -63,13 +63,16 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   }
 
   /**
-    * Method to determine if this Complex can be evaluated exactly.
-    *
-    * NOTE: the implementations of this don't always make perfect sense regarding maybeFactor.
-    *
-    * @return true if materialize will result in an exact Field, else false.
-    */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = real.isExactByFactor(maybeFactor) && imag.isExactByFactor(maybeFactor)
+   * Determines if this complex number can be evaluated exactly in the given context.
+   * It checks whether both the real and imaginary parts of the complex number are exact
+   * in the context of the specified factor.
+   *
+   * @param context an optional `Factor` that provides the context for evaluation.
+   *                If `None`, the result will depend solely on whether the real and imaginary parts
+   *                are exact without a specified factor.
+   * @return true if both the real and imaginary parts are exact in the given context; otherwise false.
+   */
+  def isExactByFactor(context: Context): Boolean = real.isExactByFactor(context) && imag.isExactByFactor(context)
 
   /**
     *
@@ -310,7 +313,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return Some(factor) if expression only involves that factor; otherwise None.
     */
-  def maybeFactor: Option[Factor] = if (real.factor == imag.factor) Some(real.factor) else None
+  def context: Context = if (real.factor == imag.factor) Some(real.factor) else None
 
   /**
     * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).
@@ -514,7 +517,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return Some(factor of r) if factor of theta is Radian; otherwise None.
     */
-  def maybeFactor: Option[Factor] = if (real.factor == imag.factor) Some(real.factor) else None
+  def context: Context = if (real.factor == imag.factor) Some(real.factor) else None
 
   /**
     * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).

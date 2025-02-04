@@ -88,16 +88,17 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     exactFieldMaterializer(None) map (Expression(_))
 
   /**
-    * Matcher which takes an optional Factor and, if the input Expression is exact, it returns a Match of the value.
+   * `ExpressionMatcher` which matches expressions that are exact in the given context,
+   * it returns a Match of the value.
     *
-    * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
-    *                    if factor is None then, the result will depend solely on whether this is exact.
-   *                     CONSIDER renaming all of these maybeFactor parameters as context.
+   * @param context the context in which we want to evaluate this Expression.
+   *                if context is None then, the result will depend solely on whether this is exact.
+   *                CONSIDER renaming all of these context parameters as context.
     * @return a Matcher[Expression, Field]
     */
-  def exactMaterialization(maybeFactor: Option[Factor]): ExpressionMatcher[Field] = {
+  def exactMaterialization(context: Context): ExpressionMatcher[Field] = {
     x =>
-      if (x.isExactByFactor(maybeFactor))
+      if (x.isExactByFactor(context))
         Match(x.evaluate)
       else
         Miss("exactMaterialization: non-exact", x)
@@ -187,7 +188,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
             zs
         }
 
-        inner(sorted, true) match {
+        inner(sorted, first = true) match {
           case Nil => Match(Constants.zero)
           case x :: Nil => Match(x)
           case x :: y :: Nil => Match(x plus y)
@@ -427,7 +428,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case e => Miss("matchTotal: not a Total expression", e)
   }.named("matchTotal")
 
-  private def exactFieldMaterializer(context: Option[Factor]): ExpressionMatcher[Field] = Matcher[Expression, Field]("exactFieldMaterializer")(exactMaterialization(context))
+  private def exactFieldMaterializer(context: Context): ExpressionMatcher[Field] = Matcher[Expression, Field]("exactFieldMaterializer")(exactMaterialization(context))
 
   private val matcher3: (MatchResult[Expression], MatchResult[Expression], MatchResult[ExpressionBiFunction]) => MatchResult[BiFunction] = matchResult3(BiFunction)
 
@@ -474,11 +475,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case (Sum, Product, Product) if w == y =>
       replaceAndSimplify(x, z, w, Sum, Product)
     case (Sum, Product, Product) if w == z =>
-      replaceAndSimplify(x, y, w, Sum, Product) // TESTME
+      replaceAndSimplify(x, y, w, Sum, Product)
     case (Sum, Product, Product) if x == y =>
-      replaceAndSimplify(w, z, x, Sum, Product) // TESTME
+      replaceAndSimplify(w, z, x, Sum, Product)
     case (Sum, Product, Product) if x == z =>
-      replaceAndSimplify(w, y, x, Sum, Product) // TESTME
+      replaceAndSimplify(w, y, x, Sum, Product)
     case (Product, Sum, Sum) =>
       val terms = cartesianProduct(w ~ x, y ~ z) map matchExpressionPair(Product)
       combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevels: no *++ terms to collect", f ~ g ~ w ~ x ~ h ~ y ~ z))
@@ -495,9 +496,27 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   private def matchExpressionPair(function: ExpressionBiFunction)(e: Expressions): MatchResult[Expression] =
     matchAndReplacePair(function, e.l, e.r)
 
-  private def matchAndReplacePair(function: ExpressionBiFunction, x: Expression, y: Expression) =
+  /**
+   * Matches and replaces a pair of expressions in a BiFunction format providing that the result is exact in Scalar context.
+   * The result depends on [[replaceExactBiFunction]].
+   *
+   * @param function The bi-function to apply to the expressions.
+   * @param x        The first expression in the pair.
+   * @param y        The second expression in the pair.
+   * @return A MatchResult containing the replaced expression if matching succeeds.
+   */
+  private def matchAndReplacePair(function: ExpressionBiFunction, x: Expression, y: Expression): MatchResult[Expression] =
     replaceExactBiFunction(Some(Scalar))(BiFunction(x, y, function))
 
+  /**
+   * Computes the Cartesian product of two pairs of Expressions.
+   * CONSIDER returning a Total.
+   *
+   * @param p1 the first Expression pair
+   * @param p2 the second Expression pair
+   * @return a sequence of Expressions representing all combinations of the Cartesian product in order:
+   *         LL, RL, LR, RR
+   */
   private def cartesianProduct(p1: Expression ~ Expression, p2: Expression ~ Expression): Seq[Expressions] =
     Seq(p1.l ~ p2.l, p1.r ~ p2.l, p1.l ~ p2.r, p1.r ~ p2.r)
 
@@ -557,6 +576,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Miss("collectTermsDyadicTwoLevelsR: functions don't match", f ~ g ~ w ~ x ~ y)
   }
 
+  // CONSIDER merging this will logic for Total
   private def combineTerms(function: ExpressionBiFunction, terms: Seq[MatchResult[Expression]], miss: MatchResult[Expression]): MatchResult[Expression] = {
     val (good, bad) = terms partition (_.successful)
     if (good.size < 2) miss
@@ -595,10 +615,17 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case BiFunction(a, b, f) => matchDyadicTwoLevels(f ~ a ~ b)
   }
 
-  // CONSIDER redefine as a Matcher
-  // NOTE: doesn't the second part (effectively...) do the exact same thing as matchDyadicTwoLevels which is still to be invoked from above/
-  private def replaceExactBiFunction(maybeFactor: Option[Factor])(function: BiFunction): MatchResult[Expression] =
-    (exactMaterialization(maybeFactor)(function) map (Expression(_))) || effectivelyExactMaterialization(function)  // CONSIDER use exactMaterializer
+  /**
+   * Attempts to replace a `BiFunction` with a `MatchResult` of `Expression`.
+   * This involves evaluating [[exactMaterialization]] on `function` (in the given `context`),
+   * or falling back to invoke [[effectivelyExactMaterialization]] on `function`.
+   *
+   * @param context    An optional `Factor` that is used by the exact materialization method.
+   * @param biFunction A `BiFunction` that is evaluated and potentially replaced during the materialization process.
+   * @return A `MatchResult[Expression]`
+   */
+  private def replaceExactBiFunction(context: Context)(biFunction: BiFunction): MatchResult[Expression] =
+    (exactMaterialization(context)(biFunction) map (Expression(_))) || effectivelyExactMaterialization(biFunction) // CONSIDER use exactMaterializer
 
   /**
     * @see #collectTermsDyadicTwoLevels

@@ -10,13 +10,13 @@ package com.phasmidsoftware.number.core
 trait NumberLike {
 
   /**
-    * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
+   * Method to determine if this `NumberLike` object can be evaluated exactly in the context.
     *
-    * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
-    *                    if factor is None then, the result will depend solely on whether this is exact.
-    * @return true if this NumberLike object is exact in the context of factor, else false.
+   * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
+   *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
+   * @return true if `this` is exact in the context of factor, else false.
     */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean
+  def isExactByFactor(context: Context): Boolean
 
   /**
     * Method to determine if this NumberLike object can be evaluated exactly in the context of no factor.

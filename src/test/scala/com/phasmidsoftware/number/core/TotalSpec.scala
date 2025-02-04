@@ -12,9 +12,9 @@ class TotalSpec extends AnyFlatSpec with should.Matchers {
     target.isExactByFactor(Some(Scalar)) shouldBe true
   }
 
-  it should "maybeFactor" in {
+  it should "context" in {
     val target = Total(List(Constants.one, Constants.one))
-    target.maybeFactor shouldBe Some(Scalar)
+    target.context shouldBe Some(Scalar)
   }
 
   it should "render" in {
