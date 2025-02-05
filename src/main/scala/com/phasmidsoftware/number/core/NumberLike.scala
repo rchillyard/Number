@@ -16,7 +16,7 @@ trait NumberLike {
    *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
    * @return true if `this` is exact in the context of factor, else false.
     */
-  def isExactByFactor(context: Context): Boolean
+  def isExactInContext(context: Context): Boolean
 
   /**
     * Method to determine if this NumberLike object can be evaluated exactly in the context of no factor.
@@ -24,7 +24,7 @@ trait NumberLike {
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = isExactByFactor(None)
+  def isExact: Boolean = isExactInContext(None)
 
   /**
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).

@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.language.postfixOps
 import scala.math.Numeric.Implicits.infixNumericOps
 
@@ -30,7 +31,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   it should "have root2" in {
     val target = Constants.root2
     target.isExact shouldBe true
-    target.isExactByFactor(Some(Scalar)) shouldBe false
+    target.isExactInContext(Some(Scalar)) shouldBe false
     val value = target.normalize
     value match {
       case Real(n) => n should ===(Number(math.sqrt(2)))

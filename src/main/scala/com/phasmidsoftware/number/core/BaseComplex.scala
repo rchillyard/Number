@@ -72,7 +72,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
    *                are exact without a specified factor.
    * @return true if both the real and imaginary parts are exact in the given context; otherwise false.
    */
-  def isExactByFactor(context: Context): Boolean = real.isExactByFactor(context) && imag.isExactByFactor(context)
+  def isExactInContext(context: Context): Boolean = real.isExactInContext(context) && imag.isExactInContext(context)
 
   /**
     *
@@ -487,10 +487,11 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
 
   /**
     * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
-    *
+   * TODO fix this properly. We can only really answer this question knowing with branch we're talking about.
+   *
     * @return true if the angle theta is a multiple of pi.
     */
-  def isReal: Boolean = theta.doDivide(Number.pi).isInteger
+  def isReal: Boolean = theta.isZero || theta.doDivide(Number.pi).isInteger
 
   /**
     * Method to determine if this Complex is imaginary-valued (i.e. the point lies on the imaginary axis).

@@ -8,6 +8,7 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
@@ -144,7 +145,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
     (One + Constants.two).isExact shouldBe true
-    (ConstPi + Constants.pi).isExactByFactor(Some(Radian)) shouldBe true
+    (ConstPi + Constants.pi).isExactInContext(Some(Radian)) shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
     (Literal(2) * Constants.e).isExact shouldBe false
@@ -176,5 +177,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val iPi = ComplexCartesian(0, Number.pi)
     val euler: Expression = Expression(Constants.e) ^ iPi
     euler.materialize shouldBe Constants.minusOne
+  }
+
+  behavior of "ReducedQuadraticRoot"
+  it should "evaluate Phi correctly" in {
+    ((Phi ^ 2 - 1).materialize - Constants.phi).isZero shouldBe true // should ===(Constants.phi)
+    Phi.materialize should ===(Constants.phi)
   }
 }

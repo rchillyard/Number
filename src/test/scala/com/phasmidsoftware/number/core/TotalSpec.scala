@@ -7,9 +7,9 @@ class TotalSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Total"
 
-  it should "isExactByFactor" in {
+  it should "isExactInContext" in {
     val target = Total(List(Constants.one, Constants.one))
-    target.isExactByFactor(Some(Scalar)) shouldBe true
+    target.isExactInContext(Some(Scalar)) shouldBe true
   }
 
   it should "context" in {

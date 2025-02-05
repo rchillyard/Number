@@ -211,7 +211,7 @@ case class Real(x: Number) extends Field {
     *                    if factor is None then, the result will depend solely on whether this is exact.
     * @return true if this NumberLike object is exact in the context of factor, else false.
     */
-  def isExactByFactor(context: Context): Boolean = x.isExactByFactor(context)
+  def isExactInContext(context: Context): Boolean = x.isExactInContext(context)
 
   /**
     * Method to return the x of this Real.
@@ -256,6 +256,7 @@ object Real {
 
   def createFromRealField(x: Field): Real = x match {
     case r: Real => r
+    case c: BaseComplex => Real(c.asNumber.get) // TODO can we improve on this?
     case _ => throw NumberException(s"Real.createFromRealField: x is not a Real: $x")
   }
 

@@ -4,77 +4,89 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.MatchLogger
+import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 
 import scala.language.implicitConversions
 
 /**
-  * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
-  */
+ * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
+ */
 trait Expression extends NumberLike {
   /**
-    * Method to determine if this Expression cannot be simplified on account of it being atomic.
-    *
-    * @return true if this extends AtomicExpression
-    */
+   * Method to determine if this Expression cannot be simplified on account of it being atomic.
+   *
+   * @return true if this extends AtomicExpression
+   */
   def isAtomic: Boolean
 
   /**
-    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
-    *
-    * @return Some(factor) if expression only involves that factor; otherwise None.
-    */
+   * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
+   *
+   * @return Some(factor) if expression only involves that factor; otherwise None.
+   */
   def context: Context
 
   /**
-    * Action to evaluate this Expression as a Field,
-    * NOTE no simplification occurs here.
-    * Therefore, if an expression cannot be evaluated exactly,
-    * then it will result in a fuzzy number.
-    *
-    * @return the value.
-    */
+   * Action to evaluate this `Expression` as a `Field`,
+   * NOTE: no simplification occurs here.
+   * Therefore, if an expression cannot be evaluated exactly,
+   * then it will result in a fuzzy number.
+   *
+   * @return a `Field`.
+   */
   def evaluate: Field
 
   /**
-    * Action to materialize this Expression as a Field.
-    * If possible, this Expression will be simplified first.
-    *
-    * @return the materialized Field.
-    */
+   * Action to materialize this Expression as a Field.
+   * If possible, this Expression will be simplified first.
+   * The result will not necessarily be exact.
+   *
+   * @return the materialized Field.
+   */
   def materialize: Field = Expression.em.simplifyAndEvaluate(this)
 
   /**
-    * Method to determine if this Expression corresponds to a real Number.
-    *
-    * @return a Some(x) if this is a Number; otherwise return None.
-    */
+   * Method to determine if the materialized value of this `Expression` corresponds to a `Number`.
+   *
+   * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
+   */
   def asNumber: Option[Number] = materialize.asNumber
 
   /**
-    * Method to determine the depth of this Expression.
-    *
-    * @return the depth (an atomic expression has depth of 1).
-    */
+   * Method to determine the depth of this Expression.
+   *
+   * @return the depth (an atomic expression has depth of 1).
+   */
   def depth: Int
 
   /**
-    * Eagerly compare this Expression with comparand.
-    *
-    * TODO this will work only for Numbers. We need to be able to determine if two Complex numbers are essentially the same.
-    *
-    * @param comparand the expression to be compared.
-    * @return the result of comparing materialized this with materialized comparand.
-    */
+   * Eagerly compare this Expression with comparand.
+   *
+   * TODO this will work only for Numbers. We need to be able to determine if two Complex numbers are essentially the same.
+   * CONSIDER does this really belong in Expression?
+   *
+   * @param comparand the expression to be compared.
+   * @return the result of comparing materialized this with materialized comparand.
+   */
   def compare(comparand: Expression): Int = recover(for (x <- materialize.asNumber; y <- comparand.materialize.asNumber) yield x.compare(y), NumberException("compare: logic error"))
 }
 
+/**
+ * The `Expression` companion object provides utilities for creating, manipulating, and parsing expressions.
+ *
+ * Methods and values within this object help in constructing expressions from various types like `Field` or `Int`,
+ * perform conversions, parse string representations of expressions, define constants, and offer implicit operators
+ * for working with expressions.
+ *
+ * It offers functionalities for mathematical operations, common constants, and extensions to manipulate operations
+ * in a lazy manner.
+ */
 object Expression {
 
   // NOTE this is where we turn logging on (by using LogDebug or LogInfo).
-  implicit val logger: MatchLogger = MatchLogger(com.phasmidsoftware.matchers.LogOff, classOf[Expression])
+  implicit val logger: MatchLogger = MatchLogger(LogOff, classOf[Expression])
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
   //  trait LoggableExpression extends Loggable[Expression] {
@@ -85,10 +97,10 @@ object Expression {
   //  val flog = Flog[ExpressionMatchers]
 
   /**
-    * The following method is helpful in getting an expression from a Field.
-    *
-    * CONSIDER improving the logic.
-    */
+   * The following method is helpful in getting an expression from a Field.
+   *
+   * CONSIDER improving the logic.
+   */
   def apply(x: Field): Expression = x match {
     case Constants.zero => Zero
     case Constants.one => One
@@ -101,182 +113,188 @@ object Expression {
   }
 
   /**
-    * The following method is helpful in getting an expression started.
-    */
+   * The following constants are helpful in getting an expression started.
+   */
+  val zero: Expression = Zero
+  val one: Expression = One
+  val pi: Expression = ConstE // Expression(Constants.pi)
+  val e: Expression = ConstPi // Expression(Constants.e)
+  val minusOne: Expression = MinusOne
+  val two: Expression = Two
+
+  /**
+   * The following method is helpful in getting an expression started
+   * (i.e., used as the leftmost operand).
+   */
   def apply(x: Int): Expression = x match {
-    case 0 => Zero
-    case 1 => One
-    case _ => Expression(Real(x))
+    case -1 => minusOne
+    case 0 => zero
+    case 1 => one
+    case 2 => two
+    case _ => Literal(x)
   }
 
   /**
-    * Method to parse a String as an Expression.
-    *
-    * TODO this may not accurately parse all infix expressions.
-    * The idea is for render and parse.get to be inverses.
-    * NOTE that it might be a problem with render instead.
-    */
+   * Method to parse a String as an Expression.
+   *
+   * TODO this may not accurately parse all infix expressions.
+   * The idea is for render and parse.get to be inverses.
+   * NOTE that it might be a problem with render instead.
+   */
   def parse(x: String): Option[Expression] = ShuntingYardParser.parseInfix(x).toOption flatMap (_.evaluate)
 
   /**
-    * The following constants are helpful in getting an expression started.
-    */
-  val zero: Expression = Zero
-  val one: Expression = One
-  val pi: Expression = Expression(Constants.pi)
-  val e: Expression = Expression(Constants.e)
-
-  /**
-    * Other useful expressions.
-    */
+   * Other useful expressions.
+   */
   val phi: Expression = (one + Constants.root5) / Literal(Number.two)
+  val psi: Expression = (minusOne + Constants.root5) / Literal(Number.two)
 
   implicit def convertFieldToExpression(f: Field): Expression = Expression(f)
 
   implicit def convertIntToExpression(x: Int): Expression = Literal(x)
 
   /**
-    * Implicit class to allow various operations to be performed on an Expression.
-    *
-    * @param x an Expression.
-    */
+   * Implicit class to allow various operations to be performed on an Expression.
+   *
+   * @param x an Expression.
+   */
   implicit class ExpressionOps(x: Expression) {
 
     /**
-      * Method to lazily multiply x by y.
-      *
-      * @param y another Expression.
-      * @return an Expression which is the lazy product of x and y.
-      */
+     * Method to lazily multiply x by y.
+     *
+     * @param y another Expression.
+     * @return an Expression which is the lazy product of x and y.
+     */
     def plus(y: Expression): Expression = BiFunction(x, y, Sum)
 
     /**
-      * Method to lazily multiply x by y.
-      *
-      * @param y another Expression.
-      * @return an Expression which is the lazy product of x and y.
-      */
+     * Method to lazily multiply x by y.
+     *
+     * @param y another Expression.
+     * @return an Expression which is the lazy product of x and y.
+     */
     def +(y: Expression): Expression = x plus y
 
     /**
-      * Method to lazily subtract the Field y from x.
-      *
-      * @param y a Field.
-      * @return an Expression which is the lazy product of x and y.
-      */
+     * Method to lazily subtract the Field y from x.
+     *
+     * @param y a Field.
+     * @return an Expression which is the lazy product of x and y.
+     */
     def -(y: Expression): Expression = BiFunction(x, -y, Sum)
 
     /**
-      * Method to lazily change the sign of this expression.
-      *
-      * TESTME
-      *
-      * @return an Expression which is this negated.
-      */
+     * Method to lazily change the sign of this expression.
+     *
+     * TESTME
+     *
+     * @return an Expression which is this negated.
+     */
     def unary_- : Expression = BiFunction(x, MinusOne, Product)
 
     /**
-      * Method to lazily multiply x by y.
-      *
-      * @param y a Number.
-      * @return an Expression which is the lazy product of x and y.
-      */
+     * Method to lazily multiply x by y.
+     *
+     * @param y a Number.
+     * @return an Expression which is the lazy product of x and y.
+     */
     def *(y: Expression): Expression = BiFunction(x, y, Product)
 
     /**
-      * Method to lazily yield the reciprocal of x.
-      *
-      * @return an Expression representing the reciprocal of x.
-      */
+     * Method to lazily yield the reciprocal of x.
+     *
+     * @return an Expression representing the reciprocal of x.
+     */
     def reciprocal: Expression = BiFunction(x, MinusOne, Power)
 
     /**
-      * Method to lazily divide x by y.
-      *
-      * @param y a Number.
-      * @return an Expression which is the lazy quotient of x / y.
-      */
+     * Method to lazily divide x by y.
+     *
+     * @param y a Number.
+     * @return an Expression which is the lazy quotient of x / y.
+     */
     def /(y: Expression): Expression = *(y.reciprocal)
 
     /**
-      * Method to lazily raise x to the power of y.
-      *
-      * @param y the power to which x should be raised (an Expression).
-      * @return an Expression representing x to the power of y.
-      */
+     * Method to lazily raise x to the power of y.
+     *
+     * @param y the power to which x should be raised (an Expression).
+     * @return an Expression representing x to the power of y.
+     */
     def ^(y: Expression): Expression = BiFunction(x, y, Power)
 
     /**
-      * Method to lazily get the square root of x.
-      *
-      * @return an Expression representing the square root of x.
-      */
+     * Method to lazily get the square root of x.
+     *
+     * @return an Expression representing the square root of x.
+     */
     def sqrt: Expression = this ^ Literal(2).reciprocal
 
     /**
-      * Method to lazily get the sine of x.
-      *
-      * @return an Expression representing the sin(x).
-      */
+     * Method to lazily get the sine of x.
+     *
+     * @return an Expression representing the sin(x).
+     */
     def sin: Expression = Function(x, Sine)
 
     /**
-      * Method to lazily get the cosine of x.
-      *
-      * @return an Expression representing the cos(x).
-      */
+     * Method to lazily get the cosine of x.
+     *
+     * @return an Expression representing the cos(x).
+     */
     def cos: Expression = Function(x, Cosine)
 
     /**
-      * Method to lazily get the tangent of x.
-      *
-      * TESTME
-      *
-      * @return an Expression representing the tan(x).
-      */
+     * Method to lazily get the tangent of x.
+     *
+     * TESTME
+     *
+     * @return an Expression representing the tan(x).
+     */
     def tan: Expression = sin * cos.reciprocal
 
     /**
-      * Method to lazily get the natural log of x.
-      *
-      * @return an Expression representing the log of x.
-      */
+     * Method to lazily get the natural log of x.
+     *
+     * @return an Expression representing the log of x.
+     */
     def log: Expression = Function(x, Log)
 
     /**
-      * Method to lazily get the value of e raised to the power of x.
-      *
-      * @return an Expression representing e raised to the power of x.
-      */
+     * Method to lazily get the value of e raised to the power of x.
+     *
+     * @return an Expression representing e raised to the power of x.
+     */
     def exp: Expression = Function(x, Exp)
 
     /**
-      * Method to lazily get the value of atan2(x, y), i.e. if the result is z, then tan(z) = y/x.
-      *
-      * @return an Expression representing atan2(x, y).
-      */
+     * Method to lazily get the value of atan2(x, y), i.e. if the result is z, then tan(z) = y/x.
+     *
+     * @return an Expression representing atan2(x, y).
+     */
     def atan(y: Expression): Expression = BiFunction(x, y, Atan)
 
     /**
-      * Eagerly compare this expression with y.
-      *
-      * @param comparand the number to be compared.
-      * @return the result of the comparison.
-      */
+     * Eagerly compare this expression with y.
+     *
+     * @param comparand the number to be compared.
+     * @return the result of the comparison.
+     */
     def compare(comparand: Expression): Int = x compare comparand
   }
 }
 
 /**
-  * An Expression which cannot be further simplified.
-  */
+ * An Expression which cannot be further simplified.
+ */
 trait AtomicExpression extends Expression {
 
   def isAtomic: Boolean = true
 
   /**
-    * @return 1.
-    */
+   * @return 1.
+   */
   def depth: Int = 1
 
   override def hashCode(): Int = materialize.hashCode()
@@ -293,62 +311,62 @@ object AtomicExpression {
     case Literal(x) => Some(x)
     case c: Constant => Some(c.evaluate)
     case f: Field => Some(f)
-//    case g: GeneralNumber => Some(g)
+    //    case g: GeneralNumber => Some(g)
     case _ => None
   }
 }
 
 /**
-  * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
-  * with simplification.
-  *
-  */
+ * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
+ * with simplification.
+ *
+ */
 abstract class CompositeExpression extends Expression {
   def isAtomic: Boolean = false
 }
 
 /**
-  * An AtomicExpression which represents a Number.
-  *
-  * @param x the Number.
-  */
+ * An AtomicExpression which represents a Number.
+ *
+ * @param x the Number.
+ */
 case class Literal(x: Field) extends AtomicExpression {
 
   /**
-    * Method to determine if this Expression can be evaluated exactly.
-    *
-    * @return true if materialize will result in an ExactNumber, else false.
-    */
-  def isExactByFactor(context: Context): Boolean = x.isExactByFactor(context)
+   * Method to determine if this Expression can be evaluated exactly.
+   *
+   * @return true if materialize will result in an ExactNumber, else false.
+   */
+  def isExactInContext(context: Context): Boolean = x.isExactInContext(context)
 
   /**
-    * @return Some(factor).
-    */
+   * @return Some(factor).
+   */
   def context: Context = x match {
     case Real(n) => Some(n.factor)
     case c: BaseComplex => if (c.real.factor == c.imag.factor) Some(c.real.factor) else None
   }
 
   /**
-    * Action to evaluate this Expression as a Field,
-    *
-    * @return x.
-    */
+   * Action to evaluate this Expression as a Field,
+   *
+   * @return x.
+   */
   def evaluate: Field = x
 
   /**
-    * Action to materialize this Expression and render it as a String,
-    * that is to say we eagerly evaluate this Expression as a String.
-    *
-    * @return a String representing the value of this expression.
-    */
+   * Action to materialize this Expression and render it as a String,
+   * that is to say we eagerly evaluate this Expression as a String.
+   *
+   * @return a String representing the value of this expression.
+   */
   def render: String = x.toString
 
   /**
-    * Generate a String for debugging purposes.
-    *
-    * @return a String representation of this Literal.
-    */
+   * Generate a String for debugging purposes.
+   *
+   * @return a String representation of this Literal.
+   */
   override def toString: String = s"$x"
 }
 
@@ -365,8 +383,8 @@ object Literal {
 }
 
 /**
-  * A known constant value, for example π (pi) or e.
-  */
+ * A known constant value, for example π (pi) or e.
+ */
 abstract class Constant extends AtomicExpression {
 
   /**
@@ -376,28 +394,28 @@ abstract class Constant extends AtomicExpression {
    *                If `None`, the result depends solely on whether the constant itself is exact.
    * @return true if the constant is exact in the context of `context`; false otherwise.
    */
-  def isExactByFactor(context: Context): Boolean = evaluate.isExactByFactor(context)
+  def isExactInContext(context: Context): Boolean = evaluate.isExactInContext(context)
 
   /**
-    * Action to materialize this Expression and render it as a String,
-    * that is to say we eagerly evaluate this Expression as a String.
-    *
-    * @return String form of this Constant.
-    */
+   * Action to materialize this Expression and render it as a String,
+   * that is to say we eagerly evaluate this Expression as a String.
+   *
+   * @return String form of this Constant.
+   */
   def render: String = evaluate.render
 
   /**
-    * Method to yield a String from this Constant.
-    *
-    * @return a String.
-    */
+   * Method to yield a String from this Constant.
+   *
+   * @return a String.
+   */
   override def toString: String = render
 }
 
 case object Zero extends Constant {
   /**
-    * @return Number.zero
-    */
+   * @return Number.zero
+   */
   def evaluate: Field = Constants.zero
 
   def context: Context = Some(Scalar)
@@ -405,8 +423,8 @@ case object Zero extends Constant {
 
 case object One extends Constant {
   /**
-    * @return 1.
-    */
+   * @return 1.
+   */
   def evaluate: Field = Constants.one
 
   def context: Context = Some(Scalar)
@@ -414,126 +432,126 @@ case object One extends Constant {
 
 case object MinusOne extends Constant {
   /**
-    * @return -1.
-    */
+   * @return -1.
+   */
   def evaluate: Field = Constants.minusOne
 
   def context: Context = Some(Scalar)
 
   /**
-    * Action to materialize this Expression and render it as a String,
-    * that is to say we eagerly evaluate this Expression as a String.
-    *
-    * @return "1-".
-    */
+   * Action to materialize this Expression and render it as a String,
+   * that is to say we eagerly evaluate this Expression as a String.
+   *
+   * @return "1-".
+   */
   override def render: String = "-1"
 }
 
 case object Two extends Constant {
   /**
-    * @return 2.
-    */
+   * @return 2.
+   */
   def evaluate: Field = Constants.two
 
   def context: Context = Some(Scalar)
 }
 
 /**
-  * The constant π (pi).
-  * Yes, this is an exact number.
-  */
+ * The constant π (pi).
+ * Yes, this is an exact number.
+ */
 case object ConstPi extends Constant {
   /**
-    * @return pi.
-    */
+   * @return pi.
+   */
   def evaluate: Field = Constants.pi
 
   def context: Context = Some(Radian)
 }
 
 /**
-  * The constant e.
-  * Yes, this is an exact number.
-  */
+ * The constant e.
+ * Yes, this is an exact number.
+ */
 case object ConstE extends Constant {
   /**
-    * @return e.
-    */
+   * @return e.
+   */
   def evaluate: Field = Constants.e
 
   /**
-    * TESTME
-    *
-    * @return Some(factor) if expression only involves that factor; otherwise None.
-    */
+   * TESTME
+   *
+   * @return Some(factor) if expression only involves that factor; otherwise None.
+   */
   def context: Context = Some(NatLog)
 }
 
 /**
-  * This class represents a monadic function of the given expression.
-  *
-  * @param x the expression being operated on.
-  * @param f the function to be applied to x.
-  */
+ * This class represents a monadic function of the given expression.
+ *
+ * @param x the expression being operated on.
+ * @param f the function to be applied to x.
+ */
 case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpression {
 
   /**
-    * Method to determine if this Expression can be evaluated exactly.
-    *
+   * Method to determine if this Expression can be evaluated exactly.
+   *
    * @param context the context in which we want to evaluate this Expression.
-    * @return false.
-    */
-  def isExactByFactor(context: Context): Boolean = f(x.materialize).isExactByFactor(context)
+   * @return false.
+   */
+  def isExactInContext(context: Context): Boolean = f(x.materialize).isExactInContext(context)
 
   /**
-    * TODO implement properly according to the actual function involved.
-    *
-    * TESTME
-    *
-    * @return Some(factor) if expression only involves that factor; otherwise None.
-    */
+   * TODO implement properly according to the actual function involved.
+   *
+   * TESTME
+   *
+   * @return Some(factor) if expression only involves that factor; otherwise None.
+   */
   def context: Context = None
 
   /**
-    * Method to determine the depth of this Expression.
-    *
-    * TESTME
-    *
-    * @return the 1 + depth of x.
-    */
+   * Method to determine the depth of this Expression.
+   *
+   * TESTME
+   *
+   * @return the 1 + depth of x.
+   */
   def depth: Int = 1 + x.depth
 
   /**
-    * Action to materialize this Expression as a Field.
-    *
-    * @return the materialized Field.
-    */
+   * Action to materialize this Expression as a Field.
+   *
+   * @return the materialized Field.
+   */
   def evaluate: Field = f(x.materialize)
 
   /**
-    * Action to materialize this Expression and render it as a String.
-    *
-    * TESTME.
-    *
-    * @return a String representing the value of this expression.
-    */
+   * Action to materialize this Expression and render it as a String.
+   *
+   * TESTME.
+   *
+   * @return a String representing the value of this expression.
+   */
   def render: String = materialize.toString
 
   /**
-    * TESTME
-    *
-    * @return
-    */
+   * TESTME
+   *
+   * @return
+   */
   override def toString: String = s"$f($x)"
 }
 
 /**
-  * This class represents a dyadic function of the two given expressions.
-  *
-  * @param a the first expression being operated on.
-  * @param b the second expression being operated on.
-  * @param f the function to be applied to a and b.
-  */
+ * This class represents a dyadic function of the two given expressions.
+ *
+ * @param a the first expression being operated on.
+ * @param b the second expression being operated on.
+ * @param f the function to be applied to a and b.
+ */
 case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends CompositeExpression {
 
   /**
@@ -544,43 +562,43 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
    *                If `context` is `None`, the exactness will depend solely on the properties of this instance.
    * @return true if the current `BiFunction` instance is exact in the context of the given factor; otherwise, false.
    */
-  def isExactByFactor(context: Context): Boolean =
-    //    exact && (context.isEmpty || value.isExactByFactor(context))
-    exact && value.isExactByFactor(context)
+  def isExactInContext(context: Context): Boolean =
+    //    exact && (context.isEmpty || value.isExactInContext(context))
+    exact && value.isExactInContext(context)
 
   /**
-    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
-    *
+   * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
+   *
    * @return the value of factorsMatch for the function f and the results of invoking context on each operand..
-    */
+   */
   def context: Context = for (f1 <- a.context; f2 <- b.context; r <- factorsMatch(f, f1, f2)) yield r
 
   /**
-    * Method to determine the depth of this Expression.
-    *
-    * @return the depth (an atomic expression has depth of 1).
-    */
+   * Method to determine the depth of this Expression.
+   *
+   * @return the depth (an atomic expression has depth of 1).
+   */
   def depth: Int = 1 + math.max(a.depth, b.depth)
 
   /**
-    * Action to materialize this Expression as a Field.
-    *
-    * @return the materialized Field.
-    */
+   * Action to materialize this Expression as a Field.
+   *
+   * @return the materialized Field.
+   */
   def evaluate: Field = value
 
   /**
-    * Action to materialize this Expression and render it as a String.
-    *
-    * @return a String representing the value of this expression.
-    */
+   * Action to materialize this Expression and render it as a String.
+   *
+   * @return a String representing the value of this expression.
+   */
   def render: String = materialize.render
 
   /**
-    * Render this BiFunction for debugging purposes.
-    *
-    * @return a String showing a, f, and b in parentheses (or in braces if not exact).
-    */
+   * Render this BiFunction for debugging purposes.
+   *
+   * @return a String showing a, f, and b in parentheses (or in braces if not exact).
+   */
   override def toString: String = if (exact) s"($a $f $b)" else s"{$a $f $b}"
 
   // NOTE that NatLog numbers don't behave like other numbers so...
@@ -599,14 +617,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   private lazy val value: Field = f(a.materialize, b.materialize)
 
   /**
-    * Determine if this dyadic expression has an exact result, according to f, the function.
-    * NOTE that Product is always true, but it is possible that Sum or Power could be false.
+   * Determine if this dyadic expression has an exact result, according to f, the function.
+   * NOTE that Product is always true, but it is possible that Sum or Power could be false.
    *
    * TODO surely only positive integer powers are conditionallyExact?
    *
    * @return  true if the result of the f(a,b) is exact where a and b are known to be exact.
-    *         NOTE: this appears to be an inaccurate description of the result.
-    */
+   *         NOTE: this appears to be an inaccurate description of the result.
+   */
   private lazy val conditionallyExact: Boolean = f match {
     case Power => b.materialize.asNumber.flatMap(x => x.toInt).isDefined
     case Sum => context.isDefined
@@ -615,18 +633,18 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   /**
-    * Regular hashCode method.
-    *
-    * @return an Int depending on f, a, and b.
-    */
+   * Regular hashCode method.
+   *
+   * @return an Int depending on f, a, and b.
+   */
   override def hashCode(): Int = java.util.Objects.hash(f, a, b)
 
   /**
-    * An equals method which considers two BiFunctions, which are non-identical but symmetric, to be equal.
-    *
-    * @param obj the other object.
-    * @return true if the values of these two expressions would be the same (without any evaluation).
-    */
+   * An equals method which considers two BiFunctions, which are non-identical but symmetric, to be equal.
+   *
+   * @param obj the other object.
+   * @return true if the values of these two expressions would be the same (without any evaluation).
+   */
   override def equals(obj: Any): Boolean = obj match {
     case BiFunction(c, d, g) => f == g && (a == c && b == d | f != Power && a == d && b == c)
     case _ => false
@@ -677,7 +695,7 @@ case class Total(xs: Seq[Expression]) extends CompositeExpression {
    *                    if factor is None then, the result will depend solely on whether this is exact.
    * @return true if this NumberLike object is exact in the context of factor, else false.
    */
-  def isExactByFactor(context: Context): Boolean = xs.forall(_.isExactByFactor(context))
+  def isExactInContext(context: Context): Boolean = xs.forall(_.isExactInContext(context))
 
   /**
    * Method to render this NumberLike in a presentable manner.
@@ -686,6 +704,84 @@ case class Total(xs: Seq[Expression]) extends CompositeExpression {
    */
   def render: String = xs.mkString("+")
 }
+
+/**
+ * An abstract class representing a root of a reduced quadratic equation of the form `x^2 + px + q = 0`
+ * The value of the root is `(-p/2) ± sqrt((-p/2)^2 - q)`.
+ * The class extends `CompositeExpression` and provides lazy evaluation for components of the reduced quadratic root.
+ *
+ * @constructor Constructs a reduced quadratic root with parameters `p`, `q`, and a boolean `pos` to determine the sign of the root.
+ * @param p   The coefficient in the quadratic equation.
+ * @param q   The constant term in the quadratic equation.
+ * @param pos Determines if the positive or negative branch of the root is chosen.
+ */
+abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val pos: Boolean) extends CompositeExpression {
+
+  lazy val minusHalfP: Expression = Expression(-p) / 2
+
+  lazy val root: Expression = minusHalfP plus {
+    val z: Expression = minusHalfP ^ 2
+    val zz: Field = z.materialize
+    val branch: Expression = (z - q).sqrt
+    val zzz: Field = branch.materialize
+    zzz match {
+      case c@ComplexPolar(r, theta, b) =>
+        println(s"r=$r, theta=$theta, b=$b")
+        println(c.isReal)
+    }
+    if (pos) branch else branch.unary_-
+  }
+
+  def validate: Boolean = (evaluate * evaluate + evaluate multiply Real(p) + Real(q)).isZero
+
+  /**
+   * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
+   *
+   * @return Some(factor) if expression only involves that factor; otherwise None.
+   */
+  def context: Context = None // by default
+
+  /**
+   * Action to evaluate this `Expression` as a `Field`,
+   * NOTE: no simplification occurs here.
+   * Therefore, if an expression cannot be evaluated exactly,
+   * then it will result in a fuzzy number.
+   *
+   * @return a `Field`.
+   */
+  def evaluate: Field = root.materialize
+
+  /**
+   * Method to determine the depth of this Expression.
+   *
+   * @return the depth (an atomic expression has depth of 1).
+   */
+  def depth: Int = root.depth + 1
+
+  /**
+   * Method to determine if this `NumberLike` object can be evaluated exactly in the context.
+   *
+   * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
+   *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
+   * @return true if `this` is exact in the context of factor, else false.
+   */
+  def isExactInContext(context: Context): Boolean = false // by default
+
+  /**
+   * Method to render this NumberLike in a presentable manner.
+   *
+   * @return a String
+   */
+  def render: String = name
+}
+
+object ReducedQuadraticRoot {
+  def unapply(rqr: ReducedQuadraticRoot): Option[(Int, Int, Boolean)] = Some(rqr.p, rqr.q, rqr.pos)
+}
+
+object Phi extends ReducedQuadraticRoot("phi", -1, -1, true)
+
+object Psi extends ReducedQuadraticRoot("psi", -1, -1, false)
 
 /**
  * Companion object for the `Total` case class.
@@ -800,30 +896,30 @@ case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*", is
 case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExact = false, commutes = false)
 
 /**
-  * A lazy monadic expression function.
-  *
-  * TODO need to mark whether this function is exact or not (but I can't think of many which are exact).
-  *
-  * TODO implement also for other fields than Numbers.
-  *
-  * @param f    the function Number => Number.
-  * @param name the name of this function.
-  */
+ * A lazy monadic expression function.
+ *
+ * TODO need to mark whether this function is exact or not (but I can't think of many which are exact).
+ *
+ * TODO implement also for other fields than Numbers.
+ *
+ * @param f    the function Number => Number.
+ * @param name the name of this function.
+ */
 class ExpressionFunction(val f: Number => Number, val name: String) extends (Field => Field) {
   /**
-    * Evaluate this function on Field x.
-    *
-    * @param x the parameter to the function.
-    * @return the result of f(x).
-    */
+   * Evaluate this function on Field x.
+   *
+   * @param x the parameter to the function.
+   * @return the result of f(x).
+   */
   override def apply(x: Field): Field =
     recover(x.asNumber map f map (Real(_)), ExpressionException(s"logic error: ExpressionFunction.apply($x)"))
 
   /**
-    * Generate helpful debugging information about this ExpressionFunction.
-    *
-    * @return a String.
-    */
+   * Generate helpful debugging information about this ExpressionFunction.
+   *
+   * @return a String.
+   */
   override def toString: String = s"$name"
 }
 
@@ -832,28 +928,28 @@ object ExpressionFunction {
 }
 
 /**
-  * A lazy dyadic expression function.
-  *
-  * @param f        the function (Field, Field) => Field
-  * @param name     the name of this function.
-  * @param isExact  true if this function is always exact, given exact inputs.
-  * @param commutes true only if the parameters to f are commutative.
-  */
+ * A lazy dyadic expression function.
+ *
+ * @param f        the function (Field, Field) => Field
+ * @param name     the name of this function.
+ * @param isExact  true if this function is always exact, given exact inputs.
+ * @param commutes true only if the parameters to f are commutative.
+ */
 class ExpressionBiFunction(val f: (Field, Field) => Field, val name: String, val isExact: Boolean, val commutes: Boolean = true) extends ((Field, Field) => Field) {
   /**
-    * Evaluate this function on x.
-    *
-    * @param a the first parameter to the function.
-    * @param b the second parameter to the function.
-    * @return the result of f(x).
-    */
+   * Evaluate this function on x.
+   *
+   * @param a the first parameter to the function.
+   * @param b the second parameter to the function.
+   * @return the result of f(x).
+   */
   override def apply(a: Field, b: Field): Field = f(a, b)
 
   /**
-    * Generate helpful debugging information about this ExpressionFunction.
-    *
-    * @return a String.
-    */
+   * Generate helpful debugging information about this ExpressionFunction.
+   *
+   * @return a String.
+   */
   override def toString: String = s"$name"
 }
 

@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.core._
 
 object Fibonacci {
 
+  // TODO replace with Psi and Phi
   val phi: Expression = (Expression(Constants.one) plus Constants.root5) / Constants.two
   val psi: Expression = (Expression(Constants.one) - Constants.root5) / Constants.two
 

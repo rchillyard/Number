@@ -74,7 +74,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
    * @param context an optional Factor to be matched.
    * @return true if there is no fuzz AND if context is defined then it should match factor.
     */
-  def isExactByFactor(context: Context): Boolean = fuzz.isEmpty && factorAsIs(context)
+  def isExactInContext(context: Context): Boolean = fuzz.isEmpty && factorAsIs(context)
 
   /**
     * Add a Number to this FuzzyNumber.
