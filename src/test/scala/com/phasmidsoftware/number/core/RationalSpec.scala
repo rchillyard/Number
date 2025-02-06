@@ -574,7 +574,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational(2, 3) - Rational.one shouldBe Rational(-1, 3)
   }
   it should "be less than 1" in {
-    Rational(2, 3).compare(Rational.one) shouldBe (-1)
+    Rational(2, 3).compare(Rational.one) shouldBe -1
   }
   it should "not be whole" in {
     Rational(2, 3) should not be wholeSymbol
@@ -760,7 +760,6 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     pi_5000.renderApproximate(10) shouldBe "3.14159265"
   }
   it should "fail with one parameter" in {
-    println(Rational.sPi_5000)
     a[RationalException] should be thrownBy pi_5000.renderApproximate(1)
   }
   it should "work with two parameters (1)" in {
@@ -887,7 +886,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val b = BigInt(Int.MaxValue)
     val decorateNarrow = PrivateMethod[Try[BigInt]](narrowSymbol)
     val z: Try[BigInt] = Rational invokePrivate decorateNarrow(b, BigInt(Int.MinValue), BigInt(Int.MaxValue))
-    z should matchPattern { case Success(x) if x == Int.MaxValue => }
+    z should matchPattern { case Success(x: BigInt) if x == BigInt(Int.MaxValue) => }
   }
   it should "not work for Int.MaxValue+1" in {
     val b = BigInt(Int.MaxValue) + 1
@@ -901,7 +900,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(Int.MaxValue)
     val decorateNarrow = PrivateMethod[Try[BigInt]](narrowSymbol)
     val z: Try[BigInt] = Rational invokePrivate decorateNarrow(r, BigInt(Int.MinValue), BigInt(Int.MaxValue))
-    z should matchPattern { case Success(x) if x == Int.MaxValue => }
+    z should matchPattern { case Success(x: BigInt) if x == BigInt(Int.MaxValue) => }
   }
   it should "work for Int.MaxValue+1" in {
     val r = Rational(Int.MaxValue) + 1

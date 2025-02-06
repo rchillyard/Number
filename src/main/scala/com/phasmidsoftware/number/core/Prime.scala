@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core
 
-
 import com.phasmidsoftware.number.core.Divides.IntDivides
 import com.phasmidsoftware.number.core.FP.readFromResource
 import com.phasmidsoftware.number.core.Prime.{coprime, reciprocalPeriods}
@@ -18,7 +17,7 @@ import scala.util.{Failure, Random, Try}
 
 /**
  * Class to represent a (possible) prime number.
- * The isProbablePrime method can be invoked to test if this is probably prime (to a very high certainty).
+ * The `isProbablePrime` method can be invoked to test if this is probably prime (to a very high certainty).
  * The validate method can be invoked to test if it is definitely prime (but it's expensive!)
  *
  * NOTE: just because we have an instance of Prime does not mean that it is a prime number.
@@ -27,7 +26,7 @@ import scala.util.{Failure, Random, Try}
  *
  * @param n the value of the (possible) prime number (should be greater than zero, although this is not checked)
  */
-case class Prime(n: BigInt) extends Ordered[Prime] {
+case class Prime(n: BigInt) {
 
   /**
    * Method to evaluate Euler's Totient function for this Prime raised to power r.
@@ -201,14 +200,6 @@ case class Prime(n: BigInt) extends Ordered[Prime] {
   }
 
   /**
-   * Method to compare this Prime with that Prime.
-   *
-   * @param that the comparand.
-   * @return -1, 0, or 1 according as this is less than, equal to, or greater than that.
-   */
-  def compare(that: Prime): Int = n.compare(that.n)
-
-  /**
    * Method to render this Prime number as a String with a delimiter every third place.
    *
    * CONSIDER get the delimiter from the Java i18n features.
@@ -271,11 +262,45 @@ case class Prime(n: BigInt) extends Ordered[Prime] {
   })
 }
 
+/**
+ * Companion object to Prime.
+ * Represents a collection of mathematical utility methods and properties related to prime numbers.
+ *
+ * Fields:
+ * - BigOne: Represents a constant BigInt value of 1. May be used in various calculations involving primes.
+ * - reciprocalPeriods: Stores data related to the reciprocal periods of numbers.
+ * - carmichaelFile: Used for maintaining or accessing data related to Carmichael numbers.
+ * - optionalPrime: Represents an optional instance of a Prime, used where a Prime may or may not exist.
+ *
+ * Methods:
+ * - coprime: Determines if two BigInt values are coprime.
+ * - lcm: Computes the least common multiple of two BigInt values.
+ * - totient: Computes Euler's Totient function (phi) for a given BigInt or prime power.
+ * - reducedTotient: Computes the reduced (or Carmichael) Totient function for a given BigInt or prime power.
+ * - primeCountingFunction: Counts the number of prime numbers less than a given BigInt.
+ * - primeCountingFunctionExact: Precisely counts the number of primes less than a given BigInt.
+ * - multiplicativeInverse: Computes the multiplicative inverse of a BigInt modulus n.
+ * - primeFactors: Returns a sequence of prime factors (with repetition) of a given BigInt.
+ * - primeFactorMultiplicity: Returns a Map with prime factors and their corresponding multiplicities.
+ * - formatWithCommas: Formats a BigInt value with a specified delimiter string.
+ * - apply: Constructs a new Prime instance if the value is positive. Throws an exception if the value is not positive.
+ * - create: Creates an optional Prime instance from a BigInt or String.
+ * - createMersennePrime: Creates an optional Mersenne Prime based on the ith prime exponent.
+ * - mersenneNumber: Computes a Mersenne number for a given exponent or prime.
+ * - hasSmallFactor: Checks if a number has any of the smaller prime factors. Assumes the number is odd.
+ * - isProbableOddPrime: Tests if an odd BigInt is a probable prime using the Miller-Rabin test.
+ * - isSmallPrime: Tests if a value is one of the first one hundred primes.
+ * - isProbablePrime: Tests if a given BigInt is a probable prime using the Miller-Rabin test.
+ * - isCarmichaelNumber: Determines if a BigInt is a Carmichael number.
+ * - carmichaelTheoremApplies: A private method related to the application of Carmichael's theorem.
+ * - fill: Creates a list containing multiple copies of a given value.
+ * - getRandomValues: Generates random BigInt values based on the input BigInt.
+ */
 object Prime {
 
-  import Divides._
+  implicit val ordering: Ordering[Prime] = Ordering.by(_.n)
 
-  private val BigOne: BigInt = BigInt(1)
+  import Divides._
 
   /**
    * Method to determine if two BigInts are coprime, i.e. relatively prime.
@@ -600,8 +625,12 @@ object Prime {
    * Function to lift a Prime to an Option[Prime] whose values depends on the result of checking validated.
    */
   private val optionalPrime: Prime => Option[Prime] = FP.optional[Prime](_.validated)
+  private lazy val BigOne: BigInt = BigInt(1)
 }
 
+/**
+ * Object containing utility methods and constants for working with prime numbers.
+ */
 object Primes {
 
   /**
@@ -724,12 +753,11 @@ object Primes {
 }
 
 /**
- * This code is from link shown below.
+ * This code is attributed to: [[https://www.literateprograms.org/miller-rabin_primality_test__scala_.html]]
  *
  * It's not idiomatic Scala but I will clean it up as we go forward.
  */
 object MillerRabin {
-  // This code is attributed to: 'https://www.literateprograms.org/miller-rabin_primality_test__scala_.html'
   private def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
     val (d, s) = decompose(n)
     // CONSIDER avoid this mutable variable.
@@ -797,6 +825,9 @@ object MillerRabin {
   }
 }
 
+/**
+ * Object providing utility methods related to Goldbach's conjecture.
+ */
 object Goldbach {
 
   /**
@@ -821,11 +852,35 @@ object Goldbach {
       case None => throw new IllegalArgumentException
     }
 
+  /**
+   * Generates possible pairs of primes where the sum of the pair equals the input number.
+   *
+   * @param x a positive even number greater than 2 for which the prime pairs will be calculated.
+   * @return a sequence of tuples where each tuple contains a prime and a corresponding complement prime.
+   */
   private def possiblePairs(x: BigInt) = for (p <- smallPrimes(x)) yield p -> Prime(x - p.n)
 }
 
+/**
+ * A custom exception class that represents errors related to prime number calculations or validations.
+ *
+ * @param str The message or description of the error.
+ */
 case class PrimeException(str: String) extends Exception(str)
 
+/**
+ * The Main object serves as the entry point of the application. It extends the `App` trait,
+ * which eliminates the need for an explicit main method.
+ *
+ * CONSIDER eliminating this main program.
+ *
+ * This object previously contained functionality to benchmark the performance of the
+ * Eratosthenes sieve algorithm for prime number calculation. The benchmark logic, which
+ * leverages the `Benchmark` class and the `Primes.eSieve` method, is currently commented out.
+ *
+ * The remaining functionality outputs a message indicating the time taken by the
+ * Eratosthenes sieve for a specific range of values.
+ */
 object Main extends App {
 
   //  val benchmark: Benchmark[BigInteger] = new Benchmark[BigInteger]("Eratosthenes", null, (t: BigInteger) => Primes.eSieve(t.intValue()), null)
