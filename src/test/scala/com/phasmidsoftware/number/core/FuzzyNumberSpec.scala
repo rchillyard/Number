@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -87,7 +88,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     val z = zy.get
     z.isExact shouldBe false
-    z.fuzz.get shouldBe AbsoluteFuzz(5.0E-16, Box)
+    z.fuzz.get shouldBe AbsoluteFuzz(5.0E-105, Box)
     z.toDouble.get shouldBe 1.618033988749894 +- 1E-13
   }
   it should "parse G" in {

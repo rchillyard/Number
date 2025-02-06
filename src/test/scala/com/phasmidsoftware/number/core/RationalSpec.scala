@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, findRepeatingSequence, negZeroDouble, pi_5000}
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
+
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -193,6 +194,17 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.zero.invert.isWhole shouldBe false
     Rational.one.invert.isWhole shouldBe true
     Rational.two.invert.isWhole shouldBe false
+  }
+
+  behavior of "isDecimal"
+  it should "be true for 3.14" in {
+    Rational(3.14).isDecimal shouldBe true
+  }
+  // FIXME Issue #85
+  ignore should "be false for 223606797749979/200000000000000" in {
+    val target = r"223606797749979/200000000000000"
+    target.isDecimal shouldBe true
+    target.render(true) shouldBe "223606797749979/200000000000000"
   }
 
   behavior of "toBigInt"
@@ -748,6 +760,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     pi_5000.renderApproximate(10) shouldBe "3.14159265"
   }
   it should "fail with one parameter" in {
+    println(Rational.sPi_5000)
     a[RationalException] should be thrownBy pi_5000.renderApproximate(1)
   }
   it should "work with two parameters (1)" in {

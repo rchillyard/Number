@@ -447,6 +447,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *         found, or a Miss indicating that no simplification could be applied.
    */
   private def matchSimplifySquare(x: Expression): MatchResult[Expression] = x match {
+    case ReducedQuadraticRoot(-1, 0, _) => Match(x)
+    case ReducedQuadraticRoot(p, 0, _) => Match(x * -p)
+    case ReducedQuadraticRoot(-1, q, _) => Match(x plus -q)
     case ReducedQuadraticRoot(p, q, _) => Match((x * -p) plus -q)
     // TODO discover why the following doesn't work (or at least, doesn't pass the unit tests)
     //    case Literal(z) => Match(Literal(z * z))

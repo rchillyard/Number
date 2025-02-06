@@ -188,6 +188,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val em: ExpressionMatchers = Expression.em
     import em.TildeOps
     val p = em.biFunctionMatcher
-    p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(BiFunction(Phi, One, Product), One, Sum))
+    p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(Phi, One, Sum))
   }
 }

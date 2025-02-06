@@ -6,9 +6,9 @@ import com.phasmidsoftware.number.core._
 
 object Fibonacci {
 
-  // TODO replace with Psi and Phi
-  val phi: Expression = (Expression(Constants.one) plus Constants.root5) / Constants.two
-  val psi: Expression = (Expression(Constants.one) - Constants.root5) / Constants.two
+  // CONSIDER reverting to the original definitions
+  val phi: Expression = Phi // (Expression(Constants.one) plus Constants.root5) / Constants.two
+  val psi: Expression = Psi // (Expression(Constants.one) - Constants.root5) / Constants.two
 
   def fib(n: Int): BigInt = {
     val expression = fibExpression(n)
