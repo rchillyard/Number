@@ -716,23 +716,12 @@ case class Total(xs: Seq[Expression]) extends CompositeExpression {
  * @param pos Determines if the positive or negative branch of the root is chosen.
  */
 abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val pos: Boolean) extends CompositeExpression {
-
+  require(p != 0 || q != 0, "may not have p and q equal to zero")
   lazy val minusHalfP: Expression = Expression(-p) / 2
-
   lazy val root: Expression = minusHalfP plus {
-    val z: Expression = minusHalfP ^ 2
-    val zz: Field = z.materialize
-    val branch: Expression = (z - q).sqrt
-    val zzz: Field = branch.materialize
-    zzz match {
-      case c@ComplexPolar(r, theta, b) =>
-        println(s"r=$r, theta=$theta, b=$b")
-        println(c.isReal)
-    }
+    val branch: Expression = ((minusHalfP ^ 2) - q).sqrt
     if (pos) branch else branch.unary_-
   }
-
-  def validate: Boolean = (evaluate * evaluate + evaluate multiply Real(p) + Real(q)).isZero
 
   /**
    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
@@ -765,7 +754,7 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
    *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
    * @return true if `this` is exact in the context of factor, else false.
    */
-  def isExactInContext(context: Context): Boolean = false // by default
+  def isExactInContext(context: Context): Boolean = context.isEmpty // by default
 
   /**
    * Method to render this NumberLike in a presentable manner.
@@ -773,14 +762,34 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
    * @return a String
    */
   def render: String = name
+
+  override def toString: String = render
 }
 
+/**
+ * Companion object for the `ReducedQuadraticRoot` class.
+ * Provides an unapply method for pattern matching.
+ */
 object ReducedQuadraticRoot {
   def unapply(rqr: ReducedQuadraticRoot): Option[(Int, Int, Boolean)] = Some(rqr.p, rqr.q, rqr.pos)
 }
 
+/**
+ * Represents the golden ratio, denoted as φ (phi), which is a mathematical constant and an irrational number.
+ * The golden ratio appears frequently in mathematics, art, architecture, and nature.
+ *
+ * This object extends the `ReducedQuadraticRoot` abstract class with the parameters set to model
+ * the quadratic equation `x^2 + x - 1 = 0`, whose positive root is the golden ratio.
+ *
+ * - Name: φ (phi)
+ * - Quadratic Coefficients: p = -1, q = -1
+ * - Uses positive root (pos = true)
+ */
 object Phi extends ReducedQuadraticRoot("phi", -1, -1, true)
 
+/**
+ * Psi represents the conjugate of [[Phi]].
+ */
 object Psi extends ReducedQuadraticRoot("psi", -1, -1, false)
 
 /**

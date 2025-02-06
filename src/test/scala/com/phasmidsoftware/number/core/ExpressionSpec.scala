@@ -181,7 +181,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "ReducedQuadraticRoot"
   it should "evaluate Phi correctly" in {
-    ((Phi ^ 2 - 1).materialize - Constants.phi).isZero shouldBe true // should ===(Constants.phi)
+    (((Phi ^ 2) - 1).materialize - Constants.phi).isZero shouldBe true
     Phi.materialize should ===(Constants.phi)
+  }
+  it should "evaluate Phi^2 correctly" in {
+    val em: ExpressionMatchers = Expression.em
+    import em.TildeOps
+    val p = em.biFunctionMatcher
+    p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(BiFunction(Phi, One, Product), One, Sum))
   }
 }
