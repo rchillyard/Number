@@ -11,13 +11,13 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 
   behavior of "Fibonacci"
 
-  ignore should "psi" in {
+  it should "psi" in {
     val expression: Expression = Expression(Constants.one) - Constants.root5
     val psi: Expression = expression / Constants.two
     psi shouldBe BiFunction(expression, Expression(Constants.two).reciprocal, Product)
   }
 
-  ignore should "phi" in {
+  it should "phi" in {
     val expression: Expression = Expression(Constants.one) plus Constants.root5
     val phi: Expression = expression / Constants.two
     phi shouldBe BiFunction(expression, Expression(Constants.two).reciprocal, Product)

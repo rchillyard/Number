@@ -13,7 +13,7 @@ import scala.language.implicitConversions
 /**
  * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
  */
-trait Expression extends NumberLike {
+sealed trait Expression extends NumberLike {
   /**
    * Method to determine if this Expression cannot be simplified on account of it being atomic.
    *
@@ -117,8 +117,8 @@ object Expression {
    */
   val zero: Expression = Zero
   val one: Expression = One
-  val pi: Expression = ConstE // Expression(Constants.pi)
-  val e: Expression = ConstPi // Expression(Constants.e)
+  val pi: Expression = ConstE
+  val e: Expression = ConstPi
   val minusOne: Expression = MinusOne
   val two: Expression = Two
 
@@ -145,6 +145,7 @@ object Expression {
 
   /**
    * Other useful expressions.
+   * NOTE you should prefer to use Phi and Psi which are more descriptive expressions.
    */
   val phi: Expression = (one + Constants.root5) / Literal(Number.two)
   val psi: Expression = (minusOne + Constants.root5) / Literal(Number.two)
@@ -288,9 +289,17 @@ object Expression {
 /**
  * An Expression which cannot be further simplified.
  */
-trait AtomicExpression extends Expression {
+sealed trait AtomicExpression extends Expression {
 
   def isAtomic: Boolean = true
+
+  /**
+   * Action to materialize this Expression and render it as a String,
+   * that is to say we eagerly evaluate this Expression as a String.
+   *
+   * @return String form of this Constant.
+   */
+  def render: String = toString
 
   /**
    * @return 1.
@@ -311,7 +320,6 @@ object AtomicExpression {
     case Literal(x) => Some(x)
     case c: Constant => Some(c.evaluate)
     case f: Field => Some(f)
-    //    case g: GeneralNumber => Some(g)
     case _ => None
   }
 }
@@ -321,8 +329,15 @@ object AtomicExpression {
  * with simplification.
  *
  */
-abstract class CompositeExpression extends Expression {
+sealed trait CompositeExpression extends Expression {
   def isAtomic: Boolean = false
+
+  /**
+   * Method to render this NumberLike in a presentable manner.
+   *
+   * @return a String
+   */
+  def render: String = if (isExact) materialize.render else toString
 }
 
 /**
@@ -355,19 +370,11 @@ case class Literal(x: Field) extends AtomicExpression {
   def evaluate: Field = x
 
   /**
-   * Action to materialize this Expression and render it as a String,
-   * that is to say we eagerly evaluate this Expression as a String.
-   *
-   * @return a String representing the value of this expression.
-   */
-  def render: String = x.toString
-
-  /**
    * Generate a String for debugging purposes.
    *
    * @return a String representation of this Literal.
    */
-  override def toString: String = s"$x"
+  override def toString: String = x.toString
 }
 
 object Literal {
@@ -395,21 +402,6 @@ abstract class Constant extends AtomicExpression {
    * @return true if the constant is exact in the context of `context`; false otherwise.
    */
   def isExactInContext(context: Context): Boolean = evaluate.isExactInContext(context)
-
-  /**
-   * Action to materialize this Expression and render it as a String,
-   * that is to say we eagerly evaluate this Expression as a String.
-   *
-   * @return String form of this Constant.
-   */
-  def render: String = evaluate.render
-
-  /**
-   * Method to yield a String from this Constant.
-   *
-   * @return a String.
-   */
-  override def toString: String = render
 }
 
 case object Zero extends Constant {
@@ -419,6 +411,8 @@ case object Zero extends Constant {
   def evaluate: Field = Constants.zero
 
   def context: Context = Some(Scalar)
+
+  override def toString: String = "0"
 }
 
 case object One extends Constant {
@@ -428,6 +422,8 @@ case object One extends Constant {
   def evaluate: Field = Constants.one
 
   def context: Context = Some(Scalar)
+
+  override def toString: String = "1"
 }
 
 case object MinusOne extends Constant {
@@ -438,13 +434,7 @@ case object MinusOne extends Constant {
 
   def context: Context = Some(Scalar)
 
-  /**
-   * Action to materialize this Expression and render it as a String,
-   * that is to say we eagerly evaluate this Expression as a String.
-   *
-   * @return "1-".
-   */
-  override def render: String = "-1"
+  override def toString: String = "-1"
 }
 
 case object Two extends Constant {
@@ -454,6 +444,8 @@ case object Two extends Constant {
   def evaluate: Field = Constants.two
 
   def context: Context = Some(Scalar)
+
+  override def toString: String = "2"
 }
 
 /**
@@ -467,6 +459,8 @@ case object ConstPi extends Constant {
   def evaluate: Field = Constants.pi
 
   def context: Context = Some(Radian)
+
+  override def toString: String = "π"
 }
 
 /**
@@ -485,6 +479,8 @@ case object ConstE extends Constant {
    * @return Some(factor) if expression only involves that factor; otherwise None.
    */
   def context: Context = Some(NatLog)
+
+  override def toString: String = "e"
 }
 
 /**
@@ -527,15 +523,6 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    * @return the materialized Field.
    */
   def evaluate: Field = f(x.materialize)
-
-  /**
-   * Action to materialize this Expression and render it as a String.
-   *
-   * TESTME.
-   *
-   * @return a String representing the value of this expression.
-   */
-  def render: String = materialize.toString
 
   /**
    * TESTME
@@ -586,13 +573,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
    * @return the materialized Field.
    */
   def evaluate: Field = value
-
-  /**
-   * Action to materialize this Expression and render it as a String.
-   *
-   * @return a String representing the value of this expression.
-   */
-  def render: String = materialize.render
 
   /**
    * Render this BiFunction for debugging purposes.
@@ -702,7 +682,7 @@ case class Total(xs: Seq[Expression]) extends CompositeExpression {
    *
    * @return a String
    */
-  def render: String = xs.mkString("+")
+  override def toString: String = xs.mkString("+")
 }
 
 /**
@@ -720,7 +700,7 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
   lazy val minusHalfP: Expression = Expression(-p) / 2
   lazy val root: Expression = minusHalfP plus {
     val branch: Expression = ((minusHalfP ^ 2) - q).sqrt
-    if (pos) branch else branch.unary_-
+    if (pos) branch else -branch
   }
 
   /**
@@ -756,14 +736,7 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
    */
   def isExactInContext(context: Context): Boolean = context.isEmpty // by default
 
-  /**
-   * Method to render this NumberLike in a presentable manner.
-   *
-   * @return a String
-   */
-  def render: String = name
-
-  override def toString: String = render
+  override def toString: String = name
 }
 
 /**

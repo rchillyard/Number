@@ -83,7 +83,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
   /**
    * Creates and returns an expression matcher that filters expressions based on the `isExact` property.
-   *
+   * NOTE this is never used.
+   * 
    * @return An ExpressionMatcher that matches only expressions with the `isExact` property set to true.
    */
   def exactExpressionMatcher: ExpressionMatcher[Expression] = ExpressionMatcher[Expression](filter(_.isExact))
@@ -223,9 +224,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return a `Transformer`.
     */
   def simplifier: Transformer = ExpressionMatcher {
-    case a@AtomicExpression(_) =>
+    case a: AtomicExpression =>
       Match(a)
-    case e => e match {
+    case e: CompositeExpression => e match {
       case b@BiFunction(_, _, _) =>
         biFunctionSimplifier(b)
       case f@Function(_, _) =>
@@ -435,6 +436,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           case _ => Miss("matchSimplifyTotalTerms: cannot be simplified", xs)
         }
       } else Miss("matchSimplifyTotalTerms: not all elements are numbers", xs)
+    case x => Miss("matchSimplifyTotalTerms: not a Total", x)
   }
 
   /**

@@ -19,7 +19,8 @@ class TotalSpec extends AnyFlatSpec with should.Matchers {
 
   it should "render" in {
     val target = Total(List(Constants.one, Constants.one))
-    target.render shouldBe "1+1"
+    target.toString shouldBe "1+1"
+    target.render shouldBe "2"
   }
 
   it should "depth" in {
