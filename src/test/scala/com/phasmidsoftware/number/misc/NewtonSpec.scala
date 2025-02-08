@@ -18,10 +18,11 @@ class NewtonSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "solve x * x = 2" in {
-    val expected = 1.41421356237309504880168872420969807856967187537694
+    val expected = 1.41421356237309504
     val newton = Newton({ x => x * x - 2 }, { x => 2 * x })
-    newton.solve(100, 1E-12, 99.0 / 70) match {
-      case Success(x) => x shouldBe expected +- 1E-11
+    val initialGuess = ContinuedFraction.root2.coefficients.take(4).last.toRational.toDouble
+    newton.solve(100, 1E-15, initialGuess) match {
+      case Success(x) => x shouldBe expected +- 1E-15
       case Failure(t) => fail(t.getLocalizedMessage)
     }
   }
