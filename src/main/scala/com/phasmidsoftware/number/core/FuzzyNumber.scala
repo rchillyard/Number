@@ -172,7 +172,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     */
   override def toString: String = {
     val sb = new mutable.StringBuilder()
-    lazy val valueAsString = Value.valueToString(value)
+    lazy val valueAsString = Value.valueToString(value, fuzz.isEmpty)
     val z = fuzz match {
       // CONSIDER will the following test work in all cases?
       case Some(f) if f.wiggle(0.5) > 1E-16 => f.toString(toDouble.getOrElse(0.0))

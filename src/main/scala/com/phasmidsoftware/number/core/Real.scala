@@ -250,6 +250,8 @@ case class Real(x: Number) extends Field {
 object Real {
   def apply(w: String): Real = Real(Number(w))
 
+  def apply(x: Int): Real = Real(Number(x))
+
   def apply(d: Double): Real = Real(Number(d))
 
   def apply(r: Rational): Real = Real(Number(r))

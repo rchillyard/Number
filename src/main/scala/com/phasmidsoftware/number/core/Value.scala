@@ -127,8 +127,9 @@ object Value {
     * @param v the value to be rendered.
     * @return a String.
     */
-  def valueToString(v: Value): String = renderValue(v) match {
-    case (x, true) => x
+  def valueToString(v: Value, exact: Boolean = true): String = (renderValue(v, exact), exact) match {
+    case ((x, true), _) => x
+    case ((x, _), false) => x
     case (x, false) => x + "*"
   }
 
@@ -430,14 +431,16 @@ object Render {
     * to render the value exactly or not.
     *
     * @param v the Value to be rendered.
+   * @param exact true if the Value is exact.
     * @return a tuple of String and Boolean.
     *         If the value is an Int or a Rational, then the Boolean returned is true; otherwise, it's false.
     */
-  def renderValue(v: Value): (String, Boolean) =
+  def renderValue(v: Value, exact: Boolean = true): (String, Boolean) =
     optionMap(v)(
       y => renderInt(y),
       x => optionMap(x)(
-        y => renderRational(y),
+        // TODO Issue #48
+        y => if (exact) renderRational(y) else (y.renderApproximate(100, Some(16)).stripLeading(), false),
         {
           case Some(n) => Some(renderDouble(n))
           case None => None

@@ -23,6 +23,17 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     phi shouldBe BiFunction(expression, Expression(Constants.two).reciprocal, Product)
   }
 
+  it should "render phi+1 as a Field" in {
+    val target: Field = Constants.phi + Real(1)
+    val actual = target.render
+    actual shouldBe "2.6180339887498950*"
+  }
+  it should "render phi+1 as an Expression" in {
+    val target: Expression = Expression(Constants.phi) plus Real(1)
+    target.render shouldBe "{1.6180339887498950* + 1}"
+    target.materialize.render shouldBe "2.6180339887498950*"
+  }
+
   val psi: Expression = Psi //(Expression(Constants.one) - Constants.root5) / Constants.two
   val phi: Expression = Phi // (Expression(Constants.one) plus Constants.root5) / Constants.two
 

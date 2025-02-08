@@ -68,7 +68,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val target = Constants.gamma
     target.isExact shouldBe false
     target should ===(Number(0.577215664901533))
-    target.render shouldBe (sGamma.substring(0, sGamma.length - 2) + "*")
+    target.render shouldBe (sGamma.substring(0, 17) + "9*")
   }
   it should "have avagadro" in {
     val target = Constants.avagadro
