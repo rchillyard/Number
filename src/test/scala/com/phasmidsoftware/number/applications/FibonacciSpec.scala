@@ -23,6 +23,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     phi shouldBe BiFunction(expression, Expression(Constants.two).reciprocal, Product)
   }
 
+  // NOTE this and the following test should change when we fix Issue #48
   it should "render phi+1 as a Field" in {
     val target: Field = Constants.phi + Real(1)
     val actual = target.render

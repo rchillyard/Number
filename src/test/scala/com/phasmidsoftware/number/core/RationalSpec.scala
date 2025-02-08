@@ -505,25 +505,25 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "root"
 
   it should "root 0" in {
-    Rational.one root 0 shouldBe Some(Rational.one)
-    Rational.two root 0 shouldBe None
+    Rational.one.root(0) shouldBe Some(Rational.one)
+    Rational.two.root(0) shouldBe None
   }
 
   it should "root 1" in {
-    Rational.one root 1 shouldBe Some(Rational.one)
-    Rational.two root 1 shouldBe Some(Rational.two)
+    Rational.one.root(1) shouldBe Some(Rational.one)
+    Rational.two.root(1) shouldBe Some(Rational.two)
   }
 
   it should "root 2" in {
-    Rational.one root 2 shouldBe Some(Rational.one)
-    Rational(4) root 2 shouldBe Some(Rational.two)
-    Rational.two root 2 shouldBe None
+    Rational.one.root(2) shouldBe Some(Rational.one)
+    Rational(4).root(2) shouldBe Some(Rational.two)
+    Rational.two.root(2) shouldBe None
   }
 
   it should "root -2" in {
-    Rational.one root -2 shouldBe Some(Rational.one)
-    Rational(4) root -2 shouldBe None
-    Rational.two root -2 shouldBe None
+    Rational.one.root(-2) shouldBe Some(Rational.one)
+    Rational(4).root(-2) shouldBe None
+    Rational.two.root(-2) shouldBe None
   }
 
   behavior of "exponent"

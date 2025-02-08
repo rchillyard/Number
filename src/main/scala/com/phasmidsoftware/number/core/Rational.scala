@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP.toTryWithRationalException
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.Rational.{NaN, bigFive, bigNegOne, bigOne, bigTwo, bigZero, half, minus, one, rootOfBigInt, times}
+import com.phasmidsoftware.number.misc.ContinuedFraction
 import com.phasmidsoftware.number.parse.RationalParser
 
 import java.lang.Math._
@@ -226,13 +227,17 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    * Note that it is not guaranteed to result in an exact value.
    *
    * @param x the root to be taken, for example, for the cube root, we set x = 3.
+   * @param epsilon if defined, this represents an acceptable error in the calculation (defaults to None).
    * @return an (optional) Rational result which is the exact root.
    *         In the event that it's not possible to get the exact root, then None is returned.
    */
-  def root(x: Int): Option[Rational] =
+  def root(x: Int, epsilon: Option[Double] = None): Option[Rational] =
     if (x == 1 || isUnity) Some(this)
     else if (x <= 0) None
-    else for (a <- rootOfBigInt(n, x); b <- rootOfBigInt(d, x)) yield Rational(a, b)
+    else (n, d, x, epsilon) match {
+      case (_, `bigOne`, 2, Some(e)) => Rational.squareRoot(n, e)
+      case _ => for (a <- rootOfBigInt(n, x); b <- rootOfBigInt(d, x)) yield Rational(a, b)
+    }
 
   /**
    * Converts this `Rational` to an `Option[BigDecimal]` if it can be exactly represented as a decimal.
@@ -797,6 +802,12 @@ object Rational {
    *         or Failure(RationalParserException) if w is malformed.
    */
   def parse(w: String): Try[Rational] = RationalParser.parse(w)
+
+  private def squareRoot(n: BigInt, epsilon: Double): Option[Rational] = n match {
+    case `bigTwo` => ContinuedFraction.root2.toRational(epsilon)
+    case `bigThree` => ContinuedFraction.root3.toRational(epsilon)
+    case _ => None // TODO implement these cases
+  }
 
   /**
    * Method to yield a Rational exponent (in the sense of the a literal Double: for example 1.0Ex).
