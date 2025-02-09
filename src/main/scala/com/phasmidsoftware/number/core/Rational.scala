@@ -129,7 +129,12 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *
    * @return true if the prime factors only include 2 and/or 5.
    */
-  def isDecimal: Boolean = isZero || denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
+  def isDecimal: Boolean = isZero ||
+    //    isWhole || {
+    //    import com.phasmidsoftware.number.core.Divides.IntDivides
+    //    10 |> d
+    //  }
+    denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
 
   /**
    * Returns an optional integer representation of this `Rational`.
@@ -357,6 +362,7 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    * @return an exact String representation of this Rational.
    */
   def renderExact: String = this match {
+    case `half` => "\u00BD"
     case _ if isNaN => "NaN"
     case _ if isZero && d < 0 => "-0"
     case _ if isInfinity => (if (n > 0) "+ve" else "-ve") + " infinity"

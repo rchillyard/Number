@@ -40,9 +40,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 
   ignore should "fib0" in {
     val phi0: Expression = phi ^ 0
-    phi0.materialize shouldBe Constants.one
     val psi0: Expression = psi ^ 0
-    psi0.materialize shouldBe Constants.one
     val top: Expression = phi0 - psi0
     top.materialize shouldBe Constants.zero
     val fib0 = top / (phi - psi)

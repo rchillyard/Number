@@ -664,7 +664,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "render"
   it should "be decimal when exact" in {
     val r = Rational(1, 2)
-    r.render shouldBe "0.5"
+    r.render shouldBe "\u00BD"
   }
   it should "be recurring when exact: 2/3" in {
     val r = Rational(2, 3)

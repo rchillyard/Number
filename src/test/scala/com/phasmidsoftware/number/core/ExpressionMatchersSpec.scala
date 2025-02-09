@@ -582,6 +582,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z shouldBe em.Match(Literal(9))
   }
   it should "distributeProductSum b" in {
+    import com.phasmidsoftware.number.core.Rational.RationalHelper
     val p = em.biFunctionMatcher
     val x = Number("2.00")
     val y = Number("3.00")
@@ -589,7 +590,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val b = BiFunction(Literal(half), Literal(y), Sum)
     import em.TildeOps
     val z = p(Product ~ a ~ b)
-    z shouldBe em.Match(Literal(10.5))
+    z shouldBe em.Match(Literal(r"21/2"))
   }
   it should "distributeProductPower on root(3) * root(3)" in {
     val p = em.biFunctionMatcher

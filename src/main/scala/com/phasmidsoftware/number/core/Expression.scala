@@ -552,6 +552,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   def isExactInContext(context: Context): Boolean =
     //    exact && (context.isEmpty || value.isExactInContext(context))
     exact && value.isExactInContext(context)
+  //  context.isDefined && exact
 
   /**
    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
