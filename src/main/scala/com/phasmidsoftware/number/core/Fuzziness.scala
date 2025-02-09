@@ -6,8 +6,9 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.Valuable.ValuableDouble
-import java.text.DecimalFormat
 import org.apache.commons.math3.special.Erf.erfInv
+
+import java.text.DecimalFormat
 import scala.math.Numeric.DoubleIsFractional
 import scala.util.Try
 
@@ -732,7 +733,26 @@ trait Valuable[T] extends Fractional[T] {
   def divide[U: Valuable, V: Valuable](u: U, v: V): T = fromDouble(implicitly[Valuable[U]].toDouble(u) / implicitly[Valuable[V]].toDouble(v))
 }
 
+/**
+ * Trait ValuableDouble provides functionality for manipulating `Double` values
+ * within the context of the `Valuable` type class. It extends the behavior of
+ * `Valuable[Double]`, `DoubleIsFractional`, and `Ordering.Double.IeeeOrdering` to
+ * work specifically with `Double`-typed quantities, offering operations like rendering,
+ * scaling, and normalizing `Double` values.
+ *
+ * The default implementation of `render` provides a convenient string
+ * representation of a `Double`, either in fixed-point or scientific notation
+ * depending on the value.
+ */
 trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Ordering.Double.IeeeOrdering {
+  /**
+   * Renders a `Double` value as a string, choosing between fixed-point or
+   * scientific notation representation based on specific criteria.
+   *
+   * @param t the `Double` value to be rendered.
+   * @return a string representation of the `Double` value in either
+   *         fixed-point or scientific notation format.
+   */
   def render(t: Double): String = {
     lazy val asScientific: String = f"$t%.20E"
     val z = f"$t%.99f"
@@ -743,6 +763,12 @@ trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Order
     else z
   }
 
+  /**
+   * Converts the input `Double` value and returns it as-is.
+   *
+   * @param x the `Double` value to be processed.
+   * @return the same `Double` value provided as input.
+   */
   def fromDouble(x: Double): Double = x
 
   /**
@@ -764,6 +790,15 @@ trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Order
   def normalize(x: Double): Double = math.abs(x)
 }
 
+/**
+ * Companion object for the Valuable type class.
+ *
+ * This object provides an implicit implementation of the Valuable type class
+ * for Double values through the ValuableDouble trait.
+ *
+ * The Valuable type class is designed to represent a type that can interoperate
+ * with fractional operations, scaling, normalization, and rendering to a string.
+ */
 object Valuable {
 
   implicit object ValuableDouble extends ValuableDouble

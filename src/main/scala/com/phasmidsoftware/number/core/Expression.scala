@@ -375,15 +375,48 @@ case class Literal(x: Field) extends AtomicExpression {
   override def toString: String = x.toString
 }
 
+/**
+ * Companion object for the `Literal` class, providing factory methods and pattern matching support.
+ */
 object Literal {
+  /**
+   * Extracts a Field value from a Literal instance.
+   *
+   * @param arg the Literal instance to extract the Field from.
+   * @return an Option containing the extracted Field, or None if extraction is not possible.
+   */
   def unapply(arg: Literal): Option[Field] = Some(arg.x)
 
+  /**
+   * Creates a Literal instance using an integer value.
+   *
+   * @param x the integer value to be used for constructing the Literal.
+   * @return a Literal instance wrapping the provided integer value as a Real number.
+   */
   def apply(x: Int): Literal = Literal(Real(x))
 
+  /**
+   * Creates a Literal instance from a Rational value.
+   *
+   * @param x the Rational value to be wrapped in a Literal
+   * @return a Literal instance containing the given Rational value encapsulated in a Real
+   */
   def apply(x: Rational): Literal = Literal(Real(x))
 
+  /**
+   * Creates a new Literal instance wrapping the given Double value.
+   *
+   * @param x the Double value to be wrapped in the Literal.
+   * @return a Literal instance containing the provided Double value as a Real.
+   */
   def apply(x: Double): Literal = Literal(Real(x))
 
+  /**
+   * Creates a Literal instance from a given number.
+   *
+   * @param x the number to convert into a Literal
+   * @return a Literal instance representing the given number
+   */
   def apply(x: Number): Literal = Literal(Real(x))
 }
 
@@ -613,6 +646,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 
   /**
    * Regular hashCode method.
+   * TESTME
    *
    * @return an Int depending on f, a, and b.
    */
@@ -721,6 +755,7 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
 
   /**
    * Method to determine the depth of this Expression.
+   * TESTME
    *
    * @return the depth (an atomic expression has depth of 1).
    */
@@ -789,6 +824,7 @@ object CompositeExpression {
   /**
    * Creates a `Total` instance from the given sequence of `Field` inputs.
    * Each `Field` is converted to a `Literal` expression and combined into a `Total`.
+   * TESTME
    *
    * @param xs The sequence of `Field` instances used to create the `Total`.
    * @return A `Total` instance containing the converted `Literal` expressions.
@@ -904,7 +940,18 @@ class ExpressionFunction(val f: Number => Number, val name: String) extends (Fie
   override def toString: String = s"$name"
 }
 
+/**
+ * The companion object for the ExpressionFunction class.
+ * Provides utility methods for working with ExpressionFunction instances.
+ */
 object ExpressionFunction {
+  /**
+   * Extractor method for `ExpressionFunction`, enabling pattern matching.
+   * TESTME ?
+   *
+   * @param arg the `ExpressionFunction` instance from which components are extracted.
+   * @return an `Option` containing a tuple of the function `Number => Number` and the name `String` of the `ExpressionFunction`, or `None` if the input is null.
+   */
   def unapply(arg: ExpressionFunction): Option[(Number => Number, String)] = Some(arg.f, arg.name)
 }
 
@@ -934,7 +981,21 @@ class ExpressionBiFunction(val f: (Field, Field) => Field, val name: String, val
   override def toString: String = s"$name"
 }
 
+/**
+ * Companion object for the `ExpressionBiFunction` class.
+ *
+ * Provides an extractor method to deconstruct `ExpressionBiFunction` instances
+ * into their associated function and name.
+ */
 object ExpressionBiFunction {
+  /**
+   * Extracts the components of an `ExpressionBiFunction` instance.
+   * TESTME ??
+   *
+   * @param f the binary function of type `((Field, Field)) => Field` to be matched and deconstructed.
+   * @return an `Option` containing a tuple of the function `(Field, Field) => Field` and its associated name `String`
+   *         if the input matches an `ExpressionBiFunction`, or `None` otherwise.
+   */
   def unapply(f: ((Field, Field)) => Field): Option[((Field, Field) => Field, String)] = f match {
     case e: ExpressionBiFunction => Some(e.f, e.name)
     case _ => None

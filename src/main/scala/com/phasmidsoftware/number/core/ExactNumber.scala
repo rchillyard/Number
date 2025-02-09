@@ -190,10 +190,32 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   }
 }
 
+/**
+ * Companion object for the `ExactNumber` class.
+ *
+ * Provides factory methods for creating instances of `ExactNumber`. These methods allow
+ * creation with a given `Factor` or default to the `Scalar` factor. This object encapsulates
+ * logic to initialize `ExactNumber` instances with consistent internal representations and initializes
+ * the required values.
+ */
 object ExactNumber {
 
+  /**
+   * Creates a new instance of `ExactNumber` from a given integer value and a specified factor.
+   *
+   * @param x      the integer value to be encapsulated by the `ExactNumber`.
+   * @param factor the factor associated with the `ExactNumber` instance.
+   * @return a new `ExactNumber` instance with the specified value and factor.
+   */
   def apply(x: Int, factor: Factor): ExactNumber = new ExactNumber(Value.fromInt(x), factor)
 
+  /**
+   * Creates an instance of `ExactNumber` with the value `x` and a default factor of `Scalar`.
+   * TESTME
+   *
+   * @param x an integer representing the value of the `ExactNumber`.
+   * @return an instance of `ExactNumber` with the specified value and the `Scalar` factor.
+   */
   def apply(x: Int): ExactNumber = apply(x, Scalar)
 
 //  def product(x: ExactNumber, y: ExactNumber): Number = (x, y) match {
