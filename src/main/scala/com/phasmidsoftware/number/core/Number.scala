@@ -467,8 +467,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Only the factor will change.
     * This method does not need to be followed by a call to specialize.
     *
-    * TESTME
-    *
     * @param f the factor.
     * @return either a Number.
     */
@@ -551,8 +549,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Make a copy of this Number, with the same value and factor but with a different value of fuzziness.
-    *
-    * TESTME
     *
     * @param fo the (optional) fuzziness.
     * @return a Number.

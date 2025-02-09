@@ -539,8 +539,6 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   /**
     * Rotate this Complex number by phi counter-clockwise.
     *
-    * TESTME
-    *
     * @return the value of this, rotated by phi.
     */
   def rotate(phi: Number): ComplexPolar = ComplexPolar(real, imag doAdd phi)

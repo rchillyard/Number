@@ -352,8 +352,6 @@ object Fuzziness {
   /**
     * Method to yield a transformation (i.e. a Fuzziness[T] => Fuzziness[T]) based on a scale constant k.
     *
-    * TESTME
-    *
     * @param k the scale constant.
     * @tparam T the underlying type.
     * @return a function which will transform a Fuzziness[T] into a Fuzziness[T].

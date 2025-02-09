@@ -188,8 +188,6 @@ object Expression {
     /**
      * Method to lazily change the sign of this expression.
      *
-     * TESTME
-     *
      * @return an Expression which is this negated.
      */
     def unary_- : Expression = BiFunction(x, MinusOne, Product)

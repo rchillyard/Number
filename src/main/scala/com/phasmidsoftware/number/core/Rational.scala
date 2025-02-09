@@ -961,7 +961,6 @@ object Rational {
     if (x eq negZero) -0.0
     else Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
 
-  // TESTME
   private def toFloat(x: Rational): Float = toDouble(x).toFloat
 
   private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z
