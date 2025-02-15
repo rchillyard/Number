@@ -204,7 +204,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   ignore should "be false for 223606797749979/200000000000000" in {
     val target = r"223606797749979/200000000000000"
     target.isDecimal shouldBe true
-    target.render(true) shouldBe "223606797749979/200000000000000"
+    target.renderConditional(true) shouldBe "223606797749979/200000000000000"
   }
 
   behavior of "toBigInt"

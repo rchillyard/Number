@@ -422,7 +422,7 @@ object Render {
     * @param x the Rational value to be rendered.
     * @return a String.
     */
-  private def renderRational(x: Rational): (String, Boolean) = x.render(true)
+  private def renderRational(x: Rational): (String, Boolean) = x.renderConditional(true)
 
   private def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 

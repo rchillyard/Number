@@ -265,6 +265,20 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    */
   def compare(other: Rational): Int = Rational.compare(this, other)
 
+  /**
+   * Renders the current object into its string representation.
+   * The method conditionally determines the output based on the
+   * result of an internal conditional computation.
+   *
+   * @return A string representation of the object. If a certain
+   *         condition evaluates to true, a specific value is
+   *         returned; otherwise, the object's `toString` is used.
+   */
+  def render: String = {
+    val x -> y = renderConditional(true)
+    if (y) x else toString
+  }
+
   lazy val toRationalString = s"$n/$d"
 
   /**
@@ -345,14 +359,13 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
   }
 
   /**
-   * Render this Rational as a String.
-   *
+   * Renders a conditional output based on the provided boolean flag.
    * CONSIDER: why not return an Option[String] ?
    *
-   * @param exact true if this Rational is the value of an exact number.
-   * @return a String of various different forms.
+   * @param exact A boolean flag indicating whether to render the exact output or a default value.
+   * @return A tuple containing the rendered string and a boolean indicating the success of rendering.
    */
-  def render(exact: Boolean): (String, Boolean) =
+  def renderConditional(exact: Boolean): (String, Boolean) =
     if (exact) renderExact -> true
     else "" -> false // NOTE string is ignored if boolean is false
 
@@ -393,13 +406,6 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    * @return a Some(x) if this is a Number; otherwise return None.
    */
   def asNumber: Option[Number] = Some(this)
-
-  /**
-   * Method to render this NumberLike in a presentable manner.
-   *
-   * @return a String
-   */
-  def render: String = renderExact
 
   /**
    * Converts a number to a percentage representation with a specified number of decimal places.
