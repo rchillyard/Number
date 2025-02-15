@@ -227,7 +227,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
         case _ if x.isPositive => "+"
         case _ => "-"
       }
-      s"${sign}i${x.abs}"
+      s"${sign}i${x.abs.render}"
     case (Number.zeroR, z, n) =>
       val x = Number.zeroR.doAdd(Number.twoPi.doMultiply(z).doDivide(n))
       val sign = (x, polar) match {
@@ -236,7 +236,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
         case _ if x.isPositive => "+"
         case _ => "-"
       }
-      s"${sign}i${x.abs}"
+      s"${sign}i${x.abs.render}"
   }
 }
 
@@ -385,7 +385,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
    *
    * @return a String representing the value of this expression.
    */
-  def render: String = if (isReal) x.toString else s"""($x${showImaginary(polar = false)})"""
+  def render: String = if (isReal) x.render else s"""(${x.render}${showImaginary(polar = false)})"""
 
   /**
    * Add two Cartesian Complex numbers.
@@ -599,8 +599,6 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     case (z, t, n) => ComplexPolar(z, t, n)
   }
 
-  override def toString: String = render
-
   /**
    * Action to materialize this Expression and render it as a String,
    * that is to say we eagerly evaluate this Expression as a String.
@@ -614,18 +612,25 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     case (Number.one, Number.zero, 1) => "1"
     case (Number.one, Number.pi, 1) => "-1"
     case (Number.one, Number.minusPi, 1) => "-1"
-    case (_, _, 2) => theta.value match {
-      case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => "\u00b1" + r
-      case _ => s"${r}e^${showImaginary(polar = true)}"
+    // TODO combine these cases that all require rAsString
+    case (_, _, 2) =>
+      val rAsString = r.render
+      theta.value match {
+        case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => "\u00b1" + rAsString // +-
+        case _ =>
+          s"${rAsString}e^${showImaginary(polar = true)}"
     }
-    case (_, _, 3) => theta.value match {
-      case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => s"{$r, ±${r}e^${showImaginary(polar = true, 1, 3)}}"
-      case _ => s"${r}e^${showImaginary(polar = true)}"
+    case (_, _, 3) =>
+      val rAsString = r.render
+      theta.value match {
+        case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => s"{$rAsString, ±${rAsString}e^${showImaginary(polar = true, 1, 3)}}"
+        case _ => s"${rAsString}e^${showImaginary(polar = true)}"
     }
     // TODO handle the case where n is greater than 2
     case _ =>
+      val rAsString = r.render
       val w = showImaginary(polar = true)
-      if (w == "0") r.toString else s"${r}e^$w"
+      if (w == "0") rAsString else s"${rAsString}e^$w"
   }
 
   /**

@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -482,7 +483,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for Root2, Root3" in {
     val target = Number(4, Root2)
-    target.render shouldBe "2"
+    target.render shouldBe "√4"
     val expected = Number(8, Root3)
     val result = target.scale(Root3)
     result shouldBe expected

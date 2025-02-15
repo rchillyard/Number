@@ -69,8 +69,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val f = em.matchValue(Constants.one)
     val g = f | em.matchValue(Constants.pi)
     f(Literal(one)).successful shouldBe true
-    g(Literal(Constants.pi)).successful shouldBe true
-    g(Literal(Constants.e)).successful shouldBe false
+    g(Literal(Constants.pi, Some("π"))).successful shouldBe true
+    g(Literal(Constants.e, Some("e"))).successful shouldBe false
   }
 
   import com.phasmidsoftware.number.core.Expression.ExpressionOps
@@ -495,7 +495,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
     val z = p(x)
-    z shouldBe em.Match(Literal(±(√(3))))
+    z shouldBe em.Match(Literal(±(√(3)), Some("√3")))
   }
   it should "simplify 1 + 2 - 2" in {
     val p = em.biFunctionSimplifier
@@ -546,7 +546,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = em.biFunctionMatcher
     import em.TildeOps
     val e: Field = Constants.e
-    val x: Expression = Literal(e) * Constants.two
+    val x: Expression = Literal(e, Some("e")) * Constants.two
     val y: Expression = Literal(Constants.two).reciprocal
     val z: em.MatchResult[Expression] = p(Product ~ x ~ y)
     z shouldBe em.Match(Expression(e))
@@ -721,7 +721,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(x).successful shouldBe false
-    sb.toString shouldBe "trying matcher value on (1 * 2)...\n... value((1 * 2)): Miss: value: (1 * 2)\n"
+    sb.toString shouldBe "trying matcher value on {1 * 2}...\n... value({1 * 2}): Miss: value: {1 * 2}\n"
   }
 
   behavior of "biFunctionMatcher (2)"

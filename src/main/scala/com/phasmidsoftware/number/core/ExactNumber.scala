@@ -167,6 +167,13 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def isProbablyZero(p: Double): Boolean = isZero
 
   /**
+   * Render this ExactNumber as a String representation.
+   *
+   * @return the String representation of this ExactNumber.
+   */
+  override def render: String = toString
+
+  /**
     * Render this ExactNumber in String form, including the factor.
     *
     * @return a String

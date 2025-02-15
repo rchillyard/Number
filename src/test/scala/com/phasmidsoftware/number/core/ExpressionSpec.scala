@@ -129,7 +129,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for (sqrt 7)^2" in {
     val seven: Expression = Literal(7)
     val result: Expression = seven.sqrt ^ 2
-    result.toString shouldBe "{{7 ^ (2 ^ -1)} ^ 2}"
+    result.toString shouldBe "{{7 ^ {2 ^ -1}} ^ 2}"
   }
 
   behavior of "various operations"

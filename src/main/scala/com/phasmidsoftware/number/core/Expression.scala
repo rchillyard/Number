@@ -315,7 +315,7 @@ sealed trait AtomicExpression extends Expression {
 object AtomicExpression {
   def unapply(arg: AtomicExpression): Option[Field] = arg match {
     case c: Complex => Some(c)
-    case Literal(x) => Some(x)
+    case Literal(x, _) => Some(x) // NOTE we lose the name here.
     case c: Constant => Some(c.evaluate)
     case f: Field => Some(f)
     case _ => None
@@ -343,7 +343,7 @@ sealed trait CompositeExpression extends Expression {
  *
  * @param x the Number.
  */
-case class Literal(x: Field) extends AtomicExpression {
+case class Literal(x: Field, maybeName: Option[String] = None) extends AtomicExpression {
 
   /**
    * Method to determine if this Expression can be evaluated exactly.
@@ -372,7 +372,7 @@ case class Literal(x: Field) extends AtomicExpression {
    *
    * @return a String representation of this Literal.
    */
-  override def toString: String = x.toString
+  override def toString: String = maybeName getOrElse x.toString
 }
 
 /**
@@ -385,7 +385,7 @@ object Literal {
    * @param arg the Literal instance to extract the Field from.
    * @return an Option containing the extracted Field, or None if extraction is not possible.
    */
-  def unapply(arg: Literal): Option[Field] = Some(arg.x)
+  def unapply(arg: Literal): Option[(Field, Option[String])] = Some(arg.x, arg.maybeName)
 
   /**
    * Creates a Literal instance using an integer value.
@@ -554,13 +554,6 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    * @return the materialized Field.
    */
   def evaluate: Field = f(x.materialize)
-
-  /**
-   * TESTME
-   *
-   * @return
-   */
-  override def toString: String = s"$f($x)"
 }
 
 /**
@@ -611,7 +604,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
    *
    * @return a String showing a, f, and b in parentheses (or in braces if not exact).
    */
-  override def toString: String = if (exact) s"($a $f $b)" else s"{$a $f $b}"
+  override def toString: String = s"{$a $f $b}"
 
   // NOTE that NatLog numbers don't behave like other numbers so...
   // CONSIDER really should be excluded from all cases
@@ -829,7 +822,7 @@ object CompositeExpression {
    * @param xs The sequence of `Field` instances used to create the `Total`.
    * @return A `Total` instance containing the converted `Literal` expressions.
    */
-  def create(xs: Field*): Expression = apply(xs map Literal.apply: _*)
+  def create(xs: Field*): Expression = apply(xs map (x => Literal(x, None)): _*)
 }
 
 /**
@@ -937,7 +930,7 @@ class ExpressionFunction(val f: Number => Number, val name: String) extends (Fie
    *
    * @return a String.
    */
-  override def toString: String = s"$name"
+  override def toString: String = name
 }
 
 /**
@@ -978,7 +971,7 @@ class ExpressionBiFunction(val f: (Field, Field) => Field, val name: String, val
    *
    * @return a String.
    */
-  override def toString: String = s"$name"
+  override def toString: String = name
 }
 
 /**

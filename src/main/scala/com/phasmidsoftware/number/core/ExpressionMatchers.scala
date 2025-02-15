@@ -342,7 +342,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return an ExpressionMatcher[Field].
    */
   def value: ExpressionMatcher[Field] = {
-    case Literal(x) => Match(x)
+    case Literal(x, _) => Match(x)
     case x@Number(_, _) => Match(Real(x))
     case x: Constant => Match(x.materialize)
     case x => Miss("value", x)
@@ -454,7 +454,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case ReducedQuadraticRoot(p, 0, _) => Match(x * -p)
     case ReducedQuadraticRoot(-1, q, _) => Match(x plus -q)
     case ReducedQuadraticRoot(p, q, _) => Match((x * -p) plus -q)
-    case Literal(z) if z.isExact => Match(Literal(z * z))
+    case Literal(z, _) if z.isExact => Match(Literal(z * z))
     // NOTE x is being squared so if it is itself a square root, then the powers cancel.
     case BiFunction(z, y, Power) if y.materialize == Constants.half => Match(z)
     case _ => Miss("matchSimplifySquare: can't be simplified", x)
