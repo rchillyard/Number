@@ -130,14 +130,9 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     implicit val intToString: Int => String = _.toString
 
     // Convert Right(R) into Left(L) using implicit conversion
-    val input1: Either[String, Int] = Right(42)
-    val result1: Either[String, Int] = transpose(input1)
-    result1 shouldBe Left("42")
-
+    transpose(Right(42))(intToString) shouldBe Left("42")
     // Keep Left(L) unchanged
-    val input2: Either[String, Int] = Left("Error")
-    val result2: Either[String, Int] = transpose(input2)
-    result2 shouldBe Left("Error")
+    transpose(Left("Error"))(intToString) shouldBe Left("Error")
   }
 
   behavior of "toTry"
