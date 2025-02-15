@@ -165,6 +165,13 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     }
 
   /**
+   * Render this FuzzyNumber as a String representation.
+   *
+   * @return a String representation of this FuzzyNumber.
+   */
+  override def render: String = toString
+
+  /**
    * Render this FuzzyNumber in String form, including the factor, and the fuzz.
    *
    * TODO fuzzy zero (use createFuzzy(0)) renders as "0*" which I think is incorrect.
