@@ -5,7 +5,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
-import com.phasmidsoftware.number.core.Constants.{minusOne, two}
 import com.phasmidsoftware.number.matchers._
 
 import scala.annotation.tailrec
@@ -441,7 +440,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-   * Attempts to simplify the given expression when it is in the form of a square
+   * Attempts to simplify the given expression that is being squared it is a square root,
    * or a quadratic-like structure. Matches specific patterns in the expression
    * to reduce or transform it into a simplified form.
    * TESTME (partial)
@@ -455,9 +454,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case ReducedQuadraticRoot(p, 0, _) => Match(x * -p)
     case ReducedQuadraticRoot(-1, q, _) => Match(x plus -q)
     case ReducedQuadraticRoot(p, q, _) => Match((x * -p) plus -q)
-    // TODO discover why the following doesn't work (or at least, doesn't pass the unit tests)
-    //    case Literal(z) => Match(Literal(z * z))
-    case BiFunction(x, Literal(y), Power) if (y * two).add(minusOne).isZero => Match(x)
+    case Literal(z) if z.isExact => Match(Literal(z * z))
+    // NOTE x is being squared so if it is itself a square root, then the powers cancel.
+    case BiFunction(z, y, Power) if y.materialize == Constants.half => Match(z)
     case _ => Miss("matchSimplifySquare: can't be simplified", x)
   }
 

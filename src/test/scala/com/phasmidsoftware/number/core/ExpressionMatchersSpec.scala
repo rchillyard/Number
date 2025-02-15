@@ -288,7 +288,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   it should "simplify total 3b" in {
     val target: Expression = CompositeExpression(Literal(root2), -Literal(root2))
-    val result: em.MatchResult[Field] = em.simplifier(target) map (_.materialize)
+    val simplifiedTarget = em.simplifier(target)
+    val result: em.MatchResult[Field] = simplifiedTarget map (_.materialize)
     result match {
       case em.Match(x: Field) =>
         val value = convertToNumber(x)
@@ -413,6 +414,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ Two ~ One) shouldBe em.Match(Two)
     p(Power ~ One ~ Two) shouldBe em.Match(One)
     p(Power ~ Two ~ Two) should matchPattern { case em.Miss(_, _) => }
+    p(Power ~ Literal(root2) ~ Two) shouldBe em.Match(Two)
   }
   it should "cancel multiplication and division" in {
     val p = em.matchDyadicTrivial
