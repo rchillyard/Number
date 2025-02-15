@@ -100,12 +100,23 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     sequence(List(failure)) should matchPattern { case Failure(_) => }
   }
 
-  it should "fail1" in {
-    // TESTME fail
+  it should "fail1: return a Failure with NumberException when given a String" in {
+    val s = "Test Error"
+    val failureFunction = FP.fail[String, Double](s) // Specify the types explicitly X is String, Z is Double
+    val result: Try[Double] = failureFunction("anyString") // Passing a String, but ignored
+
+    result shouldBe a[Failure[_]]
+    result.failed.get shouldBe a[NumberException]
+    result.failed.get.getMessage shouldBe s
   }
 
-  it should "fail2" in {
-    // TESTME fail
+  it should "fail2: return a Failure with the given Throwable" in {
+    val e = NumberException("Test Error")
+    val result: Try[Int] = FP.fail[String, Int](e)("anything")
+
+    result shouldBe a[Failure[_]]
+    result.failed.get shouldBe e
+    result.failed.get.getMessage shouldBe "Test Error"
   }
 
   it should "getOrThrow" in {
