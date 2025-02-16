@@ -210,7 +210,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
     */
-  def doInvert: Number = Number.inverse(convertToNumber(normalize))
+  def getInverse: Number = Number.inverse(convertToNumber(normalize))
 
   /**
     * Raise this Number to the power p.
@@ -294,7 +294,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
     */
-  def invert: Field = Real(doInvert)
+  def invert: Field = Real(getInverse)
 
   /**
     * Yields the square root of this Number.
@@ -579,7 +579,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @param p the confidence desired. Ignored if isZero is true.
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  def isProbablyZero(p: Double): Boolean
+  def isProbablyZero(p: Double = 0.5): Boolean
 }
 
 object Number {
@@ -1160,7 +1160,7 @@ object Number {
     * Following are the definitions required by Fractional[Number]
     */
   trait NumberIsFractional extends Fractional[Number] with NumberIsNumeric {
-    def div(x: Number, y: Number): Number = GeneralNumber.times(x, y doInvert)
+    def div(x: Number, y: Number): Number = GeneralNumber.times(x, y getInverse)
   }
 
   implicit object NumberIsFractional extends NumberIsFractional with NumberIsNumeric with NumberIsOrdering

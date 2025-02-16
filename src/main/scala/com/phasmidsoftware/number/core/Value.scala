@@ -295,7 +295,7 @@ sealed trait Root extends Factor {
   def convert(v: Value, f: Factor): Option[Value] = f match {
     case Root(z) =>
       val vo = doComposeValueDyadic(v, Number(z).specialize.value)(DyadicOperationPower.functions)
-      vo flatMap (doComposeValueDyadic(_, Number(value).specialize.doInvert.value)(DyadicOperationPower.functions))
+      vo flatMap (doComposeValueDyadic(_, Number(value).specialize.getInverse.value)(DyadicOperationPower.functions))
     case _ => None
   }
 }

@@ -38,7 +38,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   val psi: Expression = Psi //(Expression(Constants.one) - Constants.root5) / Constants.two
   val phi: Expression = Phi // (Expression(Constants.one) plus Constants.root5) / Constants.two
 
-  ignore should "fib0" in {
+  it should "fib0" in {
     val phi0: Expression = phi ^ 0
     val psi0: Expression = psi ^ 0
     val top: Expression = phi0 - psi0

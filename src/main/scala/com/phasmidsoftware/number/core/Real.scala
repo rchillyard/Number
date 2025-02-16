@@ -244,22 +244,72 @@ case class Real(x: Number) extends Field {
 
   override def toString: String = x.toString
 
+  /**
+   * Converts the value of this Real to a Double.
+   * If the conversion is unsuccessful, it throws a NumberException.
+   *
+   * @return the Double representation of this Real.
+   */
   def toDouble: Double = recover(x.toDouble, NumberException("Real.toDouble: logic error: x"))
 }
 
+/**
+ * The `Real` object provides a representation and associated operations for real numbers.
+ * It offers methods to create `Real` instances from various types (String, Int, Double, Rational),
+ * and provides several utilities, implicit conversions, and typeclass instances for operations and comparisons.
+ */
 object Real {
+  /**
+   * Constructs a new Real from the given string representation of a number.
+   *
+   * @param w the string to be parsed and converted into a Real.
+   * @return a new Real instance representing the parsed number.
+   */
   def apply(w: String): Real = Real(Number(w))
 
+  /**
+   * Constructs a `Real` object from an integer value.
+   *
+   * @param x the integer value to be converted to a `Real`.
+   * @return a `Real` instance representing the supplied integer.
+   */
   def apply(x: Int): Real = Real(Number(x))
 
+  /**
+   * Converts a double value into a Real object.
+   *
+   * @param d the double value to be converted
+   * @return a Real object representing the provided double value
+   */
   def apply(d: Double): Real = Real(Number(d))
 
+  /**
+   * Converts a given Rational number into a Real number.
+   *
+   * @param r the Rational number to be converted.
+   * @return the corresponding Real number representation of the input Rational.
+   */
   def apply(r: Rational): Real = Real(Number(r))
 
+  /**
+   * Creates a Real instance from a given Field if it can be represented as a real number.
+   *
+   * If the input Field is already a Real, it is returned as-is. If the input is a BaseComplex
+   * instance and is identified as real (i.e., has no imaginary component), the corresponding
+   * Real value is extracted. If the input cannot be represented as a Real, an exception is thrown.
+   *
+   * @param x the input Field to be converted to a Real.
+   * @return a Real instance representing the input Field.
+   * @throws NumberException if the input Field is not real or cannot be converted to a Real.
+   */
   def createFromRealField(x: Field): Real = x match {
     case r: Real => r
-    case c: BaseComplex => Real(c.asNumber.get) // TODO can we improve on this?
-    case _ => throw NumberException(s"Real.createFromRealField: x is not a Real: $x")
+    case c: BaseComplex if c.isReal =>
+      c.asNumber match {
+        case Some(value) => Real(value)
+        case None => throw NumberException(s"Real.createFromRealField: x cannot be represented as a Real: $x")
+      }
+    case _ => throw NumberException(s"Real.createFromRealField: x is not real: $x")
   }
 
   /**

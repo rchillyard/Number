@@ -118,7 +118,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
    *
    * @return true if this Number is equivalent to zero with at least 50% confidence.
    */
-  def isZero: Boolean = isProbablyZero(0.5)
+  def isZero: Boolean = isProbablyZero()
 
   /**
    * Method to determine the sense of this number: negative, zero, or positive.
@@ -143,7 +143,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
    * @param p the confidence desired. Ignored if isZero is true.
    * @return true if this Number is equivalent to zero with at least p confidence.
    */
-  def isProbablyZero(p: Double): Boolean = GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
+  def isProbablyZero(p: Double = 0.5): Boolean = GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
 
   /**
    * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.

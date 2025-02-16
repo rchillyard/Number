@@ -451,7 +451,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
   /**
     * NOTE: this representation of pi converges very slowly which is why we normally ignore it.
     */
-  it should "define ContinuedFraction.FourOverPiLeibniz" taggedAs (Slow) in {
+  it should "define ContinuedFraction.FourOverPiLeibniz" taggedAs Slow in {
     val z: ContinuedFraction = ContinuedFraction.FourOverPiLeibniz
     val q: Rational = z.toRational(1000).invert
     q.toDouble shouldBe math.Pi / 4 +- 2.5E-4

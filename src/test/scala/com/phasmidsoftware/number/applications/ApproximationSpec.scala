@@ -28,7 +28,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val result = Approximation.solve(0.99,
       newtonsPolynomial,
       newtonsDerivative
-    )(Number.ten.doInvert)
+    )(Number.ten.getInverse)
     result.isSuccess shouldBe true
     result.get should ===(Number(0.0945514815423266))
   }
@@ -60,7 +60,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
       newtonsPolynomial,
       newtonsDerivative,
       newtonsSecondDerivative,
-    )(Number.ten.doInvert)
+    )(Number.ten.getInverse)
     result.isSuccess shouldBe true
     val expected = Number.parse("0.0945514815423266*").get
     result.get should ===(expected)

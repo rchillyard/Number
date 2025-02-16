@@ -162,9 +162,9 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * It is used particularly when comparing two Numbers to see if they are the same.
     *
     * @param p the confidence desired. Ignored.
-    * @return true if this Number is zero.
+   * @return true if this Number is actually zero.
     */
-  def isProbablyZero(p: Double): Boolean = isZero
+  def isProbablyZero(p: Double = 0.5): Boolean = isZero
 
   /**
    * Render this ExactNumber as a String representation.

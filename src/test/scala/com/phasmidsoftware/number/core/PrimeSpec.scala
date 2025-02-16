@@ -219,7 +219,7 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
   }
 
   // CONSIDER removing parentheses (but I think CircleCI requires them).
-  it should "check for Mersenne primes" taggedAs (Slow) in {
+  it should "check for Mersenne primes" taggedAs Slow in {
     createMersennePrime(0).isDefined shouldBe true
     createMersennePrime(1).isDefined shouldBe true
     createMersennePrime(2).isDefined shouldBe true

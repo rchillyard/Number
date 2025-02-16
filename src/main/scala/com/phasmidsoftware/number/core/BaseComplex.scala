@@ -39,7 +39,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       val difference = this + -y
       if (difference.isZero) 0
       else difference match {
-        case c: Complex if c.modulus.isProbablyZero(0.5) => 0
+        case c: Complex if c.modulus.isProbablyZero() => 0
         case c: Complex => c.modulus.compareTo(Number.zero) // TESTME is this right?
         case _ => throw ComplexException(s"not implemented")
       }
@@ -188,9 +188,10 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
    */
   def asNumber: Option[Number] =
     this match {
-      case ComplexCartesian(x, y) if y == Number.zero => Some(x)
-      case ComplexCartesian(x, y) if x == Number.zero => Some((y doMultiply y).makeNegative.make(Root2))
-      case ComplexPolar(r, theta, _) if theta == Number.zero => Some(r)
+      case ComplexCartesian(x, y) if y.isProbablyZero() => Some(x)
+      case ComplexCartesian(x, y) if x.isProbablyZero() => Some((y doMultiply y).makeNegative.make(Root2))
+      case ComplexPolar(r, theta, _) if theta.isProbablyZero() => Some(r)
+      // CONSIDER allowing approximately pi
       case ComplexPolar(r, theta, _) if theta == Number.pi => Some(r.makeNegative)
       case p@ComplexPolar(_, theta, _) if (theta doMultiply 2).abs == Number.pi => convertToCartesian(p).asNumber
       case _ => None
@@ -359,7 +360,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
    *
    * @return true if the magnitude of this Field is zero.
    */
-  def isZero: Boolean = x.isProbablyZero(0.5) && y.isProbablyZero(0.5)
+  def isZero: Boolean = x.isProbablyZero() && y.isProbablyZero()
 
   /**
    * Determines if either the real or imaginary part of this Complex number is infinite.
@@ -407,7 +408,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
    *
    * @return the result of invoking power(-1).
    */
-  def invert: Complex = conjugate.asInstanceOf[ComplexCartesian] scale modulusSquared.doInvert
+  def invert: Complex = conjugate.asInstanceOf[ComplexCartesian] scale modulusSquared.getInverse
 
   def modulusSquared: Number = imag.doPower(two) doAdd real.doPower(two)
 
@@ -549,7 +550,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
    *
    * @return the result of invoking power(-1).
    */
-  def invert: Field = ComplexPolar(real.doInvert, imag.makeNegative)
+  def invert: Field = ComplexPolar(real.getInverse, imag.makeNegative)
 
   /**
    * Change the sign of this Number.

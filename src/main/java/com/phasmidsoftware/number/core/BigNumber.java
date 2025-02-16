@@ -671,7 +671,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         final StringBuilder result = new StringBuilder(sign ? "" : "-");
         result.append(whole);
         final String dec = decimalsToString();
-        if (dec.length() > 0) result.append('.');
+        if (!dec.isEmpty()) result.append('.');
         result.append(dec);
         return result.toString();
     }

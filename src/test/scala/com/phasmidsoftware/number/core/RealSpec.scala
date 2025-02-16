@@ -246,7 +246,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for Pi/6" in {
     val target = Number.pi doDivide 6
-    target.tan should ===(Number(3).sqrt.doInvert)
+    target.tan should ===(Number(3).sqrt.getInverse)
   }
 
   behavior of "atan"
