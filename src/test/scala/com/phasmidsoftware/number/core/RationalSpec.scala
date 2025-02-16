@@ -137,39 +137,39 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.zero shouldBe r
   }
   it should "convert negative zero" in {
-    val r = Rational(-0.0)
+    val r = Rational.createExact(-0.0)
     Rational.negZero shouldBe r
   }
   it should "convert Avagadro's number" in {
     val target = Rational("6.02214076E23")
-    target shouldBe Rational(6.02214076E23) +- 1E9
+    target shouldBe Rational.createExact(6.02214076E23) +- 1E9
   }
   it should "convert a very small number" in {
-    val verySmall = Rational(-4.076956044934884E-134)
-    Rational(-4.076956044934884E-134) shouldBe verySmall
+    val verySmall = Rational.createExact(-4.076956044934884E-134)
+    Rational.createExact(-4.076956044934884E-134) shouldBe verySmall
   }
   it should "be zero for very very small number" in {
     val x = 1.111314801067662E-299
     val epsilon: Double = 1E-305
-    val r = Rational(x)
+    val r = Rational.createExact(x)
     r.toDouble shouldBe x +- epsilon
   }
   it should "be zero for very very very small number" in {
     val x = Double.MinPositiveValue
     val epsilon: Double = 1E-305
-    val r = Rational(x)
+    val r = Rational.createExact(x)
     r.toDouble shouldBe x +- epsilon
   }
   it should "convert 3.1416 correctly" in {
-    val target = Rational(3.1416)
+    val target = Rational.createExact(3.1416)
     target shouldBe Rational(3927, 1250)
   }
   it should "convert 3.1416 the same as \"3.1416\"" in {
-    val target = Rational(3.1416)
+    val target = Rational.createExact(3.1416)
     target shouldBe Rational("3.1416") +- 1E-10
   }
   it should "pick up a float" in {
-    val target = Rational(1.5f)
+    val target = Rational.createExact(1.5f)
     target shouldBe Rational(3, 2)
   }
 
@@ -198,7 +198,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "isDecimal"
   it should "be true for 3.14" in {
-    Rational(3.14).isDecimal shouldBe true
+    Rational.createExact(3.14).isDecimal shouldBe true
   }
   // FIXME Issue #85
   ignore should "be false for 223606797749979/200000000000000" in {
@@ -532,7 +532,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     hundred shouldBe Rational(100)
   }
   it should "work for Avagadro" in {
-    val r = Rational(6.02214076)
+    val r = Rational.createExact(6.02214076)
     val avagadro = r.applyExponent(23)
     avagadro shouldBe Rational("6.02214076E23")
   }
@@ -1092,7 +1092,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     implicitly[Numeric[Rational]].toLong(Rational(299792458000L)) shouldBe 299792458000L
   }
   it should "convert to a Float" in {
-    implicitly[Numeric[Rational]].toFloat(Rational(3.1415927)) shouldBe 3.1415927f
+    implicitly[Numeric[Rational]].toFloat(Rational.createExact(3.1415927)) shouldBe 3.1415927f
   }
   it should "convert infinity to a Double" in {
     implicitly[Numeric[Rational]].toDouble(Rational.infinity) shouldBe Double.PositiveInfinity

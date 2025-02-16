@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
+
 import scala.annotation.tailrec
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
@@ -196,7 +197,7 @@ case object MonadicOperationSin extends MonadicOperation {
     }
 
   private val sinRatInexact: Rational => Try[Rational] = x =>
-    if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational(_))
+    if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational.createExact)
     else Failure(NumberException("MonadicOperationSin: logic error: whole Rational"))
 
   private def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))

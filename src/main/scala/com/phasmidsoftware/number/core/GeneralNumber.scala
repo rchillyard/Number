@@ -451,7 +451,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
       // Otherwise, we will give it appropriate fuzziness.
       // In general, if you wish to have more control over this, then define your input using a String.
       // CONSIDER will this handle numbers correctly which are not close to 1?
-      val r = Rational(x)
+      val r = Rational.createExact(x)
       r.toBigDecimal.map(_.scale) match {
         case Some(0) | Some(1) | Some(2) => make(r).specialize
         // CONSIDER in following line adding fuzz only if this Number is exact.

@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
+
 import scala.util.control.NonFatal
 
 /**
@@ -40,8 +41,8 @@ class RationalPropertySpec extends Properties("Rational") {
     import org.scalactic.Tolerance._
     import org.scalactic.TripleEquals._
     // CONSIDER check this is OK. Might need to be Rational(BigDecimal.valueOf(x))
-    val r = Rational(x)
-    val s = Rational(1.0 / x)
+    val r = Rational.createExact(x)
+    val s = Rational.createExact(1.0 / x)
     (r * s).toDouble === 1.0 +- 1E-6
   }
 
