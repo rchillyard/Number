@@ -403,25 +403,31 @@ object Prime {
    *
    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
    *
-   * @return a Seq[Prime].
+   * @param x        a BigInt whose prime factors are to be determined.
+   * @param maybeMax an optional maximum number of prime factors to consider. Defaults to None.
+   * @return a sequence of Prime objects representing the prime factors of the input BigInt.
    */
-  def primeFactors(x: BigInt): Seq[Prime] = {
+  def primeFactors(x: BigInt, maybeMax: Option[Int] = None): Seq[Prime] =
     for {
-      (k, v) <- primeFactorMultiplicity(x).toSeq
+      (k, v) <- primeFactorMultiplicity(x, maybeMax).toSeq
       z <- Prime.fill(v)(k)
     } yield z
-  }
 
   /**
-   * Method to yield a Map of prime factors.
+   * Computes the prime factorization of the given number `x` and returns a map of prime factors with their respective
+   * multiplicities (exponents). The computation can optionally be limited to a maximum number of primes through `maybeMax`.
    *
    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
    *
-   * @return a Map of Prime -=> Int where the Int represents the number of times the factor is multiplied.
+   * @param x        the number to factorize.
+   * @param maybeMax an optional parameter specifying the maximum number of primes to consider during factorization.
+   *                 If not provided, all primes are considered.
+   * @return a map where each key is a prime factor of `x` and the corresponding value is its exponent in the prime factorization.
    */
-  def primeFactorMultiplicity(x: BigInt): Map[Prime, Int] = {
+  def primeFactorMultiplicity(x: BigInt, maybeMax: Option[Int] = None): Map[Prime, Int] = {
     /**
      * Determine how many times p divides into n.
+     * CONSIDER rename x
      *
      * @param p a prime which may be a divisor of n.
      * @param x a (presumptive) composite number.
@@ -454,10 +460,15 @@ object Prime {
       case (m, h #:: t) =>
         val (count, dividend) = factorCount(h, m)
         factorsR(result + (h -> count), dividend, t)
-      case _ => throw new Exception("factorsR: logic error")
+      //  NOTE the following case originally threw an exception here: throw new Exception(s"factorsR: logic error: $m, $xs")
+      case _ => result
     }
 
-    factorsR(Map(), x, allPrimes.filter(p => p.toBigInt |> x))
+    val candidates = maybeMax match {
+      case Some(m) => allPrimes.take(m)
+      case None => allPrimes
+    }
+    factorsR(Map(), x, candidates.filter(p => p.toBigInt |> x))
   }
 
   /**

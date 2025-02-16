@@ -73,7 +73,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   it should "have avagadro" in {
     val target = Constants.avagadro
     target.isExact shouldBe true
-    target shouldBe Real(6.0221407600E23)
+    target should ===(Real(6.0221407600E23))
     target.render shouldBe "602214076000000000000000"
   }
   it should "have boltzmann" in {

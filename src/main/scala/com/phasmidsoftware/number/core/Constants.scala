@@ -59,7 +59,7 @@ object Constants {
   /**
     * [[https://en.wikipedia.org/wiki/Avogadro_constant]] (exact)
     */
-  lazy val avagadro: Real = Real(6.0221407600E23)
+  lazy val avagadro: Real = Real("6.0221407600E23")
 
   /**
     * [[https://en.wikipedia.org/wiki/Boltzmann_constant]] (exact).

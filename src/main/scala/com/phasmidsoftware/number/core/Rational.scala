@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.toTryWithRationalException
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
-import com.phasmidsoftware.number.core.Rational.{NaN, bigFive, bigNegOne, bigOne, bigTwo, bigZero, half, minus, one, rootOfBigInt, times}
+import com.phasmidsoftware.number.core.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times}
 import com.phasmidsoftware.number.misc.ContinuedFraction
 import com.phasmidsoftware.number.parse.RationalParser
 
@@ -127,14 +127,16 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    * It's inappropriate to look for prime factors of very large numbers just to determine
    * if we can represent this Rational as a decimal.
    *
+   * Originally, the code here was as follows:
+   * denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
+   *
    * @return true if the prime factors only include 2 and/or 5.
    */
-  def isDecimal: Boolean = isZero ||
-    //    isWhole || {
-    //    import com.phasmidsoftware.number.core.Divides.IntDivides
-    //    10 |> d
-    //  }
-    denominatorPrimeFactors.map(_.toBigInt).sorted.distinct.filterNot(x => x == bigTwo).forall(x => x == bigFive)
+  def isDecimal: Boolean =
+    isWhole || {
+      import com.phasmidsoftware.number.core.Divides.IntDivides
+      (2 |> d) || (5 |> d)
+    }
 
   /**
    * Returns an optional integer representation of this `Rational`.
@@ -381,10 +383,14 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     case _ if isInfinity => (if (n > 0) "+ve" else "-ve") + " infinity"
     case _ if isWhole => toBigInt.toString
     case _ if isExactDouble => toDouble.toString
-    case _ =>
-      toBigDecimal match {
-        case Some(x) => x.toString
-        case None => findRepeatingSequence getOrElse asString
+    case _ => findRepeatingSequence match {
+      case Success(w) => w
+      case _ => toBigDecimal match {
+        case Some(x) =>
+          x.toString
+        case None =>
+          asString
+      }
       }
   }
 
@@ -432,7 +438,7 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *
    * @return a Try containing the repeating sequence as a String if successful, or a Failure if an error occurs
    */
-  def findRepeatingSequence: Try[String] = Rational.findRepeatingSequence(n, d, denominatorPrimeFactors)
+  def findRepeatingSequence: Try[String] = Rational.findRepeatingSequence(n, d, denominatorPrimeFactors(MAX_PRIME_FACTORS))
 
   /**
    * Computes the prime factors of the denominator of a given value `d`.
@@ -442,7 +448,7 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *
    * @return A sequence of prime factors of the denominator.
    */
-  private def denominatorPrimeFactors = Prime.primeFactors(d)
+  private def denominatorPrimeFactors(max: Int) = Prime.primeFactors(d, Some(max * 3)).take(max)
 
   /**
    * Converts the current value to its string representation.
@@ -706,6 +712,14 @@ object Rational {
       |8076932599397805419341447377441842631298608099888687413260472""".stripMargin.replaceAll("""\n""", "")
 
   /**
+   * Implicit converter from Double to Rational.
+   *
+   * @param x the value.
+   * @return a Rational equal to or approximately equal to x.
+   */
+  implicit def convertDouble(x: Double): Rational = createExact(x).get // NOTE using get
+
+  /**
    * Method to construct a Rational from two BigInt values.
    * NOTE: the this method ensures that the numerator and denominator are normalized.
    *
@@ -759,24 +773,24 @@ object Rational {
   def apply(n: Int): Rational = apply(BigInt(n))
 
   /**
-   * Method to construct a Rational based on a Double.
-   * Since expressing a Double with a literal requires a decimal representation,
-   * our first option is to convert the Double to a BigDecimal and use that.
-   * If that fails for some reason, we try instead to use approximateAny.
+   * Creates an exact `Rational` representation of the given `Double` value if possible.
    *
-   * The tolerance (epsilon) for approximateAny is determined by the implicit value defined in Tolerance.
-   * NOTE: if you want to specify the epsilon yourself, then invoke approximateAny directly.
-   *
-   * @param x the Double value.
-   * @return a Rational which closely approximates x.
+   * @param x the `Double` value to be converted to an exact `Rational`
+   * @return a `Try` containing the exact `Rational` if the conversion is possible and exact,
+   *         or a `Failure` containing an `ArithmeticException` if the conversion is not possible
+   *         or loses precision
    */
   def createExact(x: Double): Try[Rational] =
     if (x.compare(negZeroDouble) == 0)
       Success(negZero)
     else {
       val bigDecimal = BigDecimal.valueOf(x)
-      //      val b: Boolean = bigDecimal.isDecimalDouble
-      Try(apply(bigDecimal))
+      if (bigDecimal.isDecimalDouble) Try {
+        val r = Rational(bigDecimal)
+        if (r.toDouble == x) r
+        else throw new ArithmeticException(s"Rational.createExact: $x is not exact")
+      }
+      else Failure(new ArithmeticException(s"Cannot create exact Rational from Double: $x"))
     }
 
   /**
@@ -837,13 +851,7 @@ object Rational {
    */
   implicit object RationalFractional extends RationalIsFractional
 
-  /**
-   * Implicit converter from Double to Rational.
-   *
-   * @param x the value.
-   * @return a Rational equal to or approximately equal to x.
-   */
-  implicit def convertDouble(x: Double): Rational = Rational.createExact(x).get // NOTE using get
+  val MAX_PRIME_FACTORS = 7
 
   /**
    * Implicit converter from Long to Rational.
@@ -1042,7 +1050,7 @@ object Rational {
 
     (n.isValidInt, d.isValidInt) match {
       case (true, true) =>
-        getPeriods(d, primeFactors) match {
+        getPeriods(d, primeFactors, MAX_PRIME_FACTORS) match {
           case Success(ps) =>
             createRecurrenceString(ps)
           case Failure(x) =>
@@ -1079,19 +1087,19 @@ object Rational {
     }
   }
 
-  private def getPeriods(d: BigInt, primeFactors: Seq[Prime]): Try[Seq[Int]] = {
+  private def getPeriods(d: BigInt, primeFactors: Seq[Prime], max: Int): Try[Seq[Int]] = {
 
     def getCandidatePatternLengths(h: Int, t: List[Int]) = {
       val z: BigInt = t.foldLeft(BigInt(h))((b, y) => b * y)
-      val ps = Prime.primeFactors(z).map(_.toIntOption)
-      FP.sequence(ps) match {
+      val pos = Prime.primeFactors(z, Some(max * max)).map(_.toIntOption)
+      FP.sequence(pos) match {
         case Some(Nil) if z == BigInt(1) => Success(Seq(1))
         case Some(h :: t) =>
           expandProducts(1 :: h :: t) match {
             case Success(products) => Success(products.sorted.distinct)
             case x => x
           }
-        case _ => Failure(RationalException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $ps"))
+        case _ => Failure(RationalException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $pos"))
       }
     }
 

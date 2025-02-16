@@ -243,7 +243,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "convertToPolar" in {
-    val expected: Complex = ComplexPolar(√(5), Number(0.35241638235, Radian))
+    val expected: Complex = ComplexPolar(√(5), Number(0.35241638234956674, Radian))
     val actual: ComplexPolar = convertToPolar(c1_2).asInstanceOf[ComplexPolar]
     convertToCartesian(actual).compare(c1_2) shouldBe 0
     actual.compare(c1_2) shouldBe 0
