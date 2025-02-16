@@ -47,7 +47,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     fib0.materialize shouldBe Constants.zero
   }
 
-  ignore should "fib1" in {
+  it should "fib1" in {
     val diff: Expression = phi - psi
     println(diff)
     diff shouldBe BiFunction(phi, -psi, Sum)
@@ -55,7 +55,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     fib1.materialize shouldBe Constants.one
   }
 
-  ignore should "fib2" in {
+  it should "fib2" in {
     val phi2: Expression = phi ^ 2
     val psi2: Expression = psi ^ 2
     val top: Expression = phi2 - psi2
@@ -83,20 +83,20 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     //    fib2M shouldBe Constants.one
   }
 
-  ignore should "psiFuzzy" in {
+  it should "psiFuzzy" in {
     val expected: Field = (one - root5) / two
     val actual: Field = Fibonacci.psi.materialize
     actual should ===(expected)
   }
 
-  ignore should "fibFuzzy" in {
+  it should "fibFuzzy" in {
     Fibonacci.fibExpression(0).materialize should ===(core.Constants.zero)
     Fibonacci.fibExpression(1).materialize should ===(core.Constants.one)
     Fibonacci.fibExpression(2).materialize should ===(core.Constants.one)
     Fibonacci.fibExpression(3).materialize should ===(core.Constants.two)
   }
 
-  ignore should "fib" in {
+  it should "fib" in {
     Fibonacci.fib(0) shouldBe BigInt(0)
     // TODO reinsert the following
     //        Fibonacci.fib(1) shouldBe BigInt(1)
@@ -105,5 +105,4 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     //        Fibonacci.fib(4) shouldBe BigInt(3)
     //        Fibonacci.fib(5) shouldBe BigInt(5)
   }
-
 }
