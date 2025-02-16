@@ -55,7 +55,7 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     np should matchPattern { case p.Success(_, _) => }
     val n: p.NumberWithFuzziness = np.get
     n should matchPattern { case p.NumberWithFuzziness(p.RealNumber(false, "3", Some("1415927"), None), None, Some("1")) => }
-    n.value.get shouldBe Rational.createExact(31.415927)
+    n.value.get shouldBe Rational.createExact(31.415927).get
     n.fuzz should matchPattern { case Some(AbsoluteFuzz(_, Box)) => }
   }
   it should "reject 3.1415927* E1" in {
@@ -121,7 +121,7 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     r should matchPattern { case p.Success(_, _) => }
     val ry: Try[Rational] = r.get.value
     ry should matchPattern { case scala.util.Success(_) => }
-    ry.get shouldBe Rational.createExact(31.415927)
+    ry.get shouldBe Rational.createExact(31.415927).get
   }
   it should "parse 1/2" in {
     val r = p.parseAll(p.generalNumber, "1/2")

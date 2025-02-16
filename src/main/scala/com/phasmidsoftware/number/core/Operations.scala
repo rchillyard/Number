@@ -197,7 +197,7 @@ case object MonadicOperationSin extends MonadicOperation {
     }
 
   private val sinRatInexact: Rational => Try[Rational] = x =>
-    if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational.createExact)
+    if (!x.invert.isWhole) sinDouble(x.toDouble).flatMap(Rational.createExact)
     else Failure(NumberException("MonadicOperationSin: logic error: whole Rational"))
 
   private def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))

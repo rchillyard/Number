@@ -770,13 +770,13 @@ object Rational {
    * @param x the Double value.
    * @return a Rational which closely approximates x.
    */
-  def createExact(x: Double): Rational =
+  def createExact(x: Double): Try[Rational] =
     if (x.compare(negZeroDouble) == 0)
-      negZero
+      Success(negZero)
     else {
       val bigDecimal = BigDecimal.valueOf(x)
-      val b: Boolean = bigDecimal.isDecimalDouble
-      Try(apply(bigDecimal)).getOrElse(approximateAny(x))
+      //      val b: Boolean = bigDecimal.isDecimalDouble
+      Try(apply(bigDecimal))
     }
 
   /**
@@ -843,7 +843,7 @@ object Rational {
    * @param x the value.
    * @return a Rational equal to or approximately equal to x.
    */
-  implicit def convertDouble(x: Double): Rational = Rational.createExact(x)
+  implicit def convertDouble(x: Double): Rational = Rational.createExact(x).get // NOTE using get
 
   /**
    * Implicit converter from Long to Rational.

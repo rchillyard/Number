@@ -451,12 +451,15 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
       // Otherwise, we will give it appropriate fuzziness.
       // In general, if you wish to have more control over this, then define your input using a String.
       // CONSIDER will this handle numbers correctly which are not close to 1?
-      val r = Rational.createExact(x)
-      r.toBigDecimal.map(_.scale) match {
-        case Some(0) | Some(1) | Some(2) => make(r).specialize
-        // CONSIDER in following line adding fuzz only if this Number is exact.
-        case Some(n) => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -n), Box))
-        case _ => FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+      Rational.createExact(x) match {
+        case Success(r) =>
+          r.toBigDecimal.map(_.scale) match {
+            case Some(0) | Some(1) | Some(2) => make(r).specialize
+            // CONSIDER in following line adding fuzz only if this Number is exact.
+            case Some(n) => FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -n), Box))
+            case _ => FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+          }
+        case Failure(_) => FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
       }
     // XXX Invalid case
     case _ => this

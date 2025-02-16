@@ -49,7 +49,7 @@ class RationalParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     r should matchPattern { case parser.Success(_, _) => }
     val ry: Try[Rational] = r.get.value
     ry should matchPattern { case scala.util.Success(_) => }
-    ry.get shouldBe Rational.createExact(31.415927)
+    ry.get shouldBe Rational.createExact(31.415927).get
   }
   behavior of "number"
   it should "parse 1/2" in {

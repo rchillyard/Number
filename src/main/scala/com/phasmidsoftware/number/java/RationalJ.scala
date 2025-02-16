@@ -65,7 +65,7 @@ object RationalJ {
     * @param x a java.lang.Double.
     * @return a Rational.
     */
-  def doubleToRational(x: java.lang.Double): Rational = Rational.createExact(x)
+  def doubleToRational(x: java.lang.Double): Rational = Rational.createExact(x).get // NOTE using get
 
   /**
     * Method to convert a Rational to a Java Double.
