@@ -768,7 +768,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     import Rational.RationalOps
     r.get shouldBe Literal(Number(1 :/ 2))
   }
-  ignore should "fail to simplify 2 ^ 1/2" in {
+  it should "fail to simplify 2 ^ 1/2" in {
     val r: em.MatchResult[Expression] = em.biFunctionMatcher(Power ~ Two ~ Literal(Rational.half))
     r.successful shouldBe true
   }

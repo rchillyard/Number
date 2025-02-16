@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.mill.Mill
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
@@ -87,7 +88,7 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     value map (_.evaluate shouldBe 0.5)
   }
 
-  ignore should "parse Infix and evaluate: sqrt(3)" in {
+  it should "parse Infix and evaluate: sqrt(3)" in {
     val value: Option[Mill] = p.parseInfix("3 ^ ( 2 ^ -1 )").toOption
     value should matchPattern { case Some(_) => }
     val z: Option[Expression] = value flatMap (_.evaluate)

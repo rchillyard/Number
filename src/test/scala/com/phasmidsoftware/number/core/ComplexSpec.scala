@@ -154,7 +154,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
-  ignore should "c1_2^1/2" in {
+  it should "c1_2^1/2" in {
     val result: Field = c1_2 power half
     // result should be 1.27201965 + i0.786151378
     result should matchPattern { case ComplexPolar(_, _, _) => }
@@ -163,7 +163,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     }
     (result * result).compare(c1_2) shouldBe 0
   }
-  ignore should "c2_0^1/2" in {
+  it should "c2_0^1/2" in {
     val result: Field = c2_0 power half
     result should matchPattern { case ComplexPolar(_, _, 2) => }
     (result * result).compare(c2_0) shouldBe 0
@@ -195,7 +195,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_1 power half shouldBe ComplexPolar(Number.one, Number.piBy2, 2)
   }
 
-  ignore should "c2_0^1/3" in {
+  it should "c2_0^1/3" in {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
     cubeRootOfTwo shouldBe ComplexPolar(Number(2, Root3), Number.zeroR, 3)
   }
@@ -306,11 +306,11 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "work for zero" in {
     p1_pi.add(Constants.one).render shouldBe "0"
   }
-  ignore should "work for root 2 in c2_0^1/2" in {
+  it should "work for root 2 in c2_0^1/2" in {
     val result: Field = c2_0 power half
     result.render shouldBe "±√2"
   }
-  ignore should "render c2_0^1/3" in {
+  it should "render c2_0^1/3" in {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
     cubeRootOfTwo.render shouldBe "{³√2, ±³√2e^i0.<6>\uD835\uDED1}"
   }

@@ -157,6 +157,7 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     multiplicativeInverse(9, BigInt(23)) shouldBe 18
   }
 
+  // FIXME
   ignore should "multiplicativeInverse2" in {
     val g = 7
     val z = p7.modPow(g, 10)

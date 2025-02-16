@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, negZeroDouble, pi_5000}
 import org.scalatest.matchers.should
+import org.scalatest.tagobjects.Slow
 import org.scalatest.{PrivateMethodTester, flatspec}
 
 import scala.language.postfixOps
@@ -748,7 +749,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational("0.1").renderApproximate(5) shouldBe "0.1  "
   }
   // TODO the following works but is very slow.
-  ignore should "work with one parameter (pi)" in {
+  ignore should "work with one parameter (pi)" taggedAs Slow in {
     pi_5000.renderApproximate(2) shouldBe " 3"
     pi_5000.renderApproximate(3) shouldBe "3.1"
     pi_5000.renderApproximate(4) shouldBe "3.14"
@@ -768,7 +769,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational("0.1").renderApproximate(5, Some(2)) shouldBe " 0.10"
   }
   // TODO the following works but is very slow.
-  ignore should "work with two parameters (pi)" in {
+  ignore should "work with two parameters (pi)" taggedAs Slow in {
     pi_5000.renderApproximate(2, Some(0)) shouldBe " 3"
     pi_5000.renderApproximate(3, Some(1)) shouldBe "3.1"
     pi_5000.renderApproximate(4, Some(2)) shouldBe "3.14"
@@ -997,7 +998,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.approximateAny(Math.PI) shouldBe Rational(75948, 24175)
   }
   // NOTE: this test works but it is very slow. It should be checked from time to time.
-  ignore should "work for 3.1416" in {
+  ignore should "work for 3.1416" taggedAs Slow in {
     Rational.approximateAny(3.1416) shouldBe Rational(3141600355L, 1000000113)
   }
 

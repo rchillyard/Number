@@ -125,20 +125,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     p23.multiplicativeInverse(9) shouldBe 18
   }
 
-  ignore should "multiplicativeInverse2" in {
-    val g = 7
-    val z = p17.modPow(g, 10)
-    z shouldBe 2
-    val y = BigInt(g).pow(10)
-    y shouldBe BigInt(282475249L)
-    val q = y / 17
-    val r = y - q * 17
-    q shouldBe BigInt(16616191L)
-    r shouldBe BigInt(2)
-    y.mod(17) shouldBe 2
-    p17.modPow(z, 12) shouldBe g
-  }
-
   it should "validate" in {
     Prime(2).validated shouldBe true
     Prime(4).validated shouldBe false

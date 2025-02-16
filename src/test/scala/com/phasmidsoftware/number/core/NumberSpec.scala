@@ -500,7 +500,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val result = target.sqrt.normalize.asInstanceOf[Real]
     result.render shouldBe "2.7182818284590450[86]"
   }
-  // TODO fix this--it fails in CircleCI
+  // TODO fix this--it fails in CircleCI (fails here, too)
   ignore should "work for NatLog, Root2" in {
     val target = Number.e
     val expected = Number(math.E * math.E, Root2)
