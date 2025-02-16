@@ -43,8 +43,18 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     an[Exception] should be thrownBy recover(None, new Exception("logic error"))
   }
 
-  it should "doMap" in {
-    // TESTME doMap
+  behavior of "doMap function"
+  it should "doMap: return Success(Z) when given Right(R)" in {
+    val r2Z: Int => String = _.toString
+    val l2Zy: String=>Try[String] = _ => Failure(new RuntimeException("Should not be called"))
+    doMap(Right(42))(r2Z,l2Zy) shouldBe Success("42")
+  }
+
+  it should "doMap: call tryMapLeft and return its result when given Left(L)" in {
+    val r2Z: Int => String = _.toString
+    val l2Zy: String => Try[String] = s => Failure(new RuntimeException(s"Handled: $s"))
+    doMap(Left("Error"))(r2Z, l2Zy) shouldBe a[Failure[_]]
+    doMap(Left("Error"))(r2Z, l2Zy).failed.get.getMessage shouldBe "Handled: Error"
   }
 
   it should "resource" in {
@@ -125,7 +135,13 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "transpose" in {
-    // TESTME transpose
+    // Define an implicit conversion from R to L
+    implicit val intToString: Int => String = _.toString
+
+    // Convert Right(R) into Left(L) using implicit conversion
+    transpose(Right(42))(intToString) shouldBe Left("42")
+    // Keep Left(L) unchanged
+    transpose(Left("Error"))(intToString) shouldBe Left("Error")
   }
 
   behavior of "toTry"
