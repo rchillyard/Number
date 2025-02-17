@@ -191,6 +191,7 @@ object Expression {
      * @return an Expression which is this negated.
      */
     def unary_- : Expression = BiFunction(x, MinusOne, Product)
+    //    def unary_- : Expression = Function(x, Negate)
 
     /**
      * Method to lazily multiply x by y.
@@ -206,6 +207,7 @@ object Expression {
      * @return an Expression representing the reciprocal of x.
      */
     def reciprocal: Expression = BiFunction(x, MinusOne, Power)
+    //    def reciprocal: Expression = Function(x, Reciprocal)
 
     /**
      * Method to lazily divide x by y.
@@ -875,6 +877,10 @@ case object Log extends ExpressionFunction(x => x.log, "log")
  * It defines the exponential operation for transformation or evaluation within expressions.
  */
 case object Exp extends ExpressionFunction(x => x.exp, "exp")
+
+//case object Negate extends ExpressionFunction(x => negate(x), "-")
+
+//case object Reciprocal extends ExpressionFunction(x => 1/x, "rec")
 
 /**
  * Represents a sum operation as a binary function that adds two `Field` values.
