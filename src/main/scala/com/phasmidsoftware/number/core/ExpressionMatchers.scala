@@ -227,11 +227,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Match(a)
     case e: CompositeExpression => e match {
       case b@BiFunction(_, _, _) =>
-        biFunctionSimplifier(b)
+        biFunctionSimplifier(b) // TODO why is not not OK to follow with flatMap simplifier
       case f@Function(_, _) =>
-        functionSimplifier(f)
+        functionSimplifier(f) flatMap simplifier
       case t@Total(_) =>
-        totalSimplifier(t)
+        totalSimplifier(t) flatMap simplifier
       case r@ReducedQuadraticRoot(_, _, _) =>
         Match(r) // TODO implement simplifications if any
     }
@@ -389,12 +389,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return ExpressionMatcher[DyadicTriple]
    */
   def matchTotal: ExpressionMatcher[Expression] = ExpressionMatcher {
-    case t@Total(xs) => matchAll[Expression](exactMaterializer).apply(xs) match {
-      case Match(_) => Match(t)
-      case Miss(m, e) => Miss(m, e)
-      case Error(x) => Error(x)
-      case _ => Miss("matchTotal: not all elements are exact", t) // NOTE: we shouldn't need this
-    }
+    case t@Total(_) => Match(t)
     case e => Miss("matchTotal: not a Total expression", e)
   }.named("matchTotal")
 
@@ -431,12 +426,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
         inner(sorted, first = true) match {
           case Nil => Match(Constants.zero)
-          case x :: Nil => Match(x)
-          case x :: y :: Nil => Match(x plus y)
+          case x :: Nil => Match(x) flatMap simplifier
+          case x :: y :: Nil => Match(x plus y) flatMap simplifier
           case _ => Miss("matchSimplifyTotalTerms: cannot be simplified", xs)
         }
       } else Miss("matchSimplifyTotalTerms: not all elements are numbers", xs)
-    case x => Miss("matchSimplifyTotalTerms: not a Total", x)
+    case x =>
+      Miss("matchSimplifyTotalTerms: not a Total", x)
   }
 
   /**

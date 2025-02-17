@@ -276,7 +276,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   // FIXME Issue #84
-  ignore should "simplify total 3a" in {
+  it should "simplify total 3a" in {
     val target: Expression = Total(Seq(Literal(root2), Literal(root2) * Constants.minusOne))
     val value1 = em.simplifier(target)
     val result = value1 map (_.materialize)

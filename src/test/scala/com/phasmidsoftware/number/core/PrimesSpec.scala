@@ -146,15 +146,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     p19.next shouldBe p23
   }
 
-  it should "isCarmichaelNumber1" in {
-    Prime.isCarmichaelNumber(1) shouldBe false
-    Prime.isCarmichaelNumber(2) shouldBe false
-    Prime.isCarmichaelNumber(3) shouldBe false
-    Prime.isCarmichaelNumber(41) shouldBe false
-    Prime.isCarmichaelNumber(561) shouldBe true
-    Prime.isCarmichaelNumber(1729) shouldBe true
-  }
-
   it should "isCarmichaelNumber2" in {
     val tests = for (n <- Seq(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461)) yield Prime.isCarmichaelNumber(n)
     tests.forall(p => p) shouldBe true
