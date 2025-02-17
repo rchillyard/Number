@@ -275,7 +275,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     }
   }
 
-  // FIXME Issue #84
   it should "simplify total 3a" in {
     val target: Expression = Total(Seq(Literal(root2), Literal(root2) * Constants.minusOne))
     val value1 = em.simplifier(target)
@@ -416,6 +415,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ Two ~ Two) should matchPattern { case em.Miss(_, _) => }
     p(Power ~ Literal(root2) ~ Two) shouldBe em.Match(Two)
   }
+  ignore should "cancel plus and minus" in {
+    val p = em.matchDyadicTrivial
+    import em.TildeOps
+    val x = Literal(Number.pi)
+    val y = -x
+    val result = p(Sum ~ x ~ y)
+    result should matchPattern { case em.Match(Zero) => }
+  }
   it should "cancel multiplication and division" in {
     val p = em.matchDyadicTrivial
     import em.TildeOps
@@ -423,6 +430,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = One / 2
     val result = p(Product ~ x ~ y)
     result should matchPattern { case em.Miss(_, _) => }
+  }
+  ignore should "cancel value and reciprocal" in {
+    val p = em.matchDyadicTrivial
+    import em.TildeOps
+    val x = Literal(Number.pi)
+    val y = One / x
+    //    val y = Function(x, Reciprocal)
+    val result = p(Product ~ x ~ y)
+    result should matchPattern { case em.Match(One) => }
   }
 
   behavior of "biFunctionSimplifier"
@@ -479,10 +495,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val q: em.MatchResult[Expression] = p(x)
     q.successful shouldBe true
   }
-  // TODO fix Issue #57 (or something like that)
-  ignore should "biFunctionSimplifier on (1 + √3 + 1)(1 - √3)" in {
+  // TODO fix Issue #57
+  ignore should "biFunctionSimplifier on (1 + √3)(1 - √3)" in {
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
+    //    val x = Constants.root3
     val y = -x
     val a = BiFunction(One, x, Sum)
     val b = BiFunction(One, y, Sum)
