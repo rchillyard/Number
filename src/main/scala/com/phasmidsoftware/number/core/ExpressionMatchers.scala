@@ -147,7 +147,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return an Matcher[DyadicTriple, Expression].
    */
   def biFunctionMatcher: Matcher[DyadicTriple, Expression] =
-    (matchDyadicTrivial | matchSimplifyDyadicTerms | evaluateExactDyadicTriple | matchDyadicTwoLevels | matchMultiLevels) :| "biFunctionMatcher"
+    (matchDyadicTrivial | matchSimplifyDyadicTerms | collectTerms | evaluateExactDyadicTriple | matchDyadicTwoLevels | matchMultiLevels) :| "biFunctionMatcher"
 
   /**
     * Method to simplify a BiFunction if possible.
@@ -202,7 +202,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return a Matcher[MonadicDuple, MonadicDuple].
    */
   def matchSimplifyMonadicTerm: Matcher[MonadicDuple, MonadicDuple] = Matcher("matchSimplifyMonadicTerm") {
-    case Cosine ~ x => Match(Sine) ~ (Match(x plus ConstPi / 2) flatMap simplifier)
+    case Cosine ~ x => Match(Sine) ~ (Match(x plus ConstPi / 2) flatMap simplifier) // CHECK this is OK
     //    case Sine ~ x if (x*4).evaluate == Number.one => (x*4).evaluate match {
     //      case 1 =>
     //    }
@@ -279,16 +279,29 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def matchDyadicTrivial: Matcher[DyadicTriple, Expression] = Matcher("matchDyadicTrivial") {
     case Sum ~ Zero ~ x => matchAndSimplify(x)
     case Sum ~ x ~ Zero => matchAndSimplify(x)
+    //    case Sum ~ x ~ com.phasmidsoftware.number.core.Function(y, _: Negate.type) if x == y => Match(Zero)
     case Sum ~ x ~ y if x == y => matchAndSimplify(BiFunction(Two, x, Product))
     case Product ~ Zero ~ _ => Match(Zero)
     case Product ~ _ ~ Zero => Match(Zero)
     case Product ~ One ~ x => matchAndSimplify(x)
     case Product ~ x ~ One => matchAndSimplify(x)
     case Product ~ x ~ y if x == y => matchAndSimplify(BiFunction(x, Two, Power))
+    //    case Product ~ x ~ com.phasmidsoftware.number.core.Function(y, _: Reciprocal.type) if x == y => Match(One)
     case Power ~ _ ~ Zero => Match(One)
     case Power ~ One ~ _ => Match(One)
     case Power ~ x ~ One => matchAndSimplify(x)
     case Power ~ x ~ Two => matchSimplifySquare(x)
+    case x => Miss("not a trivial dyadic function", x)
+  }
+
+  /**
+   * Matcher which matches on a trivial dyadic function, such as x * 0 or x + 0.
+   * In the case where the result is non-constant, it will be further simplified if possible.
+   *
+   * @return a Match if one of the trivial situations is matched, else a Miss.
+   */
+  def collectTerms: Matcher[DyadicTriple, Expression] = Matcher("collectTerms") {
+    case Product ~ BiFunction(w, x, Sum) ~ BiFunction(y, z, Sum) => matchAndSimplify(Total(Seq(w * y, w * z, x * y, x * z)))
     case x => Miss("not a trivial dyadic function", x)
   }
 
@@ -426,8 +439,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
         inner(sorted, first = true) match {
           case Nil => Match(Constants.zero)
-          case x :: Nil => Match(x) flatMap simplifier
-          case x :: y :: Nil => Match(x plus y) flatMap simplifier
+          case x :: Nil => matchAndSimplify(x)
+          case x :: y :: Nil => matchAndSimplify(x plus y)
           case _ => Miss("matchSimplifyTotalTerms: cannot be simplified", xs)
         }
       } else Miss("matchSimplifyTotalTerms: not all elements are numbers", xs)
@@ -535,7 +548,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case (Product, Power, Power) if w == y =>
       replaceAndSimplify(x, z, w, Sum, Power)
     case (Product, Product, Power) if x == y && z == MinusOne =>
-      Match(w) flatMap simplifier // CONSIDER this is a special case and I'm not sure it really belongs here
+      matchAndSimplify(w) // CONSIDER this is a special case and I'm not sure it really belongs here
     case (Sum, Product, Product) if w == y =>
       replaceAndSimplify(x, z, w, Sum, Product)
     case (Sum, Product, Product) if w == z =>
@@ -551,12 +564,39 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Miss("collectTermsDyadicTwoLevels: functions don't match", f ~ g ~ w ~ x ~ h ~ y ~ z)
   }
 
+  /**
+   * Replaces and simplifies an expression using specified bi-functions and simplification logic.
+   *
+   * @param a the first expression to be used in the bi-function
+   * @param b the second expression to be used in the bi-function
+   * @param c the expression to be used for forming the second bi-function
+   * @param f the first bi-function to be applied
+   * @param g the second bi-function to be applied during simplification
+   */
   private def replaceAndSimplify(a: Expression, b: Expression, c: Expression, f: ExpressionBiFunction, g: ExpressionBiFunction) =
     replaceExactBiFunction(Some(Scalar))(BiFunction(a, b, f)) map formBiFunction(c, g) flatMap simplifier
 
+  /**
+   * Combines and simplifies the given expressions using the specified binary function.
+   * Invokes `replaceAndSimplify`.
+   * CONSIDER why not just inline replaceAndSimplify?
+   *
+   * @param w        the first expression to be combined
+   * @param x        the second expression to be combined
+   * @param function the binary function used to combine the expressions
+   */
   private def combineAndSimplify(w: Expression, x: Expression, function: ExpressionBiFunction) =
     replaceAndSimplify(One, x, w, Sum, function)
 
+  /**
+   * Matches and replaces a pair of expressions using the provided function.
+   * Invokes `matchAndReplacePair`.
+   * CONSIDER why not just inline matchAndReplacePair?
+   *
+   * @param function A function that defines the logic to match and replace the expression pair.
+   * @param e        The input expressions to be matched and replaced.
+   * @return A MatchResult containing the resulting expression after applying the function.
+   */
   private def matchExpressionPair(function: ExpressionBiFunction)(e: Expressions): MatchResult[Expression] =
     matchAndReplacePair(function, e.l, e.r)
 
@@ -681,7 +721,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           }
         case _ => accum
       })
-      Match(result) flatMap simplifier
+      matchAndSimplify(result)
     }
   }
 
@@ -815,6 +855,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   private def complementaryMonadic(f: ExpressionFunction, g: ExpressionFunction) = (f, g) match {
     case (Exp, Log) => true
     case (Log, Exp) => true  // TESTME
+    //    case (Negate, Negate) => true
+    //    case (Reciprocal, Reciprocal) => true
     case _ => false
   }
 
