@@ -623,6 +623,7 @@ object Rational {
   val bigThree: BigInt = BigInt(3)
   val bigFour: BigInt = BigInt(4)
   val bigFive: BigInt = BigInt(5)
+  val bigSix: BigInt = BigInt(6)
   val bigSeven: BigInt = BigInt(7)
   val bigNegOne: BigInt = BigInt(-1)
   val bigTen: BigInt = BigInt(10)

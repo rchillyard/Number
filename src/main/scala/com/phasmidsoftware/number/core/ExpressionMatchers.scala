@@ -7,7 +7,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.matchers._
 
-import scala.annotation.tailrec
 import scala.language.implicitConversions
 
 /**
@@ -146,16 +145,16 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return an Matcher[DyadicTriple, Expression].
    */
-  def biFunctionMatcher: Matcher[DyadicTriple, Expression] =
-    (matchDyadicTrivial | matchSimplifyDyadicTerms | collectTerms | evaluateExactDyadicTriple | matchDyadicTwoLevels | matchMultiLevels) :| "biFunctionMatcher"
+  def biFunctionTransformer: Matcher[DyadicTriple, Expression] =
+    (matchDyadicTrivial | matchSimplifyDyadicTerms | collectTerms | evaluateExactDyadicTriple | matchDyadicTwoLevels | matchMultiLevels) :| "biFunctionTransformer"
 
   /**
     * Method to simplify a BiFunction if possible.
-    * If the input is a BiFunction, it will be transformed into a DyadicTriple and passed to biFunctionMatcher.
+   * If the input is a BiFunction, it will be transformed into a DyadicTriple and passed to biFunctionTransformer.
     *
     * @return a Transformer.
     */
-  def biFunctionSimplifier: Transformer = (matchBiFunction & biFunctionMatcher) :| "biFunctionSimplifier"
+  def biFunctionSimplifier: Transformer = (matchBiFunction & biFunctionTransformer) :| "biFunctionSimplifier"
 
   /**
    * Method to simplify a Total if possible.
@@ -163,7 +162,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return a Transformer.
    */
-  def totalSimplifier: Transformer = (matchTotal & totalMatcher) :| "totalSimplifier"
+  def totalSimplifier: Transformer = (matchTotal & totalTransformer) :| "totalSimplifier"
 
   /**
    * This method defines a single Matcher which combines the various two-level matchers which can be applied to an Expression.
@@ -194,7 +193,26 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return an Transformer.
    */
   def functionSimplifier: Transformer =
-    (matchFunction & ((matchSimplifyMonadicTerm & evaluateMonadicDuple) | (matchTwoMonadicLevels & matchAndCancelTwoMonadicLevels))) :| "functionSimplifier"
+    (matchFunction & (matchMonadicTrivial | (matchSimplifyMonadicTerm & evaluateMonadicDuple) | (matchTwoMonadicLevels & matchAndCancelTwoMonadicLevels))) :| "functionSimplifier"
+
+  /**
+   * Defines a matcher for monadic expressions and constants, performing trivial simplifications.
+   * The matcher evaluates pairs of monadic operators and constants, returning their simplified forms
+   * if a specific pattern is identified, or marking it as a miss otherwise.
+   *
+   * @return A `Matcher` that matches a `MonadicDuple` (monadic operator and constant pair) to an `Expression`,
+   *         providing pre-defined trivial simplifications or signaling no match with a descriptive message.
+   */
+  def matchMonadicTrivial: Matcher[MonadicDuple, Expression] = Matcher("matchMonadicTrivial") {
+    case Exp ~ Zero => Match(One)
+    case Exp ~ One => Match(ConstE)
+    case Log ~ One => Match(Zero)
+    case Log ~ ConstE => Match(One)
+    case Sine ~ Zero | Sine ~ ConstPi => Match(Zero)
+    case Cosine ~ Zero => Match(One)
+    case Cosine ~ ConstPi => Match(MinusOne)
+    case x => Miss(s"matchMonadicTrivial: no trivial match", x)
+  }
 
   /**
    * If the operand can be simplified, then it will be.
@@ -202,11 +220,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return a Matcher[MonadicDuple, MonadicDuple].
    */
   def matchSimplifyMonadicTerm: Matcher[MonadicDuple, MonadicDuple] = Matcher("matchSimplifyMonadicTerm") {
-    case Cosine ~ x => Match(Sine) ~ (Match(x plus ConstPi / 2) flatMap simplifier) // CHECK this is OK
+    case Cosine ~ x => Match(Sine) ~ matchAndSimplify(x plus ConstPi / 2) // CHECK this is OK
     //    case Sine ~ x if (x*4).evaluate == Number.one => (x*4).evaluate match {
     //      case 1 =>
     //    }
-    case f ~ x => Match(f) ~ exactMaterializer(x)
+    // CONSIDER does the following do anything useful?
+    //    case f ~ x => Match(f) ~ exactMaterializer(x)
+    case z => Miss("matchSimplifyMonadicTerm: no simplification available", z) // Match(f) ~ exactMaterializer(x)
   }
 
   /**
@@ -214,8 +234,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return an Matcher[Expression, Expression].
    */
-  def totalMatcher: Matcher[Expression, Expression] =
-    matchSimplifyTotalTerms :| "totalMatcher"
+  def totalTransformer: Transformer =
+    simplifyTotalTerms :| "totalTransformer"
 
   /**
    * Method to match an `Expression` and if possible, replace it with a simplified expression.
@@ -224,7 +244,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def simplifier: Transformer = ExpressionMatcher {
     case a: AtomicExpression =>
-      Match(a)
+      Match(a) // CONSIDER should we eliminate this match since it does nothing -- or should we try to evaluate it?
     case e: CompositeExpression => e match {
       case b@BiFunction(_, _, _) =>
         biFunctionSimplifier(b) // TODO why is not not OK to follow with flatMap simplifier
@@ -281,11 +301,15 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Sum ~ x ~ Zero => matchAndSimplify(x)
     //    case Sum ~ x ~ com.phasmidsoftware.number.core.Function(y, _: Negate.type) if x == y => Match(Zero)
     case Sum ~ x ~ y if x == y => matchAndSimplify(BiFunction(Two, x, Product))
+    case Sum ~ x ~ Function(y, Negate) if x == y => Match(Zero)
+    case Sum ~ Function(x, Negate) ~ y if x == y => Match(Zero)
     case Product ~ Zero ~ _ => Match(Zero)
     case Product ~ _ ~ Zero => Match(Zero)
     case Product ~ One ~ x => matchAndSimplify(x)
     case Product ~ x ~ One => matchAndSimplify(x)
     case Product ~ x ~ y if x == y => matchAndSimplify(BiFunction(x, Two, Power))
+    case Product ~ x ~ Function(One, Negate) => matchAndSimplify(Function(x, Negate))
+    case Product ~ Function(One, Negate) ~ y => matchAndSimplify(Function(y, Negate))
     //    case Product ~ x ~ com.phasmidsoftware.number.core.Function(y, _: Reciprocal.type) if x == y => Match(One)
     case Power ~ _ ~ Zero => Match(One)
     case Power ~ One ~ _ => Match(One)
@@ -407,45 +431,29 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }.named("matchTotal")
 
   /**
-   * Matcher which always succeeds.
-   * If either operand can be simplified, then it will be.
-   * TESTME (partial)
+   * Simplifies a `Total` expression by combining its terms in a more compact form.
+   * This method handles several cases:
+   * - If the `Total` is empty, it produces a zero constant.
+   * - If the `Total` contains a single element, it simplifies that element.
+   * - If all elements in the `Total` can be interpreted as numbers, it combines them iteratively
+   * and simplifies the resulting expression.
+   * - If the `Total` cannot be simplified further, the original structure is retained.
    *
-   * @return a Match of an exact expression.
+   * NOTE: Need to fix #87
+   *
+   * @return A `Transformer` that matches and simplifies `Total` expressions efficiently.
    */
-  private def matchSimplifyTotalTerms: Matcher[Expression, Expression] = Matcher("matchSimplifyTotalTerms") {
-    case Total(xs) =>
-      if (xs.forall(_.asNumber.isDefined)) {
+  private def simplifyTotalTerms: Transformer = Matcher[Expression, Expression]("simplifyTotalTerms") {
+    case Total(Nil) => Match(Constants.zero)
+    case Total(x :: Nil) => matchAndSimplify(x)
+    case Total(xs) if xs.forall(_.asNumber.isDefined) =>
         // NOTE we should handle the very rare cases where the final get fails
-        val sorted = xs.sortBy(x => Math.abs(x.asNumber.get.toDouble.get))
-
-        @tailrec
-        def inner(es: Seq[Expression], first: Boolean): Seq[Expression] = {
-          val zs: Seq[Expression] = es.grouped(2).foldLeft(Seq.empty[Expression]) {
-            case (accum, Seq(x1, x2)) =>
-              val q = x1 plus x2
-              if (q.isExact) accum :+ q
-              else accum :+ x1 :+ x2
-            case (accum, Seq(x)) => accum :+ x
-            case (_, Nil) => throw new NoSuchFieldError("matchSimplifyTotalTerms: inner: logic error")
-          }
-          if (zs.size < es.size)
-            inner(zs, first)
-          else if (first && zs.size > 2)
-            inner(zs.tail, first = false)
-          else
-            zs
+      val first :: second :: rest = xs.sortBy(x => Math.abs(x.asNumber.get.toDouble.get)).sortBy(x => x.depth)
+      biFunctionTransformer(Sum ~ first ~ second) match {
+        case Match(e) => simplifyTotalTerms(Total(e :: rest))
+        case Miss(_, _) => Match(first plus Total(second :: rest))
         }
-
-        inner(sorted, first = true) match {
-          case Nil => Match(Constants.zero)
-          case x :: Nil => matchAndSimplify(x)
-          case x :: y :: Nil => matchAndSimplify(x plus y)
-          case _ => Miss("matchSimplifyTotalTerms: cannot be simplified", xs)
-        }
-      } else Miss("matchSimplifyTotalTerms: not all elements are numbers", xs)
-    case x =>
-      Miss("matchSimplifyTotalTerms: not a Total", x)
+    case x => Miss("simplifyTotalTerms: not a Total with all numbers", x)
   }
 
   /**
@@ -855,7 +863,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   private def complementaryMonadic(f: ExpressionFunction, g: ExpressionFunction) = (f, g) match {
     case (Exp, Log) => true
     case (Log, Exp) => true  // TESTME
-    //    case (Negate, Negate) => true
+    case (Negate, Negate) => true
     //    case (Reciprocal, Reciprocal) => true
     case _ => false
   }

@@ -43,11 +43,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   // NOTE these are the new tests (Aug 6th) which should be good
-  behavior of "materialize"
+  behavior of "Function"
   it should "work for Exp(1)" in {
     val x = Function(One, Exp)
     val result = x.materialize
     result shouldBe Constants.e
+  }
+  it should "work for Negate" in {
+    Function(MinusOne, Negate).materialize shouldBe Constants.one
+    Function(Zero, Negate).materialize shouldBe Constants.zero
+    Function(One, Negate).materialize shouldBe Constants.minusOne
+    Function(Two, Negate).materialize shouldBe Real(-2)
+    Function(Function(Two, Negate), Negate).materialize shouldBe Constants.two
   }
   it should "work for Exp(Log(2))" in {
     val x = Function(Function(Two, Log), Exp)
@@ -71,6 +78,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
     e.render shouldBe "{1 + 𝛑}"
     e.materialize.render shouldBe "4.1415926535897930(41)"
+  }
+
+  it should "evaluate 3 5 + 7 2 – *" in {
+    val expression = (Literal(3) + 5) * (Literal(7) - 2)
+    println(expression)
+    val result = expression.materialize
+    result shouldEqual Real(40)
   }
 
   behavior of "ExpressionOps"
@@ -188,7 +202,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate Phi^2 correctly" in {
     val em: ExpressionMatchers = Expression.em
     import em.TildeOps
-    val p = em.biFunctionMatcher
+    val p = em.biFunctionTransformer
     p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(Phi, One, Sum))
   }
 }

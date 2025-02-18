@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{half, negate, one, zeroR, √}
+import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, root3, zeroR, √}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -13,16 +13,14 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   implicit object ComplexCartesianEquality extends Equality[ComplexCartesian] {
     def areEqual(a: ComplexCartesian, b: Any): Boolean = b match {
-      case n: Complex =>
-        (Literal(a) - n).materialize.isZero
+      case n: Complex => (a - n).isZero
       case _ => false
     }
   }
 
   implicit object ComplexPolarEquality extends Equality[ComplexPolar] {
     def areEqual(a: ComplexPolar, b: Any): Boolean = b match {
-      case n: ComplexPolar =>
-        (Literal(a) - n).materialize.isZero
+      case n: ComplexPolar => (a - n).isZero
       case _ => false
     }
   }
@@ -256,13 +254,29 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z.render shouldBe "±√5"
   }
 
-  it should "check that math.atan really works" in {
+  it should "check that math.atan really works 1" in {
     val tangent = 2.0
     val theta = math.atan2(tangent, 1)
     val result = math.tan(theta)
     result shouldBe tangent +- 1E-8
-    // TODO understand why the match.atan method seems to be so imprecise
+    // TODO understand why the math.atan method seems to be so imprecise
     theta * 3 shouldBe math.Pi +- 2E-1
+  }
+
+  it should "check that math.atan really works 2" in {
+    val tangent: Number = root3
+    val theta = one.atan(tangent)
+    theta shouldBe ExactNumber(Left(Right(Rational(1, 3))), Radian)
+    val z = theta.tan
+    z shouldBe tangent
+  }
+
+  it should "check that math.atan really works 3" in {
+    val tangent: Number = inverse(root3)
+    val theta = one.atan(tangent)
+    theta shouldBe ExactNumber(Left(Right(Rational(1, 6))), Radian)
+    val z = theta.tan
+    z shouldBe tangent
   }
 
   it should "check that math.atan really works for many fractions" in {

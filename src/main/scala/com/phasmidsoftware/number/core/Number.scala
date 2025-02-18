@@ -326,8 +326,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     */
   def tan: Number = (value, factor) match { // CONSIDER modulating first.
     case (Left(Right(r)), Radian) => r match {
-      case Rational(Rational.bigOne, Rational.bigFour) | Rational(Rational.bigFive, Rational.bigFour) => Number.one
+      case Rational(Rational.bigOne, Rational.bigThree) => Number.root3
       case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) => negate(Number.one)
+      case Rational(Rational.bigOne, Rational.bigFour) | Rational(Rational.bigFive, Rational.bigFour) => Number.one
+      case Rational(Rational.bigOne, Rational.bigSix) => inverse(Number.root3)
       case _ => sin doDivide cos
     }
     case _ => sin doDivide cos
@@ -392,6 +394,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     */
   def asComplex: Complex = if (isImaginary)
     ComplexCartesian.fromImaginary(this)
+  else if (isZero)
+    ComplexCartesian(Number.zero)
   else
     ComplexPolar(this)
 
@@ -1115,20 +1119,75 @@ object Number {
     * Following are the definitions required by Numeric[Number]
     */
   trait NumberIsNumeric extends Numeric[Number] with NumberIsOrdering {
+    /**
+     * Adds two `Number` instances and returns their sum.
+     *
+     * @param x the first `Number` to be added
+     * @param y the second `Number` to be added
+     * @return the result of adding `x` and `y` as a `Number`
+     */
     def plus(x: Number, y: Number): Number = GeneralNumber.plus(x, y)
 
+    /**
+     * Subtracts the second number from the first number.
+     *
+     * @param x the number from which the second number will be subtracted
+     * @param y the number to be subtracted from the first number
+     * @return the result of subtracting y from x
+     */
     def minus(x: Number, y: Number): Number = GeneralNumber.plus(x, negate(y))
 
+    /**
+     * Multiplies two `Number` values and returns the result.
+     *
+     * @param x the first `Number` operand
+     * @param y the second `Number` operand
+     * @return the product of the two given `Number` values
+     */
     def times(x: Number, y: Number): Number = GeneralNumber.times(x, y)
 
+    /**
+     * Negates the given `Number` instance.
+     *
+     * @param x the `Number` to be negated
+     * @return a new `Number` that is the negation of the input `Number`
+     */
     def negate(x: Number): Number = Number.negate(x)
 
+    /**
+     * Creates a `Number` instance from the given integer value.
+     *
+     * @param x the integer value to be converted to a `Number`
+     * @return a `Number` representing the given integer value
+     */
     def fromInt(x: Int): Number = Number(x)
 
+    /**
+     * Parses the given string representation of a number and attempts to convert it into an Option of `Number`.
+     *
+     * @param str the string to be parsed as a potential representation of a `Number`
+     * @return an `Option` containing the parsed `Number` if conversion is successful, or `None` if parsing fails
+     */
     def parseString(str: String): Option[Number] = parse(str).toOption
 
+    /**
+     * Converts a given `Number` instance to an `Int`.
+     *
+     * @param x the `Number` to be converted to an `Int`
+     * @return the integer representation of the given `Number`
+     */
     def toInt(x: Number): Int = toLong(x).toInt
 
+    /**
+     * Converts the given `Number` instance to a `Long` representation.
+     * If the number is a `GeneralNumber` and contains a rational value, the rational is converted to a `Long`.
+     * If the rational is absent but a double value is present, it rounds the double to the closest `Long`.
+     * Throws an exception if neither a rational nor a valid double representation can be derived.
+     *
+     * @param x the number to be converted to a `Long`
+     * @return the `Long` representation of the given number
+     * @throws NumberException if the conversion is not possible
+     */
     def toLong(x: Number): Long = x match {
       case z: GeneralNumber => z.maybeRational match {
         case Some(r) => r.toLong
@@ -1139,11 +1198,24 @@ object Number {
       }
     }
 
+    /**
+     * Converts the given `Number` instance to a `Double`.
+     *
+     * @param x the `Number` instance to be converted to a `Double`
+     * @return the `Double` representation of the input `Number`
+     * @throws NumberException if the `Number` instance cannot be converted to a `Double`
+     */
     def toDouble(x: Number): Double = x.maybeDouble match {
       case Some(y) => y
       case None => throw NumberException("toDouble: this is invalid")
     }
 
+    /**
+     * Converts a given Number to a Float value by first converting it to a Double and then to a Float.
+     *
+     * @param x the Number to be converted to a Float
+     * @return the Float representation of the given Number
+     */
     def toFloat(x: Number): Float = toDouble(x).toFloat
   }
 
@@ -1167,8 +1239,20 @@ object Number {
 
   // CONSIDER some of the following should probably be moved to GeneralNumber
 
+  /**
+   * Prepares a valid Number based on the provided optional input.
+   *
+   * @param no An optional Number that may or may not be defined.
+   * @return The provided Number if it exists, otherwise a default Number instance.
+   */
   def prepare(no: Option[Number]): Number = no.getOrElse(Number())
 
+  /**
+   * Prepares and specializes a given optional number.
+   *
+   * @param no An optional value of type Number to be prepared.
+   * @return A specialized Number derived from the prepared input.
+   */
   def prepareWithSpecialize(no: Option[Number]): Number = prepare(no).specialize
 
   /**
@@ -1213,6 +1297,12 @@ object Number {
     case _ => negate(x.scale(Scalar))
   }
 
+  /**
+   * Computes the inverse of the given number based on its factor type.
+   *
+   * @param x the number to be inverted
+   * @return the inverted number, processed according to its factor type
+   */
   def inverse(x: Number): Number = x.factor match {
     case Scalar => prepare(x.transformMonadic(Scalar)(MonadicOperationInvert))
     case f@Root(_) => prepare(x.transformMonadic(f)(MonadicOperationInvert))
@@ -1263,7 +1353,15 @@ object Number {
       case None => throw NumberException(s"Number.sin: logic error")
     }
 
-  // CONSIDER checking here for x being zero
+  /**
+   * Calculates the arctangent of the angle specified by the ratio of y to x.
+   * The result is an angle expressed in radians.
+   * CONSIDER checking here for x being zero.
+   *
+   * @param x the horizontal coordinate of the point
+   * @param y the vertical coordinate of the point
+   * @return the arctangent of the angle, in radians
+   */
   def atan(x: Number, y: Number): Number = doAtan(y doDivide x, x.signum)
 
   /**
@@ -1307,6 +1405,12 @@ object Number {
     case _ => x.power(Number.half)
   }
 
+  /**
+   * Computes the square root of the given integer value.
+   *
+   * @param x The integer value for which the square root is to be computed.
+   * @return A Number representing the square root of the input value.
+   */
   def √(x: Int): Number = x.sqrt
 
   /**
@@ -1321,6 +1425,14 @@ object Number {
     case _ => x
   }
 
+  /**
+   * Calculates the arctangent (atan) of the given number with a specified sign.
+   * This method performs recursive computation based on the factor type of the input number.
+   *
+   * @param number The input number for which to calculate the arctangent.
+   * @param sign   The sign modifier that affects the outcome of the arctangent calculation.
+   * @return A `Number` representing the computed arctangent in radians. If the input number's factor is not supported or valid, the method may throw an exception.
+   */
   @tailrec
   private def doAtan(number: Number, sign: Int): Number = number.factor match {
     case Scalar => prepareWithSpecialize(number.transformMonadic(Radian)(MonadicOperationAtan(sign))).modulate
@@ -1339,9 +1451,24 @@ object Number {
     case _ => throw NumberException("number.factor is not matched")
   }
 
+  /**
+   * Converts a scalar number to a root factor representation by applying a power function
+   * and associating it with a given factor.
+   *
+   * @param n      the scalar number to be converted
+   * @param factor the factor to associate with the result
+   * @param f      the exponent to be applied during conversion
+   */
   private def convertScalarToRoot(n: Number, factor: Factor, f: Double) =
     n.doPower(ExactNumber(Value.fromDouble(Some(f)), Scalar)).make(factor)
 
+  /**
+   * Converts the root representation of a number into its natural logarithm, scaled by a given factor.
+   *
+   * @param n      the number to be converted, containing a possible double value
+   * @param factor a factor used during the conversion process
+   * @param f      a scaling factor for adjusting the natural logarithm
+   */
   private def convertRootToNatLog(n: Number, factor: Factor, f: Double) = {
     val yo = for (x <- n.maybeDouble; z = math.log(x)) yield z / f
     n.make(Value.fromDouble(yo), factor).specialize

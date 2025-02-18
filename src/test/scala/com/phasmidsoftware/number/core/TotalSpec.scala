@@ -29,9 +29,20 @@ class TotalSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "evaluate" in {
+  it should "evaluate 1" in {
     val target = Total(List(Constants.one, Constants.one))
     target.evaluate shouldBe Constants.two
+  }
+
+  it should "evaluate 2" in {
+    val target = Total(List(Constants.one, Constants.two, Constants.minusOne))
+    target.evaluate shouldBe Constants.two
+  }
+
+  it should "evaluate 3" in {
+    import com.phasmidsoftware.number.core.Expression.ExpressionOps
+    val target = Total(List(One * MinusOne, Two + One, MinusOne * 5, Constants.two))
+    target.evaluate shouldBe Constants.minusOne
   }
 
 }

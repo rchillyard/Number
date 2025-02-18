@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.FP.recover
+import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 
 import scala.language.implicitConversions
@@ -190,8 +191,7 @@ object Expression {
      *
      * @return an Expression which is this negated.
      */
-    def unary_- : Expression = BiFunction(x, MinusOne, Product)
-    //    def unary_- : Expression = Function(x, Negate)
+    def unary_- : Expression = Function(x, Negate)
 
     /**
      * Method to lazily multiply x by y.
@@ -878,7 +878,7 @@ case object Log extends ExpressionFunction(x => x.log, "log")
  */
 case object Exp extends ExpressionFunction(x => x.exp, "exp")
 
-//case object Negate extends ExpressionFunction(x => negate(x), "-")
+case object Negate extends ExpressionFunction(x => negate(x), "-")
 
 //case object Reciprocal extends ExpressionFunction(x => 1/x, "rec")
 
