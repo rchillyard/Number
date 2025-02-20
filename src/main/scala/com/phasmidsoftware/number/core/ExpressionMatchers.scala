@@ -16,7 +16,8 @@ import scala.language.implicitConversions
  * thus sometimes avoiding loss of precision.
  *
  * Rules for matching:
- * (1) All substitution is based on a successful match -- no match no substitution;
+ * (1) All substitution is based on a successful match -- no match, no substitution;
+ * CONSIDER this second rules seems strange
  * (2) The first match to try for any expression is the exactMaterializer which returns Match(Literal(value));
  * (2) Some matches return non-exact match results -- these should be passed to flatMap simplifier;
  * NOTE: do not pass anything to flatMap simplifier if it could possibly be the same as the input (else stack overflow).
@@ -56,12 +57,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
    * Matcher which tries to evaluate the input exactly as a Scalar and then wraps the result as an Expression.
    * NOTE: currently, the expression will be materialized without regard to the `Scalar` context.
+   * CONSIDER change None to Some(Scalar) [but I don't think that would be correct]
    *
    * @return Matcher[Expression, Expression]
    */
-  def exactMaterializer: ExpressionMatcher[Expression] =
-    // TODO change None to Some(Scalar)
-    exactFieldMaterializer(None) map (Expression(_))
+  def exactMaterializer: Transformer = exactFieldMaterializer(None) map (Expression(_))
 
   /**
    * `ExpressionMatcher`, which matches expressions that are exact in the given context,
@@ -132,11 +132,37 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       matcher3(exactMaterializer(BiFunction(g, w, x)), Match(y), Match(f)).map(x => Expression(x.evaluate))
     case f ~ y ~ BiFunction(g, w, x) =>
       matcher3(Match(y), exactMaterializer(BiFunction(g, w, x)), Match(f)).map(x => Expression(x.evaluate))
-    // CONSIDER should we match Function?
+    case Sum ~ (q@Function(_, _)) ~ (z@Function(_, _)) =>
+      matchComplementaryExpressions(q, z)
+    case Sum ~ x ~ (q@Function(_, _)) =>
+      matchComplementaryExpressions(x, q)
+    case Sum ~ (q@Function(_, _)) ~ y =>
+      matchComplementaryExpressions(q, y)
     case f ~ y ~ z =>
       // CONSIDER allowing these single-level expressions through
-      Miss("matchSimplifyDyadicTermsTwoLevels: depth is only one level", f ~ y ~ z)
+      Miss("matchSimplifyDyadicTermsTwoLevels: no match", f ~ y ~ z)
   }
+
+  /**
+   * Matches two expressions to check if they are complementary,
+   * i.e., their evaluations sum to zero.
+   *
+   * @param ex the first expression to be matched
+   * @param ey the second expression to be matched
+   * @return a MatchResult containing the matched result
+   *         if the expressions are complementary, or a Miss
+   *         if they are not
+   */
+  def matchComplementaryExpressions(ex: Expression, ey: Expression): MatchResult[Expression] =
+    for {
+      x <- exactMaterializer(ex);
+      y <- exactMaterializer(ey);
+      z <-
+        if ((x.evaluate + y.evaluate).isZero)
+          Match(Zero)
+        else
+          Miss("matchComplementaryExpressions", ex ~ ey)
+    } yield z
 
   /**
    * Method to match an Expression which is a BiFunction and replace it with a simplified expression.
@@ -169,11 +195,12 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return a Matcher.
    */
-  def matchDyadicTwoLevels: Matcher[DyadicTriple, Expression] = (matchSimplifyDyadicTermsTwoLevels |
-    (matchTwoDyadicLevels & matchAndCollectTwoDyadicLevels) |
-    (matchTwoDyadicLevelsL & (matchAndCancelTwoDyadicLevelsL | matchAndCollectTwoDyadicLevelsL)) |
-    (matchTwoDyadicLevelsR & (matchAndCancelTwoDyadicLevelsR | matchAndCollectTwoDyadicLevelsR)) |
-    fail("twoLevel")
+  def matchDyadicTwoLevels: Matcher[DyadicTriple, Expression] = (
+    (matchTwoDyadicLevels & matchSimplifyDyadicTermsTwoLevels) |
+      (matchTwoDyadicTripleLevels & matchAndCollectTwoDyadicLevels) |
+      (matchTwoDyadicLevelsL & (matchAndCancelTwoDyadicLevelsL | matchAndCollectTwoDyadicLevelsL)) |
+      (matchTwoDyadicLevelsR & (matchAndCancelTwoDyadicLevelsR | matchAndCollectTwoDyadicLevelsR)) |
+      fail("twoLevel")
     ) :| "matchDyadicTwoLevels"
 
   /**
@@ -344,11 +371,18 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Miss("evaluateExactDyadicTriple: not an dyadic expression", z)
   }
 
-  def matchTwoDyadicLevels: Matcher[DyadicTriple, ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple] = Matcher("matchTwoDyadicLevels") {
+  def matchTwoDyadicLevels: Matcher[DyadicTriple, DyadicTriple] = Matcher("matchTwoDyadicLevels") {
+    case f ~ x ~ y if x.depth > 1 || y.depth > 1 =>
+      Match(f ~ x ~ y)
+    case z =>
+      Miss("matchTwoDyadicLevels: neither operand has depth > 1", z)
+  }
+
+  def matchTwoDyadicTripleLevels: Matcher[DyadicTriple, ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple] = Matcher("matchTwoDyadicTripleLevels") {
     case f ~ BiFunction(w, x, g) ~ BiFunction(y, z, h) =>
       Match(f ~ (g ~ w ~ x) ~ (h ~ y ~ z))
     case z =>
-      Miss("matchTwoDyadicLevels: not two BiFunctions", z)
+      Miss("matchTwoDyadicTripleLevels: not two BiFunctions", z)
   }
 
   def matchTwoDyadicLevelsL: Matcher[DyadicTriple, ExpressionBiFunction ~ DyadicTriple ~ Expression] = Matcher("matchTwoDyadicLevelsL") {

@@ -33,6 +33,20 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   private val one: Number = Number.one
   private val half: Number = convertToNumber(Number.two.invert)
 
+  behavior of "exactMaterializer"
+
+  it should "work for 1" in {
+    val m = em.exactMaterializer
+    val x = One
+    val y = m(x)
+    y shouldBe em.Match(One)
+  }
+  it should "work for pi" in {
+    val m = em.exactMaterializer
+    val x = ConstPi
+    val y = m(x)
+    y shouldBe em.Match(ConstPi)
+  }
 
   behavior of "value"
   it should "work with value on Literal" in {
@@ -443,6 +457,27 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result should matchPattern { case em.Match(One) => }
   }
 
+  behavior of "matchComplementaryExpressions"
+  it should "work" in {
+    em.matchComplementaryExpressions(One, Function(One, Negate)) shouldBe em.Match(Zero)
+  }
+
+  behavior of "matchSimplifyDyadicTermsTwoLevels"
+
+  it should "match 1" in {
+    val p = em.matchSimplifyDyadicTermsTwoLevels
+    import em.TildeOps
+    p(Sum ~ One ~ Function(One, Negate)) shouldBe em.Match(Zero)
+    p(Sum ~ Function(One, Negate) ~ One) shouldBe em.Match(Zero)
+  }
+  it should "match 2" in {
+    val p = em.matchSimplifyDyadicTermsTwoLevels
+    import em.TildeOps
+    p(Sum ~ One ~ Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
+    p(Sum ~ Function(ConstPi, Cosine) ~ One) shouldBe em.Match(Zero)
+    p(Sum ~ Function(Zero, Cosine) ~ Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
+  }
+
   behavior of "biFunctionSimplifier"
 
   it should "simplify" in {
@@ -459,8 +494,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   ignore should "evaluate (√3 + 1)(√3 - 1) as 2 exactly" in {
     val em = eml // Log this unit test
     // Expect matches:
-    // matchTwoDyadicLevels: Match: *~+~{3 ^ (2 ^ -1)}~1~+~{3 ^ (2 ^ -1)}~(1 * -1)
-    // matchTwoDyadicLevels: Match: *~^~3~(2 ^ -1)~^~3~(2 ^ -1)
+    // matchTwoDyadicTripleLevels: Match: *~+~{3 ^ (2 ^ -1)}~1~+~{3 ^ (2 ^ -1)}~(1 * -1)
+    // matchTwoDyadicTripleLevels: Match: *~^~3~(2 ^ -1)~^~3~(2 ^ -1)
     // simplifier: Match: 3
     // matchDyadicTrivial: Match: 3
     // biFunctionTransformer: Match: 3
@@ -470,7 +505,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     // matchDyadicTwoLevels: Match: 3
     // matchTwoDyadicLevelsR: Match: *~1~^~3~(2 ^ -1)
     // exactFieldMaterializer: Match: -1
-    // matchTwoDyadicLevels: Match: *~^~3~(2 ^ -1)~*~1~-1
+    // matchTwoDyadicTripleLevels: Match: *~^~3~(2 ^ -1)~*~1~-1
     // matchTwoDyadicLevelsL: Match: *~^~3~(2 ^ -1)~(1 * -1)
     // matchTwoDyadicLevelsR: Match: *~{3 ^ (2 ^ -1)}~*~1~-1
     // exactFieldMaterializer: Match: 1
@@ -535,7 +570,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchAndCollectTwoDyadicLevels"
   it should "simplify e * 2 / 2 direct" in {
-    val p = em.matchTwoDyadicLevels & em.matchAndCollectTwoDyadicLevels
+    val p = em.matchTwoDyadicTripleLevels & em.matchAndCollectTwoDyadicLevels
     import em.TildeOps
     val e: Number = Number.e
     val x: Expression = Literal(e) * Constants.two

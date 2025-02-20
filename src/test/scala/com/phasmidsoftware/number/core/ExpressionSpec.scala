@@ -180,6 +180,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Literal(1).depth shouldBe 1
     pi.depth shouldBe 1
   }
+  it should "be 2 for any Function expression" in {
+    Function(1, Negate).depth shouldBe 2
+    Function(1, Cosine).depth shouldBe 2
+    Function(1, Sine).depth shouldBe 2
+  }
   it should "be more than 1 for other expression" in {
     (ConstE * 2).depth shouldBe 2
     (ConstE * 2 / 2).depth shouldBe 3
