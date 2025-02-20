@@ -16,6 +16,7 @@ object Constants {
   val pi: Real = Real(Number.pi)
   val twoPi: Real = Real(Number.twoPi)
   val piBy2: Real = Real(Number.piBy2)
+  val piBy4: Real = Real(Number.piBy4)
   //noinspection NonAsciiCharacters
   val `𝛑`: Real = Real(Number.`𝛑`)
   val e: Real = Real(Number.e)

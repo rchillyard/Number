@@ -107,6 +107,14 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       case _ => x.evaluate
     }
 
+  def matchComplementary: Matcher[DyadicTriple, Expression] = Matcher("matchComplementary") {
+    case f ~ x ~ y =>
+      matchComplementaryExpressions(f ~ x ~ y) match {
+        case Match(z) => Match(Literal(z.evaluate))
+        case _ => Miss("matchComplementary: no match", x ~ y)
+      }
+  }
+
   /**
    * Matcher which always succeeds.
    * If either operand can be simplified, then it will be.
@@ -133,32 +141,30 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case f ~ y ~ BiFunction(g, w, x) =>
       matcher3(Match(y), exactMaterializer(BiFunction(g, w, x)), Match(f)).map(x => Expression(x.evaluate))
     case Sum ~ (q@Function(_, _)) ~ (z@Function(_, _)) =>
-      matchComplementaryExpressions(q, z)
+      matchComplementaryExpressions(Sum ~ q ~ z)
     case Sum ~ x ~ (q@Function(_, _)) =>
-      matchComplementaryExpressions(x, q)
+      matchComplementaryExpressions(Sum ~ x ~ q)
     case Sum ~ (q@Function(_, _)) ~ y =>
-      matchComplementaryExpressions(q, y)
+      matchComplementaryExpressions(Sum ~ q ~ y)
     case f ~ y ~ z =>
       // CONSIDER allowing these single-level expressions through
       Miss("matchSimplifyDyadicTermsTwoLevels: no match", f ~ y ~ z)
   }
 
   /**
-   * Matches two expressions to check if they are complementary,
-   * i.e., their evaluations sum to zero.
+   * Matches two complementary expressions using the provided bi-function and evaluates their result.
    *
-   * @param ex the first expression to be matched
-   * @param ey the second expression to be matched
-   * @return a MatchResult containing the matched result
-   *         if the expressions are complementary, or a Miss
-   *         if they are not
+   * @param z  A dyadic triple.
+   * @return A MatchResult[Expression] containing an evaluated literal if the result matches the identity of the bi-function.
    */
-  def matchComplementaryExpressions(ex: Expression, ey: Expression): MatchResult[Expression] =
+  def matchComplementaryExpressions(z: DyadicTriple): MatchResult[Expression] = z match {
+    case f ~ ex ~ ey =>
     (for {
-      x <- exactMaterializer(ex);
-      y <- exactMaterializer(ey);
-      z = x plus y
-    } yield z) filter (r => r.evaluate.isZero)
+      x <- exactMaterializer(ex)
+      y <- exactMaterializer(ey)
+      z = f(x.evaluate, y.evaluate)
+    } yield z) filter (r => r == f.identity) map (Literal(_))
+  }
 
   /**
    * Method to match an Expression which is a BiFunction and replace it with a simplified expression.
@@ -481,6 +487,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * NOTE: Need to fix #87
    *
    * @return A `Transformer` that matches and simplifies `Total` expressions efficiently.
+   * @throws NoSuchElementException due to invocation of get on Option (very unlikely).
    */
   private def simplifyTotalTerms: Transformer = Matcher[Expression, Expression]("simplifyTotalTerms") {
     case Total(Nil) => Match(Constants.zero)
@@ -852,7 +859,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
    * Abstract class `ExpressionMatcher`, which extends `Matcher` where the input type is always `Expression`.
    *
-   * @tparam R the underyling type of `MatchResult`s.
+   * @tparam R the underlying type of `MatchResult`s.
    */
   abstract class ExpressionMatcher[+R] extends Matcher[Expression, R]
 

@@ -642,6 +642,10 @@ object Number {
     */
   val piBy2: Number = Number(Rational.half, Radian)
   /**
+   * Exact value of pi/4
+   */
+  val piBy4: Number = Number(Rational(1, 4), Radian)
+  /**
     * Exact value of -pi
     */
   val minusPi: Number = negate(pi)

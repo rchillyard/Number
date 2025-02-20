@@ -468,7 +468,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchComplementaryExpressions"
   it should "work" in {
-    em.matchComplementaryExpressions(One, Function(One, Negate)) shouldBe em.Match(BiFunction(One, MinusOne, Sum))
+    import em.TildeOps
+    em.matchComplementaryExpressions(Sum ~ One ~ Function(One, Negate)) shouldBe em.Match(Zero)
   }
 
   behavior of "matchSimplifyDyadicTermsTwoLevels"
@@ -476,15 +477,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "match 1" in {
     val p = em.matchSimplifyDyadicTermsTwoLevels
     import em.TildeOps
-    p(Sum ~ One ~ Function(One, Negate)) shouldBe em.Match(BiFunction(One, MinusOne, Sum))
-    p(Sum ~ Function(One, Negate) ~ One) shouldBe em.Match(BiFunction(MinusOne, One, Sum))
+    p(Sum ~ One ~ Function(One, Negate)) shouldBe em.Match(Zero)
+    p(Sum ~ Function(One, Negate) ~ One) shouldBe em.Match(Zero)
   }
   it should "match 2" in {
     val p = em.matchSimplifyDyadicTermsTwoLevels
     import em.TildeOps
-    p(Sum ~ One ~ Function(ConstPi, Cosine)) shouldBe em.Match(BiFunction(One, MinusOne, Sum))
-    p(Sum ~ Function(ConstPi, Cosine) ~ One) shouldBe em.Match(BiFunction(MinusOne, One, Sum))
-    p(Sum ~ Function(Zero, Cosine) ~ Function(ConstPi, Cosine)) shouldBe em.Match(BiFunction(One, MinusOne, Sum))
+    p(Sum ~ One ~ Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
+    p(Sum ~ Function(ConstPi, Cosine) ~ One) shouldBe em.Match(Zero)
+    p(Sum ~ Function(Zero, Cosine) ~ Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
   }
 
   behavior of "biFunctionSimplifier"

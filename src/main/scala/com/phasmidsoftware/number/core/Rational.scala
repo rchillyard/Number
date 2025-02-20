@@ -717,6 +717,7 @@ object Rational {
    *
    * @param x the value.
    * @return a Rational equal to or approximately equal to x.
+   * @throws NoSuchElementException because we invoke get on an Option[Rational].
    */
   implicit def convertDouble(x: Double): Rational = createExact(x).get // NOTE using get
 

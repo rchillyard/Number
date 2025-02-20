@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.number.core.Constants.piBy4
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.parse.ShuntingYardParser
@@ -861,7 +862,7 @@ case object Cosine extends ExpressionFunction(x => x.cos, "cos")
  * - This operation is not commutative.
  * - May yield inexact results if the inputs are not exact.
  */
-case object Atan extends ExpressionBiFunction((x: Field, y: Field) => (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN)), "atan", false, false)
+case object Atan extends ExpressionBiFunction((x: Field, y: Field) => (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN)), "atan", false, piBy4, false)
 
 /**
  * Represents the natural logarithmic function as an ExpressionFunction.
@@ -888,7 +889,7 @@ case object Negate extends ExpressionFunction(x => negate(x), "-")
  * This object extends `ExpressionBiFunction` by defining its operation as addition (`add`)
  * with the corresponding symbol "+" and is flagged as not always exact (`isExact = false`).
  */
-case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = false)
+case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = false, Constants.zero)
 
 /**
  * Represents a specific implementation of the `ExpressionBiFunction` that performs multiplication between two `Field` values.
@@ -899,17 +900,19 @@ case object Sum extends ExpressionBiFunction((x, y) => x add y, "+", isExact = f
  * - The operation is marked as exact, ensuring the result is always precise when the inputs are exact.
  * - It inherits the commutative property from `ExpressionBiFunction`, as multiplication is commutative.
  */
-case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*", isExact = true)
+case object Product extends ExpressionBiFunction((x, y) => x multiply y, "*", isExact = true, Constants.one)
 
 /**
  * Represents the power operation as a binary function within expressions.
  * This operation raises the first operand to the power of the second operand.
  * It is not exact for all inputs and does not commute.
  *
+ * TODO check on Constants.zero as identity.
+ *
  * Extends `ExpressionBiFunction` where the specific function is implemented
  * using the `power` method from the `Field` class.
  */
-case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExact = false, commutes = false)
+case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExact = false, Constants.zero, commutes = false)
 
 /**
  * A lazy monadic expression function.
@@ -962,7 +965,7 @@ object ExpressionFunction {
  * @param isExact  true if this function is always exact, given exact inputs.
  * @param commutes true only if the parameters to f are commutative.
  */
-class ExpressionBiFunction(val f: (Field, Field) => Field, val name: String, val isExact: Boolean, val commutes: Boolean = true) extends ((Field, Field) => Field) {
+class ExpressionBiFunction(val f: (Field, Field) => Field, val name: String, val isExact: Boolean, val identity: Field, val commutes: Boolean = true) extends ((Field, Field) => Field) {
   /**
    * Evaluate this function on x.
    *
