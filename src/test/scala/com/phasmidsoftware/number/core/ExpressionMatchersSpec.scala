@@ -267,7 +267,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   // FIXME Issue #87
-  ignore should "simplify total 2a" in {
+  ignore should "simplify total 1a" in {
     val target: Expression = Total(Seq(ConstPi, -ConstPi))
     val expected = ExactNumber(0, Radian)
     val result: em.MatchResult[Field] = em.simplifier(target) map (_.materialize)
@@ -278,15 +278,24 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     }
   }
 
-  // FIXME Issue #87
-  ignore should "simplify total 2b" in {
+  it should "simplify total 2a" in {
+    val target: Expression = Total(Seq(ConstPi, -ConstPi))
+    val result: em.MatchResult[Field] = em.simplifier(target) map (_.materialize)
+    result match {
+      case em.Match(x: Field) =>
+        convertToNumber(x).isZero shouldBe true
+      case _ => fail("expected a Field")
+    }
+  }
+
+  it should "simplify total 2b" in {
     // NOTE: this does not create a Total but instead creates a BiFunction.
     val target: Expression = CompositeExpression(ConstPi, -ConstPi)
     val expected = ExactNumber(0, Radian)
     val result: em.MatchResult[Field] = em.simplifier(target) map (_.materialize)
     result match {
       case em.Match(x: Field) =>
-        convertToNumber(x) shouldBe expected
+        convertToNumber(x).isZero shouldBe true
       case _ => fail("expected a Field")
     }
   }
@@ -431,7 +440,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ Two ~ Two) should matchPattern { case em.Miss(_, _) => }
     p(Power ~ Literal(root2) ~ Two) shouldBe em.Match(Two)
   }
-  ignore should "cancel plus and minus" in {
+  it should "cancel plus and minus" in {
     val p = em.matchDyadicTrivial
     import em.TildeOps
     val x = Literal(Number.pi)
@@ -459,7 +468,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchComplementaryExpressions"
   it should "work" in {
-    em.matchComplementaryExpressions(One, Function(One, Negate)) shouldBe em.Match(Zero)
+    em.matchComplementaryExpressions(One, Function(One, Negate)) shouldBe em.Match(BiFunction(One, MinusOne, Sum))
   }
 
   behavior of "matchSimplifyDyadicTermsTwoLevels"
@@ -467,15 +476,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "match 1" in {
     val p = em.matchSimplifyDyadicTermsTwoLevels
     import em.TildeOps
-    p(Sum ~ One ~ Function(One, Negate)) shouldBe em.Match(Zero)
-    p(Sum ~ Function(One, Negate) ~ One) shouldBe em.Match(Zero)
+    p(Sum ~ One ~ Function(One, Negate)) shouldBe em.Match(BiFunction(One, MinusOne, Sum))
+    p(Sum ~ Function(One, Negate) ~ One) shouldBe em.Match(BiFunction(MinusOne, One, Sum))
   }
   it should "match 2" in {
     val p = em.matchSimplifyDyadicTermsTwoLevels
     import em.TildeOps
-    p(Sum ~ One ~ Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
-    p(Sum ~ Function(ConstPi, Cosine) ~ One) shouldBe em.Match(Zero)
-    p(Sum ~ Function(Zero, Cosine) ~ Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
+    p(Sum ~ One ~ Function(ConstPi, Cosine)) shouldBe em.Match(BiFunction(One, MinusOne, Sum))
+    p(Sum ~ Function(ConstPi, Cosine) ~ One) shouldBe em.Match(BiFunction(MinusOne, One, Sum))
+    p(Sum ~ Function(Zero, Cosine) ~ Function(ConstPi, Cosine)) shouldBe em.Match(BiFunction(One, MinusOne, Sum))
   }
 
   behavior of "biFunctionSimplifier"
@@ -535,7 +544,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     q.successful shouldBe true
   }
   // FIXME Issue #57
-  ignore should "biFunctionSimplifier on (1 + √3)(1 - √3)" in {
+  it should "biFunctionSimplifier on (1 + √3)(1 - √3)" in {
     val p = em.biFunctionSimplifier
     val x = Expression(3).sqrt
     //    val x = Constants.root3

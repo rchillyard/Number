@@ -154,15 +154,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *         if they are not
    */
   def matchComplementaryExpressions(ex: Expression, ey: Expression): MatchResult[Expression] =
-    for {
+    (for {
       x <- exactMaterializer(ex);
       y <- exactMaterializer(ey);
-      z <-
-        if ((x.evaluate + y.evaluate).isZero)
-          Match(Zero)
-        else
-          Miss("matchComplementaryExpressions", ex ~ ey)
-    } yield z
+      z = x plus y
+    } yield z) filter (r => r.evaluate.isZero)
 
   /**
    * Method to match an Expression which is a BiFunction and replace it with a simplified expression.
@@ -352,6 +348,15 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return a Match if one of the trivial situations is matched, else a Miss.
    */
   def collectTerms: Matcher[DyadicTriple, Expression] = Matcher("collectTerms") {
+    // NOTE there are additional ways of generating x^2 - y^2 (not always the Negate function)
+    case Product ~ BiFunction(w, x, Sum) ~ BiFunction(y, Function(z, Negate), Sum) if w == y && x == z =>
+      matchAndSimplify(BiFunction(w ^ 2, Function(x ^ 2, Negate), Sum))
+    case Product ~ BiFunction(w, Function(x, Negate), Sum) ~ BiFunction(y, z, Sum) if w == y && x == z =>
+      matchAndSimplify(BiFunction(w ^ 2, Function(x ^ 2, Negate), Sum))
+    case Product ~ BiFunction(w, x, Sum) ~ BiFunction(Function(y, Negate), z, Sum) if w == y && x == z =>
+      matchAndSimplify(BiFunction(w ^ 2, Function(x ^ 2, Negate), Sum))
+    case Product ~ BiFunction(Function(w, Negate), x, Sum) ~ BiFunction(y, z, Sum) if w == y && x == z =>
+      matchAndSimplify(BiFunction(w ^ 2, Function(x ^ 2, Negate), Sum))
     case Product ~ BiFunction(w, x, Sum) ~ BiFunction(y, z, Sum) => matchAndSimplify(Total(Seq(w * y, w * z, x * y, x * z)))
     case x => Miss("not a trivial dyadic function", x)
   }
