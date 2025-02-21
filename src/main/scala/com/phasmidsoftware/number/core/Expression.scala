@@ -292,6 +292,11 @@ object Expression {
  */
 sealed trait AtomicExpression extends Expression {
 
+  /**
+   * Indicates whether the expression is atomic.
+   *
+   * @return true, as this expression is atomic and cannot be further simplified.
+   */
   def isAtomic: Boolean = true
 
   /**
@@ -726,7 +731,7 @@ case class Total(xs: Seq[Expression]) extends CompositeExpression {
  */
 abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val pos: Boolean) extends CompositeExpression {
   require(p != 0 || q != 0, "may not have p and q equal to zero")
-  lazy val minusHalfP: Expression = Expression(-p) / 2
+  private lazy val minusHalfP: Expression = Expression(-p) / 2
   lazy val root: Expression = minusHalfP plus {
     val branch: Expression = ((minusHalfP ^ 2) - q).sqrt
     if (pos) branch else -branch
@@ -837,7 +842,15 @@ object CompositeExpression {
  *
  * The name of the function is "sin".
  */
-case object Sine extends ExpressionFunction(x => x.sin, "sin")
+case object Sine extends ExpressionFunction(x => x.sin, "sin") {
+  def isExactInContext(context: Context)(x: Expression): Boolean = x match {
+    case Literal(theta, _) => theta match {
+      // TODO add other cases
+      case Constants.zero | Constants.pi | Constants.piBy2 => true
+      case _ => false
+    }
+  }
+}
 
 /**
  * Represents the cosine mathematical trigonometric function as an `ExpressionFunction`.
@@ -847,7 +860,10 @@ case object Sine extends ExpressionFunction(x => x.sin, "sin")
  *
  * The function is initialized using the `cos` method of the `Number` type.
  */
-case object Cosine extends ExpressionFunction(x => x.cos, "cos")
+case object Cosine extends ExpressionFunction(x => x.cos, "cos") {
+  // TODO we should be defining Cosine in terms of Sine
+  def isExactInContext(context: Context)(x: Expression): Boolean = ???
+}
 
 /**
  * Represents an arctangent operation as a binary function.
@@ -870,16 +886,57 @@ case object Atan extends ExpressionBiFunction((x: Field, y: Field) => (for (a <-
  * This object provides functionality to compute the natural logarithm (ln) of a given Number.
  * The underlying implementation utilizes the `log` method of the Number type.
  */
-case object Log extends ExpressionFunction(x => x.log, "log")
+case object Log extends ExpressionFunction(x => x.log, "log") {
+  def isExactInContext(context: Context)(x: Expression): Boolean = x match {
+    case Literal(x, _) => x match {
+      case Constants.e | Constants.zero | Constants.one => true
+      case _ => false
+    }
+  }
+}
 
 /**
  * Represents a mathematical exponential function, exp(x), where e is the base of natural logarithms.
  * This case object extends ExpressionFunction and applies the exp operation on a given number.
  * It defines the exponential operation for transformation or evaluation within expressions.
  */
-case object Exp extends ExpressionFunction(x => x.exp, "exp")
+case object Exp extends ExpressionFunction(x => x.exp, "exp") {
+  /**
+   * Determines whether the provided expression is exact within the given context.
+   * CONSIDER do we really need context?
+   *
+   * @param context the context in which the expression is being evaluated for exactness
+   * @param x       the expression to be checked for exactness
+   * @return true if the expression is exact within the given context; otherwise false
+   */
+  def isExactInContext(context: Context)(x: Expression): Boolean = x match {
+    case Literal(z, _) => z match {
+      case Constants.zero | Constants.one => true
+      case _ => false
+    }
+  }
+}
 
-case object Negate extends ExpressionFunction(x => negate(x), "-")
+/**
+ * Negate is a specific implementation of the ExpressionFunction that changes the sign of a numeric value.
+ *
+ * This object represents the mathematical negation operation ("-") applied to a numeric input.
+ * It uses the `negate` method, which evaluates the negation of a given Number while handling specific cases
+ * like imaginary numbers and converting non-pure factors to Scalar form as necessary.
+ *
+ * The function is exact and operates lazily.
+ */
+case object Negate extends ExpressionFunction(x => negate(x), "-") {
+  /**
+   * Determines whether the provided expression is exact within the given context.
+   * CONSIDER do we really need context?
+   *
+   * @param context the context in which the expression is being evaluated for exactness
+   * @param x       the expression to be checked for exactness
+   * @return true if the expression is exact within the given context; otherwise false
+   */
+  def isExactInContext(context: Context)(x: Expression): Boolean = true
+}
 
 //case object Reciprocal extends ExpressionFunction(x => 1/x, "rec")
 
@@ -924,7 +981,18 @@ case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExac
  * @param f    the function Number => Number.
  * @param name the name of this function.
  */
-class ExpressionFunction(val f: Number => Number, val name: String) extends (Field => Field) {
+abstract class ExpressionFunction(val f: Number => Number, val name: String) extends (Field => Field) {
+
+  /**
+   * Determines whether the provided expression is exact within the given context.
+   * CONSIDER do we really need context?
+   *
+   * @param context the context in which the expression is being evaluated for exactness
+   * @param x       the expression to be checked for exactness
+   * @return true if the expression is exact within the given context; otherwise false
+   */
+  def isExactInContext(context: Context)(x: Expression): Boolean
+
   /**
    * Evaluate this function on Field x.
    *

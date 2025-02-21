@@ -291,7 +291,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify total 2b" in {
     // NOTE: this does not create a Total but instead creates a BiFunction.
     val target: Expression = CompositeExpression(ConstPi, -ConstPi)
-    val expected = ExactNumber(0, Radian)
+    val expected = ExactNumber(0, Radian) // Ideally, the result should equal this but for now, we only test isZero.
     val result: em.MatchResult[Field] = em.simplifier(target) map (_.materialize)
     result match {
       case em.Match(x: Field) =>
@@ -411,6 +411,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result shouldBe em.Match(ConstPi)
   }
 
+  behavior of "matchComplementary"
+  it should "cancel plus and minus" in {
+    val p = em.matchComplementary
+    import em.TildeOps
+    val x = Literal(Number.pi)
+    val y = -x
+    val result = p(Sum ~ x ~ y)
+    result should matchPattern { case em.Match(Zero) => }
+  }
 
   behavior of "matchDyadicTrivial"
   it should "handle Sum" in {
@@ -439,14 +448,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ One ~ Two) shouldBe em.Match(One)
     p(Power ~ Two ~ Two) should matchPattern { case em.Miss(_, _) => }
     p(Power ~ Literal(root2) ~ Two) shouldBe em.Match(Two)
-  }
-  it should "cancel plus and minus" in {
-    val p = em.matchDyadicTrivial
-    import em.TildeOps
-    val x = Literal(Number.pi)
-    val y = -x
-    val result = p(Sum ~ x ~ y)
-    result should matchPattern { case em.Match(Zero) => }
   }
   it should "cancel multiplication and division" in {
     val p = em.matchDyadicTrivial

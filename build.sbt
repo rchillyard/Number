@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
     "com.phasmidsoftware" %% "flog" % "1.0.10",
     "com.phasmidsoftware" %% "matchers" % "1.0.7",
     "org.apache.commons" % "commons-math3" % "3.6.1",
-    "com.novocode" % "junit-interface" % "0.11" % "test",
+    "com.novocode" % "junit-interface" % "0.11" % "test", // NOTE vulnerability here
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     "ch.qos.logback" % "logback-classic" % "1.5.16" % "test",

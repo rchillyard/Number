@@ -34,8 +34,10 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def isZero: Boolean = GeneralNumber.isZero(this)
 
   /**
-   * @param context an optional Factor to be matched.
-   * @return true if there is no fuzz AND if context is defined then it should match factor.
+   * Delegates to `factorAsIs`.
+   *
+   * @param context an optional `Factor` to be matched.
+   * @return true IF there is no fuzz AND (IF context is defined then it should match factor ELSE true).
     */
   def isExactInContext(context: Context): Boolean = factorAsIs(context)
 

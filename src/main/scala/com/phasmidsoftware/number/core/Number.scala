@@ -88,9 +88,9 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def maybeDouble: Option[Double]
 
   /**
-    * Method to determine if this Number is actually represented as an Integer.
+   * Method to determine if this Number is actually represented is an Integer.
     *
-    * @return true if exact and rational.
+   * @return true if exact and integral.
     */
   def isInteger: Boolean
 
@@ -180,7 +180,9 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def doMultiply(n: Number): Number
 
   /**
-    * Perform an exact scalar multiplication of this Number by the scale factor z.
+   * Perform an exact scalar multiplication of this `Number` by the scale factor `r`.
+   *
+   * NOTE that numbers with `Log` factor cannot be scaled exactly in this way.
     *
     * @param r a Rational.
     * @return a new Number which is this Number scaled by z.
@@ -188,7 +190,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def doMultiple(r: Rational): Number = GeneralNumber.times(this, r)
 
   /**
-    * Perform an exact scalar multiplication of this Number by the scale factor z.
+   * Perform an exact scalar multiplication of this `Number` by the scale factor `x`.
+   * Implemented by `doMultiple(Rational)` where you should consult NOTE
     *
     * @param x an Int.
     * @return a new Number which is this Number scaled by z.
