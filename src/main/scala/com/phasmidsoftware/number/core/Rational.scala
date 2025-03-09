@@ -641,7 +641,7 @@ object Rational {
    * This is the only instance in the domain of Rational with a negative denominator.
    */
   val negZero = new Rational(0, -1)
-  val negInfinity: Rational = negZero.invert
+  val negInfinity: Rational = new Rational(-1, 0)
   val negZeroDouble: Double = "-0.0".toDouble // negative zero as a Double
   lazy val pi_5000: Rational = Rational(sPi_5000)
   private[core] lazy val sPi_5000: String =

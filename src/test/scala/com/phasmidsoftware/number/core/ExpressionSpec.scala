@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.matchers.Matchers.TildeOps
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Expression.{ExpressionOps, pi}
 import com.phasmidsoftware.number.core.Field.convertToNumber
@@ -55,6 +56,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Function(One, Negate).materialize shouldBe Constants.minusOne
     Function(Two, Negate).materialize shouldBe Real(-2)
     Function(Function(Two, Negate), Negate).materialize shouldBe Constants.two
+  }
+  it should "work for Reciprocal" in {
+    Function(Two, Reciprocal).materialize shouldBe Constants.half
   }
   it should "work for Exp(Log(2))" in {
     val x = Function(Function(Two, Log), Exp)
@@ -143,7 +147,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for (sqrt 7)^2" in {
     val seven: Expression = Literal(7)
     val result: Expression = seven.sqrt ^ 2
-    result.toString shouldBe "{{7 ^ {2 ^ -1}} ^ 2}"
+    result.toString shouldBe "{[√7] ^ 2}"
   }
 
   behavior of "various operations"
@@ -189,7 +193,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (ConstE * 2).depth shouldBe 2
     (ConstE * 2 / 2).depth shouldBe 3
     val expression = Expression(7).sqrt ^ 2
-    expression.depth shouldBe 4
+    expression.depth shouldBe 2
   }
 
   behavior of "Euler"
@@ -206,7 +210,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate Phi^2 correctly" in {
     val em: ExpressionMatchers = Expression.em
-    import em.TildeOps
     val p = em.biFunctionTransformer
     p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(Phi, One, Sum))
   }

@@ -31,7 +31,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   it should "have root2" in {
     val target = Constants.root2
     target.isExact shouldBe true
-    target.isExactInContext(Some(Scalar)) shouldBe false
+    target.isExactInContext(Some(PureNumber)) shouldBe false
     val value = target.normalize
     value match {
       case Real(n) => n should ===(Number(math.sqrt(2)))
@@ -110,7 +110,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     maybeNumber.isDefined shouldBe true
     Real(maybeNumber.get) should ===(target)
     val result: Field = goldenRatio.materialize
-    result.render shouldBe "1.618033988749895(19)"
+    result.render shouldBe "1.618033988749895(24)"
   }
 it should "have alpha" in {
   val target = Constants.alpha

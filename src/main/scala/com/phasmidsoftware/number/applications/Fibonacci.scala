@@ -23,9 +23,10 @@ object Fibonacci {
    */
   def fib(n: Int): BigInt = {
     val expression = fibExpression(n)
+    // CONSIDER should this be PureNumber or Scalar?
     expression.materialize match {
       case Real(x) => x match {
-        case ExactNumber(y, Scalar) => maybeRational(y) match {
+        case ExactNumber(y, PureNumber) => maybeRational(y) match {
           case Some(z) =>
             z.toBigInt
           case _ =>

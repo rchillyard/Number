@@ -19,21 +19,47 @@ import scala.annotation.tailrec
  * @throws IllegalArgumentException if the input iterator is empty
  */
 case class Bumperator[T](xs: Iterator[T])(f: (T, T) => Boolean) extends Iterator[T] {
+  // These mutable variables represent the state of this Bumperator,
+  // that's to say, the pipeline of elements.
   var maybeCurrent: Option[T] = None
   var maybeFollowing: Option[T] = None
 
+  /**
+   * Checks if there are more elements available in the iterator.
+   *
+   * @return true if there is a next element to iterate over, false otherwise
+   */
   def hasNext: Boolean = {
     fillThePipeline()
     maybeCurrent.isDefined
   }
 
+  /**
+   * Retrieves the next element in the iterator. This method advances the iterator
+   * by returning the current element and setting up the next one. It is expected
+   * to throw an exception if no more elements are available in the iteration.
+   *
+   * @return the next element of type T in the iterator
+   * @throws NoSuchElementException if the iterator has no more elements
+   */
   def next(): T = {
-    val result = maybeCurrent.get // NOTE we expect to throw an exception here if maybeCurrent is None
+    // NOTE we expect to throw an exception here if maybeCurrent is None
+    val result = maybeCurrent.get
     maybeCurrent = maybeFollowing
     maybeFollowing = None
     result
   }
 
+  /**
+   * Recursively fills the pipeline with the next elements from the iterator.
+   * If either/both `maybeCurrent` and `maybeFollowing` are empty, it attempts to populate them with elements
+   * from the iterator (`xs`). If a function `f` evaluates to true for the current and following elements,
+   * they are cleared, and the method recurses to possibly load subsequent elements.
+   *
+   * The method stops when no further elements can be fetched or when `f` does not evaluate to true.
+   *
+   * @return Unit, the method performs its operations recursively without returning a concrete value.
+   */
   @tailrec
   private def fillThePipeline(): Unit = {
     if (maybeCurrent.isEmpty && xs.hasNext)
@@ -53,5 +79,5 @@ case class Bumperator[T](xs: Iterator[T])(f: (T, T) => Boolean) extends Iterator
 
 object Bumperator {
   def apply[T](xs: Seq[T])(f: (T, T) => Boolean): Iterator[T] =
-  new Bumperator(xs.iterator)(f: (T, T) => Boolean)
+    new Bumperator(xs.iterator)(f: (T, T) => Boolean)
 }

@@ -28,7 +28,7 @@ package object core {
   /**
    * Represents the context in which an evaluation occurs.
    *
-   * If a `Factor` is defined, it signifies the factor (PureNumber, Log, Radian, etc.)
+   * If a `Factor` is defined, it signifies the factor (Scalar, Log, Radian, etc.)
    * in which an expression must be evaluated.
    * Otherwise, there is no explicit factor.
    */

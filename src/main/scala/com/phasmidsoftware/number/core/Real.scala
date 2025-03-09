@@ -132,14 +132,14 @@ case class Real(x: Number) extends Field {
 
   /**
     * Yields the inverse of this Real.
-    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
+   * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     */
   def invert: Field = createFromRealField(x.invert)
 
   /**
     * Method to determine the sine of this Real.
-    * The result will be a Real with Scalar factor.
+   * The result will be a Real with PureNumber factor.
     *
     * @return the sine of this.
     */
@@ -147,7 +147,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to determine the cosine of this Real.
-    * The result will be a Real with Scalar factor.
+   * The result will be a Real with PureNumber factor.
     *
     * @return the cosine.
     */
@@ -155,7 +155,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to determine the tangent of this Real.
-    * The result will be a Real with Scalar factor.
+   * The result will be a Real with PureNumber factor.
     *
     * @return the tangent
     */
@@ -171,7 +171,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to determine the natural log of this Real.
-    * The result will be a Real with Scalar factor.
+   * The result will be a Real with PureNumber factor.
     *
     * @return the natural log of this.
     */
@@ -291,6 +291,10 @@ object Real {
    */
   def apply(r: Rational): Real = Real(Number(r))
 
+  def atan(x: Field, y: Field): Real = (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN))
+
+  val atanFunction: (Field, Field) => Real = atan
+
   /**
    * Creates a Real instance from a given Field if it can be represented as a real number.
    *
@@ -372,9 +376,9 @@ object Real {
     */
   trait RealIsOrdering extends Ordering[Real] {
     /**
-      * When we do a compare on NatLog numbers, they are in the same order as Scalar numbers (i.e. monotonically increasing).
+     * When we do a compare on NatLog numbers, they are in the same order as PureNumber numbers (i.e. monotonically increasing).
       * It's not necessary to convert exact numbers to fuzzy numbers for this purpose, we simply
-      * pretend that the NatLog numbers are Scalar numbers.
+     * pretend that the NatLog numbers are PureNumber numbers.
       *
       * @param x the first Real.
       * @param y the second Real.

@@ -88,7 +88,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "add1" in {
     val c3 = c1_2 add c2_0
-    c3 should matchPattern { case ComplexCartesian(ExactNumber(Right(3), Scalar), ExactNumber(Right(2), Scalar)) => }
+    c3 should matchPattern { case ComplexCartesian(ExactNumber(Right(3), PureNumber), ExactNumber(Right(2), PureNumber)) => }
   }
   it should "add2" in {
     val c3 = p1_pi add c2_0
@@ -139,7 +139,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "c1_2^2" in {
     val z: Field = c1_2 power 2
-    z should matchPattern { case ComplexCartesian(ExactNumber(Right(-3), Scalar), ExactNumber(Right(4), Scalar)) => }
+    z should matchPattern { case ComplexCartesian(ExactNumber(Right(-3), PureNumber), ExactNumber(Right(4), PureNumber)) => }
   }
 
   it should "c1_2^0" in {
@@ -201,7 +201,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   behavior of "other"
 
   it should "context" in {
-    c1_2.context shouldBe Some(Scalar)
+    c1_2.context shouldBe Some(PureNumber)
     ComplexCartesian(Number.one, Number.pi).context shouldBe None
     p1_pi.context shouldBe None
     ComplexPolar(Number.one, Number.pi).context shouldBe None
@@ -358,8 +358,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "convertToNumber" in {
     convertToNumber(Constants.i) shouldBe Number.i
   }
-  it should "scale(Scalar)" in {
-    Number.i.scale(Scalar) shouldBe Number.NaN
+  it should "scale(PureNumber)" in {
+    Number.i.scale(PureNumber) shouldBe Number.NaN
   }
   it should "normalize" in {
     Number.i.normalize shouldBe ComplexCartesian(0, 1)

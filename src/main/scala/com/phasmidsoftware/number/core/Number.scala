@@ -37,7 +37,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * The factor of this Number.
-    * Ordinary numbers are of Scalar factor, angles have factor Radian, and natural logs have factor NatLog.
+   * Ordinary numbers are of PureNumber factor, angles have factor Radian, and natural logs have factor NatLog.
     *
     * @return the factor.
     */
@@ -208,7 +208,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Yields the inverse of this Number.
-    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
+   * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
@@ -292,7 +292,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Yields the inverse of this Number.
-    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
+   * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
@@ -307,7 +307,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the sine of this Number.
-    * The result will be a Number with Scalar factor.
+   * The result will be a Number with PureNumber factor.
     *
     * @return the sine of this.
     */
@@ -315,7 +315,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the cosine of this Number.
-    * The result will be a Number with Scalar factor.
+   * The result will be a Number with PureNumber factor.
     *
     * @return the cosine.
     */
@@ -323,7 +323,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the tangent of this Number.
-    * The result will be a Number with Scalar factor.
+   * The result will be a Number with PureNumber factor.
     *
     * @return the tangent
     */
@@ -348,7 +348,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the natural log of this Number.
-    * The result will be a Number with Scalar factor.
+   * The result will be a Number with PureNumber factor.
     *
     * @return the natural log of this.
     */
@@ -721,7 +721,7 @@ object Number {
       */
     def ~(y: Int): Number = if (y >= 10 && y < 100) {
       val p = y * math.pow(10.0, -BigDecimal(x).scale)
-      Number(x, Scalar, Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
+      Number(x, PureNumber, Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
     }
     else
       throw NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
@@ -826,7 +826,7 @@ object Number {
     * However, note that this will change the behavior such that it is no longer possible to have the constant 2pi.
     *
     * @param value  the value of the Number, expressed as a nested Either type.
-    * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
+   * @param factor  the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
     * @param fuzz   the fuzziness of this Number, wrapped in Option.
     * @return a Number.
     */
@@ -846,13 +846,13 @@ object Number {
     */
   def createFromDouble(x: Double, factor: Factor): Number = apply(x, factor, Some(Fuzziness.doublePrecision))
 
-  def createFromDouble(x: Double): Number = createFromDouble(x, Scalar)
+  def createFromDouble(x: Double): Number = createFromDouble(x, PureNumber)
 
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
     *
     * @param value  the value of the Number, expressed as a nested Either type.
-    * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
+   * @param factor  the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
     * @return a Number.
     */
   def create(value: Value, factor: Factor): Number = create(value, factor, None)
@@ -864,7 +864,7 @@ object Number {
     * @param actualFuzz the fuzziness of this Number.
     * @return a Number.
     */
-  def create(value: Value, actualFuzz: Fuzziness[Double]): Number = create(value, Scalar, Some(actualFuzz))
+  def create(value: Value, actualFuzz: Fuzziness[Double]): Number = create(value, PureNumber, Some(actualFuzz))
 
   /**
     * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
@@ -872,7 +872,7 @@ object Number {
     * @param value the value of the Number, expressed as a nested Either type.
     * @return a Number.
     */
-  def create(value: Value): Number = create(value, Scalar)
+  def create(value: Value): Number = create(value, PureNumber)
 
   /**
     * Method to construct a Number from a String.
@@ -1026,7 +1026,7 @@ object Number {
     * @param x the Int value.
     * @return a Number based on x.
     */
-  def apply(x: Int): Number = Number(x, Scalar)
+  def apply(x: Int): Number = Number(x, PureNumber)
 
   /**
     * Method to construct a Number from a BigInt.
@@ -1034,7 +1034,7 @@ object Number {
     * @param x a BigInt value.
     * @return a Number based on x.
     */
-  def apply(x: BigInt): Number = Number(x, Scalar)
+  def apply(x: BigInt): Number = Number(x, PureNumber)
 
   /**
     * Method to construct a Number from a Rational.
@@ -1042,7 +1042,7 @@ object Number {
     * @param x a Rational value.
     * @return a Number based on x.
     */
-  def apply(x: Rational): Number = Number(x, Scalar)
+  def apply(x: Rational): Number = Number(x, PureNumber)
 
   /**
     * Method to construct a Number from a BigDecimal.
@@ -1050,7 +1050,7 @@ object Number {
     * @param x the BigDecimal value.
     * @return a Number based on x.
     */
-  def apply(x: BigDecimal): Number = Number(x, Scalar)
+  def apply(x: BigDecimal): Number = Number(x, PureNumber)
 
   /**
     * Method to construct a Number from an optional Double.
@@ -1058,7 +1058,7 @@ object Number {
     * @param xo an optional Double.
     * @return a Number based on xo.
     */
-  def apply(xo: Option[Double]): Number = Number(xo, Scalar)
+  def apply(xo: Option[Double]): Number = Number(xo, PureNumber)
 
   /**
     * Method to construct a Number from a Double.
@@ -1066,7 +1066,7 @@ object Number {
     * @param x the Double value.
     * @return a Number based on x.
     */
-  def apply(x: Double): Number = Number(x, Scalar)
+  def apply(x: Double): Number = Number(x, PureNumber)
 
   /**
     * Method to construct an invalid Number.
@@ -1100,9 +1100,9 @@ object Number {
     */
   trait NumberIsOrdering extends Ordering[Number] {
     /**
-      * When we do a compare on NatLog numbers, they are in the same order as Scalar numbers (i.e. monotonically increasing).
+     * When we do a compare on NatLog numbers, they are in the same order as PureNumber numbers (i.e. monotonically increasing).
       * It's not necessary to convert exact numbers to fuzzy numbers for this purpose, we simply
-      * pretend that the NatLog numbers are Scalar numbers.
+     * pretend that the NatLog numbers are PureNumber numbers.
       *
       * @param x the first Number.
       * @param y the second Number.
@@ -1112,7 +1112,7 @@ object Number {
       if (x == Number.NaN && y == Number.NaN) 0
       else if (x == Number.NaN || y == Number.NaN) throw NumberException("cannot compare NaN with non-NaN")
       else if (x.factor == NatLog && y.factor == NatLog)
-        compare(x.make(Scalar), y.make(Scalar)) // TESTME why do we need to convert to Scalar?
+        compare(x.make(PureNumber), y.make(PureNumber)) // TESTME why do we need to convert to PureNumber?
       else {
         // CONSIDER invoking the compare method in GeneralNumber.
         GeneralNumber.plus(x, Number.negate(y)).signum
@@ -1273,35 +1273,36 @@ object Number {
     */
   def scale(n: Number, factor: Factor): Number = (n.factor, factor) match {
     case (a, b) if a == b => n
-    case (NatLog, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
-    case (Scalar, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
-    case (Root(_), Scalar) if Value.signum(n.value) < 0 => Number.NaN
-    case (Root2, Scalar) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt)) // CONSIDER use of convert
-    case (NatLog, PureNumber(_)) | (PureNumber(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, Scalar), factor)
-    case (Scalar, Logarithmic(_)) => scale(scale(n, NatLog), factor)
-    case (Scalar, Root(f)) => convertScalarToRoot(n, factor, f)
+    case (NatLog, PureNumber) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
+    case (PureNumber, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
+    case (Root(_), PureNumber) if Value.signum(n.value) < 0 => Number.NaN
+    case (Root2, PureNumber) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt)) // CONSIDER use of convert
+    case (NatLog, Scalar(_)) | (Scalar(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, PureNumber), factor)
+    case (PureNumber, Logarithmic(_)) => scale(scale(n, NatLog), factor)
+    case (PureNumber, Root(f)) => convertScalarToRoot(n, factor, f)
     case (Root(f), NatLog) => convertRootToNatLog(n, factor, f)
-    case (PureNumber(_), PureNumber(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
+    case (Scalar(_), Scalar(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
     case (Root(_), Root(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
-    case (Logarithmic(_), PureNumber(_)) | (Root(_), Logarithmic(_)) | (Root(_), PureNumber(_)) => scale(scale(n, NatLog), factor)
+    case (Logarithmic(_), Scalar(_)) | (Root(_), Logarithmic(_)) | (Root(_), Scalar(_)) => scale(scale(n, NatLog), factor)
     case _ => throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
   }
 
   /**
     * Method to change the sign of this Number.
-    * The meaning of "change the sign" is in terms of pure numbers (Scalar, Radian).
-    * For any other factor, we convert <code>x</code> into Scalar form (which will most likely introduce fuzziness).
+   * The meaning of "change the sign" is in terms of pure numbers (PureNumber, Radian).
+   * For any other factor, we convert <code>x</code> into PureNumber form (which will most likely introduce fuzziness).
     * Imaginary numbers cannot be negated--they must first be converted to Complex form and then negated.
     *
     * @param x a Number to be negated.
     * @return <code>-x</code> unless the negative cannot be represented, in which case a NumberException will be thrown.
     */
   @tailrec
-  def negate(x: Number): Number = x.factor match {
-    case p@PureNumber(_) => prepare(x.transformMonadic(p)(MonadicOperationNegate))
+  def negate(x: Number): Number =
+    x.factor match {
+      case p@Scalar(_) => prepare(x.transformMonadic(p)(MonadicOperationNegate))
     case Root(_) if Value.signum(x.value) < 0 => throw NumberException(s"cannot negate imaginary number: $x")
-    case _ => negate(x.scale(Scalar))
+      case _ => negate(x.scale(PureNumber))
   }
 
   /**
@@ -1311,9 +1312,9 @@ object Number {
    * @return the inverted number, processed according to its factor type
    */
   def inverse(x: Number): Number = x.factor match {
-    case Scalar => prepare(x.transformMonadic(Scalar)(MonadicOperationInvert))
+    case PureNumber => prepare(x.transformMonadic(PureNumber)(MonadicOperationInvert))
     case f@Root(_) => prepare(x.transformMonadic(f)(MonadicOperationInvert))
-    case _ => negate(x.scale(Scalar))
+    case _ => negate(x.scale(PureNumber))
   }
 
   /**
@@ -1337,7 +1338,7 @@ object Number {
     * CONSIDER returning an Expression rather than a Number. That would enable an exact result for 1/12 and 5/12 pi.
     *
     * @param x a Number, typically in Radians, but if not, then will be converted.
-    * @return a Scalar Number which represents the sine of x.
+   * @return a PureNumber Number which represents the sine of x.
     */
   def sin(x: Number): Number =
   // TODO much of the logic here is a repeat of what's in transformMonadic.
@@ -1353,7 +1354,7 @@ object Number {
             case Some(4) | Some(8) => rootThreeQuarters // pi/3 and 2pi/3
             case Some(1) | Some(11) => rootSix doSubtract root2 doDivide 4 // pi/12 and 11pi/12 would be nice for this to be an Expression
             case Some(5) | Some(7) => rootSix doAdd root2 doDivide 4 // 5pi/12 and 7pi/12 ditto
-            case _ => prepareWithSpecialize(z.transformMonadic(Scalar)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
+            case _ => prepareWithSpecialize(z.transformMonadic(PureNumber)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
           }
         } else negate(sin(negate(x)))
 
@@ -1373,32 +1374,32 @@ object Number {
 
   /**
     * Yield the natural log of x.
-    * If the factor is NatLog, then we force the factor to be Scalar and simplify.
-    * Otherwise, if the factor is Scalar, we first convert it to a NatLog number, then call log recursively.
-    * Otherwise, we convert to a Scalar number and call log recursively.
+   * If the factor is NatLog, then we force the factor to be PureNumber and simplify.
+   * Otherwise, if the factor is PureNumber, we first convert it to a NatLog number, then call log recursively.
+   * Otherwise, we convert to a PureNumber number and call log recursively.
     *
     * @param x a Number.
     * @return the natural log of x.
     */
   @tailrec
   def log(x: Number): Number = x.factor match {
-    case NatLog => x.make(Scalar).simplify
-    case Scalar => log(x.scale(NatLog))
-    case _ => log(x.scale(Scalar))
+    case NatLog => x.make(PureNumber).simplify
+    case PureNumber => log(x.scale(NatLog))
+    case _ => log(x.scale(PureNumber))
   }
 
   /**
     * Yield the exponential of x i.e. e to the power of x.
-    * If the factor is Scalar, then we force the factor to be NatLog and simplify.
-    * Otherwise, we convert to a Scalar number and call exp recursively.
+   * If the factor is PureNumber, then we force the factor to be NatLog and simplify.
+   * Otherwise, we convert to a PureNumber number and call exp recursively.
     *
     * @param x a Number whose factor is NatLog.
     * @return the value of e raised to the power of x.
     */
   @tailrec
   def exp(x: Number): Number = x.factor match {
-    case Scalar => x.make(NatLog).simplify
-    case _ => exp(x.scale(Scalar))
+    case PureNumber => x.make(NatLog).simplify
+    case _ => exp(x.scale(PureNumber))
   }
 
   /**
@@ -1408,7 +1409,7 @@ object Number {
     * @return the square root of x.
     */
   def sqrt(x: Number): Number = x.factor match {
-    case Scalar => x.make(Root2).simplify
+    case PureNumber => x.make(Root2).simplify
     case _ => x.power(Number.half)
   }
 
@@ -1442,7 +1443,7 @@ object Number {
    */
   @tailrec
   private def doAtan(number: Number, sign: Int): Number = number.factor match {
-    case Scalar => prepareWithSpecialize(number.transformMonadic(Radian)(MonadicOperationAtan(sign))).modulate
+    case PureNumber => prepareWithSpecialize(number.transformMonadic(Radian)(MonadicOperationAtan(sign))).modulate
     case Root(2) =>
       val ro = number.toRational
       val ry: Try[Rational] = ro map (_.abs) match {
@@ -1453,7 +1454,7 @@ object Number {
       }
       (for (flip <- ro map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
         case Some(r) => Number(r, Radian)
-        case None => doAtan(number.scale(Scalar), sign)
+        case None => doAtan(number.scale(PureNumber), sign)
       }
     case _ => throw NumberException("number.factor is not matched")
   }
@@ -1467,7 +1468,7 @@ object Number {
    * @param f      the exponent to be applied during conversion
    */
   private def convertScalarToRoot(n: Number, factor: Factor, f: Double) =
-    n.doPower(ExactNumber(Value.fromDouble(Some(f)), Scalar)).make(factor)
+    n.doPower(ExactNumber(Value.fromDouble(Some(f)), PureNumber)).make(factor)
 
   /**
    * Converts the root representation of a number into its natural logarithm, scaled by a given factor.

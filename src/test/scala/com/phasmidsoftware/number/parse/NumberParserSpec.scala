@@ -160,31 +160,31 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val np: p.ParseResult[core.Number] = p.parseAll(p.number, "1.*")
     np should matchPattern { case p.Success(_, _) => }
     val n: core.Number = np.get
-    n shouldBe FuzzyNumber(Right(1), Scalar, Some(AbsoluteFuzz(0.5, Box)))
+    n shouldBe FuzzyNumber(Right(1), PureNumber, Some(AbsoluteFuzz(0.5, Box)))
   }
   it should "work for 3.14" in {
     val np = p.parseAll(p.number, "3.14")
     np should matchPattern { case p.Success(_, _) => }
     val n: core.Number = np.get
-    n shouldBe ExactNumber(Left(Right(Rational(314, 100))), Scalar)
+    n shouldBe ExactNumber(Left(Right(Rational(314, 100))), PureNumber)
   }
   it should "work for 3.1415927" in {
     val np = p.parseAll(p.number, "3.1415927")
     np should matchPattern { case p.Success(_, _) => }
     val n: core.Number = np.get
-    n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), Scalar, Some(AbsoluteFuzz(0.00000005, Box)))
+    n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), PureNumber, Some(AbsoluteFuzz(0.00000005, Box)))
   }
   it should "parse 3.1415927*" in {
     val np = p.parseAll(p.number, "3.1415927*")
     np should matchPattern { case p.Success(_, _) => }
     val n: core.Number = np.get
-    n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), Scalar, Some(AbsoluteFuzz(0.00000005, Box)))
+    n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), PureNumber, Some(AbsoluteFuzz(0.00000005, Box)))
   }
   it should "parse 3.1415927*E1" in {
     val np: p.ParseResult[core.Number] = p.parseAll(p.number, "3.1415927*E1")
     np should matchPattern { case p.Success(_, _) => }
     val n: core.Number = np.get
-    n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 1000000))), Scalar, Some(AbsoluteFuzz(0.0000005, Box)))
+    n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 1000000))), PureNumber, Some(AbsoluteFuzz(0.0000005, Box)))
   }
   it should "parse 3.141592653589793*" in {
     val np: p.ParseResult[core.Number] = p.parseAll(p.number, "3.141592653589793*")

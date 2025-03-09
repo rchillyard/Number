@@ -130,7 +130,7 @@ object Value {
   def valueToString(v: Value, exact: Boolean = true): String = (renderValue(v, exact), exact) match {
     case ((x, true), _) => x
     case ((x, _), false) => x
-    case (x, false) => x + "*"
+    case (x, false) => x.toString() + "*"
   }
 
   /**
@@ -161,10 +161,25 @@ sealed trait Factor {
   val value: Double
 
   /**
+   * Determines if the current factor operates additively.
+   *
+   * @return true if the factor is additive; false otherwise.
+   */
+  def isAdditive: Boolean
+
+  /**
+   * Determines if the current factor satisfies certain conditions within the given context.
+   *
+   * @param context the context in which the factor is evaluated.
+   * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+   */
+  def isA(context: Context): Boolean
+
+  /**
    * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
     * If the factors are incompatible, then None will be returned.
     *
-    * NOTE: only PureNumber<->PureNumber, Root<->Root or Logarithmic<->Logarithmic conversions can be effected.
+   * NOTE: only Scalar<->Scalar, Root<->Root or Logarithmic<->Logarithmic conversions can be effected.
     *
     * @param v the value to be converted.
     * @param f the factor of the result.
@@ -190,27 +205,42 @@ sealed trait Factor {
 }
 
 /**
-  * Trait to define a Factor which is a scaled version of a pure number.
+ * Trait to define a Factor which is a scalar (something that can be scaled by a pure number).
   */
-sealed trait PureNumber extends Factor {
+sealed trait Scalar extends Factor {
+
+  /**
+   * Determines if the current factor operates additively.
+   *
+   * @return true if the factor is additive; false otherwise.
+   */
+  def isAdditive: Boolean = true
+
+  /**
+   * Determines if the current factor satisfies certain conditions within the given context.
+   *
+   * @param context the context in which the factor is evaluated.
+   * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+   */
+  def isA(context: Context): Boolean = context.isEmpty || context.contains(this) || context.contains(PureNumber)
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
-    * Result is defined only if f is a PureNumber.
+   * Result is defined only if f is a Scalar.
     *
     * @param v the value to be converted.
     * @param f the factor of the result.
     * @return a Try of Value which, given factor f, represents the same quantity as x given this.
     */
   def convert(v: Value, f: Factor): Option[Value] = f match {
-    case PureNumber(z) =>
+    case Scalar(z) =>
       Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, z))))
     case _ => None
   }
 }
 
-object PureNumber {
-  def unapply(arg: PureNumber): Option[Double] = Some(arg.value)
+object Scalar {
+  def unapply(arg: Scalar): Option[Double] = Some(arg.value)
 }
 
 /**
@@ -218,6 +248,21 @@ object PureNumber {
   */
 sealed trait Logarithmic extends Factor {
   val base: String
+
+  /**
+   * Determines if the current factor operates additively.
+   *
+   * @return false.
+   */
+  def isAdditive: Boolean = false
+
+  /**
+   * Determines if the current factor satisfies certain conditions within the given context.
+   *
+   * @param context the context in which the factor is evaluated.
+   * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+   */
+  def isA(context: Context): Boolean = context.isEmpty || context.contains(this)
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
@@ -284,6 +329,21 @@ sealed trait Root extends Factor {
   val value: Double = root
 
   /**
+   * Determines if the current factor operates additively.
+   *
+   * @return false.
+   */
+  def isAdditive: Boolean = false
+
+  /**
+   * Determines if the current factor satisfies certain conditions within the given context.
+   *
+   * @param context the context in which the factor is evaluated.
+   * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+   */
+  def isA(context: Context): Boolean = context.isEmpty || context.contains(this)
+
+  /**
    * Converts a given Value `v` from one Factor `this` to another Factor `f`, if possible.
    * Specifically handles cases where the target factor `f` is of type Root.
    *
@@ -300,13 +360,39 @@ sealed trait Root extends Factor {
   }
 }
 
+/**
+ * Companion object for the `Root` trait, providing utility methods for working with `Root` instances.
+ */
 object Root {
+  /**
+   * Extractor method to retrieve the root degree from a `Root` instance.
+   *
+   * This method is used for pattern matching to extract the integer root degree
+   * associated with the given `Root` object.
+   *
+   * @param arg the `Root` instance from which to extract the root degree.
+   * @return an `Option` containing the root degree as an `Int`, or `None` if the extraction fails.
+   */
   def unapply(arg: Root): Option[Int] = Some(arg.root)
-
 }
 
-case object Scalar extends PureNumber {
+/**
+ * A case object representing the pure number 1.
+ * `PureNumber` extends the `Scalar` trait and behaves as a unit scalar factor.
+ *
+ * This object encapsulates the value of 1, providing a representation of a pure scalar.
+ * It includes functionality to render a string representation of a value.
+ */
+case object PureNumber extends Scalar {
   val value: Double = 1
+
+  /**
+   * Determines if the current factor satisfies certain conditions within the given context.
+   *
+   * @param context the context in which the factor is evaluated.
+   * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+   */
+  override def isA(context: Context): Boolean = context.isEmpty || context.contains(this)
 
   override def toString: String = ""
 
@@ -321,15 +407,15 @@ case object Scalar extends PureNumber {
   * NOTE however that, unlike, with the factor NatLog, we currently do not treat Radian values in quite this way in the code.
   *
   * CONSIDER implementing the Radian factor conversions in a manner similar to that of NatLog.
-  * This would entail conversion from a single number to a pair of Doubles when going from Radian to Scalar.
+ * This would entail conversion from a single number to a pair of Doubles when going from Radian to PureNumber.
   * We could do that using a Complex number but I'd rather do it as a 2-tuple of Doubles.
   * Perhaps the whole idea of our Complex implementation is misguided (although it does allow us to represent
-  * complex numbers in Polar form since, in that case, the real part is a Scalar number, and the imaginary part is coded in
+ * complex numbers in Polar form since, in that case, the real part is a PureNumber number, and the imaginary part is coded in
   * with factor Radian).
   *
   * The range of these values is 0 thru 2, which represents the radian values of 0 thru 2pi.
   */
-case object Radian extends PureNumber {
+case object Radian extends Scalar {
   val value: Double = Math.PI
 
   override def toString: String = Factor.sPi
@@ -388,7 +474,7 @@ case object Root2 extends Root {
 }
 
 /**
-  * This object represents the square root factor.
+ * This object represents the cube root factor.
   */
 case object Root3 extends Root {
 
@@ -399,6 +485,20 @@ case object Root3 extends Root {
   def root: Int = 3
 }
 
+/**
+ * An object that provides a mechanism to map input strings to specific factors such as Radian, NatLog, or PureNumber.
+ * It acts as a factory for creating instances of the `Factor` sealed trait.
+ *
+ * The object includes predefined constants representing symbols or keywords associated with certain factors.
+ * These constants include mathematical symbols like 'ℯ' and 'π', as well as their textual alternatives.
+ *
+ * The `apply` method takes a string input and matches it to one of the predefined constants to return an appropriate `Factor` instance.
+ *
+ * Matching logic:
+ * - Strings representing π (like "π", "pi", "Radian", "PI") will return the `Radian` factor.
+ * - The symbol 'ℯ' will return the `NatLog` factor.
+ * - All other strings default to the `PureNumber` factor.
+ */
 object Factor {
   val sE = "\uD835\uDF00"
   val sPi = "\uD835\uDED1"
@@ -409,7 +509,7 @@ object Factor {
   def apply(w: String): Factor = w match {
     case `sPi` | `sPiAlt0` | `sPiAlt1` | `sPiAlt2` => Radian
     case `sE` => NatLog
-    case _ => Scalar
+    case _ => PureNumber
   }
 }
 

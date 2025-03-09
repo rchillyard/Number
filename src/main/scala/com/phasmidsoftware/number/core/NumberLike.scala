@@ -10,7 +10,7 @@ package com.phasmidsoftware.number.core
 trait NumberLike {
 
   /**
-   * Method to determine if this `NumberLike` object can be evaluated exactly in the context.
+   * Method to determine if this `NumberLike` object can be evaluated exactly in the given context.
     *
    * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
    *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
@@ -20,7 +20,7 @@ trait NumberLike {
 
   /**
     * Method to determine if this NumberLike object can be evaluated exactly in the context of no factor.
-    * For instance, Number.pi is exact, although if you scaled it as a Scalar, it would no longer be exact.
+   * For instance, Number.pi is exact, although if you scaled it as a PureNumber, it would no longer be exact.
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */

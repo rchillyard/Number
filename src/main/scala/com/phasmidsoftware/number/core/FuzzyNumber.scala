@@ -24,7 +24,7 @@ import scala.collection.mutable
  * CONSIDER implementing equals (but be careful!). Don't implement it in terms of compare(...)==0 or Same.
  *
  * @param value  the value of the Number, expressed as a nested Either type.
- * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
+ * @param factor the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
  * @param fuzz   the fuzziness of this Number.
  */
 case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
@@ -65,7 +65,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     case None => ExactNumber(value, factor).simplify
     case _ =>
       factor match {
-        case Root(_) => scale(Scalar)
+        case Root(_) => scale(PureNumber)
         case _ => this
       }
   }
@@ -194,7 +194,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
     factor match {
       case Logarithmic(_) =>
         sb.append(factor.render(w))
-      case PureNumber(_) =>
+      case Scalar(_) =>
         sb.append(w)
         sb.append(factor.toString)
       case Root(_) =>
@@ -278,6 +278,18 @@ object FuzzyNumber {
   def fuzzyCompare(x: Number, y: Number, p: Double): Int =
     if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
     else GeneralNumber.plus(x, Number.negate(y)).signum(p)
+
+  //  /**
+  //   * Creates a new fuzzy number using the provided value, factor, and optional fuzziness.
+  //   * NOTE this method is not required to be explicitly declared.
+  //   * However, it is useful for navigation (call hierarchy).
+  //   *
+  //   * @param v  the numerical value to be used for the fuzzy number.
+  //   * @param f  the factor associated with the fuzzy number.
+  //   * @param fo an optional fuzziness defining the tolerance or uncertainty of the fuzzy number.
+  //   * @return a new instance of a fuzzy number initialized with the given parameters.
+  //   */
+  //  def apply(v: Value, f: Factor, fo: Option[Fuzziness[Double]]): Number = new FuzzyNumber(v, f, fo)
 
   /**
    * Method to construct an invalid Number.
@@ -376,7 +388,7 @@ object FuzzyNumber {
    * @return the result of raising the FuzzyNumber to the specified power.
    */
   private def power(number: FuzzyNumber, p: Number): Number =
-    composeDyadic(number.scale(Scalar), p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
+    composeDyadic(number.scale(PureNumber), p, p.factor, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
 
   /**
    * Get the fuzz coefficients for calculating the fuzz on a power operation.

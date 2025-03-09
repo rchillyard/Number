@@ -18,7 +18,7 @@ import scala.util._
   * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber.
   *
   * @param value  the value of the Number, expressed as a nested Either type.
-  * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
+ * @param factor  the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
   * @param fuzz   the (optional) fuzziness of this Number.
   */
 abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
@@ -178,7 +178,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * Method to determine the sine of this Number.
-    * The result will be a Number with Scalar factor.
+   * The result will be a Number with PureNumber factor.
     *
     * @return the sine of this.
     */
@@ -186,7 +186,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * Method to determine the cosine of this Number.
-    * The result will be a Number with Scalar factor.
+   * The result will be a Number with PureNumber factor.
     *
     * @return the cosine.
     */
@@ -202,7 +202,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
 
   /**
     * Method to determine the natural log of this Number.
-    * The result will be a Number with Scalar factor.
+   * The result will be a Number with PureNumber factor.
     *
     * @return the natural log of this.
     */
@@ -268,7 +268,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def asComparedWith(other: Number): Option[Fuzziness[Double]] =
     for {
       q <- doSubtract(other).toDouble
-      r <- other.scale(Scalar).toDouble
+      r <- other.scale(PureNumber).toDouble
       p <- AbsoluteFuzz(math.abs(q) / 2, Box).relative(r)
     } yield p
 
@@ -298,6 +298,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
       case v@Right(_) => Some(make(v, f))
       case v@Left(Right(_)) => Some(make(v, f))
       case v => make(v, f) match {
+        // NOTE creates a fuzzy number
         case n: GeneralNumber => for (t <- toDouble; x <- n.toDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, x, fuzz))
       }
     }
@@ -397,17 +398,17 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def make(x: Double, f: Factor): Number = make(Value.fromDouble(Some(x)), f)
 
   /**
-    * Method to "normalize" a number, that's to say make it a Scalar and also to force
+   * Method to "normalize" a number, that's to say make it a PureNumber and also to force
     * any fuzziness to be absolute.
     *
-    * @return a new Number with factor of Scalar but with the same magnitude as this.
+   * @return a new Number with factor of PureNumber but with the same magnitude as this.
     */
   def normalize: Field = {
     val z: Field = factor match {
-      case Scalar => Real(this)
+      case PureNumber => Real(this)
       case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
       case Radian => Real(this) // Number.modulate(this) NOTE: we do modulation at other times
-      case _ => Real(scale(Scalar))
+      case _ => Real(scale(PureNumber))
     }
     z match {
       case Real(fuzzyNumber: FuzzyNumber) => Real(fuzzyNumber.normalizeFuzz)
@@ -481,7 +482,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     */
   //protected
   def alignFactors(x: Number): (Number, Number) = factor match {
-    case Scalar => (this, x.scale(factor))
+    case PureNumber => (this, x.scale(factor))
     case _ => (scale(x.factor), x)
   }
 
@@ -602,7 +603,7 @@ object GeneralNumber {
     val op: MonadicOperation = MonadicOperationFunc(f, dfByDx)
     val no: Option[Number] = Operations.doTransformValueMonadic(x.value)(op.functions) flatMap {
       v =>
-        x.make(v, Scalar) match {
+        x.make(v, PureNumber) match {
           case n: GeneralNumber =>
             for (t <- x.toDouble; z <- n.toDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, z, x.fuzz))
         }
@@ -615,14 +616,14 @@ object GeneralNumber {
   def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite, false)
 
   def plus(x: Number, y: Number): Number = x match {
-    case ExactNumber(Right(0), Scalar) => y
+    case ExactNumber(Right(0), PureNumber) => y
     case z: GeneralNumber =>
-      if (y == ExactNumber(Right(0), Scalar)) x
+      if (y == ExactNumber(Right(0), PureNumber)) x
       else {
         val (a, b) = z.alignFactors(y)
         a.factor match {
-          case Logarithmic(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
-          case Root(_) => plusAligned(a.scale(Scalar), b.scale(Scalar))
+          case Logarithmic(_) => plusAligned(a.scale(PureNumber), b.scale(PureNumber))
+          case Root(_) => plusAligned(a.scale(PureNumber), b.scale(PureNumber))
           case _ => plusAligned(a, b)
         }
       }
@@ -640,17 +641,17 @@ object GeneralNumber {
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)
           (p.factor, q.factor) match {
-            case (PureNumber(_), Scalar) => doTimes(p, q, p.factor)
-            case (Scalar, PureNumber(_)) => doTimes(p, q, q.factor)
+            case (Scalar(_), PureNumber) => doTimes(p, q, p.factor)
+            case (PureNumber, Scalar(_)) => doTimes(p, q, q.factor)
             case (f: Logarithmic, g: Logarithmic) if f == g =>
               prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationPlus))
-            case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
-            case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
+            case (f: Logarithmic, PureNumber) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
+            case (_: Logarithmic, PureNumber) => times(p.scale(PureNumber), q)
             case (Root(m), Root(n)) if m == 2 && n == 2 =>
               GeneralNumber.doTimes(p, q, p.factor)
-            case (Root(_), Root(_)) if p == q => p.make(Scalar)
+            case (Root(_), Root(_)) if p == q => p.make(PureNumber)
             case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
-            case _ => times(p.scale(Scalar), q.scale(Scalar))
+            case _ => times(p.scale(PureNumber), q.scale(PureNumber))
           }
       }
   }
@@ -665,23 +666,23 @@ object GeneralNumber {
 //  }
 
 //    x match {
-//    case ExactNumber(Right(0), Scalar) => Number.zero
-//    case ExactNumber(Right(1), Scalar) => y
+  //    case ExactNumber(Right(0), PureNumber) => Number.zero
+  //    case ExactNumber(Right(1), PureNumber) => y
 //    case a: GeneralNumber =>
 //      y match {
-//        case ExactNumber(Right(0), Scalar) => Number.zero
-//        case ExactNumber(Right(1), Scalar) => x
+  //        case ExactNumber(Right(0), PureNumber) => Number.zero
+  //        case ExactNumber(Right(1), PureNumber) => x
 //        case n@FuzzyNumber(_, _, _) => n doMultiply x
 //        case z: GeneralNumber =>
 //          val (p, q) = a.alignTypes(z)
 //          (p.factor, q.factor) match {
-//            case (PureNumber(_), Scalar) => doTimes(p, q, p.factor)
-//            case (Scalar, PureNumber(_)) => doTimes(p, q, q.factor)
-//            case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
-//            case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
-//            case (Root(_), Root(_)) if p == q => p.make(Scalar)
+  //            case (Scalar(_), PureNumber) => doTimes(p, q, p.factor)
+  //            case (PureNumber, Scalar(_)) => doTimes(p, q, q.factor)
+  //            case (f: Logarithmic, PureNumber) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
+  //            case (_: Logarithmic, PureNumber) => times(p.scale(PureNumber), q)
+  //            case (Root(_), Root(_)) if p == q => p.make(PureNumber)
 //            case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
-//            case _ => times(p.scale(Scalar), q.scale(Scalar))
+  //            case _ => times(p.scale(PureNumber), q.scale(PureNumber))
 //          }
 //      }
 //  }
@@ -695,7 +696,7 @@ object GeneralNumber {
     * @return x raised to the power of y.
     */
   def power(x: Number, y: Number): Number =
-    y.scale(Scalar).toRational match {
+    y.scale(PureNumber).toRational match {
       case Some(r) => power(x, r).specialize
       case None =>
         // NOTE this is not used, but it doesn't seem to handle fuzziness (of the exponent) properly either.
@@ -722,9 +723,9 @@ object GeneralNumber {
         }
 
       case Radian =>
-        power(x.scale(Scalar), r)
+        power(x.scale(PureNumber), r)
 
-      case Scalar =>
+      case PureNumber =>
         toInts(r) match {
           case Some((n, d)) =>
             root(power(x, n), d) match {
@@ -736,8 +737,8 @@ object GeneralNumber {
         }
 
       // TODO we should also handle some situations where r.d is not 1.
-      case Root(n) if r.n == n && r.d == 1 => x.make(Scalar)
-      case _ => power(x.scale(Scalar), r)
+      case Root(n) if r.n == n && r.d == 1 => x.make(PureNumber)
+      case _ => power(x.scale(PureNumber), r)
 
     }
 
@@ -778,7 +779,7 @@ object GeneralNumber {
 
   private def normalizeRoot(value: Value, r: Root) = {
     Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
-      case Some(q) => ComplexCartesian(Number.zero, ExactNumber(q, r).scale(Scalar))
+      case Some(q) => ComplexCartesian(Number.zero, ExactNumber(q, r).scale(PureNumber))
       case None => throw NumberException("GeneralNumber.normalizeRoot: logic error")
     }
   }

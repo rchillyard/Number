@@ -108,7 +108,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
       for (
         r <- ro.orElse(Some(WholeNumber.one));
         v <- r.value.toOption;
-        f <- fo.orElse(Some(Scalar))) yield {
+        f <- fo.orElse(Some(PureNumber))) yield {
         val z: Option[Fuzziness[Double]] = r match {
           case n@NumberWithFuzziness(_, _, _) => n.fuzz
           case n@RealNumber(_, _, Some(f), _) if f.length > DPExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
