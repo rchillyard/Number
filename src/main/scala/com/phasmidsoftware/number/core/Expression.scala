@@ -400,7 +400,7 @@ sealed trait CompositeExpression extends Expression {
    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
    * @return a new `Expression` where the terms are substituted with the given sequence.
    */
-  def substituteTerms(terms: Seq[Expression]): Expression
+  def substituteTerms(terms: Seq[Expression]): CompositeExpression
 
   //  /**
   //   * Attempts to simplify each of the terms of this `CompositeExpression`.
@@ -641,7 +641,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
    * @return a new `Expression` where the terms are substituted with the given sequence.
    */
-  def substituteTerms(terms: Seq[Expression]): Expression = copy(x = terms.head)
+  def substituteTerms(terms: Seq[Expression]): CompositeExpression = copy(x = terms.head)
 
   //
   //  /**
@@ -737,7 +737,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
    * @return a new `Expression` where the terms are substituted with the given sequence.
    */
-  def substituteTerms(terms: Seq[Expression]): Expression = {
+  def substituteTerms(terms: Seq[Expression]): CompositeExpression = {
     val Seq(a, b) = terms
     BiFunction(a, b, f)
   }
@@ -876,7 +876,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
    * @return a new `Expression` where the terms are substituted with the given sequence.
    */
-  def substituteTerms(terms: Seq[Expression]): Expression = copy(xs = terms)
+  def substituteTerms(terms: Seq[Expression]): CompositeExpression = copy(xs = terms)
 
   /**
    * Method to determine the depth of this Expression.
@@ -899,7 +899,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
    *
    * @return a String
    */
-  override def toString: String = xs.mkString("+")
+  override def toString: String = xs.mkString(function.toString)
 }
 
 /**
@@ -914,7 +914,16 @@ object Aggregate {
    * @param xs a sequence of `Expression` instances that will be aggregated by the `Sum` operation.
    * @return an `Expression` representing the sum of the input expressions.
    */
-  def total(xs: Expression*): Expression = Aggregate(Sum, xs)
+  def total(xs: Expression*): CompositeExpression = Aggregate(Sum, xs)
+
+  /**
+   * Constructs an `Aggregate` expression that applies the `Product` operation
+   * to a variable number of input expressions.
+   *
+   * @param xs a sequence of `Expression` instances that will be aggregated by the `Product` operation.
+   * @return an `Expression` representing the product of the input expressions.
+   */
+  def product(xs: Expression*): CompositeExpression = Aggregate(Product, xs)
 
 }
 
@@ -966,7 +975,7 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
    * @return `this`.
    */
-  def substituteTerms(terms: Seq[Expression]): Expression = this
+  def substituteTerms(terms: Seq[Expression]): CompositeExpression = this
 
   /**
    * Method to determine the depth of this Expression.
