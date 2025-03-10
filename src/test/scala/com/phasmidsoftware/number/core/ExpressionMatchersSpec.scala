@@ -286,7 +286,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "cancel addition and subtraction of 3" in {
     val x = One + 3 - 3
     val m = em.simplifier(x) & em.evaluator(None)
-    m shouldBe em.Match(one)
+    m shouldBe em.Match(Constants.one)
   }
   it should "cancel addition and subtraction of e using matchComplementary" in {
     val y: Expression = One + ConstE
@@ -538,7 +538,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work for Sum and Sum" in {
     val x: Expression = Literal(7) + 2 - 3
     val p = em.matchBiFunction & em.biFunctionAggregator
-    p(x) shouldBe em.Match(Aggregate.total(Two, Literal(-3), Literal(7)))
+    val result = p(x)
+    result shouldBe em.Match(Aggregate.total(Two, Literal(-3), Literal(7)))
   }
   it should "work for Product and Product" in {
     val x: Expression = Literal(7) * 2 * -3

@@ -8,6 +8,7 @@ import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.Constants.{half, piBy2}
 import com.phasmidsoftware.number.core.Rational.{infinity, negInfinity}
 import com.phasmidsoftware.number.matchers._
+import org.slf4j.LoggerFactory
 
 import scala.language.implicitConversions
 
@@ -148,7 +149,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       case r@ReducedQuadraticRoot(_, _, _) => // TESTME
         Miss("simplification of ReducedQuadraticRoot not yet implemented", r) // TODO implement simplifications if any
       case x =>
-        Match(x)
+        Miss("compositeSimplifier", x)
   } :| "compositeSimplifier"
 
   /**
@@ -176,7 +177,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-   * Matches a `CompositeExpression` and returns a corresponding `Match` result.
+   * Matches a `CompositeExpression` and, if successful,
+   * attempts to simplify it.
    *
    * @return An `ExpressionMatcher` that matches instances of `CompositeExpression`.
    */
@@ -215,7 +217,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return an Transformer.
    */
   def functionSimplifier: Transformer =
-    (matchFunction & functionElementSimplifier & (matchMonadicTrivial | (matchSimplifyMonadicTerm & evaluateMonadicDuple) | (matchTwoMonadicLevels & matchAndCancelTwoMonadicLevels))) :| "functionSimplifier"
+    (matchFunction & alt(functionElementSimplifier) & (matchMonadicTrivial | (matchSimplifyMonadicTerm & evaluateMonadicDuple) | (matchTwoMonadicLevels & matchAndCancelTwoMonadicLevels))) :| "functionSimplifier"
 
   /**
    * Matches and aggregates expressions involving binary functions (BiFunction)
@@ -226,10 +228,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *         related components based on the matching rules for binary functions.
    */
   def biFunctionAggregator: Matcher[DyadicTriple, Expression] = Matcher("biFunctionAggregator") {
-    case Sum ~ BiFunction(x, y, Sum) ~ z => Match(Aggregate(Sum, Seq(x, y, z))) flatMap simplifier
-    case Product ~ BiFunction(x, y, Product) ~ z => Match(Aggregate(Product, Seq(x, y, z))) flatMap simplifier
-    case Sum ~ x ~ BiFunction(y, z, Sum) => Match(Aggregate(Sum, Seq(x, y, z))) flatMap simplifier
-    case Product ~ x ~ BiFunction(y, z, Product) => Match(Aggregate(Product, Seq(x, y, z))) flatMap simplifier
+    case Sum ~ BiFunction(x, y, Sum) ~ z => simplifier(Aggregate(Sum, Seq(x, y, z)))
+    case Product ~ BiFunction(x, y, Product) ~ z => simplifier(Aggregate(Product, Seq(x, y, z)))
+    case Sum ~ x ~ BiFunction(y, z, Sum) => simplifier(Aggregate(Sum, Seq(x, y, z)))
+    case Product ~ x ~ BiFunction(y, z, Product) => simplifier(Aggregate(Product, Seq(x, y, z)))
     case z => Miss("biFunctionAggregator: nothing to aggregate", z)
   }
 
@@ -503,15 +505,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return A Transformer that matches and simplifies `Function` expressions.
    */
   private def functionElementSimplifier: Matcher[MonadicDuple, MonadicDuple] = Matcher[MonadicDuple, MonadicDuple]("functionElementSimplifier") {
-    // CONSIDER this will return a Miss if simplifier returns a Miss. Is that OK?
-    case f ~ x =>
-      val ym = simplifier(x)
-      ym match {
-        case Match(y) =>
-          Match(f ~ y)
-        case Miss(_, _) =>
-          Match(f ~ x)
-      }
+    case f ~ x => simplifier(x) map (y => f ~ y)
   }
   //
   //  /**
@@ -1198,5 +1192,5 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case _ => None
   }
 
-  val logger: MatchLogger = matchLogger
+  val logger = LoggerFactory.getLogger(this.getClass)
 }
