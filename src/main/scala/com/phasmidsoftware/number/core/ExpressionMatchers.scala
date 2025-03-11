@@ -48,7 +48,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
    * Type alias for the kind of ExpressionMatcher which results in a possibly different Expression.
    */
-  private type Transformer = ExpressionMatcher[Expression]
+  private type ExpressionTransformer = ExpressionMatcher[Expression] // CONSIDER defining as Transformer[Expression]
 
   /**
    * Type alias for a pair of expressions (purpose of this is solely for brevity).
@@ -67,7 +67,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return Matcher[Expression, Expression]
    */
-  def exactMaterializer: Transformer = exactFieldMaterializer(None) map (Expression(_))
+  def exactMaterializer: ExpressionTransformer = exactFieldMaterializer(None) map (Expression(_))
 
   /**
    * Evaluates an expression within a given context, matching it to a field if the evaluation is exact.
@@ -127,7 +127,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return a Transformer that applies the composite simplification logic
    */
-  def simplifier: Transformer = alt[Expression](matchAndSimplifyComposite & compositeSimplifier | always)
+  def simplifier: ExpressionTransformer = alt[Expression](matchAndSimplifyComposite & compositeSimplifier | always)
 
   /**
    * `Transformer` which simplifies various types of expressions including atomic expressions,
@@ -209,7 +209,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return a Transformer.
    */
-  def biFunctionSimplifier: Transformer =
+  def biFunctionSimplifier: ExpressionTransformer =
     (matchBiFunction & biFunctionTransformer) :| "biFunctionSimplifier"
 
   /**
@@ -217,7 +217,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return an Transformer.
    */
-  def functionSimplifier: Transformer =
+  def functionSimplifier: ExpressionTransformer =
     (matchFunction & alt(functionElementSimplifier) & (matchMonadicTrivial | (matchSimplifyMonadicTerm & evaluateMonadicDuple) | (matchTwoMonadicLevels & matchAndCancelTwoMonadicLevels))) :| "functionSimplifier"
 
   /**
@@ -243,7 +243,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return a Transformer.
    */
-  def aggregateSimplifier: Transformer =
+  def aggregateSimplifier: ExpressionTransformer =
     (matchAggregate & simplifyAggregateTerms) :| "aggregateSimplifier"
 
   /**
@@ -433,9 +433,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
    * If the operand can be simplified, then it will be.
    *
-   * @return a Matcher[MonadicDuple, MonadicDuple].
+   * @return a `Transformer[MonadicDuple]`.
    */
-  def matchSimplifyMonadicTerm: Matcher[MonadicDuple, MonadicDuple] = Matcher("matchSimplifyMonadicTerm") {
+  def matchSimplifyMonadicTerm: Transformer[MonadicDuple] = Matcher("matchSimplifyMonadicTerm") {
     case Cosine ~ x => Match(Sine) ~ matchAndMaybeSimplify(x plus ConstPi / 2) // CHECK this is OK
     //    case Sine ~ x if (x*4).evaluate == Number.one => (x*4).evaluate match {
     //      case 1 =>
@@ -466,7 +466,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return A Transformer that matches and simplifies `Aggregate` expressions.
    */
-  private def aggregateElementSimplifier: Transformer = Matcher[Expression, Expression]("aggregateElementSimplifier") {
+  private def aggregateElementSimplifier: ExpressionTransformer = Matcher[Expression, Expression]("aggregateElementSimplifier") {
     case Aggregate(f, xs) =>
       // NOTE If any of the elements of `xs` are simplified, then the result will be a `Match`.
       // All elements of xs will be represented in the result.
@@ -501,7 +501,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    *
    * @return A Transformer that matches and simplifies `Function` expressions.
    */
-  private def functionElementSimplifier: Matcher[MonadicDuple, MonadicDuple] = Matcher[MonadicDuple, MonadicDuple]("functionElementSimplifier") {
+  private def functionElementSimplifier: Transformer[MonadicDuple] = Matcher[MonadicDuple, MonadicDuple]("functionElementSimplifier") {
     case f ~ x => simplifier(x) map (y => f ~ y)
   }
   //
@@ -637,7 +637,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return A Matcher that validates if at least one of the two DyadicTriple operands has a depth greater than 1.
    *         Returns a Match with the input if the condition is met, or a Miss with a message otherwise.
    */
-  def matchTwoDyadicLevels: Matcher[DyadicTriple, DyadicTriple] = Matcher("matchTwoDyadicLevels") {
+  def matchTwoDyadicLevels: Transformer[DyadicTriple] = Matcher("matchTwoDyadicLevels") {
     case f ~ x ~ y if x.depth > 1 || y.depth > 1 =>
       Match(f ~ x ~ y)
     case z =>
@@ -686,12 +686,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-   * Matcher to match a specific Number.
+   * Method to define a `Matcher` to match a specific Number.
+   * CONSIDER using `matches`.
    *
-   * @param x the Number to match.
-   * @return a Matcher[Field, Field] which matches only on x.
+   * @param x the `Number` to match.
+   * @return a `Transformer[Field]` which matches only on x.
    */
-  def matchNumber(x: Field): Matcher[Field, Field] =
+  def matchNumber(x: Field): Transformer[Field] =
     Matcher("matchNumber") {
       case `x` => Match(x)
       case e => Miss("matchNumber", e)
@@ -721,9 +722,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-   * Matcher which matches a BiFunction and results in a DyadicTriple.
+   * A `Transformer` which matches an `Aggregate` and results in an `Expression`.
    *
-   * @return ExpressionMatcher[DyadicTriple]
+   * @return ExpressionMatcher[Expression]
    */
   def matchAggregate: ExpressionMatcher[Expression] = ExpressionMatcher {
     case a@Aggregate(_, _) => Match(a)
@@ -744,7 +745,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return A `Transformer` that matches and simplifies `Aggregate` expressions efficiently.
    * @throws NoSuchElementException due to invocation of get on Option (very unlikely).
    */
-  def simplifyAggregateTerms: Transformer = Matcher[Expression, Expression]("simplifyAggregateTerms") {
+  def simplifyAggregateTerms: ExpressionTransformer = Matcher[Expression, Expression]("simplifyAggregateTerms") {
     case Aggregate(Sum, Nil) =>
       Match(Zero)
     case Aggregate(Product, Nil) =>
