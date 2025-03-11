@@ -148,11 +148,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "simplifyAggregateTerms"
-  it should "" in {
+  it should "simplifyAggregateTerms" in {
     val p = em.simplifyAggregateTerms
     val x = Aggregate.total(One, Literal(3), Literal(-3))
     val result: em.MatchResult[Expression] = p(x)
-    result shouldBe em.Match(One)
+    result shouldBe em.Match(Aggregate.total(One))
   }
   behavior of "simplifier"
   it should "leave atomic expression as is" in {

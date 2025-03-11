@@ -91,20 +91,38 @@ sealed trait Expression extends NumberLike {
    * @return the result of comparing materialized this with materialized comparand.
    */
   def compare(comparand: Expression): Int = recover(for (x <- materialize.asNumber; y <- comparand.materialize.asNumber) yield x.compare(y), NumberException("compare: logic error"))
-
-  /**
-   * Determines whether this expression is complementary to the given comparand.
-   * Two expressions are complementary if this and the comparand are exact, and their contexts are the same,
-   * and the sum of their evaluations results in zero.
-   *
-   * @param comparand the expression to compare with this expression.
-   * @return true if this expression and the comparand are complementary; otherwise, false.
-   */
-  def isComplementary(function: ExpressionBiFunction, comparand: Expression): Boolean =
-    isExact && comparand.isExact && context == comparand.context && (function match {
-      case Sum => (evaluate + comparand.evaluate).isZero
-      case Product => (evaluate * comparand.evaluate) == Constants.one
-    })
+//
+//  /**
+//   * Determines whether this expression is complementary to the given comparand.
+//   * Two expressions are complementary if this and the comparand are exact, and their contexts are the same,
+//   * and the sum of their evaluations results in zero.
+//   *
+//   * @param comparand the expression to compare with this expression.
+//   * @return true if this expression and the comparand are complementary; otherwise, false.
+//   */
+//  def isComplementary(function: ExpressionBiFunction, comparand: Expression): Boolean = {
+//    import com.phasmidsoftware.matchers.~
+//    val exact = isExact
+//    import com.phasmidsoftware.matchers.Matchers.TildeOps
+//    val ok = (function ~ this ~ comparand) match {
+//      case Sum ~ x ~ Function(y, Negate) => x == y
+//      case Sum ~ Function(x, Negate) ~ y => x == y
+//      case Sum ~ _ ~ _ =>
+//        val field = evaluate + comparand.evaluate
+//        field.isExact && field.isZero
+//      case Product ~ x ~ Function(y, Reciprocal) => x == y
+//      case Sum ~ Function(x, Negate) ~ y => x == y
+//      case Product ~ _ ~ _ =>
+//        val field = evaluate * comparand.evaluate
+//        field.isExact && field == Constants.one
+//      case _ => false
+//    }
+//    val comparandExact = comparand.isExact
+//    val context1 = context
+//    val context2 = comparand.context
+//    val result = exact && comparandExact && context1 == context2 && ok
+//    result
+//  }
 }
 
 /**
@@ -517,7 +535,7 @@ abstract class Constant extends AtomicExpression {
    * @return true if the constant is exact in the context of `context`; false otherwise.
    */
   def isExactInContext(context: Context): Boolean =
-    evaluate.isExactInContext(context)
+    evaluate(context).isExact
 }
 
 /**
@@ -626,7 +644,9 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    * @param context the context in which we want to evaluate this Expression.
    * @return false.
    */
-  def isExactInContext(context: Context): Boolean = f(x.materialize).isExactInContext(context)
+  def isExactInContext(context: Context): Boolean =
+    x.isExactInContext(context) && f.isExactInContext(context)(x)
+  //    f(x.materialize).isExactInContext(context)
 
   /**
    * Provides the terms that comprise this `CompositeExpression`.

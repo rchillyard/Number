@@ -354,23 +354,25 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == z => Match(y)
     case Sum ~ BiFunction(w, x, Sum) ~ Function(y, Negate) if w == y => Match(x)
     case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == y => Match(z)
+    case Sum ~ x ~ y if x.evaluate + y.evaluate == Constants.zero => Match(Zero)
     case Product ~ x ~ Function(y, Reciprocal) if x == y => Match(One)
     case Product ~ Function(x, Reciprocal) ~ y if x == y => Match(One)
     case Product ~ BiFunction(w, x, Product) ~ Function(y, Reciprocal) if x == y => Match(w)
     case Product ~ Function(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w => Match(z)
     case Product ~ BiFunction(w, x, Product) ~ Function(y, Reciprocal) if w == y => Match(x)
     case Product ~ Function(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z => Match(w)
+    case Product ~ x ~ y if x.evaluate * y.evaluate == Constants.one => Match(One)
     case _ => Miss("matchComplementaryExpressions: no match", z)
   }
 
-  private def evaluateDyadicTriple(z: DyadicTriple): MatchResult[Field] = z match {
-    case f ~ ex ~ ey =>
-      for {
-        x <- exactMaterializer(ex)
-        y <- exactMaterializer(ey)
-        z = f(x.evaluate, y.evaluate)
-      } yield z
-  }
+  //  private def evaluateDyadicTriple(z: DyadicTriple): MatchResult[Field] = z match {
+  //    case f ~ ex ~ ey =>
+  //      for {
+  //        x <- exactMaterializer(ex)
+  //        y <- exactMaterializer(ey)
+  //        z = f(x.evaluate, y.evaluate)
+  //      } yield z
+  //  }
 
   /**
    * This method defines a single Matcher which combines the various two-level matchers which can be applied to an Expression.
@@ -439,14 +441,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     //    case f ~ x => Match(f) ~ exactMaterializer(x)
     case z => Miss("matchSimplifyMonadicTerm: no simplification available", z) // Match(f) ~ exactMaterializer(x)
   }
-
-  /**
-   * Method to match an Expression which is a Aggregate and replace it with a simplified expression.
-   *
-   * @return an Matcher[Expression, Expression].
-   */
-  def aggregateTransformer: Transformer =
-    simplifyAggregateTerms :| "aggregateTransformer"
 
   /**
    * Checks if the given expression corresponds to the identity element with respect to the field option provided.
@@ -758,18 +752,32 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Match(BiFunction(x, y, f))
     //      if f.maybeIdentityL.isDefined && x.isComplementary(f, y) =>
     //      Match(f.maybeIdentityL.get)
+    case a@Aggregate(_, _) =>
+      ComplementaryTermsEliminator(a)
+  }
+
+  def ComplementaryTermsEliminator: Matcher[Aggregate, Expression] = {
     case a@Aggregate(f, xs) =>
-        // NOTE we should handle the very rare cases where the final get fails
+      // NOTE we should handle the very rare cases where the final get fails
       // NOTE this ordering is really only appropriate when f is Sum.
       // TODO find a better way to find complementary elements.
       val sorted: Seq[Expression] = xs.sortBy(x => Math.abs(x.asNumber.get.toDouble.get))
-      val list = Bumperator[Expression](sorted)((x, y) => x.isComplementary(f, y)).toList
+      val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
+      //      if (list.length <= 2)
+      //        simplifyAggregateTerms(Aggregate(f, list))
       if (list.length < xs.length)
-        simplifyAggregateTerms(Aggregate(f, list))
-      else {
-        //        Match(a.evaluate) // TODO is this OK?
+        Match(Aggregate(f, list))
+      else
         Miss(s"simplifyAggregateTerms: $a", a)
-      }
+    //        Match(a) // CONSIDER should this be a Miss?
+  }
+
+  private def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean =
+    (matchComplementaryExpressions(f ~ x ~ y) & filter[Expression](isIdentity(f))).successful
+
+  private def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean = {
+    val bool = f.maybeIdentityL contains z.evaluate
+    bool
   }
 
   /**
