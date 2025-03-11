@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.matchers.{LogInfo, MatchLogger}
+import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.parse.ShuntingYardParser
@@ -138,7 +138,7 @@ sealed trait Expression extends NumberLike {
 object Expression {
 
   // NOTE this is where we turn logging on (by using LogDebug or LogInfo).
-  implicit val logger: MatchLogger = MatchLogger(LogInfo, classOf[Expression])
+  implicit val logger: MatchLogger = MatchLogger(LogOff, classOf[Expression])
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
   //  trait LoggableExpression extends Loggable[Expression] {
@@ -719,9 +719,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
    * @return true if the current `BiFunction` instance is exact in the context of the given factor; otherwise, false.
    */
   def isExactInContext(context: Context): Boolean =
-    //    exact && (context.isEmpty || value.isExactInContext(context))
-    exact && context == this.context
-  //  context.isDefined && exact
+    exact && (context.isEmpty || context == this.context) // CONSIDER refactoring this expression
 
   /**
    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.

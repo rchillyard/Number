@@ -254,7 +254,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return an Matcher[DyadicTriple, Expression].
    */
   def biFunctionTransformer: Matcher[DyadicTriple, Expression] =
-    (simplifyIdentityDyadic | matchComplementary | matchDyadicTrivial | biFunctionAggregator | collectTerms | evaluateExactDyadicTriple | matchDyadicTwoLevels) :| "biFunctionTransformer"
+    (simplifyIdentityDyadic | matchComplementary | matchDyadicTrivial | biFunctionAggregator | collectTerms | matchDyadicTwoLevels) :| "biFunctionTransformer"
 
   /**
    * Simplifies dyadic expressions where one side is an identity element according to a given function.
@@ -617,19 +617,19 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       matchAndMaybeSimplify(Aggregate(Sum, Seq(w * y, w * z, x * y, x * z)))
     case x => Miss("not a trivial dyadic function", x)
   }
-
-  /**
-   * Matcher which takes a DyadicTriple (which is not exact -- otherwise this method would not be called).
-   * CONSIDER is it exact or not exact?
-   *
-   * CONSIDER this is redundant.
-   *
-   * @return a `Matcher[DyadicTriple, Expression]`
-   */
-  def evaluateExactDyadicTriple: Matcher[DyadicTriple, Expression] = Matcher("evaluateExactDyadicTriple") {
-    case f ~ x ~ y => replaceExactBiFunction(None)(BiFunction(x, y, f)) flatMap simplifier
-    case z => Miss("evaluateExactDyadicTriple: not an dyadic expression", z)
-  }
+  //
+  //  /**
+  //   * Matcher which takes a DyadicTriple (which is not exact -- otherwise this method would not be called).
+  //   * CONSIDER is it exact or not exact?
+  //   *
+  //   * CONSIDER this is redundant.
+  //   *
+  //   * @return a `Matcher[DyadicTriple, Expression]`
+  //   */
+  //  def evaluateExactDyadicTriple: Matcher[DyadicTriple, Expression] = Matcher("evaluateExactDyadicTriple") {
+  //    case f ~ x ~ y => replaceExactBiFunction(None)(BiFunction(x, y, f)) flatMap simplifier
+  //    case z => Miss("evaluateExactDyadicTriple: not an dyadic expression", z)
+  //  }
 
   /**
    * Matches two `DyadicTriple` objects where at least one of the operands has a depth greater than 1.

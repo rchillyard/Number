@@ -105,46 +105,46 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ x ~ Literal(Number.one)) shouldBe em.Match(x)
   }
 
-  behavior of "evaluateExactDyadicTriple"
-  ignore should "handle Sum" in {
-    val p = em.evaluateExactDyadicTriple
-    p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
-    p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
-    p(Sum ~ Two ~ Two) shouldBe em.Match(Literal(4))
-    p(Sum ~ One ~ Two) shouldBe em.Match(Literal(3))
-    p(Sum ~ One ~ Literal(root2)) should matchPattern { case em.Miss(_, _) => }
-  }
-  ignore should "handle Product" in {
-    val p = em.evaluateExactDyadicTriple
-    p(Product ~ One ~ Zero) shouldBe em.Match(Zero)
-    p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
-    p(Product ~ Two ~ One) shouldBe em.Match(Two)
-    p(Product ~ One ~ Two) shouldBe em.Match(Two)
-    p(Product ~ Two ~ Two) shouldBe em.Match(Literal(4))
-    p(Product ~ Two ~ Literal(3)) shouldBe em.Match(Literal(6))
-  }
-  ignore should "handle Power" in {
-    val p = em.evaluateExactDyadicTriple
-    p(Power ~ Two ~ Zero) shouldBe em.Match(One)
-    p(Power ~ Two ~ One) shouldBe em.Match(Two)
-    p(Power ~ One ~ Two) shouldBe em.Match(One)
-    p(Power ~ Two ~ Two) shouldBe em.Match(Literal(4))
-  }
-  ignore should "cancel -1 and - 1" in {
-    sb.append("cancel -1 and - 1:\n")
-    val p = em.evaluateExactDyadicTriple
-    val x: Expression = Expression.one
-    val y = Expression.minusOne
-    val result = p(Sum ~ y ~ x)
-    result should matchPattern { case em.Match(Zero) => }
-  }
-  it should "cancel multiplication and division" in {
-    val p = em.evaluateExactDyadicTriple
-    val x = Literal(Number.pi) * 2
-    val y = One / 2
-    val result = p(Product ~ x ~ y)
-    result shouldBe em.Match(ConstPi)
-  }
+  //  behavior of "evaluateExactDyadicTriple"
+  //  ignore should "handle Sum" in {
+  //    val p = em.evaluateExactDyadicTriple
+  //    p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
+  //    p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
+  //    p(Sum ~ Two ~ Two) shouldBe em.Match(Literal(4))
+  //    p(Sum ~ One ~ Two) shouldBe em.Match(Literal(3))
+  //    p(Sum ~ One ~ Literal(root2)) should matchPattern { case em.Miss(_, _) => }
+  //  }
+  //  ignore should "handle Product" in {
+  //    val p = em.evaluateExactDyadicTriple
+  //    p(Product ~ One ~ Zero) shouldBe em.Match(Zero)
+  //    p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
+  //    p(Product ~ Two ~ One) shouldBe em.Match(Two)
+  //    p(Product ~ One ~ Two) shouldBe em.Match(Two)
+  //    p(Product ~ Two ~ Two) shouldBe em.Match(Literal(4))
+  //    p(Product ~ Two ~ Literal(3)) shouldBe em.Match(Literal(6))
+  //  }
+  //  ignore should "handle Power" in {
+  //    val p = em.evaluateExactDyadicTriple
+  //    p(Power ~ Two ~ Zero) shouldBe em.Match(One)
+  //    p(Power ~ Two ~ One) shouldBe em.Match(Two)
+  //    p(Power ~ One ~ Two) shouldBe em.Match(One)
+  //    p(Power ~ Two ~ Two) shouldBe em.Match(Literal(4))
+  //  }
+  //  ignore should "cancel -1 and - 1" in {
+  //    sb.append("cancel -1 and - 1:\n")
+  //    val p = em.evaluateExactDyadicTriple
+  //    val x: Expression = Expression.one
+  //    val y = Expression.minusOne
+  //    val result = p(Sum ~ y ~ x)
+  //    result should matchPattern { case em.Match(Zero) => }
+  //  }
+  //  it should "cancel multiplication and division" in {
+  //    val p = em.evaluateExactDyadicTriple
+  //    val x = Literal(Number.pi) * 2
+  //    val y = One / 2
+  //    val result = p(Product ~ x ~ y)
+  //    result shouldBe em.Match(ConstPi)
+  //  }
 
   behavior of "simplifyAggregateTerms"
   it should "simplifyAggregateTerms" in {
@@ -528,16 +528,18 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "biFunctionAggregator"
-  it should "work for Sum and Sum" in {
+  it should "work for 7 + 2 - 3" in {
     val x: Expression = Literal(7) + 2 - 3
     val p = em.matchBiFunction & em.biFunctionAggregator
     val result = p(x)
-    result shouldBe em.Match(Aggregate.total(Two, Literal(-3), Literal(7)))
+    result shouldBe em.Match(Aggregate.total(Literal(7), Two, Function(Literal(3), Negate)))
   }
-  it should "work for Product and Product" in {
+  it should "work for 7 * 2 * -3" in {
     val x: Expression = Literal(7) * 2 * -3
     val p = em.matchBiFunction & em.biFunctionAggregator
-    p(x) shouldBe em.Match(Aggregate.product(Two, Literal(-3), Literal(7)))
+    val result = p(x)
+    // CONSIDER why is this behavior different than that for 7 + 2 - 3?
+    result shouldBe em.Match(Aggregate.product(Literal(7), Two, Literal(-3)))
   }
 
   behavior of "biFunctionSimplifier"

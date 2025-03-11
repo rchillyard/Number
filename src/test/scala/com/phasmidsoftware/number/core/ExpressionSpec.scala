@@ -147,7 +147,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for (sqrt 7)^2" in {
     val seven: Expression = Literal(7)
     val result: Expression = seven.sqrt ^ 2
-    result.toString shouldBe "{[√7] ^ 2}"
+    result.toString shouldBe "{√7 ^ 2}"
   }
 
   behavior of "various operations"
@@ -167,7 +167,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (ConstPi + Constants.pi).isExactInContext(Some(Radian)) shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Literal(2) * Constants.e).isExact shouldBe false
+    (Literal(2) * Constants.e).isExactInContext(Some(PureNumber)) shouldBe false
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
     val expression = Literal(1) * Constants.e
