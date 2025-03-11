@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.matchers._
 import org.slf4j.LoggerFactory
 
 import scala.language.implicitConversions
+import scala.util.{Failure, Success, Try}
 
 /**
  * Matchers whose input is generally an Expression.
@@ -424,6 +425,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Sine ~ Zero | Sine ~ ConstPi => Match(Zero)
     case Cosine ~ Zero => Match(One)
     case Cosine ~ ConstPi => Match(MinusOne)
+    case Cosine ~ Literal(x, _) if x == piBy2 => Match(Zero)
+    case Cosine ~ Literal(x, _) if (x + piBy2).isZero => Match(Zero)
     case x => Miss(s"matchMonadicTrivial: no trivial match", x)
   }
 
@@ -753,23 +756,39 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     //      if f.maybeIdentityL.isDefined && x.isComplementary(f, y) =>
     //      Match(f.maybeIdentityL.get)
     case a@Aggregate(_, _) =>
-      ComplementaryTermsEliminator(a)
+      complementaryTermsEliminator(a)
   }
 
-  def ComplementaryTermsEliminator: Matcher[Aggregate, Expression] = {
+  /**
+   * Matches and simplifies an `Aggregate` expression by identifying and eliminating
+   * complementary terms among its components. Specifically, it sorts the components
+   * of the aggregate expression, determines complementary elements based on a provided
+   * function, and reduces the expression if a match is found.
+   *
+   * The method assumes that the provided aggregate function `f` typically involves
+   * operations where complementary terms can be identified (e.g., summation).
+   *
+   * @return A `Matcher[Aggregate, Expression]` that either matches an aggregate
+   *         expression with reduced complementary terms or returns a miss description
+   *         if no reduction takes place.
+   */
+  def complementaryTermsEliminator: Matcher[Aggregate, Expression] = {
     case a@Aggregate(f, xs) =>
       // NOTE we should handle the very rare cases where the final get fails
       // NOTE this ordering is really only appropriate when f is Sum.
       // TODO find a better way to find complementary elements.
-      val sorted: Seq[Expression] = xs.sortBy(x => Math.abs(x.asNumber.get.toDouble.get))
-      val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-      //      if (list.length <= 2)
-      //        simplifyAggregateTerms(Aggregate(f, list))
-      if (list.length < xs.length)
-        Match(Aggregate(f, list))
-      else
-        Miss(s"simplifyAggregateTerms: $a", a)
-    //        Match(a) // CONSIDER should this be a Miss?
+      Try(xs.sortBy(x => Math.abs(x.asNumber.get.toDouble.get))) match {
+        case Success(sorted) =>
+          val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
+          //      if (list.length <= 2)
+          //        simplifyAggregateTerms(Aggregate(f, list))
+          if (list.length < xs.length)
+            Match(Aggregate(f, list))
+          else
+            Miss(s"simplifyAggregateTerms: $a", a)
+        //        Match(a) // CONSIDER should this be a Miss?
+        case Failure(x) => Error(x) // XXX the result of an extremely improbable NoSuchElementException
+      }
   }
 
   private def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean =

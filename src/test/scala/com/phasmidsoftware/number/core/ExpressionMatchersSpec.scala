@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers._
-import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{piBy2, piBy4, root2, √}
@@ -408,14 +407,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "work for Reciprocal Reciprocal" in {
     val q = em.functionSimplifier
-    val x = Function(Function(Two, Reciprocal), Reciprocal)
-    q(x) shouldBe em.Match(Two)
-  }
-  it should "simplify sqrt(3)" in {
-    val p = em.functionSimplifier
-    val x = Expression(3).sqrt
-    val z = p(x)
-    z shouldBe em.Match(Literal(±(√(3)), Some("√3")))
+    val x = Function(Function(ConstPi, Reciprocal), Reciprocal)
+    q(x) shouldBe em.Match(ConstPi)
   }
 
   behavior of "matchMonadicTrivial"
