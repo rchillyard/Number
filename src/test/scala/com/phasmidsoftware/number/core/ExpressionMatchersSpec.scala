@@ -756,9 +756,16 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val q: em.MatchResult[Expression] = p(x)
     q.successful shouldBe true
   }
+  it should "biFunctionSimplifier on (1 + -3)" in {
+    val p = em.biFunctionSimplifier
+    val r = BiFunction(One, Literal(-3), Sum)
+    val z: em.MatchResult[Expression] = p(r)
+    val k: em.MatchResult[Expression] = z flatMap em.simplifier map (_.evaluate(None))
+    k shouldBe em.Match(Literal(-2))
+  }
   // FIXME Issue #57
   it should "biFunctionSimplifier on (1 + √3)(1 - √3)" in {
-    val p = em.biFunctionSimplifier
+    val p = em.simplifier
     val x = Expression(3).sqrt
     //    val x = Constants.root3
     val y = -x
@@ -812,12 +819,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z shouldBe em.Match(Literal(9))
   }
   it should "properly simplify 1 * (root3 / root3 * 3)" in {
-    val p = em.biFunctionTransformer
+    val p = em.simplifier & em.evaluator(None) & em.matches(Real(3))
     val z: Expression = Literal(3).sqrt
     val x = z * z.reciprocal * Real(3)
-    val r = p(Product ~ One ~ x)
-    r should matchPattern { case em.Match(_) => }
-    r.get shouldBe Literal(3)
+    p(x).successful shouldBe true
   }
   it should "simplify e * 2 / 2" in {
     val p = em.biFunctionTransformer

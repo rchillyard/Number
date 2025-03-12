@@ -31,9 +31,24 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   import com.phasmidsoftware.matchers.Matchers._
 
   /**
+   * Type alias for a pair of expressions (purpose of this is solely for brevity).
+   */
+  private[core] type Expressions = Expression ~ Expression
+
+  /**
    * Type alias for a dyadic triple (purpose of this is solely for brevity).
    */
-  type DyadicTriple = ExpressionBiFunction ~ Expression ~ Expression
+  private[core] type DyadicTriple = ExpressionBiFunction ~ Expression ~ Expression
+
+  /**
+   * Type alias for the kind of ExpressionMatcher which results in a possibly different Expression.
+   */
+  private[core] type ExpressionTransformer = Transformer[Expression]
+
+  /**
+   * Type alias for a monadic duple (purpose of this is solely for brevity).
+   */
+  private[core] type MonadicDuple = ExpressionFunction ~ Expression
 
   /**
    * Implicit method to convert a Matcher[Expression, R] into an ExpressionMatcher[R].
@@ -45,20 +60,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return ExpressionMatcher[R]
    */
   implicit def matcherConverter[R](m: Matcher[Expression, R]): ExpressionMatcher[R] = ExpressionMatcher(m)
-  /**
-   * Type alias for the kind of ExpressionMatcher which results in a possibly different Expression.
-   */
-  private type ExpressionTransformer = ExpressionMatcher[Expression] // CONSIDER defining as Transformer[Expression]
-
-  /**
-   * Type alias for a pair of expressions (purpose of this is solely for brevity).
-   */
-  private type Expressions = Expression ~ Expression
-
-  /**
-   * Type alias for a monadic duple (purpose of this is solely for brevity).
-   */
-  private type MonadicDuple = ExpressionFunction ~ Expression
 
   /**
    * Matcher which tries to evaluate the input exactly as a PureNumber and then wraps the result as an Expression.
@@ -254,7 +255,22 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return an Matcher[DyadicTriple, Expression].
    */
   def biFunctionTransformer: Matcher[DyadicTriple, Expression] =
-    (simplifyIdentityDyadic | matchComplementary | matchDyadicTrivial | biFunctionAggregator | collectTerms | matchDyadicTwoLevels) :| "biFunctionTransformer"
+    (simplifyDyadic | simplifyIdentityDyadic | matchComplementary | matchDyadicTrivial | biFunctionAggregator | collectTerms | matchDyadicTwoLevels) :| "biFunctionTransformer"
+
+  /**
+   * Simplifies dyadic expressions where one side is an identity element according to a given function.
+   * Matches expressions in the form where either the left operand or the right operand
+   * is an identity element for the operation and reduces them to the non-identity operand.
+   *
+   * @return A Matcher that reduces dyadic expressions with identity elements to their simplified form.
+   */
+  def simplifyDyadic: Matcher[DyadicTriple, Expression] = Matcher("simplifyDyadic") {
+    case Sum ~ (x: AtomicExpression) ~ (y: AtomicExpression) => Match(Literal(x.evaluate + y.evaluate))
+    case Product ~ (x: AtomicExpression) ~ (y: AtomicExpression) => Match(Literal(x.evaluate * y.evaluate))
+    // case Power....
+    case z =>
+      Miss("simplifyIdentityDyadic", z)
+  }
 
   /**
    * Simplifies dyadic expressions where one side is an identity element according to a given function.

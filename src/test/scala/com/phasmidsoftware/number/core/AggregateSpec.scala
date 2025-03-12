@@ -52,9 +52,7 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
     val result = em.simplifier(target)
     result.successful shouldBe true
     result match {
-      case em.Match(expression) => expression shouldBe BiFunction(Literal(3), Literal(-5), Sum)
-        val value1 = result flatMap (em.evaluator(None))
-        value1 shouldBe em.Match(Real(-2))
+      case em.Match(expression) => expression shouldBe Literal(Real(-2))
     }
   }
 
