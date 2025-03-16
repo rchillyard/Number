@@ -45,6 +45,16 @@ trait Complex extends Field {
   def rotate: Complex
 
   /**
+   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+   *
+   * TODO it's more complicated than this!
+   * CONSIDER having a Complex sub-type of Factor.
+   *
+   * @return an optional `Factor`.
+   */
+  def maybeFactor: Option[Factor] = Some(PureNumber)
+
+  /**
    * Method to add this Complex to another Complex.
    *
    * @param complex the other Complex.

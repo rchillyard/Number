@@ -154,6 +154,17 @@ object Value {
   }
 }
 
+/**
+ * Represents a factor type used for evaluations, conversions, and rendering in a specific context.
+ *
+ * CONSIDER having a Complex subclass of Factor.
+ *
+ * This trait serves as a foundation for different kinds of factors and provides functionality such as:
+ * - Determining whether the factor is additive.
+ * - Checking if the factor meets certain conditions within a specific context.
+ * - Performing conversions of values between compatible factors.
+ * - Rendering values in the context of the factor.
+ */
 sealed trait Factor {
   /**
     * A value which can be used to convert a value associated with this Factor to a different Factor.
@@ -161,7 +172,38 @@ sealed trait Factor {
   val value: Double
 
   /**
+   * Determines whether the current factor can be augmented by the given factor.
+   *
+   * @param f the factor to be checked for compatibility with addition.
+   * @return true if the factors can be added; false otherwise.
+   */
+  def canAdd(f: Factor): Boolean = f == this
+
+  /**
+   * Determines whether the current factor can be multiplied by the given factor.
+   *
+   * @param f the factor to be checked for compatibility with multiplication.
+   * @return true if the factors can be multiplied; false otherwise.
+   */
+  def canMultiply(f: Factor): Boolean
+
+  /**
+   * Determines whether the current factor can be raised by the given factor.
+   *
+   * @param f the factor to be checked for compatibility with raising to a power.
+   * @return true if the factors can be powered; false otherwise.
+   */
+  def canRaise(f: Factor, exponent: Field): Boolean = f match {
+    case PureNumber => true
+    case Radian => this == PureNumber // XXX CHECK this
+    case NatLog => this == PureNumber // XXX CHECK this
+    case _ => false
+  }
+
+  /**
    * Determines if the current factor operates additively.
+   *
+   * CONSIDER rewriting in terms of canAdd
    *
    * @return true if the factor is additive; false otherwise.
    */
@@ -208,6 +250,16 @@ sealed trait Factor {
  * Trait to define a Factor which is a scalar (something that can be scaled by a pure number).
   */
 sealed trait Scalar extends Factor {
+  /**
+   * Determines whether the current factor can be multiplied by the given factor.
+   *
+   * @param f the factor to be checked for compatibility with multiplication.
+   * @return true if the factors can be multiplied; false otherwise.
+   */
+  def canMultiply(f: Factor): Boolean = f match {
+    case _: Scalar => true
+    case _ => false
+  }
 
   /**
    * Determines if the current factor operates additively.
@@ -248,6 +300,16 @@ object Scalar {
   */
 sealed trait Logarithmic extends Factor {
   val base: String
+
+  /**
+   * Determines whether the current factor can be multiplied by the given factor.
+   *
+   * TODO implement me properly
+   *
+   * @param f the factor to be checked for compatibility with multiplication.
+   * @return true if the factors can be multiplied; false otherwise.
+   */
+  def canMultiply(f: Factor): Boolean = false
 
   /**
    * Determines if the current factor operates additively.
@@ -327,6 +389,34 @@ sealed trait Root extends Factor {
     * A value which can be used to convert a value associated with this Factor to a different Factor.
     */
   val value: Double = root
+
+  /**
+   * Determines whether the current factor can be multiplied by the given factor.
+   *
+   * TODO check the logic here
+   *
+   * @param f the factor to be checked for compatibility with multiplication.
+   * @return true if the factors can be multiplied; false otherwise.
+   */
+  def canMultiply(f: Factor): Boolean = f match {
+    case x: Root => x.root == this.root
+    case _ => false
+  }
+
+  /**
+   * Determines whether the current factor can be raised by the given factor.
+   *
+   * @param f the factor to be checked for compatibility with raising to a power.
+   * @return true if the factors can be powered; false otherwise.
+   */
+  override def canRaise(f: Factor, exponent: Field): Boolean = f match {
+    case PureNumber =>
+      exponent match {
+        case Real(n: Number) => n.isInteger && n.toInt.get > 0 && n.toInt.get % root == 0
+        case _ => false
+      }
+    case _ => super.canRaise(f, exponent)
+  }
 
   /**
    * Determines if the current factor operates additively.

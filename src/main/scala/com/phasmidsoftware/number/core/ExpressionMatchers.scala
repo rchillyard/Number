@@ -77,10 +77,24 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return an ExpressionMatcher for the evaluated field, returning a Match if the field is exact,
    *         or a Miss otherwise.
    */
-  def evaluator(context: Context): ExpressionMatcher[Field] = {
+  def exactEvaluator(context: Context): ExpressionMatcher[Field] = {
     x: Expression =>
-      val field = x.evaluate(context)
-      if (field.isExact) Match(field) else Miss("evaluator: non-exact", x)
+      context match {
+        case c@Some(_) =>
+          matchExactField(x.evaluate(c), x)
+        case None =>
+          x.context match {
+            case None =>
+              Miss("exactEvaluator: no common context", x)
+            case c@Some(_) =>
+              matchExactField(x.evaluate(c), x)
+          }
+      }
+  }
+
+  private def matchExactField(field: Field, x: Expression): MatchResult[Field] = {
+    // CONSIDER If the Field is the same as for x, it should not really be a Match.
+    if (field.isExact) Match(field) else Miss("exactEvaluator: non-exact", x)
   }
 
   /**
@@ -160,13 +174,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * at least one term is successfully simplified, otherwise returns the original expression.
    *
    * CONSIDER moving all the code into `CompositeExpression` (but careful becasue you need to manage an appropriate `ExpressionMatchers` instance.
-   * CONSIDER taking a parameter for context to pass into evaluator.
+   * CONSIDER taking a parameter for context to pass into exactEvaluator.
    *
    * @param c the composite expression to be simplified
    * @return the simplified composite expression, or the original expression if simplification is unsuccessful
    */
   def simplifyTerms(c: CompositeExpression): CompositeExpression = {
-    val frs: Seq[MatchResult[Field]] = c.terms map (alt(simplifier) & evaluator(None))
+    val frs: Seq[MatchResult[Field]] = c.terms map (alt(simplifier) & exactEvaluator(None))
     if (frs.forall(fr => !fr.successful)) c
     else {
       val substitutions: Seq[Expression] = for (er <- frs) yield er match {
@@ -255,22 +269,22 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return an Matcher[DyadicTriple, Expression].
    */
   def biFunctionTransformer: Matcher[DyadicTriple, Expression] =
-    (simplifyDyadic | simplifyIdentityDyadic | matchComplementary | matchDyadicTrivial | biFunctionAggregator | collectTerms | matchDyadicTwoLevels) :| "biFunctionTransformer"
-
-  /**
-   * Simplifies dyadic expressions where one side is an identity element according to a given function.
-   * Matches expressions in the form where either the left operand or the right operand
-   * is an identity element for the operation and reduces them to the non-identity operand.
-   *
-   * @return A Matcher that reduces dyadic expressions with identity elements to their simplified form.
-   */
-  def simplifyDyadic: Matcher[DyadicTriple, Expression] = Matcher("simplifyDyadic") {
-    case Sum ~ (x: AtomicExpression) ~ (y: AtomicExpression) => Match(Literal(x.evaluate + y.evaluate))
-    case Product ~ (x: AtomicExpression) ~ (y: AtomicExpression) => Match(Literal(x.evaluate * y.evaluate))
-    // case Power....
-    case z =>
-      Miss("simplifyIdentityDyadic", z)
-  }
+    (simplifyIdentityDyadic | matchComplementary | matchDyadicTrivial | matchCombineAndMaybeSimplify | biFunctionAggregator | collectTerms | matchDyadicTwoLevels) :| "biFunctionTransformer"
+  //
+  //  /**
+  //   * Simplifies dyadic expressions where one side is an identity element according to a given function.
+  //   * Matches expressions in the form where either the left operand or the right operand
+  //   * is an identity element for the operation and reduces them to the non-identity operand.
+  //   *
+  //   * @return A Matcher that reduces dyadic expressions with identity elements to their simplified form.
+  //   */
+  //  def simplifyDyadic: Matcher[DyadicTriple, Expression] = Matcher("simplifyDyadic") {
+  //    case Sum ~ (x: AtomicExpression) ~ (y: AtomicExpression) => Match(Literal(x.evaluate + y.evaluate))
+  //    case Product ~ (x: AtomicExpression) ~ (y: AtomicExpression) => Match(Literal(x.evaluate * y.evaluate))
+  //    // case Power....
+  //    case z =>
+  //      Miss("simplifyIdentityDyadic", z)
+  //  }
 
   /**
    * Simplifies dyadic expressions where one side is an identity element according to a given function.
@@ -371,14 +385,14 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == z => Match(y)
     case Sum ~ BiFunction(w, x, Sum) ~ Function(y, Negate) if w == y => Match(x)
     case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == y => Match(z)
-    case Sum ~ x ~ y if x.evaluate + y.evaluate == Constants.zero => Match(Zero)
+    //    case Sum ~ x ~ y if x.evaluate + y.evaluate == Constants.zero => Match(Zero)
     case Product ~ x ~ Function(y, Reciprocal) if x == y => Match(One)
     case Product ~ Function(x, Reciprocal) ~ y if x == y => Match(One)
     case Product ~ BiFunction(w, x, Product) ~ Function(y, Reciprocal) if x == y => Match(w)
     case Product ~ Function(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w => Match(z)
     case Product ~ BiFunction(w, x, Product) ~ Function(y, Reciprocal) if w == y => Match(x)
     case Product ~ Function(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z => Match(w)
-    case Product ~ x ~ y if x.evaluate * y.evaluate == Constants.one => Match(One)
+    //    case Product ~ x ~ y if x.evaluate * y.evaluate == Constants.one => Match(One)
     case _ => Miss("matchComplementaryExpressions: no match", z)
   }
 
@@ -613,6 +627,27 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case x => Miss("not a trivial dyadic function", x)
   }
 
+  def matchCombineAndMaybeSimplify: Matcher[DyadicTriple, Expression] = Matcher("matchCombineAndMaybeSimplify") {
+    case Sum ~ x ~ y if factorsMatch(Sum, x, y) =>
+      matchAndMaybeSimplify(x.evaluate + y.evaluate)
+    case Product ~ x ~ y if factorsMatch(Product, x, y) =>
+      matchAndMaybeSimplify(x.evaluate * y.evaluate)
+    case Power ~ x ~ y if factorsMatch(Power, x, y) =>
+      matchAndMaybeSimplify(x.evaluate power y.evaluate)
+    case x => Miss("matchCombineAndMaybeSimplify: no match", x)
+  }
+
+  // NOTE there's another foctorsMatch method in Expression
+  def factorsMatch(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean =
+    (for (fx <- x.maybeFactor; fy <- y.maybeFactor) yield (f match {
+      case Sum =>
+        fx.canAdd(fy)
+      case Product =>
+        fx.canMultiply(fy)
+      case Power =>
+        fx.canRaise(fy, y.evaluate)
+    })).contains(true)
+
   /**
    * Matcher which matches on a trivial dyadic function, such as x * 0 or x + 0.
    * In the case where the result is non-constant, it will be further simplified if possible.
@@ -766,6 +801,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Match(Zero)
     case Aggregate(Product, Nil) =>
       Match(One)
+    case Aggregate(Power, Nil) =>
+      Miss("simplifyAggregateTerms: cannot simplify Power(0, 0)", Aggregate(Power, Nil))
     case Aggregate(_, x :: Nil) =>
       matchAndMaybeSimplify(x)
     case Aggregate(f, x :: y :: Nil) =>
@@ -831,7 +868,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case ReducedQuadraticRoot(p, 0, _) => Match(x * -p) // CONSIDER matchAndMaybeSimplify
     case ReducedQuadraticRoot(-1, q, _) => Match(x plus -q) // CONSIDER matchAndMaybeSimplify
     case ReducedQuadraticRoot(p, q, _) => Match((x * -p) plus -q) // CONSIDER matchAndMaybeSimplify
-    case Literal(z, _) if z.isExact => Match(Literal(z * z))
+    case Literal(z, _) if z.isExactInContext(Some(PureNumber)) => Match(Literal(z * z))
+    case Literal(Real(ExactNumber(z, Root2)), _) => Match(Literal(Real(ExactNumber(z, PureNumber))))
     // NOTE x is being squared so if it is itself a square root, then the powers cancel.
     case BiFunction(z, y, Power) if y.materialize == Constants.half => Match(z) // CONSIDER matchAndMaybeSimplify
     case _ => Miss("matchSimplifySquare: can't be simplified", x)

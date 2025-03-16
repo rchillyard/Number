@@ -362,6 +362,13 @@ sealed trait AtomicExpression extends Expression {
   def isAtomic: Boolean = true
 
   /**
+   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+   *
+   * @return an optional `Factor`.
+   */
+  def maybeFactor: Option[Factor] = evaluate.maybeFactor
+
+  /**
    * Action to materialize this Expression and render it as a String,
    * that is to say we eagerly evaluate this Expression as a String.
    *
@@ -404,6 +411,13 @@ sealed trait CompositeExpression extends Expression {
    * @return false as the default value, indicating the expression is not atomic.
    */
   def isAtomic: Boolean = false
+
+  /**
+   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+   *
+   * @return an optional `Factor`.
+   */
+  def maybeFactor: Option[Factor] = evaluate.maybeFactor
 
   /**
    * Provides the terms that comprise this `CompositeExpression`.
@@ -726,7 +740,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
    *
    * @return the value of factorsMatch for the function f and the results of invoking context on each operand..
    */
-  def context: Context = for (f1 <- a.context; f2 <- b.context; r <- factorsMatch(f, f1, f2)) yield r
+  lazy val context: Context = for (f1 <- a.context; f2 <- b.context; r <- factorsMatch(f, f1, f2)) yield r
 
   /**
    * Method to determine the depth of this Expression.
@@ -786,13 +800,23 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
    */
   override def toString: String = s"{$a $f $b}"
 
-  // NOTE that NatLog numbers don't behave like other numbers so...
-  // CONSIDER really should be excluded from all cases
+  /**
+   * Determines the result of combining two factors (`f1` and `f2`) using a specific binary function (`f`) in a given context.
+   * NOTE that NatLog numbers don't behave like other numbers so...
+   * CONSIDER really should be excluded from all cases
+   * NOTE also that there are now methods for NumberLike objects viz. canAdd, canMultiply, canPower.
+   *
+   * @param f  the binary function of type `ExpressionBiFunction` used to evaluate the combination of the factors.
+   * @param f1 the first factor to be combined.
+   * @param f2 the second factor to be combined.
+   * @return a `Context` object containing the result of the combination, or `None` if the factors cannot be combined based on the function.
+   */
   private def factorsMatch(f: ExpressionBiFunction, f1: Factor, f2: Factor): Context = f match {
     case Sum if f1 == f2 && f1 != NatLog =>
       Some(f1)
-    case Product if f1 == f2 || f1 == PureNumber || f2 == PureNumber =>
-      if (f1 == f2) Some(f1) else if (f2 == PureNumber) Some(f1) else Some(f2)
+    case Product if f1.canMultiply(f2) => Some(f1)
+    //      if f1 == f2 || f1 == PureNumber || f2 == PureNumber =>
+    //      if (f1 == f2) Some(f1) else if (f2 == PureNumber) Some(f1) else Some(f2)
     case Power if f2 == PureNumber =>
       Some(f1)
     case _ =>
@@ -860,7 +884,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
    * @return Some(context) if all sub-expressions align to the same additive context for `Sum`,
    *         or None if no uniform context exists or the function is not `Sum`.
    */
-  def context: Context = function match {
+  lazy val context: Context = function match {
     case Sum =>
       val additives = for {x <- xs; c <- x.context} yield c.isAdditive
       val fo = if (additives.length == xs.length && (additives forall (_ == true))) xs.head.context else None

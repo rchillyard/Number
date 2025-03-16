@@ -44,6 +44,13 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def factor: Factor
 
   /**
+   * Retrieves an optional Factor instance.
+   *
+   * @return `Some(factor)`.
+   */
+  def maybeFactor: Option[Factor] = Some(factor)
+
+  /**
     * Method to determine if this is a valid Number.
     * An invalid number has a value of form Left(Left(Left(None)))
     *

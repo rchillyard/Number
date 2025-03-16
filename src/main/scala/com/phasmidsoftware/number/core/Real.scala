@@ -20,6 +20,13 @@ import scala.util.Try
   */
 case class Real(x: Number) extends Field {
   /**
+   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+   *
+   * @return an optional `Factor`.
+   */
+  def maybeFactor: Option[Factor] = x.maybeFactor
+
+  /**
     * Method to determine if this Real has infinite magnitude.
     *
     * @return true if the magnitude of this Field is infinite.

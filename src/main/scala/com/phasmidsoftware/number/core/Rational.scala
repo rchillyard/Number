@@ -72,6 +72,13 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
   def ^(that: Rational): Try[Rational] = power(that)
 
   /**
+   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+   *
+   * @return an optional `Factor`.
+   */
+  def maybeFactor: Option[Factor] = Some(PureNumber)
+
+  /**
    * The absolute value of `this Rational`.
    * If the sign of `this` is negative, the result will be the negation of `this`.
    * Otherwise, it will return the `Rational` itself.

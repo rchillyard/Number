@@ -10,6 +10,13 @@ package com.phasmidsoftware.number.core
 trait NumberLike {
 
   /**
+   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+   *
+   * @return an optional `Factor`.
+   */
+  def maybeFactor: Option[Factor]
+
+  /**
    * Method to determine if this `NumberLike` object can be evaluated exactly in the given context.
     *
    * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
