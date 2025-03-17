@@ -347,6 +347,27 @@ object Expression {
      */
     def compare(comparand: Expression): Int = x compare comparand
   }
+
+  /**
+   * Method to yield a function which can determine if a given expression is an identity for the provided binary function.
+   *
+   * @param f the binary function for which the identity property is to be checked.
+   * @return a function that takes an `Expression` and returns true if the expression
+   *         is an identity element for the binary function `f`, otherwise false.
+   */
+  def isIdentityFunction(f: ExpressionBiFunction): Expression => Boolean = Expression.isIdentity(f)
+
+  /**
+   * Determines if a given `Expression` is an identity element for a specified binary function.
+   *
+   * @param f the binary function for which the identity property is being checked. This includes metadata like
+   *          optional identity elements, which are leveraged for comparison.
+   * @param z the `Expression` to be tested as a potential identity element for the binary function `f`.
+   * @return true if the evaluated result of `z` matches the optional left identity element of the binary function `f`,
+   *         otherwise false.
+   */
+  def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
+    f.maybeIdentityL contains z.evaluate
 }
 
 /**

@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.Constants.{half, piBy2}
+import com.phasmidsoftware.number.core.Expression.isIdentityFunction
 import com.phasmidsoftware.number.core.Rational.{infinity, negInfinity}
 import com.phasmidsoftware.number.matchers._
 import org.slf4j.LoggerFactory
@@ -370,12 +371,16 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-   * Matches two complementary expressions using the provided bi-function and evaluates their result.
-   *
+   * Matches complementary expressions in a given `DyadicTriple` to simplify or reduce them.
    * CONSIDER redefining this as a Matcher[DyadicTriple,Expression]
    *
-   * @param z  A dyadic triple.
-   * @return A MatchResult[Expression] containing an evaluated literal if the result matches the identityL of the bi-function.
+   * This method examines the provided `DyadicTriple` and attempts to match patterns that indicate
+   * complementary expressions, such as summing an entity with its negation or multiplying
+   * an entity with its reciprocal, returning an appropriate simplified result if a match is found.
+   *
+   * @param z the `DyadicTriple` to be analyzed for matching complementary expressions
+   * @return a `MatchResult[Expression]` containing the simplified expression if a match is found,
+   *         or a `Miss` result with an appropriate message if no match is found
    */
   def matchComplementaryExpressions(z: DyadicTriple): MatchResult[Expression] =
     z match {
@@ -385,16 +390,36 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == z => Match(y)
     case Sum ~ BiFunction(w, x, Sum) ~ Function(y, Negate) if w == y => Match(x)
     case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == y => Match(z)
-    //    case Sum ~ x ~ y if x.evaluate + y.evaluate == Constants.zero => Match(Zero)
     case Product ~ x ~ Function(y, Reciprocal) if x == y => Match(One)
     case Product ~ Function(x, Reciprocal) ~ y if x == y => Match(One)
     case Product ~ BiFunction(w, x, Product) ~ Function(y, Reciprocal) if x == y => Match(w)
     case Product ~ Function(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w => Match(z)
     case Product ~ BiFunction(w, x, Product) ~ Function(y, Reciprocal) if w == y => Match(x)
     case Product ~ Function(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z => Match(w)
-    //    case Product ~ x ~ y if x.evaluate * y.evaluate == Constants.one => Match(One)
-    case _ => Miss("matchComplementaryExpressions: no match", z)
+    case f ~ x ~ y =>
+      complementaryFields(f, x, y) match {
+        case Some(z) => Match(z)
+        case None => Miss("matchComplementaryExpressions: no match", z)
+      }
   }
+
+  /**
+   * Determines if two expressions are complementary based on a given binary function.
+   * TODO find other method that does something similar
+   * TODO move this method into Expression
+   *
+   * @param f The binary function to evaluate the expressions.
+   * @param x The first expression to evaluate.
+   * @param y The second expression to evaluate.
+   * @return True if the expressions are complementary according to the binary function, false otherwise.
+   */
+  def complementaryFields(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
+    if (x.maybeFactor == y.maybeFactor) {
+      val field = f(x.evaluate, y.evaluate)
+      if (f.maybeIdentityL.contains(field)) Some(Literal(field))
+      else None
+    }
+    else None
 
   //  private def evaluateDyadicTriple(z: DyadicTriple): MatchResult[Field] = z match {
   //    case f ~ ex ~ ey =>
@@ -835,23 +860,25 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Try(xs.sortBy(x => Math.abs(x.asNumber.get.toDouble.get))) match {
         case Success(sorted) =>
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-          //      if (list.length <= 2)
-          //        simplifyAggregateTerms(Aggregate(f, list))
           if (list.length < xs.length)
             Match(Aggregate(f, list))
           else
             Miss(s"simplifyAggregateTerms: $a", a)
-        //        Match(a) // CONSIDER should this be a Miss?
         case Failure(x) => Error(x) // XXX the result of an extremely improbable NoSuchElementException
       }
   }
 
-  private def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean =
-    (matchComplementaryExpressions(f ~ x ~ y) & filter[Expression](isIdentity(f))).successful
-
-  private def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean = {
-    val bool = f.maybeIdentityL contains z.evaluate
-    bool
+  /**
+   * Determines if the given bi-function is complementary for the specified expressions.
+   *
+   * @param f the bi-function to evaluate
+   * @param x the first expression to be checked
+   * @param y the second expression to be checked
+   * @return true if the bi-function is complementary for the given expressions, false otherwise
+   */
+  def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
+    val identityCheck: Expression => Boolean = isIdentityFunction(f)
+    (matchComplementaryExpressions(f ~ x ~ y) & filter(identityCheck)).successful
   }
 
   /**
