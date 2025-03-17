@@ -629,12 +629,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
   def matchCombineAndMaybeSimplify: Matcher[DyadicTriple, Expression] = Matcher("matchCombineAndMaybeSimplify") {
     case Sum ~ x ~ y if factorsMatch(Sum, x, y) =>
-      matchAndMaybeSimplify(x.evaluate + y.evaluate)
+      matchAndMaybeSimplify(Literal(x.evaluate + y.evaluate))
     case Product ~ x ~ y if factorsMatch(Product, x, y) =>
-      matchAndMaybeSimplify(x.evaluate * y.evaluate)
+      matchAndMaybeSimplify(Literal(x.evaluate * y.evaluate))
     case Power ~ x ~ y if factorsMatch(Power, x, y) =>
-      matchAndMaybeSimplify(x.evaluate power y.evaluate)
-    case x => Miss("matchCombineAndMaybeSimplify: no match", x)
+      matchAndMaybeSimplify(Literal(x.evaluate power y.evaluate))
+    case x =>
+      Miss("matchCombineAndMaybeSimplify: no match", x)
   }
 
   // NOTE there's another foctorsMatch method in Expression

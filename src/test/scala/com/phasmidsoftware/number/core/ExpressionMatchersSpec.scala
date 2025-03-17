@@ -242,11 +242,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "cancel addition and subtraction (a)" in {
     val x = One + 3 - 3
-    val result = em.simplifier(x) & em.exactEvaluator(None)
-    result shouldBe em.Match(Constants.one)
+    val m = em.simplifier(x) & em.exactEvaluator(None)
+    m shouldBe em.Match(Constants.one)
   }
-  // FIXME check what is in m using current committed code.
-  ignore should "cancel multiplication and division" in {
+  it should "cancel multiplication and division" in {
     val x = Literal(Number.pi) * 2 / 2
     val m = em.simplifier(x) & em.exactEvaluator(None)
     m shouldBe em.Match(Constants.pi)
@@ -1040,10 +1039,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
     r.get shouldBe Two
   }
-  ignore should "simplify pi + pi" in {
+  it should "simplify pi + pi" in {
     val r: em.MatchResult[Expression] = em.biFunctionTransformer(Sum ~ ConstPi ~ ConstPi)
     r.successful shouldBe true
-    r.get shouldBe BiFunction(ConstPi, Two, Product)
+    r.get shouldBe Literal(Constants.twoPi)
   }
   it should "simplify 1 + 0" in {
     val r: em.MatchResult[Expression] = em.biFunctionTransformer(Sum ~ One ~ Zero)
