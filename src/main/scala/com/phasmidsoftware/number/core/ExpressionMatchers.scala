@@ -110,8 +110,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case x: AtomicExpression =>
       Match(x.evaluate)
     case x =>
-      if (x.isExactInContext(context))
-        Match(x.evaluate)
+      val ctx = context orElse Some(PureNumber)
+      if (x.isExactInContext(ctx))
+        Match(x.evaluate(ctx))
       else
         Miss("exactMaterialization: non-exact", x)
   }

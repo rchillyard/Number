@@ -11,6 +11,7 @@ trait NumberLike {
 
   /**
    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+   * Unlike context, a `None` result is not permissive.
    *
    * @return an optional `Factor`.
    */

@@ -438,7 +438,7 @@ sealed trait CompositeExpression extends Expression {
    *
    * @return an optional `Factor`.
    */
-  def maybeFactor: Option[Factor] = evaluate.maybeFactor
+  def maybeFactor: Option[Factor] = context
 
   /**
    * Provides the terms that comprise this `CompositeExpression`.
