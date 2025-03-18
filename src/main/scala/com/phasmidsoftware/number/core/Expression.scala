@@ -717,7 +717,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    *
    * @return Some(factor) if expression only involves that factor; otherwise None.
    */
-  def context: Context = None
+  def context: Context = f.context(x)
 
   /**
    * Method to determine the depth of this Expression.
@@ -1120,15 +1120,23 @@ object CompositeExpression {
 }
 
 /**
- * Represents the sine function as an expression function.
- * It applies the sine operation to a given input.
+ * Represents a trigonometric function, either sine or cosine, that is derived from the abstract `ExpressionFunction`.
  *
- * This is implemented as an instance of `ExpressionFunction`,
- * wrapping the method `sin` to calculate the sine of a number.
+ * The `SineCos` class applies a specified trigonometric function (`sin` or `cos`) to an `Expression`.
+ * The function to be applied is determined by the given `sine` boolean parameter.
  *
- * The name of the function is "sin".
+ * If `sine` is true, the sine (`sin`) function is applied, otherwise, the cosine (`cos`) function is applied.
+ *
+ * @param sine a boolean indicating whether the sine function should be used (`true` for sine, `false` for cosine).
  */
-case object Sine extends ExpressionFunction(x => x.sin, "sin") {
+abstract class SineCos(sine: Boolean) extends ExpressionFunction(x => if (sine) x.sin else x.cos, if (sine) "sin" else "cos") {
+  /**
+   * Determines if the given expression is considered exact in the context provided.
+   *
+   * @param context the context in which the evaluation is made.
+   * @param x       the expression to be checked for exactness within the given context.
+   * @return true if the expression is exact in the specified context; false otherwise.
+   */
   def isExactInContext(context: Context)(x: Expression): Boolean = x match {
     case Literal(theta, _) => theta match {
       // TODO add other cases
@@ -1136,20 +1144,40 @@ case object Sine extends ExpressionFunction(x => x.sin, "sin") {
       case _ => false
     }
   }
+
+  /**
+   * Determines the context of the given expression based on its associated factor.
+   *
+   * If the factor of the expression is `Radian`, the context is set to `PureNumber`.
+   * Otherwise, no specific context is assigned.
+   *
+   * @param x an instance of `Expression` whose context is to be determined.
+   * @return the corresponding context as an instance of `Context`, or `None` if no specific context applies.
+   */
+  def context(x: Expression): Context = x.maybeFactor match {
+    case Some(Radian) => Some(PureNumber)
+    case _ => None
+  }
 }
 
 /**
- * Represents the cosine mathematical trigonometric function as an `ExpressionFunction`.
+ * Represents the sine trigonometric function.
  *
- * This object applies the cosine operation on a given numerical input
- * and returns the cosine of that value.
+ * `Sine` is a case object of the `SineCos` abstract class with the `sine` parameter set to `true`,
+ * which designates that the sine (`sin`) function is to be applied to expressions.
  *
- * The function is initialized using the `cos` method of the `Number` type.
+ * It applies the sine function to a given mathematical expression and inherits all behavior
+ * defined in the `SineCos` abstract class.
  */
-case object Cosine extends ExpressionFunction(x => x.cos, "cos") {
-  // TODO we should be defining Cosine in terms of Sine
-  def isExactInContext(context: Context)(x: Expression): Boolean = ???
-}
+case object Sine extends SineCos(true)
+
+/**
+ * Represents the cosine trigonometric function.
+ *
+ * `Cosine` is a specific instance of the `SineCos` class with `sine` set to `false`,
+ * meaning it applies the cosine (`cos`) function to an `Expression`.
+ */
+case object Cosine extends SineCos(false)
 
 /**
  * Represents an arctangent operation as a binary function.
@@ -1179,6 +1207,24 @@ case object Atan extends ExpressionBiFunction(
  * The underlying implementation utilizes the `log` method of the Number type.
  */
 case object Log extends ExpressionFunction(x => x.log, "log") {
+  /**
+   * Determines the context of a given `Expression` by evaluating if it is based on a pure scalar factor (e.g., `PureNumber`).
+   *
+   * @param x the `Expression` to analyze, which may or may not be associated with a specific factor.
+   * @return a `Context` containing the factor if the `Expression` is based solely on `PureNumber`; otherwise, `None`.
+   */
+  def context(x: Expression): Context = x.maybeFactor match {
+    case c@Some(PureNumber) => c
+    case _ => None
+  }
+
+  /**
+   * Determines if a given `Expression` is exact within a specified `Context`.
+   *
+   * @param context the `Context` in which the exactness of the `Expression` is evaluated.
+   * @param x       the `Expression` to be evaluated for exactness within the given `context`.
+   * @return `true` if the `Expression` is exact in the given `Context`; otherwise, `false`.
+   */
   def isExactInContext(context: Context)(x: Expression): Boolean = x match {
     case Literal(x, _) => x match {
       case Constants.e | Constants.zero | Constants.one => true
@@ -1193,6 +1239,18 @@ case object Log extends ExpressionFunction(x => x.log, "log") {
  * It defines the exponential operation for transformation or evaluation within expressions.
  */
 case object Exp extends ExpressionFunction(x => x.exp, "exp") {
+  /**
+   * Determines the context of the given expression, based on its factor.
+   * If the expression has a factor that is a `PureNumber`, it returns that factor wrapped in `Some`.
+   * Otherwise, it returns `None`.
+   *
+   * @param x the expression whose context is to be determined
+   * @return an optional context (`Some(PureNumber)` if the factor is a `PureNumber`; otherwise `None`)
+   */
+  def context(x: Expression): Context = x.maybeFactor match {
+    case c@Some(PureNumber) => c
+    case _ => None
+  }
   /**
    * Determines whether the provided expression is exact within the given context.
    * CONSIDER do we really need context?
@@ -1220,6 +1278,18 @@ case object Exp extends ExpressionFunction(x => x.exp, "exp") {
  */
 case object Negate extends ExpressionFunction(x => negate(x), "-") {
   /**
+   * Determines the context of the given expression based on its factor.
+   * If the expression's factor is a scalar, it returns that factor as the context.
+   * Otherwise, returns None as the context.
+   *
+   * @param x the expression whose context is to be determined
+   * @return the context of the given expression as an Option[Scalar], or None if no scalar factor is found
+   */
+  def context(x: Expression): Context = x.maybeFactor match {
+    case c: Option[Scalar] => c
+    case _ => None
+  }
+  /**
    * Determines whether the provided expression is exact within the given context.
    * TODO implement this correctly for `Root` and `Log` type numbers.
    *
@@ -1238,6 +1308,16 @@ case object Negate extends ExpressionFunction(x => negate(x), "-") {
  * The operation is performed lazily and adheres to the behavior defined in its parent class.
  */
 case object Reciprocal extends ExpressionFunction(x => 1 / x, "rec") {
+  /**
+   * Determines the context of the provided expression based on its factor.
+   *
+   * @param x the expression whose context is to be determined.
+   * @return the context of the expression, `Some(PureNumber)` if the factor is `PureNumber`; otherwise `None`.
+   */
+  def context(x: Expression): Context = x.maybeFactor match {
+    case c@Some(PureNumber) => c
+    case _ => None
+  }
   /**
    * Determines whether the provided expression is exact within the given context.
    * TODO implement this correctly for `Root` and `Log` type numbers.
@@ -1291,6 +1371,17 @@ case object Power extends ExpressionBiFunction((x, y) => x.power(y), "^", isExac
  * @param name the name of this function.
  */
 abstract class ExpressionFunction(val f: Number => Number, val name: String) extends (Field => Field) {
+
+  /**
+   * Determines the context of the given Expression instance. The context is typically used
+   * to provide additional information or constraints for evaluating or manipulating the Expression.
+   * This method is abstract and should be implemented in extending classes to define the
+   * specific way the context is derived.
+   *
+   * @param x the Expression for which the context is to be determined
+   * @return the Context associated with the given Expression
+   */
+  def context(x: Expression): Context
 
   /**
    * Determines whether the provided expression is exact within the given context.

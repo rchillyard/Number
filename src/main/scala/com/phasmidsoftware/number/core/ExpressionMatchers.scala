@@ -9,7 +9,6 @@ import com.phasmidsoftware.number.core.Constants.{half, piBy2}
 import com.phasmidsoftware.number.core.Expression.isIdentityFunction
 import com.phasmidsoftware.number.core.Rational.{infinity, negInfinity}
 import com.phasmidsoftware.number.matchers._
-import org.slf4j.LoggerFactory
 
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -1302,6 +1301,4 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case (Power, Power) => Some(Product)
     case _ => None
   }
-
-  val logger = LoggerFactory.getLogger(this.getClass)
 }
