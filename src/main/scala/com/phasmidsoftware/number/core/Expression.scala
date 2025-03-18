@@ -1156,6 +1156,7 @@ abstract class SineCos(sine: Boolean) extends ExpressionFunction(x => if (sine) 
    */
   def context(x: Expression): Context = x.maybeFactor match {
     case Some(Radian) => Some(PureNumber)
+    case Some(PureNumber) if x.evaluate.isZero => Some(PureNumber)
     case _ => None
   }
 }
