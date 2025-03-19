@@ -245,7 +245,6 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val z: Number = convertToNumber((Literal(x) ^ 2).materialize)
     z.value shouldBe Right(9)
     z.factor shouldBe PureNumber
-    // TODO check this one: shape should be Gaussian. And is the value correct?
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
     z.fuzz.get match {
       case RelativeFuzz(m, Box) => m shouldBe 0.2 +- 0.00001

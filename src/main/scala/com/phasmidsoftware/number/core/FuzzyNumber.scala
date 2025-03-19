@@ -43,6 +43,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
 
   /**
    * Method to force the fuzziness of this FuzzyNumber to be absolute.
+   * CONSIDER why do we make the fuzziness absolute here?
    *
    * @return the same FuzzyNumber but with absolute fuzziness.
    */

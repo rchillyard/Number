@@ -128,11 +128,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def simplifyAndEvaluate(x: Expression, context: Context): Field =
     simplifier(x) match {
       case Match(e) =>
-        val result: Field = e.evaluate(context)
-        if (result.isExact)
-          result
-        else
-          result.normalize
+        // NOTE that, formerly, we checked for exactness and if non-exact, we normalized the result.
+        e.evaluate(context)
       case _ =>
         x.evaluate(context)
     }
@@ -181,6 +178,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return the simplified composite expression, or the original expression if simplification is unsuccessful
    */
   def simplifyTerms(c: CompositeExpression): CompositeExpression = {
+    // CONSIDER this appears to be wrong. See ISSUE #89
     val frs: Seq[MatchResult[Field]] = c.terms map (alt(simplifier) & exactEvaluator(None))
     if (frs.forall(fr => !fr.successful)) c
     else {
