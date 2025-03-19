@@ -1261,10 +1261,8 @@ case object Exp extends ExpressionFunction(x => x.exp, "exp") {
    * @return true if the expression is exact within the given context; otherwise false
    */
   def isExactInContext(context: Context)(x: Expression): Boolean = x match {
-    case Literal(z, _) => z match {
-      case Constants.zero | Constants.one => true
-      case _ => false
-    }
+    case a: AtomicExpression => a.evaluate.isZero || a.evaluate.isUnity
+    case _ => false // CONSIDER testing for the x to evaluate to exactly 0 or 1 (but such cases should already have been simplified)
   }
 }
 

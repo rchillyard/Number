@@ -1083,7 +1083,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val r = p(Power ~ Two ~ MinusOne)
     r.successful shouldBe true
     import Rational.RationalOps
-    r.get shouldBe Number(1 :/ 2)
+    r.get shouldBe Real(1 :/ 2)
   }
   it should "fail to simplify 2 ^ 1/2" in {
     val r: em.MatchResult[Expression] = em.biFunctionTransformer(Power ~ Two ~ Literal(Rational.half))
