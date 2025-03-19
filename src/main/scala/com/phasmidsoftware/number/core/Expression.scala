@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.parse.ShuntingYardParser
 import scala.language.implicitConversions
 
 /**
- * Trait Expression which defines the behavior of a lazily-evaluated tree of mathematical operations and operands.
+ * Trait Expression which defines the behavior of a lazily evaluated tree of mathematical operations and operands.
  */
 sealed trait Expression extends NumberLike {
   /**
@@ -90,39 +90,8 @@ sealed trait Expression extends NumberLike {
    * @param comparand the expression to be compared.
    * @return the result of comparing materialized this with materialized comparand.
    */
-  def compare(comparand: Expression): Int = recover(for (x <- materialize.asNumber; y <- comparand.materialize.asNumber) yield x.compare(y), NumberException("compare: logic error"))
-//
-//  /**
-//   * Determines whether this expression is complementary to the given comparand.
-//   * Two expressions are complementary if this and the comparand are exact, and their contexts are the same,
-//   * and the sum of their evaluations results in zero.
-//   *
-//   * @param comparand the expression to compare with this expression.
-//   * @return true if this expression and the comparand are complementary; otherwise, false.
-//   */
-//  def isComplementary(function: ExpressionBiFunction, comparand: Expression): Boolean = {
-//    import com.phasmidsoftware.matchers.~
-//    val exact = isExact
-//    import com.phasmidsoftware.matchers.Matchers.TildeOps
-//    val ok = (function ~ this ~ comparand) match {
-//      case Sum ~ x ~ Function(y, Negate) => x == y
-//      case Sum ~ Function(x, Negate) ~ y => x == y
-//      case Sum ~ _ ~ _ =>
-//        val field = evaluate + comparand.evaluate
-//        field.isExact && field.isZero
-//      case Product ~ x ~ Function(y, Reciprocal) => x == y
-//      case Sum ~ Function(x, Negate) ~ y => x == y
-//      case Product ~ _ ~ _ =>
-//        val field = evaluate * comparand.evaluate
-//        field.isExact && field == Constants.one
-//      case _ => false
-//    }
-//    val comparandExact = comparand.isExact
-//    val context1 = context
-//    val context2 = comparand.context
-//    val result = exact && comparandExact && context1 == context2 && ok
-//    result
-//  }
+  def compare(comparand: Expression): Int =
+    recover(for (x <- materialize.asNumber; y <- comparand.materialize.asNumber) yield x.compare(y), NumberException("compare: logic error"))
 }
 
 /**
@@ -154,7 +123,7 @@ object Expression {
    * CONSIDER improving the logic.
    */
   def apply(x: Field): Expression = x match {
-    case Constants.zero => Zero
+    case Constants.zero => Zero // TESTME (applies to all except default case)
     case Constants.one => One
     case Constants.minusOne => MinusOne
     case Constants.two => Two
@@ -180,9 +149,9 @@ object Expression {
    */
   def apply(x: Int): Expression = x match {
     case -1 => minusOne
-    case 0 => zero
+    case 0 => zero // TESTME
     case 1 => one
-    case 2 => two
+    case 2 => two // TESTME
     case _ => Literal(x)
   }
 
@@ -260,10 +229,6 @@ object Expression {
      * @return an Expression representing the reciprocal of x.
      */
     def reciprocal: Expression = Function(x, Reciprocal)
-    //          em.simplifier(Function(x, Reciprocal)) match {
-    //          case em.Match(z: Expression) => z
-    //          case em.Miss(_,z: Expression) => z
-    //        }
 
     /**
      * Method to lazily divide x by y.
@@ -290,7 +255,7 @@ object Expression {
       case z: AtomicExpression =>
         z.evaluate.asNumber match {
           case Some(q) => Literal(q.sqrt)
-          case _ => x ^ Constants.half
+          case _ => x ^ Constants.half // TESTME
         }
       case _ => x ^ Constants.half
     }
@@ -333,7 +298,7 @@ object Expression {
     def exp: Expression = Function(x, Exp)
 
     /**
-     * Method to lazily get the value of atan2(x, y), i.e. if the result is z, then tan(z) = y/x.
+     * Method to lazily get the value of atan2(x, y), i.e., if the result is z, then tan(z) = y/x.
      *
      * @return an Expression representing atan2(x, y).
      */
@@ -390,10 +355,10 @@ sealed trait AtomicExpression extends Expression {
   def maybeFactor: Option[Factor] = evaluate.maybeFactor
 
   /**
-   * Action to materialize this Expression and render it as a String,
-   * that is to say we eagerly evaluate this Expression as a String.
+   * Action to materialize this Expression and render it as a `String`,
+   * that is to say, we eagerly evaluate this Expression as a `String`.
    *
-   * @return String form of this Constant.
+   * @return `String` form of this `Constant`.
    */
   def render: String = toString
 
@@ -454,15 +419,6 @@ sealed trait CompositeExpression extends Expression {
    * @return a new `Expression` where the terms are substituted with the given sequence.
    */
   def substituteTerms(terms: Seq[Expression]): CompositeExpression
-
-  //  /**
-  //   * Attempts to simplify each of the terms of this `CompositeExpression`.
-  //   *
-  //   * CONSIDER passing in Matchers (not ExpressionMatchers)
-  //   *
-  //   * @return a simplified instance of the current expression.
-  //   */
-  //  def simplifyTerms(em: ExpressionMatchers): Expression
 
   /**
    * Method to render this NumberLike in a presentable manner.
@@ -546,7 +502,7 @@ object Literal {
    * @param x the Double value to be wrapped in the Literal.
    * @return a Literal instance containing the provided Double value as a Real.
    */
-  def apply(x: Double): Literal = Literal(Real(x))
+  def apply(x: Double): Literal = Literal(Real(x)) // TESTME
 
   /**
    * Creates a Literal instance from a given number.
@@ -558,7 +514,7 @@ object Literal {
 }
 
 /**
- * A known constant value, for example π (pi) or e.
+ * A known constant value, for example, π (pi) or e.
  */
 abstract class Constant extends AtomicExpression {
 
@@ -574,26 +530,9 @@ abstract class Constant extends AtomicExpression {
 }
 
 /**
- * Companion object to `Constant` abstract class provides utility methods related to constant values in the `Expression` framework.
+ * Represents the mathematical constant zero.
+ * This object extends the `Constant` class, providing implementation specific to zero.
  */
-object Constant {
-
-  /**
-   * Searches for a constant within the available constants that matches the evaluation of the given Field.
-   *
-   * @param x the input Field to match against the evaluation of constants.
-   * @return an Option containing the matching Constant if found, or None if no match is found.
-   */
-  def replaceWithConstant(x: Field): Option[Constant] = constants find (c => c.evaluate == x)
-
-  /**
-   * Provides a sequence of well-known constant values used within the `Expression` framework.
-   *
-   * @return a sequence of predefined constants, including MinusOne, Zero, Half, One, Two, ConstE, and ConstPi.
-   */
-  def constants: Seq[Constant] = Seq[Constant](MinusOne, Zero, Half, One, Two, ConstE, ConstPi)
-}
-
 case object Zero extends Constant {
   /**
    * @return Number.zero
@@ -605,6 +544,17 @@ case object Zero extends Constant {
   override def toString: String = "0"
 }
 
+/**
+ * Represents the mathematical constant 1/2 (half).
+ *
+ * This object is a specific implementation of the `Constant` trait
+ * and is used to represent the value of half within mathematical expressions.
+ *
+ * It provides:
+ * - An evaluation method that returns the predefined constant value of half.
+ * - A context definition for the constant.
+ * - A string representation of the constant.
+ */
 case object Half extends Constant {
   def evaluate(context: Context): Field = Constants.half
 
@@ -613,6 +563,12 @@ case object Half extends Constant {
   override def toString: String = "\u00BD"
 }
 
+/**
+ * Represents the constant numeric value `1`.
+ *
+ * `One` is a case object that extends `Constant`, indicating that it is a well-defined,
+ * immutable, and atomic mathematical value.
+ */
 case object One extends Constant {
   def evaluate(context: Context): Field = Constants.one
 
@@ -621,6 +577,15 @@ case object One extends Constant {
   override def toString: String = "1"
 }
 
+/**
+ * Represents the constant value -1.
+ *
+ * MinusOne is a specific instance of the `Constant` class, which evaluates to
+ * the numerical value -1 regardless of the context.
+ *
+ * This constant can be used in mathematical expressions involving fields and
+ * supports operations defined in the `Field` trait.
+ */
 case object MinusOne extends Constant {
   def evaluate(context: Context): Field = Constants.minusOne
 
@@ -629,6 +594,12 @@ case object MinusOne extends Constant {
   override def toString: String = "-1"
 }
 
+/**
+ * Represents the constant number 2 as a case object, extending the `Constant` class.
+ *
+ * This object evaluates to the numeric constant `2` within the given context.
+ * It can be used in mathematical expressions and operations involving constants.
+ */
 case object Two extends Constant {
   def evaluate(context: Context): Field = Constants.two
 
@@ -638,13 +609,17 @@ case object Two extends Constant {
 }
 
 /**
- * The constant π (pi).
- * Yes, this is an exact number.
+ * ConstPi represents the mathematical constant π (pi) exactly.
  */
 case object ConstPi extends Constant {
   def evaluate(context: Context): Field = Constants.pi
 
-  def context: Context = Some(Radian)
+  /**
+   * Provides the default context for the `ConstPi` class.
+   *
+   * @return the context associated with the mathematical constant π, specifically `Radian`
+   */
+  lazy val context: Context = Some(Radian)
 
   override def toString: String = "π"
 }
@@ -657,11 +632,11 @@ case object ConstE extends Constant {
   def evaluate(context: Context): Field = Constants.e
 
   /**
-   * TESTME
-   *
-   * @return Some(factor) if expression only involves that factor; otherwise None.
+   * Provides access to the default logarithmic context, which is `NatLog`.
+   * This context is used for evaluations involving natural logarithmic
+   * or exponential arithmetic, relating to the mathematical constant e.
    */
-  def context: Context = Some(NatLog)
+  lazy val context: Context = Some(NatLog)
 
   override def toString: String = "e"
 }
@@ -681,7 +656,6 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    */
   def isExactInContext(context: Context): Boolean =
     x.isExactInContext(context) && f.isExactInContext(context)(x)
-  //    f(x.materialize).isExactInContext(context)
 
   /**
    * Provides the terms that comprise this `CompositeExpression`.
@@ -698,31 +672,15 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    */
   def substituteTerms(terms: Seq[Expression]): CompositeExpression = copy(x = terms.head)
 
-  //
-  //  /**
-  //   * Attempts to simplify each of the terms of this `CompositeExpression`.
-  //   *
-  //   * @return a simplified instance of the current expression.
-  //   */
-  //  def simplifyTerms: Expression = simplifier(x) match {
-  //    case Expression.em.Match(r: Expression) => Function(r, f)
-  //    case Expression.em.Miss(w, _) => this
-  //    case Expression.em.Error(x) => logger.apply(x.getLocalizedMessage); this
-  //  }
-
   /**
-   * TODO implement properly according to the actual function involved.
-   *
-   * TESTME
-   *
-   * @return Some(factor) if expression only involves that factor; otherwise None.
+   * Retrieves the context associated with the expression `x` using the function `f`.
+   * The context typically provides additional information or constraints necessary
+   * for evaluating or manipulating the expression.
    */
-  def context: Context = f.context(x)
+  lazy val context: Context = f.context(x)
 
   /**
    * Method to determine the depth of this Expression.
-   *
-   * TESTME
    *
    * @return the 1 + depth of x.
    */
@@ -759,7 +717,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   /**
    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
    *
-   * @return the value of factorsMatch for the function f and the results of invoking context on each operand..
+   * @return the value of factorsMatch for the function f and the results of invoking context on each operand.
    */
   lazy val context: Context = for (f1 <- a.context; f2 <- b.context; r <- factorsMatch(f, f1, f2)) yield r
 
@@ -794,25 +752,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     val Seq(a, b) = terms
     BiFunction(a, b, f)
   }
-  //
-  //  /**
-  //   * Attempts to simplify each of the terms of this `CompositeExpression`.
-  //   *
-  //   * @return a simplified instance of the current expression.
-  //   */
-  //  def simplifyTerms(em: ExpressionMatchers): Expression = {
-  //    val resultA: em.MatchResult[Expression] = simplifier(a)
-  //    val resultB: em.MatchResult[Expression] = simplifier(b)
-  //    (resultA, resultB) match {
-  //      case (em.Match(a), em.Match(b)) => BiFunction(a, b, f)
-  //    }
-  //    val result: em.MatchResult[Expression ~ Expression] = resultA ~~ resultB
-  //    result match {
-  //      case em.Match[Expression ~ Expression] ((x: Expression) ~ (y: Expression) ) => BiFunction (x, y, f)
-  //      case em.Miss(_, _) => this
-  //    }
-  //  }
-
 
   /**
    * Render this BiFunction for debugging purposes.
@@ -836,8 +775,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case Sum if f1 == f2 && f1 != NatLog =>
       Some(f1)
     case Product if f1.canMultiply(f2) => Some(f1)
-    //      if f1 == f2 || f1 == PureNumber || f2 == PureNumber =>
-    //      if (f1 == f2) Some(f1) else if (f2 == PureNumber) Some(f1) else Some(f2)
     case Power if f2 == PureNumber =>
       Some(f1)
     case _ =>
@@ -858,8 +795,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   private lazy val conditionallyExact: Boolean = f match {
     case Power => b.materialize.asNumber.flatMap(x => x.toInt).isDefined
     case Sum => context.isDefined
-    case Product => true
-    case _ => false
+    case Product => true // TESTME
+    case _ => false // TESTME
   }
 
   /**
@@ -888,7 +825,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
  * Represents a composite expression that computes the total of a sequence of expressions.
  * The sequence must be non-empty.
  *
- * @constructor Constructs a Aggregate instance with a sequence of expressions.
+ * @constructor Constructs an Aggregate instance with a sequence of expressions.
  * @param xs A non-empty sequence of expressions to be totaled.
  */
 case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extends CompositeExpression {
@@ -949,11 +886,11 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   def depth: Int = xs.map(_.depth).max + 1
 
   /**
-   * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
+   * Method to determine if this `NumberLike` object can be evaluated exactly in the context of a `Factor`.
    *
-   * @param context     the (optional) context in which we want to evaluate this Expression.
-   *                    if factor is None then, the result will depend solely on whether this is exact.
-   * @return true if this NumberLike object is exact in the context of factor, else false.
+   * @param context     the (optional) context in which we want to evaluate this `Expression`.
+   *                    if `None`, the result will depend solely on whether this is exact.
+   * @return true if this `NumberLike` object is exact in the context of factor, else false.
    */
   def isExactInContext(context: Context): Boolean = context == this.context && xs.forall(_.isExactInContext(context))
 
@@ -1034,6 +971,8 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
 
   /**
    * Substitutes the terms of this `CompositeExpression` with the provided sequence of expressions.
+   * In fact, this method simply returns `this` and ignores `terms`.
+   * TESTME
    *
    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
    * @return `this`.
@@ -1089,17 +1028,17 @@ object Psi extends ReducedQuadraticRoot("psi", -1, -1, false)
 /**
  * Companion object for the `Aggregate` case class.
  *
- * Provides a utility method to create a `Aggregate` instance by converting a sequence of `Field` inputs
- * into `Literal` expressions and wrapping them in a `Aggregate`.
+ * Provides a utility method to create an `Aggregate` instance by converting a sequence of `Field` inputs
+ * into `Literal` expressions and wrapping them in an `Aggregate`.
  */
 object CompositeExpression {
 
   /**
-   * Creates a `Aggregate` instance from the given sequence of `Field` inputs.
-   * Each `Field` is converted to a `Literal` expression and combined into a `Aggregate`.
+   * Creates an `Aggregate` instance from the given sequence of `Field` inputs.
+   * Each `Field` is converted to a `Literal` expression and combined into an `Aggregate`.
    *
    * @param xs The sequence of `Field` instances used to create the `Aggregate`.
-   * @return A `Aggregate` instance containing the converted `Literal` expressions.
+   * @return An `Aggregate` instance containing the converted `Literal` expressions.
    */
   def apply(xs: Expression*): Expression = xs.toList match {
     case Nil => throw new IllegalArgumentException("Empty Sequence")
@@ -1114,7 +1053,7 @@ object CompositeExpression {
    * TESTME
    *
    * @param xs The sequence of `Field` instances used to create the `Aggregate`.
-   * @return A `Aggregate` instance containing the converted `Literal` expressions.
+   * @return An `Aggregate` instance containing the converted `Literal` expressions.
    */
   def create(xs: Field*): Expression = apply(xs map (x => Literal(x, None)): _*)
 }
@@ -1132,6 +1071,7 @@ object CompositeExpression {
 abstract class SineCos(sine: Boolean) extends ExpressionFunction(x => if (sine) x.sin else x.cos, if (sine) "sin" else "cos") {
   /**
    * Determines if the given expression is considered exact in the context provided.
+   * TESTME
    *
    * @param context the context in which the evaluation is made.
    * @param x       the expression to be checked for exactness within the given context.
@@ -1246,6 +1186,7 @@ case object Exp extends ExpressionFunction(x => x.exp, "exp") {
    * Determines the context of the given expression, based on its factor.
    * If the expression has a factor that is a `PureNumber`, it returns that factor wrapped in `Some`.
    * Otherwise, it returns `None`.
+   * TESTME
    *
    * @param x the expression whose context is to be determined
    * @return an optional context (`Some(PureNumber)` if the factor is a `PureNumber`; otherwise `None`)
@@ -1288,7 +1229,7 @@ case object Negate extends ExpressionFunction(x => negate(x), "-") {
    */
   def context(x: Expression): Context = x.maybeFactor match {
     case c: Option[Scalar] => c
-    case _ => None
+    case _ => None // TESTME
   }
   /**
    * Determines whether the provided expression is exact within the given context.
@@ -1441,7 +1382,7 @@ object ExpressionFunction {
  *                       That's to say, `identityL f y` can be replaced by `y`.
  *                       If `None`, then the function has no identity value.
  * @param maybeIdentityR an optional right identity element for the function, if applicable.
- *                       That's to say `x f identityR` can be replaced by `x`.
+ *                       That's to say, `x f identityR` can be replaced by `x`.
  *                       If `None`, then the function is commutative and the only identity
  *                       required is given by `identityL`.
  */
@@ -1485,4 +1426,10 @@ object ExpressionBiFunction {
   }
 }
 
+/**
+ * A custom exception that represents errors related to expressions.
+ * TESTME (unused)
+ *
+ * @param str The error message providing details about the expression error.
+ */
 case class ExpressionException(str: String) extends Exception(str)
