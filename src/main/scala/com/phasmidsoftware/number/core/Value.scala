@@ -188,7 +188,7 @@ sealed trait Factor {
   def canMultiply(f: Factor): Boolean
 
   /**
-   * Determines whether the current factor can be raised by the given factor.
+   * Determines whether `this` factor can be raised by the given factor `f`.
    *
    * @param f the factor to be checked for compatibility with raising to a power.
    * @return true if the factors can be powered; false otherwise.
@@ -506,10 +506,34 @@ case object PureNumber extends Scalar {
   * The range of these values is 0 thru 2, which represents the radian values of 0 thru 2pi.
   */
 case object Radian extends Scalar {
+  /**
+   * Represents the mathematical constant π (pi), approximately equal to 3.14159.
+   * This value is commonly used in trigonometric, geometric, and other mathematical computations.
+   */
   val value: Double = Math.PI
 
+  /**
+   * Determines whether `this` factor can be raised by the given factor `f`.
+   *
+   * @param f the factor to be checked for compatibility with raising to a power.
+   * @return true if the factors can be powered; false otherwise.
+   */
+  override def canRaise(f: Factor, exponent: Field): Boolean =
+    exponent.isZero || exponent.isUnity
+
+  /**
+   * Returns the string representation of the `Radian` factor.
+   *
+   * @return a string representation of the mathematical constant π.
+   */
   override def toString: String = Factor.sPi
 
+  /**
+   * Renders a string by appending the mathematical symbol for pi (π).
+   *
+   * @param x the input string to which the mathematical symbol for pi will be appended
+   * @return a new string consisting of the input string followed by the symbol for pi
+   */
   def render(x: String): String = x + Factor.sPi
 }
 

@@ -1051,7 +1051,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "fail to simplify 1 + pi" in {
     val r: em.MatchResult[Expression] = em.biFunctionTransformer(Sum ~ One ~ ConstPi)
-    r.successful shouldBe true
+    r.successful shouldBe false
   }
   it should "simplify 1 + -1" in {
     val r: em.MatchResult[Expression] = em.biFunctionTransformer(Sum ~ One ~ MinusOne)
