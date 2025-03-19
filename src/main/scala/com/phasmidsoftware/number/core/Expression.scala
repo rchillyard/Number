@@ -1138,11 +1138,12 @@ abstract class SineCos(sine: Boolean) extends ExpressionFunction(x => if (sine) 
    * @return true if the expression is exact in the specified context; false otherwise.
    */
   def isExactInContext(context: Context)(x: Expression): Boolean = x match {
-    case Literal(theta, _) => theta match {
-      // TODO add other cases
-      case Constants.zero | Constants.pi | Constants.piBy2 => true
-      case _ => false
-    }
+    case a: AtomicExpression =>
+      a.evaluate match {
+        // TODO add other cases
+        case Constants.zero | Constants.pi | Constants.piBy2 => true
+        case _ => false
+      }
   }
 
   /**
@@ -1227,10 +1228,11 @@ case object Log extends ExpressionFunction(x => x.log, "log") {
    * @return `true` if the `Expression` is exact in the given `Context`; otherwise, `false`.
    */
   def isExactInContext(context: Context)(x: Expression): Boolean = x match {
-    case Literal(x, _) => x match {
-      case Constants.e | Constants.zero | Constants.one => true
-      case _ => false
-    }
+    case a: AtomicExpression =>
+      a.evaluate match {
+        case Constants.e | Constants.zero | Constants.one => true
+        case _ => false
+      }
   }
 }
 
@@ -1320,6 +1322,7 @@ case object Reciprocal extends ExpressionFunction(x => 1 / x, "rec") {
   /**
    * Determines whether the provided expression is exact within the given context.
    * TODO implement this correctly for `Root` and `Log` type numbers.
+   * CONSIDER is this really true for all values? I don't think so!
    *
    * @param context the context in which the expression is being evaluated for exactness
    * @param x       the expression to be checked for exactness
