@@ -310,6 +310,20 @@ object FP {
    */
   def toTry[X](xo: Option[X], default: => Try[X]): Try[X] = xo map (Success(_)) getOrElse default
 
+  /**
+   * Converts a `Try` instance into an `Option`.
+   * Any `Exception` in the input is of course lost.
+   *
+   * @param xy The `Try` instance to be converted.
+   * @return An `Option` containing the value if the `Try` is a Success, or `None` if the `Try` is a `Failure`.
+   */
+  def toOption[X](xy: Try[X]): Option[X] = xy match {
+    case Success(x) => Some(x)
+    case Failure(x) =>
+      println(s"FP.toOption: $x") // TODO log this error
+      None
+  }
+
 }
 
 /**

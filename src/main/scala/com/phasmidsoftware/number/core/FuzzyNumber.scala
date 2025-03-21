@@ -27,7 +27,7 @@ import scala.collection.mutable
  * @param factor the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
  * @param fuzz   the fuzziness of this Number.
  */
-case class FuzzyNumber(override val value: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(value, factor, fuzz) with Fuzz[Double] {
+case class FuzzyNumber(override val nominalValue: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(nominalValue, factor, fuzz) with Fuzz[Double] {
 
   /**
    * Method to determine if this FuzzyNumber is equivalent to another Numerical (x).
@@ -63,7 +63,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
    * @return either this Number or a simplified Number.
    */
   def simplify: Number = fuzz match {
-    case None => ExactNumber(value, factor).simplify
+    case None => ExactNumber(nominalValue, factor).simplify
     case _ =>
       factor match {
         case Root(_) => scale(PureNumber)
@@ -162,7 +162,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
     for (n <- composeDyadic(other, f)(op); t1 <- this.toDouble; t2 <- other.toDouble) yield {
       val q = Fuzziness.combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients))
-      FuzzyNumber(n.value, n.factor, q)
+      FuzzyNumber(n.nominalValue, n.factor, q)
     }
 
   /**
@@ -181,7 +181,7 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
    */
   override def toString: String = {
     val sb = new mutable.StringBuilder()
-    lazy val valueAsString = Value.valueToString(value, fuzz.isEmpty)
+    lazy val valueAsString = Value.valueToString(nominalValue, fuzz.isEmpty)
     val z = fuzz match {
       // CONSIDER will the following test work in all cases?
       case Some(f) if f.wiggle(0.5) > 1E-16 => f.toString(toDouble.getOrElse(0.0))
@@ -209,31 +209,31 @@ case class FuzzyNumber(override val value: Value, override val factor: Factor, o
 
   /**
    * Make a copy of this Number, given the same degree of fuzziness as the original.
-   * Both the value and the factor will be changed.
+   * Both the nominalValue and the factor will be changed.
    *
-   * @param v the value.
+   * @param v the nominalValue.
    * @param f the factor.
    * @return a FuzzyNumber.
    */
   def make(v: Value, f: Factor): Number = FuzzyNumber(v, f, fuzz)
 
   /**
-   * Make a copy of this Number, with the same value and factor but with a different value of fuzziness.
+   * Make a copy of this Number, with the same nominalValue and factor but with a different nominalValue of fuzziness.
    *
    * @param fo the (optional) fuzziness.
    * @return a Number.
    */
   def make(fo: Option[Fuzziness[Double]]): Number = fo match {
-    case Some(_) => FuzzyNumber(value, factor, fo)
-    case None => ExactNumber(value, factor)
+    case Some(_) => FuzzyNumber(nominalValue, factor, fo)
+    case None => ExactNumber(nominalValue, factor)
   }
 
   /**
    * Make a copy of this Number, given the same degree of fuzziness as the original.
-   * Only the value and factor will change.
+   * Only the nominalValue and factor will change.
    * This method should be followed by a call to specialize.
    *
-   * @param v  the value (a Double).
+   * @param v the nominalValue (a Double).
    * @param f  Factor.
    * @param fo optional fuzz.
    * @return either a Number.
@@ -363,7 +363,7 @@ object FuzzyNumber {
    * @param f the fuzziness to be added.
    * @return a fuzzied version of n.
    */
-  def addFuzz(n: Number, f: Fuzziness[Double]): Number = (n.value, n.fuzz) match {
+  def addFuzz(n: Number, f: Fuzziness[Double]): Number = (n.nominalValue, n.fuzz) match {
     case (v@Left(Left(Some(_))), fo) => addFuzz(n, v, fo, f)
     case _ => n
   }

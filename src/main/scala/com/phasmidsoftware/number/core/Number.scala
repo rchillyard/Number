@@ -22,18 +22,26 @@ import scala.util._
   * CONSIDER eliminate extending Field
   *
   * Every number has three properties:
-  * * value: Value
+ * * nominalValue: Value
   * * factor: Factor
   * * fuzz: (from extending Fuzz[Double]).
   */
 trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
-    * The value of this Number.
+   * Method to evaluate this `Number` in the context of `PureNumber`.
+   * NOTE that, according to the `factor` of `this`, the result may not be as exact as `this`.
+   *
+   * @return an equivalent `Field` whose factor(s) are `PureNumber`.
+   */
+  def toPureNumber: Option[Number]
+
+  /**
+   * The nominal value of this `Number`.
     *
-    * @return the value.
+   * @return the nominalValue.
     */
-  def value: Value
+  def nominalValue: Value
 
   /**
     * The factor of this Number.
@@ -334,7 +342,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * @return the tangent
     */
-  def tan: Number = (value, factor) match { // CONSIDER modulating first.
+  def tan: Number = (nominalValue, factor) match { // CONSIDER modulating first.
     case (Left(Right(r)), Radian) => r match {
       case Rational(Rational.bigOne, Rational.bigThree) => Number.root3
       case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) => negate(Number.one)
@@ -602,9 +610,9 @@ object Number {
     * NOTE: this unapply method does not match on the fuzz of a Number.
     *
     * @param arg a Number to be unapplied.
-    * @return optional value and factor.
+   * @return optional Value and Factor.
     */
-  def unapply(arg: Number): Option[(Value, Factor)] = Some(arg.value, arg.factor)
+  def unapply(arg: Number): Option[(Value, Factor)] = Some(arg.nominalValue, arg.factor)
 
   /**
     * Exact value of 0
@@ -1282,15 +1290,15 @@ object Number {
     case (a, b) if a == b => n
     case (NatLog, PureNumber) => prepare(n.transformMonadic(factor)(MonadicOperationExp))
     case (PureNumber, NatLog) => prepare(n.transformMonadic(factor)(MonadicOperationLog))
-    case (Root(_), PureNumber) if Value.signum(n.value) < 0 => Number.NaN
+    case (Root(_), PureNumber) if Value.signum(n.nominalValue) < 0 => Number.NaN
     case (Root2, PureNumber) => prepare(n.transformMonadic(factor)(MonadicOperationSqrt)) // CONSIDER use of convert
     case (NatLog, Scalar(_)) | (Scalar(_), NatLog) | (Logarithmic(_), Root(_)) => scale(scale(n, PureNumber), factor)
     case (PureNumber, Logarithmic(_)) => scale(scale(n, NatLog), factor)
     case (PureNumber, Root(f)) => convertScalarToRoot(n, factor, f)
     case (Root(f), NatLog) => convertRootToNatLog(n, factor, f)
-    case (Scalar(_), Scalar(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
-    case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
-    case (Root(_), Root(_)) => prepare(n.factor.convert(n.value, factor) map (v => n.make(v, factor)))
+    case (Scalar(_), Scalar(_)) => prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
+    case (Logarithmic(_), Logarithmic(_)) => prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
+    case (Root(_), Root(_)) => prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
     case (Logarithmic(_), Scalar(_)) | (Root(_), Logarithmic(_)) | (Root(_), Scalar(_)) => scale(scale(n, NatLog), factor)
     case _ => throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
   }
@@ -1308,7 +1316,7 @@ object Number {
   def negate(x: Number): Number =
     x.factor match {
       case p@Scalar(_) => prepare(x.transformMonadic(p)(MonadicOperationNegate))
-    case Root(_) if Value.signum(x.value) < 0 => throw NumberException(s"cannot negate imaginary number: $x")
+      case Root(_) if Value.signum(x.nominalValue) < 0 => throw NumberException(s"cannot negate imaginary number: $x")
       case _ => negate(x.scale(PureNumber))
   }
 

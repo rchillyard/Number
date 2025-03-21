@@ -12,18 +12,35 @@ import scala.annotation.tailrec
 import scala.util._
 
 /**
-  * This class is designed to model a Numerical value of various possible different types.
-  * These types are: Int, BigInt, Rational, Double.
+ * This class is designed to model a Numerical value of various possible different types and of various possible factors.
+ * The types are: Int, BigInt, Rational, Double.
+ * The factors are: Scalar, Logarithmic, and Root (with various subtypes).
   *
   * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber.
   *
-  * @param value  the value of the Number, expressed as a nested Either type.
+ * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
  * @param factor  the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
   * @param fuzz   the (optional) fuzziness of this Number.
   */
-abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
+abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
 
   self =>
+
+  /**
+   * Method to evaluate this `Number` in the context of `PureNumber`.
+   * NOTE that, according to the `factor` of `this`, the result may not be as exact as `this`.
+   *
+   * @return an equivalent `Number` whose factor is `PureNumber`.
+   */
+  def toPureNumber: Option[Number] = (factor, fuzz) match {
+    case (PureNumber, _) =>
+      Some(this)
+    case (f, None) =>
+      f.convert(nominalValue, PureNumber) match {
+        case Some(value) => Some(make(value, PureNumber))
+        case None => normalize.asNumber
+      }
+  }
 
   /**
     * Method to compare this Number with that Field.
@@ -62,14 +79,15 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def applyFunc(f: Double => Double, dfByDx: Double => Double): Try[Number] = GeneralNumber.applyFunc(f, dfByDx)(this)
 
   /**
-    * Method to get the value of this Number as an optional Double.
+   * Method to get the nominalValue of this Number as an optional Double.
     *
-    * @return an Some(Double) which is the closest possible value to the nominal value, otherwise None if this is invalid.
+   * @return an Some(Double) which is the closest possible nominalValue to the nominal nominalValue,
+   *         otherwise None if this is invalid.
     */
   def toDouble: Option[Double] = maybeDouble
 
   /**
-    * Method to get the value of this Number as a Rational.
+   * Method to get the nominalValue of this Number as a Rational.
     * If this is actually a Double, it will be converted to a Rational according to the implicit conversion from Double to Rational.
     * See Rational.convertDouble(x).
     *
@@ -78,33 +96,33 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def toRational: Option[Rational] = maybeRational
 
   /**
-    * Method to get the value of this Number as an Int.
+   * Method to get the nominalValue of this Number as an Int.
     *
     * @return an Option of Int. If this Number cannot be converted to an Int, then None will be returned.
     */
   def toInt: Option[Int] = maybeInt
 
   /**
-    * Method to get the value of this Number as an (optional) BigInt.
+   * Method to get the nominalValue of this Number as an (optional) BigInt.
     * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
     *
     * @return an Option of BigInt.
     */
-  def toBigInt: Option[BigInt] = value match {
+  def toBigInt: Option[BigInt] = nominalValue match {
     case Right(x) => Some(BigInt(x))
     case Left(Right(r)) if r.isWhole => Some(r.n)
     case _ => None
   }
 
   /**
-    * Method to get the value of this Number as an (optional) BigInt.
+   * Method to get the nominalValue of this Number as an (optional) BigInt.
     * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
     *
     * TESTME
     *
     * @return an Option of BigDecimal.
     */
-  def toBigDecimal: Option[BigDecimal] = value match {
+  def toBigDecimal: Option[BigDecimal] = nominalValue match {
     case Right(x) => Some(BigDecimal(x))
     case Left(Right(r)) => r.toBigDecimal
     case Left(Left(Some(x))) => Some(BigDecimal(x))
@@ -131,7 +149,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return true if exact and rational.
     */
-  def isInteger: Boolean = value match {
+  def isInteger: Boolean = nominalValue match {
     case Right(_) => true
     case _ => false
   }
@@ -141,19 +159,19 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     *
     * @return true if exact and rational.
     */
-  def isRational: Boolean = value match {
+  def isRational: Boolean = nominalValue match {
     case Left(Right(_)) => true
     case _ => false
   }
 
   /**
     * Method to determine if this is an imaginary Number,
-    * that's to say a number with negative value and Root2 as its factor.
+   * that's to say a number with negative nominalValue and Root2 as its factor.
     *
     * @return true if imaginary.
     */
   def isImaginary: Boolean = factor match {
-    case Root2 if Value.signum(value) < 0 => true
+    case Root2 if Value.signum(nominalValue) < 0 => true
     case _ => false
   }
 
@@ -294,7 +312,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
   def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] =
-    Operations.doTransformValueMonadic(value)(op.functions) flatMap {
+    Operations.doTransformValueMonadic(nominalValue)(op.functions) flatMap {
       case v@Right(_) => Some(make(v, f))
       case v@Left(Right(_)) => Some(make(v, f))
       case v => make(v, f) match {
@@ -309,7 +327,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param op the appropriate QueryOperation.
     * @return a Boolean.
     */
-  def query[T](op: QueryOperation[T], defaultVal: => T): T = Operations.doQuery(value, op.getFunctions).getOrElse(defaultVal)
+  def query[T](op: QueryOperation[T], defaultVal: => T): T = Operations.doQuery(nominalValue, op.getFunctions).getOrElse(defaultVal)
 
   /**
    * Method to determine if this Number can stay "as is" under transformation according to context.
@@ -328,24 +346,24 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @param f the factor.
     * @return a Number.
     */
-  def make(f: Factor): Number = make(value, f)
+  def make(f: Factor): Number = make(nominalValue, f)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value will change.
+   * Only the nominalValue will change.
     * This method should be followed by a call to specialize.
     *
-    * @param v the value.
+   * @param v the nominalValue.
     * @return a Number.
     */
   def make(v: Value): Number = make(v, factor)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value will change.
+   * Only the nominalValue will change.
     * This method should be followed by a call to specialize.
     *
-    * @param v the value.
+   * @param v the nominalValue.
     * @param f Factor.
     * @return a Number.
     */
@@ -406,7 +424,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   def normalize: Field = {
     val z: Field = factor match {
       case PureNumber => Real(this)
-      case r@Root(_) if Value.signum(value) < 0 => GeneralNumber.normalizeRoot(value, r)
+      case r@Root(_) if Value.signum(nominalValue) < 0 => GeneralNumber.normalizeRoot(nominalValue, r)
       case Radian => Real(this) // Number.modulate(this) NOTE: we do modulation at other times
       case _ => Real(scale(PureNumber))
     }
@@ -435,7 +453,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a Number with the same magnitude as this.
     */
   //protected
-  def specialize: Number = value match {
+  def specialize: Number = nominalValue match {
     // XXX Int case
     case Right(_) => this
     // XXX Rational case
@@ -498,26 +516,28 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   //protected
   def alignTypes(q: Number): (Number, Number) = q match {
     case x: GeneralNumber =>
-      value match {
+      nominalValue match {
         // XXX this is an invalid Number: return a pair of invalid numbers
         case Left(Left(None)) => (this, this)
-        // XXX this value is a real Number: convert x to a Number based on real.
-        case Left(Left(Some(_))) => x.value match {
-          // XXX x's value is invalid: swap the order so the the first element is invalid
+        // XXX this nominalValue is a real Number: convert x to a Number based on real.
+        case Left(Left(Some(_))) => x.nominalValue match {
+          // XXX x's nominalValue is invalid: swap the order so the the first element is invalid
           case Left(Left(None)) => x.alignTypes(this)
           // XXX otherwise: return this and x re-cast as a Double
           case _ => (this, Number.prepare(x.maybeDouble.map(y => make(y, x.factor, x.fuzz).specialize)))
         }
-        // XXX this value is a Rational:
-        case Left(Right(_)) => x.value match {
-          // XXX x's value is a real Number: swap the order so that the first element is the real number
+        // XXX this nominalValue is a Rational:
+        case Left(Right(_)) => x.nominalValue match {
+          // XXX x's nominalValue is a real Number:
+          //  swap the order so that the first element is the real number
           case Left(Left(_)) => x.alignTypes(this)
           // XXX otherwise: return this and x re-cast as a Rational
           case _ => (this, x.make(x.maybeRational.getOrElse(Rational.NaN)).specialize)
         }
-        // XXX this value is an Int:
-        case Right(_) => x.value match {
-          // XXX x's value is a BigInt, Rational or real Number: swap the order so that the first element is the BigInt/Rational/real number
+        // XXX this nominalValue is an Int:
+        case Right(_) => x.nominalValue match {
+          // XXX x's nominalValue is a BigInt, Rational or real Number:
+          //  swap the order so that the first element is the BigInt/Rational/real number
           case Left(_) => x.alignTypes(this)
           // XXX otherwise: return this and x re-cast as an Int
           case _ => (this, x.make(x.maybeInt.getOrElse(0), x.factor).specialize)
@@ -526,19 +546,19 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   }
 
   /**
-    * An optional Rational that corresponds to the value of this Number (but ignoring the factor).
-    * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
+   * An optional Rational that corresponds to the nominalValue of this Number (but ignoring the factor).
+   * A Double nominalValue is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query
     */
-  def maybeRational: Option[Rational] = Value.maybeRational(value)
+  def maybeRational: Option[Rational] = Value.maybeRational(nominalValue)
 
   /**
-    * An optional Double that corresponds to the value of this Number (but ignoring the factor).
+   * An optional Double that corresponds to the nominalValue of this Number (but ignoring the factor).
     * If
     *
-    * @return Some(x) if value can be converted properly to a Double, otherwise None.
+   * @return Some(x) if nominalValue can be converted properly to a Double, otherwise None.
     */
-  def maybeDouble: Option[Double] = Value.maybeDouble(value)
+  def maybeDouble: Option[Double] = Value.maybeDouble(nominalValue)
 
   /**
     * Method to return this ExactNumber as a Real.
@@ -556,7 +576,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
   override def equals(other: Any): Boolean = other match {
     case that: GeneralNumber =>
       (that canEqual this) &&
-          value == that.value &&
+        nominalValue == that.nominalValue &&
           factor == that.factor &&
           fuzz == that.fuzz
     case _ => false
@@ -568,7 +588,7 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return
     */
   override def hashCode(): Int = {
-    val state = Seq(value, factor, fuzz)
+    val state = Seq(nominalValue, factor, fuzz)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 
@@ -582,14 +602,14 @@ abstract class GeneralNumber(val value: Value, val factor: Factor, val fuzz: Opt
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
   private def doComposeDyadic(other: Number, f: Factor)(functions: DyadicFunctions): Option[Number] = {
-    val vo: Option[Value] = Operations.doComposeValueDyadic(value, other.value)(functions)
+    val vo: Option[Value] = Operations.doComposeValueDyadic(nominalValue, other.nominalValue)(functions)
     for (v <- vo) yield make(v, f) // CONSIDER what about extra fuzz?
   }
 
   /**
-    * An optional Int that corresponds to the value of this Number (but ignoring the factor).
+   * An optional Int that corresponds to the nominalValue of this Number (but ignoring the factor).
     */
-  private lazy val maybeInt: Option[Int] = Value.maybeInt(value)
+  private lazy val maybeInt: Option[Int] = Value.maybeInt(nominalValue)
 
   /**
     * CONSIDER do we really need this?
@@ -601,7 +621,7 @@ object GeneralNumber {
 
   def applyFunc(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] = {
     val op: MonadicOperation = MonadicOperationFunc(f, dfByDx)
-    val no: Option[Number] = Operations.doTransformValueMonadic(x.value)(op.functions) flatMap {
+    val no: Option[Number] = Operations.doTransformValueMonadic(x.nominalValue)(op.functions) flatMap {
       v =>
         x.make(v, PureNumber) match {
           case n: GeneralNumber =>
@@ -717,7 +737,7 @@ object GeneralNumber {
   else
     x.factor match {
       case Logarithmic(_) =>
-        doTransformValueMonadic(x.value)(MonadicOperationScale(r).functions) match {
+        doTransformValueMonadic(x.nominalValue)(MonadicOperationScale(r).functions) match {
           case Some(v) => x.make(v)
           case None => throw NumberException("power: logic error")
         }

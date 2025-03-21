@@ -10,10 +10,10 @@ package com.phasmidsoftware.number.core
   *
   * TODO implement scientific notation by having factors such os 10^3, 10^6, etc. (alternatively, add a separate parameter)
   *
-  * @param value  the value of the Number, expressed as a nested Either type.
+ * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
  * @param factor  the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
   */
-case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
+case class ExactNumber(override val nominalValue: Value, override val factor: Factor) extends GeneralNumber(nominalValue, factor, None) {
 
   /**
     * Method to determine if this ExactNumber is equivalent to another Numerical (x).
@@ -46,7 +46,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     *
     * @return either this Number or a simplified Number.
     */
-  def simplify: Number = (factor, value) match {
+  def simplify: Number = (factor, nominalValue) match {
     case (Logarithmic(_), Right(0)) => Number.one
     // XXX this handles all roots (of which there are currently only Root2 and Root3)
     case (Root(n), v) => v match {
@@ -128,16 +128,16 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @param fo the (optional) fuzziness.
     * @return a Number.
     */
-  def make(fo: Option[Fuzziness[Double]]): Number = FuzzyNumber(value, factor, fo)
+  def make(fo: Option[Fuzziness[Double]]): Number = FuzzyNumber(nominalValue, factor, fo)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value and factor will change.
+   * Only the nominalValue and factor will change.
     * This method should be followed by a call to specialize.
     *
     * TESTME
     *
-    * @param v  the value (a Double).
+   * @param v the nominalValue (a Double).
     * @param f  Factor.
     * @param fo optional fuzz.
     * @return either a Number.
@@ -186,12 +186,12 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
       val sb = new StringBuilder()
       factor match {
         case Logarithmic(_) =>
-          sb.append(factor.render(value))
+          sb.append(factor.render(nominalValue))
         case Scalar(_) =>
-          sb.append(Value.valueToString(value))
+          sb.append(Value.valueToString(nominalValue))
           sb.append(factor.toString)
         case Root(_) =>
-          sb.append(factor.render(value))
+          sb.append(factor.render(nominalValue))
         case _ =>
           throw NumberException(s"factor is not matched: $factor")
       }

@@ -397,9 +397,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   it should "simplify aggregate 3b" in {
     val target: Expression = CompositeExpression(Literal(root2), -Literal(root2))
-    val simplifiedTarget = em.simplifier(target)
-    val result: em.MatchResult[Field] = simplifiedTarget map (_.materialize)
-    result match {
+    em.simplifier(target) map (_.materialize) match {
       case em.Match(x: Field) =>
         val value = convertToNumber(x)
         value shouldBe Number.zero
@@ -411,6 +409,16 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val target: Expression = Aggregate(Sum, Seq(One, ConstE, Function(ConstE, Negate)))
     val result: em.MatchResult[Expression] = em.simplifier(target)
     result shouldBe em.Match(One)
+  }
+
+  // FIXME Issue #88
+  ignore should "simplify aggregate 4b" in {
+    val root3 = Expression(3).sqrt
+    val root3PlusOne = root3 plus Expression.one
+    val root3MinusOne = root3 plus Expression(Constants.minusOne)
+    val expression = root3PlusOne * root3MinusOne
+    val result = em.simplifier(expression)
+    result shouldBe em.Match(Two)
   }
 
   behavior of "materialize (a)"

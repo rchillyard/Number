@@ -27,12 +27,12 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "yield Right(1)" in {
     val target = Real(1)
     target should matchPattern { case Real(ExactNumber(_, _)) => }
-    target.x.value should matchPattern { case Right(_) => }
+    target.x.nominalValue should matchPattern { case Right(_) => }
   }
   it should "yield Right(1, Radian)" in {
     val target: Real = Constants.pi
     target should matchPattern { case Real(ExactNumber(_, _)) => }
-    target.x.value should matchPattern { case Right(_) => }
+    target.x.nominalValue should matchPattern { case Right(_) => }
     target.x.factor shouldBe Radian
   }
 
@@ -79,7 +79,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   behavior of "apply"
   it should """work for "1"""" in {
     val target = Real("1")
-    target.x.value shouldBe Right(1)
+    target.x.nominalValue shouldBe Right(1)
   }
   it should """work for "𝛑" """ in {
     val target = Real("\uD835\uDED1")

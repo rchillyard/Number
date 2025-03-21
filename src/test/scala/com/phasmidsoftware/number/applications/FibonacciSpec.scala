@@ -49,7 +49,6 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 
   it should "fib1" in {
     val diff: Expression = phi - psi
-    println(diff)
     diff shouldBe BiFunction(phi, -psi, Sum)
     val fib1 = diff / diff
     fib1.materialize shouldBe Constants.one
@@ -61,19 +60,16 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val top: Expression = phi2 - psi2
     val bottom = phi - psi
     bottom shouldBe BiFunction(phi, -psi, Sum)
-    bottom.materialize should ===(Constants.root5)
+    val materialized = bottom.materialize
+    materialized should ===(Constants.root5)
     // TODO reinsert the following
     val fib2 = top / bottom
     val fib2M = fib2.materialize
     top match {
-      case BiFunction(x, y, f) =>
-        println(s"x:$x y:$y f:$f")
+      case BiFunction(x, y, _) =>
         val t1 = x / Constants.root5
         val t2 = y / Constants.root5
         val q = t1 plus t2
-        println(s"t1:$t1")
-        println(s"t2:$t2")
-        println(s"q:$q")
         // TODO restore the following
         //        q shouldBe Constants.one
         q.materialize should ===(Constants.one)

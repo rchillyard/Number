@@ -444,8 +444,8 @@ sealed trait Root extends Factor {
    */
   def convert(v: Value, f: Factor): Option[Value] = f match {
     case Root(z) =>
-      val vo = doComposeValueDyadic(v, Number(z).specialize.value)(DyadicOperationPower.functions)
-      vo flatMap (doComposeValueDyadic(_, Number(value).specialize.getInverse.value)(DyadicOperationPower.functions))
+      val vo = doComposeValueDyadic(v, Number(z).specialize.nominalValue)(DyadicOperationPower.functions)
+      vo flatMap (doComposeValueDyadic(_, Number(value).specialize.getInverse.nominalValue)(DyadicOperationPower.functions))
     case _ => None
   }
 }
@@ -641,7 +641,7 @@ object Render {
   private def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 
   /**
-    * Method to render a Value as a tuple of String and Boolean where the latter represents whether or not we were able
+   * Method to render a Value as a tuple of String and Boolean where the latter represents whether we were able
     * to render the value exactly or not.
     *
     * @param v the Value to be rendered.

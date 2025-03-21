@@ -565,7 +565,7 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
-* Version 1.1.1: 
+* Version 1.1.1: Massive refactoring: fixed many issues. Most significantly, expressions are evaluated in the context of a Factor.
 * Version 1.1.0: Significant refactoring:
     - Number is no longer a subtype of Field. Code should use the wrapper Real(number) to form a Field.
     - Some of the worksheets were broken and have been fixed.

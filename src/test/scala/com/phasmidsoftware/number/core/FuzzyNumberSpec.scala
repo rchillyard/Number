@@ -27,13 +27,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "yield 1 with absolute fuzz" in {
     val target = Number.create(Right(1), AbsoluteFuzz(0.01, Box))
     target should matchPattern { case FuzzyNumber(_, _, _) => }
-    target.value should matchPattern { case Right(_) => }
+    target.nominalValue should matchPattern { case Right(_) => }
     target.fuzz shouldBe Some(AbsoluteFuzz(0.01, Box))
   }
   it should "yield 1 with relative fuzz" in {
     val target = Number.create(Right(1), RelativeFuzz(0.01, Box))
     target should matchPattern { case FuzzyNumber(_, _, _) => }
-    target.value should matchPattern { case Right(_) => }
+    target.nominalValue should matchPattern { case Right(_) => }
     target.fuzz shouldBe Some(RelativeFuzz(0.01, Box))
   }
 
@@ -77,10 +77,10 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     val z = zy.get
     z.isExact shouldBe false
-    z.value should matchPattern { case Left(Right(Rational(_, _))) => }
+    z.nominalValue should matchPattern { case Left(Right(Rational(_, _))) => }
     z.fuzz.get shouldBe AbsoluteFuzz(5.0E-51, Box)
     z.toDouble.get shouldBe 0.5772156649015329 +- 1E-14
-    // NOTE that if you had to force z to be a Number based on a Double value,
+    // NOTE that if you had to force z to be a Number based on a Double nominalValue,
     // then of course, we would lose most of the 50 places of decimals.
   }
   it should "parse phi" in {
@@ -117,7 +117,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "add 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), PureNumber, None)
     val z = convertToNumber(x add Constants.two)
-    z.value shouldBe Right(3)
+    z.nominalValue shouldBe Right(3)
     z.factor shouldBe PureNumber
     z.fuzz should matchPattern { case None => }
   }
@@ -126,7 +126,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val yy = Success(Constants.two)
     val zy = for (x <- xy; y <- yy) yield convertToNumber(x add y)
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(3)
+    zy.get.nominalValue shouldBe Right(3)
     zy.get.factor shouldBe PureNumber
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
@@ -135,7 +135,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val yy = Success(Number(1))
     val zy = for (x <- xy; y <- yy) yield convertToNumber(y add x)
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(3)
+    zy.get.nominalValue shouldBe Right(3)
     zy.get.factor shouldBe PureNumber
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
@@ -147,7 +147,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     yy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
     val zy: Try[Number] = for (x <- xy; y <- yy) yield convertToNumber(x add Real(y))
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(3)
+    zy.get.nominalValue shouldBe Right(3)
     zy.get.factor shouldBe PureNumber
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.4082482904638631, Gaussian)) => }
     zy.get.toString shouldBe "3.00(41)"
@@ -158,7 +158,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val x = FuzzyNumber(Value.fromInt(1), PureNumber, None)
     val y = Constants.two
     val z: Number = convertToNumber((Literal(x) * y).materialize)
-    z.value shouldBe Right(2)
+    z.nominalValue shouldBe Right(2)
     z.factor shouldBe PureNumber
     z.fuzz should matchPattern { case None => }
   }
@@ -168,9 +168,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val zy = for (x <- xy; y <- yy) yield Literal(x) * y
     zy should matchPattern { case Success(_) => }
     val result = convertToNumber(zy.get.materialize)
-    result.value shouldBe Right(2)
+    result.nominalValue shouldBe Right(2)
     result.factor shouldBe PureNumber
-    println(result.fuzz)
     result.fuzz should matchPattern { case Some(AbsoluteFuzz(1.0, Box)) => } // was 0.5
   }
   it should "multiply 1 and 2.*" in {
@@ -179,9 +178,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val zy: Try[Expression] = for (x <- xy; y <- yy) yield Literal(x) * y
     zy should matchPattern { case Success(_) => }
     val result = convertToNumber(zy.get.materialize)
-    result.value shouldBe Right(2)
+    result.nominalValue shouldBe Right(2)
     result.factor shouldBe PureNumber
-    println(result.fuzz)
     result.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
   it should "multiply 1.* and 2.*" in {
@@ -190,7 +188,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val zy: Try[Field] = for (x <- xy; y <- yy) yield x.multiply(y)
     zy should matchPattern { case Success(_) => }
     val result = convertToNumber(zy.get)
-    result.value shouldBe Right(2)
+    result.nominalValue shouldBe Right(2)
     result.factor shouldBe PureNumber
     result.fuzz should matchPattern { case Some(AbsoluteFuzz(1.5, Box)) => } // NOTE was 0.75
   }
@@ -202,15 +200,14 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val zy = for (x <- xy; y <- yy) yield Literal(x) * Real(y)
     zy should matchPattern { case Success(_) => }
     val result = convertToNumber(zy.get.materialize)
-    result.value shouldBe Right(2)
+    result.nominalValue shouldBe Right(2)
     result.factor shouldBe PureNumber
-    println(result.fuzz)
     result.fuzz should matchPattern { case Some(AbsoluteFuzz(1.5, Box)) => }  // NOTE this was formerly 0.75 // CHECK it
   }
   it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Box))" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), PureNumber, Some(RelativeFuzz(0.1, Box)))
     val z: Number = x.doMultiply(x)
-    z.value shouldBe Right(9)
+    z.nominalValue shouldBe Right(9)
     z.factor shouldBe PureNumber
     //    z.fuzz should matchPattern { case Some(RelativeFuzz(0.11547005383792518, Gaussian)) => }
     z.fuzz.get match {
@@ -223,7 +220,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val xy: Try[Number] = Number.parse("1.*")
     val zy = for (x <- xy) yield convertToNumber(-x)
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(-1)
+    zy.get.nominalValue shouldBe Right(-1)
     zy.get.factor shouldBe PureNumber
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
 //    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(0.5, Box)) => }
@@ -234,7 +231,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val xy: Try[Number] = Number.parse("1.*")
     val zy = for (x <- xy) yield Number.negate(x)
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(-1)
+    zy.get.nominalValue shouldBe Right(-1)
     zy.get.factor shouldBe PureNumber
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.5, Box)) => }
   }
@@ -243,7 +240,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Box))" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), PureNumber, Some(RelativeFuzz(0.1, Box)))
     val z: Number = convertToNumber((Literal(x) ^ 2).materialize)
-    z.value shouldBe Right(9)
+    z.nominalValue shouldBe Right(9)
     z.factor shouldBe PureNumber
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
     z.fuzz.get match {
@@ -253,7 +250,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Gaussian))" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), PureNumber, Some(RelativeFuzz(0.1, Gaussian)))
     val z: Number = convertToNumber((Literal(x) ^ 2).materialize)
-    z.value shouldBe Right(9)
+    z.nominalValue shouldBe Right(9)
     z.factor shouldBe PureNumber
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
     z.fuzz.get match {
@@ -267,7 +264,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val zy = for (x <- xy) yield (Literal(x) ^ 2).materialize
     zy should matchPattern { case Success(_) => }
     val result: Number = convertToNumber(zy.get)
-    result.value shouldBe Right(4)
+    result.nominalValue shouldBe Right(4)
     result.factor shouldBe PureNumber
     result.fuzz.isDefined shouldBe true
     result.fuzz.get match {
@@ -281,7 +278,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val exponent = xy.get
     val zy = for (x <- xy) yield x doPower exponent
     zy should matchPattern { case Success(_) => }
-    zy.get.value shouldBe Right(4)
+    zy.get.nominalValue shouldBe Right(4)
     zy.get.factor shouldBe PureNumber
     zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
     zy.get.fuzz.get match {
@@ -448,7 +445,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val z = zo.get
     z.isProbablyZero(0) shouldBe true
     z.isProbablyZero(1) shouldBe false
-    z.isProbablyZero(0.5) shouldBe true
+    z.isProbablyZero() shouldBe true
     z.isProbablyZero(0.895) shouldBe false
   }
   it should "think pi and pi are the same (2)" in {
@@ -459,7 +456,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val z = zo.get
     z.isProbablyZero(0) shouldBe true
     z.isProbablyZero(1) shouldBe false
-    z.isProbablyZero(0.5) shouldBe true
+    z.isProbablyZero() shouldBe true
     z.isProbablyZero(0.875) shouldBe false
   }
 
@@ -469,7 +466,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     // TODO do this through pattern matching
     val n: FuzzyNumber = FuzzyNumber(Value.fromInt(1), PureNumber, None).addFuzz(fuzz).asInstanceOf[FuzzyNumber]
     val op = MonadicOperationExp
-    val r: Option[Value] = Operations.doTransformValueMonadic(n.value)(op.functions)
+    val r: Option[Value] = Operations.doTransformValueMonadic(n.nominalValue)(op.functions)
     r.isDefined shouldBe true
     val q: Number = n.make(r.get, PureNumber)
     val xo = q.toDouble

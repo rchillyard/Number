@@ -616,14 +616,14 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     // TODO combine these cases that all require rAsString
     case (_, _, 2) =>
       val rAsString = r.render
-      theta.value match {
+      theta.nominalValue match {
         case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => "\u00b1" + rAsString // +-
         case _ =>
           s"${rAsString}e^${showImaginary(polar = true)}"
     }
     case (_, _, 3) =>
       val rAsString = r.render
-      theta.value match {
+      theta.nominalValue match {
         case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) => s"{$rAsString, ±${rAsString}e^${showImaginary(polar = true, 1, 3)}}"
         case _ => s"${rAsString}e^${showImaginary(polar = true)}"
     }

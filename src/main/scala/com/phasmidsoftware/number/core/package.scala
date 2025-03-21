@@ -9,7 +9,7 @@ import scala.util.{Either, Try}
 package object core {
 
   /**
-    * This is the type of the value parameter of a GeneralNumber.
+   * This is the type of the nominalValue parameter of a GeneralNumber.
     *
     * There is a companion object to this type in module Value.scala.
     */

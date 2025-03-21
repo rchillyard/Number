@@ -109,7 +109,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    */
   def exactMaterialization(context: Context): ExpressionMatcher[Field] = {
     case x: AtomicExpression =>
-      Match(x.evaluate)
+      Match(x.evaluateAsIs)
     case x =>
       val ctx = context orElse Some(PureNumber)
       if (x.isExactInContext(ctx))
@@ -259,9 +259,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case ExpressionBiFunction(_, _, None, fo) ~ x ~ y if isIdentity(y, fo) => Match(x) // TESTME
     case ExpressionBiFunction(_, _, fo, _) ~ x ~ y if isIdentity(x, fo) => Match(y) // TESTME
     case ExpressionBiFunction(_, _, _, fo) ~ x ~ y if isIdentity(y, fo) => Match(x) // TESTME
-    case t@ExpressionBiFunction(_, f, _, fo) ~ x ~ y =>
-      println(s"simplifyIdentityDyadic: $f ~ $x ~ $y...$fo")
-      Miss("simplifyIdentityDyadic", t)
+    case t@ExpressionBiFunction(_, _, _, _) ~ _ ~ _ => Miss("simplifyIdentityDyadic", t) // XXX don't really need this case
   }
 
   /**
@@ -280,7 +278,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def matchComplementary: Matcher[DyadicTriple, Expression] = Matcher("matchComplementary") {
     case f ~ x ~ y =>
       matchComplementaryExpressions(f ~ x ~ y) match {
-        case Match(z) => Match(Literal(z.evaluate))
+        case Match(z) => Match(Literal(z.evaluateAsIs))
         case _ => Miss("matchComplementary: no match", x ~ y)
       }
   }
@@ -305,11 +303,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Product ~ (q@Function(_, _)) ~ y =>
       matchComplementaryExpressions(Product ~ q ~ y) // TESTME
     case f ~ BiFunction(g, w, x) ~ BiFunction(h, y, z) =>
-      matcher3(exactMaterializer(BiFunction(g, w, x)), exactMaterializer(BiFunction(h, y, z)), Match(f)).map(x => Expression(x.evaluate))
+      matcher3(exactMaterializer(BiFunction(g, w, x)), exactMaterializer(BiFunction(h, y, z)), Match(f)).map(x => Expression(x.evaluateAsIs))
     case f ~ BiFunction(g, w, x) ~ y =>
-      matcher3(exactMaterializer(BiFunction(g, w, x)), Match(y), Match(f)).map(x => Expression(x.evaluate))
+      matcher3(exactMaterializer(BiFunction(g, w, x)), Match(y), Match(f)).map(x => Expression(x.evaluateAsIs))
     case f ~ y ~ BiFunction(g, w, x) =>
-      matcher3(Match(y), exactMaterializer(BiFunction(g, w, x)), Match(f)).map(x => Expression(x.evaluate))
+      matcher3(Match(y), exactMaterializer(BiFunction(g, w, x)), Match(f)).map(x => Expression(x.evaluateAsIs))
     // CONSIDER removing these complementary expression cases from here -- they should already have been handled
     case f ~ y ~ z =>
       // CONSIDER allowing these single-level expressions through
@@ -363,8 +361,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return True if the expressions are complementary, according to the binary function, false otherwise.
    */
   def complementaryFields(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
-    if (x.maybeFactor == y.maybeFactor) {
-      val field = f(x.evaluate, y.evaluate)
+    if (x.maybeFactor == y.maybeFactor) { // TODO logic here is same as for value in BiFunction
+      val field = f(x.evaluateAsIs, y.evaluateAsIs)
       if (f.maybeIdentityL.contains(field)) Some(Literal(field))
       else None
     }
@@ -521,11 +519,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    */
   def matchCombineAndMaybeSimplify: Matcher[DyadicTriple, Expression] = Matcher("matchCombineAndMaybeSimplify") {
     case Sum ~ x ~ y if factorsMatch(Sum, x, y) =>
-      matchAndMaybeSimplify(Literal(x.evaluate + y.evaluate))
+      matchAndMaybeSimplify(Literal(x.evaluateAsIs + y.evaluateAsIs))
     case Product ~ x ~ y if factorsMatch(Product, x, y) =>
-      matchAndMaybeSimplify(Literal(x.evaluate * y.evaluate))
+      matchAndMaybeSimplify(Literal(x.evaluateAsIs * y.evaluateAsIs))
     case Power ~ x ~ y if factorsMatch(Power, x, y) =>
-      matchAndMaybeSimplify(Literal(x.evaluate power y.evaluate))
+      matchAndMaybeSimplify(Literal(x.evaluateAsIs power y.evaluateAsIs))
     case x =>
       Miss("matchCombineAndMaybeSimplify: no match", x)
   }
@@ -547,7 +545,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       case Product =>
         fx.canMultiply(fy)
       case Power =>
-        fx.canRaise(fy, y.evaluate)
+        fx.canRaise(fy, y.evaluateAsIs)
     }).contains(true)
 
   /**
@@ -742,15 +740,19 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       // NOTE we should handle the very rare cases where the final get fails
       // NOTE this ordering is really only appropriate when f is Sum.
       // TODO find a better way to find complementary elements.
-      Try(xs.sortBy(x => Math.abs(x.asNumber.get.toDouble.get))) match {
+      Try(xs.sortBy { x =>
+        (for {n1 <- x.asNumber; n1 <- n1.toPureNumber; d1 <- n1.toDouble} yield Math.abs(d1)).get
+      }) match {
         case Success(sorted) =>
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
           if (list.length < xs.length)
             Match(Aggregate(f, list))
           else
-            Miss(s"simplifyAggregateTerms: $a", a)
+            Miss(s"complementaryTermsEliminator: $a", a)
         case Failure(x) => Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
+    case x =>
+      Miss(s"simplifyAggregateTerms: not an Aggregate", x)
   }
 
   /**
@@ -797,7 +799,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
    * @return true if the expression matches the identity element of the given field, false otherwise.
    */
   private def isIdentity(x: Expression, fo: Option[Field]) = x match {
-    case c: Constant => fo.contains(c.evaluate)
+    case c: Constant => fo.contains(c.evaluateAsIs)
     case Literal(z, _) => fo.contains(z)
     case _ => false
   }

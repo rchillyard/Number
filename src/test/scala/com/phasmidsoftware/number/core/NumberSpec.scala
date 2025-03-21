@@ -35,39 +35,39 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "yield Right(1)" in {
     val target = Number.create(Right(1))
     target should matchPattern { case ExactNumber(_, _) => }
-    target.value should matchPattern { case Right(_) => }
+    target.nominalValue should matchPattern { case Right(_) => }
   }
   it should "yield Left(Right(bigBigInt))" in {
     val target = Number.create(Left(Right(bigBigInt)))
     target should matchPattern { case ExactNumber(_, _) => }
-    target.value shouldBe Left(Right(Rational(bigBigInt)))
+    target.nominalValue shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should "yield Right(1, Fuzz)" in {
     val target = Number.create(Right(1), standardFuzz)
     target should matchPattern { case FuzzyNumber(_, _, _) => }
-    target.value should matchPattern { case Right(_) => }
+    target.nominalValue should matchPattern { case Right(_) => }
   }
   it should "yield Right(1, Radian)" in {
     val target = Number.pi
     target should matchPattern { case ExactNumber(_, _) => }
-    target.value should matchPattern { case Right(_) => }
+    target.nominalValue should matchPattern { case Right(_) => }
     target.factor shouldBe Radian
   }
   it should "yield Right(1, Radian, Fuzz)" in {
     val target = Number.create(Right(1), Radian, Some(standardFuzz))
     target should matchPattern { case FuzzyNumber(_, _, _) => }
-    target.value should matchPattern { case Right(_) => }
+    target.nominalValue should matchPattern { case Right(_) => }
     target.factor shouldBe Radian
   }
 
-  behavior of "value"
+  behavior of "nominalValue"
   it should "yield Right(1)" in {
     val target = Number.create(Right(1))
-    target.value shouldBe Right(1)
+    target.nominalValue shouldBe Right(1)
   }
   it should "yield Left(Right(bigBigInt))" in {
     val target = Number.create(Left(Right(bigBigInt)))
-    target.value shouldBe Left(Right(Rational(bigBigInt)))
+    target.nominalValue shouldBe Left(Right(Rational(bigBigInt)))
   }
 
   behavior of "toRational"
@@ -195,17 +195,17 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should """work for "1"""" in {
     val target = Number("1")
-    target.value shouldBe Right(1)
+    target.nominalValue shouldBe Right(1)
   }
   it should """work for "2147483648"""" in {
     val target = Number("2147483648")
     target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(bigBigInt)))
+    target.nominalValue shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should """work for "3.1415927"""" in {
     val target = Number("3.1415927")
     target.isExact shouldBe false
-    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+    target.nominalValue shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1416" in {
     val target = Number(3.1416)
@@ -215,23 +215,23 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should """work for "𝛑" """ in {
     val target = Number("\uD835\uDED1")
     target.isExact shouldBe true
-    target.value shouldBe Right(1)
+    target.nominalValue shouldBe Right(1)
     target.factor shouldBe Radian
   }
   it should "work for 1" in {
     val target = Number.one
     target.isExact shouldBe true
-    target.value shouldBe Right(1)
+    target.nominalValue shouldBe Right(1)
   }
   it should "work for bigBigInt" in {
     val target = Number(bigBigInt)
     target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(bigBigInt)))
+    target.nominalValue shouldBe Left(Right(Rational(bigBigInt)))
   }
   it should "work for Rational(1,2)" in {
     val target = Number(Rational(1, 2))
     target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(1, 2)))
+    target.nominalValue shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for math.pi" in {
     val target = Number(Math.PI)
@@ -240,12 +240,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for nothing" in {
     val target = Number()
-    target.value shouldBe Left(Left(None))
+    target.nominalValue shouldBe Left(Left(None))
   }
   it should "work for BigDecimal(3.1415927)" in {
     val target = Number(BigDecimal(3.1415927))
     target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+    target.nominalValue shouldBe Left(Right(Rational(31415927, 10000000)))
   }
   it should "work for 3.1415927" in {
     val target = Number(3.1415927)
@@ -260,30 +260,30 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for 0.5" in {
     val target = Number(0.5)
     target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(1, 2)))
+    target.nominalValue shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for 1.23" in {
     val target = Number(1.23)
     target.isExact shouldBe true
-    target.value shouldBe Left(Right(Rational(123, 100)))
+    target.nominalValue shouldBe Left(Right(Rational(123, 100)))
   }
   it should "work for 1.234" in {
     val target = Number(1.234)
     target.isExact shouldBe false
-    target.value shouldBe Left(Left(Some(1.234)))
+    target.nominalValue shouldBe Left(Left(Some(1.234)))
     target.toString shouldBe "1.234[5]"
   }
   it should "work for 1.23400" in {
     val target = Number(1.23400)
     target.isExact shouldBe false
-    target.value shouldBe Left(Left(Some(1.234)))
+    target.nominalValue shouldBe Left(Left(Some(1.234)))
     target.toString shouldBe "1.234[5]"
   }
   it should "support exact strings" in {
     val target = Number("3.141592700")
     target.isExact shouldBe true
     target should matchPattern { case ExactNumber(_, _) => }
-    target.value shouldBe Left(Right(Rational(31415927, 10000000)))
+    target.nominalValue shouldBe Left(Right(Rational(31415927, 10000000)))
   }
 
   behavior of "Number.parse" // CONSIDER Moving these into NumberParserSpec
@@ -344,36 +344,36 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   behavior of "specialize"
   it should "work for 1" in {
     val target = Number.one
-    target.specialize.value shouldBe Right(1)
+    target.specialize.nominalValue shouldBe Right(1)
   }
   it should "work for BigInt 1" in {
     val target = Number.create(Left(Right(Rational(bigOne))), PureNumber)
-    target.specialize.value shouldBe Right(1)
+    target.specialize.nominalValue shouldBe Right(1)
   }
   it should "work for BigInt(1+Int.MaxValue)" in {
     val bigInt = BigInt(1L + Int.MaxValue)
     val target = Number(bigInt)
-    target.specialize.value shouldBe Left(Right(Rational(bigInt)))
+    target.specialize.nominalValue shouldBe Left(Right(Rational(bigInt)))
   }
   it should "work for Rational(1)" in {
     val target = Number.create(Left(Right(ratOne)), PureNumber)
-    target.specialize.value shouldBe Right(1)
+    target.specialize.nominalValue shouldBe Right(1)
   }
   it should "work for Rational.half" in {
     val target = Number(Rational.half)
-    target.specialize.value shouldBe Left(Right(Rational(1, 2)))
+    target.specialize.nominalValue shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for 0.5" in {
     val target = Number(0.5)
-    target.specialize.value shouldBe Left(Right(Rational(1, 2)))
+    target.specialize.nominalValue shouldBe Left(Right(Rational(1, 2)))
   }
   it should "work for 1.0" in {
     val target = Number(doubleOne)
-    target.specialize.value shouldBe Right(1)
+    target.specialize.nominalValue shouldBe Right(1)
   }
   it should "work for nothing" in {
     val target = Number()
-    target.specialize.value shouldBe Left(Left(None))
+    target.specialize.nominalValue shouldBe Left(Left(None))
   }
 
   behavior of "scale"
@@ -872,12 +872,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number(Rational.half, NatLog)
     target.power(2) shouldBe Number.e
   }
-  // TODO fix Issue #78
   it should "work for squaring Log2" in {
     val target = Number(Rational.half, Log2) // square root of 2
-    println(target)
     val result = target.power(2) // 2
-    println(result)
     result shouldBe Number(1, Log2)
     // NOTE this should actually be equal to just plain old Number.two (need to simplify result).
     result should ===(Number.two)

@@ -86,7 +86,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   it should "evaluate 3 5 + 7 2 – *" in {
     val expression = (Literal(3) + 5) * (Literal(7) - 2)
-    println(expression)
     val result = expression.materialize
     result shouldEqual Real(40)
   }

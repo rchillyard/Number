@@ -271,7 +271,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     // TODO do this through pattern matching
     val n: FuzzyNumber = FuzzyNumber(Value.fromInt(1), PureNumber, None).addFuzz(fuzz).asInstanceOf[FuzzyNumber]
     val op = MonadicOperationExp
-    val r: Option[Value] = Operations.doTransformValueMonadic(n.value)(op.functions)
+    val r: Option[Value] = Operations.doTransformValueMonadic(n.nominalValue)(op.functions)
     r.isDefined shouldBe true
     val q = n.make(r.get, PureNumber)
     val x = q.toDouble

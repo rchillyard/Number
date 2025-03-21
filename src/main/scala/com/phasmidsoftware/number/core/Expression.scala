@@ -44,7 +44,7 @@ sealed trait Expression extends NumberLike {
    *
    * @return a `Field` representing the evaluated `Expression`.
    */
-  def evaluate: Field = evaluate(None)
+  def evaluateAsIs: Field = evaluate(None)
 
   /**
    * Materializes the Expression and evaluates it to a Field.
@@ -173,6 +173,7 @@ object Expression {
 
   implicit def convertFieldToExpression(f: Field): Expression = Expression(f)
 
+  // TODO have a cache of existing values
   implicit def convertIntToExpression(x: Int): Expression = Literal(x)
 
   /**
@@ -253,7 +254,7 @@ object Expression {
      */
     def sqrt: Expression = x match {
       case z: AtomicExpression =>
-        z.evaluate.asNumber match {
+        z.evaluateAsIs.asNumber match {
           case Some(q) => Literal(q.sqrt)
           case _ => x ^ Constants.half // TESTME
         }
@@ -332,7 +333,7 @@ object Expression {
    *         otherwise false.
    */
   def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
-    f.maybeIdentityL contains z.evaluate
+    f.maybeIdentityL contains z.evaluateAsIs
 }
 
 /**
@@ -352,7 +353,7 @@ sealed trait AtomicExpression extends Expression {
    *
    * @return an optional `Factor`.
    */
-  def maybeFactor: Option[Factor] = evaluate.maybeFactor
+  def maybeFactor: Option[Factor] = evaluateAsIs.maybeFactor
 
   /**
    * Action to materialize this Expression and render it as a `String`,
@@ -379,7 +380,7 @@ object AtomicExpression {
   def unapply(arg: AtomicExpression): Option[Field] = arg match {
     case c: Complex => Some(c)
     case Literal(x, _) => Some(x) // NOTE we lose the name here.
-    case c: Constant => Some(c.evaluate)
+    case c: Constant => Some(c.evaluateAsIs)
     case f: Field => Some(f)
     case _ => None
   }
@@ -707,7 +708,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
    * Determines whether the current `BiFunction` instance is exact in the context of an optional `Factor`.
    * Issue #84 This should properly use the commented out code
    *
-   * @param context an optional `Factor` within which to evaluate the expression's exactness. 
+   * @param context an optional `Factor` within which to evaluate the expression's exactness.
    *                If `context` is `None`, the exactness will depend solely on the properties of this instance.
    * @return true if the current `BiFunction` instance is exact in the context of the given factor; otherwise, false.
    */
@@ -1079,7 +1080,7 @@ abstract class SineCos(sine: Boolean) extends ExpressionFunction(x => if (sine) 
    */
   def isExactInContext(context: Context)(x: Expression): Boolean = x match {
     case a: AtomicExpression =>
-      a.evaluate match {
+      a.evaluateAsIs match {
         // TODO add other cases
         case Constants.zero | Constants.pi | Constants.piBy2 => true
         case _ => false
@@ -1097,7 +1098,7 @@ abstract class SineCos(sine: Boolean) extends ExpressionFunction(x => if (sine) 
    */
   def context(x: Expression): Context = x.maybeFactor match {
     case Some(Radian) => Some(PureNumber)
-    case Some(PureNumber) if x.evaluate.isZero => Some(PureNumber)
+    case Some(PureNumber) if x.evaluateAsIs.isZero => Some(PureNumber)
     case _ => None
   }
 }
@@ -1169,7 +1170,7 @@ case object Log extends ExpressionFunction(x => x.log, "log") {
    */
   def isExactInContext(context: Context)(x: Expression): Boolean = x match {
     case a: AtomicExpression =>
-      a.evaluate match {
+      a.evaluateAsIs match {
         case Constants.e | Constants.zero | Constants.one => true
         case _ => false
       }
@@ -1204,7 +1205,7 @@ case object Exp extends ExpressionFunction(x => x.exp, "exp") {
    * @return true if the expression is exact within the given context; otherwise false
    */
   def isExactInContext(context: Context)(x: Expression): Boolean = x match {
-    case a: AtomicExpression => a.evaluate.isZero || a.evaluate.isUnity
+    case a: AtomicExpression => a.evaluateAsIs.isZero || a.evaluateAsIs.isUnity
     case _ => false // CONSIDER testing for the x to evaluate to exactly 0 or 1 (but such cases should already have been simplified)
   }
 }
@@ -1394,7 +1395,7 @@ class ExpressionBiFunction(val f: (Field, Field) => Field, val name: String, val
    * @param b the second parameter to the function.
    * @return the result of f(x).
    */
-  override def apply(a: Field, b: Field): Field = f(a, b)
+  def apply(a: Field, b: Field): Field = f(a, b)
 
   /**
    * Generate helpful debugging information about this ExpressionFunction.

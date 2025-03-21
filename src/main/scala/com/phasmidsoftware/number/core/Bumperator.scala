@@ -3,14 +3,15 @@ package com.phasmidsoftware.number.core
 import scala.annotation.tailrec
 
 /**
- * Bumperator is an implementation of an Iterator that selectively filters
+ * Bumperator is a concrete `Iterator` that selectively filters
  * out elements based on a user-supplied function. Elements are compared
  * using a binary predicate, and if the function returns true for a pair
  * of elements, both elements are skipped in the resulting iteration.
  *
- * The name comes from the rowing races at Oxford (and perhaps Cambridge) whereby
+ * The name comes from the rowing races at Oxford and Cambridge whereby
  * when a boat "bumps" the boat in front, both withdraw for the day but return
- * the following day with the order reversed.
+ * the following day with their former order reversed.
+ * See [[https://en.wikipedia.org/wiki/Bumps_race Bumps race]]
  *
  * @tparam T the type of each element in the iterator
  * @param xs an input iterator providing elements to iterate over
@@ -77,7 +78,23 @@ case class Bumperator[T](xs: Iterator[T])(f: (T, T) => Boolean) extends Iterator
   }
 }
 
+/**
+ * The `Bumperator` companion object provides a factory method to create an instance of the `Bumperator` iterator.
+ * It applies a filtering function to consecutive elements of a sequence, ensuring only those satisfying the
+ * provided condition remain in the iteration pipeline.
+ */
 object Bumperator {
+  /**
+   * Creates an iterator that filters elements from the given sequence based on
+   * a binary predicate function.
+   * The function determines whether consecutive elements in the sequence should be excluded.
+   *
+   * @param xs the input sequence to be processed
+   * @param f  a binary predicate function that takes two elements of type `T`
+   *           and evaluates whether they should be excluded from the iteration
+   * @return a `Bumperator[T]` containing elements of the sequence that have not
+   *         been skipped.
+   */
   def apply[T](xs: Seq[T])(f: (T, T) => Boolean): Iterator[T] =
     new Bumperator(xs.iterator)(f: (T, T) => Boolean)
 }

@@ -1,6 +1,6 @@
 /**
   * This worksheet illustrates the use of Expressions (for lazy evaluation).
-  *
+ * TODO this worksheet is not working correctly due to Issue #88
   */
 
 import com.phasmidsoftware.number.core.{Constants, Expression, Number}
