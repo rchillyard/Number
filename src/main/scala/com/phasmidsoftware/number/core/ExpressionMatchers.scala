@@ -9,7 +9,6 @@ import com.phasmidsoftware.number.core.Constants.{half, piBy2}
 import com.phasmidsoftware.number.core.Expression.isIdentityFunction
 import com.phasmidsoftware.number.core.Rational.{infinity, negInfinity}
 import com.phasmidsoftware.number.matchers._
-
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
@@ -499,6 +498,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Product ~ _ ~ Zero => Match(Zero)
     case Product ~ One ~ x => matchAndMaybeSimplify(x)
     case Product ~ x ~ One => matchAndMaybeSimplify(x)
+    case Product ~ MinusOne ~ x => matchAndMaybeSimplify(Function(x, Negate))
+    case Product ~ x ~ MinusOne => matchAndMaybeSimplify(Function(x, Negate))
     case Product ~ x ~ y if x == y => matchAndMaybeSimplify(BiFunction(x, Two, Power))
     case Product ~ x ~ Function(One, Negate) => matchAndMaybeSimplify(Function(x, Negate))
     case Product ~ Function(One, Negate) ~ y => matchAndMaybeSimplify(Function(y, Negate))

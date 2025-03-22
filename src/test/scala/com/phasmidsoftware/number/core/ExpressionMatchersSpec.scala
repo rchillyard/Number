@@ -9,7 +9,6 @@ import com.phasmidsoftware.number.core.Rational.{infinity, negInfinity}
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.languageFeature.implicitConversions._
 
 class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
@@ -341,7 +340,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   // FIXME Issue #87
-  ignore should "simplify aggregate 1a" in {
+  it should "simplify aggregate 1a" in {
     val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
     val expected = ExactNumber(0, Radian)
     val result: em.MatchResult[Field] = em.simplifier(target) map (_.materialize)
@@ -412,7 +411,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   // FIXME Issue #88
-  ignore should "simplify aggregate 4b" in {
+  it should "simplify aggregate 4b" in {
     val root3 = Expression(3).sqrt
     val root3PlusOne = root3 plus Expression.one
     val root3MinusOne = root3 plus Expression(Constants.minusOne)
@@ -758,7 +757,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   // FIXME Issue #88
-  ignore should "evaluate (√3 + 1)(√3 - 1) as 2 exactly" in {
+  it should "evaluate (√3 + 1)(√3 - 1) as 2 exactly" in {
     val em = eml // Log this unit test
     // Expect matches:
     // matchTwoDyadicTripleLevels: Match: *~+~{3 ^ (2 ^ -1)}~1~+~{3 ^ (2 ^ -1)}~(1 * -1)
@@ -946,7 +945,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   // TODO fix Issue #57
-  ignore should "properly simplify 1 + root3 - root3 + 0" in {
+  it should "properly simplify 1 + root3 - root3 + 0" in {
     val p = em.biFunctionTransformer
     val z: Expression = Literal(3).sqrt
     val x = z plus -z + Zero
@@ -956,7 +955,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   // TODO fix Issue #57
-  ignore should "properly simplify (1 + root3) + (zero - root3)" in {
+  it should "properly simplify (1 + root3) + (zero - root3)" in {
     val p = em.biFunctionTransformer
     val root3: Real = Real(Number(3).sqrt)
     val x: Expression = One + root3

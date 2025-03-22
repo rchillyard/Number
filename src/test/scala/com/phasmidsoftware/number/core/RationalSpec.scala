@@ -2,9 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, negZeroDouble, pi_5000}
 import org.scalatest.matchers.should
-import org.scalatest.tagobjects.Slow
 import org.scalatest.{PrivateMethodTester, flatspec}
-
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -748,18 +746,6 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.one.negate.renderApproximate(5) shouldBe "-1   "
     Rational("0.1").renderApproximate(5) shouldBe "0.1  "
   }
-  // TODO the following works but is very slow.
-  ignore should "work with one parameter (pi)" taggedAs Slow in {
-    pi_5000.renderApproximate(2) shouldBe " 3"
-    pi_5000.renderApproximate(3) shouldBe "3.1"
-    pi_5000.renderApproximate(4) shouldBe "3.14"
-    pi_5000.renderApproximate(5) shouldBe "3.142"
-    pi_5000.renderApproximate(6) shouldBe "3.1416"
-    pi_5000.renderApproximate(7) shouldBe "3.14159"
-    pi_5000.renderApproximate(8) shouldBe "3.141593"
-    pi_5000.renderApproximate(9) shouldBe "3.1415927"
-    pi_5000.renderApproximate(10) shouldBe "3.14159265"
-  }
   it should "fail with one parameter" in {
     a[RationalException] should be thrownBy pi_5000.renderApproximate(1)
   }
@@ -767,18 +753,6 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.one.renderApproximate(5, Some(0)) shouldBe "    1"
     Rational.one.negate.renderApproximate(5, Some(0)) shouldBe "   -1"
     Rational("0.1").renderApproximate(5, Some(2)) shouldBe " 0.10"
-  }
-  // TODO the following works but is very slow.
-  ignore should "work with two parameters (pi)" taggedAs Slow in {
-    pi_5000.renderApproximate(2, Some(0)) shouldBe " 3"
-    pi_5000.renderApproximate(3, Some(1)) shouldBe "3.1"
-    pi_5000.renderApproximate(4, Some(2)) shouldBe "3.14"
-    pi_5000.renderApproximate(5, Some(2)) shouldBe " 3.14"
-    pi_5000.renderApproximate(6, Some(2)) shouldBe "  3.14"
-    pi_5000.renderApproximate(7, Some(2)) shouldBe "   3.14"
-    pi_5000.renderApproximate(8, Some(2)) shouldBe "    3.14"
-    pi_5000.renderApproximate(9, Some(2)) shouldBe "     3.14"
-    pi_5000.renderApproximate(10, Some(2)) shouldBe "      3.14"
   }
   it should "fail with two parameters" in {
     a[RationalException] should be thrownBy pi_5000.renderApproximate(1, Some(5))
@@ -996,10 +970,6 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for specific epsilon" in {
     implicit val epsilon: Tolerance = Tolerance(1E-7, BigInt(1000000000))
     Rational.approximateAny(Math.PI) shouldBe Rational(75948, 24175)
-  }
-  // NOTE: this test works but it is very slow. It should be checked from time to time.
-  ignore should "work for 3.1416" taggedAs Slow in {
-    Rational.approximateAny(3.1416) shouldBe Rational(3141600355L, 1000000113)
   }
 
   behavior of "convertDouble"

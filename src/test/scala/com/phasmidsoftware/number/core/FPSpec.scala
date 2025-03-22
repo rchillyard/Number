@@ -67,7 +67,7 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   }
 
   // TODO try to understand why this doesn't work for CircleCI
-  ignore should "readFromResource" in {
+  it should "readFromResource" in {
     val result: Try[Seq[BigInt]] = readFromResource("/carmichael.txt", wa => wa.lastOption)
     result.isSuccess shouldBe true
     result.get.contains(BigInt(530881)) shouldBe true
