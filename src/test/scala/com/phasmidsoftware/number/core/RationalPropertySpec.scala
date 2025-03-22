@@ -2,10 +2,16 @@ package com.phasmidsoftware.number.core
 
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
+import org.scalatest.Assertions.fail
+
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 /**
   * Created by scalaprof on 10/4/16.
+  *
+  * NOTE: it is possible that these tests will fail due to randomly generating a Double precision number out of range of Double (E311).
+  * Recommend just re-run.
   */
 class RationalPropertySpec extends Properties("Rational") {
 
@@ -37,9 +43,13 @@ class RationalPropertySpec extends Properties("Rational") {
     import org.scalactic.Tolerance._
     import org.scalactic.TripleEquals._
     // CONSIDER check this is OK. Might need to be Rational(BigDecimal.valueOf(x))
-    val r = Rational(x)
-    val s = Rational(1.0 / x)
-    (r * s).toDouble === 1.0 +- 1E-6
+    val ry = Rational.createExact(x)
+    val sy = Rational.createExact(1.0 / x)
+    (for (r <- ry; s <- sy) yield r * s) match {
+      case Success(z) => z.toDouble === 1.0 +- 1E-6
+      case Failure(x) => fail(s"exception: $x")
+    }
+
   }
 
   property("Division") = forAll { (a: Short, b: Short) =>

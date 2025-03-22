@@ -52,6 +52,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Factory method to convert a long into a BigNumber.
+     * TESTME
      *
      * @param x a long.
      * @return a new BigNumber.
@@ -62,6 +63,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Factory method to create a BigNumber from an (exact) BigDecimal.
+     * TESTME
      *
      * @param x a BigDecimal number.
      * @return a new BigNumber.
@@ -85,6 +87,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Factory method to create a BigNumber from a long whole number and a long representing the decimals.
+     * TESTME
      *
      * @param whole    a non-negative long.
      * @param decimals a non-negative long, for example 14 for a 3.14 valued result.
@@ -107,6 +110,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Factory method to create a BigNumber from a whole number and a decimal number.
+     * TESTME
      *
      * @param whole    a non-negative long.
      * @param decimals a non-negative long, for example 14 for a 3.14 valued result.
@@ -146,6 +150,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Method to determine if this BigNumber is a whole number.
+     * TESTME
      *
      * @return true if this BigNumber is a whole number.
      */
@@ -158,6 +163,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * The reason it might not be exact is that we allow division to yield a BigNumber.
      * For now at least, we simply look at the number of decimals.
      * CONSIDER in future we might have a field which explicitly determines exactness.
+     * TESTME
      *
      * @return true if this BigNumber is exact.
      */
@@ -167,6 +173,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Return a BigDecimal which has the exact value of this BigNumber.
+     * TESTME
      *
      * @return a BigDecimal.
      */
@@ -182,6 +189,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Returns the value of the specified number as an {@code int}.
+     * TESTME
      *
      * @return the numeric value represented by this object after conversion
      * to type {@code int}.
@@ -196,6 +204,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Returns the value of the specified number as a {@code long}.
+     * TESTME
      *
      * @return the numeric value represented by this object after conversion
      * to type {@code long}.
@@ -210,6 +219,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Returns the value of the specified number as a {@code float}.
+     * TESTME
      *
      * @return the numeric value represented by this object after conversion
      * to type {@code float}.
@@ -224,6 +234,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * In general, the result will NOT be exact.
      * But you can check on that by using the isExact() method.
      * CONSIDER It is possible that isExact() will be false but the resulting double will be exact.
+     * TESTME
      *
      * @return a double representation of this.
      */
@@ -241,6 +252,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * Add a BigNumber <code>that</code> to <code>this</code>.
      * <p>
      * TODO fix the high cyclomatic complexity of this method.
+     * TESTME
      *
      * @param that a BigNumber.
      * @return the sum of <code>this</code> and <code>that</code>.
@@ -283,6 +295,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Method to compare <code>this</code> with <code>that</code>.
+     * TESTME
      *
      * @param that the object to be compared.
      * @return a negative, zero, or positive int.
@@ -311,12 +324,19 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         }
     }
 
+    /**
+     * Negates the current BigNumber instance by flipping its sign.
+     * TESTME
+     *
+     * @return a new BigNumber instance that represents the negated value of this BigNumber.
+     */
     public BigNumber negate() {
         return new BigNumber(whole, decimals, !sign);
     }
 
     /**
      * Method to multiply Big Numbers using Karatsuba Algorithm.
+     * TESTME
      *
      * @param other a BigNumber value.
      * @return a BigNumber.
@@ -348,6 +368,17 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return result1.add(result2).add(result3).add(result4);
     }
 
+    /**
+     * Multiplies two integer arrays representing numerical values and returns the result in an array.
+     * TESTME
+     *
+     * @param arr1 the first integer array representing a number
+     * @param arr2 the second integer array representing a number
+     * @param start the starting index for the portion of the arrays to be considered
+     * @param end the ending index for the portion of the arrays to be considered
+     * @param resultSize the size of the resulting array
+     * @return an integer array representing the result of the multiplication
+     */
     private int[] multiplyArrays(final int[] arr1, final int[] arr2, final int start, final int end, final int resultSize) {
         StringBuilder b = new StringBuilder();
         for (int i = start; i <= end; i++) {
@@ -371,6 +402,19 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return result;
     }
 
+    /**
+     * Performs multiplication of two integer arrays representing large numbers using the recursive Karatsuba algorithm.
+     * This method is designed to handle scenarios where large integers are split into smaller parts for more
+     * efficient computation of the product.
+     * TESTME
+     *
+     * @param first The first integer array, where each element represents part of a larger number.
+     * @param second The second integer array, where each element represents part of a larger number.
+     * @param start The starting index for the relevant segment of the arrays to be considered for multiplication.
+     * @param end The ending index for the relevant segment of the arrays to be considered for multiplication.
+     * @param resSize The size of the result array to store the product of the two arrays.
+     * @return An array representing the product of the two numbers, with the result properly sized as per resSize.
+     */
     private int[] recursiveKarat(final int[] first, final int[] second, final int start, final int end, final int resSize) {
         int j = start;
         // adaptively ignore leading zeros
@@ -409,6 +453,14 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return z0;
     }
 
+    /**
+     * Shifts the non-zero elements of the given array to the left by the specified offset.
+     * Zeros are appended to the end of the array to maintain the original length.
+     * TESTME
+     *
+     * @param arr the array of integers to be shifted; must not be null
+     * @param offset the number of positions to shift the elements to the left; must be non-negative
+     */
     private void leftShift(final int[] arr, final int offset) {
         int i = 0;
         while (i < arr.length && arr[i] == 0) {
@@ -420,6 +472,18 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         }
     }
 
+    /**
+     * Adds corresponding elements from two parts of the input array with a carry operation,
+     * and stores the result in a new array of specified size.
+     * TESTME
+     *
+     * @param first the input array from which elements are added
+     * @param start the starting index of the first part in the array
+     * @param middle the ending index of the first part in the array
+     * @param end the ending index of the second part in the array
+     * @param resSize the size of the resulting array
+     * @return an array containing the result of the addition with carry
+     */
     private int[] add(final int[] first, final int start, final int middle, final int end, final int resSize) {
         final int[] result = new int[resSize];
         int carry = 0;
@@ -444,6 +508,17 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return result;
     }
 
+    /**
+     * Adds the values of the second array to the first array in-place,
+     * considering each array represents a number with its digits stored in order.
+     * Handles carry values appropriately during addition.
+     * TESTME
+     *
+     * @param first the array representing the first number. Must be large enough
+     *              to accommodate the result of the addition.
+     * @param second the array representing the second number. Its digits will be
+     *               added to the corresponding digits of the first array.
+     */
     private void addInPlace(final int[] first, final int[] second) {
         int j = first.length - 1;
         int carry = 0;
@@ -458,6 +533,16 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         }
     }
 
+    /**
+     * Computes the difference between two integer arrays representing numbers
+     * in a digit-by-digit manner and updates the first array with the result.
+     * The arrays must have the same length, and the first array must represent a number
+     * that is greater than or equal to the number represented by the second array.
+     * TESTME
+     *
+     * @param first  the array representing the first number; will be modified to store the result
+     * @param second the array representing the second number; remains unchanged
+     */
     private void difference(final int[] first, final int[] second) {
         for (int i = first.length - 1, j = second.length - 1; i >= 0; i--, j--) {
             if (first[i] >= second[j]) {
@@ -469,6 +554,13 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         }
     }
 
+    /**
+     * Multiplies the current BigNumber with another BigNumber and returns the result.
+     * TESTME
+     *
+     * @param that the BigNumber to multiply with the current BigNumber
+     * @return a new BigNumber representing the result of the multiplication
+     */
     public BigNumber multiply(final BigNumber that) {
         final BigInteger bigTen = BigInteger.valueOf(10);
         final int thisLength = decimals.length + 1, thatLength = that.decimals.length + 1;
@@ -489,6 +581,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Method to divide this BigNumber by a BigNumber.
+     * TESTME (partial)
      *
      * @param x a BigNumber value.
      * @return a BigNumber y such that x * y = this.
@@ -534,6 +627,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     /**
      * Method to divide this BigNumber by a long.
      * The implementation is based on division by BigInteger.
+     * TESTME
      *
      * @param x a long value.
      * @return a BigNumber y such that x * y = this.
@@ -542,6 +636,16 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return divide(BigInteger.valueOf(x));
     }
 
+    /**
+     * Compares the specified object with this BigNumber for equality.
+     * The method determines whether two BigNumber instances are logically equivalent by comparing
+     * their whole part, sign, and decimals.
+     * TESTME
+     *
+     * @param o the object to be compared for equality with this BigNumber
+     * @return true if the specified object is a BigNumber, has the same whole part,
+     *         sign, and decimals as this BigNumber; otherwise, false
+     */
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
@@ -567,7 +671,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         final StringBuilder result = new StringBuilder(sign ? "" : "-");
         result.append(whole);
         final String dec = decimalsToString();
-        if (dec.length() > 0) result.append('.');
+        if (!dec.isEmpty()) result.append('.');
         result.append(dec);
         return result.toString();
     }
@@ -588,6 +692,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Secondary constructor to creat a BigNumber which has no decimal part.
+     * TESTME
      *
      * @param whole any BigInteger value (positive or negative).
      */
@@ -616,6 +721,16 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return Arrays.copyOf(array, i);
     }
 
+    /**
+     * Retrieves a specific element based on the given index.
+     * TESTME
+     *
+     * @param i the index of the element to retrieve; if 0, retrieves the whole number;
+     *          if positive, retrieves the corresponding decimal index;
+     *          if negative, returns 0.
+     * @return the element value as a long; the whole number if the index is 0,
+     *         the decimal value if the index is positive, or 0 if the index is negative.
+     */
     private long element(final int i) {
         if (i == 0) return whole.longValueExact();
         else if (i > 0) return decimals[i - 1];
@@ -648,6 +763,23 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         doMain();
     }
 
+    /**
+     * Measures and compares the performance of two multiplication algorithms (standard and Karatsuba) for large numbers.
+     * TESTME
+     *
+     * The method performs the following steps:
+     * 1. Initializes a large constant string representing a seed value and extracts a portion for computation.
+     * 2. Parses the seed string into a `BigNumber` object for arithmetic operations.
+     * 3. Uses a loop to measure the time taken to execute multiplication using the standard multiplication method.
+     * 4. Computes the average execution time for the standard multiplication method.
+     * 5. Repeats the process for the Karatsuba multiplication method, measuring and calculating average execution time.
+     * 6. Prints the execution times for both methods, and computes the percentage improvement offered by the Karatsuba method.
+     *
+     * Notes:
+     * - Considers the potential use of performance measurement utilities such as `StopWatch` or `Timer`.
+     * - Ensures timing accuracy by iterating over each method multiple times and averaging the results.
+     * - Uses hardcoded values for the size of arrays and iterations (10 iterations are performed for averaging).
+     */
     public static void doMain() {
         final String seed = "3.80264732771409300520864834438671209698720957589958651119907375222849430002967817359000866255197344412894598244154180957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418409575899586511199073752228494300029678173590008662551973444128945982441541840957589958651119907375222849430002967817359000866255197344412894598244154184095758995865111990737522284943000296781735900086625519734441289459824415418448117483823635540800639306781065132028198662321859262596212005648226134579249871801970850380282492694242171297757609737902183514884179014706720272008148141514118681922046978558050713877551342513339470002439445599760202735750907375222849430002967817359000866255197344412894598244154184811748382363554080063930678106513202819866232185926259621200564822613457924987180197085038028249269424217129775760973790218351488417901470672027200814814151411868192204697855805071387755134251333947000243944559976020273575090737522284943000296781735900086625519734441289459824415418481174838236355408006393067810651320281986623218592625962120056482261345792498718019708503802824926942421712977576097379021835148841790147067202720081481415141186819220469785580507138775513425133394700024394455997602027357506449179433722141754241393658320727321911046813620076340538390386873407571606319347045589812102646318413325303681054856";
         System.out.println("Seed length: " + seed.length());

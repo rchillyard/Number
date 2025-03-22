@@ -9,7 +9,7 @@ import scala.util.{Either, Try}
 package object core {
 
   /**
-    * This is the type of the value parameter of a GeneralNumber.
+   * This is the type of the nominalValue parameter of a GeneralNumber.
     *
     * There is a companion object to this type in module Value.scala.
     */
@@ -24,6 +24,15 @@ package object core {
     * Type alias for the monadic functions, a tuple of three functions, corresponding to the functions for Int, Rational and Double representations.
     */
   type MonadicFunctions = (Int => Try[Int], Rational => Try[Rational], Double => Try[Double])
+
+  /**
+   * Represents the context in which an evaluation occurs.
+   *
+   * If a `Factor` is defined, it signifies the factor (Scalar, Log, Radian, etc.)
+   * in which an expression must be evaluated.
+   * Otherwise, there is no explicit factor.
+   */
+  type Context = Option[Factor]
 
   /**
     * Type alias for the Boolean query functions.

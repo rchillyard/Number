@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.matchers.Matchers.TildeOps
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Expression.{ExpressionOps, pi}
 import com.phasmidsoftware.number.core.Field.convertToNumber
@@ -8,6 +9,7 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
@@ -42,11 +44,21 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   // NOTE these are the new tests (Aug 6th) which should be good
-  behavior of "materialize"
+  behavior of "Function"
   it should "work for Exp(1)" in {
     val x = Function(One, Exp)
     val result = x.materialize
     result shouldBe Constants.e
+  }
+  it should "work for Negate" in {
+    Function(MinusOne, Negate).materialize shouldBe Constants.one
+    Function(Zero, Negate).materialize shouldBe Constants.zero
+    Function(One, Negate).materialize shouldBe Constants.minusOne
+    Function(Two, Negate).materialize shouldBe Real(-2)
+    Function(Function(Two, Negate), Negate).materialize shouldBe Constants.two
+  }
+  it should "work for Reciprocal" in {
+    Function(Two, Reciprocal).materialize shouldBe Constants.half
   }
   it should "work for Exp(Log(2))" in {
     val x = Function(Function(Two, Log), Exp)
@@ -68,7 +80,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.render shouldBe "4.1415926535897930(41)"
+    e.render shouldBe "{1 + 𝛑}"
+    e.materialize.render shouldBe "4.1415926535897930(41)"
+  }
+
+  it should "evaluate 3 5 + 7 2 – *" in {
+    val expression = (Literal(3) + 5) * (Literal(7) - 2)
+    val result = expression.materialize
+    result shouldEqual Real(40)
   }
 
   behavior of "ExpressionOps"
@@ -127,7 +146,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for (sqrt 7)^2" in {
     val seven: Expression = Literal(7)
     val result: Expression = seven.sqrt ^ 2
-    result.toString shouldBe "{{7 ^ (2 ^ -1)} ^ 2}"
+    result.toString shouldBe "{√7 ^ 2}"
   }
 
   behavior of "various operations"
@@ -139,19 +158,19 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "isExact"
   it should "be true for any constant Number" in {
-    Number.one.isExact(None) shouldBe true
-    Number.pi.isExact(None) shouldBe true
+    Number.one.isExact shouldBe true
+    Number.pi.isExact shouldBe true
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
     (One + Constants.two).isExact shouldBe true
-    (ConstPi + Constants.pi).isExact(Some(Radian)) shouldBe true
+    (ConstPi + Constants.pi).isExactInContext(Some(Radian)) shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Literal(2) * Constants.e).isExact shouldBe false
+    (Literal(2) * Constants.e).isExactInContext(Some(PureNumber)) shouldBe false
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
     val expression = Literal(1) * Constants.e
-    expression.isExact(None) shouldBe true
+    expression.isExact shouldBe true
   }
   it should "be true for product of zero exact Numbers and a NatLog factor" in {
     (Literal(0) * Constants.e).isExact shouldBe true
@@ -164,11 +183,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Literal(1).depth shouldBe 1
     pi.depth shouldBe 1
   }
+  it should "be 2 for any Function expression" in {
+    Function(1, Negate).depth shouldBe 2
+    Function(1, Cosine).depth shouldBe 2
+    Function(1, Sine).depth shouldBe 2
+  }
   it should "be more than 1 for other expression" in {
     (ConstE * 2).depth shouldBe 2
     (ConstE * 2 / 2).depth shouldBe 3
     val expression = Expression(7).sqrt ^ 2
-    expression.depth shouldBe 4
+    expression.depth shouldBe 2
   }
 
   behavior of "Euler"
@@ -176,5 +200,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val iPi = ComplexCartesian(0, Number.pi)
     val euler: Expression = Expression(Constants.e) ^ iPi
     euler.materialize shouldBe Constants.minusOne
+  }
+
+  behavior of "ReducedQuadraticRoot"
+  it should "evaluate Phi correctly" in {
+    (((Phi ^ 2) - 1).materialize - Constants.phi).isZero shouldBe true
+    Phi.materialize should ===(Constants.phi)
+  }
+  it should "evaluate Phi^2 correctly" in {
+    val em: ExpressionMatchers = Expression.em
+    val p = em.biFunctionTransformer
+    p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(Phi, One, Sum))
   }
 }

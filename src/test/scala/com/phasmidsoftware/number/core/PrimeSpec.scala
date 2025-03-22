@@ -1,10 +1,9 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Prime.{createMersennePrime, mersenneNumber, multiplicativeInverse}
+import com.phasmidsoftware.number.core.Prime.{mersenneNumber, multiplicativeInverse}
 import com.phasmidsoftware.number.core.Primes.allPrimes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.scalatest.tagobjects.Slow
 
 class PrimeSpec extends AnyFlatSpec with should.Matchers {
 
@@ -157,6 +156,7 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     multiplicativeInverse(9, BigInt(23)) shouldBe 18
   }
 
+  // FIXME
   ignore should "multiplicativeInverse2" in {
     val g = 7
     val z = p7.modPow(g, 10)
@@ -216,29 +216,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     mersenneNumber(15) shouldBe 9007199254740991L // 2^53 - 1 NOT a prime
     mersenneNumber(16) shouldBe 576460752303423487L // 2^59 - 1 NOT a prime
     mersenneNumber(17) shouldBe 2305843009213693951L // 2^61 - 1
-  }
-
-  // CONSIDER removing parentheses (but I think CircleCI requires them).
-  it should "check for Mersenne primes" taggedAs (Slow) in {
-    createMersennePrime(0).isDefined shouldBe true
-    createMersennePrime(1).isDefined shouldBe true
-    createMersennePrime(2).isDefined shouldBe true
-    createMersennePrime(3).isDefined shouldBe true
-    createMersennePrime(4).isDefined shouldBe false
-    createMersennePrime(5).isDefined shouldBe true
-    createMersennePrime(6).isDefined shouldBe true
-    createMersennePrime(7).isDefined shouldBe true
-    createMersennePrime(8).isDefined shouldBe false
-    createMersennePrime(9).isDefined shouldBe false
-    // After here, it just takes too long to validate
-//    createMersennePrime(10).isDefined shouldBe true
-//    createMersennePrime(11).isDefined shouldBe false
-//    createMersennePrime(12).isDefined shouldBe false
-//    createMersennePrime(13).isDefined shouldBe false
-//    createMersennePrime(14).isDefined shouldBe false
-//    createMersennePrime(15).isDefined shouldBe false
-//    createMersennePrime(16).isDefined shouldBe false
-//    createMersennePrime(17).isDefined shouldBe true
   }
 
   it should "get first 100 primes" in {

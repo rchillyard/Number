@@ -27,12 +27,12 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "yield Right(1)" in {
     val target = Real(1)
     target should matchPattern { case Real(ExactNumber(_, _)) => }
-    target.x.value should matchPattern { case Right(_) => }
+    target.x.nominalValue should matchPattern { case Right(_) => }
   }
   it should "yield Right(1, Radian)" in {
     val target: Real = Constants.pi
     target should matchPattern { case Real(ExactNumber(_, _)) => }
-    target.x.value should matchPattern { case Right(_) => }
+    target.x.nominalValue should matchPattern { case Right(_) => }
     target.x.factor shouldBe Radian
   }
 
@@ -79,16 +79,16 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   behavior of "apply"
   it should """work for "1"""" in {
     val target = Real("1")
-    target.x.value shouldBe Right(1)
+    target.x.nominalValue shouldBe Right(1)
   }
   it should """work for "𝛑" """ in {
     val target = Real("\uD835\uDED1")
-    target.isExact(None) shouldBe true
+    target.isExact shouldBe true
     target shouldBe Constants.pi
   }
   it should "work for 1" in {
     val target = Real(1)
-    target.isExact(None) shouldBe true
+    target.isExact shouldBe true
   }
 
   behavior of "asReal"
@@ -153,7 +153,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   behavior of "power"
-  it should "work for squaring Scalar" in {
+  it should "work for squaring PureNumber" in {
     val target = Constants.two
     target.power(2) shouldBe Real(4)
   }
@@ -186,7 +186,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for Radian/6" in {
     val target = Real(Number(Rational(6).invert, Radian))
-    target.sin shouldBe Real(Number(Rational(1, 2), Scalar))
+    target.sin shouldBe Real(Number(Rational(1, 2), PureNumber))
   }
   it should "work for Radian/3" in {
     val target = Number(Rational(1, 3), Radian)
@@ -220,7 +220,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for Pi/3" in {
     val target = Number.pi doDivide 3
-    target.cos shouldBe Number(Rational(1, 2), Scalar)
+    target.cos shouldBe Number(Rational(1, 2), PureNumber)
   }
   it should "work for Pi/6" in {
     val target = Number.pi doDivide 6
@@ -246,7 +246,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for Pi/6" in {
     val target = Number.pi doDivide 6
-    target.tan should ===(Number(3).sqrt.doInvert)
+    target.tan should ===(Number(3).sqrt.getInverse)
   }
 
   behavior of "atan"

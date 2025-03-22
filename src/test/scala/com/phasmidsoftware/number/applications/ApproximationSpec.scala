@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.core.{FuzzyEquality, Number}
 import org.scalatest.PrivateMethodTester
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMethodTester with FuzzyEquality {
@@ -27,9 +28,9 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val result = Approximation.solve(0.99,
       newtonsPolynomial,
       newtonsDerivative
-    )(Number.ten.doInvert)
+    )(Number.ten.getInverse)
     result.isSuccess shouldBe true
-    result.get should ===(Number(0.0945514815423)) // 0.094551481542326 according to Wikipedia (after 10 iterations)
+    result.get should ===(Number(0.0945514815423266))
   }
 
   it should "solve cosine problem" in {
@@ -38,7 +39,8 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
       cosineDerivative
     )(Number.half)
     result.isSuccess shouldBe true
-    result.get should ===(Number(0.73908513321516))
+    val expected = Number.parse("0.73908513321516070(49)").get
+    result.get should ===(expected)
   }
 
   it should "solve cosine problem using Halley's method" in {
@@ -48,7 +50,8 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
       cosineSecondDerivative
     )(Number.half)
     result.isSuccess shouldBe true
-    result.get should ===(Number(0.73908513321516))
+    val expected = Number.parse("0.73908513321516070(44)").get
+    result.get should ===(expected)
   }
 
   // NOTE: the iteration values are not exactly the same as in Wikipedia
@@ -57,9 +60,10 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
       newtonsPolynomial,
       newtonsDerivative,
       newtonsSecondDerivative,
-    )(Number.ten.doInvert)
+    )(Number.ten.getInverse)
     result.isSuccess shouldBe true
-    result.get should ===(Number(0.09455148154))
+    val expected = Number.parse("0.0945514815423266*").get
+    result.get should ===(expected)
   }
 
   it should "solve Wikipedia example using Halley's method" in {

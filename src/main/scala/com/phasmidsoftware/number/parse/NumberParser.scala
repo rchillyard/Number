@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core._
+
 import scala.util.Try
 
 /**
@@ -102,12 +103,12 @@ abstract class BaseNumberParser extends BaseRationalParser {
   //  Any number with a longer fractional part is assumed to be fuzzy.
   private val DPExact = 2
 
-  private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[Number] =
+  private def optionalNumber(ro: Option[ValuableNumber], fo: Context): Option[Number] =
     if (ro.isDefined || fo.isDefined)
       for (
         r <- ro.orElse(Some(WholeNumber.one));
         v <- r.value.toOption;
-        f <- fo.orElse(Some(Scalar))) yield {
+        f <- fo.orElse(Some(PureNumber))) yield {
         val z: Option[Fuzziness[Double]] = r match {
           case n@NumberWithFuzziness(_, _, _) => n.fuzz
           case n@RealNumber(_, _, Some(f), _) if f.length > DPExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)

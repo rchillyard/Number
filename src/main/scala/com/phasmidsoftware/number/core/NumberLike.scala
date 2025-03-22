@@ -10,21 +10,29 @@ package com.phasmidsoftware.number.core
 trait NumberLike {
 
   /**
-    * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
+   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+   * Unlike context, a `None` result is not permissive.
+   *
+   * @return an optional `Factor`.
+   */
+  def maybeFactor: Option[Factor]
+
+  /**
+   * Method to determine if this `NumberLike` object can be evaluated exactly in the given context.
     *
-    * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
-    *                    if factor is None then, the result will depend solely on whether this is exact.
-    * @return true if this NumberLike object is exact in the context of factor, else false.
+   * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
+   *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
+   * @return true if `this` is exact in the context of factor, else false.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean
+  def isExactInContext(context: Context): Boolean
 
   /**
     * Method to determine if this NumberLike object can be evaluated exactly in the context of no factor.
-    * For instance, Number.pi is exact, although if you scaled it as a Scalar, it would no longer be exact.
+   * For instance, Number.pi is exact, although if you scaled it as a PureNumber, it would no longer be exact.
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = isExact(None)
+  def isExact: Boolean = isExactInContext(None)
 
   /**
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).

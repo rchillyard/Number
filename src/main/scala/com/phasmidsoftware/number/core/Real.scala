@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.Real.createFromRealField
+
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -18,6 +19,13 @@ import scala.util.Try
   * @param x a Number which represents the value of this Real.
   */
 case class Real(x: Number) extends Field {
+  /**
+   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+   *
+   * @return an optional `Factor`.
+   */
+  def maybeFactor: Option[Factor] = x.maybeFactor
+
   /**
     * Method to determine if this Real has infinite magnitude.
     *
@@ -126,24 +134,19 @@ case class Real(x: Number) extends Field {
     case Real(m) => x.power(Real(m))
     case c: Complex => asComplex power c
   }
-//
-//  def createFromNumberField(x: Field): Real = x match {
-//    case r: Real => r
-//    case _ => throw NumberException(s"Real.createFromNumberField: x is not a Real: $x")
-//  }
 
   def sqrt: Field = power(Real(Rational.half))
 
   /**
     * Yields the inverse of this Real.
-    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
+   * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     */
   def invert: Field = createFromRealField(x.invert)
 
   /**
     * Method to determine the sine of this Real.
-    * The result will be a Real with Scalar factor.
+   * The result will be a Real with PureNumber factor.
     *
     * @return the sine of this.
     */
@@ -151,7 +154,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to determine the cosine of this Real.
-    * The result will be a Real with Scalar factor.
+   * The result will be a Real with PureNumber factor.
     *
     * @return the cosine.
     */
@@ -159,7 +162,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to determine the tangent of this Real.
-    * The result will be a Real with Scalar factor.
+   * The result will be a Real with PureNumber factor.
     *
     * @return the tangent
     */
@@ -175,7 +178,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to determine the natural log of this Real.
-    * The result will be a Real with Scalar factor.
+   * The result will be a Real with PureNumber factor.
     *
     * @return the natural log of this.
     */
@@ -211,11 +214,11 @@ case class Real(x: Number) extends Field {
   /**
     * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
     *
-    * @param maybeFactor the (optional) context in which we want to evaluate this Expression.
+   * @param context      the (optional) context in which we want to evaluate this Expression.
     *                    if factor is None then, the result will depend solely on whether this is exact.
     * @return true if this NumberLike object is exact in the context of factor, else false.
     */
-  def isExact(maybeFactor: Option[Factor]): Boolean = x.isExact(maybeFactor)
+  def isExactInContext(context: Context): Boolean = x.isExactInContext(context)
 
   /**
     * Method to return the x of this Real.
@@ -248,44 +251,76 @@ case class Real(x: Number) extends Field {
 
   override def toString: String = x.toString
 
+  /**
+   * Converts the value of this Real to a Double.
+   * If the conversion is unsuccessful, it throws a NumberException.
+   *
+   * @return the Double representation of this Real.
+   */
   def toDouble: Double = recover(x.toDouble, NumberException("Real.toDouble: logic error: x"))
 }
 
+/**
+ * The `Real` object provides a representation and associated operations for real numbers.
+ * It offers methods to create `Real` instances from various types (String, Int, Double, Rational),
+ * and provides several utilities, implicit conversions, and typeclass instances for operations and comparisons.
+ */
 object Real {
+  /**
+   * Constructs a new Real from the given string representation of a number.
+   *
+   * @param w the string to be parsed and converted into a Real.
+   * @return a new Real instance representing the parsed number.
+   */
   def apply(w: String): Real = Real(Number(w))
 
+  /**
+   * Constructs a `Real` object from an integer value.
+   *
+   * @param x the integer value to be converted to a `Real`.
+   * @return a `Real` instance representing the supplied integer.
+   */
+  def apply(x: Int): Real = Real(Number(x))
+
+  /**
+   * Converts a double value into a Real object.
+   *
+   * @param d the double value to be converted
+   * @return a Real object representing the provided double value
+   */
   def apply(d: Double): Real = Real(Number(d))
 
+  /**
+   * Converts a given Rational number into a Real number.
+   *
+   * @param r the Rational number to be converted.
+   * @return the corresponding Real number representation of the input Rational.
+   */
   def apply(r: Rational): Real = Real(Number(r))
 
-  // TODO remove the ones that are already defined in Constants
-//  val zero: Real = Real(0)
-//  val one: Real = Real(1)
-//  val negOne: Real = Real(-1)
-//  val two: Real = Real(2)
-//  val three: Real = Real(3)
-//  val half: Real = Real(Rational.half)
-//  val ten: Real = Real(10)
-//  val pi: Real = Real(Number.pi)
-//  val piBy2: Real = Real(Number.piBy2)
-//  val e: Real = Real(Number.e)
-//  val i: Real = Real(Number.i)
-//  val root2: Real = Real(Number.root2)
-//  val NaN: Real = Real(Number.NaN)
+  def atan(x: Field, y: Field): Real = (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN))
 
-//  lazy val phi: Real = Real(Constants.phi)
-//  lazy val gamma: Real = Real(Constants.gamma)
-//  lazy val G: Real = Real(Constants.G)
-//  lazy val alpha: Real = Real(Constants.alpha)
-//  lazy val avagadro: Real = Real(Constants.avagadro)
-//  lazy val boltzmann: Real = Real(Constants.boltzmann)
-//  lazy val planck: Real = Real(Constants.planck)
-//  lazy val c: Real = Real(Constants.c)
-//  lazy val mu: Real = Real(Constants.mu)
+  val atanFunction: (Field, Field) => Real = atan
 
+  /**
+   * Creates a Real instance from a given Field if it can be represented as a real number.
+   *
+   * If the input Field is already a Real, it is returned as-is. If the input is a BaseComplex
+   * instance and is identified as real (i.e., has no imaginary component), the corresponding
+   * Real value is extracted. If the input cannot be represented as a Real, an exception is thrown.
+   *
+   * @param x the input Field to be converted to a Real.
+   * @return a Real instance representing the input Field.
+   * @throws NumberException if the input Field is not real or cannot be converted to a Real.
+   */
   def createFromRealField(x: Field): Real = x match {
     case r: Real => r
-    case _ => throw NumberException(s"Real.createFromRealField: x is not a Real: $x")
+    case c: BaseComplex if c.isReal =>
+      c.asNumber match {
+        case Some(value) => Real(value)
+        case None => throw NumberException(s"Real.createFromRealField: x cannot be represented as a Real: $x")
+      }
+    case _ => throw NumberException(s"Real.createFromRealField: x is not real: $x")
   }
 
   /**
@@ -348,9 +383,9 @@ object Real {
     */
   trait RealIsOrdering extends Ordering[Real] {
     /**
-      * When we do a compare on NatLog numbers, they are in the same order as Scalar numbers (i.e. monotonically increasing).
+     * When we do a compare on NatLog numbers, they are in the same order as PureNumber numbers (i.e. monotonically increasing).
       * It's not necessary to convert exact numbers to fuzzy numbers for this purpose, we simply
-      * pretend that the NatLog numbers are Scalar numbers.
+     * pretend that the NatLog numbers are PureNumber numbers.
       *
       * @param x the first Real.
       * @param y the second Real.

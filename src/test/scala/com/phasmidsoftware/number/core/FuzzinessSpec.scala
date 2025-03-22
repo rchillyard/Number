@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core.Fuzziness.{createFuzz, monadicFuzziness}
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Left, Try}
 
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
@@ -37,20 +38,20 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   behavior of "maybeNumber"
   it should "" in {
     val z = p.parseAll(p.maybeNumber, sG)
-    z.get.get.isExact(None) shouldBe false
+    z.get.get.isExact shouldBe false
     z.get.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
   behavior of "number"
   it should "" in {
     val z: p.ParseResult[Number] = p.parseAll(p.number, sG)
-    z.get.isExact(None) shouldBe false
+    z.get.isExact shouldBe false
     z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
   behavior of "StringParser"
   it should "" in {
     val x = NumberParser
     val q: Try[Number] = x.parseNumber(sG)
-    q.get.isExact(None) shouldBe false
+    q.get.isExact shouldBe false
     q.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
 
@@ -85,7 +86,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "understand ..." in {
     import Number.FuzzOps
     val x = 3.1415927 ~ 12
-    x.isExact(None) shouldBe false
+    x.isExact shouldBe false
     x.toString shouldBe "3.1415927(12)"
   }
 
@@ -145,7 +146,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for 3.1415927" in {
     val xy: Try[Number] = Number.parse("3.1415927")
-    xy.get shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), Scalar, Some(AbsoluteFuzz(0.00000005, Box)))
+    xy.get shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), PureNumber, Some(AbsoluteFuzz(0.00000005, Box)))
     val z: Number = xy.get
     val q: Option[String] = z.fuzz.map(f => f.toString(3.1415927)._2)
     q should matchPattern { case Some("3.14159270[5]") => }
@@ -267,11 +268,12 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   behavior of "map"
   it should "work" in {
     val fuzz = RelativeFuzz(1E-15, Box)
-    val n: FuzzyNumber = FuzzyNumber(Value.fromInt(1), Scalar, None).addFuzz(fuzz).asInstanceOf[FuzzyNumber]
+    // TODO do this through pattern matching
+    val n: FuzzyNumber = FuzzyNumber(Value.fromInt(1), PureNumber, None).addFuzz(fuzz).asInstanceOf[FuzzyNumber]
     val op = MonadicOperationExp
-    val r: Option[Value] = Operations.doTransformValueMonadic(n.value)(op.functions)
+    val r: Option[Value] = Operations.doTransformValueMonadic(n.nominalValue)(op.functions)
     r.isDefined shouldBe true
-    val q = n.make(r.get, Scalar)
+    val q = n.make(r.get, PureNumber)
     val x = q.toDouble
     val v = x.get
     val z: Option[Fuzziness[Double]] = Fuzziness.map[Double, Double, Double](1, v, relative = true, op.relativeFuzz, Some(fuzz))
@@ -285,7 +287,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val two = Number("2.00[2]")
     val nominalValueOfTwo = 2
     val relativeErrorOfTwo = 0.01
-    val z: Number = Number.exp(two).scale(Scalar)
+    val z: Number = Number.exp(two).scale(PureNumber)
     z.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe (nominalValueOfTwo * relativeErrorOfTwo) +- 1.0E-10
   }
 

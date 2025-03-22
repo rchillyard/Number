@@ -16,6 +16,7 @@ object Constants {
   val pi: Real = Real(Number.pi)
   val twoPi: Real = Real(Number.twoPi)
   val piBy2: Real = Real(Number.piBy2)
+  val piBy4: Real = Real(Number.piBy4)
   //noinspection NonAsciiCharacters
   val `𝛑`: Real = Real(Number.`𝛑`)
   val e: Real = Real(Number.e)
@@ -59,7 +60,7 @@ object Constants {
   /**
     * [[https://en.wikipedia.org/wiki/Avogadro_constant]] (exact)
     */
-  lazy val avagadro: Real = Real(6.0221407600E23)
+  lazy val avagadro: Real = Real("6.0221407600E23")
 
   /**
     * [[https://en.wikipedia.org/wiki/Boltzmann_constant]] (exact).
@@ -81,7 +82,12 @@ object Constants {
     */
   lazy val mu: Real = Real(1836.15267343 ~ 11) // (dimensionless)
 
-  val sPhi = "1.618033988749894"
+  /**
+   * A string representation of the golden ratio (φ) with high precision.
+   * The value is truncated to 104 decimal places.
+   * From [[https://oeis.org/A001622]]
+   */
+  val sPhi = "1.61803398874989484820458683436563811772030917980576286213544862270526046281890244970720720418939113748475"
   val sGamma = "0.57721566490153286060651209008240243104215933593992*"
   val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
   val sBoltzmann = "1380649.E-29" // J K ^ -1

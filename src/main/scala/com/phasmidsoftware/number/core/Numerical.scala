@@ -56,7 +56,7 @@ trait Numerical extends NumberLike {
 
   /**
     * Yields the inverse of this Field.
-    * This Number is first normalized so that its factor is Scalar, since we cannot directly invert Numbers with other
+   * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     */
   def invert: Field

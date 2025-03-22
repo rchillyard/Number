@@ -11,7 +11,7 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
     //    Number(4).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe true
     //    Number(2).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe false
     val x = (ConstPi / 2).materialize
-    x.isExact(None) shouldBe true
+    x.isExact shouldBe true
   }
 
   it should "multiply i by itself correctly" in {

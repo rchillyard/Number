@@ -1,9 +1,10 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.{ExactNumber, Scalar}
+import com.phasmidsoftware.number.core.{ExactNumber, PureNumber}
 import com.phasmidsoftware.number.mill.{Add, Swap}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class MillParserSpec extends AnyFlatSpec with should.Matchers {
@@ -53,7 +54,7 @@ class MillParserSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "parse term" in {
-    p.parseAll(p.term, "42") should matchPattern { case p.Success(p.AnadicTerm(Right(ExactNumber(Right(42), Scalar))), _) => }
+    p.parseAll(p.term, "42") should matchPattern { case p.Success(p.AnadicTerm(Right(ExactNumber(Right(42), PureNumber))), _) => }
     p.parseAll(p.term, "42 37 >< +".reverse) should matchPattern { case p.Success(_, _) => }
     p.parseAll(p.term, "7 shc".reverse) should matchPattern { case p.Success(_, _) => }
     p.parseAll(p.term, "2 vni".reverse) should matchPattern { case p.Success(_, _) => }

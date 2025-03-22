@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, findRepeatingSequence}
+import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, negZeroDouble, pi_5000}
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
 import scala.language.postfixOps
@@ -131,30 +131,44 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
 
   behavior of "apply(Double)"
+  it should "convert zero" in {
+    val r = Rational(0)
+    Rational.zero shouldBe r
+  }
+  it should "convert negative zero" in {
+    val r = createExact(-0.0).get
+    Rational.negZero shouldBe r
+  }
   it should "convert Avagadro's number" in {
     val target = Rational("6.02214076E23")
-    target shouldBe Rational(6.02214076E23) +- 1E9
+    target shouldBe createExact(6.02214076E23).get +- 1E9
   }
   it should "convert a very small number" in {
-    val verySmall = Rational(-4.076956044934884E-134)
-    Rational(-4.076956044934884E-134) shouldBe verySmall
+    val verySmall = createExact(-4.076956044934884E-134)
+    createExact(-4.076956044934884E-134) shouldBe verySmall
   }
   it should "be zero for very very small number" in {
     val x = 1.111314801067662E-299
     val epsilon: Double = 1E-305
-    val r = Rational(x)
+    val r = createExact(x).get
+    r.toDouble shouldBe x +- epsilon
+  }
+  it should "be zero for very very very small number" in {
+    val x = Double.MinPositiveValue
+    val epsilon: Double = 1E-305
+    val r = createExact(x).get
     r.toDouble shouldBe x +- epsilon
   }
   it should "convert 3.1416 correctly" in {
-    val target = Rational(3.1416)
-    target shouldBe Rational(3927, 1250)
+    val target = createExact(3.1416)
+    target shouldBe Success(Rational(3927, 1250))
   }
   it should "convert 3.1416 the same as \"3.1416\"" in {
-    val target = Rational(3.1416)
+    val target = createExact(3.1416).get
     target shouldBe Rational("3.1416") +- 1E-10
   }
   it should "pick up a float" in {
-    val target = Rational(1.5f)
+    val target = createExact(1.5f).get
     target shouldBe Rational(3, 2)
   }
 
@@ -179,6 +193,17 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.zero.invert.isWhole shouldBe false
     Rational.one.invert.isWhole shouldBe true
     Rational.two.invert.isWhole shouldBe false
+  }
+
+  behavior of "isDecimal"
+  it should "be true for 3.14" in {
+    createExact(3.14).get.isDecimal shouldBe true
+  }
+  // FIXME Issue #85
+  ignore should "be false for 223606797749979/200000000000000" in {
+    val target = r"223606797749979/200000000000000"
+    target.isDecimal shouldBe true
+    target.renderConditional(true) shouldBe "223606797749979/200000000000000"
   }
 
   behavior of "toBigInt"
@@ -307,6 +332,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     r shouldBe Rational(5).invert
   }
 
+  behavior of "-"
+  it should "work for -1" in {
+    val r = Rational(-1)
+    -r shouldBe Rational.one
+  }
+
   behavior of "negate"
   it should "work for -1" in {
     val r = Rational(-1)
@@ -409,9 +440,89 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     target ^ Rational(2, 3) shouldBe Success(Rational(4, 9))
   }
 
+  it should "work for Rational power (5)" in {
+    val target = Rational.one
+    target.power(Rational(2, 3)) shouldBe Success(Rational.one)
+  }
+
   it should "fail for non-exact powers" in {
     val target = Rational(7, 28)
-    target.power(Rational(2, 3)).isFailure shouldBe true
+    target.power(Rational(2, 3)) match {
+      case Failure(x) => x.getLocalizedMessage shouldBe "power(2/3): cannot calculate result exactly"
+      case _ => fail("this power should fail")
+    }
+  }
+
+  it should "apply" in {
+    val half = Rational(2, 4)
+    half.n shouldBe 1
+    half.d shouldBe 2
+  }
+
+  behavior of "power"
+
+  it should "power 1" in {
+    Rational.one power 0 shouldBe Rational.one
+    Rational.two power 0 shouldBe Rational.one
+    val r: Rational = 1L
+    r power 0 shouldBe Rational.one
+  }
+
+  it should "power 2" in {
+    Rational.one power 1 shouldBe Rational.one
+    Rational.two power 1 shouldBe Rational.two
+    val r: Rational = BigInt(1)
+    r power 1 shouldBe Rational.one
+  }
+
+  it should "power 3" in {
+    val r = Rational(4)
+    val p = r"3/2"
+    val xy = r power p
+    xy.isSuccess shouldBe true
+    val x = xy.get
+    x shouldBe Rational(8, 1)
+    x power p.invert shouldBe Success(r)
+  }
+
+  it should "power 4" in {
+    val r = Rational.one
+    val p = r"3/2"
+    val xo = r power p
+    xo.isSuccess shouldBe true
+    val x = xo.get
+    x shouldBe Rational.one
+  }
+
+  it should "fail with bad power" in {
+    val r = Rational(3)
+    val p = r"3/2"
+    val x = r power p
+    x.isSuccess shouldBe false
+  }
+
+  behavior of "root"
+
+  it should "root 0" in {
+    Rational.one.root(0) shouldBe Some(Rational.one)
+    Rational.two.root(0) shouldBe None
+  }
+
+  it should "root 1" in {
+    Rational.one.root(1) shouldBe Some(Rational.one)
+    Rational.two.root(1) shouldBe Some(Rational.two)
+  }
+
+  it should "root 2" in {
+    Rational.one.root(2) shouldBe Some(Rational.one)
+    Rational(4).root(2) shouldBe Some(Rational.two)
+    Rational.two.root(2) shouldBe None
+  }
+
+  it should "root -2" in {
+    Rational.one.root(-2) shouldBe Some(Rational.one)
+    Rational(4).root(-2) shouldBe None
+    Rational.two.root(-2) shouldBe None
   }
 
   behavior of "exponent"
@@ -420,7 +531,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     hundred shouldBe Rational(100)
   }
   it should "work for Avagadro" in {
-    val r = Rational(6.02214076)
+    val r = createExact(6.02214076).get
     val avagadro = r.applyExponent(23)
     avagadro shouldBe Rational("6.02214076E23")
   }
@@ -462,7 +573,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational(2, 3) - Rational.one shouldBe Rational(-1, 3)
   }
   it should "be less than 1" in {
-    Rational(2, 3).compare(Rational.one) shouldBe (-1)
+    Rational(2, 3).compare(Rational.one) shouldBe -1
   }
   it should "not be whole" in {
     Rational(2, 3) should not be wholeSymbol
@@ -552,7 +663,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "render"
   it should "be decimal when exact" in {
     val r = Rational(1, 2)
-    r.render shouldBe "0.5"
+    r.render shouldBe "\u00BD"
   }
   it should "be recurring when exact: 2/3" in {
     val r = Rational(2, 3)
@@ -626,7 +737,32 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     sequence shouldBe Success("0.<008403361344537815126050420168067226890756302521>")
   }
   it should "fail when denominator has too many prime factors" in {
-    findRepeatingSequence(1, 257, Seq(Prime(257))) should matchPattern { case Failure(NumberException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
+    findRepeatingSequence(1, 257, Seq(Prime(257))) should matchPattern { case Failure(RationalException("Rational.getPeriods: not yet implemented for: List(1, 2, 2, 2, 2, 2, 2, 2, 2)")) => }
+  }
+
+  behavior of "renderApproximate"
+  it should "work with one parameter (1)" in {
+    Rational.one.renderApproximate(5) shouldBe "1    "
+    Rational.one.negate.renderApproximate(5) shouldBe "-1   "
+    Rational("0.1").renderApproximate(5) shouldBe "0.1  "
+  }
+  it should "fail with one parameter" in {
+    a[RationalException] should be thrownBy pi_5000.renderApproximate(1)
+  }
+  it should "work with two parameters (1)" in {
+    Rational.one.renderApproximate(5, Some(0)) shouldBe "    1"
+    Rational.one.negate.renderApproximate(5, Some(0)) shouldBe "   -1"
+    Rational("0.1").renderApproximate(5, Some(2)) shouldBe " 0.10"
+  }
+  it should "fail with two parameters" in {
+    a[RationalException] should be thrownBy pi_5000.renderApproximate(1, Some(5))
+  }
+
+  behavior of "renderAsPercent"
+  it should "work" in {
+    Rational.one.renderAsPercent(2) shouldBe "100.00%"
+    Rational("1/10").renderAsPercent(2) shouldBe " 10.00%"
+    Rational("1/3").renderAsPercent(2) shouldBe " 33.33%"
   }
 
   behavior of "Rational(String)"
@@ -725,7 +861,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val b = BigInt(Int.MaxValue)
     val decorateNarrow = PrivateMethod[Try[BigInt]](narrowSymbol)
     val z: Try[BigInt] = Rational invokePrivate decorateNarrow(b, BigInt(Int.MinValue), BigInt(Int.MaxValue))
-    z should matchPattern { case Success(x) if x == Int.MaxValue => }
+    z should matchPattern { case Success(x: BigInt) if x == BigInt(Int.MaxValue) => }
   }
   it should "not work for Int.MaxValue+1" in {
     val b = BigInt(Int.MaxValue) + 1
@@ -739,7 +875,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(Int.MaxValue)
     val decorateNarrow = PrivateMethod[Try[BigInt]](narrowSymbol)
     val z: Try[BigInt] = Rational invokePrivate decorateNarrow(r, BigInt(Int.MinValue), BigInt(Int.MaxValue))
-    z should matchPattern { case Success(x) if x == Int.MaxValue => }
+    z should matchPattern { case Success(x: BigInt) if x == BigInt(Int.MaxValue) => }
   }
   it should "work for Int.MaxValue+1" in {
     val r = Rational(Int.MaxValue) + 1
@@ -835,10 +971,6 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     implicit val epsilon: Tolerance = Tolerance(1E-7, BigInt(1000000000))
     Rational.approximateAny(Math.PI) shouldBe Rational(75948, 24175)
   }
-  // NOTE: this test works but it is very slow. It should be checked from time to time.
-  ignore should "work for 3.1416" in {
-    Rational.approximateAny(3.1416) shouldBe Rational(3141600355L, 1000000113)
-  }
 
   behavior of "convertDouble"
   it should "work" in {
@@ -855,10 +987,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational(9, 4).sqrt shouldBe Success(Rational(3, 2))
   }
 
-  behavior of "root"
+  behavior of "rootOfBigInt"
   it should "work for sqrt(4)" in {
     val b = BigInt(4)
-    Rational.root(b, 2) shouldBe Some(2)
+    Rational.rootOfBigInt(b, 2) shouldBe Some(2)
   }
 
   behavior of "RationalOps"
@@ -908,6 +1040,14 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "add to one correctly" in {
     Rational.negZero + Rational.one shouldBe Rational.one
   }
+  it should "multiply correctly" in {
+    Rational.negZero * 2 shouldBe Rational.zero
+  }
+  it should "convert to double correctly" in {
+    val x: Double = Rational.negZero.toDouble
+    java.lang.Double.compare(x, negZeroDouble) shouldBe 0
+    java.lang.Double.compare(x, 0) shouldBe -1
+  }
 
   behavior of "Rat..."
   it should "parse a String" in {
@@ -923,7 +1063,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     implicitly[Numeric[Rational]].toLong(Rational(299792458000L)) shouldBe 299792458000L
   }
   it should "convert to a Float" in {
-    implicitly[Numeric[Rational]].toFloat(Rational(3.1415927)) shouldBe 3.1415927f
+    implicitly[Numeric[Rational]].toFloat(createExact(3.1415927).get) shouldBe 3.1415927f
   }
   it should "convert infinity to a Double" in {
     implicitly[Numeric[Rational]].toDouble(Rational.infinity) shouldBe Double.PositiveInfinity

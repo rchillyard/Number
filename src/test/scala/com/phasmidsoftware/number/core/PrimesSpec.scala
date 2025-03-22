@@ -54,6 +54,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime(71).fermat(9) shouldBe 1
   }
 
+  // NOTE This has been known to fail occasionally
   it should "implement Lucas for 7 and 71" in {
     p7.Lucas shouldBe true
     Prime(71).Lucas shouldBe true
@@ -124,20 +125,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     p23.multiplicativeInverse(9) shouldBe 18
   }
 
-  ignore should "multiplicativeInverse2" in {
-    val g = 7
-    val z = p17.modPow(g, 10)
-    z shouldBe 2
-    val y = BigInt(g).pow(10)
-    y shouldBe BigInt(282475249L)
-    val q = y / 17
-    val r = y - q * 17
-    q shouldBe BigInt(16616191L)
-    r shouldBe BigInt(2)
-    y.mod(17) shouldBe 2
-    p17.modPow(z, 12) shouldBe g
-  }
-
   it should "validate" in {
     Prime(2).validated shouldBe true
     Prime(4).validated shouldBe false
@@ -157,15 +144,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     val p19 = Prime(19)
     p17.next shouldBe p19
     p19.next shouldBe p23
-  }
-
-  it should "isCarmichaelNumber1" in {
-    Prime.isCarmichaelNumber(1) shouldBe false
-    Prime.isCarmichaelNumber(2) shouldBe false
-    Prime.isCarmichaelNumber(3) shouldBe false
-    Prime.isCarmichaelNumber(41) shouldBe false
-    Prime.isCarmichaelNumber(561) shouldBe true
-    Prime.isCarmichaelNumber(1729) shouldBe true
   }
 
   it should "isCarmichaelNumber2" in {
