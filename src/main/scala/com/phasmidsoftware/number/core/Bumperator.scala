@@ -20,7 +20,7 @@ import scala.annotation.tailrec
  * @throws IllegalArgumentException if the input iterator is empty
  */
 case class Bumperator[T](xs: Iterator[T])(f: (T, T) => Boolean) extends Iterator[T] {
-  // These mutable variables represent the state of this Bumperator,
+  // NOTE: These mutable variables represent the state of this Bumperator,
   // that's to say, the pipeline of elements.
   var maybeCurrent: Option[T] = None
   var maybeFollowing: Option[T] = None

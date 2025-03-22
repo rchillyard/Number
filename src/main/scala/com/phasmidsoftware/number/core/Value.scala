@@ -437,7 +437,11 @@ sealed trait Root extends Factor {
   override def canRaise(f: Factor, exponent: Field): Boolean = f match {
     case PureNumber =>
       exponent match {
-        case Real(n: Number) => n.isInteger && n.toInt.get > 0 && n.toInt.get % root == 0
+        case Real(n: Number) =>
+          n.isInteger && {
+            val x = n.toInt.get
+            x > 0 && x % root == 0
+          }
         case _ => false
       }
     case _ => super.canRaise(f, exponent)
