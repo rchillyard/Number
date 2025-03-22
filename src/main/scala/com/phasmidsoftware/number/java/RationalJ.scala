@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.java
 
 import com.phasmidsoftware.number.core.Rational
+
 import java.math.BigInteger
 
 object RationalJ {
@@ -63,8 +64,9 @@ object RationalJ {
     *
     * @param x a java.lang.Double.
     * @return a Rational.
+   * @throws NoSuchElementException because we use get on an Option. NOTE.
     */
-  def doubleToRational(x: java.lang.Double): Rational = Rational(x)
+  def doubleToRational(x: java.lang.Double): Rational = Rational.createExact(x).get // NOTE using get
 
   /**
     * Method to convert a Rational to a Java Double.

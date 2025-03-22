@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.language.postfixOps
 import scala.math.Numeric.Implicits.infixNumericOps
 
@@ -30,7 +31,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   it should "have root2" in {
     val target = Constants.root2
     target.isExact shouldBe true
-    target.isExactByFactor(Some(Scalar)) shouldBe false
+    target.isExactInContext(Some(PureNumber)) shouldBe false
     val value = target.normalize
     value match {
       case Real(n) => n should ===(Number(math.sqrt(2)))
@@ -67,12 +68,12 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val target = Constants.gamma
     target.isExact shouldBe false
     target should ===(Number(0.577215664901533))
-    target.render shouldBe (sGamma.substring(0, sGamma.length - 2) + "*")
+    target.render shouldBe (sGamma.substring(0, 17) + "9*")
   }
   it should "have avagadro" in {
     val target = Constants.avagadro
     target.isExact shouldBe true
-    target shouldBe Real(6.0221407600E23)
+    target should ===(Real(6.0221407600E23))
     target.render shouldBe "602214076000000000000000"
   }
   it should "have boltzmann" in {
@@ -103,12 +104,13 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   it should "have phi" in {
     val target = Constants.phi
     target.isExact shouldBe false
+    // TODO use Phi
     val goldenRatio = Expression.phi
     val maybeNumber: Option[Number] = goldenRatio.asNumber
     maybeNumber.isDefined shouldBe true
     Real(maybeNumber.get) should ===(target)
     val result: Field = goldenRatio.materialize
-    result.render shouldBe "1.618033988749895(19)"
+    result.render shouldBe "1.618033988749895(24)"
   }
 it should "have alpha" in {
   val target = Constants.alpha

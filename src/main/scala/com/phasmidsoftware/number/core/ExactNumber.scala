@@ -10,10 +10,10 @@ package com.phasmidsoftware.number.core
   *
   * TODO implement scientific notation by having factors such os 10^3, 10^6, etc. (alternatively, add a separate parameter)
   *
-  * @param value  the value of the Number, expressed as a nested Either type.
-  * @param factor the scale factor of the Number: valid scales are: Scalar, Radian, and NatLog.
+ * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
+ * @param factor  the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
   */
-case class ExactNumber(override val value: Value, override val factor: Factor) extends GeneralNumber(value, factor, None) {
+case class ExactNumber(override val nominalValue: Value, override val factor: Factor) extends GeneralNumber(nominalValue, factor, None) {
 
   /**
     * Method to determine if this ExactNumber is equivalent to another Numerical (x).
@@ -34,27 +34,29 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   def isZero: Boolean = GeneralNumber.isZero(this)
 
   /**
-    * @param maybeFactor an optional Factor to be matched.
-    * @return true if there is no fuzz AND if maybeFactor is defined then it should match factor.
+   * Delegates to `factorAsIs`.
+   *
+   * @param context an optional `Factor` to be matched.
+   * @return true IF there is no fuzz AND (IF context is defined then it should match factor ELSE true).
     */
-  def isExactByFactor(maybeFactor: Option[Factor]): Boolean = factorAsIs(maybeFactor)
+  def isExactInContext(context: Context): Boolean = factorAsIs(context)
 
   /**
     * Method to make some trivial simplifications of this ExactNumber.
     *
     * @return either this Number or a simplified Number.
     */
-  def simplify: Number = (factor, value) match {
+  def simplify: Number = (factor, nominalValue) match {
     case (Logarithmic(_), Right(0)) => Number.one
     // XXX this handles all roots (of which there are currently only Root2 and Root3)
     case (Root(n), v) => v match {
       case Right(x) =>
-        (Rational.squareRoots.get(x) map (make(_, Scalar))).getOrElse(this)
+        (Rational.squareRoots.get(x) map (make(_, PureNumber))).getOrElse(this)
       case Left(Right(r)) => r.root(n) match {
-        case Some(x) => ExactNumber(Value.fromRational(x), Scalar)
+        case Some(x) => ExactNumber(Value.fromRational(x), PureNumber)
         case _ => this
       }
-      case Left(Left(Some(_))) => scale(Scalar)
+      case Left(Left(Some(_))) => scale(PureNumber)
       case _ => this
     }
     case _ => this
@@ -98,7 +100,7 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @param v the factor.
     * @return
     */
-  def scale(v: Value): Number = GeneralNumber.doTimes(this, ExactNumber(v, Scalar), factor)
+  def scale(v: Value): Number = GeneralNumber.doTimes(this, ExactNumber(v, PureNumber), factor)
 
   /**
     * Method to compare this Number with another.
@@ -126,16 +128,16 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * @param fo the (optional) fuzziness.
     * @return a Number.
     */
-  def make(fo: Option[Fuzziness[Double]]): Number = FuzzyNumber(value, factor, fo)
+  def make(fo: Option[Fuzziness[Double]]): Number = FuzzyNumber(nominalValue, factor, fo)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value and factor will change.
+   * Only the nominalValue and factor will change.
     * This method should be followed by a call to specialize.
     *
     * TESTME
     *
-    * @param v  the value (a Double).
+   * @param v the nominalValue (a Double).
     * @param f  Factor.
     * @param fo optional fuzz.
     * @return either a Number.
@@ -162,9 +164,16 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
     * It is used particularly when comparing two Numbers to see if they are the same.
     *
     * @param p the confidence desired. Ignored.
-    * @return true if this Number is zero.
+   * @return true if this Number is actually zero.
     */
-  def isProbablyZero(p: Double): Boolean = isZero
+  def isProbablyZero(p: Double = 0.5): Boolean = isZero
+
+  /**
+   * Render this ExactNumber as a String representation.
+   *
+   * @return the String representation of this ExactNumber.
+   */
+  override def render: String = toString
 
   /**
     * Render this ExactNumber in String form, including the factor.
@@ -177,12 +186,12 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
       val sb = new StringBuilder()
       factor match {
         case Logarithmic(_) =>
-          sb.append(factor.render(value))
-        case PureNumber(_) =>
-          sb.append(Value.valueToString(value))
+          sb.append(factor.render(nominalValue))
+        case Scalar(_) =>
+          sb.append(Value.valueToString(nominalValue))
           sb.append(factor.toString)
         case Root(_) =>
-          sb.append(factor.render(value))
+          sb.append(factor.render(nominalValue))
         case _ =>
           throw NumberException(s"factor is not matched: $factor")
       }
@@ -190,25 +199,47 @@ case class ExactNumber(override val value: Value, override val factor: Factor) e
   }
 }
 
+/**
+ * Companion object for the `ExactNumber` class.
+ *
+ * Provides factory methods for creating instances of `ExactNumber`. These methods allow
+ * creation with a given `Factor` or default to the `PureNumber` factor. This object encapsulates
+ * logic to initialize `ExactNumber` instances with consistent internal representations and initializes
+ * the required values.
+ */
 object ExactNumber {
 
+  /**
+   * Creates a new instance of `ExactNumber` from a given integer value and a specified factor.
+   *
+   * @param x      the integer value to be encapsulated by the `ExactNumber`.
+   * @param factor the factor associated with the `ExactNumber` instance.
+   * @return a new `ExactNumber` instance with the specified value and factor.
+   */
   def apply(x: Int, factor: Factor): ExactNumber = new ExactNumber(Value.fromInt(x), factor)
 
-  def apply(x: Int): ExactNumber = apply(x, Scalar)
+  /**
+   * Creates an instance of `ExactNumber` with the value `x` and a default factor of `PureNumber`.
+   * TESTME
+   *
+   * @param x an integer representing the value of the `ExactNumber`.
+   * @return an instance of `ExactNumber` with the specified value and the `PureNumber` factor.
+   */
+  def apply(x: Int): ExactNumber = apply(x, PureNumber)
 
 //  def product(x: ExactNumber, y: ExactNumber): Number = (x, y) match {
-//    case (ExactNumber(w, Scalar), b) => b.scale(w)
-//    case (a, ExactNumber(w, Scalar)) => a.scale(w)
-//    case (a, b) => // Neither a nor b has factor Scalar
+  //    case (ExactNumber(w, PureNumber), b) => b.scale(w)
+  //    case (a, ExactNumber(w, PureNumber)) => a.scale(w)
+  //    case (a, b) => // Neither a nor b has factor PureNumber
 //      val (p, q) = a.alignTypes(b)
 //      (p.factor, q.factor) match {
-//        case (f@PureNumber(_), Scalar) => doTimes(p, q, f)
-//        case (Scalar, f@PureNumber(_)) => doTimes(p, q, f)
-//        case (f: Logarithmic, Scalar) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
-//        case (_: Logarithmic, Scalar) => times(p.scale(Scalar), q)
-//        case (Root(_), Root(_)) if p == q => p.make(Scalar)
+  //        case (f@Scalar(_), PureNumber) => doTimes(p, q, f)
+  //        case (PureNumber, f@Scalar(_)) => doTimes(p, q, f)
+  //        case (f: Logarithmic, PureNumber) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
+  //        case (_: Logarithmic, PureNumber) => times(p.scale(PureNumber), q)
+  //        case (Root(_), Root(_)) if p == q => p.make(PureNumber)
 //        case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
-//        case _ => times(p.scale(Scalar), q.scale(Scalar))
+  //        case _ => times(p.scale(PureNumber), q.scale(PureNumber))
 //      }
 //  }
 //

@@ -54,7 +54,7 @@ case object C extends NumberSet {
 case object R extends NumberSet {
   val maybeSuperSet: Option[NumberSet] = Some(C)
 
-  def belongsToSetExclusively(x: NumberLike): Boolean = x.asNumber exists (x => !x.normalize.isComplex && !x.scale(Scalar).isRational && !x.scale(Scalar).isInteger)
+  def belongsToSetExclusively(x: NumberLike): Boolean = x.asNumber exists (x => !x.normalize.isComplex && !x.scale(PureNumber).isRational && !x.scale(PureNumber).isInteger)
 }
 
 /**

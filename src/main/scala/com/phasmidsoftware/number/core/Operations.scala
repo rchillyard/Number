@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
+
 import scala.annotation.tailrec
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
@@ -196,7 +197,7 @@ case object MonadicOperationSin extends MonadicOperation {
     }
 
   private val sinRatInexact: Rational => Try[Rational] = x =>
-    if (!x.invert.isWhole) sinDouble(x.toDouble).map(Rational(_))
+    if (!x.invert.isWhole) sinDouble(x.toDouble).flatMap(Rational.createExact)
     else Failure(NumberException("MonadicOperationSin: logic error: whole Rational"))
 
   private def sinDouble(x: Double): Try[Double] = Try(Math.sin(x * math.Pi))
@@ -420,7 +421,7 @@ sealed trait QueryOperation[T] {
 }
 
 case object QueryOperationIsZero extends QueryOperation[Boolean] {
-  def getFunctions: QueryFunctions[Boolean] = new QueryFunctions[Boolean] {
+  def getFunctions: BooleanQueryFunctions = new QueryFunctions[Boolean] {
     val fInt: Int => Try[Boolean] = tryF[Int, Boolean](x => x == 0)
     val fRat: Rational => Try[Boolean] = tryF[Rational, Boolean](x => x.signum == 0)
     val fDouble: Double => Try[Boolean] = tryF[Double, Boolean](x => x.sign == 0 || x.sign == -0)
@@ -428,7 +429,7 @@ case object QueryOperationIsZero extends QueryOperation[Boolean] {
 }
 
 case object QueryOperationIsInfinite extends QueryOperation[Boolean] {
-  def getFunctions: QueryFunctions[Boolean] = new QueryFunctions[Boolean] {
+  def getFunctions: BooleanQueryFunctions = new QueryFunctions[Boolean] {
     val fInt: Int => Try[Boolean] = tryF[Int, Boolean](_ => false)
     val fRat: Rational => Try[Boolean] = tryF[Rational, Boolean](x => x.isInfinity)
     val fDouble: Double => Try[Boolean] = tryF[Double, Boolean](x => x == Double.PositiveInfinity || x == Double.NegativeInfinity)
@@ -436,7 +437,7 @@ case object QueryOperationIsInfinite extends QueryOperation[Boolean] {
 }
 
 case object QueryOperationSignum extends QueryOperation[Int] {
-  def getFunctions: QueryFunctions[Int] = new QueryFunctions[Int] {
+  def getFunctions: IntQueryFunctions = new QueryFunctions[Int] {
     val fInt: Int => Try[Int] = tryF[Int, Int](math.signum)
     val fRat: Rational => Try[Int] = tryF[Rational, Int](_.signum)
     val fDouble: Double => Try[Int] = tryF[Double, Int](math.signum(_).toInt)
