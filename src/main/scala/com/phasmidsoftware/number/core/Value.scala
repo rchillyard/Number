@@ -291,6 +291,12 @@ sealed trait Scalar extends Factor {
   }
 }
 
+/**
+ * Companion object for the `Scalar` trait, providing utility methods.
+ *
+ * The `unapply` method allows pattern matching on an instance of `Scalar`
+ * to extract its underlying `Double` value.
+ */
 object Scalar {
   def unapply(arg: Scalar): Option[Double] = Some(arg.value)
 }
@@ -339,6 +345,13 @@ sealed trait Logarithmic extends Factor {
     case _ => None
   }
 
+  /**
+   * Converts a given value into a string representation of its corresponding power notation or root notation
+   * based on specific conditions.
+   *
+   * @param v the value to be converted, which can represent an integer power or a rational root.
+   * @return a string representing the value in power notation, root notation, or a generic exponential format.
+   */
   def asPower(v: Value): String = v match {
     case Right(1) => base
     case Right(2) => base + "\u00B2"
@@ -350,9 +363,21 @@ sealed trait Logarithmic extends Factor {
     case _ => base + "^" + valueToString(v)
   }
 
+  /**
+   * Renders a string representation of the value based on the current base and the given input value.
+   *
+   * @param v the input value to be rendered, represented as a string
+   * @return a string combining the base and the input value in a specific exponential format
+   */
   def render(v: String): String = base + "^" + v
 }
 
+/**
+ * Companion object for the `Logarithmic` class.
+ *
+ * This object provides utilities associated with the `Logarithmic` class, including
+ * operations for pattern matching and internal functionality for string manipulation.
+ */
 object Logarithmic {
   def unapply(arg: Logarithmic): Option[Double] = Some(arg.value)
 
@@ -555,6 +580,20 @@ case object NatLog extends Logarithmic {
   override def render(x: Value): String = asPower(x)
 }
 
+/**
+ * Object representing the logarithm to base 2.
+ *
+ * This object extends the `Logarithmic` trait and provides specific functionality
+ * for dealing with logarithms to the base 2. It defines the base as "2" and computes the
+ * logarithmic value (`math.log(2)`).
+ *
+ * Methods include:
+ * - `toString`: Returns "log2" as the string representation.
+ * - `render(x: Value)`: Converts the input value to a string representation based on the power notation
+ * specific to the base 2.
+ *
+ * @see Logarithmic
+ */
 case object Log2 extends Logarithmic {
   val base: String = "2"
 
@@ -565,6 +604,14 @@ case object Log2 extends Logarithmic {
   override def render(x: Value): String = asPower(x)
 }
 
+/**
+ * Represents the logarithm with base 10.
+ *
+ * This object extends the `Logarithmic` trait and provides functionality for representing
+ * and rendering logarithms of base 10.
+ *
+ * @constructor Creates an instance of `Log10`.
+ */
 case object Log10 extends Logarithmic {
   val base: String = "10"
 
@@ -620,6 +667,23 @@ object Factor {
   val sPiAlt1 = "Radian"
   val sPiAlt2 = "PI"
 
+  /**
+   * Applies the given string to derive a corresponding `Factor` instance.
+   *
+   * The method matches the input string against predefined constants representing
+   * specific factors.
+   * Depending on the match, it returns an instance of either `Radian`, `NatLog`, or `PureNumber`.
+   *
+   * @param w the input string to match, which can represent a mathematical symbol or name.
+   *          Supported values:
+   *           - Strings representing π (e.g., `sPi`, `sPiAlt0`, `sPiAlt1`, `sPiAlt2`)
+   *           - String representing ℯ (`sE`)
+   *           - Any other string is treated as a pure number.
+   * @return a `Factor` representing the input:
+   *         - `Radian` if the input matches a π-related symbol.
+   *         - `NatLog` if the input matches the ℯ symbol.
+   *         - `PureNumber` otherwise.
+   */
   def apply(w: String): Factor = w match {
     case `sPi` | `sPiAlt0` | `sPiAlt1` | `sPiAlt2` => Radian
     case `sE` => NatLog
@@ -627,18 +691,11 @@ object Factor {
   }
 }
 
+/**
+ * The `Render` object provides functionality to render various value types as a formatted string,
+ * along with a flag indicating whether the value could be rendered exactly or approximately.
+ */
 object Render {
-  private def renderInt(x: Int): (String, Boolean) = (x.toString, true)
-
-  /**
-    * Add exact parameter.
-    *
-    * @param x the Rational value to be rendered.
-    * @return a String.
-    */
-  private def renderRational(x: Rational): (String, Boolean) = x.renderConditional(true)
-
-  private def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 
   /**
    * Method to render a Value as a tuple of String and Boolean where the latter represents whether we were able
@@ -660,5 +717,32 @@ object Render {
           case None => None
         })
     ).getOrElse(("<undefined>", true))
+
+  /**
+   * Renders an integer as a tuple containing its string representation and a boolean flag indicating exact rendering.
+   *
+   * @param x the integer value to be rendered.
+   * @return a tuple where the first element is the string representation of the integer and the second element is `true`,
+   *         indicating it is rendered exactly.
+   */
+  private def renderInt(x: Int): (String, Boolean) = (x.toString, true)
+
+  /**
+   * Add exact parameter.
+   *
+   * @param x the Rational value to be rendered.
+   * @return a String.
+   */
+  private def renderRational(x: Rational): (String, Boolean) = x.renderConditional(true)
+
+  /**
+   * Renders a `Double` value as a tuple containing its string representation
+   * and a boolean flag indicating that it is not rendered exactly.
+   *
+   * @param x the `Double` value to be rendered.
+   * @return a tuple where the first element is the string representation of the `Double`
+   *         and the second element is always `false`, indicating it is not rendered exactly.
+   */
+  private def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
 }
 

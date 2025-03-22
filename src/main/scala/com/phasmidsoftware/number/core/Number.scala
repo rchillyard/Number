@@ -29,14 +29,6 @@ import scala.util._
 trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
-   * Method to evaluate this `Number` in the context of `PureNumber`.
-   * NOTE that, according to the `factor` of `this`, the result may not be as exact as `this`.
-   *
-   * @return an equivalent `Field` whose factor(s) are `PureNumber`.
-   */
-  def toPureNumber: Option[Number]
-
-  /**
    * The nominal value of this `Number`.
     *
    * @return the nominalValue.
@@ -91,11 +83,28 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def applyFunc(f: Double => Double, dfByDx: Double => Double): Try[Number]
 
   /**
-    * Method to get the value of this Number as an optional Double.
-    *
-    * @return an Some(Double) which is the closest possible value to the nominal value, otherwise None if this is invalid.
-    */
-  def toDouble: Option[Double]
+   * Method to evaluate this `Number` in the context of `PureNumber`.
+   * NOTE that, according to the `factor` of `this`, the result may not be as exact as `this`.
+   *
+   * @return an equivalent `Number` whose factor is `PureNumber`.
+   */
+  def toPureNumber: Option[Number] = (factor, fuzz) match {
+    case (PureNumber, _) =>
+      Some(this)
+    case (f, None) =>
+      f.convert(nominalValue, PureNumber) match {
+        case Some(value) => Some(make(value, PureNumber))
+        case None => normalize.asNumber
+      }
+  }
+
+  /**
+   * Method to get the nominalValue of this Number as an optional Double.
+   *
+   * @return an Some(Double) which is the closest possible nominalValue to the nominal nominalValue,
+   *         otherwise None if this is invalid.
+   */
+  def toDouble: Option[Double] = maybeDouble
 
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).

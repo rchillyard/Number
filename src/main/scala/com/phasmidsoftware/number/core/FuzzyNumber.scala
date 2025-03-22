@@ -413,4 +413,9 @@ object FuzzyNumber {
   private def withinWiggleRoom(p: Double, f: Fuzziness[Double], x: Double) = f.normalizeShape.wiggle(p) > math.abs(x)
 }
 
+/**
+ * A specific type of exception that is thrown to indicate an error related to fuzzy number operations or validations.
+ *
+ * @param str The error message that provides details about the exception.
+ */
 case class FuzzyNumberException(str: String) extends Exception(str)

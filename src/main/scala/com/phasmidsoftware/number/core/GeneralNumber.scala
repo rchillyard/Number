@@ -27,22 +27,6 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   self =>
 
   /**
-   * Method to evaluate this `Number` in the context of `PureNumber`.
-   * NOTE that, according to the `factor` of `this`, the result may not be as exact as `this`.
-   *
-   * @return an equivalent `Number` whose factor is `PureNumber`.
-   */
-  def toPureNumber: Option[Number] = (factor, fuzz) match {
-    case (PureNumber, _) =>
-      Some(this)
-    case (f, None) =>
-      f.convert(nominalValue, PureNumber) match {
-        case Some(value) => Some(make(value, PureNumber))
-        case None => normalize.asNumber
-      }
-  }
-
-  /**
     * Method to compare this Number with that Field.
     * Required by implementing Ordered[Field].
     *
@@ -77,14 +61,6 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return a Try[Number] which is the result of applying f to this Number.
     */
   def applyFunc(f: Double => Double, dfByDx: Double => Double): Try[Number] = GeneralNumber.applyFunc(f, dfByDx)(this)
-
-  /**
-   * Method to get the nominalValue of this Number as an optional Double.
-    *
-   * @return an Some(Double) which is the closest possible nominalValue to the nominal nominalValue,
-   *         otherwise None if this is invalid.
-    */
-  def toDouble: Option[Double] = maybeDouble
 
   /**
    * Method to get the nominalValue of this Number as a Rational.
@@ -617,8 +593,22 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   private def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
 }
 
+/**
+ * The GeneralNumber object provides utility methods for performing various operations on
+ * numbers with particular emphasis on exact, fuzzy, and generalized numeric types.
+ * It aims to handle operations in a flexible way based on the types and factors
+ * associated with numbers.
+ */
 object GeneralNumber {
 
+  /**
+   * Applies a given mathematical function along with its derivative to the specified number.
+   *
+   * @param f      A function mapping a Double to a Double, representing the main operation to be applied.
+   * @param dfByDx The derivative of the function `f`, mapping a Double to a Double.
+   * @param x      The input number on which the function `f` and its derivative are to be applied.
+   * @return A Try containing the resulting Number if the operation succeeds, or a failure if an error occurs.
+   */
   def applyFunc(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] = {
     val op: MonadicOperation = MonadicOperationFunc(f, dfByDx)
     val no: Option[Number] = Operations.doTransformValueMonadic(x.nominalValue)(op.functions) flatMap {
@@ -631,10 +621,31 @@ object GeneralNumber {
     FP.toTry(no, Failure(NumberException("applyFunc: logic error")))
   }
 
+  /**
+   * Determines if the given number is equivalent to zero.
+   *
+   * @param x the number to check.
+   * @return true if the number is zero, otherwise false.
+   */
   def isZero(x: Number): Boolean = x.query(QueryOperationIsZero, false)
 
+  /**
+   * Checks if the given number is infinite.
+   *
+   * @param x the number to be checked for infinity.
+   * @return true if the number is infinite, otherwise false.
+   */
   def isInfinite(x: Number): Boolean = x.query(QueryOperationIsInfinite, false)
 
+  /**
+   * Performs the addition operation between two numbers, combining them
+   * into a single resultant number as per the mathematical rules defined
+   * by their specific types and factors.
+   *
+   * @param x the first number to be added
+   * @param y the second number to be added
+   * @return the result of adding the two given numbers
+   */
   def plus(x: Number, y: Number): Number = x match {
     case ExactNumber(Right(0), PureNumber) => y
     case z: GeneralNumber =>
@@ -649,6 +660,13 @@ object GeneralNumber {
       }
   }
 
+  /**
+   * Computes the product of two Number instances recursively.
+   *
+   * @param x the first operand, represented as a Number instance
+   * @param y the second operand, represented as a Number instance
+   * @return the result of multiplying x and y, represented as a Number instance
+   */
   @tailrec
   def times(x: Number, y: Number): Number = x match {
     case Number.zero => Number.zero
@@ -777,16 +795,45 @@ object GeneralNumber {
     case _ => None
   }
 
+  /**
+   * Computes the power of a given number raised to an integer exponent.
+   * Positive exponents result in repeated multiplications, while negative
+   * exponents compute the result as the inverse of repeated multiplications.
+   *
+   * @param n the base number to be raised to the power.
+   * @param i the integer exponent.
+   *          A positive value raises the base to the
+   *          power of i, while a negative value computes the inverse of
+   *          raising the base to the absolute value of i.
+   * @return the computed result as a Number.
+   */
   private def power(n: Number, i: Int) = i match {
     case x if x > 0 => LazyList.continually(n).take(x).product
     case x => LazyList.continually(Number.inverse(n)).take(-x).product
   }
 
+  /**
+   * Performs the multiplication operation between two numbers using a given factor.
+   *
+   * @param p      the first number to be multiplied
+   * @param q      the second number to be multiplied
+   * @param factor an instance of Factor representing specific configuration or scaling rules for the operation
+   * @return the result of multiplying the two numbers, represented as a Number
+   */
   def doTimes(p: Number, q: Number, factor: Factor): Number = {
     val maybeNumber = p.composeDyadic(q, factor)(DyadicOperationTimes)
     prepareWithSpecialize(maybeNumber)
   }
 
+  /**
+   * Aligns two numbers in terms of their types and factors, and performs addition on them.
+   * If one of the numbers is a FuzzyNumber, a specialized addition is delegated to it.
+   * Otherwise, their types are aligned for consistent mathematical operations.
+   *
+   * @param x the first number to be aligned and added
+   * @param y the second number to be aligned and added
+   * @return the result of adding the two aligned numbers
+   */
   private def plusAligned(x: Number, y: Number): Number = (x, y) match {
     case (a: GeneralNumber, b: GeneralNumber) =>
       y match {
@@ -797,6 +844,15 @@ object GeneralNumber {
       }
   }
 
+  /**
+   * Normalizes a given value and root by transforming the value monadically and constructing
+   * a ComplexCartesian representation.
+   * If the transformation fails, an exception is thrown.
+   *
+   * @param value the value to be normalized.
+   * @param r     the root used in the normalization process.
+   * @throws NumberException if the transformation logic fails.
+   */
   private def normalizeRoot(value: Value, r: Root) = {
     Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
       case Some(q) => ComplexCartesian(Number.zero, ExactNumber(q, r).scale(PureNumber))
