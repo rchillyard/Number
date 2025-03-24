@@ -317,26 +317,22 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-   * Matches complementary expressions in a given `DyadicTriple` to simplify or reduce them.
-   * CONSIDER redefining this as a Matcher[DyadicTriple,Expression]
-   *
-   * This method examines the provided `DyadicTriple` and attempts to match patterns that indicate
-   * complementary expressions, such as summing an entity with its negation or multiplying
-   * an entity with its reciprocal, returning an appropriate simplified result if a match is found.
-   *
-   * @param z the `DyadicTriple` to be analyzed for matching complementary expressions
-   * @return a `MatchResult[Expression]` containing the simplified expression if a match is found,
-   *         or a `Miss` result with an appropriate message if no match is found
-   */
-  def matchComplementaryExpressions(z: DyadicTriple): MatchResult[Expression] =
-    z match {
+    * Matches complementary mathematical expressions based on specified patterns.
+    * The method leverages rules for operations such as summation and multiplication
+    * and identifies complementary pairs (e.g., a number and its negation or reciprocal).
+    * The resulting expression is derived from the matched rule or an indication of no match.
+    *
+    * @return A `Matcher` that attempts to match the provided `DyadicTriple` to a simplified `Expression`,
+    *         or returns information about a failure to match.
+    */
+  def matchComplementaryExpressions: Matcher[DyadicTriple, Expression] = Matcher("matchComplementaryExpressions") {
       case Sum ~ x ~ Function(y, Negate) if x == y => Match(Zero) // TESTME
       case Sum ~ Function(x, Negate) ~ y if x == y => Match(Zero) // TESTME
       case Sum ~ BiFunction(w, x, Sum) ~ Function(y, Negate) if x == y => Match(w) // TESTME
       case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == z => Match(y) // TESTME
       case Sum ~ BiFunction(w, x, Sum) ~ Function(y, Negate) if w == y => Match(x) // TESTME
       case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == y => Match(z) // TESTME
-      case Product ~ x ~ Function(y, Reciprocal) if x == y => Match(One) // TESTME
+      case Product ~ x ~ Function(y, Reciprocal) if x == y => Match(One)
       case Product ~ Function(x, Reciprocal) ~ y if x == y => Match(One) // TESTME
       case Product ~ BiFunction(w, x, Product) ~ Function(y, Reciprocal) if x == y => Match(w) // TESTME
       case Product ~ Function(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w => Match(z) // TESTME
@@ -345,7 +341,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case f ~ x ~ y =>
       complementaryFields(f, x, y) match {
         case Some(z) => Match(z)
-        case None => Miss("matchComplementaryExpressions: no match", z)
+        case None => Miss("matchComplementaryExpressions: no match", f ~ x ~ y)
       }
   }
 

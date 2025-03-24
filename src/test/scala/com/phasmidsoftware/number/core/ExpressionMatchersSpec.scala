@@ -702,12 +702,18 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result = p(Product ~ x ~ y)
     result should matchPattern { case em.Miss(_, _) => }
   }
-  ignore should "cancel value and reciprocal" in {
-    val p = em.matchDyadicTrivial
+  it should "cancel value and reciprocal 1" in {
+    val p = em.matchComplementaryExpressions
     val x = Literal(Number.pi)
-    val y = One / x
-    //    val y = Function(x, Reciprocal)
+    val y = Function(x, Reciprocal)
     val result = p(Product ~ x ~ y)
+    result should matchPattern { case em.Match(One) => }
+  }
+  it should "cancel value and reciprocal 2" in {
+    val p = em.matchComplementaryExpressions
+    val x = Literal(Number.pi)
+    val y = Function(x, Reciprocal)
+    val result = p(Product ~ y ~ x)
     result should matchPattern { case em.Match(One) => }
   }
 

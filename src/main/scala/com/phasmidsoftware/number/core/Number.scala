@@ -10,7 +10,6 @@ import com.phasmidsoftware.number.core.Number.{inverse, negate}
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.parse.RationalParser.parseComponents
-
 import scala.annotation.tailrec
 import scala.language.{implicitConversions, postfixOps}
 import scala.util._
@@ -91,9 +90,9 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def toPureNumber: Option[Number] = (factor, fuzz) match {
     case (PureNumber, _) =>
       Some(this)
-    case (f, None) =>
+    case (f, z) =>
       f.convert(nominalValue, PureNumber) match {
-        case Some(value) => Some(make(value, PureNumber))
+        case Some(value) => Some(Number.create(value, PureNumber, z))
         case None => normalize.asNumber
       }
   }
@@ -722,9 +721,13 @@ object Number {
     */
   implicit def convertInt(x: Int): Number = Number(x)
 
-//  implicit def convertToReal(x: Number): Real = Real(x)
-
-//  implicit def convertToField(x: Number): Field = Real(x)
+  /**
+    * Implicit converter from Int to Number.
+    *
+    * @param x the Double to be converted.
+    * @return the equivalent Number.
+    */
+  implicit def convertDouble(x: Double): Number = Number(x)
 
   /**
     * Implicit class which takes a Double, and using method ~ and an Int parameter,
@@ -774,7 +777,7 @@ object Number {
       */
     def ~(n: Int): Try[Number] =
       for {
-        x <- parse(w) // We don't strictly need this now we also have components
+        x <- parse(w) // XXX We don't strictly need this now we also have components
         components <- parseComponents(w)
         f <- toTry(components._3, Failure(NumberException(s"no fractional part: " + w)))
         exp = components._4.getOrElse("0")

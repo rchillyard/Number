@@ -8,7 +8,6 @@ import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.negate
 import com.phasmidsoftware.number.parse.ShuntingYardParser
-
 import scala.language.implicitConversions
 
 /**
@@ -132,6 +131,14 @@ object Expression {
     case Constants.e => ConstE
     case _ => Literal(x)
   }
+
+  /**
+    * Converts a given number into an Expression by wrapping it as a Real.
+    *
+    * @param x the number to be converted into an Expression
+    * @return an Expression representing the input number
+    */
+  implicit def convert(x: Number): Expression = apply(Real(x))
 
   /**
    * The following constants are helpful in getting an expression started.
