@@ -2,16 +2,26 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers._
 import com.phasmidsoftware.number.core.Constants.root3
+import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{piBy2, piBy4, root2, √}
 import com.phasmidsoftware.number.core.Rational.{infinity, negInfinity}
+import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.languageFeature.implicitConversions._
 
 class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
+
+  implicit object ExpressionEquality extends Equality[Expression] {
+    def areEqual(a: Expression, b: Any): Boolean = b match {
+      case n: Number => new ExpressionOps(a).compare(Literal(n)) == 0
+      case n: Expression => a.compare(n) == 0
+      case _ => false
+    }
+  }
 
   val sb = new StringBuilder
   implicit val logger: MatchLogger = MatchLogger(LogDebug, classOf[ExpressionMatchers])
@@ -939,7 +949,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "problematic biFunctionTransformer"
 
   // NOTE This expression won't simplify because it is inexact (and distribution doesn't reduce the depth).
-  ignore should "distributeProductSum c" in {
+  it should "distributeProductSum c" in {
     val p = em.biFunctionTransformer
     val x = Number("2.00*")
     val y = Number("3.00*")
@@ -947,7 +957,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val b = BiFunction(Literal(half), Literal(y), Sum)
     val z = p(Product ~ a ~ b)
     val eo = Expression.parse("( ( 3.00* + 0.5 ) + ( 2.00* * ( 3.00* + 0.5 ) ) )")
-    eo map (z shouldBe em.Match(_)) orElse fail("could not parse expression")
+    eo map (e =>
+      (em.simplifier(e), z) match {
+        case (em.Match(r1), em.Match(r2)) => r1 should ===(r2)
+        case _ => fail("expected Match(r1) to be Match(r2)")
+      })
   }
 
   // TODO fix Issue #57
