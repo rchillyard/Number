@@ -18,10 +18,12 @@ import scala.util._
   * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
   * That's to say that Numbers have linear domain and all belong, directly or indirectly, to the set R (real numbers).
   *
+  * CONSIDER storing all numbers in the form `r e to the power of i theta`.
+  *
   * CONSIDER eliminate extending Field
   *
   * Every number has three properties:
- * * nominalValue: Value
+  * * nominalValue: Value
   * * factor: Factor
   * * fuzz: (from extending Fuzz[Double]).
   */
@@ -177,6 +179,17 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Negative of this Number.
     */
   def makeNegative: Number
+
+  /**
+    * Negates the value of the instance conditionally based on the input parameter.
+    *
+    * @param cond A boolean parameter that determines whether to negate the value.
+    *             If true, the negation function `makeNegative` is applied.
+    *             Otherwise, the current instance is returned unchanged.
+    * @return The negated value as a `Number` if the condition is true,
+    *         or the current instance if the condition is false.
+    */
+  def negateConditional(cond: Boolean): Number = if (cond) makeNegative else this
 
   /**
     * Add this Number to n.
@@ -704,13 +717,13 @@ object Number {
     * Implicit converter from Expression to Number.
     *
     * @param x the Expression to be converted.
-    * @return the equivalent Number.
+    * @return the equivalent exact Number.
     * @throws ExpressionException if x cannot be converted to a Number.
     */
   //noinspection Annotator
-  implicit def convertExpression(x: Expression): Number = x.materialize.asNumber match {
-    case Some(n) => n
-    case None => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
+  implicit def convertExpression(x: Expression): Number = x.materialize match {
+    case Real(n) => n
+    case _ => throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
   }
 
   /**

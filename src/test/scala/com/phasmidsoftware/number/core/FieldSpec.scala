@@ -8,8 +8,8 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Field"
 
   it should "isExact" in {
-    //    Number(4).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe true
-    //    Number(2).power(convertToNumber((Number.one / 2).materialize)).isExact shouldBe false
+    //    Number(4).power(convertToNumber((Number.one / 2).simplifyAndEvaluate)).isExact shouldBe true
+    //    Number(2).power(convertToNumber((Number.one / 2).simplifyAndEvaluate)).isExact shouldBe false
     val x = (ConstPi / 2).materialize
     x.isExact shouldBe true
   }

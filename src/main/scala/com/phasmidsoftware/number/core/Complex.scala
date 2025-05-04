@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.parse.ComplexParser
-
 import scala.util._
 
 /**
@@ -98,10 +97,11 @@ object Complex {
     val real = ro getOrElse Number.zero
     val s = so getOrElse "+"
     val i = io getOrElse Number.zero
-    val imag = s match {
-      case "-" => i.makeNegative
-      case _ => i
-    }
+    val imag = i.negateConditional(s == "-")
+//    val imag = s match {
+//      case "-" => i.makeNegative
+//      case _ => i
+//    }
     i.factor match {
       case Radian => ComplexPolar(real, imag)
       case _ => ComplexCartesian(real, imag)
@@ -118,6 +118,7 @@ object Complex {
    */
   def convertToPolar(c: ComplexCartesian): Complex = {
     // CONSIDER can we improve upon this? Basically, we should only need MonadicOperationAtan.
+    // TODO eliminate use of materialize (see doAdd in ComplexCartesian)
     val ro: Option[Number] = for (p <- ((Literal(c.x) * Real(c.x)) plus (Literal(c.y) * Real(c.y))).materialize.asNumber; z = p.sqrt) yield z
     val z: Number = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
     ComplexPolar(z, c.x atan c.y, 1)

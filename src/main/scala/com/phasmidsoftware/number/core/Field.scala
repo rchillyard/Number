@@ -5,7 +5,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.recover
-
 import scala.language.implicitConversions
 
 /**
@@ -17,7 +16,7 @@ import scala.language.implicitConversions
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field extends Numerical with Ordered[Field] {
+trait Field extends Numerical with Approximatable with Ordered[Field] {
 
   /**
     * Method to determine if this Field is represented by a Complex number.
@@ -137,6 +136,13 @@ trait Field extends Numerical with Ordered[Field] {
     * @return this Field raised to power p.
     */
   def power(p: Field): Field
+
+  /**
+    * Computes and returns an approximate numerical value for this expression.
+    *
+    * @return a `Double` representing the approximation of this expression.
+    */
+  def approximation: Option[Real] = asNumber map (Real(_))
 }
 
 /**

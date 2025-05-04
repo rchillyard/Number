@@ -5,92 +5,122 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.core.FP.recover
-import com.phasmidsoftware.number.core.Number.negate
+import com.phasmidsoftware.number.core.Expression.em
+import com.phasmidsoftware.number.core.Expression.em.simplifier
+import com.phasmidsoftware.number.core.FP.{recover, toOption, toTry}
+import com.phasmidsoftware.number.core.Number.{convertInt, negate}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import scala.language.implicitConversions
+import scala.util.{Failure, Try}
 
 /**
- * Trait Expression which defines the behavior of a lazily evaluated tree of mathematical operations and operands.
- */
-sealed trait Expression extends NumberLike {
+  * Trait Expression which defines the behavior of a lazily evaluated tree of mathematical operations and operands.
+  */
+sealed trait Expression extends NumberLike with Approximatable {
   /**
-   * Method to determine if this Expression cannot be simplified on account of it being atomic.
-   *
-   * @return true if this extends AtomicExpression
-   */
+    * Method to determine if this Expression cannot be simplified on account of it being atomic.
+    *
+    * @return true if this extends AtomicExpression
+    */
   def isAtomic: Boolean
 
   /**
-   * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
-   * CONSIDER eliminating this method.
-   *
-   * @return Some(factor) if expression only involves that factor; otherwise None.
-   */
+    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
+    * CONSIDER eliminating this method.
+    *
+    * @return Some(factor) if expression only involves that factor; otherwise None.
+    */
   def context: Context
 
   /**
-   * Action to evaluate this `Expression` as a `Field`,
-   * NOTE: no simplification occurs here.
-   *
-   * @return a `Field`.
-   */
-  def evaluate(context: Context): Field
+    * Action to evaluate this `Expression` as a `Field`, if possible.
+    * NOTE: no simplification or factor-based conversion occurs here.
+    *
+    * @return an optional `Field`.
+    */
+  def evaluate(context: Context): Option[Field]
 
   /**
-   * Evaluates this `Expression` as a `Field` without requiring an explicit context.
-   * This is a convenience method that assumes a default context of `None`.
-   *
-   * @return a `Field` representing the evaluated `Expression`.
-   */
-  def evaluateAsIs: Field = evaluate(None)
+    * Evaluates this `Expression` as a `Field` without requiring an explicit context.
+    * This is a convenience method that assumes a default context of `None`.
+    *
+    * @return an optional `Field` representing the evaluated `Expression`.
+    */
+  def evaluateAsIs: Option[Field] = evaluate(None)
 
   /**
-   * Materializes the Expression and evaluates it to a Field.
-   * If the Expression is atomic, it is directly evaluated using the provided context.
-   * Otherwise, the Expression is simplified and then evaluated.
-   *
-   * @param context the execution context for evaluating the Expression. Defaults to None.
-   * @return a Field representing the evaluated Expression.
-   */
-  def materialize(context: Context): Field = this match {
-    case x: AtomicExpression => x.evaluate(context)
-    case e => Expression.em.simplifyAndEvaluate(e, context)
+    * Simplifies this `Expression` by applying logical or mathematical reductions
+    * to produce a potentially simpler or more canonical form of the expression.
+    * If the `Expression` cannot be simplified further, it may return itself.
+    *
+    * @return a simplified `Expression`, or the same `Expression` if it cannot be simplified further
+    */
+  def simplify: Expression
+
+  /**
+    * Materializes the Expression and evaluates it to a Field.
+    * If the Expression is atomic, it is directly evaluated using the provided context.
+    * Otherwise, the Expression is simplified and then evaluated.
+    *
+    * @param context the execution context for evaluating the Expression.
+    * @return a Field representing the evaluated Expression.
+    */
+  def simplifyAndEvaluate(context: Context): Try[Field] = toTry(simplify evaluate (context), Failure(ExpressionException(s"simplifyAndEvaluate: $this $context")))
+//    this match {
+//    case x: AtomicExpression => toTry(x.evaluate(context), Failure(ExpressionException(s"simplifyAndEvaluate: $this $context")))
+//    case e => toTry(Expression.em.simplifyAndEvaluate(e, context), Failure(ExpressionException(s"simplifyAndEvaluate: $this $context")))
+//  }
+
+  /**
+    * Materializes this `Expression` and evaluates it as a Field.
+    * `Materialize` differs from `evaluate` as follows:
+    * (1) first, the expression is simplified if possible;
+    * (2) then, the expression is evaluated first with context `None`, then with `Some(PureNumber)`.
+    *
+    * @return a Field representing the evaluated Expression.
+    */
+  def materialize: Field = {
+    val expression = simplifier(this) match {
+      case em.Match(r: Expression) => r
+      case _ => this
+    }
+    expression.evaluate(None) orElse expression.evaluate(Some(PureNumber)) getOrElse Real.NaN
   }
 
   /**
-   * Materializes the Expression and evaluates it to a Field.
-   * This is a convenience method that leverages a default context of `None`.
-   *
-   * @return a Field representing the evaluated Expression.
-   */
-  def materialize: Field = materialize(None)
-
-  /**
-   * Method to determine if the materialized value of this `Expression` corresponds to a `Number`.
-   *
-   * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
-   */
+    * Method to determine if the materialized value of this `Expression` is defined and corresponds to a `Number`.
+    * CONSIDER replacing materialize with evaluateAsIs
+    *
+    * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
+    */
   def asNumber: Option[Number] = materialize.asNumber
 
   /**
-   * Method to determine the depth of this Expression.
-   *
-   * @return the depth (an atomic expression has depth of 1).
-   */
+    * Computes and returns an approximate numerical value for this expression.
+    * The returned value is based on `asNumber`.
+    *
+    * @return if possible, returns a `Real` representing the approximation of this expression.
+    */
+  def approximation: Option[Real] = asNumber map (Real(_))
+
+  /**
+    * Method to determine the depth of this Expression.
+    *
+    * @return the depth (an atomic expression has depth of 1).
+    */
   def depth: Int
 
   /**
-   * Eagerly compare this Expression with comparand.
-   *
-   * TODO this will work only for Numbers. We need to be able to determine if two Complex numbers are essentially the same.
-   * CONSIDER does this really belong in Expression?
-   *
-   * @param comparand the expression to be compared.
-   * @return the result of comparing materialized this with materialized comparand.
-   */
+    * Eagerly compare this Expression with comparand.
+    *
+    * TODO this will work only for Numbers. We need to be able to determine if two Complex numbers are essentially the same.
+    * CONSIDER does this really belong in Expression?
+    *
+    * @param comparand the expression to be compared.
+    * @return the result of comparing materialized this with materialized comparand.
+    */
   def compare(comparand: Expression): Int =
-    recover(for (x <- materialize.asNumber; y <- comparand.materialize.asNumber) yield x.compare(y), NumberException("compare: logic error"))
+    recover(for (x <- asNumber; y <- comparand.asNumber) yield x.compare(y), NumberException("compare: logic error"))
 }
 
 /**
@@ -261,7 +291,7 @@ object Expression {
      */
     def sqrt: Expression = x match {
       case z: AtomicExpression =>
-        z.evaluateAsIs.asNumber match {
+        z.evaluateAsIs flatMap (_.asNumber) match {
           case Some(q) => Literal(q.sqrt)
           case _ => x ^ Constants.half // TESTME
         }
@@ -340,13 +370,21 @@ object Expression {
    *         otherwise false.
    */
   def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
-    f.maybeIdentityL contains z.evaluateAsIs
+    f.maybeIdentityL == z.evaluateAsIs // CONSIDER comparing with maybeIdentityR if this is not true
 }
 
 /**
  * An Expression which cannot be further simplified.
  */
 sealed trait AtomicExpression extends Expression {
+
+  /**
+    * Simplifies the current expression. Since this expression is atomic and cannot be
+    * further simplified, it returns itself.
+    *
+    * @return the current expression, as it cannot be further simplified
+    */
+  def simplify: Expression = this
 
   /**
    * Indicates whether the expression is atomic.
@@ -360,10 +398,10 @@ sealed trait AtomicExpression extends Expression {
    *
    * @return an optional `Factor`.
    */
-  def maybeFactor: Option[Factor] = evaluateAsIs.maybeFactor
+  def maybeFactor: Option[Factor] = evaluateAsIs flatMap (_.maybeFactor)
 
   /**
-   * Action to materialize this Expression and render it as a `String`,
+    * Action to simplifyAndEvaluate this Expression and render it as a `String`,
    * that is to say, we eagerly evaluate this Expression as a `String`.
    *
    * @return `String` form of this `Constant`.
@@ -374,22 +412,44 @@ sealed trait AtomicExpression extends Expression {
    * @return 1.
    */
   def depth: Int = 1
-
-  override def hashCode(): Int = materialize.hashCode()
-
-  override def equals(obj: Any): Boolean = obj match {
-    case x: AtomicExpression => materialize == x.materialize
-    case _ => false
-  }
+//
+//  override def hashCode(): Int = materialize.hashCode()
+//
+//  override def equals(obj: Any): Boolean = obj match {
+//    case x: AtomicExpression => materialize == x.materialize
+//    case _ => false
+//  }
 }
 
+/**
+  * Companion object for the `AtomicExpression` trait.
+  * Provides utility methods for working with instances of `AtomicExpression`.
+  *
+  * The `unapply` method enables pattern matching on `AtomicExpression` instances, providing an
+  * optional `Field` as a result based on the type of the expression. The behavior of this method
+  * varies for different subtypes of `AtomicExpression`, such as `Complex`, `FieldExpression`,
+  * `Literal`, `Field`, `Noop`, and `ReducedQuadraticRoot`.
+  *
+  * Notes:
+  * - For `Complex`, the method directly returns the `Complex` instance as a `Field`.
+  * - For `FieldExpression` and `Literal`, the value of the field is returned, but the name
+  * might be discarded during extraction.
+  * - For `Field`, the method directly returns the field.
+  * - For `ReducedQuadraticRoot`, the method attempts to evaluate it "as-is."
+  * - For `Noop`, the method returns `None`.
+  *
+  * Considerations:
+  * - The use of `Complex` and `Field` directly in the extraction may warrant re-evaluation.
+  * - The potential loss of the name in `FieldExpression` and `Literal` is noted as a trade-off.
+  */
 object AtomicExpression {
   def unapply(arg: AtomicExpression): Option[Field] = arg match {
-    case c: Complex => Some(c)
+    case c: Complex => Some(c) // CONSIDER eliminate this?
+    case FieldExpression(x, _) => Some(x) // NOTE we lose the name here.
     case Literal(x, _) => Some(x) // NOTE we lose the name here.
-    case c: Constant => Some(c.evaluateAsIs)
-    case f: Field => Some(f)
-    case _ => None
+    case f: Field => Some(f) // CONSIDER eliminate this?
+    case Noop => None
+    case r@ReducedQuadraticRoot(_, _, _, _) => r.evaluateAsIs
   }
 }
 
@@ -400,81 +460,185 @@ object AtomicExpression {
  */
 sealed trait CompositeExpression extends Expression {
   /**
-   * Indicates whether this expression is atomic.
-   *
-   * @return false as the default value, indicating the expression is not atomic.
-   */
+    * Indicates whether this expression is atomic.
+    *
+    * @return false as the default value, indicating the expression is not atomic.
+    */
   def isAtomic: Boolean = false
 
   /**
-   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
-   *
-   * @return an optional `Factor`.
-   */
+    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    *
+    * @return an optional `Factor`.
+    */
   def maybeFactor: Option[Factor] = context
 
   /**
-   * Provides the terms that comprise this `CompositeExpression`.
-   *
-   * @return a sequence of `Expression` objects representing the individual terms of this `CompositeExpression`.
-   */
+    * Provides the terms that comprise this `CompositeExpression`.
+    *
+    * @return a sequence of `Expression` objects representing the individual terms of this `CompositeExpression`.
+    */
   def terms: Seq[Expression]
 
   /**
-   * Substitutes the terms of this `CompositeExpression` with the provided sequence of expressions.
-   *
-   * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
-   * @return a new `Expression` where the terms are substituted with the given sequence.
-   */
+    * Substitutes the terms of this `CompositeExpression` with the provided sequence of expressions.
+    *
+    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
+    * @return a new `Expression` where the terms are substituted with the given sequence.
+    */
   def substituteTerms(terms: Seq[Expression]): CompositeExpression
 
   /**
-   * Method to render this NumberLike in a presentable manner.
-   *
-   * @return a String
-   */
-  def render: String = {
-    val field = materialize
-    if (field.isExactInContext(None)) field.render else toString
+    * Method to render this NumberLike in a presentable manner.
+    *
+    * @return a String
+    */
+  def render: String =
+    (context, evaluate(context)) match {
+      case (Some(f), Some(Real(x))) if f.canShow(x.nominalValue) => x.render
+      case _ => materialize.toString
+    }
+
+  /**
+    * Replaces the given expression with a literal expression if it can be evaluated
+    * to a specific `Field`, otherwise returns the given expression.
+    *
+    * @param x the `Expression` to be evaluated and potentially replaced with a literal.
+    * @return a `Literal` if the given function can be evaluated to a specific value;
+    *         otherwise, the original simplified function.
+    */
+  def replaceWithLiteralIfPossible(x: Expression): Expression =
+    x.evaluateAsIs match {
+      case Some(field) => Literal(field)
+      case _ => x
   }
+
 }
 
 /**
- * An AtomicExpression which represents a Number.
- *
- * @param x the Number.
- */
-case class Literal(x: Field, maybeName: Option[String] = None) extends AtomicExpression {
+  * The `Noop` object is an atomic expression that represents a no-operation placeholder in an expression tree.
+  * It cannot be evaluated, simplified, or associated with any specific factor. It is a concrete implementation
+  * of the `AtomicExpression` trait.
+  */
+case object Noop extends AtomicExpression {
+
+  val value: Field = throw new UnsupportedOperationException("Noop.value")
 
   /**
-   * Method to determine if this Expression can be evaluated exactly.
-   *
-   * @return true if materialize will result in an ExactNumber, else false.
-   */
-  def isExactInContext(context: Context): Boolean = x.isExactInContext(context)
+    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
+    * CONSIDER eliminating this method.
+    *
+    * @return Some(factor) if expression only involves that factor; otherwise None.
+    */
+  def context: Context = None
 
   /**
-   * @return Some(factor).
-   */
-  def context: Context = x match {
+    * Action to evaluate this `Expression` as a `Field`,
+    * NOTE: no simplification occurs here.
+    *
+    * @return a `Field`.
+    */
+  def evaluate(context: Context): Option[Field] = throw new UnsupportedOperationException("Noop.evaluate")
+
+  /**
+    * Method to determine if this `NumberLike` object can be evaluated exactly in the given context.
+    *
+    * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
+    *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
+    * @return true if `this` is exact in the context of factor, else false.
+    */
+  def isExactInContext(context: Context): Boolean = false
+
+  /**
+    * Computes and returns an approximate numerical value for this expression.
+    *
+    * @return a `Double` representing the approximation of this expression.
+    */
+  override def approximation: Option[Real] = None
+}
+
+/**
+  * An AtomicExpression which represents a Number.
+  *
+  * @param x the Number.
+  */
+abstract class FieldExpression(val value: Field, val maybeName: Option[String] = None) extends AtomicExpression {
+
+  /**
+    * Method to determine if this Expression can be evaluated exactly.
+    *
+    * @return true if simplifyAndEvaluate will result in an ExactNumber, else false.
+    */
+  def isExactInContext(context: Context): Boolean = value.isExactInContext(context)
+
+  /**
+    * @return Some(factor).
+    */
+  def context: Context = value match {
     case Real(n) => Some(n.factor)
     case c: BaseComplex => if (c.real.factor == c.imag.factor) Some(c.real.factor) else None
   }
 
   /**
-   * Action to evaluate this Expression as a Field,
-   *
-   * @return x.
-   */
-  def evaluate(context: Context): Field = x
+    * Action to evaluate this Expression as a Field,
+    *
+    * @return x.
+    */
+  def evaluate(context: Context): Option[Field] =
+    Option.when(context.isEmpty || context == this.context)(value)
 
   /**
-   * Generate a String for debugging purposes.
-   *
-   * @return a String representation of this Literal.
-   */
-  override def toString: String = maybeName getOrElse x.toString
+    * Attempts to approximate the current field expression as a Real number.
+    *
+    * @return Some(Real) if the field can be approximated as a Real number, otherwise None.
+    */
+  override def approximation: Option[Real] = value match {
+    case r: Real => Some(r)
+    case _ => None
+  }
+
+  /**
+    * Generate a String for debugging purposes.
+    *
+    * @return a String representation of this Literal.
+    */
+  override def toString: String = maybeName getOrElse value.toString
+
+  private def canEqual(other: Any): Boolean = other.isInstanceOf[FieldExpression]
+
+  private def namesMatch(other: FieldExpression): Boolean = (maybeName, other.maybeName) match {
+    case (Some(x), Some(y)) => x == y
+    case _ => true
+  }
+
+  override def equals(other: Any): Boolean = other match {
+    case that: FieldExpression =>
+      that.canEqual(this) &&
+          value == that.value &&
+          namesMatch(that)
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(value, maybeName)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 }
+
+object FieldExpression {
+  def unapply(f: FieldExpression): Option[(Field, Option[String])] = f match {
+    case Literal(x, _) => Some((x, None))
+    case z => Some((z.value, z.maybeName))
+  }
+}
+
+/**
+  * An AtomicExpression which represents a literal `Field`.
+  *
+  * @param value     the `Field`.
+  * @param maybeName an optional name.
+  */
+case class Literal(override val value: Field, override val maybeName: Option[String] = None) extends FieldExpression(value, maybeName)
 
 /**
  * Companion object for the `Literal` class, providing factory methods and pattern matching support.
@@ -482,11 +646,12 @@ case class Literal(x: Field, maybeName: Option[String] = None) extends AtomicExp
 object Literal {
   /**
    * Extracts a Field value from a Literal instance.
+    * CONSIDER this may never be invoked.
    *
    * @param arg the Literal instance to extract the Field from.
    * @return an Option containing the extracted Field, or None if extraction is not possible.
    */
-  def unapply(arg: Literal): Option[(Field, Option[String])] = Some(arg.x, arg.maybeName)
+  def unapply(arg: Literal): Option[(Field, Option[String])] = Some(arg.value, arg.maybeName)
 
   /**
    * Creates a Literal instance using an integer value.
@@ -533,24 +698,14 @@ abstract class Constant extends AtomicExpression {
    *                If `None`, the result depends solely on whether the constant itself is exact.
    * @return true if the constant is exact in the context of `context`; false otherwise.
    */
-  def isExactInContext(context: Context): Boolean =
-    evaluate(context).isExact
+  def isExactInContext(context: Context): Boolean = evaluate(context).isDefined
 }
 
 /**
  * Represents the mathematical constant zero.
  * This object extends the `Constant` class, providing implementation specific to zero.
  */
-case object Zero extends Constant {
-  /**
-   * @return Number.zero
-   */
-  def evaluate(context: Context): Field = Constants.zero
-
-  def context: Context = Some(PureNumber)
-
-  override def toString: String = "0"
-}
+case object Zero extends FieldExpression(Constants.zero)
 
 /**
  * Represents the mathematical constant 1/2 (half).
@@ -563,13 +718,7 @@ case object Zero extends Constant {
  * - A context definition for the constant.
  * - A string representation of the constant.
  */
-case object Half extends Constant {
-  def evaluate(context: Context): Field = Constants.half
-
-  def context: Context = Some(PureNumber)
-
-  override def toString: String = "\u00BD"
-}
+case object Half extends FieldExpression(Constants.half, Some("\u00BD"))
 
 /**
  * Represents the constant numeric value `1`.
@@ -577,13 +726,7 @@ case object Half extends Constant {
  * `One` is a case object that extends `Constant`, indicating that it is a well-defined,
  * immutable, and atomic mathematical value.
  */
-case object One extends Constant {
-  def evaluate(context: Context): Field = Constants.one
-
-  def context: Context = Some(PureNumber)
-
-  override def toString: String = "1"
-}
+case object One extends FieldExpression(Constants.one)
 
 /**
  * Represents the constant value -1.
@@ -594,13 +737,7 @@ case object One extends Constant {
  * This constant can be used in mathematical expressions involving fields and
  * supports operations defined in the `Field` trait.
  */
-case object MinusOne extends Constant {
-  def evaluate(context: Context): Field = Constants.minusOne
-
-  def context: Context = Some(PureNumber)
-
-  override def toString: String = "-1"
-}
+case object MinusOne extends FieldExpression(Constants.minusOne, Some("-1"))
 
 /**
  * Represents the constant number 2 as a case object, extending the `Constant` class.
@@ -608,46 +745,19 @@ case object MinusOne extends Constant {
  * This object evaluates to the numeric constant `2` within the given context.
  * It can be used in mathematical expressions and operations involving constants.
  */
-case object Two extends Constant {
-  def evaluate(context: Context): Field = Constants.two
-
-  def context: Context = Some(PureNumber)
-
-  override def toString: String = "2"
-}
+case object Two extends FieldExpression(Constants.two)
 
 /**
  * ConstPi represents the mathematical constant π (pi) exactly.
  */
-case object ConstPi extends Constant {
-  def evaluate(context: Context): Field = Constants.pi
-
-  /**
-   * Provides the default context for the `ConstPi` class.
-   *
-   * @return the context associated with the mathematical constant π, specifically `Radian`
-   */
-  lazy val context: Context = Some(Radian)
-
-  override def toString: String = "π"
-}
+case object ConstPi extends FieldExpression(Constants.pi, Some("π"))
 
 /**
  * The constant e.
  * Yes, this is an exact number.
  */
-case object ConstE extends Constant {
-  def evaluate(context: Context): Field = Constants.e
+case object ConstE extends FieldExpression(Constants.e)
 
-  /**
-   * Provides access to the default logarithmic context, which is `NatLog`.
-   * This context is used for evaluations involving natural logarithmic
-   * or exponential arithmetic, relating to the mathematical constant e.
-   */
-  lazy val context: Context = Some(NatLog)
-
-  override def toString: String = "e"
-}
 /**
  * This class represents a monadic function of the given expression.
  *
@@ -655,6 +765,16 @@ case object ConstE extends Constant {
  * @param f the function to be applied to x.
  */
 case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpression {
+
+  /**
+    * Simplifies this `Expression` by applying logical or mathematical reductions
+    * to produce a potentially simpler or more canonical form of the expression.
+    * If the `Expression` cannot be simplified further, it may return itself.
+    *
+    * @return a simplified `Expression`, or the same `Expression` if it cannot be simplified further
+    */
+  def simplify: Expression =
+    replaceWithLiteralIfPossible(copy(x = x.simplify))
 
   /**
    * Method to determine if this Expression can be evaluated exactly.
@@ -693,13 +813,24 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    * @return the 1 + depth of x.
    */
   def depth: Int = 1 + x.depth
-
   /**
-   * Action to materialize this Expression as a Field.
+    * Action to simplifyAndEvaluate this Expression as a Field.
    *
    * @return the materialized Field.
    */
-  def evaluate(context: Context): Field = f(x.materialize)
+  def evaluate(context: Context): Option[Field] = x.evaluate(context) map f
+
+  /**
+    * Provides an approximation of the result of applying the function `f` to the
+    * `approximation` of the expression `x`, if one exists.
+    *
+    * @return an `Option` containing the approximated result as a `Real` if the
+    *         approximation is successfully computed; otherwise, `None`.
+    */
+  override def approximation: Option[Real] = x.approximation map f match {
+    case Some(r: Real) => Some(r)
+    case _ => None
+  }
 }
 
 /**
@@ -710,6 +841,36 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
  * @param f the function to be applied to a and b.
  */
 case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends CompositeExpression {
+
+  /**
+    * Simplifies this `Expression` by applying logical or mathematical reductions
+    * to produce a potentially simpler or more canonical form of the expression.
+    * If the `Expression` cannot be simplified further, it may return itself.
+    *
+    * @return a simplified `Expression`, or the same `Expression` if it cannot be simplified further
+    */
+  def simplify: Expression =
+    replaceWithLiteralIfPossible(copy(a = a.simplify, b = b.simplify).asAggregate)
+
+  /**
+    * Transforms this `BiFunction` expression into an `Aggregate` expression if certain patterns and conditions are met.
+    *
+    * Specifically:
+    * - When nested `BiFunction` objects share the same binary function at all levels, they are aggregated into a single `Aggregate` expression with all the operands.
+    * - If no valid aggregation pattern is matched, the original expression is returned unchanged.
+    *
+    * @return an `Expression` in the form of an `Aggregate` if the transformation is successful or the original expression otherwise.
+    */
+  def asAggregate: Expression = this match {
+    case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
+      Aggregate(f, Seq(w, x, y, z))
+    case BiFunction(BiFunction(w, x, f), y, h) if f == h =>
+      Aggregate(f, Seq(w, x, y))
+    case BiFunction(x, BiFunction(y, z, f), h) if f == h =>
+      Aggregate(f, Seq(x, y, z))
+    case _ =>
+      this
+  }
 
   /**
    * Determines whether the current `BiFunction` instance is exact in the context of an optional `Factor`.
@@ -737,11 +898,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   def depth: Int = 1 + math.max(a.depth, b.depth)
 
   /**
-   * Action to materialize this Expression as a Field.
+    * Action to simplifyAndEvaluate this Expression as a Field.
    *
    * @return the materialized Field.
    */
-  def evaluate(context: Context): Field = value
+  def evaluate(context: Context): Option[Field] =
+    toOption(for (x <- a.simplifyAndEvaluate(context); y <- b.simplifyAndEvaluate(context)) yield f(x, y))
+
 
   /**
    * Provides the terms that comprise this `CompositeExpression`.
@@ -789,7 +952,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       None
   }
 
-  private lazy val value: Field = f(a.materialize, b.materialize)
+  /**
+    * Computes and returns an approximate numerical value for this expression.
+    *
+    * @return a `Double` representing the approximation of this expression.
+    */
+  override def approximation: Option[Real] =
+    (for (x <- a.approximation; y <- b.approximation) yield f(x, y)) match {
+      case Some(r: Real) => Some(r)
+      case _ => None
+    }
 
   /**
    * Determine if this dyadic expression has an exact result, according to f, the function.
@@ -801,7 +973,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
    *         NOTE: this appears to be an inaccurate description of the result.
    */
   private lazy val conditionallyExact: Boolean = f match {
-    case Power => b.materialize.asNumber.flatMap(x => x.toInt).isDefined
+    case Power => b.asNumber.flatMap(x => x.toInt).isDefined
     case Sum => context.isDefined
     case Product => true // TESTME
     case _ => false // TESTME
@@ -838,7 +1010,21 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
  */
 case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extends CompositeExpression {
 
-  require(xs.nonEmpty, "Empty Sequence")
+  /**
+    * Simplifies this `Expression` by applying logical or mathematical reductions
+    * to produce a potentially simpler or more canonical form of the expression.
+    * If the `Expression` cannot be simplified further, it may return itself.
+    *
+    * @return a simplified `Expression`, or the same `Expression` if it cannot be simplified further
+    */
+  def simplify: Expression = xs match {
+    case Nil =>
+      function.maybeIdentityL orElse function.maybeIdentityR map (Literal(_)) getOrElse this
+    case x :: Nil =>
+      x
+    case _ =>
+      replaceWithLiteralIfPossible(copy(xs = xs map (_.simplify)))
+  }
 
   /**
    * Determines the applicable context for the current aggregate expression based on the function type
@@ -866,10 +1052,27 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
    *
    * @return the value.
    */
-  def evaluate(context: Context): Field = {
+  def evaluate(context: Context): Option[Field] = {
     val identity: Field = function.maybeIdentityL.getOrElse(Constants.zero) // NOTE should never require the default
-    xs.map(e => e.evaluate(context)).foldLeft[Field](identity)(function)
+    val maybeFields: Seq[Option[Field]] = xs.map(e => e.evaluate(context))
+    FP.sequence(maybeFields) map (xs => xs.foldLeft[Field](identity)(function))
   }
+
+  /**
+    * Adds a new expression to the current aggregate.
+    *
+    * @param x the expression to be added
+    * @return a new Aggregate instance with the updated list of expressions
+    */
+  def add(x: Expression): Aggregate = copy(xs = xs :+ x)
+
+  /**
+    * Adds a sequence of expressions to the current aggregate.
+    *
+    * @param ys the sequence of expressions to be added
+    * @return a new Aggregate instance with the updated list of expressions
+    */
+  def addAll(ys: Seq[Expression]): Aggregate = copy(xs = xs ++ ys)
 
   /**
    * Provides the terms that comprise this `CompositeExpression`.
@@ -903,6 +1106,20 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   def isExactInContext(context: Context): Boolean = context == this.context && xs.forall(_.isExactInContext(context))
 
   /**
+    * Computes and returns an approximate numerical value for this expression.
+    *
+    * @return a `Double` representing the approximation of this expression.
+    */
+  override def approximation: Option[Real] = {
+    val identity: Field = function.maybeIdentityL.getOrElse(Constants.zero) // NOTE should never require the default
+    val maybeFields: Seq[Option[Field]] = xs.map(e => e.approximation)
+    FP.sequence(maybeFields) map (xs => xs.foldLeft[Field](identity)(function)) match {
+      case Some(r: Real) => Some(r)
+      case _ => None
+    }
+  }
+
+  /**
    * Method to render this NumberLike in a presentable manner.
    *
    * @return a String
@@ -916,13 +1133,28 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
 object Aggregate {
 
   /**
+    * Creates an empty `Aggregate` instance using the provided binary function.
+    * The resulting `Aggregate` will have an empty sequence of expressions.
+    *
+    * @param function the binary function used to compose the `Aggregate`.
+    * @return an empty `Aggregate` instance.
+    */
+  def empty(function: ExpressionBiFunction): Aggregate = new Aggregate(function, Seq.empty)
+
+  def create(function: ExpressionBiFunction, xs: Seq[Expression]): Aggregate =
+    if (xs.nonEmpty)
+      new Aggregate(function, xs)
+    else
+      throw new IllegalArgumentException("total requires at least one argument (use empty if necessary)")
+
+  /**
    * Constructs an `Aggregate` expression that applies the `Sum` operation
    * to a variable number of input expressions.
    *
    * @param xs a sequence of `Expression` instances that will be aggregated by the `Sum` operation.
    * @return an `Expression` representing the sum of the input expressions.
    */
-  def total(xs: Expression*): CompositeExpression = Aggregate(Sum, xs)
+  def total(xs: Expression*): CompositeExpression = create(Sum, xs)
 
   /**
    * Constructs an `Aggregate` expression that applies the `Product` operation
@@ -931,27 +1163,61 @@ object Aggregate {
    * @param xs a sequence of `Expression` instances that will be aggregated by the `Product` operation.
    * @return an `Expression` representing the product of the input expressions.
    */
-  def product(xs: Expression*): CompositeExpression = Aggregate(Product, xs)
-
+  def product(xs: Expression*): CompositeExpression = create(Product, xs)
 }
 
 /**
- * An abstract class representing a root of a reduced quadratic equation of the form `x^2 + px + q = 0`
- * The value of the root is `(-p/2) ± sqrt((-p/2)^2 - q)`.
- * The class extends `CompositeExpression` and provides lazy evaluation for components of the reduced quadratic root.
- *
- * @constructor Constructs a reduced quadratic root with parameters `p`, `q`, and a boolean `pos` to determine the sign of the root.
- * @param p   The coefficient in the quadratic equation.
- * @param q   The constant term in the quadratic equation.
- * @param pos Determines if the positive or negative branch of the root is chosen.
- */
-abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val pos: Boolean) extends CompositeExpression {
+  * An abstract class representing a root of a reduced quadratic equation of the form `x^2 + px + q = 0`
+  * The value of the root is `(-p/2) ± sqrt((-p/2)^2 - q)`.
+  * The class extends `CompositeExpression` and provides lazy evaluation for components of the reduced quadratic root.
+  *
+  * NOTE that, for now at least, the types of p and q are Int.
+  *
+  * CONSIDER should we extend CompositeExpression instead? Then, all AtomicExpressions could have a value.
+  *
+  * @constructor Constructs a reduced quadratic root with parameters `p`, `q`, and a boolean `pos` to determine the sign of the root.
+  * @param p   The coefficient in the quadratic equation.
+  * @param q   The constant term in the quadratic equation.
+  * @param pos Determines if the positive or negative branch of the root is chosen.
+  */
+class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Boolean) extends AtomicExpression {
   require(p != 0 || q != 0, "may not have p and q equal to zero")
-  private lazy val minusHalfP: Expression = Expression(-p) / 2
-  lazy val root: Expression = minusHalfP plus {
-    val branch: Expression = ((minusHalfP ^ 2) - q).sqrt
-    if (pos) branch else -branch
+  require(discriminant >= 0, "discriminant must not be negative")
+
+  lazy val root: Expression = {
+    (Literal(-p) plus {
+      // NOTE discriminant is required to be non-negative
+      val branch: Expression = Literal(discriminant.sqrt)
+      if (pos) branch else -branch
+    }) / 2
   }
+
+  /**
+    * Converts this quadratic root expression into an optional `Number` if possible.
+    * The result depends on the discriminant:
+    * - If the discriminant is negative, no numeric representation exists, and `None` is returned.
+    * - If the discriminant is zero, it represents a double root, and a single exact `Number` instance is returned.
+    * - If the discriminant is positive, a (fuzzy) `Number` is calculated and returned.
+    *
+    * @return an `Option[Number]` representing the numeric equivalent of this quadratic root if calculable; otherwise, `None`.
+    */
+  override def asNumber: Option[Number] = {
+    if (discriminant < 0) None
+    else if (discriminant == 0) Some(Number(Rational(p, 2)))
+    else Some(Number(discriminant, Root2).negateConditional(!pos) doSubtract Number(p) doDivide Number.two)
+  }
+
+  /**
+    * Computes the discriminant of a quadratic equation based on the formula `p^2 - 4 * q`.
+    * The discriminant is a critical component in determining the nature of the roots of a
+    * quadratic equation.
+    * If the discriminant is positive then there are two distinct roots;
+    * if negative, then there are no real roots;
+    * if zero, then there's a double root.
+    *
+    * @return an `Int` representing the discriminant.
+    */
+  def discriminant: Int = p * p - 4 * q
 
   /**
    * Method to determine if this Expression is based solely on a particular Factor and, if so, which.
@@ -968,32 +1234,7 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
    *
    * @return a `Field`.
    */
-  def evaluate(context: Context): Field = root.materialize
-
-  /**
-   * Provides the terms that comprise this `CompositeExpression`.
-   *
-   * @return a sequence of `Expression` objects representing the individual terms of this `CompositeExpression`.
-   */
-  def terms: Seq[Expression] = Nil
-
-  /**
-   * Substitutes the terms of this `CompositeExpression` with the provided sequence of expressions.
-   * In fact, this method simply returns `this` and ignores `terms`.
-   * TESTME
-   *
-   * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
-   * @return `this`.
-   */
-  def substituteTerms(terms: Seq[Expression]): CompositeExpression = this
-
-  /**
-   * Method to determine the depth of this Expression.
-   * TESTME
-   *
-   * @return the depth (an atomic expression has depth of 1).
-   */
-  def depth: Int = root.depth + 1
+  def evaluate(context: Context): Option[Field] = root.evaluate(context)
 
   /**
    * Method to determine if this `NumberLike` object can be evaluated exactly in the context.
@@ -1005,6 +1246,22 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
   def isExactInContext(context: Context): Boolean = context.isEmpty // by default
 
   override def toString: String = name
+
+  private def canEqual(other: Any): Boolean = other.isInstanceOf[ReducedQuadraticRoot]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: ReducedQuadraticRoot =>
+      that.canEqual(this) &&
+          p == that.p &&
+          q == that.q &&
+          pos == that.pos
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(p, q, pos)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 }
 
 /**
@@ -1012,7 +1269,7 @@ abstract class ReducedQuadraticRoot(name: String, val p: Int, val q: Int, val po
  * Provides an unapply method for pattern matching.
  */
 object ReducedQuadraticRoot {
-  def unapply(rqr: ReducedQuadraticRoot): Option[(Int, Int, Boolean)] = Some(rqr.p, rqr.q, rqr.pos)
+  def unapply(rqr: ReducedQuadraticRoot): Option[(String, Int, Int, Boolean)] = Some(rqr.name, rqr.p, rqr.q, rqr.pos)
 }
 
 /**
@@ -1105,7 +1362,10 @@ abstract class SineCos(sine: Boolean) extends ExpressionFunction(x => if (sine) 
    */
   def context(x: Expression): Context = x.maybeFactor match {
     case Some(Radian) => Some(PureNumber)
-    case Some(PureNumber) if x.evaluateAsIs.isZero => Some(PureNumber)
+    case Some(PureNumber) => x.evaluateAsIs match {
+      case Some(Constants.zero) => Some(PureNumber)
+      case _ => None
+    }
     case _ => None
   }
 }
@@ -1212,7 +1472,11 @@ case object Exp extends ExpressionFunction(x => x.exp, "exp") {
    * @return true if the expression is exact within the given context; otherwise false
    */
   def isExactInContext(context: Context)(x: Expression): Boolean = x match {
-    case a: AtomicExpression => a.evaluateAsIs.isZero || a.evaluateAsIs.isUnity
+    case a: AtomicExpression =>
+      a.evaluateAsIs match {
+        case Some(z) => z.isZero || z.isUnity
+        case None => false
+      }
     case _ => false // CONSIDER testing for the x to evaluate to exactly 0 or 1 (but such cases should already have been simplified)
   }
 }
@@ -1236,7 +1500,10 @@ case object Negate extends ExpressionFunction(x => negate(x), "-") {
    * @return the context of the given expression as an Option[Scalar], or None if no scalar factor is found
    */
   def context(x: Expression): Context = x.maybeFactor match {
-    case c: Option[Scalar] => c
+    case Some(c) => c match {
+      case s: Scalar => Some(s)
+      case _ => None
+    }
     case _ => None // TESTME
   }
   /**
@@ -1403,6 +1670,17 @@ class ExpressionBiFunction(val f: (Field, Field) => Field, val name: String, val
    * @return the result of f(x).
    */
   def apply(a: Field, b: Field): Field = f(a, b)
+
+  /**
+    * Evaluates two expressions as-is (without any simplification or conversion) and applies the function `f`
+    * to the results if both evaluations are successful.
+    *
+    * @param x the first expression to be evaluated.
+    * @param y the second expression to be evaluated.
+    * @return an `Option[Field]` containing the result of applying the binary function to the
+    *         evaluated results of `x` and `y`, or `None` if either evaluation fails.
+    */
+  def evaluateAsIs(x: Expression, y: Expression): Option[Field] = for (a <- x.evaluateAsIs; b <- y.evaluateAsIs) yield f(a, b)
 
   /**
    * Generate helpful debugging information about this ExpressionFunction.

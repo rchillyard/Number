@@ -57,7 +57,7 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     (fuzz2 + fuzz1 + LazyFuzzy(Exact(3))).get shouldBe Exact(6)
   }
 
-  ignore should "be 3 when added to one by explicit function" in {
+  it should "be 3 when added to one by explicit function" in {
 //        val lr = fuzz2 map Named("add Rat.1",{ x => x+Fuzzy.one })
 //        lr.get shouldBe (Fuzzy.one*3)
   }
@@ -68,13 +68,13 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
   }
 
   behavior of "fuzzy composition"
-  ignore should "work" in {
+  it should "work" in {
     val p = fuzz1.map(ExpDifferentiable[Fuzzy]())
     println(s"p: $p")
     println(s"p.get: ${p.get}")
     p.get should be(2.718281828459045)
   }
-  ignore should "work with fuzzy 1" in {
+  it should "work with fuzzy 1" in {
     val f = LazyFuzzy(Bounded(1, 1E-3))
     val p = f.map(ExpDifferentiable[Fuzzy]())
     println(s"p: $p")
@@ -82,7 +82,7 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     p.get should be(2.718281828459045)
   }
 
-  ignore should "give 8" in {
+  it should "give 8" in {
 //      val z = for (x <- fuzz2; y <- fuzz4 ) yield x.y
 //      z.get should be (Exact(8))
   }

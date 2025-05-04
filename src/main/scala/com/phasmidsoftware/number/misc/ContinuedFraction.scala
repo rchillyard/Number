@@ -641,7 +641,7 @@ trait Evaluatable {
 
 trait Approximate[X] {
   /**
-    * Evaluate this Approximate object as a Double such that the absolute error between the true value and the result
+    * Evaluate this Approximatable object as a Double such that the absolute error between the true value and the result
     * is less than epsilon.
     *
     * @param x       the X value.

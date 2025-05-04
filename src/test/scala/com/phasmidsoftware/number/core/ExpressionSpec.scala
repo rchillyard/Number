@@ -9,7 +9,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Success}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
@@ -68,7 +67,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "Expression"
 
-  it should "materialize" in {
+  it should "simplifyAndEvaluate" in {
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
@@ -86,7 +85,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   it should "evaluate 3 5 + 7 2 – *" in {
     val expression = (Literal(3) + 5) * (Literal(7) - 2)
-    val result = expression.materialize
+    val result = expression.simplify.materialize
     result shouldEqual Real(40)
   }
 
@@ -99,7 +98,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate -" in {
     val x = Literal(1) - 2
-    val result = x.materialize.asNumber
+    val result = x.simplify.materialize.asNumber
     result shouldEqual Some(Number(-1))
   }
   it should "evaluate *" in {
@@ -202,7 +201,28 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     euler.materialize shouldBe Constants.minusOne
   }
 
+  behavior of "FieldExpression"
+  it should "Zero be equal to zero" in {
+    val target = Literal(Constants.zero)
+    target shouldBe Zero
+    target should matchPattern { case Literal(Constants.zero, _) => }
+    target should matchPattern { case FieldExpression(Constants.zero, _) => }
+  }
+  it should "One be equal to one" in {
+    val target = Literal(Constants.one)
+    target shouldBe One
+    target should matchPattern { case Literal(Constants.one, _) => }
+    target should matchPattern { case FieldExpression(Constants.one, _) => }
+  }
+
   behavior of "ReducedQuadraticRoot"
+  it should "evaluate" in {
+    val target = new ReducedQuadraticRoot("phi", -1, -1, true)
+    target shouldBe Phi
+    target.evaluateAsIs.isDefined shouldBe true
+    target.evaluateAsIs.get should ===(Constants.phi)
+    target should matchPattern { case ReducedQuadraticRoot("phi", -1, -1, true) => }
+  }
   it should "evaluate Phi correctly" in {
     (((Phi ^ 2) - 1).materialize - Constants.phi).isZero shouldBe true
     Phi.materialize should ===(Constants.phi)
@@ -211,5 +231,43 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val em: ExpressionMatchers = Expression.em
     val p = em.biFunctionTransformer
     p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(Phi, One, Sum))
+  }
+
+  behavior of "simplify"
+  it should "simplify field expressions" in {
+    Literal(1).simplify shouldBe Literal(1)
+    ConstPi.simplify shouldBe ConstPi
+    Phi.simplify shouldBe Phi
+  }
+  it should "simplify function expressions" in {
+    Function(Function(One, Negate), Negate).simplify shouldBe One
+    Function(Two, Reciprocal).simplify shouldBe Literal(Constants.half)
+    Function(Constants.pi, Sine).simplify shouldBe Literal(Constants.zero)
+  }
+  it should "simplify biFunction expressions" in {
+    BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).simplify shouldBe Zero
+  }
+  it should "simplify aggregate expressions" in {
+    Aggregate.total(BiFunction(Two, MinusOne, Product), Two).simplify shouldBe Zero
+    Aggregate.total(Two).simplify shouldBe Two
+    Aggregate.empty(Sum).simplify shouldBe Zero
+  }
+  it should "aggregate 2" in {
+    val target = (One * ConstPi * Two * MinusOne).simplify
+    target shouldBe Literal(-2 * Constants.pi)
+  }
+
+  behavior of "asAggregate"
+  it should "aggregate 1" in {
+    val target = One * ConstPi + Two * MinusOne
+    (target match {
+      case biFunction: BiFunction => biFunction.asAggregate
+    }) shouldBe target
+  }
+  it should "aggregate 2" in {
+    val target = One * ConstPi * Two * MinusOne
+    (target match {
+      case biFunction: BiFunction => biFunction.asAggregate
+    }) shouldBe Aggregate.product(One * ConstPi, Two, MinusOne)
   }
 }

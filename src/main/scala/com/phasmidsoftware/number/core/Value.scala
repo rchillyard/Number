@@ -8,7 +8,6 @@ import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Render.renderValue
 import com.phasmidsoftware.number.core.Value.{fromDouble, scaleDouble, valueToString}
-
 import scala.util._
 
 /**
@@ -230,6 +229,13 @@ sealed trait Factor {
   def convert(v: Value, f: Factor): Option[Value]
 
   /**
+    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    *
+    * @return true if this `Factor` can be rendered exactly; false otherwise.
+    */
+  def canShow(value: Value): Boolean
+
+  /**
     * Method to render a Value in the context of this Factor.
     *
     * @param x the Value.
@@ -250,6 +256,13 @@ sealed trait Factor {
  * Trait to define a Factor which is a scalar (something that can be scaled by a pure number).
   */
 sealed trait Scalar extends Factor {
+  /**
+    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    *
+    * @return true (value is ignored).
+    */
+  def canShow(value: Value): Boolean = true
+
   /**
    * Determines whether the current factor can be multiplied by the given factor.
    *
@@ -308,6 +321,13 @@ sealed trait Logarithmic extends Factor {
   val base: String
 
   /**
+    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    *
+    * @return true if this `Factor` can be rendered exactly; false otherwise.
+    */
+  def canShow(value: Value): Boolean = asPower(value).isDefined
+
+  /**
    * Determines whether the current factor can be multiplied by the given factor.
    *
    * TODO implement me properly
@@ -352,16 +372,18 @@ sealed trait Logarithmic extends Factor {
    * @param v the value to be converted, which can represent an integer power or a rational root.
    * @return a string representing the value in power notation, root notation, or a generic exponential format.
    */
-  def asPower(v: Value): String = v match {
-    case Right(1) => base
-    case Right(2) => base + "\u00B2"
-    case Right(3) => base + "\u00B3"
-    case Right(x) if x > 3 & x < 10 => base + Logarithmic.incrementUnicode("\u2070", 0, x)
-    case Left(Right(r)) if r * 2 == Rational.one => "\u221A" + base
-    case Left(Right(r)) if r * 3 == Rational.one => "\u221B" + base
-    case Left(Right(r)) if r * 4 == Rational.one => "\u221C" + base
-    case _ => base + "^" + valueToString(v)
+  def asPower(v: Value): Option[String] = v match {
+    case Right(1) => Some(base)
+    case Right(2) => Some(base + "\u00B2")
+    case Right(3) => Some(base + "\u00B3")
+    case Right(x) if x > 3 & x < 10 => Some(base + Logarithmic.incrementUnicode("\u2070", 0, x))
+    case Left(Right(r)) if r * 2 == Rational.one => Some("\u221A" + base)
+    case Left(Right(r)) if r * 3 == Rational.one => Some("\u221B" + base)
+    case Left(Right(r)) if r * 4 == Rational.one => Some("\u221C" + base)
+    case _ => None
   }
+
+  override def render(x: Value): String = asPower(x) getOrElse toString
 
   /**
    * Renders a string representation of the value based on the current base and the given input value.
@@ -414,6 +436,23 @@ sealed trait Root extends Factor {
     * A value which can be used to convert a value associated with this Factor to a different Factor.
     */
   val value: Double = root
+
+  def asRoot(value: Value): Option[String]
+
+  /**
+    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    *
+    * @return true if this `Factor` can be rendered exactly; false otherwise.
+    */
+  def canShow(value: Value): Boolean = asRoot(value).isDefined
+
+  /**
+    * Method to render a Value in the context of this Factor.
+    *
+    * @param x the Value.
+    * @return a String.
+    */
+  override def render(x: Value): String = asRoot(x) getOrElse convert(x, PureNumber).toString
 
   /**
    * Determines whether the current factor can be multiplied by the given factor.
@@ -580,8 +619,6 @@ case object NatLog extends Logarithmic {
   val value: Double = 1.0
 
   override def toString: String = Factor.sE
-
-  override def render(x: Value): String = asPower(x)
 }
 
 /**
@@ -604,8 +641,6 @@ case object Log2 extends Logarithmic {
   val value: Double = math.log(2)
 
   override def toString: String = "log2"
-
-  override def render(x: Value): String = asPower(x)
 }
 
 /**
@@ -622,8 +657,6 @@ case object Log10 extends Logarithmic {
   val value: Double = math.log(10)
 
   override def toString: String = "log10"
-
-  override def render(x: Value): String = asPower(x)
 }
 
 /**
@@ -636,6 +669,8 @@ case object Root2 extends Root {
   def render(x: String): String = s"√$x"
 
   def root: Int = 2
+
+  def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value)}")
 }
 
 /**
@@ -648,6 +683,8 @@ case object Root3 extends Root {
   def render(x: String): String = s"³√$x"
 
   def root: Int = 3
+
+  def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value)}")
 }
 
 /**

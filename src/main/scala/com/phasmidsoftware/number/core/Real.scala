@@ -7,7 +7,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.Real.createFromRealField
-
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -252,11 +251,20 @@ case class Real(x: Number) extends Field {
   override def toString: String = x.toString
 
   /**
-   * Converts the value of this Real to a Double.
-   * If the conversion is unsuccessful, it throws a NumberException.
-   *
-   * @return the Double representation of this Real.
-   */
+    * Converts the value of this Real to a Double.
+    * If the conversion is unsuccessful, it throws a NumberException.
+    * CONSIDER changing the name for consistency
+    *
+    * @return the Double representation of this Real, wrapped in Option.
+    */
+  def asDouble: Option[Double] = x.toDouble
+
+  /**
+    * Converts the value of this Real to a Double.
+    * If the conversion is unsuccessful, it throws a NumberException.
+    *
+    * @return the Double representation of this Real.
+    */
   def toDouble: Double = recover(x.toDouble, NumberException("Real.toDouble: logic error: x"))
 }
 
@@ -439,4 +447,15 @@ object Real {
 
   implicit object RealIsFractional extends RealIsFractional with RealIsNumeric with RealIsOrdering
 
+  /**
+    * Represents a constant Real number corresponding to "Not a Number" (NaN).
+    *
+    * This object is a specialized instance of `Real`, serving as a marker
+    * for undefined or unrepresentable numerical values within the Real number context.
+    *
+    * Inherits all behavior and operations defined by the `Real` class, but
+    * specific methods and operations involving NaN may yield NaN or
+    * other behavior consistent with the IEEE 754 standard for floating-point arithmetic.
+    */
+  object NaN extends Real(Number.NaN)
 }

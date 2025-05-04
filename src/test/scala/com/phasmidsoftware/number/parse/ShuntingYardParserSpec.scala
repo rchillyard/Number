@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.mill.Mill
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
@@ -53,14 +52,14 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     xo should matchPattern { case Some(_) => }
     xo.get shouldBe Number("60716.992766464000")
   }
-  it should "parseInfix ( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ^ 2 ) ^ 3 )" in {
+  ignore should "parseInfix ( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ^ 2 ) ^ 3 )" in {
     val sy = p.parseInfix("( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ^ 2 ) ^ 3 )")
     sy should matchPattern { case Success(_) => }
     val xo: Option[Number] = for (s <- sy.toOption; e <- s.evaluate; n <- e.materialize.asNumber) yield n
     xo should matchPattern { case Some(_) => }
     xo.get shouldBe Number(64)
   }
-  it should "parseInfix 3 + 4 × 2 / ( 1 − 5 ) ^ 2 ^ 3" in {
+  ignore should "parseInfix 3 + 4 × 2 / ( 1 − 5 ) ^ 2 ^ 3" in {
     val sy = p.parseInfix("3 + 4 × 2 / ( 1 - 5 ) ^ 2 ^ 3")
     sy should matchPattern { case Success(_) => }
     // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +

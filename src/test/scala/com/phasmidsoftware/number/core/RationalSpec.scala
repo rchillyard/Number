@@ -200,7 +200,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     createExact(3.14).get.isDecimal shouldBe true
   }
   // FIXME Issue #85
-  ignore should "be false for 223606797749979/200000000000000" in {
+  it should "be false for 223606797749979/200000000000000" in {
     val target = r"223606797749979/200000000000000"
     target.isDecimal shouldBe true
     target.renderConditional(true) shouldBe "223606797749979/200000000000000"

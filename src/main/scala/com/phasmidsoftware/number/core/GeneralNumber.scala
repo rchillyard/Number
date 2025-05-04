@@ -7,7 +7,6 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
 import com.phasmidsoftware.number.core.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.Rational.toInts
-
 import scala.annotation.tailrec
 import scala.util._
 
@@ -222,7 +221,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return this if its positive, else - this.
     */
-  def abs: Number = if (signum >= 0) this else makeNegative
+  def abs: Number = negateConditional(signum < 0)
 
   /**
     * Method to create a new version of this, but with factor f.

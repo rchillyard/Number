@@ -381,7 +381,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   }
 
   /**
-   * Action to materialize this Expression and render it as a String,
+    * Action to simplifyAndEvaluate this Expression and render it as a String,
    * that is to say we eagerly evaluate this Expression as a String.
    *
    * @return a String representing the value of this expression.
@@ -397,7 +397,10 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   def doAdd(complex: Complex): BaseComplex = complex match {
     case ComplexCartesian(a, b) =>
       import com.phasmidsoftware.number.core.Expression.ExpressionOps
-      Complex.apply(Literal(x).+(Real(a)).materialize, (Literal(y) + Real(b)).materialize, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
+      // TODO replace materialize with evaluateAsIs and do the appropriate things below (a for-comprehension).
+      val partA = Literal(x).+(Real(a)).materialize
+      val partB = Literal(y).+(Real(b)).materialize
+      Complex.apply(partA, partB, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
     case c@ComplexPolar(_, _, _) => doAdd(convertToCartesian(c))
   }
 
@@ -601,7 +604,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   }
 
   /**
-   * Action to materialize this Expression and render it as a String,
+    * Action to simplifyAndEvaluate this Expression and render it as a String,
    * that is to say we eagerly evaluate this Expression as a String.
    * TESTME (partial)
    *
