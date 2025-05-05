@@ -9,7 +9,6 @@ import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times}
 import com.phasmidsoftware.number.misc.ContinuedFraction
 import com.phasmidsoftware.number.parse.RationalParser
-
 import java.lang.Math._
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -398,7 +397,7 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
         case None =>
           asString
       }
-      }
+    }
   }
 
   /**
