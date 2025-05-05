@@ -42,19 +42,48 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     eo.get shouldBe BiFunction(Literal(2), Literal(-1), Power)
   }
 
-  // NOTE these are the new tests (Aug 6th) which should be good
-  behavior of "Function"
+  behavior of "apply Function"
+  it should "work for Negate" in {
+    val f: Negate.type = Negate
+    f(Constants.zero) shouldBe Constants.zero
+    f(Constants.one) shouldBe Constants.minusOne
+    f(Constants.minusOne) shouldBe Constants.one
+    f(f(Constants.two)) shouldBe Constants.two
+  }
+  it should "work for Reciprocal" in {
+    val f: Reciprocal.type = Reciprocal
+    f(Constants.zero) shouldBe Constants.infinity
+    f(Constants.one) shouldBe Constants.one
+    f(Constants.half) shouldBe Real(Rational.two)
+    f(Constants.two) shouldBe Constants.half
+//    f(Constants.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
+  }
+  it should "work for Exp" in {
+    val f: ExpressionFunction = Exp
+    f(Constants.zero) shouldBe Constants.one
+    f(Constants.one) shouldBe Constants.e
+  }
+  it should "work for Log" in {
+    val f: ExpressionFunction = Log
+    f(Constants.one) shouldBe Constants.zero
+    f(Constants.e) shouldBe Constants.one
+  }
+  it should "work for Sine" in {
+    val f: ExpressionFunction = Sine
+    f(Constants.piBy2) shouldBe Constants.one
+    f(Constants.zero) shouldBe Constants.zero
+  }
+  it should "work for Cosine" in {
+    val f: ExpressionFunction = Cosine
+    f(Constants.piBy2) shouldBe Constants.zero
+    f(Constants.zero) shouldBe Constants.one
+  }
+
+  behavior of "materialize Function"
   it should "work for Exp(1)" in {
     val x = Function(One, Exp)
     val result = x.materialize
     result shouldBe Constants.e
-  }
-  it should "work for Negate" in {
-    Function(MinusOne, Negate).materialize shouldBe Constants.one
-    Function(Zero, Negate).materialize shouldBe Constants.zero
-    Function(One, Negate).materialize shouldBe Constants.minusOne
-    Function(Two, Negate).materialize shouldBe Real(-2)
-    Function(Function(Two, Negate), Negate).materialize shouldBe Constants.two
   }
   it should "work for Reciprocal" in {
     Function(Two, Reciprocal).materialize shouldBe Constants.half

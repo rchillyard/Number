@@ -812,13 +812,33 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    *
    * @return the 1 + depth of x.
    */
-  def depth: Int = 1 + x.depth
+  def depth: Int =
+    1 + x.depth
   /**
     * Action to simplifyAndEvaluate this Expression as a Field.
    *
    * @return the materialized Field.
    */
-  def evaluate(context: Context): Option[Field] = x.evaluate(context) map f
+  def evaluate(context: Context): Option[Field] = {
+    (f, x.evaluateAsIs) match {
+      case (Log, Some(Constants.e)) => Some(Constants.one)
+      case (Log, Some(Constants.one)) => Some(Constants.zero)
+      case (Log, Some(Constants.zero)) => Some(Constants.negInfinity)
+      case (Exp, Some(Constants.one)) => Some(Constants.e)
+      case (Exp, Some(Constants.zero)) => Some(Constants.one)
+      case (Exp, Some(Constants.negInfinity)) => Some(Constants.zero)
+      case (Negate, Some(Constants.one)) => Some(Constants.minusOne)
+      case (Negate, Some(Constants.zero)) => Some(Constants.zero)
+      case (Reciprocal, Some(Constants.two)) => Some(Constants.half)
+      case (Reciprocal, Some(Constants.half)) => Some(Constants.two)
+
+      case (Reciprocal, Some(Constants.one)) => Some(Constants.one)
+      case (Reciprocal, Some(Constants.zero)) => Some(Constants.infinity)
+      case (Reciprocal, Some(Constants.two)) => Some(Constants.half)
+      case (Reciprocal, Some(Constants.half)) => Some(Constants.two)
+      case _ => x.evaluate(context) map f
+    }
+  }
 
   /**
     * Provides an approximation of the result of applying the function `f` to the
@@ -827,10 +847,11 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     * @return an `Option` containing the approximated result as a `Real` if the
     *         approximation is successfully computed; otherwise, `None`.
     */
-  override def approximation: Option[Real] = x.approximation map f match {
-    case Some(r: Real) => Some(r)
-    case _ => None
-  }
+  override def approximation: Option[Real] =
+    x.approximation map f match {
+      case Some(r: Real) => Some(r)
+      case _ => None
+    }
 }
 
 /**
@@ -1335,6 +1356,25 @@ object CompositeExpression {
  */
 abstract class SineCos(sine: Boolean) extends ExpressionFunction(x => if (sine) x.sin else x.cos, if (sine) "sin" else "cos") {
   /**
+    * Applies the exact trigonometric transformation based on predefined constants.
+    *
+    * The result depends on the input `x` and whether the operation is for sine or cosine.
+    * For specific values of `x`, the method returns exact results based on the constants defined.
+    * For other values of `x`, it returns `None`, indicating no exact transformation is available.
+    *
+    * @param x       the input value as an instance of `Field`. Expected values are mathematical constants such as zero, π/2, π, etc.
+    * @param context the contextual information used to evaluate or transform the input value.
+    * @return an `Option[Field]`, where a `Some[Field]` contains the exact transformed value, or `None` if no exact value is applicable.
+    */
+  def applyExact(x: Field)(context: Context): Option[Field] = x match {
+    case Constants.zero => Some(if (sine) Constants.zero else Constants.one)
+    case Constants.piBy2 => Some(if (sine) Constants.one else Constants.zero)
+    case Constants.pi => Some(if (sine) Constants.zero else -Constants.one)
+    case Constants.piBy2Times3 => Some(if (sine) -Constants.one else Constants.zero)
+    case _ => None
+  }
+
+  /**
    * Determines if the given expression is considered exact in the context provided.
    * TESTME
    *
@@ -1418,6 +1458,26 @@ case object Atan extends ExpressionBiFunction(
  */
 case object Log extends ExpressionFunction(x => x.log, "log") {
   /**
+    * Applies this function to the given field `x` within the specified `context`,
+    * and returns an `Option` containing the result if the function can be
+    * evaluated exactly in the given context, or None if it cannot.
+    *
+    * NOTE This method assumes that isExactInContext has been tested.
+    * But why?
+    *
+    * @param x       the field to which the function is applied.
+    * @param context the context within which exact evaluation is performed.
+    * @return an `Option` containing the result of the exact application if successful,
+    *         or None if the application is not exact in the provided context.
+    */
+  def applyExact(x: Field)(context: Context): Option[Field] = x match {
+    case Constants.e => Some(Constants.one)
+    case Constants.one => Some(Constants.zero)
+    case Constants.zero => Some(Constants.negInfinity)
+    case _ => None
+  }
+
+  /**
    * Determines the context of a given `Expression` by evaluating if it is based on a pure scalar factor (e.g., `PureNumber`).
    *
    * @param x the `Expression` to analyze, which may or may not be associated with a specific factor.
@@ -1450,6 +1510,28 @@ case object Log extends ExpressionFunction(x => x.log, "log") {
  * It defines the exponential operation for transformation or evaluation within expressions.
  */
 case object Exp extends ExpressionFunction(x => x.exp, "exp") {
+  /**
+    * Applies this function to the given field `x` within the specified `context`,
+    * and returns an `Option` containing the result if the function can be
+    * evaluated exactly in the given context, or None if it cannot.
+    *
+    * NOTE we ignore context in at least some of the implementations.
+    *
+    * NOTE This method assumes that isExactInContext has been tested.
+    * But why?
+    *
+    * @param x       the field to which the function is applied.
+    * @param context the context within which exact evaluation is performed.
+    * @return an `Option` containing the result of the exact application if successful,
+    *         or None if the application is not exact in the provided context.
+    */
+  def applyExact(x: Field)(context: Context): Option[Field] = x match {
+    case Constants.negInfinity => Some(Constants.zero)
+    case Constants.zero => Some(Constants.one)
+    case Constants.one => Some(Constants.e)
+    case _ => None
+  }
+
   /**
    * Determines the context of the given expression, based on its factor.
    * If the expression has a factor that is a `PureNumber`, it returns that factor wrapped in `Some`.
@@ -1492,6 +1574,27 @@ case object Exp extends ExpressionFunction(x => x.exp, "exp") {
  */
 case object Negate extends ExpressionFunction(x => negate(x), "-") {
   /**
+    * Applies this function to the given field `x` within the specified `context`,
+    * and returns an `Option` containing the result if the function can be
+    * evaluated exactly in the given context, or None if it cannot.
+    *
+    * NOTE we ignore context in at least some of the implementations.
+    *
+    * NOTE This method assumes that isExactInContext has been tested.
+    * But why?
+    *
+    * @param x       the field to which the function is applied.
+    * @param context the context within which exact evaluation is performed.
+    * @return an `Option` containing the result of the exact application if successful,
+    *         or None if the application is not exact in the provided context.
+    */
+  def applyExact(x: Field)(context: Context): Option[Field] = x match {
+    case Real(ExactNumber(v, f@PureNumber)) => Some(Real(ExactNumber(Value.negate(v), f)))
+    case Real(ExactNumber(v, f@Radian)) => Some(Real(ExactNumber(Value.negate(v), f)))
+    case _ => None
+  }
+
+  /**
    * Determines the context of the given expression based on its factor.
    * If the expression's factor is a scalar, it returns that factor as the context.
    * Otherwise, returns None as the context.
@@ -1525,6 +1628,28 @@ case object Negate extends ExpressionFunction(x => negate(x), "-") {
  * The operation is performed lazily and adheres to the behavior defined in its parent class.
  */
 case object Reciprocal extends ExpressionFunction(x => 1 / x, "rec") {
+  /**
+    * Applies this function to the given field `x` within the specified `context`,
+    * and returns an `Option` containing the result if the function can be
+    * evaluated exactly in the given context, or None if it cannot.
+    *
+    * NOTE we ignore context in at least some of the implementations.
+    *
+    * NOTE This method assumes that isExactInContext has been tested.
+    * But why?
+    *
+    * @param x       the field to which the function is applied.
+    * @param context the context within which exact evaluation is performed.
+    * @return an `Option` containing the result of the exact application if successful,
+    *         or None if the application is not exact in the provided context.
+    */
+  def applyExact(x: Field)(context: Context): Option[Field] = x match {
+    case Real(ExactNumber(v, f@PureNumber)) => Value.inverse(v) map (x => Real(ExactNumber(x, f)))
+    case Real(ExactNumber(v, f@Logarithmic(_))) => Some(Real(ExactNumber(Value.negate(v), f)))
+    case Real(ExactNumber(v, f@Root(_))) => Value.inverse(v) map (x => Real(ExactNumber(x, f)))
+    case _ => None
+  }
+
   /**
    * Determines the context of the provided expression based on its factor.
    *
@@ -1612,12 +1737,32 @@ abstract class ExpressionFunction(val f: Number => Number, val name: String) ext
   def isExactInContext(context: Context)(x: Expression): Boolean
 
   /**
+    * Applies this function to the given field `x` within the specified `context`,
+    * and returns an `Option` containing the result if the function can be
+    * evaluated exactly in the given context, or None if it cannot.
+    *
+    * NOTE we ignore context in at least some of the implementations.
+    *
+    * NOTE This method assumes that isExactInContext has been tested.
+    * But why?
+    *
+    * @param x       the field to which the function is applied.
+    * @param context the context within which exact evaluation is performed.
+    * @return an `Option` containing the result of the exact application if successful,
+    *         or None if the application is not exact in the provided context.
+    */
+  def applyExact(x: Field)(context: Context): Option[Field]
+
+  /**
    * Evaluate this function on Field x.
    *
    * @param x the parameter to the function.
    * @return the result of f(x).
    */
-  override def apply(x: Field): Field =
+  def apply(x: Field): Field =
+    this.context(x).flatMap(c => applyExact(x)(Some(c))).getOrElse(applyInexact(x))
+
+  private def applyInexact(x: Field) =
     recover(x.asNumber map f map (Real(_)), ExpressionException(s"logic error: ExpressionFunction.apply($x)"))
 
   /**

@@ -111,6 +111,41 @@ object Value {
   }
 
   /**
+    * Negates the given Value.
+    *
+    * @param value the Value to be negated.
+    * @return a Value representing the negation of the given Value.
+    */
+  def negate(value: Value): Value = value match {
+    case Right(Integer.MIN_VALUE) => Left(Right(Rational(BigInt(Integer.MIN_VALUE))))
+    case Right(0) => value
+    case Right(x) => Right(-x)
+    case Left(Right(x)) => Left(Right(-x))
+    case Left(Left(Some(x))) => Left(Left(Some(-x)))
+    case _ => fromNothing()
+  }
+
+  /**
+    * Computes the inverse of the given Value, if possible.
+    *
+    * For numeric values, this method attempts to determine their inverse.
+    * If the input Value is a Double, None is returned.
+    *
+    * @param value the Value to invert.
+    * @return an Option containing the inverted Value, or None if the inversion
+    *         cannot be performed.
+    */
+  def inverse(value: Value): Option[Value] = value match {
+    case Right(1) => Some(value)
+    case Right(x) => Some(Left(Right(Rational(1, x))))
+    case Left(Right(x)) =>
+      val inverted = x.invert
+      if (inverted.isInteger) Some(Right(inverted.toInt)) else Some(Left(Right(inverted)))
+    case Left(Left(Some(_))) => None
+    case _ => None
+  }
+
+  /**
     * Method to scale the given Double according to the provided scaling factors.
     *
     * @param x       the Double to be scaled.
