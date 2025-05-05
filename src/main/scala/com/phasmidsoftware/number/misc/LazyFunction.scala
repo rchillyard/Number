@@ -92,7 +92,11 @@ case class Product[X: Numeric](y: X) extends Known[X](s"times $y") {
 case class ExpDifferentiable[X: Numeric]() extends KnownDifferentiableFunction[X](s"exp", Exp[X](), { x => math.exp(implicitly[Numeric[X]].toDouble(x)) })
 
 case class Exp[X: Numeric]() extends Known[X]("exp") {
-  def apply(x: X): X = math.exp(implicitly[Numeric[X]].toDouble(x)).asInstanceOf[X]
+  def apply(x: X): X = x match {
+    case f: Fuzzy => Exact(math.exp(f.get)).asInstanceOf[X]
+    case _ => math.exp(implicitly[Numeric[X]].toDouble(x)).asInstanceOf[X]
+  }
+
 }
 
 // Arbitrary function that is named for debugging purposes only
