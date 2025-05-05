@@ -394,11 +394,12 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
       case Success(w) => w
       case _ => toBigDecimal match {
         case Some(x) =>
-          x.toString
+          x.toString()
         case None =>
           asString
+
       }
-      }
+    }
   }
 
   /**

@@ -64,6 +64,8 @@ sealed trait Fuzzy {
     */
   def prob(x: Double, delta: Double): Try[Double]
 
+  def power(x: Fuzzy): Fuzzy //zijie added
+
   /**
     * Returns an integer whose sign communicates how x compares to y.
     *
