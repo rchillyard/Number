@@ -408,12 +408,17 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   it should "simplify aggregate 3b" in {
-    val target: Expression = CompositeExpression(Literal(root2), -Literal(root2))
-    em.simplifier(target.simplify) map (_.materialize) match {
-      case em.Match(x: Field) =>
-        val value = convertToNumber(x)
-        value shouldBe Number.zero
-      case x => fail(s"expected a Field but got $x")
+    CompositeExpression(Literal(root2), -Literal(root2)) match {
+      case x: BiFunction =>
+        val target = x.asAggregate
+        //        val simplified: Expression = aggregateSimplifier(target)
+        val simplified = em.simplifier(target)
+        simplified map (_.materialize) match {
+          case em.Match(x: Field) =>
+            val value = convertToNumber(x)
+            value shouldBe Number.zero
+          case x => fail(s"expected a Field but got $x")
+        }
     }
   }
 

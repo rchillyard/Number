@@ -496,7 +496,7 @@ sealed trait CompositeExpression extends Expression {
   def render: String =
     (context, evaluate(context)) match {
       case (Some(f), Some(Real(x))) if f.canShow(x.nominalValue) => x.render
-      case _ => materialize.toString
+      case _ => toString
     }
 
   /**
@@ -509,8 +509,10 @@ sealed trait CompositeExpression extends Expression {
     */
   def replaceWithLiteralIfPossible(x: Expression): Expression =
     x.evaluateAsIs match {
-      case Some(field) => Literal(field)
-      case _ => x
+      case Some(field) =>
+        Literal(field)
+      case _ =>
+        x
   }
 
 }
@@ -819,26 +821,29 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
    *
    * @return the materialized Field.
    */
-  def evaluate(context: Context): Option[Field] = {
-    (f, x.evaluateAsIs) match {
-      case (Log, Some(Constants.e)) => Some(Constants.one)
-      case (Log, Some(Constants.one)) => Some(Constants.zero)
-      case (Log, Some(Constants.zero)) => Some(Constants.negInfinity)
-      case (Exp, Some(Constants.one)) => Some(Constants.e)
-      case (Exp, Some(Constants.zero)) => Some(Constants.one)
-      case (Exp, Some(Constants.negInfinity)) => Some(Constants.zero)
-      case (Negate, Some(Constants.one)) => Some(Constants.minusOne)
-      case (Negate, Some(Constants.zero)) => Some(Constants.zero)
-      case (Reciprocal, Some(Constants.two)) => Some(Constants.half)
-      case (Reciprocal, Some(Constants.half)) => Some(Constants.two)
-
-      case (Reciprocal, Some(Constants.one)) => Some(Constants.one)
-      case (Reciprocal, Some(Constants.zero)) => Some(Constants.infinity)
-      case (Reciprocal, Some(Constants.two)) => Some(Constants.half)
-      case (Reciprocal, Some(Constants.half)) => Some(Constants.two)
-      case _ => x.evaluate(context) map f
-    }
+  def evaluate(context: Context): Option[Field] = x match {
+    case AtomicExpression(field) => f.applyExact(field)(context)
+    case _ => x.evaluate(context) map f
   }
+//  {
+//    (f, x.evaluateAsIs) match {
+//      case (Log, Some(Constants.e)) => Some(Constants.one)
+//      case (Log, Some(Constants.one)) => Some(Constants.zero)
+//      case (Log, Some(Constants.zero)) => Some(Constants.negInfinity)
+//      case (Exp, Some(Constants.one)) => Some(Constants.e)
+//      case (Exp, Some(Constants.zero)) => Some(Constants.one)
+//      case (Exp, Some(Constants.negInfinity)) => Some(Constants.zero)
+//      case (Negate, Some(Constants.one)) => Some(Constants.minusOne)
+//      case (Negate, Some(Constants.zero)) => Some(Constants.zero)
+//      case (Reciprocal, Some(Constants.two)) => Some(Constants.half)
+//      case (Reciprocal, Some(Constants.half)) => Some(Constants.two)
+//      case (Reciprocal, Some(Constants.one)) => Some(Constants.one)
+//      case (Reciprocal, Some(Constants.zero)) => Some(Constants.infinity)
+//      case (Reciprocal, Some(Constants.two)) => Some(Constants.half)
+//      case (Reciprocal, Some(Constants.half)) => Some(Constants.two)
+//      case _ => x.evaluate(context) map f
+//    }
+//  }
 
   /**
     * Provides an approximation of the result of applying the function `f` to the
@@ -890,7 +895,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case BiFunction(x, BiFunction(y, z, f), h) if f == h =>
       Aggregate(f, Seq(x, y, z))
     case _ =>
-      this
+      Aggregate(f, Seq(a, b))
   }
 
   /**

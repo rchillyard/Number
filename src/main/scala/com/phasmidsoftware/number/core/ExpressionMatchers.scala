@@ -88,7 +88,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Match(r) if r == q =>
       System.out.println(s"autoMatch at $msg: $rm is a Match of $q")
       rm
-    case _ => rm
+    case _ =>
+      rm
   }
   /**
     * Evaluates an expression within a given context, matching it to a field if the evaluation is exact.
@@ -190,8 +191,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       val result = functionSimplifier(f) & alt(simplifier)
       autoMatch[CompositeExpression, Expression](f, "compositeSimplifier: Function")(result)
     case a@Aggregate(_, _) =>
-      val m1 = aggregateSimplifier(a)
-      val result = m1 & alt(simplifier)
+      val m1: MatchResult[Expression] = aggregateSimplifier(a)
+      //      val result = m1 & alt(simplifier)
+      val result = m1
       autoMatch[CompositeExpression, Expression](a, "compositeSimplifier: Aggregate")(result)
     case r@ReducedQuadraticRoot(_, _, _, _) => // TESTME
       Miss("simplification of ReducedQuadraticRoot not yet implemented", r) // TODO implement simplifications if any
@@ -740,8 +742,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return ExpressionMatcher[Expression]
     */
   def matchAggregate: ExpressionMatcher[Expression] = ExpressionMatcher {
-    case a@Aggregate(_, _) => Match(a) // TESTME
-    case e => Miss("matchAggregate: not a Aggregate expression", e) // TESTME
+    case a@Aggregate(_, _) =>
+      Match(a) // TESTME
+    case e =>
+      Miss("matchAggregate: not a Aggregate expression", e) // TESTME
   }.named("matchAggregate")
 
   /**
@@ -767,10 +771,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Miss("simplifyAggregateTerms: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
     case Aggregate(_, x :: Nil) =>
       matchAndMaybeSimplify(x)
-    case Aggregate(f, x :: y :: Nil) =>
-      Match(BiFunction(x, y, f))
+      // NOTE it's important that you do not reintroduce a match into a BiFunction!
+//    case Aggregate(f, x :: y :: Nil) =>
+//      Match(BiFunction(x, y, f))
     case a@Aggregate(_, _) =>
       complementaryTermsEliminator(a)
+    case x =>
+      Miss("simplifyAggregateTerms: no match", x)
   }
 
   /**
