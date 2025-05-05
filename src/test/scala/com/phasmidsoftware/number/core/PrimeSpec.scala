@@ -156,22 +156,23 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     multiplicativeInverse(9, BigInt(23)) shouldBe 18
   }
 
-  // FIXME
+  // NOTE this test needs double-checking.
+  //  It derives originally (I think) from the Diffie-Hellman key exchange
   it should "multiplicativeInverse2" in {
     val g = 7
     val z = p7.modPow(g, 10)
     z shouldBe 2
     val y = BigInt(g).pow(10)
     y shouldBe BigInt(282475249L)
-    val q = y / 17
-    val r = y - q * 17
+    val n = 17
+    val q = y / n
+    val r = y - q * n
     q shouldBe BigInt(16616191L)
     r shouldBe BigInt(2)
-    y.mod(17) shouldBe 2
-    //p7.modPow(z, 12) shouldBe g
-    p7.modPow(z, 12) shouldBe 16  //fixed
+    y.mod(n) shouldBe 2
+    p7.modPow(z, 12) shouldBe n - 1
     //Fermat's little theorem
-    //p7.modPow(z, 16) shouldBe 1
+    p7.modPow(z, n - 1) shouldBe 1
   }
 
   it should "validated" in {
