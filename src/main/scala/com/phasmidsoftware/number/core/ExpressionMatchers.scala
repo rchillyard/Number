@@ -778,7 +778,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       matchSimpler(x).asInstanceOf[MatchResult[Expression]]
       // NOTE it's important that you do not reintroduce a match into a BiFunction!
     case a@Aggregate(_, _) =>
-      complementaryTermsEliminator(a) & simplifyAggregate
+      complementaryTermsEliminator(a) & alt(simplifyAggregate)
     case x =>
       Miss(s"simplifyAggregate: no match for $x", x)
   }

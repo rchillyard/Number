@@ -159,9 +159,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "simplifyAggregate"
   it should "simplifyAggregate" in {
     val p = em.simplifyAggregate
-    val x = Aggregate.total(One, Literal(3), Literal(-3))
+    val x: CompositeExpression = Aggregate.total(One, Literal(3), Literal(-3))
     val result: em.MatchResult[Expression] = p(x)
-    result shouldBe em.Match(Literal(1))
+    result shouldBe em.Match(Aggregate.total(One))
   }
   behavior of "simplifier"
   it should "leave atomic expression as is" in {
