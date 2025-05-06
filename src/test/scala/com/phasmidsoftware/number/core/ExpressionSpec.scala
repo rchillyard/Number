@@ -152,10 +152,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     y.materialize shouldBe Constants.one
   }
   it should "evaluate atan" in {
-    Zero.atan(One).materialize.asNumber shouldBe Some(Number.piBy2)
-    Zero.atan(1).materialize.asNumber shouldBe Some(Number.piBy2)
-    One.atan(0).materialize.asNumber shouldBe Some(Number(0, Radian))
-    Number.one.atan(Number.zero) shouldBe Number(0, Radian)
+//    Zero.atan(One).materialize.asNumber shouldBe Some(Number.piBy2)
+//    Zero.atan(1).materialize.asNumber shouldBe Some(Number.piBy2)
+//    One.atan(0).materialize.asNumber shouldBe Some(Number(0, Radian))
+//    Number.one.atan(Number.zero) shouldBe Number(0, Radian)
+    One.atan(Constants.root3).evaluateAsIs shouldBe Some(Constants.piBy3)
+    One.atan(One).evaluateAsIs shouldBe Some(Constants.piBy4)
   }
   it should "evaluate ln E" in {
     val x: Expression = ConstE

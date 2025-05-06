@@ -48,14 +48,17 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
 
   val em: ExpressionMatchers = Expression.em
 
-  it should "simplifier 1" in {
+  it should "simplifyComponents {2 * -1}+{2 + 1}+{-1 * 5}+2" in {
     import com.phasmidsoftware.number.core.Expression.ExpressionOps
     val target = Aggregate.total(Two * MinusOne, Two + One, MinusOne * 5, Constants.two)
-    val result = em.simplifier(target)
-    result.successful shouldBe true
-    result match {
-      case em.Match(expression) => expression shouldBe Literal(Real(-2))
-    }
+    target.simplifyComponents(target) shouldBe em.Match(Aggregate.total(Literal(-2), Literal(3), Literal(-5), Literal(2)))
+    target.simplifyConstant(target) shouldBe em.Match(Literal(-2))
+  }
+
+  it should "simplify {2 * -1}+{2 + 1}+{-1 * 5}+2" in {
+    import com.phasmidsoftware.number.core.Expression.ExpressionOps
+    val target = Aggregate.total(Two * MinusOne, Two + One, MinusOne * 5, Constants.two)
+    target.simplify shouldBe Literal(-2)
   }
 
   it should "simplifier 2" in {

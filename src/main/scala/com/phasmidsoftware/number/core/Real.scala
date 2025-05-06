@@ -306,6 +306,18 @@ object Real {
    */
   def apply(r: Rational): Real = Real(Number(r))
 
+  /**
+    * Computes the arctangent of two `Field` values and returns the result as a `Real`.
+    *
+    * NOTE that Expression defines a more precise version of atan.
+    *
+    * This operation calculates the arctangent of the ratio `x / y`, using their numeric representations.
+    * If either `x` or `y` cannot be converted into a numeric representation, the result is `NaN`.
+    *
+    * @param x the first `Field` input, representing the numerator in the arctangent calculation.
+    * @param y the second `Field` input, representing the denominator in the arctangent calculation.
+    * @return a `Real` value representing the arctangent of the arguments, or `NaN` if the inputs are not valid numbers.
+    */
   def atan(x: Field, y: Field): Real = (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN))
 
   val atanFunction: (Field, Field) => Real = atan

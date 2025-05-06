@@ -685,6 +685,12 @@ object Number {
    */
   val piBy4: Number = Number(Rational(1, 4), Radian)
   /**
+    * Represents the mathematical constant π/3.
+    * It is defined as a `Number` with a rational value of 1/3
+    * and a unit of measurement as `Radian`.
+    */
+  val piBy3: Number = Number(Rational(1, 3), Radian)
+  /**
     * Exact value of -pi
     */
   val minusPi: Number = negate(pi)

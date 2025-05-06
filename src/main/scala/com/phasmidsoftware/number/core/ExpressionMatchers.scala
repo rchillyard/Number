@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.Constants.{half, piBy2}
-import com.phasmidsoftware.number.core.Expression.isIdentityFunction
+import com.phasmidsoftware.number.core.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.core.Rational.{infinity, negInfinity}
 import com.phasmidsoftware.number.matchers._
 import scala.language.implicitConversions
@@ -26,6 +26,8 @@ import scala.util.{Failure, Success, Try}
   * NOTE: do not pass anything to flatMap simplifier if it could possibly be the same as the input (else stack overflow).
   */
 class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends MatchersExtras {
+
+  self =>
 
   import com.phasmidsoftware.matchers.Matchers._
 
@@ -66,6 +68,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return ExpressionMatcher[R]
     */
   implicit def matcherConverter[R](m: Matcher[Expression, R]): ExpressionMatcher[R] = ExpressionMatcher(m)
+
 
   /**
     * Matcher which tries to evaluate the input exactly as a PureNumber and then wraps the result as an Expression.
@@ -141,7 +144,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * This method is called by materializer and therefore will return a Field, regardless of whether any simplifications
     * were possible.
     * CONSIDER this should be an instance method of Expression.
-    * CONSIDER both cases should be normalized.
+    * CONSIDER we should make this method a `Matcher`
     *
     * @param x the Expression to be evaluated as a Field.
     * @return the value of the original Expression or a simplified version of the Expression.
@@ -149,20 +152,18 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def simplifyAndEvaluate(x: Expression, context: Context): Option[Field] =
     simplifier(x) match {
       case Match(e) =>
-        // NOTE that, formerly, we checked for exactness and if non-exact, we normalized the result.
         e.evaluate(context)
       case _ =>
         x.evaluate(context) // TESTME
     }
 
   /**
-    * ExpressionTransformer which always succeeds.
-    * If appropriate, the result will be a simplification of the input.
-    * Any actual simplification is performed by `matchCompositeAndSimplify`
+    * A Matcher that simplifies an expression into a simpler form.
     *
-    * @return a ExpressionTransformer that applies the composite simplification logic
+    * @return An instance of ExpressionTransformer.
     */
-  def simplifier: ExpressionTransformer = (matchCompositeAndSimplify | always)
+  @deprecated("use simplify", "0.1.0")
+  def simplifier: ExpressionTransformer = matchCompositeAndSimplify
 
   /**
     * Attempts to simplify an expression by applying a combination of matching and simplification techniques.
@@ -170,6 +171,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return An `ExpressionTransformer` that represents the result of the simplification process.
     */
+  @deprecated("use simplify", "0.1.0")
   def matchCompositeAndSimplify: ExpressionTransformer = matchAndSimplifyComposite & compositeSimplifier
 
   /**
@@ -183,6 +185,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return A `AutoMatcher` instance that applies the defined simplification rules
     *         to matching expressions.
     */
+  @deprecated
   def compositeSimplifier: Matcher[CompositeExpression, Expression] = ExpressionMatcher {
     case b@BiFunction(_, _, _) =>
       val result = biFunctionSimplifier(b)
@@ -212,6 +215,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param c the composite expression to be simplified
     * @return the simplified composite expression, or the original expression if simplification is unsuccessful
     */
+  @deprecated("use simplify", "0.1.0")
   def simplifyTerms(c: CompositeExpression): CompositeExpression = {
     // CONSIDER this appears to be wrong. See ISSUE #89
     val frs: Seq[MatchResult[Field]] = c.terms map matchCompositeAndSimplify & exactEvaluator(None)
@@ -279,8 +283,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a ExpressionTransformer.
     */
+  @deprecated("use simplify", "0.1.0")
   def aggregateSimplifier: ExpressionTransformer =
-    (matchAggregate & simplifyAggregateTerms) :| "aggregateSimplifier"
+    (matchAggregate & simplifyAggregate) :| "aggregateSimplifier"
 
   /**
     * Method to match an Expression which is a BiFunction and replace it with a simplified expression.
@@ -762,23 +767,43 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return A `ExpressionTransformer` that matches and simplifies `Aggregate` expressions efficiently.
     * @throws NoSuchElementException due to invocation of get on Option (very unlikely).
     */
-  def simplifyAggregateTerms: ExpressionTransformer = Matcher[Expression, Expression]("simplifyAggregateTerms") {
+  def simplifyAggregate: ExpressionTransformer = Matcher[Expression, Expression]("simplifyAggregate") {
     case Aggregate(Sum, Nil) =>
       Match(Zero) // TESTME
     case Aggregate(Product, Nil) =>
       Match(One) // TESTME
     case Aggregate(Power, Nil) =>
-      Miss("simplifyAggregateTerms: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
+      Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
     case Aggregate(_, x :: Nil) =>
-      matchAndMaybeSimplify(x)
+      matchSimpler(x).asInstanceOf[MatchResult[Expression]]
       // NOTE it's important that you do not reintroduce a match into a BiFunction!
-//    case Aggregate(f, x :: y :: Nil) =>
-//      Match(BiFunction(x, y, f))
     case a@Aggregate(_, _) =>
-      complementaryTermsEliminator(a)
+      complementaryTermsEliminator(a) & simplifyAggregate
     case x =>
-      Miss("simplifyAggregateTerms: no match", x)
+      Miss(s"simplifyAggregate: no match for $x", x)
   }
+//
+//  /**
+//    * Simplifies this `Expression` by applying logical or mathematical reductions
+//    * to produce a potentially simpler or more canonical form of the expression.
+//    * If the `Expression` cannot be simplified further, it may return itself.
+//    *
+//    * @return a simplified `Expression`, or the same `Expression` if it cannot be simplified further
+//    */
+//  def replaceTrivialAggregate: Matcher[Aggregate, Expression] = {
+//    case Aggregate(function, xs) =>
+//      xs match {
+//        case Nil =>
+//          function.maybeIdentityL orElse function.maybeIdentityR match {
+//            case Some(f) => Match(Literal(f))
+//            case None => Error(ExpressionException("Cannot simplify empty Aggregate"))
+//          }
+//        case x :: Nil =>
+//          Match(x)
+//        case _ =>
+//          Miss(s"Cannot simplify this Aggregate", this)
+//      }
+//  }
 
   /**
     * Matches and simplifies an `Aggregate` expression by identifying and eliminating
@@ -818,7 +843,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
     case x =>
-      Miss(s"simplifyAggregateTerms: not an Aggregate", x)
+      Miss(s"simplifyAggregate: not an Aggregate", x)
   }
 
   /**
@@ -1270,7 +1295,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param g The second `ExpressionFunction` value to compare.
     * @return True if the functions are complementary, otherwise false.
     */
-  private def complementaryMonadic(f: ExpressionFunction, g: ExpressionFunction) = (f, g) match {
+  def complementaryMonadic(f: ExpressionFunction, g: ExpressionFunction): Boolean = (f, g) match {
     case (Exp, Log) => true
     case (Log, Exp) => true  // TESTME
     case (Negate, Negate) => true

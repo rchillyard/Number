@@ -156,18 +156,18 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   //    result shouldBe em.Match(ConstPi)
   //  }
 
-  behavior of "simplifyAggregateTerms"
-  it should "simplifyAggregateTerms" in {
-    val p = em.simplifyAggregateTerms
+  behavior of "simplifyAggregate"
+  it should "simplifyAggregate" in {
+    val p = em.simplifyAggregate
     val x = Aggregate.total(One, Literal(3), Literal(-3))
     val result: em.MatchResult[Expression] = p(x)
-    result shouldBe em.Match(Aggregate.total(One))
+    result shouldBe em.Match(Literal(1))
   }
   behavior of "simplifier"
   it should "leave atomic expression as is" in {
     val x: Expression = One
     val result = em.simplifier(x)
-    result shouldBe em.Match(One)
+    result shouldBe em.Miss("matchAndSimplifyComposite", One)
   }
   it should "cancel 1 and - -1 (q)" in {
     sb.append("cancel 1 and - -1:\n")
@@ -250,9 +250,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y shouldBe seven
   }
   it should "cancel addition and subtraction (a)" in {
-    val x = One + 3 - 3
-    val m = em.simplifier(x) & em.exactEvaluator(None)
-    m shouldBe em.Match(Constants.one)
+    val x = ConstPi + 3 - 3
+    val simplified = x.simplify
+    simplified shouldBe Literal(Constants.pi)
   }
   it should "cancel multiplication and division" in {
     val x = Literal(Number.pi) * 2 / 2
@@ -293,8 +293,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "cancel addition and subtraction of 3" in {
     val x = One + 3 - 3
-    val m = em.simplifier(x) & em.exactEvaluator(None)
-    m shouldBe em.Match(Constants.one)
+    x.simplify shouldBe Literal(1)
   }
   it should "cancel addition and subtraction of e using matchComplementary" in {
     val y: Expression = One + ConstE
