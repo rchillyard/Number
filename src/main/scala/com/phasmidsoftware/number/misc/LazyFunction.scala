@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.misc.Fuzzy.FuzzyIsFractional
 
 /**
   * This abstract class is the base class for various functions used by LazyNumber algebra.
@@ -89,10 +90,27 @@ case class Product[X: Numeric](y: X) extends Known[X](s"times $y") {
   def apply(x: X): X = implicitly[Numeric[X]].times(x, y)
 }
 
-case class ExpDifferentiable[X: Numeric]() extends KnownDifferentiableFunction[X](s"exp", Exp[X](), { x => math.exp(implicitly[Numeric[X]].toDouble(x)) })
+case class ExpDifferentiable[X]()(ev: FuzzyIsFractional) extends KnownDifferentiableFunction[X](
+  s"exp",
+  Exp[X]()(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]]),
+  x => math.exp(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]].toDouble(x))
+)
 
-case class Exp[X: Numeric]() extends Known[X]("exp") {
-  def apply(x: X): X = math.exp(implicitly[Numeric[X]].toDouble(x)).asInstanceOf[X]
+case class Exp[X]()(implicit ev: Numeric[X]) extends Known[X]("exp") {
+  def apply(x: X): X = x match {
+    case Exact(y) =>
+      Exact(math.exp(y)).asInstanceOf[X]
+    case Bounded(mu, delta) =>
+      ev match {
+        // CONSIDER shouldn't we be adding mu to delta?
+        case numeric: FuzzyIsFractional => numeric.fromDoubles(math.exp(mu), delta).asInstanceOf[X]
+        case _ => throw new UnsupportedOperationException(s"cannot convert $x to Fuzzy")
+      }
+
+    case _ =>
+      math.exp(implicitly[Numeric[X]].toDouble(x)).asInstanceOf[X]
+  }
+
 }
 
 // Arbitrary function that is named for debugging purposes only

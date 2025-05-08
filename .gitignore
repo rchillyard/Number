@@ -3,6 +3,7 @@ project/target
 .idea/
 *.class
 *.log
+**/.DS_Store
 
 .bsp/
 /api/

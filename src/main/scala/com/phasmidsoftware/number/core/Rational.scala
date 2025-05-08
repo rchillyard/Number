@@ -529,7 +529,7 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
         case None =>
           asString
       }
-      }
+    }
   }
 
   /**
