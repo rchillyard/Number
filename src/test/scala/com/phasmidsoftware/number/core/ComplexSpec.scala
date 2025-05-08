@@ -64,14 +64,6 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi.imag shouldBe Number.pi
   }
 
-  it should "isExact" in {
-    c1_2.isExact shouldBe true
-    c2_0.isExact shouldBe true
-    p1_pi.isExact shouldBe true
-    (c1_2 add c2_0).isExact shouldBe true
-    (c1_2 add p1_pi_2).materialize.isExact shouldBe true
-  }
-
   it should "isInfinite" in {
     p1_pi_2.divide(Constants.zero).isInfinite shouldBe true
     p1_pi.isInfinite shouldBe false
@@ -199,13 +191,6 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "other"
-
-  it should "context" in {
-    c1_2.context shouldBe Some(PureNumber)
-    ComplexCartesian(Number.one, Number.pi).context shouldBe None
-    p1_pi.context shouldBe None
-    ComplexPolar(Number.one, Number.pi).context shouldBe None
-  }
 
   it should "modulus" in {
     c2_0.modulus shouldBe Number.two

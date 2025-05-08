@@ -14,28 +14,28 @@ class BumperatorSpec extends AnyFlatSpec with should.Matchers {
   it should "hasNext 1" in {
     val target = Bumperator(Seq(1))(_ + _ == 0)
     target.hasNext shouldBe true
-    target.next shouldBe 1
+    target.next() shouldBe 1
     target.hasNext shouldBe false
   }
   it should "hasNext 2" in {
     val target = Bumperator(Seq(1, 2))(_ + _ == 0)
     target.hasNext shouldBe true
-    target.next shouldBe 1
+    target.next() shouldBe 1
     target.hasNext shouldBe true
-    target.next shouldBe 2
+    target.next() shouldBe 2
     target.hasNext shouldBe false
   }
 
   it should "next 1" in {
     val target = Bumperator(List(1, 2, 3, 4))(_ + _ == 0)
     target.hasNext shouldBe true
-    target.next shouldBe 1
+    target.next() shouldBe 1
     target.hasNext shouldBe true
-    target.next shouldBe 2
+    target.next() shouldBe 2
     target.hasNext shouldBe true
-    target.next shouldBe 3
+    target.next() shouldBe 3
     target.hasNext shouldBe true
-    target.next shouldBe 4
+    target.next() shouldBe 4
     target.hasNext shouldBe false
   }
 

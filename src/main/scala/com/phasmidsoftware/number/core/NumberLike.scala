@@ -16,23 +16,23 @@ trait NumberLike {
    * @return an optional `Factor`.
    */
   def maybeFactor: Option[Factor]
+//
+//  /**
+//   * Method to determine if this `NumberLike` object can be evaluated exactly in the given context.
+//    *
+//   * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
+//   *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
+//   * @return true if `this` is exact in the context of factor, else false.
+//    */
+//  def isExactInContext(context: Context): Boolean
 
   /**
-   * Method to determine if this `NumberLike` object can be evaluated exactly in the given context.
-    *
-   * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
-   *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
-   * @return true if `this` is exact in the context of factor, else false.
-    */
-  def isExactInContext(context: Context): Boolean
-
-  /**
-    * Method to determine if this NumberLike object can be evaluated exactly in the context of no factor.
-   * For instance, Number.pi is exact, although if you scaled it as a PureNumber, it would no longer be exact.
+    * Method to determine if this NumberLike object is exact.
+    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = isExactInContext(None)
+  def isExact: Boolean
 
   /**
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).

@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.{Ellipsis, withinWiggleRoom}
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
-
 import scala.collection.mutable
 
 /**
@@ -28,6 +27,13 @@ import scala.collection.mutable
  * @param fuzz   the fuzziness of this Number.
  */
 case class FuzzyNumber(override val nominalValue: Value, override val factor: Factor, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(nominalValue, factor, fuzz) with Fuzz[Double] {
+  /**
+    * Method to determine if this NumberLike object is exact.
+    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    *
+    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    */
+  def isExact: Boolean = fuzz.isEmpty
 
   /**
    * Method to determine if this FuzzyNumber is equivalent to another Numerical (x).
@@ -70,12 +76,6 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
         case _ => this
       }
   }
-
-  /**
-   * @param context an optional Factor to be matched.
-   * @return true if there is no fuzz AND if context is defined then it should match factor.
-   */
-  def isExactInContext(context: Context): Boolean = fuzz.isEmpty && factorAsIs(context)
 
   /**
    * Add a Number to this FuzzyNumber.

@@ -143,6 +143,49 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @return a `Double` representing the approximation of this expression.
     */
   def approximation: Option[Real] = asNumber map (Real(_))
+
+  /**
+    * Computes the sine of this Field.
+    *
+    * @return the sine of this Field, as an instance of Field.
+    */
+  def sin: Field
+
+  /**
+    * Computes the trigonometric cosine of this Field.
+    *
+    * @return the cosine of this Field.
+    */
+  def cos: Field
+
+  /**
+    * Computes the tangent of this Field.
+    *
+    * @return the tangent of this Field as a new Field.
+    */
+  def tan: Field
+
+  /**
+    * Calculates the arctangent (inverse tangent) of the given Real number.
+    *
+    * @param y the Real number whose arctangent is to be calculated.
+    * @return the arctangent of the specified Real number, represented as a Field.
+    */
+  def atan(y: Real): Field
+
+  /**
+    * Computes the natural logarithm (log base e) of this Field.
+    *
+    * @return a new Field representing the result of the logarithmic computation.
+    */
+  def log: Field
+
+  /**
+    * Computes the exponential of this Field.
+    *
+    * @return a Field representing the exponential of this instance.
+    */
+  def exp: Field
 }
 
 /**

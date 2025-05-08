@@ -8,16 +8,6 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Aggregate"
 
-  it should "isExactInContext" in {
-    val target = Aggregate.total(Constants.one, Constants.one)
-    target.isExactInContext(Some(PureNumber)) shouldBe true
-  }
-
-  it should "context" in {
-    val target = Aggregate.total(Constants.one, Constants.one)
-    target.context shouldBe Some(PureNumber)
-  }
-
   it should "render" in {
     val target = Aggregate.total(Constants.one, Constants.one)
     target.materialize shouldBe Real(2)

@@ -305,15 +305,6 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   def query[T](op: QueryOperation[T], defaultVal: => T): T = Operations.doQuery(nominalValue, op.getFunctions).getOrElse(defaultVal)
 
   /**
-   * Method to determine if this Number can stay "as is" under transformation according to context.
-    *
-   * @param context an optional Factor.
-   * @return true if context is empty or contains this factor.
-    */
-  protected def factorAsIs(context: Context): Boolean =
-    context.isEmpty || context.contains(factor) // CONSIDER using forAll
-
-  /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Only the factor will change.
     * This method does not need to be followed by a call to specialize.

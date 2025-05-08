@@ -19,6 +19,14 @@ import scala.util.Try
   */
 case class Real(x: Number) extends Field {
   /**
+    * Method to determine if this NumberLike object is exact.
+    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    *
+    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    */
+  def isExact: Boolean = x.isExact
+
+  /**
    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
    *
    * @return an optional `Factor`.
@@ -209,15 +217,6 @@ case class Real(x: Number) extends Field {
     case Real(y) => x.compare(y)
     case z: Complex => asComplex.compare(z)
   }
-
-  /**
-    * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
-    *
-   * @param context      the (optional) context in which we want to evaluate this Expression.
-    *                    if factor is None then, the result will depend solely on whether this is exact.
-    * @return true if this NumberLike object is exact in the context of factor, else false.
-    */
-  def isExactInContext(context: Context): Boolean = x.isExactInContext(context)
 
   /**
     * Method to return the x of this Real.

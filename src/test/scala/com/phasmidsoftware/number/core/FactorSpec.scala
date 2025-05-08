@@ -16,8 +16,8 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "isA" in {
-    PureNumber.isA(Some(PureNumber)) shouldBe true
-    PureNumber.isA(None) shouldBe true
+    PureNumber.isA(RestrictedContext(PureNumber)) shouldBe true
+    PureNumber.isA(AnyContext) shouldBe true
   }
 
   it should "value" in {

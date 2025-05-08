@@ -14,6 +14,13 @@ package com.phasmidsoftware.number.core
  * @param factor  the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
   */
 case class ExactNumber(override val nominalValue: Value, override val factor: Factor) extends GeneralNumber(nominalValue, factor, None) {
+  /**
+    * Method to determine if this NumberLike object is exact.
+    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    *
+    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    */
+  def isExact: Boolean = true
 
   /**
     * Method to determine if this ExactNumber is equivalent to another Numerical (x).
@@ -32,14 +39,6 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * @return true if this Number is equal to zero.
     */
   def isZero: Boolean = GeneralNumber.isZero(this)
-
-  /**
-   * Delegates to `factorAsIs`.
-   *
-   * @param context an optional `Factor` to be matched.
-   * @return true IF there is no fuzz AND (IF context is defined then it should match factor ELSE true).
-    */
-  def isExactInContext(context: Context): Boolean = factorAsIs(context)
 
   /**
     * Method to make some trivial simplifications of this ExactNumber.

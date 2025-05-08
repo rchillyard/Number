@@ -77,7 +77,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return Matcher[Expression, Expression]
     */
-  def exactMaterializer: ExpressionTransformer = exactFieldMaterializer(None) map (Expression(_))
+  @deprecated("use simplify", "0.1.0")
+  def exactMaterializer: ExpressionTransformer = exactFieldMaterializer(AnyContext) map (Expression(_))
 
   /**
     * Checks to see if the result (rm) is simply a Match of the input.
@@ -101,22 +102,24 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return an ExpressionMatcher for the evaluated field, returning a Match if the field is exact,
     *         or a Miss otherwise.
     */
-  def exactEvaluator(ctx: Context): ExpressionMatcher[Field] = {
-    x: Expression =>
-      ctx match {
-        case c@Some(_) =>
-          System.out.println(s"exactEvaluator ctx: $c")
-          matchExactField(x.evaluate(c), x) // TESTME
-        case None =>
-          x.context match {
-            case None =>
-              Miss("exactEvaluator: no common context", x)
-            case c@Some(_) =>
-              System.out.println(s"exactEvaluator x.context: $c")
-              matchExactField(x.evaluate(c), x)
-          }
-      }
-  }
+  @deprecated("use simplify", "0.1.0")
+  def exactEvaluator(ctx: Context): ExpressionMatcher[Field] = ???
+//  {
+//    x: Expression =>
+//      ctx match {
+//        case c@Some(_) =>
+//          System.out.println(s"exactEvaluator ctx: $c")
+//          matchExactField(x.evaluate(c), x) // TESTME
+//        case None =>
+//          x.context match {
+//            case None =>
+//              Miss("exactEvaluator: no common context", x)
+//            case c@Some(_) =>
+//              System.out.println(s"exactEvaluator x.context: $c")
+//              matchExactField(x.evaluate(c), x)
+//          }
+//      }
+//  }
 
   /**
     * `ExpressionMatcher`, which matches expressions that are exact in the given context,
@@ -126,6 +129,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *                if context is `None` then, the result will depend solely on whether this is exact.
     * @return a Matcher[Expression, Field]
     */
+  @deprecated("use simplify", "0.1.0")
   def exactMaterialization(context: Context): ExpressionMatcher[Field] = {
     case x: AtomicExpression =>
       x.evaluateAsIs match {
@@ -133,10 +137,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         case None => Miss("exactMaterialization: no exact evaluation", x)
       }
     case x =>
-      val ctx = context orElse Some(PureNumber)
-      x.evaluate(ctx) match {
+      x.evaluate(context) match {
         case Some(f) => Match(f)
-        case None => Miss(s"exactMaterialization: no exact evaluation for $ctx", x)
+        case None => Miss(s"exactMaterialization: no exact evaluation for $context", x)
       }
   }
 
@@ -149,6 +152,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param x the Expression to be evaluated as a Field.
     * @return the value of the original Expression or a simplified version of the Expression.
     */
+  @deprecated
   def simplifyAndEvaluate(x: Expression, context: Context): Option[Field] =
     simplifier(x) match {
       case Match(e) =>
@@ -218,7 +222,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   @deprecated("use simplify", "0.1.0")
   def simplifyTerms(c: CompositeExpression): CompositeExpression = {
     // CONSIDER this appears to be wrong. See ISSUE #89
-    val frs: Seq[MatchResult[Field]] = c.terms map matchCompositeAndSimplify & exactEvaluator(None)
+    val frs: Seq[MatchResult[Field]] = c.terms map matchCompositeAndSimplify & exactEvaluator(AnyContext)
     if (frs.forall(fr => !fr.successful)) c
     else {
       val substitutions: Seq[Expression] = for (er <- frs) yield er match {
@@ -236,6 +240,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a ExpressionTransformer.
     */
+  @deprecated("use simplify", "0.1.0")
   def biFunctionSimplifier: ExpressionTransformer =
     (matchBiFunction & biFunctionTransformer) :| "biFunctionSimplifier"
 
@@ -294,6 +299,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a Matcher[DyadicTriple, Expression].
     */
+  @deprecated("use simplify", "0.1.0")
   def biFunctionTransformer: Matcher[DyadicTriple, Expression] =
     (simplifyIdentityDyadic | biFunctionAggregator | matchComplementary | matchDyadicTrivial | matchCombineAndMaybeSimplify | collectTerms | matchDyadicTwoLevels) :| "biFunctionTransformer"
 
@@ -425,6 +431,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a Matcher.
     */
+  @deprecated("use simplify", "0.1.0")
   def matchDyadicTwoLevels: Matcher[DyadicTriple, Expression] = (
       (matchTwoDyadicLevels & matchSimplifyDyadicTermsTwoLevels) |
           (matchTwoDyadicTripleLevels & matchAndCollectTwoDyadicLevels) |
@@ -502,8 +509,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return A Matcher that applies the evaluation logic for monadic duples, producing an Expression.
     */
+  @deprecated("use simplify", "0.1.0")
   def evaluateMonadicDuple: Matcher[MonadicDuple, Expression] = Matcher("evaluateMonadicDuple") {
-    case f ~ x => exactMaterialization(None)(Function(x, f)) map (Literal(_)) // CONSIDER use exactMaterializer
+    case f ~ x => exactMaterialization(AnyContext)(Function(x, f)) map (Literal(_)) // CONSIDER use exactMaterializer
   }
 
   /**
@@ -723,6 +731,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return ExpressionMatcher[DyadicTriple]
     */
+  @deprecated("use simplify", "0.1.0")
   def matchBiFunction: ExpressionMatcher[DyadicTriple] = ExpressionMatcher {
     case BiFunction(a, b, f) => Match(f ~ a ~ b) // TESTME
     case e => Miss("matchBiFunction", e) // TESTME
@@ -746,7 +755,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return ExpressionMatcher[Expression]
     */
-  def matchAggregate: ExpressionMatcher[Expression] = ExpressionMatcher {
+  def matchAggregate: ExpressionMatcher[Aggregate] = ExpressionMatcher {
     case a@Aggregate(_, _) =>
       Match(a) // TESTME
     case e =>
@@ -767,20 +776,28 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return A `ExpressionTransformer` that matches and simplifies `Aggregate` expressions efficiently.
     * @throws NoSuchElementException due to invocation of get on Option (very unlikely).
     */
-  def simplifyAggregate: ExpressionTransformer = Matcher[Expression, Expression]("simplifyAggregate") {
-    case Aggregate(Sum, Nil) =>
-      Match(Zero) // TESTME
-    case Aggregate(Product, Nil) =>
-      Match(One) // TESTME
-    case Aggregate(Power, Nil) =>
-      Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
-    case Aggregate(_, x :: Nil) =>
-      matchSimpler(x).asInstanceOf[MatchResult[Expression]]
+  def simplifyAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("simplifyAggregate") {
+    z =>
+      println(s"simplifyAggregate: $z")
+      z match {
+        case Aggregate(Sum, Nil) =>
+          Match(Zero) // TESTME
+        case Aggregate(Product, Nil) =>
+          Match(One) // TESTME
+        case Aggregate(Power, Nil) =>
+          Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
+        case Aggregate(_, x :: Nil) =>
+          println(s"simplifyAggregate: matched on singleton Aggregate of just $x")
+          Match(x) // XXX we should not need to simplify x since simplifyComponents should already have done that
+//        matchSimpler(x).asInstanceOf[MatchResult[Expression]]
       // NOTE it's important that you do not reintroduce a match into a BiFunction!
-    case a@Aggregate(_, _) =>
-      complementaryTermsEliminator(a) & alt(simplifyAggregate)
-    case x =>
-      Miss(s"simplifyAggregate: no match for $x", x)
+        case a@Aggregate(_, _) =>
+          println(s"simplifyAggregate: matched on Aggregate $a with a possible resimplification")
+          (complementaryTermsEliminator & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
+        case x =>
+          println(s"simplifyAggregate: default match on type ${x.getClass}")
+          Miss(s"simplifyAggregate: no match for $x", x)
+      }
   }
 //
 //  /**
@@ -874,23 +891,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   } :| "matchAndSimplifyComposite"
 
   /**
-    * Matches an exact field against the given expression.
-    *
-    * @param maybeField the field to evaluate for an exact match
-    * @param x          the expression to match against the field
-    * @return a MatchResult containing the field if the match is exact; otherwise, a Miss with an explanation and the expression
-    */
-  private def matchExactField(maybeField: Option[Field], x: Expression) = {
-    // CONSIDER If the Field is the same as for x, it should not really be a Match.
-    maybeField match {
-      case Some(f) if f.isExact =>
-        System.out.println(s"matchExactField: $f is exact")
-        Match(f)
-      case _ => Miss("matchExactField: non-exact", x)
-    }
-  }
-
-  /**
     * Checks if the given expression corresponds to the identity element with respect to the field option provided.
     *
     * @param x  the expression to evaluate.
@@ -909,6 +909,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return A AutoMatcher that matches and simplifies `Function` expressions.
     */
+  @deprecated("use simplify", "0.1.0")
   private def functionElementSimplifier: AutoMatcher[MonadicDuple] = Matcher[MonadicDuple, MonadicDuple]("functionElementSimplifier") {
     case f ~ x => simplifier(x) map (y => f ~ y)
   }
@@ -928,7 +929,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case ReducedQuadraticRoot(_, p, 0, _) => Match(x * -p) // CONSIDER matchAndMaybeSimplify
     case ReducedQuadraticRoot(_, -1, q, _) => Match(x plus -q) // CONSIDER matchAndMaybeSimplify
     case ReducedQuadraticRoot(_, p, q, _) => Match((x * -p) plus -q) // CONSIDER matchAndMaybeSimplify
-    case Literal(z, _) if z.isExactInContext(Some(PureNumber)) => Match(Literal(z * z))
+    case Literal(z, _) => Match(Literal(z power 2))
     case Literal(Real(ExactNumber(z, Root2)), _) => Match(Literal(Real(ExactNumber(z, PureNumber))))
     // NOTE x is being squared so if it is itself a square root, then the powers cancel.
     case BiFunction(z, y, Power) if y.evaluateAsIs.contains(Constants.half) => Match(z) // CONSIDER matchAndMaybeSimplify
@@ -943,6 +944,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param context the context in which the field materialization process operates
     * @return an `ExpressionMatcher` that maps an `Expression` to a `Field` for exact materialization
     */
+  @deprecated("use simplify", "0.1.0")
   private def exactFieldMaterializer(context: Context): ExpressionMatcher[Field] = Matcher[Expression, Field]("exactFieldMaterializer")(exactMaterialization(context))
 
   /**
@@ -959,6 +961,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param x the expression to be matched and simplified
     * @return a MatchResult containing the simplified expression
     */
+  @deprecated("use simplify", "0.1.0")
   private def matchAndMaybeSimplify(x: Expression): MatchResult[Expression] = Match(x) & alt(simplifier)
 
   /**
@@ -990,6 +993,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param z the right/right expression.
     * @return a Match of the simplified expression, or a Miss.
     */
+  @deprecated("use simplify", "0.1.0")
   private def collectTermsDyadicTwoLevels(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, h: ExpressionBiFunction, y: Expression, z: Expression): MatchResult[Expression] = (f, g, h) match {
     case (Product, Power, Power) if w == y =>
       replaceAndSimplify(x, z, w, Sum, Power)
@@ -1019,8 +1023,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param f the first bi-function to be applied
     * @param g the second bi-function to be applied during simplification
     */
+  @deprecated("use simplify", "0.1.0")
   private def replaceAndSimplify(a: Expression, b: Expression, c: Expression, f: ExpressionBiFunction, g: ExpressionBiFunction) =
-    replaceExactBiFunction(Some(PureNumber))(BiFunction(a, b, f)) map formBiFunction(c, g) flatMap simplifier
+    replaceExactBiFunction(RestrictedContext(PureNumber))(BiFunction(a, b, f)) map formBiFunction(c, g) flatMap simplifier
 
   /**
     * Combines and simplifies the given expressions using the specified binary function.
@@ -1031,6 +1036,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param x        the second expression to be combined
     * @param function the binary function used to combine the expressions
     */
+  @deprecated("use simplify", "0.1.0")
   private def combineAndSimplify(w: Expression, x: Expression, function: ExpressionBiFunction) =
     replaceAndSimplify(One, x, w, Sum, function)
 
@@ -1055,8 +1061,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param y        The second expression in the pair.
     * @return A MatchResult containing the replaced expression if matching succeeds.
     */
+  @deprecated("use simplify", "0.1.0")
   private def matchAndReplacePair(function: ExpressionBiFunction, x: Expression, y: Expression): MatchResult[Expression] =
-    replaceExactBiFunction(Some(PureNumber))(BiFunction(x, y, function))
+    replaceExactBiFunction(RestrictedContext(PureNumber))(BiFunction(x, y, function))
 
   /**
     * Computes the Cartesian product of two pairs of Expressions.
@@ -1084,6 +1091,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param y the right/right expression.
     * @return a Match of the simplified expression, or a Miss.
     */
+  @deprecated("use simplify", "0.1.0")
   private def collectTermsDyadicTwoLevelsL(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, y: Expression): MatchResult[Expression] = (f, g) match {
     case (Product, Power) if w == y =>
       combineAndSimplify(w, x, Power)
@@ -1114,6 +1122,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param y the right/right expression.
     * @return a Match of the simplified expression, or a Miss.
     */
+  @deprecated("use simplify", "0.1.0")
   private def collectTermsDyadicTwoLevelsR(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, y: Expression): MatchResult[Expression] = (f, g) match {
     case (Product, Power) if w == x => // TESTME
       combineAndSimplify(w, y, Power) // CONSIDER refactor using method, etc...
@@ -1192,6 +1201,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a MatchResult containing the processed Expression based on
     *         the match operation
     */
+  @deprecated("use simplify", "0.1.0")
   private def effectivelyExactMaterialization(function: BiFunction): MatchResult[Expression] = function match {
     case BiFunction(a, b, f) => matchDyadicTwoLevels(f ~ a ~ b)
   }
@@ -1205,6 +1215,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param biFunction A `BiFunction` that is evaluated and potentially replaced during the materialization process.
     * @return A `MatchResult[Expression]`
     */
+  @deprecated("use simplify", "0.1.0")
   private def replaceExactBiFunction(context: Context)(biFunction: BiFunction): MatchResult[Expression] =
     (exactMaterialization(context)(biFunction) map (Expression(_))) || effectivelyExactMaterialization(biFunction) // CONSIDER use exactMaterializer
 
@@ -1228,6 +1239,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *      w * x + y * z where w = y => w * (x + z)
     * @return a Match of the simplified expression, or a Miss.
     */
+  @deprecated("use simplify", "0.1.0")
   private def matchAndCollectTwoDyadicLevelsR: Matcher[ExpressionBiFunction ~ Expression ~ DyadicTriple, Expression] = Matcher("matchAndCancelTwoDyadicLevelsL") {
     case f ~ x ~ (g ~ y ~ z) => collectTermsDyadicTwoLevelsR(f, g, x, y, z)
   }
@@ -1245,6 +1257,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param z an expression.
     * @return a match of a new expression or a miss of the originals.
     */
+  @deprecated("use simplify", "0.1.0")
   private def combineExact(f: ExpressionBiFunction, x: Expression, y: Expression, z: Expression): MatchResult[Expression] = f match {
     case Sum =>
       matchAndMaybeSimplify(Aggregate(Sum, Seq(x, y, z)))
@@ -1263,10 +1276,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *         a `DyadicTriple` and an `Expression`, returning a transformed `Expression`
     *         if the conditions are met, or a failure if not.
     */
+  @deprecated("use simplify", "0.1.0")
   private def matchAndCancelTwoDyadicLevelsL: Matcher[ExpressionBiFunction ~ DyadicTriple ~ Expression, Expression] = {
     case f ~ (g ~ x ~ y) ~ z if f == g && f != Power => combineExact(f, x, y, z)
     case f ~ (g ~ x ~ y) ~ z => associativeDyadic(f, g) match {
-      case Some(d) => replaceExactBiFunction(Some(PureNumber))(BiFunction(x, BiFunction(z, y, d), f))
+      case Some(d) => replaceExactBiFunction(RestrictedContext(PureNumber))(BiFunction(x, BiFunction(z, y, d), f))
       case None => Miss(s"cannot combine two dyadic levels ($f and $g do not associate)", x)
     }
   }
@@ -1282,6 +1296,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return A `Matcher` that evaluates whether two dyadic levels can be matched and combined,
     *         returning the combined `Expression` on success or a `Miss` on failure.
     */
+  @deprecated("use simplify", "0.1.0")
   private def matchAndCancelTwoDyadicLevelsR: Matcher[ExpressionBiFunction ~ Expression ~ DyadicTriple, Expression] = { // NOTE this layout doesn't work for power but it would work for other operators.
     case f ~ z ~ (g ~ x ~ y) if f == g && f != Power => combineExact(f, x, y, z)
     case x => Miss("matchAndCancelTwoDyadicLevelsR: cannot combine two dyadic levels", x)

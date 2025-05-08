@@ -61,18 +61,18 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case (c1, c2: Complex) => (c1 subtract c2).isZero
     case (z, x: Number) => z isSame Real(x)
   }
-
-  /**
-   * Determines if this complex number can be evaluated exactly in the given context.
-   * It checks whether both the real and imaginary parts of the complex number are exact
-   * in the context of the specified factor.
-   *
-   * @param context an optional `Factor` that provides the context for evaluation.
-   *                If `None`, the result will depend solely on whether the real and imaginary parts
-   *                are exact without a specified factor.
-   * @return true if both the real and imaginary parts are exact in the given context; otherwise false.
-   */
-  def isExactInContext(context: Context): Boolean = real.isExactInContext(context) && imag.isExactInContext(context)
+//
+//  /**
+//   * Determines if this complex number can be evaluated exactly in the given context.
+//   * It checks whether both the real and imaginary parts of the complex number are exact
+//   * in the context of the specified factor.
+//   *
+//   * @param context an optional `Factor` that provides the context for evaluation.
+//   *                If `None`, the result will depend solely on whether the real and imaginary parts
+//   *                are exact without a specified factor.
+//   * @return true if both the real and imaginary parts are exact in the given context; otherwise false.
+//   */
+//  def isExactInContext(context: Context): Boolean = real.isExactInContext(context) && imag.isExactInContext(context)
 
   /**
    * Determines if this complex number has a modulus of unity (magnitude of one).
@@ -135,6 +135,13 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case (ComplexCartesian(_, _), ComplexPolar(_, _, _)) => narrow(this, polar = true) doMultiply multiplicand
   }
 
+  /**
+    * Computes the result of raising this number (field element) to the given power `n`.
+    *
+    * @param n The exponent as a `Number` to which this field element will be raised.
+    *          Can represent integer, rational, or other numerical values.
+    * @return A new `Field` instance that is the result of performing the power operation.
+    */
   def power(n: Number): Field = this match {
     case ComplexPolar(re, im, w) if n.isRational => doRationalPowerForComplexPolar(n, re, im, w)
     case ComplexPolar(re, im, w) => ComplexPolar(re.doPower(n), im.doMultiply(n), w)
@@ -146,6 +153,18 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     }
   }
 
+  /**
+    * Method to compute the result of raising a complex number, represented in polar form,
+    * to a rational power. This involves converting the given power to a rational, computing
+    * the radial component raised to the power, and resolving the appropriate branch for the
+    * result based on the total number of branches `w`.
+    *
+    * @param n  the power to which the complex number is raised.
+    * @param re the radial component (magnitude) of the complex number in polar form.
+    * @param im the angular component (argument) of the complex number in polar form.
+    * @param w  the number of branches to consider for the result, typically used for
+    *           handling multi-valued functions like roots in the complex plane.
+    */
   private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = recover(
     for {
       z <- n.toRational
@@ -170,6 +189,11 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case _ => throw NumberException(s"power not supported for: $this ^ $p")
   }
 
+  /**
+    * Method to compute the square of the modulus (magnitude) of this complex number.
+    *
+    * @return the square of the modulus as a Number.
+    */
   def modulusSquared: Number
 
   /**
@@ -212,6 +236,55 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
    * @return a Complex number, either ComplexCartesian or ComplexPolar
    */
   def make(a: Number, b: Number): BaseComplex
+
+  /**
+    * Computes the sine of this complex number.
+    * The result is calculated in the context of complex numbers, applying the necessary
+    * formulas for the sine function on complex inputs.
+    *
+    * @return the sine of this complex number as an instance of `Field`.
+    */
+  def sin: Field = ???
+
+  /**
+    * Computes the cosine of this field element, interpreted in the context of a complex number.
+    * The cosine operation is defined mathematically and extended to work with complex values,
+    * leveraging the properties of exponential functions in the complex plane.
+    *
+    * @return a `Field` representing the cosine of this field element.
+    */
+  def cos: Field = ???
+
+  /**
+    * Computes the tangent of this complex number.
+    *
+    * @return The tangent of this complex number as a `Field`.
+    */
+  def tan: Field = ???
+
+  /**
+    * Computes the arc tangent of the given real number `y` in the context of this `Field`.
+    *
+    * @param y the real number whose arc tangent is to be computed.
+    * @return a `Field` representing the arc tangent of the input.
+    */
+  def atan(y: Real): Field = ???
+
+  /**
+    * Computes the natural logarithm of this Field.
+    * For a real number x, this is equivalent to the logarithm base e: ln(x).
+    * For a complex number, this computes the multi-valued complex logarithm.
+    *
+    * @return the natural logarithm of this Field as a Field.
+    */
+  def log: Field = ???
+
+  /**
+    * Computes the exponential of this complex number.
+    *
+    * @return the exponential of this Field as a new Field instance.
+    */
+  def exp: Field = ???
 
   /**
    * Method to render the imaginary value as a String.
@@ -280,6 +353,14 @@ object BaseComplex {
 case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
 
   /**
+    * Method to determine if this NumberLike object is exact.
+    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    *
+    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    */
+  def isExact: Boolean = x.isExact && y.isExact
+
+  /**
    * Method to determine the modulus of this Complex number.
    *
    * CONSIDER implementing real in the Complex trait (not just BaseComplex).
@@ -315,13 +396,6 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   def argument: Number = convertToPolar(this).argument
 
   /**
-   * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
-   *
-   * @return Some(factor) if expression only involves that factor; otherwise None.
-   */
-  def context: Context = if (real.factor == imag.factor) Some(real.factor) else None
-
-  /**
    * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).
    * TESTME
    *
@@ -348,7 +422,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
    */
   def doMultiply(complex: Complex): Complex = complex match {
     case ComplexCartesian(a, b) =>
-      val real: Number = (a doMultiply x) doAdd negate(b doMultiply y)
+      val real: Number = (a doMultiply x) doAdd (b doMultiply y doMultiply Number.negOne)
       val imag: Number = (a doMultiply y) doAdd (b doMultiply x)
       ComplexCartesian(real, imag)
     case ComplexPolar(_, _, _) => throw ComplexException("logic error: ComplexCartesian.doAdd")
@@ -413,6 +487,12 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
    */
   def invert: Complex = conjugate.asInstanceOf[ComplexCartesian] scale modulusSquared.getInverse
 
+  /**
+    * Calculates the square of the modulus of the complex number represented by this instance.
+    * The modulus squared is computed as the sum of the squares of the real and imaginary components.
+    *
+    * @return the squared modulus of the complex number.
+    */
   def modulusSquared: Number = imag.doPower(two) doAdd real.doPower(two)
 
   /**
@@ -502,6 +582,13 @@ object ComplexCartesian {
  * @param n     the number of "branches" in this set of complex numbers.
  */
 case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComplex(r, theta) {
+  /**
+    * Method to determine if this NumberLike object is exact.
+    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    *
+    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    */
+  def isExact: Boolean = r.isExact && theta.isExact
 
   require(theta.factor == Radian, "polar theta is not in radians")
 
@@ -537,14 +624,10 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   def argument: Number = theta
 
   /**
-   * Method to determine if this Complex is based solely on a particular Factor and, if so, which.
-   * TESTME
-   * TODO promote this method as an abstract method in BaseComplex
-   *
-   * @return Some(factor of r) if factor of theta is Radian; otherwise None.
-   */
-  def context: Context = if (real.factor == imag.factor) Some(real.factor) else None
-
+    * Computes the square of the modulus (magnitude) of this ComplexPolar instance.
+    *
+    * @return the squared modulus as a Number.
+    */
   def modulusSquared: Number = r power two
 
   /**
@@ -567,6 +650,14 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
    */
   def rotate(phi: Number): ComplexPolar = ComplexPolar(real, imag doAdd phi)
 
+  /**
+    * Multiplies this ComplexPolar instance with a given Number and returns the result as a Complex.
+    * If the given Number is imaginary, the operation involves converting this ComplexPolar to its Cartesian form
+    * and applying a rotation. Otherwise, the product is computed in polar form using the magnitude and angle.
+    *
+    * @param n the Number to multiply with. This can be a real or imaginary number.
+    * @return the product as a Complex.
+    */
   def numberProduct(n: Number): Complex = {
     // TODO this first option currently works only for i, not for multiples of i.
     if (n.isImaginary) convertToCartesian(this).rotate
@@ -764,4 +855,11 @@ object ComplexPolar {
   def ±(x: Number): Field = ComplexPolar(x, zeroR, 2)
 }
 
+/**
+  * A case class representing a custom exception type called ComplexException.
+  *
+  * This exception is initialized with a string message that describes the error.
+  *
+  * @param str The message associated with this exception.
+  */
 case class ComplexException(str: String) extends Exception(str)

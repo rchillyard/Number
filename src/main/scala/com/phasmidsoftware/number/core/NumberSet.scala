@@ -20,7 +20,7 @@ sealed trait NumberSet {
     * @param x a NumberLike object.
     * @return true if this is exact && it's a member of all super-sets && it belongs to this set.
     */
-  def isMember(x: NumberLike): Boolean = x.isExact && isMemberOfSuperSet(x) && belongsToSetExclusively(x)
+  def isMember(x: NumberLike): Boolean = isMemberOfSuperSet(x) && belongsToSetExclusively(x)
 
   /**
     * (Internal) method to determine if x is a member of all super-sets.

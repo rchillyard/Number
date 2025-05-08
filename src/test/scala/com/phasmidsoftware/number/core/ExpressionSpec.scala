@@ -193,10 +193,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
     (One + Constants.two).isExact shouldBe true
-    (ConstPi + Constants.pi).isExactInContext(Some(Radian)) shouldBe true
+    (ConstPi + Constants.pi).isExact shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Literal(2) * Constants.e).isExactInContext(Some(PureNumber)) shouldBe false
+    (Literal(2) * Constants.e).isExact shouldBe false
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
     val expression = Literal(1) * Constants.e
