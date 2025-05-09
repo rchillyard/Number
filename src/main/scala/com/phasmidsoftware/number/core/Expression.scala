@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.core.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.parse.ShuntingYardParser
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 
 /**
@@ -50,8 +51,15 @@ sealed trait Expression extends NumberLike with Approximatable {
     *
     * @return the simplified `Expression`, or the current `Expression` if no simplification is possible
     */
-  def simplify: Expression =
-    matchSimpler(this) getOrElse this // Equivalent to alt(matchSimpler)(this)
+  def simplify: Expression = {
+    @tailrec
+    def inner(x: Expression): Expression = matchSimpler(x) match {
+      case em.Miss(_, e: Expression) => e
+      case em.Match(e: Expression) => inner(e)
+    }
+
+    inner(this)
+  }
 
   /**
     * Materializes the current `Expression` by simplifying and evaluating it as a `Field`.
@@ -373,22 +381,76 @@ object Expression {
     f.maybeIdentityL == z.evaluateAsIs // CONSIDER comparing with maybeIdentityR if this is not true
 
   /**
-    * Attempts to simplify the given `Expression` by applying specific matching patterns based on its type.
-    * - For `AtomicExpression`, it is returned as unsimplifiable.
-    * - For `CompositeExpression`, it tries to apply a sequence of simplifications such as simplifying components,
-    * trivial cases, constants, or composites.
-    * - For unsupported expression types, it returns an error.
+    * Attempts to simplify an `Expression` by pattern matching on its type and applying
+    * the appropriate simplification logic based on the expression's structure.
     *
-    * @return an `ExpressionTransformer` that performs type-based simplifications
-    *         and returns the simplified expression or a message indicating failure or unsupported type.
+    * For `AtomicExpression` instances, a message indicating the inability to simplify is returned.
+    * For `CompositeExpression` instances, a series of simplification methods (`simplifyComponents`,
+    * `simplifyTrivial`, `simplifyConstant`, and `simplifyComposite`) are applied, either recursively
+    * or selectively, to achieve a simplified expression.
+    * For unsupported expression types, an error is returned.
+    *
+    * @return an `ExpressionTransformer` that performs the transformation or simplification of
+    *         the input `Expression`, depending on its type and structure.
     */
   def matchSimpler: ExpressionTransformer = {
     case x: AtomicExpression =>
       em.Miss("matchSimpler: cannot be simplified", x)
     case x: CompositeExpression =>
-      em.eitherOr(x.simplifyComponents, em.eitherOr(x.simplifyTrivial, em.eitherOr(x.simplifyConstant, x.simplifyComposite)))(x)
+      em.eitherOr(simplifyComponents, em.eitherOr(simplifyTrivial, em.eitherOr(simplifyConstant, simplifyComposite)))(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x"))
+  }
+
+  /**
+    * Matches and simplifies the components of a `CompositeExpression`.
+    * For input expressions of type `CompositeExpression`, it applies the `simplifyComponents` method recursively
+    * to its underlying components.
+    *
+    * @return an `em.AutoMatcher[Expression]` that performs the matching and simplification of components
+    *         in a `CompositeExpression`.
+    */
+  def simplifyComponents: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyComponents") {
+    case c: CompositeExpression =>
+      c.simplifyComponents(c)
+  }
+
+  /**
+    * Attempts to simplify trivial cases within a `CompositeExpression`.
+    * This method patterns matches on `CompositeExpression` instances and applies trivial simplifications
+    * specific to such expressions.
+    *
+    * @return an instance of `em.AutoMatcher[Expression]` that identifies and simplifies trivial cases in composite expressions.
+    */
+  def simplifyTrivial: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyTrivial") {
+    case c: CompositeExpression =>
+      c.simplifyTrivial(c)
+  }
+
+  /**
+    * Attempts to simplify an `Expression` by focusing on constant folding within composite expressions.
+    * For composite expressions, this method applies constant-specific simplification logic.
+    * It does not handle other types of simplifications or unsupported expression types.
+    *
+    * @return an `em.AutoMatcher[Expression]` that matches and simplifies composite expressions
+    *         where constants can be evaluated or reduced, returning the simplified `Expression`.
+    */
+  def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
+    case c: CompositeExpression =>
+      c.simplifyConstant(c)
+  }
+
+  /**
+    * Attempts to simplify `CompositeExpression` instances by applying a defined transformation logic.
+    * This matcher targets expressions of type `CompositeExpression` and invokes the `simplifyComposite` method
+    * to generate a simplified form of the expression based on its internal structure.
+    *
+    * @return an `AutoMatcher` for `Expression` that matches and simplifies composite expressions,
+    *         or returns the input expression unchanged if no simplifications are applicable.
+    */
+  def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyComposite") {
+    case c: CompositeExpression =>
+      c.simplifyComposite(c)
   }
 
 }
@@ -1015,15 +1077,18 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     }
 
   /**
-    * Simplifies this `BiFunction` by converting it into an `Aggregate` and then simplifying its components through a matching mechanism.
-    * This method ensures that all simplification logic for `CompositeExpression` works consistently at the `Aggregate` level.
+    * Simplifies a `BiFunction` expression by converting it to an `Aggregate` and applying
+    * simplification logic.
+    * This ensures that the simplification logic is centralized  within the `Aggregate` implementation.
     *
-    * @return an `AutoMatcher[Expression]` representing the result of the simplification process, which either contains a simplified `Expression` or indicates no simplification was
-    *         possible.
+    * @return an `em.AutoMatcher[Expression]` that transforms a `BiFunction` into a potentially
+    *         simplified `Expression`.
+    *         If simplification is not possible, it returns
+    *         the original `Expression` encapsulated in a match result.
     */
-  def simplifyComposite: em.AutoMatcher[Expression] =
-    asAggregate.simplifyComposite
-
+  def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
+    case b@BiFunction(_, _, _) => Expression.simplifyComposite(b.asAggregate)
+  }
 
   /**
     * Transforms this `BiFunction` expression into an `Aggregate` expression if certain patterns and conditions are met.
@@ -1172,8 +1237,10 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return an `AutoMatcher` for `Expression` that applies the simplification logic defined in `simplifyAggregate`.
     */
   def simplifyComposite: em.AutoMatcher[Expression] = {
-    case t: Aggregate => em.simplifyAggregate(t)
-    case x: Expression => em.Miss[Expression, Expression]("Aggregate.simplifyComposite: not aggregate", x)
+    case t: Aggregate =>
+      em.simplifyAggregate(t)
+    case x: Expression =>
+      em.Miss[Expression, Expression]("Aggregate.simplifyComposite: not aggregate", x)
   }
 
   /**
@@ -1253,7 +1320,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return a String
     */
   override def toString: String =
-    xs.mkString(function.toString, "Aggregate{", "}")
+    xs.mkString(s"Aggregate{${function.toString},", ",", "}")
 }
 
 /**
@@ -1809,7 +1876,14 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     * @param a ignored.
     * @return `Some(PureNumber)`.
     */
-  def rightContext(context: Context): Context = context
+  def rightContext(context: Context): Context = context match {
+    case AnyScalar | AnyContext =>
+      context or RestrictedContext(PureNumber)
+    case AnyLog =>
+      context
+    case _ =>
+      ImpossibleContext
+  }
 
   /**
     * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
@@ -2050,9 +2124,11 @@ abstract class ExpressionBiFunction(
     */
   private def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Field] =
     for {
+      _ <- Option(null) // TODO remove this line
+      ctx = leftContext(context)
       a <- x.evaluate(leftContext(context))
       f <- a.maybeFactor
-      b <- y.evaluate(RestrictedContext(f))
+      b <- y.evaluate(rightContext(ctx))
       z <- applyExact(a, b)
     } yield z
 
