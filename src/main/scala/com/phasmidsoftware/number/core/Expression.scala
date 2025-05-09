@@ -40,7 +40,7 @@ sealed trait Expression extends NumberLike with Approximatable {
     *
     * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
     */
-  def evaluateAsIs: Option[Field] =
+  lazy val evaluateAsIs: Option[Field] =
     evaluate(AnyContext)
 
   /**
@@ -51,7 +51,7 @@ sealed trait Expression extends NumberLike with Approximatable {
     *
     * @return the simplified `Expression`, or the current `Expression` if no simplification is possible
     */
-  def simplify: Expression = {
+  lazy val simplify: Expression = {
     @tailrec
     def inner(x: Expression): Expression = matchSimpler(x) match {
       case em.Miss(_, e: Expression) => e
@@ -1071,6 +1071,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(BiFunction(a, Two, Product))
       case BiFunction(a, b, Product) if a == b =>
         em.Match(BiFunction(a, Two, Power))
+      case _ =>
+        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications", this)
     }
 
   /**
@@ -1626,20 +1628,25 @@ case object Cosine extends SineCos(false)
   */
 case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, None) {
   /**
-    * Retrieves the left-hand evaluation context associated with this function.
+    * Identifies and retrieves a restricted evaluation context suitable for left-hand operations.
     *
-    * @return the left-hand `Context` of the binary function.
+    * This method reduces the input `Context` by applying constraints, resulting in a
+    * new `RestrictedContext` based on predefined evaluation criteria.
+    *
+    * @param context the input evaluation `Context` that defines the left-hand context for the operation.
+    * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
-  def leftContext(context: Context): Context = context
+  def leftContext(context: Context): Context =
+    RestrictedContext(PureNumber)
 
   /**
-    * Retrieves the right-hand evaluation context associated with this function
-    * using the provided `Field` instance as an input parameter.
+    * Retrieves the right-hand evaluation context associated with this function.
     *
-    * @param a a `Field` instance used to determine the right-hand `Context`.
-    * @return the right-hand `Context` derived based on the input `Field`.
+    * @param context the input evaluation `Context` that specifies the right-hand context for the operation.
+    * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
-  def rightContext(context: Context): Context = context
+  def rightContext(context: Context): Context =
+    context
 
   /**
     * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
@@ -1826,19 +1833,19 @@ case object Reciprocal extends ExpressionFunction("rec", x => x.invert) {
   */
 case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = false, Some(Constants.zero), maybeIdentityR = None) {
   /**
-    * Retrieves the left-hand evaluation context associated with this function.
+    * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
     *
+    * @param context the `Context` typically based on the the context for the evaluation of the whole function.
     * @return the left-hand `Context` of the binary function.
     */
   def leftContext(context: Context): Context =
     context
 
   /**
-    * Retrieves the right-hand evaluation context associated with this function
-    * using the provided `Field` instance as an input parameter.
+    * Retrieves the right-hand evaluation `Context` appropriate for this function.
     *
-    * @param a the left `Field` (the first parameter) of the binary function.
-    * @return the right-hand `Context` derived based on the input `Field`.
+    * @param context the `Context` typically based on the value of the left-hand parameter.
+    * @return the right-hand `Context` of the binary function.
     */
   def rightContext(context: Context): Context =
     context
@@ -1848,7 +1855,8 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
     * and returns an optional result.
     * The evaluation succeeds only if the operation satisfies specific conditions
     * (e.g., exact representations or mathematical constraints).
-    * NOTE that the factors of each parameter must be the same.
+    * In this case, the evaluation succeeds only if the factors of each parameter are compatible.
+    * Otherwise, the result is `None`. TODO CHECK
     *
     * @param a the first operand, an exact `Field` instance.
     * @param b the second operand, an exact `Field` instance.
@@ -2071,20 +2079,19 @@ abstract class ExpressionBiFunction(
     * @return the result of f(x).
     */
   def apply(a: Field, b: Field): Field = f(a, b)
-
   /**
-    * Returns a `Context` for evaluating the left parameter (a) based on the required `Context` for the expression.
+    * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
     *
-    * @param context the input `Context` to be adjusted or modified.
-    * @return a `Context` object representing the left-hand evaluation context.
+    * @param context the `Context` typically based on the context for the evaluation of the whole function.
+    * @return the left-hand `Context` of the binary function.
     */
   def leftContext(context: Context): Context
 
   /**
-    * Returns a `Context` for evaluating the right parameter (b) based on the actual value of the left parameter.
+    * Retrieves the right-hand evaluation `Context` appropriate for this function.
     *
-    * @param context the initial `Context` object to be adjusted or modified for right-hand evaluation.
-    * @return a `Context` object representing the right-hand evaluation context.
+    * @param context the `Context` typically based on the value of the left-hand parameter.
+    * @return the right-hand `Context` of the binary function.
     */
   def rightContext(context: Context): Context
 
@@ -2136,7 +2143,7 @@ abstract class ExpressionBiFunction(
       ctx = leftContext(context)
       a <- x.evaluate(leftContext(context))
       f <- a.maybeFactor
-      b <- y.evaluate(rightContext(ctx))
+      b <- y.evaluate(rightContext(RestrictedContext(f)))
       z <- applyExact(a, b)
     } yield z
 
