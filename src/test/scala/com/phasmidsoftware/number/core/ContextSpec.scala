@@ -46,8 +46,8 @@ class ContextSpec extends AnyFlatSpec {
 
   it should "AnyRoot" in {
     AnyRoot.factorQualifies(NatLog) shouldBe false
-    AnyRoot.factorQualifies(Root2) shouldBe true
-    AnyRoot.factorQualifies(Root2) shouldBe true
+    AnyRoot.factorQualifies(SquareRoot) shouldBe true
+    AnyRoot.factorQualifies(SquareRoot) shouldBe true
     AnyRoot.factorQualifies(PureNumber) shouldBe false
   }
 

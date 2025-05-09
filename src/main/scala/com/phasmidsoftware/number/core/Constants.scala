@@ -113,7 +113,7 @@ object Constants {
     * square root of -1. This is a standard component of complex numbers
     * used in fields involving imaginary and real number computations.
     */
-  val i: Complex = Complex.i
+  val i: Real = Real(Number.i)
   /**
     * Exact value of iPi.
     */
@@ -201,5 +201,4 @@ object Constants {
   val sGamma = "0.57721566490153286060651209008240243104215933593992*"
   val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
   val sBoltzmann = "1380649.E-29" // J K ^ -1
-
 }

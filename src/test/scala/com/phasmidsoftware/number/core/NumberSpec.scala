@@ -460,60 +460,60 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val result = target.scale(NatLog)
     result should ===(expected)
   }
-  it should "work for Root2, PureNumber" in {
-    val target = Number(Rational.two, Root2)
+  it should "work for SquareRoot, PureNumber" in {
+    val target = Number(Rational.two, SquareRoot)
     target.render shouldBe "√2"
     val expected = Number(math.sqrt(2), PureNumber)
     val result = target.scale(PureNumber)
     result should ===(expected)
   }
   it should "work for Root2s" in {
-    val target = Number(Rational.two, Root2)
+    val target = Number(Rational.two, SquareRoot)
     target.render shouldBe "√2"
     val expected = Number(math.sqrt(2), PureNumber)
     val result = target.scale(PureNumber)
     result should ===(expected)
   }
-  it should "work for Root3, PureNumber" in {
-    val target = Number(Rational.two, Root3)
+  it should "work for CubeRoot, PureNumber" in {
+    val target = Number(Rational.two, CubeRoot)
     target.render shouldBe "³√2"
     val expected = Number(math.pow(2, 1.0 / 3), PureNumber)
     val result = target.scale(PureNumber)
     result should ===(expected)
   }
-  it should "work for Root2, Root3" in {
-    val target = Number(4, Root2)
+  it should "work for SquareRoot, CubeRoot" in {
+    val target = Number(4, SquareRoot)
     target.render shouldBe "√4"
-    val expected = Number(8, Root3)
-    val result = target.scale(Root3)
+    val expected = Number(8, CubeRoot)
+    val result = target.scale(CubeRoot)
     result shouldBe expected
   }
-  it should "work for PureNumber, Root2" in {
+  it should "work for PureNumber, SquareRoot" in {
     val target = Number(3)
     val expected = Number(3)
-    val result = target.scale(Root2).simplify
+    val result = target.scale(SquareRoot).simplify
     result shouldBe expected
     result.toString shouldBe "3"
   }
-  it should "work for E, Root2" in {
+  it should "work for E, SquareRoot" in {
     val target = Number(math.E * math.E)
     val result = target.sqrt.normalize.asInstanceOf[Real]
     result.render shouldBe "2.7182818284590450[86]"
   }
   // TODO fix this--it fails in CircleCI (fails here, too)
-  it should "work for NatLog, Root2" in { //fixed
+  it should "work for NatLog, SquareRoot" in { //fixed
     val target = Number.e
-    val expected = Number(math.E * math.E, Root2)
-    val result: Field = target.scale(Root2).normalize
+    val expected = Number(math.E * math.E, SquareRoot)
+    val result: Field = target.scale(SquareRoot).normalize
     result.render shouldBe "2.7182818284590455[98]"
     //result should ===(expected)
     //Literal(result) should ===(expected) Literal doesn't work here. I'll study this later.
     convertFieldToExpression(result) should ===(expected)
   }
-  it should "work for NatLog, Root2 approx" in {
+  it should "work for NatLog, SquareRoot approx" in {
     val target = Number.e
-    val expected = Number(math.E * math.E, Root2)
-    val result = target.scale(Root2).normalize.asInstanceOf[Real]
+    val expected = Number(math.E * math.E, SquareRoot)
+    val result = target.scale(SquareRoot).normalize.asInstanceOf[Real]
     result.render.substring(0, 17) shouldBe "2.718281828459045"
     result should ===(expected)
   }
@@ -857,16 +857,16 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val number = target.power(2)
     number shouldBe Number(4)
   }
-  it should "work for squaring Root2" in {
+  it should "work for squaring SquareRoot" in {
     val target = Number.root2
     Real(target.power(2)) isSame Constants.two
   }
-  it should "work for squaring Root3" in {
+  it should "work for squaring CubeRoot" in {
     val target = Number.root3
     Real(target.power(2)) isSame Real(3)
   }
   it should "work for cubing cube-root2" in {
-    val target = Number(2, Root3)
+    val target = Number(2, CubeRoot)
     target.power(3) shouldBe Number.two
   }
   it should "work for squaring NatLog" in {
@@ -896,8 +896,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for negative numbers" in {
     Number(-1).sqrt shouldBe Number.i
-    Number(-4).sqrt shouldBe Number(-4, Root2)
-    Number(-4).power(Number(Rational.half)) shouldBe Number(-4, Root2)
+    Number(-4).sqrt shouldBe Number(-4, SquareRoot)
+    Number(-4).power(Number(Rational.half)) shouldBe Number(-4, SquareRoot)
   }
 
   behavior of "sin"
@@ -925,12 +925,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for Radian/3" in {
     val target = Number(Rational(1, 3), Radian)
     val sin = target.sin
-    sin shouldBe Number(Rational(3, 4), Root2)
+    sin shouldBe Number(Rational(3, 4), SquareRoot)
   }
   it should "work for Radian/4" in {
     val target = Number(Rational(1, 4), Radian)
     val sin = target.sin
-    sin shouldBe Number(Rational.half, Root2)
+    sin shouldBe Number(Rational.half, SquareRoot)
   }
   it should "work for One" in {
     val target = Number.one

@@ -75,7 +75,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     c2_0.asNumber shouldBe Some(Number.two)
     c1_2.asNumber shouldBe None
     p1_pi_2.asNumber shouldBe Some(Number.i)
-    ComplexCartesian(0, Number.two).asNumber shouldBe Some(Number(-4, Root2))
+    ComplexCartesian(0, Number.two).asNumber shouldBe Some(Number(-4, SquareRoot))
   }
 
   it should "add1" in {
@@ -187,7 +187,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "c2_0^1/3" in {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
-    cubeRootOfTwo shouldBe ComplexPolar(Number(2, Root3), Number.zeroR, 3)
+    cubeRootOfTwo shouldBe ComplexPolar(Number(2, CubeRoot), Number.zeroR, 3)
   }
 
   behavior of "other"

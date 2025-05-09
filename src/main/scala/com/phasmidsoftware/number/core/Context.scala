@@ -168,8 +168,8 @@ object Context {
     */
   val AnyLog: Context = RestrictedContext(NatLog) or RestrictedContext(Log2) or RestrictedContext(Log10)
   /**
-    * A `Context` that qualifies factors as either square roots (`Root2`) or cube roots (`Root3`).
-    * Combines the qualification conditions of `Root2` and `Root3` contexts using logical OR.
+    * A `Context` that qualifies factors as either square roots (`SquareRoot`) or cube roots (`CubeRoot`).
+    * Combines the qualification conditions of `SquareRoot` and `CubeRoot` contexts using logical OR.
     */
-  val AnyRoot: Context = RestrictedContext(Root2) or RestrictedContext(Root3)
+  val AnyRoot: Context = RestrictedContext(SquareRoot) or RestrictedContext(CubeRoot)
 }

@@ -945,7 +945,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case ReducedQuadraticRoot(_, -1, q, _) => Match(x plus -q) // CONSIDER matchAndMaybeSimplify
     case ReducedQuadraticRoot(_, p, q, _) => Match((x * -p) plus -q) // CONSIDER matchAndMaybeSimplify
     case Literal(z, _) => Match(Literal(z power 2))
-    case Literal(Real(ExactNumber(z, Root2)), _) => Match(Literal(Real(ExactNumber(z, PureNumber))))
+    case Literal(Real(ExactNumber(z, SquareRoot)), _) => Match(Literal(Real(ExactNumber(z, PureNumber))))
     // NOTE x is being squared so if it is itself a square root, then the powers cancel.
     case BiFunction(z, y, Power) if y.evaluateAsIs.contains(Constants.half) => Match(z) // CONSIDER matchAndMaybeSimplify
     case _ => Miss("matchSimplifySquare: can't be simplified", x)

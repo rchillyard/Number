@@ -32,7 +32,8 @@ sealed trait Factor {
     * @param f the factor to be checked for compatibility with addition.
     * @return true if the factors can be added; false otherwise.
     */
-  def canAdd(f: Factor): Boolean = f == this
+  def canAdd(f: Factor): Boolean =
+    f == this
 
   /**
     * Determines whether the current factor can be multiplied by the given factor.
@@ -49,10 +50,14 @@ sealed trait Factor {
     * @return true if the factors can be powered; false otherwise.
     */
   def canRaise(f: Factor, exponent: Field): Boolean = f match {
-    case PureNumber => true
-    case Radian => this == PureNumber // XXX CHECK this
-    case NatLog => this == PureNumber // XXX CHECK this
-    case _ => false
+    case PureNumber =>
+      true
+    case Radian =>
+      this == PureNumber // XXX CHECK this
+    case NatLog =>
+      this == PureNumber // XXX CHECK this
+    case _ =>
+      false
   }
 
   /**
@@ -126,8 +131,10 @@ sealed trait Scalar extends Factor {
     * @return true if the factors can be multiplied; false otherwise.
     */
   def canMultiply(f: Factor): Boolean = f match {
-    case _: Scalar => true
-    case _ => false
+    case _: Scalar =>
+      true
+    case _ =>
+      false
   }
 
   /**
@@ -156,7 +163,8 @@ sealed trait Scalar extends Factor {
   def convert(v: Value, f: Factor): Option[Value] = f match {
     case Scalar(z) =>
       Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, z))))
-    case _ => None
+    case _ =>
+      None
   }
 }
 
@@ -217,8 +225,10 @@ sealed trait Logarithmic extends Factor {
     * @return a Try of Value which, given factor f, represents the same quantity as x given this.
     */
   def convert(v: Value, f: Factor): Option[Value] = f match {
-    case Logarithmic(z) => Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, z))))
-    case _ => None
+    case Logarithmic(z) =>
+      Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, z))))
+    case _ =>
+      None
   }
 
   /**
@@ -229,14 +239,22 @@ sealed trait Logarithmic extends Factor {
     * @return a string representing the value in power notation, root notation, or a generic exponential format.
     */
   def asPower(v: Value): Option[String] = v match {
-    case Right(1) => Some(base)
-    case Right(2) => Some(base + "\u00B2")
-    case Right(3) => Some(base + "\u00B3")
-    case Right(x) if x > 3 & x < 10 => Some(base + Logarithmic.incrementUnicode("\u2070", 0, x))
-    case Left(Right(r)) if r * 2 == Rational.one => Some("\u221A" + base)
-    case Left(Right(r)) if r * 3 == Rational.one => Some("\u221B" + base)
-    case Left(Right(r)) if r * 4 == Rational.one => Some("\u221C" + base)
-    case _ => None
+    case Right(1) =>
+      Some(base)
+    case Right(2) =>
+      Some(base + "\u00B2")
+    case Right(3) =>
+      Some(base + "\u00B3")
+    case Right(x) if x > 3 & x < 10 =>
+      Some(base + Logarithmic.incrementUnicode("\u2070", 0, x))
+    case Left(Right(r)) if r * 2 == Rational.one =>
+      Some("\u221A" + base)
+    case Left(Right(r)) if r * 3 == Rational.one =>
+      Some("\u221B" + base)
+    case Left(Right(r)) if r * 4 == Rational.one =>
+      Some("\u221C" + base)
+    case _ =>
+      None
   }
 
   override def render(x: Value): String = asPower(x) getOrElse toString
@@ -270,7 +288,7 @@ object Logarithmic {
   * A sealed trait extending the `Factor` trait, representing a mathematical root-based factorization.
   *
   * A number with value x and factor Root(n) represents the nth root of x.
-  * For example, ExactNumber(5, Root2) is the square root of 5, where Root2 is an alias for Root(2).
+  * For example, ExactNumber(5, SquareRoot) is the square root of 5, where SquareRoot is an alias for Root(2).
   *
   * This trait provides mechanisms to convert values associated with one root-based factor
   * to another, when such conversions are mathematically possible.
@@ -319,8 +337,10 @@ sealed trait Root extends Factor {
     * @return true if the factors can be multiplied; false otherwise.
     */
   def canMultiply(f: Factor): Boolean = f match {
-    case x: Root => x.root == this.root
-    case _ => false
+    case x: Root =>
+      x.root == this.root
+    case _ =>
+      false
   }
 
   /**
@@ -337,9 +357,11 @@ sealed trait Root extends Factor {
             val x = n.toInt.get
             x > 0 && x % root == 0
           }
-        case _ => false
+        case _ =>
+          false
       }
-    case _ => super.canRaise(f, exponent)
+    case _ =>
+      super.canRaise(f, exponent)
   }
 
   /**
@@ -370,7 +392,8 @@ sealed trait Root extends Factor {
     case Root(z) =>
       val vo = doComposeValueDyadic(v, Number(z).specialize.nominalValue)(DyadicOperationPower.functions)
       vo flatMap (doComposeValueDyadic(_, Number(value).specialize.getInverse.nominalValue)(DyadicOperationPower.functions))
-    case _ => None
+    case _ =>
+      None
   }
 }
 
@@ -518,7 +541,7 @@ case object Log10 extends Logarithmic {
 /**
   * This object represents the square root factor.
   */
-case object Root2 extends Root {
+case object SquareRoot extends Root {
 
   override def toString: String = "√"
 
@@ -532,7 +555,7 @@ case object Root2 extends Root {
 /**
   * This object represents the cube root factor.
   */
-case object Root3 extends Root {
+case object CubeRoot extends Root {
 
   override def toString: String = "³√"
 
@@ -582,9 +605,12 @@ object Factor {
     *         - `PureNumber` otherwise.
     */
   def apply(w: String): Factor = w match {
-    case `sPi` | `sPiAlt0` | `sPiAlt1` | `sPiAlt2` => Radian
-    case `sE` => NatLog
-    case _ => PureNumber
+    case `sPi` | `sPiAlt0` | `sPiAlt1` | `sPiAlt2` =>
+      Radian
+    case `sE` =>
+      NatLog
+    case _ =>
+      PureNumber
   }
 }
 
@@ -610,8 +636,10 @@ object Render {
         // TODO Issue #48
         y => if (exact) renderRational(y) else (y.renderApproximate(100, Some(16)).stripLeading(), false),
         {
-          case Some(n) => Some(renderDouble(n))
-          case None => None
+          case Some(n) =>
+            Some(renderDouble(n))
+          case None =>
+            None
         })
     ).getOrElse(("<undefined>", true))
 
@@ -622,7 +650,8 @@ object Render {
     * @return a tuple where the first element is the string representation of the integer and the second element is `true`,
     *         indicating it is rendered exactly.
     */
-  private def renderInt(x: Int): (String, Boolean) = (x.toString, true)
+  private def renderInt(x: Int): (String, Boolean) =
+    (x.toString, true)
 
   /**
     * Add exact parameter.
@@ -630,7 +659,8 @@ object Render {
     * @param x the Rational value to be rendered.
     * @return a String.
     */
-  private def renderRational(x: Rational): (String, Boolean) = x.renderConditional(true)
+  private def renderRational(x: Rational): (String, Boolean) =
+    x.renderConditional(true)
 
   /**
     * Renders a `Double` value as a tuple containing its string representation
@@ -640,6 +670,7 @@ object Render {
     * @return a tuple where the first element is the string representation of the `Double`
     *         and the second element is always `false`, indicating it is not rendered exactly.
     */
-  private def renderDouble(x: Double): (String, Boolean) = (x.toString, false)
+  private def renderDouble(x: Double): (String, Boolean) =
+    (x.toString, false)
 }
 

@@ -160,12 +160,12 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
 
   /**
     * Method to determine if this is an imaginary Number,
-    * that's to say a number with negative nominalValue and Root2 as its factor.
+    * that's to say a number with negative nominalValue and SquareRoot as its factor.
     *
     * @return true if imaginary.
     */
   def isImaginary: Boolean = factor match {
-    case Root2 if Value.signum(nominalValue) < 0 =>
+    case SquareRoot if Value.signum(nominalValue) < 0 =>
       true
     case _ =>
       false
@@ -885,9 +885,9 @@ object GeneralNumber {
     case 1 =>
       Some(n)
     case 2 =>
-      Some(n.make(Root2))
+      Some(n.make(SquareRoot))
     case 3 =>
-      Some(n.make(Root3)) // TESTME
+      Some(n.make(CubeRoot)) // TESTME
     case _ =>
       None
   }
