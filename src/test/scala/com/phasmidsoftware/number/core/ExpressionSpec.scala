@@ -21,6 +21,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     }
   }
 
+  behavior of "evaluate"
+
+  it should "evaluate 1 * -1" in {
+    val x = Literal(1) * Literal(-1)
+    val expected = Some(Real(-1))
+    val actual = x.evaluateAsIs
+    actual shouldBe expected
+  }
   behavior of "parse"
   private val syp = ShuntingYardParser
   it should "parse 1" in {
@@ -287,6 +295,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).simplify shouldBe Zero
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Constants.zero)
   }
+
   //  FIXME infinite recursion
   ignore should "simplify aggregate expressions" in {
     Aggregate.total(BiFunction(Two, MinusOne, Product), Two).simplify shouldBe Zero

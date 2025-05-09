@@ -1897,6 +1897,8 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
       context or RestrictedContext(PureNumber)
     case AnyLog =>
       context
+    case r@RestrictedContext(_) =>
+      r
     case _ =>
       ImpossibleContext
   }
@@ -2139,8 +2141,6 @@ abstract class ExpressionBiFunction(
     */
   private def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Field] =
     for {
-      _ <- Option(1) // TODO remove this line
-      ctx = leftContext(context)
       a <- x.evaluate(leftContext(context))
       f <- a.maybeFactor
       b <- y.evaluate(rightContext(RestrictedContext(f)))
