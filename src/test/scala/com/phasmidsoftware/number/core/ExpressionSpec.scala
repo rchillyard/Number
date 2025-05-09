@@ -264,6 +264,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(Phi, One, Sum))
   }
 
+  behavior of "simplifyConstant"
+  it should "simplify biFunction expressions" in {
+    val em: ExpressionMatchers = Expression.em
+    Expression.simplifyConstant(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Literal(-2))
+    BiFunction(Two, MinusOne, Product).simplify shouldBe Literal(-2)
+    BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Constants.zero)
+  }
+
   behavior of "simplify"
   it should "simplify field expressions" in {
     Literal(1).simplify shouldBe Literal(1)
@@ -277,6 +285,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "simplify biFunction expressions" in {
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).simplify shouldBe Zero
+    BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Constants.zero)
   }
   //  FIXME infinite recursion
   ignore should "simplify aggregate expressions" in {

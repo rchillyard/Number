@@ -11,7 +11,7 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
   it should "render" in {
     val target = Aggregate.total(Constants.one, Constants.one)
     target.materialize shouldBe Real(2)
-    target.toString shouldBe "1+1"
+    target.toString shouldBe "Aggregate{+,1,1}"
     target.render shouldBe "2"
   }
 

@@ -638,10 +638,7 @@ sealed trait CompositeExpression extends Expression {
     * @return a String
     */
   def render: String =
-    evaluateAsIs match {
-      case Some(Real(x)) => x.render
-      case _ => toString
-    }
+    materialize.render
 
   /**
     * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
@@ -1252,9 +1249,19 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return the value.
     */
   def evaluate(context: Context): Option[Field] = {
-    val identity: Field = function.maybeIdentityL.getOrElse(Constants.zero) // NOTE should never require the default
-    val maybeFields: Seq[Option[Field]] = xs.map(e => e.evaluate(context))
-    FP.sequence(maybeFields) map (xs => xs.foldLeft[Field](identity)(function))
+    function.maybeIdentityL match {
+      case Some(identity) =>
+        // XXX this is a bit more complicated than it seems.
+        // The first element should be evaluated in the leftContext.
+        // But, after that, we should update the context based on the factor in the first element.
+        // For now, we just evaluate all elements based on the leftContext.
+        val elementContext = function.leftContext(context)
+        val maybeFields: Seq[Option[Field]] = xs.map(e => e.evaluate(elementContext))
+        FP.sequence(maybeFields) map (xs => xs.foldLeft[Field](identity)(function))
+      case None =>
+        System.err.println("Logic error: identity is None")
+        None
+    }
   }
 
   /**
@@ -1823,7 +1830,8 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
     *
     * @return the left-hand `Context` of the binary function.
     */
-  def leftContext(context: Context): Context = context
+  def leftContext(context: Context): Context =
+    context
 
   /**
     * Retrieves the right-hand evaluation context associated with this function
@@ -2124,7 +2132,7 @@ abstract class ExpressionBiFunction(
     */
   private def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Field] =
     for {
-      _ <- Option(null) // TODO remove this line
+      _ <- Option(1) // TODO remove this line
       ctx = leftContext(context)
       a <- x.evaluate(leftContext(context))
       f <- a.maybeFactor
