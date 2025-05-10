@@ -323,7 +323,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *         can be successfully processed, or `None` otherwise
     */
   private def doMultiplyByPower(x: Number, y: Rational, n: Int): Option[Field] =
-    Some(Real((y doMultiply (x power n)).make(SquareRoot)))
+    Some((y doMultiply (x power n)).make(SquareRoot).normalize)
 
   /**
     * Divide this Number by x and return the result.
