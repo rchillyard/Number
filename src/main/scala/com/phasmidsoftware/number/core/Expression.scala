@@ -617,18 +617,19 @@ sealed trait CompositeExpression extends Expression {
   def simplifyTrivial: em.AutoMatcher[Expression]
 
   /**
-    * Simplifies constant sub-expressions within this `CompositeExpression`.
-    * The method identifies and reduces sub-expressions that involve constant values
-    * into a simpler or more compact form, if possible.
+    * Simplifies an `Expression` by checking if its value can be directly evaluated into a constant.
+    * If the `Expression` can be evaluated as a `Field`, it is replaced with a `Literal` containing that value.
+    * Otherwise, no simplification is performed, and the match operation indicates a miss.
     *
-    * @return an `em.AutoMatcher[Expression]` that encapsulates the simplification logic
-    *         and either provides a simplified constant expression or indicates no simplification was possible.
+    * @return an `em.AutoMatcher[Expression]` that matches `Expression` instances which can be directly
+    *         evaluated into constants, and simplifies them by replacing with a `Literal`. If simplification
+    *         is not possible, it returns a miss state with the original `Expression`.
     */
   def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
     expression =>
       expression.evaluateAsIs match {
         case Some(f) =>
-          em.Match(Literal(f))
+          em.Match(Literal(f)) map (_.simplify)
         case _ =>
           em.Miss("matchSimpler: cannot be simplified", expression)
       }
@@ -1979,6 +1980,9 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     * The method evaluates the provided context and returns a new `Context` that is derived
     * based on the specific rules for different types of contexts.
     *
+    * CONSIDER reworking this method to take a Factor (from the left-hand parameter) and a Context (the overall context).
+    * OTherwise, I don't think it's going to work properly.
+    *
     * @param context the initial `Context` to be evaluated and transformed.
     * @return the resulting `Context` after applying the transformation logic.
     */
@@ -1990,6 +1994,8 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     case AnyRoot =>
       context or RestrictedContext(PureNumber)
     case r@RestrictedContext(SquareRoot) =>
+      r or RestrictedContext(PureNumber)
+    case r@RestrictedContext(Radian) =>
       r or RestrictedContext(PureNumber)
     case r@RestrictedContext(_) =>
       r
