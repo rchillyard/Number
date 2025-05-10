@@ -157,11 +157,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   //  }
 
   behavior of "simplifyAggregate"
-  ignore should "simplifyAggregate" in {
-    val p = em.simplifyAggregate // deprecated
+  it should "simplifyAggregate" in {
+    val p = em.simplifyAggregate
     val x: Aggregate = Aggregate.total(One, Literal(3), Literal(-3))
     val result: em.MatchResult[Expression] = p(x)
-    result shouldBe em.Match(Aggregate.total(One))
+    result shouldBe em.Match(One)
   }
 
   behavior of "simplify"
@@ -178,6 +178,25 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     simplified shouldBe expected
   }
 
+  behavior of "complementaryTermsEliminator"
+  it should "eliminate * 2 / 2 in Aggregate" in {
+    val x = Aggregate.product(ConstPi, 2, Reciprocal(Constants.two))
+    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminator
+    val result: em.MatchResult[Expression] = p(x)
+    result shouldBe em.Match(Aggregate.product(ConstPi))
+  }
+  it should "eliminate 2 + -2 in Aggregate" in {
+    val x = Aggregate.total(ConstPi, 2, Negate(Constants.two))
+    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminator
+    val result: em.MatchResult[Expression] = p(x)
+    result shouldBe em.Match(Aggregate.total(ConstPi))
+  }
+  it should "eliminate square root ^ 2 in Aggregate" in {
+    val x = Aggregate.total(ConstPi, 2, Negate(Constants.two))
+    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminator
+    val result: em.MatchResult[Expression] = p(x)
+    result shouldBe em.Match(Aggregate.total(ConstPi))
+  }
   behavior of "simplifier"
   ignore should "leave atomic expression as is" in {
     val x: Expression = One
@@ -256,7 +275,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "cancel multiplication and division" in {
     val x = Literal(Number.pi) * 2 / 2
     x.simplify shouldBe ConstPi
-
   }
   it should "cancel multiplication and division backwards" in {
     val x = Literal(Number.pi) / 2 * 2

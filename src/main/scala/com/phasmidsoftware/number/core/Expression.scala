@@ -431,6 +431,8 @@ object Expression {
   def simplifyComponents: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyComponents") {
     case c: CompositeExpression =>
       c.simplifyComponents(c)
+    case x =>
+      em.Miss("simplifyComponents: not a Composite expression type", x)
   }
 
   /**
@@ -443,6 +445,8 @@ object Expression {
   def simplifyTrivial: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyTrivial") {
     case c: CompositeExpression =>
       c.simplifyTrivial(c)
+    case x =>
+      em.Miss("simplifyTrivial: not a Composite expression type", x)
   }
 
   /**
@@ -456,6 +460,8 @@ object Expression {
   def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
     case c: CompositeExpression =>
       c.simplifyConstant(c)
+    case x =>
+      em.Miss("simplifyConstant: not a Composite expression type", x)
   }
 
   /**
@@ -469,6 +475,8 @@ object Expression {
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyComposite") {
     case c: CompositeExpression =>
       c.simplifyComposite(c)
+    case x =>
+      em.Miss("simplifyComposite: not a Composite expression type", x)
   }
 
 }
