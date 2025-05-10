@@ -11,8 +11,8 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
   import Fuzzy._
 
   private val fuzz1 = LazyFuzzy(1)
-  //private val fuzz2 = LazyFuzzy(1, Product(2))
-  private val fuzz2 = LazyFuzzy(Gaussian(2, 0.1))
+  private val fuzz2 = LazyFuzzy(1, Product(2))
+  //private val fuzz2 = LazyFuzzy(Gaussian(2, 0.1))
 
   def squ(x: Fuzzy): Fuzzy = x match {
     case f: FuzzyBase => f * x
@@ -87,7 +87,7 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
   }
 
   it should "give 8" in {
-    val z = for (x <- fuzz2; y <- fuzz4 ) yield x.power(y)
+    val z = for (x <- fuzz2; y <- fuzz4 ) yield FuzzyNumeric.times(x, y)
     z.get should be (Exact(8))
   }
 
