@@ -30,25 +30,25 @@ import scala.util._
 trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
-   * The nominal value of this `Number`.
+    * The nominal value of this `Number`.
     *
-   * @return the nominalValue.
+    * @return the nominalValue.
     */
   def nominalValue: Value
 
   /**
     * The factor of this Number.
-   * Ordinary numbers are of PureNumber factor, angles have factor Radian, and natural logs have factor NatLog.
+    * Ordinary numbers are of PureNumber factor, angles have factor Radian, and natural logs have factor NatLog.
     *
     * @return the factor.
     */
   def factor: Factor
 
   /**
-   * Retrieves an optional Factor instance.
-   *
-   * @return `Some(factor)`.
-   */
+    * Retrieves an optional Factor instance.
+    *
+    * @return `Some(factor)`.
+    */
   def maybeFactor: Option[Factor] = Some(factor)
 
   /**
@@ -84,11 +84,11 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def applyFunc(f: Double => Double, dfByDx: Double => Double): Try[Number]
 
   /**
-   * Method to evaluate this `Number` in the context of `PureNumber`.
-   * NOTE that, according to the `factor` of `this`, the result may not be as exact as `this`.
-   *
-   * @return an equivalent `Number` whose factor is `PureNumber`.
-   */
+    * Method to evaluate this `Number` in the context of `PureNumber`.
+    * NOTE that, according to the `factor` of `this`, the result may not be as exact as `this`.
+    *
+    * @return an equivalent `Number` whose factor is `PureNumber`.
+    */
   def toPureNumber: Option[Number] = (factor, fuzz) match {
     case (PureNumber, _) =>
       Some(this)
@@ -102,11 +102,11 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   }
 
   /**
-   * Method to get the nominalValue of this Number as an optional Double.
-   *
-   * @return an Some(Double) which is the closest possible nominalValue to the nominal nominalValue,
-   *         otherwise None if this is invalid.
-   */
+    * Method to get the nominalValue of this Number as an optional Double.
+    *
+    * @return an Some(Double) which is the closest possible nominalValue to the nominal nominalValue,
+    *         otherwise None if this is invalid.
+    */
   def toDouble: Option[Double] = maybeDouble
 
   /**
@@ -115,9 +115,9 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def maybeDouble: Option[Double]
 
   /**
-   * Method to determine if this Number is actually represented is an Integer.
+    * Method to determine if this Number is actually represented is an Integer.
     *
-   * @return true if exact and integral.
+    * @return true if exact and integral.
     */
   def isInteger: Boolean
 
@@ -231,9 +231,9 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     doMultiple(Rational(x))
 
   /**
-   * Perform an exact scalar multiplication of this `Number` by the scale factor `r`.
-   *
-   * NOTE that numbers with `Log` factor cannot be scaled exactly in this way.
+    * Perform an exact scalar multiplication of this `Number` by the scale factor `r`.
+    *
+    * NOTE that numbers with `Log` factor cannot be scaled exactly in this way.
     *
     * @param r a Rational.
     * @return a new Number which is this Number scaled by z.
@@ -276,10 +276,11 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   // NOTE Following are methods defined in Field.
 
   /**
-    * Multiply this Number by x and return the result.
+    * Multiplies the current instance by another Field and returns the result.
+    * Handles special cases such as multiplication with zero, one, or specific constants.
     *
-    * @param x the multiplicand.
-    * @return the product.
+    * @param x the Field instance to be multiplied with the current instance
+    * @return the result of the multiplication as a Field
     */
   def multiply(x: Field): Field = (this, x) match {
     case (Number.zero, _) | (_, Constants.zero) =>
@@ -292,13 +293,37 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
       Constants.iPi
     case (n, Constants.i) =>
       n.asComplex.rotate
+    case (n@ExactNumber(v, r: Root), Real(q)) =>
+      Value.maybeRational(v) match {
+        case Some(y) =>
+          doMultiplyByPower(q, y, r.root) getOrElse (n.asComplex numberProduct q)
+        case None =>
+          n.asComplex numberProduct q
+      }
     case (Number.i, _) =>
       x.multiply(ComplexCartesian(0, 1))
     case (_, Real(n)) =>
       doMultiply(n).normalize
     case (_, c@BaseComplex(_, _)) =>
       c.multiply(this.asComplex)
+    case _ =>
+      throw NumberException("logic error: multiply not supported for non-Number multiplicands")
   }
+
+  /**
+    * Multiplies the given field `x` raised to the specified `power` by a rational `y`,
+    * and processes the result to potentially extract a real number.
+    *
+    * CONSIDER moving this to somewhere else
+    *
+    * @param x the field value to be raised to the power and multiplied
+    * @param y the rational value to multiply with the powered field
+    * @param n the integer power to raise the field value
+    * @return an optional field containing a real number if the result
+    *         can be successfully processed, or `None` otherwise
+    */
+  private def doMultiplyByPower(x: Number, y: Rational, n: Int): Option[Field] =
+    Some(Real((y doMultiply (x power n)).make(SquareRoot)))
 
   /**
     * Divide this Number by x and return the result.
@@ -349,7 +374,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Yields the inverse of this Number.
-   * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
+    * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
@@ -375,7 +400,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the sine of this Number.
-   * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber factor.
     *
     * @return the sine of this.
     */
@@ -383,7 +408,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the cosine of this Number.
-   * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber factor.
     *
     * @return the cosine.
     */
@@ -391,7 +416,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the tangent of this Number.
-   * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber factor.
     *
     * @return the tangent
     */
@@ -409,10 +434,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
             inverse(Number.root3)
           case _ =>
             sin doDivide cos
-    }
+        }
       case _ =>
         sin doDivide cos
-  }
+    }
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -424,7 +449,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the natural log of this Number.
-   * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber factor.
     *
     * @return the natural log of this.
     */
@@ -721,8 +746,8 @@ object Number {
     */
   val piBy2: Number = Number(Rational.half, Radian)
   /**
-   * Exact value of pi/4
-   */
+    * Exact value of pi/4
+    */
   val piBy4: Number = Number(Rational(1, 4), Radian)
   /**
     * Represents the mathematical constant π/3.
@@ -762,11 +787,11 @@ object Number {
       */
     def ~(y: Int): Number =
       if (y >= 10 && y < 100) {
-      val p = y * math.pow(10.0, -BigDecimal(x).scale)
-      Number(x, PureNumber, Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
-    }
-    else
-      throw NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
+        val p = y * math.pow(10.0, -BigDecimal(x).scale)
+        Number(x, PureNumber, Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
+      }
+      else
+        throw NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
   }
 
   /**
@@ -1002,12 +1027,12 @@ object Number {
     */
   def apply(x: String, factor: Factor): Number =
     parse(x) match {
-    // CONSIDER we should perhaps process n (e.g. to modulate a Radian value)
+      // CONSIDER we should perhaps process n (e.g. to modulate a Radian value)
       case Success(n) =>
         n.make(factor)
       case Failure(e) =>
         throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
-  }
+    }
 
   /**
     * Method to construct a Number from a String.
@@ -1018,12 +1043,12 @@ object Number {
     */
   def apply(x: String): Number =
     parse(x) match {
-    // CONSIDER we should perhaps process n (e.g. to modulate a Radian value)
+      // CONSIDER we should perhaps process n (e.g. to modulate a Radian value)
       case Success(n) =>
         n
       case Failure(e) =>
         throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
-  }
+    }
 
   /**
     * Method to construct a unit Number with explicit factor.
@@ -1230,9 +1255,9 @@ object Number {
     */
   trait NumberIsOrdering extends Ordering[Number] {
     /**
-     * When we do a compare on NatLog numbers, they are in the same order as PureNumber numbers (i.e. monotonically increasing).
+      * When we do a compare on NatLog numbers, they are in the same order as PureNumber numbers (i.e. monotonically increasing).
       * It's not necessary to convert exact numbers to fuzzy numbers for this purpose, we simply
-     * pretend that the NatLog numbers are PureNumber numbers.
+      * pretend that the NatLog numbers are PureNumber numbers.
       *
       * @param x the first Number.
       * @param y the second Number.
@@ -1273,11 +1298,11 @@ object Number {
     NumberIsOrdering.compare(x, y)
 
   /**
-   * Prepares and specializes a given optional number.
-   *
-   * @param no An optional value of type Number to be prepared.
-   * @return A specialized Number derived from the prepared input.
-   */
+    * Prepares and specializes a given optional number.
+    *
+    * @param no An optional value of type Number to be prepared.
+    * @return A specialized Number derived from the prepared input.
+    */
   def prepareWithSpecialize(no: Option[Number]): Number =
     prepare(no).specialize
 
@@ -1320,14 +1345,14 @@ object Number {
         scale(scale(n, NatLog), factor)
       case _ =>
         throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
-  }
+    }
 
   // CONSIDER some of the following should probably be moved to GeneralNumber
 
   /**
     * Method to change the sign of this Number.
-   * The meaning of "change the sign" is in terms of pure numbers (PureNumber, Radian).
-   * For any other factor, we convert <code>x</code> into PureNumber form (which will most likely introduce fuzziness).
+    * The meaning of "change the sign" is in terms of pure numbers (PureNumber, Radian).
+    * For any other factor, we convert <code>x</code> into PureNumber form (which will most likely introduce fuzziness).
     * Imaginary numbers cannot be negated--they must first be converted to Complex form and then negated.
     *
     * @param x a Number to be negated.
@@ -1342,14 +1367,14 @@ object Number {
         throw NumberException(s"cannot negate imaginary number: $x")
       case _ =>
         negate(x.scale(PureNumber))
-  }
+    }
 
   /**
-   * Computes the inverse of the given number based on its factor type.
-   *
-   * @param x the number to be inverted
-   * @return the inverted number, processed according to its factor type
-   */
+    * Computes the inverse of the given number based on its factor type.
+    *
+    * @param x the number to be inverted
+    * @return the inverted number, processed according to its factor type
+    */
   def inverse(x: Number): Number = x.factor match {
     case PureNumber =>
       prepare(x.transformMonadic(PureNumber)(MonadicOperationInvert))
@@ -1381,10 +1406,10 @@ object Number {
     * CONSIDER returning an Expression rather than a Number. That would enable an exact result for 1/12 and 5/12 pi.
     *
     * @param x a Number, typically in Radians, but if not, then will be converted.
-   * @return a PureNumber Number which represents the sine of x.
+    * @return a PureNumber Number which represents the sine of x.
     */
   def sin(x: Number): Number =
-  // TODO much of the logic here is a repeat of what's in transformMonadic.
+    // TODO much of the logic here is a repeat of what's in transformMonadic.
     x.scale(Radian).transformMonadic(Radian)(MonadicOperationModulate(-1, 1, circular = true)) match {
       case Some(z) =>
         if (z.signum >= 0) {
@@ -1411,22 +1436,22 @@ object Number {
     }
 
   /**
-   * Calculates the arctangent of the angle specified by the ratio of y to x.
-   * The result is an angle expressed in radians.
-   * CONSIDER checking here for x being zero.
-   *
-   * @param x the horizontal coordinate of the point
-   * @param y the vertical coordinate of the point
-   * @return the arctangent of the angle, in radians
-   */
+    * Calculates the arctangent of the angle specified by the ratio of y to x.
+    * The result is an angle expressed in radians.
+    * CONSIDER checking here for x being zero.
+    *
+    * @param x the horizontal coordinate of the point
+    * @param y the vertical coordinate of the point
+    * @return the arctangent of the angle, in radians
+    */
   def atan(x: Number, y: Number): Number =
     doAtan(y doDivide x, x.signum)
 
   /**
     * Yield the natural log of x.
-   * If the factor is NatLog, then we force the factor to be PureNumber and simplify.
-   * Otherwise, if the factor is PureNumber, we first convert it to a NatLog number, then call log recursively.
-   * Otherwise, we convert to a PureNumber number and call log recursively.
+    * If the factor is NatLog, then we force the factor to be PureNumber and simplify.
+    * Otherwise, if the factor is PureNumber, we first convert it to a NatLog number, then call log recursively.
+    * Otherwise, we convert to a PureNumber number and call log recursively.
     *
     * @param x a Number.
     * @return the natural log of x.
@@ -1443,8 +1468,8 @@ object Number {
 
   /**
     * Yield the exponential of x i.e. e to the power of x.
-   * If the factor is PureNumber, then we force the factor to be NatLog and simplify.
-   * Otherwise, we convert to a PureNumber number and call exp recursively.
+    * If the factor is PureNumber, then we force the factor to be NatLog and simplify.
+    * Otherwise, we convert to a PureNumber number and call exp recursively.
     *
     * @param x a Number whose factor is NatLog.
     * @return the value of e raised to the power of x.
@@ -1494,13 +1519,13 @@ object Number {
     no.getOrElse(Number())
 
   /**
-   * Calculates the arctangent (atan) of the given number with a specified sign.
-   * This method performs recursive computation based on the factor type of the input number.
-   *
-   * @param number The input number for which to calculate the arctangent.
-   * @param sign   The sign modifier that affects the outcome of the arctangent calculation.
-   * @return A `Number` representing the computed arctangent in radians. If the input number's factor is not supported or valid, the method may throw an exception.
-   */
+    * Calculates the arctangent (atan) of the given number with a specified sign.
+    * This method performs recursive computation based on the factor type of the input number.
+    *
+    * @param number The input number for which to calculate the arctangent.
+    * @param sign   The sign modifier that affects the outcome of the arctangent calculation.
+    * @return A `Number` representing the computed arctangent in radians. If the input number's factor is not supported or valid, the method may throw an exception.
+    */
   @tailrec
   private def doAtan(number: Number, sign: Int): Number = number.factor match {
     case PureNumber =>
@@ -1668,23 +1693,23 @@ object Number {
   }
 
   /**
-   * Converts a scalar number to a root factor representation by applying a power function
-   * and associating it with a given factor.
-   *
-   * @param n      the scalar number to be converted
-   * @param factor the factor to associate with the result
-   * @param f      the exponent to be applied during conversion
-   */
+    * Converts a scalar number to a root factor representation by applying a power function
+    * and associating it with a given factor.
+    *
+    * @param n      the scalar number to be converted
+    * @param factor the factor to associate with the result
+    * @param f      the exponent to be applied during conversion
+    */
   private def convertScalarToRoot(n: Number, factor: Factor, f: Double) =
     n.doPower(ExactNumber(Value.fromDouble(Some(f)), PureNumber)).make(factor)
 
   /**
-   * Converts the root representation of a number into its natural logarithm, scaled by a given factor.
-   *
-   * @param n      the number to be converted, containing a possible double value
-   * @param factor a factor used during the conversion process
-   * @param f      a scaling factor for adjusting the natural logarithm
-   */
+    * Converts the root representation of a number into its natural logarithm, scaled by a given factor.
+    *
+    * @param n      the number to be converted, containing a possible double value
+    * @param factor a factor used during the conversion process
+    * @param f      a scaling factor for adjusting the natural logarithm
+    */
   private def convertRootToNatLog(n: Number, factor: Factor, f: Double) = {
     val yo = for (x <- n.maybeDouble; z = math.log(x)) yield z / f
     n.make(Value.fromDouble(yo), factor).specialize

@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
+import com.phasmidsoftware.number.core.Rational.toIntOption
 import com.phasmidsoftware.number.core.Value.{fromDouble, scaleDouble, valueToString}
 import scala.util._
 
@@ -102,7 +103,8 @@ sealed trait Factor {
     * @param x the Value.
     * @return a String.
     */
-  def render(x: Value): String = render(valueToString(x))
+  def render(x: Value): String =
+    render(valueToString(x))
 
   /**
     * Method to render a Value (which has already been converted to a String) in the context of this Factor.
@@ -150,7 +152,8 @@ sealed trait Scalar extends Factor {
     * @param context the context in which the factor is evaluated.
     * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
     */
-  def isA(context: Context): Boolean = context.factorQualifies(this)
+  def isA(context: Context): Boolean =
+    context.factorQualifies(this)
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
@@ -182,6 +185,9 @@ object Scalar {
   * Trait to define a Factor which is a scaled version of the natural log.
   */
 sealed trait Logarithmic extends Factor {
+  /**
+    * This is a `String` representation of the base of the logarithm used for this `Factor`.
+    */
   val base: String
 
   /**
@@ -189,7 +195,8 @@ sealed trait Logarithmic extends Factor {
     *
     * @return true if this `Factor` can be rendered exactly; false otherwise.
     */
-  def canShow(value: Value): Boolean = asPower(value).isDefined
+  def canShow(value: Value): Boolean =
+    asPower(value).isDefined
 
   /**
     * Determines whether the current factor can be multiplied by the given factor.
@@ -214,7 +221,8 @@ sealed trait Logarithmic extends Factor {
     * @param context the context in which the factor is evaluated.
     * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
     */
-  def isA(context: Context): Boolean = context.factorQualifies(this)
+  def isA(context: Context): Boolean =
+    context.factorQualifies(this)
 
   /**
     * Convert a value x from this factor to f if possible, using simple scaling.
@@ -257,10 +265,20 @@ sealed trait Logarithmic extends Factor {
       None
   }
 
-  override def render(x: Value): String = asPower(x) getOrElse toString
+  /**
+    * Renders a string representation of the given value based on specific conditions.
+    * If the value can be represented in power or root notation, it uses that representation;
+    * otherwise, it falls back to the string representation of the value.
+    *
+    * @param x the value to be rendered into a string representation.
+    * @return a string representation of the value, using power or root notation when applicable.
+    */
+  override def render(x: Value): String =
+    asPower(x) getOrElse toString
 
   /**
     * Renders a string representation of the value based on the current base and the given input value.
+    * CONSIDER why do we have a second signature for render?
     *
     * @param v the input value to be rendered, represented as a string
     * @return a string combining the base and the input value in a specific exponential format
@@ -275,8 +293,22 @@ sealed trait Logarithmic extends Factor {
   * operations for pattern matching and internal functionality for string manipulation.
   */
 object Logarithmic {
+  /**
+    * Extractor method for the `Logarithmic` trait that enables pattern matching to extract the inner value.
+    *
+    * @param arg the `Logarithmic` instance from which the value will be extracted.
+    * @return an `Option` containing the extracted `Double` value if available, otherwise `None`.
+    */
   def unapply(arg: Logarithmic): Option[Double] = Some(arg.value)
 
+  /**
+    * Increments the Unicode value of the character at the specified index in the given string by the given amount.
+    *
+    * @param str   the input string whose character's Unicode value will be incremented
+    * @param index the index of the character in the string to be incremented
+    * @param x     the value to increment the character's Unicode value by
+    * @return a new string with the character at the specified index incremented by the specified value
+    */
   private def incrementUnicode(str: String, index: Int, x: Int): String = {
     val chars: Array[Char] = str.toArray
     chars.update(index, (chars(index) + x).toChar)
@@ -311,6 +343,12 @@ sealed trait Root extends Factor {
     */
   val value: Double = root
 
+  /**
+    * Converts the given value into its root representation if applicable.
+    *
+    * @param value the Value object to be converted into its root representation.
+    * @return an optional String representing the root form of the value, or None if the conversion is not applicable.
+    */
   def asRoot(value: Value): Option[String]
 
   /**
@@ -318,7 +356,8 @@ sealed trait Root extends Factor {
     *
     * @return true if this `Factor` can be rendered exactly; false otherwise.
     */
-  def canShow(value: Value): Boolean = asRoot(value).isDefined
+  def canShow(value: Value): Boolean =
+    asRoot(value).isDefined
 
   /**
     * Method to render a Value in the context of this Factor.
@@ -326,7 +365,28 @@ sealed trait Root extends Factor {
     * @param x the Value.
     * @return a String.
     */
-  override def render(x: Value): String = asRoot(x) getOrElse convert(x, PureNumber).toString
+  override def render(x: Value): String =
+    asImaginary(x) orElse asRoot(x) getOrElse convert(x, PureNumber).toString
+
+  /**
+    * Converts a given Value into its imaginary representation, if applicable.
+    *
+    * The method checks if the provided `value` can be represented as an imaginary number
+    * based on specific mathematical conditions, such as whether it is a negative integer
+    * and has a corresponding square root.
+    *
+    * @param value the Value object to be evaluated and potentially converted into its
+    *              imaginary representation.
+    * @return an optional String representing the imaginary form of the value, or None if
+    *         the value does not meet the conditions for conversion to an imaginary number.
+    */
+  def asImaginary(value: Value): Option[String] =
+    (for {
+      r <- Value.maybeRational(value)
+      n <- toIntOption(r) if r.signum < 0 && r.isInteger
+      x <- Rational.squareRoots.get(-n)
+      s = if (x == 1) "" else x.toString
+    } yield s) map ("i" + _)
 
   /**
     * Determines whether the current factor can be multiplied by the given factor.
@@ -377,7 +437,8 @@ sealed trait Root extends Factor {
     * @param context the context in which the factor is evaluated.
     * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
     */
-  def isA(context: Context): Boolean = context.factorQualifies(this)
+  def isA(context: Context): Boolean =
+    context.factorQualifies(this)
 
   /**
     * Converts a given Value `v` from one Factor `this` to another Factor `f`, if possible.
@@ -429,7 +490,8 @@ case object PureNumber extends Scalar {
     * @param context the context in which the factor is evaluated.
     * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
     */
-  override def isA(context: Context): Boolean = context.factorQualifies(this)
+  override def isA(context: Context): Boolean =
+    context.factorQualifies(this)
 
   override def toString: String = ""
 
@@ -493,8 +555,20 @@ case object Radian extends Scalar {
   * Thus the range of such values is any positive number.
   */
 case object NatLog extends Logarithmic {
+  /**
+    * Represents the base symbol used for the `NatLog` factor.
+    *
+    * The symbol is defined as the mathematical constant ℯ (e).
+    * This constant is used to indicate the base of the natural logarithm
+    * and is sourced from the `Factor` object.
+    */
   val base: String = Factor.sE
 
+  /**
+    * Represents the default value for the `NatLog` factor.
+    *
+    * This value is used in conversions (it's the natural log of e, viz., 1.0).
+    */
   val value: Double = 1.0
 
   override def toString: String = Factor.sE
@@ -515,8 +589,19 @@ case object NatLog extends Logarithmic {
   * @see Logarithmic
   */
 case object Log2 extends Logarithmic {
+  /**
+    * Represents the base of the logarithm as a string.
+    *
+    * For this specific implementation, the base is "2", which corresponds
+    * to logarithms computed for base 2 (binary logarithms).
+    */
   val base: String = "2"
 
+  /**
+    * Represents the default value for the `NatLog` factor.
+    *
+    * This value is used in conversions (it's the natural log of 2, approximately 0.69).
+    */
   val value: Double = math.log(2)
 
   override def toString: String = "log2"
@@ -531,8 +616,16 @@ case object Log2 extends Logarithmic {
   * @constructor Creates an instance of `Log10`.
   */
 case object Log10 extends Logarithmic {
+  /**
+    * Represents the base of the logarithm, which is set to "10".
+    */
   val base: String = "10"
 
+  /**
+    * Represents the natural logarithm of 10.
+    *
+    * This value is a constant that evaluates to the natural logarithm (base e) of the number 10.
+    */
   val value: Double = math.log(10)
 
   override def toString: String = "log10"
@@ -545,10 +638,29 @@ case object SquareRoot extends Root {
 
   override def toString: String = "√"
 
+  /**
+    * Renders the input string with a square root symbol.
+    *
+    * @param x the input string to be rendered
+    * @return a string prefixed with the square root symbol
+    */
   def render(x: String): String = s"√$x"
 
+  /**
+    * Indicates that this Factor is the Square root.
+    *
+    * @return the integer value representing the root factor, which is 2
+    */
   def root: Int = 2
 
+  /**
+    * Constructs an optional string representation of the current root object concatenated
+    * with the string representation of the specified value.
+    *
+    * @param value the value to be represented as part of the root string.
+    * @return an Option containing the concatenated string representation of the root
+    *         and the value, or None if the string construction is unsuccessful.
+    */
   def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value)}")
 }
 
@@ -557,13 +669,37 @@ case object SquareRoot extends Root {
   */
 case object CubeRoot extends Root {
 
+  /**
+    * Converts the object into its string representation.
+    *
+    * @return a string representation of the object
+    */
   override def toString: String = "³√"
 
+  /**
+    * Generates a string representation of the cube root for a given input.
+    *
+    * @param x the input string to be represented with the cube root symbol
+    * @return a string in the format ³√ followed by the input
+    */
   def render(x: String): String = s"³√$x"
 
+  /**
+    * Indicates that this Factor is the Cube root.
+    *
+    * @return the root value as an integer (3).
+    */
   def root: Int = 3
 
-  def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value)}")
+  /**
+    * Converts a given value into a string representation and appends it to the
+    * root symbol.
+    *
+    * @param value the value to be converted into a string representation.
+    * @return an optional string representing the root concatenated with the value.
+    */
+  def asRoot(value: Value): Option[String] =
+    Some(s"$toString${valueToString(value)}")
 }
 
 /**
@@ -581,10 +717,35 @@ case object CubeRoot extends Root {
   * - All other strings default to the `PureNumber` factor.
   */
 object Factor {
+  /**
+    * Represents the Unicode character ℯ (𝜀), which is commonly used to denote Euler's number in mathematics.
+    */
   val sE = "\uD835\uDF00"
+  /**
+    * Represents the symbol for π (pi) in unicode format.
+    * This constant can be used to identify and match the mathematical symbol π
+    * within the `Factor` class operations and logic.
+    */
   val sPi = "\uD835\uDED1"
+  /**
+    * Alternate representation of the mathematical constant π as a string.
+    * Used as one of the predefined constants within the `Factor` class
+    * for identifying and handling π-related symbols.
+    */
   val sPiAlt0 = "pi"
+  /**
+    * Represents an alternative designation for the mathematical constant π (pi) in radians.
+    *
+    * This string serves as a predefined constant within the `Factor` class,
+    * used for matching and identifying inputs associated with the radian unit
+    * when applying the `Factor` class's methods.
+    */
   val sPiAlt1 = "Radian"
+  /**
+    * Represents an alternative string representation for the mathematical constant π (Pi).
+    * This value is one of several predefined symbols within the `Factor` class
+    * that correspond to π-related constants.
+    */
   val sPiAlt2 = "PI"
 
   /**

@@ -193,7 +193,14 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
    *
    * @return the String representation of this ExactNumber.
    */
-  override def render: String = toString
+  override def render: String = factor match {
+    case SquareRoot =>
+      val sb = new StringBuilder()
+      sb.append(SquareRoot.render(nominalValue))
+      sb.toString
+    case _ =>
+      toString
+  }
 
   /**
     * Render this ExactNumber in String form, including the factor.

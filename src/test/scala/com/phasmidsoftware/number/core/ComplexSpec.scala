@@ -328,13 +328,17 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     (Number.two multiply Constants.i).isSame(ComplexCartesian(0, 2)) shouldBe true
   }
   it should "work when i is scaled by two (postfix)" in {
-    (Number.i multiply Constants.two).isSame(ComplexCartesian(0, 2)) shouldBe true
+    (Number.i.asComplex multiply Constants.two).isSame(ComplexCartesian(0, 2)) shouldBe true
   }
 
   behavior of "i"
   it should "render as √-1" in {
-    // CONSIDER should we have it render as "i" instead?
-    Number.i.render shouldBe "√-1"
+    val render = Number.i.render
+    render shouldBe "i"
+  }
+  it should "render as √-4" in {
+    val render = ExactNumber(-4, SquareRoot).render
+    render shouldBe "i2"
   }
   it should "convertToNumber" in {
     convertToNumber(Constants.i) shouldBe Number.i

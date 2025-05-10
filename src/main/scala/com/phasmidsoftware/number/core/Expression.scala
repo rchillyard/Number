@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.core.Context.{AnyLog, AnyScalar}
+import com.phasmidsoftware.number.core.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.core.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.FP.recover
@@ -502,14 +502,6 @@ sealed trait AtomicExpression extends Expression {
     evaluateAsIs flatMap (_.maybeFactor)
 
   /**
-    * Action to simplify this Expression and render it as a `String`,
-    * that is to say, we eagerly evaluate this Expression as a `String`.
-    *
-    * @return `String` form of this `Constant`.
-    */
-  def render: String = toString
-
-  /**
     * @return 1.
     */
   def depth: Int = 1
@@ -702,6 +694,13 @@ case object Noop extends AtomicExpression {
     * @return a `Double` representing the approximation of this expression.
     */
   override def approximation: Option[Real] = None
+
+  /**
+    * Method to render this NumberLike in a presentable manner.
+    *
+    * @return a String
+    */
+  def render: String = "Noop"
 }
 
 /**
@@ -736,6 +735,13 @@ abstract class FieldExpression(val value: Field, val maybeName: Option[String] =
     case _ =>
       None
   }
+
+  /**
+    * Method to render this NumberLike in a presentable manner.
+    *
+    * @return a String
+    */
+  def render: String = maybeName getOrElse value.render
 
   /**
     * Generate a String for debugging purposes.
@@ -935,6 +941,12 @@ case object ConstPi extends FieldExpression(Constants.pi, Some("π"))
   * Yes, this is an exact number.
   */
 case object ConstE extends FieldExpression(Constants.e)
+
+/**
+  * The constant i (viz., the square root of 2)
+  * Yes, this is an exact number.
+  */
+case object ConstI extends FieldExpression(Constants.i, Some("i"))
 
 /**
   * This class represents a monadic function of the given expression.
@@ -1495,6 +1507,13 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     root.evaluate(context)
 
   /**
+    * Method to render this NumberLike in a presentable manner.
+    *
+    * @return a String
+    */
+  def render: String = name
+
+  /**
     * Provides a string representation of the object by returning the `name` field.
     *
     * @return a `String` that represents the `name` of this quadratic root instance.
@@ -1961,18 +1980,23 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
   def leftContext(context: Context): Context = context
 
   /**
-    * Retrieves the right-hand evaluation context for the specified `Field` value.
-    * This provides specific rules or constraints for how the binary function interacts with the input value.
-    * NOTE that the operands may have to be swapped in order for evaluation to succeed.
+    * Determines the right-hand evaluation context for a given `Context`.
     *
-    * @param a ignored.
-    * @return `Some(PureNumber)`.
+    * The method evaluates the provided context and returns a new `Context` that is derived
+    * based on the specific rules for different types of contexts.
+    *
+    * @param context the initial `Context` to be evaluated and transformed.
+    * @return the resulting `Context` after applying the transformation logic.
     */
   def rightContext(context: Context): Context = context match {
     case AnyScalar | AnyContext =>
       context or RestrictedContext(PureNumber)
     case AnyLog =>
       context
+    case AnyRoot =>
+      context or RestrictedContext(PureNumber)
+    case r@RestrictedContext(SquareRoot) =>
+      r or RestrictedContext(PureNumber)
     case r@RestrictedContext(_) =>
       r
     case _ =>
@@ -1980,18 +2004,34 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
   }
 
   /**
-    * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
-    * and returns an optional result.
-    * The evaluation succeeds only if the operation satisfies specific conditions
-    * (e.g., exact representations or mathematical constraints).
+    * Multiplies two Field instances under specific conditions and returns the result as an optional Field.
     *
-    * @param a the first operand, a `Field` instance.
-    * @param b the second operand, a `Field` instance.
-    * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
-    *         or `None` if the operation fails to meet exactness requirements.
+    * The method checks the type and characteristics of the second operand `b` (the multiplier)
+    * and applies an exact mathematical operation to the first operand `a` (the multiplicand)
+    * if certain criteria are met. If no conditions are satisfied, it returns `None`.
+    *
+    * @param a the first operand, a Field instance serving as the multiplicand.
+    * @param b the second operand, a Field instance serving as the multiplier. This operand is evaluated
+    *          to determine the applicability of exact computations.
+    * @return an `Option[Field]` containing the resulting Field if the operation is valid and applicable,
+    *         or `None` if the conditions for exact multiplication are not met.
     */
   def applyExact(a: Field, b: Field): Option[Field] =
-    Some(a multiply b)
+    b match {
+      case Real(ExactNumber(_, PureNumber)) =>
+        a match {
+          case Real(ExactNumber(_, PureNumber | Radian | SquareRoot | CubeRoot)) =>
+            Some(a multiply b)
+          case _ =>
+            None
+        }
+      case Real(ExactNumber(v, SquareRoot)) =>
+        Value.maybeRational(v) map (r => a multiply r multiply r)
+      case Real(ExactNumber(v, CubeRoot)) =>
+        Value.maybeRational(v) map (r => a multiply r multiply r multiply r)
+      case _ =>
+        None
+    }
 } // NOTE can create a fuzzy number
 
 /**
@@ -2040,7 +2080,7 @@ case object Power extends ExpressionBiFunction("^", (x, y) => x.power(y), isExac
     */
   def applyExact(a: Field, b: Field): Option[Field] = b match {
     case Real(ExactNumber(v, PureNumber)) =>
-      Value.maybeRational(v) map (_ => a power (b))
+      Value.maybeRational(v) map (_ => a power b)
     case _ =>
       None
   }

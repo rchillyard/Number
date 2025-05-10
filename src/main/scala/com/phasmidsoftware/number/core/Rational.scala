@@ -1287,6 +1287,14 @@ object Rational {
   def toLong(x: Rational): Try[Long] = narrow(x, Long.MinValue, Long.MaxValue) map (_.toLong)
 
   /**
+    * This method gets an optional Int from a Rational.
+    *
+    * @param x a Rational.
+    * @return an Option[Int]
+    */
+  def toIntOption(x: Rational): Option[Int] = if (x.isWhole && x.n.isValidInt) Some(x.n.toInt) else None
+
+  /**
    * This method gets an Int from a Rational.
    *
    * XXX: Needs to be public for testing

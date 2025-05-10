@@ -23,12 +23,24 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "evaluate"
 
+  it should "evaluate 1 + -1" in {
+    val x = Literal(1) + Literal(-1)
+    x.evaluateAsIs shouldBe Some(Constants.zero)
+  }
+
   it should "evaluate 1 * -1" in {
     val x = Literal(1) * Literal(-1)
-    val expected = Some(Real(-1))
-    val actual = x.evaluateAsIs
-    actual shouldBe expected
+    x.evaluateAsIs shouldBe Some(Real(-1))
   }
+
+  it should "evaluate i * 2" in {
+    val x = ConstI * Literal(2)
+    val result = x.evaluateAsIs
+    result.isDefined shouldBe true
+    val expected = Real(ExactNumber(-4, SquareRoot))
+    result.get shouldBe expected
+  }
+
   behavior of "parse"
   private val syp = ShuntingYardParser
   it should "parse 1" in {

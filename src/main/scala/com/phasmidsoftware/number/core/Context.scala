@@ -94,8 +94,10 @@ case class RestrictedContext(context: Factor) extends Context {
     * @return true if the factor qualifies; false otherwise.
     */
   def factorQualifies(f: Factor): Boolean = (f, context) match {
-    case (a, b) if a == b => true
-    case _ => false
+    case (a, b) if a == b =>
+      true
+    case _ =>
+      false
   }
 }
 
