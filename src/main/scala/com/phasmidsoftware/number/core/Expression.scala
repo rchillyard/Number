@@ -1144,7 +1144,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
     case b@BiFunction(_, _, _) =>
-      (em.matchBiFunctionAsAggregate & simplifyComposite)(b)
+      (em.matchBiFunctionAsAggregate & Expression.simplifyComposite)(b)
     case b =>
       em.Miss("simplifyComposite", b)
   }

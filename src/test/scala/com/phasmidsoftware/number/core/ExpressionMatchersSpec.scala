@@ -169,7 +169,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "cancel addition and subtraction (a)" in {
     val x = ConstPi + 3 - 3
     val simplified = x.simplify
-    simplified.evaluateAsIs shouldBe Literal(Constants.pi)
+    simplified.evaluateAsIs shouldBe Some(Constants.pi)
   }
   it should "use multiply instead of addition" in {
     val x = ConstPi + ConstPi
