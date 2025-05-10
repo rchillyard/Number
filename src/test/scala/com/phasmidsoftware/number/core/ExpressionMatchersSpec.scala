@@ -355,7 +355,25 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     em.factorsMatch(Power, MinusOne, Literal(root2)) shouldBe false
   }
 
-  behavior of "simplify aggregate"
+  behavior of "simplify aggregate, etc."
+  it should "aggregate 1" in {
+    val target = One * ConstPi + Two * MinusOne
+    target match {
+      case biFunction: BiFunction =>
+        val result = em.matchBiFunctionAsAggregate(biFunction)
+        result.successful shouldBe false
+    }
+  }
+  it should "aggregate 2" in {
+    val target = One * ConstPi + Two * MinusOne + Two
+    target match {
+      case biFunction: BiFunction =>
+        val result = em.matchBiFunctionAsAggregate(biFunction)
+        result.successful shouldBe true
+        result.get shouldBe Aggregate(Sum, Seq(One * ConstPi, Two * MinusOne, Two))
+    }
+  }
+
   ignore should "simplify aggregate 1" in {
     val x: Expression = Aggregate(Sum, Seq(One, Literal(3), Literal(-3)))
     val result: em.MatchResult[Field] = em.simplifier(x) map (_.materialize)
@@ -417,20 +435,20 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     }
   }
 
-  ignore should "simplify aggregate 3b" in {
-    CompositeExpression(Literal(root2), -Literal(root2)) match {
-      case x: BiFunction =>
-        val target = x.asAggregate
-        //        val simplified: Expression = aggregateSimplifier(target)
-        val simplified = em.simplifier(target)
-        simplified map (_.materialize) match {
-          case em.Match(x: Field) =>
-            val value = convertToNumber(x)
-            value shouldBe Number.zero
-          case x => fail(s"expected a Field but got $x")
-        }
-    }
-  }
+//  ignore should "simplify aggregate 3b" in {
+//    CompositeExpression(Literal(root2), -Literal(root2)) match {
+//      case x: BiFunction =>
+//        val target = x.asAggregate
+//        //        val simplified: Expression = aggregateSimplifier(target)
+//        val simplified = em.simplifier(target)
+//        simplified map (_.materialize) match {
+//          case em.Match(x: Field) =>
+//            val value = convertToNumber(x)
+//            value shouldBe Number.zero
+//          case x => fail(s"expected a Field but got $x")
+//        }
+//    }
+//  }
 
   ignore should "simplify aggregate 4a" in {
     val target: Expression = Aggregate(Sum, Seq(One, ConstE, Function(ConstE, Negate)))

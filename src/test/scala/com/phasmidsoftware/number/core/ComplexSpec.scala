@@ -89,7 +89,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "multiply" in {
     val z1 = Expression(c1_2) * c2_0
-    z1.materialize shouldBe ComplexCartesian(Number.two, 4)
+    val result = z1.materialize
+    result shouldBe ComplexCartesian(Number.two, 4)
   }
 
   it should "unary_$minus" in {
@@ -156,7 +157,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "c2_0^1/2" in {
     val result: Field = c2_0 power half
     result should matchPattern { case ComplexPolar(_, _, 2) => }
-    (result * result).compare(c2_0) shouldBe 0
+    val squaredResult = result * result
+    squaredResult.compare(c2_0) shouldBe 0
   }
 
   it should "p1_pi_2^1" in {

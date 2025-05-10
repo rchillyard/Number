@@ -764,6 +764,28 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
+    * Matches and transforms nested BiFunction structures into an Aggregate if they meet
+    * specific conditions where the nested functions share the same operation.
+    * Specifically:
+    * - When nested `BiFunction` objects share the same binary function at all levels, they are aggregated into a single `Aggregate` expression with all the operands.
+    * - If no valid aggregation pattern is matched, the original expression is returned unchanged.
+    *
+    * @return A `Matcher[BiFunction, Aggregate]` that attempts to match a BiFunction and
+    *         transform it into an Aggregate if conditions are satisfied. If the input
+    *         does not meet the required conditions, it returns a Miss.
+    */
+  def matchBiFunctionAsAggregate: Matcher[BiFunction, Aggregate] = Matcher[BiFunction, Aggregate]("matchBiFunctionAsAggregate") {
+    case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
+      Match(Aggregate(f, Seq(w, x, y, z)))
+    case BiFunction(BiFunction(w, x, f), y, h) if f == h =>
+      Match(Aggregate(f, Seq(w, x, y)))
+    case BiFunction(x, BiFunction(y, z, f), h) if f == h =>
+      Match(Aggregate(f, Seq(x, y, z)))
+    case x =>
+      Miss("matchBiFunctionAsAggregate: is not converted to Aggregate:", x)
+  }
+
+  /**
     * A `ExpressionTransformer` which matches an `Aggregate` and results in an `Expression`.
     *
     * @return ExpressionMatcher[Expression]

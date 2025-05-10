@@ -69,8 +69,10 @@ sealed trait Expression extends NumberLike with Approximatable {
     *
     * @return the materialized `Field` representation of the `Expression`.
     */
-  def materialize: Field =
-    recover(this.simplify.evaluateAsIs, ExpressionException(s"materialize: logic error on $this"))
+  def materialize: Field = {
+    val simplified = simplify
+    recover(simplified.evaluateAsIs orElse simplified.approximation, ExpressionException(s"materialize: logic error on $this"))
+  }
 
   /**
     * Method to determine if the materialized value of this `Expression` is defined and corresponds to a `Number`.
@@ -1142,27 +1144,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
     case b@BiFunction(_, _, _) =>
-      Expression.simplifyComposite(b.asAggregate)
-  }
-
-  /**
-    * Transforms this `BiFunction` expression into an `Aggregate` expression if certain patterns and conditions are met.
-    *
-    * Specifically:
-    * - When nested `BiFunction` objects share the same binary function at all levels, they are aggregated into a single `Aggregate` expression with all the operands.
-    * - If no valid aggregation pattern is matched, the original expression is returned unchanged.
-    *
-    * @return an `Expression` in the form of an `Aggregate` if the transformation is successful or the original expression otherwise.
-    */
-  def asAggregate: CompositeExpression = this match {
-    case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
-      Aggregate(f, Seq(w, x, y, z))
-    case BiFunction(BiFunction(w, x, f), y, h) if f == h =>
-      Aggregate(f, Seq(w, x, y))
-    case BiFunction(x, BiFunction(y, z, f), h) if f == h =>
-      Aggregate(f, Seq(x, y, z))
-    case _ =>
-      Aggregate(f, Seq(a, b))
+      (em.matchBiFunctionAsAggregate & simplifyComposite)(b)
+    case b =>
+      em.Miss("simplifyComposite", b)
   }
 
   /**
@@ -2026,6 +2010,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     */
   def applyExact(a: Field, b: Field): Option[Field] =
     b match {
+      // CONSIDER why not let these cases be handled by multiply?
       case Real(ExactNumber(_, PureNumber)) =>
         a match {
           case Real(ExactNumber(_, PureNumber | Radian | SquareRoot | CubeRoot)) =>
@@ -2037,6 +2022,8 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
         Value.maybeRational(v) map (r => a multiply r multiply r)
       case Real(ExactNumber(v, CubeRoot)) =>
         Value.maybeRational(v) map (r => a multiply r multiply r multiply r)
+      case _ if a.isExact && b.isExact =>
+        Some(a multiply b)
       case _ =>
         None
     }
