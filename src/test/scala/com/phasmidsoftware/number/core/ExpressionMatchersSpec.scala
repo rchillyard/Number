@@ -178,22 +178,22 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     simplified shouldBe expected
   }
 
-  behavior of "complementaryTermsEliminator"
+  behavior of "complementaryTermsEliminatorAggregate"
   it should "eliminate * 2 / 2 in Aggregate" in {
     val x = Aggregate.product(ConstPi, 2, Reciprocal(Constants.two))
-    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminator
+    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminatorAggregate
     val result: em.MatchResult[Expression] = p(x)
     result shouldBe em.Match(Aggregate.product(ConstPi))
   }
   it should "eliminate 2 + -2 in Aggregate" in {
     val x = Aggregate.total(ConstPi, 2, Negate(Constants.two))
-    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminator
+    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminatorAggregate
     val result: em.MatchResult[Expression] = p(x)
     result shouldBe em.Match(Aggregate.total(ConstPi))
   }
   it should "eliminate square root ^ 2 in Aggregate" in {
     val x = Aggregate.total(ConstPi, 2, Negate(Constants.two))
-    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminator
+    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminatorAggregate
     val result: em.MatchResult[Expression] = p(x)
     result shouldBe em.Match(Aggregate.total(ConstPi))
   }

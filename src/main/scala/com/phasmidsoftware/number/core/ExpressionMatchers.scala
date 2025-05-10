@@ -829,7 +829,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       // NOTE it's important that you do not reintroduce a match into a BiFunction!
         case a@Aggregate(_, _) =>
           println(s"simplifyAggregate: matched on $a with a possible resimplification")
-          (complementaryTermsEliminator & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
+          (complementaryTermsEliminatorAggregate & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
         case x =>
           println(s"simplifyAggregate: default match on type ${x.getClass}")
           Miss(s"simplifyAggregate: no match for $x", x)
@@ -871,12 +871,12 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *         expression with reduced complementary terms or returns a miss description
     *         if no reduction takes place.
     */
-  def complementaryTermsEliminator: Matcher[Aggregate, Expression] = {
+  def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = {
     case a@Aggregate(f, xs) =>
       val invertFunction: Double => Double = f match {
         case Sum => x => Math.abs(x)
         case Product => x => if (x < 1) 1 / x else x
-        case Power => throw new IllegalArgumentException("complementaryTermsEliminator: Power function not supported")
+        case Power => throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
       }
       val sortFunction: Expression => Double = x => {
         invertFunction(x.approximation.flatMap(_.asDouble) getOrElse Double.NaN)
@@ -891,12 +891,38 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           if (list.length < xs.length)
             Match(Aggregate(f, list))
           else
-            Miss(s"complementaryTermsEliminator: $a", a)
+            Miss(s"complementaryTermsEliminatorAggregate: $a", a)
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
     case x =>
       Miss(s"simplifyAggregate: not an Aggregate", x)
+  }
+
+  /**
+    * A matcher function that processes instances of `BiFunction` and evaluates whether its terms
+    * are complementary based on a provided condition. If the terms are complementary, it attempts
+    * to eliminate them by returning their identity literal. Otherwise, it provides information
+    * about why the matching failed.
+    *
+    * @return A `Matcher[BiFunction, Expression]` where:
+    *         - If the terms of the `BiFunction` are complementary and have an identity, it
+    *           returns a `Match` containing the identity as a `Literal`.
+    *         - If the terms are complementary but lack an identity, it returns a `Miss`
+    *           with a corresponding message and the original `BiFunction`.
+    *         - If the terms are not complementary, it returns a `Miss` with a message
+    *           indicating this and the input term.
+    */
+  def complementaryTermsEliminatorBiFunction: Matcher[BiFunction, Expression] = {
+    case BiFunction(a, b, f) if isComplementary(f, a, b) =>
+      f.maybeIdentityL match {
+        case Some(field) =>
+          Match(Literal(field))
+        case None =>
+          Miss(s"complementaryTermsEliminatorBiFunction: no identity for $f", BiFunction(a, b, f))
+      }
+    case x =>
+      Miss(s"complementaryTermsEliminatorBiFunction: not complementary", x)
   }
 
   /**

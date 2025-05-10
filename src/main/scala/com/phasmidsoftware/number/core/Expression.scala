@@ -1133,18 +1133,20 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     }
 
   /**
-    * Simplifies a `BiFunction` expression by converting it to an `Aggregate` and applying
-    * simplification logic.
-    * This ensures that the simplification logic is centralized  within the `Aggregate` implementation.
+    * Simplifies a `CompositeExpression` represented as a `BiFunction` by applying various matchers
+    * to identify opportunities for simplification. Specifically:
+    * - Converts the `BiFunction` into an `Aggregate` for consistent simplification processing.
+    * - Attempts to simplify complementary terms within the `BiFunction`.
+    * - Applies additional simplification logic as defined by `Expression.simplifyComposite` and `matchSimpler`.
     *
-    * @return an `em.AutoMatcher[Expression]` that transforms a `BiFunction` into a potentially
-    *         simplified `Expression`.
-    *         If simplification is not possible, it returns
-    *         the original `Expression` encapsulated in a match result.
+    * If the expression cannot be simplified, the result will indicate the failure.
+    *
+    * @return an `em.AutoMatcher[Expression]` that encapsulates the logic for simplifying the `BiFunction`.
+    *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
     case b@BiFunction(_, _, _) =>
-      (em.matchBiFunctionAsAggregate & Expression.simplifyComposite)(b)
+      ((em.complementaryTermsEliminatorBiFunction | em.matchBiFunctionAsAggregate & Expression.simplifyComposite) & matchSimpler)(b)
     case b =>
       em.Miss("simplifyComposite", b)
   }
