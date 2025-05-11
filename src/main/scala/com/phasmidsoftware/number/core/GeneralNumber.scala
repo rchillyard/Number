@@ -443,8 +443,9 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
         Real(this)
       case r@Root(2) if maybeIntValue.isDefined =>
         val ro1 = maybeIntValue.filter(_ > 0).flatMap(Rational.squareRoots.get).map(Real(_))
-        val ro2 = maybeIntValue.filter(_ < 0).filter(x => math.abs(x) <= Rational.maxSquare).map(_ => Real(this))
-        ro1 orElse ro2 getOrElse normalizeRoot(nominalValue, r)
+        val ro2 = maybeIntValue.filter(_ > 0).map(_ => Real(this))
+        val ro3 = maybeIntValue.filter(_ < 0).filter(x => math.abs(x) <= Rational.maxSquare).map(_ => Real(this))
+        ro1 orElse ro2 orElse ro3 getOrElse normalizeRoot(nominalValue, r)
       case r@Root(_) =>
         normalizeRoot(nominalValue, r)
       case Radian =>
