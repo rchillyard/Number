@@ -16,15 +16,6 @@ trait NumberLike {
    * @return an optional `Factor`.
    */
   def maybeFactor: Option[Factor]
-//
-//  /**
-//   * Method to determine if this `NumberLike` object can be evaluated exactly in the given context.
-//    *
-//   * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
-//   *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
-//   * @return true if `this` is exact in the context of factor, else false.
-//    */
-//  def isExactInContext(context: Context): Boolean
 
   /**
     * Method to determine if this NumberLike object is exact.
@@ -57,7 +48,8 @@ trait NumberLike {
     *
     * @return Some(numberSet) or None if it doesn't belong to any (for example it is fuzzy).
     */
-  def memberOf: Option[NumberSet] = Seq(C, R, Q, Z, N).find(set => set.isMember(this))
+  def memberOf: Option[NumberSet] =
+    Seq(C, R, Q, Z, N).find(set => set.isMember(this))
 
   /**
     * Method to determine if this NumberLike object is a member of the given set.

@@ -45,7 +45,12 @@ sealed trait NumberSet {
 case object C extends NumberSet {
   val maybeSuperSet: Option[NumberSet] = None
 
-  def belongsToSetExclusively(x: NumberLike): Boolean = x.asNumber exists (x => x.normalize.isComplex)
+  def belongsToSetExclusively(x: NumberLike): Boolean =
+    x.asNumber exists {
+      x =>
+        x.factor == SquareRoot && Value.signum(x.nominalValue) < 0 ||
+            x.normalize.isComplex
+    }
 }
 
 /**

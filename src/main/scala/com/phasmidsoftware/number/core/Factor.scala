@@ -261,6 +261,8 @@ sealed trait Logarithmic extends Factor {
       Some("\u221B" + base)
     case Left(Right(r)) if r * 4 == Rational.one =>
       Some("\u221C" + base)
+    case Right(x) =>
+      Some(base + "^" + x)
     case _ =>
       None
   }
