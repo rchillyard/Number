@@ -75,7 +75,7 @@ object NumberJ {
     * @param x a Number.
     * @return a java.lang.Double.
     */
-  def numberToDouble(x: Number): java.lang.Double = x.toDouble match {
+  def numberToDouble(x: Number): java.lang.Double = x.toNominalDouble match {
     case Some(d) => d
     case None => throw NumberException("Cannot convert $x to a Double")
   }

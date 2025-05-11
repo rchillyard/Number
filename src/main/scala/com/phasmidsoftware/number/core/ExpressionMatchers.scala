@@ -775,6 +775,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *         does not meet the required conditions, it returns a Miss.
     */
   def matchBiFunctionAsAggregate: Matcher[BiFunction, Aggregate] = Matcher[BiFunction, Aggregate]("matchBiFunctionAsAggregate") {
+    case BiFunction(BiFunction(w, x, Sum), BiFunction(y, z, Sum), Product) =>
+      Match(Aggregate(Sum, Seq((w * y).simplify, (w * z).simplify, (x * y).simplify, (x * z).simplify)))
     case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
       Match(Aggregate(f, Seq(w, x, y, z)))
     case BiFunction(BiFunction(w, x, f), y, h) if f == h =>
@@ -874,19 +876,21 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = {
     case a@Aggregate(f, xs) =>
       val invertFunction: Double => Double = f match {
-        case Sum => x => Math.abs(x)
-        case Product => x => if (x < 1) 1 / x else x
-        case Power => throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
+        case Sum => x =>
+          Math.abs(x)
+        case Product => x =>
+          if (x < 1) 1 / x else x
+        case Power =>
+          throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
       }
       val sortFunction: Expression => Double = x => {
-        invertFunction(x.approximation.flatMap(_.asDouble) getOrElse Double.NaN)
+        invertFunction(x.approximation.flatMap(_.maybeDouble) getOrElse Double.NaN)
       }
       // NOTE we should handle the very rare cases where the final get fails
       // NOTE this ordering is really only appropriate when f is Sum.
       // TODO find a better way to find complementary elements.
       Try(xs.sortBy(sortFunction)) match {
         case Success(sorted) =>
-//          println(sorted)
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
           if (list.length < xs.length)
             Match(Aggregate(f, list))

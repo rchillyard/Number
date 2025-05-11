@@ -363,7 +363,7 @@ object Fuzzy {
       case Exact(x) => x
       case Gaussian(x, y) => x
       case Bounded(x, y) => x
-      case _ => throw new UnsupportedOperationException(s"toDouble: $g (not exact)")
+      case _ => throw new UnsupportedOperationException(s"toNominalDouble: $g (not exact)")
     }
   }
 

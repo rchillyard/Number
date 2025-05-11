@@ -191,6 +191,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result: em.MatchResult[Expression] = p(x)
     result shouldBe em.Match(Aggregate.total(ConstPi))
   }
+  it should "eliminate √3 and -√3 in Aggregate" in {
+    val x = Aggregate.total(3, root3, Function(root3, Negate), -1)
+    val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminatorAggregate
+    val result: em.MatchResult[Expression] = p(x)
+    result shouldBe em.Match(Aggregate.total(-1, 3))
+  }
   it should "eliminate square root ^ 2 in Aggregate" in {
     val x = Aggregate.total(ConstPi, 2, Negate(Constants.two))
     val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminatorAggregate
@@ -819,8 +825,17 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(BiFunction(One, Two, Power)) shouldBe em.Match(One)
   }
 
+  it should "simplify √3 * -1 as -√3" in {
+    val expression = BiFunction(Literal(root3), MinusOne, Product)
+    expression.simplify shouldBe Function(Literal(root3), Negate)
+  }
+  it should "simplify √3 * 1 as √3" in {
+    val expression = BiFunction(Literal(root3), One, Product)
+    expression.simplify shouldBe Literal(root3)
+  }
+
   // FIXME Issue #88
-  it should "evaluate (√3 + 1)(√3 - 1) as 2 exactly" in {
+  it should "simplify (√3 + 1)(√3 - 1) as 2 exactly" in {
     val em = eml // Log this unit test
     // Expect matches:
     // matchTwoDyadicTripleLevels: Match: *~+~{3 ^ (2 ^ -1)}~1~+~{3 ^ (2 ^ -1)}~(1 * -1)
@@ -849,12 +864,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     // evaluateExactDyadicTriple: Match: 2
     // biFunctionTransformer: Match: 2
     // biFunctionSimplifier: Match: 2
-    val root3: Expression = Expression(3).sqrt
+    val root3: Expression = Constants.root3
     val x: Expression = (root3 + 1) * (root3 - 1)
-    val p = em.biFunctionSimplifier
-    val q: em.MatchResult[Expression] = p(x)
-    q.successful shouldBe true
-    q.get shouldBe Literal(2)
+    val z: Expression = x.simplify
+    z shouldBe Literal(2)
   }
   ignore should "evaluate (√3 + 1)(√3 + -1) as 2 exactly" in {
     val root3: Expression = Expression(3).sqrt

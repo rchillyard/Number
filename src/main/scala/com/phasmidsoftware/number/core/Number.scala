@@ -107,12 +107,12 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return an Some(Double) which is the closest possible nominalValue to the nominal nominalValue,
     *         otherwise None if this is invalid.
     */
-  def toDouble: Option[Double] = maybeDouble
+  def toNominalDouble: Option[Double] = maybeNominalDouble
 
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).
     */
-  def maybeDouble: Option[Double]
+  def maybeNominalDouble: Option[Double]
 
   /**
     * Method to determine if this Number is actually represented is an Integer.
@@ -293,7 +293,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
       Constants.iPi
     case (n, Constants.i) =>
       n.asComplex.rotate
-    case (n@ExactNumber(v, r: Root), Real(q)) =>
+    case (n@ExactNumber(v, r: Root), Real(q)) if q.signum > 0 =>
       Value.maybeRational(v) match {
         case Some(y) =>
           doMultiplyByPower(q, y, r.root) getOrElse (n.asComplex numberProduct q)
@@ -1645,7 +1645,7 @@ object Number {
           case Some(r) =>
             r.toLong
           case None =>
-            x.maybeDouble match {
+            x.maybeNominalDouble match {
               case Some(z) =>
                 Math.round(z)
               case None =>
@@ -1661,7 +1661,7 @@ object Number {
       * @return the `Double` representation of the input `Number`
       * @throws NumberException if the `Number` instance cannot be converted to a `Double`
       */
-    def toDouble(x: Number): Double = x.maybeDouble match {
+    def toDouble(x: Number): Double = x.maybeNominalDouble match {
       case Some(y) =>
         y
       case None =>
@@ -1711,7 +1711,7 @@ object Number {
     * @param f      a scaling factor for adjusting the natural logarithm
     */
   private def convertRootToNatLog(n: Number, factor: Factor, f: Double) = {
-    val yo = for (x <- n.maybeDouble; z = math.log(x)) yield z / f
+    val yo = for (x <- n.maybeNominalDouble; z = math.log(x)) yield z / f
     n.make(Value.fromDouble(yo), factor).specialize
   }
 }

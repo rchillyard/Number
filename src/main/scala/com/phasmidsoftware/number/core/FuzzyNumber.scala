@@ -56,7 +56,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
   def normalizeFuzz: Number = this match {
     case FuzzyNumber(value, factor, maybeFuzz) =>
       val relativeFuzz = for {
-        x <- toDouble
+        x <- toNominalDouble
         fuzz <- maybeFuzz
         normalized <- fuzz.normalize(x, relative = false)
       } yield normalized
@@ -144,7 +144,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
    * @param p the confidence desired. Ignored if isZero is true.
    * @return true if this Number is equivalent to zero with at least p confidence.
    */
-  def isProbablyZero(p: Double = 0.5): Boolean = GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
+  def isProbablyZero(p: Double = 0.5): Boolean = GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toNominalDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
 
   /**
    * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -160,7 +160,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
    * @return a new Number which is result of applying the appropriate function to the operands this and other.
    */
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
-    for (n <- composeDyadic(other, f)(op); t1 <- this.toDouble; t2 <- other.toDouble) yield {
+    for (n <- composeDyadic(other, f)(op); t1 <- this.toNominalDouble; t2 <- other.toNominalDouble) yield {
       val q = Fuzziness.combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients))
       FuzzyNumber(n.nominalValue, n.factor, q)
     }
@@ -184,7 +184,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     lazy val valueAsString = Value.valueToString(nominalValue, fuzz.isEmpty)
     val z = fuzz match {
       // CONSIDER will the following test work in all cases?
-      case Some(f) if f.wiggle(0.5) > 1E-16 => f.toString(toDouble.getOrElse(0.0))
+      case Some(f) if f.wiggle(0.5) > 1E-16 => f.toString(toNominalDouble.getOrElse(0.0))
       case Some(_) => true -> (valueAsString.replace(Ellipsis, "") + "*")
       case None => true -> valueAsString
     }
@@ -377,7 +377,7 @@ object FuzzyNumber {
    * @param fAdditional Additional fuzziness to be applied.
    */
   private def addFuzz(number: Number, v: Value, fo: Option[Fuzziness[Double]], fAdditional: Fuzziness[Double]) = {
-    val combinedFuzz = for (f <- fo.orElse(Some(AbsoluteFuzz(0.0, Box))); p <- number.toDouble; g <- Fuzziness.combine(p, 0, f.style, independent = false)((fo, fAdditional.normalize(p, f.style)))) yield g
+    val combinedFuzz = for (f <- fo.orElse(Some(AbsoluteFuzz(0.0, Box))); p <- number.toNominalDouble; g <- Fuzziness.combine(p, 0, f.style, independent = false)((fo, fAdditional.normalize(p, f.style)))) yield g
     FuzzyNumber(v, number.factor, combinedFuzz)
   }
 
@@ -401,7 +401,7 @@ object FuzzyNumber {
    * @return the value of n to the power of p.
    */
   private def getPowerCoefficients(n: Number, p: Number): Option[(Double, Double)] =
-    for (z <- n.toDouble; q <- p.toDouble) yield (q, q * math.log(z))
+    for (z <- n.toNominalDouble; q <- p.toNominalDouble) yield (q, q * math.log(z))
 
   /**
    *

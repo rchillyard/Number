@@ -139,7 +139,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   behavior of "toDouble"
   it should "yield 1" in {
     val target = Number.create(Right(1))
-    target.toDouble shouldBe Some(doubleOne)
+    target.toNominalDouble shouldBe Some(doubleOne)
   }
 
   behavior of "isValid"
@@ -290,7 +290,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val zy = Number.parse(sBoltzmann)
     zy should matchPattern { case Success(_) => }
     zy.get.isExact shouldBe true
-    zy.get.toDouble shouldBe Some(1.380649E-23)
+    zy.get.toNominalDouble shouldBe Some(1.380649E-23)
   }
   it should "fail to parse boltzmann with alternative minus" in {
     val zy = Number.parse("1.380649E−23")

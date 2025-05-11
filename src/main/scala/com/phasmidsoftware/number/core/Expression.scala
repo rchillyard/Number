@@ -417,7 +417,10 @@ object Expression {
     case x: AtomicExpression =>
       em.Miss("matchSimpler: cannot be simplified", x)
     case x: CompositeExpression =>
-      em.eitherOr(simplifyComponents, em.eitherOr(simplifyTrivial, em.eitherOr(simplifyConstant, simplifyComposite)))(x)
+      em.eitherOr(simplifyComponents,
+        em.eitherOr(simplifyTrivial,
+          em.eitherOr(simplifyConstant,
+            simplifyComposite)))(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x"))
   }
@@ -1125,6 +1128,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(a)
       case BiFunction(_, Zero, Power) => // CONSIDER eliminating this case because it should be caught in simplifyConstants.
         em.Match(One)
+      case BiFunction(a, MinusOne, Product) =>
+        em.Match(Function(a, Negate))
+      case BiFunction(MinusOne, b, Product) =>
+        em.Match(Function(b, Negate))
       case BiFunction(a, b, Sum) if a == b =>
         em.Match(BiFunction(a, Two, Product))
       case BiFunction(a, b, Product) if a == b =>
@@ -1147,7 +1154,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
     case b@BiFunction(_, _, _) =>
-      ((em.complementaryTermsEliminatorBiFunction | em.matchBiFunctionAsAggregate & Expression.simplifyComposite) & matchSimpler)(b)
+      ((em.complementaryTermsEliminatorBiFunction | em.matchBiFunctionAsAggregate) & em.alt(matchSimpler))(b)
     case b =>
       em.Miss("simplifyComposite", b)
   }

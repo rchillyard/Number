@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.Fuzziness.{createFuzz, monadicFuzziness}
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Left, Try}
 
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
@@ -229,7 +228,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     q should matchPattern { case AbsoluteFuzz(_, _) => }
     q.shape should matchPattern { case Box => }
     q.style shouldBe false
-    val h: Option[Fuzziness[Double]] = q.normalize(x.toDouble.getOrElse(Double.NaN), relative = true)
+    val h: Option[Fuzziness[Double]] = q.normalize(x.toNominalDouble.getOrElse(Double.NaN), relative = true)
     val r = h.get.asInstanceOf[RelativeFuzz[Double]].tolerance
     r shouldBe 0.0016496802557953638 +- 0.0000000001
     h.get.shape.wiggle(r, 0.0) shouldBe Double.PositiveInfinity
@@ -242,7 +241,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val xy: Option[Number] = for (a <- Number.parse("1.250(2)").toOption; b <- Number.parse("4.00*").toOption; x <- (Literal(a) * Real(b)).asNumber) yield x
     xy.isDefined shouldBe true
     val x: Number = xy.get
-    val z: Option[Fuzziness[Double]] = for (y <- x.fuzz; w <- x.toDouble; v <- y.normalize(w, relative = true)) yield v
+    val z: Option[Fuzziness[Double]] = for (y <- x.fuzz; w <- x.toNominalDouble; v <- y.normalize(w, relative = true)) yield v
 //    x.fuzz flatMap (_.normalize(x.toDouble, true))
     z.isDefined shouldBe true
     val q: Fuzziness[Double] = z.get
@@ -274,7 +273,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val r: Option[Value] = Operations.doTransformValueMonadic(n.nominalValue)(op.functions)
     r.isDefined shouldBe true
     val q = n.make(r.get, PureNumber)
-    val x = q.toDouble
+    val x = q.toNominalDouble
     val v = x.get
     val z: Option[Fuzziness[Double]] = Fuzziness.map[Double, Double, Double](1, v, relative = true, op.relativeFuzz, Some(fuzz))
     val w = z.toString

@@ -112,7 +112,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 it should "have alpha" in {
   val target = Constants.alpha
   target.isExact shouldBe false
-  val alpha = for (number <- (target invert).asNumber; x <- number.toDouble) yield x
+  val alpha = for (number <- (target invert).asNumber; x <- number.toNominalDouble) yield x
   alpha.get shouldBe 137.0 +- 0.04
 }
 

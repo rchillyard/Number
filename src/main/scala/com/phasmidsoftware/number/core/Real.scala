@@ -250,21 +250,21 @@ case class Real(x: Number) extends Field {
   override def toString: String = x.toString
 
   /**
-    * Converts the value of this Real to a Double.
+    * Converts the true value of this Real to a Double.
     * If the conversion is unsuccessful, it throws a NumberException.
-    * CONSIDER changing the name for consistency
     *
     * @return the Double representation of this Real, wrapped in Option.
     */
-  def asDouble: Option[Double] = x.toDouble
+  def maybeDouble: Option[Double] =
+    x.toPureNumber.flatMap(_.toNominalDouble)
 
   /**
-    * Converts the value of this Real to a Double.
+    * Converts the true value of this Real to a Double.
     * If the conversion is unsuccessful, it throws a NumberException.
     *
     * @return the Double representation of this Real.
     */
-  def toDouble: Double = recover(x.toDouble, NumberException("Real.toDouble: logic error: x"))
+  def toDouble: Double = recover(maybeDouble, NumberException("Real.toDouble: logic error: x"))
 }
 
 /**

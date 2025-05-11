@@ -48,7 +48,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return true if this is a valid Number
     */
   def isValid: Boolean =
-    maybeDouble.isDefined
+    maybeNominalDouble.isDefined
 
   /**
     *
@@ -294,8 +294,8 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     */
   def asComparedWith(other: Number): Option[Fuzziness[Double]] =
     for {
-      q <- doSubtract(other).toDouble
-      r <- other.scale(PureNumber).toDouble
+      q <- doSubtract(other).toNominalDouble
+      r <- other.scale(PureNumber).toNominalDouble
       p <- AbsoluteFuzz(math.abs(q) / 2, Box).relative(r)
     } yield p
 
@@ -331,7 +331,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
         make(v, f) match {
           // NOTE creates a fuzzy number
           case n: GeneralNumber =>
-            for (t <- toDouble; x <- n.toDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, x, fuzz))
+            for (t <- toNominalDouble; x <- n.toNominalDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, x, fuzz))
         }
     }
 
@@ -562,7 +562,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
             x.alignTypes(this)
           // XXX otherwise: return this and x re-cast as a Double
           case _ =>
-            (this, Number.prepare(x.maybeDouble.map(y => make(y, x.factor, x.fuzz).specialize)))
+            (this, Number.prepare(x.maybeNominalDouble.map(y => make(y, x.factor, x.fuzz).specialize)))
         }
         // XXX this nominalValue is a Rational:
         case Left(Right(_)) =>
@@ -602,7 +602,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return Some(x) if nominalValue can be converted properly to a Double, otherwise None.
     */
-  def maybeDouble: Option[Double] = Value.maybeDouble(nominalValue)
+  def maybeNominalDouble: Option[Double] = Value.maybeDouble(nominalValue)
 
   /**
     * Method to return this ExactNumber as a Real.
@@ -684,7 +684,7 @@ object GeneralNumber {
       v =>
         x.make(v, PureNumber) match {
           case n: GeneralNumber =>
-            for (t <- x.toDouble; z <- n.toDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, z, x.fuzz))
+            for (t <- x.toNominalDouble; z <- n.toNominalDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, z, x.fuzz))
         }
     }
     FP.toTry(no, Failure(NumberException("applyFunc: logic error")))
@@ -824,7 +824,7 @@ object GeneralNumber {
         power(x, r).specialize
       case None =>
         // NOTE this is not used, but it doesn't seem to handle fuzziness (of the exponent) properly either.
-        val zo = for (p <- x.toDouble; q <- y.toDouble) yield Number(math.pow(p, q))
+        val zo = for (p <- x.toNominalDouble; q <- y.toNominalDouble) yield Number(math.pow(p, q))
         prepareWithSpecialize(zo)
     }
 

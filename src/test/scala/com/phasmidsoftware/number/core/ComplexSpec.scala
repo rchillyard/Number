@@ -150,7 +150,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     // result should be 1.27201965 + i0.786151378
     result should matchPattern { case ComplexPolar(_, _, _) => }
     result match {
-      case c@ComplexPolar(_, _, _) => c.modulus.toDouble.get shouldBe 1.495348781221220 +- 1E-9
+      case c@ComplexPolar(_, _, _) => c.modulus.toNominalDouble.get shouldBe 1.495348781221220 +- 1E-9
     }
     (result * result).compare(c1_2) shouldBe 0
   }
