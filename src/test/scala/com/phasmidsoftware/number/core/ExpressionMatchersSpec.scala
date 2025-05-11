@@ -354,9 +354,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     em.factorsMatch(Product, MinusOne, Literal(root2)) shouldBe false
   }
   it should "match expression Power" in {
-    //    em.factorsMatch(Power, ConstPi, MinusOne) shouldBe true
-    //    em.factorsMatch(Power, MinusOne, ConstPi) shouldBe true
-    //    em.factorsMatch(Power, Literal(root3), Two) shouldBe true
+//        em.factorsMatch(Power, ConstPi, MinusOne) shouldBe true
+    em.factorsMatch(Power, MinusOne, ConstPi) shouldBe true
+    em.factorsMatch(Power, Literal(root3), Two) shouldBe true
     em.factorsMatch(Power, Literal(root2), MinusOne) shouldBe false
     em.factorsMatch(Power, MinusOne, Literal(root2)) shouldBe false
   }

@@ -718,9 +718,15 @@ case object Noop extends AtomicExpression {
 }
 
 /**
-  * An AtomicExpression which represents a Number.
+  * Represents an abstract expression for a field that can optionally be associated with a name.
   *
-  * @param x the Number.
+  * A `FieldExpression` provides methods for evaluating its qualifications within
+  * a given context, rendering its representation, and determining equality or hashing.
+  * It extends the `AtomicExpression` trait, allowing it to be used wherever atomic
+  * expressions are valid.
+  *
+  * @param value     the `Field` associated with the expression
+  * @param maybeName an optional name for the field expression
   */
 abstract class FieldExpression(val value: Field, val maybeName: Option[String] = None) extends AtomicExpression {
 

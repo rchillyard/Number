@@ -104,22 +104,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   @deprecated("use simplify", "0.1.0")
   def exactEvaluator(ctx: Context): ExpressionMatcher[Field] = ???
-//  {
-//    x: Expression =>
-//      ctx match {
-//        case c@Some(_) =>
-//          System.out.println(s"exactEvaluator ctx: $c")
-//          matchExactField(x.evaluate(c), x) // TESTME
-//        case None =>
-//          x.context match {
-//            case None =>
-//              Miss("exactEvaluator: no common context", x)
-//            case c@Some(_) =>
-//              System.out.println(s"exactEvaluator x.context: $c")
-//              matchExactField(x.evaluate(c), x)
-//          }
-//      }
-//  }
 
   /**
     * `ExpressionMatcher`, which matches expressions that are exact in the given context,
@@ -815,50 +799,20 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @throws NoSuchElementException due to invocation of get on Option (very unlikely).
     */
   def simplifyAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("simplifyAggregate") {
-    z =>
-      println(s"simplifyAggregate: $z")
-      z match {
-        case Aggregate(Sum, Nil) =>
-          Match(Zero) // TESTME
-        case Aggregate(Product, Nil) =>
-          Match(One) // TESTME
-        case Aggregate(Power, Nil) =>
-          Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
-        case Aggregate(_, x :: Nil) =>
-          println(s"simplifyAggregate: matched on singleton Aggregate of just $x")
-          Match(x) // XXX we should not need to simplify x since simplifyComponents should already have done that
-//        matchSimpler(x).asInstanceOf[MatchResult[Expression]]
-      // NOTE it's important that you do not reintroduce a match into a BiFunction!
-        case a@Aggregate(_, _) =>
-          println(s"simplifyAggregate: matched on $a with a possible resimplification")
-          (complementaryTermsEliminatorAggregate & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
-        case x =>
-          println(s"simplifyAggregate: default match on type ${x.getClass}")
-          Miss(s"simplifyAggregate: no match for $x", x)
-      }
+    case Aggregate(Sum, Nil) =>
+      Match(Zero) // TESTME
+    case Aggregate(Product, Nil) =>
+      Match(One) // TESTME
+    case Aggregate(Power, Nil) =>
+      Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
+    case Aggregate(_, x :: Nil) =>
+      Match(x) // XXX we should not need to simplify x since simplifyComponents should already have done that
+    // NOTE it's important that you do not reintroduce a match into a BiFunction!
+    case a@Aggregate(_, _) =>
+      (complementaryTermsEliminatorAggregate & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
+    case x =>
+      Miss(s"simplifyAggregate: no match for $x", x)
   }
-//
-//  /**
-//    * Simplifies this `Expression` by applying logical or mathematical reductions
-//    * to produce a potentially simpler or more canonical form of the expression.
-//    * If the `Expression` cannot be simplified further, it may return itself.
-//    *
-//    * @return a simplified `Expression`, or the same `Expression` if it cannot be simplified further
-//    */
-//  def replaceTrivialAggregate: Matcher[Aggregate, Expression] = {
-//    case Aggregate(function, xs) =>
-//      xs match {
-//        case Nil =>
-//          function.maybeIdentityL orElse function.maybeIdentityR match {
-//            case Some(f) => Match(Literal(f))
-//            case None => Error(ExpressionException("Cannot simplify empty Aggregate"))
-//          }
-//        case x :: Nil =>
-//          Match(x)
-//        case _ =>
-//          Miss(s"Cannot simplify this Aggregate", this)
-//      }
-//  }
 
   /**
     * Matches and simplifies an `Aggregate` expression by identifying and eliminating
@@ -965,7 +919,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return true if the expression matches the identity element of the given field, false otherwise.
     */
   private def isIdentity(x: Expression, fo: Option[Field]) = x match {
-    case c: Constant => fo.contains(c.evaluateAsIs)
+    case c: Constant => fo == c.evaluateAsIs
     case Literal(z, _) => fo.contains(z)
     case _ => false
   }
@@ -1034,7 +988,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
     * Matches the given expression against a set of patterns and simplifies it using a simplifier function.
     *
-    * @param x the expression to be matched and simplified
+    * @param xo an optional expression to be matched and simplified
     * @return a MatchResult containing the simplified expression
     */
   private def matchAndMaybeSimplifyOptionalField(xo: Option[Field]): MatchResult[Expression] = xo.map(x => Literal(x)) match {

@@ -23,6 +23,7 @@ object Fibonacci {
    */
   def fib(n: Int): BigInt = {
     val expression = fibExpression(n)
+    val errorMessage = s"fib($n) = ${((phi ^ n) - (psi ^ n)) / Constants.root5}"
     // CONSIDER should this be PureNumber or Scalar?
     expression.materialize match {
       case Real(x) => x match {
@@ -30,13 +31,13 @@ object Fibonacci {
           case Some(z) =>
             z.toBigInt
           case _ =>
-            throw new IllegalArgumentException(s"fib($n) = ${((phi ^ n) - (psi ^ n)) / Constants.root5}")
+            throw new IllegalArgumentException(errorMessage)
         }
         case _ =>
-          throw new IllegalArgumentException(s"fib($n) = ${((phi ^ n) - (psi ^ n)) / Constants.root5}")
+          throw new IllegalArgumentException(errorMessage)
       }
       case _ =>
-        throw new IllegalArgumentException(s"fib($n) = ${((phi ^ n) - (psi ^ n)) / Constants.root5}")
+        throw new IllegalArgumentException(errorMessage)
     }
   }
 
