@@ -1154,7 +1154,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
     case b@BiFunction(_, _, _) =>
-      ((em.complementaryTermsEliminatorBiFunction | em.matchBiFunctionAsAggregate) & em.alt(matchSimpler))(b)
+      ((em.complementaryTermsEliminatorBiFunction |
+          em.matchBiFunctionAsAggregate & em.complementaryTermsEliminatorAggregate) &
+          em.alt(matchSimpler))(b)
     case b =>
       em.Miss("simplifyComposite", b)
   }
@@ -1724,7 +1726,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
     * @param context the input evaluation `Context` that specifies the right-hand context for the operation.
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
-  def rightContext(context: Context): Context =
+  def rightContext(factor: Factor)(context: Context): Context =
     context
 
   /**
@@ -1944,7 +1946,7 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
     * @param context the `Context` typically based on the value of the left-hand parameter.
     * @return the right-hand `Context` of the binary function.
     */
-  def rightContext(context: Context): Context =
+  def rightContext(factor: Factor)(context: Context): Context =
     context
 
   /**
@@ -1993,7 +1995,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     * @param context the initial `Context` to be evaluated and transformed.
     * @return the resulting `Context` after applying the transformation logic.
     */
-  def rightContext(context: Context): Context = context match {
+  def rightContext(factor: Factor)(context: Context): Context = context match {
     case AnyScalar | AnyContext =>
       context or RestrictedContext(PureNumber)
     case AnyLog =>
@@ -2074,8 +2076,8 @@ case object Power extends ExpressionBiFunction("^", (x, y) => x.power(y), isExac
     * @return the updated `Context` after applying the evaluation logic. Returns `None` if the input
     *         context matches `Some(PureNumber)`, otherwise returns `Some(PureNumber)`.
     */
-  def rightContext(context: Context): Context =
-    AnyScalar // ignore parameter context
+  def rightContext(factor: Factor)(context: Context): Context =
+    AnyScalar // ignore both parameters
 
   /**
     * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
@@ -2217,12 +2219,17 @@ abstract class ExpressionBiFunction(
   def leftContext(context: Context): Context
 
   /**
-    * Retrieves the right-hand evaluation `Context` appropriate for this function.
+    * Defines the `Context` appropriate for evaluating the right-hand parameter of this function
+    * based on the provided `Factor`.
     *
-    * @param context the `Context` typically based on the value of the left-hand parameter.
-    * @return the right-hand `Context` of the binary function.
+    * CONSIDER eliminating context as a parameter, or maybe changing it to the overall context
+    * as used by leftContext.
+    *
+    * @param factor  the `Factor` used to determine the specific right-hand `Context`.
+    * @param context the initial `Context` typically derived from the evaluation of the left-hand parameter.
+    * @return the updated right-hand `Context` for use in further evaluations.
     */
-  def rightContext(context: Context): Context
+  def rightContext(factor: Factor)(context: Context): Context
 
   /**
     * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
@@ -2270,7 +2277,7 @@ abstract class ExpressionBiFunction(
     for {
       a <- x.evaluate(leftContext(context))
       f <- a.maybeFactor
-      b <- y.evaluate(rightContext(RestrictedContext(f)))
+      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
       z <- applyExact(a, b)
     } yield z
 
