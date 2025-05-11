@@ -1136,6 +1136,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(BiFunction(a, Two, Product))
       case BiFunction(a, b, Product) if a == b =>
         em.Match(BiFunction(a, Two, Power))
+      case BiFunction(ConstE, Literal(ComplexCartesian(Number.zero, Number.pi), _), Power) =>
+        em.Match(MinusOne)
+      case BiFunction(ConstE, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _), Power) =>
+        em.Match(MinusOne)
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications", this)
     }

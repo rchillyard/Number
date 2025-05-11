@@ -248,8 +248,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "Euler"
-  it should "work" in {
+  it should "prove Euler's identity 1" in {
     val iPi = ComplexCartesian(0, Number.pi)
+    val euler: Expression = Expression(Constants.e) ^ iPi
+    euler.materialize shouldBe Constants.minusOne
+  }
+  it should "prove Euler's identity 2" in {
+    val iPi = Complex.convertToPolar(ComplexCartesian(0, Number.pi))
     val euler: Expression = Expression(Constants.e) ^ iPi
     euler.materialize shouldBe Constants.minusOne
   }

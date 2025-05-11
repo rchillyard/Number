@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, root3, zeroR, √}
+import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, piBy2, root3, zeroR, √}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -239,6 +239,20 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val z: Complex = √(5).asComplex
     z shouldBe ComplexPolar(√(5), zeroR, 2)
     z.render shouldBe "±√5"
+  }
+
+  it should "convertToPolar 3" in {
+    val c: ComplexCartesian = c2_0.asInstanceOf[ComplexCartesian]
+    val z = Complex.convertToPolar(c)
+    z shouldBe ComplexPolar(Number.two, zeroR, 1)
+    z.render shouldBe "2"
+  }
+
+  it should "convertToPolar 4" in {
+    val c = ComplexCartesian(Number.zero, Number.two)
+    val z = Complex.convertToPolar(c)
+    z shouldBe ComplexPolar(Number.two, piBy2, 1)
+    z.render shouldBe "2e^i½\uD835\uDED1"
   }
 
   it should "check that math.atan really works 1" in {
