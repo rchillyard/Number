@@ -16,7 +16,8 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
 
   it should "multiply i by itself correctly" in {
     val z = Expression(Constants.i) * Constants.i
-    z.materialize shouldBe ComplexCartesian(-1, 0)
+    val result = z.materialize
+    result shouldBe Constants.minusOne
   }
 
   it should "add" in {

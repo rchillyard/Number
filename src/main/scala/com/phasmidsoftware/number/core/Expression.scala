@@ -2019,6 +2019,8 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     * and applies an exact mathematical operation to the first operand `a` (the multiplicand)
     * if certain criteria are met. If no conditions are satisfied, it returns `None`.
     *
+    * The final check on `isExact` should be redundant, but it's here to be safe.
+    *
     * @param a the first operand, a Field instance serving as the multiplicand.
     * @param b the second operand, a Field instance serving as the multiplier. This operand is evaluated
     *          to determine the applicability of exact computations.
@@ -2026,8 +2028,8 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     *         or `None` if the conditions for exact multiplication are not met.
     */
   def applyExact(a: Field, b: Field): Option[Field] =
-    Option.when(a.isExact && b.isExact)(a multiply b)
-} // NOTE can create a fuzzy number
+    Option.when(a.isExact && b.isExact)(a multiply b) filter (_.isExact)
+}
 
 /**
   * Represents the power operation as a binary function within expressions.

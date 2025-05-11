@@ -1000,7 +1000,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val a = BiFunction(One, Literal(x), Sum)
     val b = BiFunction(Literal(half), Literal(y), Sum)
     val z = a * b
-    z.evaluateAsIs shouldBe Real(r"21/2")
+    z.evaluateAsIs shouldBe Some(Real(r"21/2"))
   }
   ignore should "distributeProductPower on root(3) * root(3)" in {
     val p = em.biFunctionTransformer
@@ -1112,7 +1112,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(x).successful shouldBe false
-    sb.toString shouldBe "trying matcher value on {1 * 2}...\n... value({1 * 2}): Miss: value: {1 * 2}\n"
+    sb.toString shouldBe "trying matcher value on BiFunction{1 * 2}...\n... value(BiFunction{1 * 2}): Miss: value: BiFunction{1 * 2}\n"
   }
 
   behavior of "biFunctionTransformer (2)"
@@ -1164,7 +1164,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify 2 ^ -1" in {
     val r: Expression = Two ^ MinusOne
     import Rational.RationalOps
-    r.evaluateAsIs shouldBe Real(1 :/ 2)
+    r.evaluateAsIs shouldBe Some(Real(1 :/ 2))
   }
   ignore should "fail to simplify 2 ^ 1/2" in {
     val r: em.MatchResult[Expression] = em.biFunctionTransformer(Power ~ Two ~ Literal(Rational.half))

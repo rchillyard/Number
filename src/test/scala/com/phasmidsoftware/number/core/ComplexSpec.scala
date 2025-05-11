@@ -348,8 +348,11 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "scale(PureNumber)" in {
     Number.i.scale(PureNumber) shouldBe Number.NaN
   }
-  it should "normalize" in {
-    Number.i.normalize shouldBe ComplexCartesian(0, 1)
+  it should "normalize i as itself" in {
+    Number.i.normalize shouldBe Constants.i
+  }
+  it should "normalize 11i" in {
+    Number.i.multiply(Real(11)).normalize shouldBe ComplexCartesian(0, 11)
   }
 
   behavior of "C interpolator"

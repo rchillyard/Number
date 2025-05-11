@@ -438,7 +438,11 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     val z: Field = factor match {
       case PureNumber =>
         Real(this)
-      case r@Root(_) if Value.signum(nominalValue) < 0 =>
+      case SquareRoot
+        // XXX if the value is a negative integer but within the range of maxSquare, then we can simply wrap inside Real.
+        if Value.signum(nominalValue) < 0 && Value.maybeInt(nominalValue).exists(_ >= -Rational.maxSquare) =>
+        Real(this)
+      case r@Root(_) =>
         GeneralNumber.normalizeRoot(nominalValue, r)
       case Radian =>
         Real(this) // Number.modulate(this) NOTE: we do modulation at other times
