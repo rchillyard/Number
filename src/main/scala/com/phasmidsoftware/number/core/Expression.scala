@@ -1467,6 +1467,28 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
   require(p != 0 || q != 0, "may not have p and q equal to zero")
   require(discriminant >= 0, "discriminant must not be negative")
 
+  /**
+    * For now, we consider a ReducedQuadraticRoot to be exact, even though we can't write it out exactly.
+    *
+    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    */
+  override def isExact: Boolean = true
+
+  /**
+    * Represents the reduced quadratic root expression defined within the context of a quadratic equation.
+    * The root is computed based on the formula derived from the quadratic equation coefficients,
+    * specifically involving the discriminant and a parameter `pos` that defines the root being evaluated.
+    *
+    * This expression involves:
+    * - A literal representing `-p`
+    * - An addition operation involving the discriminant's square root, determined by the `pos` parameter
+    * - A division by 2 to compute the quadratic root.
+    *
+    * Note:
+    * - The `discriminant` must be non-negative, as the square root operation is applied.
+    * - The `pos` parameter determines whether the non-negative branch of the square root
+    * (`+discriminant.sqrt`) or the negative branch (`-discriminant.sqrt`) is used in the computation.
+    */
   lazy val root: Expression = {
     (Literal(-p) plus {
       // NOTE discriminant is required to be non-negative

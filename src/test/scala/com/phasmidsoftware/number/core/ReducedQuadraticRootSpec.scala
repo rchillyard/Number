@@ -43,8 +43,7 @@ class ReducedQuadraticRootSpec extends AnyFlatSpec with should.Matchers {
     import com.phasmidsoftware.number.core.Expression.ExpressionOps
     phi.root shouldBe ((One + root5) / 2)
     val maybeField: Option[Field] = phi.root.evaluateAsIs
-    maybeField.isDefined shouldBe true
-    maybeField.get.isSame(Real(sPhi)) shouldBe true
+    maybeField.isDefined shouldBe false
   }
 
   it should "context" in {
