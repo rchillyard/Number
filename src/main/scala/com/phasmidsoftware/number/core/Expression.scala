@@ -2232,19 +2232,22 @@ abstract class ExpressionBiFunction(
   def applyExact(a: Field, b: Field): Option[Field]
 
   /**
-    * Evaluates two expressions within the given context and attempts to combine their results
-    * using an exact binary operation. The exact operation is applied only if the evaluations
-    * of both expressions are successful.
+    * Evaluates two expressions `x` and `y` in a given context and determines the resulting `Field` based on specific identity and evaluation rules.
+    * Trivial identities are recognized and evaluated appropriately.
     *
-    * @param x       the first `Expression` to be evaluated.
-    * @param y       the second `Expression` to be evaluated.
-    * @param context the `Context` in which the expressions will be evaluated.
-    * @return an `Option[Field]` containing the result of the exact operation if both evaluations succeed
-    *         and the operation can be applied; otherwise, `None`.
+    * @param x       the first expression to be evaluated.
+    * @param y       the second expression to be evaluated.
+    * @param context the evaluation context providing the necessary environment for resolving expressions.
+    * @return an `Option[Field]` containing the result of the evaluation if successful, or `None` if evaluation fails.
     */
-  def evaluate(x: Expression, y: Expression)(context: Context): Option[Field] =
-    // NOTE that we try this again with x and y swapped if it doesn't work the first time.
-    context.qualifyingField(doEvaluate(x, y)(context) orElse doEvaluate(y, x)(context))
+  def evaluate(x: Expression, y: Expression)(context: Context): Option[Field] = (x.evaluateAsIs, y.evaluateAsIs) match {
+    case (Some(a), Some(b)) if maybeIdentityL contains a =>
+      y.evaluate(context)
+    case (Some(a), Some(b)) if maybeIdentityR contains b =>
+      x.evaluate(context)
+    case _ =>
+      context.qualifyingField(doEvaluate(x, y)(context) orElse doEvaluate(y, x)(context))
+  }
 
   /**
     * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
