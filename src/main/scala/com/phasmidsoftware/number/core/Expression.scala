@@ -2026,20 +2026,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     *         or `None` if the conditions for exact multiplication are not met.
     */
   def applyExact(a: Field, b: Field): Option[Field] =
-    b match {
-      // CONSIDER why not let these cases be handled by multiply?
-      case Real(ExactNumber(_, PureNumber)) =>
-        a match {
-          case Real(ExactNumber(_, PureNumber | Radian | SquareRoot | CubeRoot)) =>
-            Some(a multiply b)
-          case _ =>
-            None
-        }
-      case _ if a.isExact && b.isExact =>
-        Some(a multiply b)
-      case _ =>
-        None
-    }
+    Option.when(a.isExact && b.isExact)(a multiply b)
 } // NOTE can create a fuzzy number
 
 /**
