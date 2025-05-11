@@ -256,7 +256,7 @@ case class Real(x: Number) extends Field {
     * @return the Double representation of this Real, wrapped in Option.
     */
   def maybeDouble: Option[Double] =
-    x.toPureNumber.flatMap(_.toNominalDouble)
+    x.toPureNumber.toNominalDouble
 
   /**
     * Converts the true value of this Real to a Double.

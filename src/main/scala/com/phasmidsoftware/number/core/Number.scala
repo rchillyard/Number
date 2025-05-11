@@ -84,20 +84,22 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def applyFunc(f: Double => Double, dfByDx: Double => Double): Try[Number]
 
   /**
-    * Method to evaluate this `Number` in the context of `PureNumber`.
-    * NOTE that, according to the `factor` of `this`, the result may not be as exact as `this`.
+    * Converts the current number instance into a pure number representation.
+    * The conversion is based on the factor and fuzz values associated with the number.
+    * NOTE that even if `this Number` is exact, the result may not be.
     *
-    * @return an equivalent `Number` whose factor is `PureNumber`.
+    * @return A new instance of Number in pure number representation, performing the necessary conversion
+    *         and scaling if required.
     */
-  def toPureNumber: Option[Number] = (factor, fuzz) match {
+  def toPureNumber: Number = (factor, fuzz) match {
     case (PureNumber, _) =>
-      Some(this)
+      this
     case (f, z) =>
       f.convert(nominalValue, PureNumber) match {
         case Some(value) =>
-          Some(Number.create(value, PureNumber, z))
+          Number.create(value, PureNumber, z)
         case None =>
-          normalize.asNumber
+          scale(PureNumber)
       }
   }
 

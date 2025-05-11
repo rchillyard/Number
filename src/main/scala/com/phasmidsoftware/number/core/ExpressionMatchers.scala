@@ -876,16 +876,16 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = {
     case a@Aggregate(f, xs) =>
       val invertFunction: Double => Double = f match {
-        case Sum => x =>
-          Math.abs(x)
-        case Product => x =>
-          if (x < 1) 1 / x else x
+        case Sum =>
+          x => Math.abs(x)
+        case Product =>
+          x => if (x < 1) 1 / x else x
         case Power =>
           throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
       }
-      val sortFunction: Expression => Double = x => {
-        invertFunction(x.approximation.flatMap(_.maybeDouble) getOrElse Double.NaN)
-      }
+      val sortFunction: Expression => Double =
+        x => invertFunction(x.approximation.flatMap(_.maybeDouble) getOrElse Double.NaN)
+
       // NOTE we should handle the very rare cases where the final get fails
       // NOTE this ordering is really only appropriate when f is Sum.
       // TODO find a better way to find complementary elements.
