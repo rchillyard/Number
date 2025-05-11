@@ -149,6 +149,7 @@ object Constants {
 
   /**
     * [[https://en.wikipedia.org/wiki/Golden_ratio]]
+    * NOTE prefer to use `Phi`.
     */
   lazy val phi: Real = Real(sPhi)
 
@@ -191,6 +192,23 @@ object Constants {
     * [[https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio]]
     */
   lazy val mu: Real = Real(1836.15267343 ~ 11) // (dimensionless)
+
+  /**
+    * A lazy val that represents a cache of predefined constants in physics and mathematics,
+    * where each constant's nominal value is used as the key, and the constant itself is the value.
+    *
+    * The constants included in this collection are: one, minusOne, zero, two, half, infinity,
+    * negInfinity, gamma, G, alpha, avagadro, boltzmann, planck, c, and mu.
+    *
+    * The mapping is achieved by iterating over the sequence of constant values, extracting their
+    * nominalValue, and associating it with the respective constant.
+    *
+    * This value is evaluated lazily, ensuring that the computation to construct the map is deferred
+    * until it is accessed for the first time.
+    */
+  lazy val pureConstants: Map[Value, Real] = Seq(one, minusOne, zero, two, half, infinity, negInfinity, gamma, G, alpha, avagadro, boltzmann, planck, c, mu) map {
+    case x: Real => x.x.nominalValue -> x
+  } to Map
 
   /**
    * A string representation of the golden ratio (φ) with high precision.

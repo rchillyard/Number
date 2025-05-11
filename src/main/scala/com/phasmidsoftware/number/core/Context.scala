@@ -99,6 +99,8 @@ case class RestrictedContext(context: Factor) extends Context {
     case _ =>
       false
   }
+
+  override def toString: String = s"RestrictedContext($context)"
 }
 
 /**
@@ -116,6 +118,9 @@ case object AnyContext extends Context {
     * @return true.
     */
   def factorQualifies(f: Factor): Boolean = true
+
+  override def toString: String = "AnyContext"
+
 }
 
 /**
@@ -136,6 +141,9 @@ case object ImpossibleContext extends Context {
     * @return false.
     */
   def factorQualifies(f: Factor): Boolean = false
+
+  override def toString: String = "ImpossibleContext"
+
 }
 
 /**

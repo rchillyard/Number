@@ -265,6 +265,26 @@ case class Real(x: Number) extends Field {
     * @return the Double representation of this Real.
     */
   def toDouble: Double = recover(maybeDouble, NumberException("Real.toDouble: logic error: x"))
+
+  /**
+    * Compares the current object with the specified object for equality.
+    *
+    * @param obj the object to compare with the current object
+    * @return true if the specified object is of type `Real` and its value matches the current object's value, false otherwise
+    */
+  override def equals(obj: Any): Boolean = obj match {
+    case that: Real => x.equals(that.x)
+    case _ => false
+  }
+
+  /**
+    * Computes a hash code value for the object.
+    * This method is intended to provide a consistent hash code implementation
+    * based on the `hashCode` of the encapsulated value or component.
+    *
+    * @return an integer hash code value for the object
+    */
+  override def hashCode(): Int = x.hashCode()
 }
 
 /**

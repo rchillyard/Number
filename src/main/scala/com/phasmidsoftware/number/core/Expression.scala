@@ -1718,7 +1718,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
     * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
   def leftContext(context: Context): Context =
-    RestrictedContext(PureNumber)
+    RestrictedContext(PureNumber) or AnyRoot
 
   /**
     * Retrieves the right-hand evaluation context associated with this function.
@@ -1727,7 +1727,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
   def rightContext(factor: Factor)(context: Context): Context =
-    context
+    RestrictedContext(PureNumber) or AnyRoot
 
   /**
     * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
@@ -1903,7 +1903,9 @@ case object Reciprocal extends ExpressionFunction("rec", x => x.invert) {
   def applyExact(x: Field): Option[Field] = x match {
     case Real(ExactNumber(v, f@PureNumber)) =>
       Value.inverse(v) map (x =>
-        Real(ExactNumber(x, f)))
+        // NOTE: experimental code. If it works well, we could use it elsewhere.
+        Constants.pureConstants.getOrElse(x,
+          Real(ExactNumber(x, f))))
     case Real(ExactNumber(v, f@Logarithmic(_))) =>
       Some(Real(ExactNumber(Value.negate(v), f)))
     case Real(ExactNumber(v, f@Root(_))) =>

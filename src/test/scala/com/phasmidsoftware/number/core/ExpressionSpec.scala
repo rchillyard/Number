@@ -62,6 +62,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     eo.get shouldBe BiFunction(Literal(2), Literal(-1), Power)
   }
 
+  // NOTE that the apply function always takes a Field and returns a Field. Not to be confused with applyExact.
   behavior of "apply Function"
   it should "work for Negate" in {
     val f: Negate.type = Negate
@@ -74,7 +75,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val f: Reciprocal.type = Reciprocal
     f(Constants.zero) shouldBe Constants.infinity
     f(Constants.one) shouldBe Constants.one
-    f(Constants.half) shouldBe Real(Rational.two)
+    f(Constants.half) should ===(Constants.two)
     f(Constants.two) shouldBe Constants.half
 //    f(Constants.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
   }
@@ -128,7 +129,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.render shouldBe "{1 + 𝛑}"
+    e.toString shouldBe "BiFunction{1 + 𝛑}"
+    e.render shouldBe "4.1415926535897930(41)"
     e.materialize.render shouldBe "4.1415926535897930(41)"
   }
 
@@ -172,10 +174,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     y.materialize shouldBe Constants.one
   }
   it should "evaluate atan" in {
-//    Zero.atan(One).materialize.asNumber shouldBe Some(Number.piBy2)
-//    Zero.atan(1).materialize.asNumber shouldBe Some(Number.piBy2)
-//    One.atan(0).materialize.asNumber shouldBe Some(Number(0, Radian))
-//    Number.one.atan(Number.zero) shouldBe Number(0, Radian)
+    Zero.atan(One).materialize.asNumber shouldBe Some(Number.piBy2)
+    Zero.atan(1).materialize.asNumber shouldBe Some(Number.piBy2)
+    One.atan(0).materialize.asNumber shouldBe Some(Number(0, Radian))
+    Number.one.atan(Number.zero) shouldBe Number(0, Radian)
     One.atan(Constants.root3).evaluateAsIs shouldBe Some(Constants.piBy3)
     One.atan(One).evaluateAsIs shouldBe Some(Constants.piBy4)
   }
@@ -196,7 +198,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for (sqrt 7)^2" in {
     val seven: Expression = Literal(7)
     val result: Expression = seven.sqrt ^ 2
-    result.toString shouldBe "{√7 ^ 2}"
+    result.toString shouldBe "BiFunction{√7 ^ 2}"
   }
 
   behavior of "various operations"

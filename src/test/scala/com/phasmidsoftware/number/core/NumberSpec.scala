@@ -133,7 +133,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for i" in {
     val target = Number.i
-    target.toString shouldBe "√-1"
+    target.toString shouldBe "i"
   }
 
   behavior of "toDouble"
