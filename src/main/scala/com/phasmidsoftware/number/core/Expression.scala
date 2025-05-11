@@ -1979,6 +1979,24 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
   */
 case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, isExact = true, Some(Constants.one), maybeIdentityR = None) {
   /**
+    * Evaluates two `Field` instances under certain trivial conditions and determines the result.
+    *
+    * This method returns `Some(Constants.zero)` if either of the input `Field` instances is
+    * equal to `Constants.zero`. Otherwise, it returns `None`.
+    *
+    * @param a the first `Field` instance to evaluate.
+    * @param b the second `Field` instance to evaluate.
+    * @return an `Option[Field]` containing `Constants.zero` if trivial conditions are met;
+    *         otherwise, `None`.
+    */
+  override def trivialEvaluation(a: Field, b: Field): Option[Field] = (a, b) match {
+    case (Constants.zero, _) | (_, Constants.zero) =>
+      Some(Constants.zero)
+    case _ =>
+      None
+  }
+
+  /**
     * Retrieves the left-hand evaluation context associated with this function.
     *
     * @return None.
@@ -2044,6 +2062,21 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
   * using the `power` method from the `Field` class.
   */
 case object Power extends ExpressionBiFunction("^", (x, y) => x.power(y), isExact = false, None, Some(Constants.one)) {
+  /**
+    * Evaluates two `Field` instances and determines a trivial result based on predefined conditions.
+    * Specifically, it checks if the first `Field` instance is equivalent to the constant `zero`.
+    *
+    * @param a the first operand, a `Field` instance, which is evaluated to see if it's `zero`.
+    * @param b the second operand, a `Field` instance, which is ignored in this implementation.
+    * @return an `Option[Field]`, where `Some(a)` is returned if `a` is `zero`; otherwise, `None`.
+    */
+  override def trivialEvaluation(a: Field, b: Field): Option[Field] = a match {
+    case Constants.zero =>
+      Some(a)
+    case _ =>
+      None
+  }
+
   /**
     * Determines the left-hand evaluation context for a given input context.
     * This method evaluates the provided context to compute the appropriate left
@@ -2189,6 +2222,18 @@ abstract class ExpressionBiFunction(
                                        val maybeIdentityL: Option[Field],
                                        val maybeIdentityR: Option[Field]
                                    ) extends ((Field, Field) => Field) {
+
+  /**
+    * Applies a trivial binary function to the provided `Field` elements `a` and `b`.
+    * Typically returns a default or neutral result without performing any meaningful operation.
+    *
+    * @param a the first operand, a `Field` instance.
+    * @param b the second operand, a `Field` instance.
+    * @return an `Option[Field]` containing the result of the trivial operation,
+    *         or `None` to signify no computation or transformation.
+    */
+  def trivialEvaluation(a: Field, b: Field): Option[Field] = None
+
   /**
     * Evaluate this function on x.
     *
@@ -2197,6 +2242,7 @@ abstract class ExpressionBiFunction(
     * @return the result of f(x).
     */
   def apply(a: Field, b: Field): Field = f(a, b)
+
   /**
     * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
     *
@@ -2241,10 +2287,12 @@ abstract class ExpressionBiFunction(
     * @return an `Option[Field]` containing the result of the evaluation if successful, or `None` if evaluation fails.
     */
   def evaluate(x: Expression, y: Expression)(context: Context): Option[Field] = (x.evaluateAsIs, y.evaluateAsIs) match {
-    case (Some(a), Some(b)) if maybeIdentityL contains a =>
+    case (Some(a), _) if maybeIdentityL contains a =>
       y.evaluate(context)
-    case (Some(a), Some(b)) if maybeIdentityR contains b =>
+    case (_, Some(b)) if maybeIdentityR contains b =>
       x.evaluate(context)
+    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
+      trivialEvaluation(a, b)
     case _ =>
       context.qualifyingField(doEvaluate(x, y)(context) orElse doEvaluate(y, x)(context))
   }
