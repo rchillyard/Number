@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.GeneralNumber.normalizeRoot
 import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
 import com.phasmidsoftware.number.core.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.Rational.toInts
@@ -435,15 +436,17 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return a new Number with factor of PureNumber but with the same magnitude as this.
     */
   def normalize: Field = {
+    def maybeIntValue: Option[Int] = Value.maybeInt(nominalValue)
+
     val z: Field = factor match {
       case PureNumber =>
         Real(this)
-      case SquareRoot
-        // XXX if the value is a negative integer but within the range of maxSquare, then we can simply wrap inside Real.
-        if Value.signum(nominalValue) < 0 && Value.maybeInt(nominalValue).exists(_ >= -Rational.maxSquare) =>
-        Real(this)
+      case r@Root(2) if maybeIntValue.isDefined =>
+        val ro1 = maybeIntValue.filter(_ > 0).flatMap(Rational.squareRoots.get).map(Real(_))
+        val ro2 = maybeIntValue.filter(_ < 0).filter(x => math.abs(x) <= Rational.maxSquare).map(_ => Real(this))
+        ro1 orElse ro2 getOrElse normalizeRoot(nominalValue, r)
       case r@Root(_) =>
-        GeneralNumber.normalizeRoot(nominalValue, r)
+        normalizeRoot(nominalValue, r)
       case Radian =>
         Real(this) // Number.modulate(this) NOTE: we do modulation at other times
       case _ =>
