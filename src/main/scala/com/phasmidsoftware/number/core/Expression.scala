@@ -2035,10 +2035,6 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
           case _ =>
             None
         }
-      case Real(ExactNumber(v, SquareRoot)) =>
-        Value.maybeRational(v) map (r => a multiply r multiply r)
-      case Real(ExactNumber(v, CubeRoot)) =>
-        Value.maybeRational(v) map (r => a multiply r multiply r multiply r)
       case _ if a.isExact && b.isExact =>
         Some(a multiply b)
       case _ =>
