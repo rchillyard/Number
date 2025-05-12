@@ -22,12 +22,16 @@ object Value {
   def fromInt(x: Int): Value = Right(x)
 
   /**
-    * Convert a Rational to a Value.
+    * Converts a Rational number into a Value.
     *
-    * @param x a Rational.
-    * @return a Value.
+    * @param x the Rational number to be converted.
+    * @return a Value, which is either a Right containing an Int if the Rational can be precisely represented as an Int,
+    *         or a Left containing the original Rational if not.
     */
-  def fromRational(x: Rational): Value = Left(Right(x))
+  def fromRational(x: Rational): Value = x match {
+    case Rational(n, Rational.bigOne) if n <= Int.MaxValue && n >= Int.MinValue => Right(n.toInt)
+    case _ => Left(Right(x))
+  }
 
   /**
     * Convert an Option[Double] to a Value.

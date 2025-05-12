@@ -29,9 +29,9 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
   }
 
   /**
-    * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
+    * Method to determine if this Field is real-valued (i.e. the point lies on the real axis).
     *
-    * @return true if the imaginary.
+    * @return true if not imaginary.
     */
   def isReal: Boolean
 

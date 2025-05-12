@@ -779,6 +779,11 @@ object GeneralNumber {
               GeneralNumber.doTimes(p, q, p.factor)
             case (Root(_), Root(_)) if p == q =>
               p.make(PureNumber)
+            // NOTE see RQRSpec for discussion of this code.
+//            case (Root(r), PureNumber) =>
+//              val co = for (a <- Value.maybeRational(x.nominalValue); b <- Value.maybeRational(y.nominalValue)) yield a * (b ^ r)
+//              val xo = co map (c => p.make(Value.fromRational(c), p.factor))
+//              xo getOrElse(doTimes(p, q.scale(p.factor), p.factor))
             case (Root(_), Root(_)) =>
               doTimes(p, q.scale(p.factor), p.factor)
             case _ =>
