@@ -59,6 +59,22 @@ object Value {
   def maybeDouble(value: Value): Option[Double] = optionMap(value)(_.toDouble, x => optionMap(x)(_.toDouble, identity))
 
   /**
+    * Compares two `Value` instances to check if they are equal based
+    * on specific transformations and operations.
+    *
+    * @param v1 the nominal `Value` against which `v` is compared.
+    * @param v2 the `Value` to be compared with the `nominalValue`.
+    * @return `true` if the transformed and composed values result in equality
+    *         after performing operations, otherwise `false`.
+    */
+  def isEqual(v1: Value, v2: Value): Boolean =
+    (for {
+      x <- Operations.doTransformValueMonadic(v1)(MonadicOperationNegate.functions)
+      y <- Operations.doComposeValueDyadic(x, v2)(DyadicOperationPlus.functions)
+      z <- Value.maybeDouble(y)
+    } yield z == 0.0) getOrElse false
+
+  /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the factor).
     * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query

@@ -69,6 +69,7 @@ case class Real(x: Number) extends Field {
     * @return true if they are the same, otherwise false.
     */
   def isSame(f: Numerical): Boolean = f match {
+    case Real(n: ExactNumber) => n.isSame(x)
     case Real(y) => (x doSubtract y).isZero
     case c: Complex => c.isSame(this)
     case n: Number => isSame(Real(n))
@@ -89,7 +90,8 @@ case class Real(x: Number) extends Field {
     * @param y the addend.
     * @return the sum.
     */
-  def add(y: Field): Field = createFromRealField(x.add(y))
+  def add(y: Field): Field =
+    createFromRealField(x.add(y))
 
   /**
     * Multiply this Real by y and return the result.
@@ -97,7 +99,8 @@ case class Real(x: Number) extends Field {
     * * @param y the multiplicand.
     * * @return the product.
     */
-  def multiply(y: Field): Field = x.multiply(y)
+  def multiply(y: Field): Field =
+    x.multiply(y)
 
   /**
     * Divide this Real by y and return the result.
@@ -105,12 +108,14 @@ case class Real(x: Number) extends Field {
     * @param y the divisor.
     * @return the quotient.
     */
-  def divide(y: Field): Field = createFromRealField(x.divide(y))
+  def divide(y: Field): Field =
+    createFromRealField(x.divide(y))
 
   /**
     * Change the sign of this Real.
     */
-  def unary_- : Field = createFromRealField(-x)
+  def unary_- : Field =
+    createFromRealField(-x)
 
   /**
     * Raise this Real to the power p where p is a Number.
@@ -122,9 +127,12 @@ case class Real(x: Number) extends Field {
     * @return this Real raised to power p.
     */
   def power(p: Number): Field = p match {
-    case y@ExactNumber(Value(_), _) => x.power(Real(y))
-    case ExactNumber(Value(_, _: Rational), _) => asComplex.power(p)
-    case n => asComplex.power(n)
+    case y@ExactNumber(Value(_), _) =>
+      x.power(Real(y))
+    case ExactNumber(Value(_, _: Rational), _) =>
+      asComplex.power(p)
+    case n =>
+      asComplex.power(n)
   }
 
   /**
@@ -137,9 +145,12 @@ case class Real(x: Number) extends Field {
     * @return this Real raised to power p.
     */
   def power(p: Field): Field = p match {
-    case Real(m) if m.isRational => asComplex power m
-    case Real(m) => x.power(Real(m))
-    case c: Complex => asComplex power c
+    case Real(m) if m.isRational =>
+      asComplex power m
+    case Real(m) =>
+      x.power(Real(m))
+    case c: Complex =>
+      asComplex power c
   }
 
   def sqrt: Field = power(Real(Rational.half))
@@ -149,7 +160,8 @@ case class Real(x: Number) extends Field {
    * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     */
-  def invert: Field = createFromRealField(x.invert)
+  def invert: Field =
+    createFromRealField(x.invert)
 
   /**
     * Method to determine the sine of this Real.
@@ -157,7 +169,8 @@ case class Real(x: Number) extends Field {
     *
     * @return the sine of this.
     */
-  def sin: Field = Real(x.sin)
+  def sin: Field =
+    Real(x.sin)
 
   /**
     * Method to determine the cosine of this Real.
@@ -165,7 +178,8 @@ case class Real(x: Number) extends Field {
     *
     * @return the cosine.
     */
-  def cos: Field = Real(x.cos)
+  def cos: Field =
+    Real(x.cos)
 
   /**
     * Method to determine the tangent of this Real.
@@ -173,7 +187,8 @@ case class Real(x: Number) extends Field {
     *
     * @return the tangent
     */
-  def tan: Field = Real(x.tan)
+  def tan: Field =
+    Real(x.tan)
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -181,7 +196,8 @@ case class Real(x: Number) extends Field {
     * @param y the opposite length
     * @return the angle defined by x = this, y = y
     */
-  def atan(y: Real): Field = Real(x.atan(y.x))
+  def atan(y: Real): Field =
+    Real(x.atan(y.x))
 
   /**
     * Method to determine the natural log of this Real.
@@ -189,7 +205,8 @@ case class Real(x: Number) extends Field {
     *
     * @return the natural log of this.
     */
-  def log: Field = Real(x.log)
+  def log: Field =
+    Real(x.log)
 
   /**
     * Method to raise e to the power of this Real.
@@ -197,25 +214,35 @@ case class Real(x: Number) extends Field {
     *
     * @return the e to the power of this.
     */
-  def exp: Field = Real(x.exp)
+  def exp: Field =
+    Real(x.exp)
 
   /**
     * Method to determine the sense of this Real: negative, zero, or positive.
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  def signum: Int = x.signum
+  def signum: Int =
+    x.signum
 
   /**
     * Method to "normalize" a field.
     *
     * @return a Real which is in canonical form.
     */
-  def normalize: Field = createFromRealField(x.normalize)
+  def normalize: Field =
+    x match {
+      case Number.i =>
+        ComplexCartesian(Number.zero, Number.one)
+      case _ =>
+        createFromRealField(this)
+    }
 
   def compare(that: Field): Int = that match {
-    case Real(y) => x.compare(y)
-    case z: Complex => asComplex.compare(z)
+    case Real(y) =>
+      x.compare(y)
+    case z: Complex =>
+      asComplex.compare(z)
   }
 
   /**
@@ -264,7 +291,8 @@ case class Real(x: Number) extends Field {
     *
     * @return the Double representation of this Real.
     */
-  def toDouble: Double = recover(maybeDouble, NumberException("Real.toDouble: logic error: x"))
+  def toDouble: Double =
+    recover(maybeDouble, NumberException("Real.toDouble: logic error: x"))
 
   /**
     * Compares the current object with the specified object for equality.
@@ -273,8 +301,10 @@ case class Real(x: Number) extends Field {
     * @return true if the specified object is of type `Real` and its value matches the current object's value, false otherwise
     */
   override def equals(obj: Any): Boolean = obj match {
-    case that: Real => x.equals(that.x)
-    case _ => false
+    case that: Real =>
+      x.equals(that.x)
+    case _ =>
+      false
   }
 
   /**
@@ -284,7 +314,8 @@ case class Real(x: Number) extends Field {
     *
     * @return an integer hash code value for the object
     */
-  override def hashCode(): Int = x.hashCode()
+  override def hashCode(): Int =
+    x.hashCode()
 }
 
 /**
@@ -299,7 +330,8 @@ object Real {
    * @param w the string to be parsed and converted into a Real.
    * @return a new Real instance representing the parsed number.
    */
-  def apply(w: String): Real = Real(Number(w))
+  def apply(w: String): Real =
+    Real(Number(w))
 
   /**
    * Constructs a `Real` object from an integer value.
@@ -307,7 +339,8 @@ object Real {
    * @param x the integer value to be converted to a `Real`.
    * @return a `Real` instance representing the supplied integer.
    */
-  def apply(x: Int): Real = Real(Number(x))
+  def apply(x: Int): Real =
+    Real(Number(x))
 
   /**
    * Converts a double value into a Real object.
@@ -315,7 +348,8 @@ object Real {
    * @param d the double value to be converted
    * @return a Real object representing the provided double value
    */
-  def apply(d: Double): Real = Real(Number(d))
+  def apply(d: Double): Real =
+    Real(Number(d))
 
   /**
    * Converts a given Rational number into a Real number.
@@ -323,7 +357,8 @@ object Real {
    * @param r the Rational number to be converted.
    * @return the corresponding Real number representation of the input Rational.
    */
-  def apply(r: Rational): Real = Real(Number(r))
+  def apply(r: Rational): Real =
+    Real(Number(r))
 
   /**
     * Computes the arctangent of two `Field` values and returns the result as a `Real`.
@@ -337,7 +372,8 @@ object Real {
     * @param y the second `Field` input, representing the denominator in the arctangent calculation.
     * @return a `Real` value representing the arctangent of the arguments, or `NaN` if the inputs are not valid numbers.
     */
-  def atan(x: Field, y: Field): Real = (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN))
+  def atan(x: Field, y: Field): Real =
+    (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN))
 
   val atanFunction: (Field, Field) => Real = atan
 
@@ -353,13 +389,17 @@ object Real {
    * @throws NumberException if the input Field is not real or cannot be converted to a Real.
    */
   def createFromRealField(x: Field): Real = x match {
-    case r: Real => r
+    case r: Real =>
+      r
     case c: BaseComplex if c.isReal =>
       c.asNumber match {
-        case Some(value) => Real(value)
-        case None => throw NumberException(s"Real.createFromRealField: x cannot be represented as a Real: $x")
+        case Some(value) =>
+          Real(value)
+        case None =>
+          throw NumberException(s"Real.createFromRealField: x cannot be represented as a Real: $x")
       }
-    case _ => throw NumberException(s"Real.createFromRealField: x is not real: $x")
+    case _ =>
+      throw NumberException(s"Real.createFromRealField: x is not real: $x")
   }
 
   /**
@@ -370,9 +410,11 @@ object Real {
     * @param w the String to be parsed.
     * @return a Number.
     */
-  def parse(w: String): Try[Real] = Number.parse(w) map (Real(_))
+  def parse(w: String): Try[Real] =
+    Number.parse(w) map (Real(_))
 
-  implicit def convertFromNumber(x: Number): Field = Real(x)
+  implicit def convertFromNumber(x: Number): Field =
+    Real(x)
 
   /**
     * Implicit class to operate on Numbers introduced as integers.
@@ -389,7 +431,8 @@ object Real {
       * @param y the addend, a Real.
       * @return a Real whose value is x + y.
       */
-    def +(y: Real): Real = createFromRealField(Real(x) add y)
+    def +(y: Real): Real =
+      createFromRealField(Real(x) add y)
 
     /**
       * Multiply x by y (a Real) and yield a Real.
@@ -397,7 +440,8 @@ object Real {
       * @param y the multiplicand, a Real.
       * @return a Real whose value is x * y.
       */
-    def *(y: Real): Real = createFromRealField(Real(x) multiply y)
+    def *(y: Real): Real =
+      createFromRealField(Real(x) multiply y)
 
     /**
       * Divide x by y (a Real) and yield a Real.
@@ -405,7 +449,8 @@ object Real {
       * @param y the divisor, a Real.
       * @return a Real whose value is x / y.
       */
-    def /(y: Real): Real = *(createFromRealField(y.invert))
+    def /(y: Real): Real =
+      *(createFromRealField(y.invert))
 
     /**
       * Divide x by y (an Int) and yield a Real.
@@ -414,7 +459,8 @@ object Real {
       * @param y the divisor, an Int.
       * @return a Real whose value is x / y.
       */
-    def :/(y: Int): Real = /(Real(y))
+    def :/(y: Int): Real =
+      /(Real(y))
   }
 
   /**
@@ -430,7 +476,8 @@ object Real {
       * @param y the second Real.
       * @return an Int representing the order.
       */
-    def compare(x: Real, y: Real): Int = NumberIsOrdering.compare(x.x, y.x)
+    def compare(x: Real, y: Real): Int =
+      NumberIsOrdering.compare(x.x, y.x)
   }
 
   implicit object RealIsOrdering extends RealIsOrdering
@@ -439,25 +486,99 @@ object Real {
     * Following are the definitions required by Numeric[Real]
     */
   trait RealIsNumeric extends Numeric[Real] with RealIsOrdering {
-    def plus(x: Real, y: Real): Real = createFromRealField(x add y)
+    /**
+      * Adds two Real numbers and returns the result.
+      *
+      * @param x The first Real number to be added.
+      * @param y The second Real number to be added.
+      * @return The result of adding x and y as a Real number.
+      */
+    def plus(x: Real, y: Real): Real =
+      createFromRealField(x add y)
 
-    def minus(x: Real, y: Real): Real = plus(x, negate(y))
+    /**
+      * Subtracts the second real number from the first real number.
+      *
+      * @param x the first operand of type Real
+      * @param y the second operand of type Real to be subtracted from the first operand
+      * @return the result of subtracting the second operand from the first operand, of type Real
+      */
+    def minus(x: Real, y: Real): Real =
+      plus(x, negate(y))
 
-    def times(x: Real, y: Real): Real = createFromRealField(x multiply y)
+    /**
+      * Multiplies two Real numbers and returns the result as a Real.
+      *
+      * @param x the first Real number
+      * @param y the second Real number
+      * @return the product of x and y as a Real
+      */
+    def times(x: Real, y: Real): Real =
+      createFromRealField(x multiply y)
 
-    def negate(x: Real): Real = createFromRealField(-x)
+    /**
+      * Computes the negation of the given Real number.
+      *
+      * @param x the Real number to be negated
+      * @return a new Real number representing the negation of the input value
+      */
+    def negate(x: Real): Real =
+      createFromRealField(-x)
 
-    def fromInt(x: Int): Real = Real(x)
+    /**
+      * Converts an integer value to a `Real` instance.
+      *
+      * @param x the integer value to be converted.
+      * @return the `Real` instance corresponding to the given integer value.
+      */
+    def fromInt(x: Int): Real =
+      Real(x)
 
-    def parseString(str: String): Option[Real] = Number.parse(str).map(Real(_)).toOption
+    /**
+      * Parses a given string and attempts to convert it into an `Option[Real]`.
+      *
+      * @param str the input string that needs to be parsed
+      * @return an `Option[Real]` representing the parsed value if successful, or `None` if the parsing fails
+      */
+    def parseString(str: String): Option[Real] =
+      Number.parse(str).map(Real(_)).toOption
 
-    def toInt(x: Real): Int = toLong(x).toInt
+    /**
+      * Converts a Real number to an Int by first converting it to a Long,
+      * then narrowing it to an Int.
+      *
+      * @param x the Real number to be converted
+      * @return the integer representation of the Real number
+      */
+    def toInt(x: Real): Int =
+      toLong(x).toInt
 
-    def toLong(x: Real): Long = NumberIsFractional.toLong(x.x)
+    /**
+      * Converts a `Real` value to its corresponding `Long` representation.
+      *
+      * @param x the `Real` value to be converted
+      * @return the `Long` representation of the given `Real` value
+      */
+    def toLong(x: Real): Long =
+      NumberIsFractional.toLong(x.x)
 
-    def toDouble(x: Real): Double = x.toDouble
+    /**
+      * Converts a Real number into a Double representation.
+      *
+      * @param x the Real number to be converted
+      * @return the Double representation of the given Real number
+      */
+    def toDouble(x: Real): Double =
+      x.toDouble
 
-    def toFloat(x: Real): Float = toDouble(x).toFloat
+    /**
+      * Converts a Real number to a Float representation.
+      *
+      * @param x the Real number to be converted.
+      * @return the Float representation of the given Real number.
+      */
+    def toFloat(x: Real): Float =
+      toDouble(x).toFloat
   }
 
   /**
@@ -467,13 +588,22 @@ object Real {
     * @param y the second number.
     * @return the order.
     */
-  def doCompare(x: Real, y: Real): Int = RealIsOrdering.compare(x, y)
+  def doCompare(x: Real, y: Real): Int =
+    RealIsOrdering.compare(x, y)
 
   /**
     * Following are the definitions required by Fractional[Real]
     */
   trait RealIsFractional extends Fractional[Real] with RealIsNumeric {
-    def div(x: Real, y: Real): Real = times(x, createFromRealField(y.invert))
+    /**
+      * Divides one `Real` number by another.
+      *
+      * @param x the numerator as a `Real` number
+      * @param y the denominator as a `Real` number, should not be zero
+      * @return the result of dividing `x` by `y` as a `Real` number
+      */
+    def div(x: Real, y: Real): Real =
+      times(x, createFromRealField(y.invert))
   }
 
   implicit object RealIsFractional extends RealIsFractional with RealIsNumeric with RealIsOrdering

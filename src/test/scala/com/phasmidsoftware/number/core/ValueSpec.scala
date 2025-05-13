@@ -19,6 +19,13 @@ class ValueSpec extends AnyFlatSpec with should.Matchers {
     signum(fromInt(-1)) shouldBe -1
   }
 
+  it should "isEqual" in {
+    isEqual(fromInt(1), fromInt(1)) shouldBe true
+    isEqual(fromInt(1), fromRational(Rational.one)) shouldBe true
+    isEqual(fromInt(1), fromDouble(Some(1.0))) shouldBe true
+    isEqual(fromInt(1), fromInt(2)) shouldBe false
+  }
+
   it should "maybeDouble" in {
     maybeDouble(fromDouble(Some(0.5))) shouldBe Some(0.5)
     maybeDouble(fromDouble(None)) shouldBe None

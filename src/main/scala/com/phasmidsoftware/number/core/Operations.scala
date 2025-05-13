@@ -5,7 +5,6 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
-
 import scala.annotation.tailrec
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
@@ -453,6 +452,7 @@ object Operations {
     * @param other     the other operand, a Value.
     * @param functions the tuple of four conversion functions.
     * @return an optional Value which is result of applying the appropriate function to the operands value and other.
+    *         Any failure in the process will result in None. // CONSIDER why is it like that? Why not return a Failure?
     */
   def doComposeValueDyadic(value: Value, other: Value)(functions: DyadicFunctions): Option[Value] = {
     val (fInt, fRational, fDouble) = functions

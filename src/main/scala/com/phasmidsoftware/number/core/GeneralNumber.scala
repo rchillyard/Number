@@ -776,14 +776,24 @@ object GeneralNumber {
             case (_: Logarithmic, PureNumber) =>
               times(p.scale(PureNumber), q)
             case (Root(m), Root(n)) if m == 2 && n == 2 =>
-              GeneralNumber.doTimes(p, q, p.factor)
+              doTimes(p, q, p.factor)
             case (Root(_), Root(_)) if p == q =>
               p.make(PureNumber)
             // NOTE see RQRSpec for discussion of this code.
-//            case (Root(r), PureNumber) =>
-//              val co = for (a <- Value.maybeRational(x.nominalValue); b <- Value.maybeRational(y.nominalValue)) yield a * (b ^ r)
-//              val xo = co map (c => p.make(Value.fromRational(c), p.factor))
-//              xo getOrElse(doTimes(p, q.scale(p.factor), p.factor))
+            case (r@Root(_), g) =>
+              r.multiply(p.nominalValue, q.nominalValue, g) match {
+                case Some((v, f, _)) =>
+                  p.make(v, f)
+                case None =>
+                  times(p.scale(PureNumber), q.scale(PureNumber))
+              }
+            case (g, r@Root(_)) =>
+              g.multiply(p.nominalValue, q.nominalValue, r) match {
+                case Some((v, f, _)) =>
+                  p.make(v, f)
+                case None =>
+                  times(p.scale(PureNumber), q.scale(PureNumber))
+              }
             case (Root(_), Root(_)) =>
               doTimes(p, q.scale(p.factor), p.factor)
             case _ =>
@@ -933,8 +943,12 @@ object GeneralNumber {
     * @return the result of multiplying the two numbers, represented as a Number
     */
   def doTimes(p: Number, q: Number, factor: Factor): Number = {
-    val maybeNumber = p.composeDyadic(q, factor)(DyadicOperationTimes)
-    prepareWithSpecialize(maybeNumber)
+    p.factor.multiply(p.nominalValue, q.nominalValue, q.factor) match {
+      case Some((v, f, _)) =>
+        p.make(v, f)
+      case None =>
+        prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
+    }
   }
 
   /**

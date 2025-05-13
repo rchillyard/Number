@@ -281,6 +281,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Multiplies the current instance by another Field and returns the result.
     * Handles special cases such as multiplication with zero, one, or specific constants.
     *
+    * NOTE this code seems almost identical to the times method in GeneralNumber
+    *
     * @param x the Field instance to be multiplied with the current instance
     * @return the result of the multiplication as a Field
     */
@@ -295,15 +297,13 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
       Constants.iPi
     case (n, Constants.i) =>
       n.asComplex.rotate
-    case (n@ExactNumber(v, r: Root), Real(q)) if q.signum > 0 =>
-      Value.maybeRational(v) match {
-        case Some(y) =>
-          doMultiplyByPower(q, y, r.root) getOrElse (n.asComplex numberProduct q)
+    case (a@ExactNumber(va, fa), Real(b@ExactNumber(vb, fb))) =>
+      fa.multiply(va, vb, fb) match {
+        case Some((v, f, _)) =>
+          Real(a.make(v, f))
         case None =>
-          n.asComplex numberProduct q
+          doMultiply(b).normalize
       }
-    case (Number.i, _) =>
-      x.multiply(ComplexCartesian(0, 1))
     case (_, Real(n)) =>
       doMultiply(n).normalize
     case (_, c@BaseComplex(_, _)) =>
@@ -324,8 +324,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return an optional field containing a real number if the result
     *         can be successfully processed, or `None` otherwise
     */
-  private def doMultiplyByPower(x: Number, y: Rational, n: Int): Option[Field] =
-    Some((y doMultiply (x power n)).make(SquareRoot).normalize)
+  private def doMultiplyByPower(x: Number, y: Rational, n: Int): Option[Field] = {
+    val number = y doMultiply (x power n)
+    Some(number.make(SquareRoot).normalize)
+  }
 
   /**
     * Divide this Number by x and return the result.
@@ -1381,7 +1383,12 @@ object Number {
     case PureNumber =>
       prepare(x.transformMonadic(PureNumber)(MonadicOperationInvert))
     case f@Root(_) =>
-      prepare(x.transformMonadic(f)(MonadicOperationInvert))
+      f.invert(x.nominalValue) match {
+        case Some((v, f, _)) =>
+          ExactNumber(v, f)
+        case None =>
+          prepare(x.transformMonadic(f)(MonadicOperationInvert))
+      }
     case _ =>
       negate(x.scale(PureNumber))
   }
@@ -1532,10 +1539,9 @@ object Number {
   private def doAtan(number: Number, sign: Int): Number = number.factor match {
     case PureNumber =>
       prepareWithSpecialize(number.transformMonadic(Radian)(MonadicOperationAtan(sign))).modulate
-    case Root(2) =>
-      val ro = number.toRational
-      val ry: Try[Rational] = ro map (_.abs) match {
-        case Some(Rational(Rational.bigThree, Rational.bigOne)) =>
+    case SquareRoot =>
+      val ry = number.toRational map (_.abs) match {
+        case Some(Rational(Rational.bigThree, Rational.bigOne)) => //
           Success(Rational(1, 3))
         case Some(Rational(Rational.bigOne, Rational.bigThree)) =>
           Success(Rational(1, 6))
@@ -1544,7 +1550,7 @@ object Number {
         case _ =>
           Failure(NumberException("rational is not matched"))
       }
-      (for (flip <- ro map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
+      (for (flip <- number.toRational map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
         case Some(r) =>
           Number(r, Radian)
         case None =>

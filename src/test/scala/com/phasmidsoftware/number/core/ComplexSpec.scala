@@ -366,7 +366,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     Number.i.normalize shouldBe Constants.i
   }
   it should "normalize 11i" in {
-    Number.i.multiply(Real(11)).normalize shouldBe ComplexCartesian(0, 11)
+    import SquareRoot.IntToImaginary
+    val actual = Number.i.multiply(Real(11)).normalize
+    val expected = 11.i
+    actual.isSame(expected) shouldBe true
   }
 
   behavior of "C interpolator"

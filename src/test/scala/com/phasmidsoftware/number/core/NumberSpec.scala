@@ -976,7 +976,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for Pi/6" in {
     val target = Number.pi doDivide 6
-    target.cos should ===(Number(3).sqrt doDivide 2)
+    val cos = target.cos
+    val expected = Number(3).sqrt doDivide 2
+    cos should ===(expected)
   }
 
   behavior of "tan"
@@ -1024,7 +1026,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"-5/6", Radian)
   }
   it should "be 11 Pi / 6 for -1/2" in {
-    Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"-1/6", Radian)
+    val three = Number(Rational(3))
+    val root3 = three.sqrt
+    val actual = root3.atan(Number.negOne)
+    val expected = Number(r"-1/6", Radian)
+    actual shouldEqual expected
   }
   it should "be 3 pi / 4 for 1/-1" in {
     val adjacent = Number.negate(Number.one)
@@ -1361,6 +1367,18 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for i" in {
     (Number.two multiply Constants.i).isSame(ComplexCartesian(0, 2)) shouldBe true
     (ComplexCartesian(2, 3) multiply Constants.i).isSame(ComplexCartesian(-3, 2)) shouldBe true
+  }
+  it should "multiply root2 and 3" in {
+    root2 doMultiply Number(3) shouldBe ExactNumber(Value.fromInt(18), SquareRoot)
+  }
+  it should "multiply cube-root2 and 3" in {
+    Number(2, CubeRoot) doMultiply Number(3) shouldBe ExactNumber(Value.fromInt(54), CubeRoot)
+  }
+  it should "multiply 3 and root2" in {
+    Number(3) doMultiply root2 shouldBe ExactNumber(Value.fromInt(18), SquareRoot)
+  }
+  it should "multiply 3 and cube-root2" in {
+    Number(3) doMultiply Number(2, CubeRoot) shouldBe ExactNumber(Value.fromInt(54), CubeRoot)
   }
 
   behavior of "field operations"

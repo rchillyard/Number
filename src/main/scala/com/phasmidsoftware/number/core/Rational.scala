@@ -1163,7 +1163,13 @@ object Rational {
    * This map contains key-value pairs where the key represents a non-negative integer and the value is its integer square root.
    * The square root values are exact for perfect squares included in the map.
    */
-  lazy val squareRoots: Map[Int, Int] = Map(0 -> 0, 1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 256 -> 16, 1024 -> 32, 4096 -> 64, 10000 -> 100)
+  lazy val squareRoots: Map[Int, Int] = Map(0 -> 0, 1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 121 -> 11, 144 -> 12, 256 -> 16, 625 -> 25, 1024 -> 32, 4096 -> 64, 10000 -> 100)
+
+  /**
+    * A lazily evaluated map that provides the base-2 logarithms of specific powers of 2.
+    * The keys represent powers of 2 (e.g., 1, 2, 4, 8, etc.), and the values are their corresponding base-2 logarithms.
+    */
+  lazy val binaryLogs: Map[Int, Int] = Map(1 -> 0, 2 -> 1, 4 -> 2, 8 -> 3, 16 -> 4, 32 -> 5, 64 -> 6, 128 -> 7, 256 -> 8, 512 -> 9, 1024 -> 10, 2048 -> 11, 4096 -> 12, 8192 -> 13)
 
   /**
     * A constant value representing the maximum square value that is encoded in `squareRoots` (above).

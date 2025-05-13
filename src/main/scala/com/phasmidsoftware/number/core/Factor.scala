@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Rational.toIntOption
 import com.phasmidsoftware.number.core.Value.{fromDouble, scaleDouble, valueToString}
+import scala.language.implicitConversions
 import scala.util._
 
 /**
@@ -29,6 +30,7 @@ sealed trait Factor {
 
   /**
     * Determines whether the current factor can be augmented by the given factor.
+    * CONSIDER do we need this method now that we have add(x, y, this)?
     *
     * @param f the factor to be checked for compatibility with addition.
     * @return true if the factors can be added; false otherwise.
@@ -38,6 +40,7 @@ sealed trait Factor {
 
   /**
     * Determines whether the current factor can be multiplied by the given factor.
+    * CONSIDER do we need this method now that we have multiply(x, y, this)?
     *
     * @param f the factor to be checked for compatibility with multiplication.
     * @return true if the factors can be multiplied; false otherwise.
@@ -46,6 +49,7 @@ sealed trait Factor {
 
   /**
     * Determines whether `this` factor can be raised by the given factor `f`.
+    * CONSIDER do we need this method now that we have raise(x, y, this)?
     *
     * @param f the factor to be checked for compatibility with raising to a power.
     * @return true if the factors can be powered; false otherwise.
@@ -113,6 +117,97 @@ sealed trait Factor {
     * @return a String.
     */
   def render(v: String): String
+
+  // CONSIDER adding the following methods for exact arithmetic,
+  // or possibly with an additional member in the result defining any additional fuzz.
+
+  /**
+    * Computes the negation of the given value `x` within the context of this factor.
+    *
+    * @param x the value to negate
+    * @return an optional `ProtoNumber` representing the negated value, or `None` if the operation is not valid
+    */
+  def negate(x: Value): Option[ProtoNumber]
+
+  /**
+    * Computes the multiplicative inverse of the given value if it exists.
+    *
+    * @param x the value to be inverted
+    * @return an optional `ProtoNumber` representing the inverse of `x`,
+    *         or `None` if the inverse cannot be computed
+    */
+  def invert(x: Value): Option[ProtoNumber]
+
+  /**
+    * Adds two values together and computes an appropriate factor for the result.
+    *
+    * @param x the first value
+    * @param y the addend
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def add(x: Value, y: Value, f: Factor): Option[ProtoNumber]
+
+  /**
+    * Multiplies two values together and computes an appropriate factor for the result.
+    *
+    * @param x the first value
+    * @param y the multiplicand
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber]
+
+  /**
+    * Raises x to the power of y and compute an appropriate factor for the result.
+    * NOTE: for now, we only allow raising to a power of a PureNumber.
+    * TODO: enable powers of Radian factor.
+    *
+    * @param x the first value
+    * @param y the power
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def raise(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+    (this, f) match {
+      case (_, PureNumber) =>
+        clean(doRaiseByPureNumber(x, y))
+      case (_, Log2) =>
+        for {
+          z <- Log2.asPureValue(y)
+          q <- clean(doRaiseByPureNumber(x, z))
+        } yield q
+      case (PureNumber, _) =>
+        f.raise(y, x, this)
+      case _ =>
+        None
+    }
+
+  def clean(po: Option[ProtoNumber]): Option[ProtoNumber] =
+    po match {
+      case Some(p@(v, f, z)) =>
+        // XXX simplify root quantities
+        f match {
+          case Root(1) =>
+            Some((v, PureNumber, z))
+          case r@Root(k) if k % 2 == 0 =>
+            r.simplifyRoot(p, v, k / 2)
+          case _ =>
+            Some(p)
+        }
+      case None => None
+    }
+
+
+  /**
+    * Raises the value `x` to the power of the value `y`.
+    *
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
+    */
+  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber]
 }
 
 /**
@@ -169,6 +264,22 @@ sealed trait Scalar extends Factor {
     case _ =>
       None
   }
+
+  def negate(x: Value): Option[ProtoNumber] =
+    for {v <- Operations.doTransformValueMonadic(x)(MonadicOperationNegate.functions)} yield (v, this, None)
+
+  /**
+    * Adds two values together, applying the specified factor, to compute a resultant value and factor.
+    *
+    * @param x the first value to be added
+    * @param y the second value (addend) to be added
+    * @param f the factor associated with the operation
+    * @return an optional tuple containing the resultant value, its factor, and optional fuzziness,
+    *         or None if the operation cannot be performed under the given factor
+    */
+  def add(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+    for {v <- Factor.composeDyadic(x, y)(DyadicOperationPlus) if this == f} yield (v, f, None)
+
 }
 
 /**
@@ -233,8 +344,8 @@ sealed trait Logarithmic extends Factor {
     * @return a Try of Value which, given factor f, represents the same quantity as x given this.
     */
   def convert(v: Value, f: Factor): Option[Value] = f match {
-    case Logarithmic(z) =>
-      Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, z))))
+    case l@Logarithmic(_) =>
+      Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, l.value))))
     case _ =>
       None
   }
@@ -286,6 +397,88 @@ sealed trait Logarithmic extends Factor {
     * @return a string combining the base and the input value in a specific exponential format
     */
   def render(v: String): String = base + "^" + v
+
+  /**
+    * Inverts the given value by raising it to the power of -1, using a pure number factor.
+    *
+    * @param x the value to be inverted
+    * @return an optional result of type `ProtoNumber`, representing the inverted value if the operation is valid, or `None` otherwise
+    */
+  def invert(x: Value): Option[ProtoNumber] =
+    this.raise(x, Value.fromInt(-1), PureNumber)
+
+  /**
+    * Negates the given value and returns the result as an optional ProtoNumber.
+    *
+    * @param x the value to be negated
+    * @return an optional ProtoNumber representing the negated value, or None if the operation is invalid
+    */
+  def negate(x: Value): Option[ProtoNumber] = None
+
+  /**
+    * Adds two values together and computes an appropriate factor for the result.
+    *
+    * @param x the first value
+    * @param y the addend
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def add(x: Value, y: Value, f: Factor): Option[ProtoNumber] = None
+
+  /**
+    * Multiplies two values together and computes an appropriate factor for the result.
+    * TODO implement for Log10
+    *
+    * @param x the first value
+    * @param y the multiplicand
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] = this match {
+    case `f` =>
+      clean(for {v <- Factor.composeDyadic(x, y)(DyadicOperationPlus)} yield (v, this, None))
+    case Logarithmic("2") =>
+      clean(for {
+        a <- Value.maybeRational(x)
+        b <- Value.maybeRational(y)
+        log <- convertRationalToMaybeLog(b, "2", f)
+      } yield (Value.fromRational(a + log), this, None))
+    case _ =>
+      None
+  }
+
+  /**
+    * Converts a given Rational number to an optional logarithmic representation based on the provided base and factor.
+    *
+    * @param b    the input rational number to be converted.
+    * @param base the base of the logarithm, such as "2".
+    * @param f    the factor indicating whether the conversion is logarithmic or a pure number.
+    * @return an Option containing the converted rational value if successful, or None otherwise.
+    */
+  private def convertRationalToMaybeLog(b: Rational, base: String, f: Factor): Option[Rational] = f match {
+    case Logarithmic(`base`) =>
+      Some(b)
+    case PureNumber =>
+      base match {
+        case "2" =>
+          b.maybeInt flatMap Rational.binaryLogs.get map Rational.apply
+//        case "10" =>
+//          Rational.base10Logs.get(b)
+        case _ =>
+          None // Not yet implemented
+      }
+  }
+
+  /**
+    * Raises the value `x` to the power of the value `y`.
+    *
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
+    */
+  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
+    for {v <- Factor.composeDyadic(x, y)(DyadicOperationTimes)} yield (v, this, None)
 }
 
 /**
@@ -301,7 +494,7 @@ object Logarithmic {
     * @param arg the `Logarithmic` instance from which the value will be extracted.
     * @return an `Option` containing the extracted `Double` value if available, otherwise `None`.
     */
-  def unapply(arg: Logarithmic): Option[Double] = Some(arg.value)
+  def unapply(arg: Logarithmic): Option[String] = Some(arg.base)
 
   /**
     * Increments the Unicode value of the character at the specified index in the given string by the given amount.
@@ -369,6 +562,84 @@ sealed trait Root extends Factor {
     */
   override def render(x: Value): String =
     asImaginary(x) orElse asRoot(x) getOrElse convert(x, PureNumber).toString
+
+
+  /**
+    * Inverts the given value by raising it to the power of -1, using a pure number factor.
+    *
+    * @param x the value to be inverted
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the inverted value if the operation is valid, or `None` otherwise
+    */
+  def invert(x: Value): Option[ProtoNumber] =
+    this.raise(x, Value.fromInt(-1), PureNumber)
+
+  /**
+    * Negates the given value and computes an appropriate output tuple.
+    * The computation may include a value, its associated factor, and an optional fuzziness.
+    *
+    * @param x the value to be negated
+    * @return an optional tuple containing the negated value, its factor,
+    *         and an optional fuzziness; `None` if the operation is not applicable
+    */
+  def negate(x: Value): Option[ProtoNumber] = None
+
+  /**
+    * Adds two values together and computes an appropriate factor for the result.
+    *
+    * @param x the first value
+    * @param y the addend
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def add(x: Value, y: Value, f: Factor): Option[ProtoNumber] = None
+
+  /**
+    * Multiplies two values together and computes an appropriate factor for the result.
+    *
+    * @param x the first value
+    * @param y the multiplicand
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] = (this, f) match {
+    case (Root(r), PureNumber) =>
+      clean(for {
+        a <- Value.maybeRational(x)
+        b <- Value.maybeRational(y)
+        z = a * (b ^ r) if b.signum > 0
+      } yield (Value.fromRational(z), this, None))
+    case (Root(r), Root(s)) =>
+      clean(for {
+        a <- Value.maybeRational(x)
+        b <- Value.maybeRational(y)
+        z = (a ^ s) * (b ^ r) if b.signum > 0 && a.signum > 0
+      } yield (Value.fromRational(z), AnyRoot(r * s), None))
+    case (_, Log2) =>
+      clean(for {
+        z <- Log2.asPureValue(y)
+        q <- multiply(x, z, PureNumber)
+      } yield q)
+    case _ =>
+      None
+  }
+
+  /**
+    * Raises the value `x` to the power of the value `y`.
+    *
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
+    */
+  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] = this match {
+    case Root(r) =>
+      for {
+        q: Rational <- Value.maybeRational(y)
+        z = q / r
+        i <- z.maybeInt
+      } yield (x, AnyRoot(i), None)
+  }
 
   /**
     * Converts a given Value into its imaginary representation, if applicable.
@@ -458,6 +729,36 @@ sealed trait Root extends Factor {
     case _ =>
       None
   }
+
+  /**
+    * Simplifies the given ProtoNumber based on the provided value and the root degree.
+    *
+    * This method checks if the value can be represented as a rational number
+    * with an integer square or cube root (or a generic nth root for other values of `r`).
+    * If so, it transforms the ProtoNumber into its simplified root form. Otherwise,
+    * it returns the original ProtoNumber.
+    *
+    * @param p the ProtoNumber to be simplified
+    * @param v the Value associated with the ProtoNumber
+    * @param r the root degree (e.g., 2 for square root, 3 for cube root, or any n for nth root)
+    * @return an optional ProtoNumber, either simplified or the original,
+    *         wrapped in an Option
+    */
+  def simplifyRoot(p: ProtoNumber, v: Value, r: Int): Option[ProtoNumber] = {
+    val q: Option[Int] =
+      for {
+        x <- Value.maybeRational(v)
+        i <- x.maybeInt
+        j <- Rational.squareRoots.get(i)
+      } yield j
+    q match {
+      case Some(i) =>
+        val root = if (r == 2) SquareRoot else if (r == 3) CubeRoot else AnyRoot(r)
+        clean(Some((Value.fromInt(i), root, p._3)))
+      case None =>
+        Some(p)
+    }
+  }
 }
 
 /**
@@ -474,6 +775,7 @@ object Root {
     * @return an `Option` containing the root degree as an `Int`, or `None` if the extraction fails.
     */
   def unapply(arg: Root): Option[Int] = Some(arg.root)
+
 }
 
 /**
@@ -497,7 +799,49 @@ case object PureNumber extends Scalar {
 
   override def toString: String = ""
 
+  /**
+    * Renders the given string and returns it.
+    *
+    * @param x the input string to be rendered
+    * @return the rendered string
+    */
   def render(x: String): String = x
+
+  /**
+    * Computes the inverse of a given Value, leveraging the monadic transformation functions defined
+    * in MonadicOperationInvert. This method allows for the calculation of an inverted number when valid.
+    *
+    * @param x the input Value to be inverted
+    * @return an Option containing the resulting ProtoNumber if the inversion is successful, or None otherwise
+    */
+  def invert(x: Value): Option[ProtoNumber] =
+    for {v <- Operations.doTransformValueMonadic(x)(MonadicOperationInvert.functions)} yield (v, this, None)
+
+  /**
+    * Multiplies two values together and computes an appropriate factor for the result.
+    *
+    * @param x the first value
+    * @param y the multiplicand
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+    if (this == f)
+      clean(for {v <- Factor.composeDyadic(x, y)(DyadicOperationTimes)} yield (v, f, None))
+    else
+      f.multiply(y, x, this)
+
+  /**
+    * Raises the value `x` to the power of the value `y`.
+    *
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
+    */
+  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
+    for {v <- Factor.composeDyadic(x, y)(DyadicOperationPower)} yield (v, this, None)
+
 }
 
 /**
@@ -546,6 +890,37 @@ case object Radian extends Scalar {
     * @return a new string consisting of the input string followed by the symbol for pi
     */
   def render(x: String): String = x + Factor.sPi
+
+
+  /**
+    * Inverts the given value by raising it to the power of -1, using a pure number factor.
+    *
+    * @param x the value to be inverted
+    * @return None.
+    */
+  def invert(x: Value): Option[ProtoNumber] =
+    None
+
+  /**
+    * Multiplies x with y provided that f is a PureNumber.
+    *
+    * @param x the first value
+    * @param y the multiplicand
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+    clean(for {v <- Factor.composeDyadic(x, y)(DyadicOperationTimes); if f == PureNumber} yield (v, this, None))
+
+  /**
+    * Raises the value `x` to the power of the value `y`.
+    *
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
+    */
+  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] = None
 }
 
 /**
@@ -607,8 +982,23 @@ case object Log2 extends Logarithmic {
   val value: Double = math.log(2)
 
   override def toString: String = "log2"
-}
 
+  /**
+    * Converts the given `Value` into a pure integral value, if possible.
+    * The method evaluates the input as a rational number, raises it to the power of 2,
+    * and extracts its integer representation, if it is exact.
+    *
+    * @param y the `Value` to be evaluated and potentially converted to a pure integral value.
+    * @return an `Option` containing the resulting integral `Value` if successful,
+    *         otherwise `None`.
+    */
+  def asPureValue(y: Value): Option[Value] =
+    for {
+      v <- Value.maybeRational(y)
+      p <- (Rational.two ^ v).toOption
+      i <- p.maybeInt
+    } yield Value.fromInt(i)
+}
 /**
   * Represents the logarithm with base 10.
   *
@@ -664,6 +1054,28 @@ case object SquareRoot extends Root {
     *         and the value, or None if the string construction is unsuccessful.
     */
   def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value)}")
+
+  /**
+    * Provides an implicit conversion from an `Int` to an imaginary number representation.
+    *
+    * This class allows integers to be interpreted as imaginary numbers by appending `.i`
+    * to an integer. The imaginary number is constructed using the square of the integer
+    * negated, combined with the square root notation.
+    *
+    * @param x the integer to be converted into an imaginary number
+    */
+  implicit class IntToImaginary(x: Int) {
+    /**
+      * Converts an integer to its imaginary number representation.
+      *
+      * This method creates an imaginary number by negating the square of the integer
+      * and associating it with the square root operator.
+      *
+      * @return a `Number` instance representing the imaginary number constructed
+      *         from the integer.
+      */
+    def i: Number = Number().make(-x * x, SquareRoot)
+  }
 }
 
 /**
@@ -702,6 +1114,37 @@ case object CubeRoot extends Root {
     */
   def asRoot(value: Value): Option[String] =
     Some(s"$toString${valueToString(value)}")
+}
+
+/**
+  * This object represents the cube root factor.
+  */
+case class AnyRoot(root: Int) extends Root {
+
+  /**
+    * Converts the object into its string representation.
+    *
+    * @return a string representation of the object
+    */
+  override def toString: String = s"^(1/$root)"
+
+  /**
+    * Generates a string representation of the cube root for a given input.
+    *
+    * @param x the input string to be represented with the cube root symbol
+    * @return a string in the format ³√ followed by the input
+    */
+  def render(x: String): String = s"$x^(1/$root)"
+
+  /**
+    * Converts a given value into a string representation and appends it to the
+    * root symbol.
+    *
+    * @param value the value to be converted into a string representation.
+    * @return an optional string representing the root concatenated with the value.
+    */
+  def asRoot(value: Value): Option[String] =
+    Some(s"${valueToString(value)}$toString")
 }
 
 /**
@@ -775,6 +1218,24 @@ object Factor {
     case _ =>
       PureNumber
   }
+
+  /**
+    * Composes two `Value` instances using the specified dyadic operation.
+    * Evaluate a dyadic operator on this and other, using the various functions passed in.
+    * NOTE: this and other must have been aligned by type so that they have the same structure.
+    * This method is similar to its namesake in GeneralNumber (which, is soon going to be deprecated).
+    *
+    * This method internally uses the `Operations.doComposeValueDyadic` function,
+    * which evaluates the given dyadic operation on the provided values, based on
+    * the associated conversion functions.
+    *
+    * @param x  the first operand, a `Value`.
+    * @param y  the second operand, a `Value`.
+    * @param op the dyadic operation to be performed, containing the conversion functions.
+    * @return an optional `Value` representing the result of the dyadic operation, or `None` if the operation fails.
+    */
+  def composeDyadic(x: Value, y: Value)(op: DyadicOperation): Option[Value] =
+    Operations.doComposeValueDyadic(x, y)(op.functions)
 }
 
 /**

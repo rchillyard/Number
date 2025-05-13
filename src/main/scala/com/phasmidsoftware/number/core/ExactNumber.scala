@@ -23,21 +23,30 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   def isExact: Boolean = true
 
   /**
-    * Method to determine if this ExactNumber is equivalent to another Numerical (x).
+    * Determines if this ExactNumber is equivalent to another Numerical object (x).
     *
-    * @param x the other numerical.
-    * @return true if they are the same, otherwise false.
+    * @param x the other Numerical object to compare against. It could be of type Real, FuzzyNumber, ExactNumber, or Complex.
+    * @return true if the two Numerical objects are considered the same, otherwise false.
     */
   def isSame(x: Numerical): Boolean = x match {
     case Real(n) =>
       isSame(n)
     case n: FuzzyNumber =>
       n.isSame(this)
-    case n: ExactNumber =>
-      doSubtract(n).isZero
+    case n@ExactNumber(v, f) =>
+      Value.isEqual(nominalValue, v) && factor.equals(f) || doSubtract(n).isZero
     case c: Complex =>
       c.isSame(Real(this))
   }
+
+//  override def equals(obj: Any): Boolean = obj match {
+//    case that: ExactNumber =>
+//      this.nominalValue == that.nominalValue && this.factor == that.factor
+//    case _ =>
+//      false
+//  }
+//
+//  override def hashCode(): Int = Objects.hash(nominalValue, factor)
 
   /**
     * @return true if this Number is equal to zero.
