@@ -497,6 +497,8 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
       }
     case Left(Left(Some(x))) if x.isNaN =>
       Number.NaN
+    case Left(Left(Some(x))) if x.isInfinity =>
+      Number.Infinity
     // XXX Double case
     case d@Left(Left(Some(x))) =>
       // NOTE: here we attempt to deal with Doubles.
@@ -852,16 +854,26 @@ object GeneralNumber {
     }
 
   /**
+    * A higher-order function that creates a new `Number` instance
+    * based on a provided prototype `ProtoNumber` and a `Number` instance.
+    *
+    * @return A new `Number` instance created by the `make` method of the provided `Number`,
+    *         using elements of the given `ProtoNumber`.
+    */
+  val protoNumberFunction: Number => ProtoNumber => Number = number => protoNumber => number.make(protoNumber._1, protoNumber._2)
+
+  /**
     * Method to raise an (exact) Number to a Rational power.
     *
     * @param x the base Number.
     * @param r the power.
     * @return an exact Number (CHECK is that correct?)
     */
-  @tailrec
-  private def power(x: Number, r: Rational): Number = if (r.isZero) Number.one
+  private def power(x: Number, r: Rational): Number =
+    if (r.isZero) Number.one
   else if (r.isUnity || x == Number.one) x
-  else
+  else {
+    x.factor.raise(x.nominalValue, Value.fromRational(r), PureNumber) map protoNumberFunction(x) getOrElse {
     x.factor match {
       case Logarithmic(_) =>
         doTransformValueMonadic(x.nominalValue)(MonadicOperationScale(r).functions) match {
@@ -870,10 +882,8 @@ object GeneralNumber {
           case None =>
             throw NumberException("power: logic error")
         }
-
       case Radian =>
         power(x.scale(PureNumber), r)
-
       case PureNumber =>
         toInts(r) match {
           case Some((n, d)) =>
@@ -886,14 +896,14 @@ object GeneralNumber {
           case _ =>
             throw NumberException("rational power cannot be represented as two Ints")
         }
-
       // TODO we should also handle some situations where r.d is not 1.
       case Root(n) if r.n == n && r.d == 1 =>
         x.make(PureNumber)
       case _ =>
         power(x.scale(PureNumber), r)
-
     }
+    }
+  }
 
   /**
     * Method to take the ith root of n.
@@ -943,12 +953,9 @@ object GeneralNumber {
     * @return the result of multiplying the two numbers, represented as a Number
     */
   def doTimes(p: Number, q: Number, factor: Factor): Number = {
-    p.factor.multiply(p.nominalValue, q.nominalValue, q.factor) match {
-      case Some((v, f, _)) =>
-        p.make(v, f)
-      case None =>
+
+    p.factor.multiply(p.nominalValue, q.nominalValue, q.factor).map(protoNumberFunction(p)) getOrElse
         prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
-    }
   }
 
   /**

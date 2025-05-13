@@ -54,6 +54,12 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
 
   it should "raise" in {
     PureNumber.raise(fromInt(3), fromInt(2), PureNumber) shouldBe Some((fromInt(9), PureNumber, None))
+    SquareRoot.raise(fromInt(3), fromInt(2), PureNumber) shouldBe Some((fromInt(3), PureNumber, None))
+    PureNumber.raise(fromInt(3), fromInt(3), PureNumber) shouldBe Some((fromInt(27), PureNumber, None))
+    CubeRoot.raise(fromInt(3), fromInt(3), PureNumber) shouldBe Some((fromInt(3), PureNumber, None))
+    PureNumber.raise(fromInt(3), fromInt(4), PureNumber) shouldBe Some((fromInt(81), PureNumber, None))
+    AnyRoot(4).raise(fromInt(3), fromInt(4), PureNumber) shouldBe Some((fromInt(3), PureNumber, None))
+    PureNumber.raise(fromInt(2), fromRational(Rational.half), PureNumber) shouldBe Some((fromInt(2), SquareRoot, None))
   }
 
   it should "clean" in {
@@ -62,6 +68,7 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "convert" in {
+    SquareRoot.convert(fromInt(4), CubeRoot) shouldBe Some(fromInt(8))
 
   }
 
@@ -79,7 +86,10 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "render" in {
-
+    val z: Option[ProtoNumber] = CubeRoot.multiply(fromInt(2), fromInt(3), SquareRoot)
+    val p = Number.one
+    val q: Option[Number] = z map GeneralNumber.protoNumberFunction(p)
+    q map (_.render) shouldBe Some("108^(1/6)")
   }
 
   it should "sPiAlt2" in {

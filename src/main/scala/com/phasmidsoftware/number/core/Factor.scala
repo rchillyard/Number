@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FP._
+import com.phasmidsoftware.number.core.Factor.composeDyadic
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Rational.toIntOption
 import com.phasmidsoftware.number.core.Value.{fromDouble, scaleDouble, valueToString}
@@ -139,6 +140,21 @@ sealed trait Factor {
   def invert(x: Value): Option[ProtoNumber]
 
   /**
+    * Computes the natural logarithm of the given value within the context of this factor.
+    *
+    * @param x the value for which the logarithm is to be computed
+    * @return an optional `ProtoNumber` representing the logarithm of the value,
+    *         or `None` if the logarithm cannot be computed
+    */
+  def log(x: Value): Option[ProtoNumber] = x match {
+    case _ if Value.isEqual(x, Value.one) =>
+      Some((Value.zero, PureNumber, None))
+      Some((x, PureNumber, None))
+    case _ =>
+      None
+  }
+
+  /**
     * Adds two values together and computes an appropriate factor for the result.
     *
     * @param x the first value
@@ -183,15 +199,22 @@ sealed trait Factor {
         None
     }
 
+  /**
+    * Cleans a given optional ProtoNumber by potentially simplifying its root quantities
+    * based on specific conditions and returning the modified result.
+    *
+    * @param po an optional ProtoNumber that may be simplified
+    * @return an optional ProtoNumber, simplified if applicable, or `None` if input is `None`
+    */
   def clean(po: Option[ProtoNumber]): Option[ProtoNumber] =
     po match {
       case Some(p@(v, f, z)) =>
         // XXX simplify root quantities
         f match {
-          case Root(1) =>
+          case AnyRoot(k) if k == Rational.one =>
             Some((v, PureNumber, z))
-          case r@Root(k) if k % 2 == 0 =>
-            r.simplifyRoot(p, v, k / 2)
+          case r@InversePower(k) if (k / 2).isInteger =>
+            r.simplifyRoot(p, v, (k / 2).toInt)
           case _ =>
             Some(p)
         }
@@ -514,13 +537,10 @@ object Logarithmic {
 /**
   * A sealed trait extending the `Factor` trait, representing a mathematical root-based factorization.
   *
-  * A number with value x and factor Root(n) represents the nth root of x.
-  * For example, ExactNumber(5, SquareRoot) is the square root of 5, where SquareRoot is an alias for Root(2).
-  *
   * This trait provides mechanisms to convert values associated with one root-based factor
   * to another, when such conversions are mathematically possible.
   */
-sealed trait Root extends Factor {
+sealed trait InversePower extends Factor {
 
   /**
     * Retrieves the root degree represented by this factor.
@@ -531,12 +551,12 @@ sealed trait Root extends Factor {
     *
     * @return the integer value of the root degree.
     */
-  def root: Int
+  def inversePower: Rational
 
   /**
     * A value which can be used to convert a value associated with this Factor to a different Factor.
     */
-  val value: Double = root
+  val value: Double = inversePower.toDouble
 
   /**
     * Converts the given value into its root representation if applicable.
@@ -555,6 +575,22 @@ sealed trait Root extends Factor {
     asRoot(value).isDefined
 
   /**
+    * Converts the object into its string representation.
+    *
+    * @return a string representation of the object
+    */
+  override def toString: String = s"^(${inversePower.invert})"
+
+  /**
+    * Generates a string representation of the cube root for a given input.
+    *
+    * @param x the input string to be represented with the cube root symbol
+    * @return a string in the format ³√ followed by the input
+    */
+  def render(x: String): String = toString
+
+
+  /**
     * Method to render a Value in the context of this Factor.
     *
     * @param x the Value.
@@ -563,6 +599,35 @@ sealed trait Root extends Factor {
   override def render(x: Value): String =
     asImaginary(x) orElse asRoot(x) getOrElse convert(x, PureNumber).toString
 
+  /**
+    * Simplifies the given ProtoNumber based on the provided value and the root degree.
+    *
+    * This method checks if the value can be represented as a rational number
+    * with an integer square or cube root (or a generic nth root for other values of `r`).
+    * If so, it transforms the ProtoNumber into its simplified root form.
+    * Otherwise, it returns the original ProtoNumber.
+    *
+    * @param p the ProtoNumber to be simplified
+    * @param v the Value associated with the ProtoNumber
+    * @param r the root degree (e.g., 2 for square root, 3 for cube root, or any n for nth root)
+    * @return an optional ProtoNumber, either simplified or the original,
+    *         wrapped in an Option
+    */
+  def simplifyRoot(p: ProtoNumber, v: Value, r: Int): Option[ProtoNumber] = {
+    val q: Option[Int] =
+      for {
+        x <- Value.maybeRational(v)
+        i <- x.maybeInt
+        j <- Rational.squareRoots.get(i)
+      } yield j
+    q match {
+      case Some(i) =>
+        val root = if (r == 2) SquareRoot else if (r == 3) CubeRoot else AnyRoot(r)
+        clean(Some((Value.fromInt(i), root, p._3)))
+      case None =>
+        Some(p)
+    }
+  }
 
   /**
     * Inverts the given value by raising it to the power of -1, using a pure number factor.
@@ -662,18 +727,88 @@ sealed trait Root extends Factor {
     } yield s) map ("i" + _)
 
   /**
-    * Determines whether the current factor can be multiplied by the given factor.
+    * Determines if the current factor operates additively.
     *
-    * TODO check the logic here
-    *
-    * @param f the factor to be checked for compatibility with multiplication.
-    * @return true if the factors can be multiplied; false otherwise.
+    * @return false.
     */
-  def canMultiply(f: Factor): Boolean = f match {
-    case x: Root =>
-      x.root == this.root
+  def isAdditive: Boolean = false
+
+  /**
+    * Determines if the current factor satisfies certain conditions within the given context.
+    *
+    * @param context the context in which the factor is evaluated.
+    * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+    */
+  def isA(context: Context): Boolean =
+    context.factorQualifies(this)
+}
+
+/**
+  * Companion object for the `Root` trait, providing utility methods for working with `Root` instances.
+  */
+object InversePower {
+  /**
+    * Extractor method to retrieve the root degree from a `Root` instance.
+    *
+    * This method is used for pattern matching to extract the integer root degree
+    * associated with the given `Root` object.
+    *
+    * @param arg the `Root` instance from which to extract the root degree.
+    * @return an `Option` containing the root degree as an `Int`, or `None` if the extraction fails.
+    */
+  def unapply(arg: InversePower): Option[Rational] = Some(arg.inversePower)
+}
+
+/**
+  * Represents an abstract base class for mathematical root operations by extending `InversePower`.
+  *
+  * A number with value `x` and factor `InversePower(n)` represents the `nth` root of `x` where `n` is a `Rational`.
+  * For example, `ExactNumber(5, SquareRoot)` is the square root of 5, where `SquareRoot` is an alias for `Root(2)`.
+  *
+  * The `Root` class encapsulates the concept of a mathematical `nth` root and provides
+  * methods to retrieve the degree of the root.
+  * It is intended to be extended by concrete implementations that define specific behaviors
+  * for inverse power computation.
+  *
+  * @constructor Creates a new instance of the `Root` class with the specified root degree.
+  * @param root the integer value representing the nth root degree.
+  */
+abstract class Root(val root: Int) extends InversePower {
+
+  /**
+    * Retrieves the root degree represented by this factor in the form of a Rational.
+    *
+    * The root degree indicates the mathematical `nth` root applicable to this factor.
+    * For instance, a root degree of 2 represents a square root, a root degree of 3
+    * represents a cube root, and so on.
+    *
+    * @return the integer value of the root degree.
+    */
+  def inversePower: Rational = root
+
+  /**
+    * Converts a given Value `v` from one Factor `this` to another Factor `f`, if possible.
+    * Specifically handles cases where the target factor `f` is of type Root.
+    *
+    * @param v the value to be converted.
+    * @param f the target factor for the conversion.
+    * @return an optional Value which represents the same quantity as `v` under the factor `f`, or `None` if the
+    *         conversion is not possible.
+    */
+  def convert(v: Value, f: Factor): Option[Value] = f match {
+    case Root(z) =>
+      val po = this.raise(v, Value.fromRational(Rational(z, root)), PureNumber)
+      (po map {
+        case (x, _, _) =>
+          x
+      }).orElse(for {
+        q <- doComposeValueDyadic(v, Number(z).specialize.nominalValue)(DyadicOperationPower.functions)
+        inverseV <- Value.inverse(v)
+        _ = println(s"convert: $v, $f, $q, $inverseV")
+        z <- doComposeValueDyadic(q, inverseV)(DyadicOperationPower.functions)
+      } yield z)
     case _ =>
-      false
+      None
   }
 
   /**
@@ -698,84 +833,36 @@ sealed trait Root extends Factor {
   }
 
   /**
-    * Determines if the current factor operates additively.
+    * Determines whether the current factor can be multiplied by the given factor.
     *
-    * @return false.
-    */
-  def isAdditive: Boolean = false
-
-  /**
-    * Determines if the current factor satisfies certain conditions within the given context.
+    * TODO check the logic here
     *
-    * @param context the context in which the factor is evaluated.
-    * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+    * @param f the factor to be checked for compatibility with multiplication.
+    * @return true if the factors can be multiplied; false otherwise.
     */
-  def isA(context: Context): Boolean =
-    context.factorQualifies(this)
-
-  /**
-    * Converts a given Value `v` from one Factor `this` to another Factor `f`, if possible.
-    * Specifically handles cases where the target factor `f` is of type Root.
-    *
-    * @param v the value to be converted.
-    * @param f the target factor for the conversion.
-    * @return an optional Value which represents the same quantity as `v` under the factor `f`, or `None` if the
-    *         conversion is not possible.
-    */
-  def convert(v: Value, f: Factor): Option[Value] = f match {
-    case Root(z) =>
-      val vo = doComposeValueDyadic(v, Number(z).specialize.nominalValue)(DyadicOperationPower.functions)
-      vo flatMap (doComposeValueDyadic(_, Number(value).specialize.getInverse.nominalValue)(DyadicOperationPower.functions))
+  def canMultiply(f: Factor): Boolean = f match {
+    case x: Root =>
+      x.root == this.root
     case _ =>
-      None
+      false
   }
 
-  /**
-    * Simplifies the given ProtoNumber based on the provided value and the root degree.
-    *
-    * This method checks if the value can be represented as a rational number
-    * with an integer square or cube root (or a generic nth root for other values of `r`).
-    * If so, it transforms the ProtoNumber into its simplified root form. Otherwise,
-    * it returns the original ProtoNumber.
-    *
-    * @param p the ProtoNumber to be simplified
-    * @param v the Value associated with the ProtoNumber
-    * @param r the root degree (e.g., 2 for square root, 3 for cube root, or any n for nth root)
-    * @return an optional ProtoNumber, either simplified or the original,
-    *         wrapped in an Option
-    */
-  def simplifyRoot(p: ProtoNumber, v: Value, r: Int): Option[ProtoNumber] = {
-    val q: Option[Int] =
-      for {
-        x <- Value.maybeRational(v)
-        i <- x.maybeInt
-        j <- Rational.squareRoots.get(i)
-      } yield j
-    q match {
-      case Some(i) =>
-        val root = if (r == 2) SquareRoot else if (r == 3) CubeRoot else AnyRoot(r)
-        clean(Some((Value.fromInt(i), root, p._3)))
-      case None =>
-        Some(p)
-    }
-  }
 }
 
 /**
-  * Companion object for the `Root` trait, providing utility methods for working with `Root` instances.
+  * Represents the companion object for the `Root` class.
+  *
+  * Provides utility functionality related to `Root`, including methods for
+  * matching and extracting values from instances of the `Root` type.
   */
 object Root {
   /**
-    * Extractor method to retrieve the root degree from a `Root` instance.
+    * Extracts the root integer value encapsulated in the given `Root` instance.
     *
-    * This method is used for pattern matching to extract the integer root degree
-    * associated with the given `Root` object.
-    *
-    * @param arg the `Root` instance from which to extract the root degree.
-    * @return an `Option` containing the root degree as an `Int`, or `None` if the extraction fails.
+    * @param r the `Root` instance from which the integer value is to be extracted.
+    * @return an `Option` containing the root integer if extraction is successful, or `None` if not.
     */
-  def unapply(arg: Root): Option[Int] = Some(arg.root)
-
+  def unapply(r: Root): Option[Int] = Some(r.root)
 }
 
 /**
@@ -839,8 +926,20 @@ case object PureNumber extends Scalar {
     * @return an optional result of type `ProtoNumber`,
     *         representing the computed value if the operation is valid, or `None` otherwise
     */
-  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
-    for {v <- Factor.composeDyadic(x, y)(DyadicOperationPower)} yield (v, this, None)
+  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] = {
+    Value.inverse(y) flatMap Value.maybeRational match {
+      case Some(Rational.two) =>
+        clean(Some((x, SquareRoot, None)))
+      case Some(Rational.three) =>
+        clean(Some((x, CubeRoot, None)))
+      case Some(r) if r > 1 =>
+        clean(Some((x, AnyRoot(r), None)))
+      case _ =>
+        for {
+          v <- Factor.composeDyadic(x, y)(DyadicOperationPower)
+        } yield (v, this, None)
+    }
+  }
 
 }
 
@@ -948,6 +1047,20 @@ case object NatLog extends Logarithmic {
     */
   val value: Double = 1.0
 
+  /**
+    * Computes the natural logarithm of the given value within the context of this factor.
+    *
+    * @param x the value for which the logarithm is to be computed
+    * @return an optional `ProtoNumber` representing the logarithm of the value,
+    *         or `None` if the logarithm cannot be computed
+    */
+  override def log(x: Value): Option[ProtoNumber] = x match {
+    case _ if Value.isEqual(x, Value.one) =>
+      Some((Value.zero, PureNumber, None))
+    case _ =>
+      Some((x, PureNumber, None))
+  }
+
   override def toString: String = Factor.sE
 }
 
@@ -973,6 +1086,23 @@ case object Log2 extends Logarithmic {
     * to logarithms computed for base 2 (binary logarithms).
     */
   val base: String = "2"
+
+  /**
+    * Computes the natural logarithm of the given value within the context of this factor.
+    *
+    * @param x the value for which the logarithm is to be computed
+    * @return an optional `ProtoNumber` representing the logarithm of the value,
+    *         or `None` if the logarithm cannot be computed
+    */
+  override def log(x: Value): Option[ProtoNumber] = x match {
+    case _ if Value.isEqual(x, Value.one) =>
+      Some((Value.zero, PureNumber, None))
+    case _ =>
+      for {
+        z <- Value.maybeInt(x)
+        q <- Rational.binaryLogs.get(z)
+      } yield (Value.fromRational(q), PureNumber, None)
+  }
 
   /**
     * Represents the default value for the `NatLog` factor.
@@ -1026,7 +1156,7 @@ case object Log10 extends Logarithmic {
 /**
   * This object represents the square root factor.
   */
-case object SquareRoot extends Root {
+case object SquareRoot extends Root(2) {
 
   override def toString: String = "√"
 
@@ -1036,14 +1166,7 @@ case object SquareRoot extends Root {
     * @param x the input string to be rendered
     * @return a string prefixed with the square root symbol
     */
-  def render(x: String): String = s"√$x"
-
-  /**
-    * Indicates that this Factor is the Square root.
-    *
-    * @return the integer value representing the root factor, which is 2
-    */
-  def root: Int = 2
+  override def render(x: String): String = s"√$x"
 
   /**
     * Constructs an optional string representation of the current root object concatenated
@@ -1054,6 +1177,30 @@ case object SquareRoot extends Root {
     *         and the value, or None if the string construction is unsuccessful.
     */
   def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value)}")
+
+  /**
+    * Raises the value `x` to the power of the value `y`.
+    *
+    * TODO move this up into Root.
+    *
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
+    */
+  override def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
+    Value.maybeInt(y) match {
+      case Some(`root`) =>
+        Some((x, PureNumber, None))
+      case None =>
+        for {
+          p <- Value.maybeRational(y)
+          z = p / root
+          q <- composeDyadic(x, Value.fromRational(z.n))(DyadicOperationPower)
+        } yield (q, AnyRoot(z.d), None)
+      case _ =>
+        None
+    }
 
   /**
     * Provides an implicit conversion from an `Int` to an imaginary number representation.
@@ -1081,7 +1228,7 @@ case object SquareRoot extends Root {
 /**
   * This object represents the cube root factor.
   */
-case object CubeRoot extends Root {
+case object CubeRoot extends Root(3) {
 
   /**
     * Converts the object into its string representation.
@@ -1096,14 +1243,23 @@ case object CubeRoot extends Root {
     * @param x the input string to be represented with the cube root symbol
     * @return a string in the format ³√ followed by the input
     */
-  def render(x: String): String = s"³√$x"
+  override def render(x: String): String = s"³√$x"
 
   /**
-    * Indicates that this Factor is the Cube root.
+    * Raises the value `x` to the power of the value `y`.
     *
-    * @return the root value as an integer (3).
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
     */
-  def root: Int = 3
+  override def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
+    y match {
+      case Right(`root`) =>
+        Some((x, PureNumber, None))
+      case _ =>
+        None
+    }
 
   /**
     * Converts a given value into a string representation and appends it to the
@@ -1117,24 +1273,56 @@ case object CubeRoot extends Root {
 }
 
 /**
-  * This object represents the cube root factor.
+  * This object represents a general inverse power factor.
   */
-case class AnyRoot(root: Int) extends Root {
+case class AnyRoot(inversePower: Rational) extends InversePower {
+  /**
+    * Determines whether the current factor can be multiplied by the given factor.
+    * CONSIDER do we need this method now that we have multiply(x, y, this)?
+    *
+    * @param f the factor to be checked for compatibility with multiplication.
+    * @return true if the factors can be multiplied; false otherwise.
+    */
+  def canMultiply(f: Factor): Boolean =
+    false // TODO figure this out
 
   /**
-    * Converts the object into its string representation.
+    * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
+    * If the factors are incompatible, then None will be returned.
     *
-    * @return a string representation of the object
+    * NOTE: only Scalar<->Scalar, Root<->Root or Logarithmic<->Logarithmic conversions can be effected.
+    *
+    * @param v the value to be converted.
+    * @param f the factor of the result.
+    * @return an optional Value which, given factor f, represents the same quantity as v given this.
     */
-  override def toString: String = s"^(1/$root)"
+  def convert(v: Value, f: Factor): Option[Value] =
+    None // TODO figure this out
 
   /**
-    * Generates a string representation of the cube root for a given input.
+    * Raises the value `x` to the power of the value `y`.
     *
-    * @param x the input string to be represented with the cube root symbol
-    * @return a string in the format ³√ followed by the input
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
     */
-  def render(x: String): String = s"$x^(1/$root)"
+  override def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
+    Value.maybeRational(y) match {
+      case Some(`inversePower`) =>
+        Some((x, PureNumber, None))
+      case Some(r) =>
+        val z: Option[Value] = composeDyadic(x, y)(DyadicOperationPower)
+        val factor = inversePower * r match {
+          case Rational.two => SquareRoot
+          case Rational.three => CubeRoot
+          case Rational.one => PureNumber
+          case _ => AnyRoot(inversePower * r)
+        }
+        clean(for {v <- z} yield (v, factor, None))
+      case _ =>
+        None
+    }
 
   /**
     * Converts a given value into a string representation and appends it to the

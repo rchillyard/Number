@@ -227,7 +227,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
         case Scalar(_) =>
           sb.append(Value.valueToString(nominalValue))
           sb.append(factor.toString)
-        case Root(_) =>
+        case InversePower(_) =>
           sb.append(factor.render(nominalValue))
         case _ =>
           throw NumberException(s"factor is not matched: $factor")

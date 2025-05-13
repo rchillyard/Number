@@ -14,6 +14,17 @@ import scala.util._
 object Value {
 
   /**
+    * Represents a predefined `Value` wrapping the integer `1` as a `Right`.
+    */
+  val one: Value = Right(1)
+
+  /**
+    * Represents a predefined constant `Value` instance associated with the numeric value zero.
+    * The `Value` is constructed as a `Right` type containing the integer `0`.
+    */
+  val zero: Value = Right(0)
+
+  /**
     * Convert an Int to a Value.
     *
     * @param x an Int.
@@ -59,6 +70,15 @@ object Value {
   def maybeDouble(value: Value): Option[Double] = optionMap(value)(_.toDouble, x => optionMap(x)(_.toDouble, identity))
 
   /**
+    * Determines whether the given `Value` represents the numeric value zero.
+    * It doesn't matter whether the `Value` is a `Double`, `Int` or a `Rational`.
+    *
+    * @param value the Value to be checked.
+    * @return true if the Value represents zero, otherwise false.
+    */
+  def isZero(value: Value): Boolean = maybeDouble(value).contains(0.0)
+
+  /**
     * Compares two `Value` instances to check if they are equal based
     * on specific transformations and operations.
     *
@@ -70,9 +90,8 @@ object Value {
   def isEqual(v1: Value, v2: Value): Boolean =
     (for {
       x <- Operations.doTransformValueMonadic(v1)(MonadicOperationNegate.functions)
-      y <- Operations.doComposeValueDyadic(x, v2)(DyadicOperationPlus.functions)
-      z <- Value.maybeDouble(y)
-    } yield z == 0.0) getOrElse false
+      y <- Operations.doComposeValueDyadic(x, v2)(DyadicOperationPlus.functions) if isZero(y)
+    } yield true) getOrElse false
 
   /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the factor).

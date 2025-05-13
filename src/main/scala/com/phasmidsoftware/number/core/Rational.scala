@@ -39,12 +39,28 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
   require(n == bigZero && d == bigZero || n.gcd(d) == 1, s"Rational($n,$d): arguments have common factor: ${n.gcd(d)}")
 
   /**
-    * Adds this Rational number to another Rational number.
+    * The absolute value of `this Rational`.
+    * If the sign of `this` is negative, the result will be the negation of `this`.
+    * Otherwise, it will return the `Rational` itself.
+    */
+  lazy val abs: Rational =
+    if (signum < 0) negate else this
+  /**
+    * The square root of `this` `Rational`.
     *
-    * @param that The Rational number to add to this Rational number.
-    * @return A new Rational number representing the sum of the two Rational numbers.
-    */// Operators
-  def +(that: Rational): Rational = Rational.plus(this, that)
+    * This is achieved by raising `this` to the power of 1/2.
+    *
+    * @return `Success` containing the square root if it can be calculated,
+    *         otherwise `Failure` containing an explanation of why the calculation failed.
+    */
+  lazy val sqrt: Try[Rational] =
+    power(half)
+  /**
+    * The value of `n.signum`.
+    * NOTE that `d` is non-negative for all values in the domain of `Rational` except for negative zero.
+    */
+  lazy val signum: Int =
+    n.signum
 
   /**
     * Adds a BigInt value to this Rational number.
@@ -52,31 +68,17 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     * @param that The BigInt value to be added to this Rational.
     * @return A new Rational representing the sum of this Rational and the given BigInt.
     */
-  def +(that: BigInt): Rational = this + Rational(that)
+  def +(that: BigInt): Rational =
+    this + Rational(that)
 
   /**
-    * Adds a Long value to this Rational number and returns the resulting Rational.
+    * Adds this Rational number to another Rational number.
     *
-    * @param that the Long value to be added to this Rational number
-    * @return a new Rational representing the sum of this Rational and the given Long value
-    */
-  def +(that: Long): Rational = this + Rational(that)
-
-  /**
-    * Subtracts the given Rational number from this Rational number and returns the result.
-    *
-    * @param that the Rational number to be subtracted from this Rational number
-    * @return a new Rational representing the result of the subtraction
-    */
-  def -(that: Rational): Rational = minus(this, that)
-
-  /**
-    * Subtracts a `BigInt` value from this `Rational` number and returns the resulting `Rational`.
-    *
-    * @param that the `BigInt` value to subtract from this `Rational`
-    * @return the result of the subtraction as a `Rational`
-    */
-  def -(that: BigInt): Rational = this - Rational(that)
+    * @param that The Rational number to add to this Rational number.
+    * @return A new Rational number representing the sum of the two Rational numbers.
+    */// Operators
+  def +(that: Rational): Rational =
+    Rational.plus(this, that)
 
   /**
     * Negates the current Rational number.
@@ -86,19 +88,31 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
   def unary_- : Rational = negate
 
   /**
-    * Computes the negation of this Rational number.
+    * Adds a Long value to this Rational number and returns the resulting Rational.
     *
-    * @return A new Rational instance representing the additive inverse of this Rational.
+    * @param that the Long value to be added to this Rational number
+    * @return a new Rational representing the sum of this Rational and the given Long value
     */
-  def negate: Rational = Rational.negate(this)
+  def +(that: Long): Rational =
+    this + Rational(that)
 
   /**
-    * Multiplies this Rational number by another Rational number.
+    * Subtracts a `BigInt` value from this `Rational` number and returns the resulting `Rational`.
     *
-    * @param that the Rational number to multiply with this Rational number
-    * @return a new Rational number representing the product of this Rational number and the given Rational number
+    * @param that the `BigInt` value to subtract from this `Rational`
+    * @return the result of the subtraction as a `Rational`
     */
-  def *(that: Rational): Rational = times(this, that)
+  def -(that: BigInt): Rational =
+    this - Rational(that)
+
+  /**
+    * Subtracts the given Rational number from this Rational number and returns the result.
+    *
+    * @param that the Rational number to be subtracted from this Rational number
+    * @return a new Rational representing the result of the subtraction
+    */
+  def -(that: Rational): Rational =
+    minus(this, that)
 
   /**
     * Multiplies this Rational number by the given BigInt and returns the result as a new Rational.
@@ -106,15 +120,8 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     * @param that the BigInt to multiply this Rational by
     * @return a new Rational resulting from the multiplication
     */
-  def *(that: BigInt): Rational = this * Rational(that)
-
-  /**
-    * Multiplies this Rational number by a given Long value and returns the result as a new Rational number.
-    *
-    * @param that the Long value to multiply with this Rational number
-    * @return a new Rational number representing the product of this Rational number and the given Long value
-    */
-  def *(that: Long): Rational = this * Rational(that)
+  def *(that: BigInt): Rational =
+    this * Rational(that)
 
   /**
     * Multiplies this `Rational` instance by the provided `Short` value, producing a new `Rational` instance.
@@ -122,15 +129,8 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     * @param that the `Short` value to multiply with this `Rational`
     * @return a new `Rational` instance representing the product of this `Rational` and the provided `Short`
     */
-  def *(that: Short): Rational = this * Rational(that)
-
-  /**
-    * Divides this Rational number by another Rational number.
-    *
-    * @param that the Rational number to divide by
-    * @return a new Rational number representing the result of the division
-    */
-  def /(that: Rational): Rational = this * that.invert
+  def *(that: Short): Rational =
+    this * Rational(that)
 
   /**
     * Divides the current `Rational` instance by the given `Long` value and
@@ -139,7 +139,34 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     * @param that the `Long` value to divide the current `Rational` instance by
     * @return a new `Rational` instance resulting from the division
     */
-  def /(that: Long): Rational = this / Rational(that)
+  def /(that: Long): Rational =
+    this / Rational(that)
+
+  /**
+    * Divides this Rational number by another Rational number.
+    *
+    * @param that the Rational number to divide by
+    * @return a new Rational number representing the result of the division
+    */
+  def /(that: Rational): Rational =
+    this * that.invert
+
+  /**
+    * Multiplies this Rational number by another Rational number.
+    *
+    * @param that the Rational number to multiply with this Rational number
+    * @return a new Rational number representing the product of this Rational number and the given Rational number
+    */
+  def *(that: Rational): Rational =
+    times(this, that)
+
+  /**
+    * Inverts the numerator and the denominator of a Rational number.
+    *
+    * @return A new Rational instance with the numerator and denominator swapped.
+    */
+  def invert: Rational =
+    Rational(d, n)
 
   /**
     * Raises this Rational number to the power of the given exponent.
@@ -147,7 +174,37 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     * @param that the exponent to which this Rational number will be raised
     * @return a new Rational representing the result of raising this Rational to the given exponent
     */
-  def ^(that: Int): Rational = power(that)
+  def ^(that: Int): Rational =
+    power(that)
+
+  /**
+    * Method to calculate the value of this Rational raised to the power of `p`.
+    *
+    * @param p an Int which may be negative, zero, or positive.
+    * @return this raised to the power of `p`.
+    */
+  def power(p: Int): Rational = {
+    @tailrec def inner(r: Rational, x: Int): Rational =
+      if (x == 0) r else inner(r * this, x - 1)
+
+    if (p == 0) one
+    else if (p == 1 || isUnity) this
+    else {
+      val rational = inner(one, math.abs(p))
+      if (p > 0) rational
+      else rational.invert
+    }
+  }
+
+  /**
+    * Checks if the number is equal to one and is a whole number.
+    *
+    * @return true if the number is exactly one and is a whole number, false otherwise
+    */
+  def isUnity: Boolean =
+    n == bigOne && isWhole
+
+  // Other methods appropriate to Rational
 
   /**
     * Raises this Rational number to the power of the given Rational number.
@@ -156,74 +213,32 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     * @return a Try containing the resulting Rational number if the operation is successful,
     *         or a Failure if an error occurs during the calculation
     */
-  def ^(that: Rational): Try[Rational] = power(that)
+  def ^(that: Rational): Try[Rational] =
+    power(that)
 
   /**
    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
    *
    * @return an optional `Factor`.
    */
-  def maybeFactor: Option[Factor] = Some(PureNumber)
-
-  /**
-   * The absolute value of `this Rational`.
-   * If the sign of `this` is negative, the result will be the negation of `this`.
-   * Otherwise, it will return the `Rational` itself.
-   */
-  lazy val abs: Rational = if (signum < 0) negate else this
-
-  /**
-   * The square root of `this` `Rational`.
-   *
-   * This is achieved by raising `this` to the power of 1/2.
-   *
-   * @return `Success` containing the square root if it can be calculated,
-   *         otherwise `Failure` containing an explanation of why the calculation failed.
-   */
-  lazy val sqrt: Try[Rational] = power(half)
-
-  // Other methods appropriate to Rational
-
-  /**
-   * The value of `n.signum`.
-   * NOTE that `d` is non-negative for all values in the domain of `Rational` except for negative zero.
-   */
-  lazy val signum: Int = n.signum
+  def maybeFactor: Option[Factor] =
+    Some(PureNumber)
 
   /**
     * Determines if the value is negative.
     *
     * @return true if the value is negative, false otherwise.
     */
-  def isNegative: Boolean = signum < 0
-
-  /**
-    * Inverts the numerator and the denominator of a Rational number.
-    *
-    * @return A new Rational instance with the numerator and denominator swapped.
-    */
-  def invert: Rational = Rational(d, n)
-
-  /**
-    * Determines if the number is a whole number.
-    *
-    * @return true if the number is equal to the mathematical representation of one; false otherwise.
-    */
-  def isWhole: Boolean = d == bigOne
+  def isNegative: Boolean =
+    signum < 0
 
   /**
     * Determines if the number is zero and is a whole number.
     *
     * @return true if the number is zero and is a whole number, otherwise false
     */
-  def isZero: Boolean = n == bigZero && isWhole
-
-  /**
-    * Checks if the number is equal to one and is a whole number.
-    *
-    * @return true if the number is exactly one and is a whole number, false otherwise
-    */
-  def isUnity: Boolean = n == bigOne && isWhole
+  def isZero: Boolean =
+    n == bigZero && isWhole
 
   /**
     * Method to determine if this NumberLike object is exact.
@@ -231,21 +246,44 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = !(isInfinity || isNaN)
-
-  /**
-   * Method to determine if the given Rational represents an infinity.
-   *
-   * @return true if the denominator is zero; false otherwise.
-   */
-  def isInfinity: Boolean = d == bigZero
+  def isExact: Boolean =
+    !(isInfinity || isNaN)
 
   /**
    * Determines if the Rational object represents "not a number" (NaN).
    *
    * @return true if the Rational is both zero and infinite, indicating an undefined result; false otherwise.
    */
-  def isNaN: Boolean = n == bigZero && isInfinity
+  def isNaN: Boolean =
+    n == bigZero && isInfinity
+
+  /**
+    * Returns an optional integer representation of this `Rational`.
+    * If the `Rational` is not a whole number or is too large for `Int`, `None` is returned.
+    *
+    * @return an `Option[Int]`.
+    */
+  def maybeInt: Option[Int] =
+    if (isWhole) Rational.toInt(this).toOption else None
+
+  /**
+    * Determines if the number is a whole number.
+    *
+    * @return true if the number is equal to the mathematical representation of one; false otherwise.
+    */
+  def isWhole: Boolean =
+    d == bigOne
+
+  /**
+    * Method to convert `this` `Rational` into an `Int`.
+    * It is better to use `maybeInt`.
+    *
+    * NOTE this will throw an exception if `this` `Rational` is not whole or its numerator is too large for an `Int`.
+    *
+    * @return an `Int`.
+    */
+  def toInt: Int =
+    Rational.toInt(this).get
 
   /**
    * Method to determine if this Rational can be represented exactly as a decimal string.
@@ -266,24 +304,6 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     }
 
   /**
-   * Returns an optional integer representation of this `Rational`.
-   * If the `Rational` is not a whole number or is too large for `Int`, `None` is returned.
-   *
-   * @return an `Option[Int]`.
-   */
-  def maybeInt: Option[Int] = if (isWhole) Rational.toInt(this).toOption else None
-
-  /**
-   * Method to convert `this` `Rational` into an `Int`.
-   * It is better to use `maybeInt`.
-   *
-   * NOTE this will throw an exception if `this` `Rational` is not whole or its numerator is too large for an `Int`.
-   *
-   * @return an `Int`.
-   */
-  def toInt: Int = Rational.toInt(this).get
-
-  /**
    * Method to convert `this` `Rational` into a `Long`.
    * It is better to use `Rational.toLong`.
    *
@@ -291,7 +311,8 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *
    * @return a `Long`.
    */
-  def toLong: Long = Rational.toLong(this).get
+  def toLong: Long =
+    Rational.toLong(this).get
 
   /**
    * Method to convert `this` `Rational` into a `BigInt`.
@@ -301,21 +322,16 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *
    * @return a `BigInt`.
    */
-  def toBigInt: BigInt = Rational.toBigInt(this).get
+  def toBigInt: BigInt =
+    Rational.toBigInt(this).get
 
   /**
    * Converts this `Rational` instance to its `Float` representation.
    *
    * @return a `Float` value representing this `Rational`.
    */
-  def toFloat: Float = Rational.toFloat(this)
-
-  /**
-   * Converts this `Rational` instance into a `Double` representation.
-   *
-   * @return the `Double` value of this `Rational`.
-   */
-  def toDouble: Double = Rational.toDouble(this)
+  def toFloat: Float =
+    Rational.toFloat(this)
 
   /**
    * Returns an optional `Double` representation of this `Rational`.
@@ -324,7 +340,41 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *
    * @return an `Option[Double]`, `Some(Double)` if the `Rational` can be exactly represented as a `Double`, otherwise `None`.
    */
-  def maybeDouble: Option[Double] = if (isExactDouble) Some(toDouble) else None
+  def maybeDouble: Option[Double] =
+    if (isExactDouble)
+      Some(toDouble)
+    else
+      None
+
+  /**
+    * Converts this `Rational` instance into a `Double` representation.
+    *
+    * @return the `Double` value of this `Rational`.
+    */
+  def toDouble: Double =
+    Rational.toDouble(this)
+
+  /**
+    * Determines if this `Rational` can be exactly represented as a `Double`.
+    *
+    * @return `true` if the `Rational` can be precisely converted to a `Double`, otherwise `false`.
+    */
+  def isExactDouble: Boolean =
+    toBigDecimal.exists(_.isExactDouble) // Only work with Scala 2.11 or above
+
+  /**
+    * Converts this `Rational` to an `Option[BigDecimal]` if it can be exactly represented as a decimal.
+    * If the `Rational` can be precisely represented as a `BigDecimal`, it is returned wrapped in `Some`.
+    * Otherwise, `None` is returned.
+    *
+    * @return an `Option[BigDecimal]`, where `Some(BigDecimal)` represents the exact conversion,
+    *         or `None` if the `Rational` cannot be exactly represented.
+    */
+  def toBigDecimal: Option[BigDecimal] =
+    if (isDecimal)
+      Some(forceToBigDecimal)
+    else
+      None
 
   /**
    * Method to get the xth power of this `Rational`, exactly.
@@ -339,22 +389,25 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
   } yield z
 
   /**
-   * Method to calculate the value of this Rational raised to the power of `p`.
-   *
-   * @param p an Int which may be negative, zero, or positive.
-   * @return this raised to the power of `p`.
-   */
-  def power(p: Int): Rational = {
-    @tailrec def inner(r: Rational, x: Int): Rational = if (x == 0) r else inner(r * this, x - 1)
+    * Converts the Rational number to a BigDecimal representation.
+    * If the Rational number represents infinity, an exception is thrown.
+    *
+    * @return A BigDecimal representing the Rational number.
+    * @throws RationalException if the Rational number is infinity.
+    */
+  def forceToBigDecimal: BigDecimal =
+    if (!isInfinity)
+      BigDecimal(n) / BigDecimal(d)
+    else
+      throw RationalException(s"cannot convert infinity to BigDecimal: $this")
 
-    if (p == 0) one
-    else if (p == 1 || isUnity) this
-    else {
-      val rational = inner(one, math.abs(p))
-      if (p > 0) rational
-      else rational.invert
-    }
-  }
+  /**
+    * Method to determine if the given Rational represents an infinity.
+    *
+    * @return true if the denominator is zero; false otherwise.
+    */
+  def isInfinity: Boolean =
+    d == bigZero
 
   /**
    * Method to get the xth root of this Rational.
@@ -366,22 +419,17 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *         In the event that it's not possible to get the exact root, then None is returned.
    */
   def root(x: Int, epsilon: Option[Double] = None): Option[Rational] =
-    if (x == 1 || isUnity) Some(this)
-    else if (x <= 0) None
-    else (n, d, x, epsilon) match {
-      case (_, `bigOne`, 2, Some(e)) => Rational.squareRoot(n, e)
-      case _ => for (a <- rootOfBigInt(n, x); b <- rootOfBigInt(d, x)) yield Rational(a, b)
+    if (x == 1 || isUnity)
+      Some(this)
+    else if (x <= 0)
+      None
+    else
+      (n, d, x, epsilon) match {
+        case (_, `bigOne`, 2, Some(e)) =>
+          Rational.squareRoot(n, e)
+        case _ =>
+          for (a <- rootOfBigInt(n, x); b <- rootOfBigInt(d, x)) yield Rational(a, b)
     }
-
-  /**
-   * Converts this `Rational` to an `Option[BigDecimal]` if it can be exactly represented as a decimal.
-   * If the `Rational` can be precisely represented as a `BigDecimal`, it is returned wrapped in `Some`.
-   * Otherwise, `None` is returned.
-   *
-   * @return an `Option[BigDecimal]`, where `Some(BigDecimal)` represents the exact conversion,
-   *         or `None` if the `Rational` cannot be exactly represented.
-   */
-  def toBigDecimal: Option[BigDecimal] = if (isDecimal) Some(forceToBigDecimal) else None
 
   /**
    * Compares this `Rational` instance with another `Rational` instance and determines their relative order.
@@ -392,7 +440,8 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *         - Zero if they are equal,
    *         - Positive if this instance is greater than the other instance
    */
-  def compare(other: Rational): Int = Rational.compare(this, other)
+  def compare(other: Rational): Int =
+    Rational.compare(this, other)
 
   /**
    * Renders the current object into its string representation.
@@ -416,20 +465,25 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
   lazy val toRationalString = s"$n/$d"
 
   /**
-   * Determines if this `Rational` can be exactly represented as a `Double`.
-   *
-   * @return `true` if the `Rational` can be precisely converted to a `Double`, otherwise `false`.
-   */
-  def isExactDouble: Boolean = toBigDecimal.exists(_.isExactDouble) // Only work with Scala 2.11 or above
-
-  /**
    * Applies a sign to this `Rational` based on the given boolean value.
    * If the value is `true`, it negates the current `Rational`, otherwise, it returns the original instance.
    *
    * @param negative a boolean indicating whether the `Rational` should be negated (`true`) or left as is (`false`)
    * @return a `Rational` instance with the applied sign
    */
-  def applySign(negative: Boolean): Rational = if (negative) negate else this
+  def applySign(negative: Boolean): Rational =
+    if (negative)
+      negate
+    else
+      this
+
+  /**
+    * Computes the negation of this Rational number.
+    *
+    * @return A new Rational instance representing the additive inverse of this Rational.
+    */
+  def negate: Rational =
+    Rational.negate(this)
 
   /**
    * Applies an integer exponent to this `Rational` instance.
@@ -437,7 +491,8 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    * @param exponent the exponent to which this `Rational` will be raised. It can be positive, negative, or zero.
    * @return a new `Rational` that is the result of raising this `Rational` to the given `exponent`.
    */
-  def applyExponent(exponent: Int): Rational = this * Rational.exponent(exponent)
+  def applyExponent(exponent: Int): Rational =
+    this * Rational.exponent(exponent)
 
   /**
    * Method to determine the Mediant of two rational numbers.
@@ -449,9 +504,11 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    * @param other the other number.
    * @return the mediant of this and other.
    */
-  def mediant(other: Rational): Rational = if (signum >= 0 && other.signum >= 0 && !isInfinity && !other.isInfinity)
-    Rational(n + other.n, d + other.d)
-  else NaN
+  def mediant(other: Rational): Rational =
+    if (signum >= 0 && other.signum >= 0 && !isInfinity && !other.isInfinity)
+      Rational(n + other.n, d + other.d)
+    else
+      NaN
 
   /**
     * Converts the Rational object to its string representation.
@@ -460,8 +517,10 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
     * @return A string representation of the Rational object.
     */
   override def toString: String = this match {
-    case Rational(top, Rational.bigOne) => s"$top"
-    case Rational(top, bottom) => s"$top/$bottom"
+    case Rational(top, Rational.bigOne) =>
+      s"$top"
+    case Rational(top, bottom) =>
+      s"$top/$bottom"
   }
 
   /**
@@ -506,8 +565,10 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    * @return A tuple containing the rendered string and a boolean indicating the success of rendering.
    */
   def renderConditional(exact: Boolean): (String, Boolean) =
-    if (exact) renderExact -> true
-    else "" -> false // NOTE string is ignored if boolean is false
+    if (exact)
+      renderExact -> true
+    else
+      "" -> false // NOTE string is ignored if boolean is false
 
   /**
    * Method to render a Rational in a manner other than as a rational number (for that, use toString).
@@ -515,15 +576,24 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    * @return an exact String representation of this Rational.
    */
   def renderExact: String = this match {
-    case `half` => "\u00BD"
-    case _ if isNaN => "NaN"
-    case _ if isZero && d < 0 => "-0"
-    case _ if isInfinity => (if (n > 0) "+ve" else "-ve") + " infinity"
-    case _ if isWhole => toBigInt.toString
-    case _ if isExactDouble => toDouble.toString
-    case _ => findRepeatingSequence match {
-      case Success(w) => w
-      case _ => toBigDecimal match {
+    case `half` =>
+      "\u00BD"
+    case _ if isNaN =>
+      "NaN"
+    case _ if isZero && d < 0 =>
+      "-0"
+    case _ if isInfinity =>
+      (if (n > 0) "+ve" else "-ve") + " infinity"
+    case _ if isWhole =>
+      toBigInt.toString
+    case _ if isExactDouble =>
+      toDouble.toString
+    case _ =>
+      findRepeatingSequence match {
+        case Success(w) =>
+          w
+        case _ =>
+          toBigDecimal match {
         case Some(x) =>
           x.toString
         case None =>
@@ -557,17 +627,17 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    * @param places The number of decimal places to include in the percentage representation.
    * @return A string representation of the number as a percentage with the specified number of decimal places.
    */
-  def renderAsPercent(places: Int): String = (this * 100).renderApproximate(4 + places, Some(places)) + "%"
+  def renderAsPercent(places: Int): String =
+    (this * 100).renderApproximate(4 + places, Some(places)) + "%"
 
   /**
-   * Converts the Rational number to a BigDecimal representation.
-   * If the Rational number represents infinity, an exception is thrown.
-   *
-   * @return A BigDecimal representing the Rational number.
-   * @throws RationalException if the Rational number is infinity.
-   */
-  def forceToBigDecimal: BigDecimal = if (!isInfinity) BigDecimal(n) / BigDecimal(d) else
-    throw RationalException(s"cannot convert infinity to BigDecimal: $this")
+    * Multiplies this Rational number by a given Long value and returns the result as a new Rational number.
+    *
+    * @param that the Long value to multiply with this Rational number
+    * @return a new Rational number representing the product of this Rational number and the given Long value
+    */
+  def *(that: Long): Rational =
+    this * Rational(that)
 
   /**
    * Finds and returns the repeating sequence in the decimal representation of a fraction.
@@ -576,7 +646,8 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *
    * @return a Try containing the repeating sequence as a String if successful, or a Failure if an error occurs
    */
-  def findRepeatingSequence: Try[String] = Rational.findRepeatingSequence(n, d, denominatorPrimeFactors(MAX_PRIME_FACTORS))
+  def findRepeatingSequence: Try[String] =
+    Rational.findRepeatingSequence(n, d, denominatorPrimeFactors(MAX_PRIME_FACTORS))
 
   /**
    * Computes the prime factors of the denominator of a given value `d`.
@@ -586,7 +657,8 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
    *
    * @return A sequence of prime factors of the denominator.
    */
-  private def denominatorPrimeFactors(max: Int) = Prime.primeFactors(d, Some(max * 3)).take(max)
+  private def denominatorPrimeFactors(max: Int) =
+    Prime.primeFactors(d, Some(max * 3)).take(max)
 
   /**
    * Converts the current value to its string representation.
@@ -639,7 +711,8 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
  */
 object Rational {
 
-  implicit def convertToNumber(x: Rational): Number = Number(x)
+  implicit def convertToNumber(x: Rational): Number =
+    Number(x)
 
   /**
    * Implicit class RationalOps to allow an Int to be treated as a Rational for the purpose
@@ -657,7 +730,8 @@ object Rational {
      * @param r the addend.
      * @return the result of x + r.
      */
-    def +(r: Rational): Rational = Rational(x) + r
+    def +(r: Rational): Rational =
+      Rational(x) + r
 
     /**
      * Method to multiply x by r.
@@ -665,7 +739,8 @@ object Rational {
      * @param r the multiplicand.
      * @return the result of x * r.
      */
-    def *(r: Rational): Rational = Rational(x) * r
+    def *(r: Rational): Rational =
+      Rational(x) * r
 
     /**
      * Method to divide by Rational.
@@ -675,7 +750,8 @@ object Rational {
      * @param denominator the denominator of the resulting Rational. Any Int will be implicitly converted to a Long.
      * @return the Rational whose value is x/y
      */
-    def :/(denominator: Long): Rational = Rational(x, denominator)
+    def :/(denominator: Long): Rational =
+      Rational(x, denominator)
   }
 
   /**
@@ -721,11 +797,16 @@ object Rational {
    * @return a Rational such that the difference between the result and x is less than epsilon.
    */
   def approximateAny(x: Double)(implicit epsilon: Tolerance): Rational =
-    if (Double.box(x).isNaN) NaN
-    else if (x.isPosInfinity) infinity
-    else if (x.isNegInfinity) infinity.negate
-    else if (x > 0) approximatePositive(x)
-    else approximatePositive(-x).negate
+    if (Double.box(x).isNaN)
+      NaN
+    else if (x.isPosInfinity)
+      infinity
+    else if (x.isNegInfinity)
+      infinity.negate
+    else if (x > 0)
+      approximatePositive(x)
+    else
+      approximatePositive(-x).negate
 
   /**
    * Method to take a Double in the range 0 thru 1 and approximate it by a Rational number
@@ -745,7 +826,8 @@ object Rational {
 
     @scala.annotation.tailrec
     def inner(r1: Rational, r2: Rational): Rational =
-      if (r1.d > epsilon.maxDenom || math.abs(r1.toDouble - x) < epsilon.x) r1
+      if (r1.d > epsilon.maxDenom || math.abs(r1.toDouble - x) < epsilon.x)
+        r1
       else {
         val mediant: Rational = r1 mediant r2
         if (mediant.toDouble > x) inner(r1, mediant)
@@ -777,6 +859,25 @@ object Rational {
     * The `invert` method on the `two` object is used to calculate this value.
     */
   val half: Rational = two.invert
+
+  /**
+    * Implicit converter from Double to Rational.
+    *
+    * @param x the value.
+    * @return a Rational equal to or approximately equal to x.
+    * @throws NoSuchElementException because we invoke get on an Option[Rational].
+    */
+  implicit def convertDouble(x: Double): Rational =
+    createExact(x).get // NOTE using get
+
+  /**
+    * Implicit converter from Long to Rational.
+    *
+    * @param x the value.
+    * @return a Rational equal to x.
+    */
+  implicit def convertLong(x: Long): Rational =
+    Rational(x)
   /**
     * Represents the rational number 10 as an instance of the `Rational` type.
     * Utilizes the predefined value `bigTen` to create the `Rational` instance.
@@ -808,10 +909,15 @@ object Rational {
     * A constant value representing the number 2 as a BigInt instance.
     */
   private[core] lazy val bigTwo: BigInt = BigInt(2)
+
   /**
-    * Represents the integer value 3 as a `BigInt`.
+    * Implicit converter from BigInt to Rational.
+    *
+    * @param x the value.
+    * @return a Rational equal to x.
     */
-  private[core] val bigThree: BigInt = BigInt(3)
+  implicit def convertBigInt(x: BigInt): Rational =
+    Rational(x)
   /**
     * Represents the number four as a `BigInt` type.
     *
@@ -921,13 +1027,19 @@ object Rational {
       |8076932599397805419341447377441842631298608099888687413260472""".stripMargin.replaceAll("""\n""", "")
 
   /**
-   * Implicit converter from Double to Rational.
-   *
-   * @param x the value.
-   * @return a Rational equal to or approximately equal to x.
-   * @throws NoSuchElementException because we invoke get on an Option[Rational].
-   */
-  implicit def convertDouble(x: Double): Rational = createExact(x).get // NOTE using get
+    * Represents the integer value 3 as a `BigInt`.
+    */
+  private[core] lazy val bigThree: BigInt = BigInt(3)
+  /**
+    * Represents the rational number three as a constant of type Rational.
+    * It is constructed using `Rational(bigThree)`.
+    */
+  val three: Rational = Rational(bigThree)
+  /**
+    * A Rational number representing the reciprocal of `three`.
+    * The `invert` method on the `three` object is used to calculate this value.
+    */
+  val third: Rational = three.invert
 
   /**
    * Method to construct a Rational from two BigInt values.
@@ -937,7 +1049,8 @@ object Rational {
    * @param d the denominator.
    * @return a Rational with the same ratio as n/d.
    */
-  def apply(n: BigInt, d: BigInt): Rational = normalize(n, d)
+  def apply(n: BigInt, d: BigInt): Rational =
+    normalize(n, d)
 
   /**
    * Method to construct a Rational from a BigInt numerator and a Long denominator.
@@ -947,7 +1060,8 @@ object Rational {
    * @param d the denominator.
    * @return a Rational with the same ratio as n/d.
    */
-  def apply(n: BigInt, d: Long): Rational = apply(n, BigInt(d))
+  def apply(n: BigInt, d: Long): Rational =
+    apply(n, BigInt(d))
 
   /**
    * Method to construct a Rational from a BigInt.
@@ -955,7 +1069,8 @@ object Rational {
    * @param n the value.
    * @return a Rational with the same value as n.
    */
-  def apply(n: BigInt): Rational = apply(n, bigOne)
+  def apply(n: BigInt): Rational =
+    apply(n, bigOne)
 
   /**
    * Method to construct a Rational from a BigInt with sign defined by "negative".
@@ -964,23 +1079,8 @@ object Rational {
    * @param negative if true then the sign of the result will be flipped.
    * @return a Rational with the same value as n.
    */
-  def apply(n: BigInt, negative: Boolean): Rational = apply(n).applySign(negative)
-
-  /**
-   * Method to construct a Rational from a Long.
-   *
-   * @param n the value.
-   * @return a Rational with the same value as n.
-   */
-  def apply(n: Long): Rational = apply(BigInt(n))
-
-  /**
-   * Method to construct a Rational from a Long.
-   *
-   * @param n the value.
-   * @return a Rational with the same value as n.
-   */
-  def apply(n: Int): Rational = apply(BigInt(n))
+  def apply(n: BigInt, negative: Boolean): Rational =
+    apply(n).applySign(negative)
 
   /**
    * Creates an exact `Rational` representation of the given `Double` value if possible.
@@ -997,11 +1097,31 @@ object Rational {
       val bigDecimal = BigDecimal.valueOf(x)
       if (bigDecimal.isDecimalDouble) Try {
         val r = Rational(bigDecimal)
-        if (r.toDouble == x) r
-        else throw new ArithmeticException(s"Rational.createExact: $x is not exact")
+        if (r.toDouble == x)
+          r
+        else
+          throw new ArithmeticException(s"Rational.createExact: $x is not exact")
       }
       else Failure(new ArithmeticException(s"Cannot create exact Rational from Double: $x"))
     }
+
+  /**
+    * Method to construct a Rational from a Long.
+    *
+    * @param n the value.
+    * @return a Rational with the same value as n.
+    */
+  def apply(n: Long): Rational =
+    apply(BigInt(n))
+
+  /**
+    * Method to construct a Rational from a Long.
+    *
+    * @param n the value.
+    * @return a Rational with the same value as n.
+    */
+  def apply(n: Int): Rational =
+    apply(BigInt(n))
 
   /**
    * Method to construct a Rational based on a BigDecimal.
@@ -1014,13 +1134,18 @@ object Rational {
     if (x.scale >= 0) {
       val e = BigDecimal.apply(10).pow(x.scale)
       (for (n <- (x * e).toBigIntExact; d <- e.toBigIntExact) yield Rational(n, d)) match {
-        case Some(r) => r
-        case None => throw RationalException(s"Rational.apply(BigDecimal): cannot represent $x as a Rational")
+        case Some(r) =>
+          r
+        case None =>
+          throw RationalException(s"Rational.apply(BigDecimal): cannot represent $x as a Rational")
       }
     }
-    else x.toBigIntExact match {
-      case Some(b) => Rational(b)
-      case None => throw RationalException(s"cannot get value from BigDecimal $x")
+    else
+      x.toBigIntExact match {
+        case Some(b) =>
+          Rational(b)
+        case None =>
+          throw RationalException(s"cannot get value from BigDecimal $x")
     }
 
   /**
@@ -1031,7 +1156,8 @@ object Rational {
    * @return a Rational corresponding to the value given by w.
    * @throws RationalParserException if w is malformed.
    */
-  def apply(w: String): Rational = parse(w).get
+  def apply(w: String): Rational =
+    parse(w).get
 
   /**
    * Method to construct a Try[Rational] based on a String.
@@ -1040,22 +1166,15 @@ object Rational {
    * @return either Success(Rational) with value corresponding to the value given by w
    *         or Failure(RationalParserException) if w is malformed.
    */
-  def parse(w: String): Try[Rational] = RationalParser.parse(w)
+  def parse(w: String): Try[Rational] =
+    RationalParser.parse(w)
 
   /**
-    * Calculates the square root of a given number as a `Rational` approximation
-    * within a specified precision defined by epsilon.
-    *
-    * @param n       the number for which the square root is to be calculated
-    * @param epsilon the precision for the approximation of the square root
-    * @return an `Option[Rational]` containing the rational approximation of
-    *         the square root if supported, or `None` if the case is not implemented
+    * Implicit object which bestows all of the Ordering, Numeric, etc. functionality to a Rational.
     */
-  private def squareRoot(n: BigInt, epsilon: Double): Option[Rational] = n match {
-    case `bigTwo` => ContinuedFraction.root2.toRational(epsilon)
-    case `bigThree` => ContinuedFraction.root3.toRational(epsilon)
-    case _ => None // TODO implement these cases
-  }
+  implicit object RationalFractional extends RationalIsFractional
+
+  val MAX_PRIME_FACTORS = 7
 
   /**
    * Method to yield a Rational exponent (in the sense of the a literal Double: for example 1.0Ex).
@@ -1063,69 +1182,50 @@ object Rational {
    * @param x the power to which we should raise 10.
    * @return 10 raised to the power x, expressed as a Rational.
    */
-  def exponent(x: Int): Rational = ten.power(x)
+  def exponent(x: Int): Rational =
+    ten.power(x)
 
   /**
-   * Implicit object which bestows all of the Ordering, Numeric, etc. functionality to a Rational.
-   */
-  implicit object RationalFractional extends RationalIsFractional
-
-  val MAX_PRIME_FACTORS = 7
-
-  /**
-   * Implicit converter from Long to Rational.
-   *
-   * @param x the value.
-   * @return a Rational equal to x.
-   */
-  implicit def convertLong(x: Long): Rational = Rational(x)
+    * Attempts to convert a Rational value to a Long within the range of Long values.
+    *
+    * @param x the Rational value to convert to a Long
+    * @return a Try containing the Long value if the conversion is successful,
+    *         or a Failure if the value is out of range or cannot be converted
+    */
+  def toLong(x: Rational): Try[Long] =
+    narrow(x, Long.MinValue, Long.MaxValue) map (_.toLong)
 
   /**
-   * Implicit converter from BigInt to Rational.
-   *
-   * @param x the value.
-   * @return a Rational equal to x.
-   */
-  implicit def convertBigInt(x: BigInt): Rational = Rational(x)
+    * Narrows a Rational value to a BigInt within the specified range.
+    *
+    * @param x   the Rational number to be narrowed
+    * @param min the minimum bound of the range
+    * @param max the maximum bound of the range
+    * @return a Try instance containing the narrowed BigInt within the range,
+    *         or a Failure if the narrowing operation fails
+    */
+  private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] =
+    for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z
+
+  // CONSIDER making this public
+  private def toBigInt(x: Rational): Try[BigInt] =
+    if (x.isWhole)
+      Success(x.n)
+    else
+      Failure(RationalException(s"toBigInt: $x is " + (if (x.isInfinity)
+        "infinite" else "not whole")))
 
   /**
-   * Trait defined to support the methods of Ordering[Rational].
-   */
-  trait RationalIsOrdering extends Ordering[Rational] {
-    def compare(x: Rational, y: Rational): Int = x.compare(y)
-  }
-
-  /**
-   * Trait defined to support the methods of Numeric[Rational].
-   */
-  trait RationalIsNumeric extends RationalIsOrdering with Numeric[Rational] {
-    def plus(x: Rational, y: Rational): Rational = x + y
-
-    def minus(x: Rational, y: Rational): Rational = x - y
-
-    def times(x: Rational, y: Rational): Rational = x * y
-
-    def negate(x: Rational): Rational = Rational(-x.n, x.d)
-
-    def fromInt(x: Int): Rational = Rational(x)
-
-    def parseString(str: String): Option[Rational] = Rational.parse(str).toOption
-
-    def toInt(x: Rational): Int = x.toInt
-
-    def toLong(x: Rational): Long = x.toLong
-
-    def toFloat(x: Rational): Float = x.toFloat
-
-    def toDouble(x: Rational): Double = x.toDouble
-  }
-
-  /**
-   * Trait defined to support the methods of Fractional[Rational].
-   */
-  trait RationalIsFractional extends RationalIsNumeric with Fractional[Rational] {
-    def div(x: Rational, y: Rational): Rational = Rational.div(x, y)
-  }
+    * This method gets an optional Int from a Rational.
+    *
+    * @param x a Rational.
+    * @return an Option[Int]
+    */
+  def toIntOption(x: Rational): Option[Int] =
+    if (x.isWhole && x.n.isValidInt)
+      Some(x.n.toInt)
+    else
+      None
 
   /**
     * Checks if the given Rational number has the correct ratio defined by the provided numerator (top)
@@ -1140,7 +1240,8 @@ object Rational {
   def hasCorrectRatio(r: Rational, top: BigInt, bottom: BigInt): Boolean = {
     val _a = r * bottom
     val result = bottom == 0 || _a.isInfinity || (_a.isWhole && _a.toBigInt == top)
-    if (!result) throw RationalException(s"incorrect ratio: r=${r.n}/${r.d}, top=$top, bottom=$bottom, _a=${_a}, gcd=${top.gcd(bottom)}")
+    if (!result)
+      throw RationalException(s"incorrect ratio: r=${r.n}/${r.d}, top=$top, bottom=$bottom, _a=${_a}, gcd=${top.gcd(bottom)}")
     result
   }
 
@@ -1153,8 +1254,10 @@ object Rational {
    */
   def rootOfBigInt(b: BigInt, x: Int): Option[BigInt] =
     Try(BigInt(math.round(math.pow(b.toDouble, 1.0 / x)))) match {
-      case Success(z) if z.pow(x) == b => Some(z)
-      case _ => None
+      case Success(z) if z.pow(x) == b =>
+        Some(z)
+      case _ =>
+        None
     }
 
   /**
@@ -1177,135 +1280,6 @@ object Rational {
   val maxSquare = 100
 
   /**
-   * Method to process the numerator and denominator to ensure that the denominator is never zero and never shares a common factor with the numerator.
-   *
-   * @param n the numerator
-   * @param d the denominator
-   * @return a Rational formed from n and d.
-   */
-  @scala.annotation.tailrec
-  private def normalize(n: BigInt, d: BigInt): Rational = (n, d) match {
-    case (Rational.bigZero, Rational.bigNegOne) => new Rational(n, d) // negative zero: leave as is
-    case _ if d < 0 => normalize(-n, -d)
-    case _ =>
-      val g = n.gcd(d)
-      g.signum match {
-        case 0 => NaN
-        case _ => new Rational(n / g, d / g)
-      }
-  }
-
-  /**
-    * Subtracts one rational number from another.
-    *
-    * @param x the rational number to be subtracted from
-    * @param y the rational number to subtract
-    * @return the result of subtracting y from x as a rational number
-    */
-  private def minus(x: Rational, y: Rational): Rational = plus(x, negate(y))
-
-  /**
-    * Negates the given Rational number, producing its additive inverse.
-    *
-    * @param x the Rational number to be negated
-    * @return a new Rational number which is the negation of the input
-    */
-  private def negate(x: Rational): Rational = Rational(-x.n, x.d)
-
-  /**
-    * Adds two Rational numbers and returns the result.
-    *
-    * @param x the first rational number
-    * @param y the second rational number
-    * @return the sum of the two rational numbers as a Rational
-    */
-  private def plus(x: Rational, y: Rational): Rational = (x, y) match {
-    case (Rational.negZero, z) => z
-    case (z, Rational.negZero) => z
-    case _ => Rational((x.n * y.d) + (y.n * x.d), x.d * y.d)
-  }
-
-  /**
-    * Multiplies two Rational numbers and returns the resulting Rational number.
-    *
-    * @param x the first Rational number
-    * @param y the second Rational number
-    * @return the product of the two Rational numbers, or Rational.zero if either operand is Rational.negZero
-    */
-  private def times(x: Rational, y: Rational): Rational = (x, y) match {
-    case (Rational.negZero, _) => zero
-    case (_, Rational.negZero) => zero
-    case _ => Rational(x.n * y.n, x.d * y.d)
-  }
-
-  /**
-    * Converts a given BigInt value to a Double by first converting it to a string representation.
-    *
-    * @param x the BigInt value to be converted to a Double
-    */
-  private def toDoubleViaString(x: BigInt) = x.toString().toDouble
-
-  /**
-    * Converts a given Rational number to its Double representation.
-    *
-    * @param x the Rational number to be converted.
-    * @return the Double representation of the given Rational number.
-    */
-  private def toDouble(x: Rational): Double =
-    if (x eq negZero) -0.0
-    else Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
-
-  /**
-    * Converts a Rational number to a Float.
-    *
-    * @param x the Rational number to be converted
-    * @return the Float representation of the given Rational number
-    */
-  private def toFloat(x: Rational): Float = toDouble(x).toFloat
-
-  /**
-    * Narrows a Rational value to a BigInt within the specified range.
-    *
-    * @param x   the Rational number to be narrowed
-    * @param min the minimum bound of the range
-    * @param max the maximum bound of the range
-    * @return a Try instance containing the narrowed BigInt within the range,
-    *         or a Failure if the narrowing operation fails
-    */
-  private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] = for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z
-
-  /**
-    * Narrows a given `BigInt` value to ensure it falls within a specified range.
-    * If the value is outside the range, a `Failure` is returned with a `RationalException`.
-    *
-    * @param x   the `BigInt` value to be narrowed
-    * @param min the minimum allowed value (inclusive)
-    * @param max the maximum allowed value (inclusive)
-    * @return a `Success` containing the value if it falls within the range,
-    *         or a `Failure` with a `RationalException` in case of precision loss
-    */
-  def narrow(x: BigInt, min: BigInt, max: BigInt): Try[BigInt] =
-    if (min <= x && x <= max) Success(x)
-    else Failure(RationalException("narrow: loss of precision"))
-
-  /**
-    * Attempts to convert a Rational value to a Long within the range of Long values.
-    *
-    * @param x the Rational value to convert to a Long
-    * @return a Try containing the Long value if the conversion is successful,
-    *         or a Failure if the value is out of range or cannot be converted
-    */
-  def toLong(x: Rational): Try[Long] = narrow(x, Long.MinValue, Long.MaxValue) map (_.toLong)
-
-  /**
-    * This method gets an optional Int from a Rational.
-    *
-    * @param x a Rational.
-    * @return an Option[Int]
-    */
-  def toIntOption(x: Rational): Option[Int] = if (x.isWhole && x.n.isValidInt) Some(x.n.toInt) else None
-
-  /**
    * This method gets an Int from a Rational.
    *
    * XXX: Needs to be public for testing
@@ -1313,16 +1287,11 @@ object Rational {
    * @param x a Rational.
    * @return an Try[Int]
    */
-  def toInt(x: Rational): Try[Int] = if (x.isWhole && x.n.isValidInt) Success(x.n.toInt) else Failure(RationalException(s"$x is not whole"))
-
-  /**
-   * Get Rational x as a pair of Longs (if possible).
-   * The result will be at full precision or an exception will be thrown.
-   *
-   * @param x a Rational.
-   * @return an optional tuple of Longs.
-   */
-  def toLongs(x: Rational): Option[(Long, Long)] = (for (n <- narrow(x.n.toLong, Long.MinValue, Long.MaxValue); d <- narrow(x.d.toLong, Long.MinValue, Long.MaxValue)) yield (n.toLong, d.toLong)).toOption
+  def toInt(x: Rational): Try[Int] =
+    if (x.isWhole && x.n.isValidInt)
+      Success(x.n.toInt)
+    else
+      Failure(RationalException(s"$x is not whole"))
 
   /**
    * Get Rational x as a pair of Ints (if possible).
@@ -1331,7 +1300,21 @@ object Rational {
    * @param x a Rational.
    * @return an optional tuple of Ints.
    */
-  def toInts(x: Rational): Option[(Int, Int)] = toLongs(x) map { case (n, d) => (math.toIntExact(n), math.toIntExact(d)) }
+  def toInts(x: Rational): Option[(Int, Int)] =
+    toLongs(x) map { case (n, d) => (math.toIntExact(n), math.toIntExact(d)) }
+
+  /**
+    * Get Rational x as a pair of Longs (if possible).
+    * The result will be at full precision or an exception will be thrown.
+    *
+    * @param x a Rational.
+    * @return an optional tuple of Longs.
+    */
+  def toLongs(x: Rational): Option[(Long, Long)] =
+    (for {
+      n <- narrow(x.n.toLong, Long.MinValue, Long.MaxValue)
+      d <- narrow(x.d.toLong, Long.MinValue, Long.MaxValue)
+    } yield (n.toLong, d.toLong)).toOption
 
   /**
    * Generate the String representation of n/d where d is a Prime number (at least, very probably).
@@ -1356,9 +1339,12 @@ object Rational {
           Failure[String](RationalException(s"Rational.findRepeatingSequence: no sequence"))
         case h :: t =>
           findRepeatingPattern(bigNumber, h) match {
-            case Some(z) if z + h < l => Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
-            case Some(z) => Failure[String](RationalException(s"Rational.findRepeatingSequence: logic error: pattern exhausts bigNumber: ${z + h} > $l"))
-            case None => inner(t)
+            case Some(z) if z + h < l =>
+              Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
+            case Some(z) =>
+              Failure[String](RationalException(s"Rational.findRepeatingSequence: logic error: pattern exhausts bigNumber: ${z + h} > $l"))
+            case None =>
+              inner(t)
           }
       }
 
@@ -1378,51 +1364,41 @@ object Rational {
     }
   }
 
-  private def expandProducts(bs: List[Int]) = {
-    def squares(bs: List[Int]) = for (b1 <- bs; b2 <- bs) yield b1 * b2
-
-    def cubes(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs) yield b1 * b2 * b3
-
-    def quads(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs) yield b1 * b2 * b3 * b4
-
-    def quints(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs; b5 <- bs) yield b1 * b2 * b3 * b4 * b5
-
-    def sexts(bs: List[Int]) = for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs; b5 <- bs; b6 <- bs) yield b1 * b2 * b3 * b4 * b5 * b6
-
-    Try {
-      bs.size match {
-        case 0 => Nil
-        case 1 => bs
-        case 2 => bs :+ bs.product
-        case 3 => bs ++ squares(bs) :+ bs.product
-        case 4 => bs ++ squares(bs) ++ cubes(bs) :+ bs.product
-        case 5 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) :+ bs.product
-        case 6 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) :+ bs.product
-        case 7 => bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) ++ sexts(bs) :+ bs.product
-        case _ => throw RationalException(s"Rational.getPeriods: not yet implemented for: $bs")
-      }
-    }
-  }
-
+  /**
+    * Calculates the potential periods of a repeating fractional part for a given denominator
+    * based on its prime factors, given constraints, and a maximum threshold for calculations.
+    *
+    * @param d            The denominator of the fraction represented as a BigInt.
+    * @param primeFactors A sequence of prime factors associated with the denominator.
+    * @param max          The maximum threshold value used in the calculations, such as limits for prime factorization.
+    * @return A Try containing a sequence of possible repeating period lengths as integers if successful,
+    *         or a Failure containing an exception if the computation fails.
+    */
   private def getPeriods(d: BigInt, primeFactors: Seq[Prime], max: Int): Try[Seq[Int]] = {
 
     def getCandidatePatternLengths(h: Int, t: List[Int]) = {
       val z: BigInt = t.foldLeft(BigInt(h))((b, y) => b * y)
       val pos = Prime.primeFactors(z, Some(max * max)).map(_.toIntOption)
       FP.sequence(pos) match {
-        case Some(Nil) if z == BigInt(1) => Success(Seq(1))
+        case Some(Nil) if z == BigInt(1) =>
+          Success(Seq(1))
         case Some(h :: t) =>
           expandProducts(1 :: h :: t) match {
-            case Success(products) => Success(products.sorted.distinct)
-            case x => x
+            case Success(products) =>
+              Success(products.sorted.distinct)
+            case x =>
+              x
           }
-        case _ => Failure(RationalException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $pos"))
+        case _ =>
+          Failure(RationalException(s"Rational.getPeriods.getCandidatePatternLengths: logic error: $pos"))
       }
     }
 
     def getCandidates(xs: Seq[Int]) = xs filterNot (x => x == 0) match {
-      case Nil => Success(Nil) // the only factors in the denominator are 2 or 5
-      case h :: t => getCandidatePatternLengths(h, t)
+      case Nil =>
+        Success(Nil) // the only factors in the denominator are 2 or 5
+      case h :: t =>
+        getCandidatePatternLengths(h, t)
     }
 
     FP.sequence(primeFactors map (_.reciprocalPeriod)) match {
@@ -1435,24 +1411,331 @@ object Rational {
     }
   }
 
-  // CONSIDER making this public
-  private def toBigInt(x: Rational): Try[BigInt] = if (x.isWhole) Success(x.n) else Failure(RationalException(s"toBigInt: $x is " + (if (x.isInfinity)
-    "infinite" else "not whole")))
+  /**
+    * Expands a list of integers by computing additional products such as squares, cubes,
+    * quads, quints, and sexts based on the size of the list, appending these computed values
+    * to the original list. For larger sizes, it throws a custom exception indicating
+    * the unsupported operation.
+    *
+    * @param bs A list of integers to be expanded with computed products.
+    */
+  private def expandProducts(bs: List[Int]) = {
+    def squares(bs: List[Int]) =
+      for (b1 <- bs; b2 <- bs) yield b1 * b2
 
-  private def toInt(x: BigInt): Option[Int] = if (x.isValidInt) Some(x.toInt) else None
+    def cubes(bs: List[Int]) =
+      for (b1 <- bs; b2 <- bs; b3 <- bs) yield b1 * b2 * b3
+
+    def quads(bs: List[Int]) =
+      for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs) yield b1 * b2 * b3 * b4
+
+    def quints(bs: List[Int]) =
+      for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs; b5 <- bs) yield b1 * b2 * b3 * b4 * b5
+
+    def sexts(bs: List[Int]) =
+      for (b1 <- bs; b2 <- bs; b3 <- bs; b4 <- bs; b5 <- bs; b6 <- bs) yield b1 * b2 * b3 * b4 * b5 * b6
+
+    Try {
+      bs.size match {
+        case 0 =>
+          Nil
+        case 1 =>
+          bs
+        case 2 =>
+          bs :+ bs.product
+        case 3 =>
+          bs ++ squares(bs) :+ bs.product
+        case 4 =>
+          bs ++ squares(bs) ++ cubes(bs) :+ bs.product
+        case 5 =>
+          bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) :+ bs.product
+        case 6 =>
+          bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) :+ bs.product
+        case 7 =>
+          bs ++ squares(bs) ++ cubes(bs) ++ quads(bs) ++ quints(bs) ++ sexts(bs) :+ bs.product
+        case _ =>
+          throw RationalException(s"Rational.getPeriods: not yet implemented for: $bs")
+      }
+    }
+  }
+
+  /**
+    * Converts a given Rational number to its Double representation.
+    *
+    * @param x the Rational number to be converted.
+    * @return the Double representation of the given Rational number.
+    */
+  private def toDouble(x: Rational): Double =
+    if (x eq negZero) -0.0
+    else Try((BigDecimal(x.n) / BigDecimal(x.d)).toDouble).getOrElse(toDoubleViaString(x.n) / toDoubleViaString(x.d))
+
+  private def testSequence(w: String, n: Int, i: Int): Option[Int] =
+    w.substring(i).grouped(n).toSeq match {
+      case Nil =>
+        Some(i)
+      case h :: t if t.forall(x => h startsWith x) =>
+        Some(i)
+      case _ =>
+        None
+    }
+
+  /**
+    * Calculates the square root of a given number as a `Rational` approximation
+    * within a specified precision defined by epsilon.
+    *
+    * @param n       the number for which the square root is to be calculated
+    * @param epsilon the precision for the approximation of the square root
+    * @return an `Option[Rational]` containing the rational approximation of
+    *         the square root if supported, or `None` if the case is not implemented
+    */
+  private def squareRoot(n: BigInt, epsilon: Double): Option[Rational] = n match {
+    case `bigTwo` =>
+      ContinuedFraction.root2.toRational(epsilon)
+    case `bigThree` =>
+      ContinuedFraction.root3.toRational(epsilon)
+    case _ =>
+      None // TODO implement these cases
+  }
+
+  /**
+    * Narrows a given `BigInt` value to ensure it falls within a specified range.
+    * If the value is outside the range, a `Failure` is returned with a `RationalException`.
+    *
+    * @param x   the `BigInt` value to be narrowed
+    * @param min the minimum allowed value (inclusive)
+    * @param max the maximum allowed value (inclusive)
+    * @return a `Success` containing the value if it falls within the range,
+    *         or a `Failure` with a `RationalException` in case of precision loss
+    */
+  def narrow(x: BigInt, min: BigInt, max: BigInt): Try[BigInt] =
+    if (min <= x && x <= max)
+      Success(x)
+    else
+      Failure(RationalException("narrow: loss of precision"))
+
+  /**
+    * Method to process the numerator and denominator to ensure that the denominator is never zero and never shares a common factor with the numerator.
+    *
+    * @param n the numerator
+    * @param d the denominator
+    * @return a Rational formed from n and d.
+    */
+  @scala.annotation.tailrec
+  private def normalize(n: BigInt, d: BigInt): Rational = (n, d) match {
+    case (Rational.bigZero, Rational.bigNegOne) =>
+      new Rational(n, d) // negative zero: leave as is
+    case _ if d < 0 =>
+      normalize(-n, -d)
+    case _ =>
+      val g = n.gcd(d)
+      g.signum match {
+        case 0 =>
+          NaN
+        case _ =>
+          new Rational(n / g, d / g)
+      }
+  }
+
+  /**
+    * Subtracts one rational number from another.
+    *
+    * @param x the rational number to be subtracted from
+    * @param y the rational number to subtract
+    * @return the result of subtracting y from x as a rational number
+    */
+  private def minus(x: Rational, y: Rational): Rational =
+    plus(x, negate(y))
+
+  /**
+    * Negates the given Rational number, producing its additive inverse.
+    *
+    * @param x the Rational number to be negated
+    * @return a new Rational number which is the negation of the input
+    */
+  private def negate(x: Rational): Rational =
+    Rational(-x.n, x.d)
+
+  /**
+    * Adds two Rational numbers and returns the result.
+    *
+    * @param x the first rational number
+    * @param y the second rational number
+    * @return the sum of the two rational numbers as a Rational
+    */
+  private def plus(x: Rational, y: Rational): Rational = (x, y) match {
+    case (Rational.negZero, z) =>
+      z
+    case (z, Rational.negZero) =>
+      z
+    case _ =>
+      Rational((x.n * y.d) + (y.n * x.d), x.d * y.d)
+  }
+
+  /**
+    * Multiplies two Rational numbers and returns the resulting Rational number.
+    *
+    * @param x the first Rational number
+    * @param y the second Rational number
+    * @return the product of the two Rational numbers, or Rational.zero if either operand is Rational.negZero
+    */
+  private def times(x: Rational, y: Rational): Rational = (x, y) match {
+    case (Rational.negZero, _) =>
+      zero
+    case (_, Rational.negZero) =>
+      zero
+    case _ =>
+      Rational(x.n * y.n, x.d * y.d)
+  }
+
+  /**
+    * Converts a given BigInt value to a Double by first converting it to a string representation.
+    *
+    * @param x the BigInt value to be converted to a Double
+    */
+  private def toDoubleViaString(x: BigInt) =
+    x.toString().toDouble
+
+  /**
+    * Converts a Rational number to a Float.
+    *
+    * @param x the Rational number to be converted
+    * @return the Float representation of the given Rational number
+    */
+  private def toFloat(x: Rational): Float =
+    toDouble(x).toFloat
+
+  private def toInt(x: BigInt): Option[Int] =
+    if (x.isValidInt)
+      Some(x.toInt)
+    else
+      None
+
+  private def compare(x: Rational, y: Rational): Int =
+    minus(x, y).signum
+
+  /**
+    * Trait defined to support the methods of Ordering[Rational].
+    */
+  trait RationalIsOrdering extends Ordering[Rational] {
+    def compare(x: Rational, y: Rational): Int =
+      x.compare(y)
+  }
 
   private def div(x: Rational, y: Rational): Rational = x / y
 
-  private def testSequence(w: String, n: Int, i: Int): Option[Int] = w.substring(i).grouped(n).toSeq match {
-    case Nil => Some(i)
-    case h :: t if t.forall(x => h startsWith x) => Some(i)
-    case _ => None
+  /**
+    * Trait defined to support the methods of Numeric[Rational].
+    */
+  trait RationalIsNumeric extends RationalIsOrdering with Numeric[Rational] {
+    /**
+      * Adds two Rational numbers together.
+      *
+      * @param x the first Rational number
+      * @param y the second Rational number
+      * @return the sum of the two Rational numbers
+      */
+    def plus(x: Rational, y: Rational): Rational = x + y
+
+    /**
+      * Subtracts two Rational numbers.
+      *
+      * @param x the first Rational number
+      * @param y the second Rational number to be subtracted from the first
+      * @return the result of subtracting y from x as a Rational number
+      */
+    def minus(x: Rational, y: Rational): Rational = x - y
+
+    /**
+      * Multiplies two Rational numbers and returns the resulting Rational.
+      *
+      * @param x the first Rational number
+      * @param y the second Rational number
+      * @return the product of the two Rational numbers
+      */
+    def times(x: Rational, y: Rational): Rational = x * y
+
+    /**
+      * Negates the given Rational number by inverting the sign of its numerator.
+      *
+      * @param x the Rational number to be negated
+      * @return a new Rational number that is the negation of the input
+      */
+    def negate(x: Rational): Rational =
+      Rational(-x.n, x.d)
+
+    /**
+      * Creates a Rational instance from an integer.
+      *
+      * @param x the integer value to be converted to a Rational
+      * @return the corresponding Rational representation of the given integer
+      */
+    def fromInt(x: Int): Rational =
+      Rational(x)
+
+    /**
+      * Parses the provided string to an optional Rational value.
+      *
+      * @param str the string representation of the rational number to be parsed
+      * @return an Option containing the parsed Rational if successful, or None if parsing fails
+      */
+    def parseString(str: String): Option[Rational] =
+      Rational.parse(str).toOption
+
+    /**
+      * Converts a `Rational` number to an `Int` by truncating towards zero.
+      *
+      * @param x the `Rational` number to be converted to an `Int`
+      * @return the integer representation of the `Rational` value
+      */
+    def toInt(x: Rational): Int =
+      x.toInt
+
+    /**
+      * Converts a Rational number to its Long representation.
+      *
+      * @param x the Rational number to convert
+      * @return the Long value corresponding to the given Rational
+      */
+    def toLong(x: Rational): Long =
+      x.toLong
+
+    /**
+      * Converts a given Rational number to its equivalent Float representation.
+      *
+      * @param x the Rational number to be converted.
+      * @return the Float representation of the given Rational number.
+      */
+    def toFloat(x: Rational): Float =
+      x.toFloat
+
+    /**
+      * Converts a Rational number to a Double.
+      *
+      * @param x the Rational number to be converted to a Double
+      * @return the Double representation of the given Rational number
+      */
+    def toDouble(x: Rational): Double =
+      x.toDouble
   }
 
-  private def compare(x: Rational, y: Rational): Int = minus(x, y).signum
+  /**
+    * Trait defined to support the methods of Fractional[Rational].
+    */
+  trait RationalIsFractional extends RationalIsNumeric with Fractional[Rational] {
+    /**
+      * Divides one Rational number by another.
+      *
+      * @param x the numerator Rational number
+      * @param y the denominator Rational number
+      * @return the resulting Rational number after division
+      */
+    def div(x: Rational, y: Rational): Rational =
+      Rational.div(x, y)
+  }
 
   private def approximatePositive(x: Double)(implicit epsilon: Tolerance) =
-    if (x > 0.1 && x < 10) approximateSmall(x)
+    if (x > 0.1 && x < 10)
+      approximateSmall(x)
     else {
       val e: Int = getExponent(x)
       val scale = pow(2, -e)
@@ -1460,7 +1743,8 @@ object Rational {
     }
 
   private def approximateSmall(x: Double)(implicit epsilon: Tolerance) =
-    if (x < 1) approximate(x)
+    if (x < 1)
+      approximate(x)
     else {
       val y = floor(x).toInt
       approximate(x - y) + y

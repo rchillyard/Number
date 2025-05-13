@@ -149,6 +149,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   /**
     * Method to get the value of this Number as an Int.
     *
+    * TESTME
+    *
     * @return an Option of Long. If this Number cannot be converted to a Long, then None will be returned.
     */
   def toLong: Option[Long] =
@@ -263,7 +265,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
         ComplexCartesian.fromImaginary(n) doAdd Complex(this)
       case Real(n) =>
         Real(doAdd(n))
-      case c@BaseComplex(_, _) =>
+      case c@BaseComplex(_, _) => // TESTME
         c.add(this.asComplex)
     }
 
@@ -282,6 +284,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Handles special cases such as multiplication with zero, one, or specific constants.
     *
     * NOTE this code seems almost identical to the times method in GeneralNumber
+    * CONSIDER combining them and using the Factor facilities more.
     *
     * @param x the Field instance to be multiplied with the current instance
     * @return the result of the multiplication as a Field
@@ -313,23 +316,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   }
 
   /**
-    * Multiplies the given field `x` raised to the specified `power` by a rational `y`,
-    * and processes the result to potentially extract a real number.
-    *
-    * CONSIDER moving this to somewhere else
-    *
-    * @param x the field value to be raised to the power and multiplied
-    * @param y the rational value to multiply with the powered field
-    * @param n the integer power to raise the field value
-    * @return an optional field containing a real number if the result
-    *         can be successfully processed, or `None` otherwise
-    */
-  private def doMultiplyByPower(x: Number, y: Rational, n: Int): Option[Field] = {
-    val number = y doMultiply (x power n)
-    Some(number.make(SquareRoot).normalize)
-  }
-
-  /**
     * Divide this Number by x and return the result.
     *
     * @param x the divisor.
@@ -338,7 +324,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def divide(x: Field): Field = x match {
     case Real(n) =>
       Real(doDivide(n))
-    case c@BaseComplex(_, _) =>
+    case c@BaseComplex(_, _) => // TESTME
       c.divide(x)
   }
 
@@ -371,7 +357,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     case Real(n) =>
       Real(doPower(n))
     case ComplexCartesian(x, y) =>
-      ComplexPolar(doPower(x), y) // CONSIDER is this correct?
+      ComplexPolar(doPower(x), y) // CONSIDER is this correct? // TESTME
     case _ =>
       throw NumberException("logic error: power not supported for non-Number powers")
   }
@@ -430,7 +416,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
         r match {
           case Rational(Rational.bigOne, Rational.bigThree) =>
             Number.root3
-          case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) =>
+          case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) => // TESTME
             negate(Number.one)
           case Rational(Rational.bigOne, Rational.bigFour) | Rational(Rational.bigFive, Rational.bigFour) =>
             Number.one
@@ -849,7 +835,7 @@ object Number {
       * @param y the exponent, an Int.
       * @return a Number whose value is x / y.
       */
-    def ^(y: Int): Number = x ^ y
+    def ^(y: Int): Number = x ^ y // TESTME
 
     /**
       * Raise x to the power of y (an Rational) and yield a Number.
@@ -857,7 +843,7 @@ object Number {
       * @param y the exponent, a Rational.
       * @return a Number whose value is x / y.
       */
-    def ^(y: Rational): Number = x ^ y
+    def ^(y: Rational): Number = x ^ y // TESTME
   }
 
   /**
@@ -894,7 +880,8 @@ object Number {
   implicit def convertInt(x: Int): Number = Number(x)
 
   /**
-    * Implicit converter from Int to Number.
+    * Implicit converter from Double to Number.
+    * TESTME
     *
     * @param x the Double to be converted.
     * @return the equivalent Number.
@@ -1239,6 +1226,12 @@ object Number {
     */
   val NaN: Number = Number(None)
 
+  /**
+    * Represents a constant value for positive infinity.
+    * This value is defined using a `Number` wrapper around `Double.PositiveInfinity`.
+    */
+  val Infinity: Number = Number(Double.PositiveInfinity)
+
   private val numberParser = NumberParser
 
   /**
@@ -1343,9 +1336,14 @@ object Number {
         prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
       case (Logarithmic(_), Logarithmic(_)) =>
         prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
-      case (Root(_), Root(_)) =>
-        prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
-      case (Logarithmic(_), Scalar(_)) | (Root(_), Logarithmic(_)) | (Root(_), Scalar(_)) =>
+      case (pr@InversePower(p), qr@InversePower(q)) =>
+        pr.raise(n.nominalValue, Value.fromRational(q / p), PureNumber) match {
+          case Some((v, f, _)) =>
+            n.make(v, qr)
+          case _ =>
+            prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
+        }
+      case (Logarithmic(_), Scalar(_)) | (InversePower(_), Logarithmic(_)) | (InversePower(_), Scalar(_)) =>
         scale(scale(n, NatLog), factor)
       case _ =>
         throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
@@ -1434,12 +1432,11 @@ object Number {
             case Some(1) | Some(11) =>
               rootSix doSubtract root2 doDivide 4 // pi/12 and 11pi/12 would be nice for this to be an Expression
             case Some(5) | Some(7) =>
-              rootSix doAdd root2 doDivide 4 // 5pi/12 and 7pi/12 ditto
+              rootSix doAdd root2 doDivide 4 // 5pi/12 and 7pi/12 ditto // TESTME
             case _ =>
               prepareWithSpecialize(z.transformMonadic(PureNumber)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
           }
         } else negate(sin(negate(x)))
-
       case None =>
         throw NumberException(s"Number.sin: logic error")
     }
@@ -1461,6 +1458,8 @@ object Number {
     * If the factor is NatLog, then we force the factor to be PureNumber and simplify.
     * Otherwise, if the factor is PureNumber, we first convert it to a NatLog number, then call log recursively.
     * Otherwise, we convert to a PureNumber number and call log recursively.
+    *
+    * CONSIDER using x.factor.log(x.nominalValue)
     *
     * @param x a Number.
     * @return the natural log of x.
