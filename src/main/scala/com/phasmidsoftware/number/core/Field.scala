@@ -202,6 +202,12 @@ object Field {
     */
   def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
 
+  /**
+    * Implicit converter from `Rational` value to a `Field` value.
+    *
+    * @param r the Rational value to be converted.
+    * @return a Field representation of the provided Rational value.
+    */
   implicit def convertRationalToField(r: Rational): Field = Real(r)
 
   /**

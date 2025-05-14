@@ -267,6 +267,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
         Real(doAdd(n))
       case c@BaseComplex(_, _) => // TESTME
         c.add(this.asComplex)
+      case s: Solution =>
+        s add Real(this)
+      case _ =>
+        throw NumberException(s"logic error: add not supported for this addend: $x")
     }
 
   /**
@@ -311,6 +315,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
       doMultiply(n).normalize
     case (_, c@BaseComplex(_, _)) =>
       c.multiply(this.asComplex)
+    case (_, s: Solution) =>
+      s multiply Real(this)
     case _ =>
       throw NumberException("logic error: multiply not supported for non-Number multiplicands")
   }

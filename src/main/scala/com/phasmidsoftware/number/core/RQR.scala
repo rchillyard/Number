@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{one, two}
+import com.phasmidsoftware.number.core.Real.NaN
 
 /**
   * An abstract class representing a root of a reduced quadratic equation of the form `x^2 + px + q = 0`
@@ -13,48 +14,52 @@ import com.phasmidsoftware.number.core.Number.{one, two}
   *
   * TODO rename this class as ReducedQuadraticRoot and remove or rename the other class with that name.
   *
-  * NOTE that, for now at least, the types of p and q are Int.
-  *
   * @constructor Constructs a reduced quadratic root with parameters `p`, `q`, and a boolean `pos` to determine the sign of the root.
-  * @param p   The coefficient in the quadratic equation.
-  * @param q   The constant term in the quadratic equation.
+  * @param p The coefficient of x in the reduced quadratic equation.
+  * @param q The constant term in the reduced quadratic equation.
   * @param pos Determines if the positive or negative branch of the root is chosen.
   */
-case class RQR(val name: String, val p: Int, val q: Int, val pos: Boolean) extends Solution {
-  require(p != 0 || q != 0, "may not have p and q equal to zero")
+case class RQR(name: String, p: Rational, q: Rational, pos: Boolean) extends Solution {
+  require(!p.isZero || !q.isZero, "may not have p and q equal to zero")
+  // TODO remove the following restriction--there's no reason why we cannot have complex solutions
   require(discriminant >= 0, "discriminant must not be negative")
 
+  /**
+    * Returns the number of branches for this instance.
+    *
+    * @return an `Int` representing the number of branches, which is always 2.
+    */
   def branches: Int = 2
 
   /**
-    * This method computes a pair of values. The first (0th) branch can always be found simply by
-    * adding the two parts together.
+    * A lazy value representing a tuple of three components that contribute
+    * to the quadratic root representation:
     *
-    * @return a tuple where the first element is a `Number` representing the base value,
-    *         and the second element is an `Option[Number]` with a different `Factor` than the first element.
+    * 1. The first element is a `Field` obtained by dividing the negation of `p` by 2.
+    * 2. The second element is a `Rational` value that is either +1/2 or -1/2, depending on the
+    * sign of `pos`.
+    * 3. The third element is the square root of the discriminant treated as a `Field`.
     */
-  lazy val value: (Number, Option[Number]) = {
-    val disc = one.make(Rational(discriminant, 4))
-    val squareRoot = disc.make(SquareRoot)
+  lazy val value: (Field, Rational, Field) =
     (
-        Number(-p) doDivide two,
-        Some(if (pos) squareRoot else squareRoot.makeNegative)
+        Real(Number(-p) doDivide two),
+        if (pos) Rational.half else -Rational.half,
+        Real(Number(discriminant).sqrt)
     )
-  }
 
   /**
     * Method to determine if this Field is real-valued (i.e. the point lies on the real axis).
     *
     * @return true if not imaginary.
     */
-  def isReal: Boolean = ??? // Depends on pos
+  def isReal: Boolean = discriminant >= 0
 
   /**
     * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
     *
     * @return true if this is imaginary.
     */
-  def isImaginary: Boolean = ???
+  def isImaginary: Boolean = !isReal && p.isZero
 
   /**
     * Determine the "sign" of this field.
@@ -65,12 +70,107 @@ case class RQR(val name: String, val p: Int, val q: Int, val pos: Boolean) exten
     */
   def signum: Int = ???
 
+
+  /**
+    * Scales the current `RQR` instance by a given `Rational` value.
+    *
+    * @param x the scaling factor represented as a `Rational`.
+    * @return a new `RQR` instance with scaled values of `p` and `q`.
+    */
+  def scale(x: Rational): RQR =
+    copy(p = x * p, q = x * x * q)
+
   /**
     * Yields the inverse of this Field.
     * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     */
-  def invert: Field = ???
+  def invert: Field =
+    scale(q.invert)
+
+  /**
+    * Add x to this Field and return the result.
+    * See Number.plus for more detail.
+    *
+    * @param x the addend.
+    * @return the sum.
+    */
+  def add(x: Field): Field = x match {
+    case Real(ExactNumber(n, PureNumber)) if Value.maybeRational(n).contains(p) =>
+      copy(p = -p)
+    case Real(ExactNumber(n, PureNumber)) if Value.maybeRational(n).contains(-p) =>
+      copy(p = -3 * p, q = -q, pos = !pos)
+    case _ =>
+      asNumber map (_ add x) getOrElse NaN
+  }
+
+  /**
+    * Multiply this Field by x and return the result.
+    *
+    * * @param x the multiplicand.
+    * * @return the product.
+    */
+  def multiply(x: Field): Field = x match {
+    case r@RQR(_, _, _, _) =>
+      val (iBase, iz, iSqrt) = value
+      val (oBase, oz, oSqrt) = r.value
+      val crossTerms =
+        if (oSqrt == iSqrt && iBase == oBase)
+          (iz + oz) * oSqrt * oBase
+        else
+          iz * oSqrt * iBase + oz * iSqrt * oBase
+      (iBase multiply oBase) + crossTerms + iz * oz * (iSqrt multiply oSqrt)
+    case r@Real(ExactNumber(v, f)) =>
+      val (iBase, iz, iSqrt) = value
+      iBase * r + iz * iSqrt * r
+  }
+
+  /**
+    * Raises this Field to the power of the specified number.
+    *
+    * @param p the exponent, provided as a Number.
+    * @return the result of raising this Field to the power p.
+    */
+  def power(p: Number): Field = p match {
+    case ExactNumber(n, PureNumber) =>
+      Value.maybeInt(n) match {
+        case Some(-1) =>
+          invert
+        case Some(0) =>
+          Real(one) // CONSIDER What about RQR(name, 0, 0, pos)?
+        case Some(1) =>
+          this
+        case Some(2) =>
+          square
+        case Some(k) if k > 0 =>
+          (1 to k).foldLeft[Field](Real(one))((a, _) => a multiply this)
+      }
+    case _ =>
+      ???
+  }
+
+  def square: Solution =
+    copy(p = -3 * p, q = -q, pos = !pos)
+
+  /**
+    * Method to determine if this Numerical is equivalent to another Numerical object (x).
+    *
+    * @param x the other Numerical.
+    * @return true if they are most probably the same, otherwise false.
+    */
+  def isSame(x: Numerical): Boolean = x match {
+    case s: Solution =>
+      val (a, b, c) = value
+      val (d, e, f) = s.value
+      a == d && b == e && c == f
+    case _ =>
+      asNumber match {
+        case Some(n) =>
+          n.isSame(x)
+        case None =>
+          false
+      }
+  }
 
   /**
     * Method to "normalize" a field.
@@ -78,9 +178,9 @@ case class RQR(val name: String, val p: Int, val q: Int, val pos: Boolean) exten
     * @return a Field which is in canonical form.
     */
   def normalize: Field = {
-    val (base, maybeOffset) = value
-    val offset = maybeOffset.getOrElse(Number.zero)
-    Real(if (pos) base doAdd offset else base doSubtract offset)
+    val (base, branch, squareRoot) = value
+    val offset = branch * squareRoot
+    base + offset
   }
 
   /**
@@ -89,16 +189,8 @@ case class RQR(val name: String, val p: Int, val q: Int, val pos: Boolean) exten
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
   override def isExact: Boolean = {
-    val (base, maybeOffset) = value
-    base.isExact && {
-      maybeOffset match {
-        case None =>
-          true
-        case Some(offset) =>
-          val actualOffset = if (pos) offset else offset.makeNegative
-          actualOffset.isExact
-      }
-    }
+    val (base, r, offset) = value
+    base.isExact && offset.isExact && r.signum >= 1
   }
 
   /**
@@ -112,7 +204,7 @@ case class RQR(val name: String, val p: Int, val q: Int, val pos: Boolean) exten
     */
   override def asNumber: Option[Number] = {
     if (discriminant < 0) None
-    else if (discriminant == 0) Some(Number(Rational(p, 2)))
+    else if (discriminant.isZero) Some(Number(p.halve))
     else Some(Number(discriminant, SquareRoot).negateConditional(!pos) doSubtract Number(p) doDivide Number.two)
   }
 
@@ -126,7 +218,7 @@ case class RQR(val name: String, val p: Int, val q: Int, val pos: Boolean) exten
     *
     * @return an `Int` representing the discriminant.
     */
-  def discriminant: Int =
+  def discriminant: Rational =
     p * p - 4 * q
 
   /**
@@ -135,13 +227,6 @@ case class RQR(val name: String, val p: Int, val q: Int, val pos: Boolean) exten
     * @return a String
     */
   def render: String = name
-
-  /**
-    * Provides a string representation of the object by returning the `name` field.
-    *
-    * @return a `String` that represents the `name` of this quadratic root instance.
-    */
-  override def toString: String = name
 
   /**
     * Determines if the given object can be considered equal to this instance.
@@ -191,9 +276,9 @@ case class RQR(val name: String, val p: Int, val q: Int, val pos: Boolean) exten
   * Provides an unapply method for pattern matching.
   */
 object RQR {
-  def unapply(rqr: RQR): Option[(String, Int, Int, Boolean)] =
+  def unapply(rqr: RQR): Option[(String, Rational, Rational, Boolean)] =
     Some(rqr.name, rqr.p, rqr.q, rqr.pos)
 
-  val phi = new RQR("phi", -1, -1, true)
-  val psi = new RQR("psi", -1, -1, false)
+  val phi = new RQR("\uD835\uDED7", -1, -1, true)
+  val psi = new RQR("\uD835\uDED9", -1, -1, false)
 }

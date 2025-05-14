@@ -18,11 +18,18 @@ abstract class Solution extends Field {
   /**
     * This method computes two values:  based on the provided branch index.
     *
-    * @return a tuple where the first element is a `Number` representing the base value,
-    *         and the second element is an `Option[Number]` with a different `Factor` than the first element.
+    * @return a tuple where the first element is a `Field` representing the base value,
+    *         the second element is a `Rational` relating to the branch number,
+    *         and the third element is a `Field`, typically with a different `Factor` than the first element.
     */
-  def value: (Number, Option[Number])
+  def value: (Field, Rational, Field)
 
+  /**
+    * Method to compute the number of branches related to a specific computation or process.
+    * For example, a solution to a quadratic equation has two branches, one for the real part and one for the imaginary part.
+    *
+    * @return the number of branches as an integer.
+    */
   def branches: Int
 
   /**
@@ -46,7 +53,7 @@ abstract class Solution extends Field {
     * @param x the addend.
     * @return the sum.
     */
-  def add(x: Field): Field = ???
+  def add(x: Field): Field
 
   /**
     * Multiply this Field by x and return the result.
@@ -54,7 +61,7 @@ abstract class Solution extends Field {
     * * @param x the multiplicand.
     * * @return the product.
     */
-  def multiply(x: Field): Field = ???
+  def multiply(x: Field): Field
 
   /**
     * Divide this Field by x and return the result.
@@ -70,7 +77,7 @@ abstract class Solution extends Field {
     * @param p the exponent, provided as a Number.
     * @return the result of raising this Field to the power p.
     */
-  def power(p: Number): Field = ???
+  def power(p: Number): Field
 
   /**
     * Raise this Field to the power p.
@@ -129,7 +136,7 @@ abstract class Solution extends Field {
     * @param x the other Numerical.
     * @return true if they are most probably the same, otherwise false.
     */
-  def isSame(x: Numerical): Boolean = ???
+  def isSame(x: Numerical): Boolean
 
   /**
     * Method to determine if this Field has infinite magnitude.
@@ -231,5 +238,11 @@ abstract class Solution extends Field {
     */
   def render: String
 
+  /**
+    * Compares this `Field` with the specified `Field` for order.
+    *
+    * @param that the `Field` to be compared.
+    * @return a negative integer, zero, or a positive integer as this `Field` is less than, equal to, or greater than the specified `Field`.
+    */
   def compare(that: Field): Int = ???
 }

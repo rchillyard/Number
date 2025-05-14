@@ -62,6 +62,8 @@ case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
   lazy val signum: Int =
     n.signum
 
+  lazy val halve: Rational = this * Rational.half
+
   /**
     * Adds a BigInt value to this Rational number.
     *
@@ -849,6 +851,11 @@ object Rational {
     * the value of `bigOne`.
     */
   val one: Rational = Rational(bigOne)
+  /**
+    * Represents the negation of the `Rational` value `one`.
+    * The result is a `Rational` object equivalent to -1.
+    */
+  val negOne: Rational = one.negate
   /**
     * Represents a rational number with an infinite value, defined as the
     * inversion of the `zero` rational number.

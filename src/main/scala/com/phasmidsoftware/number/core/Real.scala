@@ -73,6 +73,7 @@ case class Real(x: Number) extends Field {
     case Real(y) => (x doSubtract y).isZero
     case c: Complex => c.isSame(this)
     case n: Number => isSame(Real(n))
+    case s: Solution => s.isSame(this)
   }
 
   /**
