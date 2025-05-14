@@ -7,6 +7,41 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 
 /**
+  * The `Equation` trait represents a mathematical equation that may have multiple solutions or branches.
+  * It provides methods for determining the number of branches and for solving the equation on a specified branch.
+  */
+trait Equation {
+
+  /**
+    * Method to compute the number of branches related to a specific computation or process.
+    * For example, a solution to a quadratic equation has two branches, one for the real part and one for the imaginary part.
+    *
+    * @return the number of branches as an integer.
+    */
+  def branches: Int
+
+  /**
+    * Attempts to find a solution for a mathematical equation corresponding to the given branch.
+    * Solutions are represented as an instance of the `Solution` class.
+    * If appropriate, a `Solution` can be converted into Complex form.
+    *
+    * @param branch the branch index for which the solution is being sought.
+    *               The branch index identifies specific solutions for equations that may have multiple solutions.
+    * @return an `Option[Solution]`, where `Some(solution)` contains the solution for the specified branch,
+    *         or `None` if no solution exists for the given branch.
+    */
+  def solve(branch: Int): Option[Solution]
+
+  /**
+    * Scales the current equation by multiplying it with the given rational factor.
+    *
+    * @param x the rational factor by which the equation is to be scaled.
+    * @return a new `Equation` instance representing the scaled equation.
+    */
+  def scale(x: Rational): Equation
+}
+
+/**
   * The `Solution` class is an abstract extension of the Field trait, representing a solution of a mathematical equation,
   * typically requiring two separate Number values, each with a different `Factor`..
   * In this sense it is very much parallel to ComplexPolar (thish has two number, each with a different `Factor`).
@@ -15,7 +50,7 @@ import com.phasmidsoftware.number.core.inner.{Factor, Rational}
   *
   * Concrete implementations of this abstract class must define the specific behavior for the operations provided.
   */
-abstract class Solution extends Field {
+abstract class Solution(branch: Int, equation: Equation) extends Field {
 
   /**
     * An optional name for this solution.
@@ -33,14 +68,6 @@ abstract class Solution extends Field {
     *         and the third element is a `Field`, typically with a different `Factor` than the first element.
     */
   def value: (Field, Rational, Field)
-
-  /**
-    * Method to compute the number of branches related to a specific computation or process.
-    * For example, a solution to a quadratic equation has two branches, one for the real part and one for the imaginary part.
-    *
-    * @return the number of branches as an integer.
-    */
-  def branches: Int
 
   /**
     * Method to determine if this Field is real-valued (i.e. the point lies on the real axis).
@@ -72,6 +99,14 @@ abstract class Solution extends Field {
     * * @return the product.
     */
   def multiply(x: Field): Field
+
+  /**
+    * Scales the solution by the given rational factor.
+    *
+    * @param x the factor by which to scale the solution, represented as a `Rational`.
+    * @return a new `Solution` instance that is scaled by the specified factor.
+    */
+  def scale(x: Rational): Solution
 
   /**
     * Divide this Field by x and return the result.
