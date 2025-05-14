@@ -1294,7 +1294,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
       case Aggregate(f, xs) =>
         em.Match(Aggregate(f, xs filterNot (x => f.maybeIdentityL.contains(x))))
       // Replace groups by next higher function
-      case Aggregate(f, xs) =>
+      case Aggregate(f, xs) => // NOTE: can never be reached!
         val keys = (xs groupBy (x => x)).keys to Seq
         em.Match(Aggregate(f, for (k <- keys) yield BiFunction(k, keys.size, f.nextHigherFunction)))
     }
@@ -2192,7 +2192,7 @@ abstract class ExpressionFunction(val name: String, val f: Field => Field) exten
   def evaluate(x: Expression)(context: Context): Option[Field] =
     for {
       a <- x.evaluate(paramContext(context))
-      f <- a.maybeFactor
+      f <- a.maybeFactor // CONSIDER why is f never used?
       z <- applyExact(a)
     } yield z
 

@@ -116,7 +116,7 @@ It's best always to use a String if you want to override the default behavior.
 In general, the form of a number to be parsed from a String is:
   
     number ::= value? factor?
-    factor ::= "Pi" | "pi" | "PI" | 𝛑 | 𝜀
+    factor ::= "Pi" | "pi" | "PI" | 𝛑 | 𝜀 | √ | ³√
     value ::= sign? nominalValue fuzz* exponent*
     nominalValue ::= integerPart ( "." fractionalPart )? | rational
     rational ::= digits "/" digits
@@ -129,7 +129,7 @@ In general, the form of a number to be parsed from a String is:
 Note that the __e__ and __pi__ symbols are, respectively,
 (in unicode):   \uD835\uDF00 and \uD835\uDED1 (&#xD835;&#xDF00; and &#xD835;&#xDED1;)  
 A number must have at least one of either the value or the factor components.
-If no explicit factor is specified, then the number will be a _Scalar_ (an ordinary number).
+If no explicit factor is specified, then the number will be a _PureNumber_ (an ordinary number).
 If you want to get exact trigonometric values, then it's important to specify the factor as pi (or e).
 
 Number creation
@@ -166,8 +166,8 @@ For example, the proton-electron mass ratio:
 Rendering
 =========
 The _render_ method is defined in the trait _NumberLike_ and thus is defined by all subtypes,
-including _Field_, _Number_, _Rational_, etc.
-For the prettiest output, you should use _render_ rather than _toString_.
+including _Field_, _Number_, _Rational_, Complex, etc.
+For the prettiest output, you should use _render_ rather than _toString_ (which is basically for debugging).
 
 Generally speaking, the output _String_ corresponding to a _Number_ will be the same as the input _String_,
 although that is not guaranteed.
@@ -182,7 +182,6 @@ For values which have a repeating sequence in decimal notation, the repeating se
 If the repeating sequence is too long (or too hard to identify), and if the denominator is less than 100,000,
 the number will render as a rational, i.e. numerator/denominator.
 Otherwise, the number will render as many digits as possible, with "..." added to the end.
-
 
 Fuzzy
 =====
@@ -262,6 +261,7 @@ We also support powers because, at least for integer powers, raising to a power 
 _Field_ extends _Numerical_ which, in turn, extends _NumberLike_ (see definitions below).
 
 The two types of _Field_ supported are _Real_ and _Complex_.
+As of V 1.2.0, there is an additional _Field_ type called _Solution_.
 _Real_ is a wrapper around a _Number_ (see below) while _Complex_ (see below) is a wrapper around two _Number_s (more or less).
 
 Number
@@ -277,7 +277,7 @@ _GeneralNumber_ has three members:
 
 Value
 =====
-The "value" of a _Number_ is represented by the following type:
+The "value" of a _Number_ is represented by the following type (see _com.phasmidsoftware.number.package.scala_):
 
     type Value = Either[Either[Option[Double], Rational], Int]
 
@@ -332,12 +332,21 @@ For example (see also _Complex.sc_),
     C"1-i1" : ComplexCartesian(1,-1)
     C"1ipi" : ComplexPolar(1,pi)
 
+Additionally (see below) it is possible to define imaginary values on their own using the following syntax:
+
+    val x = Number.i
+    import SquareRoot.IntToImaginary
+    val y = 2.i // to give 2i
+
 Factor
 ======
 There are three types of "factor:"
-* _PureNumber_, in particular, _Scalar_ (for ordinary dimensionless numbers), _Radian_ (used to represent radians or any multiple of $\pi$);
+* _Scalar_, in particular, _PureNumber_ (for ordinary dimensionless numbers), _Radian_ (used to represent radians or any multiple of $\pi$);
 * _Logarithmic_, in particular, _NatLog_, _Log2_, and _Log10_;
-* _Root(n)_, in particular: _Root2_ (for square roots) and _Root3_ (for cube roots).
+* _Root(n)_, in particular: _SquareRoot_ (for square roots) and _CubeRoot_ (for cube roots).
+
+As of V 1.0.2, _Root_ is a subclass of _InversePower_.
+The inverse power (which root) is a _Rational_ in the case of _InversePower_ but an _Int_ in the case of _Root_.
 
 These allow certain quantities to be expressed exactly, for example, $sin(\frac{\pi}{3})$ is the square root of $\frac{3}{4}$.
 The true (_Scalar_) values of the logarithmic numbers are
@@ -566,6 +575,11 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 Versions
 ========
 * Version 1.2.0: Another massive refactoring.
+    - In particular:
+    - ExpressionMatchers has undergone a complete re-write.
+    - Solution has been added as a Field type (with RQR as a subtype of Solution).
+    - Root classes have been refactored (now based on InversePower).
+    - 
 * Version 1.1.1: Massive refactoring: fixed many issues. Most significantly, expressions are evaluated in the context of a Factor.
 * Version 1.1.0: Significant refactoring:
     - Number is no longer a subtype of Field. Code should use the wrapper Real(number) to form a Field.
