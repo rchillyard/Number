@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.BaseComplex.narrow
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{negate, two, zero, zeroR}
+import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Literal
 import com.phasmidsoftware.number.misc.FP.recover
 

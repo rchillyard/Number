@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.FuzzyNumber.{Ellipsis, withinWiggleRoom}
 import com.phasmidsoftware.number.core.Number.prepareWithSpecialize
+import com.phasmidsoftware.number.core.inner._
 import scala.collection.mutable
 
 /**

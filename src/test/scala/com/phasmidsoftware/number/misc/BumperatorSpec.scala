@@ -1,6 +1,9 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.misc.Bumperator
+package com.phasmidsoftware.number.misc
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

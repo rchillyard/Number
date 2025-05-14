@@ -9,8 +9,9 @@ import com.phasmidsoftware.number
 import com.phasmidsoftware.number.core.Constants.root3
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{piBy2, root2, √}
-import com.phasmidsoftware.number.core.Rational.infinity
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, PureNumber, Radian, Rational, Real}
+import com.phasmidsoftware.number.core.inner.Rational.infinity
+import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational}
+import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.expression.Expression.em.DyadicTriple
@@ -1001,7 +1002,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z shouldBe em.Match(Literal(9))
   }
   it should "distributeProductSum b" in {
-    import com.phasmidsoftware.number.core.Rational.RationalHelper
+    import Rational.RationalHelper
     val x = Number("2.00")
     val y = Number("3.00")
     val a = BiFunction(One, Literal(x), Sum)

@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.inner.{PureNumber, SquareRoot, Value}
+
 /**
   * Trait to define the set in which a Number has membership.
   * Examples of sets are Z (the integers) and R (the real numbers).

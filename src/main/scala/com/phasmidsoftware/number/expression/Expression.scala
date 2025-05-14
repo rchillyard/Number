@@ -5,9 +5,10 @@
 package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.core.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.Number.convertInt
-import com.phasmidsoftware.number.core.{AnyContext, Approximatable, Complex, ComplexCartesian, ComplexPolar, Constants, Context, ExactNumber, Factor, Field, ImpossibleContext, Logarithmic, MonadicOperationAtan, Number, NumberException, NumberLike, Operations, PureNumber, Radian, Rational, Real, RestrictedContext, Root, SquareRoot, Value}
+import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
+import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.{Approximatable, Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, Number, NumberException, NumberLike, Real}
 import com.phasmidsoftware.number.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.misc.FP

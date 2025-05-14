@@ -4,8 +4,8 @@
   */
 
 import com.phasmidsoftware.number.core.Constants.one
-import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Real.RealOps
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.{Constants, Field, Fuzzy, Number, Real}
 
 val three: Field = 2 + one

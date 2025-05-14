@@ -1,6 +1,11 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.core.Value.{fromInt, fromRational}
+package com.phasmidsoftware.number.core.inner
+
+import com.phasmidsoftware.number.core.inner.Value.{fromInt, fromRational}
+import com.phasmidsoftware.number.core.{GeneralNumber, Number}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

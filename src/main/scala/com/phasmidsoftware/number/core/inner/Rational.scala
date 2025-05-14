@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.core
+package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
-import com.phasmidsoftware.number.core.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times}
+import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times}
+import com.phasmidsoftware.number.core.{BigNumber, Number, NumberLike, Prime}
 import com.phasmidsoftware.number.misc.FP.toTryWithRationalException
 import com.phasmidsoftware.number.misc.{ContinuedFraction, FP}
 import com.phasmidsoftware.number.parse.RationalParser
@@ -28,7 +29,7 @@ import scala.util.{Failure, Success, Try}
  *
  * @author scalaprof
  */
-case class Rational private[core] (n: BigInt, d: BigInt) extends NumberLike {
+case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
 
   // Pre-conditions
 
@@ -907,7 +908,7 @@ object Rational {
   /**
     * A constant value representing zero as a BigInt.
     */
-  private[core] lazy val bigZero: BigInt = BigInt(0)
+  private[inner] lazy val bigZero: BigInt = BigInt(0)
   /**
     * A constant value representing the big integer 1.
     */
@@ -915,7 +916,7 @@ object Rational {
   /**
     * A constant value representing the number 2 as a BigInt instance.
     */
-  private[core] lazy val bigTwo: BigInt = BigInt(2)
+  private[inner] lazy val bigTwo: BigInt = BigInt(2)
 
   /**
     * Implicit converter from BigInt to Rational.
@@ -954,7 +955,7 @@ object Rational {
     * This can be used in calculations or as a constant reference for
     * operations requiring the integer value 10 in the BigInt context.
     */
-  private[core] lazy val bigTen: BigInt = BigInt(10)
+  private[inner] lazy val bigTen: BigInt = BigInt(10)
 
   /**
    * Represents a Rational number with a numerator of `0` and a denominator of `-1`.
@@ -962,10 +963,10 @@ object Rational {
    * This is the only instance in the domain of Rational with a negative denominator.
    */
   private[core] lazy val negZero = new Rational(0, -1)
-  private[core] val negInfinity: Rational = new Rational(-1, 0)
-  private[core] val negZeroDouble: Double = "-0.0".toDouble // negative zero as a Double
-  private[core] lazy val pi_5000: Rational = Rational(sPi_5000)
-  private[core] lazy val sPi_5000: String =
+  private[inner] val negInfinity: Rational = new Rational(-1, 0)
+  private[inner] val negZeroDouble: Double = "-0.0".toDouble // negative zero as a Double
+  private[inner] lazy val pi_5000: Rational = Rational(sPi_5000)
+  private[inner] lazy val sPi_5000: String =
     """3.14159265358979323846264338327950288419716939937510582097494459230781640628
       |6208998628034825342117067982148086513282306647093844609550582231725359408128
       |4811174502841027019385211055596446229489549303819644288109756659334461284756

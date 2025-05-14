@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.core
+package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.misc.FP.{fail, toTryWithThrowable, tryF, tryMap}
@@ -106,7 +106,7 @@ case object MonadicOperationInvert extends MonadicOperation {
     */
   private def invertInt(x: Int): Try[Int] = x match {
     case 1 => Success(1)
-    case _ => Failure(NumberException("can't invert Int"))
+    case _ => Failure(OperationsException("can't invert Int"))
   }
 
   /**
@@ -169,7 +169,7 @@ case object MonadicOperationExp extends MonadicOperation {
     case 0 =>
       Success(1)
     case _ =>
-      Failure(NumberException("can't exp Int"))
+      Failure(OperationsException("can't exp Int"))
   }
 
   /**
@@ -225,14 +225,14 @@ case object MonadicOperationLog extends MonadicOperation {
 
   /**
     * Computes the natural logarithm of an integer. If the input is `1`, it returns `Success(0)`.
-    * For any other input, it returns a `Failure` with a `NumberException`.
+    * For any other input, it returns a `Failure` with a `OperationsException`.
     *
     * @param x the input integer to compute the natural logarithm for
     * @return a `Try[Int]` containing the result of the computation or an error if the input is invalid
     */
   private def logInt(x: Int): Try[Int] = x match {
     case 1 => Success(0)
-    case _ => Failure(NumberException("can't log Int"))
+    case _ => Failure(OperationsException("can't log Int"))
   }
 
   /**
@@ -295,7 +295,6 @@ case object MonadicOperationSin extends MonadicOperation {
     * This function considers that for any integral angle (in radians), the sine value is zero.
     * XXX any integral angle (in radians) results in a zero sine value.
     *
-    * @param x an integral angle in radians.
     * @return a Try[Int], where the sine value is always 0.
     */
   private lazy val sinInt: Int => Try[Int] = tryF(_ => 0)
@@ -326,7 +325,7 @@ case object MonadicOperationSin extends MonadicOperation {
             case t if t % 4 == 3 =>
               Success(Rational.one.negate)
             case _ =>
-              Failure(NumberException("sine cannot be exact Rational"))
+              Failure(OperationsException("sine cannot be exact Rational"))
           }
         case (n, `six`) if n.isValidInt =>
           n.toInt match {
@@ -335,10 +334,10 @@ case object MonadicOperationSin extends MonadicOperation {
             case t if t % 12 == 7 || t % 12 == 11 =>
               Success(Rational.half.negate)
             case _ =>
-              Failure(NumberException("sine cannot be exact Rational"))
+              Failure(OperationsException("sine cannot be exact Rational"))
           }
         case _ =>
-          Failure(NumberException("sine cannot be exact Rational"))
+          Failure(OperationsException("sine cannot be exact Rational"))
       }
 
   /**
@@ -351,7 +350,6 @@ case object MonadicOperationSin extends MonadicOperation {
     * This functionality is specific to the class `MonadicOperationSin` and assumes logical
     * integrity constraints within class methods for handling sine operations.
     *
-    * @param x a `Rational` input to the function.
     * @return a `Try[Rational]`, either the sine value as a `Rational` if successful,
     *         or a failure due to invalid conditions or calculation errors.
     */
@@ -359,7 +357,7 @@ case object MonadicOperationSin extends MonadicOperation {
     if (!x.invert.isWhole)
       sinDouble(x.toDouble).flatMap(Rational.createExact)
     else
-      Failure(NumberException("MonadicOperationSin: logic error: whole Rational"))
+      Failure(OperationsException("MonadicOperationSin: logic error: whole Rational"))
 
   /**
     * Computes the sine of the input value multiplied by π.
@@ -452,7 +450,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     case Rational.one =>
       Success(Rational.one / 4)
     case _ =>
-      Failure(NumberException("atan cannot be Rational"))
+      Failure(OperationsException("atan cannot be Rational"))
   }
 }
 
@@ -543,9 +541,9 @@ case object MonadicOperationSqrt extends MonadicOperation {
   val fuzz: Int = 3
 
   private lazy val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
-    x => toTryWithThrowable(Rational.squareRoots.get(x), NumberException("Cannot create Int from Double"))
+    x => toTryWithThrowable(Rational.squareRoots.get(x), OperationsException("Cannot create Int from Double"))
 
-  private lazy val sqrtRat: Rational => Try[Rational] = x => FP.toTry(x.root(2), Failure(NumberException("Cannot get exact square root")))
+  private lazy val sqrtRat: Rational => Try[Rational] = x => FP.toTry(x.root(2), Failure(OperationsException("Cannot get exact square root")))
 
 }
 
@@ -557,8 +555,8 @@ case object MonadicOperationSqrt extends MonadicOperation {
 case class MonadicOperationScale(r: Rational) extends MonadicOperation {
 
   /**
-    * A `MonadicFunctions` value containing a tuple of functions each responsible for scaling a specific numeric type (`Int`, `Rational`, and `Double`) by a given scaling factor `
-    * r`.
+    * A `MonadicFunctions` value containing a tuple of functions each responsible for scaling a specific numeric type
+    * (`Int`, `Rational`, and `Double`) by a given scaling factor `r`.
     *
     * - `fInt`: Defined for scaling `Int` values by `r` when `r` is a whole number. If `r` is not a whole number, an error is returned.
     * - `fRational`: A function for scaling `Rational` values by the given `Rational` `r`.
@@ -719,7 +717,7 @@ case object DyadicOperationPower extends DyadicOperation {
     * Computes the power of an integer raised to a non-negative integer exponent.
     *
     * The method computes the power `x^p` where `x` is the base and `p` is the exponent.
-    * If the exponent is negative, the operation fails with a `NumberException`.
+    * If the exponent is negative, the operation fails with a `OperationsException`.
     * If the result exceeds the range of type `Int`, the operation fails with
     * a `RationalException` during precision narrowing.
     *
@@ -732,7 +730,7 @@ case object DyadicOperationPower extends DyadicOperation {
     if (p >= 0)
       Rational.narrow(BigInt(x).pow(p), Int.MinValue, Int.MaxValue).map(_.toInt)
     else
-      Failure(NumberException("negative power (Int)"))
+      Failure(OperationsException("negative power (Int)"))
 }
 
 
@@ -891,11 +889,11 @@ object Operations {
 
     def tryDouble(xo: Option[Double]): Try[Value] = xo match {
       case Some(n) => FP.sequence(for (y <- Value.maybeDouble(other)) yield fDouble(n, y)) map Value.fromDouble
-      case None => Failure(NumberException("number is invalid")) // NOTE this case is not observed in practice
+      case None => Failure(OperationsException("number is invalid")) // NOTE this case is not observed in practice
     }
 
     def tryConvert[X](x: X, msg: String)(extract: Value => Option[X], func: (X, X) => Try[X], g: X => Value): Try[Value] =
-      toTryWithThrowable(for (y <- extract(other)) yield func(x, y) map g, NumberException(s"other is not a $msg")).flatten
+      toTryWithThrowable(for (y <- extract(other)) yield func(x, y) map g, OperationsException(s"other is not a $msg")).flatten
 
     def tryRational(x: Rational): Try[Value] = tryConvert(x, "Rational")(v => Value.maybeRational(v), fRational, Value.fromRational)
 
@@ -937,3 +935,5 @@ object Operations {
   }
 
 }
+
+case class OperationsException(msg: String) extends Exception(msg)

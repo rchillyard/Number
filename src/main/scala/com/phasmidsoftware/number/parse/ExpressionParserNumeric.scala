@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.core.inner.Rational
 import scala.util.Try
 
 /**

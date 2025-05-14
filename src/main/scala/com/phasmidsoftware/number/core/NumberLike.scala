@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.inner.Factor
+
 /**
   * Trait to define the behavior of things that are number-like.
   */

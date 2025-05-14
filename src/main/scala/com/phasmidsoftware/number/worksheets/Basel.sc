@@ -2,7 +2,8 @@
   * This worksheet illustrates the solution to the Basel problem -- approximation of pi.
   */
 
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Number, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Rational, Value}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Number}
 
 def inverseSquare(x: Int): Rational = Rational.one / (x * x)
 

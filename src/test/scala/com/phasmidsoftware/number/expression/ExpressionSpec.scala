@@ -7,7 +7,8 @@ package com.phasmidsoftware.number.expression
 import com.phasmidsoftware.matchers.Matchers.TildeOps
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Radian, Real, SquareRoot}
+import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
+import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, pi}
 import com.phasmidsoftware.number.parse.ShuntingYardParser

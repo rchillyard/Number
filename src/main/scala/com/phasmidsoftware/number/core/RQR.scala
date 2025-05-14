@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{one, two}
 import com.phasmidsoftware.number.core.Real.NaN
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, SquareRoot, Value}
 
 /**
   * An abstract class representing a root of a reduced quadratic equation of the form `x^2 + px + q = 0`

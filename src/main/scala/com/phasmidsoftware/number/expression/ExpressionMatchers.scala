@@ -6,8 +6,9 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.Constants.{half, piBy2}
-import com.phasmidsoftware.number.core.Rational.infinity
-import com.phasmidsoftware.number.core.{AnyContext, Constants, Context, ExactNumber, Field, Number, PureNumber, Real, RestrictedContext, SquareRoot}
+import com.phasmidsoftware.number.core.inner.Rational.infinity
+import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.matchers._
 import com.phasmidsoftware.number.misc.Bumperator

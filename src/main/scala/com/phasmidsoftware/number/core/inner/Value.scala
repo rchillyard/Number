@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.core
+package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.Render.renderValue
+import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.Render.renderValue
 import com.phasmidsoftware.number.misc.FP._
 import scala.util._
 

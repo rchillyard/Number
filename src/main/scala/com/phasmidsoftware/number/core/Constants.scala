@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.inner.{Rational, Value}
+
 /**
   * Definitions of constant fields.
   */
@@ -54,7 +56,7 @@ object Constants {
     * A predefined constant representing negative infinity as a real number.
     * This is constructed using a `Number` wrapping the rational representation of negative infinity.
     */
-  val negInfinity: Real = Real(Number(Rational.negInfinity))
+  val negInfinity: Real = Real(Number(Rational.infinity.negate))
   /**
     * Represents the mathematical constant π (pi) as a `Real` object.
     * π is the ratio of the circumference of a circle to its diameter,

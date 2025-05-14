@@ -6,7 +6,8 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{inverse, negate}
-import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
+import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
+import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.{Expression, ExpressionException}
 import com.phasmidsoftware.number.misc.FP.{optional, toTry}
 import com.phasmidsoftware.number.parse.NumberParser

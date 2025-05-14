@@ -2,8 +2,9 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Number.{negate, zeroR}
-import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Real.RealIsOrdering
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational, SquareRoot}
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
@@ -435,7 +436,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for 2/3" in {
     val target = Constants.two
-    import com.phasmidsoftware.number.core.Rational.RationalOps
+    import Rational.RationalOps
     nf.div(target, Real(3)) shouldBe Real(Number(2 :/ 3))
   }
 

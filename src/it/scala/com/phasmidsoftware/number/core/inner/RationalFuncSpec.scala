@@ -1,12 +1,10 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, negZeroDouble, pi_5000}
-import org.scalatest.matchers.should
-import org.scalatest.tagobjects.Slow
-import org.scalatest.{PrivateMethodTester, flatspec}
+package com.phasmidsoftware.number.core.inner
 
-import scala.language.postfixOps
-import scala.util.{Failure, Success, Try}
+import com.phasmidsoftware.number.core.inner.Rational.pi_5000
 
 /**
   * @author scalaprof

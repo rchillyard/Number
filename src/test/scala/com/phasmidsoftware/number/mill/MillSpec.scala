@@ -1,7 +1,8 @@
 package com.phasmidsoftware.number.mill
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.{Field, FuzzyEquality, NatLog, Number, Rational, Real}
+import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
+import com.phasmidsoftware.number.core.{Field, FuzzyEquality, Number, Real}
 import com.phasmidsoftware.number.expression.{Expression, Literal}
 import com.phasmidsoftware.number.mill.Mill.parseInfix
 import com.phasmidsoftware.number.parse.MillParser

@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
 import com.phasmidsoftware.number.expression.Literal
 import com.phasmidsoftware.number.misc.FP.recover
 import com.phasmidsoftware.number.parse.ComplexParser

@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.util.Try
 
 /**
@@ -119,7 +120,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
   private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzziness[Double]] = Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
 
-  import com.phasmidsoftware.number.core.Factor._
+  import Factor._
 
   def factor: Parser[Factor] = (sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("factor")) :| "factor" ^^ { w => Factor(w) }
 }

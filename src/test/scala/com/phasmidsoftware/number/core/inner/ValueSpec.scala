@@ -1,6 +1,10 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.core.Value._
+package com.phasmidsoftware.number.core.inner
+
+import com.phasmidsoftware.number.core.inner.Value._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

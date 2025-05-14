@@ -4,7 +4,8 @@ import com.phasmidsoftware.number.core.Constants.{sGamma, sPhi}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Fuzziness.showPercentage
 import com.phasmidsoftware.number.core.Number.{negate, twoPi}
-import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.expression.{ConstPi, Expression, Literal}
 import org.scalactic.Equality
@@ -388,7 +389,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for 3pi/2" in {
     val target = Number.piBy2 doMultiply Number(3)
-    target.tan shouldBe Number(Rational.negInfinity, PureNumber)
+    target.tan shouldBe Number(Rational.infinity.negate, PureNumber)
   }
   it should "work for 3.141592653589793" in {
     val target = Number("3.1415926535897932384626433")

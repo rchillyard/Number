@@ -2,7 +2,9 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.core
+package com.phasmidsoftware.number.core.inner
+
+import com.phasmidsoftware.number.core.Field
 
 /**
   * Represents a trait for specifying in which evaluation-contexts a particular expression may be evaluated.
@@ -23,6 +25,8 @@ trait Context {
 
   /**
     * Checks if the given `Field` qualifies based on its associated factor, if any.
+    *
+    * CONSIDER moving Field into inner package.
     *
     * @param f the field to evaluate.
     * @return true if the field's associated factor qualifies, or if no factor is associated; false otherwise.

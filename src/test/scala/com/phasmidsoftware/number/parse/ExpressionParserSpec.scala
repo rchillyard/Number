@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 import scala.util._

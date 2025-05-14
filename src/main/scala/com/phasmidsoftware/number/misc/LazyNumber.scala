@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.core.Rational
+import com.phasmidsoftware.number.core.inner.Rational
 
 /**
   * LazyNumber is an abstract (base) class for Valuable objects.

@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+
 /**
   * The `Solution` class is an abstract extension of the Field trait, representing a solution of a mathematical equation,
   * typically requiring two separate Number values, each with a different `Factor`..

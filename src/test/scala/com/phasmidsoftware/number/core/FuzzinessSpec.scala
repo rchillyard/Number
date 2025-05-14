@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sG
 import com.phasmidsoftware.number.core.Fuzziness.{createFuzz, monadicFuzziness}
+import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Literal
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec

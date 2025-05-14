@@ -3,7 +3,8 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.sBoltzmann
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{NumberIsOrdering, negate, one, root2, zero}
-import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, convertFieldToExpression}
 import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
@@ -501,7 +502,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     result should ===(expected)
   }
   it should "work for Log2, NatLog" in {
-    import com.phasmidsoftware.number.core.Rational.RationalOps
+    import Rational.RationalOps
     val target = Number(1 :/ 2, Log2)
     target.render shouldBe "√2"
     val expected = Number(math.log(math.sqrt(2)), NatLog)
@@ -1323,7 +1324,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for 2/3" in {
     val target = Number.two
-    import com.phasmidsoftware.number.core.Rational.RationalOps
+    import Rational.RationalOps
     nf.div(target, Number(3)) shouldBe Number(2 :/ 3)
   }
 

@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.inner._
+
 /**
   * This class is designed to model an exact Numeral.
   * See GeneralNumber for more details on the actual representation.
