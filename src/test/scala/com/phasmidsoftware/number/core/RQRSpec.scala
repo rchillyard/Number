@@ -42,7 +42,7 @@ class RQRSpec extends AnyFlatSpec with Matchers {
     resultingValue shouldBe expected
   }
   it should "value 2" in {
-    val target = RQR("test", Rational.one, Rational.negOne, pos = true)
+    val target = RQR(Some("test"), Rational.one, Rational.negOne, pos = true)
     val expected = RQR.phi.invert
     println(s"${target.normalize}, ${expected.normalize}")
     target shouldBe expected
@@ -50,7 +50,7 @@ class RQRSpec extends AnyFlatSpec with Matchers {
 
   }
   it should "value 3" in {
-    val target = RQR("test", Rational.three.negate, Rational.one, pos = true)
+    val target = RQR(Some("test"), Rational.three.negate, Rational.one, pos = true)
     println(s"${target.normalize}")
     val (n1, r, n2) = target.value
     n1 shouldBe Real(Rational(3, 2))

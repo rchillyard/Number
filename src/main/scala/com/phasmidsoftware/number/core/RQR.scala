@@ -20,7 +20,7 @@ import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, SquareRoot, 
   * @param q The constant term in the reduced quadratic equation.
   * @param pos Determines if the positive or negative branch of the root is chosen.
   */
-case class RQR(name: String, p: Rational, q: Rational, pos: Boolean) extends Solution {
+case class RQR(override val maybeName: Option[String], p: Rational, q: Rational, pos: Boolean) extends Solution {
   require(!p.isZero || !q.isZero, "may not have p and q equal to zero")
   // TODO remove the following restriction--there's no reason why we cannot have complex solutions
   require(discriminant >= 0, "discriminant must not be negative")
@@ -227,7 +227,7 @@ case class RQR(name: String, p: Rational, q: Rational, pos: Boolean) extends Sol
     *
     * @return a String
     */
-  def render: String = name
+  def render: String = maybeName getOrElse toString
 
   /**
     * Determines if the given object can be considered equal to this instance.
@@ -277,9 +277,9 @@ case class RQR(name: String, p: Rational, q: Rational, pos: Boolean) extends Sol
   * Provides an unapply method for pattern matching.
   */
 object RQR {
-  def unapply(rqr: RQR): Option[(String, Rational, Rational, Boolean)] =
-    Some(rqr.name, rqr.p, rqr.q, rqr.pos)
+  def unapply(rqr: RQR): Option[(Option[String], Rational, Rational, Boolean)] =
+    Some(rqr.maybeName, rqr.p, rqr.q, rqr.pos)
 
-  val phi = new RQR("\uD835\uDED7", -1, -1, true)
-  val psi = new RQR("\uD835\uDED9", -1, -1, false)
+  val phi = new RQR(Some("\uD835\uDED7"), -1, -1, true)
+  val psi = new RQR(Some("\uD835\uDED9"), -1, -1, false)
 }

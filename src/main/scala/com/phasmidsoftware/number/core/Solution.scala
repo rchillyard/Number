@@ -18,6 +18,14 @@ import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 abstract class Solution extends Field {
 
   /**
+    * An optional name for this solution.
+    *
+    * @return an `Option[String]` representing the name.
+    *         Returns `None` if no name is available.
+    */
+  def maybeName: Option[String] = None
+
+  /**
     * This method computes two values:  based on the provided branch index.
     *
     * @return a tuple where the first element is a `Field` representing the base value,
