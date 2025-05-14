@@ -22,9 +22,27 @@ import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, SquareRoot, 
   * @param q The constant term in the reduced quadratic equation.
   * @param pos Determines if the positive or negative branch of the root is chosen.
   */
-case class Solution_RQR(override val maybeName: Option[String], val equation: Equation, pos: Boolean) extends Solution(if (pos) 0 else 1, equation) {
+case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution(if (pos) 0 else 1, equation) {
 
+  /**
+    * Represents the computed result of casting the `equation` field to the specific type `RQR`.
+    * This value is derived by performing a type-casting operation on the `equation` property.
+    */
   val rqr: RQR = equation.asInstanceOf[RQR]
+
+  /**
+    * Returns an optional name for the current `Solution_RQR` instance based on its
+    * state and branch index.
+    *
+    * This method determines the branch index by evaluating the boolean condition `pos`.
+    * If `pos` is true, the branch index is 0; otherwise, it is 1. The resulting branch
+    * index is passed to the `maybeName` method of the `rqr` field to retrieve the
+    * associated name.
+    *
+    * @return an `Option[String]` containing the symbolic name for the corresponding
+    *         branch, or `None` if no name is applicable.
+    */
+  override def maybeName: Option[String] = rqr.maybeName(if (pos) 0 else 1)
 
   /**
     * Method to render this NumberLike in a presentable manner.
@@ -54,12 +72,15 @@ case class Solution_RQR(override val maybeName: Option[String], val equation: Eq
     * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
     * For a complex number, we get the signum of the real part.
     *
+    * TESTME
+    *
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
     */
-  def signum: Int = ???
+  def signum: Int = normalize.signum
 
   /**
     * Scales the current `Solution_RQR` instance by a given `Rational` value.
+    * TESTME
     *
     * @param x the scaling factor represented as a `Rational`.
     * @return a new `Solution_RQR` instance with scaled values of `p` and `q`.
@@ -107,6 +128,8 @@ case class Solution_RQR(override val maybeName: Option[String], val equation: Eq
   /**
     * Raises this Field to the power of the specified number.
     *
+    * TESTME
+    *
     * @param p the exponent, provided as a Number.
     * @return the result of raising this Field to the power p.
     */
@@ -127,7 +150,6 @@ case class Solution_RQR(override val maybeName: Option[String], val equation: Eq
     case _ =>
       ???
   }
-
 
   /**
     * Yields the inverse of this Field.
@@ -157,7 +179,6 @@ case class Solution_RQR(override val maybeName: Option[String], val equation: Eq
           false
       }
   }
-
 
   /**
     * Method to determine if this Field is real-valued (i.e. the point lies on the real axis).
@@ -260,7 +281,6 @@ case class Solution_RQR(override val maybeName: Option[String], val equation: Eq
 
 }
 
-
 /**
   * An abstract class representing a root of a reduced quadratic equation of the form `x^2 + px + q = 0`
   * The value of the root is `(-p/2) ± sqrt((-p/2)^2 - q)`.
@@ -310,7 +330,7 @@ case class RQR(p: Rational, q: Rational) extends Equation {
     */
   def solve(branch: Int): Option[Solution] =
     if (branch >= 0 && branch < 2)
-      Some(Solution_RQR(None, this, branch == 0))
+      Some(Solution_RQR(this, branch == 0))
     else
       None
 
@@ -323,6 +343,7 @@ case class RQR(p: Rational, q: Rational) extends Equation {
 
   /**
     * Yields the inverse of this Equation. CONSIDER Does this make sense??
+    * CONSIDER should we make it an abstract method on Equation?
     */
   def invert: Equation =
     scale(q.invert)
@@ -378,6 +399,6 @@ object Solution_RQR {
     Some(rqr.maybeName, rqr.equation, rqr.pos)
 
 
-  val phi = new Solution_RQR(Some("\uD835\uDED7"), goldenRatioEquation, true)
-  val psi = new Solution_RQR(Some("\uD835\uDED9"), goldenRatioEquation, false)
+  val phi = new Solution_RQR(goldenRatioEquation, true)
+  val psi = new Solution_RQR(goldenRatioEquation, false)
 }

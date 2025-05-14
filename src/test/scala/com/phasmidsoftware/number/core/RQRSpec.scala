@@ -11,15 +11,13 @@ import org.scalatest.matchers.should.Matchers
 
 class RQRSpec extends AnyFlatSpec with Matchers {
 
-  behavior of "Solution_RQR"
+  behavior of "RQR"
 
   it should "normalize" in {
     val expected: Real = Constants.phi
     val phi = Solution_RQR.phi.normalize
-    println(s"$phi")
     phi.isSame(expected) shouldBe true
     val psi = Solution_RQR.psi.normalize
-    println(s"$psi")
     psi.isSame(Real(-0.618033)) shouldBe true
   }
 
@@ -44,18 +42,15 @@ class RQRSpec extends AnyFlatSpec with Matchers {
   it should "value 2" in {
     val equation = RQR.goldenRatioEquation
     val otherEquation = RQR(1, -1)
-    //    equation shouldBe otherEquation
-    val target = Solution_RQR(Some("test"), otherEquation, pos = true)
+    val target = Solution_RQR(otherEquation, pos = true)
     val expected = Solution_RQR.phi.invert
-    println(s"${target.normalize}, ${expected.normalize}")
     target.value shouldBe expected.value
     target.normalize.isSame(Real(0.618033)) shouldBe true
 
   }
   it should "value 3" in {
     val equation = RQR(Rational.three.negate, Rational.one)
-    val target = Solution_RQR(Some("test"), equation, pos = true)
-    println(s"${target.normalize}")
+    val target = Solution_RQR(equation, pos = true)
     val (n1, r, n2) = target.value
     n1 shouldBe Real(Rational(3, 2))
     val resultingValue: Field = r * n2
@@ -77,21 +72,20 @@ class RQRSpec extends AnyFlatSpec with Matchers {
   it should "product" in {
     val actual = Solution_RQR.phi * Solution_RQR.psi
     val expected = Solution_RQR.phi.equation.asInstanceOf[RQR].q
-    println(s"$actual, $expected")
     actual shouldBe Real(expected)
   }
 
   it should "square" in {
     val actual = Solution_RQR.phi.square
+    // XXX phi^2 = phi + 1 (see https://en.wikipedia.org/wiki/Golden_ratio)
     val expected = Solution_RQR.phi add Real(1)
     actual shouldBe expected
-    println(s"${actual.normalize}")
   }
 
   it should "invert" in {
     val actual = Solution_RQR.phi.invert
+    // XXX 1/phi = phi - 1 (see https://en.wikipedia.org/wiki/Golden_ratio)
     val expected = Solution_RQR.phi add Real(-1)
-    println(s"$actual, $expected")
     actual.isSame(expected) shouldBe true
   }
 }
