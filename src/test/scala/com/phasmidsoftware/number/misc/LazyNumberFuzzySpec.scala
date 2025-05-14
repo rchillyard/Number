@@ -12,6 +12,7 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   private val fuzz1 = LazyFuzzy(1)
   private val fuzz2 = LazyFuzzy(1, Product(2))
+  private val fuzz2z = LazyFuzzy(Gaussian(2, 0.1))
 
   def squ(x: Fuzzy): Fuzzy = x match {
     case f: FuzzyBase => f * x
@@ -57,9 +58,10 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     (fuzz2 + fuzz1 + LazyFuzzy(Exact(3))).get shouldBe Exact(6)
   }
 
-  ignore should "be 3 when added to one by explicit function" in {
-//        val lr = fuzz2 map Named("add Rat.1",{ x => x+Fuzzy.one })
-//        lr.get shouldBe (Fuzzy.one*3)
+  it should "be 3 when added to one by explicit function" in {
+    //val lr = fuzz2 map Named("add Rat.1",{ x => x + Fuzzy.one })
+    val lr = fuzz2 map Named("add Rat.1", { x: Fuzzy => Fuzzy.sum(x, Fuzzy.one) })  //fixed
+    lr.get shouldBe (Fuzzy.one * 3)
   }
 
   "fuzzy for comprehension" should "give 4" in {
@@ -67,24 +69,26 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     z.get should be(Exact(4))
   }
 
-  behavior of "fuzzy composition"
-  ignore should "work" in {
-    val p = fuzz1.map(ExpDifferentiable[Fuzzy]())
-    println(s"p: $p")
-    println(s"p.get: ${p.get}")
-    p.get should be(2.718281828459045)
+  behavior of "fuzzy composition" //fixed
+  it should "work" in {
+    val p = fuzz1.map(ExpDifferentiable[Fuzzy]()(Fuzzy.FuzzyNumeric))
+    val z = p.get
+//    z should be(2.718281828459045)
+    p.get shouldBe Exact(2.7182818284590455)
   }
-  ignore should "work with fuzzy 1" in {
+  it should "work with fuzzy 1" in {
     val f = LazyFuzzy(Bounded(1, 1E-3))
-    val p = f.map(ExpDifferentiable[Fuzzy]())
-    println(s"p: $p")
-    println(s"p.get: ${p.get}")
-    p.get should be(2.718281828459045)
+    val p = f.map(ExpDifferentiable[Fuzzy]()(FuzzyNumeric))
+//    p.get should be(2.718281828459045)
+    p.get shouldBe Bounded(2.7182818284590455, 1E-3)
   }
 
+  // TODO understand why this would ever have worked!
+  // fuzz2 = LazyFuzzy(1, Product(2))
+  // fuzz4 = fuzz2 map fuzzSquare
   ignore should "give 8" in {
-//      val z = for (x <- fuzz2; y <- fuzz4 ) yield x.y
-//      z.get should be (Exact(8))
+    val z = for (x <- fuzz2; y <- fuzz4) yield x.power(y)
+    z.get should be(Exact(8))
   }
 
 }

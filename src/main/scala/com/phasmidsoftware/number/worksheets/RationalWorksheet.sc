@@ -4,8 +4,8 @@
   * including the :/ operator, as well as the r-interpolator.
   */
 
-import com.phasmidsoftware.number.core.Rational
-import com.phasmidsoftware.number.core.Rational._
+import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.inner.Rational._
 
 val two: Rational = 1 + 1
 two.render// should be Rational 2

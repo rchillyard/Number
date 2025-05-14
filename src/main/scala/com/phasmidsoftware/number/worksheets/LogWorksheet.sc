@@ -2,7 +2,8 @@
   * This worksheet illustrates the use of Log-factor numbers..
   */
 
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, NatLog, Number}
+import com.phasmidsoftware.number.core.inner.NatLog
+import com.phasmidsoftware.number.core.{Constants, ExactNumber, Number}
 
 // One way to express e
 ExactNumber(1, NatLog)

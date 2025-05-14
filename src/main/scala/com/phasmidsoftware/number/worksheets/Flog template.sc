@@ -3,7 +3,8 @@
   */
 
 import com.phasmidsoftware.flog.{Flog, Loggable, Loggables}
-import com.phasmidsoftware.number.core.{Field, GeneralNumber, Number, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Rational, Value}
+import com.phasmidsoftware.number.core.{Field, GeneralNumber, Number}
 
 val flog: Flog = Flog[GeneralNumber]
 

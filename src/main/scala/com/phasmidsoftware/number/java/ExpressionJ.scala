@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.number.java
 
-import com.phasmidsoftware.number.core.Expression
+import com.phasmidsoftware.number.expression.Expression
 
 object ExpressionJ {
 
-  import com.phasmidsoftware.number.core.Expression.ExpressionOps
+  import Expression.ExpressionOps
 
   def add(x: Expression, y: Expression): Expression = x + y
 

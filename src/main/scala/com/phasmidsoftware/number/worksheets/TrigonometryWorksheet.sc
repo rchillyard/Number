@@ -1,6 +1,7 @@
 import com.phasmidsoftware.number.core.Constants.{e, i, pi, piBy2}
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
-import com.phasmidsoftware.number.core.{Expression, Number}
+import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.expression.Expression
+import com.phasmidsoftware.number.expression.Expression.ExpressionOps
 
 /**
   * This worksheet demonstrates some of the trigonometric expressions and identities.

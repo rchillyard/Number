@@ -6,9 +6,9 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.Valuable.ValuableDouble
-import org.apache.commons.math3.special.Erf.erfInv
-
+import com.phasmidsoftware.number.core.inner.MonadicOperation
 import java.text.DecimalFormat
+import org.apache.commons.math3.special.Erf.erfInv
 import scala.math.Numeric.DoubleIsFractional
 import scala.util.Try
 

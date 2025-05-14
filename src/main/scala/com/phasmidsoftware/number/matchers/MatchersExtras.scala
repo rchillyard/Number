@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.matchers
 
 import com.phasmidsoftware.matchers.Matchers.TildeOps
 import com.phasmidsoftware.matchers.{MatcherException, Matchers, ~}
-
 import scala.languageFeature.implicitConversions
 
 /**
@@ -16,7 +15,6 @@ import scala.languageFeature.implicitConversions
   * CONSIDER why to we need this trait?
   */
 trait MatchersExtras extends Matchers {
-
 
   /**
     * Method to create a Matcher which operates on an instance of a case class (or other Product) P but which invokes m (which takes a 2-tuple).

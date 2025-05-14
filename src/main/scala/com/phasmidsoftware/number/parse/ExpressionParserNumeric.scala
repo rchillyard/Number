@@ -1,6 +1,10 @@
-package com.phasmidsoftware.number.misc
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.core.Rational
+package com.phasmidsoftware.number.parse
+
+import com.phasmidsoftware.number.core.inner.Rational
 import scala.util.Try
 
 /**

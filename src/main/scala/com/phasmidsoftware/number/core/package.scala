@@ -4,45 +4,7 @@
 
 package com.phasmidsoftware.number
 
-import scala.util.{Either, Try}
-
 package object core {
-
-  /**
-   * This is the type of the nominalValue parameter of a GeneralNumber.
-    *
-    * There is a companion object to this type in module Value.scala.
-    */
-  type Value = Either[Either[Option[Double], Rational], Int]
-
-  /**
-    * Type alias for the dyadic functions, a tuple of three functions, corresponding to the functions for Int, Rational and Double representations.
-    */
-  type DyadicFunctions = ((Int, Int) => Try[Int], (Rational, Rational) => Try[Rational], (Double, Double) => Try[Double])
-
-  /**
-    * Type alias for the monadic functions, a tuple of three functions, corresponding to the functions for Int, Rational and Double representations.
-    */
-  type MonadicFunctions = (Int => Try[Int], Rational => Try[Rational], Double => Try[Double])
-
-  /**
-   * Represents the context in which an evaluation occurs.
-   *
-   * If a `Factor` is defined, it signifies the factor (Scalar, Log, Radian, etc.)
-   * in which an expression must be evaluated.
-   * Otherwise, there is no explicit factor.
-   */
-  type Context = Option[Factor]
-
-  /**
-    * Type alias for the Boolean query functions.
-    */
-  type BooleanQueryFunctions = QueryFunctions[Boolean]
-
-  /**
-    * Type alias for the Int query functions.
-    */
-  type IntQueryFunctions = QueryFunctions[Int]
 
   /**
     * This is the (approximate) error bound on double precision numbers.

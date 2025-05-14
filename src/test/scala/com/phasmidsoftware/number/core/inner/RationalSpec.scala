@@ -1,6 +1,11 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.core.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, negZeroDouble, pi_5000}
+package com.phasmidsoftware.number.core.inner
+
+import com.phasmidsoftware.number.core.Prime
+import com.phasmidsoftware.number.core.inner.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, negZeroDouble, pi_5000}
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
 import scala.language.postfixOps
@@ -199,11 +204,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "be true for 3.14" in {
     createExact(3.14).get.isDecimal shouldBe true
   }
-  // FIXME Issue #85
-  ignore should "be false for 223606797749979/200000000000000" in {
+  // XXX Was posted as Issue #85 which is still open
+  it should "be true for 223606797749979/200000000000000" in {
     val target = r"223606797749979/200000000000000"
     target.isDecimal shouldBe true
-    target.renderConditional(true) shouldBe "223606797749979/200000000000000"
+    target.renderConditional(true) shouldBe("1.118033988749895", true)
+    target.toString shouldBe "223606797749979/200000000000000"
   }
 
   behavior of "toBigInt"
@@ -326,7 +332,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "division"
   it should "work for 6 / 10 / 3" in {
-    import com.phasmidsoftware.number.core.Rational.RationalOps
+    import Rational.RationalOps
     // CONSIDER why do we have to use parentheses here?
     val r: Rational = (6 :/ 10) / 3
     r shouldBe Rational(5).invert
@@ -649,7 +655,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     r.toString shouldBe "7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000"
   }
   it should "work for various prime denominators" in {
-    import com.phasmidsoftware.number.core.Rational._
+    import Rational._
 
     (3 :/ 4 toString) shouldBe "3/4"
     (4 :/ 5 toString) shouldBe "4/5"
@@ -669,8 +675,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(2, 3)
     r.render shouldBe "0.<6>"
   }
-  it should "be decimal when not exact: pi" in {
+  it should "be decimal when not exact: pi" in { //fixed
     val pi = Rational(BigDecimal(math.Pi))
+
+    //pi.isExactDouble shouldBe true
     pi.render shouldBe "3.141592653589793"
   }
   it should "work for NaN" in {
@@ -691,7 +699,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     r.render shouldBe "0.5772156649015328606065120900824024310421593359399"
   }
   it should "work for various prime denominators" in {
-    import com.phasmidsoftware.number.core.Rational._
+    import Rational._
 
     (3 :/ 4 render) shouldBe "0.75"
     (4 :/ 5 render) shouldBe "0.8"
@@ -702,7 +710,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     (7918 :/ 7919 render) shouldBe "7918/7919"
   }
   it should "work for various composite denominators" in {
-    import com.phasmidsoftware.number.core.Rational._
+    import Rational._
 
     (1 :/ 6).render shouldBe "0.1<6>"
     (1 :/ 14 render) shouldBe "0.0<714285>"
@@ -995,7 +1003,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "RationalOps"
 
-  import com.phasmidsoftware.number.core.Rational.RationalOps
+  import Rational.RationalOps
 
   it should "work correctly for 2 + 3" in {
     // NOTE: here we perform integer + on 2 and 3 and then implicitly convert 5 to a Rational

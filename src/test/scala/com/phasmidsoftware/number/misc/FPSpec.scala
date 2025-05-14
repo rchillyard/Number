@@ -1,6 +1,12 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.core.FP._
+package com.phasmidsoftware.number.misc
+
+import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.RationalException
+import com.phasmidsoftware.number.misc.FP._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util._

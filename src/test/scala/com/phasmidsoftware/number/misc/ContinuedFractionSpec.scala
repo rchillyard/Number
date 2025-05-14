@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.Fuzziness.showPercentage
-import com.phasmidsoftware.number.core.Rational.RationalHelper
-import com.phasmidsoftware.number.core.{Number, Rational}
+import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.misc.ConFrac.LongLazyListFrom
 import com.phasmidsoftware.number.misc.ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
 import org.scalatest.flatspec

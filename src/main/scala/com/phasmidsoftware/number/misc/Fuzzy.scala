@@ -64,6 +64,8 @@ sealed trait Fuzzy {
     */
   def prob(x: Double, delta: Double): Try[Double]
 
+  def power(x: Fuzzy): Fuzzy //zijie added
+
   /**
     * Returns an integer whose sign communicates how x compares to y.
     *
@@ -194,7 +196,7 @@ case class Exact(x: Double) extends FuzzyBase(x, 0, new ConstantRealDistribution
 
   override def map(f: DiFunc[Double]): Fuzzy = Exact(f.f(x))
 
-  override def map2(f: DiFunc[Double])(delta: Double) = throw new UnsupportedOperationException("cannot introduce fuzz to Exact")
+  override def map2(f: DiFunc[Double])(delta: Double): Fuzzy = throw new UnsupportedOperationException("cannot introduce fuzz to Exact")
 
   def newFuzzy(x: Double, delta: Double): Fuzzy = {
     require(delta == 0)
@@ -219,7 +221,8 @@ case class Gaussian(mu: Double, sigma: Double) extends FuzzyBase(mu, sigma, new 
   // TODO implement me
   def parseString(str: String): Option[Fuzzy] = ???
 
-  override def map2(f: DiFunc[Double])(delta2: Double) = throw new UnsupportedOperationException("NYI")
+  override def map2(f: DiFunc[Double])(delta2: Double): Fuzzy =
+    throw new UnsupportedOperationException("NYI")
 }
 
 case class Bounded(mu: Double, delta: Double) extends FuzzyBase(mu, delta, new UniformRealDistribution(mu - math.abs(delta), mu + math.abs(delta))) {
@@ -229,7 +232,8 @@ case class Bounded(mu: Double, delta: Double) extends FuzzyBase(mu, delta, new U
     case Bounded(mu2, delta2) =>
       val t = mu -> mu2
       Bounded(f.tupled(t), math.abs(df_dx.tupled(t) * delta) + math.abs(df_dy.tupled(t) * delta2))
-    case _ => throw new UnsupportedOperationException("NYI")
+    case _ =>
+      throw new UnsupportedOperationException("NYI")
   }
 
   override def toString = s"Bounded: $mu, $delta"
@@ -244,9 +248,11 @@ case class General(dist: AbstractRealDistribution) extends FuzzyBase(dist.getNum
 
   override def toString = s"General: $dist"
 
-  def newFuzzy(x: Double, delta: Double): Fuzzy = Gaussian(x, delta)
+  def newFuzzy(x: Double, delta: Double): Fuzzy =
+    Gaussian(x, delta)
 
-  override def map2(f: DiFunc[Double])(delta2: Double) = throw new UnsupportedOperationException("NYI")
+  override def map2(f: DiFunc[Double])(delta2: Double) =
+    throw new UnsupportedOperationException("NYI")
 
   // TODO implement me
   def parseString(str: String): Option[Fuzzy] = ???
@@ -254,7 +260,10 @@ case class General(dist: AbstractRealDistribution) extends FuzzyBase(dist.getNum
 
 object Fuzzy {
 
-  implicit object FuzzyNumeric extends FuzzyIsFractional
+  implicit object FuzzyNumeric extends FuzzyIsFractional {
+    // CONSIDER it's rather arbitrary to choose Bounded here.
+    def fromDoubles(x: Double, y: Double): Fuzzy = Bounded(x, y)
+  }
 
   implicit def intToFuzzy(x: Int): Exact = Exact(x)
 
@@ -356,12 +365,16 @@ object Fuzzy {
 
     def toDouble(g: Fuzzy): Double = g match {
       case Exact(x) => x
-      case _ => throw new UnsupportedOperationException(s"toDouble: $g (not exact)")
+      case Gaussian(x, y) => x
+      case Bounded(x, y) => x
+      case _ => throw new UnsupportedOperationException(s"toNominalDouble: $g (not exact)")
     }
   }
 
   trait FuzzyIsFractional extends FuzzyIsNumeric with Fractional[Fuzzy] {
     def div(x: Fuzzy, y: Fuzzy): Fuzzy = product(x, invert(y))
+
+    def fromDoubles(x: Double, y: Double): Fuzzy
   }
 
 }

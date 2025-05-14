@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.core.{NumberException, Rational}
+import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.misc.ContinuedFraction.Hurwitz
 import scala.annotation.tailrec
 import scala.util.Try
@@ -641,7 +642,7 @@ trait Evaluatable {
 
 trait Approximate[X] {
   /**
-    * Evaluate this Approximate object as a Double such that the absolute error between the true value and the result
+    * Evaluate this Approximatable object as a Double such that the absolute error between the true value and the result
     * is less than epsilon.
     *
     * @param x       the X value.

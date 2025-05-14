@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.recover
-
+import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.misc.FP.recover
 import scala.language.implicitConversions
 
 /**
@@ -17,7 +17,7 @@ import scala.language.implicitConversions
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   */
-trait Field extends Numerical with Ordered[Field] {
+trait Field extends Numerical with Approximatable with Ordered[Field] {
 
   /**
     * Method to determine if this Field is represented by a Complex number.
@@ -30,9 +30,9 @@ trait Field extends Numerical with Ordered[Field] {
   }
 
   /**
-    * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
+    * Method to determine if this Field is real-valued (i.e. the point lies on the real axis).
     *
-    * @return true if the imaginary.
+    * @return true if not imaginary.
     */
   def isReal: Boolean
 
@@ -137,6 +137,56 @@ trait Field extends Numerical with Ordered[Field] {
     * @return this Field raised to power p.
     */
   def power(p: Field): Field
+
+  /**
+    * Computes and returns an approximate numerical value for this expression.
+    *
+    * @return a `Double` representing the approximation of this expression.
+    */
+  def approximation: Option[Real] = asNumber map (Real(_))
+
+  /**
+    * Computes the sine of this Field.
+    *
+    * @return the sine of this Field, as an instance of Field.
+    */
+  def sin: Field
+
+  /**
+    * Computes the trigonometric cosine of this Field.
+    *
+    * @return the cosine of this Field.
+    */
+  def cos: Field
+
+  /**
+    * Computes the tangent of this Field.
+    *
+    * @return the tangent of this Field as a new Field.
+    */
+  def tan: Field
+
+  /**
+    * Calculates the arctangent (inverse tangent) of the given Real number.
+    *
+    * @param y the Real number whose arctangent is to be calculated.
+    * @return the arctangent of the specified Real number, represented as a Field.
+    */
+  def atan(y: Real): Field
+
+  /**
+    * Computes the natural logarithm (log base e) of this Field.
+    *
+    * @return a new Field representing the result of the logarithmic computation.
+    */
+  def log: Field
+
+  /**
+    * Computes the exponential of this Field.
+    *
+    * @return a Field representing the exponential of this instance.
+    */
+  def exp: Field
 }
 
 /**
@@ -153,6 +203,12 @@ object Field {
     */
   def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
 
+  /**
+    * Implicit converter from `Rational` value to a `Field` value.
+    *
+    * @param r the Rational value to be converted.
+    * @return a Field representation of the provided Rational value.
+    */
   implicit def convertRationalToField(r: Rational): Field = Real(r)
 
   /**

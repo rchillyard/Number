@@ -1,9 +1,12 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.core.inner
 
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 import org.scalatest.Assertions.fail
-
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
@@ -15,7 +18,7 @@ import scala.util.{Failure, Success}
   */
 class RationalPropertySpec extends Properties("Rational") {
 
-  import com.phasmidsoftware.number.core.Rational.RationalHelper
+  import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 
   property("FromString") = forAll { (a: Int, b: Short) =>
     val r = r"$a/$b"
