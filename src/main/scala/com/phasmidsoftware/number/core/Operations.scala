@@ -4,7 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.{fail, toTryWithThrowable, tryF, tryMap}
+import com.phasmidsoftware.number.misc.FP
+import com.phasmidsoftware.number.misc.FP.{fail, toTryWithThrowable, tryF, tryMap}
 import scala.annotation.tailrec
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
@@ -900,7 +901,7 @@ object Operations {
 
     def tryInt(x: Int): Try[Value] = tryConvert(x, "Int")(v => Value.maybeInt(v), fInt, Value.fromInt)
 
-    import Converters._
+    import com.phasmidsoftware.number.misc.Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Value] = y => tryMap(y)(tryRational, tryDouble)
 
     tryMap(value)(tryInt, xToZy1).toOption
@@ -919,7 +920,7 @@ object Operations {
       case Some(x) => Try(Value.fromDouble(fDouble(x).toOption))
       case None => Failure(new NoSuchElementException())
     }
-    import Converters._
+    import com.phasmidsoftware.number.misc.Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Value] = e => tryMap(e)(x => for (r <- fRational(x)) yield Value.fromRational(r), xToZy0)
     tryMap(value)(x => for (i <- fInt(x)) yield Value.fromInt(i), xToZy1).toOption
   }
@@ -930,7 +931,7 @@ object Operations {
       case Some(n) => fDouble(n)
       case None => Failure(new NoSuchElementException())
     }
-    import Converters._
+    import com.phasmidsoftware.number.misc.Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[T] = y => tryMap(y)(x => fRational(x), xToZy0)
     tryMap(v)(x => fInt(x), xToZy1).toOption
   }

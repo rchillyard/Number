@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.expression.Expression
 import org.scalactic.Equality
 import scala.annotation.tailrec
 

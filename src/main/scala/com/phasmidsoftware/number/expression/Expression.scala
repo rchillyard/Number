@@ -1,15 +1,17 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.core
+package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.core.Expression.em.ExpressionTransformer
-import com.phasmidsoftware.number.core.Expression.{em, matchSimpler}
-import com.phasmidsoftware.number.core.FP.recover
 import com.phasmidsoftware.number.core.Number.convertInt
+import com.phasmidsoftware.number.core.{AnyContext, Approximatable, Complex, ComplexCartesian, ComplexPolar, Constants, Context, ExactNumber, Factor, Field, ImpossibleContext, Logarithmic, MonadicOperationAtan, Number, NumberException, NumberLike, Operations, PureNumber, Radian, Rational, Real, RestrictedContext, Root, SquareRoot, Value}
+import com.phasmidsoftware.number.expression.Expression.em.ExpressionTransformer
+import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
+import com.phasmidsoftware.number.misc.FP
+import com.phasmidsoftware.number.misc.FP.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import scala.annotation.tailrec
 import scala.language.implicitConversions

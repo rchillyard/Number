@@ -1,9 +1,15 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers.Matchers.TildeOps
 import com.phasmidsoftware.number.core.ComplexPolar.±
-import com.phasmidsoftware.number.core.Expression.{ExpressionOps, pi}
 import com.phasmidsoftware.number.core.Field.convertToNumber
+import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Radian, Real, SquareRoot}
+import com.phasmidsoftware.number.expression
+import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, pi}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
@@ -102,15 +108,15 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "materialize Function"
   it should "work for Exp(1)" in {
-    val x = Function(One, Exp)
+    val x = expression.Function(One, Exp)
     val result = x.materialize
     result shouldBe Constants.e
   }
   it should "work for Reciprocal" in {
-    Function(Two, Reciprocal).materialize shouldBe Constants.half
+    expression.Function(Two, Reciprocal).materialize shouldBe Constants.half
   }
   it should "work for Exp(Log(2))" in {
-    val x = Function(Function(Two, Log), Exp)
+    val x = expression.Function(expression.Function(Two, Log), Exp)
     val result = x.materialize
     result shouldBe Constants.two
   }
@@ -236,9 +242,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     pi.depth shouldBe 1
   }
   it should "be 2 for any Function expression" in {
-    Function(1, Negate).depth shouldBe 2
-    Function(1, Cosine).depth shouldBe 2
-    Function(1, Sine).depth shouldBe 2
+    expression.Function(1, Negate).depth shouldBe 2
+    expression.Function(1, Cosine).depth shouldBe 2
+    expression.Function(1, Sine).depth shouldBe 2
   }
   it should "be more than 1 for other expression" in {
     (ConstE * 2).depth shouldBe 2
@@ -306,9 +312,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Phi.simplify shouldBe Phi
   }
   it should "simplify function expressions" in {
-    Function(Function(One, Negate), Negate).simplify shouldBe One
-    Function(Two, Reciprocal).simplify shouldBe Literal(Constants.half)
-    Function(Constants.pi, Sine).simplify shouldBe Literal(Constants.zero)
+    expression.Function(expression.Function(One, Negate), Negate).simplify shouldBe One
+    expression.Function(Two, Reciprocal).simplify shouldBe Literal(Constants.half)
+    expression.Function(Constants.pi, Sine).simplify shouldBe Literal(Constants.zero)
   }
   it should "simplify biFunction expressions" in {
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).simplify shouldBe Zero

@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Factor.composeDyadic
 import com.phasmidsoftware.number.core.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.Rational.toIntOption
 import com.phasmidsoftware.number.core.Value.{fromDouble, scaleDouble, valueToString}
+import com.phasmidsoftware.number.misc.FP._
 import scala.language.implicitConversions
 import scala.util._
 

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.root5
+import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -31,7 +32,7 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "evaluate 3" in {
-    import com.phasmidsoftware.number.core.Expression.ExpressionOps
+    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
     val target = Aggregate.total(One * MinusOne, Two + One, MinusOne * 5, Constants.two)
     target.evaluateAsIs shouldBe Some(Constants.minusOne)
   }
@@ -39,7 +40,7 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
   val em: ExpressionMatchers = Expression.em
 
   it should "simplifyComponents {2 * -1}+{2 + 1}+{-1 * 5}+2" in {
-    import com.phasmidsoftware.number.core.Expression.ExpressionOps
+    import Expression.ExpressionOps
     val target = Aggregate.total(Two * MinusOne, Two + One, MinusOne * 5, Constants.two)
     target.simplifyComponents(target) shouldBe em.Match(Aggregate.total(Literal(-2), Literal(3), Literal(-5), Literal(2)))
     target.simplifyConstant(target) shouldBe em.Match(Literal(-2))
@@ -47,7 +48,7 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
 
   //  FIXME infinite recursion
   ignore should "simplify {2 * -1}+{2 + 1}+{-1 * 5}+2" in {
-    import com.phasmidsoftware.number.core.Expression.ExpressionOps
+    import Expression.ExpressionOps
     val target = Aggregate.total(Two * MinusOne, Two + One, MinusOne * 5, Constants.two)
     target.simplify shouldBe Literal(-2)
   }

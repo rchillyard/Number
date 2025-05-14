@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.{root5, sPhi}
+import com.phasmidsoftware.number.expression.{One, Phi, ReducedQuadraticRoot}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -40,7 +41,7 @@ class ReducedQuadraticRootSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "root" in {
-    import com.phasmidsoftware.number.core.Expression.ExpressionOps
+    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
     phi.root shouldBe ((One + root5) / 2)
     val maybeField: Option[Field] = phi.root.evaluateAsIs
     maybeField.isDefined shouldBe false

@@ -4,10 +4,11 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.{optional, toTry}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{inverse, negate}
 import com.phasmidsoftware.number.core.Value.{fromDouble, fromInt, fromRational}
+import com.phasmidsoftware.number.expression.{Expression, ExpressionException}
+import com.phasmidsoftware.number.misc.FP.{optional, toTry}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.parse.RationalParser.parseComponents
 import scala.annotation.tailrec
@@ -863,6 +864,7 @@ object Number {
 
   /**
     * Implicit converter from Expression to Number.
+    * FIXME we should not be relying on expression package here.
     *
     * @param x the Expression to be converted.
     * @return the equivalent exact Number.

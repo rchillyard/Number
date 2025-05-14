@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.recover
+import com.phasmidsoftware.number.misc.FP.recover
 import scala.language.implicitConversions
 
 /**

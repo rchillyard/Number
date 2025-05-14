@@ -341,7 +341,7 @@ Additionally (see below) it is possible to define imaginary values on their own 
 Factor
 ======
 There are three types of "factor:"
-* _Scalar_, in particular, _PureNumber_ (for ordinary dimensionless numbers), _Radian_ (used to represent radians or any multiple of $\pi$);
+* _Scalar_, in particular, _PureNumber_ (for ordinary dimensionless numbers), and _Radian_ (used to represent radians or any multiple of $\pi$);
 * _Logarithmic_, in particular, _NatLog_, _Log2_, and _Log10_;
 * _Root(n)_, in particular: _SquareRoot_ (for square roots) and _CubeRoot_ (for cube roots).
 
@@ -369,6 +369,8 @@ A _Number_ of the form _Number(x, NatLog)_ actually evaluates to $e^x$ rather th
 It would be possible to implement $\pi$ values similarly to 𝜀 values (as evaluations of $e^{ix}$).
 However, this is not currently done (future enhancement?).
 See Complex numbers.
+
+Negative values associated with _SquareRoot_ are imaginary numbers.
 
 Constants
 =========

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP._
+import com.phasmidsoftware.number.misc.FP
+import com.phasmidsoftware.number.misc.FP._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util._

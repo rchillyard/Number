@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.java
 
-import com.phasmidsoftware.number.core.FP.getOrThrow
 import com.phasmidsoftware.number.core.{Number, NumberException}
+import com.phasmidsoftware.number.misc.FP.getOrThrow
 import java.math.BigInteger
 
 object NumberJ {

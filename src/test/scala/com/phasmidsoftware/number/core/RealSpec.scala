@@ -1,10 +1,11 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.ComplexPolar.±
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Number.{negate, zeroR}
 import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Real.RealIsOrdering
+import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

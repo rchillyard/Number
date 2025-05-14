@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.applications
 
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Value.maybeRational
 import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+import com.phasmidsoftware.number.expression.{Expression, Phi, Psi}
 
 object Fibonacci {
 

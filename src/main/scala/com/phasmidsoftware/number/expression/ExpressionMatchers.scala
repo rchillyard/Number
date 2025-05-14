@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.core
+package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.Constants.{half, piBy2}
-import com.phasmidsoftware.number.core.Expression.{isIdentityFunction, matchSimpler}
-import com.phasmidsoftware.number.core.Rational.{infinity, negInfinity}
+import com.phasmidsoftware.number.core.Rational.infinity
+import com.phasmidsoftware.number.core.{AnyContext, Constants, Context, ExactNumber, Field, Number, PureNumber, Real, RestrictedContext, SquareRoot}
+import com.phasmidsoftware.number.expression.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.matchers._
+import com.phasmidsoftware.number.misc.Bumperator
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
@@ -41,22 +43,22 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
     * Type alias for a pair of expressions (purpose of this is solely for brevity).
     */
-  private[core] type Expressions = Expression ~ Expression
+  private[expression] type Expressions = Expression ~ Expression
 
   /**
     * Type alias for a dyadic triple (purpose of this is solely for brevity).
     */
-  private[core] type DyadicTriple = ExpressionBiFunction ~ Expression ~ Expression
+  private[expression] type DyadicTriple = ExpressionBiFunction ~ Expression ~ Expression
 
   /**
     * Type alias for the kind of ExpressionMatcher which results in a possibly different Expression.
     */
-  private[core] type ExpressionTransformer = AutoMatcher[Expression]
+  private[expression] type ExpressionTransformer = AutoMatcher[Expression]
 
   /**
     * Type alias for a monadic duple (purpose of this is solely for brevity).
     */
-  private[core] type MonadicDuple = ExpressionFunction ~ Expression
+  private[expression] type MonadicDuple = ExpressionFunction ~ Expression
 
   /**
     * Implicit method to convert a Matcher[Expression, R] into an ExpressionMatcher[R].
@@ -447,11 +449,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Reciprocal ~ One => Match(One)
     case Reciprocal ~ Zero => Match(Literal(infinity))
     case Reciprocal ~ Two => Match(Literal(half))
-    case Exp ~ Literal(x, _) if x == Real(negInfinity) => Match(Zero)
+    case Exp ~ Literal(x, _) if x == Real(infinity.negate) => Match(Zero)
     case Exp ~ Zero => Match(One)
     case Exp ~ One => Match(ConstE)
     case Log ~ One => Match(Zero)
-    case Log ~ Zero => Match(Literal(negInfinity))
+    case Log ~ Zero => Match(Literal(infinity.negate))
     case Log ~ ConstE => Match(One)
     case Sine ~ Literal(x, _) if x == piBy2 => Match(One)
     case Sine ~ Literal(x, _) if (x + piBy2).isZero => Match(MinusOne)

@@ -1,12 +1,19 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers._
+import com.phasmidsoftware.number
 import com.phasmidsoftware.number.core.Constants.root3
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
-import com.phasmidsoftware.number.core.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{piBy2, root2, √}
-import com.phasmidsoftware.number.core.Rational.{infinity, negInfinity}
+import com.phasmidsoftware.number.core.Rational.infinity
+import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, PureNumber, Radian, Rational, Real}
+import com.phasmidsoftware.number.expression
+import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+import com.phasmidsoftware.number.expression.Expression.em.DyadicTriple
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -99,7 +106,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     g(Literal(Constants.e, Some("e"))).successful shouldBe false
   }
 
-  import com.phasmidsoftware.number.core.Expression.ExpressionOps
+  import Expression.ExpressionOps
 
   behavior of "simplifyIdentityDyadic"
 
@@ -192,7 +199,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result shouldBe em.Match(Aggregate.total(ConstPi))
   }
   it should "eliminate √3 and -√3 in Aggregate" in {
-    val x = Aggregate.total(3, root3, Function(root3, Negate), -1)
+    val x = Aggregate.total(3, root3, expression.Function(root3, Negate), -1)
     val p: em.Matcher[Aggregate, Expression] = em.complementaryTermsEliminatorAggregate
     val result: em.MatchResult[Expression] = p(x)
     result shouldBe em.Match(Aggregate.total(-1, 3))
@@ -316,7 +323,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "cancel addition and subtraction of e using matchComplementary" in {
     val y: Expression = One + ConstE
-    val z: DyadicTriple = Sum ~ y ~ Function(ConstE, Negate)
+    val z: DyadicTriple = Sum ~ y ~ expression.Function(ConstE, Negate)
     em.matchComplementary(z) shouldBe em.Match(One)
   }
   //  it should "cancel addition and subtraction of e" in {
@@ -457,7 +464,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 //  }
 
   ignore should "simplify aggregate 4a" in {
-    val target: Expression = Aggregate(Sum, Seq(One, ConstE, Function(ConstE, Negate)))
+    val target: Expression = Aggregate(Sum, Seq(One, ConstE, expression.Function(ConstE, Negate)))
     val result: em.MatchResult[Expression] = em.simplifier(target)
     result shouldBe em.Match(One)
   }
@@ -488,111 +495,111 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "functionSimplifier"
   ignore should "work for Negate" in {
     val q = em.functionSimplifier
-    val x = Function(One, Negate)
+    val x = expression.Function(One, Negate)
     q(x) shouldBe em.Match(MinusOne)
   }
   ignore should "work for Negate Negate" in {
     val q = em.functionSimplifier
-    val x = Function(Function(One, Negate), Negate)
+    val x = expression.Function(expression.Function(One, Negate), Negate)
     q(x) shouldBe em.Match(One)
   }
   ignore should "work for Reciprocal" in {
     val q = em.functionSimplifier
-    val x = Function(Two, Reciprocal)
+    val x = expression.Function(Two, Reciprocal)
     q(x) shouldBe em.Match(Literal(half))
   }
   ignore should "work for Reciprocal Reciprocal" in {
     val q = em.functionSimplifier
-    val x = Function(Function(ConstPi, Reciprocal), Reciprocal)
+    val x = expression.Function(expression.Function(ConstPi, Reciprocal), Reciprocal)
     q(x) shouldBe em.Match(ConstPi)
   }
 
   behavior of "matchMonadicTrivial"
   ignore should "work for Negate Zero" in {
     val q = em.functionSimplifier
-    val x = Function(Zero, Negate)
+    val x = expression.Function(Zero, Negate)
     q(x) shouldBe em.Match(Zero)
   }
   ignore should "work for Negate MinusOne" in {
     val q = em.functionSimplifier
-    val x = Function(MinusOne, Negate)
+    val x = expression.Function(MinusOne, Negate)
     q(x) shouldBe em.Match(One)
   }
   ignore should "work for Reciprocal Zero" in {
     val q = em.functionSimplifier
-    val x = Function(Zero, Reciprocal)
+    val x = expression.Function(Zero, Reciprocal)
     q(x) shouldBe em.Match(Literal(infinity))
   }
   ignore should "work for Reciprocal One" in {
     val q = em.functionSimplifier
-    val x = Function(One, Reciprocal)
+    val x = expression.Function(One, Reciprocal)
     q(x) shouldBe em.Match(One)
   }
   ignore should "work for Reciprocal Two" in {
     val q = em.functionSimplifier
-    val x = Function(Two, Reciprocal)
+    val x = expression.Function(Two, Reciprocal)
     q(x) shouldBe em.Match(Literal(half))
   }
   ignore should "work for Exp neg Infinity" in {
     val q = em.functionSimplifier
-    val x = Function(Literal(negInfinity), Exp)
+    val x = expression.Function(Literal(infinity.negate), Exp)
     q(x) shouldBe em.Match(Zero)
   }
   ignore should "work for Exp Zero" in {
     val q = em.functionSimplifier
-    val x = Function(Zero, Exp)
+    val x = expression.Function(Zero, Exp)
     q(x) shouldBe em.Match(One)
   }
   ignore should "work for Exp One" in {
     val q = em.functionSimplifier
-    val x = Function(One, Exp)
+    val x = expression.Function(One, Exp)
     q(x) shouldBe em.Match(ConstE)
   }
   ignore should "work for Log Zero" in {
     val q = em.functionSimplifier
-    val x = Function(Zero, Log)
-    q(x) shouldBe em.Match(Literal(negInfinity))
+    val x = expression.Function(Zero, Log)
+    q(x) shouldBe em.Match(Literal(infinity.negate))
   }
   ignore should "work for Log One" in {
     val q = em.functionSimplifier
-    val x = Function(One, Log)
+    val x = expression.Function(One, Log)
     q(x) shouldBe em.Match(Zero)
   }
   ignore should "work for Log e" in {
     val q = em.functionSimplifier
-    val x = Function(Constants.e, Log)
+    val x = expression.Function(Constants.e, Log)
     q(x) shouldBe em.Match(One)
   }
   ignore should "work for Sine 0" in {
     val q = em.functionSimplifier
-    val x = Function(Zero, Sine)
+    val x = expression.Function(Zero, Sine)
     q(x) shouldBe em.Match(Zero)
   }
   // TODO create a
   ignore should "work for Sine pi/2" in {
     val q = em.functionSimplifier
-    val x = Function(Literal(piBy2), Sine)
+    val x = expression.Function(Literal(piBy2), Sine)
     val result = q(x)
     result shouldBe em.Match(One)
   }
   ignore should "work for Sine pi" in {
     val q = em.functionSimplifier
-    val x = Function(ConstPi, Sine)
+    val x = expression.Function(ConstPi, Sine)
     q(x) shouldBe em.Match(Zero)
   }
   ignore should "work for Cosine 0" in {
     val q = em.functionSimplifier
-    val x = Function(Zero, Cosine)
+    val x = expression.Function(Zero, Cosine)
     q(x) shouldBe em.Match(One)
   }
   ignore should "work for Cosine pi/2" in {
     val q = em.functionSimplifier
-    val x = Function(Literal(piBy2), Cosine)
+    val x = expression.Function(Literal(piBy2), Cosine)
     q(x) shouldBe em.Match(Zero)
   }
   ignore should "work for Cosine pi" in {
     val q = em.functionSimplifier
-    val x = Function(ConstPi, Cosine)
+    val x = expression.Function(ConstPi, Cosine)
     q(x) shouldBe em.Match(MinusOne)
   }
 
@@ -608,9 +615,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result shouldBe target
   }
   ignore should "work for Function" in {
-    val target: CompositeExpression = Function(Two * Two, Negate)
+    val target: CompositeExpression = expression.Function(Two * Two, Negate)
     val result: Expression = em.simplifyTerms(target)
-    result shouldBe Function(Literal(4), Negate)
+    result shouldBe expression.Function(Literal(4), Negate)
   }
   ignore should "work for Aggregate total" in {
     val target: CompositeExpression = Aggregate.total(Two * Two, MinusOne * MinusOne)
@@ -633,7 +640,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Literal(7) + 2 - 3
     val p = em.matchBiFunction & em.biFunctionAggregator
     val result = p(x)
-    result shouldBe em.Match(Aggregate.total(Literal(7), Two, Function(Literal(3), Negate)))
+    result shouldBe em.Match(Aggregate.total(Literal(7), Two, expression.Function(Literal(3), Negate)))
   }
   ignore should "work for 7 * 2 * -3" in {
     val x: Expression = Literal(7) * 2 * -3
@@ -768,34 +775,34 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "cancel value and reciprocal 1" in {
     val p = em.matchComplementaryExpressions
     val x = Literal(Number.pi)
-    val y = Function(x, Reciprocal)
+    val y = expression.Function(x, Reciprocal)
     val result = p(Product ~ x ~ y)
     result should matchPattern { case em.Match(One) => }
   }
   it should "cancel value and reciprocal 2" in {
     val p = em.matchComplementaryExpressions
     val x = Literal(Number.pi)
-    val y = Function(x, Reciprocal)
+    val y = expression.Function(x, Reciprocal)
     val result = p(Product ~ y ~ x)
     result should matchPattern { case em.Match(One) => }
   }
 
   behavior of "matchComplementaryExpressions"
   it should "work for plus and minus" in {
-    em.matchComplementaryExpressions(Sum ~ One ~ Function(One, Negate)) shouldBe em.Match(Zero)
-    em.matchComplementaryExpressions(Sum ~ Function(One, Negate) ~ One) shouldBe em.Match(Zero)
-    em.matchComplementaryExpressions(Sum ~ BiFunction(Two, One, Sum) ~ Function(One, Negate)) shouldBe em.Match(Two)
-    em.matchComplementaryExpressions(Sum ~ Function(One, Negate) ~ BiFunction(Two, One, Sum)) shouldBe em.Match(Two)
-    em.matchComplementaryExpressions(Sum ~ BiFunction(One, Two, Sum) ~ Function(One, Negate)) shouldBe em.Match(Two)
-    em.matchComplementaryExpressions(Sum ~ Function(One, Negate) ~ BiFunction(One, Two, Sum)) shouldBe em.Match(Two)
+    em.matchComplementaryExpressions(Sum ~ One ~ expression.Function(One, Negate)) shouldBe em.Match(Zero)
+    em.matchComplementaryExpressions(Sum ~ expression.Function(One, Negate) ~ One) shouldBe em.Match(Zero)
+    em.matchComplementaryExpressions(Sum ~ BiFunction(Two, One, Sum) ~ expression.Function(One, Negate)) shouldBe em.Match(Two)
+    em.matchComplementaryExpressions(Sum ~ expression.Function(One, Negate) ~ BiFunction(Two, One, Sum)) shouldBe em.Match(Two)
+    em.matchComplementaryExpressions(Sum ~ BiFunction(One, Two, Sum) ~ expression.Function(One, Negate)) shouldBe em.Match(Two)
+    em.matchComplementaryExpressions(Sum ~ expression.Function(One, Negate) ~ BiFunction(One, Two, Sum)) shouldBe em.Match(Two)
   }
   it should "work for reciprocals" in {
-    em.matchComplementaryExpressions(Product ~ Two ~ Function(Two, Reciprocal)) shouldBe em.Match(One)
-    em.matchComplementaryExpressions(Product ~ Function(Two, Reciprocal) ~ Two) shouldBe em.Match(One)
-    em.matchComplementaryExpressions(Product ~ BiFunction(Two, One, Product) ~ Function(Two, Reciprocal)) shouldBe em.Match(One)
-    em.matchComplementaryExpressions(Product ~ Function(Two, Reciprocal) ~ BiFunction(Two, One, Product)) shouldBe em.Match(One)
-    em.matchComplementaryExpressions(Product ~ BiFunction(One, Two, Product) ~ Function(Two, Reciprocal)) shouldBe em.Match(One)
-    em.matchComplementaryExpressions(Product ~ Function(Two, Reciprocal) ~ BiFunction(One, Two, Product)) shouldBe em.Match(One)
+    em.matchComplementaryExpressions(Product ~ Two ~ expression.Function(Two, Reciprocal)) shouldBe em.Match(One)
+    em.matchComplementaryExpressions(Product ~ expression.Function(Two, Reciprocal) ~ Two) shouldBe em.Match(One)
+    em.matchComplementaryExpressions(Product ~ BiFunction(Two, One, Product) ~ expression.Function(Two, Reciprocal)) shouldBe em.Match(One)
+    em.matchComplementaryExpressions(Product ~ expression.Function(Two, Reciprocal) ~ BiFunction(Two, One, Product)) shouldBe em.Match(One)
+    em.matchComplementaryExpressions(Product ~ BiFunction(One, Two, Product) ~ expression.Function(Two, Reciprocal)) shouldBe em.Match(One)
+    em.matchComplementaryExpressions(Product ~ expression.Function(Two, Reciprocal) ~ BiFunction(One, Two, Product)) shouldBe em.Match(One)
   }
 
   behavior of "matchSimplifyDyadicTermsTwoLevels"
@@ -803,14 +810,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "match 1" in {
     val p = em.matchSimplifyDyadicTermsTwoLevels
     // CONSIDER these shouldn't be handled by matchSimplifyDyadicTermsTwoLevels since they are handled by matchComplementary
-    p(Sum ~ One ~ Function(One, Negate)) shouldBe em.Match(Zero)
-    p(Sum ~ Function(One, Negate) ~ One) shouldBe em.Match(Zero)
+    p(Sum ~ One ~ expression.Function(One, Negate)) shouldBe em.Match(Zero)
+    p(Sum ~ expression.Function(One, Negate) ~ One) shouldBe em.Match(Zero)
   }
   it should "match 2" in {
     val p = em.matchSimplifyDyadicTermsTwoLevels
-    p(Sum ~ One ~ Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
-    p(Sum ~ Function(ConstPi, Cosine) ~ One) shouldBe em.Match(Zero)
-    p(Sum ~ Function(Zero, Cosine) ~ Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
+    p(Sum ~ One ~ expression.Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
+    p(Sum ~ expression.Function(ConstPi, Cosine) ~ One) shouldBe em.Match(Zero)
+    p(Sum ~ expression.Function(Zero, Cosine) ~ expression.Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
   }
 
   behavior of "biFunctionSimplifier"
@@ -827,7 +834,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   it should "simplify √3 * -1 as -√3" in {
     val expression = BiFunction(Literal(root3), MinusOne, Product)
-    expression.simplify shouldBe Function(Literal(root3), Negate)
+    expression.simplify shouldBe number.expression.Function(Literal(root3), Negate)
   }
   it should "simplify √3 * 1 as √3" in {
     val expression = BiFunction(Literal(root3), One, Product)

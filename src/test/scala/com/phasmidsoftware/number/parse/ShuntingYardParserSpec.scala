@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.{Expression, Number}
+import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.expression.Expression
 import com.phasmidsoftware.number.mill.Mill
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec

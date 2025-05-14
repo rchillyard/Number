@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP._
 import com.phasmidsoftware.number.core.Render.renderValue
+import com.phasmidsoftware.number.misc.FP._
 import scala.util._
 
 /**
@@ -99,7 +99,7 @@ object Value {
     * CONSIDER using query
     */
   def maybeRational(value: Value): Option[Rational] = {
-    import Converters._
+    import com.phasmidsoftware.number.misc.Converters._
     val ry = tryMap(value)(tryF(Rational.apply), x => tryMap(x)(identityTry, fail("no Double=>Rational conversion")))
     ry.toOption
   }
@@ -116,7 +116,7 @@ object Value {
       case Some(n) => Failure(NumberException(s"toInt: $n is not integral"))
       case None => Failure(new NoSuchElementException())
     }
-    import Converters._
+    import com.phasmidsoftware.number.misc.Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
     tryMap(value)(identityTry, xToZy1).toOption
   }

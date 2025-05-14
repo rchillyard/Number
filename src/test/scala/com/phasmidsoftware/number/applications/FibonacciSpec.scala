@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.{one, root5, two}
 import com.phasmidsoftware.number.core.Real.convertFromNumber
 import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
