@@ -178,7 +178,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     */
   private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = recover(
     for {
-      z <- n.toRational
+      z <- n.toNominalRational
       r = re power n
       branches <- (z.invert * w).maybeInt
     } yield ComplexPolar(r, im.doMultiple(z), branches),
@@ -598,6 +598,17 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
    */
   def signum: Int =
     x.signum
+
+  /**
+    * Computes the absolute value of this complex number, represented in Cartesian coordinates.
+    * The result is a new complex number with both the real and imaginary components replaced
+    * by their respective absolute values.
+    *
+    * NOTE WARNING this is very arbitrary. Maybe abs should not be in NumberLike.
+    *
+    * @return a Numerical instance that is the absolute value of this complex number.
+    */
+  def abs: Numerical = ComplexCartesian(x.abs, y.abs)
 }
 
 /**
@@ -878,6 +889,15 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
    */
   def signum: Int =
     convertToCartesian(this).signum
+
+  /**
+    * Computes the absolute value (magnitude) of this ComplexPolar instance.
+    * The calculation is performed using the Cartesian representation of the complex number.
+    * NOTE very arbitrary.
+    *
+    * @return the absolute value as a Numerical.
+    */
+  def abs: Numerical = convertToCartesian(this).abs
 }
 
 /**

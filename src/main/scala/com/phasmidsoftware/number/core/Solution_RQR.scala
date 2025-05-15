@@ -8,27 +8,34 @@ import com.phasmidsoftware.number.core.Number.{one, two}
 import com.phasmidsoftware.number.core.RQR.goldenRatioEquation
 import com.phasmidsoftware.number.core.Real.NaN
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, SquareRoot, Value}
+import java.util.Objects
 
 
 /**
-  * An abstract class representing a root of a reduced quadratic equation of the form `x^2 + px + q = 0`
-  * The value of the root is `(-p/2) ± sqrt((-p/2)^2 - q)`.
-  * The class extends `Solution,` which in turn extends `Field`.
+  * Represents a specialized form of a solution derived from an equation, specifically
+  * associated with a quadratic root representation (RQR). This case class extends the
+  * `Solution` class and provides operations for algebraic and numerical transformations
+  * of the solution, along with utilities to obtain properties like branch, sign, and
+  * whether the solution is real or imaginary.
   *
-  * TODO rename this class as ReducedQuadraticRoot and remove or rename the other class with that name.
-  *
-  * @constructor Constructs a reduced quadratic root with parameters `p`, `q`, and a boolean `pos` to determine the sign of the root.
-  * @param p The coefficient of x in the reduced quadratic equation.
-  * @param q The constant term in the reduced quadratic equation.
-  * @param pos Determines if the positive or negative branch of the root is chosen.
+  * @param equation An instance of the `Equation` class that encapsulates the quadratic equation.
+  * @param pos      A boolean value indicating a position or branch in the solution space.
   */
-case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution(if (pos) 0 else 1, equation) {
+case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
 
   /**
     * Represents the computed result of casting the `equation` field to the specific type `RQR`.
     * This value is derived by performing a type-casting operation on the `equation` property.
     */
   val rqr: RQR = equation.asInstanceOf[RQR]
+
+  /**
+    * Determines the branch index based on the state of the `pos` condition.
+    * If `pos` is true, this method returns 0; otherwise, it returns 1.
+    *
+    * @return the branch index as an `Int`: 0 if `pos` is true, 1 otherwise.
+    */
+  def branch: Int = if (pos) 0 else 1
 
   /**
     * Returns an optional name for the current `Solution_RQR` instance based on its
@@ -79,6 +86,16 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution(if (p
   def signum: Int = normalize.signum
 
   /**
+    * Computes the absolute value of this `Solution_RQR` instance.
+    * If the sign of the instance is negative, it scales the instance by -1 to return a non-negative value.
+    * Otherwise, it returns the instance itself.
+    *
+    * @return a `Numerical` instance representing the absolute value of this instance.
+    */
+  def abs: Numerical =
+    if (signum < 0) scale(-1) else this
+
+  /**
     * Scales the current `Solution_RQR` instance by a given `Rational` value.
     * TESTME
     *
@@ -104,7 +121,7 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution(if (p
         else
           iz * oSqrt * iBase + oz * iSqrt * oBase
       (iBase multiply oBase) + crossTerms + iz * oz * (iSqrt multiply oSqrt)
-    case r@Real(ExactNumber(v, f)) =>
+    case r@Real(ExactNumber(_, _)) =>
       val (iBase, iz, iSqrt) = value
       iBase * r + iz * iSqrt * r
   }
@@ -118,9 +135,9 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution(if (p
     */
   def add(x: Field): Field = x match {
     case Real(ExactNumber(n, PureNumber)) if Value.maybeRational(n).contains(rqr.p) =>
-      copy(equation = rqr.copy(p = -rqr.p))
+      copy(equation = rqr.transform((p, _) => p + 2, (p, q) => 1 + p + q))
     case Real(ExactNumber(n, PureNumber)) if Value.maybeRational(n).contains(-rqr.p) =>
-      copy(equation = rqr.copy(p = -3 * rqr.p, q = -rqr.q), pos = !pos)
+      copy(equation = rqr.transform((p, _) => p - 2, (p, q) => 1 - p + q))
     case _ =>
       asNumber map (_ add x) getOrElse NaN
   }
@@ -157,8 +174,7 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution(if (p
     * factors.
     */
   def invert: Solution =
-    copy(equation = rqr.invert)
-
+    copy(equation = rqr.transform((p, q) => p / q, (_, q) => q.invert))
 
   /**
     * Method to determine if this Numerical is equivalent to another Numerical object (x).
@@ -200,7 +216,15 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution(if (p
     * @return a new `Solution` instance with the squared transformation applied.
     */
   def square: Solution =
-    copy(equation = rqr.copy(p = -3 * rqr.p, q = -rqr.q), pos = !pos)
+    copy(equation = rqr.transform((p, q) => 2 * q - (p ∧ 2), (_, q) => q ∧ 2))
+
+  /**
+    * Negates the current `Solution` by scaling it with a factor of -1.
+    *
+    * @return a new `Solution` instance representing the negation of the current instance.
+    */
+  def negate: Solution =
+    scale(-1)
 
   /**
     * Converts this quadratic root expression into an optional `Number` if possible.
@@ -275,28 +299,29 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution(if (p
     * @return an `Int` representing the hash code of this instance.
     */
   override def hashCode(): Int = {
-    val state = Seq(equation, pos)
-    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+    Objects.hash(equation, pos)
   }
 
+  override def toString: String = {
+    val (b, c, o) = value
+    s"$b ${rqr.termSign(c)} * ${rqr.termSign(o, add = false)}"
+  }
 }
 
 /**
-  * An abstract class representing a root of a reduced quadratic equation of the form `x^2 + px + q = 0`
-  * The value of the root is `(-p/2) ± sqrt((-p/2)^2 - q)`.
-  * The class extends `Solution,` which in turn extends `Field`.
+  * Represents a reduced quadratic equation of the form `x² + p*x + q = 0`, where `p` and `q` are rational coefficients.
+  * Instances of this class enforce specific constraints on the equation, such as ensuring non-complex solutions
+  * and non-zero coefficients, as outlined in the constructor.
   *
-  * TODO rename this class as ReducedQuadraticRoot and remove or rename the other class with that name.
-  *
-  * @constructor Constructs a reduced quadratic root with parameters `p`, `q`, and a boolean `pos` to determine the sign of the root.
-  * @param p   The coefficient of x in the reduced quadratic equation.
-  * @param q   The constant term in the reduced quadratic equation.
-  * @param pos Determines if the positive or negative branch of the root is chosen.
+  * @constructor Creates an instance of the reduced quadratic equation with coefficients `p` and `q`.
+  *              It enforces conditions to ensure the validity of the equation.
+  * @param p the coefficient of the linear term (`x`).
+  * @param q the constant term of the equation.
   */
 case class RQR(p: Rational, q: Rational) extends Equation {
   require(!p.isZero || !q.isZero, "may not have p and q equal to zero")
   // TODO remove the following restriction--there's no reason why we cannot have complex solutions
-  require(discriminant >= 0, "discriminant must not be negative")
+  require(discriminant >= 0, s"discriminant ($discriminant) must not be negative--this equation is $this")
 
   /**
     * Determines the name associated with the given branch index, if applicable.
@@ -349,6 +374,17 @@ case class RQR(p: Rational, q: Rational) extends Equation {
     scale(q.invert)
 
   /**
+    * Transforms the current instance of `RQR` by applying provided functions
+    * to the `p` and `q` components.
+    *
+    * @param fP a function that transforms the `p` component.
+    * @param fQ a function that transforms the `q` component.
+    * @return a new `RQR` instance with `p` transformed using `fP` and `q` transformed using `fQ`.
+    */
+  def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): RQR =
+    copy(p = fP(p, q), q = fQ(p, q))
+
+  /**
     * Computes the discriminant of a quadratic equation based on the formula `p^2 - 4 * q`.
     * The discriminant is a critical component in determining the nature of the roots of a
     * quadratic equation.
@@ -360,6 +396,8 @@ case class RQR(p: Rational, q: Rational) extends Equation {
     */
   def discriminant: Rational =
     p * p - 4 * q
+
+  override def toString: String = s"Reduced Quadratic Equation: x^2 ${termSign(p)}x ${termSign(q)} = 0"
 
   /**
     * Determines if the given object can be considered equal to this instance.
@@ -384,6 +422,16 @@ case class RQR(p: Rational, q: Rational) extends Equation {
     */
   def scale(x: Rational): Equation =
     copy(p = x * p, q = x * x * q)
+
+  /**
+    * Generates a string representation of the sign and the absolute value of the given rational number.
+    * The sign is determined based on the value of the input: a negative sign ("-") for negative numbers
+    * and a positive sign ("+") for non-negative numbers. The absolute value is appended to the sign.
+    *
+    * @param x the rational number whose sign and absolute value are to be rendered as a string
+    * @return a string in the format "+ n" or "- n", where "n" represents the absolute value of the input
+    */
+  def termSign(x: Field, add: Boolean = true): String = (if (add) if (x.signum < 0) "- " else "+ " else "") + x.abs.render
 }
 
 object RQR {
@@ -397,7 +445,6 @@ object RQR {
 object Solution_RQR {
   def unapply(rqr: Solution_RQR): Option[(Option[String], Equation, Boolean)] =
     Some(rqr.maybeName, rqr.equation, rqr.pos)
-
 
   val phi = new Solution_RQR(goldenRatioEquation, true)
   val psi = new Solution_RQR(goldenRatioEquation, false)

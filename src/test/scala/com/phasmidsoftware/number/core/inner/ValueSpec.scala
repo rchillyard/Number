@@ -55,7 +55,7 @@ class ValueSpec extends AnyFlatSpec with should.Matchers {
     maybeInt(fromInt(1)) shouldBe Some(1)
   }
 
-  it should "maybeRational" in {
+  it should "maybeNominalRational" in {
     maybeRational(fromRational(Rational("1/2"))) shouldBe Some(Rational.half)
   }
 

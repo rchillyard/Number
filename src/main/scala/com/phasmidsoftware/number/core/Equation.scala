@@ -50,7 +50,21 @@ trait Equation {
   *
   * Concrete implementations of this abstract class must define the specific behavior for the operations provided.
   */
-abstract class Solution(branch: Int, equation: Equation) extends Field {
+abstract class Solution extends Field {
+
+  /**
+    * Retrieves the branch index associated with this solution.
+    *
+    * @return an `Int` representing the branch index.
+    */
+  def branch: Int
+
+  /**
+    * Represents the mathematical equation defined within this solution.
+    *
+    * @return an instance of `Equation` representing the specific equation associated with this solution.
+    */
+  def equation: Equation
 
   /**
     * An optional name for this solution.
@@ -102,6 +116,8 @@ abstract class Solution(branch: Int, equation: Equation) extends Field {
 
   /**
     * Scales the solution by the given rational factor.
+    *
+    * CONSIDER shouldn't this be part of Equation?
     *
     * @param x the factor by which to scale the solution, represented as a `Rational`.
     * @return a new `Solution` instance that is scaled by the specified factor.

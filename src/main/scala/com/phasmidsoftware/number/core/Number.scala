@@ -139,7 +139,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * @return an Option of Rational.
     */
-  def toRational: Option[Rational]
+  def toNominalRational: Option[Rational]
 
   /**
     * Method to get the value of this Number as an Int.
@@ -156,7 +156,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return an Option of Long. If this Number cannot be converted to a Long, then None will be returned.
     */
   def toLong: Option[Long] =
-    toRational map (_.toLong)
+    toNominalRational map (_.toLong)
 
   /**
     * Method to get the value of this Number as an (optional) BigInt.
@@ -689,6 +689,21 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 }
 
 object Number {
+
+  /**
+    * Applies the given input to create a Number instance.
+    *
+    * @param x the input value of type NumberLike, which can be a Rational,
+    *          a Number, or another acceptable form from which a Number
+    *          can be created.
+    * @return a Number instance created from the input x if its type matches
+    *         the expected forms. Throws a NumberException otherwise.
+    */
+  def apply(x: NumberLike): Number = x match {
+    case r@Rational(_, _) => zero.make(r)
+    case n: Number => n
+    case _ => throw NumberException(s"Cannot create a Number from $x")
+  }
 
   /**
     * Provides an implicit object for handling operations on `Number` with fractional, numeric, and ordering capabilities.
@@ -1347,7 +1362,7 @@ object Number {
         prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
       case (pr@InversePower(p), qr@InversePower(q)) =>
         pr.raise(n.nominalValue, Value.fromRational(q / p), PureNumber) match {
-          case Some((v, f, _)) =>
+          case Some((v, _, _)) =>
             n.make(v, qr)
           case _ =>
             prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
@@ -1548,7 +1563,7 @@ object Number {
     case PureNumber =>
       prepareWithSpecialize(number.transformMonadic(Radian)(MonadicOperationAtan(sign))).modulate
     case SquareRoot =>
-      val ry = number.toRational map (_.abs) match {
+      val ry = number.toNominalRational map (_.abs) match {
         case Some(Rational(Rational.bigThree, Rational.bigOne)) => //
           Success(Rational(1, 3))
         case Some(Rational(Rational.bigOne, Rational.bigThree)) =>
@@ -1558,7 +1573,7 @@ object Number {
         case _ =>
           Failure(NumberException("rational is not matched"))
       }
-      (for (flip <- number.toRational map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
+      (for (flip <- number.toNominalRational map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
         case Some(r) =>
           Number(r, Radian)
         case None =>
@@ -1657,7 +1672,7 @@ object Number {
       */
     def toLong(x: Number): Long = x match {
       case z: GeneralNumber =>
-        z.maybeRational match {
+        z.maybeNominalRational match {
           case Some(r) =>
             r.toLong
           case None =>

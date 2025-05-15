@@ -423,7 +423,7 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
   /**
     * Method to convert this ConFrac to an (optional) Double, according to the epsilon value.
     *
-    * NOTE: this method invokes toRational(Double), which is not tail-recursive.
+    * NOTE: this method invokes toNominalRational(Double), which is not tail-recursive.
     *
     * @param epsilon the maximum allowable error.
     * @return an optional approximate value.

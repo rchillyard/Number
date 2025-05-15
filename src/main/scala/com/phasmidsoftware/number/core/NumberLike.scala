@@ -8,6 +8,8 @@ import com.phasmidsoftware.number.core.inner.Factor
 
 /**
   * Trait to define the behavior of things that are number-like.
+  *
+  * CONSIDER extending Ordered[NumberLike]
   */
 trait NumberLike {
 

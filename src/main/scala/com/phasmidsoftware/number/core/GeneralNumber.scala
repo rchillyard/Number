@@ -77,7 +77,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return an Option of Rational.
     */
-  def toRational: Option[Rational] = maybeRational
+  def toNominalRational: Option[Rational] = maybeNominalRational
 
   /**
     * Method to get the nominalValue of this Number as an Int.
@@ -585,7 +585,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
               x.alignTypes(this)
             // XXX otherwise: return this and x re-cast as a Rational
             case _ =>
-              (this, x.make(x.maybeRational.getOrElse(Rational.NaN)).specialize)
+              (this, x.make(x.maybeNominalRational.getOrElse(Rational.NaN)).specialize)
           }
         // XXX this nominalValue is an Int:
         case Right(_) =>
@@ -606,7 +606,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * A Double nominalValue is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query
     */
-  def maybeRational: Option[Rational] = Value.maybeRational(nominalValue)
+  def maybeNominalRational: Option[Rational] = Value.maybeRational(nominalValue)
 
   /**
     * An optional Double that corresponds to the nominalValue of this Number (but ignoring the factor).
@@ -846,7 +846,7 @@ object GeneralNumber {
     * @return x raised to the power of y.
     */
   def power(x: Number, y: Number): Number =
-    y.scale(PureNumber).toRational match {
+    y.scale(PureNumber).toNominalRational match {
       case Some(r) =>
         power(x, r).specialize
       case None =>

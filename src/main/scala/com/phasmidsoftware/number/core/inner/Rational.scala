@@ -173,11 +173,24 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
 
   /**
     * Raises this Rational number to the power of the given exponent.
+    * WARNING: this is deprecated in favor of `^`(that: Int) because the precedence for this operator
+    * is lower than for multiplication, addition, etc.
     *
     * @param that the exponent to which this Rational number will be raised
     * @return a new Rational representing the result of raising this Rational to the given exponent
     */
+  @deprecated("use ∧ instead", "1.2.1")
   def ^(that: Int): Rational =
+    power(that)
+
+  /**
+    * Raises this Rational number to the power of the given exponent.
+    * NOTE: this is not the caret symbol (that operator is deprecated).
+    *
+    * @param that the exponent to which this Rational number will be raised
+    * @return a new Rational representing the result of raising this Rational to the given exponent
+    */
+  def ∧(that: Int): Rational =
     power(that)
 
   /**

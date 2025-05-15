@@ -71,10 +71,10 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.nominalValue shouldBe Left(Right(Rational(bigBigInt)))
   }
 
-  behavior of "toRational"
+  behavior of "toNominalRational"
   it should "yield Some(1)" in {
     val target = Number.create(Right(1))
-    target.toRational shouldBe Some(ratOne)
+    target.toNominalRational shouldBe Some(ratOne)
   }
 
   behavior of "toString"
@@ -810,7 +810,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "multiply rational by Int" in {
     val target = Number("3/5")
     val nineTenths = target.doMultiple(Rational("3/2"))
-    nineTenths.toRational shouldBe Some(Rational("9/10"))
+    nineTenths.toNominalRational shouldBe Some(Rational("9/10"))
     nineTenths.doMultiple(10) shouldBe Number(9)
   }
 

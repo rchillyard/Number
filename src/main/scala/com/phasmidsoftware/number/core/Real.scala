@@ -228,6 +228,14 @@ case class Real(x: Number) extends Field {
     x.signum
 
   /**
+    * Returns the absolute value of this Real.
+    *
+    * @return a Real representing the absolute value of this.
+    */
+  def abs: Real =
+    Real(x.abs)
+
+  /**
     * Method to "normalize" a field.
     *
     * @return a Real which is in canonical form.
@@ -361,6 +369,24 @@ object Real {
    */
   def apply(r: Rational): Real =
     Real(Number(r))
+
+  /**
+    * Converts a `NumberLike` instance into a `Real`.
+    *
+    * The conversion operation determines the specific subtype of `NumberLike` and handles it accordingly.
+    * If the input is a `Rational`, it delegates the processing to `apply(Rational)`.
+    * If the input is a `Number`, it delegates the processing to `apply(Number)`.
+    * Throws a `NumberException` if the input `NumberLike` cannot be converted into a `Real`.
+    *
+    * @param n the `NumberLike` instance to be converted to a `Real`.
+    * @return a `Real` representing the converted `NumberLike` input.
+    * @throws NumberException if the input cannot be converted into a `Real`.
+    */
+  def apply(n: NumberLike): Real = n match {
+    case r: Rational => apply(r)
+    case n: Number => apply(n)
+    case _ => throw NumberException(s"Real.apply: cannot convert $n to a Real")
+  }
 
   /**
     * Computes the arctangent of two `Field` values and returns the result as a `Real`.
