@@ -269,7 +269,10 @@ case class General(dist: AbstractRealDistribution) extends FuzzyBase(dist.getNum
 
 object Fuzzy {
 
-  implicit object FuzzyNumeric extends FuzzyIsFractional
+  implicit object FuzzyNumeric extends FuzzyIsFractional {
+    // CONSIDER it's rather arbitrary to choose Bounded here.
+    def fromDoubles(x: Double, y: Double): Fuzzy = Bounded(x, y)
+  }
 
   implicit def intToFuzzy(x: Int): Exact = Exact(x)
 
@@ -371,12 +374,16 @@ object Fuzzy {
 
     def toDouble(g: Fuzzy): Double = g match {
       case Exact(x) => x
+      case Gaussian(x, y) => x
+      case Bounded(x, y) => x
       case _ => throw new UnsupportedOperationException(s"toDouble: $g (not exact)")
     }
   }
 
   trait FuzzyIsFractional extends FuzzyIsNumeric with Fractional[Fuzzy] {
     def div(x: Fuzzy, y: Fuzzy): Fuzzy = product(x, invert(y))
+
+    def fromDoubles(x: Double, y: Double): Fuzzy
   }
 
 }
