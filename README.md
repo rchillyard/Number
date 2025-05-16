@@ -576,12 +576,14 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
+* Version 1.2.2
+* Version 1.2.1: Improved RQR classes.
 * Version 1.2.0: Another massive refactoring.
-    - In particular:
-    - ExpressionMatchers has undergone a complete re-write.
-    - Solution has been added as a Field type (with RQR as a subtype of Solution).
-    - Root classes have been refactored (now based on InversePower).
-    - 
+  - In particular:
+  - ExpressionMatchers has undergone a complete re-write.
+  - Solution has been added as a Field type (with RQR as a subtype of Solution).
+  - Root classes have been refactored (now based on InversePower).
+  -
 * Version 1.1.1: Massive refactoring: fixed many issues. Most significantly, expressions are evaluated in the context of a Factor.
 * Version 1.1.0: Significant refactoring:
     - Number is no longer a subtype of Field. Code should use the wrapper Real(number) to form a Field.
