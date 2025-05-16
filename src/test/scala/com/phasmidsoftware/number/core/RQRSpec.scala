@@ -33,6 +33,7 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   it should "value 1" in {
     val p = phi
+    println(p.render)
     val (n1, r, (n2)) = p.value
     n1 shouldBe Real(Number.half)
     val resultingValue: Field = r * (2 multiply n2)
@@ -135,7 +136,7 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   it should "power 0" in {
     val actual = phi.power(Number.zero)
-    val expected = Solution_RQR(RQR(-2, 1), pos = true)
+    val expected = Solution_RQR.one
     actual shouldBe (expected)
     actual.normalize shouldBe Constants.one
   }
@@ -164,7 +165,7 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
   it should "power 4" in {
     val actual = phi.power(4)
-    val expected = phi.square.asInstanceOf[Solution_RQR].square
+    val expected = phi.square.square
     println(s"phi^3 = $actual. expected=$expected")
     actual.normalize should ===(expected)
     actual.normalize.isSame(expected) shouldBe true

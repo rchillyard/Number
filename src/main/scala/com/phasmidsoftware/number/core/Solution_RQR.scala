@@ -37,26 +37,33 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
     */
   def branch: Int = if (pos) 0 else 1
 
+
   /**
-    * Returns an optional name for the current `Solution_RQR` instance based on its
-    * state and branch index.
+    * Determines the name associated with the given branch index, if applicable.
+    * The method evaluates specific conditions and returns a symbolic name for
+    * branches that match these conditions.
     *
-    * This method determines the branch index by evaluating the boolean condition `pos`.
-    * If `pos` is true, the branch index is 0; otherwise, it is 1. The resulting branch
-    * index is passed to the `maybeName` method of the `rqr` field to retrieve the
-    * associated name.
-    *
-    * @return an `Option[String]` containing the symbolic name for the corresponding
-    *         branch, or `None` if no name is applicable.
+    * @param branch the branch index for which the name is being determined.
+    *               Valid indices are typically 0 and 1; other indices will return None.
+    * @return an `Option[String]` containing the name of the branch as a string if
+    *         a name can be determined, `None` otherwise.
     */
-  override def maybeName: Option[String] = rqr.maybeName(if (pos) 0 else 1)
+  def maybeName(branch: Int): Option[String] =
+    if (rqr.p == Rational.negOne && rqr.q == Rational.negOne)
+      branch match {
+        case 0 => Some("\uD835\uDED7")
+        case 1 => Some("\uD835\uDED9")
+        case _ => None
+      }
+    else
+      None
 
   /**
     * Method to render this NumberLike in a presentable manner.
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse toString
+  def render: String = maybeName(branch) getOrElse toString
 
   /**
     * A lazy value representing a tuple of three components that contribute
@@ -143,7 +150,7 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
     * @param c the `Rational` value to add.
     * @return a new `Solution_RQR` instance with the updated equation.
     */
-  def add(c: Rational): Solution_RQR =
+  def add(c: Rational): Solution =
     copy(equation = rqr.transform((p, _) => p - 2 * c, (p, q) => c ∧ 2 - p * c + q))
 
   /**
@@ -191,7 +198,7 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
       val pq: Rational = p * q
       val factor = p ∧ 2 - q
       val addend = pq
-      val solution = scale(factor).asInstanceOf[Solution_RQR]
+      val solution = scale(factor)
       solution.add(addend)
     case 4 =>
       val (p, q) = (rqr.p, rqr.q)
@@ -199,10 +206,10 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
       val pSquaredMinusQ = p ∧ 2 - q
       val factor = -p * pSquaredMinusQ + pq
       val addend = -q * pSquaredMinusQ
-      val solution = scale(factor).asInstanceOf[Solution_RQR]
+      val solution = scale(factor)
       solution.add(addend)
     case _ =>
-      ???
+      throw NumberException(s"power($k) is not supported for Solution_RQR")
   }
 
   /**
@@ -367,7 +374,7 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
 
   override def toString: String = {
     val (b, c, o) = value
-    s"$b ${rqr.termSign(c)} * ${rqr.termSign(o, add = false)}"
+    s"$b ${RQR.termSign(c)} * ${RQR.termSign(o, add = false)}"
   }
 }
 
@@ -385,26 +392,6 @@ case class RQR(p: Rational, q: Rational) extends Equation {
   require(!p.isZero || !q.isZero, "may not have p and q equal to zero")
   // TODO remove the following restriction--there's no reason why we cannot have complex solutions
   require(discriminant >= 0, s"discriminant ($discriminant) must not be negative--this equation is $this")
-
-  /**
-    * Determines the name associated with the given branch index, if applicable.
-    * The method evaluates specific conditions and returns a symbolic name for
-    * branches that match these conditions.
-    *
-    * @param branch the branch index for which the name is being determined.
-    *               Valid indices are typically 0 and 1; other indices will return None.
-    * @return an `Option[String]` containing the name of the branch as a string if
-    *         a name can be determined, `None` otherwise.
-    */
-  def maybeName(branch: Int): Option[String] =
-    if (p == Rational.negOne && q == Rational.negOne)
-      branch match {
-        case 0 => Some("\uD835\uDED7")
-        case 1 => Some("\uD835\uDED9")
-        case _ => None
-      }
-    else
-      None
 
   /**
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.
@@ -460,7 +447,7 @@ case class RQR(p: Rational, q: Rational) extends Equation {
   def discriminant: Rational =
     p * p - 4 * q
 
-  override def toString: String = s"Reduced Quadratic Equation: x^2 ${termSign(p)}x ${termSign(q)} = 0"
+  override def toString: String = s"Reduced Quadratic Equation: x^2 ${RQR.termSign(p)}x ${RQR.termSign(q)} = 0"
 
   /**
     * Determines if the given object can be considered equal to this instance.
@@ -485,20 +472,21 @@ case class RQR(p: Rational, q: Rational) extends Equation {
     */
   def scale(x: Rational): Equation =
     copy(p = x * p, q = x * x * q)
+}
+
+object RQR {
+  val goldenRatioEquation: RQR = RQR(Rational.negOne, Rational.negOne)
 
   /**
     * Generates a string representation of the sign and the absolute value of the given rational number.
     * The sign is determined based on the value of the input: a negative sign ("-") for negative numbers
     * and a positive sign ("+") for non-negative numbers. The absolute value is appended to the sign.
+    * TODO move this into Field
     *
     * @param x the rational number whose sign and absolute value are to be rendered as a string
     * @return a string in the format "+ n" or "- n", where "n" represents the absolute value of the input
     */
   def termSign(x: Field, add: Boolean = true): String = (if (add) if (x.signum < 0) "- " else "+ " else "") + x.abs.render
-}
-
-object RQR {
-  val goldenRatioEquation = new RQR(Rational.negOne, Rational.negOne)
 }
 
 /**
@@ -507,7 +495,7 @@ object RQR {
   */
 object Solution_RQR {
   def unapply(rqr: Solution_RQR): Option[(Option[String], Equation, Boolean)] =
-    Some(rqr.maybeName, rqr.equation, rqr.pos)
+    Some(rqr.maybeName(rqr.branch), rqr.equation, rqr.pos)
 
   val phi: Solution_RQR = Solution_RQR(goldenRatioEquation, pos = true)
   val psi: Solution_RQR = Solution_RQR(goldenRatioEquation, pos = false)

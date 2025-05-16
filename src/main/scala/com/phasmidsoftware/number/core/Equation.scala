@@ -33,12 +33,33 @@ trait Equation {
   def solve(branch: Int): Option[Solution]
 
   /**
+    * Transforms the current equation by applying the provided functions to its components.
+    *
+    * @param fP a function that takes two `Rational` parameters and produces a `Rational` result.
+    *           It is applied to the first component of the equation.
+    * @param fQ a function that takes two `Rational` parameters and produces a `Rational` result.
+    *           It is applied to the second component of the equation.
+    * @return a new `Equation` instance that is the result of applying the specified transformations
+    *         to the components of the current equation.
+    */
+  def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): Equation
+
+  /**
     * Scales the current equation by multiplying it with the given rational factor.
     *
     * @param x the rational factor by which the equation is to be scaled.
     * @return a new `Equation` instance representing the scaled equation.
     */
   def scale(x: Rational): Equation
+
+  /**
+    * Produces an inverted version of the current equation.
+    * The inversion process involves switching or rearranging key components
+    * of the equation, depending on its mathematical structure.
+    *
+    * @return a new `Equation` instance representing the inverted form of the current equation.
+    */
+  def invert: Equation
 }
 
 /**
@@ -72,7 +93,7 @@ abstract class Solution extends Field {
     * @return an `Option[String]` representing the name.
     *         Returns `None` if no name is available.
     */
-  def maybeName: Option[String] = None
+  def maybeName(branch: Int): Option[String]
 
   /**
     * This method computes two values:  based on the provided branch index.
@@ -115,6 +136,14 @@ abstract class Solution extends Field {
   def multiply(x: Field): Field
 
   /**
+    * Multiplies this `Solution` by the given `Rational` number.
+    *
+    * @param x the multiplicand, represented as a `Rational`.
+    * @return a new `Solution` instance resulting from the multiplication.
+    */
+  def multiply(x: Rational): Solution
+
+  /**
     * Scales the solution by the given rational factor.
     *
     * CONSIDER shouldn't this be part of Equation?
@@ -123,6 +152,29 @@ abstract class Solution extends Field {
     * @return a new `Solution` instance that is scaled by the specified factor.
     */
   def scale(x: Rational): Solution
+
+  /**
+    * Adds the given rational number to this solution, producing a new solution.
+    *
+    * @param c the rational number to be added, represented as an instance of `Rational`.
+    * @return a new `Solution` instance representing the result of the addition.
+    */
+  def add(c: Rational): Solution
+
+
+  /**
+    * Computes the square of the current `Solution` by transforming its associated equation and toggling its position.
+    *
+    * @return a new `Solution` instance with the squared transformation applied.
+    */
+  def square: Solution
+
+  /**
+    * Negates the current `Solution` by scaling it with a factor of -1.
+    *
+    * @return a new `Solution` instance representing the negation of the current instance.
+    */
+  def negate: Solution
 
   /**
     * Divide this Field by x and return the result.
