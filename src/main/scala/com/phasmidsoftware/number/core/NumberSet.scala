@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.inner.{PureNumber, SquareRoot, Value}
+
 /**
   * Trait to define the set in which a Number has membership.
   * Examples of sets are Z (the integers) and R (the real numbers).
@@ -20,7 +22,7 @@ sealed trait NumberSet {
     * @param x a NumberLike object.
     * @return true if this is exact && it's a member of all super-sets && it belongs to this set.
     */
-  def isMember(x: NumberLike): Boolean = x.isExact && isMemberOfSuperSet(x) && belongsToSetExclusively(x)
+  def isMember(x: NumberLike): Boolean = isMemberOfSuperSet(x) && belongsToSetExclusively(x)
 
   /**
     * (Internal) method to determine if x is a member of all super-sets.
@@ -45,7 +47,12 @@ sealed trait NumberSet {
 case object C extends NumberSet {
   val maybeSuperSet: Option[NumberSet] = None
 
-  def belongsToSetExclusively(x: NumberLike): Boolean = x.asNumber exists (x => x.normalize.isComplex)
+  def belongsToSetExclusively(x: NumberLike): Boolean =
+    x.asNumber exists {
+      x =>
+        x.factor == SquareRoot && Value.signum(x.nominalValue) < 0 ||
+            x.normalize.isComplex
+    }
 }
 
 /**

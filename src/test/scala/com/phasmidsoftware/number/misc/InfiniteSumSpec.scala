@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.core.Rational
-import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

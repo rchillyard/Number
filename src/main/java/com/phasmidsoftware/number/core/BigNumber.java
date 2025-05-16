@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core;
 
+import com.phasmidsoftware.number.core.inner.Rational;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;

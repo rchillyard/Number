@@ -1,4 +1,8 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.misc
 
 import scala.annotation.tailrec
 

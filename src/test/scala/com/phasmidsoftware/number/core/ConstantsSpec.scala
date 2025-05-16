@@ -1,11 +1,12 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sGamma
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
+import com.phasmidsoftware.number.core.inner.{Log2, Rational}
+import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.language.postfixOps
 import scala.math.Numeric.Implicits.infixNumericOps
 
@@ -30,8 +31,6 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   behavior of "constants"
   it should "have root2" in {
     val target = Constants.root2
-    target.isExact shouldBe true
-    target.isExactInContext(Some(PureNumber)) shouldBe false
     val value = target.normalize
     value match {
       case Real(n) => n should ===(Number(math.sqrt(2)))
@@ -115,7 +114,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 it should "have alpha" in {
   val target = Constants.alpha
   target.isExact shouldBe false
-  val alpha = for (number <- (target invert).asNumber; x <- number.toDouble) yield x
+  val alpha = for (number <- (target invert).asNumber; x <- number.toNominalDouble) yield x
   alpha.get shouldBe 137.0 +- 0.04
 }
 

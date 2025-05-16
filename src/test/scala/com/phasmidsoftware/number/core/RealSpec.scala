@@ -1,10 +1,12 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.ComplexPolar.±
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Number.{negate, zeroR}
-import com.phasmidsoftware.number.core.Rational.RationalHelper
 import com.phasmidsoftware.number.core.Real.RealIsOrdering
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational, SquareRoot}
+import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -157,7 +159,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Constants.two
     target.power(2) shouldBe Real(4)
   }
-  it should "work for squaring Root2" in {
+  it should "work for squaring SquareRoot" in {
     val target = Real(Number.root2)
     target.power(2) isSame Real(Number.two)
   }
@@ -191,12 +193,12 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for Radian/3" in {
     val target = Number(Rational(1, 3), Radian)
     val sin = target.sin
-    sin shouldBe Number(Rational(3, 4), Root2)
+    sin shouldBe Number(Rational(3, 4), SquareRoot)
   }
   it should "work for Radian/4" in {
     val target = Number(Rational(1, 4), Radian)
     val sin = target.sin
-    sin shouldBe Number(Rational.half, Root2)
+    sin shouldBe Number(Rational.half, SquareRoot)
   }
   it should "work for One" in {
     val target = Number.one
@@ -434,7 +436,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for 2/3" in {
     val target = Constants.two
-    import com.phasmidsoftware.number.core.Rational.RationalOps
+    import Rational.RationalOps
     nf.div(target, Real(3)) shouldBe Real(Number(2 :/ 3))
   }
 

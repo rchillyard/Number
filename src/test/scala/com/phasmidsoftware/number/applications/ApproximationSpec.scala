@@ -6,7 +6,6 @@ import com.phasmidsoftware.number.core.{FuzzyEquality, Number}
 import org.scalatest.PrivateMethodTester
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMethodTester with FuzzyEquality {
@@ -132,8 +131,8 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val ry = for (p <- py; q <- qy) yield p doDivide q
     val cy: Try[Number] = Approximation invokePrivate z(qy.get, x, negate(ry.get), Seq(newtonsPolynomial, newtonsDerivative, newtonsSecondDerivative))
     cy.isSuccess shouldBe true
-    cy.get.toDouble.isDefined shouldBe true
-    cy.get.toDouble.get shouldBe -0.00544848 +- 1E-7
+    cy.get.toNominalDouble.isDefined shouldBe true
+    cy.get.toNominalDouble.get shouldBe -0.00544848 +- 1E-7
   }
 
   it should "do correction for cosine problem" in {
@@ -145,8 +144,8 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val ry = for (p <- py; q <- qy) yield p doDivide q
     val cy: Try[Number] = Approximation invokePrivate z(qy.get, x, negate(ry.get), Seq(cosineFunction, cosineDerivative, cosineSecondDerivative))
     cy.isSuccess shouldBe true
-    cy.get.toDouble.isDefined shouldBe true
-    cy.get.toDouble.get shouldBe 0.23726217439 +- 1E-7
+    cy.get.toNominalDouble.isDefined shouldBe true
+    cy.get.toNominalDouble.get shouldBe 0.23726217439 +- 1E-7
   }
 
 }

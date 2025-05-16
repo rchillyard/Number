@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.core.{NumberException, Rational}
+import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.misc.ContinuedFraction.Hurwitz
 import scala.annotation.tailrec
 import scala.util.Try
@@ -422,7 +423,7 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
   /**
     * Method to convert this ConFrac to an (optional) Double, according to the epsilon value.
     *
-    * NOTE: this method invokes toRational(Double), which is not tail-recursive.
+    * NOTE: this method invokes toNominalRational(Double), which is not tail-recursive.
     *
     * @param epsilon the maximum allowable error.
     * @return an optional approximate value.
@@ -641,7 +642,7 @@ trait Evaluatable {
 
 trait Approximate[X] {
   /**
-    * Evaluate this Approximate object as a Double such that the absolute error between the true value and the result
+    * Evaluate this Approximatable object as a Double such that the absolute error between the true value and the result
     * is less than epsilon.
     *
     * @param x       the X value.

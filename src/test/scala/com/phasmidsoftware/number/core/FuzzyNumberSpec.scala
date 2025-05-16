@@ -1,15 +1,16 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.{sGamma, sPhi}
-import com.phasmidsoftware.number.core.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Fuzziness.showPercentage
 import com.phasmidsoftware.number.core.Number.{negate, twoPi}
-import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+import com.phasmidsoftware.number.expression.{ConstPi, Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -79,7 +80,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     z.isExact shouldBe false
     z.nominalValue should matchPattern { case Left(Right(Rational(_, _))) => }
     z.fuzz.get shouldBe AbsoluteFuzz(5.0E-51, Box)
-    z.toDouble.get shouldBe 0.5772156649015329 +- 1E-14
+    z.toNominalDouble.get shouldBe 0.5772156649015329 +- 1E-14
     // NOTE that if you had to force z to be a Number based on a Double nominalValue,
     // then of course, we would lose most of the 50 places of decimals.
   }
@@ -89,7 +90,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val z = zy.get
     z.isExact shouldBe false
     z.fuzz.get shouldBe AbsoluteFuzz(5.0E-105, Box)
-    z.toDouble.get shouldBe 1.618033988749894 +- 1E-13
+    z.toNominalDouble.get shouldBe 1.618033988749894 +- 1E-13
   }
   it should "parse G" in {
     val z = Number.parse("6.67430(15)E-11")
@@ -388,7 +389,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for 3pi/2" in {
     val target = Number.piBy2 doMultiply Number(3)
-    target.tan shouldBe Number(Rational.negInfinity, PureNumber)
+    target.tan shouldBe Number(Rational.infinity.negate, PureNumber)
   }
   it should "work for 3.141592653589793" in {
     val target = Number("3.1415926535897932384626433")
@@ -469,7 +470,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val r: Option[Value] = Operations.doTransformValueMonadic(n.nominalValue)(op.functions)
     r.isDefined shouldBe true
     val q: Number = n.make(r.get, PureNumber)
-    val xo = q.toDouble
+    val xo = q.toNominalDouble
     xo.isDefined shouldBe true
     val x = xo.get
     val normalized: Field = q.make(Fuzziness.map[Double, Double, Double](1, x, relative = true, op.relativeFuzz, Some(fuzz))).normalize

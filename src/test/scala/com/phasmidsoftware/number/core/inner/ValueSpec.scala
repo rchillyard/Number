@@ -1,6 +1,10 @@
-package com.phasmidsoftware.number.core
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.core.Value._
+package com.phasmidsoftware.number.core.inner
+
+import com.phasmidsoftware.number.core.inner.Value._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -19,6 +23,22 @@ class ValueSpec extends AnyFlatSpec with should.Matchers {
     signum(fromInt(-1)) shouldBe -1
   }
 
+  it should "isZero" in {
+    isZero(fromInt(0)) shouldBe true
+    isZero(fromRational(Rational.zero)) shouldBe true
+    isZero(fromDouble(Some(0))) shouldBe true
+    isZero(fromInt(1)) shouldBe false
+    isZero(fromRational(Rational.one)) shouldBe false
+    isZero(fromDouble(Some(1))) shouldBe false
+  }
+
+  it should "isEqual" in {
+    isEqual(fromInt(1), fromInt(1)) shouldBe true
+    isEqual(fromInt(1), fromRational(Rational.one)) shouldBe true
+    isEqual(fromInt(1), fromDouble(Some(1.0))) shouldBe true
+    isEqual(fromInt(1), fromInt(2)) shouldBe false
+  }
+
   it should "maybeDouble" in {
     maybeDouble(fromDouble(Some(0.5))) shouldBe Some(0.5)
     maybeDouble(fromDouble(None)) shouldBe None
@@ -35,7 +55,7 @@ class ValueSpec extends AnyFlatSpec with should.Matchers {
     maybeInt(fromInt(1)) shouldBe Some(1)
   }
 
-  it should "maybeRational" in {
+  it should "maybeNominalRational" in {
     maybeRational(fromRational(Rational("1/2"))) shouldBe Some(Rational.half)
   }
 

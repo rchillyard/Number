@@ -1,6 +1,7 @@
 import com.phasmidsoftware.number.applications.Approximation
 import com.phasmidsoftware.number.core.Number.piBy2
-import com.phasmidsoftware.number.core.{Constants, Expression, Number, Real}
+import com.phasmidsoftware.number.core.{Constants, Number, Real}
+import com.phasmidsoftware.number.expression.Expression
 
 /**
   * This is a demonstration of Newton's method of approximation for his original polynomial:

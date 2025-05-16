@@ -1,4 +1,8 @@
-package com.phasmidsoftware.number.misc
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.parse
 
 import scala.util.Try
 import scala.util.parsing.combinator._

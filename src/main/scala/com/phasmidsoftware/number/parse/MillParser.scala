@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.expression.Expression
 import com.phasmidsoftware.number.mill.{Expr, Item, Mill}
 import scala.util.Try
 

@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.Fuzziness.showPercentage
-import com.phasmidsoftware.number.core.Rational.RationalHelper
-import com.phasmidsoftware.number.core.{Number, Rational}
+import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.misc.ConFrac.LongLazyListFrom
 import com.phasmidsoftware.number.misc.ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
 import org.scalatest.flatspec
@@ -172,9 +173,9 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     xs.tail.head shouldBe Pair(1)
   }
 
-  behavior of "ConFrac.toRational"
+  behavior of "ConFrac.toNominalRational"
 
-  it should "implement simple toRational" in {
+  it should "implement simple toNominalRational" in {
     // NOTE: these tests approximate the Golden Ratio phi
     val target = ConFrac.simple(LazyList.continually(1))
     target.take(0).toRational shouldBe convergentsPhi.head
@@ -207,7 +208,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     cf.toRationalOption(Rational(50).invert) should matchPattern { case None => }
   }
 
-  it should "implement simple toRational(Double)" in {
+  it should "implement simple toNominalRational(Double)" in {
     val one: LazyList[Long] = LongLazyListFrom(1)
     val cf: ConFrac = ConFrac.simple(one)
 
@@ -373,9 +374,9 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     cf.toRational.toDouble shouldBe goldenRatio +- epsilon
   }
 
-  behavior of "ContinuedFraction.toRational"
+  behavior of "ContinuedFraction.toNominalRational"
 
-  it should "implement toRational" in {
+  it should "implement toNominalRational" in {
     // NOTE: these tests approximate the Golden Ratio phi
     val target = ContinuedFraction.createInfinite(1)
     target.toRational(1) shouldBe Rational.two
@@ -390,7 +391,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     target.toRational(10) shouldBe r"144/89"
   }
 
-  it should "implement toRational(Double)" in {
+  it should "implement toNominalRational(Double)" in {
     val cf: ContinuedFraction = ContinuedFraction.createInfinite(1)
 
     import Rational.RationalHelper

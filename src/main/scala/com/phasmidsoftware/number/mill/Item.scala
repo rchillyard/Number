@@ -4,8 +4,9 @@
 
 package com.phasmidsoftware.number.mill
 
-import com.phasmidsoftware.number.core.Expression._
 import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.expression.Expression._
+import com.phasmidsoftware.number.expression.{Expression, Literal}
 
 /**
   * Trait to model the behavior of an item that goes into the Mill.

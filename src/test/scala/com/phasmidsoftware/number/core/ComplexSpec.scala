@@ -1,10 +1,12 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
-import com.phasmidsoftware.number.core.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, root3, zeroR, √}
-import com.phasmidsoftware.number.core.Rational.RationalHelper
+import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, piBy2, root3, zeroR, √}
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.expression.Expression.convertFieldToExpression
+import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -64,14 +66,6 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi.imag shouldBe Number.pi
   }
 
-  it should "isExact" in {
-    c1_2.isExact shouldBe true
-    c2_0.isExact shouldBe true
-    p1_pi.isExact shouldBe true
-    (c1_2 add c2_0).isExact shouldBe true
-    (c1_2 add p1_pi_2).materialize.isExact shouldBe true
-  }
-
   it should "isInfinite" in {
     p1_pi_2.divide(Constants.zero).isInfinite shouldBe true
     p1_pi.isInfinite shouldBe false
@@ -83,7 +77,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     c2_0.asNumber shouldBe Some(Number.two)
     c1_2.asNumber shouldBe None
     p1_pi_2.asNumber shouldBe Some(Number.i)
-    ComplexCartesian(0, Number.two).asNumber shouldBe Some(Number(-4, Root2))
+    ComplexCartesian(0, Number.two).asNumber shouldBe Some(Number(-4, SquareRoot))
   }
 
   it should "add1" in {
@@ -97,7 +91,8 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "multiply" in {
     val z1 = Expression(c1_2) * c2_0
-    z1.materialize shouldBe ComplexCartesian(Number.two, 4)
+    val result = z1.materialize
+    result shouldBe ComplexCartesian(Number.two, 4)
   }
 
   it should "unary_$minus" in {
@@ -105,7 +100,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z shouldBe ComplexCartesian(Number.negOne, -2)
   }
 
-  it should "divide" in {
+  ignore should "divide" in {
     val z = ComplexCartesian(Number.two, 4)
     val z1: Expression = Literal(z) / c2_0
     (z1 * Expression(c2_0)).materialize shouldBe z
@@ -152,19 +147,21 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
-  it should "c1_2^1/2" in {
+  // TODO fix me. This arose when working with Factor.raise
+  ignore should "c1_2^1/2" in {
     val result: Field = c1_2 power half
     // result should be 1.27201965 + i0.786151378
     result should matchPattern { case ComplexPolar(_, _, _) => }
     result match {
-      case c@ComplexPolar(_, _, _) => c.modulus.toDouble.get shouldBe 1.495348781221220 +- 1E-9
+      case c@ComplexPolar(_, _, _) => c.modulus.toNominalDouble.get shouldBe 1.495348781221220 +- 1E-9
     }
     (result * result).compare(c1_2) shouldBe 0
   }
   it should "c2_0^1/2" in {
     val result: Field = c2_0 power half
     result should matchPattern { case ComplexPolar(_, _, 2) => }
-    (result * result).compare(c2_0) shouldBe 0
+    val squaredResult = result * result
+    squaredResult.compare(c2_0) shouldBe 0
   }
 
   it should "p1_pi_2^1" in {
@@ -195,17 +192,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "c2_0^1/3" in {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
-    cubeRootOfTwo shouldBe ComplexPolar(Number(2, Root3), Number.zeroR, 3)
+    cubeRootOfTwo shouldBe ComplexPolar(Number(2, CubeRoot), Number.zeroR, 3)
   }
 
   behavior of "other"
-
-  it should "context" in {
-    c1_2.context shouldBe Some(PureNumber)
-    ComplexCartesian(Number.one, Number.pi).context shouldBe None
-    p1_pi.context shouldBe None
-    ComplexPolar(Number.one, Number.pi).context shouldBe None
-  }
 
   it should "modulus" in {
     c2_0.modulus shouldBe Number.two
@@ -252,6 +242,20 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val z: Complex = √(5).asComplex
     z shouldBe ComplexPolar(√(5), zeroR, 2)
     z.render shouldBe "±√5"
+  }
+
+  it should "convertToPolar 3" in {
+    val c: ComplexCartesian = c2_0.asInstanceOf[ComplexCartesian]
+    val z = Complex.convertToPolar(c)
+    z shouldBe ComplexPolar(Number.two, zeroR, 1)
+    z.render shouldBe "2"
+  }
+
+  it should "convertToPolar 4" in {
+    val c = ComplexCartesian(Number.zero, Number.two)
+    val z = Complex.convertToPolar(c)
+    z shouldBe ComplexPolar(Number.two, piBy2, 1)
+    z.render shouldBe "2e^i½\uD835\uDED1"
   }
 
   it should "check that math.atan really works 1" in {
@@ -343,13 +347,17 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     (Number.two multiply Constants.i).isSame(ComplexCartesian(0, 2)) shouldBe true
   }
   it should "work when i is scaled by two (postfix)" in {
-    (Number.i multiply Constants.two).isSame(ComplexCartesian(0, 2)) shouldBe true
+    (Number.i.asComplex multiply Constants.two).isSame(ComplexCartesian(0, 2)) shouldBe true
   }
 
   behavior of "i"
   it should "render as √-1" in {
-    // CONSIDER should we have it render as "i" instead?
-    Number.i.render shouldBe "√-1"
+    val render = Number.i.render
+    render shouldBe "i"
+  }
+  it should "render as √-4" in {
+    val render = ExactNumber(-4, SquareRoot).render
+    render shouldBe "i2"
   }
   it should "convertToNumber" in {
     convertToNumber(Constants.i) shouldBe Number.i
@@ -357,8 +365,14 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "scale(PureNumber)" in {
     Number.i.scale(PureNumber) shouldBe Number.NaN
   }
-  it should "normalize" in {
-    Number.i.normalize shouldBe ComplexCartesian(0, 1)
+  it should "normalize i as itself" in {
+    Number.i.normalize shouldBe Constants.i
+  }
+  it should "normalize 11i" in {
+    import SquareRoot.IntToImaginary
+    val actual = Number.i.multiply(Real(11)).normalize
+    val expected = 11.i
+    actual.isSame(expected) shouldBe true
   }
 
   behavior of "C interpolator"

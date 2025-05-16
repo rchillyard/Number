@@ -4,9 +4,10 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.FP.recover
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
+import com.phasmidsoftware.number.expression.Literal
+import com.phasmidsoftware.number.misc.FP.recover
 import com.phasmidsoftware.number.parse.ComplexParser
-
 import scala.util._
 
 /**
@@ -98,10 +99,11 @@ object Complex {
     val real = ro getOrElse Number.zero
     val s = so getOrElse "+"
     val i = io getOrElse Number.zero
-    val imag = s match {
-      case "-" => i.makeNegative
-      case _ => i
-    }
+    val imag = i.negateConditional(s == "-")
+//    val imag = s match {
+//      case "-" => i.makeNegative
+//      case _ => i
+//    }
     i.factor match {
       case Radian => ComplexPolar(real, imag)
       case _ => ComplexCartesian(real, imag)
@@ -109,15 +111,22 @@ object Complex {
   }
 
   /**
-   * Method to convert a ComplexCartesian into a ComplexPolar.
-   *
-   * TODO: determine what to do about 0,0
-   *
-   * @param c the cartesian complex.
-   * @return a Complex.
-   */
-  def convertToPolar(c: ComplexCartesian): Complex = {
+    * Converts a complex number in Cartesian form to its equivalent representation in polar form.
+    *
+    * @param c the complex number in Cartesian form. It contains real (x) and imaginary (y) components.
+    * @return the complex number in polar form, represented by its magnitude and angle.
+    */
+  def convertToPolar(c: ComplexCartesian): Complex = c match {
+    case ComplexCartesian(Number.zero, Number.zero) =>
+      ComplexPolar(Number.zero, Number.zeroR)
+    case ComplexCartesian(Number.zero, y) =>
+      ComplexPolar(y.abs, y.signum * Number.piBy2)
+    case ComplexCartesian(x, Number.zero) =>
+      ComplexPolar(x.abs, if (x.signum > 0) Number.zeroR else Number.pi)
+    case _ =>
     // CONSIDER can we improve upon this? Basically, we should only need MonadicOperationAtan.
+      // FIXME we should not be relying on expression package here.
+    // TODO eliminate use of materialize (see doAdd in ComplexCartesian)
     val ro: Option[Number] = for (p <- ((Literal(c.x) * Real(c.x)) plus (Literal(c.y) * Real(c.y))).materialize.asNumber; z = p.sqrt) yield z
     val z: Number = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
     ComplexPolar(z, c.x atan c.y, 1)

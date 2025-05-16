@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.core
+package com.phasmidsoftware.number.misc
 
+import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
 import java.net.URL
 import scala.io.Source
 import scala.language.implicitConversions

@@ -50,6 +50,14 @@ trait Numerical extends NumberLike {
   def signum: Int
 
   /**
+    * Computes the absolute value of this Numerical instance.
+    * The result is a Numerical object representing a non-negative magnitude of this instance.
+    *
+    * @return a Numerical object representing the absolute value of this instance.
+    */
+  def abs: Numerical
+
+  /**
     * Change the sign of this Field.
     */
   def unary_- : Field

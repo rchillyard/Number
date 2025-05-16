@@ -1,7 +1,10 @@
 package com.phasmidsoftware.number.java;
 
+import com.phasmidsoftware.number.core.Constants;
 import com.phasmidsoftware.number.core.Number;
-import com.phasmidsoftware.number.core.*;
+import com.phasmidsoftware.number.core.Real;
+import com.phasmidsoftware.number.expression.Expression;
+import com.phasmidsoftware.number.expression.Literal;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
