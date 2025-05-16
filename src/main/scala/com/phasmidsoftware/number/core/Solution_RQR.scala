@@ -106,6 +106,17 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
     copy(equation = rqr.scale(x))
 
   /**
+    * Multiplies the current `Solution` instance by a specified `Rational` value, resulting in a new transformed `Solution`.
+    * TESTME I have no idea if this is correct.
+    * It was Claude who suggested the expression.
+    *
+    * @param x the multiplier, represented as a `Rational` value.
+    * @return a new `Solution` instance with the equation modified by the multiplication.
+    */
+  def multiply(x: Rational): Solution =
+    copy(equation = rqr.transform((p, _) => p * x, (p, q) => x ∧ 2 * p + q * x)) // XXX where does this come from?
+
+  /**
     * Multiply this Field by x and return the result.
     *
     * * @param x the multiplicand.
@@ -127,6 +138,15 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
   }
 
   /**
+    * Adds a `Rational` value to the current `Solution_RQR` instance by transforming the associated equation.
+    *
+    * @param c the `Rational` value to add.
+    * @return a new `Solution_RQR` instance with the updated equation.
+    */
+  def add(c: Rational): Solution_RQR =
+    copy(equation = rqr.transform((p, _) => p - 2 * c, (p, q) => c ∧ 2 - p * c + q))
+
+  /**
     * Add x to this Field and return the result.
     * See Number.plus for more detail.
     *
@@ -134,12 +154,55 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
     * @return the sum.
     */
   def add(x: Field): Field = x match {
-    case Real(ExactNumber(n, PureNumber)) if Value.maybeRational(n).contains(rqr.p) =>
-      copy(equation = rqr.transform((p, _) => p + 2, (p, q) => 1 + p + q))
-    case Real(ExactNumber(n, PureNumber)) if Value.maybeRational(n).contains(-rqr.p) =>
-      copy(equation = rqr.transform((p, _) => p - 2, (p, q) => 1 - p + q))
+    case Real(ExactNumber(n, PureNumber)) => Value.maybeRational(n) match {
+      case Some(c) =>
+        add(c)
+      case _ =>
+        asNumber map (_ add x) getOrElse NaN
+    }
     case _ =>
       asNumber map (_ add x) getOrElse NaN
+  }
+
+  /**
+    * Computes the result of raising this `Solution_RQR` instance to the power of the given exponent `k`.
+    *
+    * Depending on the value of `k`, different transformations and computations
+    * are applied to generate the resulting `Solution`:
+    * - If `k` is -1, the inverse of the solution is returned.
+    * - If `k` is 0, the solution representing 1 is returned.
+    * - If `k` is 1, the current instance is returned as-is.
+    * - For higher values of `k`, specific equations and transformations are used to compute the result.
+    *
+    * @param k the exponent to which this `Solution_RQR` instance is raised.
+    * @return a new `Solution` instance representing the result of the power operation.
+    */
+  override def power(k: Int): Solution = k match {
+    case -1 =>
+      invert
+    case 0 =>
+      Solution_RQR.one
+    case 1 =>
+      this
+    case 2 =>
+      square
+    case 3 =>
+      val (p, q) = (rqr.p, rqr.q)
+      val pq: Rational = p * q
+      val factor = p ∧ 2 - q
+      val addend = pq
+      val solution = scale(factor).asInstanceOf[Solution_RQR]
+      solution.add(addend)
+    case 4 =>
+      val (p, q) = (rqr.p, rqr.q)
+      val pq: Rational = p * q
+      val pSquaredMinusQ = p ∧ 2 - q
+      val factor = -p * pSquaredMinusQ + pq
+      val addend = -q * pSquaredMinusQ
+      val solution = scale(factor).asInstanceOf[Solution_RQR]
+      solution.add(addend)
+    case _ =>
+      ???
   }
 
   /**
@@ -156,7 +219,7 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
         case Some(-1) =>
           invert
         case Some(0) =>
-          Real(one) // CONSIDER What about Solution_RQR(name, 0, 0, pos)?
+          Solution_RQR.one
         case Some(1) =>
           this
         case Some(2) =>
@@ -216,7 +279,7 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
     * @return a new `Solution` instance with the squared transformation applied.
     */
   def square: Solution =
-    copy(equation = rqr.transform((p, q) => 2 * q - (p ∧ 2), (_, q) => q ∧ 2))
+    copy(equation = rqr.transform((p, q) => 2 * q - p ∧ 2, (_, q) => q ∧ 2))
 
   /**
     * Negates the current `Solution` by scaling it with a factor of -1.
@@ -446,6 +509,7 @@ object Solution_RQR {
   def unapply(rqr: Solution_RQR): Option[(Option[String], Equation, Boolean)] =
     Some(rqr.maybeName, rqr.equation, rqr.pos)
 
-  val phi = new Solution_RQR(goldenRatioEquation, true)
-  val psi = new Solution_RQR(goldenRatioEquation, false)
+  val phi: Solution_RQR = Solution_RQR(goldenRatioEquation, pos = true)
+  val psi: Solution_RQR = Solution_RQR(goldenRatioEquation, pos = false)
+  val one: Solution_RQR = Solution_RQR(RQR(-2, 1), pos = true)
 }

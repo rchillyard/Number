@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Number.{convertInt, negOne, one, root5}
+import com.phasmidsoftware.number.core.Number.{convertInt, negOne, one, root5, two}
 import com.phasmidsoftware.number.core.Solution_RQR.{phi, psi}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
@@ -80,6 +80,12 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     psi.abs shouldBe psi.scale(-1)
   }
 
+  it should "scale" in {
+    val actual = phi.scale(2)
+    val expected = phi.add(phi)
+    actual.normalize should ===(expected)
+  }
+
   it should "negate" in {
     phi.negate shouldBe Solution_RQR(RQR(1, -1), pos = true)
   }
@@ -119,18 +125,54 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     actual.normalize should ===(Constants.phi + Real(-1))
     actual.normalize.isSame(Constants.phi + Real(-1)) shouldBe true
   }
+  it should "add 2" in {
+    println(s"phi = $phi")
+    val actual = phi add Real(two)
+    println(s"phi add Real(one) = $actual")
+    actual.normalize should ===(Constants.phi + Real(2))
+    actual.normalize.isSame(Constants.phi + Real(2)) shouldBe true
+  }
 
-  it should "power" in {
-    val actual = phi.power(convertInt(2))
+  it should "power 0" in {
+    val actual = phi.power(Number.zero)
+    val expected = Solution_RQR(RQR(-2, 1), pos = true)
+    actual shouldBe (expected)
+    actual.normalize shouldBe Constants.one
+  }
+  it should "power 1" in {
+    val actual = phi.power(1)
+    val expected = phi
+    println(s"phi=$phi; phi.power(1) = $actual")
+    actual shouldBe (expected)
+    actual.normalize should ===(Constants.phi)
+  }
+  it should "power 2" in {
+    val actual = phi.power(2)
     val expected = phi.square
     actual shouldBe (expected)
     actual.normalize should ===(Constants.phi + Real(1))
     actual.normalize.isSame(Constants.phi + Real(1)) shouldBe true
   }
+  it should "power 3" in {
+    val actual = phi.power(3)
+    val expected = phi.scale(2).add(Rational.one)
+    println(s"phi^3 = $actual. expected=$expected")
+    val expectedValue = Constants.phi * Rational.two + Real(1)
+    println(s"expectedValue = $expectedValue")
+    actual.normalize should ===(expectedValue)
+    actual.normalize.isSame(expectedValue) shouldBe true
+  }
+  it should "power 4" in {
+    val actual = phi.power(4)
+    val expected = phi.square.asInstanceOf[Solution_RQR].square
+    println(s"phi^3 = $actual. expected=$expected")
+    actual.normalize should ===(expected)
+    actual.normalize.isSame(expected) shouldBe true
+  }
 
   it should "transform" in {
     val pFunc: (Rational, Rational) => Rational = (p, q) => (2 * q) - (p ∧ 2)
-    val qFunc: (Rational, Rational) => Rational = (p, q) => q ∧ 2
+    val qFunc: (Rational, Rational) => Rational = (_, q) => q ∧ 2
     val equation = RQR.goldenRatioEquation
     println(s"equation = $equation")
     val rqr = equation.transform(pFunc, qFunc)
