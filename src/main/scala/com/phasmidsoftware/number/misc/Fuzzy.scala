@@ -1,6 +1,8 @@
 package com.phasmidsoftware.number.misc
 
+import com.phasmidsoftware.number.misc.Fuzzy.parser
 import org.apache.commons.math3.distribution._
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._
@@ -209,6 +211,8 @@ case class Exact(x: Double) extends FuzzyBase(x, 0, new ConstantRealDistribution
 case class Gaussian(mu: Double, sigma: Double) extends FuzzyBase(mu, sigma, new NormalDistribution(mu.doubleValue, sigma.doubleValue)) {
   require(sigma > 0, "sigma must be positive")
 
+  //val fuzzyGaussianParser: FuzzyParser = new FuzzyParser
+
   def combine(o: Fuzzy, f: PairFunction, df_dx: PairFunction, df_dy: PairFunction): Fuzzy = o match {
     case Gaussian(mu2, sigma2) => Gaussian(f(mu, mu2), math.sqrt(f(sigma * sigma, sigma2 * sigma2)))
     case _ => throw new UnsupportedOperationException("NYI")
@@ -219,10 +223,18 @@ case class Gaussian(mu: Double, sigma: Double) extends FuzzyBase(mu, sigma, new 
   def newFuzzy(x: Double, delta: Double): Fuzzy = Gaussian(x, delta)
 
   // TODO implement me
-  def parseString(str: String): Option[Fuzzy] = ???
+  def parseString(str: String): Option[Fuzzy] = {
+    val tryFuzzy = parser.parseAll(parser.fuzzyGaussian, str) match {
+      case parser.Success(x: Fuzzy, _) => Success(x)
+      case parser.Failure(_, z) => Failure(new RuntimeException(s"parser gaussian failure: $z"))
+      case parser.Error(_, f) => Failure(new RuntimeException(s"parser gaussian error: $f"))
+    }
 
-  override def map2(f: DiFunc[Double])(delta2: Double): Fuzzy =
-    throw new UnsupportedOperationException("NYI")
+    tryFuzzy.toOption
+  }
+
+  //override def map2(f: DiFunc[Double])(delta2: Double) = throw new UnsupportedOperationException("NYI")
+  override def map2(f: DiFunc[Double])(delta2: Double): Fuzzy = newFuzzy(f.f(mu), math.sqrt(math.pow(f.df_dx(0)(mu) * sigma, 2) + math.pow(f.df_dx(1)(mu)* sigma, 2)))
 }
 
 case class Bounded(mu: Double, delta: Double) extends FuzzyBase(mu, delta, new UniformRealDistribution(mu - math.abs(delta), mu + math.abs(delta))) {
