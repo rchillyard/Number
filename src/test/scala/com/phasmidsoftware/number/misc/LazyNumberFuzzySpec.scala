@@ -12,7 +12,6 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   private val fuzz1 = LazyFuzzy(1)
   private val fuzz2 = LazyFuzzy(1, Product(2))
-  private val fuzz2z = LazyFuzzy(Gaussian(2, 0.1))
 
   def squ(x: Fuzzy): Fuzzy = x match {
     case f: FuzzyBase => f * x
@@ -87,11 +86,8 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
     p.get shouldBe Bounded(2.7182818284590455, 1E-3)
   }
 
-  // TODO understand why this would ever have worked!
-  // fuzz2 = LazyFuzzy(1, Product(2))
-  // fuzz4 = fuzz2 map fuzzSquare
-  ignore should "give 8" in {
-    val z = for (x <- fuzz2; y <- fuzz4 ) yield x.power(y)
+  it should "give 8" in {
+    val z = for (x <- fuzz2; y <- fuzz4 ) yield FuzzyNumeric.times(x, y)
     z.get should be (Exact(8))
   }
 
