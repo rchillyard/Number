@@ -96,6 +96,19 @@ abstract class Solution extends Field {
   def maybeName(branch: Int): Option[String]
 
   /**
+    * Retrieves a tuple representation of one or more `Rational` numbers.
+    * It represents the value of this `Solution` using the formula (where r is the result):
+    * `r._1 + r._2 * r._3.get`
+    * If `r._3` is `None` it means that the offset of the value cannot be represented as a `Rational`,
+    * in which case, the offset will have to be calculated using a `Field` instead.
+    *
+    * @return A tuple containing two mandatory Rational values and an optional Rational value.
+    *         The first and second elements are Rational objects, while the third element is
+    *         an Option that may contain a Rational value or None.
+    */
+  def rationalValue: (Rational, Rational, Option[Rational])
+
+  /**
     * This method computes two values:  based on the provided branch index.
     *
     * @return a tuple where the first element is a `Field` representing the base value,
@@ -161,6 +174,21 @@ abstract class Solution extends Field {
     */
   def add(c: Rational): Solution
 
+  /**
+    * Adds the given Solution object to the current Solution.
+    *
+    * @param s the Solution object to be added
+    * @return a new Solution resulting from the addition
+    */
+  def add(s: Solution): Solution
+
+  /**
+    * Multiplies the instance of Solution with another Solution and returns the result.
+    *
+    * @param s the Solution instance to be multiplied with
+    * @return a new Solution instance representing the result of the multiplication
+    */
+  def multiply(s: Solution): Solution
 
   /**
     * Computes the square of the current `Solution` by transforming its associated equation and toggling its position.

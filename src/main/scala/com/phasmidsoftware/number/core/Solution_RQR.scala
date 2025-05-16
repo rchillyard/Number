@@ -4,12 +4,12 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Number.{one, two}
+import com.phasmidsoftware.number.core.Number.one
 import com.phasmidsoftware.number.core.RQR.goldenRatioEquation
 import com.phasmidsoftware.number.core.Real.NaN
+import com.phasmidsoftware.number.core.inner.Rational.half
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, SquareRoot, Value}
 import java.util.Objects
-
 
 /**
   * Represents a specialized form of a solution derived from an equation, specifically
@@ -36,7 +36,6 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
     * @return the branch index as an `Int`: 0 if `pos` is true, 1 otherwise.
     */
   def branch: Int = if (pos) 0 else 1
-
 
   /**
     * Determines the name associated with the given branch index, if applicable.
@@ -66,6 +65,30 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
   def render: String = maybeName(branch) getOrElse toString
 
   /**
+    * Lazy value that computes a tuple of three `Rational` components derived from
+    * the quadratic root equation analysis: the first represents the scaled
+    * negation of `p`, the second depends on the condition of `pos` to define
+    * whether to return a positive or negative half, and the third contains the
+    * optional square root of the discriminant.
+    * TODO generalize and promote this to Solution.
+    *
+    * The tuple structure is represented as:
+    * - The first element is computed as `-rqr.p / 2`.
+    * - The second element is `half` if `pos` is true; otherwise, it is `-half`.
+    * - The third element is an `Option[Rational]` based on the square root of
+    * the discriminant.
+    *
+    * The computation relies on values provided by the enclosing `rqr` object
+    * and evaluates the state of the quadratic root associated with `rqr`.
+    */
+  lazy val rationalValue: (Rational, Rational, Option[Rational]) =
+    (
+        -rqr.p / 2,
+        if (pos) half else -half,
+        rqr.discriminant.sqrt.toOption
+    )
+
+  /**
     * A lazy value representing a tuple of three components that contribute
     * to the quadratic root representation:
     *
@@ -74,12 +97,12 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
     * sign of `pos`.
     * 3. The third element is the square root of the discriminant treated as a `Field`.
     */
-  lazy val value: (Field, Rational, Field) =
-    (
-        Real(Number(-rqr.p) doDivide two),
-        if (pos) Rational.half else -Rational.half,
-        Real(Number(rqr.discriminant).sqrt)
-    )
+  lazy val value: (Field, Rational, Field) = rationalValue match {
+    case (base, coefficient, Some(offset)) =>
+      (base, coefficient, offset)
+    case (base, coefficient, None) =>
+      (base, coefficient, Real(Number(rqr.discriminant).sqrt))
+  }
 
   /**
     * Determine the "sign" of this field.
@@ -111,6 +134,35 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
     */
   def scale(x: Rational): Solution =
     copy(equation = rqr.scale(x))
+
+  /**
+    * Adds a `Solution` instance to the current `Solution_RQR` instance based on specific conditions.
+    *
+    * If the input `Solution` matches the structure `Solution_RQR` with the same equation
+    * and a position equal to the current position, the original instance is multiplied by 2.
+    * Otherwise, the result is `Solution_RQR.zero`.
+    *
+    * @param s the `Solution` to be added to the current instance.
+    * @return a `Solution` instance representing the result of the addition according to the specified conditions.
+    */
+  def add(s: Solution): Solution = s match {
+    case Solution_RQR(_, `equation`, b) =>
+      if (pos == b) this multiply Rational.two
+      else Solution_RQR.zero
+    case _ =>
+      throw NumberException(s"add($s) is not supported for Solution_RQR")
+  }
+
+  /**
+    * Multiplies the provided Solution object with a predefined operation.
+    * TODO Implement me.
+    *
+    * @param s the Solution object to be multiplied
+    * @return a new Solution resulting from the multiplication
+    * @throws NumberException for all inputs.
+    */
+  def multiply(s: Solution): Solution =
+    throw NumberException(s"add($s) is not supported for Solution_RQR")
 
   /**
     * Multiplies the current `Solution` instance by a specified `Rational` value, resulting in a new transformed `Solution`.
@@ -389,7 +441,6 @@ case class Solution_RQR(equation: Equation, pos: Boolean) extends Solution() {
   * @param q the constant term of the equation.
   */
 case class RQR(p: Rational, q: Rational) extends Equation {
-  require(!p.isZero || !q.isZero, "may not have p and q equal to zero")
   // TODO remove the following restriction--there's no reason why we cannot have complex solutions
   require(discriminant >= 0, s"discriminant ($discriminant) must not be negative--this equation is $this")
 
@@ -500,4 +551,5 @@ object Solution_RQR {
   val phi: Solution_RQR = Solution_RQR(goldenRatioEquation, pos = true)
   val psi: Solution_RQR = Solution_RQR(goldenRatioEquation, pos = false)
   val one: Solution_RQR = Solution_RQR(RQR(-2, 1), pos = true)
+  val zero: Solution = one.add(-1)
 }
