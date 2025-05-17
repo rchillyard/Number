@@ -5,20 +5,20 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{convertInt, negOne, one, root5, two}
-import com.phasmidsoftware.number.core.Solution_RQR.{phi, psi}
+import com.phasmidsoftware.number.core.Solution_Quadratic.{phi, psi, zero}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
+class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
-  behavior of "RQR"
+  behavior of "Quadratic"
 
   it should "normalize" in {
     val expected: Real = Constants.phi
-    val phi = Solution_RQR.phi.normalize
+    val phi = Solution_Quadratic.phi.normalize
     phi.isSame(expected) shouldBe true
-    val psi = Solution_RQR.psi.normalize
+    val psi = Solution_Quadratic.psi.normalize
     psi.isSame(Real(-0.618033)) shouldBe true
   }
 
@@ -43,17 +43,16 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   it should "value 2" in {
-    val equation = RQR.goldenRatioEquation
-    val otherEquation = RQR(1, -1)
-    val target = Solution_RQR(otherEquation, pos = true)
+    val otherEquation = Quadratic(1, -1)
+    val target = Solution_Quadratic(otherEquation, pos = true)
     val expected = phi.invert
     target.value shouldBe expected.value
     target.normalize.isSame(Real(0.618033)) shouldBe true
   }
 
   it should "value 3" in {
-    val equation = RQR(Rational.three.negate, Rational.one)
-    val target = Solution_RQR(equation, pos = true)
+    val equation = Quadratic(Rational.three.negate, Rational.one)
+    val target = Solution_Quadratic(equation, pos = true)
     val (n1, r, (n2)) = target.value
     n1 shouldBe Real(Rational(3, 2))
     val resultingValue: Field = r * n2
@@ -84,17 +83,17 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   it should "scale" in {
     val actual = phi.scale(2)
-    val expected = Solution_RQR(RQR(-2, -4), pos = true)
+    val expected = Solution_Quadratic(Quadratic(-2, -4), pos = true)
     actual shouldBe expected
   }
 
   it should "negate" in {
-    phi.negate shouldBe Solution_RQR(RQR(1, -1), pos = true)
+    phi.negate shouldBe Solution_Quadratic(Quadratic(1, -1), pos = true)
   }
 
   it should "product" in {
     val actual = phi * psi
-    val expected = phi.equation.asInstanceOf[RQR].q
+    val expected = phi.equation.asInstanceOf[Quadratic].q
     actual shouldBe Real(expected)
   }
 
@@ -117,6 +116,12 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   ignore should "add phi" in {
     val actual = phi.add(phi)
     val expected = phi.scale(2)
+    println(s"phi.scale(2) = ${actual.normalize}, expected = ${expected.normalize}")
+    actual shouldBe expected
+  }
+  it should "add psi" in {
+    val actual = phi.add(psi)
+    val expected = zero
     println(s"phi.scale(2) = ${actual.normalize}, expected = ${expected.normalize}")
     actual shouldBe expected
   }
@@ -146,18 +151,18 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   it should "zero" in {
-    val actual = Solution_RQR.zero
+    val actual = Solution_Quadratic.zero
     actual.rationalValue should matchPattern { case (Rational.zero, _, Some(Rational.zero)) => }
   }
 
   it should "one" in {
-    val actual = Solution_RQR.one
+    val actual = Solution_Quadratic.one
     actual.rationalValue should matchPattern { case (Rational.one, _, Some(Rational.zero)) => }
   }
 
   it should "power 0" in {
     val actual = phi.power(0)
-    val expected = Solution_RQR.one
+    val expected = Solution_Quadratic.one
     actual shouldBe (expected)
     actual.normalize shouldBe Constants.one
   }
@@ -180,7 +185,7 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   it should "power 3" in {
     val actual = phi.power(3)
-    val expected = phi.scale(2).add(Rational.one)
+    val expected = phi.scale(2).addHorizontal(Rational.one)
     println(s"phi^3 = $actual. expected=$expected")
     val expectedValue = Constants.phi * Rational.two + Real(1)
     println(s"expectedValue = $expectedValue")
@@ -199,14 +204,14 @@ class RQRSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   it should "transform" in {
     val pFunc: (Rational, Rational) => Rational = (p, q) => (2 * q) - (p ∧ 2)
     val qFunc: (Rational, Rational) => Rational = (_, q) => q ∧ 2
-    val equation = RQR.goldenRatioEquation
+    val equation = Quadratic.goldenRatioEquation
     println(s"equation = $equation")
-    val rqr = equation.transform(pFunc, qFunc)
-    println(s"rqr (transformed equation) = $rqr")
-    rqr shouldBe RQR(-Rational.three, Rational.one)
+    val quadratic = equation.transform(pFunc, qFunc)
+    println(s"quadratic (transformed equation) = $quadratic")
+    quadratic shouldBe Quadratic(-Rational.three, Rational.one)
     println(s"equation = $equation")
-    rqr.solve(0) foreach println
-    rqr.solve(1) foreach println
-    println(s"rqr.value = ${rqr.solve(0)}")
+    println(quadratic.solve(0))
+    println(quadratic.solve(1))
+    println(s"quadratic.value = ${quadratic.solve(0)}")
   }
 }

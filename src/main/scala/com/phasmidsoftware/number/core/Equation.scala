@@ -22,15 +22,13 @@ trait Equation {
 
   /**
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.
-    * Solutions are represented as an instance of the `Solution` class.
-    * If appropriate, a `Solution` can be converted into Complex form.
+    * Solutions are represented as an instance of the `Solution` or of `Complex` class.
     *
     * @param branch the branch index for which the solution is being sought.
     *               The branch index identifies specific solutions for equations that may have multiple solutions.
-    * @return an `Option[Solution]`, where `Some(solution)` contains the solution for the specified branch,
-    *         or `None` if no solution exists for the given branch.
+    * @return a `Field`, which is either a `Solution` (real-valued) or a `Complex`.
     */
-  def solve(branch: Int): Option[Solution]
+  def solve(branch: Int): Field
 
   /**
     * Transforms the current equation by applying the provided functions to its components.
@@ -64,8 +62,7 @@ trait Equation {
 
 /**
   * The `Solution` class is an abstract extension of the Field trait, representing a solution of a mathematical equation,
-  * typically requiring two separate Number values, each with a different `Factor`..
-  * In this sense it is very much parallel to ComplexPolar (thish has two number, each with a different `Factor`).
+  * typically requiring two separate Number values, each with a different `Factor`.
   * `Solution` supports a wide variety of operations including arithmetic, trigonometric, and analytical computations.
   * This class provides fundamental methods for handling fields, enabling intricate mathematical manipulations.
   *
@@ -172,7 +169,7 @@ abstract class Solution extends Field {
     * @param c the rational number to be added, represented as an instance of `Rational`.
     * @return a new `Solution` instance representing the result of the addition.
     */
-  def add(c: Rational): Solution
+  def addHorizontal(c: Rational): Solution
 
   /**
     * Adds the given Solution object to the current Solution.
