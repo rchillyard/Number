@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.inner.Factor.composeDyadic
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
-import com.phasmidsoftware.number.core.inner.Rational.toIntOption
+import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, toIntOption}
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
 import com.phasmidsoftware.number.core.{Field, Number, Real}
 import com.phasmidsoftware.number.misc.FP._
@@ -149,7 +149,7 @@ sealed trait Factor {
     */
   def log(x: Value): Option[ProtoNumber] = x match {
     case _ if Value.isEqual(x, Value.one) =>
-      Some((Value.zero, PureNumber, None))
+      Some((Value.zero, PureNumber, None)) // TODO what is this??
       Some((x, PureNumber, None))
     case _ =>
       None
@@ -209,13 +209,13 @@ sealed trait Factor {
     */
   def clean(po: Option[ProtoNumber]): Option[ProtoNumber] =
     po match {
-      case Some(p@(v, f, z)) =>
+      case Some(p@(v, f, zo)) =>
         // XXX simplify root quantities
         f match {
           case AnyRoot(k) if k == Rational.one =>
-            Some((v, PureNumber, z))
+            Some((v, PureNumber, zo))
           case r@InversePower(k) if (k / 2).isInteger =>
-            r.simplifyRoot(p, v, (k / 2).toInt)
+            r.simplifyRoot(p, v, k, 2)
           case _ =>
             Some(p)
         }
@@ -590,7 +590,6 @@ sealed trait InversePower extends Factor {
     */
   def render(x: String): String = toString
 
-
   /**
     * Method to render a Value in the context of this Factor.
     *
@@ -601,32 +600,45 @@ sealed trait InversePower extends Factor {
     asImaginary(x) orElse asRoot(x) getOrElse convert(x, PureNumber).toString
 
   /**
-    * Simplifies the given ProtoNumber based on the provided value and the root degree.
+    * Simplifies a root representation of a number based on the given parameters.
+    * The method computes whether the provided value `v` can be converted into a simpler root form
+    * using the provided `divisor` (e.g., square root for divisor 2, cube root for divisor 3).
     *
-    * This method checks if the value can be represented as a rational number
-    * with an integer square or cube root (or a generic nth root for other values of `r`).
-    * If so, it transforms the ProtoNumber into its simplified root form.
-    * Otherwise, it returns the original ProtoNumber.
-    *
-    * @param p the ProtoNumber to be simplified
-    * @param v the Value associated with the ProtoNumber
-    * @param r the root degree (e.g., 2 for square root, 3 for cube root, or any n for nth root)
-    * @return an optional ProtoNumber, either simplified or the original,
-    *         wrapped in an Option
+    * @param p       the prototype number containing initial value and metadata
+    * @param v       the value to be simplified
+    * @param r       the rational factor determining the type of root operation
+    * @param divisor the root degree (e.g., 2 for square root, 3 for cube root)
+    * @return an optional ProtoNumber containing the simplified root representation,
+    *         or the original input if simplification is not applicable
     */
-  def simplifyRoot(p: ProtoNumber, v: Value, r: Int): Option[ProtoNumber] = {
-    val q: Option[Int] =
+  def simplifyRoot(p: ProtoNumber, v: Value, r: Rational, divisor: Int): Option[ProtoNumber] = {
+    val q: Option[Rational] =
       for {
-        x <- Value.maybeRational(v)
-        i <- x.maybeInt
-        j <- Rational.squareRoots.get(i)
-      } yield j
+        Rational(n, d) <- Value.maybeRational(v)
+        if n.isValidInt
+        i = n.toInt
+        if d.isValidInt
+        j = d.toInt
+        k <- if (divisor == 2) squareRoots.get(i) else if (divisor == 3) cubeRoots.get(i) else None
+        l <- if (divisor == 2) squareRoots.get(j) else if (divisor == 3) cubeRoots.get(j) else None
+      } yield Rational(k, l)
     q match {
-      case Some(i) =>
-        val root = if (r == 2) SquareRoot else if (r == 3) CubeRoot else AnyRoot(r)
-        clean(Some((Value.fromInt(i), root, p._3)))
+      case Some(x) =>
+        val factor =
+          (r, divisor) match {
+            case (Rational.four, 2) => SquareRoot
+            case (Rational.nine, 3) => CubeRoot
+            case (Rational.two, 2) => PureNumber
+            case (Rational.three, 3) => PureNumber
+            case (_, 1) => AnyRoot(r) // NOTE: actually, this is impossible
+          }
+        clean(Some((Value.fromRational(x), factor, p._3)))
       case None =>
-        Some(p)
+        (r, divisor) match {
+          case (Rational.two, 2) => Some((v, SquareRoot, p._3))
+          case (Rational.three, 3) => Some((v, CubeRoot, p._3))
+          case _ => Some(p)
+        }
     }
   }
 
@@ -668,19 +680,16 @@ sealed trait InversePower extends Factor {
     * @param f the factor associated with y
     * @return an optional tuple containing the resultant value and its factor
     */
-  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] = (this, f) match {
+  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+    (this, f) match {
     case (Root(r), PureNumber) =>
       clean(for {
         a <- Value.maybeRational(x)
         b <- Value.maybeRational(y)
-        z = a * (b ^ r) if b.signum > 0
+        z = a * (b ∧ r) if b.signum > 0
       } yield (Value.fromRational(z), this, None))
     case (Root(r), Root(s)) =>
-      clean(for {
-        a <- Value.maybeRational(x)
-        b <- Value.maybeRational(y)
-        z = (a ^ s) * (b ^ r) if b.signum > 0 && a.signum > 0
-      } yield (Value.fromRational(z), AnyRoot(r * s), None))
+      clean(multiplyRootValues(x, r, y, s))
     case (_, Log2) =>
       clean(for {
         z <- Log2.asPureValue(y)
@@ -689,6 +698,34 @@ sealed trait InversePower extends Factor {
     case _ =>
       None
   }
+
+  /**
+    * Multiplies the root values of two given `Value` objects based on their respective root degrees.
+    *
+    * This method computes the product of the rational representations of `x` and `y`, each raised
+    * to their specified root degrees (`r` and `s` respectively). The result is wrapped with an associated
+    * factor and optional additional information if the operation is valid. The method ensures that the
+    * input values are positive and can be represented rationally.
+    *
+    * @param x the first value to be multiplied
+    * @param r the root degree of the first value
+    * @param y the second value to be multiplied
+    * @param s the root degree of the second value
+    * @return an optional tuple containing the resultant value, its associated factor, and optional metadata;
+    *         `None` if the values are not positive or cannot be represented rationally
+    */
+  def multiplyRootValues(x: Value, r: Int, y: Value, s: Int): Option[ProtoNumber] =
+    if (r == s && r >= 0 && Value.signum(x) > 0 && Value.signum(y) > 0)
+      for {
+        a <- Value.maybeRational(x)
+        b <- Value.maybeRational(y)
+      } yield (Value.fromRational(a * b), AnyRoot(r), None)
+    else
+      for {
+        a <- Value.maybeRational(x)
+        b <- Value.maybeRational(y)
+        z = (a ∧ s) * (b ∧ r) if b.signum > 0 && a.signum > 0
+      } yield (Value.fromRational(z), AnyRoot(r * s), None)
 
   /**
     * Raises the value `x` to the power of the value `y`.

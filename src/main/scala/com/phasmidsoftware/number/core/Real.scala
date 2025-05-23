@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.Real.createFromRealField
+import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
 import com.phasmidsoftware.number.misc.FP.recover
 import scala.language.implicitConversions
@@ -74,7 +75,7 @@ case class Real(x: Number) extends Field {
     case Real(y) => (x doSubtract y).isZero
     case c: Complex => c.isSame(this)
     case n: Number => isSame(Real(n))
-    case s: Solution => s.isSame(this)
+    case s: Algebraic => s.isSame(this)
   }
 
   /**
