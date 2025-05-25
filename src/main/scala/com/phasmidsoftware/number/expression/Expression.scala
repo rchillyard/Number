@@ -26,7 +26,7 @@ sealed trait Expression extends NumberLike with Approximatable {
     *
     * @return true if this extends AtomicExpression
     */
-  def isAtomic: Boolean = false
+  def isAtomic: Boolean
 
   /**
     * Action to evaluate this `Expression` as a `Field`, if possible.
@@ -507,7 +507,7 @@ sealed trait AtomicExpression extends Expression {
     *
     * @return true, as this expression is atomic and cannot be further simplified.
     */
-  override def isAtomic: Boolean = true
+  def isAtomic: Boolean = true
 
   /**
     * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
@@ -583,7 +583,7 @@ sealed trait CompositeExpression extends Expression {
     *
     * @return false as the default value, indicating the expression is not atomic.
     */
-  override def isAtomic: Boolean = false
+  def isAtomic: Boolean = false
 
   /**
     * Method to determine if this NumberLike object is exact.
