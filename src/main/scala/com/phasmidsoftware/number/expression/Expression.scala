@@ -565,10 +565,10 @@ object AtomicExpression {
       Some(x) // NOTE we lose the name here.
     case f: Field =>
       Some(f) // CONSIDER eliminate this?
-    case Noop =>
-      None
     case r@ReducedQuadraticRoot(_, _, _, _) =>
       r.evaluateAsIs
+    case Noop =>
+      None
   }
 }
 

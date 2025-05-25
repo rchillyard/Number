@@ -39,7 +39,8 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   val psi: Expression = Psi //(Expression(Constants.one) - Constants.root5) / Constants.two
   val phi: Expression = Phi // (Expression(Constants.one) plus Constants.root5) / Constants.two
 
-  ignore should "fib0" in {
+
+  it should "fib0" in {
     val phi0: Expression = phi ^ 0
     val psi0: Expression = psi ^ 0
     val top: Expression = phi0 - psi0
@@ -48,14 +49,14 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     fib0.materialize shouldBe Constants.zero
   }
 
-  ignore should "fib1" in {
+  it should "fib1" in {
     val diff: Expression = phi - psi
     diff shouldBe BiFunction(phi, -psi, Sum)
     val fib1 = diff / diff
     fib1.materialize shouldBe Constants.one
   }
 
-  ignore should "fib2" in {
+  it should "fib2" in {
     val phi2: Expression = phi ^ 2
     val psi2: Expression = psi ^ 2
     val top: Expression = phi2 - psi2
@@ -72,34 +73,39 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
         val t2 = y / Constants.root5
         val q = t1 plus t2
         // TODO restore the following
-        //        q shouldBe Constants.one
+        //       q shouldBe Constants.one
         q.materialize should ===(Constants.one)
     }
     fib2M should ===(Constants.one)
     // TODO restore the following
-    //    fib2M shouldBe Constants.one
+    //  fib2M shouldBe Constants.one
   }
 
-  ignore should "psiFuzzy" in {
+  it should "psiFuzzy" in {
     val expected: Field = (one - root5) / two
     val actual: Field = Fibonacci.psi.materialize
     actual should ===(expected)
   }
 
-  ignore should "fibFuzzy" in {
+  it should "fibFuzzy" in {
     Fibonacci.fibExpression(0).materialize should ===(core.Constants.zero)
     Fibonacci.fibExpression(1).materialize should ===(core.Constants.one)
     Fibonacci.fibExpression(2).materialize should ===(core.Constants.one)
     Fibonacci.fibExpression(3).materialize should ===(core.Constants.two)
   }
 
-  ignore should "fib" in {
+  it should "fib" in {
     Fibonacci.fib(0) shouldBe BigInt(0)
     // TODO reinsert the following
-    //        Fibonacci.fib(1) shouldBe BigInt(1)
-    //        Fibonacci.fib(2) shouldBe BigInt(1)
-    //        Fibonacci.fib(3) shouldBe BigInt(2)
-    //        Fibonacci.fib(4) shouldBe BigInt(3)
-    //        Fibonacci.fib(5) shouldBe BigInt(5)
+
+    //println(s"fib(1) = ${Fibonacci.fib(1)}")
+    //println(s"Fibonacci.fibExpression(1).materialize = ${Fibonacci.fibExpression(1).materialize}")
+    //println(s"Fibonacci.fibExpression(1) = ${Fibonacci.fibExpression(1)}")
+
+    //Fibonacci.fib(1) shouldBe BigInt(1)
+    //Fibonacci.fib(2) shouldBe BigInt(1)
+    //Fibonacci.fib(3) shouldBe BigInt(2)
+    //Fibonacci.fib(4) shouldBe BigInt(3)
+    //Fibonacci.fib(5) shouldBe BigInt(5)
   }
 }
