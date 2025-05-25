@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.Real.convertFromNumber
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
-import com.phasmidsoftware.number.core.inner.Value.fromRational
+import com.phasmidsoftware.number.core.inner.Value.{fromRational, maybeRational}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexCartesian, ExactNumber, Field, Number, NumberLike, Real}
 import com.phasmidsoftware.number.misc.FP
@@ -193,7 +193,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     *
     * @return true if the solution represents unity, otherwise false.
     */
-  def isUnity: Boolean = Value.maybeRational(base).contains(Rational.one) && Value.isZero(offset)
+  def isUnity: Boolean = maybeRational(base).contains(Rational.one) && Value.isZero(offset)
 
   /**
     * Determines the "sign" of the current quadratic solution.
@@ -209,6 +209,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Solution` as the result.
+    * NOTE this only affects the `base` of this `Solution`.
     *
     * @param addend the `Rational` value to be added to the current solution
     * @return a new `Solution` instance representing the sum of the current solution and the given `addend`
@@ -231,9 +232,9 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     */
   def scale(r: Rational): Option[Solution] =
     for {
-      b <- Value.maybeRational(base)
-      x = Value.fromRational(b * r)
-      (v, g, None) <- factor.multiply(offset, Value.fromRational(r), factor)
+      b <- maybeRational(base)
+      x = fromRational(b * r)
+      (v, g, None) <- factor.multiply(offset, fromRational(r), factor)
     } yield QuadraticSolution(x, v, g, negative)
 }
 
@@ -311,7 +312,7 @@ case class LinearSolution(value: Value) extends Solution {
     * @return a new `Solution` instance representing the sum of the current solution and the given `addend`
     */
   def add(addend: Rational): Solution = {
-    val po = PureNumber.add(value, Value.fromRational(addend), PureNumber)
+    val po = PureNumber.add(value, fromRational(addend), PureNumber)
     po match {
       case Some((v, PureNumber, None)) =>
         LinearSolution(v)
@@ -327,6 +328,16 @@ case class LinearSolution(value: Value) extends Solution {
     * @return an optional `Solution` as the result of scaling, or `None` if the operation is not valid
     */
   def scale(r: Rational): Option[Solution] = for {
-    x <- Value.maybeRational(value)
+    x <- maybeRational(value)
   } yield LinearSolution(fromRational(x * r))
+
+  /**
+    * Renders the solution as a string representation.
+    * It attempts to use a rational representation of the value if available;
+    * otherwise, it falls back to the default string representation of the solution.
+    *
+    * @return a string representation of the solution
+    */
+  override def render: String =
+    maybeRational(value) map (_.toString) getOrElse toString
 }

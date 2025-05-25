@@ -38,7 +38,8 @@ trait Algebraic extends Field {
     *
     * @return a `Field`, which is either a `Algebraic` (real-valued) or a `Complex`.
     */
-  def solve: Solution = equation.solve(branch)
+  def solve: Solution =
+    equation.solve(branch)
 
   /**
     * Returns the value of the solution represented as a `Field` for the specified branch index.
@@ -340,7 +341,8 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @return an `Option[String]` representing the name.
     *         Returns `None` if no name is available.
     */
-  def maybeName: Option[String] = ???
+  def maybeName: Option[String] =
+    Option.when(solve.isExact)(s"${solve.render}")
 
   /**
     * Multiply this Field by x and return the result.
@@ -388,7 +390,8 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse toString
+  def render: String =
+    maybeName getOrElse toString
 }
 
 /**
@@ -412,7 +415,8 @@ case class LinearEquation(q: Rational) extends Equation {
     *               The branch index identifies specific solutions for equations that may have multiple solutions.
     * @return a `Field`, which is either a `Algebraic` (real-valued) or a `Complex`.
     */
-  def solve(branch: Int): Solution = LinearSolution(Value.fromRational(-q))
+  def solve(branch: Int): Solution =
+    LinearSolution(Value.fromRational(-q))
 
   /**
     * Transforms the current equation by applying the provided functions to its components.

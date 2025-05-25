@@ -104,6 +104,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     val actual = phi * psi
     val expected = phi.equation.q
     actual shouldBe Algebraic_Linear(LinearEquation(Rational.negOne))
+    actual.render shouldBe "1"
   }
 
   it should "solutionSquared" in {
