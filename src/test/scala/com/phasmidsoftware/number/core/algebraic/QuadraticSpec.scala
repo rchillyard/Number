@@ -106,11 +106,10 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     actual shouldBe Algebraic_Linear(LinearEquation(Rational.negOne))
   }
 
-  ignore should "square" in {
-    val actual: Algebraic = phi.square
+  it should "solutionSquared" in {
+    val actual: Solution = phi.solutionSquared
     // XXX phi^2 = phi + 1 (see https://en.wikipedia.org/wiki/Golden_ratio)
-    val expected: Algebraic = (phi add 1) // NOTE this only works here
-    println(s"phi.square = ${actual.normalize}")
+    val expected: Solution = (phi).solve.add(Rational.one) // NOTE this only works here
     actual shouldBe expected
   }
 

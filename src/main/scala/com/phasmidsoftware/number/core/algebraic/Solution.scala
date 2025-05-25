@@ -118,6 +118,15 @@ trait Solution extends NumberLike {
     * @return a new `Solution` instance representing the sum of the current solution and the given `addend`
     */
   def add(addend: Rational): Solution
+
+  /**
+    * Scales the current solution by multiplying its base and offset values by the specified `Rational` factor.
+    *
+    * @param r the `Rational` value used as the scaling factor
+    * @return an optional `Solution` instance, where `Some` contains the scaled solution if the operation is valid,
+    *         or `None` if scaling cannot be performed
+    */
+  def scale(r: Rational): Option[Solution]
 }
 
 /**
@@ -209,6 +218,23 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     val maybeX: Option[Value] = doComposeValueDyadic(base, fromRational(addend))(functions)
     copy(base = maybeX.get) // CONSIDER handling this possible exception properly
   }
+
+  /**
+    * Scales the quadratic solution using a given rational factor.
+    *
+    * This method computes a new quadratic solution by scaling the current
+    * solution's components (`base` and `offset`) with a specified rational
+    * multiplier. If any intermediate calculation fails, it returns `None`.
+    *
+    * @param r the scaling factor as a Rational value
+    * @return an Option containing the scaled quadratic solution if calculations succeed, otherwise None
+    */
+  def scale(r: Rational): Option[Solution] =
+    for {
+      b <- Value.maybeRational(base)
+      x = Value.fromRational(b * r)
+      (v, g, None) <- factor.multiply(offset, Value.fromRational(r), factor)
+    } yield QuadraticSolution(x, v, g, negative)
 }
 
 /**
@@ -293,4 +319,14 @@ case class LinearSolution(value: Value) extends Solution {
         throw new Exception("LinearSolution.add: PureNumber.add failed")
     }
   }
+
+  /**
+    * Scales the given rational value using the current value to produce an optional solution.
+    *
+    * @param r the rational value used as a multiplier during scaling
+    * @return an optional `Solution` as the result of scaling, or `None` if the operation is not valid
+    */
+  def scale(r: Rational): Option[Solution] = for {
+    x <- Value.maybeRational(value)
+  } yield LinearSolution(fromRational(x * r))
 }
