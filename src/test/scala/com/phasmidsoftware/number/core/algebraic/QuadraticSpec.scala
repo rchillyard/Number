@@ -160,13 +160,13 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   it should "zero" in {
-    val actual = Algebraic_Quadratic.zero
-    actual.rationalValue should matchPattern { case (Rational.zero, _, Some(Rational.zero)) => }
+    val actual = Algebraic_Quadratic.zero.solve
+    actual should matchPattern { case QuadraticSolution(Value.zero, Value.zero, SquareRoot, false) => }
   }
 
   it should "one" in {
-    val actual = Algebraic_Quadratic.one
-    actual.rationalValue should matchPattern { case (Rational.one, _, Some(Rational.zero)) => }
+    val actual = Algebraic_Quadratic.one.solve
+    actual should matchPattern { case QuadraticSolution(Value.one, Value.zero, SquareRoot, false) => }
   }
 
   it should "power 0" in {

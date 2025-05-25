@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
-import com.phasmidsoftware.number.core.inner.Rational.{half, two}
+import com.phasmidsoftware.number.core.inner.Rational.two
 import com.phasmidsoftware.number.core.inner.Value.negateConditional
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Field, NumberException, algebraic}
@@ -56,30 +56,6 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @return a String
     */
   def render: String = maybeName getOrElse toString
-
-  /**
-    * Lazy value that computes a tuple of three `Rational` components derived from
-    * the quadratic root equation analysis: the first represents the scaled
-    * negation of `p`, the second depends on the condition of `pos` to define
-    * whether to return a positive or negative half, and the third contains the
-    * optional square root of the discriminant.
-    * TODO generalize and promote this to Algebraic.
-    *
-    * The tuple structure is represented as:
-    * - The first element is computed as `-equation.p / 2`.
-    * - The second element is `half` if `pos` is true; otherwise, it is `-half`.
-    * - The third element is an `Option[Rational]` based on the square root of
-    * the discriminant.
-    *
-    * The computation relies on values provided by the enclosing `equation` object
-    * and evaluates the state of the equation root associated with `equation`.
-    */
-  lazy val rationalValue: (Rational, Rational, Option[Rational]) =
-    (
-        -equation.p / 2,
-        if (pos) half else -half,
-        equation.discriminant.sqrt.toOption
-    )
 
   /**
     * Scales the current `Algebraic_Quadratic` instance by a given `Rational` value.
