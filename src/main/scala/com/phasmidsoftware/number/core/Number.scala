@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{inverse, negate}
+import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.{Expression, ExpressionException}
@@ -269,7 +270,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
         Real(doAdd(n))
       case c@BaseComplex(_, _) => // TESTME
         c.add(this.asComplex)
-      case s: Solution =>
+      case s: Algebraic =>
         s add Real(this)
       case _ =>
         throw NumberException(s"logic error: add not supported for this addend: $x")
@@ -317,7 +318,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
       doMultiply(n).normalize
     case (_, c@BaseComplex(_, _)) =>
       c.multiply(this.asComplex)
-    case (_, s: Solution) =>
+    case (_, s: Algebraic) =>
       s multiply Real(this)
     case _ =>
       throw NumberException("logic error: multiply not supported for non-Number multiplicands")

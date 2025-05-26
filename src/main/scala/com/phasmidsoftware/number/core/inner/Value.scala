@@ -106,6 +106,20 @@ object Value {
   }
 
   /**
+    * Scales a `Value` by the given `Rational` factor.
+    *
+    * The method attempts to scale a `Value` based on its internal type (e.g., Rational or Double).
+    * If the `Value` can be represented as a `Rational`, it is multiplied by the given scaling factor.
+    * Otherwise, if it can be represented as a `Double`, the scaling is applied in the `Double` domain.
+    *
+    * @param x     the `Rational` factor by which the `Value` is scaled.
+    * @param value the `Value` to be scaled.
+    * @return a new scaled `Value`. The result is based on either the Rational or Double representation of the input value.
+    */
+  def scaleRational(x: Rational)(value: Value): Value =
+    maybeRational(value) map (r => fromRational(r * x)) getOrElse fromDouble(maybeDouble(value) map (d => x.toDouble * d))
+
+  /**
     * An optional Int that corresponds to the value of this Number (but ignoring the factor).
     *
     * CONSIDER using query
@@ -162,6 +176,17 @@ object Value {
     case Left(Left(Some(x))) => Left(Left(Some(-x)))
     case _ => fromNothing()
   }
+
+  /**
+    * Conditionally negates the provided `Value` based on the boolean parameter `neg`.
+    * If `neg` is true, the `Value` is negated using the `negate` method.
+    * Otherwise, the original `Value` is returned unchanged.
+    *
+    * @param neg   a Boolean indicating whether the `Value` should be negated.
+    * @param value the `Value` to be conditionally negated.
+    * @return the negated `Value` if `neg` is true, otherwise the original `Value`.
+    */
+  def negateConditional(neg: Boolean)(value: Value): Value = if (neg) negate(value) else value
 
   /**
     * Computes the inverse of the given Value, if possible.

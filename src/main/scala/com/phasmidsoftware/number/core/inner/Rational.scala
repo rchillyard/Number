@@ -1063,6 +1063,17 @@ object Rational {
   val third: Rational = three.invert
 
   /**
+    * A constant value representing the rational number 4.
+    * This is created using the Rational class.
+    */
+  val four: Rational = Rational(4)
+
+  /**
+    * Represents a rational number instance initialized with the value 9.
+    */
+  val nine: Rational = Rational(9)
+
+  /**
    * Method to construct a Rational from two BigInt values.
    * NOTE: the this method ensures that the numerator and denominator are normalized.
    *
@@ -1288,6 +1299,14 @@ object Rational {
    * The square root values are exact for perfect squares included in the map.
    */
   lazy val squareRoots: Map[Int, Int] = Map(0 -> 0, 1 -> 1, 4 -> 2, 9 -> 3, 16 -> 4, 25 -> 5, 36 -> 6, 49 -> 7, 64 -> 8, 81 -> 9, 100 -> 10, 121 -> 11, 144 -> 12, 256 -> 16, 625 -> 25, 1024 -> 32, 4096 -> 64, 10000 -> 100)
+
+  /**
+    * A lazy value representing a map of predefined integers and their corresponding cube root values.
+    *
+    * This map contains key-value pairs where the key represents a non-negative integer and the value is its integer cube root.
+    * The cube root values are exact for perfect cubes included in the map.
+    */
+  lazy val cubeRoots: Map[Int, Int] = Map(0 -> 0, 1 -> 1, 8 -> 2, 27 -> 3, 64 -> 4, 125 -> 5, 216 -> 6, 343 -> 7, 512 -> 8, 729 -> 9, 1000 -> 10, 4096 -> 16, 32768 -> 32, 1000000 -> 100)
 
   /**
     * A lazily evaluated map that provides the base-2 logarithms of specific powers of 2.
