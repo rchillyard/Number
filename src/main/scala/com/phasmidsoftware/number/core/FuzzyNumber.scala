@@ -79,8 +79,10 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
       ExactNumber(nominalValue, factor).simplify
     case _ =>
       factor match {
-        case Root(_) => scale(PureNumber)
-        case _ => this
+        case Root(_) =>
+          scale(PureNumber)
+        case _ =>
+          this
       }
   }
 
@@ -159,7 +161,12 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
   def isProbablyZero(p: Double = 0.5): Boolean =
-    GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toNominalDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
+    GeneralNumber.isZero(this) || (
+        for {
+          f <- fuzz
+          x <- toNominalDouble
+        } yield withinWiggleRoom(p, f, x)
+        ).getOrElse(false)
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -279,15 +286,20 @@ object FuzzyNumber {
     */
   implicit object NumberIsFuzzy extends Fuzzy[Number] {
     /**
-      * Method to determine if x1 and x2 can be considered the same with a probability of p.
+      * Determines whether two instances of `Number` are approximately the same
+      * within a given precision, returning both the result of the comparison
+      * and the calculated difference.
       *
-      * @param p  a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
-      * @param x1 a value of X.
-      * @param x2 a value of X.
-      * @return true if x1 and x2 are considered equal with probability p.
+      * @param p  The precision threshold for the comparison. A smaller value indicates a stricter comparison.
+      * @param x1 The first `Number` instance to compare.
+      * @param x2 The second `Number` instance to compare.
+      * @return A tuple where the first element is a `Boolean` indicating whether the two numbers
+      *         are approximately the same and the second element is the calculated difference as a `Number`.
       */
-    def same(p: Double)(x1: Number, x2: Number): Boolean =
-      x1.doAdd(x2.makeNegative).isProbablyZero(p)
+    def same(p: Double)(x1: Number, x2: Number): (Boolean, Number) = {
+      val difference = x1.doAdd(x2.makeNegative)
+      difference.isProbablyZero(p) -> difference
+    }
   }
 
   /**
@@ -302,8 +314,10 @@ object FuzzyNumber {
     * @return an Int representing the order.
     */
   def fuzzyCompare(x: Number, y: Number, p: Double): Int =
-    if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
-    else GeneralNumber.plus(x, Number.negate(y)).signum(p)
+    if (implicitly[Fuzzy[Number]].same(p)(x, y)._1)
+      0
+    else
+      GeneralNumber.plus(x, Number.negate(y)).signum(p)
 
   /**
     * Method to construct an invalid Number.
@@ -339,6 +353,8 @@ object FuzzyNumber {
     *
     * CONSIDER removing this method (merging it with code in GeneralNumber).
     *
+    * NOTE as currently defined, this solves two unit test failures
+    *
     * @param n            the first operand.
     * @param q            the second operand.
     * @param f            the Factor to be used for the result.
@@ -351,7 +367,10 @@ object FuzzyNumber {
     */
   private def composeDyadic(n: Number, q: Number, f: Factor, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Number = n match {
     case x: FuzzyNumber =>
-      prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients))
+      val composedResult = prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients))
+      // NOTE: experimental: add the doublePrecision fuzz to the result.
+//      FuzzyNumber.addFuzz(composedResult, Fuzziness.doublePrecision)
+      composedResult
   }
 
   /**
@@ -389,7 +408,8 @@ object FuzzyNumber {
     (n.nominalValue, n.fuzz) match {
       case (v@Left(Left(Some(_))), fo) =>
         addFuzz(n, v, fo, f)
-    case _ => n
+      case _ =>
+        n
   }
 
   /**

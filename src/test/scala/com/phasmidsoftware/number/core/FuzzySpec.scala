@@ -17,7 +17,10 @@ class FuzzySpec extends AnyFlatSpec with should.Matchers {
     def apply(r: Int, g: Int, b: Int): Color = Color(r.toShort, g.toShort, b.toShort)
 
     trait FuzzyColor extends Fuzzy[Color] {
-      def same(p: Double)(x1: Color, x2: Color): Boolean = -math.log(x1.difference(x2).whiteness) / 3 > p
+      def same(p: Double)(x1: Color, x2: Color): (Boolean, Color) = {
+        val diff = x2.difference(x1)
+        (-math.log(diff.whiteness) / 3 > p) -> diff
+      }
     }
 
     implicit object FuzzyColor extends FuzzyColor
@@ -33,7 +36,8 @@ class FuzzySpec extends AnyFlatSpec with should.Matchers {
 
   it should "same" in {
     val requiredConfidence = 0.8 // 80% confidence
-    val f: (Color, Color) => Boolean = implicitly[Fuzzy[Color]].same(requiredConfidence)
+    val cf = implicitly[Fuzzy[Color]]
+    val f: (Color, Color) => Boolean = (a, b) => cf.same(requiredConfidence)(a, b)._1
     f(white, red) shouldBe false
     f(white, veryLightBlue) shouldBe true
     f(white, lightPurple) shouldBe false

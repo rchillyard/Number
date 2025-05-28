@@ -34,6 +34,32 @@ object Value {
   def fromInt(x: Int): Value = Right(x)
 
   /**
+    * Parses a given string and attempts to convert it into a Value.
+    * The method first tries to interpret the string as an integer, then as a Rational,
+    * and finally as a decimal (Double).
+    *
+    * NOTE this is only used by unit tests at present.
+    *
+    * If the conversion is successful and matches the original string, it returns the corresponding Value.
+    * Otherwise, it defaults to parsing the string as a Double.
+    *
+    * @param w the string to be converted into a Value.
+    * @return the resulting Value that corresponds to the supplied string.
+    */
+  def fromString(w: String): Value = {
+    val maybeIntValue: Option[Value] = w.toIntOption map fromInt
+    val maybeRationalValue = Rational.parse(w).toOption map fromRational
+    maybeIntValue orElse maybeRationalValue match {
+      case Some(v) if stringsMatch(v, w) =>
+        v
+      case Some(v) if renderValue(v)._2 =>
+        v
+      case _ =>
+        fromOptionDouble(w.toDoubleOption)
+    }
+  }
+
+  /**
     * Converts a Rational number into a Value.
     *
     * @param x the Rational number to be converted.
@@ -41,26 +67,34 @@ object Value {
     *         or a Left containing the original Rational if not.
     */
   def fromRational(x: Rational): Value = x match {
-    case Rational(n, Rational.bigOne) if n <= Int.MaxValue && n >= Int.MinValue => Right(n.toInt)
-    case _ => Left(Right(x))
+    case Rational(n, Rational.bigOne) if n <= Int.MaxValue && n >= Int.MinValue =>
+      Right(n.toInt)
+    case _ =>
+      Left(Right(x))
   }
 
   /**
     * Convert an Option[Double] to a Value.
     *
+    * As currently defined, this saves 49 failures in unit tests
+    *
     * @param xo a Double.
     * @return a Value.
     */
-  def fromDouble(xo: Option[Double]): Value = Left(Left(xo))
-
-  /**
-    * Convert nothing to an invalid Value.
-    *
-    * TESTME
-    *
-    * @return a Value.
-    */
-  private def fromNothing(): Value = Left(Left(None))
+  def fromDouble(xo: Option[Double]): Value = fromOptionDouble(xo)
+//    xo match {
+//    case Some(Double.PositiveInfinity) =>
+//      fromRational(Rational.infinity)
+//    case Some(Double.NegativeInfinity) =>
+//      fromRational(Rational.negInfinity)
+//    case Some(Double.NaN) =>
+//      fromRational(Rational.NaN)
+//    case Some(x) =>
+//      val maybeRational: Option[Rational] = createExact(x).toOption
+//      maybeRational.map(fromRational).getOrElse(fromOptionDouble(xo))
+//    case None =>
+//      fromNothing()
+//  }
 
   /**
     * Method to (optionally) convert a Value into a Double.
@@ -68,7 +102,8 @@ object Value {
     * @param value the Value to be represented as a Double.
     * @return Some(x) where x is a Double if the conversion was possible, otherwise None.
     */
-  def maybeDouble(value: Value): Option[Double] = optionMap(value)(_.toDouble, x => optionMap(x)(_.toDouble, identity))
+  def maybeDouble(value: Value): Option[Double] =
+    optionMap(value)(_.toDouble, x => optionMap(x)(_.toDouble, identity))
 
   /**
     * Determines whether the given `Value` represents the numeric value zero.
@@ -77,7 +112,8 @@ object Value {
     * @param value the Value to be checked.
     * @return true if the Value represents zero, otherwise false.
     */
-  def isZero(value: Value): Boolean = maybeDouble(value).contains(0.0)
+  def isZero(value: Value): Boolean =
+    maybeDouble(value).contains(0.0)
 
   /**
     * Compares two `Value` instances to check if they are equal based
@@ -106,6 +142,17 @@ object Value {
   }
 
   /**
+    * Determines if the given Value can be exactly represented as a Rational.
+    * Although a Double value is not necessarily inexact, if it could been converted exactly to a Rational,
+    * it would have been converted already.
+    *
+    * @param value the Value to be checked.
+    * @return true if the Value can be exactly represented as a Rational, otherwise false.
+    */
+  def isExact(value: Value): Boolean =
+    maybeRational(value).isDefined
+
+  /**
     * Scales a `Value` by the given `Rational` factor.
     *
     * The method attempts to scale a `Value` based on its internal type (e.g., Rational or Double).
@@ -126,10 +173,15 @@ object Value {
     */
   def maybeInt(value: Value): Option[Int] = {
     val xToZy0: Option[Double] => Try[Int] = {
-      case Some(n) if Math.round(n) == n => if (n <= Int.MaxValue && n >= Int.MinValue) Try(n.toInt)
-      else Failure(NumberException(s"double $n cannot be represented as an Int"))
-      case Some(n) => Failure(NumberException(s"toInt: $n is not integral"))
-      case None => Failure(new NoSuchElementException())
+      case Some(n) if Math.round(n) == n =>
+        if (n <= Int.MaxValue && n >= Int.MinValue)
+          Try(n.toInt)
+        else
+          Failure(NumberException(s"double $n cannot be represented as an Int"))
+      case Some(n) =>
+        Failure(NumberException(s"toInt: $n is not integral"))
+      case None =>
+        Failure(new NoSuchElementException())
     }
     import com.phasmidsoftware.number.misc.Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
@@ -143,10 +195,14 @@ object Value {
     * @return an Int.
     */
   def signum(value: Value): Int = value match {
-    case Right(x) => x.sign
-    case Left(Right(x)) => x.signum
-    case Left(Left(Some(x))) => x.sign.toInt
-    case _ => 0
+    case Right(x) =>
+      x.sign
+    case Left(Right(x)) =>
+      x.signum
+    case Left(Left(Some(x))) =>
+      x.sign.toInt
+    case _ =>
+      0
   }
 
   /**
@@ -156,10 +212,14 @@ object Value {
     * @return an Int.
     */
   def abs(value: Value): Value = value match {
-    case Right(x) => Right(math.abs(x))
-    case Left(Right(x)) => Left(Right(x.abs))
-    case Left(Left(Some(x))) => Left(Left(Some(math.abs(x))))
-    case _ => fromNothing()
+    case Right(x) =>
+      Right(math.abs(x))
+    case Left(Right(x)) =>
+      Left(Right(x.abs))
+    case Left(Left(Some(x))) =>
+      Left(Left(Some(math.abs(x))))
+    case _ =>
+      fromNothing()
   }
 
   /**
@@ -169,12 +229,18 @@ object Value {
     * @return a Value representing the negation of the given Value.
     */
   def negate(value: Value): Value = value match {
-    case Right(Integer.MIN_VALUE) => Left(Right(Rational(BigInt(Integer.MIN_VALUE))))
-    case Right(0) => value
-    case Right(x) => Right(-x)
-    case Left(Right(x)) => Left(Right(-x))
-    case Left(Left(Some(x))) => Left(Left(Some(-x)))
-    case _ => fromNothing()
+    case Right(Integer.MIN_VALUE) =>
+      Left(Right(Rational(BigInt(Integer.MIN_VALUE))))
+    case Right(0) =>
+      value
+    case Right(x) =>
+      Right(-x)
+    case Left(Right(x)) =>
+      Left(Right(-x))
+    case Left(Left(Some(x))) =>
+      Left(Left(Some(-x)))
+    case _ =>
+      fromNothing()
   }
 
   /**
@@ -186,7 +252,11 @@ object Value {
     * @param value the `Value` to be conditionally negated.
     * @return the negated `Value` if `neg` is true, otherwise the original `Value`.
     */
-  def negateConditional(neg: Boolean)(value: Value): Value = if (neg) negate(value) else value
+  def negateConditional(neg: Boolean)(value: Value): Value =
+    if (neg)
+      negate(value)
+    else
+      value
 
   /**
     * Computes the inverse of the given Value, if possible.
@@ -199,13 +269,20 @@ object Value {
     *         cannot be performed.
     */
   def inverse(value: Value): Option[Value] = value match {
-    case Right(1) => Some(value)
-    case Right(x) => Some(Left(Right(Rational(1, x))))
+    case Right(1) =>
+      Some(value)
+    case Right(x) =>
+      Some(Left(Right(Rational(1, x))))
     case Left(Right(x)) =>
       val inverted = x.invert
-      if (inverted.isInteger) Some(Right(inverted.toInt)) else Some(Left(Right(inverted)))
-    case Left(Left(Some(_))) => None
-    case _ => None
+      if (inverted.isInteger)
+        Some(Right(inverted.toInt))
+      else
+        Some(Left(Right(inverted)))
+    case Left(Left(Some(_))) =>
+      None
+    case _ =>
+      None
   }
 
   /**
@@ -216,7 +293,8 @@ object Value {
     * @param fResult the value of the factor that the result will be associated with.
     * @return a Double which will be paired with fResult.
     */
-  def scaleDouble(x: Double, fThis: Double, fResult: Double): Double = x * fThis / fResult
+  def scaleDouble(x: Double, fThis: Double, fResult: Double): Double =
+    x * fThis / fResult
 
   /**
     * Method to render a Value as a String.
@@ -224,10 +302,14 @@ object Value {
     * @param v the value to be rendered.
     * @return a String.
     */
-  def valueToString(v: Value, exact: Boolean = true): String = (renderValue(v, exact), exact) match {
-    case ((x, true), _) => x
-    case ((x, _), false) => x
-    case (x, false) => x.toString() + "*"
+  def valueToString(v: Value, exact: Boolean = true): String =
+    (renderValue(v, exact), exact) match {
+      case ((x, true), _) =>
+        x
+      case ((x, _), false) =>
+        x
+      case ((x, _), _) =>
+        x + "*"
   }
 
   /**
@@ -240,13 +322,55 @@ object Value {
     * @param v the value.
     * @return Some(List[Int](x)) or Some(List[Rational](null,x)) or Some(List[Double](null,null,x)) or None.
     */
-  def unapplySeq(v: Value): Option[List[Any]] = {
-    val result = v match {
-      case Right(x) => Some(List(x))
-      case Left(Right(x)) => Some(List(null, x))
-      case Left(Left(Some(x))) => Some(List(null, null, x))
-      case _ => None
-    }
-    result
+  def unapplySeq(v: Value): Option[List[Any]] = v match {
+    case Right(x) =>
+      Some(List(x))
+    case Left(Right(x)) =>
+      Some(List(null, x))
+    case Left(Left(Some(x))) =>
+      Some(List(null, null, x))
+    case _ =>
+      None
   }
+
+  /**
+    * Compares a given `Value` and a `String` to determine if they match under specific conditions.
+    *
+    * The method first converts the `Value` into a `String` using `valueToString`
+    * and compares it to the supplied `String`.
+    * Special cases are handled, such as treating "½" as equal to "1/2".
+    *
+    * @param v the `Value` to be compared.
+    * @param w the `String` to be compared against.
+    * @return true if the `Value` and the `String` match based on the specified logic, otherwise false.
+    */
+  private def stringsMatch(v: Value, w: String) =
+    (valueToString(v), w) match {
+      case (x, y) if x == y =>
+        true
+      case ("½", "1/2") =>
+        true
+      case _ =>
+        false
+    }
+
+  /**
+    * Private method to convert an `Option[Double]` into a `Value` representation.
+    * Applications should use `fromDouble`.
+    *
+    * @param xo an `Option` containing a `Double` value or `None`.
+    * @return a `Value` representing the wrapped `Option[Double]` in its `Left` structure.
+    */
+  private def fromOptionDouble(xo: Option[Double]): Value =
+    Left(Left(xo))
+
+  /**
+    * Convert nothing to an invalid Value.
+    *
+    * TESTME
+    *
+    * @return a Value.
+    */
+  private def fromNothing(): Value =
+    fromOptionDouble(None)
 }

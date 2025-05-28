@@ -486,7 +486,6 @@ object Expression {
     case x =>
       em.Miss("simplifyComposite: not a Composite expression type", x)
   }
-
 }
 
 /**
@@ -684,9 +683,6 @@ sealed trait CompositeExpression extends Expression {
   */
 case object Noop extends AtomicExpression {
 
-  val value: Field =
-    throw new UnsupportedOperationException("Noop.value")
-
   /**
     * Action to evaluate this `Expression` as a `Field`,
     * NOTE: no simplification occurs here.
@@ -695,15 +691,6 @@ case object Noop extends AtomicExpression {
     */
   def evaluate(context: Context): Option[Field] =
     throw new UnsupportedOperationException("Noop.evaluate")
-
-  /**
-    * Method to determine if this `NumberLike` object can be evaluated exactly in the given context.
-    *
-    * @param context the (optional) `Factor` for which we want to evaluate this `Expression`.
-    *                if `context` is `None` then, the result will depend solely on whether `this` is exact.
-    * @return true if `this` is exact in the context of factor, else false.
-    */
-  def isExactInContext(context: Context): Boolean = false
 
   /**
     * Computes and returns an approximate numerical value for this expression.
@@ -2045,7 +2032,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     * based on the specific rules for different types of contexts.
     *
     * CONSIDER reworking this method to take a Factor (from the left-hand parameter) and a Context (the overall context).
-    * OTherwise, I don't think it's going to work properly.
+    * Otherwise, I don't think it's going to work properly.
     *
     * @param context the initial `Context` to be evaluated and transformed.
     * @return the resulting `Context` after applying the transformation logic.

@@ -326,13 +326,12 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
     // NOTE: this is rather a low probability value (normally, we use 0.5)
-    result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
+    result.fuzzyCompare(Number.zero, 0.1) shouldBe 0
   }
   it should "work for 3.141592653589793 backwards" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
-    // NOTE: this is rather a low probability value (normally, we use 0.5)
-    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.1) shouldBe 0
+    Number.zero.fuzzyCompare(result, 0.1) shouldBe 0
   }
 
   behavior of "cos"
@@ -361,13 +360,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val target = Number("3.1415926535897932384626433")
     val result = target.cos
     // NOTE: this is rather a low probability value (normally, we use 0.5)
-    result.asInstanceOf[GeneralNumber].fuzzyCompare(negate(Number.one), 0.1) shouldBe 0
+    result.fuzzyCompare(negate(Number.one), 0.1) shouldBe 0
   }
   it should "work for 3.141592653589793 backwards" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.cos
     // NOTE: this is rather a low probability value (normally, we use 0.5)
-    negate(Number.one).asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.1) shouldBe 0
+    negate(Number.one).fuzzyCompare(result, 0.1) shouldBe 0
   }
 
   behavior of "tan"
@@ -426,15 +425,15 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "think 1 and 1 are the same" in {
     val x = Number.one
     val y = Number.one
-    implicitly[Fuzzy[Number]].same(0.95)(x, y) shouldBe true
+    implicitly[Fuzzy[Number]].same(0.95)(x, y) shouldBe(true, Number(0))
   }
   it should "think pi and pi are the same" in {
     val x = Number.parse("3.142").get
     val y = Number.pi
     // NOTE we check that these two numbers are the same with a confidence of 80%
-    implicitly[Fuzzy[Number]].same(0.8)(x, y) shouldBe true
+    implicitly[Fuzzy[Number]].same(0.5)(x, y) should matchPattern { case (true, _) => }
     // NOTE we check that these two numbers are not the same with a confidence of 90%
-    implicitly[Fuzzy[Number]].same(0.9)(x, y) shouldBe false
+    implicitly[Fuzzy[Number]].same(0.9)(x, y) should matchPattern { case (false, _) => }
   }
 
   behavior of "isProbablyZero"

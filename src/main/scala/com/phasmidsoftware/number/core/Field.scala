@@ -58,7 +58,8 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the addend.
     * @return the result.
     */
-  def +(x: Field): Field = add(x)
+  def +(x: Field): Field =
+    add(x)
 
   /**
     * Subtract x from this Field and return the result.
@@ -66,7 +67,8 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the subtrahend.
     * @return the difference of this - x.
     */
-  def subtract(x: Field): Field = this + -x
+  def subtract(x: Field): Field =
+    this + -x
 
   /**
     * Synonym for subtract.
@@ -74,7 +76,8 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the subtrahend.
     * @return <code>this - x</code>.
     */
-  def -(x: Field): Field = subtract(x)
+  def -(x: Field): Field =
+    subtract(x)
 
   /**
     * Multiply this Field by x and return the result.
@@ -90,7 +93,8 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
    * @param x the multiplicand, an instance of Field.
    * @return the product of this Field and the given Field.
    */
-  def *(x: Field): Field = multiply(x)
+  def *(x: Field): Field =
+    multiply(x)
 
   /**
     * Divide this Field by x and return the result.
@@ -108,7 +112,8 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the other Field.
     * @return the quotient of this and x.
     */
-  def /(x: Field): Field = divide(x)
+  def /(x: Field): Field =
+    divide(x)
 
   /**
     * Raise this Field to the power p.
@@ -143,7 +148,8 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     *
     * @return a `Double` representing the approximation of this expression.
     */
-  def approximation: Option[Real] = asNumber map (Real(_))
+  def approximation: Option[Real] =
+    asNumber map (Real(_))
 
   /**
     * Computes the sine of this Field.
@@ -201,7 +207,8 @@ object Field {
     * @param field the given field.
     * @return a Number if field is a Number, otherwise, this will throw a NumberException.
     */
-  def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
+  def convertToNumber(field: Field): Number =
+    recover(field.asNumber, NumberException(s"$field is not a Number"))
 
   /**
     * Implicit converter from `Rational` value to a `Field` value.
@@ -209,20 +216,32 @@ object Field {
     * @param r the Rational value to be converted.
     * @return a Field representation of the provided Rational value.
     */
-  implicit def convertRationalToField(r: Rational): Field = Real(r)
+  implicit def convertRationalToField(r: Rational): Field =
+    Real(r)
 
   /**
     * Definition of concrete (implicit) type class object for Field being Fuzzy.
     */
   implicit object FieldIsFuzzy extends Fuzzy[Field] {
     /**
-      * Method to determine if x1 and x2 can be considered the same with a probability of p.
+      * Determines whether two fields are approximately equal within a specified probability
+      * threshold, and returns their difference.
       *
-      * @param p  a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
-      * @param x1 a value of X.
-      * @param x2 a value of X.
-      * @return true if x1 and x2 are considered equal with probability p.
+      * The method computes the difference between `x1` and `x2`, tests if the difference is
+      * close to zero (based on the probability threshold `p`), and returns a tuple containing
+      * a boolean indicating if they are approximately equal, along with the computed difference.
+      *
+      * @param p  the probability threshold for considering the difference to be approximately zero.
+      *           Higher values correspond to stricter comparisons.
+      * @param x1 the first `Field` value to compare.
+      * @param x2 the second `Field` value to compare.
+      * @return a tuple where the first element is `true` if `x1` and `x2` are considered approximately equal
+      *         within the given threshold `p`, and `false` otherwise.
+      *         The second element is the computed difference between `x1` and `x2`.
       */
-    def same(p: Double)(x1: Field, x2: Field): Boolean = x1.add(-x2).asNumber.exists(_.isProbablyZero(p))
+    def same(p: Double)(x1: Field, x2: Field): (Boolean, Field) = {
+      val diff = x1.add(-x2)
+      diff.asNumber.exists(_.isProbablyZero(p)) -> diff
+    }
   }
 }

@@ -107,7 +107,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
   }
 
   it should "converged" in {
-    Approximation.converged(newtonsPolynomial, newtonsDerivative)(0.9)(Number(0.0945514815423266), Number.zero) shouldBe Success(true)
+    Approximation.converged(newtonsPolynomial, newtonsDerivative)(0.9)(Number(0.0945514815423266), Number.zero) should matchPattern { case Success((true, _)) => }
   }
 
   it should "iterate" in {

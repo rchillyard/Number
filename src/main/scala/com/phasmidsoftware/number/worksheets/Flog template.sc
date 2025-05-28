@@ -16,7 +16,7 @@ implicit object LoggableRational extends Loggable[Rational] {
 }
 
 implicit object LoggableValue extends Loggable[Value] {
-  def toLog(t: Value): String = Value.valueToString(t, exact)
+  def toLog(t: Value): String = Value.valueToString(t)
 }
 
 implicit object LoggableNumber extends Loggable[Number] {
