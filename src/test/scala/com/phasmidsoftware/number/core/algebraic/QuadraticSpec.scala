@@ -97,7 +97,12 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   it should "negate" in {
-    phi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = true)
+    val thrownByPhi = intercept[NumberException] {
+      phi.negate
+    }
+
+    thrownByPhi.getMessage should include ("phi and psi cannot be negate directly")
+    //phi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = true)
   }
 
   it should "product" in {
