@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.core.algebraic
 import com.phasmidsoftware.number.core.Number.{negOne, one, two}
 import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic.{phi, psi, zero}
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
-import com.phasmidsoftware.number.core.{Constants, Field, FuzzyEquality, Real}
+import com.phasmidsoftware.number.core.{Constants, Field, FuzzyEquality, NumberException, Real}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -88,7 +88,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     val expected = psi.asNumber.map(x => x.doMultiple(-1).toBigDecimal)
     println(s"psi.abs = $actual, expected = $expected")
     actual shouldBe expected
-  }
+  }//fixed
 
   it should "scale" in {
     val actual = phi.scale(2)
@@ -121,13 +121,27 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     actual.isSame(expected) shouldBe true
   }
 
+  it should "scale phi and psi with negative number" in {
+    val thrownByPhi = intercept[NumberException] {
+      phi.scale(-1)
+    }
+
+    val thrownByPsi = intercept[NumberException] {
+      psi.scale(-1)
+    }
+
+    thrownByPhi.getMessage should include ("phi and psi cannot be scaled by negative number directly")
+    thrownByPsi.getMessage should include ("phi and psi cannot be scaled by negative number directly")
+  }
+
   // TODO find out why this does not work correctly
   it should "add phi" in {
     val actual = phi.add(phi)
     val expected = phi.scale(2)
     println(s"actual = ${actual}, expected = ${expected.normalize}")
     actual shouldBe expected
-  }
+  }//fixed
+
   it should "add psi" in {
     val actual = phi.add(psi)
     val expected = zero

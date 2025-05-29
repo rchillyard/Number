@@ -64,8 +64,16 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @param x the scaling factor represented as a `Rational`.
     * @return a new `Algebraic_Quadratic` instance with scaled values of `p` and `q`.
     */
-  def scale(x: Rational): Algebraic =
-    copy(equation = equation.scale(x))
+  def scale(x: Rational): Algebraic = this match {
+    case phi if (phi eq Algebraic_Quadratic.phi) || (phi eq Algebraic_Quadratic.psi) =>
+      if (x.signum < 0)
+        throw NumberException("phi and psi cannot be scaled by negative number directly")
+      copy(equation = equation.scale(x))
+    case _ =>
+      copy(equation = equation.scale(x))
+  }
+
+
 
   /**
     * Adds a `Algebraic` instance to the current `Algebraic_Quadratic` instance based on specific conditions.
