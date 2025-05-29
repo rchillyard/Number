@@ -82,10 +82,10 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     psi.signum shouldBe -1
   }
 
-  ignore should "abs" in {
-    phi.abs shouldBe phi
-    val actual = psi.abs
-    val expected = psi.scale(-1)
+  it should "abs" in {
+    phi.abs.asReal shouldBe phi.asReal
+    val actual = psi.abs.asNumber.map(x => x.toBigDecimal)
+    val expected = psi.asNumber.map(x => x.doMultiple(-1).toBigDecimal)
     println(s"psi.abs = $actual, expected = $expected")
     actual shouldBe expected
   }
@@ -122,10 +122,10 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   // TODO find out why this does not work correctly
-  ignore should "add phi" in {
+  it should "add phi" in {
     val actual = phi.add(phi)
     val expected = phi.scale(2)
-    println(s"phi.scale(2) = ${actual.normalize}, expected = ${expected.normalize}")
+    println(s"actual = ${actual}, expected = ${expected.normalize}")
     actual shouldBe expected
   }
   it should "add psi" in {

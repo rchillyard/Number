@@ -163,7 +163,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @return a new `Algebraic` instance with the equation modified by the multiplication.
     */
   def multiply(x: Rational): Algebraic =
-    copy(equation = equation.transform((p, _) => p * x, (p, q) => x ∧ 2 * p + q * x)) // XXX where does this come from (it's from Claude)?
+    copy(equation = equation.transform((p, _) => p * x, (_, q) => q * (x ∧ 2))) // XXX where does this come from (it's from Claude)?
 
 //  def addHorizontal(c: Rational): Algebraic =
 //    copy(equation = quadratic.transform((p, _) => p - 2 * c, (p, q) => c ∧ 2 - p * c + q))
