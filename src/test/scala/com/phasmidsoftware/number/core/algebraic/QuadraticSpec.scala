@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.core.algebraic
 import com.phasmidsoftware.number.core.Number.{negOne, one, two}
 import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic.{phi, psi, zero}
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
-import com.phasmidsoftware.number.core.{Constants, Field, FuzzyEquality, NumberException, Real}
+import com.phasmidsoftware.number.core.{Constants, Field, FuzzyEquality, Real}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -97,12 +97,9 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   it should "negate" in {
-    val thrownByPhi = intercept[NumberException] {
-      phi.negate
-    }
-
-    thrownByPhi.getMessage should include ("phi and psi cannot be negate directly")
-    //phi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = true)
+    phi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = false)
+    phi.negate.asReal.get should ===(-Constants.phi)
+    psi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = true)
   }
 
   it should "product" in {
@@ -127,16 +124,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   it should "scale phi and psi with negative number" in {
-    val thrownByPhi = intercept[NumberException] {
-      phi.scale(-1)
-    }
-
-    val thrownByPsi = intercept[NumberException] {
-      psi.scale(-1)
-    }
-
-    thrownByPhi.getMessage should include ("phi and psi cannot be scaled by negative number directly")
-    thrownByPsi.getMessage should include ("phi and psi cannot be scaled by negative number directly")
+    phi.scale(-1) shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = false)
   }
 
   // TODO find out why this does not work correctly
@@ -176,6 +164,11 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     println(s"phi add Real(one) = $actual")
     actual.normalize should ===(Constants.phi + Real(2))
     actual.normalize.isSame(Constants.phi + Real(2)) shouldBe true
+  }
+
+  it should "multiply" in {
+    val twoPhi = phi multiply Rational.two
+    twoPhi.asReal.get should ===(Real(3.236067977499790))
   }
 
   it should "zero" in {

@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
-import com.phasmidsoftware.number.core.{Complex, Field, Number, NumberException, Numerical, Real}
+import com.phasmidsoftware.number.core.{Complex, Field, Number, Numerical, Real}
 
 /**
   * The `Algebraic` class is an abstract extension of the Field trait, representing a solution of a mathematical equation,
@@ -133,13 +133,8 @@ trait Algebraic extends Field {
     *
     * @return a new `Algebraic` instance representing the negation of the current instance.
     */
-  def negate: Algebraic = this match {
-    case phi if (phi eq Algebraic_Quadratic.phi) || (phi eq Algebraic_Quadratic.psi) =>
-      throw NumberException("phi and psi cannot be negate directly")
-    case _ =>
-      scale(Rational(-1))
-  }
-
+  def negate: Algebraic =
+    scale(Rational(-1))
 
   /**
     * Divide this Field by x and return the result.

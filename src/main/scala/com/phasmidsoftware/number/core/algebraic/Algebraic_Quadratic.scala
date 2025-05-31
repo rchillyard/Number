@@ -64,16 +64,8 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @param x the scaling factor represented as a `Rational`.
     * @return a new `Algebraic_Quadratic` instance with scaled values of `p` and `q`.
     */
-  def scale(x: Rational): Algebraic = this match {
-    case phi if (phi eq Algebraic_Quadratic.phi) || (phi eq Algebraic_Quadratic.psi) =>
-      if (x.signum < 0)
-        throw NumberException("phi and psi cannot be scaled by negative number directly")
-      copy(equation = equation.scale(x))
-    case _ =>
-      copy(equation = equation.scale(x))
-  }
-
-
+  def scale(x: Rational): Algebraic =
+    copy(equation = equation.scale(x), pos = if (x.signum > 0) pos else !pos)
 
   /**
     * Adds a `Algebraic` instance to the current `Algebraic_Quadratic` instance based on specific conditions.
@@ -171,7 +163,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @return a new `Algebraic` instance with the equation modified by the multiplication.
     */
   def multiply(x: Rational): Algebraic =
-    copy(equation = equation.transform((p, _) => p * x, (_, q) => q * (x ∧ 2))) // XXX where does this come from (it's from Claude)?
+    copy(equation = equation.transform((p, _) => p * x, (_, q) => q * (x ∧ 2)))
 
 //  def addHorizontal(c: Rational): Algebraic =
 //    copy(equation = quadratic.transform((p, _) => p - 2 * c, (p, q) => c ∧ 2 - p * c + q))
