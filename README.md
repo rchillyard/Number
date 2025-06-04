@@ -7,7 +7,7 @@
 ![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Number)
 ![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Number/bug)
 
-
+![Example Image](docs/images/%20logo.png)
 # Number
 This project is about numbers and their mathematics.
 The chief features of this library are:
