@@ -82,13 +82,13 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     psi.signum shouldBe -1
   }
 
-  ignore should "abs" in {
-    phi.abs shouldBe phi
-    val actual = psi.abs
-    val expected = psi.scale(-1)
+  it should "abs" in {
+    phi.abs.asReal shouldBe phi.asReal
+    val actual = psi.abs.asNumber.map(x => x.toBigDecimal)
+    val expected = psi.asNumber.map(x => x.doMultiple(-1).toBigDecimal)
     println(s"psi.abs = $actual, expected = $expected")
     actual shouldBe expected
-  }
+  }//fixed
 
   it should "scale" in {
     val actual = phi.scale(2)
@@ -97,7 +97,9 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   it should "negate" in {
-    phi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = true)
+    phi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = false)
+    phi.negate.asReal.get should ===(-Constants.phi)
+    psi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = true)
   }
 
   it should "product" in {
@@ -121,13 +123,18 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     actual.isSame(expected) shouldBe true
   }
 
+  it should "scale phi and psi with negative number" in {
+    phi.scale(-1) shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = false)
+  }
+
   // TODO find out why this does not work correctly
-  ignore should "add phi" in {
+  it should "add phi" in {
     val actual = phi.add(phi)
     val expected = phi.scale(2)
-    println(s"phi.scale(2) = ${actual.normalize}, expected = ${expected.normalize}")
+    println(s"actual = ${actual}, expected = ${expected.normalize}")
     actual shouldBe expected
-  }
+  }//fixed
+
   it should "add psi" in {
     val actual = phi.add(psi)
     val expected = zero
@@ -157,6 +164,11 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     println(s"phi add Real(one) = $actual")
     actual.normalize should ===(Constants.phi + Real(2))
     actual.normalize.isSame(Constants.phi + Real(2)) shouldBe true
+  }
+
+  it should "multiply" in {
+    val twoPhi = phi multiply Rational.two
+    twoPhi.asReal.get should ===(Real(3.236067977499790))
   }
 
   it should "zero" in {

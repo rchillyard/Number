@@ -350,6 +350,11 @@ The offset will typically have a different factor such as _SquareRoot_.
 An example of an _Algebraic_ is _phi_, the Golden Ratio.
 An _Algebraic_ is considered an exact value, although rendering it in decimal form may result in an approximation.
 
+
+An _Algebraic_ extends _Field_ so can be operated on as any other field.
+Additionally, there are other operations, unique to _Algebraic_, that allow exact transformations.
+Examples include scale, negate, add, multiply, etc.
+
 Factor
 ======
 There are three types of "factor":
@@ -589,7 +594,7 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Versions
 ========
-* Version 1.2.2: Changed the name of RQR into Quadratic.
+* Version 1.2.2: Changed the name of RQR into Quadratic and introduced Algebraic.
 * Version 1.2.1: Improved RQR classes.
 * Version 1.2.0: Another massive refactoring.
   - In particular:
