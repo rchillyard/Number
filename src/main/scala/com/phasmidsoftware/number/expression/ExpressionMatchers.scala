@@ -540,6 +540,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case f ~ (g ~ x) => Miss("cannot combine two monadic levels", f ~ (g ~ x)) // TESTME
   }
 
+
+//  private def simplify(e: Expression): ExpressionMatchers.this.MatchResult[Expression] =
+//    (Expression.simplifyTrivial & Expression.em.alt(matchSimpler))(e)
+
+
   /**
     * Matcher which matches on a trivial dyadic function, such as x * 0 or x + 0.
     * In the case where the result is non-constant, it will be further simplified if possible.
@@ -552,14 +557,16 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def matchDyadicTrivial: Matcher[DyadicTriple, Expression] = Matcher("matchDyadicTrivial") {
     case Sum ~ Zero ~ x => matchAndMaybeSimplify(x)
     case Sum ~ x ~ Zero => matchAndMaybeSimplify(x)
-    case Sum ~ x ~ y if x == y => matchAndMaybeSimplify(BiFunction(Two, x, Product))
+    //case Sum ~ x ~ y if x == y => matchAndMaybeSimplify(BiFunction(Two, x, Product))
+    case Sum ~ x ~ y if x == y => Match(BiFunction(Two, x, Product).simplify)
     case Product ~ Zero ~ _ => Match(Zero)
     case Product ~ _ ~ Zero => Match(Zero)
     case Product ~ One ~ x => matchAndMaybeSimplify(x)
     case Product ~ x ~ One => matchAndMaybeSimplify(x)
     case Product ~ MinusOne ~ x => matchAndMaybeSimplify(Function(x, Negate))
     case Product ~ x ~ MinusOne => matchAndMaybeSimplify(Function(x, Negate))
-    case Product ~ x ~ y if x == y => matchAndMaybeSimplify(BiFunction(x, Two, Power))
+    //case Product ~ x ~ y if x == y => matchAndMaybeSimplify(BiFunction(x, Two, Power))
+    case Product ~ x ~ y if x == y => Match(BiFunction(Two, x, Power).simplify)
     case Product ~ x ~ Function(One, Negate) => matchAndMaybeSimplify(Function(x, Negate))
     case Product ~ Function(One, Negate) ~ y => matchAndMaybeSimplify(Function(y, Negate))
     case Power ~ _ ~ Zero => Match(One)

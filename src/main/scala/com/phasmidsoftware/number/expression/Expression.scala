@@ -10,10 +10,11 @@ import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Approximatable, Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, Number, NumberException, NumberLike, Real}
 import com.phasmidsoftware.number.expression.Expression.em.ExpressionTransformer
-import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
+import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler, minusOne}
 import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.misc.FP.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -466,6 +467,9 @@ object Expression {
     *         where constants can be evaluated or reduced, returning the simplified `Expression`.
     */
   def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
+    case BiFunction(Literal(cp @ ComplexPolar(r, theta, n), _), Two, Power)
+      if n == 2 && theta.isZero =>
+      em.Match(Literal(r.power(2)))
     case c: CompositeExpression =>
       c.simplifyConstant(c)
     case x =>
@@ -1071,7 +1075,17 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     *         as no trivial simplifications are possible.
     */
   def simplifyTrivial: em.AutoMatcher[Expression] =
-    em.fail("Function: simplifyTrivial: no trivial simplifications")
+    //em.fail("Function: simplifyTrivial: no trivial simplifications")
+    em.Matcher("Function: simplifyTrivial") {
+
+      case Function(v, Negate) =>
+        em.Match(BiFunction(v, Literal(-1), Product))
+
+      case expr =>
+        em.Miss("Function: simplifyTrivial: no trivial simplifications", expr)
+    } //Zijie added
+
+
 
   /**
     * Simplifies a composite `Expression` by attempting to match it with a simpler form.
@@ -1141,6 +1155,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(Function(a, Negate))
       case BiFunction(MinusOne, b, Product) =>
         em.Match(Function(b, Negate))
+      case BiFunction(Function(c, Negate), One, Product) =>
+        em.Match(Function(c, Negate)) //Zijie added
+      case BiFunction(One, Function(c, Negate), Product) =>
+        em.Match(Function(c, Negate)) //Zijie added
       case BiFunction(a, b, Sum) if a == b =>
         em.Match(BiFunction(a, Two, Product))
       case BiFunction(a, b, Product) if a == b =>
@@ -1166,6 +1184,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
+    case BiFunction(a, Function(b, Negate), Product) if a == b =>
+      val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))   // x²
+      em.Match(Function(xSq, Negate))
+
+    case BiFunction(Function(a, Negate), b, Product) if a == b =>
+      val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
+      em.Match(Function(xSq, Negate))
+
     case b@BiFunction(_, _, _) =>
       ((em.complementaryTermsEliminatorBiFunction |
           em.matchBiFunctionAsAggregate & em.complementaryTermsEliminatorAggregate) &
