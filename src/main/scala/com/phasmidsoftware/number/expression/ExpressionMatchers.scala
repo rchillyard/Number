@@ -715,7 +715,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Literal(x, _) => Match(x) // TESTME
     case FieldExpression(x, _) => Match(x)
     case x@Number(_, _) => Match(Real(x)) // TESTME
-    case x: Constant => matchIfDefined(x.evaluateAsIs)(x)
+    case x: FieldExpression => matchIfDefined(x.evaluateAsIs)(x)
     case x => Miss("value", x)
   }
 
@@ -929,7 +929,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return true if the expression matches the identity element of the given field, false otherwise.
     */
   private def isIdentity(x: Expression, fo: Option[Field]) = x match {
-    case c: Constant => fo == c.evaluateAsIs
+    case c: FieldExpression => fo == c.evaluateAsIs
     case Literal(z, _) => fo.contains(z)
     case _ => false
   }
