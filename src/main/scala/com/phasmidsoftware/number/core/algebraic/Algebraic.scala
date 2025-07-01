@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
+import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
 import com.phasmidsoftware.number.core.{Complex, Field, Number, Numerical, Real}
 
@@ -36,7 +37,7 @@ trait Algebraic extends Field {
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.
     * Solutions are represented as an instance of the `Algebraic` or of `Complex` class.
     *
-    * @return a `Field`, which is either a `Algebraic` (real-valued) or a `Complex`.
+    * @return a `Field`, which is either an `Algebraic` (real-valued) or a `Complex`.
     */
   def solve: Solution =
     equation.solve(branch)
@@ -321,6 +322,35 @@ trait Algebraic extends Field {
 }
 
 /**
+  * Algebraic represents specific algebraic numbers, implemented using quadratic equations.
+  * It includes mathematical constants such as the golden ratio and its conjugate, as well
+  * as basic algebraic constants like zero and one.
+  */
+object Algebraic {
+  /**
+    * Represents the golden ratio as an instance of Algebraic_Quadratic, defined by the
+    * golden ratio equation. The `pos` parameter set to `true` chooses the positive root
+    * of the quadratic equation.
+    */
+  val phi: Algebraic = Algebraic_Quadratic(goldenRatioEquation, pos = true)
+  /**
+    * Represents the conjugate of the golden ratio, also known as the negative solution
+    * to the quadratic equation defining the golden ratio.
+    */
+  val psi: Algebraic = Algebraic_Quadratic(goldenRatioEquation, pos = false)
+  /**
+    * Represents the algebraic quadratic value equivalent to 1.
+    * Constructed using the quadratic -2 + x = 0 with a positive root.
+    */
+  val one: Algebraic = Algebraic_Quadratic(Quadratic(-2, 1), pos = true)
+  /**
+    * Represents the algebraic quadratic constant zero.
+    * This value is defined using a quadratic with both coefficients set to 0,
+    * and a positive sign for the root selection.
+    */
+  val zero: Algebraic = Algebraic_Quadratic(Quadratic(0, 0), pos = true)
+}
+/**
   * Represents an algebraic transformation or operation based on a linear equation.
   * Extends the functionalities of the `Algebraic` class, enabling operations specific to linear equations.
   *
@@ -413,7 +443,7 @@ case class LinearEquation(q: Rational) extends Equation {
     *
     * @param branch the branch index for which the solution is being sought.
     *               The branch index identifies specific solutions for equations that may have multiple solutions.
-    * @return a `Field`, which is either a `Algebraic` (real-valued) or a `Complex`.
+    * @return a `Field`, which is either an `Algebraic` (real-valued) or a `Complex`.
     */
   def solve(branch: Int): Solution =
     LinearSolution(Value.fromRational(-q))

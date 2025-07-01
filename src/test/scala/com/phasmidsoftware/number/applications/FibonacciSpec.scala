@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.{one, root5, two}
 import com.phasmidsoftware.number.core.Real.convertFromNumber
 import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -26,14 +27,14 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 
   // NOTE this and the following test should change when we fix Issue #48
   it should "render phi+1 as a Field" in {
-    val target: Field = Constants.phi + Real(1)
+    val target: Field = Algebraic.phi + Constants.one
     val actual = target.render
-    actual shouldBe "2.6180339887498950*"
+    actual shouldBe "2.6180339887498950(55)"
   }
   it should "render phi+1 as an Expression" in {
-    val target: Expression = Expression(Constants.phi) plus Real(1)
-    target.toString shouldBe "BiFunction{1.6180339887498950* + 1}"
-    target.render shouldBe "2.6180339887498950*"
+    val target: Expression = Phi plus One
+    target.toString shouldBe "BiFunction{phi + 1}"
+    target.render shouldBe "2.6180339887498950(55)"
   }
 
   val psi: Expression = Psi //(Expression(Constants.one) - Constants.root5) / Constants.two

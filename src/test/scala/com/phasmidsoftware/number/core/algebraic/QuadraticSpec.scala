@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
-import com.phasmidsoftware.number.core.Number.{negOne, one, two}
-import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic.{phi, psi, zero}
+import com.phasmidsoftware.number.core.Number.{negOne, negate, one, two}
+import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi, zero}
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
 import com.phasmidsoftware.number.core.{Constants, Field, FuzzyEquality, Real}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -15,12 +15,14 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   behavior of "Quadratic"
 
+  private val phiReal: Real = Real(Constants.sPhi)
+
   it should "normalize" in {
-    val expected: Real = Constants.phi
-    val phi = Algebraic_Quadratic.phi.normalize
+    val expected: Real = phiReal
+    val phi = Algebraic.phi.normalize
     println(s"phi = $phi, expected = $expected")
     phi.isSame(expected) shouldBe true
-    val psi: Field = Algebraic_Quadratic.psi.normalize
+    val psi: Field = Algebraic.psi.normalize
     println(s"psi = $psi")
     psi.isSame(Real(-0.618033)) shouldBe true
   }
@@ -35,7 +37,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   it should "value 1" in {
-    val p: Algebraic_Quadratic = phi
+    val p: Algebraic = phi
     println(p.render)
     val solution: Solution = p.solve
     solution.base shouldBe Value.fromRational(Rational.half)
@@ -98,19 +100,23 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   it should "negate" in {
     phi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = false)
-    phi.negate.asReal.get should ===(-Constants.phi)
+    val ok = for {
+      a <- phi.negate.asReal
+      b <- Constants.phi.asNumber.map(negate)
+    } yield a === b
+    ok shouldBe Some(true)
     psi.negate shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = true)
   }
 
   it should "product" in {
     val actual = phi * psi
-    val expected = phi.equation.q
+    val expected = phi.equation.asInstanceOf[Quadratic].q
     actual shouldBe Algebraic_Linear(LinearEquation(Rational.negOne))
     actual.render shouldBe "1"
   }
 
   it should "solutionSquared" in {
-    val actual: Solution = phi.solutionSquared
+    val actual: Solution = phi.square.solve
     // XXX phi^2 = phi + 1 (see https://en.wikipedia.org/wiki/Golden_ratio)
     val expected: Solution = (phi).solve.add(Rational.one) // NOTE this only works here
     actual shouldBe expected
@@ -146,24 +152,24 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     println(s"phi = $phi")
     val actual = phi add Real(one)
     println(s"phi add Real(one) = $actual")
-    actual.normalize should ===(Constants.phi + Real(1))
-    actual.normalize.isSame(Constants.phi + Real(1)) shouldBe true
+    actual.normalize should ===(phiReal + Real(1))
+    actual.normalize.isSame(phiReal + Real(1)) shouldBe true
   }
 
   it should "add -1" in {
     println(s"phi = $phi")
     val actual = phi add Real(negOne)
     println(s"phi add Real(one) = $actual")
-    actual.normalize should ===(Constants.phi + Real(-1))
-    actual.normalize.isSame(Constants.phi + Real(-1)) shouldBe true
+    actual.normalize should ===(phiReal + Real(-1))
+    actual.normalize.isSame(phiReal + Real(-1)) shouldBe true
   }
 
   it should "add 2" in {
     println(s"phi = $phi")
     val actual = phi add Real(two)
     println(s"phi add Real(one) = $actual")
-    actual.normalize should ===(Constants.phi + Real(2))
-    actual.normalize.isSame(Constants.phi + Real(2)) shouldBe true
+    actual.normalize should ===(phiReal + Real(2))
+    actual.normalize.isSame(phiReal + Real(2)) shouldBe true
   }
 
   it should "multiply" in {
@@ -172,12 +178,12 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
 
   it should "zero" in {
-    val actual = Algebraic_Quadratic.zero.solve
+    val actual = Algebraic.zero.solve
     actual should matchPattern { case QuadraticSolution(Value.zero, Value.zero, SquareRoot, false) => }
   }
 
   it should "one" in {
-    val actual = Algebraic_Quadratic.one.solve
+    val actual = Algebraic.one.solve
     actual should matchPattern { case QuadraticSolution(Value.one, Value.zero, SquareRoot, false) => }
   }
 
@@ -193,15 +199,15 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     val expected = phi
     println(s"phi=$phi; phi.power(1) = $actual")
     actual shouldBe (expected)
-    actual.normalize should ===(Constants.phi)
+    actual.normalize should ===(phiReal)
   }
 
   it should "power 2" in {
     val actual = phi.power(2)
     val expected = phi.square
 //    actual shouldBe (expected) // TODO recreate test such that this works.
-    actual.normalize should ===(Constants.phi + Real(1))
-    actual.normalize.isSame(Constants.phi + Real(1)) shouldBe true
+    actual.normalize should ===(phiReal + Real(1))
+    actual.normalize.isSame(phiReal + Real(1)) shouldBe true
   }
 
   it should "power 3" in {
@@ -209,7 +215,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     val scaled: Algebraic = phi.scale(2)
     val expected = scaled.equation.shiftOrigin(Rational.one).solve(0)
     println(s"phi^3 = $actual. expected=$expected")
-    val expectedValue = Constants.phi * Rational.two + Real(1)
+    val expectedValue = phiReal * Rational.two + Real(1)
     println(s"expectedValue = $expectedValue")
     actual.normalize should ===(expectedValue)
     actual.normalize.isSame(expectedValue) shouldBe true

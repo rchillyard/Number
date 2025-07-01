@@ -102,14 +102,14 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   }
   it should "have phi" in {
     val target = Constants.phi
-    target.isExact shouldBe false
+    target.isExact shouldBe true
     // TODO use Phi
     val goldenRatio = Expression.phi
     val maybeNumber: Option[Number] = goldenRatio.asNumber
     maybeNumber.isDefined shouldBe true
     Real(maybeNumber.get) should ===(target)
     val result: Field = goldenRatio.materialize
-    result.render shouldBe "1.618033988749895(24)"
+    result.render shouldBe "1.6180339887498950(47)"
   }
 it should "have alpha" in {
   val target = Constants.alpha

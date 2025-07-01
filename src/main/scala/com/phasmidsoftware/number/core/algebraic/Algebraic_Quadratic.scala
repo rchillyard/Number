@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
-import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Rational.two
 import com.phasmidsoftware.number.core.inner.Value.negateConditional
@@ -68,19 +67,19 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     copy(equation = equation.scale(x), pos = if (x.signum > 0) pos else !pos)
 
   /**
-    * Adds a `Algebraic` instance to the current `Algebraic_Quadratic` instance based on specific conditions.
+    * Adds an `Algebraic` instance to the current `Algebraic_Quadratic` instance based on specific conditions.
     *
     * If the input `Algebraic` matches the structure `Algebraic_Quadratic` with the same equation
     * and a position equal to the current position, the original instance is multiplied by 2.
     * Otherwise, the result is `Algebraic_Quadratic.zero`.
     *
     * @param s the `Algebraic` to be added to the current instance.
-    * @return a `Algebraic` instance representing the result of the addition according to the specified conditions.
+    * @return an `Algebraic` instance representing the result of the addition according to the specified conditions.
     */
   def add(s: Algebraic): Algebraic = s match {
     case Algebraic_Quadratic(_, `equation`, b) =>
       if (b == pos) this multiply Rational.two
-      else Algebraic_Quadratic.zero
+      else Algebraic.zero
     case Algebraic_Quadratic(_, Quadratic(a, b), _) =>
       val horizontal: Rational = (equation.p - a) / two
       val vertical: Rational = b - equation.q + (a ∧ 2) / 4 + (equation.p ∧ 2)
@@ -188,7 +187,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     case -1 =>
       copy(equation = equation.invert)
     case 0 =>
-      Algebraic_Quadratic.one
+      Algebraic.one
     case 1 =>
       this
     case 2 =>
@@ -254,7 +253,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * for the properties of `p`, `q`, and `pos`.
     *
     * @param other the object to compare with this instance for equality.
-    * @return `true` if the provided object is a `Algebraic_Quadratic` and has the same values
+    * @return `true` if the provided object is an `Algebraic_Quadratic` and has the same values
     *         for the relevant properties; otherwise, `false`.
     */
   override def equals(other: Any): Boolean = other match {
@@ -291,7 +290,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
 }
 
 /**
-  * Represents a equation equation of the form `x² + p*x + q = 0`, where `p` and `q` are rational coefficients.
+  * Represents an equation of the form `x² + p*x + q = 0`, where `p` and `q` are rational coefficients.
   *
   * @constructor Creates an instance of the equation equation with coefficients `p` and `q`.
   *              It enforces conditions to ensure the validity of the equation.
@@ -303,7 +302,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
   /**
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.
     * Solutions are represented as an instance of the `Algebraic` class.
-    * If appropriate, a `Algebraic` can be converted into Complex form.
+    * If appropriate, an `Algebraic` can be converted into Complex form.
     *
     * @param branch the branch index for which the solution is being sought.
     *               The branch index identifies specific solutions for equations that may have multiple solutions.
@@ -317,10 +316,10 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
       throw NumberException(s"solve($branch) is not currently supported for complex roots of a Quadratic")
 
   /**
-    * Shifts the origin of the equation equation by transforming its `p` and `q` components
+    * Shifts the origin of the equation by transforming its `p` and `q` components
     * based on the provided transformation functions dependent on the parameter `c`.
     *
-    * @param c the `Rational` value used to determine the shift applied to the equation equation.
+    * @param c the `Rational` value used to determine the shift applied to the equation.
     * @return a new `Quadratic` instance with its origin shifted according to the transformations.
     */
   def shiftOrigin(c: Rational): Quadratic = transform((p, _) => p - 2 * c, (p, q) => c ∧ 2 - p * c + q)
@@ -354,7 +353,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     * Computes the discriminant of a quadratic equation based on the formula `p^2 - 4 * q`.
     * The discriminant is a critical component in determining the nature of the roots of a
     * quadratic equation.
-    * If the discriminant is positive then there are two distinct roots;
+    * If the discriminant is positive, then there are two distinct roots;
     * if negative, then there are no real roots;
     * if zero, then there's a double root.
     *
@@ -413,8 +412,4 @@ object Algebraic_Quadratic {
   def unapply(equation: Algebraic_Quadratic): Option[(Option[String], Equation, Boolean)] =
     Some(equation.maybeName, equation.equation, equation.pos)
 
-  val phi: Algebraic_Quadratic = Algebraic_Quadratic(goldenRatioEquation, pos = true)
-  val psi: Algebraic_Quadratic = Algebraic_Quadratic(goldenRatioEquation, pos = false)
-  val one: Algebraic_Quadratic = Algebraic_Quadratic(Quadratic(-2, 1), pos = true)
-  val zero: Algebraic_Quadratic = Algebraic_Quadratic(Quadratic(0, 0), pos = true)
 }

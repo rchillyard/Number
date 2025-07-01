@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
 
 /**
@@ -151,9 +152,8 @@ object Constants {
 
   /**
     * [[https://en.wikipedia.org/wiki/Golden_ratio]]
-    * NOTE prefer to use `Phi`.
     */
-  lazy val phi: Real = Real(sPhi)
+  lazy val phi: NumberLike = Algebraic.phi
 
   /**
     * [[https://en.wikipedia.org/wiki/Euler–Mascheroni_constant]].

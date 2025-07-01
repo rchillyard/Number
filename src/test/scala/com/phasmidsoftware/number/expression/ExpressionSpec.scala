@@ -288,7 +288,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     target should matchPattern { case ReducedQuadraticRoot("phi", -1, -1, true) => }
   }
   it should "evaluate Phi correctly" in {
-    (((Phi ^ 2) - 1).materialize - Constants.phi).isZero shouldBe true
+    (((Phi ^ 2) - 1).materialize - Real(Constants.sPhi)).isZero shouldBe true
     Phi.materialize should ===(Constants.phi)
   }
   it should "evaluate Phi^2 correctly" in {

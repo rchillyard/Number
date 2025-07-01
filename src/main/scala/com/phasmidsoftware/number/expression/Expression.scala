@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.number.applications.Fibonacci
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.algebraic.Quadratic
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
@@ -81,12 +82,16 @@ sealed trait Expression extends NumberLike with Approximatable {
 
   /**
     * Method to determine if the materialized value of this `Expression` is defined and corresponds to a `Number`.
-    * CONSIDER replacing materialize with evaluateAsIs
+    * If this expression is exact, then evaluate as is and convert the result to a `Number`.
+    * Otherwise, we simply materialize this expression and convert the result to a `Number`.
     *
     * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
     */
   def asNumber: Option[Number] =
-    materialize.asNumber
+    if (isExact)
+      evaluateAsIs flatMap (_.asNumber)
+    else
+      materialize.asNumber
 
   /**
     * Computes and returns an approximate numerical value for this expression.
@@ -272,9 +277,9 @@ object Expression {
       Function(x, Log)
 
     /**
-      * Method to lazily get the value of e raised to the power of x.
+      * Method to lazily get the value of `e` raised to the power of x.
       *
-      * @return an Expression representing e raised to the power of x.
+      * @return an Expression representing `e` raised to the power of x.
       */
     def exp: Expression =
       Function(x, Exp)
@@ -352,12 +357,9 @@ object Expression {
 
   /**
     * Other useful expressions.
-    * NOTE you should prefer to use Phi and Psi which are more descriptive expressions.
     */
-  val phi: Expression =
-    (one + Constants.root5) / Literal(Number.two)
-  val psi: Expression =
-    (minusOne + Constants.root5) / Literal(Number.two)
+  val phi: Expression = Fibonacci.phi
+  val psi: Expression = Fibonacci.psi
 
   implicit def convertFieldToExpression(f: Field): Expression =
     Expression(f)
@@ -485,7 +487,7 @@ object Expression {
     * @return an `AutoMatcher` for `Expression` that matches and simplifies composite expressions,
     *         or returns the input expression unchanged if no simplifications are applicable.
     */
-  def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyComposite") {
+  private def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyComposite") {
     case c: CompositeExpression =>
       c.simplifyComposite(c)
     case x =>
@@ -745,7 +747,7 @@ abstract class FieldExpression(val value: Field, val maybeName: Option[String] =
     *
     * @param f the `ExpressionFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    * @return an `Option` containing a `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
   def monadicFunction(f: ExpressionFunction): Option[FieldExpression]
@@ -2253,7 +2255,7 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
   /**
     * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
     *
-    * @param context the `Context` typically based on the the context for the evaluation of the whole function.
+    * @param context the `Context` typically based on the context for the evaluation of the whole function.
     * @return the left-hand `Context` of the binary function.
     */
   def leftContext(context: Context): Context =

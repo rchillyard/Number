@@ -30,7 +30,11 @@ trait NumberLike {
   def isExact: Boolean
 
   /**
-    * Method to determine if this NumberLike is actually a real Number (i.e. not complex).
+    * Method to represent this `NumberLike` object as an optional Number.
+    * The result will be defined if:
+    * (1) we do not lose precision and
+    * (2) this object is not complex.
+    *
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *
     * CONSIDER redefining this as Option[Field] or Option[Real].
