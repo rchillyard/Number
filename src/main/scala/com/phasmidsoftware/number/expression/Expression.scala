@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.Number.convertInt
+import com.phasmidsoftware.number.core.algebraic.Quadratic
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Approximatable, Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, Number, NumberException, NumberLike, Real}
@@ -14,6 +15,7 @@ import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.misc.FP.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
+import scala.Option.when
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -1710,18 +1712,28 @@ object Aggregate {
 }
 
 /**
-  * An abstract class representing a root of a reduced quadratic equation of the form `x^2 + px + q = 0`
-  * The value of the root is `(-p/2) ± sqrt((-p/2)^2 - q)`.
-  * The class extends `CompositeExpression` and provides lazy evaluation for components of the reduced quadratic root.
+  * Represents an exact reduced quadratic root expression derived from a quadratic equation.
   *
-  * NOTE that, for now at least, the types of p and q are Int.
+  * A `ReducedQuadraticRoot` is defined by the parameters `p`, `q`, and `pos`, which correspond
+  * to the coefficients and the branch of the root being represented:
+  * - `p` and `q` are the coefficients from the quadratic equation.
+  * - `pos` determines which of the two possible roots is represented: the positive or the negative branch.
   *
-  * CONSIDER should we extend CompositeExpression instead? Then, all AtomicExpressions could have a value.
+  * The class enforces invariants:
+  * - At least one of `p` or `q` must be non-zero.
+  * - The discriminant of the quadratic equation, computed as `p^2 - 4*q`, must be non-negative.
+  * These invariants ensure that the instance represents a valid root and corresponds to a real solution.
   *
-  * @constructor Constructs a reduced quadratic root with parameters `p`, `q`, and a boolean `pos` to determine the sign of the root.
-  * @param p   The coefficient in the quadratic equation.
-  * @param q   The constant term in the quadratic equation.
-  * @param pos Determines if the positive or negative branch of the root is chosen.
+  * This class extends from `AtomicExpression`, meaning the represented root cannot
+  * be further simplified within the context of symbolic computation.
+  *
+  * NOTE that the development of this class preceded `Algebraic` fields like `Quadratic`.
+  * CONSIDER eliminating this class as it no longer serves any unique essential purpose.
+  *
+  * @param name a string name for the root.
+  * @param p    the coefficient representing the linear term in the quadratic equation.
+  * @param q    the coefficient representing the constant term in the quadratic equation.
+  * @param pos  determines whether this root represents the positive or the negative branch of the solution.
   */
 class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Boolean) extends AtomicExpression {
   require(p != 0 || q != 0, "may not have p and q equal to zero")
@@ -1758,19 +1770,21 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
   }
 
   /**
-    * Converts this quadratic root expression into an optional `Number` if possible.
-    * The result depends on the discriminant:
-    * - If the discriminant is negative, no numeric representation exists, and `None` is returned.
-    * - If the discriminant is zero, it represents a double root, and a single exact `Number` instance is returned.
-    * - If the discriminant is positive, a (fuzzy) `Number` is calculated and returned.
+    * Converts the current instance into an optional `Number` object.
     *
-    * @return an `Option[Number]` representing the numeric equivalent of this quadratic root if calculable; otherwise, `None`.
+    * The method computes a value based on the discriminant of the quadratic expression.
+    * If the discriminant is negative, there are no real roots and the result is `None`.
+    * If the discriminant is zero, the result is a `Number` representing the single root.
+    * Otherwise, attempts to compute a `Number` from the solution.
+    *
+    * @return an `Option[Number]` representing the numeric value derived from the quadratic root,
+    *         or `None` if no valid `Number` can be determined.
     */
-  override def asNumber: Option[Number] = {
-    if (discriminant < 0) None
-    else if (discriminant == 0) Some(Number(Rational(p, 2)))
-    else Some(Number(discriminant, SquareRoot).negateConditional(!pos) doSubtract Number(p) doDivide Number.two)
-  }
+  override def asNumber: Option[Number] =
+    if (discriminant < 0)
+      None
+    else
+      Option.when(discriminant == 0)(Number(Rational(p, 2))) orElse getSolution.asNumber
 
   /**
     * Computes the discriminant of a quadratic equation based on the formula `p^2 - 4 * q`.
@@ -1786,15 +1800,18 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     p * p - 4 * q
 
   /**
-    * Action to evaluate this `Expression` as a `Field`,
-    * NOTE: no simplification occurs here.
-    * Therefore, if an expression cannot be evaluated exactly,
-    * then it will result in a fuzzy number.
+    * Evaluates the given context to determine the resulting field.
     *
-    * @return a `Field`.
+    * The method solves a quadratic equation represented by the current context parameters
+    * and retrieves the exact solution as a field, if possible.
+    *
+    * @param context the evaluation context that determines the rules by which the expression is evaluated.
+    * @return an `Option[Field]` containing the evaluated field if calculable and exact; otherwise, `None`.
     */
-  def evaluate(context: Context): Option[Field] =
-    root.evaluate(context)
+  def evaluate(context: Context): Option[Field] = {
+    val solution = getSolution
+    when (solution.isExact)(solution.asField)
+  }
 
   /**
     * Method to render this NumberLike in a presentable manner.
@@ -1819,6 +1836,20 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     */
   private def canEqual(other: Any): Boolean =
     other.isInstanceOf[ReducedQuadraticRoot]
+
+  /**
+    * Computes and retrieves a solution of the quadratic expression represented by the instance
+    * using a specific branch of the solution set.
+    *
+    * This method leverages the parameters `p` and `q` of the quadratic expression to find
+    * a solution based on the discriminant and the branch value (`pos`) that determines
+    * which solution to compute.
+    *
+    * @return an `Option[Algebraic]` representing the solution to the quadratic equation based on the given context:
+    *         `Some(Algebraic)` if a solution exists for the required branch, or `None` if no real solution is found.
+    */
+  private def getSolution =
+    Quadratic(p, q).solve(if (pos) 0 else 1)
 
   /**
     * Compares this `ReducedQuadraticRoot` instance to another object for equality.
@@ -1905,7 +1936,7 @@ object CompositeExpression {
         BiFunction(h, j, Sum)
       case _ =>
         Aggregate(Sum, xs)
-  }
+    }
 
   /**
     * Creates a `Aggregate` instance from the given sequence of `Field` inputs.

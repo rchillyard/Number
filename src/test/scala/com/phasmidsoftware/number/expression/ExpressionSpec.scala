@@ -284,8 +284,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate" in {
     val target = new ReducedQuadraticRoot("phi", -1, -1, true)
     target shouldBe Phi
-    // CONSIDER creating a special number phi such that the following can be true.
-    target.evaluateAsIs.isDefined shouldBe false
+    target.evaluateAsIs.isDefined shouldBe true
     target should matchPattern { case ReducedQuadraticRoot("phi", -1, -1, true) => }
   }
   it should "evaluate Phi correctly" in {
