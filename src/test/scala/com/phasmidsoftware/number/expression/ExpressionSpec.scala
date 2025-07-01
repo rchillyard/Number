@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.expression
 
-import com.phasmidsoftware.matchers.Matchers.TildeOps
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
@@ -293,8 +292,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate Phi^2 correctly" in {
     val em: ExpressionMatchers = Expression.em
-    val p = em.biFunctionTransformer
-    p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(Phi, One, Sum))
+    val expression = (Phi ^ 2) - Phi
+//    expression.simplify shouldBe Zero
+//    expression.evaluateAsIs shouldBe Some(Constants.zero)
+    expression.materialize should ===(1)
   }
 
   behavior of "simplifyConstant"
