@@ -136,7 +136,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.toString shouldBe "BiFunction{1 + 𝛑}"
+    // TODO let's make the representations of pi consistent. This was previously 𝛑
+    e.toString shouldBe "BiFunction{1 + π}"
     e.render shouldBe "4.1415926535897930(41)"
     e.materialize.render shouldBe "4.1415926535897930(41)"
   }
