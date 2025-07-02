@@ -1413,6 +1413,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def simplifyTrivial: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("BiFunction: simplifyTrivial") {
+      // NOTE that the maybeIdentity values are Fields, whereas lower down, we match against Expression values which are identities.
       case BiFunction(a, b, f) if f.maybeIdentityL.contains(a) =>
         em.Match(b)
       case BiFunction(a, b, f) if f.maybeIdentityR.contains(b) =>

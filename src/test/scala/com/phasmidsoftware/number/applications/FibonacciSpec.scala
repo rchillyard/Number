@@ -14,15 +14,15 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   behavior of "Fibonacci"
 
   it should "psi" in {
-    val expression: Expression = Expression(Constants.one) - Constants.root5
+    val expression: Expression = (Constants.one) - Constants.root5
     val psi: Expression = expression / Constants.two
     psi shouldBe BiFunction(expression, Expression(Constants.two).reciprocal, Product)
   }
 
   it should "phi" in {
-    val expression: Expression = Expression(Constants.one) plus Constants.root5
+    val expression: Expression = (Constants.one) + Constants.root5
     val phi: Expression = expression / Constants.two
-    phi shouldBe BiFunction(expression, Expression(Constants.two).reciprocal, Product)
+    phi shouldBe BiFunction(expression, Two.reciprocal, Product)
   }
 
   // NOTE this and the following test should change when we fix Issue #48
