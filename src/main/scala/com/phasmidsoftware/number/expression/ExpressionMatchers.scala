@@ -344,6 +344,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a Matcher[DyadicTriple, Expression].
     */
+  @deprecated
   def matchSimplifyDyadicTermsTwoLevels: Matcher[DyadicTriple, Expression] = Matcher("matchSimplifyDyadicTermsTwoLevels") {
     case Sum ~ (q@Function(_, _)) ~ (z@Function(_, _)) =>
       matchComplementaryExpressions(Sum ~ q ~ z)
@@ -448,13 +449,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Negate ~ One => Match(MinusOne)
     case Negate ~ MinusOne => Match(One)
     case Reciprocal ~ One => Match(One)
-    case Reciprocal ~ Zero => Match(Literal(infinity))
-    case Reciprocal ~ Two => Match(Literal(half))
+    case Reciprocal ~ Zero => Match(infinity)
+    case Reciprocal ~ Two => Match(half)
     case Exp ~ Literal(x, _) if x == Real(infinity.negate) => Match(Zero)
     case Exp ~ Zero => Match(One)
     case Exp ~ One => Match(ConstE)
     case Log ~ One => Match(Zero)
-    case Log ~ Zero => Match(Literal(infinity.negate))
+    case Log ~ Zero => Match(infinity.negate)
     case Log ~ ConstE => Match(One)
     case Sine ~ Literal(x, _) if x == piBy2 => Match(One)
     case Sine ~ Literal(x, _) if (x + piBy2).isZero => Match(MinusOne)

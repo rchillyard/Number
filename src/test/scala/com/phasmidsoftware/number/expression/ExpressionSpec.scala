@@ -31,17 +31,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "evaluate"
 
   it should "evaluate 1 + -1" in {
-    val x = Literal(1) + Literal(-1)
+    val x = Literal(1) + -1
     x.evaluateAsIs shouldBe Some(Constants.zero)
   }
 
   it should "evaluate 1 * -1" in {
-    val x = Literal(1) * Literal(-1)
+    val x = Literal(1) * -1
     x.evaluateAsIs shouldBe Some(Real(-1))
   }
 
   it should "evaluate i * 2" in {
-    val x = ConstI * Literal(2)
+    val x = ConstI * 2
     val result = x.evaluateAsIs
     result.isDefined shouldBe true
     val expected = Real(ExactNumber(-4, SquareRoot))
@@ -142,7 +142,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   it should "evaluate 3 5 + 7 2 – *" in {
-    val expression = (Literal(3) + 5) * (Literal(7) - 2)
+    val expression = (Literal(3) + 5) * (7 - 2)
     val result = expression.simplify.materialize
     result shouldEqual Real(40)
   }
@@ -203,7 +203,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "toString"
   it should "work for (sqrt 7)^2" in {
-    val seven: Expression = Literal(7)
+    val seven: Expression = 7
     val result: Expression = seven.sqrt ^ 2
     result.toString shouldBe "BiFunction{√7 ^ 2}"
   }
@@ -292,12 +292,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Phi.materialize should ===(Constants.phi)
   }
   it should "evaluate Phi^2 correctly" in {
-    val em: ExpressionMatchers = Expression.em
     val expression = (Phi ^ 2) - Phi
     expression.materialize should ===(1)
   }
   it should "evaluate Phi + Psi" in {
-    val em: ExpressionMatchers = Expression.em
     val expression = Phi + Psi
     val simplified = expression.simplify
     simplified shouldBe One

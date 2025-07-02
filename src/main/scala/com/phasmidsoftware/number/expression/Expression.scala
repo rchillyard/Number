@@ -5,7 +5,6 @@
 package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.applications.Fibonacci
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
@@ -356,17 +355,32 @@ object Expression {
     ShuntingYardParser.parseInfix(x).toOption flatMap (_.evaluate)
 
   /**
-    * Other useful expressions.
+    * Converts a `Field` instance into an `Expression`.
+    *
+    * @param f the `Field` to be converted into an `Expression`
+    * @return an `Expression` instance representing the input `Field`
     */
-  val phi: Expression = Fibonacci.phi
-  val psi: Expression = Fibonacci.psi
-
   implicit def convertFieldToExpression(f: Field): Expression =
     Expression(f)
 
-  // TODO have a cache of existing values
+  /**
+    * Implicitly converts an integer into an `Expression` by wrapping it,
+    * facilitating seamless conversions in mathematical operations.
+    *
+    * @param x the integer to be converted into an `Expression`
+    * @return an `Expression` that represents the given integer
+    */// TODO have a cache of existing values
   implicit def convertIntToExpression(x: Int): Expression =
-    Literal(x)
+    Expression(x)
+
+  /**
+    * Converts a `Rational` number into an `Expression`.
+    *
+    * @param x the `Rational` number to be converted.
+    * @return an `Expression` representing the input `Rational` number.
+    */
+  implicit def convertRationalToExpression(x: Rational): Expression =
+    Expression(x)
 
   /**
     * The following method is helpful in getting an expression started
@@ -1405,9 +1419,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           case Sum if b1 != b2 =>
             em.Match(Literal(e1.p.makeNegative))
           case Product if b1 != b2 =>
-            em.Match(Literal(e1.q))
+            em.Match(e1.q)
           case _ =>
-            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and ${f}", this)
+            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this)
         }
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications for Algebraics", this)
@@ -1779,9 +1793,9 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     * (`+discriminant.sqrt`) or the negative branch (`-discriminant.sqrt`) is used in the computation.
     */
   lazy val root: Expression = {
-    (Literal(-p) plus {
+    (Expression(-p) plus {
       // NOTE discriminant is required to be non-negative
-      val branch: Expression = Literal(discriminant.sqrt)
+      val branch: Expression = discriminant.sqrt
       if (pos) branch else -branch
     }) / 2
   }
