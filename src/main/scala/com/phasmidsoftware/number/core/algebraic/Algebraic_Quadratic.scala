@@ -409,7 +409,7 @@ object Quadratic {
   * Provides an unapply method for pattern matching.
   */
 object Algebraic_Quadratic {
-  def unapply(equation: Algebraic_Quadratic): Option[(Option[String], Equation, Boolean)] =
+  def unapply(equation: Algebraic_Quadratic): Option[(Option[String], Quadratic, Boolean)] =
     Some(equation.maybeName, equation.equation, equation.pos)
 
 }

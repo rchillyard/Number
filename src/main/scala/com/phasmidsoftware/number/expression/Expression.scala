@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.applications.Fibonacci
 import com.phasmidsoftware.number.core.Number.convertInt
-import com.phasmidsoftware.number.core.algebraic.Quadratic
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Approximatable, Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, Number, NumberException, NumberLike, Real}
@@ -421,6 +421,8 @@ object Expression {
     *         the input `Expression`, depending on its type and structure.
     */
   def matchSimpler: ExpressionTransformer = {
+    case x: ReducedQuadraticRoot =>
+      em.Match(x.asAlgebraic)
     case x: AtomicExpression =>
       em.Miss("matchSimpler: cannot be simplified", x)
     case x: CompositeExpression =>
@@ -1396,6 +1398,19 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(MinusOne)
       case BiFunction(ConstE, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _), Power) =>
         em.Match(MinusOne)
+      // TODO match on Algebraic_Linear also
+      case BiFunction(Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
+        // XXX Apply Vieta's formula
+        f match {
+          case Sum if b1 != b2 =>
+            em.Match(Literal(e1.p.makeNegative))
+          case Product if b1 != b2 =>
+            em.Match(Literal(e1.q))
+          case _ =>
+            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and ${f}", this)
+        }
+      case _ =>
+        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications for Algebraics", this)
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications", this)
     }
@@ -1816,6 +1831,30 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
   }
 
   /**
+    * Converts this `ReducedQuadraticRoot` instance into its corresponding algebraic representation.
+    *
+    * The method constructs an `Algebraic_Quadratic` object using the quadratic expression
+    * defined by the parameters `p` and `q` of this instance, along with the `pos` value
+    * which denotes the specific branch of the solution set.
+    *
+    * @return an `Algebraic` object represented by the quadratic equation's algebraic form.
+    */
+  def asAlgebraic: Algebraic =
+    Algebraic_Quadratic(Quadratic(p, q), pos)
+
+  /**
+    * Retrieves the solution for the quadratic equation represented by this instance.
+    *
+    * The method computes the solution using the algebraic representation of the quadratic equation
+    * as defined by the instance's parameters. It delegates to the `solve` method of the
+    * `Algebraic` instance obtained from `asAlgebraic`.
+    *
+    * @return a `Solution` object representing the solution of the quadratic equation
+    */
+  def getSolution: Solution =
+    asAlgebraic.solve
+
+  /**
     * Method to render this NumberLike in a presentable manner.
     *
     * @return a String
@@ -1838,20 +1877,6 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     */
   private def canEqual(other: Any): Boolean =
     other.isInstanceOf[ReducedQuadraticRoot]
-
-  /**
-    * Computes and retrieves a solution of the quadratic expression represented by the instance
-    * using a specific branch of the solution set.
-    *
-    * This method leverages the parameters `p` and `q` of the quadratic expression to find
-    * a solution based on the discriminant and the branch value (`pos`) that determines
-    * which solution to compute.
-    *
-    * @return an `Option[Algebraic]` representing the solution to the quadratic equation based on the given context:
-    *         `Some(Algebraic)` if a solution exists for the required branch, or `None` if no real solution is found.
-    */
-  private def getSolution =
-    Quadratic(p, q).solve(if (pos) 0 else 1)
 
   /**
     * Compares this `ReducedQuadraticRoot` instance to another object for equality.

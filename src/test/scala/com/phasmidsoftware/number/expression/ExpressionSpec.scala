@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
+import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Real}
 import com.phasmidsoftware.number.expression
@@ -293,9 +294,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate Phi^2 correctly" in {
     val em: ExpressionMatchers = Expression.em
     val expression = (Phi ^ 2) - Phi
-//    expression.simplify shouldBe Zero
-//    expression.evaluateAsIs shouldBe Some(Constants.zero)
     expression.materialize should ===(1)
+  }
+  it should "evaluate Phi + Psi" in {
+    val em: ExpressionMatchers = Expression.em
+    val expression = Phi + Psi
+    val simplified = expression.simplify
+    simplified shouldBe One
   }
 
   behavior of "simplifyConstant"
@@ -310,7 +315,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "simplify field expressions" in {
     Literal(1).simplify shouldBe Literal(1)
     ConstPi.simplify shouldBe ConstPi
-    Phi.simplify shouldBe Phi
+    val simplify = Phi.simplify
+    simplify shouldBe Literal(Algebraic.phi)
+    Phi.simplify.materialize shouldBe Constants.phi
   }
   it should "simplify function expressions" in {
     expression.Function(expression.Function(One, Negate), Negate).simplify shouldBe One
