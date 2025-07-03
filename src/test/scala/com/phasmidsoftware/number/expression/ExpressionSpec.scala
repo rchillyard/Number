@@ -304,6 +304,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val simplified = expression.simplify
     simplified shouldBe One
   }
+  it should "evaluate Phi * Psi" in {
+    val expression = Phi * Psi
+    val simplified = expression.simplify
+    simplified shouldBe MinusOne
+  }
   it should "evaluate Phi + Phi" in {
     val expression = Phi + Phi
     val simplified = expression.simplify

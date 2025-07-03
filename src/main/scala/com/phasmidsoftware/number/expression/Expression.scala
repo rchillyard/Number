@@ -23,6 +23,7 @@ import scala.language.implicitConversions
   * Trait Expression which defines the behavior of a lazily evaluated tree of mathematical operations and operands.
   */
 sealed trait Expression extends NumberLike with Approximatable {
+
   /**
     * Method to determine if this Expression cannot be simplified on account of it being atomic.
     *
@@ -110,6 +111,10 @@ sealed trait Expression extends NumberLike with Approximatable {
     */
   def compare(comparand: Expression): Int =
     recover(for (x <- asNumber; y <- comparand.asNumber) yield x.compare(y), NumberException("compare: logic error"))
+
+  // NOTE This can be useful for debugging: it allows you to see the value of this Expression.
+  // However, it can also cause a stack overflow so use it sparingly!
+  //  val approx = simplify.approximation getOrElse Real.NaN
 }
 
 /**
@@ -1450,7 +1455,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           case Sum if b1 != b2 =>
             em.Match(e1.p.makeNegative)
           case Product if b1 != b2 =>
-            em.Match(e1.q) // TESTME
+            em.Match(e1.q)
           case _ =>
             em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
         }
@@ -1458,10 +1463,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         modifyQuadratic(a, x, f)
       case BiFunction(x, Literal(a@Algebraic_Quadratic(_, _, _), _), f) =>
         modifyQuadratic(a, x, f)
-      case BiFunction(Literal(a@Algebraic_Quadratic(_, equation, _), _), Two, Power) =>
-        val expression = Expression(a) * (-equation.p)
-        val simplified = (expression plus (-equation.q)).simplify
-        em.Match(simplified)
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications", this)
     }
@@ -1597,6 +1598,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
                 em.Match(Literal(a.add(z)))
               case (Some(z), Product) =>
                 em.Match(Literal(a.scale(z)))
+              case (Some(Rational.two), Power) =>
+                val expression = Expression(a) * (-a.equation.p)
+                val simplified = (expression plus (-a.equation.q)).simplify
+                em.Match(simplified)
               case (None, _) =>
                 em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Rational)", this) // TESTME
             }
