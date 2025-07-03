@@ -6,8 +6,8 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
+import com.phasmidsoftware.number.core.inner.{Radian, Rational, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, pi}
@@ -301,6 +301,22 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val expression = Phi + Psi
     val simplified = expression.simplify
     simplified shouldBe One
+  }
+  it should "evaluate Phi + Phi" in {
+    val expression = Phi + Phi
+    val simplified = expression.simplify
+    val minus2 = Rational(-2)
+    val minus4 = Rational(-4)
+    simplified should matchPattern { case Literal(Algebraic_Quadratic(_, Quadratic(`minus2`, `minus4`), _), _) => }
+    simplified.materialize should ===(3.23606797749979)
+  }
+  it should "evaluate 2 * Phi" in {
+    val expression = Two * Phi
+    val simplified = expression.simplify
+    val minus2 = Rational(-2)
+    val minus4 = Rational(-4)
+    simplified should matchPattern { case Literal(Algebraic_Quadratic(_, Quadratic(`minus2`, `minus4`), _), _) => }
+    simplified.materialize should ===(3.23606797749979)
   }
 
   behavior of "simplifyConstant"

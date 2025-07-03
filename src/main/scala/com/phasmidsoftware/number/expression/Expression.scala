@@ -1454,6 +1454,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           case _ =>
             em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
         }
+      case BiFunction(Literal(a@Algebraic_Quadratic(_, _, _), _), x, Product) =>
+        scaleQuadratic(a, x)
+      case BiFunction(x, Literal(a@Algebraic_Quadratic(_, _, _), _), Product) =>
+        scaleQuadratic(a, x)
       case BiFunction(Literal(a@Algebraic_Quadratic(_, equation, _), _), Two, Power) =>
         val expression = Expression(a) * (-equation.p)
         val simplified = (expression plus (-equation.q)).simplify
@@ -1574,6 +1578,34 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ =>
       false
   }
+
+  /**
+    * Scales a quadratic algebraic term by a given expression and attempts to simplify the operation.
+    * If the expression is atomic and reducible (e.g., a rational number), the scaling is simplified.
+    * Otherwise, returns a "miss" result indicating that no simplification was possible.
+    *
+    * @param a the `Algebraic_Quadratic` term that is being scaled.
+    * @param x the `Expression` to scale `a` by.
+    * @return a `MatchResult[Expression]`, which either contains the simplified scaled expression
+    *         or indicates that no simplification was possible.
+    */
+  private def scaleQuadratic(a: Algebraic_Quadratic, x: Expression): em.MatchResult[Expression] =
+    x match {
+      case expr: AtomicExpression =>
+        expr.evaluateAsIs match {
+          case Some(y: Real) if y.isExact =>
+            y.x.toNominalRational match {
+              case Some(z) =>
+                em.Match(Literal(a.scale(z)))
+              case None =>
+                em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a * $x (not Rational)", this) // TESTME
+            }
+          case None =>
+            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a * $x (not Real)", this) // TESTME
+        }
+      case _ =>
+        em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a * $x (not Atomic)", this) // TESTME
+    }
 }
 
 /**
