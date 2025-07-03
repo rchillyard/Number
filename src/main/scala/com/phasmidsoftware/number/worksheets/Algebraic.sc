@@ -1,4 +1,4 @@
-import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic.{phi, psi}/**
+import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}/**
   * This worksheet illustrates the use of Algebraic fields
   */
 

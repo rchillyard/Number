@@ -211,24 +211,6 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
       throw NumberException(s"power($k) is not supported for Algebraic_Quadratic")
   }
 
-//  def invert: Algebraic =
-//    copy(equation = quadratic.transform((p, q) => p / q, (_, q) => q.invert))
-
-  /**
-    * Computes the squared solution for the current instance by scaling the equation's `p` value and adjusting the result with the negated `q` value.
-    *
-    * This method applies transformations to the associated equation and retrieves a specific solution if possible.
-    * If the solution cannot be computed, it throws a `NumberException`.
-    *
-    * @return the squared solution of the instance as a `Solution`
-    * @throws NumberException if the operation is not supported for the current instance
-    */
-  def solutionSquared: Solution =
-    solve scale (-equation.p) match {
-      case Some(s) => s add -equation.q
-      case None => throw NumberException(s"solutionSquared is not supported for $this")
-    }
-
   /**
     * Computes the square of the current `Algebraic` by transforming its associated equation and toggling its position.
     *

@@ -283,18 +283,19 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "ReducedQuadraticRoot"
   it should "evaluate" in {
-    val target = new ReducedQuadraticRoot("phi", -1, -1, true)
+    val target = new ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true)
     target shouldBe Phi
-    target.evaluateAsIs.isDefined shouldBe true
-    target should matchPattern { case ReducedQuadraticRoot("phi", -1, -1, true) => }
+    target.evaluateAsIs.isDefined shouldBe false
+    target should matchPattern { case ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true) => }
   }
   it should "evaluate Phi correctly" in {
     (((Phi ^ 2) - 1).materialize - Real(Constants.sPhi)).isZero shouldBe true
     Phi.materialize should ===(Constants.phi)
   }
   it should "evaluate Phi^2 correctly" in {
-    val expression = (Phi ^ 2) - Phi
-    expression.materialize should ===(1)
+    val expression = (Phi ^ 2)
+    val simplified = expression.simplify
+    simplified shouldBe (One + Phi.asAlgebraic)
   }
   it should "evaluate Phi + Psi" in {
     val expression = Phi + Psi
@@ -316,7 +317,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     ConstPi.simplify shouldBe ConstPi
     val simplify = Phi.simplify
     simplify shouldBe Expression(Algebraic.phi)
-    Phi.simplify.materialize shouldBe Constants.phi
+    Phi.simplify.materialize should ===(1.618033988749895)
   }
   it should "simplify function expressions" in {
     expression.Function(expression.Function(One, Negate), Negate).simplify shouldBe One

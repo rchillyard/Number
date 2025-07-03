@@ -9,7 +9,7 @@
 
 ![Example Image](docs/images/%20logo.png)
 # Number
-This project is about numbers and their mathematics.
+This project is about fuzzy, lazy, numbers and their mathematics.
 The chief features of this library are:
 * all numbers are exact _wherever it is possible_, including $e$ (Unicode: xD835DF00) and $\pi$ (Unicode: xD835DED1);
 * inexact numbers are represented along with their error bounds;

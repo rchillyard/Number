@@ -54,7 +54,8 @@ trait Solution extends NumberLike {
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] = if (Value.isZero(base)) Some(factor) else if (Value.isZero(offset)) Some(PureNumber) else None
+  def maybeFactor: Option[Factor] =
+    if (Value.isZero(base)) Some(factor) else if (Value.isZero(offset)) Some(PureNumber) else None
 
   /**
     * Method to determine if this NumberLike object is exact.

@@ -33,7 +33,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   }
   it should "render phi+1 as an Expression" in {
     val target: Expression = Phi plus One
-    target.toString shouldBe "BiFunction{phi + 1}"
+    target.toString shouldBe "BiFunction{\uD835\uDED7 + 1}"
     target.render shouldBe "2.6180339887498950(55)"
   }
 

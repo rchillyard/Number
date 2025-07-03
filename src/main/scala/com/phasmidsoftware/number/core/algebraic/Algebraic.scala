@@ -47,7 +47,8 @@ trait Algebraic extends Field {
     *
     * @return a `Field` representing the value of the solution for the given branch.
     */
-  def value: Field = solve.asField
+  def value: Field =
+    solve.asField
 
   /**
     * An optional name for this solution.
@@ -58,18 +59,20 @@ trait Algebraic extends Field {
   def maybeName: Option[String]
 
   /**
-    * Method to determine if this Field is real-valued (i.e. the point lies on the real axis).
+    * Method to determine if this Field is real-valued (i.e., the point lies on the real axis).
     *
     * @return true if not imaginary.
     */
-  def isReal: Boolean = !isImaginary
+  def isReal: Boolean =
+    !isImaginary
 
   /**
-    * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
+    * Method to determine if this Field is imaginary-valued (i.e., the point lies on the imaginary axis).
     *
     * @return true if this is imaginary.
     */
-  def isImaginary: Boolean = value.isImaginary
+  def isImaginary: Boolean =
+    value.isImaginary
 
   /**
     * Add x to this Field and return the result.
@@ -78,7 +81,8 @@ trait Algebraic extends Field {
     * @param x the addend.
     * @return the sum.
     */
-  def add(x: Field): Field = value add x
+  def add(x: Field): Field =
+    value add x
 
   /**
     * Multiply this Field by x and return the result.
@@ -143,7 +147,8 @@ trait Algebraic extends Field {
     * @param x the divisor.
     * @return the quotient.
     */
-  def divide(x: Field): Field = value divide x
+  def divide(x: Field): Field =
+    value divide x
 
   /**
     * Raises this Field to the power of the specified number.
@@ -151,7 +156,8 @@ trait Algebraic extends Field {
     * @param p the exponent, provided as a Number.
     * @return the result of raising this Field to the power p.
     */
-  def power(p: Number): Field = value power p
+  def power(p: Number): Field =
+    value power p
 
   /**
     * Raise this Field to the power p.
@@ -159,28 +165,32 @@ trait Algebraic extends Field {
     * @param p a Field.
     * @return this Field raised to power p.
     */
-  def power(p: Field): Field = value power p
+  def power(p: Field): Field =
+    value power p
 
   /**
     * Computes the sine of this Field.
     *
     * @return the sine of this Field, as an instance of Field.
     */
-  def sin: Field = value.sin
+  def sin: Field =
+    value.sin
 
   /**
     * Computes the trigonometric cosine of this Field.
     *
     * @return the cosine of this Field.
     */
-  def cos: Field = value.cos
+  def cos: Field =
+    value.cos
 
   /**
     * Computes the tangent of this Field.
     *
     * @return the tangent of this Field as a new Field.
     */
-  def tan: Field = value.tan
+  def tan: Field =
+    value.tan
 
   /**
     * Calculates the arctangent (inverse tangent) of the given Real number.
@@ -188,21 +198,24 @@ trait Algebraic extends Field {
     * @param y the Real number whose arctangent is to be calculated.
     * @return the arctangent of the specified Real number, represented as a Field.
     */
-  def atan(y: Real): Field = value.atan(y)
+  def atan(y: Real): Field =
+    value atan y
 
   /**
     * Computes the natural logarithm (log base e) of this Field.
     *
     * @return a new Field representing the result of the logarithmic computation.
     */
-  def log: Field = value.log
+  def log: Field =
+    value.log
 
   /**
     * Computes the exponential of this Field.
     *
     * @return a Field representing the exponential of this instance.
     */
-  def exp: Field = value.exp
+  def exp: Field =
+    value.exp
 
   /**
     * Method to determine if this Numerical is equivalent to another Numerical object (x).
@@ -210,7 +223,8 @@ trait Algebraic extends Field {
     * @param x the other Numerical.
     * @return true if they are most probably the same, otherwise false.
     */
-  def isSame(x: Numerical): Boolean = value.isSame(x)
+  def isSame(x: Numerical): Boolean =
+    value isSame x
 
   /**
     * Method to determine if this Field has infinite magnitude.
@@ -225,7 +239,8 @@ trait Algebraic extends Field {
     *
     * @return true if the magnitude of this Field is zero.
     */
-  def isZero: Boolean = solve.isZero
+  def isZero: Boolean =
+    solve.isZero
 
   /**
     * Method to determine if this Field has unity magnitude.
@@ -233,35 +248,40 @@ trait Algebraic extends Field {
     *
     * @return true if the magnitude of this Field is one.
     */
-  def isUnity: Boolean = solve.isUnity
+  def isUnity: Boolean =
+    solve.isUnity
 
   /**
     * Determine the "sign" of this field.
-    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
+    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left, or at the origin.
     * For a complex number, we get the signum of the real part.
     *
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
     */
-  def signum: Int = solve.signum
+  def signum: Int =
+    solve.signum
 
   /**
     * Change the sign of this Field.
     */
-  def unary_- : Field = -value
+  def unary_- : Field =
+    -value
 
   /**
     * Yields the inverse of this Field.
     * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     */
-  def invert: Field = value.invert
+  def invert: Field =
+    value.invert
 
   /**
     * Method to "normalize" a field.
     *
     * @return a Field which is in canonical form.
     */
-  def normalize: Field = value.normalize
+  def normalize: Field =
+    value.normalize
 
   /**
     * Method to return this Field as a Complex.
@@ -269,15 +289,17 @@ trait Algebraic extends Field {
     *
     * @return a Complex.
     */
-  def asComplex: Complex = value.asComplex // CONSIDER getting this direct from the Solution.
+  def asComplex: Complex =
+    value.asComplex // CONSIDER getting this direct from the Solution.
 
   /**
-    * Method to return this Field as a Real, if possible.
-    * If this is a Real number x, return Some(x) otherwise, return None.
+    * Method to return this `Field` as a `Real`, if possible.
+    * If this is a `Real` number `x`, return `Some(x)` otherwise, return `None`.
     *
     * @return an Option[Real].
     */
-  def asReal: Option[Real] = value.asReal
+  def asReal: Option[Real] =
+    value.asReal
 
   /**
     * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
@@ -285,7 +307,8 @@ trait Algebraic extends Field {
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] = value.maybeFactor
+  def maybeFactor: Option[Factor] =
+    solve.maybeFactor
 
   /**
     * Method to determine if this NumberLike object is exact.
@@ -303,7 +326,8 @@ trait Algebraic extends Field {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  def asNumber: Option[Number] = value.asNumber
+  def asNumber: Option[Number] =
+    value.asNumber
 
   /**
     * Method to render this NumberLike in a presentable manner.
@@ -316,9 +340,10 @@ trait Algebraic extends Field {
     * Compares this `Field` with the specified `Field` for order.
     *
     * @param that the `Field` to be compared.
-    * @return a negative integer, zero, or a positive integer as this `Field` is less than, equal to, or greater than the specified `Field`.
+    * @return a negative integer, zero, or positive integer as this `Field` is less than, equal to, or greater than the specified `Field`.
     */
-  def compare(that: Field): Int = value.compare(that)
+  def compare(that: Field): Int =
+    value compare that
 }
 
 /**

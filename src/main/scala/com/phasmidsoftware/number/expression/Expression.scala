@@ -755,6 +755,9 @@ abstract class FieldExpression(val value: Field, val maybeName: Option[String] =
     * Evaluates the current field expression within the given context and determines
     * if the field qualifies based on the context's rules.
     *
+    * NOTE: we now have Field values that may not have a unique factor (Algebraics).
+    * That's why we need to check first if value has a unique factor.
+    *
     * If the field meets the qualifications specified by the context, the method
     * returns an `Option` containing the field. Otherwise, it returns `None`.
     *
@@ -763,7 +766,7 @@ abstract class FieldExpression(val value: Field, val maybeName: Option[String] =
     * @return `Some(Field)` if the field qualifies within the given context, otherwise `None`.
     */
   def evaluate(context: Context): Option[Field] =
-    Option.when(context.fieldQualifies(value))(value)
+    Option.when(value.maybeFactor.isDefined && context.fieldQualifies(value))(value)
 
   /**
     * Attempts to approximate the current field expression as a Real number.
@@ -1445,12 +1448,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         // XXX Apply Vieta's formula
         f match {
           case Sum if b1 != b2 =>
-            em.Match(Literal(e1.p.makeNegative))
+            em.Match(e1.p.makeNegative)
           case Product if b1 != b2 =>
             em.Match(e1.q) // TESTME
           case _ =>
             em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
         }
+      case BiFunction(Literal(a@Algebraic_Quadratic(_, equation, _), _), Two, Power) =>
+        val expression = Expression(a) * (-equation.p)
+        val simplified = (expression plus (-equation.q)).simplify
+        em.Match(simplified)
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications for Algebraics", this)
       case _ =>
@@ -1870,7 +1877,7 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     */
   def evaluate(context: Context): Option[Field] = {
     val solution = getSolution
-    when (solution.isExact)(solution.asField)
+    when(solution.maybeFactor.isDefined)(solution.asField)
   }
 
   /**
@@ -1984,12 +1991,12 @@ object ReducedQuadraticRoot {
   * - Quadratic Coefficients: p = -1, q = -1
   * - Uses positive root (pos = true)
   */
-object Phi extends ReducedQuadraticRoot("phi", -1, -1, true)
+object Phi extends ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true)
 
 /**
   * Psi represents the conjugate of [[Phi]].
   */
-object Psi extends ReducedQuadraticRoot("psi", -1, -1, false)
+object Psi extends ReducedQuadraticRoot("\uD835\uDED9", -1, -1, false)
 
 /**
   * Companion object for the `Aggregate` case class.

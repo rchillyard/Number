@@ -107,8 +107,9 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val maybeNumber: Option[Number] = goldenRatio.asNumber
     maybeNumber.isDefined shouldBe true
     Real(maybeNumber.get) should ===(target)
+    goldenRatio.render shouldBe "\uD835\uDED7"
     val result: Field = goldenRatio.materialize
-    result.render shouldBe "\uD835\uDED7"
+    result.render shouldBe "1.6180339887498950(47)"
   }
 it should "have alpha" in {
   val target = Constants.alpha
