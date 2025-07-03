@@ -5,6 +5,8 @@ import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}/**
 // phi, the Golden Ratio
 phi.render
 
+val phiPlus1 = (phi add 1)
+
 // an approximation to phi
 phi.solve.asField
 

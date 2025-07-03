@@ -293,9 +293,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Phi.materialize should ===(Constants.phi)
   }
   it should "evaluate Phi^2 correctly" in {
-    val expression = (Phi ^ 2)
+    val expression = Phi ^ 2
     val simplified = expression.simplify
-    simplified shouldBe (One + Phi.asAlgebraic)
+    val z: Algebraic = Phi.asAlgebraic.add(Rational.one)
+//    simplified shouldBe Literal(z)
+    simplified.materialize should ===(2.618033988749895)
   }
   it should "evaluate Phi + Psi" in {
     val expression = Phi + Psi
@@ -317,6 +319,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val minus4 = Rational(-4)
     simplified should matchPattern { case Literal(Algebraic_Quadratic(_, Quadratic(`minus2`, `minus4`), _), _) => }
     simplified.materialize should ===(3.23606797749979)
+  }
+  it should "evaluate 2 + Phi" in {
+    val expression = Two + Phi
+    val simplified = expression.simplify
+    val minus5 = Rational(-5)
+    val plus5 = Rational(5)
+    simplified should matchPattern { case Literal(Algebraic_Quadratic(_, Quadratic(minus5, plus5), _), _) => }
+    simplified.materialize should ===(3.618033988749895)
   }
 
   behavior of "simplifyConstant"

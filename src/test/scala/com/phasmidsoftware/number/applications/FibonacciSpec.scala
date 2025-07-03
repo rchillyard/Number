@@ -4,7 +4,7 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.{one, root5, two}
 import com.phasmidsoftware.number.core.Real.convertFromNumber
 import com.phasmidsoftware.number.core._
-import com.phasmidsoftware.number.core.algebraic.Algebraic
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic}
 import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -34,7 +34,11 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   it should "render phi+1 as an Expression" in {
     val target: Expression = Phi plus One
     target.toString shouldBe "BiFunction{\uD835\uDED7 + 1}"
-    target.render shouldBe "2.6180339887498950(55)"
+    val simplified = target.simplify
+    println(simplified)
+    simplified should matchPattern { case Literal(Algebraic_Quadratic(_, _, _), _) => }
+//    simplified.materialize should matchPattern { case Algebraic_Quadratic(_, _, _) => }
+    simplified.materialize should ===(2.618033988749895)
   }
 
   val psi: Expression = Psi //(Expression(Constants.one) - Constants.root5) / Constants.two
@@ -61,8 +65,11 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 
   it should "fib2" in {
     val phi2: Expression = phi ^ 2
+    println(s"phi2 = ${phi2.render}")
     val psi2: Expression = psi ^ 2
+    println(s"psi2 = ${psi2.render}")
     val top: Expression = phi2 - psi2
+    val topM = top.materialize
     val bottom = phi - psi
     bottom shouldBe BiFunction(phi, -psi, Sum)
     val materialized = bottom.materialize

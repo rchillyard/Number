@@ -268,7 +268,8 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @param rational the Rational object to be added
     * @return a new Algebraic resulting from the addition
     */
-  def add(rational: Rational): Algebraic = copy(equation = equation.copy(p = equation.p + rational))
+  def add(rational: Rational): Algebraic =
+    copy(equation = equation shiftOrigin rational)
 }
 
 /**

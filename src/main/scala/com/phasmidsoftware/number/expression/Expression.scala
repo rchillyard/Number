@@ -1454,16 +1454,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           case _ =>
             em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
         }
-      case BiFunction(Literal(a@Algebraic_Quadratic(_, _, _), _), x, Product) =>
-        scaleQuadratic(a, x)
-      case BiFunction(x, Literal(a@Algebraic_Quadratic(_, _, _), _), Product) =>
-        scaleQuadratic(a, x)
+      case BiFunction(Literal(a@Algebraic_Quadratic(_, _, _), _), x, f) =>
+        modifyQuadratic(a, x, f)
+      case BiFunction(x, Literal(a@Algebraic_Quadratic(_, _, _), _), f) =>
+        modifyQuadratic(a, x, f)
       case BiFunction(Literal(a@Algebraic_Quadratic(_, equation, _), _), Two, Power) =>
         val expression = Expression(a) * (-equation.p)
         val simplified = (expression plus (-equation.q)).simplify
         em.Match(simplified)
-      case _ =>
-        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications for Algebraics", this)
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications", this)
     }
@@ -1589,22 +1587,24 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return a `MatchResult[Expression]`, which either contains the simplified scaled expression
     *         or indicates that no simplification was possible.
     */
-  private def scaleQuadratic(a: Algebraic_Quadratic, x: Expression): em.MatchResult[Expression] =
+  private def modifyQuadratic(a: Algebraic_Quadratic, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] =
     x match {
       case expr: AtomicExpression =>
         expr.evaluateAsIs match {
           case Some(y: Real) if y.isExact =>
-            y.x.toNominalRational match {
-              case Some(z) =>
+            (y.x.toNominalRational, f) match {
+              case (Some(z), Sum) =>
+                em.Match(Literal(a.add(z)))
+              case (Some(z), Product) =>
                 em.Match(Literal(a.scale(z)))
-              case None =>
-                em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a * $x (not Rational)", this) // TESTME
+              case (None, _) =>
+                em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Rational)", this) // TESTME
             }
           case None =>
-            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a * $x (not Real)", this) // TESTME
+            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Real)", this) // TESTME
         }
       case _ =>
-        em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a * $x (not Atomic)", this) // TESTME
+        em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Atomic)", this) // TESTME
     }
 }
 
