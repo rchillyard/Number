@@ -41,7 +41,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     println(p.render)
     val solution: Solution = p.solve
     solution.base shouldBe Value.fromRational(Rational.half)
-    solution.negative shouldBe false
+    solution.branch shouldBe 0
     solution.factor shouldBe SquareRoot
     import Rational._
     solution.offset shouldBe Value.fromRational(r"5/4")
@@ -179,12 +179,12 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   it should "zero" in {
     val actual = Algebraic.zero.solve
-    actual should matchPattern { case QuadraticSolution(Value.zero, Value.zero, SquareRoot, false) => }
+    actual should matchPattern { case QuadraticSolution(Value.zero, Value.zero, SquareRoot, 0) => }
   }
 
   it should "one" in {
     val actual = Algebraic.one.solve
-    actual should matchPattern { case QuadraticSolution(Value.one, Value.zero, SquareRoot, false) => }
+    actual should matchPattern { case QuadraticSolution(Value.one, Value.zero, SquareRoot, 0) => }
   }
 
   it should "power 0" in {
@@ -254,7 +254,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     val maybeAlgebraic = for {
       base <- Constants.half.asNumber
       offset <- (Constants.root5 divide Real(2)).asNumber
-    } yield Algebraic_Quadratic.apply(base, offset)
+    } yield Algebraic_Quadratic.apply(base, offset, false)
     maybeAlgebraic.isDefined shouldBe true
     maybeAlgebraic.get shouldBe phi
   }

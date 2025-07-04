@@ -1,13 +1,15 @@
-import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
-import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, QuadraticSolution}
-import com.phasmidsoftware.number.core.{Constants, Real}/**
+/**
   * This worksheet illustrates the use of Algebraic fields
   */
+
+import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, QuadraticSolution}
+import com.phasmidsoftware.number.core.{Constants, Real}
 
 // phi, the Golden Ratio
 phi.render
 
-val phiPlus1 = (phi add 1)
+val phiPlus1 = phi add 1
 
 // an approximation to phi
 val phiApprox = phi.solve.asField
@@ -39,7 +41,7 @@ val phiSquareApprox = phiSquared.solve.asField
 val maybeAlgebraic = for {
   base <- Constants.half.asNumber
   offset <- (Constants.root5 divide Real(2)).asNumber
-  name <- Algebraic_Quadratic.apply(base, offset).maybeName
+  name <- Algebraic_Quadratic.apply(base, offset, negative = false).maybeName
 } yield name
 maybeAlgebraic.get
 

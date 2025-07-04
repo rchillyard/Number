@@ -14,13 +14,12 @@ import scala.Option.when
 import scala.util.Failure
 
 /**
-  * Represents a solution characterized by a `base` value, an `offset` value,
-  * and a `factor`.
-  * The `base` value is always a `PureNumber`.
-  * The `offset` value has the given `factor`.
-  *
-  * NOTE this design is only suitable for solutions of degree two.
-  * CONSIDER reworking the definition of `negative`.
+  * Trait to model the behavior of a solution to an equation.
+  * All such solutions are exact.
+  * Typically, however, such solutions cannot be represented exactly as pure numbers.
+  * The four parameters of a Solution are: base, offset, branch, and factor.
+  * Solutions are subject to various operations such as addition, scaling, and number conversions.
+  * Extends the `NumberLike` trait, inheriting behavior common to number-like entities.
   */
 trait Solution extends NumberLike {
   /**
@@ -45,12 +44,13 @@ trait Solution extends NumberLike {
   def factor: Factor
 
   /**
-    * Determines if the offset is negative.
-    * A negative value may not be expressible with just `Value` and `Factor`, for example, if `factor` is `SquareRoot`.
+    * Branch number runs from `0` to `n-1` where `n` is the number of branches (or roots).
+    * For a polynomial of degree `n`, there will, in general be `n` branches or roots.
+    * Branch 0 is always the branch with the smallest positive offset.
     *
-    * @return true if the offset is negative, false otherwise
+    * @return the branch number. if the offset is negative, false otherwise
     */
-  def negative: Boolean
+  def branch: Int
 
   /**
     * Determines the factor associated with this solution based on certain conditions.
@@ -94,16 +94,6 @@ trait Solution extends NumberLike {
     * @return a Some(x) if this is a Number; otherwise return None.
     */
   def asNumber: Option[Number] = asField.asNumber
-
-  /**
-    * Method to render this NumberLike in a presentable manner.
-    * CONSIDER improve this in the event that offset itself is negative (as opposed to imaginary).
-    * However, that scenario is unlikely, I believe.
-    *
-    * @return a String
-    */
-  def render: String =  // TESTME
-    s"Solution: $base + ${if (negative) "- " else "+ "} ${factor.render(offset)}"
 
   /**
     * Converts the solution to a representation in the Field domain.
@@ -172,7 +162,7 @@ trait Solution extends NumberLike {
     *         depending on the `negative` condition
     */
   def branchOffset: Value =
-    if (negative) Value.negate(offset) else offset
+    if (branch == 1) Value.negate(offset) else offset
 }
 
 /**
@@ -192,7 +182,18 @@ trait Solution extends NumberLike {
   *               Instances of this class are designed to interact with the `Factor` type in performing various
   *               operations such as evaluating, converting, or rendering the solution accurately in diverse contexts.
   */
-case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negative: Boolean) extends Solution {
+case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch: Int) extends Solution {
+
+  /**
+    * Method to render this NumberLike in a presentable manner.
+    * CONSIDER improve this in the event that offset itself is negative (as opposed to imaginary).
+    * However, that scenario is unlikely, I believe.
+    *
+    * @return a String
+    */
+  def render: String =  // TESTME
+    s"Solution: $base + ${if (branch == 1) "- " else "+ "} ${factor.render(offset)}"
+
   /**
     * Checks if the solution represented by this instance is equivalent to zero.
     *
@@ -265,7 +266,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
       val imaginaryPart = {
         // CONSIDER can we use branchOffset here?
-        if (!negative) // TESTME
+        if (branch == 0) // TESTME
           ExactNumber(Value.negate(offset), factor)
         else
           offsetToNumber.get
@@ -275,7 +276,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     else {
       // CONSIDER using branchOffset here
       val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
-      ExactNumber(base, PureNumber) + (if (negative) variablePart.makeNegative else variablePart)
+      ExactNumber(base, PureNumber) + (if (branch == 1) variablePart.makeNegative else variablePart)
     }
   }
 
@@ -308,7 +309,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
         for {
           x <- doComposeValueDyadic(base, solution.base)(functions)
           y <- doComposeValueDyadic(branchOffset, solution.branchOffset)(functions)
-        } yield QuadraticSolution(x, y, factor, negative = false)
+        } yield QuadraticSolution(x, y, factor, branch = branch)
       }
       else
         None // TESTME
@@ -330,7 +331,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
       b <- maybeRational(base)
       x = fromRational(b * r)
       (v, g, None) <- factor.multiply(offset, fromRational(r), factor)
-    } yield QuadraticSolution(x, v, g, negative)
+    } yield QuadraticSolution(x, v, g, branch)
 
 }
 
@@ -378,7 +379,7 @@ case class LinearSolution(value: Value) extends Solution {
     *
     * @return true if the offset is negative, false otherwise
     */
-  def negative: Boolean = false
+  def branch: Int = 0
 
   /**
     * Converts the solution to a representation in the Field domain.

@@ -122,8 +122,8 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     val maybeProductBases: Option[Value] = doComposeValueDyadic(iBase, oBase)(timesFunctions)
     val iOffset = thisSolution.offset
     val oOffset = thatSolution.offset
-    val iN = thisSolution.negative
-    val oN = thatSolution.negative
+    val iN = thisSolution.branch
+    val oN = thatSolution.branch
     val iF = thisSolution.factor
     val oF = thisSolution.factor
     val maybeProductOffsets: Option[ProtoNumber] = for {
@@ -197,6 +197,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     case 2 =>
       square
     case 3 =>
+      // CONSIDER merging cases 3 and 4
       val (p, q) = (equation.p, equation.q)
       val pq: Rational = p * q
       val factor = p ∧ 2 - q
@@ -298,7 +299,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     */
   def solve(branch: Int): Solution =
     if (branch >= 0 && branch < 2)
-      QuadraticSolution(Value.fromRational(-p / 2), Value.fromRational(discriminant / 4), SquareRoot, branch != 0)
+      QuadraticSolution(Value.fromRational(-p / 2), Value.fromRational(discriminant / 4), SquareRoot, branch)
     else
       throw NumberException(s"solve($branch) is not currently supported for complex roots of a Quadratic")
 
@@ -420,7 +421,7 @@ object Algebraic_Quadratic {
   def apply(solution: QuadraticSolution): Algebraic_Quadratic =
     (solution.factor, maybeRational(solution.base), maybeRational(solution.offset)) match {
       case (SquareRoot, Some(base), Some(offset)) =>
-        Algebraic_Quadratic(Quadratic(base * -2, (base ∧ 2) - offset), !solution.negative)
+        Algebraic_Quadratic(Quadratic(base * -2, (base ∧ 2) - offset), solution.branch == 0)
       case _ =>
         throw NumberException(s"apply($solution) is not supported")
     }
@@ -434,9 +435,9 @@ object Algebraic_Quadratic {
     * @param offset A `core.Number` representing the offset value of the quadratic equation.
     * @return An `Algebraic_Quadratic` instance derived from the given base and offset values.
     */
-  def apply(base: core.Number, offset: core.Number): Algebraic_Quadratic = base.factor match {
+  def apply(base: core.Number, offset: core.Number, negative: Boolean): Algebraic_Quadratic = base.factor match {
     case PureNumber =>
-      apply(QuadraticSolution(base.nominalValue, offset.nominalValue, offset.factor, negative = false))
+      apply(QuadraticSolution(base.nominalValue, offset.nominalValue, offset.factor, branch = if (negative) 1 else 0))
     case _ =>
       throw NumberException(s"apply($base, $offset) is not supported if the base factor is not PureNumber")
   }
