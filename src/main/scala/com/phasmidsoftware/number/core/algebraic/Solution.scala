@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.inner.Value.{fromRational, maybeRational}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexCartesian, ExactNumber, Field, Number, NumberLike, Real}
 import com.phasmidsoftware.number.misc.FP
+import scala.Option.when
 import scala.util.Failure
 
 /**
@@ -17,6 +18,9 @@ import scala.util.Failure
   * and a `factor`.
   * The `base` value is always a `PureNumber`.
   * The `offset` value has the given `factor`.
+  *
+  * NOTE this design is only suitable for solutions of degree two.
+  * CONSIDER reworking the definition of `negative`.
   */
 trait Solution extends NumberLike {
   /**
@@ -77,7 +81,8 @@ trait Solution extends NumberLike {
 
   /**
     * Method to render this NumberLike in a presentable manner.
-    * TODO improve this in the event that offset itself is negative (as opposed to imaginary).
+    * CONSIDER improve this in the event that offset itself is negative (as opposed to imaginary).
+    * However, that scenario is unlikely, I believe.
     *
     * @return a String
     */
@@ -121,13 +126,14 @@ trait Solution extends NumberLike {
   def add(addend: Rational): Solution
 
   /**
-    * Adds the specified solution to the current solution and returns a new solution
-    * that represents the result of the addition.
+    * Adds the given solution to the current solution and returns an optional result.
+    * The addition may fail under certain conditions, in which case `None` is returned.
     *
-    * @param solution the solution to be added to the current solution
-    * @return a new solution representing the sum of the current solution and the given solution
+    * @param solution the `Solution` to be added to the current solution
+    * @return an `Option` containing the resulting `Solution` if the addition is successful,
+    *         or `None` if the addition cannot be performed
     */
-  def add(solution: Solution): Solution
+  def add(solution: Solution): Option[Solution]
 
   /**
     * Scales the current solution by multiplying its base and offset values by the specified `Rational` factor.
@@ -137,6 +143,19 @@ trait Solution extends NumberLike {
     *         or `None` if scaling cannot be performed
     */
   def scale(r: Rational): Option[Solution]
+
+  /**
+    * Computes the branch offset of the solution.
+    * If the offset is determined to be negative based on the `negative` method,
+    * the offset value is negated; otherwise, the offset value is returned as is.
+    *
+    * NOTE see the note regarding `Solution` and non-quadratic solutions.
+    *
+    * @return the computed branch offset of type `Value`, which may be negated
+    *         depending on the `negative` condition
+    */
+  def branchOffset: Value =
+    if (negative) Value.negate(offset) else offset
 }
 
 /**
@@ -173,14 +192,17 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     }
 
     if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
-      val imaginaryPart =
+      val imaginaryPart = {
+        // CONSIDER can we use branchOffset here?
         if (!negative)
           ExactNumber(Value.negate(offset), factor)
         else
-          offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
+          offsetToNumber.get
+      } // CONSIDER handling this unlikely but possible exception properly
       ComplexCartesian(baseNumber, imaginaryPart)
     }
     else {
+      // CONSIDER using branchOffset here
       val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
       baseNumber + (if (negative) variablePart.makeNegative else variablePart)
     }
@@ -231,22 +253,26 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
   }
 
   /**
-    * Adds the specified solution to the current solution and returns a new solution
-    * that represents the result of the addition.
-    * The addition is valid only if the `offset`, `factor`, and `negative` fields
-    * of both solutions meet the specific conditions for compatibility.
+    * Adds the specified solution to the current solution and returns an optional new solution
+    * that represents the result of the addition. The addition occurs only when
+    * the `offset`, `factor`, and `negative` properties of both solutions match the
+    * specified conditions.
     *
     * @param solution the solution to be added to the current solution
-    * @return a new `Solution` representing the result of the addition if conditions are met
-    * @throws Exception if the solutions cannot be added due to incompatibility
+    * @return an Option containing the resulting solution after the addition if the conditions are met, or None otherwise
     */
-  def add(solution: Solution): Solution = if (offset == solution.offset && factor == solution.factor && negative != solution.negative) {
-    val functions = DyadicOperationPlus.functions
-    val maybeX: Option[Value] = doComposeValueDyadic(base, solution.base)(functions)
-    copy(base = maybeX.get, offset = Value.zero) // CONSIDER handling this possible exception properly
-  }
-  else
-    throw new Exception(s"QuadraticSolution.add: cannot add ($this, $solution)")
+  def add(solution: Solution): Option[Solution] =
+    when(solution.offset == Value.zero)(this) orElse {
+      if (factor == solution.factor) {
+        val functions = DyadicOperationPlus.functions
+        for {
+          x <- doComposeValueDyadic(base, solution.base)(functions)
+          y <- doComposeValueDyadic(branchOffset, solution.branchOffset)(functions)
+        } yield QuadraticSolution(x, y, factor, negative = false)
+      }
+      else None
+    }
+
 
   /**
     * Scales the quadratic solution using a given rational factor.
@@ -264,6 +290,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
       x = fromRational(b * r)
       (v, g, None) <- factor.multiply(offset, fromRational(r), factor)
     } yield QuadraticSolution(x, v, g, negative)
+
 }
 
 /**
@@ -333,7 +360,17 @@ case class LinearSolution(value: Value) extends Solution {
     */
   def signum: Int = Value.signum(value)
 
-  def add(solution: Solution): LinearSolution = ???
+  /**
+    * Adds the specified solution to the current solution and returns
+    * a new solution that represents the result of the addition.
+    *
+    * TODO implement me
+    *
+    * @param solution the solution to be added to the current solution
+    * @return an optional solution representing the sum of the current solution
+    *         and the given solution, or None if the operation is not valid
+    */
+  def add(solution: Solution): Option[Solution] = None
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Solution` as the result.

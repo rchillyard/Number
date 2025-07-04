@@ -67,26 +67,30 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     copy(equation = equation.scale(x), pos = if (x.signum > 0) pos else !pos)
 
   /**
-    * Adds the specified `Algebraic` object to the current `Algebraic_Quadratic` instance.
+    * Adds the given `Algebraic` instance to the current `Algebraic_Quadratic` instance,
+    * performing computations based on the equation and the type of the provided input.
     *
-    * @param s the `Algebraic` object to be added.
-    * @return a new `Algebraic` instance representing the result of the addition.
+    * @param algebraic the `Algebraic` instance to be added to this one.
+    * @return a new `Algebraic` instance resulting from the addition.
+    * @throws NumberException if the provided `Algebraic` type is not supported for addition.
     */
-  def add(s: Algebraic): Algebraic = {
-    val solution = this.solve add s.solve
-    Algebraic_Quadratic(solution.asInstanceOf[QuadraticSolution])
-  }
-//    s match {
-//    case Algebraic_Quadratic(_, `equation`, b) =>
-//      if (b == pos) this multiply Rational.two
-//      else Algebraic.zero
-//    case Algebraic_Quadratic(_, Quadratic(a, b), _) =>
-//      val horizontal: Rational = (equation.p - a) / two
-//      val vertical: Rational = b - equation.q + (a ∧ 2) / 4 + (equation.p ∧ 2)
-//      copy(equation = equation.shiftOrigin(horizontal)).add(vertical)
-//    case _ =>
-//      throw NumberException(s"add($s) is not supported for Algebraic_Quadratic")
-//  }
+  def add(algebraic: Algebraic): Algebraic =
+    this.solve add algebraic.solve match {
+      case Some(s: QuadraticSolution) =>
+        Algebraic_Quadratic(s)
+      case None =>
+        algebraic match {
+          case Algebraic_Quadratic(_, `equation`, b) =>
+            if (b == pos) this multiply Rational.two
+            else Algebraic.zero
+          case Algebraic_Quadratic(_, Quadratic(a, b), _) =>
+            val horizontal: Rational = (equation.p - a) / Rational.two
+            val vertical: Rational = b - equation.q + (a ∧ 2) / 4 + (equation.p ∧ 2)
+            copy(equation = equation.shiftOrigin(horizontal)).add(vertical)
+          case _ =>
+            throw NumberException(s"add($algebraic) is not supported for Algebraic_Quadratic")
+        }
+    }
 
   /**
     * Multiply this Field by x and return the result.
@@ -432,7 +436,9 @@ object Algebraic_Quadratic {
     */
   def apply(base: core.Number, offset: core.Number): Algebraic_Quadratic = base.factor match {
     case PureNumber =>
-      apply(QuadraticSolution(base.nominalValue, offset.nominalValue, offset.factor, false))
+      apply(QuadraticSolution(base.nominalValue, offset.nominalValue, offset.factor, negative = false))
+    case _ =>
+      throw NumberException(s"apply($base, $offset) is not supported if the base factor is not PureNumber")
   }
 
 }

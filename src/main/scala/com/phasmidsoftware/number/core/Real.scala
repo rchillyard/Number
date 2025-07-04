@@ -156,6 +156,19 @@ case class Real(x: Number) extends Field {
       asComplex power c
   }
 
+  /**
+    * Squares this Field instance by multiplying it with itself.
+    *
+    * @return the result of squaring this Field.
+    */
+  def square: Field = Real(x.square)
+
+  /**
+    * Computes the square root of this Real number.
+    * This is equivalent to raising the number to the power of 1/2.
+    *
+    * @return the square root as a Field.
+    */
   def sqrt: Field = power(Real(Rational.half))
 
   /**

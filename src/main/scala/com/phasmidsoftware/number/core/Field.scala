@@ -119,8 +119,16 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
   def power(p: Int): Field = p match {
     case 0 => Real(Number.one)
     case 1 => this
+    case 2 => this.square
     case _ => power(Number(p)) // TODO need to simplify the result. See NumberSpec: power/work for squaring Log2
   }
+
+  /**
+    * Squares this Field instance by multiplying it with itself.
+    *
+    * @return the result of squaring this Field.
+    */
+  def square: Field
 
   /**
    * Raises this Field to the power of the specified number.

@@ -110,8 +110,8 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   it should "product" in {
     val actual = phi * psi
-    val expected = phi.equation.asInstanceOf[Quadratic].q
-    actual shouldBe Algebraic_Linear(LinearEquation(Rational.negOne))
+    val expected: Rational = phi.equation.asInstanceOf[Quadratic].q
+    actual shouldBe Algebraic_Linear(LinearEquation(expected))
     actual.render shouldBe "1"
   }
 
@@ -204,8 +204,8 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   it should "power 2" in {
     val actual = phi.power(2)
-    val expected = phi.square
-//    actual shouldBe (expected) // TODO recreate test such that this works.
+    val expected: Algebraic = phi.square
+    actual shouldBe (expected) // TODO recreate test such that this works.
     actual.normalize should ===(phiReal + Real(1))
     actual.normalize.isSame(phiReal + Real(1)) shouldBe true
   }
