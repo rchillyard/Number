@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
-import com.phasmidsoftware.number.core.inner.Rational.two
-import com.phasmidsoftware.number.core.inner.Value.negateConditional
+import com.phasmidsoftware.number.core.inner.Value.{maybeRational, negateConditional}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Field, NumberException, algebraic}
 import java.util.Objects
@@ -67,26 +67,26 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     copy(equation = equation.scale(x), pos = if (x.signum > 0) pos else !pos)
 
   /**
-    * Adds an `Algebraic` instance to the current `Algebraic_Quadratic` instance based on specific conditions.
+    * Adds the specified `Algebraic` object to the current `Algebraic_Quadratic` instance.
     *
-    * If the input `Algebraic` matches the structure `Algebraic_Quadratic` with the same equation
-    * and a position equal to the current position, the original instance is multiplied by 2.
-    * Otherwise, the result is `Algebraic_Quadratic.zero`.
-    *
-    * @param s the `Algebraic` to be added to the current instance.
-    * @return an `Algebraic` instance representing the result of the addition according to the specified conditions.
+    * @param s the `Algebraic` object to be added.
+    * @return a new `Algebraic` instance representing the result of the addition.
     */
-  def add(s: Algebraic): Algebraic = s match {
-    case Algebraic_Quadratic(_, `equation`, b) =>
-      if (b == pos) this multiply Rational.two
-      else Algebraic.zero
-    case Algebraic_Quadratic(_, Quadratic(a, b), _) =>
-      val horizontal: Rational = (equation.p - a) / two
-      val vertical: Rational = b - equation.q + (a ∧ 2) / 4 + (equation.p ∧ 2)
-      copy(equation = equation.shiftOrigin(horizontal)).add(vertical)
-    case _ =>
-      throw NumberException(s"add($s) is not supported for Algebraic_Quadratic")
+  def add(s: Algebraic): Algebraic = {
+    val solution = this.solve add s.solve
+    Algebraic_Quadratic(solution.asInstanceOf[QuadraticSolution])
   }
+//    s match {
+//    case Algebraic_Quadratic(_, `equation`, b) =>
+//      if (b == pos) this multiply Rational.two
+//      else Algebraic.zero
+//    case Algebraic_Quadratic(_, Quadratic(a, b), _) =>
+//      val horizontal: Rational = (equation.p - a) / two
+//      val vertical: Rational = b - equation.q + (a ∧ 2) / 4 + (equation.p ∧ 2)
+//      copy(equation = equation.shiftOrigin(horizontal)).add(vertical)
+//    case _ =>
+//      throw NumberException(s"add($s) is not supported for Algebraic_Quadratic")
+//  }
 
   /**
     * Multiply this Field by x and return the result.
@@ -392,7 +392,47 @@ object Quadratic {
   * Provides an unapply method for pattern matching.
   */
 object Algebraic_Quadratic {
+  /**
+    * Extractor method for the `Algebraic_Quadratic` class.
+    *
+    * @param equation An instance of `Algebraic_Quadratic` to be decomposed.
+    * @return An `Option` containing a tuple with the optional name of the equation,
+    *         its quadratic representation, and a boolean indicating a specific property.
+    */
   def unapply(equation: Algebraic_Quadratic): Option[(Option[String], Quadratic, Boolean)] =
     Some(equation.maybeName, equation.equation, equation.pos)
+
+  /**
+    * Constructs an `Algebraic_Quadratic` from a given `QuadraticSolution`.
+    *
+    * Matches the provided quadratic solution components (`factor`, `base`, and `offset`)
+    * to determine the appropriate `Algebraic_Quadratic` representation. If the solution
+    * cannot be transformed, an exception is thrown.
+    *
+    * @param solution The quadratic solution to be transformed into an `Algebraic_Quadratic`.
+    * @return An instance of `Algebraic_Quadratic` based on the given solution.
+    * @throws NumberException if the provided solution cannot be converted to `Algebraic_Quadratic`.
+    */
+  def apply(solution: QuadraticSolution): Algebraic_Quadratic =
+    (solution.factor, maybeRational(solution.base), maybeRational(solution.offset)) match {
+      case (SquareRoot, Some(base), Some(offset)) =>
+        Algebraic_Quadratic(Quadratic(base * -2, (base ∧ 2) - offset), !solution.negative)
+      case _ =>
+        throw NumberException(s"apply($solution) is not supported")
+    }
+
+  /**
+    * Constructs an instance of `Algebraic_Quadratic` by processing the given base and offset numbers.
+    * If the base number's factor is `PureNumber`, a `QuadraticSolution` is created using the base and offset,
+    * and an `Algebraic_Quadratic` instance is generated from it.
+    *
+    * @param base   A `core.Number` representing the base value of the quadratic equation.
+    * @param offset A `core.Number` representing the offset value of the quadratic equation.
+    * @return An `Algebraic_Quadratic` instance derived from the given base and offset values.
+    */
+  def apply(base: core.Number, offset: core.Number): Algebraic_Quadratic = base.factor match {
+    case PureNumber =>
+      apply(QuadraticSolution(base.nominalValue, offset.nominalValue, offset.factor, false))
+  }
 
 }

@@ -118,10 +118,10 @@ trait Algebraic extends Field {
   def scale(x: Rational): Algebraic
 
   /**
-    * Adds the given Algebraic object to the current Algebraic.
+    * Adds the given algebraic element to the current instance.
     *
-    * @param s the Algebraic object to be added
-    * @return a new Algebraic resulting from the addition
+    * @param s An instance of the Algebraic class to be added.
+    * @return A new Algebraic instance representing the result of the addition.
     */
   def add(s: Algebraic): Algebraic
 

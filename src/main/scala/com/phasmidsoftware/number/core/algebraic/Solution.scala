@@ -121,6 +121,15 @@ trait Solution extends NumberLike {
   def add(addend: Rational): Solution
 
   /**
+    * Adds the specified solution to the current solution and returns a new solution
+    * that represents the result of the addition.
+    *
+    * @param solution the solution to be added to the current solution
+    * @return a new solution representing the sum of the current solution and the given solution
+    */
+  def add(solution: Solution): Solution
+
+  /**
     * Scales the current solution by multiplying its base and offset values by the specified `Rational` factor.
     *
     * @param r the `Rational` value used as the scaling factor
@@ -222,6 +231,24 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
   }
 
   /**
+    * Adds the specified solution to the current solution and returns a new solution
+    * that represents the result of the addition.
+    * The addition is valid only if the `offset`, `factor`, and `negative` fields
+    * of both solutions meet the specific conditions for compatibility.
+    *
+    * @param solution the solution to be added to the current solution
+    * @return a new `Solution` representing the result of the addition if conditions are met
+    * @throws Exception if the solutions cannot be added due to incompatibility
+    */
+  def add(solution: Solution): Solution = if (offset == solution.offset && factor == solution.factor && negative != solution.negative) {
+    val functions = DyadicOperationPlus.functions
+    val maybeX: Option[Value] = doComposeValueDyadic(base, solution.base)(functions)
+    copy(base = maybeX.get, offset = Value.zero) // CONSIDER handling this possible exception properly
+  }
+  else
+    throw new Exception(s"QuadraticSolution.add: cannot add ($this, $solution)")
+
+  /**
     * Scales the quadratic solution using a given rational factor.
     *
     * This method computes a new quadratic solution by scaling the current
@@ -305,6 +332,8 @@ case class LinearSolution(value: Value) extends Solution {
     *         a positive value if the solution is positive, or a negative value if the solution is negative.
     */
   def signum: Int = Value.signum(value)
+
+  def add(solution: Solution): LinearSolution = ???
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Solution` as the result.
