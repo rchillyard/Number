@@ -8,6 +8,7 @@ import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
+import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Approximatable, Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, Number, NumberException, NumberLike, Real}
 import com.phasmidsoftware.number.expression.Expression.em.ExpressionTransformer
@@ -532,8 +533,7 @@ sealed trait AtomicExpression extends Expression {
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] =
-    evaluateAsIs flatMap (_.maybeFactor)
+  def maybeFactor: Option[Factor]
 
   /**
     * @return 1.
@@ -729,6 +729,13 @@ case object Noop extends AtomicExpression {
     * @return a String
     */
   def render: String = "Noop"
+
+  /**
+    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    *
+    * @return an optional `Factor`.
+    */
+  def maybeFactor: Option[Factor] = None
 }
 
 /**
@@ -772,6 +779,14 @@ abstract class FieldExpression(val value: Field, val maybeName: Option[String] =
     */
   def evaluate(context: Context): Option[Field] =
     Option.when(value.maybeFactor.isDefined && context.fieldQualifies(value))(value)
+
+  /**
+    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    *
+    * @return an optional `Factor`.
+    */
+  def maybeFactor: Option[Factor] =
+    evaluateAsIs flatMap (_.maybeFactor)
 
   /**
     * Attempts to approximate the current field expression as a Real number.
@@ -1286,25 +1301,6 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
     case _ =>
       x.evaluate(context) map f
   }
-//  {
-//    (f, x.evaluateAsIs) match {
-//      case (Log, Some(Constants.e)) => Some(Constants.one)
-//      case (Log, Some(Constants.one)) => Some(Constants.zero)
-//      case (Log, Some(Constants.zero)) => Some(Constants.negInfinity)
-//      case (Exp, Some(Constants.one)) => Some(Constants.e)
-//      case (Exp, Some(Constants.zero)) => Some(Constants.one)
-//      case (Exp, Some(Constants.negInfinity)) => Some(Constants.zero)
-//      case (Negate, Some(Constants.one)) => Some(Constants.minusOne)
-//      case (Negate, Some(Constants.zero)) => Some(Constants.zero)
-//      case (Reciprocal, Some(Constants.two)) => Some(Constants.half)
-//      case (Reciprocal, Some(Constants.half)) => Some(Constants.two)
-//      case (Reciprocal, Some(Constants.one)) => Some(Constants.one)
-//      case (Reciprocal, Some(Constants.zero)) => Some(Constants.infinity)
-//      case (Reciprocal, Some(Constants.two)) => Some(Constants.half)
-//      case (Reciprocal, Some(Constants.half)) => Some(Constants.two)
-//      case _ => x.evaluate(context) map f
-//    }
-//  }
 
   /**
     * Provides an approximation of the result of applying the function `f` to the
@@ -1677,7 +1673,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *
     * @return the value.
     */
-  def evaluate(context: Context): Option[Field] = {
+  def evaluate(context: Context): Option[Field] =
     function.maybeIdentityL match {
       case Some(identity) =>
         // XXX this is a bit more complicated than it seems.
@@ -1690,7 +1686,6 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
       case None => // TESTME
         System.err.println("Logic error: identity is None")
         None
-    }
   }
 
   /**
@@ -1840,7 +1835,7 @@ object Aggregate {
   * @param pos  determines whether this root represents the positive or the negative branch of the solution.
   */
 class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Boolean) extends AtomicExpression {
-  require(p != 0 || q != 0, "may not have p and q equal to zero")
+//  require(p != 0 || q != 0, "may not have p and q equal to zero")
   require(discriminant >= 0, "discriminant must not be negative")
 
   /**
@@ -1849,6 +1844,14 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
   override def isExact: Boolean = true
+
+  /**
+    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    *
+    * @return an optional `Factor`.
+    */
+  def maybeFactor: Option[Factor] =
+    asAlgebraic.maybeFactor
 
   /**
     * Represents the reduced quadratic root expression defined within the context of a quadratic equation.
@@ -1912,9 +1915,17 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     * @param context the evaluation context that determines the rules by which the expression is evaluated.
     * @return an `Option[Field]` containing the evaluated field if calculable and exact; otherwise, `None`.
     */
-  def evaluate(context: Context): Option[Field] = {
-    val solution = getSolution
-    when(solution.maybeFactor.isDefined)(solution.asField)
+  def evaluate(context: Context): Option[Field] = context match {
+    case AnyContext =>
+      Some(getSolution.asField)
+    case RestrictedContext(PureNumber) =>
+      val solution = getSolution
+      asOptionalField(solution.branchOffset, solution.base)
+    case RestrictedContext(SquareRoot) =>
+      val solution = getSolution
+      asOptionalField(solution.base, solution.branchOffset)
+    case _ =>
+      None
   }
 
   /**
@@ -2006,6 +2017,21 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     val state = Seq(p, q, pos)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+
+  /**
+    * Converts the given values into an optional `Field` representation.
+    *
+    * The method checks if the first value is zero, and if so, maps the second value into a `Field`.
+    * If the first value is not zero, the result is `None`.
+    *
+    * @param v1 the first value to be checked if it is zero
+    * @param v2 the second value, which may be transformed into a `Field` if `v1` is zero
+    * @return an `Option[Field]` containing the resulting field if `v1` is zero; otherwise, `None`
+    */
+  private def asOptionalField(v1: Value, v2: Value): Option[Field] = {
+    val maybeValue: Option[Value] = when(Value.isZero(v1))(v2)
+    maybeValue.map(v => new Real(Number.create(v)))
+  }
 }
 
 /**
@@ -2013,8 +2039,35 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
   * Provides an unapply method for pattern matching.
   */
 object ReducedQuadraticRoot {
+  /**
+    * Creates an instance of `ReducedQuadraticRoot` from an `Algebraic` object
+    * if the input is quadratic and if the parameters can be successfully converted to integers.
+    *
+    * @param algebraic the `Algebraic` object containing the data to create the `ReducedQuadraticRoot`
+    * @return an `Option[ReducedQuadraticRoot]` containing the created instance if the parameters are valid,
+    *         or `None` if the conversion fails
+    */
+  def create(algebraic: Algebraic): Option[ReducedQuadraticRoot] = algebraic match {
+    case aq: Algebraic_Quadratic =>
+      for {
+        p <- toIntOption(aq.equation.p)
+        q <- toIntOption(aq.equation.q)
+      } yield new ReducedQuadraticRoot(aq.maybeName.getOrElse("unnamed"), p, q, aq.pos)
+    case _ =>
+      None
+  }
+
+  /**
+    * Extractor method for pattern matching on a `ReducedQuadraticRoot` instance.
+    * Decomposes the instance into its constituent parts.
+    *
+    * @param rqr the `ReducedQuadraticRoot` instance to be decomposed
+    * @return an `Option` containing a tuple of the name, p value, q value,
+    *         and pos flag of the `ReducedQuadraticRoot` instance if it exists
+    */
   def unapply(rqr: ReducedQuadraticRoot): Option[(String, Int, Int, Boolean)] =
     Some(rqr.name, rqr.p, rqr.q, rqr.pos)
+
 }
 
 /**

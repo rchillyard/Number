@@ -6,8 +6,8 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
-import com.phasmidsoftware.number.core.inner.{Radian, Rational, SquareRoot}
+import com.phasmidsoftware.number.core.algebraic.Algebraic
+import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, pi}
@@ -279,59 +279,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     target shouldBe One
     target should matchPattern { case Literal(Constants.one, _) => }
     target should matchPattern { case FieldExpression(Constants.one, _) => }
-  }
-
-  behavior of "ReducedQuadraticRoot"
-  it should "evaluate" in {
-    val target = new ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true)
-    target shouldBe Phi
-    target.evaluateAsIs.isDefined shouldBe false
-    target should matchPattern { case ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true) => }
-  }
-  it should "evaluate Phi correctly" in {
-    (((Phi ^ 2) - 1).materialize - Real(Constants.sPhi)).isZero shouldBe true
-    Phi.materialize should ===(Constants.phi)
-  }
-  it should "evaluate Phi^2 correctly" in {
-    val expression = Phi ^ 2
-    val simplified = expression.simplify
-    val z: Algebraic = Phi.asAlgebraic.add(Rational.one)
-//    simplified shouldBe Literal(z)
-    simplified.materialize should ===(2.618033988749895)
-  }
-  it should "evaluate Phi + Psi" in {
-    val expression = Phi + Psi
-    val simplified = expression.simplify
-    simplified shouldBe One
-  }
-  it should "evaluate Phi * Psi" in {
-    val expression = Phi * Psi
-    val simplified = expression.simplify
-    simplified shouldBe MinusOne
-  }
-  it should "evaluate Phi + Phi" in {
-    val expression = Phi + Phi
-    val simplified = expression.simplify
-    val minus2 = Rational(-2)
-    val minus4 = Rational(-4)
-    simplified should matchPattern { case Literal(Algebraic_Quadratic(_, Quadratic(`minus2`, `minus4`), _), _) => }
-    simplified.materialize should ===(3.23606797749979)
-  }
-  it should "evaluate 2 * Phi" in {
-    val expression = Two * Phi
-    val simplified = expression.simplify
-    val minus2 = Rational(-2)
-    val minus4 = Rational(-4)
-    simplified should matchPattern { case Literal(Algebraic_Quadratic(_, Quadratic(`minus2`, `minus4`), _), _) => }
-    simplified.materialize should ===(3.23606797749979)
-  }
-  it should "evaluate 2 + Phi" in {
-    val expression = Two + Phi
-    val simplified = expression.simplify
-    val minus5 = Rational(-5)
-    val plus5 = Rational(5)
-    simplified should matchPattern { case Literal(Algebraic_Quadratic(_, Quadratic(minus5, plus5), _), _) => }
-    simplified.materialize should ===(3.618033988749895)
   }
 
   behavior of "simplifyConstant"

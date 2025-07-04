@@ -53,13 +53,21 @@ trait Solution extends NumberLike {
   def negative: Boolean
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
-    * Unlike context, a `None` result is not permissive.
+    * Determines the factor associated with this solution based on certain conditions.
+    * If the solution is a pure number, it returns `Some(PureNumber)`.
+    * If the base value of the solution is zero, it returns `Some(factor)`.
+    * Otherwise, it returns `None`.
     *
-    * @return an optional `Factor`.
+    * @return an `Option` of type `Factor`, where `Some` may contain the factor
+    *         depending on the conditions, or `None` if no factor is applicable
     */
   def maybeFactor: Option[Factor] =
-    if (Value.isZero(base)) Some(factor) else if (Value.isZero(offset)) Some(PureNumber) else None
+    if (isPureNumber)
+      Some(PureNumber)
+    else if (Value.isZero(base))
+      Some(factor) // TESTME
+    else
+      None
 
   /**
     * Method to determine if this NumberLike object is exact.
@@ -68,6 +76,14 @@ trait Solution extends NumberLike {
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
   def isExact: Boolean = true
+
+  /**
+    * Determines whether the solution is a pure number.
+    * A pure number is defined as one without any associated factors or offsets.
+    *
+    * @return true if the solution is a pure number, false otherwise
+    */
+  def isPureNumber: Boolean
 
   /**
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).
@@ -86,7 +102,8 @@ trait Solution extends NumberLike {
     *
     * @return a String
     */
-  def render: String = s"Solution: $base + ${if (negative) "- " else "+ "} ${factor.render(offset)}"
+  def render: String =  // TESTME
+    s"Solution: $base + ${if (negative) "- " else "+ "} ${factor.render(offset)}"
 
   /**
     * Converts the solution to a representation in the Field domain.
@@ -177,45 +194,26 @@ trait Solution extends NumberLike {
   */
 case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negative: Boolean) extends Solution {
   /**
-    * Converts the solution to a representation in the Field domain.
-    *
-    * @return an instance of Field representing the solution.
-    */
-  def asField: Field = {
-    val baseNumber = ExactNumber(base, PureNumber)
-    val offsetNumber: ExactNumber = ExactNumber(offset, factor)
-
-    def offsetToNumber = {
-      val maybeValue = factor.convert(offset, PureNumber) map (v => ExactNumber(v, PureNumber))
-      val maybeApproximation = offsetNumber.asNumber
-      FP.toTry(maybeValue orElse maybeApproximation, Failure(new Exception("QuadraticSolution.asField: factor.convert failed")))
-    }
-
-    if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
-      val imaginaryPart = {
-        // CONSIDER can we use branchOffset here?
-        if (!negative)
-          ExactNumber(Value.negate(offset), factor)
-        else
-          offsetToNumber.get
-      } // CONSIDER handling this unlikely but possible exception properly
-      ComplexCartesian(baseNumber, imaginaryPart)
-    }
-    else {
-      // CONSIDER using branchOffset here
-      val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
-      baseNumber + (if (negative) variablePart.makeNegative else variablePart)
-    }
-  }
-
-  /**
     * Checks if the solution represented by this instance is equivalent to zero.
     *
     * A solution is considered zero if both its `base` and `offset` components are zero values.
     *
     * @return true if both the `base` and `offset` are zero, otherwise false.
     */
-  def isZero: Boolean = Value.isZero(base) && Value.isZero(offset)
+  def isZero: Boolean =
+    Value.isZero(base) && isPureNumber // TESTME
+
+  /**
+    * Determines if the current quadratic solution represents a pure number.
+    *
+    * A solution is considered a pure number if its offset component is zero.
+    * This method relies on the `Value.isZero` utility to check whether the
+    * offset is zero.
+    *
+    * @return true if the offset of the solution is zero, otherwise false.
+    */
+  def isPureNumber: Boolean =
+    Value.isZero(offset)
 
   /**
     * Determines if the current QuadraticSolution instance represents unity (1).
@@ -225,7 +223,8 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     *
     * @return true if the solution represents unity, otherwise false.
     */
-  def isUnity: Boolean = maybeRational(base).contains(Rational.one) && Value.isZero(offset)
+  def isUnity: Boolean =
+    isPureNumber && maybeRational(base).contains(Rational.one) // TESTME
 
   /**
     * Determines the "sign" of the current quadratic solution.
@@ -237,7 +236,48 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     *
     * @return +1 if the solution is positive, -1 if negative, or 0 if it is at the origin.
     */
-  def signum: Int = asField.signum
+  def signum: Int =
+    asField.signum
+
+  /**
+    * Converts the current QuadraticSolution instance into a Field representation.
+    *
+    * The method computes a Field value based on the `base`, `offset`, and `factor`.
+    * If the `offset` component is zero, the result is the `base` number as a Field.
+    * Otherwise, it incorporates the `offset` and possibly an imaginary component
+    * to produce either a ComplexCartesian number or a regular Field representation,
+    * depending on the properties of the given solution.
+    *
+    * @return a Field representation of the current QuadraticSolution instance
+    */
+  def asField: Field =
+    if (Value.isZero(offset))
+      ExactNumber(base, PureNumber)
+    else {
+    val offsetNumber: ExactNumber = ExactNumber(offset, factor)
+
+    def offsetToNumber = {
+      val maybeValue = factor.convert(offset, PureNumber) map (v => ExactNumber(v, PureNumber))
+      val maybeApproximation = offsetNumber.asNumber
+      FP.toTry(maybeValue orElse maybeApproximation, Failure(new Exception("QuadraticSolution.asField: factor.convert failed")))
+    }
+
+    if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
+      val imaginaryPart = {
+        // CONSIDER can we use branchOffset here?
+        if (!negative) // TESTME
+          ExactNumber(Value.negate(offset), factor)
+        else
+          offsetToNumber.get
+      } // CONSIDER handling this unlikely but possible exception properly
+      ComplexCartesian(ExactNumber(base, PureNumber), imaginaryPart)
+    }
+    else {
+      // CONSIDER using branchOffset here
+      val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
+      ExactNumber(base, PureNumber) + (if (negative) variablePart.makeNegative else variablePart)
+    }
+  }
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Solution` as the result.
@@ -270,7 +310,8 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
           y <- doComposeValueDyadic(branchOffset, solution.branchOffset)(functions)
         } yield QuadraticSolution(x, y, factor, negative = false)
       }
-      else None
+      else
+        None // TESTME
     }
 
 
@@ -284,7 +325,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     * @param r the scaling factor as a Rational value
     * @return an Option containing the scaled quadratic solution if calculations succeed, otherwise None
     */
-  def scale(r: Rational): Option[Solution] =
+  def scale(r: Rational): Option[Solution] = // TESTME
     for {
       b <- maybeRational(base)
       x = fromRational(b * r)
@@ -322,6 +363,14 @@ case class LinearSolution(value: Value) extends Solution {
     * @return the factor of type Factor
     */
   def factor: Factor = PureNumber
+
+  /**
+    * Determines whether the solution is a pure number.
+    * A pure number is defined as one without any associated factors or offsets.
+    *
+    * @return true if the solution is a pure number, false otherwise
+    */
+  def isPureNumber: Boolean = true
 
   /**
     * Determines if the offset is negative.
