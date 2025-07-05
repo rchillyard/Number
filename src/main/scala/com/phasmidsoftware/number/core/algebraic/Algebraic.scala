@@ -4,8 +4,10 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
+import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
-import com.phasmidsoftware.number.core.{Complex, Field, Number, Numerical, Real}
+import com.phasmidsoftware.number.core.{Complex, Field, Number, NumberException, Numerical, Real}
+import com.phasmidsoftware.number.misc.FP
 
 /**
   * The `Algebraic` class is an abstract extension of the Field trait, representing a solution of a mathematical equation,
@@ -36,7 +38,7 @@ trait Algebraic extends Field {
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.
     * Solutions are represented as an instance of the `Algebraic` or of `Complex` class.
     *
-    * @return a `Field`, which is either a `Algebraic` (real-valued) or a `Complex`.
+    * @return a `Field`, which is either an `Algebraic` (real-valued) or a `Complex`.
     */
   def solve: Solution =
     equation.solve(branch)
@@ -46,7 +48,8 @@ trait Algebraic extends Field {
     *
     * @return a `Field` representing the value of the solution for the given branch.
     */
-  def value: Field = solve.asField
+  def value: Field =
+    solve.asField
 
   /**
     * An optional name for this solution.
@@ -57,18 +60,20 @@ trait Algebraic extends Field {
   def maybeName: Option[String]
 
   /**
-    * Method to determine if this Field is real-valued (i.e. the point lies on the real axis).
+    * Method to determine if this Field is real-valued (i.e., the point lies on the real axis).
     *
     * @return true if not imaginary.
     */
-  def isReal: Boolean = !isImaginary
+  def isReal: Boolean =
+    !isImaginary
 
   /**
-    * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
+    * Method to determine if this Field is imaginary-valued (i.e., the point lies on the imaginary axis).
     *
     * @return true if this is imaginary.
     */
-  def isImaginary: Boolean = value.isImaginary
+  def isImaginary: Boolean =
+    value.isImaginary
 
   /**
     * Add x to this Field and return the result.
@@ -77,7 +82,14 @@ trait Algebraic extends Field {
     * @param x the addend.
     * @return the sum.
     */
-  def add(x: Field): Field = value add x
+  def add(x: Field): Field =
+    value add x
+//    (for {
+//      y <- x.asNumber
+//      r <- y.toNominalRational
+//      z: LinearSolution = solve.add(r).asInstanceOf[LinearSolution]
+//      q <- Algebraic_Linear.create(z)
+//    } yield q).get
 
   /**
     * Multiply this Field by x and return the result.
@@ -113,10 +125,10 @@ trait Algebraic extends Field {
   def scale(x: Rational): Algebraic
 
   /**
-    * Adds the given Algebraic object to the current Algebraic.
+    * Adds the given algebraic element to the current instance.
     *
-    * @param s the Algebraic object to be added
-    * @return a new Algebraic resulting from the addition
+    * @param s An instance of the Algebraic class to be added.
+    * @return A new Algebraic instance representing the result of the addition.
     */
   def add(s: Algebraic): Algebraic
 
@@ -142,7 +154,8 @@ trait Algebraic extends Field {
     * @param x the divisor.
     * @return the quotient.
     */
-  def divide(x: Field): Field = value divide x
+  def divide(x: Field): Field =
+    value divide x
 
   /**
     * Raises this Field to the power of the specified number.
@@ -150,7 +163,8 @@ trait Algebraic extends Field {
     * @param p the exponent, provided as a Number.
     * @return the result of raising this Field to the power p.
     */
-  def power(p: Number): Field = value power p
+  def power(p: Number): Field =
+    value power p
 
   /**
     * Raise this Field to the power p.
@@ -158,28 +172,32 @@ trait Algebraic extends Field {
     * @param p a Field.
     * @return this Field raised to power p.
     */
-  def power(p: Field): Field = value power p
+  def power(p: Field): Field =
+    value power p
 
   /**
     * Computes the sine of this Field.
     *
     * @return the sine of this Field, as an instance of Field.
     */
-  def sin: Field = value.sin
+  def sin: Field =
+    value.sin
 
   /**
     * Computes the trigonometric cosine of this Field.
     *
     * @return the cosine of this Field.
     */
-  def cos: Field = value.cos
+  def cos: Field =
+    value.cos
 
   /**
     * Computes the tangent of this Field.
     *
     * @return the tangent of this Field as a new Field.
     */
-  def tan: Field = value.tan
+  def tan: Field =
+    value.tan
 
   /**
     * Calculates the arctangent (inverse tangent) of the given Real number.
@@ -187,21 +205,24 @@ trait Algebraic extends Field {
     * @param y the Real number whose arctangent is to be calculated.
     * @return the arctangent of the specified Real number, represented as a Field.
     */
-  def atan(y: Real): Field = value.atan(y)
+  def atan(y: Real): Field =
+    value atan y
 
   /**
     * Computes the natural logarithm (log base e) of this Field.
     *
     * @return a new Field representing the result of the logarithmic computation.
     */
-  def log: Field = value.log
+  def log: Field =
+    value.log
 
   /**
     * Computes the exponential of this Field.
     *
     * @return a Field representing the exponential of this instance.
     */
-  def exp: Field = value.exp
+  def exp: Field =
+    value.exp
 
   /**
     * Method to determine if this Numerical is equivalent to another Numerical object (x).
@@ -209,7 +230,8 @@ trait Algebraic extends Field {
     * @param x the other Numerical.
     * @return true if they are most probably the same, otherwise false.
     */
-  def isSame(x: Numerical): Boolean = value.isSame(x)
+  def isSame(x: Numerical): Boolean =
+    value isSame x
 
   /**
     * Method to determine if this Field has infinite magnitude.
@@ -224,7 +246,8 @@ trait Algebraic extends Field {
     *
     * @return true if the magnitude of this Field is zero.
     */
-  def isZero: Boolean = solve.isZero
+  def isZero: Boolean =
+    solve.isZero
 
   /**
     * Method to determine if this Field has unity magnitude.
@@ -232,35 +255,40 @@ trait Algebraic extends Field {
     *
     * @return true if the magnitude of this Field is one.
     */
-  def isUnity: Boolean = solve.isUnity
+  def isUnity: Boolean =
+    solve.isUnity
 
   /**
     * Determine the "sign" of this field.
-    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
+    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left, or at the origin.
     * For a complex number, we get the signum of the real part.
     *
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
     */
-  def signum: Int = solve.signum
+  def signum: Int =
+    solve.signum
 
   /**
     * Change the sign of this Field.
     */
-  def unary_- : Field = -value
+  def unary_- : Field =
+    -value
 
   /**
     * Yields the inverse of this Field.
     * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     */
-  def invert: Field = value.invert
+  def invert: Field =
+    value.invert
 
   /**
     * Method to "normalize" a field.
     *
     * @return a Field which is in canonical form.
     */
-  def normalize: Field = value.normalize
+  def normalize: Field =
+    value.normalize
 
   /**
     * Method to return this Field as a Complex.
@@ -268,15 +296,17 @@ trait Algebraic extends Field {
     *
     * @return a Complex.
     */
-  def asComplex: Complex = value.asComplex // CONSIDER getting this direct from the Solution.
+  def asComplex: Complex =
+    value.asComplex // CONSIDER getting this direct from the Solution.
 
   /**
-    * Method to return this Field as a Real, if possible.
-    * If this is a Real number x, return Some(x) otherwise, return None.
+    * Method to return this `Field` as a `Real`, if possible.
+    * If this is a `Real` number `x`, return `Some(x)` otherwise, return `None`.
     *
     * @return an Option[Real].
     */
-  def asReal: Option[Real] = value.asReal
+  def asReal: Option[Real] =
+    value.asReal
 
   /**
     * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
@@ -284,7 +314,8 @@ trait Algebraic extends Field {
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] = value.maybeFactor
+  def maybeFactor: Option[Factor] =
+    solve.maybeFactor
 
   /**
     * Method to determine if this NumberLike object is exact.
@@ -302,7 +333,8 @@ trait Algebraic extends Field {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  def asNumber: Option[Number] = value.asNumber
+  def asNumber: Option[Number] =
+    value.asNumber
 
   /**
     * Method to render this NumberLike in a presentable manner.
@@ -315,11 +347,51 @@ trait Algebraic extends Field {
     * Compares this `Field` with the specified `Field` for order.
     *
     * @param that the `Field` to be compared.
-    * @return a negative integer, zero, or a positive integer as this `Field` is less than, equal to, or greater than the specified `Field`.
+    * @return a negative integer, zero, or positive integer as this `Field` is less than, equal to, or greater than the specified `Field`.
     */
-  def compare(that: Field): Int = value.compare(that)
+  def compare(that: Field): Int =
+    value compare that
 }
 
+/**
+  * Algebraic represents specific algebraic numbers, implemented using quadratic equations.
+  * It includes mathematical constants such as the golden ratio and its conjugate, as well
+  * as basic algebraic constants like zero and one.
+  */
+object Algebraic {
+  /**
+    * Represents the golden ratio as an instance of Algebraic_Quadratic, defined by the
+    * golden ratio equation. The `pos` parameter set to `true` chooses the positive root
+    * of the quadratic equation.
+    */
+  val phi: Algebraic = Algebraic_Quadratic(goldenRatioEquation, pos = true)
+  /**
+    * Represents the conjugate of the golden ratio, also known as the negative solution
+    * to the quadratic equation defining the golden ratio.
+    */
+  val psi: Algebraic = Algebraic_Quadratic(goldenRatioEquation, pos = false)
+  /**
+    * Represents the algebraic quadratic value equivalent to 1.
+    * Constructed using the quadratic -2 + x = 0 with a positive root.
+    *
+    * CONSIDER making this a linear algebraic
+    */
+  val one: Algebraic = Algebraic_Quadratic(Quadratic(-2, 1), pos = true)
+  /**
+    * Represents the algebraic quadratic constant zero.
+    * This value is defined using a quadratic with both coefficients set to 0,
+    * and a positive sign for the root selection.
+    *
+    * CONSIDER making this a linear algebraic
+    */
+  val zero: Algebraic = Algebraic_Quadratic(Quadratic(0, 0), pos = true)
+
+  /**
+    * Represents the algebraic linear constant 1/2.
+    * Defined using a linear equation with the slope at unity and the x-intercept set to 1/2.
+    */
+  val half: Algebraic = Algebraic_Linear(LinearEquation(-Rational.half))
+}
 /**
   * Represents an algebraic transformation or operation based on a linear equation.
   * Extends the functionalities of the `Algebraic` class, enabling operations specific to linear equations.
@@ -367,7 +439,8 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @param x the factor by which to scale the solution, represented as a `Rational`.
     * @return a new `Algebraic` instance that is scaled by the specified factor.
     */
-  def scale(x: Rational): Algebraic = ???
+  def scale(x: Rational): Algebraic =
+    copy(equation = equation.copy(r = equation.r * x))
 
   /**
     * Adds the given Algebraic object to the current Algebraic.
@@ -375,7 +448,14 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @param s the Algebraic object to be added
     * @return a new Algebraic resulting from the addition
     */
-  def add(s: Algebraic): Algebraic = ???
+  def add(a: Algebraic): Algebraic = {
+    val maybeSolution = solve add a.solve
+    val maybeAlgebraicLinear = maybeSolution.flatMap {
+      case s: LinearSolution =>
+        Algebraic_Linear.create(s)
+    }
+    FP.toTryWithThrowable(maybeAlgebraicLinear, NumberException(s"AlgebraicLinear: cannot add $this and $a")).get // TODO convert to a proper exception
+  }
 
   /**
     * Adds the given Rational object to the current Algebraic.
@@ -383,7 +463,14 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @param rational the Rational object to be added
     * @return a new Algebraic resulting from the addition
     */
-  def add(rational: Rational): Algebraic = ???
+  def add(rational: Rational): Algebraic =
+    solve add rational match {
+      case s: LinearSolution => Algebraic_Linear.create(s) match {
+        case Some(x) => x
+        case None => throw NumberException(s"AlgebraicLinear: cannot add $this and $rational")
+      }
+      case _ => throw NumberException(s"AlgebraicLinear: cannot add $this and $rational")
+    }
 
   /**
     * Method to render this NumberLike in a presentable manner.
@@ -395,10 +482,31 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
 }
 
 /**
-  * Represents a linear equation of the form `P(x) = q` where `q` is a rational number.
+  * Represents an object related to algebraic processes involving linear solutions.
+  * This object provides utility methods for creating and manipulating `Algebraic_Linear` instances.
+  */
+object Algebraic_Linear {
+  /**
+    * Creates an optional `Algebraic_Linear` object from a given `LinearSolution`.
+    * The method converts the value of the `LinearSolution` to a potential rational number,
+    * and then uses it to construct an instance of `Algebraic_Linear` if successful.
+    *
+    * @param s the `LinearSolution` instance used to create an `Algebraic_Linear` object
+    * @return an `Option[Algebraic_Linear]` containing the created object if the conversion is successful,
+    *         or `None` if the operation fails
+    */
+  def create(s: LinearSolution): Option[Algebraic_Linear] =
+    for (r <- Value.maybeRational(s.value)) yield Algebraic_Linear(LinearEquation(-r))
+}
+
+/**
+  * Represents a linear equation of the form `x + r = r` where `r` is a rational number.
+  * The slope of the line representing the equation is one, therefore the intercepts are:
+  * `x = -r` when `y = 0` (the solution/root); and
+  * `y = r` when `x = 0`.
   * This class provides various operations and transformations specific to linear equations.
   */
-case class LinearEquation(q: Rational) extends Equation {
+case class LinearEquation(r: Rational) extends Equation {
   /**
     * Method to compute the number of branches related to a specific computation or process.
     * For example, a solution to a quadratic equation has two branches, one for the real part and one for the imaginary part.
@@ -413,10 +521,10 @@ case class LinearEquation(q: Rational) extends Equation {
     *
     * @param branch the branch index for which the solution is being sought.
     *               The branch index identifies specific solutions for equations that may have multiple solutions.
-    * @return a `Field`, which is either a `Algebraic` (real-valued) or a `Complex`.
+    * @return a `Field`, which is either an `Algebraic` (real-valued) or a `Complex`.
     */
   def solve(branch: Int): Solution =
-    LinearSolution(Value.fromRational(-q))
+    LinearSolution(Value.fromRational(-r))
 
   /**
     * Transforms the current equation by applying the provided functions to its components.
@@ -436,7 +544,7 @@ case class LinearEquation(q: Rational) extends Equation {
     * @param x the rational factor by which the equation is to be scaled.
     * @return a new `Equation` instance representing the scaled equation.
     */
-  def scale(x: Rational): Equation = ???
+  def scale(x: Rational): Equation = copy(r = r * x)
 
   /**
     * Produces an inverted version of the current equation.

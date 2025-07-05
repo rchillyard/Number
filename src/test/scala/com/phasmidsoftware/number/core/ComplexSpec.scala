@@ -100,9 +100,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z shouldBe ComplexCartesian(Number.negOne, -2)
   }
 
-  ignore should "divide" in {
+  it should "divide" in {
     val z = ComplexCartesian(Number.two, 4)
-    val z1: Expression = Literal(z) / c2_0
+    val z1: Expression = z / c2_0
     (z1 * Expression(c2_0)).materialize shouldBe z
     z1.materialize shouldBe c1_2
   }

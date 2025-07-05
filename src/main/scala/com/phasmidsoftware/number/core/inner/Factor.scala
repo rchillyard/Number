@@ -907,6 +907,9 @@ object Root {
   * A case object representing the pure number 1.
   * `PureNumber` extends the `Scalar` trait and behaves as a unit scalar factor.
   *
+  * CONSIDER expanding to include a DecimalNumber as well as a PureNumber (which logically should be represented in binary).
+  * Just because we can represent somehing exactly in binary doesn't mean we can represent it in decimal (and vice versa).
+  *
   * This object encapsulates the value of 1, providing a representation of a pure scalar.
   * It includes functionality to render a string representation of a value.
   */

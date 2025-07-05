@@ -6,12 +6,29 @@ import com.phasmidsoftware.number.core.inner.Value.maybeRational
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.expression.{Expression, Phi, Psi}
 
+/**
+  * Provides utilities and methods for working with the Fibonacci sequence, leveraging
+  * algebraic expressions and the mathematical properties of the golden ratio (φ) and its conjugate (ψ).
+  */
 object Fibonacci {
 
-  // CONSIDER reverting to the original definitions
-  val phi: Expression = Phi // (Expression(Constants.one) plus Constants.root5) / Constants.two
-  val psi: Expression = Psi // (Expression(Constants.one) - Constants.root5) / Constants.two
-
+  /**
+    * Represents the golden ratio, denoted as φ (phi), as an instance of `Expression`.
+    * The golden ratio is a mathematical constant that satisfies the quadratic equation
+    * `x^2 = x + 1` and is associated with numerous applications in mathematics,
+    * art, and nature.
+    *
+    * This value can be used in computations involving algebraic expressions,
+    * such as in the calculation of Fibonacci numbers using Binet's formula.
+    */
+  val phi: Expression = Phi
+  /**
+    * Psi represents the conjugate of [[Phi]], used in computations involving
+    * properties of the Fibonacci sequence and Binet's formula.
+    * It is a reduced quadratic root and part of the algebraic expressions
+    * in the Fibonacci number calculations.
+    */
+  val psi: Expression = Psi
 
   /**
    * Computes the nth Fibonacci number using algebraic expressions for phi (the golden ratio)

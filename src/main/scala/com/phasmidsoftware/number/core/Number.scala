@@ -357,6 +357,14 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   }
 
   /**
+    * Calculates the square of a number by multiplying the number by itself.
+    * CONSIDER different implementations according to the factor.
+    *
+    * @return the result of squaring this number
+    */
+  def square: Number = this doMultiply this
+
+  /**
     * Raise this Number to the power p.
     *
     * @param p a Field.

@@ -52,7 +52,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       compare(ComplexCartesian(y))
   }
 
-
   /**
    * Method to determine if this Field is equivalent to another Field (x).
    *
@@ -198,6 +197,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       this
     case (_, Constants.minusOne) =>
       invert
+    case (_, Constants.two) =>
+      square
     case (ComplexPolar(Number.e, Number.zeroR, _), ComplexCartesian(Number.zero, Number.pi)) =>
       Constants.minusOne
     case (ComplexCartesian(_, Number.zeroR), x) =>
@@ -711,6 +712,14 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return the squared modulus as a Number.
     */
   def modulusSquared: Number = r power two
+
+  /**
+    * Computes the square of this ComplexPolar instance by doubling its argument (angle).
+    * The operation preserves the modulus while doubling the angle in polar representation.
+    *
+    * @return a new Field representing the squared value of the ComplexPolar instance.
+    */
+  def square: Field = copy(r = r power 2, theta = theta doMultiple 2)
 
   /**
    * Yields the inverse of this Complex.

@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.expression
 
-import com.phasmidsoftware.matchers.Matchers.TildeOps
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
+import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Real}
 import com.phasmidsoftware.number.expression
@@ -31,17 +31,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "evaluate"
 
   it should "evaluate 1 + -1" in {
-    val x = Literal(1) + Literal(-1)
+    val x = Expression(1) + -1
     x.evaluateAsIs shouldBe Some(Constants.zero)
   }
 
   it should "evaluate 1 * -1" in {
-    val x = Literal(1) * Literal(-1)
+    val x = Expression(1) * -1
     x.evaluateAsIs shouldBe Some(Real(-1))
   }
 
   it should "evaluate i * 2" in {
-    val x = ConstI * Literal(2)
+    val x = ConstI * 2
     val result = x.evaluateAsIs
     result.isDefined shouldBe true
     val expected = Real(ExactNumber(-4, SquareRoot))
@@ -61,12 +61,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "parse and evaluate sqrt(3)" in {
     val eo: Option[Expression] = Expression.parse("3 ^ ( 2 ^ -1 )")
     eo should matchPattern { case Some(_) => }
-    eo.get shouldBe BiFunction(Literal(3), BiFunction(Literal(2), Literal(-1), Power), Power)
+    eo.get shouldBe BiFunction(Expression(3), BiFunction(Expression(2), Expression(-1), Power), Power)
   }
   it should "parse and evaluate half" in {
     val eo: Option[Expression] = Expression.parse("2 ^ -1")
     eo should matchPattern { case Some(_) => }
-    eo.get shouldBe BiFunction(Literal(2), Literal(-1), Power)
+    eo.get shouldBe BiFunction(Expression(2), Expression(-1), Power)
   }
 
   // NOTE that the apply function always takes a Field and returns a Field. Not to be confused with applyExact.
@@ -136,13 +136,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x1 = Number.one
     val x2 = Number.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.toString shouldBe "BiFunction{1 + 𝛑}"
+    // TODO let's make the representations of pi consistent. This was previously 𝛑
+    e.toString shouldBe "BiFunction{1 + π}"
     e.render shouldBe "4.1415926535897930(41)"
     e.materialize.render shouldBe "4.1415926535897930(41)"
   }
 
   it should "evaluate 3 5 + 7 2 – *" in {
-    val expression = (Literal(3) + 5) * (Literal(7) - 2)
+    val expression = (Expression(3) + 5) * (7 - 2)
     val result = expression.simplify.materialize
     result shouldEqual Real(40)
   }
@@ -150,29 +151,29 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "ExpressionOps"
 
   it should "evaluate +" in {
-    val x = Literal(1) + 2
+    val x = Expression(1) + 2
     val y: Number = x
     y shouldEqual Number(3)
   }
   it should "evaluate -" in {
-    val x = Literal(1) - 2
+    val x = Expression(1) - 2
     val result = x.simplify.materialize.asNumber
     result shouldEqual Some(Number(-1))
   }
   it should "evaluate *" in {
-    val x = Literal(3) * 2
+    val x = Expression(3) * 2
     x shouldEqual Number(6)
   }
   it should "evaluate /" in {
-    val x = Literal(6) / 2
+    val x = Expression(6) / 2
     x shouldEqual Number(3)
   }
   it should "evaluate ^ 2" in {
-    val x = Literal(6) ^ 2
+    val x = Expression(6) ^ 2
     x shouldEqual Number(36)
   }
   it should "evaluate sqrt 36" in {
-    val x: Expression = Literal(36).sqrt
+    val x: Expression = Expression(36).sqrt
     x.materialize.normalize shouldEqual ±(6)
   }
   it should "evaluate sin pi/2" in {
@@ -203,7 +204,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "toString"
   it should "work for (sqrt 7)^2" in {
-    val seven: Expression = Literal(7)
+    val seven: Expression = 7
     val result: Expression = seven.sqrt ^ 2
     result.toString shouldBe "BiFunction{√7 ^ 2}"
   }
@@ -225,21 +226,21 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (ConstPi + Constants.pi).isExact shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Literal(2) * Constants.e).isExact shouldBe false
+    (Expression(2) * Constants.e).isExact shouldBe false
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
-    val expression = Literal(1) * Constants.e
+    val expression = Expression(1) * Constants.e
     expression.isExact shouldBe true
   }
   it should "be true for product of zero exact Numbers and a NatLog factor" in {
-    (Literal(0) * Constants.e).isExact shouldBe true
+    (Expression(0) * Constants.e).isExact shouldBe true
   }
 
   behavior of "depth"
   it should "be 1 for any atomic expression" in {
     Expression(1).depth shouldBe 1
     Expression.one.depth shouldBe 1
-    Literal(1).depth shouldBe 1
+    Expression(1).depth shouldBe 1
     pi.depth shouldBe 1
   }
   it should "be 2 for any Function expression" in {
@@ -280,42 +281,26 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     target should matchPattern { case FieldExpression(Constants.one, _) => }
   }
 
-  behavior of "ReducedQuadraticRoot"
-  it should "evaluate" in {
-    val target = new ReducedQuadraticRoot("phi", -1, -1, true)
-    target shouldBe Phi
-    // CONSIDER creating a special number phi such that the following can be true.
-    target.evaluateAsIs.isDefined shouldBe false
-    target should matchPattern { case ReducedQuadraticRoot("phi", -1, -1, true) => }
-  }
-  it should "evaluate Phi correctly" in {
-    (((Phi ^ 2) - 1).materialize - Constants.phi).isZero shouldBe true
-    Phi.materialize should ===(Constants.phi)
-  }
-  it should "evaluate Phi^2 correctly" in {
-    val em: ExpressionMatchers = Expression.em
-    val p = em.biFunctionTransformer
-    p(Power ~ Phi ~ 2) shouldBe em.Match(BiFunction(Phi, One, Sum))
-  }
-
   behavior of "simplifyConstant"
   it should "simplify biFunction expressions" in {
     val em: ExpressionMatchers = Expression.em
-    Expression.simplifyConstant(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Literal(-2))
-    BiFunction(Two, MinusOne, Product).simplify shouldBe Literal(-2)
+    Expression.simplifyConstant(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
+    BiFunction(Two, MinusOne, Product).simplify shouldBe Expression(-2)
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Constants.zero)
   }
 
   behavior of "simplify"
   it should "simplify field expressions" in {
-    Literal(1).simplify shouldBe Literal(1)
+    Expression(1).simplify shouldBe Expression(1)
     ConstPi.simplify shouldBe ConstPi
-    Phi.simplify shouldBe Phi
+    val simplify = Phi.simplify
+    simplify shouldBe Expression(Algebraic.phi)
+    Phi.simplify.materialize should ===(1.618033988749895)
   }
   it should "simplify function expressions" in {
     expression.Function(expression.Function(One, Negate), Negate).simplify shouldBe One
-    expression.Function(Two, Reciprocal).simplify shouldBe Literal(Constants.half)
-    expression.Function(Constants.pi, Sine).simplify shouldBe Literal(Constants.zero)
+    expression.Function(Two, Reciprocal).simplify shouldBe Expression(Constants.half)
+    expression.Function(Constants.pi, Sine).simplify shouldBe Expression(Constants.zero)
   }
   it should "simplify biFunction expressions" in {
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).simplify shouldBe Zero
@@ -330,7 +315,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "aggregate 2" in {
     val target = (One * ConstPi * Two * MinusOne).simplify
-    target shouldBe Literal(-2 * Constants.pi)
+    target shouldBe Expression(-2 * Constants.pi)
   }
 
 //  behavior of "asAggregate"

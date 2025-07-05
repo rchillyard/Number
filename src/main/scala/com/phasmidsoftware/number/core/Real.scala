@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.Real.createFromRealField
-import com.phasmidsoftware.number.core.algebraic.Algebraic
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
 import com.phasmidsoftware.number.misc.FP.recover
 import scala.language.implicitConversions
@@ -156,6 +156,19 @@ case class Real(x: Number) extends Field {
       asComplex power c
   }
 
+  /**
+    * Squares this Field instance by multiplying it with itself.
+    *
+    * @return the result of squaring this Field.
+    */
+  def square: Field = Real(x.square)
+
+  /**
+    * Computes the square root of this Real number.
+    * This is equivalent to raising the number to the power of 1/2.
+    *
+    * @return the square root as a Field.
+    */
   def sqrt: Field = power(Real(Rational.half))
 
   /**
@@ -384,9 +397,18 @@ object Real {
     * @throws NumberException if the input cannot be converted into a `Real`.
     */
   def apply(n: NumberLike): Real = n match {
-    case r: Rational => apply(r)
-    case n: Number => apply(n)
-    case _ => throw NumberException(s"Real.apply: cannot convert $n to a Real")
+    case x: Real =>
+      x
+    case r: Rational =>
+      apply(r)
+    case x: Number =>
+      apply(x)
+    case x: Algebraic =>
+      apply(x.solve)
+    case solution: Solution =>
+      apply(solution.asField)
+    case _ =>
+      throw NumberException(s"Real.apply: cannot convert $n to a Real")
   }
 
   /**

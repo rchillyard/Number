@@ -10,13 +10,16 @@ import com.phasmidsoftware.number.core.inner.Value.{fromRational, maybeRational}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexCartesian, ExactNumber, Field, Number, NumberLike, Real}
 import com.phasmidsoftware.number.misc.FP
+import scala.Option.when
 import scala.util.Failure
 
 /**
-  * Represents a solution characterized by a `base` value, an `offset` value,
-  * and a `factor`.
-  * The `base` value is always a `PureNumber`.
-  * The `offset` value has the given `factor`.
+  * Trait to model the behavior of a solution to an equation.
+  * All such solutions are exact.
+  * Typically, however, such solutions cannot be represented exactly as pure numbers.
+  * The four parameters of a Solution are: base, offset, branch, and factor.
+  * Solutions are subject to various operations such as addition, scaling, and number conversions.
+  * Extends the `NumberLike` trait, inheriting behavior common to number-like entities.
   */
 trait Solution extends NumberLike {
   /**
@@ -41,20 +44,30 @@ trait Solution extends NumberLike {
   def factor: Factor
 
   /**
-    * Determines if the offset is negative.
-    * A negative value may not be expressible with just `Value` and `Factor`, for example, if `factor` is `SquareRoot`.
+    * Branch number runs from `0` to `n-1` where `n` is the number of branches (or roots).
+    * For a polynomial of degree `n`, there will, in general be `n` branches or roots.
+    * Branch 0 is always the branch with the smallest positive offset.
     *
-    * @return true if the offset is negative, false otherwise
+    * @return the branch number. if the offset is negative, false otherwise
     */
-  def negative: Boolean
+  def branch: Int
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
-    * Unlike context, a `None` result is not permissive.
+    * Determines the factor associated with this solution based on certain conditions.
+    * If the solution is a pure number, it returns `Some(PureNumber)`.
+    * If the base value of the solution is zero, it returns `Some(factor)`.
+    * Otherwise, it returns `None`.
     *
-    * @return an optional `Factor`.
+    * @return an `Option` of type `Factor`, where `Some` may contain the factor
+    *         depending on the conditions, or `None` if no factor is applicable
     */
-  def maybeFactor: Option[Factor] = if (Value.isZero(base)) Some(factor) else if (Value.isZero(offset)) Some(PureNumber) else None
+  def maybeFactor: Option[Factor] =
+    if (isPureNumber)
+      Some(PureNumber)
+    else if (Value.isZero(base))
+      Some(factor) // TESTME
+    else
+      None
 
   /**
     * Method to determine if this NumberLike object is exact.
@@ -65,6 +78,14 @@ trait Solution extends NumberLike {
   def isExact: Boolean = true
 
   /**
+    * Determines whether the solution is a pure number.
+    * A pure number is defined as one without any associated factors or offsets.
+    *
+    * @return true if the solution is a pure number, false otherwise
+    */
+  def isPureNumber: Boolean
+
+  /**
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *
@@ -73,14 +94,6 @@ trait Solution extends NumberLike {
     * @return a Some(x) if this is a Number; otherwise return None.
     */
   def asNumber: Option[Number] = asField.asNumber
-
-  /**
-    * Method to render this NumberLike in a presentable manner.
-    * TODO improve this in the event that offset itself is negative (as opposed to imaginary).
-    *
-    * @return a String
-    */
-  def render: String = s"Solution: $base + ${if (negative) "- " else "+ "} ${factor.render(offset)}"
 
   /**
     * Converts the solution to a representation in the Field domain.
@@ -120,6 +133,16 @@ trait Solution extends NumberLike {
   def add(addend: Rational): Solution
 
   /**
+    * Adds the given solution to the current solution and returns an optional result.
+    * The addition may fail under certain conditions, in which case `None` is returned.
+    *
+    * @param solution the `Solution` to be added to the current solution
+    * @return an `Option` containing the resulting `Solution` if the addition is successful,
+    *         or `None` if the addition cannot be performed
+    */
+  def add(solution: Solution): Option[Solution]
+
+  /**
     * Scales the current solution by multiplying its base and offset values by the specified `Rational` factor.
     *
     * @param r the `Rational` value used as the scaling factor
@@ -127,6 +150,19 @@ trait Solution extends NumberLike {
     *         or `None` if scaling cannot be performed
     */
   def scale(r: Rational): Option[Solution]
+
+  /**
+    * Computes the branch offset of the solution.
+    * If the offset is determined to be negative based on the `negative` method,
+    * the offset value is negated; otherwise, the offset value is returned as is.
+    *
+    * NOTE see the note regarding `Solution` and non-quadratic solutions.
+    *
+    * @return the computed branch offset of type `Value`, which may be negated
+    *         depending on the `negative` condition
+    */
+  def branchOffset: Value =
+    if (branch == 1) Value.negate(offset) else offset
 }
 
 /**
@@ -146,35 +182,17 @@ trait Solution extends NumberLike {
   *               Instances of this class are designed to interact with the `Factor` type in performing various
   *               operations such as evaluating, converting, or rendering the solution accurately in diverse contexts.
   */
-case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negative: Boolean) extends Solution {
+case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch: Int) extends Solution {
+
   /**
-    * Converts the solution to a representation in the Field domain.
+    * Method to render this NumberLike in a presentable manner.
+    * CONSIDER improve this in the event that offset itself is negative (as opposed to imaginary).
+    * However, that scenario is unlikely, I believe.
     *
-    * @return an instance of Field representing the solution.
+    * @return a String
     */
-  def asField: Field = {
-    val baseNumber = ExactNumber(base, PureNumber)
-    val offsetNumber: ExactNumber = ExactNumber(offset, factor)
-
-    def offsetToNumber = {
-      val maybeValue = factor.convert(offset, PureNumber) map (v => ExactNumber(v, PureNumber))
-      val maybeApproximation = offsetNumber.asNumber
-      FP.toTry(maybeValue orElse maybeApproximation, Failure(new Exception("QuadraticSolution.asField: factor.convert failed")))
-    }
-
-    if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
-      val imaginaryPart =
-        if (!negative)
-          ExactNumber(Value.negate(offset), factor)
-        else
-          offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
-      ComplexCartesian(baseNumber, imaginaryPart)
-    }
-    else {
-      val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
-      baseNumber + (if (negative) variablePart.makeNegative else variablePart)
-    }
-  }
+  def render: String =  // TESTME
+    s"Solution: $base + ${if (branch == 1) "- " else "+ "} ${factor.render(offset)}"
 
   /**
     * Checks if the solution represented by this instance is equivalent to zero.
@@ -183,7 +201,20 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     *
     * @return true if both the `base` and `offset` are zero, otherwise false.
     */
-  def isZero: Boolean = Value.isZero(base) && Value.isZero(offset)
+  def isZero: Boolean =
+    Value.isZero(base) && isPureNumber // TESTME
+
+  /**
+    * Determines if the current quadratic solution represents a pure number.
+    *
+    * A solution is considered a pure number if its offset component is zero.
+    * This method relies on the `Value.isZero` utility to check whether the
+    * offset is zero.
+    *
+    * @return true if the offset of the solution is zero, otherwise false.
+    */
+  def isPureNumber: Boolean =
+    Value.isZero(offset)
 
   /**
     * Determines if the current QuadraticSolution instance represents unity (1).
@@ -193,7 +224,8 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     *
     * @return true if the solution represents unity, otherwise false.
     */
-  def isUnity: Boolean = maybeRational(base).contains(Rational.one) && Value.isZero(offset)
+  def isUnity: Boolean =
+    isPureNumber && maybeRational(base).contains(Rational.one) // TESTME
 
   /**
     * Determines the "sign" of the current quadratic solution.
@@ -205,7 +237,48 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     *
     * @return +1 if the solution is positive, -1 if negative, or 0 if it is at the origin.
     */
-  def signum: Int = asField.signum
+  def signum: Int =
+    asField.signum
+
+  /**
+    * Converts the current QuadraticSolution instance into a Field representation.
+    *
+    * The method computes a Field value based on the `base`, `offset`, and `factor`.
+    * If the `offset` component is zero, the result is the `base` number as a Field.
+    * Otherwise, it incorporates the `offset` and possibly an imaginary component
+    * to produce either a ComplexCartesian number or a regular Field representation,
+    * depending on the properties of the given solution.
+    *
+    * @return a Field representation of the current QuadraticSolution instance
+    */
+  def asField: Field =
+    if (Value.isZero(offset))
+      ExactNumber(base, PureNumber)
+    else {
+    val offsetNumber: ExactNumber = ExactNumber(offset, factor)
+
+    def offsetToNumber = {
+      val maybeValue = factor.convert(offset, PureNumber) map (v => ExactNumber(v, PureNumber))
+      val maybeApproximation = offsetNumber.asNumber
+      FP.toTry(maybeValue orElse maybeApproximation, Failure(new Exception("QuadraticSolution.asField: factor.convert failed")))
+    }
+
+    if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
+      val imaginaryPart = {
+        // CONSIDER can we use branchOffset here?
+        if (branch == 0) // TESTME
+          ExactNumber(Value.negate(offset), factor)
+        else
+          offsetToNumber.get // TODO convert to a proper exception
+      } // CONSIDER handling this unlikely but possible exception properly
+      ComplexCartesian(ExactNumber(base, PureNumber), imaginaryPart)
+    }
+    else {
+      // CONSIDER using branchOffset here
+      val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
+      ExactNumber(base, PureNumber) + (if (branch == 1) variablePart.makeNegative else variablePart)
+    }
+  }
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Solution` as the result.
@@ -221,6 +294,29 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
   }
 
   /**
+    * Adds the specified solution to the current solution and returns an optional new solution
+    * that represents the result of the addition. The addition occurs only when
+    * the `offset`, `factor`, and `negative` properties of both solutions match the
+    * specified conditions.
+    *
+    * @param solution the solution to be added to the current solution
+    * @return an Option containing the resulting solution after the addition if the conditions are met, or None otherwise
+    */
+  def add(solution: Solution): Option[Solution] =
+    when(solution.offset == Value.zero)(this) orElse {
+      if (factor == solution.factor) {
+        val functions = DyadicOperationPlus.functions
+        for {
+          x <- doComposeValueDyadic(base, solution.base)(functions)
+          y <- doComposeValueDyadic(branchOffset, solution.branchOffset)(functions)
+        } yield QuadraticSolution(x, y, factor, branch = branch)
+      }
+      else
+        None // TESTME
+    }
+
+
+  /**
     * Scales the quadratic solution using a given rational factor.
     *
     * This method computes a new quadratic solution by scaling the current
@@ -230,12 +326,13 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, negativ
     * @param r the scaling factor as a Rational value
     * @return an Option containing the scaled quadratic solution if calculations succeed, otherwise None
     */
-  def scale(r: Rational): Option[Solution] =
+  def scale(r: Rational): Option[Solution] = // TESTME
     for {
       b <- maybeRational(base)
       x = fromRational(b * r)
       (v, g, None) <- factor.multiply(offset, fromRational(r), factor)
-    } yield QuadraticSolution(x, v, g, negative)
+    } yield QuadraticSolution(x, v, g, branch)
+
 }
 
 /**
@@ -269,12 +366,20 @@ case class LinearSolution(value: Value) extends Solution {
   def factor: Factor = PureNumber
 
   /**
+    * Determines whether the solution is a pure number.
+    * A pure number is defined as one without any associated factors or offsets.
+    *
+    * @return true if the solution is a pure number, false otherwise
+    */
+  def isPureNumber: Boolean = true
+
+  /**
     * Determines if the offset is negative.
     * A negative value may not be expressible with just `Value` and `Factor`, for example, if `factor` is `SquareRoot`.
     *
     * @return true if the offset is negative, false otherwise
     */
-  def negative: Boolean = false
+  def branch: Int = 0
 
   /**
     * Converts the solution to a representation in the Field domain.
@@ -304,6 +409,28 @@ case class LinearSolution(value: Value) extends Solution {
     *         a positive value if the solution is positive, or a negative value if the solution is negative.
     */
   def signum: Int = Value.signum(value)
+
+  /**
+    * Adds the specified solution to the current solution and returns
+    * a new solution that represents the result of the addition.
+    *
+    * TODO implement me
+    *
+    * @param solution the solution to be added to the current solution
+    * @return an optional solution representing the sum of the current solution
+    *         and the given solution, or None if the operation is not valid
+    */
+  def add(solution: Solution): Option[Solution] = solution match {
+    case LinearSolution(v) =>
+      when(Value.isZero(v))(this) orElse {
+        val functions = DyadicOperationPlus.functions
+        for {
+          x <- doComposeValueDyadic(v, value)(functions)
+        } yield LinearSolution(x)
+      }
+    case _ =>
+      None
+  }
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Solution` as the result.
