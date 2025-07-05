@@ -53,21 +53,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   private val one: Number = Number.one
   private val half: Number = convertToNumber(Number.two.invert)
 
-  behavior of "exactMaterializer"
-
-  it should "work for 1" in {
-    val m = em.exactMaterializer
-    val x = One
-    val y = m(x)
-    y shouldBe em.Match(One)
-  }
-  it should "work for pi" in {
-    val m = em.exactMaterializer
-    val x = ConstPi
-    val y = m(x)
-    y shouldBe em.Match(ConstPi)
-  }
-
   behavior of "value"
   it should "work with value on Literal" in {
     val f: em.ExpressionMatcher[Field] = em.value
@@ -114,7 +99,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   import Matchers._
 
   it should "simplifyIdentityDyadic 1" in {
-    val p = em.simplifyIdentityDyadic
+    import BiFunction._
+    val p = Expression.matchSimpler
     val x: Expression = Number.pi
     p(Sum ~ x ~ Literal(Number.zero)) shouldBe em.Match(x)
     p(Sum ~ Literal(Number.zero) ~ x) shouldBe em.Match(x)

@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Approximatable, Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, Number, NumberException, NumberLike, Real}
-import com.phasmidsoftware.number.expression.Expression.em.ExpressionTransformer
+import com.phasmidsoftware.number.expression.Expression.em.{DyadicTriple, ExpressionTransformer}
 import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.misc.FP.recover
@@ -1417,12 +1417,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def simplifyTrivial: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("BiFunction: simplifyTrivial") {
-      // NOTE that the maybeIdentity values are Fields, whereas lower down, we match against Expression values which are identities.
-      case BiFunction(a, b, f) if f.maybeIdentityL.contains(a) =>
+      case BiFunction(a, b, f) if matchingIdentity(a, f, left = true).contains(true) =>
         em.Match(b)
-      case BiFunction(a, b, f) if f.maybeIdentityR.contains(b) =>
-        em.Match(a)
-      case BiFunction(a, b, f) if f.maybeIdentityR.isEmpty && f.maybeIdentityL.contains(b) =>
+      case BiFunction(a, b, f) if matchingIdentity(b, f, left = false).contains(true) =>
         em.Match(a)
       case BiFunction(Zero, _, Product) | BiFunction(_, Zero, Product) =>
         em.Match(Zero)
@@ -1575,6 +1572,33 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   /**
+    * Checks if a given `Expression` matches the identity element of a specific `ExpressionBiFunction`.
+    * This method identifies if the evaluated value of the given `Expression` is equal to the identity
+    * element provided by the `ExpressionBiFunction`. The search for the identity depends on whether
+    * the function operates on the left or right operand.
+    *
+    * @param exp  the `Expression` to be evaluated and checked against the identity element.
+    * @param f    the `ExpressionBiFunction` containing the potential identity elements.
+    * @param left a boolean determining whether to check the left operand's identity (`true`) or
+    *             the right operand's identity (`false`). If the right identity is not present,
+    *             the method will fallback to the left identity.
+    * @return an `Option[Boolean]` indicating whether the `Expression` matches the identity:
+    *         - `Some(true)` if the match is successful.
+    *         - `Some(false)` if the match fails or if the `Expression` is not atomic.
+    *         - `None` if no identity element exists in the provided `ExpressionBiFunction`.
+    */
+  private def matchingIdentity(exp: Expression, f: ExpressionBiFunction, left: Boolean): Option[Boolean] =
+    exp match {
+      case expression: AtomicExpression =>
+        for {
+          identity <- if (left) f.maybeIdentityL else f.maybeIdentityR orElse f.maybeIdentityL
+          field <- expression.evaluateAsIs
+        } yield field == identity
+      case _ =>
+        Some(false)
+    }
+
+  /**
     * Scales a quadratic algebraic term by a given expression and attempts to simplify the operation.
     * If the expression is atomic and reducible (e.g., a rational number), the scaling is simplified.
     * Otherwise, returns a "miss" result indicating that no simplification was possible.
@@ -1607,6 +1631,28 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case _ =>
         em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Atomic)", this) // TESTME
     }
+}
+
+object BiFunction {
+  /**
+    * Constructs a BiFunction instance based on the provided DyadicTriple.
+    * The method converts the left side of the DyadicTriple to a tuple and pairs it with the right side,
+    * creating a BiFunction with the extracted components.
+    *
+    * NOTE: this is here mostly for historical purposes.
+    * We no longer use DyadicTriple except as a convenience in the unit tests.
+    *
+    * @param dt the DyadicTriple from which the BiFunction will be initialized.
+    *           The left side of the DyadicTriple is expected to provide a tuple,
+    *           and the right side will be combined with this tuple to construct the BiFunction.
+    * @return a new BiFunction initialized with the components derived from the given DyadicTriple.
+    */
+  def apply(dt: DyadicTriple): BiFunction = {
+    val tuple = (dt.l.asTuple, dt.r)
+    new BiFunction(tuple._1._2, tuple._2, tuple._1._1)
+  }
+
+  implicit def convertFromDyadicTriple(dt: DyadicTriple): BiFunction = apply(dt)
 }
 
 /**

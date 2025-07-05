@@ -106,7 +106,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *         or a Miss otherwise.
     */
   @deprecated("use simplify", "0.1.0")
-  def exactEvaluator(ctx: Context): ExpressionMatcher[Field] = ???
+  def exactEvaluator(ctx: Context): ExpressionMatcher[Field] = ??? // TODO implement me
 
   /**
     * `ExpressionMatcher`, which matches expressions that are exact in the given context,

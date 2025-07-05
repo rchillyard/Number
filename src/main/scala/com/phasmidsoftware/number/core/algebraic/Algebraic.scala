@@ -422,14 +422,14 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * * @param x the multiplicand.
     * * @return the product.
     */
-  def multiply(x: Field): Field = ???
+  def multiply(x: Field): Field = ??? // TODO implement me
 
   /**
     * Computes the square of an algebraic expression.
     *
     * @return An instance of Algebraic representing the square of the input expression.
     */
-  def square: Algebraic = ???
+  def square: Algebraic = ??? // TODO implement me
 
   /**
     * Scales the solution by the given rational factor.
@@ -536,7 +536,7 @@ case class LinearEquation(r: Rational) extends Equation {
     * @return a new `Equation` instance that is the result of applying the specified transformations
     *         to the components of the current equation.
     */
-  def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): Equation = ???
+  def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): Equation = ??? // TODO implement me
 
   /**
     * Scales the current equation by multiplying it with the given rational factor.
@@ -553,7 +553,7 @@ case class LinearEquation(r: Rational) extends Equation {
     *
     * @return a new `Equation` instance representing the inverted form of the current equation.
     */
-  def invert: Equation = ???
+  def invert: Equation = ??? // TODO implement me
 
   /**
     * Shifts the origin of the given equation by the specified rational value.
@@ -568,5 +568,5 @@ case class LinearEquation(r: Rational) extends Equation {
     * @param c the rational value by which to shift the origin of the equation.
     * @return a new `Equation` instance with its origin shifted by the specified value.
     */
-  def shiftOrigin(c: Rational): LinearEquation = ???
+  def shiftOrigin(c: Rational): LinearEquation = ??? // TODO implement me
 }
