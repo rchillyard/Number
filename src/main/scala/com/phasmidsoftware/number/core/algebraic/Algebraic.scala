@@ -6,7 +6,8 @@ package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
-import com.phasmidsoftware.number.core.{Complex, Field, Number, Numerical, Real}
+import com.phasmidsoftware.number.core.{Complex, Field, Number, NumberException, Numerical, Real}
+import com.phasmidsoftware.number.misc.FP
 
 /**
   * The `Algebraic` class is an abstract extension of the Field trait, representing a solution of a mathematical equation,
@@ -449,12 +450,12 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     */
   def add(a: Algebraic): Algebraic = {
     val maybeSolution = solve add a.solve
-    val maybeAlgebraic_Linear = maybeSolution.flatMap {
+    val maybeAlgebraicLinear = maybeSolution.flatMap {
       case s: LinearSolution =>
         Algebraic_Linear.create(s)
     }
-    maybeAlgebraic_Linear.get
-  } // TODO convert to a proper exception
+    FP.toTryWithThrowable(maybeAlgebraicLinear, NumberException(s"AlgebraicLinear: cannot add $this and $a")).get // TODO convert to a proper exception
+  }
 
   /**
     * Adds the given Rational object to the current Algebraic.
@@ -463,7 +464,13 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @return a new Algebraic resulting from the addition
     */
   def add(rational: Rational): Algebraic =
-    Algebraic_Linear.create((solve add rational).asInstanceOf[LinearSolution]).get
+    solve add rational match {
+      case s: LinearSolution => Algebraic_Linear.create(s) match {
+        case Some(x) => x
+        case None => throw NumberException(s"AlgebraicLinear: cannot add $this and $rational")
+      }
+      case _ => throw NumberException(s"AlgebraicLinear: cannot add $this and $rational")
+    }
 
   /**
     * Method to render this NumberLike in a presentable manner.

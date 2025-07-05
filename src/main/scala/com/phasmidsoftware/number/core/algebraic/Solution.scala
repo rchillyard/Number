@@ -269,7 +269,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
         if (branch == 0) // TESTME
           ExactNumber(Value.negate(offset), factor)
         else
-          offsetToNumber.get
+          offsetToNumber.get // TODO convert to a proper exception
       } // CONSIDER handling this unlikely but possible exception properly
       ComplexCartesian(ExactNumber(base, PureNumber), imaginaryPart)
     }
