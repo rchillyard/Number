@@ -11,10 +11,20 @@ import scala.math.Ordered.orderingToOrdered
 import scala.util._
 
 /**
+  * Represents an operation in a system. This trait serves as a base for different
+  * types of operations that can be implemented. Being sealed, all implementations
+  * must be defined in the same file, ensuring exhaustive pattern matching.
+  *
+  * Use this trait to model behaviors or actions that can be carried out, ensuring
+  * type safety and enabling pattern matching on specific operations.
+  */
+sealed trait Operation
+
+/**
   * Definitions of `MonadicOperation`s.
   * This module relates primarily to operations on `Value`.
   */
-sealed trait MonadicOperation {
+sealed trait MonadicOperation extends Operation {
   /**
     * Method to yield a set of functions which can be applied to Int, Rational, or Double values
     * for this MonadicOperation.
@@ -616,7 +626,7 @@ case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) e
 /**
   * Trait to define a dyadic operation.
   */
-sealed trait DyadicOperation {
+sealed trait DyadicOperation extends Operation {
   /**
     * Represents the dyadic functions associated with the operation.
     */
