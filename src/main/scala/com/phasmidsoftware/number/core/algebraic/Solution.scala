@@ -420,7 +420,17 @@ case class LinearSolution(value: Value) extends Solution {
     * @return an optional solution representing the sum of the current solution
     *         and the given solution, or None if the operation is not valid
     */
-  def add(solution: Solution): Option[Solution] = None
+  def add(solution: Solution): Option[Solution] = solution match {
+    case LinearSolution(v) =>
+      when(Value.isZero(v))(this) orElse {
+        val functions = DyadicOperationPlus.functions
+        for {
+          x <- doComposeValueDyadic(v, value)(functions)
+        } yield LinearSolution(x)
+      }
+    case _ =>
+      None
+  }
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Solution` as the result.

@@ -278,10 +278,24 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
 }
 
 /**
-  * Represents an equation of the form `x² + p*x + q = 0`, where `p` and `q` are rational coefficients.
+  * Represents a (monic) equation of the form `x² + p*x + q = 0`, where `p` and `q` are rational coefficients.
+  * A graph of this equation appears as follows: an upright parabola
+  * (where p and q are both positive and (½p)⋏2 > q):
+  * <pre>
+  *          x                        |              x
+  *           x                       |             x
+  *             x                     |            x
+  *                x              > ½p <         x
+  *       -------------x----------+---|-------x------------------ v
+  *                         x         |  x                        q
+  *       - - - - - - - - - - - - x - + - - - - - - - - - - - - - ⋏
+  *                                   |
+  *</pre>
+  * The roots of the equation (if such exist) are at `-w ± √(w^2-q)` where `w = ½p`
+  * For more information regarding quadratic equations, see:
+  * [[https://en.wikipedia.org/wiki/Quadratic_equation]]
   *
-  * @constructor Creates an instance of the equation equation with coefficients `p` and `q`.
-  *              It enforces conditions to ensure the validity of the equation.
+  * @constructor Creates an instance of the equation with coefficients `p` and `q`.
   * @param p the coefficient of the linear term (`x`).
   * @param q the constant term of the equation.
   */

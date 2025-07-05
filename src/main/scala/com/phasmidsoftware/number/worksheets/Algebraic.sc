@@ -29,7 +29,7 @@ val product = phi * psi
 // the equation that defines phi: x^2 + px + qx = 0 where p = q = -1
 val goldenRationEquation = phi.equation
 
-// The value of the product should be -q from the equation
+// The value of the product should be -r from the equation
 val productString = product.render
 
 // phi^2 should be the same thing as phi + 1

@@ -83,6 +83,12 @@ trait Algebraic extends Field {
     */
   def add(x: Field): Field =
     value add x
+//    (for {
+//      y <- x.asNumber
+//      r <- y.toNominalRational
+//      z: LinearSolution = solve.add(r).asInstanceOf[LinearSolution]
+//      q <- Algebraic_Linear.create(z)
+//    } yield q).get
 
   /**
     * Multiply this Field by x and return the result.
@@ -366,14 +372,24 @@ object Algebraic {
   /**
     * Represents the algebraic quadratic value equivalent to 1.
     * Constructed using the quadratic -2 + x = 0 with a positive root.
+    *
+    * CONSIDER making this a linear algebraic
     */
   val one: Algebraic = Algebraic_Quadratic(Quadratic(-2, 1), pos = true)
   /**
     * Represents the algebraic quadratic constant zero.
     * This value is defined using a quadratic with both coefficients set to 0,
     * and a positive sign for the root selection.
+    *
+    * CONSIDER making this a linear algebraic
     */
   val zero: Algebraic = Algebraic_Quadratic(Quadratic(0, 0), pos = true)
+
+  /**
+    * Represents the algebraic linear constant 1/2.
+    * Defined using a linear equation with the slope at unity and the x-intercept set to 1/2.
+    */
+  val half: Algebraic = Algebraic_Linear(LinearEquation(-Rational.half))
 }
 /**
   * Represents an algebraic transformation or operation based on a linear equation.
@@ -422,7 +438,8 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @param x the factor by which to scale the solution, represented as a `Rational`.
     * @return a new `Algebraic` instance that is scaled by the specified factor.
     */
-  def scale(x: Rational): Algebraic = ???
+  def scale(x: Rational): Algebraic =
+    copy(equation = equation.copy(r = equation.r * x))
 
   /**
     * Adds the given Algebraic object to the current Algebraic.
@@ -430,7 +447,14 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @param s the Algebraic object to be added
     * @return a new Algebraic resulting from the addition
     */
-  def add(s: Algebraic): Algebraic = ???
+  def add(a: Algebraic): Algebraic = {
+    val maybeSolution = solve add a.solve
+    val maybeAlgebraic_Linear = maybeSolution.flatMap {
+      case s: LinearSolution =>
+        Algebraic_Linear.create(s)
+    }
+    maybeAlgebraic_Linear.get
+  } // TODO convert to a proper exception
 
   /**
     * Adds the given Rational object to the current Algebraic.
@@ -438,7 +462,8 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @param rational the Rational object to be added
     * @return a new Algebraic resulting from the addition
     */
-  def add(rational: Rational): Algebraic = ???
+  def add(rational: Rational): Algebraic =
+    Algebraic_Linear.create((solve add rational).asInstanceOf[LinearSolution]).get
 
   /**
     * Method to render this NumberLike in a presentable manner.
@@ -450,10 +475,31 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
 }
 
 /**
-  * Represents a linear equation of the form `P(x) = q` where `q` is a rational number.
+  * Represents an object related to algebraic processes involving linear solutions.
+  * This object provides utility methods for creating and manipulating `Algebraic_Linear` instances.
+  */
+object Algebraic_Linear {
+  /**
+    * Creates an optional `Algebraic_Linear` object from a given `LinearSolution`.
+    * The method converts the value of the `LinearSolution` to a potential rational number,
+    * and then uses it to construct an instance of `Algebraic_Linear` if successful.
+    *
+    * @param s the `LinearSolution` instance used to create an `Algebraic_Linear` object
+    * @return an `Option[Algebraic_Linear]` containing the created object if the conversion is successful,
+    *         or `None` if the operation fails
+    */
+  def create(s: LinearSolution): Option[Algebraic_Linear] =
+    for (r <- Value.maybeRational(s.value)) yield Algebraic_Linear(LinearEquation(-r))
+}
+
+/**
+  * Represents a linear equation of the form `x + r = r` where `r` is a rational number.
+  * The slope of the line representing the equation is one, therefore the intercepts are:
+  * `x = -r` when `y = 0` (the solution/root); and
+  * `y = r` when `x = 0`.
   * This class provides various operations and transformations specific to linear equations.
   */
-case class LinearEquation(q: Rational) extends Equation {
+case class LinearEquation(r: Rational) extends Equation {
   /**
     * Method to compute the number of branches related to a specific computation or process.
     * For example, a solution to a quadratic equation has two branches, one for the real part and one for the imaginary part.
@@ -471,7 +517,7 @@ case class LinearEquation(q: Rational) extends Equation {
     * @return a `Field`, which is either an `Algebraic` (real-valued) or a `Complex`.
     */
   def solve(branch: Int): Solution =
-    LinearSolution(Value.fromRational(-q))
+    LinearSolution(Value.fromRational(-r))
 
   /**
     * Transforms the current equation by applying the provided functions to its components.
@@ -491,7 +537,7 @@ case class LinearEquation(q: Rational) extends Equation {
     * @param x the rational factor by which the equation is to be scaled.
     * @return a new `Equation` instance representing the scaled equation.
     */
-  def scale(x: Rational): Equation = ???
+  def scale(x: Rational): Equation = copy(r = r * x)
 
   /**
     * Produces an inverted version of the current equation.
