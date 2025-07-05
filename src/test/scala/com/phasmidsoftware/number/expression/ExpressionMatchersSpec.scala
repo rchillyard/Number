@@ -639,28 +639,28 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "biFunctionSimplifier"
   it should "work for square of square root" in {
-    val q = em.biFunctionSimplifier
+    val p = Expression.matchSimpler
     val seven = Expression(7)
     val x: Expression = seven.sqrt
     val y = x ^ 2
-    val z: ExpressionMatchers#MatchResult[Expression] = q(y)
+    val z = p(y)
     z.successful shouldBe true
     z.get shouldBe seven
   }
   it should "work for products" in {
-    val q = em.biFunctionSimplifier
+    val p = Expression.matchSimpler
     val x: Expression = 7 * 2
     val y = x * 3
-    val z: ExpressionMatchers#MatchResult[Expression] = q(y)
+    val z: ExpressionMatchers#MatchResult[Expression] = p(y)
     z.successful shouldBe true
     z.get.materialize shouldBe Real(42)
   }
   it should "work for sums" in {
-    val q = em.biFunctionSimplifier
+    val p = Expression.matchSimpler
     val seven = Expression(7)
     val x: Expression = seven + 2
     val y = x + 3
-    val z: ExpressionMatchers#MatchResult[Expression] = q(y)
+    val z: ExpressionMatchers#MatchResult[Expression] = p(y)
     z.successful shouldBe true
     z.get.materialize shouldBe Real(12)
   }
@@ -668,7 +668,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = 7
     val y = x.sqrt
     val z = y ^ 2
-    em.biFunctionSimplifier(z) shouldBe em.Match(Expression(7))
+    val p = Expression.matchSimpler
+    p(z) shouldBe em.Match(Expression(7))
   }
 
   //  behavior of "matchSimplifyDyadicTerms"
@@ -811,7 +812,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "biFunctionSimplifier"
 
   it should "simplify" in {
-    val p = em.biFunctionSimplifier
+    val p = Expression.matchSimpler
     p(BiFunction(Two, Zero, Sum)) shouldBe em.Match(Two)
     p(BiFunction(Zero, Two, Sum)) shouldBe em.Match(Two)
     p(BiFunction(Two, One, Product)) shouldBe em.Match(Two)
@@ -906,14 +907,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   //    z shouldBe em.Match(Expression(±(√(3)), Some("√3")))
   //  }
   it should "simplify 1 + 2 - 2" in {
-    val p = em.biFunctionSimplifier
+    val p = Expression.matchSimpler
     val x = One plus Two - Two
     val r = p(x)
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe One
   }
   it should "properly simplify 1 + 2 - 2 + 0" in {
-    val p = em.biFunctionSimplifier
+    val p = Expression.matchSimpler
     val x = One plus Two - Two + Zero
     val r = p(x)
     r should matchPattern { case em.Match(_) => }
