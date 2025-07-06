@@ -2765,6 +2765,13 @@ abstract class ExpressionBiFunction(
                                    ) extends ((Field, Field) => Field) {
 
   /**
+    * Indicates whether the binary operation represented by this instance commutes,
+    * meaning the result remains unchanged for arbitrary swapping of inputs.
+    * This is determined based on the absence of a right-hand identity (`maybeIdentityR`).
+    */
+  lazy val commutes: Boolean = maybeIdentityR.isEmpty
+
+  /**
     * Applies a trivial binary function to the provided `Field` elements `a` and `b`.
     * Typically returns a default or neutral result without performing any meaningful operation.
     *
@@ -2835,7 +2842,9 @@ abstract class ExpressionBiFunction(
     case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
       trivialEvaluation(a, b)
     case _ =>
-      context.qualifyingField(doEvaluate(x, y)(context) orElse doEvaluate(y, x)(context))
+      val xy = doEvaluate(x, y)(context)
+      val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
+      context.qualifyingField(xy orElse yx)
   }
 
   /**
