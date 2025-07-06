@@ -1200,7 +1200,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   // CONSIDER move the following
   behavior of "matchSimplifyBiFunction"
 
-  // TODO fix Issue #106
+  // Issue #106
   it should "simplify multiple similar ops" in {
     val p = Expression.matchSimpler
     p(Expression(2) * 3 * Constants.e * 5) shouldBe em.Match(ConstE * 30)
@@ -1210,35 +1210,38 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "two levels"
-  ignore should "get 0 from -√3 + √3" in {
-    val p = em.matchDyadicTwoLevels
+  it should "get 0 from -√3 + √3" in {
+    import BiFunction._
+    val p = Expression.matchSimpler
     val root3: Number = √(3)
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Product)
     val e: DyadicTriple = Sum ~ e1 ~ Literal(root3)
-    val result: em.MatchResult[Expression] = p(e)
+    val result = p(e)
     result.successful shouldBe true
     result.get shouldBe Zero
   }
-  ignore should "get 0 from √3 + -√3" in {
-    val p = em.matchDyadicTwoLevels
-    val root3: Number = √(3)
+  it should "get 0 from √3 + -√3" in {
+    import BiFunction._
+    val p = Expression.matchSimpler
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Product)
     val e: DyadicTriple = Sum ~ Literal(root3) ~ e1
-    val result: em.MatchResult[Expression] = p(e)
+    val result = p(e)
     result.successful shouldBe true
     result.get shouldBe Zero
   }
   ignore should "get 1 from 1/√3 * √3" in {
-    val p = em.matchDyadicTwoLevels
+    import BiFunction._
+    val p = Expression.matchSimpler
     val root3: Number = √(3)
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Power)
     val e: DyadicTriple = Product ~ e1 ~ Literal(root3)
-    val result: em.MatchResult[Expression] = p(e)
+    val result = p(e)
     result.successful shouldBe true
     result.get shouldBe One
   }
-  ignore should "simplify various" in {
-    val p: em.Matcher[em.DyadicTriple, Expression] = em.matchDyadicTwoLevels
+  it should "simplify various" in {
+    import BiFunction._
+    val p = Expression.matchSimpler
     p(Sum ~ BiFunction(Two, MinusOne, Product) ~ Two) shouldBe em.Match(Zero)
     p(Sum ~ Two ~ BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Zero)
     p(Sum ~ BiFunction(MinusOne, Two, Product) ~ Two) shouldBe em.Match(Zero)
