@@ -1483,7 +1483,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 
     case b@BiFunction(_, _, _) =>
       ((em.complementaryTermsEliminatorBiFunction |
-          em.matchBiFunctionAsAggregate & em.complementaryTermsEliminatorAggregate) &
+          em.matchBiFunctionAsAggregate & em.literalsCombiner) &
           em.alt(matchSimpler))(b)
     case b =>
       em.Miss("simplifyComposite", b) // TESTME
@@ -1712,12 +1712,16 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   }
 
   /**
-    * Action to evaluate this Expression as a Field,
-    * NOTE no simplification occurs here.
-    * Therefore, if an expression cannot be evaluated exactly,
-    * then it will result in a fuzzy number.
+    * Evaluates the given context to produce an optional field, leveraging the aggregate function
+    * and associated evaluation logic. The method employs an iterative process to evaluate a sequence
+    * of terms within the provided context while considering identity elements and context transformation rules.
     *
-    * @return the value.
+    * TODO cleanup
+    *
+    * @param context the context in which the evaluation should take place. This defines the constraints
+    *                and qualifications for the terms involved in the evaluation process.
+    * @return an `Option[Field]` representing the result of the evaluation. Returns `None`
+    *         if the evaluation cannot produce a valid field or if an invalid context is encountered.
     */
   def evaluate(context: Context): Option[Field] =
     function.maybeIdentityL match {
@@ -1726,9 +1730,31 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
         // The first element should be evaluated in the leftContext.
         // But, after that, we should update the context based on the factor in the first element.
         // For now, we just evaluate all elements based on the leftContext.
-        val elementContext = function.leftContext(context)
-        val maybeFields: Seq[Option[Field]] = xs.map(e => e.evaluate(elementContext))
-        FP.sequence(maybeFields) map (xs => xs.foldLeft[Field](identity)(function))
+        val elementContext: Context = function.leftContext(context)
+        val maybeIdentity: Option[Field] = function.maybeIdentityL
+        xs.foldLeft[(Option[Field], Context)]((maybeIdentity, elementContext)) {
+          (accum, x) =>
+            val (maybeField, context) = accum
+            val z: Option[Field] = x.evaluate(context)
+            val qqq: Option[(Field, Option[Context])] = for (a <- maybeField; b <- z) yield {
+              val q = function(a, b)
+              val maybeFactor: Option[Factor] = q.maybeFactor
+              val x = for (factor <- maybeFactor) yield {
+                function.rightContext(factor)(context)
+              }
+              (q, x)
+            }
+            qqq match {
+              case Some((f, Some(qq))) =>
+                Some(f) -> qq
+            }
+        } match {
+          case (_, ImpossibleContext) =>
+            None
+          case (fo, _) =>
+            fo
+        }
+
       case None => // TESTME
         System.err.println("Logic error: identity is None")
         None

@@ -869,6 +869,36 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
+    * Matches and combines atomic literal expressions within an `Aggregate` structure.
+    * If atomic literals are present and can be evaluated, they are combined and the result
+    * is returned. The remaining non-literal expressions, if any, are preserved.
+    *
+    * TODO cleanup
+    *
+    * @return A matcher that processes an `Aggregate` instance. Returns `Match` if literals
+    *         are successfully combined, or `Miss` if no literals are found or they cannot
+    *         be combined.
+    */
+  def literalsCombiner: Matcher[Aggregate, Expression] = {
+    case g@Aggregate(f, xs) =>
+      val (a, b) = xs.partition(exp => exp.isAtomic && exp.evaluate(RestrictedContext(PureNumber)).isDefined)
+      if (a.isEmpty)
+        Miss("literalsCombiner: no literals", g)
+      else
+        Aggregate(f, a).evaluate(RestrictedContext(PureNumber)) match {
+          case Some(z) =>
+            if (b.isEmpty)
+              Match(z)
+            else if (b.size == 1)
+              Match(BiFunction(z, b.head, f))
+            else
+              Match(Aggregate(f, b :+ z))
+          case _ =>
+            Miss(s"literalsCombiner: cannot combine literals", Aggregate(f, b))
+        }
+  }
+
+  /**
     * A matcher function that processes instances of `BiFunction` and evaluates whether its terms
     * are complementary based on a provided condition. If the terms are complementary, it attempts
     * to eliminate them by returning their identity literal. Otherwise, it provides information

@@ -1201,9 +1201,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "matchSimplifyBiFunction"
 
   // TODO fix Issue #106
-  ignore should "simplify multiple similar ops" in {
+  it should "simplify multiple similar ops" in {
     val p = Expression.matchSimpler
-    (Expression(2) * 3 * Constants.e * 5).simplify shouldBe (ConstE * 30)
+    p(Expression(2) * 3 * Constants.e * 5) shouldBe em.Match(ConstE * 30)
     // TODO we would like the following to be ConstE * 30
     //    em.simplifier(ConstE * 2 * 3 * 5) shouldBe em.Match(ConstE * 2 * 15)
 //    em.simplifier(Expression(5) * 2 * 3 * Constants.e) shouldBe em.Match(ConstE * 30)
