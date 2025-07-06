@@ -106,7 +106,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *         or a Miss otherwise.
     */
   @deprecated("use simplify", "0.1.0")
-  def exactEvaluator(ctx: Context): ExpressionMatcher[Field] = ???
+  def exactEvaluator(ctx: Context): ExpressionMatcher[Field] = ??? // TODO implement me
 
   /**
     * `ExpressionMatcher`, which matches expressions that are exact in the given context,
@@ -344,6 +344,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return a Matcher[DyadicTriple, Expression].
     */
+  @deprecated
   def matchSimplifyDyadicTermsTwoLevels: Matcher[DyadicTriple, Expression] = Matcher("matchSimplifyDyadicTermsTwoLevels") {
     case Sum ~ (q@Function(_, _)) ~ (z@Function(_, _)) =>
       matchComplementaryExpressions(Sum ~ q ~ z)
@@ -448,13 +449,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Negate ~ One => Match(MinusOne)
     case Negate ~ MinusOne => Match(One)
     case Reciprocal ~ One => Match(One)
-    case Reciprocal ~ Zero => Match(Literal(infinity))
-    case Reciprocal ~ Two => Match(Literal(half))
+    case Reciprocal ~ Zero => Match(infinity)
+    case Reciprocal ~ Two => Match(half)
     case Exp ~ Literal(x, _) if x == Real(infinity.negate) => Match(Zero)
     case Exp ~ Zero => Match(One)
     case Exp ~ One => Match(ConstE)
     case Log ~ One => Match(Zero)
-    case Log ~ Zero => Match(Literal(infinity.negate))
+    case Log ~ Zero => Match(infinity.negate)
     case Log ~ ConstE => Match(One)
     case Sine ~ Literal(x, _) if x == piBy2 => Match(One)
     case Sine ~ Literal(x, _) if (x + piBy2).isZero => Match(MinusOne)
@@ -540,6 +541,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case f ~ (g ~ x) => Miss("cannot combine two monadic levels", f ~ (g ~ x)) // TESTME
   }
 
+
+//  private def simplify(e: Expression): ExpressionMatchers.this.MatchResult[Expression] =
+//    (Expression.simplifyTrivial & Expression.em.alt(matchSimpler))(e)
+
+
   /**
     * Matcher which matches on a trivial dyadic function, such as x * 0 or x + 0.
     * In the case where the result is non-constant, it will be further simplified if possible.
@@ -552,14 +558,16 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def matchDyadicTrivial: Matcher[DyadicTriple, Expression] = Matcher("matchDyadicTrivial") {
     case Sum ~ Zero ~ x => matchAndMaybeSimplify(x)
     case Sum ~ x ~ Zero => matchAndMaybeSimplify(x)
-    case Sum ~ x ~ y if x == y => matchAndMaybeSimplify(BiFunction(Two, x, Product))
+    //case Sum ~ x ~ y if x == y => matchAndMaybeSimplify(BiFunction(Two, x, Product))
+    case Sum ~ x ~ y if x == y => Match(BiFunction(Two, x, Product).simplify)
     case Product ~ Zero ~ _ => Match(Zero)
     case Product ~ _ ~ Zero => Match(Zero)
     case Product ~ One ~ x => matchAndMaybeSimplify(x)
     case Product ~ x ~ One => matchAndMaybeSimplify(x)
     case Product ~ MinusOne ~ x => matchAndMaybeSimplify(Function(x, Negate))
     case Product ~ x ~ MinusOne => matchAndMaybeSimplify(Function(x, Negate))
-    case Product ~ x ~ y if x == y => matchAndMaybeSimplify(BiFunction(x, Two, Power))
+    //case Product ~ x ~ y if x == y => matchAndMaybeSimplify(BiFunction(x, Two, Power))
+    case Product ~ x ~ y if x == y => Match(BiFunction(Two, x, Power).simplify)
     case Product ~ x ~ Function(One, Negate) => matchAndMaybeSimplify(Function(x, Negate))
     case Product ~ Function(One, Negate) ~ y => matchAndMaybeSimplify(Function(y, Negate))
     case Power ~ _ ~ Zero => Match(One)
@@ -708,7 +716,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Literal(x, _) => Match(x) // TESTME
     case FieldExpression(x, _) => Match(x)
     case x@Number(_, _) => Match(Real(x)) // TESTME
-    case x: Constant => matchIfDefined(x.evaluateAsIs)(x)
+    case x: FieldExpression => matchIfDefined(x.evaluateAsIs)(x)
     case x => Miss("value", x)
   }
 
@@ -861,6 +869,39 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
+    * Matches and combines atomic literal expressions within an `Aggregate` structure.
+    * If atomic literals are present and can be evaluated, they are combined and the result
+    * is returned. The remaining non-literal expressions, if any, are preserved.
+    *
+    * @return A matcher that processes an `Aggregate` instance. Returns `Match` if literals
+    *         are successfully combined, or `Miss` if no literals are found or they cannot
+    *         be combined.
+    */
+  def literalsCombiner: Matcher[Aggregate, Expression] = {
+    case g@Aggregate(f, xs) =>
+      // XXX first, we partition `xs` according to which terms can be exactly combined because they are all pure numbers (the "literals").
+      // The other terms may also be literal constants but not evaluatable in the `PureNumber` context.
+      // NOTE that we might be being a little over-restrictive here.
+      // CONSIDER relaxing `isAtomic`
+      xs.partition(exp => exp.isAtomic && exp.evaluate(RestrictedContext(PureNumber)).isDefined) match {
+        case (Nil, _) =>
+          Miss("literalsCombiner: no pure numbers", g)
+        case (literals, others) =>
+          // XXX next, we evaluate an Aggregate based solely on the pure number elements (literals) and combine the result with the other elements (others)
+          (Aggregate(f, literals).evaluate(RestrictedContext(PureNumber)), others) match {
+            case (Some(z), Nil) =>
+              Match(z)
+            case (Some(z), h :: Nil) =>
+              Match(BiFunction(z, h, f))
+            case (Some(z), _) =>
+              Match(Aggregate(f, others :+ z))
+            case _ =>
+              Miss(s"literalsCombiner: cannot combine literals", Aggregate(f, others))
+          }
+      }
+  }
+
+  /**
     * A matcher function that processes instances of `BiFunction` and evaluates whether its terms
     * are complementary based on a provided condition. If the terms are complementary, it attempts
     * to eliminate them by returning their identity literal. Otherwise, it provides information
@@ -922,7 +963,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return true if the expression matches the identity element of the given field, false otherwise.
     */
   private def isIdentity(x: Expression, fo: Option[Field]) = x match {
-    case c: Constant => fo == c.evaluateAsIs
+    case c: FieldExpression => fo == c.evaluateAsIs
     case Literal(z, _) => fo.contains(z)
     case _ => false
   }

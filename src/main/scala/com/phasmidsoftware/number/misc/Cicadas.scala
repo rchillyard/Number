@@ -29,7 +29,7 @@ object Cicadas extends App {
 
   def coemergence(x: Int): Boolean = xix(x) && xiv(x)
 
-  val emergences: List[Int] = ???
+  val emergences: List[Int] = ??? // TODO implement me
 
   println(emergences.mkString(","))
 }

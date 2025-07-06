@@ -119,8 +119,16 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
   def power(p: Int): Field = p match {
     case 0 => Real(Number.one)
     case 1 => this
+    case 2 => this.square
     case _ => power(Number(p)) // TODO need to simplify the result. See NumberSpec: power/work for squaring Log2
   }
+
+  /**
+    * Squares this Field instance by multiplying it with itself.
+    *
+    * @return the result of squaring this Field.
+    */
+  def square: Field
 
   /**
    * Raises this Field to the power of the specified number.
@@ -139,11 +147,15 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
   def power(p: Field): Field
 
   /**
-    * Computes and returns an approximate numerical value for this expression.
+    * Computes an approximation of the field as a real number, if possible.
+    * This method attempts to map the underlying numerical representation
+    * to a real value.
     *
-    * @return a `Double` representing the approximation of this expression.
+    * @return an Option containing the Real representation of this field if it can be
+    *         approximated, or None if the approximation is not possible.
     */
-  def approximation: Option[Real] = asNumber map (Real(_))
+  def approximation: Option[Real] =
+    asNumber map (Real(_)) // TODO check this is correct
 
   /**
     * Computes the sine of this Field.

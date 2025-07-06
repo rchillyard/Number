@@ -575,7 +575,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.ten.toBigDecimal shouldBe Some(BigDecimal(10))
   }
   it should "equal a million when raised to 6th powe (^)r" in {
-    (Rational.ten ^ 6) shouldBe Rational(1000000)
+    (Rational.ten ∧ 6) shouldBe Rational(1000000)
   }
 
   behavior of "2/3"
@@ -605,7 +605,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     (r * r) shouldBe Rational(4, 9)
   }
   it should "equal 4/9 when squared using ^" in {
-    (Rational(2, 3) ^ 2) shouldBe Rational(4, 9)
+    (Rational(2, 3) ∧ 2) shouldBe Rational(4, 9)
   }
   it should "barf when toInt invoked" in {
     an[RationalException] should be thrownBy Rational(2, 3).toInt

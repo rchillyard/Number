@@ -841,6 +841,10 @@ object GeneralNumber {
     * Method to raise an (exact) Number to a power.
     * NOTE: This method is invoked only by doPower (in ExactNumber).
     *
+    * TODO: move this into ExactNumber but CAREFULLY!
+    *
+    * CONSIDER: surely that y.scale(PureNumber) might create a fuzzy number, right?
+    *
     * @param x the base Number (always exact).
     * @param y the power (may not be exact).
     * @return x raised to the power of y.
@@ -866,6 +870,7 @@ object GeneralNumber {
 
   /**
     * Method to raise an (exact) Number to a Rational power.
+    * CONSIDER shouldn't this be in ExactNumber? Be careful!
     *
     * @param x the base Number.
     * @param r the power.

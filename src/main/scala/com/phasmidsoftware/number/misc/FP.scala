@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.misc
 import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
 import java.net.URL
+import scala.Option.when
 import scala.io.Source
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -18,6 +19,17 @@ import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
  *
  */
 object FP {
+
+  /**
+    * Executes the provided block of code conditionally based on the given boolean predicate.
+    * If the predicate is true, the block of code is executed and its result is returned.
+    * If the predicate is false, None is returned.
+    *
+    * @param p the boolean predicate that determines whether the block of code should be executed
+    * @param x a by-name parameter representing the block of code returning an Option of type X
+    * @return an Option containing the result of the block of code if `p` is true, or None if `p` is false
+    */
+  def whenever[X](p: Boolean)(x: => Option[X]): Option[X] = when(p)(x).flatten
 
   /**
    * Sequence method to combine elements of Try.
