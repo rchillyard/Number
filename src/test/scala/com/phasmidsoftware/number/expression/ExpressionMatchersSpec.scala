@@ -884,8 +884,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //val k: em.MatchResult[Expression] = value3 map (Expression(_))
     k shouldBe em.Match(Expression(-2))
   }
-  // FIXME Issue #57
-  ignore should "biFunctionSimplifier on (1 + √3)(1 - √3)" in {
+  it should "biFunctionSimplifier on (1 + √3)(1 - √3)" in {
     //val p = em.simplifier
     val x = Expression(3).sqrt
     //    val x = Constants.root3
@@ -987,7 +986,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y: Expression = Expression(Constants.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(Literal(root4))
   }
-  ignore should "distribute" in {
+  it should "distribute" in {
     import BiFunction._
     val p = Expression.matchSimpler
     val a = BiFunction(One, Two, Sum)
@@ -995,7 +994,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = p(Product ~ a ~ b)
     z shouldBe em.Match(Expression(9))
   }
-  ignore should "distributeProductSum a" in {
+  it should "distributeProductSum a" in {
     import BiFunction._
     val p = Expression.matchSimpler
     val a = BiFunction(One, Two, Sum)
