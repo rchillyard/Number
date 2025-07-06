@@ -1716,48 +1716,24 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * and associated evaluation logic. The method employs an iterative process to evaluate a sequence
     * of terms within the provided context while considering identity elements and context transformation rules.
     *
-    * TODO cleanup
-    *
     * @param context the context in which the evaluation should take place. This defines the constraints
     *                and qualifications for the terms involved in the evaluation process.
     * @return an `Option[Field]` representing the result of the evaluation. Returns `None`
     *         if the evaluation cannot produce a valid field or if an invalid context is encountered.
     */
-  def evaluate(context: Context): Option[Field] =
-    function.maybeIdentityL match {
-      case Some(identity) =>
-        // XXX this is a bit more complicated than it seems.
-        // The first element should be evaluated in the leftContext.
-        // But, after that, we should update the context based on the factor in the first element.
-        // For now, we just evaluate all elements based on the leftContext.
-        val elementContext: Context = function.leftContext(context)
-        val maybeIdentity: Option[Field] = function.maybeIdentityL
-        xs.foldLeft[(Option[Field], Context)]((maybeIdentity, elementContext)) {
-          (accum, x) =>
-            val (maybeField, context) = accum
-            val z: Option[Field] = x.evaluate(context)
-            val qqq: Option[(Field, Option[Context])] = for (a <- maybeField; b <- z) yield {
-              val q = function(a, b)
-              val maybeFactor: Option[Factor] = q.maybeFactor
-              val x = for (factor <- maybeFactor) yield {
-                function.rightContext(factor)(context)
-              }
-              (q, x)
-            }
-            qqq match {
-              case Some((f, Some(qq))) =>
-                Some(f) -> qq
-            }
-        } match {
-          case (_, ImpossibleContext) =>
-            None
-          case (fo, _) =>
-            fo
-        }
+  def evaluate(context: Context): Option[Field] = {
 
-      case None => // TESTME
-        System.err.println("Logic error: identity is None")
+    // NOTE we combine the expressions of this `Aggregate` but maintain a context which in general changes as we combine terms.
+    // The initial context is determined by the parameter `context` and the function's `leftContext` method.
+    // The resulting tuple of optional Field and Context is then matched.
+    // If the context is impossible (for example, we multiplied a pure number by a logarithmic number such as `e`,
+    // then we cannot evaluate this `Aggregate` exactly.
+    xs.foldLeft[(Option[Field], Context)]((function.maybeIdentityL, function.leftContext(context)))(combineExpressions) match {
+      case (_, ImpossibleContext) =>
         None
+      case (fo, _) =>
+        fo
+    }
   }
 
   /**
@@ -1829,6 +1805,46 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     */
   override def toString: String =
     xs.mkString(s"Aggregate{${function.toString},", ",", "}")
+
+  /**
+    * Combines an accumulator and an expression to produce a new tuple containing an optional field
+    * and an updated context.
+    * This is the function that is invoked by `foldLeft` in the `evaluate` method.
+    *
+    * @param accum a tuple consisting of an optional field and the current context. The field represents
+    *              a computed value (if any), and the context provides additional information
+    *              required for processing.
+    * @param x     the expression to be combined with the accumulator. This expression is used to derive
+    *              updates to the field and/or context within the tuple.
+    * @return a new tuple containing an updated optional field and context after combining
+    *         the accumulator and the given expression.
+    */
+  private def combineExpressions(accum: (Option[Field], Context), x: Expression): (Option[Field], Context) = {
+    val (fo, context) = accum
+    combineFieldsAndContexts(x, fo, context)
+  }
+
+  /**
+    * Combines a given `Expression`, an optional `Field`, and a `Context` into a new tuple containing an updated
+    * optional field and context. The combination logic evaluates the expression within the given context, applying
+    * transformations to the field and context when applicable.
+    *
+    * @param x       the expression to be evaluated and combined with the field and context.
+    * @param fo      an optional field representing a potential starting value or state that may be updated
+    *                during the combination process.
+    * @param context the current context used for evaluating the expression and determining the resulting
+    *                updated context.
+    * @return a tuple consisting of an updated optional field and the resulting context after processing the
+    *         given expression with the provided field and context.
+    */
+  private def combineFieldsAndContexts(x: Expression, fo: Option[Field], context: Context): (Option[Field], Context) =
+    (for (a <- fo; b <- x.evaluate(context)) yield {
+      val field = function(a, b)
+      field -> (for (factor <- field.maybeFactor) yield function.rightContext(factor)(context))
+    }) match {
+      case Some((f, Some(qq))) =>
+        Some(f) -> qq
+    }
 }
 
 /**

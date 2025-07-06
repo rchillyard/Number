@@ -873,29 +873,32 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * If atomic literals are present and can be evaluated, they are combined and the result
     * is returned. The remaining non-literal expressions, if any, are preserved.
     *
-    * TODO cleanup
-    *
     * @return A matcher that processes an `Aggregate` instance. Returns `Match` if literals
     *         are successfully combined, or `Miss` if no literals are found or they cannot
     *         be combined.
     */
   def literalsCombiner: Matcher[Aggregate, Expression] = {
     case g@Aggregate(f, xs) =>
-      val (a, b) = xs.partition(exp => exp.isAtomic && exp.evaluate(RestrictedContext(PureNumber)).isDefined)
-      if (a.isEmpty)
-        Miss("literalsCombiner: no literals", g)
-      else
-        Aggregate(f, a).evaluate(RestrictedContext(PureNumber)) match {
-          case Some(z) =>
-            if (b.isEmpty)
+      // XXX first, we partition `xs` according to which terms can be exactly combined because they are all pure numbers (the "literals").
+      // The other terms may also be literal constants but not evaluatable in the `PureNumber` context.
+      // NOTE that we might be being a little over-restrictive here.
+      // CONSIDER relaxing `isAtomic`
+      xs.partition(exp => exp.isAtomic && exp.evaluate(RestrictedContext(PureNumber)).isDefined) match {
+        case (Nil, _) =>
+          Miss("literalsCombiner: no pure numbers", g)
+        case (literals, others) =>
+          // XXX next, we evaluate an Aggregate based solely on the pure number elements (literals) and combine the result with the other elements (others)
+          (Aggregate(f, literals).evaluate(RestrictedContext(PureNumber)), others) match {
+            case (Some(z), Nil) =>
               Match(z)
-            else if (b.size == 1)
-              Match(BiFunction(z, b.head, f))
-            else
-              Match(Aggregate(f, b :+ z))
-          case _ =>
-            Miss(s"literalsCombiner: cannot combine literals", Aggregate(f, b))
-        }
+            case (Some(z), h :: Nil) =>
+              Match(BiFunction(z, h, f))
+            case (Some(z), _) =>
+              Match(Aggregate(f, others :+ z))
+            case _ =>
+              Miss(s"literalsCombiner: cannot combine literals", Aggregate(f, others))
+          }
+      }
   }
 
   /**
