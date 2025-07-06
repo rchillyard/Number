@@ -841,6 +841,10 @@ object GeneralNumber {
     * Method to raise an (exact) Number to a power.
     * NOTE: This method is invoked only by doPower (in ExactNumber).
     *
+    * TODO: move this into ExactNumber
+    *
+    * CONSIDER: surely that y.scale(PureNumber) might create a fuzzy number, right?
+    *
     * @param x the base Number (always exact).
     * @param y the power (may not be exact).
     * @return x raised to the power of y.
@@ -866,12 +870,13 @@ object GeneralNumber {
 
   /**
     * Method to raise an (exact) Number to a Rational power.
+    * CONSIDER shouldn't this be in ExactNumber?
     *
     * @param x the base Number.
     * @param r the power.
     * @return an exact Number (CHECK is that correct?)
     */
-  private def power(x: Number, r: Rational): Number =
+  def power(x: Number, r: Rational): Number =
     if (r.isZero) Number.one
   else if (r.isUnity || x == Number.one) x
   else {

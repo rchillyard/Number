@@ -820,8 +820,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(BiFunction(Two, One, Power)) shouldBe em.Match(Two)
     p(BiFunction(One, Two, Power)) shouldBe em.Match(One)
   }
-
-  ignore should "simplify √3 * -1 as -√3" in {
+  it should "simplify √3 * -1 as -√3" in {
     val expression = BiFunction(Expression(root3), MinusOne, Product)
     expression.simplify shouldBe number.expression.Function(Expression(root3), Negate)
   }
@@ -830,8 +829,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     expression.simplify shouldBe Expression(root3)
   }
 
-  // FIXME Issue #88
-  ignore should "simplify (√3 + 1)(√3 - 1) as 2 exactly" in {
+  it should "simplify (√3 + 1)(√3 - 1) as 2 exactly" in {
     val em = eml // Log this unit test
     // Expect matches:
     // matchTwoDyadicTripleLevels: Match: *~+~{3 ^ (2 ^ -1)}~1~+~{3 ^ (2 ^ -1)}~(1 * -1)
@@ -865,7 +863,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z: Expression = x.simplify
     z shouldBe Expression(2)
   }
-  ignore should "evaluate (√3 + 1)(√3 + -1) as 2 exactly" in {
+  it should "evaluate (√3 + 1)(√3 + -1) as 2 exactly" in {
     val root3: Expression = Expression(3).sqrt
     val x: Expression = (root3 + 1) * (root3 + MinusOne)
     //val p = em.biFunctionSimplifier
@@ -1153,8 +1151,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
     r.get shouldBe One
   }
-  // FIXME Issue #105
-  ignore should "simplify pi * pi" in {
+  // Issue #105
+  it should "simplify pi * pi" in {
     val r = p(Product ~ ConstPi ~ ConstPi)
     r.successful shouldBe true
     r.get shouldBe BiFunction(ConstPi, Two, Power)
@@ -1202,12 +1200,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   // CONSIDER move the following
   behavior of "matchSimplifyBiFunction"
 
-  // TODO fix Issue #57
+  // TODO fix Issue #106
   ignore should "simplify multiple similar ops" in {
-    em.simplifier(Expression(2) * 3 * Constants.e * 5) shouldBe em.Match(ConstE * 30)
+    val p = Expression.matchSimpler
+    (Expression(2) * 3 * Constants.e * 5).simplify shouldBe (ConstE * 30)
     // TODO we would like the following to be ConstE * 30
     //    em.simplifier(ConstE * 2 * 3 * 5) shouldBe em.Match(ConstE * 2 * 15)
-    em.simplifier(Expression(5) * 2 * 3 * Constants.e) shouldBe em.Match(ConstE * 30)
+//    em.simplifier(Expression(5) * 2 * 3 * Constants.e) shouldBe em.Match(ConstE * 30)
   }
 
   behavior of "two levels"

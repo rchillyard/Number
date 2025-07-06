@@ -2650,9 +2650,10 @@ case object Power extends ExpressionBiFunction("^", (x, y) => x.power(y), isExac
     * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
     *         or `None` if the operation fails to meet exactness requirements.
     */
-  def applyExact(a: Field, b: Field): Option[Field] = b match {
-    case Real(ExactNumber(v, PureNumber)) =>
-      Value.maybeRational(v) map (_ => a power b)
+  def applyExact(a: Field, b: Field): Option[Field] = (a, b) match {
+    case (Real(x@ExactNumber(_, _)), Real(y@ExactNumber(v, PureNumber))) =>
+      val result: Number = x.doPower(y)
+      when(result.isExact)(Real(result))
     case _ =>
       None // TESTME
   }
