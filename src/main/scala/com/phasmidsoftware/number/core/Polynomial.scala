@@ -99,7 +99,7 @@ trait Polynomial[X] extends (X => X) {
     */
   def render: String = {
     val sb = new StringBuilder
-    sb.append(s"Polynomial($degree, ${coefficients.mkString(", ")})")
+    sb.append(s"Polynomial($degree: ${coefficients.mkString(", ")})")
     sb.toString()
   }
 }
@@ -163,4 +163,9 @@ case class RationalPolynomial(degree: Int, coefficients: Seq[Rational])(implicit
   def numeric: Numeric[Rational] = ev
 
   override def toString(): String = render
+}
+
+object RationalPolynomial {
+  def apply(coefficients: Rational*)(implicit ev: Numeric[Rational]): RationalPolynomial =
+    new RationalPolynomial(coefficients.size - 1, coefficients)(ev)
 }

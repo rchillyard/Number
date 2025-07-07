@@ -13,28 +13,32 @@ class PolynomialSpec extends AnyFlatSpec {
 
   behavior of "Polynomial"
 
-  val p: RationalPolynomial = RationalPolynomial(2, Seq(Rational(1), Rational(2), Rational(3)))
+  val p2: RationalPolynomial = RationalPolynomial(1, 1, 1)
+  val p4: RationalPolynomial = RationalPolynomial(3, 2, 5, 4, 1)
 
   it should "apply" in {
-    p.apply(Rational.zero) shouldBe Rational.zero
+    p2.apply(0) shouldBe Rational.zero
+    p4.apply(0) shouldBe Rational.zero
   }
-
   it should "degree" in {
-    p.degree shouldBe 2
+    p2.degree shouldBe 2
+    p4.degree shouldBe 4
   }
-
-  it should "derivative" in {
-    val actual = p.derivative
-    val expected = RationalPolynomial(1, Seq(Rational(2), Rational(6)))
-    actual shouldBe expected
+  it should "derivative 1" in {
+    p2.derivative shouldBe RationalPolynomial(1, 2)
+    p4.derivative shouldBe RationalPolynomial(2, 10, 12, 4)
   }
-
+  it should "derivative 2" in {
+    p2.derivative.derivative shouldBe RationalPolynomial(2)
+    p4.derivative.derivative shouldBe RationalPolynomial(10, 24, 12)
+  }
   it should "coefficients" in {
-    p.coefficients shouldBe Seq(Rational(1), Rational(2), Rational(3))
+    p2.coefficients shouldBe Seq(Rational.one, Rational.one, Rational.one)
+    p4.coefficients shouldBe Seq(Rational.three, Rational.two, Rational(5), Rational.four, Rational.one)
   }
 
-  ignore should "derivativeN" in {
-    p.derivativeN(0) shouldBe RationalPolynomial(1, Seq(Rational(2), Rational(6)))
+  it should "derivativeN" in {
+    p2.derivativeN(1) shouldBe RationalPolynomial(1, 2)
   }
 
   it should "nthDerivative" in {
