@@ -54,6 +54,22 @@ without using the _Number_ (or _Expression_) classes.
 There are four domains of values, each identified by a Factor (see _Factors_ below).
 These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
 
+The current version is 1.2.2. Here's a summary of what's new in 1.2:
+
+* The entire _ExpressionMatchers_ code base has been rewritten (leaving many deprecated methods which need to be cleaned up):
+  * The key method for simplifying _Expression_s is _simplify_. This operates recursively by invoking _matchSimpler_ until it encounters a miss, in which case it returns the previous simplified version. There are four phases of simplification for a _CompositeExpression_:
+    * _simplifyComponents_
+    * _simplifyTrivial_
+    * _simplifyConstant_
+    * _simplifyComposite_
+* _Algebraic_ quantities have been introduced:
+  * These represent solutions to equations that cannot be represented precisely with one quantity
+    * _Quadratic_ equations, for example, we can represent the Golden ratio $\phi$ exactly this way.
+    * _Linear_ equations (these solutions can already be represented, but this is just for completeness)
+* The _Root_ domain has been restructured to be more general.
+  * In addition to _SquareRoot_ and _CubeRoot_ (which were renamed from the ambiguous _Root2_ and _Root3_), there are more general roots based on a rational inverse power.
+* This _README.md_ file has been improved (including a logo, thanks to Zijie).
+
 Java API
 ========
 In addition to the Scala API, version 1.0.14 introduces a Java API where it is harder to invoke the
@@ -376,7 +392,7 @@ The hierarchy of _Factor_ is as follows:
   * _Logarithmic_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
     * _NatLog_ (object: natural log, i.e., $\log_e$)
     * _Log2_ (object: $\log_2$)
-    * _Log10_ (object: $\log_10$)
+    * _Log10_ (object: $\log_{10}$)
   * _InversePower_ (trait: all the roots)
     * _Root_ (abstract class)
       * _SquareRoot_ (object: the domain of square roots)
