@@ -17,6 +17,7 @@ import scala.util._
   * Represents a factor type used for evaluations, conversions, and rendering in a specific context.
   *
   * CONSIDER defining an imaginary (or Complex) subclass of Factor.
+  * CONSIDER renaming this trait as Domain.
   *
   * This trait serves as a foundation for different kinds of factors and provides functionality such as:
   * - Determining whether the factor is additive.

@@ -51,9 +51,11 @@ _Rational_ is simply a case class with _BigInt_ elements for the numerator and d
 It is, of course, perfectly possible to use the _Rational_ classes directly,
 without using the _Number_ (or _Expression_) classes.
 
-There are four domains of values, each identified by a Factor (see _Factors_ below).
+There are four domains of values, each identified by a domain or factor (see _Factors_ below).
 These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
 
+Current Version
+---------------
 The current version is 1.2.2. Here's a summary of what's new in 1.2:
 
 * The entire _ExpressionMatchers_ code base has been rewritten (leaving many deprecated methods which need to be cleaned
@@ -73,6 +75,21 @@ The current version is 1.2.2. Here's a summary of what's new in 1.2:
   * In addition to _SquareRoot_ and _CubeRoot_ (which were renamed from the ambiguous _Root2_ and _Root3_), there are
     more general roots based on a rational inverse power.
 * This _README.md_ file has been improved (including a logo, thanks to Zijie).
+
+Sources
+-------
+Wikipedia has been my constant reference for basic mathematical relationships.
+
+However, much of the specific ideas and theory behind this project comes from the following book:
+
+- Abramowitz and Stegun, (1970). *Handbook of Mathematical Functions with Formulas, Graphs and Mathematical Tables, 9th printing*. Dover Publications.
+
+You can also find the 7th printing free online:
+
+- <cite>[Abramowitz and Stegun][1]</cite>
+
+[1]: https://archive.org/details/handbookofmathem00abra
+
 
 Java API
 ========
@@ -677,11 +694,12 @@ Note that the type hierarchy is very likely to change in version 1.3
 * _Numerical_ (trait: most numeric quantities)
   * _Field_ (trait: something like the mathematical concept of a field)
     * _Real_ (case class: a real number based on one _Number_)
-    * _Complex_ (trait: a complex number)
-      * _BaseComplex_ (abstract class)
-        * _ComplexCartesian_ (case class: Cartesian form of complex number)
-        * _ComplexPolar_ (case class: polar form of complex number)
-    * _Algebraic_ (trait: an algebraic number)
+    * _Multivariate_ (trait which really should be called Algebraic)
+      * _Complex_ (trait: a complex number)
+        * _BaseComplex_ (abstract class)
+          * _ComplexCartesian_ (case class: Cartesian form of complex number)
+          * _ComplexPolar_ (case class: polar form of complex number)
+      * _Algebraic_ (trait: an algebraic number)
   * _Number_ (trait: a quantity representing a number)
     * _GeneralNumber_ (abstract class)
       * _ExactNumber_ (case class: an exact number defined by a _Value_ and a _Factor_)
