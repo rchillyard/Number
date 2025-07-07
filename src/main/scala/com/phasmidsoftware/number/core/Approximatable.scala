@@ -12,8 +12,8 @@ package com.phasmidsoftware.number.core
 trait Approximatable {
 
   /**
-    * Computes and returns an approximate numerical value for this expression.
-    * All Fields and Expressions that implement this method should work except for complex quantities.
+    * Computes and returns an approximate numerical value for this Approximatable.
+    * All Fields, PowerSeries and Expressions that implement this method should work except for complex quantities.
     *
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */

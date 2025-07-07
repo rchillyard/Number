@@ -20,6 +20,25 @@ import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
  */
 object FP {
 
+
+  /**
+    * Executes the provided computation if the given condition is true; otherwise, returns a Failure.
+    *
+    * @param p A Boolean condition that determines whether the computation should be executed.
+    * @param x A computation represented as a call-by-name parameter, which returns a Try[X] when evaluated.
+    * @return A Try[X] representing the result of the computation if the condition is true, or a Failure if the condition is false.
+    */
+  def whenTry[X](p: Boolean)(x: => X): Try[X] = if (p) Success(x) else Failure(new Exception(s"condition $p is not satisfied"))
+
+  /**
+    * Executes the provided computation if the given condition is true; otherwise, returns a Failure.
+    *
+    * @param p A Boolean condition that determines whether the computation should be executed.
+    * @param x A computation represented as a call-by-name parameter, which returns a Try[X] when evaluated.
+    * @return A Try[X] representing the result of the computation if the condition is true, or a Failure if the condition is false.
+    */
+  def wheneverTry[X](p: Boolean)(x: => Try[X]): Try[X] = whenTry(p)(x).flatten
+
   /**
     * Executes the provided block of code conditionally based on the given boolean predicate.
     * If the predicate is true, the block of code is executed and its result is returned.
@@ -271,6 +290,16 @@ object FP {
    */
   def getOrThrow[X](xo: => Option[X], t: => Throwable): X = xo.getOrElse(throw t)
 
+  /**
+    * Reads data from a specified resource file, applies a transformation function to each line,
+    * and converts the resulting values into a sequence of BigInt objects.
+    *
+    * @param filename the name of the resource file to read from
+    * @param function a function that takes an array of strings (split from a line)
+    *                 and returns an optional string result after processing
+    * @return a `Try` containing a sequence of BigInt values if successful, or a failure if
+    *         an error occurs during processing or if the file contains invalid input
+    */
   def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
     TryUsing(FP.resource(filename) map (Source.fromURL(_))) {
       source =>
@@ -337,6 +366,23 @@ object FP {
       println(s"FP.toOption: $x") // TODO log this error
       None
   }
+
+  /**
+    * Computes the power of a given number by raising it to the specified exponent.
+    *
+    * CONSIDER moving this somewhere else more aligned to Numeric ops
+    *
+    * @param x the base number
+    * @param n the exponent to which the base number is raised
+    * @return the result of raising the base number to the specified exponent
+    */
+  def power[X: Numeric](x: X, n: Int): X =
+    if (x == implicitly[Numeric[X]].zero)
+      implicitly[Numeric[X]].zero
+    else if (n == 0)
+      implicitly[Numeric[X]].one
+    else
+      implicitly[Numeric[X]].times(x, power(x, n - 1))
 
 }
 
