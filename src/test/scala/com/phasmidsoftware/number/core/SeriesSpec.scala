@@ -33,7 +33,7 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   behavior of "InfiniteSeries"
 
-  val t: InfiniteSeries[Int] = InfiniteSeries(LazyList.from(1))
+  val t: InfiniteSeries[Int] = InfiniteSeries(LazyList.from(1), 0.01)
 
   it should "term" in {
     t.term(0) shouldBe Some(1)
@@ -59,7 +59,7 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   behavior of "Basel Problem"
 
-  val basel: InfiniteSeries[Number] = InfiniteSeries(LazyList.from(1).map(x => Rational(x).invert.square))
+  val basel: InfiniteSeries[Number] = InfiniteSeries(LazyList.from(1).map(x => Rational(x).invert.square), 0.001)
 
   it should "term" in {
     basel.term(0) shouldBe Some(Number.one)

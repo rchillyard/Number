@@ -98,7 +98,7 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
     *
     * @return The convergence rate as a `Double`.
     */
-  def convergenceRate: Double = 0.001
+  def convergenceRate: Double
 
   /**
     * Retrieves the term at the specified index from the series, if the index is valid.
@@ -155,6 +155,17 @@ case class FiniteSeries[X: Numeric](terms: List[X]) extends AbstractSeries[X](te
     */
   def nTerms: Option[Int] =
     Some(terms.length)
+
+  /**
+    * Returns the default convergence rate used for evaluating the series.
+    * The convergence rate determines the threshold at which terms in the series
+    * are considered sufficiently small to be ignored in the evaluation.
+    * This is used to determine the error bounds when evaluating to a tolerance.
+    * The error bounds are the tolerance divided by this number
+    *
+    * @return The convergence rate as a `Double`.
+    */
+  def convergenceRate: Double = 1
 }
 
 /**
@@ -165,7 +176,7 @@ case class FiniteSeries[X: Numeric](terms: List[X]) extends AbstractSeries[X](te
   * @tparam X The type of elements in the series, which must have a `Numeric` type-class instance.
   * @param terms A lazy sequence representing the terms of the infinite series.
   */
-case class InfiniteSeries[X: Numeric](terms: LazyList[X]) extends AbstractSeries[X](terms) {
+case class InfiniteSeries[X: Numeric](terms: LazyList[X], convergenceRate: Double) extends AbstractSeries[X](terms) {
   /**
     * Retrieves the number of terms of the series, if defined.
     *
