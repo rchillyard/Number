@@ -16,9 +16,17 @@ class PolynomialSpec extends AnyFlatSpec {
   val p2: RationalPolynomial = RationalPolynomial(1, 1, 1)
   val p4: RationalPolynomial = RationalPolynomial(3, 2, 5, 4, 1)
 
-  it should "apply" in {
-    p2.apply(0) shouldBe Rational.zero
-    p4.apply(0) shouldBe Rational.zero
+  it should "apply 0" in {
+    p2.apply(0) shouldBe Rational.one
+    p4.apply(0) shouldBe Rational.three
+  }
+  it should "apply 1" in {
+    p2.apply(1) shouldBe Rational.three
+    p4.apply(1) shouldBe Rational(15)
+  }
+  it should "apply 2" in {
+    p2.apply(2) shouldBe (Rational.two ∧ 3) - 1
+    p4.apply(2) shouldBe Rational.three + 2 * 2 + Rational(5) * 4 + Rational.four * 8 + 16
   }
   it should "degree" in {
     p2.degree shouldBe 2

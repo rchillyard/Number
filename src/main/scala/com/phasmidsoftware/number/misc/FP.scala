@@ -377,9 +377,7 @@ object FP {
     * @return the result of raising the base number to the specified exponent
     */
   def power[X: Numeric](x: X, n: Int): X =
-    if (x == implicitly[Numeric[X]].zero)
-      implicitly[Numeric[X]].zero
-    else if (n == 0)
+    if (n == 0)
       implicitly[Numeric[X]].one
     else
       implicitly[Numeric[X]].times(x, power(x, n - 1))

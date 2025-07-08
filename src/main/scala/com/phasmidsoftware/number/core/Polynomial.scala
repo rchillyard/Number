@@ -48,7 +48,9 @@ trait Polynomial[X] extends (X => X) {
   def apply(x: X): X =
     coefficients.zipWithIndex.foldLeft(numeric.zero) {
       case (a, (z, i)) =>
-        val y: X = numeric.times(FP.power(x, i)(numeric), z)
+        implicit val xn: Numeric[X] = this.numeric
+        val q = FP.power(x, i)
+        val y: X = numeric.times(q, z)
         numeric.plus(a, y)
     }
 
@@ -135,6 +137,10 @@ case class NumberPolynomial(degree: Int, coefficients: Seq[Number])(implicit ev:
   override def toString(): String = render
 }
 
+object NumberPolynomial {
+  def apply(coefficients: Number*)(implicit ev: Numeric[Number]): NumberPolynomial =
+    new NumberPolynomial(coefficients.size - 1, coefficients)(ev)
+}
 /**
   * Represents a rational polynomial, defined by a degree and a sequence of rational coefficients.
   *
