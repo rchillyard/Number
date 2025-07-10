@@ -13,21 +13,23 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   behavior of "FiniteSeries"
 
-  val s = FiniteSeries(List(1, 2, 3, 4, 5, 6, 7))
+  val coefficients: Seq[FuzzyDouble] = Seq(1, 2, 3, 4, 5, 6, 7)
+
+  val s = FiniteSeries(coefficients)
 
   it should "term" in {
-    s.term(0) shouldBe Some(1)
-    s.term(1) shouldBe Some(2)
-    s.term(2) shouldBe Some(3)
-    s.term(6) shouldBe Some(7)
+    s.term(0) shouldBe Some(FuzzyDouble(1))
+    s.term(1) shouldBe Some(FuzzyDouble(2))
+    s.term(2) shouldBe Some(FuzzyDouble(3))
+    s.term(6) shouldBe Some(FuzzyDouble(7))
     s.term(7) shouldBe None
   }
 
-  it should "evaluate n" in {
-    s.evaluate(None) shouldBe Some(28)
+  it should "evaluateToTolerance n" in {
+    s.evaluate(None) should matchPattern { case Some(FuzzyDouble(28, _)) => }
   }
 
-  it should "evaluate epsilon" in {
+  it should "evaluateToTolerance epsilon" in {
 
   }
 
@@ -43,18 +45,18 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     t.term(7) shouldBe Some(8)
   }
 
-  it should "evaluate n" in {
+  it should "evaluateToTolerance n" in {
     t.evaluate(Some(1)) shouldBe Some(1)
     t.evaluate(Some(4)) shouldBe Some(10)
     t.evaluate(Some(7)) shouldBe Some(28)
     val n = Random.nextInt(1000)
     t.evaluate(Some(n)) shouldBe Some(n * (n + 1) / 2)
   }
-  it should "evaluate infinity" in {
+  it should "evaluateToTolerance infinity" in {
     t.evaluate(None) shouldBe None
   }
 
-  it should "evaluate epsilon" in {
+  it should "evaluateToTolerance epsilon" in {
   }
 
   behavior of "Basel Problem"
@@ -66,19 +68,19 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     basel.term(1) shouldBe Number(4).invert.asNumber
   }
 
-  it should "evaluate n" in {
+  it should "evaluateToTolerance n" in {
     basel.evaluate(Some(1)) shouldBe Some(Number.one)
     basel.evaluate(Some(2)) shouldBe Number(Rational(5, 4)).asNumber
   }
-  it should "evaluate N" in {
+  it should "evaluateToTolerance N" in {
     println(basel.term(1000))
     val b1000 = basel.evaluate(Some(1000)).get
     b1000.toNominalDouble.get shouldBe 1.64393456668156 +- 1E-6
     b1000.fuzz.isDefined shouldBe false
   }
   // NOTE this test needs some attention.
-  it should "evaluate epsilon" in {
-    val actual = basel.evaluate(1E-6)
+  it should "evaluateToTolerance epsilon" in {
+    val actual = basel.evaluateToTolerance(1E-6)
     actual.isSuccess shouldBe true
     println(s"actual = ${actual.get}")
     val expected = Number.pi.square.doDivide(Number(6))

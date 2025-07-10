@@ -25,7 +25,7 @@ trait Series[X] {
     * @return a Try containing the result of the evaluation if successful, or a Failure
     *         if the series could not be evaluated
     */
-  def evaluate(epsilon: Double): Try[X]
+  def evaluateToTolerance(epsilon: Double): Try[X]
 
   /**
     * Evaluates the series up to a specified number of terms if provided.
@@ -64,9 +64,6 @@ trait Series[X] {
   */
 abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
 
-  val termsLazy: LazyList[X] = terms.to(LazyList)
-  println(termsLazy.head)
-
   /**
     * Evaluates the series by summing the terms until their absolute value falls below a given threshold.
     * NOTE: the result of this method is always a `Try[Number]`, regardless of `X`.
@@ -78,8 +75,8 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
     *         if the computation fails.
     * @throws ClassCastException if `X` is not `Fuzz[Double]`.
     */
-  def evaluate(epsilon: Double): Try[X] = {
-    val triedX = Try(terms.takeWhile(x => math.abs(implicitly[Numeric[X]].toDouble(x)) > epsilon).sum)
+  def evaluateToTolerance(epsilon: Double): Try[X] = {
+    val triedX: Try[X] = Try(terms.takeWhile(x => math.abs(implicitly[Numeric[X]].toDouble(x)) > epsilon).sum)
     val result: Try[Fuzz[Double]] = triedX map {
       case f: Fuzz[Double] => // NOTE that we cannot guarantee Double
         f.fuzz match {
@@ -159,7 +156,7 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     *         if the computation fails.
     * @throws ClassCastException if `X` is not `Fuzz[Double]`.
     */
-  def evaluate(epsilon: Double): Try[X] = {
+  def evaluateToTolerance(epsilon: Double): Try[X] = {
     val triedX = Try(terms.takeWhile(x => math.abs(implicitly[Numeric[X]].toDouble(x)) > epsilon).sum)
     val result: Try[Fuzz[Double]] = triedX map {
       case f: Fuzz[Double] => // NOTE that we cannot guarantee Double

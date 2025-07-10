@@ -7,78 +7,21 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Series
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import scala.util.Try
+import scala.language.implicitConversions
+import scala.math.Numeric.DoubleIsFractional
 
-class PowerSeriesSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
+class PowerSeriesSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "PowerSeries"
 
-  val p2: NumberPolynomial = NumberPolynomial(5, 3, 1)
-  val p4: NumberPolynomial = NumberPolynomial(3, 2, 5, 4, 1)
-  it should "asReal" in {
 
+  it should "apply" in {
+    val coefficients: Seq[FuzzyDouble] = Seq(1, 2, 3, 4, 5)
+    val powerSeries: FinitePowerSeries[Double, FuzzyDouble] = FinitePowerSeries[Double, FuzzyDouble](coefficients)(FuzzyDouble.apply)
+    val series: Series[FuzzyDouble] = powerSeries(2)
+    val value: Option[FuzzyDouble] = series.evaluate(Some(2))
+    value.isDefined shouldBe true
+    val result: FuzzyDouble = value.get
+    result should matchPattern { case FuzzyDouble(5, _) => }
   }
-
-  it should "isSame" in {
-
-  }
-
-  it should "signum" in {
-
-  }
-
-  it should "evaluate i" in {
-
-  }
-
-  it should "evaluate x" in {
-
-  }
-
-  it should "isZero" in {
-
-  }
-
-  it should "isExact" in {
-
-  }
-
-  it should "asNumber" in {
-
-  }
-
-  it should "getTerm" in {
-
-  }
-
-  it should "approximation 1" in {
-
-  }
-
-  it should "approximation 2" in {
-
-  }
-
-  it should "toString" in {
-  }
-
-  ignore should "render" in {
-  }
-
-  it should "isUnity" in {
-
-  }
-
-  it should "ddd" in {
-    val taylorSeries: TaylorSeries = TaylorSeries.createTaylorSeriesForSine(Number.zeroR)
-    val w = taylorSeries.render
-    println(w)
-    val piOver100: Number = Number.pi.divide(Real(100)).asReal.get.x
-    val sinePiOver100: Series[Number] = taylorSeries.apply(piOver100)
-    val result: Try[Number] = sinePiOver100.evaluate(1E-6)
-    result.isSuccess shouldBe true
-    // FIXME 
-//    result.get should ===(piOver100)
-  }
-
 }
