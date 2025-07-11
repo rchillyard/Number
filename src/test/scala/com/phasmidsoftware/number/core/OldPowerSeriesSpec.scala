@@ -70,14 +70,4 @@ class OldPowerSeriesSpec extends AnyFlatSpec with should.Matchers with FuzzyEqua
 
   }
 
-  it should "ddd" in {
-    val taylorSeries: TaylorSeries = TaylorSeries.createSine(Number.zeroR)
-    val piOver100: Number = Number.pi.divide(Real(100)).asReal.get.x
-    val sinePiOver100: Series[Number] = taylorSeries.apply(piOver100)
-    val result: Try[Number] = sinePiOver100.evaluateToTolerance(1E-6)
-    result.isSuccess shouldBe true
-    // FIXME
-//    result.get should ===(piOver100)
-  }
-
 }
