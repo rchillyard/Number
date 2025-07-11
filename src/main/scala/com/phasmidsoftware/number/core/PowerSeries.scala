@@ -86,24 +86,30 @@ case class FinitePowerSeries[X: Numeric, Y: Numeric](coefficients: Seq[Y])(f: X 
   val yn: Numeric[Y] = implicitly[Numeric[Y]]
 }
 
+case class SeriesFunction(f: Number => Number, name: String) extends (Number => Number) {
+  def apply(x: Number): Number = f(x)
+
+  override def toString: String = name
+}
 
 /**
-  * Represents an infinite Taylor series implemented lazily, inheriting from `LazyPowerSeries`.
+  * Represents a Taylor series, a form of power series centered at a specific point,
+  * which approximates functions by iteratively calculating derivatives at the center point.
   *
-  * The `InfiniteTaylorSeries` class provides a foundation for defining mathematical Taylor series
-  * with an infinite number of terms. Each term of the series is calculated lazily, allowing for
-  * efficient computation and evaluation on-demand. This abstract class serves as a base for any
-  * specific Taylor series and leverages the functionality of `LazyPowerSeries`.
-  *
-  * By extending `LazyPowerSeries`, it inherits the capability to represent terms as a lazy list
-  * and evaluateToTolerance a specified number of terms.
+  * @param point         The central point at which the Taylor series is evaluated.
+  * @param startFunction The function whose Taylor series is being computed, represented as a `SeriesFunction`.
+  * @param derivative    A function that computes the derivative of a given `SeriesFunction`.
   */
-case class TaylorSeries(point: Number, function: SeriesFunction, derivative: SeriesFunction => SeriesFunction) extends PowerSeries[Number, Number] {
+case class TaylorSeries(point: Number, startFunction: SeriesFunction, derivative: SeriesFunction => SeriesFunction) extends PowerSeries[Number, Number] {
 
-  lazy val functions: LazyList[SeriesFunction] = LazyList.iterate(function)(f => derivative(f))
+  lazy val functions: LazyList[SeriesFunction] =
+    LazyList.iterate(startFunction) { f => derivative(f) }
   lazy val coefficients: LazyList[Number] = functions.map(f => f(point))
   // CONSIDER we could use scanLeft and just multiply by the index (wouldn't need factorial, then)
-  lazy val terms: LazyList[Number] = coefficients.zipWithIndex.map { case (c, i) => c doMultiple Rational(Factorial(i)).invert }
+  lazy val terms: LazyList[Number] = coefficients.zipWithIndex.map {
+    case (c, i) =>
+      c doMultiple Rational(Factorial(i)).invert
+  }
 
   /**
     * Evaluates the infinite Taylor series for the given input `x` by generating a new series
@@ -112,8 +118,11 @@ case class TaylorSeries(point: Number, function: SeriesFunction, derivative: Ser
     * @param x the input value of type `Number` for which the series is evaluated
     * @return a new series of type `Series[Number]` representing the evaluated infinite Taylor series
     */
-  def apply(x: Number): Series[Number] =
-    InfiniteSeries(terms, 0.01)
+  def apply(x: Number): Series[Number] = {
+    val ys = terms zip LazyList.iterate(Number.one)(y => y.doMultiply(x))
+    val xs = ys.map { case (a, b) => a.doMultiply(b) }
+    InfiniteSeries(xs, 0.001)
+  }
 }
 
 /**
@@ -128,16 +137,20 @@ object TaylorSeries {
     * @return A TaylorSeries instance representing the sine function.
     */
   def createSine(point: Number): TaylorSeries = {
-    val sine: SeriesFunction = x => x.sin
-    val cosine: SeriesFunction = x => x.cos
-    val negSine: SeriesFunction = x => x.sin.makeNegative
-    val negCosine: SeriesFunction = x => x.cos.makeNegative
+    val sine: SeriesFunction =
+      SeriesFunction(x => x.sin, "sine")
+    val cosine: SeriesFunction =
+      SeriesFunction(x => x.cos, "cosine")
+    val negSine: SeriesFunction =
+      SeriesFunction(x => x.sin.makeNegative, "negSine")
+    val negCosine: SeriesFunction =
+      SeriesFunction(x => x.cos.makeNegative, "negCosine")
 
     def getDerivative(function: SeriesFunction): SeriesFunction = function match {
-      case sine => cosine
-      case cosine => negSine
-      case negSine => negCosine
-      case negCosine => sine
+      case `sine` => cosine
+      case `cosine` => negSine
+      case `negSine` => negCosine
+      case `negCosine` => sine
     }
 
     TaylorSeries(point, sine, f => getDerivative(f))

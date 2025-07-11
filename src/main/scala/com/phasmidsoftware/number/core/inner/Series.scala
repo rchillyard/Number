@@ -37,6 +37,14 @@ trait Series[X] {
   def evaluate(maybeN: Option[Int]): Option[X]
 
   /**
+    * Retrieves the sequence of terms in the series.
+    * NOTE that the sequence may be a `List` or a `LazyList` or something else.
+    *
+    * @return a sequence of terms of type X, representing the elements of the series
+    */
+  def terms: Seq[X]
+
+  /**
     * Computes the nth term of the series.
     *
     * @param n the index of the term to compute, where the index starts from 0
@@ -51,6 +59,20 @@ trait Series[X] {
     * @return an Option containing the number of terms in the series, or None if the number is undefined
     */
   def nTerms: Option[Int]
+
+  /**
+    * Generates a string representation of the series, including up to a specified number of terms.
+    * The output is formatted as "Series: (n terms) x1, x2, ..., xn,".
+    *
+    * @param n the number of terms to include in the rendered representation of the series
+    * @return a string that represents the series with up to `n` terms
+    */
+  def render(n: Int): String = {
+    val sb = new StringBuilder().append("Series: ")
+    nTerms.foreach(n => sb.append(s"($n terms) "))
+    terms.take(n).foreach(x => sb.append(s"$x, "))
+    sb.toString()
+  }
 }
 
 /**
@@ -78,7 +100,7 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
   def evaluateToTolerance(epsilon: Double): Try[X] = {
     val triedX: Try[X] = Try(terms.takeWhile(x => math.abs(implicitly[Numeric[X]].toDouble(x)) > epsilon).sum)
     val result: Try[Fuzz[Double]] = triedX map {
-      case f: Fuzz[Double] => // NOTE that we cannot guarantee Double
+      case f: Fuzz[Double] => // NOTE that this is unchecked
         f.fuzz match {
           case Some(z) =>
             f.addFuzz(z.uncertainty(epsilon / convergenceRate))
@@ -114,6 +136,8 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
   /**
     * Evaluates the series by summing the specified number of terms or a default number of terms if not provided.
     * If any term cannot be evaluated, the method returns `None`.
+    *
+    * CONSIDER merge with the other implementation of this
     *
     * @param maybeN An optional integer specifying the number of terms to evaluate. If not provided, the default number of terms will be used.
     * @return An `Option[X]` containing the result of the summation if all terms are successfully evaluated, or `None` if any term evaluation fails.
@@ -145,6 +169,7 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
   * @param terms A sequence representing the terms of the mathematical series.
   */
 abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Series[X] {
+
   /**
     * Evaluates the series by summing the terms until their absolute value falls below a given threshold.
     * NOTE: the result of this method is always a `Try[Number]`, regardless of `X`.
@@ -157,7 +182,12 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     * @throws ClassCastException if `X` is not `Fuzz[Double]`.
     */
   def evaluateToTolerance(epsilon: Double): Try[X] = {
-    val triedX = Try(terms.takeWhile(x => math.abs(implicitly[Numeric[X]].toDouble(x)) > epsilon).sum)
+    def absDouble(x: X) = math.abs(xn.toDouble(x))
+
+    val isValid: X => Boolean = x => x == xn.zero || absDouble(x) > epsilon
+    val triedX = Try(terms.takeWhile(isValid).foldLeft(xn.zero) {
+      (total, x) => xn.plus(total, x)
+    })
     val result: Try[Fuzz[Double]] = triedX map {
       case f: Fuzz[Double] => // NOTE that we cannot guarantee Double
         f.fuzz match {
@@ -200,7 +230,6 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     * @return An `Option[X]` containing the result of the summation if all terms are successfully evaluated, or `None` if any term evaluation fails.
     */
   def evaluate(maybeN: Option[Int] = None): Option[X] = {
-    val xn = implicitly[Numeric[X]]
     maybeN.orElse(nTerms) flatMap {
       n =>
         Range(0, n).foldLeft[Option[X]](Some(xn.zero)) {
@@ -214,6 +243,8 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
         }
     }
   }
+
+  private val xn: Numeric[X] = implicitly[Numeric[X]]
 }
 
 /**

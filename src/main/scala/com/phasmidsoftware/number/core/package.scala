@@ -30,6 +30,6 @@ package object core {
     */
   val DoublePrecisionTolerance: Double = 1.6E-16
 
-  type SeriesFunction = Number => Number
+//  type SeriesFunction = Number => Number
 
 }
