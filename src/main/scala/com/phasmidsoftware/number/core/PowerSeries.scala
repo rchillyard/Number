@@ -26,6 +26,8 @@ trait PowerSeries[X, Y] extends (X => Series[Y]) {
   * Represents a lazy power series that is computed on demand, using a sequence of pre-specified
   * coefficients and a transformation function for powers of the input variable.
   *
+  * TESTME (not currently used)
+  *
   * This class allows defining power series where the terms are calculated as required, combining
   * both the provided coefficients and a transformation of the powers of the input.
   *
@@ -93,14 +95,18 @@ case class SeriesFunction(f: Number => Number, name: String) extends (Number => 
 }
 
 /**
-  * Represents a Taylor series, a form of power series centered at a specific point,
-  * which approximates functions by iteratively calculating derivatives at the center point.
+  * Represents a mathematical Taylor series, a specific type of power series that approximates
+  * smooth functions near a specified point. The series is defined by its expansion point,
+  * its starting function, derivative rules for generating further terms, and a convergence
+  * tolerance.
   *
-  * @param point         The central point at which the Taylor series is evaluated.
-  * @param startFunction The function whose Taylor series is being computed, represented as a `SeriesFunction`.
-  * @param derivative    A function that computes the derivative of a given `SeriesFunction`.
+  * @constructor Creates a Taylor series with the given parameters.
+  * @param point         The point at which the Taylor series is centered.
+  * @param startFunction The initial function defining the Taylor series.
+  * @param derivative    A function that computes the derivative of the series function.
+  * @param convergence   A value specifying the convergence tolerance of the series.
   */
-case class TaylorSeries(point: Number, startFunction: SeriesFunction, derivative: SeriesFunction => SeriesFunction) extends PowerSeries[Number, Number] {
+case class TaylorSeries(point: Number, startFunction: SeriesFunction, derivative: SeriesFunction => SeriesFunction, convergence: Double) extends PowerSeries[Number, Number] {
 
   lazy val functions: LazyList[SeriesFunction] =
     LazyList.iterate(startFunction) { f => derivative(f) }
@@ -121,7 +127,7 @@ case class TaylorSeries(point: Number, startFunction: SeriesFunction, derivative
   def apply(x: Number): Series[Number] = {
     val ys = terms zip LazyList.iterate(Number.one)(y => y.doMultiply(x))
     val xs = ys.map { case (a, b) => a.doMultiply(b) }
-    InfiniteSeries(xs, 0.001)
+    InfiniteSeries(xs, convergence)
   }
 }
 
@@ -131,10 +137,10 @@ case class TaylorSeries(point: Number, startFunction: SeriesFunction, derivative
   */
 object TaylorSeries {
   /**
-    * Creates a Taylor series representation for the sine function at a given point.
+    * Creates a Taylor series representation of the sine function at a given point.
     *
-    * @param point The point at which the Taylor series is centered.
-    * @return A TaylorSeries instance representing the sine function.
+    * @param point the x-coordinate at which the Taylor series is centered
+    * @return an instance of `TaylorSeries` representing the sine function
     */
   def createSine(point: Number): TaylorSeries = {
     val sine: SeriesFunction =
@@ -153,6 +159,8 @@ object TaylorSeries {
       case `negCosine` => sine
     }
 
-    TaylorSeries(point, sine, f => getDerivative(f))
+    // XXX this is an appropriate value of convergence fo the sine Taylor series.
+    val convergence = 0.002
+    TaylorSeries(point, sine, f => getDerivative(f), convergence)
   }
 }

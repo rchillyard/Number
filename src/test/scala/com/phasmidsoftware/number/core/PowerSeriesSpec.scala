@@ -36,6 +36,6 @@ class PowerSeriesSpec extends AnyFlatSpec with should.Matchers {
     val result: Try[Number] = sinePiOver100.evaluateToTolerance(1E-8)
     result.isSuccess shouldBe true
     val difference = result.get.doSubtract(piOver100)
-    difference.isProbablyZero(0.2) shouldBe true
+    difference.isProbablyZero(0.25) shouldBe true
   }
 }

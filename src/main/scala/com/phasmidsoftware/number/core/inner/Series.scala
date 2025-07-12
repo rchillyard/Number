@@ -12,6 +12,8 @@ import scala.util.Try
   * A trait representing a mathematical series, where terms can be computed
   * and evaluated up to a certain level of precision or number of terms.
   *
+  * CONSIDER extending some trait like Valuable, NumberLike, Numerical, or Fuzz...
+  *
   * @tparam X the type of the series terms
   */
 trait Series[X] {
@@ -146,15 +148,11 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
     val xn = implicitly[Numeric[X]]
     maybeN.orElse(nTerms) flatMap {
       n =>
-        Range(0, n).foldLeft[Option[X]](Some(xn.zero)) {
-          case (Some(total), i) =>
-            term(i) match {
-              case Some(x) =>
-                Some(xn.plus(total, x))
-              case _ =>
-                None
-            }
-        }
+        val nTerms: Seq[X] = for {
+          i <- 0 until n
+          term <- term(i)
+        } yield term
+        Some(nTerms.sum(xn))
     }
   }
 }
@@ -185,9 +183,7 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     def absDouble(x: X) = math.abs(xn.toDouble(x))
 
     val isValid: X => Boolean = x => x == xn.zero || absDouble(x) > epsilon
-    val triedX = Try(terms.takeWhile(isValid).foldLeft(xn.zero) {
-      (total, x) => xn.plus(total, x)
-    })
+    val triedX = Try(terms.takeWhile(isValid).sum(xn))
     val result: Try[Fuzz[Double]] = triedX map {
       case f: Fuzz[Double] => // NOTE that we cannot guarantee Double
         f.fuzz match {
@@ -232,15 +228,11 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
   def evaluate(maybeN: Option[Int] = None): Option[X] = {
     maybeN.orElse(nTerms) flatMap {
       n =>
-        Range(0, n).foldLeft[Option[X]](Some(xn.zero)) {
-          case (Some(total), i) =>
-            term(i) match {
-              case Some(x) =>
-                Some(xn.plus(total, x))
-              case _ =>
-                None
-            }
-        }
+        val nTerms: Seq[X] = for {
+          i <- 0 until n
+          term <- term(i)
+        } yield term
+        Some(nTerms.sum(xn))
     }
   }
 
