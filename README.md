@@ -691,24 +691,34 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 Type Hierarchy
 ==============
 Note that the type hierarchy is very likely to change in version 1.3
-* _Numerical_ (trait: most numeric quantities)
-  * _Field_ (trait: something like the mathematical concept of a field)
-    * _Real_ (case class: a real number based on one _Number_)
-    * _Multivariate_ (trait which really should be called Algebraic)
-      * _Complex_ (trait: a complex number)
-        * _BaseComplex_ (abstract class)
-          * _ComplexCartesian_ (case class: Cartesian form of complex number)
-          * _ComplexPolar_ (case class: polar form of complex number)
-      * _Algebraic_ (trait: an algebraic number)
-  * _Number_ (trait: a quantity representing a number)
-    * _GeneralNumber_ (abstract class)
-      * _ExactNumber_ (case class: an exact number defined by a _Value_ and a _Factor_)
-      * _FuzzyNumber_ (case class: an exact number defined by a _Value_, a _Factor_, and an optional _Fuzziness_)
-* _Rational_ (case class: rational numbers)
-* _Solution_ (trait: a solution to an _Algebraic_ quantity--think of this is defining a named tuple that represents the components of the solution)
-  * _LinearSolution_ (case class: a linear solution)
-  * _QuadraticSolution_ (case class: a quadratic solution)
-* _Expression_ (trait: lazy numeric quantities: see below)
+* _NumberLike_ (trait)
+  * _Numerical_ (trait: most numeric quantities)
+    * _Field_ (trait: something like the mathematical concept of a field)
+      * _Real_ (case class: a real number based on one _Number_)
+      * _Multivariate_ (trait which really should be called Algebraic)
+        * _Complex_ (trait: a complex number)
+          * _BaseComplex_ (abstract class)
+            * _ComplexCartesian_ (case class: Cartesian form of complex number)
+            * _ComplexPolar_ (case class: polar form of complex number)
+        * _Algebraic_ (trait: an algebraic number)
+    * _Number_ (trait: a quantity representing a number)
+      * _GeneralNumber_ (abstract class)
+        * _ExactNumber_ (case class: an exact number defined by a _Value_ and a _Factor_)
+        * _FuzzyNumber_ (case class: an exact number defined by a _Value_, a _Factor_, and an optional _Fuzziness_)
+  * _Rational_ (case class: rational numbers)
+  * _Solution_ (trait: a solution to an _Algebraic_ quantity--think of this is defining a named tuple that represents the components of the solution)
+    * _LinearSolution_ (case class: a linear solution)
+    * _QuadraticSolution_ (case class: a quadratic solution)
+  * _Expression_ (trait: lazy numeric quantities: see below)
+* _Series_ (trait)
+  * _AbstractSeries_
+    * _FiniteSeries_
+  * _AbstractInfiniteSeries_
+    * _InfiniteSeries_
+* _PowerSeries_ (trait)
+  * _LazyPowerSeries_
+  * _FinitePowerSeries_
+  * _TaylorSeries_
 
 Expressions
 ===========
@@ -776,6 +786,7 @@ Other types (for reference):
 
 Versions
 ========
+* Version 1.2.3: Introduced Series, PowerSeries, and TaylorSeries.
 * Version 1.2.2: Changed the name of RQR into Quadratic and introduced Algebraic.
 * Version 1.2.1: Improved RQR classes.
 * Version 1.2.0: Another massive refactoring.
