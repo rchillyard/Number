@@ -12,7 +12,7 @@ import scala.util.Try
   * A trait representing a mathematical series, where terms can be computed
   * and evaluated up to a certain level of precision or number of terms.
   *
-  * CONSIDER extending some trait like Valuable, NumberLike, Numerical, or Fuzz...
+  * CONSIDER extending some trait like Valuable, NumberLike, Numerical, Evaluatable, or Fuzz...
   *
   * @tparam X the type of the series terms
   */
@@ -97,12 +97,12 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
     *                Terms with an absolute value less than this will not be included.
     * @return A `Try` containing the result of the series evaluation if successful, or an exception
     *         if the computation fails.
-    * @throws ClassCastException if `X` is not `Fuzz[Double]`.
+    * @throws java.lang.ClassCastException if `X` is not `Fuzz[Double]`.
     */
   def evaluateToTolerance(epsilon: Double): Try[X] = {
     val triedX: Try[X] = Try(terms.takeWhile(x => math.abs(implicitly[Numeric[X]].toDouble(x)) > epsilon).sum)
     val result: Try[Fuzz[Double]] = triedX map {
-      case f: Fuzz[Double] => // NOTE that this is unchecked
+      case f: Fuzz[Double] => // NOTE: unchecked (Double is eliminated by erasure).
         f.fuzz match {
           case Some(z) =>
             f.addFuzz(z.uncertainty(epsilon / convergenceRate))
@@ -177,7 +177,7 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     *                Terms with an absolute value less than this will not be included.
     * @return A `Try` containing the result of the series evaluation if successful, or an exception
     *         if the computation fails.
-    * @throws ClassCastException if `X` is not `Fuzz[Double]`.
+    * @throws java.lang.ClassCastException if `X` is not `Fuzz[Double]`.
     */
   def evaluateToTolerance(epsilon: Double): Try[X] = {
     def absDouble(x: X) = math.abs(xn.toDouble(x))
@@ -185,7 +185,7 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     val isValid: X => Boolean = x => x == xn.zero || absDouble(x) > epsilon
     val triedX = Try(terms.takeWhile(isValid).sum(xn))
     val result: Try[Fuzz[Double]] = triedX map {
-      case f: Fuzz[Double] => // NOTE that we cannot guarantee Double
+      case f: Fuzz[Double] => // NOTE: unchecked (Double is eliminated by erasure).
         f.fuzz match {
           case Some(z) =>
             f.addFuzz(z.uncertainty(epsilon / convergenceRate))

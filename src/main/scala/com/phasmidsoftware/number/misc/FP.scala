@@ -286,7 +286,7 @@ object FP {
    * @param t  a throwable.
    * @tparam X the underlying type of xo and the type of the result.
    * @return the value of xo or throws t.
-   * @throws Throwable t
+   * @throws java.lang.Throwable t
    */
   def getOrThrow[X](xo: => Option[X], t: => Throwable): X = xo.getOrElse(throw t)
 

@@ -783,6 +783,10 @@ Other types (for reference):
 * _Approximatable_ (supertype of _Field_ and _Expression_)
 * _Numerical_ (super-trait of _Field_ and _Number_)
 * _Operation_ (see above)
+* _Prime_ (case class)
+* _ContinuedFraction_ (case class)
+* _Evaluatable_ (trait)
+  * _ConFrac_ (class)
 
 Versions
 ========
