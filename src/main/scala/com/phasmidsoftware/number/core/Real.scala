@@ -21,6 +21,16 @@ import scala.util.Try
   */
 case class Real(x: Number) extends Field {
   /**
+    * @return false.
+    */
+  def isAlgebraic: Boolean = false
+
+  /**
+    * @return false.
+    */
+  def isComplex: Boolean = false
+
+  /**
     * Method to determine if this NumberLike object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *

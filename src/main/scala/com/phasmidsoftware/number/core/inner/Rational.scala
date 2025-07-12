@@ -835,7 +835,7 @@ object Rational {
    * @param x       the value to approximate (should be between 0 and 1).
    * @param epsilon (implicit) the tolerance.
    * @return a Rational such that the difference between the result and x is less than epsilon.
-   * @throws IllegalArgumentException if x is not between 0 and 1.
+   * @throws java.lang.IllegalArgumentException if x is not between 0 and 1.
    */
   def approximate(x: Double)(implicit epsilon: Tolerance): Rational = {
     require(x >= 0 && x <= 1, "Call convertDouble instead of approximate")
@@ -886,7 +886,7 @@ object Rational {
     *
     * @param x the value.
     * @return a Rational equal to or approximately equal to x.
-    * @throws NoSuchElementException because we invoke get on an Option[Rational].
+    * @throws java.util.NoSuchElementException because we invoke get on an Option[Rational].
     */
   implicit def convertDouble(x: Double): Rational =
     createExact(x).get // NOTE using get
@@ -1186,7 +1186,7 @@ object Rational {
    *
    * @param w the String value.
    * @return a Rational corresponding to the value given by w.
-   * @throws RationalParserException if w is malformed.
+   * @throws com.phasmidsoftware.number.parse.RationalParserException if w is malformed.
    */
   def apply(w: String): Rational =
     parse(w).get

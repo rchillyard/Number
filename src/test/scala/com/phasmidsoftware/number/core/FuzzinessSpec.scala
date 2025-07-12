@@ -202,7 +202,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "Fuzziness.wiggle"
-  it should "be likely for 1.251" in {
+  it should "be likely for 1.251 (box)" in {
     val xy = Number.parse("1.251")
     xy.isSuccess shouldBe true
     val x: Number = xy.get
@@ -264,6 +264,42 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     q.shape.wiggle(r, 0.8) shouldBe (r * 0.1791434546212916 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 0.9) shouldBe (r * 0.08885599049425764 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 1) shouldBe 0
+  }
+
+  it should "define the following ranges" in {
+    val x = Number.zero
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.5) shouldBe 0.6744897501960815
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.75) shouldBe 0.3186393639643751
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.25) shouldBe 1.1503493803760079
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.1) shouldBe 1.6448536269514729
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.01) shouldBe 2.5758293035489004
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.001) shouldBe 3.2905267314918945
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.0001) shouldBe 3.8905918864131213
+  }
+
+  it should "be likely." in {
+    val x = Number.zero
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(1 - 0.6827) shouldBe 1.0000217133229987
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(1 - 0.95) shouldBe 1.9599639845400538
+    x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(1 - 0.997) shouldBe 2.9677379253417824
+  }
+
+  behavior of "probability"
+  it should "work for a box" in {
+    val fuzz = Number.zero.addFuzz(AbsoluteFuzz(1, Box)).fuzz.get
+    fuzz.probability(1.0, 0.0) shouldBe 0
+    fuzz.probability(1.0, 0.25) shouldBe 0.5
+    fuzz.probability(1.0, 0.5) shouldBe 1
+  }
+  it should "work for a Gaussian" in {
+    val fuzz: Fuzziness[Double] = Number.zero.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get
+    fuzz.probability(1.0, 0.6744897501960815) shouldBe 0.5 +- 1E-6
+    fuzz.probability(1.0, 0.3186393639643751) shouldBe 0.25 +- 1E-6
+    fuzz.probability(1.0, 1.1503493803760079) shouldBe 0.75 +- 1E-6
+    fuzz.probability(1.0, 1.6448536269514729) shouldBe 0.9 +- 1E-6
+    fuzz.probability(1.0, 2.5758293035489004) shouldBe 0.99 +- 1E-6
+    fuzz.probability(1.0, 3.2905267314918945) shouldBe 0.999 +- 1E-6
+    fuzz.probability(1.0, 3.8905918864131213) shouldBe 0.9999 +- 1E-6
   }
 
   behavior of "map"

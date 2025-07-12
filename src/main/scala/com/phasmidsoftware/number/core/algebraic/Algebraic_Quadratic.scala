@@ -90,6 +90,8 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
           case _ =>
             throw NumberException(s"add($algebraic) is not supported for Algebraic_Quadratic")
         }
+      case _ =>
+        throw NumberException(s"add($algebraic) is not supported for solutions which are not QuadraticSolutions")
     }
 
   /**

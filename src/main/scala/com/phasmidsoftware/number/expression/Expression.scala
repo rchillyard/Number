@@ -702,7 +702,7 @@ sealed trait CompositeExpression extends Expression {
   */
 case object Noop extends AtomicExpression {
 
-  val value: Field =
+  lazy val value: Field =
     throw new UnsupportedOperationException("Noop.value")
 
   /**
@@ -1869,7 +1869,7 @@ object Aggregate {
     * @param function the binary function used to compose the `Aggregate`.
     * @param xs       a sequence of `Expression` objects to be aggregated.
     * @return an `Aggregate` instance composed of the binary function and the sequence of expressions.
-    * @throws IllegalArgumentException if the sequence of expressions is empty.
+    * @throws java.lang.IllegalArgumentException if the sequence of expressions is empty.
     */
   def create(function: ExpressionBiFunction, xs: Seq[Expression]): Aggregate =
     if (xs.nonEmpty)
@@ -2693,7 +2693,7 @@ case object Power extends ExpressionBiFunction("^", (x, y) => x.power(y), isExac
     *         or `None` if the operation fails to meet exactness requirements.
     */
   def applyExact(a: Field, b: Field): Option[Field] = (a, b) match {
-    case (Real(x@ExactNumber(_, _)), Real(y@ExactNumber(v, PureNumber))) =>
+    case (Real(x@ExactNumber(_, _)), Real(y@ExactNumber(_, PureNumber))) =>
       val result: Number = x.doPower(y)
       when(result.isExact)(Real(result))
     case _ =>

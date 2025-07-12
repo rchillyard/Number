@@ -37,7 +37,7 @@ Introduction
 ============
 There are three articles on Medium regarding this library.
 They are [Number (part 1)](https://medium.com/codex/number-part-1-c98313903714),
-[Number (part 2)](https://scala-prof.medium.com/number-part-2-7925400624d5), and 
+[Number (part 2)](https://scala-prof.medium.com/number-part-2-7925400624d5), and
 [Fuzzy, lazy, functional numeric computing in Scala](https://medium.com/codex/fuzzy-lazy-functional-numeric-computing-in-scala-4b47588d310f)
 
 The _Number_ project provides mathematical utilities where error bounds are tracked (and not forgotten).
@@ -51,8 +51,45 @@ _Rational_ is simply a case class with _BigInt_ elements for the numerator and d
 It is, of course, perfectly possible to use the _Rational_ classes directly,
 without using the _Number_ (or _Expression_) classes.
 
-There are four domains of values, each identified by a Factor (see _Factors_ below).
+There are four domains of values, each identified by a domain or factor (see _Factors_ below).
 These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
+
+Current Version
+---------------
+The current version is 1.2.2. Here's a summary of what's new in 1.2:
+
+* The entire _ExpressionMatchers_ code base has been rewritten (leaving many deprecated methods which need to be cleaned
+  up):
+  * The key method for simplifying _Expression_s is _simplify_. This operates recursively by invoking _matchSimpler_
+    until it encounters a miss, in which case it returns the previous simplified version. There are four phases of
+    simplification for a _CompositeExpression_:
+    * _simplifyComponents_
+    * _simplifyTrivial_
+    * _simplifyConstant_
+    * _simplifyComposite_
+* _Algebraic_ quantities have been introduced:
+  * These represent solutions to equations that cannot be represented precisely with one quantity
+    * _Quadratic_ equations, for example, we can represent the Golden ratio $\phi$ exactly this way.
+    * _Linear_ equations (these solutions can already be represented, but this is just for completeness)
+* The _Root_ domain has been restructured to be more general.
+  * In addition to _SquareRoot_ and _CubeRoot_ (which were renamed from the ambiguous _Root2_ and _Root3_), there are
+    more general roots based on a rational inverse power.
+* This _README.md_ file has been improved (including a logo, thanks to Zijie).
+
+Sources
+-------
+Wikipedia has been my constant reference for basic mathematical relationships.
+
+However, much of the specific ideas and theory behind this project comes from the following book:
+
+- Abramowitz and Stegun, (1970). *Handbook of Mathematical Functions with Formulas, Graphs and Mathematical Tables, 9th printing*. Dover Publications.
+
+You can also find the 7th printing free online:
+
+- <cite>[Abramowitz and Stegun][1]</cite>
+
+[1]: https://archive.org/details/handbookofmathem00abra
+
 
 Java API
 ========
@@ -115,7 +152,7 @@ However, _Real(1.23)_ will be considered exact while _Real(1.234)_ will not.
 It's best always to use a String if you want to override the default behavior.
 
 In general, the form of a number to be parsed from a String is:
-  
+
     number ::= value? factor?
     factor ::= "Pi" | "pi" | "PI" | 𝛑 | 𝜀 | √ | ³√
     value ::= sign? nominalValue fuzz* exponent*
@@ -210,7 +247,7 @@ If they are from different domains, one number will be converted to the domain o
 If, after any conversion is taken into account, the two values compare equal, then the _Numbers_ are equal.
 For _ExactNumber_, comparison ends there.
 
-However, for _FuzzyNumber_, it is then determined whether there is a significant overlap 
+However, for _FuzzyNumber_, it is then determined whether there is a significant overlap
 between the fuzz of the two numbers.
 See _Fuzzy_, above.
 The _FuzzyNumber_ object has a method _fuzzyCompare_, which invokes _same_ for two fuzzy numbers, given a confidence value (_p_).
@@ -234,7 +271,7 @@ See the code for other methods for defining _Mill_ operations.
 The _Mill\.parse_ method in turn invokes methods of _MillParser_.
 
 The _Mill_ offers two parsers: one is a pure RPN parser (as described above).
-The other is an infix parser that uses 
+The other is an infix parser that uses
 [Dijkstra's Shunting Yard algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
 to build a _Mill_.
 
@@ -376,7 +413,7 @@ The hierarchy of _Factor_ is as follows:
   * _Logarithmic_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
     * _NatLog_ (object: natural log, i.e., $\log_e$)
     * _Log2_ (object: $\log_2$)
-    * _Log10_ (object: $\log_10$)
+    * _Log10_ (object: $\log_{10}$)
   * _InversePower_ (trait: all the roots)
     * _Root_ (abstract class)
       * _SquareRoot_ (object: the domain of square roots)
@@ -563,11 +600,11 @@ Let's assume that $y=fx$.
 Differentiating, we get,
 
 $$Δy=fΔx$$
-    
+
 Dividing both sides by _y_, yields
 
 $$\frac{Δy}{y}=\frac{Δx}{x}$$
-    
+
 Thus, the relative fuzz of _y_ is equal to the relative fuzz of _x_.
 
 When we multiply two fuzzy numbers together, we add the relative fuzzes together:
@@ -577,13 +614,13 @@ $$z+Δz=(x+Δx)(y+Δy)$$
 Therefore, (ignoring the term which is $ΔxΔy$),
 
 $$Δz=yΔx+xΔy$$
-    
+
 Dividing both sides by $z$:
 
 $$\frac{Δz}{z}=\frac{Δx}{x}+\frac{Δy}{y}$$
- 
+
 Thus, the relative fuzz of _z_ is equal to the sum of the relative fuzzes of _x_ and _y_.
-    
+
 But, when _Δx_ and _Δy_ are taken from a _Gaussian_ probability density function, the convolution of those two PDFs,
 is given by slightly different expressions depending on whether the PDFs are independent or correlated.
 See the code (_Fuzz_) for details.
@@ -598,7 +635,7 @@ $$\frac{Δy}{y}=\frac{x \frac{dy}{dx}(x)}{f(x)}\frac{Δx}{x}$$
 
 Constants cancel, powers survive as is and so on.
 
-For example, if $y=e^x$ then 
+For example, if $y=e^x$ then
 
 $$\frac{Δy}{y}=x\frac{Δx}{x}$$
 
@@ -649,34 +686,45 @@ For example, the golden ratio ($\phi$) can be evaluated using an infinite contin
 the coefficients are all 1.
 Continued fractions can be used to generate "convergents" which are rational numbers and which
 approximate a value.
-For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, etc. 
+For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, etc.
 
 Type Hierarchy
 ==============
 Note that the type hierarchy is very likely to change in version 1.3
-* _Numerical_ (trait: most numeric quantities)
-  * _Field_ (trait: something like the mathematical concept of a field)
-    * _Real_ (case class: a real number based on one _Number_)
-    * _Complex_ (trait: a complex number)
-      * _BaseComplex_ (abstract class)
-        * _ComplexCartesian_ (case class: Cartesian form of complex number)
-        * _ComplexPolar_ (case class: polar form of complex number)
-    * _Algebraic_ (trait: an algebraic number)
-  * _Number_ (trait: a quantity representing a number)
-    * _GeneralNumber_ (abstract class)
-      * _ExactNumber_ (case class: an exact number defined by a _Value_ and a _Factor_)
-      * _FuzzyNumber_ (case class: an exact number defined by a _Value_, a _Factor_, and an optional _Fuzziness_)
-* _Rational_ (case class: rational numbers)
-* _Solution_ (trait: a solution to an _Algebraic_ quantity--think of this is defining a named tuple that represents the components of the solution)
-  * _LinearSolution_ (case class: a linear solution)
-  * _QuadraticSolution_ (case class: a quadratic solution)
-* _Expression_ (trait: lazy numeric quantities: see below)
+* _NumberLike_ (trait)
+  * _Numerical_ (trait: most numeric quantities)
+    * _Field_ (trait: something like the mathematical concept of a field)
+      * _Real_ (case class: a real number based on one _Number_)
+      * _Multivariate_ (trait which really should be called Algebraic)
+        * _Complex_ (trait: a complex number)
+          * _BaseComplex_ (abstract class)
+            * _ComplexCartesian_ (case class: Cartesian form of complex number)
+            * _ComplexPolar_ (case class: polar form of complex number)
+        * _Algebraic_ (trait: an algebraic number)
+    * _Number_ (trait: a quantity representing a number)
+      * _GeneralNumber_ (abstract class)
+        * _ExactNumber_ (case class: an exact number defined by a _Value_ and a _Factor_)
+        * _FuzzyNumber_ (case class: an exact number defined by a _Value_, a _Factor_, and an optional _Fuzziness_)
+  * _Rational_ (case class: rational numbers)
+  * _Solution_ (trait: a solution to an _Algebraic_ quantity--think of this is defining a named tuple that represents the components of the solution)
+    * _LinearSolution_ (case class: a linear solution)
+    * _QuadraticSolution_ (case class: a quadratic solution)
+  * _Expression_ (trait: lazy numeric quantities: see below)
+* _Series_ (trait)
+  * _AbstractSeries_
+    * _FiniteSeries_
+  * _AbstractInfiniteSeries_
+    * _InfiniteSeries_
+* _PowerSeries_ (trait)
+  * _LazyPowerSeries_
+  * _FinitePowerSeries_
+  * _TaylorSeries_
 
 Expressions
 ===========
 The lazy mechanism (see above) is based on _Expressions_.
 In the following, by "exact," we mean a quantity that is exact (like $\pi$ or $√2$),
-even though it might not be possible to represent it exactly using 
+even though it might not be possible to represent it exactly using
 base-10 (or base-2) notation.
 Obviously, we could represent $\pi$ exactly if we wrote it in base-$\pi$ notation.
 
@@ -735,9 +783,14 @@ Other types (for reference):
 * _Approximatable_ (supertype of _Field_ and _Expression_)
 * _Numerical_ (super-trait of _Field_ and _Number_)
 * _Operation_ (see above)
+* _Prime_ (case class)
+* _ContinuedFraction_ (case class)
+* _Evaluatable_ (trait)
+  * _ConFrac_ (class)
 
 Versions
 ========
+* Version 1.2.3: Introduced Series, PowerSeries, and TaylorSeries.
 * Version 1.2.2: Changed the name of RQR into Quadratic and introduced Algebraic.
 * Version 1.2.1: Improved RQR classes.
 * Version 1.2.0: Another massive refactoring.
@@ -748,8 +801,8 @@ Versions
   -
 * Version 1.1.1: Massive refactoring: fixed many issues. Most significantly, expressions are evaluated in the context of a Factor.
 * Version 1.1.0: Significant refactoring:
-    - Number is no longer a subtype of Field. Code should use the wrapper Real(number) to form a Field.
-    - Some of the worksheets were broken and have been fixed.
+  - Number is no longer a subtype of Field. Code should use the wrapper Real(number) to form a Field.
+  - Some of the worksheets were broken and have been fixed.
 * Version 1.0.17: Minor changes.
 * Version 1.0.16: Added C-interpolator for Complex objects; various other fixes, including radian values now range from -$\pi$ to $\pi$.
 * Version 1.0.15: Significant improvements to the rendering of rational numbers.
@@ -758,20 +811,20 @@ Versions
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
 * Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.
 * Version 1.0.10: Many improvements and fixes:
-    - added Constants,
-    - implicit converter from Expression to Number,
-    - refactored structure of classes, 
-    - totally reworked the expression matchers.
+  - added Constants,
+  - implicit converter from Expression to Number,
+  - refactored structure of classes,
+  - totally reworked the expression matchers.
 * Version 1.0.9: Added complex numbers; improved simplifications somewhat; use version 1.0.4 of Matchers (now in main).
-* Version 1.0.8: This includes better simplification and, in particular, evaluates (√3 + 1)(√3 - 1) as exactly 2. 
+* Version 1.0.8: This includes better simplification and, in particular, evaluates (√3 + 1)(√3 - 1) as exactly 2.
 * Version 1.0.7: added Matchers.
 * Version 1.0.6: added Mill (RPN evaluator).
 * Version 1.0.5: reimplement the e factor.
 * Version 1.0.4 Made improvements to Rational, removed BigInt from Value,
-and effected many refactorings.
+  and effected many refactorings.
 * Version 1.0.3 implements lazy evaluation.
 * Version 1.0.2 Included fixing the bug mentioned in 1.0.1 (actually a Rational bug), as well as adding the :/ operator
-and many other fixes/features.
+  and many other fixes/features.
 * Version 1.0.1 Fixed many issues with minor inconsistencies.  Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_. Each of these has, significantly, a signature with a confidence value (the default value is 0.5).
 * Initial version is 1.0.0
 

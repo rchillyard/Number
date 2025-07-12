@@ -302,15 +302,18 @@ object FuzzyNumber {
     * @return an Int representing the order.
     */
   def fuzzyCompare(x: Number, y: Number, p: Double): Int =
-    if (implicitly[Fuzzy[Number]].same(p)(x, y)) 0
-    else GeneralNumber.plus(x, Number.negate(y)).signum(p)
+    if (implicitly[Fuzzy[Number]].same(p)(x, y))
+      0
+    else
+      GeneralNumber.plus(x, Number.negate(y)).signum(p)
 
   /**
     * Method to construct an invalid Number.
     *
     * @return Number.apply()
     */
-  def apply(): Number = Number.apply()
+  def apply(): Number =
+    Number.apply()
 
   /**
     * Method to add a FuzzyNumber and a (general) Number.
@@ -366,17 +369,17 @@ object FuzzyNumber {
     */
   def times(x: GeneralNumber, y: Number): Number =
     x.alignFactors(y) match {
-    case (a: GeneralNumber, b: GeneralNumber) =>
-      val (p, q) = a.alignTypes(b)
-      (p, q) match {
-        case (n: FuzzyNumber, _) =>
-          composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
-        case (_, n: FuzzyNumber) =>
-          composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
-        case (_, _) =>
-          p doMultiply q
-      }
-  }
+      case (a: GeneralNumber, b: GeneralNumber) =>
+        val (p, q) = a.alignTypes(b)
+        (p, q) match {
+          case (n: FuzzyNumber, _) =>
+            composeDyadic(n, q, p.factor, DyadicOperationTimes, independent = x != y, None)
+          case (_, n: FuzzyNumber) =>
+            composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
+          case (_, _) =>
+            p doMultiply q
+        }
+    }
 
   /**
     * Method to add fuzz to a FuzzyNumber.
@@ -387,9 +390,10 @@ object FuzzyNumber {
     */
   def addFuzz(n: Number, f: Fuzziness[Double]): Number =
     (n.nominalValue, n.fuzz) match {
-      case (v@Left(Left(Some(_))), fo) =>
+      case (v, fo) =>
         addFuzz(n, v, fo, f)
-    case _ => n
+      case _ =>
+        n
   }
 
   /**
