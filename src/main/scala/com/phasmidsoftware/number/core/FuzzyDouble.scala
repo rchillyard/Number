@@ -40,7 +40,7 @@ object FuzzyDouble {
 
     def toFloat(x: FuzzyDouble): Float = ??? // TODO implement me
 
-    def toDouble(x: FuzzyDouble): Double = ??? // TODO implement me
+    def toDouble(x: FuzzyDouble): Double = x.x
 
     def compare(x: FuzzyDouble, y: FuzzyDouble): Int = ??? // TODO implement me
 
