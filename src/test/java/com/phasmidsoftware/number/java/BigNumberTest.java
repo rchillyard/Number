@@ -211,6 +211,16 @@ public class BigNumberTest {
     }
 
     @Test
+    public void testDivideLong3() {
+        BigNumber target = BigNumber.value(-1L);
+        BigNumber oneThird = target.divide(3);
+
+        String string = oneThird.toString();
+        assertEquals(1003, string.length());
+        assertTrue(string.startsWith("-0.3333333333333333"));
+    }
+
+    @Test
     public void testDivideBigInteger() {
         BigNumber target = BigNumber.value(3, 1415927, true);
         assertEquals(BigNumber.value(1L, 57079635L, false), target.divide(BigNumber.value(-2)));
@@ -221,6 +231,13 @@ public class BigNumberTest {
         BigNumber target = BigNumber.value(3, 1415927, true);
         assertEquals(BigNumber.value(1L, 57079635L, true), target.divide(BigNumber.value(2)));
         assertEquals(BigNumber.value(0L, 157079635L, true), target.divide(BigNumber.value(20)));
+    }
+
+    @Test
+    public void testDivideBigNumber4() {
+        BigNumber target = BigNumber.value(3, 1415927, false);
+        assertEquals(BigNumber.value(1L, 57079635L, false), target.divide(BigNumber.value(2)));
+        assertEquals(BigNumber.value(0L, 157079635L, false), target.divide(BigNumber.value(20)));
     }
 
     //    @Test

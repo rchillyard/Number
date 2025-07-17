@@ -918,7 +918,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe One
   }
 
-  // TODO fix Issue #57
+  // Issue #57
   it should "work" in {
     val xo = Expression.parse("( 3 ^ ( 2 ^ -1 ) )")
     val yo = Expression.parse("( ( 3 ^ ( 2 ^ -1 ) ) * -1 )")

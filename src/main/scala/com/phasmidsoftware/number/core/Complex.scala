@@ -15,7 +15,11 @@ import scala.util._
  * A Complex is a Field and also supports the various methods defined below.
  *
  */
-trait Complex extends Field {
+trait Complex extends Multivariate {
+  /**
+    * @return true.
+    */
+  def isComplex: Boolean = true
 
   /**
    * Method to determine the modulus of this Complex number.

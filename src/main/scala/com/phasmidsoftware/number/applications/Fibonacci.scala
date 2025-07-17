@@ -23,7 +23,7 @@ object Fibonacci {
     */
   val phi: Expression = Phi
   /**
-    * Psi represents the conjugate of [[Phi]], used in computations involving
+    * Psi represents the conjugate of `Phi`, used in computations involving
     * properties of the Fibonacci sequence and Binet's formula.
     * It is a reduced quadratic root and part of the algebraic expressions
     * in the Fibonacci number calculations.
@@ -38,7 +38,7 @@ object Fibonacci {
    *
    * @param n the index of the Fibonacci sequence (must be a non-negative integer).
    * @return the nth Fibonacci number as a BigInt.
-   * @throws IllegalArgumentException if the result cannot be computed as an exact BigInt.
+   * @throws java.lang.IllegalArgumentException if the result cannot be computed as an exact BigInt.
    */
   def fib(n: Int): BigInt = {
     val expression = fibExpression(n)

@@ -21,7 +21,7 @@ import scala.annotation.tailrec
  * @param xs an input iterator providing elements to iterate over
  * @param f  a binary predicate function that determines whether two consecutive
  *           elements should be "bumped out" (skipped)
- * @throws IllegalArgumentException if the input iterator is empty
+ * @throws java.lang.IllegalArgumentException if the input iterator is empty
  */
 case class Bumperator[T](xs: Iterator[T])(f: (T, T) => Boolean) extends Iterator[T] {
   // NOTE: These mutable variables represent the state of this Bumperator,
@@ -45,7 +45,7 @@ case class Bumperator[T](xs: Iterator[T])(f: (T, T) => Boolean) extends Iterator
    * to throw an exception if no more elements are available in the iteration.
    *
    * @return the next element of type T in the iterator
-   * @throws NoSuchElementException if the iterator has no more elements
+   * @throws java.util.NoSuchElementException if the iterator has no more elements
    */
   def next(): T = {
     // NOTE we expect to throw an exception here if maybeCurrent is None

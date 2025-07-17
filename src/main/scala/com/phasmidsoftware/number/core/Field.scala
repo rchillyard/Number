@@ -20,14 +20,23 @@ import scala.language.implicitConversions
 trait Field extends Numerical with Approximatable with Ordered[Field] {
 
   /**
+    * Determines if this Field instance is algebraic.
+    * An algebraic Field is one that can be expressed as the root of a non-zero polynomial
+    * with rational coefficients.
+    * In this type hierarchy, we are going to consider that complex numbers are algebraic.
+    * However, the subtrait which should probably be called `Algebraic` is, at least for now,
+    * named `MultiVariate`.
+    *
+    * @return true if this Field is algebraic (multivariate); false otherwise.
+    */
+  def isAlgebraic: Boolean
+
+  /**
     * Method to determine if this Field is represented by a Complex number.
     *
     * @return true if this is Complex.
     */
-  def isComplex: Boolean = this match {
-    case ComplexCartesian(_, _) | ComplexPolar(_, _, _) => true
-    case _ => false
-  }
+  def isComplex: Boolean
 
   /**
     * Method to determine if this Field is real-valued (i.e. the point lies on the real axis).
@@ -237,4 +246,20 @@ object Field {
       */
     def same(p: Double)(x1: Field, x2: Field): Boolean = x1.add(-x2).asNumber.exists(_.isProbablyZero(p))
   }
+}
+
+/**
+  * Represents a trait for multivariate algebraic fields.
+  * CONSIDER renaming this Algebraic.
+  *
+  * A multivariate field is characterized by being algebraic, where
+  * algebraic fields can be expressed as the root of non-zero polynomials
+  * with rational coefficients. This trait extends the behavior of a `Field`
+  * with additional multivariate-specific characteristics and operations.
+  */
+trait Multivariate extends Field {
+  /**
+    * @return true.
+    */
+  def isAlgebraic: Boolean = true
 }
