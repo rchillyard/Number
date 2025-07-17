@@ -635,7 +635,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "toString"
   it should "be decimal when exact" in {
     val r = Rational(1, 2)
-    r.toString shouldBe "1/2"
+    r.toString shouldBe "½"
   }
   it should "be recurring when exact: 2/3" in {
     val r = Rational(2, 3)
@@ -649,7 +649,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.NaN.toString shouldBe "0/0"
   }
   it should "work for Infinity" in {
-    Rational.infinity.toString shouldBe "1/0"
+    Rational.infinity.toString shouldBe "∞"
   }
   it should "work for negative Infinity" in {
     Rational.infinity.negate.toString shouldBe "-1/0"
@@ -1082,5 +1082,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "convert infinity to a Double" in {
     implicitly[Numeric[Rational]].toDouble(Rational.infinity) shouldBe Double.PositiveInfinity
+  }
+
+  behavior of "renderExact"
+  it should "render -1/6" in {
+    val r = Rational(-1, 6)
+    r.renderExact shouldBe "-0.1<6>"
   }
 }

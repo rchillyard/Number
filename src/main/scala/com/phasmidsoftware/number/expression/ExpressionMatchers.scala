@@ -212,11 +212,13 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     val frs: Seq[MatchResult[Field]] = c.terms map matchCompositeAndSimplify & exactEvaluator(AnyContext)
     if (frs.forall(fr => !fr.successful)) c
     else {
-      val substitutions: Seq[Expression] = for (er <- frs) yield er match {
-        case Match(e) => Literal(e)
-        case Miss(_, v: Expression) => v
-        case Error(x) => throw x // TESTME
-      }
+      val substitutions: Seq[Expression] =
+        for (er <- frs)
+          yield (er match {
+            case Match(e) => Literal(e)
+            case Miss(_, v: Expression) => v // XXX this will match all Misses so Match is in fact exhaustive.
+            case Error(x) => throw x // TESTME
+          })
       c.substituteTerms(substitutions)
     }
   }
@@ -307,7 +309,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case ExpressionBiFunction(_, _, None, fo) ~ x ~ y if isIdentity(y, fo) => Match(x) // TESTME
     case ExpressionBiFunction(_, _, fo, _) ~ x ~ y if isIdentity(x, fo) => Match(y) // TESTME
     case ExpressionBiFunction(_, _, _, fo) ~ x ~ y if isIdentity(y, fo) => Match(x) // TESTME
-    case t@ExpressionBiFunction(_, _, _, _) ~ _ ~ _ => Miss("simplifyIdentityDyadic", t) // XXX don't really need this case
+    case t ~ _ ~ _ => Miss("simplifyIdentityDyadic", t) // XXX don't really need this case
   }
 
   /**
@@ -807,7 +809,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * NOTE: not deprecated because it's used in simplifyComposite
     *
     * @return A `ExpressionTransformer` that matches and simplifies `Aggregate` expressions efficiently.
-    * @throws NoSuchElementException due to invocation of get on Option (very unlikely).
+    * @throws java.util.NoSuchElementException due to invocation of get on Option (very unlikely).
     */
   def simplifyAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("simplifyAggregate") {
     case Aggregate(Sum, Nil) =>
@@ -963,8 +965,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return true if the expression matches the identity element of the given field, false otherwise.
     */
   private def isIdentity(x: Expression, fo: Option[Field]) = x match {
+    case Literal(z, _) => fo.contains(z) // CONSIDER why should this be treated differently than other FieldExpressions?
     case c: FieldExpression => fo == c.evaluateAsIs
-    case Literal(z, _) => fo.contains(z)
     case _ => false
   }
 
@@ -1011,14 +1013,15 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   @deprecated("use simplify", "0.1.0")
   private def exactFieldMaterializer(context: Context): ExpressionMatcher[Field] = Matcher[Expression, Field]("exactFieldMaterializer")(exactMaterialization(context))
-
-  /**
-    * A private value representing a matcher function that takes three match results as input
-    * and produces a match result for a BiFunction. The inputs are two match results for
-    * `Expression` and one match result for `ExpressionBiFunction`. The resulting match result
-    * is for a `BiFunction`.
-    */
-  private val matcher3: (MatchResult[Expression], MatchResult[Expression], MatchResult[ExpressionBiFunction]) => MatchResult[BiFunction] = matchResult3(BiFunction)
+//
+//  /**
+//    * A private value representing a matcher function that takes three match results as input
+//    * and produces a match result for a BiFunction. The inputs are two match results for
+//    * `Expression` and one match result for `ExpressionBiFunction`. The resulting match result
+//    * is for a `BiFunction`.
+//    */
+//  private val matcher3: (MatchResult[Expression], MatchResult[Expression], MatchResult[ExpressionBiFunction]) => MatchResult[BiFunction] =
+//    matchResult3(BiFunction)
 
   /**
     * Matches the given expression against a set of patterns and simplifies it using a simplifier function.

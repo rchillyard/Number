@@ -626,6 +626,9 @@ trait Takeable {
   def takeWhile(p: Rational => Boolean): Takeable
 }
 
+/**
+  * A trait representing an entity that can be evaluated for an approximate double value.
+  */
 trait Evaluatable {
   /**
     * Evaluate this Evaluatable object as a Double such that the absolute error between the true value and the result

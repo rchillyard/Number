@@ -893,7 +893,7 @@ object Number {
     *
     * @param x the Expression to be converted.
     * @return the equivalent exact Number.
-    * @throws ExpressionException if x cannot be converted to a Number.
+    * @throws com.phasmidsoftware.number.expression.ExpressionException if x cannot be converted to a Number.
     */
   //noinspection Annotator
   implicit def convertExpression(x: Expression): Number =

@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
-import com.phasmidsoftware.number.core.{Complex, Field, Number, NumberException, Numerical, Real}
+import com.phasmidsoftware.number.core.{Complex, Field, Multivariate, Number, NumberException, Numerical, Real}
 import com.phasmidsoftware.number.misc.FP
 
 /**
@@ -16,8 +16,11 @@ import com.phasmidsoftware.number.misc.FP
   * This class provides fundamental methods for handling fields, enabling intricate mathematical manipulations.
   *
   * Concrete implementations of this abstract class must define the specific behavior for the operations provided.
+  *
+  * See [[https://en.wikipedia.org/wiki/Algebraic_number_field]]
+  * See [[https://archive.org/details/handbookofmathem00abra/page/16/mode/2up?q=Algebraic+Equations]]
   */
-trait Algebraic extends Field {
+trait Algebraic extends Multivariate {
 
   /**
     * Retrieves the branch index associated with the current mathematical solution.
@@ -42,6 +45,14 @@ trait Algebraic extends Field {
     */
   def solve: Solution =
     equation.solve(branch)
+
+  /**
+    * Method to determine if this Field is represented by a Complex number.
+    * TODO an Algebraic with complex roots should return true here.
+    *
+    * @return true if this is Complex.
+    */
+  def isComplex: Boolean = false
 
   /**
     * Returns the value of the solution represented as a `Field` for the specified branch index.

@@ -623,7 +623,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         final int[] dec = new int[dividends.size()];
         for (int i = 0; i < dec.length; i++)
             dec[i] = (int) dividends.get(i).longValue();
-        return new BigNumber(quotientRemainder[0], dec, true);
+        return new BigNumber(quotientRemainder[0], dec, sign);
     }
 
     /**

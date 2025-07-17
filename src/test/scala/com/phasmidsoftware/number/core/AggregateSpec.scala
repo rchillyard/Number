@@ -46,14 +46,14 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
     target.simplifyConstant(target) shouldBe em.Match(Literal(-2))
   }
 
-  //  FIXME infinite recursion
-  ignore should "simplify {2 * -1}+{2 + 1}+{-1 * 5}+2" in {
+  // Looks like this is fixed.
+  it should "simplify {2 * -1}+{2 + 1}+{-1 * 5}+2" in {
     import Expression.ExpressionOps
     val target = Aggregate.total(Two * MinusOne, Two + One, MinusOne * 5, Constants.two)
     target.simplify shouldBe Literal(-2)
   }
 
-  ignore should "simplifier 2" in {
+  it should "simplifier 2" in {
     val target = Aggregate.total(One, root5)
     val result = em.matchCompositeAndSimplify(target)
     result.successful shouldBe false

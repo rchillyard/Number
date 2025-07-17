@@ -548,8 +548,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result shouldBe One
   }
 
-  // FIXME Issue #88
-  ignore should "simplify aggregate 4b" in {
+  // Was Issue #88 but that was fixed a while ago.
+  it should "simplify aggregate 4b" in {
     val root3 = Expression(3).sqrt
     val root3PlusOne = root3 plus Expression.one
     val root3MinusOne = root3 plus Expression(Constants.minusOne)
@@ -918,7 +918,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe One
   }
 
-  // TODO fix Issue #57
+  // Issue #57
   it should "work" in {
     val xo = Expression.parse("( 3 ^ ( 2 ^ -1 ) )")
     val yo = Expression.parse("( ( 3 ^ ( 2 ^ -1 ) ) * -1 )")

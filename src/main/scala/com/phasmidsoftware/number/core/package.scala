@@ -29,4 +29,7 @@ package object core {
     * Thus, the relative d-p error tolerance for Pi should be: +- 1.6E-16
     */
   val DoublePrecisionTolerance: Double = 1.6E-16
+
+//  type SeriesFunction = Number => Number
+
 }
