@@ -29,7 +29,7 @@ class LinearSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     half.isExact shouldBe true
   }
 
-  ignore should "render" in {
+  it should "render" in {
     half.render shouldBe "½"
   }
 

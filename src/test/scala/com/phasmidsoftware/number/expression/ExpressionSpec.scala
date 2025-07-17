@@ -307,8 +307,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Constants.zero)
   }
 
-  //  FIXME infinite recursion
-  ignore should "simplify aggregate expressions" in {
+  // XXX appears to have fixed infinite recursion
+  it should "simplify aggregate expressions" in {
     Aggregate.total(BiFunction(Two, MinusOne, Product), Two).simplify shouldBe Zero
     Aggregate.total(Two).simplify shouldBe Two
     Aggregate.empty(Sum).simplify shouldBe Zero

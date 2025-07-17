@@ -108,8 +108,8 @@ class ReducedQuadraticRootSpec extends AnyFlatSpec with should.Matchers with Fuz
     phi.isExact shouldBe true
   }
 
-  ignore should "render" in {
-    phi.render shouldBe Real(sPhi)
+  it should "render" in {
+    phi.render shouldBe "\uD835\uDED7"
   }
 
   it should "asNumber" in {
