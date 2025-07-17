@@ -173,8 +173,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "multiply root2 and root2" in {
     (root2 multiply Constants.root2).normalize shouldBe Constants.two
   }
-  // NOTE problem with handling roots
-  ignore should "multiply sin by sin" in {
+  // NOTE Looks like this is fixed (problem with handling roots)
+  it should "multiply sin by sin" in {
     val piBy4 = Number.pi doDivide 4
     val sinePiBy4 = piBy4.sin
     val oneHalf = sinePiBy4 doMultiply sinePiBy4

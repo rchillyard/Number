@@ -271,7 +271,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
    * @return true if the Rational is both zero and infinite, indicating an undefined result; false otherwise.
    */
   def isNaN: Boolean =
-    n == bigZero && isInfinity
+    n == bigZero && d == bigZero
 
   /**
     * Returns an optional integer representation of this `Rational`.
@@ -423,7 +423,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return true if the denominator is zero; false otherwise.
     */
   def isInfinity: Boolean =
-    d == bigZero
+    d == bigZero && n != bigZero
 
   /**
    * Method to get the xth root of this Rational.
@@ -533,6 +533,10 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return A string representation of the Rational object.
     */
   override def toString: String = this match {
+    case r: Rational if r == half =>
+      "\u00BD"
+    case Rational(n, `bigZero`) if n > 0 =>
+      "∞"
     case Rational(top, Rational.bigOne) =>
       s"$top"
     case Rational(top, bottom) =>
