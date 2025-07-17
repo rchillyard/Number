@@ -56,7 +56,7 @@ These allow the exact representation of roots, logarithmic numbers, radians, and
 
 Current Version
 ---------------
-The current version is 1.2.2. Here's a summary of what's new in 1.2:
+The current version is 1.2.5. Here's a summary of what's new since 1.2.1:
 
 * The entire _ExpressionMatchers_ code base has been rewritten (leaving many deprecated methods which need to be cleaned
   up):
@@ -75,6 +75,8 @@ The current version is 1.2.2. Here's a summary of what's new in 1.2:
   * In addition to _SquareRoot_ and _CubeRoot_ (which were renamed from the ambiguous _Root2_ and _Root3_), there are
     more general roots based on a rational inverse power.
 * This _README.md_ file has been improved (including a logo, thanks to Zijie).
+* Added Series and PowerSeries
+* Fixed CircleCI issues
 
 Sources
 -------
@@ -790,6 +792,7 @@ Other types (for reference):
 
 Versions
 ========
+* Version 1.2.5: 
 * Version 1.2.4: Restored functioning of CircleCI as well as some very minor changes to Rational (and fewer ignored tests).
 * Version 1.2.3: Introduced Series, PowerSeries, and TaylorSeries.
 * Version 1.2.2: Changed the name of RQR into Quadratic and introduced Algebraic.
