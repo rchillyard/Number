@@ -834,3 +834,5 @@ Versions
 
 Future Upgrades
 ===============
+We intend to restructure the hierarchy of numeric types entirely.
+The traits and classes should strictly follow the matchematical concepts of field, ring, etc.
