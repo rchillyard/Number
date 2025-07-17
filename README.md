@@ -1,13 +1,12 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Number?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Number&utm_campaign=Badge_Grade)
 [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/number_2.13/badge.svg?color=blue)]
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Number/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Number/tree/main)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Number/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Number/tree/main)
 ![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Number)
 ![GitHub](https://img.shields.io/github/license/rchillyard/Number)
 ![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Number)
 ![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Number)
 ![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Number/bug)
-
-![Example Image](docs/images/%20logo.png)
+![Logo](docs/images/%20logo.png)
 # Number
 This project is about fuzzy, lazy, numbers and their mathematics.
 The chief features of this library are:
@@ -792,6 +791,7 @@ Other types (for reference):
 
 Versions
 ========
+* Version 1.2.6: 
 * Version 1.2.5: Fixed badges in this README file; also added social card.
 * Version 1.2.4: Restored functioning of CircleCI as well as some very minor changes to Rational (and fewer ignored tests).
 * Version 1.2.3: Introduced Series, PowerSeries, and TaylorSeries.
