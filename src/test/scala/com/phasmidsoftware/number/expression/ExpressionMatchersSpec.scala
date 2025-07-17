@@ -459,14 +459,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result should matchPattern { case Constants.one => }
   }
 
-  // FIXME Issue #87
+  // This appears to be fixed Issue #87
   it should "simplify aggregate 1a" in {
     val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
     val expected = ExactNumber(0, Radian)
     val result = target.simplify.materialize
     convertToNumber(result) shouldBe expected
 //    val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
-//    result match {
+//    result match {n
 //      case em.Match(x: Field) =>
 //        convertToNumber(x) shouldBe expected
 //      case _ => fail("expected a Field")
