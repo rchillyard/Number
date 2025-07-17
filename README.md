@@ -790,6 +790,7 @@ Other types (for reference):
 
 Versions
 ========
+* Version 1.2.4: Restored functioning of CircleCI as well as some very minor changes to Rational (and fewer ignored tests).
 * Version 1.2.3: Introduced Series, PowerSeries, and TaylorSeries.
 * Version 1.2.2: Changed the name of RQR into Quadratic and introduced Algebraic.
 * Version 1.2.1: Improved RQR classes.
