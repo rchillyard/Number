@@ -96,11 +96,17 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     // TESTME the result.
   }
 
-
   it should "shuntingYard" in {
     p.parseInfix("( 1 + 3 ) + ( 2 * 3 )") should matchPattern { case Success(_) => }
     p.parseInfix("( ( 1 + 3 ) + ( 2 * 3 ) )") should matchPattern { case Success(_) => }
     p.parseInfix("( ( 0.5 + 3 ) + ( 2 * ( 0.5 + 3 ) ) )") should matchPattern { case Success(_) => }
+  }
+
+  // This fails due to Issue #42
+  it should "shuntingYard w/o spaces" in {
+    p.parseInfix("(1+3)+(2*3)") should matchPattern { case Success(_) => }
+    p.parseInfix("((1+3)+(2*3))") should matchPattern { case Success(_) => }
+    p.parseInfix("((0.5+3)+(2*(0.5+3)))") should matchPattern { case Success(_) => }
   }
 
   it should "operator" in {

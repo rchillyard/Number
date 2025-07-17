@@ -1,6 +1,6 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Number?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Number&utm_campaign=Badge_Grade)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phasmidsoftware/number_2.13/badge.svg?color=blue)](https://maven-badges.herokuapp.com/maven-central/com.phasmidsoftware_2.13/number/)
-[![CircleCI](https://circleci.com/gh/rchillyard/Number.svg?style=svg)](https://circleci.com/gh/rchillyard/Number)
+[![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/number_2.13/badge.svg?color=blue)]
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Number/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Number/tree/main)
 ![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Number)
 ![GitHub](https://img.shields.io/github/license/rchillyard/Number)
 ![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Number)
