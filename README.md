@@ -792,7 +792,7 @@ Other types (for reference):
 
 Versions
 ========
-* Version 1.2.5: 
+* Version 1.2.5: Fixed badges in this README file; also added social card.
 * Version 1.2.4: Restored functioning of CircleCI as well as some very minor changes to Rational (and fewer ignored tests).
 * Version 1.2.3: Introduced Series, PowerSeries, and TaylorSeries.
 * Version 1.2.2: Changed the name of RQR into Quadratic and introduced Algebraic.
