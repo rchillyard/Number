@@ -606,7 +606,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     case _ if isZero && d < 0 =>
       "-0"
     case _ if isInfinity =>
-      (if (n > 0) "+ve" else "-ve") + " infinity"
+      (if (n > 0) "" else "-") + "∞"
     case _ if isWhole =>
       toBigInt.toString
     case _ if isExactDouble =>

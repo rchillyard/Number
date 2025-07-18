@@ -101,12 +101,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(1, 0)
     r.isInfinity shouldBe true
     r shouldBe Rational.infinity
-    r.render shouldBe "+ve infinity"
+    r.render shouldBe "∞"
   }
   it should "work for -1, 0" in {
     val r = Rational(-1, 0)
     r.isInfinity shouldBe true
-    r.render shouldBe "-ve infinity"
+    r.render shouldBe "-∞"
   }
   it should "work for -1, -2" in {
     val r = Rational(-1, -2)
@@ -692,10 +692,10 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational.NaN.render shouldBe "NaN"
   }
   it should "work for Infinity" in {
-    Rational.infinity.render shouldBe "+ve infinity"
+    Rational.infinity.render shouldBe "∞"
   }
   it should "work for negative Infinity" in {
-    Rational.infinity.negate.render shouldBe "-ve infinity"
+    Rational.infinity.negate.render shouldBe "-∞"
   }
 // XXX this is the diagnostic for Issue #70
   it should "work for gamma" in {
