@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.Prime
-import com.phasmidsoftware.number.core.inner.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, negZeroDouble, pi_5000, zero}
+import com.phasmidsoftware.number.core.inner.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, half, negZeroDouble, pi_5000, third, zero}
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
 import scala.language.postfixOps
@@ -678,9 +678,9 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(1, 2)
     r.render shouldBe "\u00BD"
   }
-  it should "be recurring when exact: 2/3" in {
-    val r = Rational(2, 3)
-    r.render shouldBe "0.<6>"
+  it should "be recurring when exact: 5/3" in {
+    val r = Rational(5, 3)
+    r.render shouldBe "1.<6>"
   }
   it should "be decimal when not exact: pi" in { //fixed
     val pi = Rational(BigDecimal(math.Pi))
@@ -708,8 +708,8 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for various prime denominators" in {
     import Rational._
 
-    (3 :/ 4 render) shouldBe "0.75"
-    (4 :/ 5 render) shouldBe "0.8"
+    (3 :/ 4 render) shouldBe "¾"
+    (4 :/ 5 render) shouldBe "⅘"
     (6 :/ 7 render) shouldBe "0.<857142>"
     (10 :/ 11 render) shouldBe "0.<90>"
     (12 :/ 13 render) shouldBe "0.<923076>"
@@ -719,7 +719,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for various composite denominators" in {
     import Rational._
 
-    (1 :/ 6).render shouldBe "0.1<6>"
+    (2 :/ 7 render) shouldBe "0.<285714>"
     (1 :/ 14 render) shouldBe "0.0<714285>"
   }
 
@@ -759,7 +759,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work with one parameter (1)" in {
     Rational.one.renderApproximate(5) shouldBe "1    "
     Rational.one.negate.renderApproximate(5) shouldBe "-1   "
-    Rational("0.1").renderApproximate(5) shouldBe "0.1  "
+    Rational("0.11").renderApproximate(5) shouldBe "0.11 "
   }
   it should "fail with one parameter" in {
     a[RationalException] should be thrownBy pi_5000.renderApproximate(1)
@@ -1086,7 +1086,61 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "renderExact"
   it should "render -1/6" in {
-    val r = Rational(-1, 6)
+    val mSixth = -1 :/ 6
+    mSixth.renderExact shouldBe "-0.1<6>"
+  }
+  it should "render 1/2" in {
+    half.renderExact shouldBe "½"
+  }
+  it should "render thirds" in {
+    (third).renderExact shouldBe "⅓"
+    (2 * third).renderExact shouldBe "⅔"
+  }
+  it should "render quarters" in {
+    val quarter = 4.invert
+    quarter.renderExact shouldBe "¼"
+    (3 * quarter).renderExact shouldBe "¾"
+  }
+  it should "render fifths" in {
+    val fifth = 5.invert
+    fifth.renderExact shouldBe "⅕"
+    (2 * fifth).renderExact shouldBe "⅖"
+    (3 * fifth).renderExact shouldBe "⅗"
+    (4 * fifth).renderExact shouldBe "⅘"
+  }
+  it should "render sixths" in {
+    val sixth = 6.invert
+    val r: Rational = -sixth
     r.renderExact shouldBe "-0.1<6>"
+    sixth.renderExact shouldBe "⅙"
+    (5 * sixth).renderExact shouldBe "⅚"
+  }
+  it should "render eighths" in {
+    val eighth = 8.invert
+    eighth.renderExact shouldBe "⅛"
+    (3 * eighth).renderExact shouldBe "⅜"
+    (5 * eighth).renderExact shouldBe "⅝"
+    (7 * eighth).renderExact shouldBe "⅞"
+  }
+  it should "render tenths" in {
+    val tenth = 10.invert
+    tenth.renderExact shouldBe "⅒"
+    (3 * tenth).renderExact shouldBe "0.3"
+    (7 * tenth).renderExact shouldBe "0.7"
+  }
+  it should "render other" in {
+    7.invert.renderExact shouldBe "⅐"
+    9.invert.renderExact shouldBe "⅑"
+  }
+
+  behavior of "apply(String)"
+  it should "handle the vulgar fractions" in {
+    Rational("½") shouldBe half
+    Rational("⅔") shouldBe Rational(2, 3)
+    Rational("¼") shouldBe half * half
+    Rational("⅗") shouldBe Rational(3, 5)
+    Rational("⅚") shouldBe Rational(5, 6)
+    Rational("⅜") shouldBe Rational(3, 8)
+    Rational("⅐").invert shouldBe Rational(7)
   }
 }
