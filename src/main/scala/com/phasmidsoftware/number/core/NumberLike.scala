@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.inner.Factor
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Value}
 
 /**
   * Trait to define the behavior of things that are number-like.
@@ -44,6 +44,31 @@ trait NumberLike {
   def asNumber: Option[Number]
 
   /**
+    * Converts this `NumberLike` object into an optional `java.lang.Number` provided that the conversion can be
+    * performed without loss of precision.
+    *
+    * The method determines whether the current `NumberLike` object can be represented as a `java.lang.Number`
+    * by leveraging the `asNumber` method and further evaluating certain conditions:
+    * - If the `NumberLike` object is an `ExactNumber` and its factor is `PureNumber`, the result
+    * is converted using `Value.asJavaNumber`.
+    * - If the `NumberLike` object is a `FuzzyNumber` with a `wiggle` value below a specified tolerance,
+    * the result is also converted using `Value.asJavaNumber`.
+    * - In all other cases, `None` is returned.
+    *
+    * @return an optional `java.lang.Number` representation of this object. The result is `Some(java.lang.Number)`
+    *         if the conversion is successful under the stated conditions; otherwise, `None`.
+    */
+  def asJavaNumber: Option[java.lang.Number] =
+    asNumber match {
+      case Some(ExactNumber(x, PureNumber)) =>
+        Value.asJavaNumber(x)
+      // TODO This is not a good test: it needs to ensure that z is relative
+      case Some(FuzzyNumber(x, PureNumber, Some(z))) if z.wiggle(0.5) < DoublePrecisionTolerance =>
+        Value.asJavaNumber(x)
+      case _ => None
+    }
+
+  /**
     * Method to render this NumberLike in a presentable manner.
     *
     * @return a String
@@ -54,7 +79,7 @@ trait NumberLike {
     * Method to determine the NumberSet, if any, to which this NumberLike object belongs.
     * NOTE that we don't yet support H, the quaternions.
     *
-    * @return Some(numberSet) or None if it doesn't belong to any (for example it is fuzzy).
+    * @return Some(numberSet) or None if it doesn't belong to any (for example, it is fuzzy).
     */
   def memberOf: Option[NumberSet] =
     Seq(C, R, Q, Z, N).find(set => set.isMember(this))
