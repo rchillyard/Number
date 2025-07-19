@@ -5,8 +5,8 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, piBy2, root3, zeroR, √}
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.expression.Expression
 import com.phasmidsoftware.number.expression.Expression.convertFieldToExpression
-import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -315,7 +315,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for iPi" in {
     val target = Constants.iPi
-    target.render shouldBe "(0+i\uD835\uDED1)"
+    target.render shouldBe "i\uD835\uDED1"
   }
   it should "work for zero" in {
     p1_pi.add(Constants.one).render shouldBe "0"
@@ -326,7 +326,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "render c2_0^1/3" in {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
-    cubeRootOfTwo.render shouldBe "{³√2, ±³√2e^i0.<6>\uD835\uDED1}"
+    cubeRootOfTwo.render shouldBe "{³√2, ±³√2e^i⅔\uD835\uDED1}"
   }
   it should "render root2s" in {
     val target = Constants.root2s

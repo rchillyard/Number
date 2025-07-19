@@ -460,7 +460,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * @return the natural log of this.
     */
-  def log: Number
+  def log: Field
 
   /**
     * Method to raise e to the power of this number.
@@ -1497,12 +1497,15 @@ object Number {
     * @param x a Number.
     * @return the natural log of x.
     */
-  @tailrec
-  def log(x: Number): Number = x.factor match {
+  def log(x: Number): Field = x.factor match {
     case NatLog =>
-      x.make(PureNumber).simplify
+      Real(x.make(PureNumber).simplify)
     case PureNumber =>
       log(x.scale(NatLog))
+    case SquareRoot if x.signum < 0 =>
+      ComplexPolar(x.make(PureNumber).makeNegative, piBy2, 2).log
+    case Root(r) if x.signum > 0 =>
+      Real(log(x.make(PureNumber)) divide Real(r))
     case _ =>
       log(x.scale(PureNumber))
   }

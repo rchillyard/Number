@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.expression.{ConstPi, Expression}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -25,4 +26,15 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
     result shouldBe ComplexCartesian(1, 1)
   }
 
+  it should "take the natural log of i" in {
+    val x = Constants.i.log
+    x shouldBe ComplexCartesian(Number.zero, Constants.piBy2.x)
+    x.render shouldBe "i½\uD835\uDED1"
+  }
+
+  it should "take the natural log of 2" in {
+    val x = Constants.two.log
+    x should matchPattern { case Real(FuzzyNumber(Left(Left(Some(0.6931471805599453))), PureNumber, _)) => }
+    x.render shouldBe "0.6931471805599453±0.00000000000020%"
+  }
 }

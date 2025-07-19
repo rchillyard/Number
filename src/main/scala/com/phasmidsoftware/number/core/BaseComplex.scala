@@ -302,7 +302,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  def log: Field = ??? // TODO implement me
+  def log: Field
 
   /**
     * Computes the exponential of this complex number.
@@ -496,6 +496,15 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     x.isInfinite || y.isInfinite
 
   /**
+    * Computes the natural logarithm of this Field.
+    * For a real number x, this is equivalent to the logarithm base e: ln(x).
+    * For a complex number, this computes the multi-valued complex logarithm.
+    *
+    * @return the natural logarithm of this Field as a Field.
+    */
+  def log: Field = throw ComplexException("not implemented: ComplexCartesian.log")
+
+  /**
    * TESTME
    *
    * @return a Field which is in canonical form.
@@ -515,7 +524,12 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
    * @return a String representing the value of this expression.
    */
   def render: String =
-    if (isReal) x.render else s"""(${x.render}${showImaginary(polar = false)})"""
+    if (isReal)
+      x.render
+    else if (isImaginary)
+      s"i${y.render}"
+    else
+      s"""(${x.render}${showImaginary(polar = false)})"""
 
   /**
    * Add two Cartesian Complex numbers.
@@ -743,6 +757,21 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
    */
   def rotate(phi: Number): ComplexPolar =
     ComplexPolar(real, imag doAdd phi)
+
+  /**
+    * Computes the natural logarithm of this Field.
+    * For a real number x, this is equivalent to the logarithm base e: ln(x).
+    * For a complex number, this computes the multi-valued complex logarithm.
+    *
+    * @return the natural logarithm of this Field as a Field.
+    */
+  def log: Field =
+    r.log match {
+      case Real(n) =>
+        ComplexCartesian(n, theta)
+      case _ =>
+        throw ComplexException("logic error: ComplexPolar.log")
+    }
 
   /**
     * Multiplies this ComplexPolar instance with a given Number and returns the result as a Complex.

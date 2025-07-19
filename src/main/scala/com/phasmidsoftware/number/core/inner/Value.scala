@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.Render.renderValue
 import com.phasmidsoftware.number.misc.FP._
+import java.lang
 import scala.util._
 
 /**
@@ -69,6 +70,27 @@ object Value {
     * @return Some(x) where x is a Double if the conversion was possible, otherwise None.
     */
   def maybeDouble(value: Value): Option[Double] = optionMap(value)(_.toDouble, x => optionMap(x)(_.toDouble, identity))
+
+  /**
+    * Converts a `Value` into an optional `java.lang.Number`. This method attempts to map the given `Value`
+    * to a corresponding `Number` type in the following order:
+    * - If the `Value` can be represented as an `Int`, the result will be wrapped as a `java.lang.Number`.
+    * - If the `Value` is a `Rational` that can be accurately represented as a `Double`, it is converted and wrapped as a `java.lang.Number`.
+    * - If the `Value` is already a `Double`, it will be directly wrapped as a `java.lang.Number`.
+    * - If none of the above conversions are applicable, `None` is returned.
+    *
+    * CONSIDER using other methods from this class to get an appropriate Double.
+    *
+    * @param x the `Value` to be converted.
+    * @return an `Option` containing the `java.lang.Number` representation of the given `Value`, or `None`
+    *         if conversion is not possible.
+    */
+  def asJavaNumber(x: Value): Option[lang.Number] =
+    Value.maybeInt(x).map(i => i.asInstanceOf[lang.Number]) orElse
+        Value.maybeRational(x).flatMap(r => if (r.isExactDouble) Some(r.toDouble.asInstanceOf[lang.Number]) else None) orElse
+        // NOTE the following should only work if the (relative) error bounds are smaller than the double-precision error bound
+        Value.maybeDouble(x).map(d => d.asInstanceOf[lang.Number]) orElse
+        None
 
   /**
     * Determines whether the given `Value` represents the numeric value zero.
@@ -231,14 +253,14 @@ object Value {
   }
 
   /**
-    * Unapply method which will yield an optional array.
+    * A variable-element `unapply` method which will yield an optional array.
     * If there is only one item returned, it is an Int;
     * if there are two items returned, they are null followed by a Rational;
     * if there are three items returned, they are two nulls followed by a Double;
-    * otherwise, if the given value is not defined, then None is returned.
+    * otherwise, if the given value is not defined, then `None` is returned.
     *
     * @param v the value.
-    * @return Some(List[Int](x)) or Some(List[Rational](null,x)) or Some(List[Double](null,null,x)) or None.
+    * @return `Some(List[Int](x))` or `Some(List[Rational](null,x))` or `Some(List[Double](null,null,x))` or `None`.
     */
   def unapplySeq(v: Value): Option[List[Any]] = {
     val result = v match {

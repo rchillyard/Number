@@ -229,7 +229,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return the natural log of this.
     */
-  def log: Number =
+  def log: Field =
     Number.log(this)
 
   /**
@@ -785,6 +785,7 @@ object GeneralNumber {
               p.make(PureNumber)
             // NOTE see RQRSpec for discussion of this code.
             case (r@Root(_), g) =>
+              // NOTE duplicate code below
               r.multiply(p.nominalValue, q.nominalValue, g) match {
                 case Some((v, f, _)) =>
                   p.make(v, f)
