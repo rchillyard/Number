@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.expression._
 
@@ -34,26 +35,25 @@ case object Pi extends AbstractTranscendental("\uDED1", ConstPi)
 case object E extends AbstractTranscendental("\uD835\uDF00", ConstE)
 
 /**
-  * Represents the transcendental function `natural log of 2` as a singleton object.
-  * Unlike `Pi` and `E`, there is currently no way to represent this quantity exactly (and eagerly)
-  * in the `Number` library.
+  * Represents the natural logarithm of 2 as a transcendental constant.
+  * NOTE that L2 evaluates to None because generating a Double from L2 would lose precision.
   *
-  * We use the notation "l2" because that's what Euler would have used.
-  * Besides, I hate the notation "ln" for natural log.
-  * I once refused to use the "ln" notation in an exam.
-  * I thought the examiner would be able to figure out
-  * that I knew what I was doing.
-  * That was naive!
+  * This is a case object extending the `AbstractTranscendental` class, encapsulating
+  * the mathematical expression for the natural log of 2 (`ln(2)`) and the corresponding
+  * expression (`Two.log`).
   *
-  * This object extends the `AbstractTranscendental` class, inheriting its behavior and
-  * properties. The `l2` object encapsulates the mathematical function `ln(2)`,
-  * with its name being `"l2"` and its `Expression` representation being based on `Two.log`.
-  *
-  * The `Expression` associated with `l2` can be evaluated, materialized, and rendered,
-  * adhering to the behavior defined in `AbstractTranscendental`. It is considered atomic
-  * and exact in mathematical contexts.
+  * The `L2` object is defined as a named transcendental entity and can be used
+  * in operations or expressions involving transcendental numbers.
   */
-case object L2 extends AbstractTranscendental("l2", Two.log)
+case object L2 extends AbstractTranscendental("ln(2)", Two.log)
+
+/**
+  * Singleton object representing the Euler-Mascheroni constant (𝛾), a fundamental mathematical constant.
+  * It extends `AbstractTranscendental` to encapsulate its symbolic representation and mathematical definition.
+  *
+  * The Euler-Mascheroni constant is a transcendental entity commonly used in number theory and analysis.
+  */
+case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma)
 
 /**
   * Trait representing a mathematical transcendental entity.

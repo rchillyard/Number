@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -20,6 +21,15 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "evaluate l2" in {
     L2.evaluate shouldBe None
+    L2.asNumber should matchPattern { case Some(FuzzyNumber(_, _, _)) => }
+    L2.asNumber map (_.render) shouldBe Some("0.6931471805599453±0.00000000000020%")
+  }
+  it should "evaluate gamma" in {
+    val rational = Rational("7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000")
+    val fuzz = AbsoluteFuzz(5.0E-51, Box)
+    val value1 = Value.fromRational(rational)
+    EulerMascheroni.evaluate should matchPattern { case Some(Real(FuzzyNumber(`value1`, PureNumber, Some(`fuzz`)))) => }
+    EulerMascheroni.asNumber map (_.render) shouldBe Some("0.5772156649015329*")
   }
   it should "expression pi" in {
     Pi.expression shouldEqual ConstPi
@@ -47,7 +57,7 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
   it should "render" in {
     Pi.render shouldBe "\uDED1"
     E.render shouldBe "\uD835\uDF00"
-    L2.render shouldBe "l2"
+    L2.render shouldBe "ln(2)"
   }
 
 }
