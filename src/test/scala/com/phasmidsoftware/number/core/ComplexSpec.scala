@@ -315,7 +315,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for iPi" in {
     val target = Constants.iPi
-    target.render shouldBe "(0+i\uD835\uDED1)"
+    target.render shouldBe "i\uD835\uDED1"
   }
   it should "work for zero" in {
     p1_pi.add(Constants.one).render shouldBe "0"
