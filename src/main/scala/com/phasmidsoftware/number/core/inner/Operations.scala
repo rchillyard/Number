@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.misc.FP
-import com.phasmidsoftware.number.misc.FP.{fail, toTryWithThrowable, tryF, tryMap}
+import com.phasmidsoftware.number.misc.FP._
 import scala.annotation.tailrec
 import scala.math.Ordered.orderingToOrdered
 import scala.util._
@@ -73,7 +73,8 @@ case object MonadicOperationNegate extends MonadicOperation {
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
     */
-  val relativeFuzz: Double => Double = _ => 1
+  val relativeFuzz: Double => Double =
+    _ => 1
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
@@ -100,7 +101,8 @@ case object MonadicOperationInvert extends MonadicOperation {
     *
     * For any power that is not 0, the result is simply the power.
     */
-  val relativeFuzz: Double => Double = _ => -1
+  val relativeFuzz: Double => Double =
+    _ => -1
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
@@ -115,8 +117,10 @@ case object MonadicOperationInvert extends MonadicOperation {
     * @return `Success(1)` if the input is `1`, or a `Failure` indicating that the inversion operation is not possible for the given value
     */
   private def invertInt(x: Int): Try[Int] = x match {
-    case 1 => Success(1)
-    case _ => Failure(OperationsException("can't invert Int"))
+    case 1 =>
+      Success(1)
+    case _ =>
+      Failure(OperationsException("can't invert Int"))
   }
 
   /**
@@ -134,7 +138,8 @@ case object MonadicOperationInvert extends MonadicOperation {
     * @return a `Success` containing the inverse of the input if the operation is valid,
     *         or a `Failure` if an error occurs (e.g., division by zero)
     */
-  private def invertDouble(x: Double): Try[Double] = Try(xf.div(xf.one, x))
+  private def invertDouble(x: Double): Try[Double] =
+    Try(xf.div(xf.one, x))
 }
 
 /**
@@ -226,7 +231,8 @@ case object MonadicOperationLog extends MonadicOperation {
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
     */
-  val relativeFuzz: Double => Double = x => 1 / math.log(x) // the reciprocal of the natural log of x
+  val relativeFuzz: Double => Double =
+    x => 1 / math.log(x) // the reciprocal of the natural log of x
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
@@ -241,8 +247,10 @@ case object MonadicOperationLog extends MonadicOperation {
     * @return a `Try[Int]` containing the result of the computation or an error if the input is invalid
     */
   private def logInt(x: Int): Try[Int] = x match {
-    case 1 => Success(0)
-    case _ => Failure(OperationsException("can't log Int"))
+    case 1 =>
+      Success(0)
+    case _ =>
+      Failure(OperationsException("can't log Int"))
   }
 
   /**
@@ -252,8 +260,10 @@ case object MonadicOperationLog extends MonadicOperation {
     * - Fails with an exception for other inputs, as logarithm computation for general `Rational` is undefined.
     */
   private lazy val logRat: Rational => Try[Rational] = {
-    case Rational.zero => Success(Rational.infinity.negate)
-    case r => fail("can't do log Rational=>Rational for parameter")(r)
+    case Rational.zero =>
+      Success(Rational.infinity.negate)
+    case r =>
+      fail("can't do log Rational=>Rational for parameter")(r)
   }
 
   /**
@@ -264,7 +274,8 @@ case object MonadicOperationLog extends MonadicOperation {
     * @param x the input double value for which the natural logarithm is to be computed
     * @return a Try wrapping the computed natural logarithm of the input value, or a Failure if the computation fails
     */
-  private def logDouble(x: Double): Try[Double] = Try(Math.log(x))
+  private def logDouble(x: Double): Try[Double] =
+    Try(Math.log(x))
 }
 
 /**
@@ -513,10 +524,10 @@ case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) exten
     def inner(result: X): X =
       if (result < min)
         inner(result + max - min)
-      else if
-      (result > max) inner(result + min - max)
-      else if
-      (circular && result == min) max
+      else if (result > max)
+        inner(result + min - max)
+      else if (circular && result == min)
+        max
       else
         result
 
@@ -553,7 +564,8 @@ case object MonadicOperationSqrt extends MonadicOperation {
   private lazy val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
     x => toTryWithThrowable(Rational.squareRoots.get(x), OperationsException("Cannot create Int from Double"))
 
-  private lazy val sqrtRat: Rational => Try[Rational] = x => FP.toTry(x.root(2), Failure(OperationsException("Cannot get exact square root")))
+  private lazy val sqrtRat: Rational => Try[Rational] =
+    x => FP.toTry(x.root(2), Failure(OperationsException("Cannot get exact square root")))
 
 }
 
@@ -573,7 +585,11 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
     * - `fDouble`: A function for scaling `Double` values by the corresponding `Double` representation of `r`.
     */
   val functions: MonadicFunctions = {
-    val fInt = if (r.isWhole) tryF[Int, Int](math.multiplyExact(_, r.toInt)) else fail("can't do scale function Int=>Int")
+    val fInt =
+      if (r.isWhole)
+        tryF[Int, Int](math.multiplyExact(_, r.toInt))
+      else
+        fail("can't do scale function Int=>Int")
     val fRational = tryF[Rational, Rational](_ * r)
     val fDouble = tryF[Double, Double](_ * c)
     (fInt, fRational, fDouble)
@@ -898,16 +914,20 @@ object Operations {
     val (fInt, fRational, fDouble) = functions
 
     def tryDouble(xo: Option[Double]): Try[Value] = xo match {
-      case Some(n) => FP.sequence(for (y <- Value.maybeDouble(other)) yield fDouble(n, y)) map Value.fromDouble
-      case None => Failure(OperationsException("number is invalid")) // NOTE this case is not observed in practice
+      case Some(n) =>
+        sequence(for (y <- Value.maybeDouble(other)) yield fDouble(n, y)) map Value.fromDouble
+      case None =>
+        Failure(OperationsException("number is invalid")) // NOTE this case is not observed in practice
     }
 
     def tryConvert[X](x: X, msg: String)(extract: Value => Option[X], func: (X, X) => Try[X], g: X => Value): Try[Value] =
       toTryWithThrowable(for (y <- extract(other)) yield func(x, y) map g, OperationsException(s"other is not a $msg")).flatten
 
-    def tryRational(x: Rational): Try[Value] = tryConvert(x, "Rational")(v => Value.maybeRational(v), fRational, Value.fromRational)
+    def tryRational(x: Rational): Try[Value] =
+      tryConvert(x, "Rational")(v => Value.maybeRational(v), fRational, Value.fromRational)
 
-    def tryInt(x: Int): Try[Value] = tryConvert(x, "Int")(v => Value.maybeInt(v), fInt, Value.fromInt)
+    def tryInt(x: Int): Try[Value] =
+      tryConvert(x, "Int")(v => Value.maybeInt(v), fInt, Value.fromInt)
 
     import com.phasmidsoftware.number.misc.Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Value] = y => tryMap(y)(tryRational, tryDouble)
@@ -925,25 +945,38 @@ object Operations {
   def doTransformValueMonadic(value: Value)(functions: MonadicFunctions): Option[Value] = {
     val (fInt, fRational, fDouble) = functions
     val xToZy0: Option[Double] => Try[Value] = {
-      case Some(x) => Try(Value.fromDouble(fDouble(x).toOption))
-      case None => Failure(new NoSuchElementException())
+      case Some(x) =>
+        Try(Value.fromDouble(fDouble(x).toOption))
+      case None =>
+        Failure(new NoSuchElementException())
     }
     import com.phasmidsoftware.number.misc.Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[Value] = e => tryMap(e)(x => for (r <- fRational(x)) yield Value.fromRational(r), xToZy0)
     tryMap(value)(x => for (i <- fInt(x)) yield Value.fromInt(i), xToZy1).toOption
   }
 
+  /**
+    * Executes a query operation on a given `Value` using the provided `QueryFunctions`.
+    * The query functions allow processing of the value based on its type (Int, Rational, or Double),
+    * returning an optional result of type `T`.
+    *
+    * @param v         the `Value` to be queried.
+    * @param functions an instance of `QueryFunctions[T]`, which provides type-specific functions
+    *                  for querying integer, rational, and double values.
+    * @return an `Option[T]` containing the result of applying the appropriate query function, or `None` if the query fails.
+    */
   def doQuery[T](v: Value, functions: QueryFunctions[T]): Option[T] = {
     val (fInt, fRational, fDouble) = (functions.fInt, functions.fRat, functions.fDouble) // CONSIDER improve this (what's the problem?)
     val xToZy0: Option[Double] => Try[T] = {
-      case Some(n) => fDouble(n)
-      case None => Failure(new NoSuchElementException())
+      case Some(n) =>
+        fDouble(n)
+      case None =>
+        Failure(new NoSuchElementException())
     }
     import com.phasmidsoftware.number.misc.Converters._
     val xToZy1: Either[Option[Double], Rational] => Try[T] = y => tryMap(y)(x => fRational(x), xToZy0)
     tryMap(v)(x => fInt(x), xToZy1).toOption
   }
-
 }
 
 case class OperationsException(msg: String) extends Exception(msg)

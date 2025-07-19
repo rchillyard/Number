@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.inner.{FiniteSeries, InfiniteSeries, Rational}
+import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import scala.util.Random

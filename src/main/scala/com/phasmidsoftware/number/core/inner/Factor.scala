@@ -142,21 +142,6 @@ sealed trait Factor {
   def invert(x: Value): Option[ProtoNumber]
 
   /**
-    * Computes the natural logarithm of the given value within the context of this factor.
-    *
-    * @param x the value for which the logarithm is to be computed
-    * @return an optional `ProtoNumber` representing the logarithm of the value,
-    *         or `None` if the logarithm cannot be computed
-    */
-  def log(x: Value): Option[ProtoNumber] = x match {
-    case _ if Value.isEqual(x, Value.one) =>
-      Some((Value.zero, PureNumber, None)) // TODO what is this??
-      Some((x, PureNumber, None))
-    case _ =>
-      None
-  }
-
-  /**
     * Adds two values together and computes an appropriate factor for the result.
     *
     * @param x the first value
@@ -1068,7 +1053,7 @@ case object Radian extends Scalar {
   * This factor essentially provides log/exponent arithmetic.
   *
   * NOTE: A number in factor NatLog will evaluate as e raised to that power.
-  * So, it is the natural log of a scalar value.
+  * So, the `value` is the natural log of the evaluation.
   *
   * Thus the range of such values is any positive number.
   */
@@ -1088,20 +1073,6 @@ case object NatLog extends Logarithmic {
     * This value is used in conversions (it's the natural log of e, viz., 1.0).
     */
   val value: Double = 1.0
-
-  /**
-    * Computes the natural logarithm of the given value within the context of this factor.
-    *
-    * @param x the value for which the logarithm is to be computed
-    * @return an optional `ProtoNumber` representing the logarithm of the value,
-    *         or `None` if the logarithm cannot be computed
-    */
-  override def log(x: Value): Option[ProtoNumber] = x match {
-    case _ if Value.isEqual(x, Value.one) =>
-      Some((Value.zero, PureNumber, None))
-    case _ =>
-      Some((x, PureNumber, None))
-  }
 
   override def toString: String = Factor.sE
 }
@@ -1128,23 +1099,6 @@ case object Log2 extends Logarithmic {
     * to logarithms computed for base 2 (binary logarithms).
     */
   val base: String = "2"
-
-  /**
-    * Computes the natural logarithm of the given value within the context of this factor.
-    *
-    * @param x the value for which the logarithm is to be computed
-    * @return an optional `ProtoNumber` representing the logarithm of the value,
-    *         or `None` if the logarithm cannot be computed
-    */
-  override def log(x: Value): Option[ProtoNumber] = x match {
-    case _ if Value.isEqual(x, Value.one) =>
-      Some((Value.zero, PureNumber, None))
-    case _ =>
-      for {
-        z <- Value.maybeInt(x)
-        q <- Rational.binaryLogs.get(z)
-      } yield (Value.fromRational(q), PureNumber, None)
-  }
 
   /**
     * Represents the default value for the `NatLog` factor.

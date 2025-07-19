@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times, toInts}
 import com.phasmidsoftware.number.core.{BigNumber, Number, NumberLike, Prime}
-import com.phasmidsoftware.number.misc.FP.toTryWithRationalException
+import com.phasmidsoftware.number.misc.FP.{toTry, toTryWithRationalException}
 import com.phasmidsoftware.number.misc.{ContinuedFraction, FP}
 import com.phasmidsoftware.number.parse.RationalParser
 import java.lang.Math._
@@ -1205,7 +1205,10 @@ object Rational {
    * @throws com.phasmidsoftware.number.parse.RationalParserException if w is malformed.
    */
   def apply(w: String): Rational =
-    VulgarFraction(w).orElse(parse(w).toOption).get
+    toTry(VulgarFraction(w), Failure(new NoSuchElementException)).orElse(parse(w)) match {
+      case Success(value) => value
+      case Failure(e) => throw e
+    }
 
   /**
     * Creates a new Rational object by applying the given tuple consisting of numerator and denominator.

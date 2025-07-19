@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.inner.{FiniteSeries, InfiniteSeries, Rational, Series}
+import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.misc.Factorial
 
 /**

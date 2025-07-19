@@ -252,7 +252,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Divide this Number by n.
     *
     * @param n another Number.
-    * @return this quotient of this and n, i.e. this/n.
+    * @return this quotient of this and n, i.e., this/n.
     */
   def doDivide(n: Number): Number
 

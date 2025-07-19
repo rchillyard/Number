@@ -2,9 +2,8 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.core.inner
+package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Fuzz
 import scala.Option.when
 import scala.util.Try
 
