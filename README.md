@@ -579,10 +579,10 @@ Transcendental Numbers
 ======================
 Apart from the special cases of $\pi$ and e, there is no way currently to store
 transcendental numbers. 
-For numbers such as natural log of 2, we can express this lazily through an Expression.
+For numbers such as natural log of 2, we can express this lazily through an _Expression_.
 A transcendental is based on an expression which can be evaluated.
 Other transcendentals that are not based on an expression, are specified
-simply as constants, for example, gamma, the Euler-Mascheroni constant.
+simply as constants, for example, $\gamma$, the Euler-Mascheroni constant.
 See the _Introduction.sc_ worksheet for examples.
 
 Error Bounds (Fuzziness)
