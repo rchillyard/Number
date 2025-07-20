@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sBoltzmann
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{NumberIsOrdering, negate, one, root2, zero}
+import com.phasmidsoftware.number.core.Number.{NumberIsOrdering, negate, one, root2, zeroR}
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, convertFieldToExpression}
@@ -898,6 +898,20 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     // NOTE this should actually be equal to just plain old Number.two (need to simplify result).
     result should ===(Number.two)
   }
+  it should "power by one half" in {
+    val x = Number("1.643(1)")
+    val pi = (x multiply Real(6)) power Number.half
+    pi should matchPattern { case ComplexPolar(_, `zeroR`, 2) => }
+    pi.render shouldBe "±3.1397452125928944±0.030%"
+  }
+  // Issue #121 why does this work out differently from power by one half?
+  // the precision is different and it's a FuzzyNumber instead of a ComplexPolar.
+  it should "sqrt" in {
+    val x = Number("1.643(1)")
+    val pi = Number.sqrt(x doMultiple 6)
+    pi should matchPattern { case FuzzyNumber(_, _, _) => }
+    pi.render shouldBe "3.1397452125928944±0.0050%"
+  }
 
   behavior of "sqrt"
   it should "work for easy ints" in {
@@ -1070,12 +1084,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   behavior of "log"
   it should "be 1 for E" in {
     val target = Number.e
-    target.log shouldBe one
+    target.log shouldBe Constants.one
   }
   it should "be 0 for 1" in {
     val target = Number.one
     val log = target.log
-    log shouldBe zero
+    log shouldBe Constants.zero
   }
   it should "be 2 for E^2" in {
     val target: Number = Expression(Constants.e) * Constants.e

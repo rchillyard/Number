@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.inner.Series
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.language.implicitConversions

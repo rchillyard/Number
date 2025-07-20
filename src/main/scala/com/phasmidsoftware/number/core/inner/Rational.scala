@@ -5,9 +5,9 @@
 package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
-import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times}
+import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times, toInts}
 import com.phasmidsoftware.number.core.{BigNumber, Number, NumberLike, Prime}
-import com.phasmidsoftware.number.misc.FP.toTryWithRationalException
+import com.phasmidsoftware.number.misc.FP.{toTry, toTryWithRationalException}
 import com.phasmidsoftware.number.misc.{ContinuedFraction, FP}
 import com.phasmidsoftware.number.parse.RationalParser
 import java.lang.Math._
@@ -409,7 +409,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * If the Rational number represents infinity, an exception is thrown.
     *
     * @return A BigDecimal representing the Rational number.
-    * @throws RationalException if the Rational number is infinity.
+    * @throws com.phasmidsoftware.number.core.inner.RationalException if the Rational number is infinity.
     */
   def forceToBigDecimal: BigDecimal =
     if (!isInfinity)
@@ -580,6 +580,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
   /**
    * Renders a conditional output based on the provided boolean flag.
    * CONSIDER: why not return an Option[String] ?
+    * NOTE the parameter exact is `always` true.
    *
    * @param exact A boolean flag indicating whether to render the exact output or a default value.
    * @return A tuple containing the rendered string and a boolean indicating the success of rendering.
@@ -596,6 +597,8 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
    * @return an exact String representation of this Rational.
    */
   def renderExact: String = this match {
+    case VulgarFraction(w) =>
+      w
     case `half` =>
       "\u00BD"
     case _ if isNaN =>
@@ -603,7 +606,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     case _ if isZero && d < 0 =>
       "-0"
     case _ if isInfinity =>
-      (if (n > 0) "+ve" else "-ve") + " infinity"
+      (if (n > 0) "" else "-") + "∞"
     case _ if isWhole =>
       toBigInt.toString
     case _ if isExactDouble =>
@@ -614,10 +617,10 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
           w
         case _ =>
           toBigDecimal match {
-        case Some(x) =>
-          x.toString
-        case None =>
-          asString
+            case Some(x) =>
+              x.toString
+            case None =>
+              asString
       }
     }
   }
@@ -761,6 +764,15 @@ object Rational {
      */
     def *(r: Rational): Rational =
       Rational(x) * r
+
+    /**
+      * Computes the multiplicative inverse of the Rational representation of the given integer.
+      * The result is equivalent to 1 divided by the Rational value of the integer.
+      *
+      * @return the inverted Rational representation of the integer.
+      */
+    def invert: Rational =
+      Rational(x).invert
 
     /**
      * Method to divide by Rational.
@@ -1164,7 +1176,7 @@ object Rational {
    *
    * @param x the BigDecimal to convert.
    * @return a Rational which is equal to x.
-   * @throws RationalException if x cannot be represented as a Rational.
+   * @throws com.phasmidsoftware.number.core.inner.RationalException if x cannot be represented as a Rational.
    */
   def apply(x: BigDecimal): Rational =
     if (x.scale >= 0) {
@@ -1193,7 +1205,19 @@ object Rational {
    * @throws com.phasmidsoftware.number.parse.RationalParserException if w is malformed.
    */
   def apply(w: String): Rational =
-    parse(w).get
+    toTry(VulgarFraction(w), Failure(new NoSuchElementException)).orElse(parse(w)) match {
+      case Success(value) => value
+      case Failure(e) => throw e
+    }
+
+  /**
+    * Creates a new Rational object by applying the given tuple consisting of numerator and denominator.
+    *
+    * @param t a tuple where the first element is the numerator and the second element is the denominator
+    * @return a new Rational object constructed from the provided numerator and denominator
+    */
+  def apply(t: (Int, Int)): Rational =
+    Rational(t._1, t._2)
 
   /**
    * Method to construct a Try[Rational] based on a String.
@@ -1271,7 +1295,7 @@ object Rational {
     * @param top    the expected numerator of the ratio
     * @param bottom the expected denominator of the ratio
     * @return true if the Rational number has the correct ratio, false otherwise
-    * @throws RationalException if the ratio is incorrect
+    * @throws com.phasmidsoftware.number.core.inner.RationalException if the ratio is incorrect
     */// CONSIDER making this private or moving back into RationalSpec
   def hasCorrectRatio(r: Rational, top: BigInt, bottom: BigInt): Boolean = {
     val _a = r * bottom
@@ -1345,7 +1369,7 @@ object Rational {
    * @return an optional tuple of Ints.
    */
   def toInts(x: Rational): Option[(Int, Int)] =
-    toLongs(x) map { case (n, d) => (math.toIntExact(n), math.toIntExact(d)) }
+    for (a <- toInt(x.n); b <- toInt(x.d)) yield (a, b)
 
   /**
     * Get Rational x as a pair of Longs (if possible).
@@ -1648,12 +1672,26 @@ object Rational {
   private def toFloat(x: Rational): Float =
     toDouble(x).toFloat
 
+  /**
+    * Converts a given BigInt to an Option[Int], if it falls within the valid range of Int.
+    *
+    * @param x the input BigInt to be converted
+    * @return Some(Int) if the input is within the range of Int, otherwise None
+    */
   private def toInt(x: BigInt): Option[Int] =
     if (x.isValidInt)
       Some(x.toInt)
     else
       None
 
+  /**
+    * Compares two Rational numbers and returns an integer indicating their relative order.
+    *
+    * @param x the first Rational number to compare
+    * @param y the second Rational number to compare
+    * @return a negative integer, zero, or a positive integer as the first Rational
+    *         is less than, equal to, or greater than the second Rational
+    */
   private def compare(x: Rational, y: Rational): Int =
     minus(x, y).signum
 
@@ -1665,6 +1703,13 @@ object Rational {
       x.compare(y)
   }
 
+  /**
+    * Divides one Rational number by another.
+    *
+    * @param x the numerator rational number
+    * @param y the denominator rational number
+    * @return the result of dividing x by y as a Rational number
+    */
   private def div(x: Rational, y: Rational): Rational = x / y
 
   /**
@@ -1801,6 +1846,53 @@ object Rational {
  * @param s the cause as a String.
  */
 case class RationalException(s: String) extends Exception(s)
+
+/**
+  * The `VulgarFraction` object provides a mapping of common fractional values
+  * to their corresponding Unicode vulgar fraction characters. It also includes
+  * functionality to extract a Unicode representation of a vulgar fraction
+  * from a given `Rational` number.
+  *
+  * This object uses a predefined `Map` of numerator and denominator pairs
+  * to their Unicode character equivalents.
+  *
+  * The primary use case for this object is working with `Rational` numbers
+  * and converting them to their Unicode vulgar fraction representation when applicable.
+  *
+  * Functionality:
+  * - Provides the mapping of common fractions to Unicode vulgar fraction characters.
+  * - Extracts a Unicode vulgar fraction character from a `Rational` number when possible.
+  */
+object VulgarFraction {
+  val mapping: Map[(Int, Int), String] = Map(
+    (1, 4) -> "\u00BC",
+    (1, 2) -> "\u00BD",
+    (3, 4) -> "\u00BE",
+    (1, 3) -> "\u2153",
+    (2, 3) -> "\u2154",
+    (1, 5) -> "\u2155",
+    (2, 5) -> "\u2156",
+    (3, 5) -> "\u2157",
+    (4, 5) -> "\u2158",
+    (1, 6) -> "\u2159",
+    (5, 6) -> "\u215A",
+    (1, 8) -> "\u215B",
+    (3, 8) -> "\u215C",
+    (5, 8) -> "\u215D",
+    (7, 8) -> "\u215E",
+    (1, 7) -> "\u2150",
+    (1, 9) -> "\u2151",
+    (1, 10) -> "\u2152",
+  )
+
+  val reverseMapping: Map[String, (Int, Int)] = mapping.map(_.swap)
+
+  def apply(w: String): Option[Rational] =
+    reverseMapping.get(w) map Rational.apply
+
+  def unapply(x: Rational): Option[String] =
+    toInts(x) flatMap { case (n, d) => mapping.get((n, d)) }
+}
 
 /**
  * Value class to define Tolerance.

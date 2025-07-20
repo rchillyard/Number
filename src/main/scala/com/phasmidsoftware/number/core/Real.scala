@@ -232,7 +232,7 @@ case class Real(x: Number) extends Field {
     * @return the natural log of this.
     */
   def log: Field =
-    Real(x.log)
+    x.log
 
   /**
     * Method to raise e to the power of this Real.

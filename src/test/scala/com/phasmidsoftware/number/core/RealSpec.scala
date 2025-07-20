@@ -462,5 +462,4 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Real(Number.root2) multiply Real(Number.root2) shouldBe Constants.two
     Constants.two multiply Constants.two shouldBe Real(4)
   }
-
 }

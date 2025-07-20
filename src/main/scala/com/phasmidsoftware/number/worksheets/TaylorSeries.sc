@@ -2,8 +2,7 @@
 // about a particular a (0)
 // We then evaluate the series at x = π/100 and compare with the math function value for the same x value.
 
-import com.phasmidsoftware.number.core.inner.Series
-import com.phasmidsoftware.number.core.{Number, Real, TaylorSeries}
+import com.phasmidsoftware.number.core.{Number, Real, Series, TaylorSeries}
 import scala.util.Try
 
 // Create Taylor Series about a = 0

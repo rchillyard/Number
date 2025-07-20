@@ -1,5 +1,5 @@
+![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/number_2.13/badge.svg?color=blue)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Number?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Number&utm_campaign=Badge_Grade)
-[![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/number_2.13/badge.svg?color=blue)]
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Number/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Number/tree/main)
 ![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Number)
 ![GitHub](https://img.shields.io/github/license/rchillyard/Number)
@@ -575,6 +575,16 @@ The _hierarchy_ of Context is as follows:
   * _AnyContext_ (object: accepts any _Factor_)
   * _ImpossibleContext_ (object: accepts no _Factor_)
 
+Transcendental Numbers
+======================
+Apart from the special cases of $\pi$ and e, there is no way currently to store
+transcendental numbers. 
+For numbers such as natural log of 2, we can express this lazily through an _Expression_.
+A transcendental is based on an expression which can be evaluated.
+Other transcendentals that are not based on an expression, are specified
+simply as constants, for example, $\gamma$, the Euler-Mascheroni constant.
+See the _Introduction.sc_ worksheet for examples.
+
 Error Bounds (Fuzziness)
 ========================
 The error bounds are represented by the _Fuzz[Double]_ class.
@@ -711,6 +721,7 @@ Note that the type hierarchy is very likely to change in version 1.3
     * _LinearSolution_ (case class: a linear solution)
     * _QuadraticSolution_ (case class: a quadratic solution)
   * _Expression_ (trait: lazy numeric quantities: see below)
+  * _Transcendental_ (trait) defining exact numbers with no other definition
 * _Series_ (trait)
   * _AbstractSeries_
     * _FiniteSeries_
@@ -791,7 +802,7 @@ Other types (for reference):
 
 Versions
 ========
-* Version 1.2.6: 
+* Version 1.2.6: Added Transcendental Numbers.
 * Version 1.2.5: Fixed badges in this README file; also added social card.
 * Version 1.2.4: Restored functioning of CircleCI as well as some very minor changes to Rational (and fewer ignored tests).
 * Version 1.2.3: Introduced Series, PowerSeries, and TaylorSeries.
@@ -834,3 +845,5 @@ Versions
 
 Future Upgrades
 ===============
+We intend to restructure the hierarchy of numeric types entirely.
+The traits and classes should strictly follow the matchematical concepts of field, ring, etc.

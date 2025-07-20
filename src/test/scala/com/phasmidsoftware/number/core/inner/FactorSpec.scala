@@ -120,5 +120,4 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
   it should "sE" in {
 
   }
-
 }
