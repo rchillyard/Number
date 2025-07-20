@@ -219,16 +219,16 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = expression.Function(One, Exp)
     x.simplify shouldBe ConstE
   }
-  it should "work for Log Zero" in {
-    val x = expression.Function(Zero, Log)
+  it should "work for Ln Zero" in {
+    val x = expression.Function(Zero, Ln)
     x.simplify shouldBe Expression(infinity.negate)
   }
-  it should "work for Log One" in {
-    val x = expression.Function(One, Log)
+  it should "work for Ln One" in {
+    val x = expression.Function(One, Ln)
     x.simplify shouldBe Zero
   }
-  it should "work for Log e" in {
-    val x = expression.Function(Constants.e, Log)
+  it should "work for Ln e" in {
+    val x = expression.Function(Constants.e, Ln)
     x.simplify shouldBe One
   }
   it should "work for Sine 0" in {
@@ -830,7 +830,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   it should "simplify (√3 + 1)(√3 - 1) as 2 exactly" in {
-    val em = eml // Log this unit test
+    val em = eml // Ln this unit test
     // Expect matches:
     // matchTwoDyadicTripleLevels: Match: *~+~{3 ^ (2 ^ -1)}~1~+~{3 ^ (2 ^ -1)}~(1 * -1)
     // matchTwoDyadicTripleLevels: Match: *~^~3~(2 ^ -1)~^~3~(2 ^ -1)
@@ -1186,13 +1186,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   it should "simplify log(E)" in {
-    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Log ~ ConstE)
+    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Ln ~ ConstE)
     r.successful shouldBe true
     r.get shouldBe One
   }
 
   it should "simplify log(1)" in {
-    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Log ~ One)
+    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Ln ~ One)
     r.successful shouldBe true
     r.get shouldBe Zero
   }

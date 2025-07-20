@@ -456,9 +456,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     case Exp ~ Literal(x, _) if x == Real(infinity.negate) => Match(Zero)
     case Exp ~ Zero => Match(One)
     case Exp ~ One => Match(ConstE)
-    case Log ~ One => Match(Zero)
-    case Log ~ Zero => Match(infinity.negate)
-    case Log ~ ConstE => Match(One)
+    case Ln ~ One => Match(Zero)
+    case Ln ~ Zero => Match(infinity.negate)
+    case Ln ~ ConstE => Match(One)
     case Sine ~ Literal(x, _) if x == piBy2 => Match(One)
     case Sine ~ Literal(x, _) if (x + piBy2).isZero => Match(MinusOne)
     case Sine ~ Zero | Sine ~ ConstPi => Match(Zero)
@@ -1379,8 +1379,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return True if the functions are complementary, otherwise false.
     */
   def complementaryMonadic(f: ExpressionFunction, g: ExpressionFunction): Boolean = (f, g) match {
-    case (Exp, Log) => true
-    case (Log, Exp) => true  // TESTME
+    case (Exp, Ln) => true
+    case (Ln, Exp) => true  // TESTME
     case (Negate, Negate) => true
     case (Reciprocal, Reciprocal) => true
     case _ => false // TESTME

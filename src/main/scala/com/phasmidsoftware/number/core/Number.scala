@@ -240,7 +240,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   /**
     * Perform an exact scalar multiplication of this `Number` by the scale factor `r`.
     *
-    * NOTE that numbers with `Log` factor cannot be scaled exactly in this way.
+    * NOTE that numbers with `Logarithmic` factors cannot be scaled exactly in this way.
     *
     * @param r a Rational.
     * @return a new Number which is this Number scaled by z.
@@ -456,7 +456,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the natural log of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with `PureNumber` factor.
+    * CONSIDER renaming this as "ln" but keep in mind that the Java library calls the function "log."
     *
     * @return the natural log of this.
     */

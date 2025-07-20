@@ -18,7 +18,7 @@ Number.e.power(iPi).add(Constants.one)
 val minusOne = Number.e.power(iPi).render
 
 // What about finding the log of a number?
-// Here he want to know the Nat Log of e (1 obviously)
+// Here he want to know the natural log of e (1 obviously)
 Number.e.log
 
 // What about the natural log of 2?

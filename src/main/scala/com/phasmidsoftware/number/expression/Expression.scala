@@ -269,7 +269,7 @@ object Expression {
       * @return an Expression representing the log of x.
       */
     def log: Expression =
-      Function(x, Log)
+      Function(x, Ln)
 
     /**
       * Method to lazily get the value of `e` raised to the power of x.
@@ -1105,7 +1105,7 @@ case object One extends ScalarConstant(Constants.one, "1") {
       Some(this)
     case Exp =>
       Some(ConstE)
-    case Log =>
+    case Ln =>
       Some(Zero)
     case _ =>
       None // TESTME
@@ -1205,7 +1205,7 @@ case object ConstE extends NamedConstant(Constants.e, "e") {
     *         or `None` if the evaluation fails.
     */
   def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
-    case Log =>
+    case Ln =>
       Some(One)
     case _ =>
       None
@@ -1342,6 +1342,9 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   def simplifyTrivial: em.AutoMatcher[Expression] =
     em.Matcher("Function: simplifyTrivial") {
 
+//      case Function(Function(b, Ln), Reciprocal) => // x = e, b = 2
+//        Function()
+
       // XXX we check for certain exact literal function results
       case Function(e@FieldExpression(_, _), f) if e.monadicFunction(f).isDefined =>
         em.matchIfDefined(e.monadicFunction(f))(e)
@@ -1355,7 +1358,7 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   /**
     * Simplifies a composite `Expression` by attempting to match it with a simpler form.
     * This method applies specific rules to detect and handle cases where the composite expression
-    * consists of functions that are complementary (e.g., exponential and logarithmic, negation and negation).
+    * consists of functions that are complementary (e.g., exponential/logarithmic, negation/negation and reciprocal/reciprocal).
     * If no such simplification is possible, the method returns a miss case without modification to the input.
     *
     * @return An `em.AutoMatcher[Expression]` that will either match the simplified expression or
@@ -2355,10 +2358,12 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
 /**
   * Represents the natural logarithmic function as an ExpressionFunction.
   *
+  * Renaming this function as Ln (logarithmus naturalis).
+  *
   * This object provides functionality to compute the natural logarithm (ln) of a given Number.
   * The underlying implementation utilizes the `log` method of the Number type.
   */
-case object Log extends ExpressionFunction("log", x => x.log) {
+case object Ln extends ExpressionFunction("ln", x => x.log) {
   /**
     * Regardless of the value of `context`, the required `Context` for the parameter is `PureNumber`.
     *

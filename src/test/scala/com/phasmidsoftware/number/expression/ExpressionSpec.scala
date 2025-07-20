@@ -91,8 +91,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     f(Constants.zero) shouldBe Constants.one
     f(Constants.one) shouldBe Constants.e
   }
-  it should "work for Log" in {
-    val f: ExpressionFunction = Log
+  it should "work for Ln" in {
+    val f: ExpressionFunction = Ln
     f(Constants.one) shouldBe Constants.zero
     f(Constants.e) shouldBe Constants.one
   }
@@ -116,8 +116,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for Reciprocal" in {
     expression.Function(Two, Reciprocal).materialize shouldBe Constants.half
   }
-  it should "work for Exp(Log(2))" in {
-    val x = expression.Function(expression.Function(Two, Log), Exp)
+  it should "work for Exp(Ln(2))" in {
+    val x = expression.Function(expression.Function(Two, Ln), Exp)
     val result = x.materialize
     result shouldBe Constants.two
   }

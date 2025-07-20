@@ -37,7 +37,7 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
     Log2.multiply(fromInt(2), fromInt(3), PureNumber) shouldBe None
   }
 
-  it should "multiply Other by Log" in {
+  it should "multiply Other by Ln" in {
     NatLog.multiply(fromInt(2), fromInt(4), NatLog) shouldBe Some((fromInt(6), NatLog, None))
     Radian.multiply(fromInt(2), fromInt(3), NatLog) shouldBe None
     SquareRoot.multiply(fromInt(2), fromInt(3), NatLog) shouldBe None
