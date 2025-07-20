@@ -68,13 +68,39 @@ case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma)
   * A `Transcendental` is characterized by:
   *  - A human-readable name of the transcendental entity.
   *  - An `Expression` representing its lazy value, i.e., a mathematical expression.
+  *
+  * CONSIDER should Transcendental extend Expression instead of NumberLike? It is very much like CompositeExpression or AtomicExpression.
   */
 trait Transcendental extends NumberLike {
+  /**
+    * Retrieves the name as a string.
+    *
+    * @return the name in string format
+    */
   def name: String
 
+  /**
+    * Retrieves the lazily evaluated mathematical expression representing this transcendental entity.
+    *
+    * @return the `Expression` associated with this transcendental entity
+    */
   def expression: Expression
 
+  /**
+    * Applies the provided `ExpressionFunction` to this `Transcendental` entity.
+    *
+    * @param f the `ExpressionFunction` to be applied, defining a transformation or operation on this `Transcendental`.
+    * @return a new `Transcendental` instance representing the result of applying the function.
+    */
   def function(f: ExpressionFunction): Transcendental
+
+  /**
+    * Action to evaluate this `Expression` as a `Field`, if possible.
+    * NOTE: no simplification or factor-based conversion occurs here.
+    *
+    * @return an optional `Field`.
+    */
+  def evaluate: Option[Field] = expression.evaluateAsIs
 }
 
 /**
@@ -94,15 +120,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     * @return a new `Transcendental` instance that encapsulates the applied function and updated expression.
     */
   def function(f: ExpressionFunction): Transcendental =
-    new AbstractTranscendental(s"${f.name}($name)", com.phasmidsoftware.number.expression.Function(expression, f)) {}
-
-  /**
-    * Action to evaluate this `Expression` as a `Field`, if possible.
-    * NOTE: no simplification or factor-based conversion occurs here.
-    *
-    * @return an optional `Field`.
-    */
-  def evaluate: Option[Field] = expression.evaluateAsIs
+    new AbstractTranscendental(s"${f.name}($name)", com.phasmidsoftware.number.expression.Function(expression, f).simplify) {}
 
   /**
     * Method to determine if the materialized value of this `Expression` is defined and corresponds to a `Number`.
