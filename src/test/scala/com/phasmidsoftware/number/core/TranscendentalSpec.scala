@@ -24,12 +24,10 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
     L2.asNumber should matchPattern { case Some(FuzzyNumber(_, _, _)) => }
     L2.asNumber map (_.render) shouldBe Some("0.6931471805599453±0.00000000000020%")
   }
-  // FIXME Issue #124
-  ignore should "evaluate lg2e" in {
+  // Test for Issue #124
+  it should "evaluate lg2e" in {
     LgE.evaluate shouldBe None
     (Two ^ LgE.expression).simplify shouldEqual ConstE
-    L2.asNumber should matchPattern { case Some(FuzzyNumber(_, _, _)) => }
-    L2.asNumber map (_.render) shouldBe Some("0.6931471805599453±0.00000000000020%")
   }
   it should "evaluate gamma" in {
     val rational = Rational("7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000")

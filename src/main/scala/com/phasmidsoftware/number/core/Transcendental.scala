@@ -83,6 +83,7 @@ case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma)
   *  - An `Expression` representing its lazy value, i.e., a mathematical expression.
   *
   * CONSIDER should Transcendental extend Expression instead of NumberLike? It is very much like CompositeExpression or AtomicExpression.
+  * That way, we would be able to recognize Transcendentals during simplifyConstant and have the matched value returned.
   */
 trait Transcendental extends NumberLike {
   /**

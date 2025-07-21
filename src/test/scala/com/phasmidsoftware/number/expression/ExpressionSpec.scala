@@ -207,7 +207,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "fail to evaluate log 1 x or log 0 x" in {
     val base = Expression(1)
-    a[NumberException] should be thrownBy One.log(base).materialize.asNumber
+    a[NumberException] should be thrownBy Two.log(base).materialize.asNumber
   }
   it should "evaluate ln E" in {
     val x: Expression = ConstE
@@ -219,6 +219,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: Expression = x.ln
     val result = y.materialize
     val expected = Real("1.693147180559945(13)")
+    result shouldEqual expected
+  }
+  it should "evaluate xxx" in {
+    val x: Expression = ConstE.log(Two) // lg E with value close to √2
+    val y: Expression = x.reciprocal.simplify
+    // NOTE eventually, we should be able to compare y with L2 (this is Issue #125)
+    val result = y.materialize
+    val expected = Real("0.6931471805599453(13)")
     result shouldEqual expected
   }
 

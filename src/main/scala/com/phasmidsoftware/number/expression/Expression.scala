@@ -660,6 +660,8 @@ sealed trait CompositeExpression extends Expression {
     */
   def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
     expr =>
+      // Issue #125
+      // CONSIDER trying to recognize `Transcendental`s are returning them as a matched `Expression` (but, currently, `Transcendental` does not extend `Expression`)
       expr.evaluateAsIs match {
         case Some(f) =>
           em.Match(Expression(f)) map (_.simplify)
@@ -1351,8 +1353,11 @@ case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpre
   def simplifyTrivial: em.AutoMatcher[Expression] =
     em.Matcher("Function: simplifyTrivial") {
 
-//      case Function(Function(b, Ln), Reciprocal) => // x = e, b = 2
-//        Function()
+      // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
+      case Function(Function(x, Ln), Reciprocal) =>
+        em.Match(BiFunction(ConstE, x, Log))
+      case Function(BiFunction(x, b, Log), Reciprocal) =>
+        em.Match(BiFunction(b, x, Log))
 
       // XXX we check for certain exact literal function results
       case Function(e@FieldExpression(_, _), f) if e.monadicFunction(f).isDefined =>
@@ -1453,6 +1458,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(MinusOne)
       case BiFunction(ConstE, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _), Power) =>
         em.Match(MinusOne)
+      case BiFunction(a, BiFunction(x, b, Log), Power) if a == b =>
+        em.Match(x)
+      case BiFunction(One, _, Log) =>
+        em.Match(Zero)
+      case BiFunction(a, b, Log) if a == b =>
+        em.Match(One)
+      case BiFunction(a, ConstE, Log) =>
+        em.Match(Function(a, Ln))
       // TODO match on Algebraic_Linear also
       case BiFunction(Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
         // XXX Apply Vieta's formula
