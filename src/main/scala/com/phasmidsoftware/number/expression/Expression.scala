@@ -268,7 +268,7 @@ object Expression {
       *
       * @return an Expression representing the log of x.
       */
-    def log: Expression =
+    def ln: Expression =
       Function(x, Ln)
 
     /**
@@ -286,6 +286,15 @@ object Expression {
       */
     def atan(y: Expression): Expression =
       BiFunction(x, y, Atan)
+
+    /**
+      * Computes the logarithm of a given expression to the specified base.
+      *
+      * @param b the base of the logarithm, represented as an Expression.
+      * @return an Expression representing the logarithm of this expression to the base `b`.
+      */
+    def log(b: Expression): Expression =
+      BiFunction(x, b, Log)
 
     /**
       * Eagerly compare this expression with y.
@@ -2356,6 +2365,68 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
 }
 
 /**
+  * The `Log` object represents a mathematical logarithmic operation as a binary function.
+  * It extends the `ExpressionBiFunction`, enabling evaluation of logarithmic expressions
+  * with specific constraints and rules for exactness.
+  *
+  * This class supports restricted evaluation contexts and provides mechanisms
+  * for exact computation or fallback to default behavior when exact evaluation is not possible.
+  */
+case object Log extends ExpressionBiFunction("log", Real.log, false, None, None) {
+  /**
+    * Identifies and retrieves a restricted evaluation context suitable for left-hand operations.
+    *
+    * This method reduces the input `Context` by applying constraints, resulting in a
+    * new `RestrictedContext` based on predefined evaluation criteria.
+    *
+    * @param context the input evaluation `Context` that defines the left-hand context for the operation.
+    * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
+    */
+  def leftContext(context: Context): Context =
+    RestrictedContext(PureNumber) or AnyRoot
+
+  /**
+    * Retrieves the right-hand evaluation context associated with this function.
+    *
+    * @param context the input evaluation `Context` that specifies the right-hand context for the operation.
+    * @return the same `Context` object passed as input, representing the right-hand evaluation context.
+    */
+  def rightContext(factor: Factor)(context: Context): Context =
+    RestrictedContext(PureNumber)
+
+  /**
+    * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
+    * and returns an optional result.
+    * The evaluation succeeds only if the operation satisfies specific conditions
+    * (e.g., exact representations or mathematical constraints).
+    *
+    * TESTME
+    *
+    * @param a the field whose log we required, a `Field` instance.
+    * @param b the base, a `Field` instance.
+    * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
+    *         or `None` if the operation fails to meet exactness requirements.
+    */
+  def applyExact(a: Field, b: Field): Option[Field] =
+    (a, b) match {
+      case _ if b <= Constants.one =>
+        None // CONSIDER throwing an exception here instead
+      case (Constants.one, _) =>
+        Some(Constants.zero)
+      case (Real(x@ExactNumber(_, Log2)), Constants.two) =>
+        Some(Real(x.make(PureNumber)))
+      case (Real(x@ExactNumber(_, Log10)), Constants.ten) =>
+        Some(Real(x.make(PureNumber)))
+      case (Real(x@ExactNumber(_, NatLog)), Constants.e) => // XXX not strictly necessary as this will be handled by the default case
+        Some(Real(x.make(PureNumber)))
+      case _ if a == b =>
+        Some(Constants.one)
+      case _ =>
+        Some(f(a, b))
+    }
+}
+
+/**
   * Represents the natural logarithmic function as an ExpressionFunction.
   *
   * Renaming this function as Ln (logarithmus naturalis).
@@ -2363,7 +2434,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
   * This object provides functionality to compute the natural logarithm (ln) of a given Number.
   * The underlying implementation utilizes the `log` method of the Number type.
   */
-case object Ln extends ExpressionFunction("ln", x => x.log) {
+case object Ln extends ExpressionFunction("ln", x => x.ln) {
   /**
     * Regardless of the value of `context`, the required `Context` for the parameter is `PureNumber`.
     *
@@ -2817,7 +2888,7 @@ abstract class ExpressionBiFunction(
     * meaning the result remains unchanged for arbitrary swapping of inputs.
     * This is determined based on the absence of a right-hand identity (`maybeIdentityR`).
     */
-  lazy val commutes: Boolean = maybeIdentityR.isEmpty
+  lazy val commutes: Boolean = maybeIdentityL.isDefined && maybeIdentityR.isEmpty
 
   /**
     * Applies a trivial binary function to the provided `Field` elements `a` and `b`.

@@ -231,7 +231,7 @@ case class Stack(stack: List[Item]) extends Mill {
     case Chs => x * Expression(-1)
     case Inv => x reciprocal
     case Sqrt => x sqrt
-    case Ln => x.log
+    case Ln => x.ln
     case Exponent => x.exp
     case Sin => x.sin
     case Cos => x.cos

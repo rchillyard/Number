@@ -201,7 +201,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     *
     * @return a new Field representing the result of the logarithmic computation.
     */
-  def log: Field
+  def ln: Field
 
   /**
     * Computes the exponential of this Field.

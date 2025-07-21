@@ -307,19 +307,19 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.exp should ===(Expression(Constants.e) * Constants.e)
   }
 
-  behavior of "log"
+  behavior of "ln"
   it should "be 1 for E" in {
     val target = Real(Number.e)
-    target.log shouldBe one
+    target.ln shouldBe one
   }
   it should "be 0 for 1" in {
     val target = Constants.one
-    val log = target.log
+    val log = target.ln
     log shouldBe Constants.zero
   }
   it should "be 2 for E^2" in {
     val target: Number = Expression(Constants.e) * Constants.e
-    target.log should ===(Number.two)
+    target.ln should ===(Number.two)
   }
 
 

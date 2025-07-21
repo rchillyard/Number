@@ -231,8 +231,8 @@ case class Real(x: Number) extends Field {
     *
     * @return the natural log of this.
     */
-  def log: Field =
-    x.log
+  def ln: Field =
+    x.ln
 
   /**
     * Method to raise e to the power of this Real.
@@ -436,7 +436,10 @@ object Real {
   def atan(x: Field, y: Field): Real =
     (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN))
 
-  val atanFunction: (Field, Field) => Real = atan
+  def log(x: Field, y: Field): Real =
+    (for (a <- x.asNumber; b <- y.asNumber) yield Real(a log b)).getOrElse(Real(Number.NaN))
+
+//  val atanFunction: (Field, Field) => Real = atan
 
   /**
    * Creates a Real instance from a given Field if it can be represented as a real number.

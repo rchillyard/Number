@@ -45,7 +45,7 @@ case object E extends AbstractTranscendental("\uD835\uDF00", ConstE)
   * The `L2` object is defined as a named transcendental entity and can be used
   * in operations or expressions involving transcendental numbers.
   */
-case object L2 extends AbstractTranscendental("ln(2)", Two.log)
+case object L2 extends AbstractTranscendental("ln(2)", Two.ln)
 
 /**
   * Represents the natural logarithm of 2 as a transcendental constant.
@@ -58,7 +58,7 @@ case object L2 extends AbstractTranscendental("ln(2)", Two.log)
   * The `L2` object is defined as a named transcendental entity and can be used
   * in operations or expressions involving transcendental numbers.
   */
-case object LgE extends AbstractTranscendental("log2e", Two.log.reciprocal.simplify)
+case object LgE extends AbstractTranscendental("log2e", Two.ln.reciprocal.simplify)
 
 /**
   * Singleton object representing the Euler-Mascheroni constant (𝛾), a fundamental mathematical constant.

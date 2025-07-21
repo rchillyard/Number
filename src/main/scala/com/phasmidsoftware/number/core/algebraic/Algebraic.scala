@@ -224,8 +224,8 @@ trait Algebraic extends Multivariate {
     *
     * @return a new Field representing the result of the logarithmic computation.
     */
-  def log: Field =
-    value.log
+  def ln: Field =
+    value.ln
 
   /**
     * Computes the exponential of this Field.

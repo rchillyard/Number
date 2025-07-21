@@ -28,6 +28,7 @@ import scala.util._
 sealed trait Factor {
   /**
     * A value which can be used to convert a value associated with this Factor to a different Factor.
+    * CONSIDER redefining this as a Number (which could be exact or fuzzy).
     */
   val value: Double
 

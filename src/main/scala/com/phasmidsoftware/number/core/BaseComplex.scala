@@ -302,7 +302,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  def log: Field
+  def ln: Field
 
   /**
     * Computes the exponential of this complex number.
@@ -502,7 +502,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  def log: Field = throw ComplexException("not implemented: ComplexCartesian.log")
+  def ln: Field = throw ComplexException("not implemented: ComplexCartesian.ln")
 
   /**
    * TESTME
@@ -765,12 +765,12 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  def log: Field =
-    r.log match {
+  def ln: Field =
+    r.ln match {
       case Real(n) =>
         ComplexCartesian(n, theta)
       case _ =>
-        throw ComplexException("logic error: ComplexPolar.log")
+        throw ComplexException("logic error: ComplexPolar.ln")
     }
 
   /**
