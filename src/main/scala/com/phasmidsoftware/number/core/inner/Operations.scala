@@ -216,6 +216,7 @@ case object MonadicOperationExp extends MonadicOperation {
 
 /**
   * MonadicOperation to yield the natural logarithm of a Number.
+  * CONSIDER Renaming as MonadicOperationLn
   */
 case object MonadicOperationLog extends MonadicOperation {
   /**
