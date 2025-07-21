@@ -45,7 +45,7 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
     E.expression shouldEqual ConstE
   }
   it should "expression l2" in {
-    L2.expression shouldEqual Two.log
+    L2.expression shouldEqual Two.ln
   }
 
   it should "function 1" in {

@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Real}
+import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, pi}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
@@ -189,14 +189,34 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     One.atan(Constants.root3).evaluateAsIs shouldBe Some(Constants.piBy3)
     One.atan(One).evaluateAsIs shouldBe Some(Constants.piBy4)
   }
+  it should "evaluate log 2" in {
+    val base = Two
+    One.log(base).materialize.asNumber shouldBe Some(Number.zero)
+    Two.log(base).materialize.asNumber shouldBe Some(Number.one)
+//    Expression(4).log(base).materialize.asNumber shouldBe Some(Number.two)
+  }
+  it should "evaluate log e" in {
+    val base = ConstE
+    One.log(base).materialize.asNumber shouldBe Some(Number.zero)
+    ConstE.log(base).materialize.asNumber shouldBe Some(Number.one)
+  }
+  it should "evaluate log 10" in {
+    val base = Expression(10)
+    One.log(base).materialize.asNumber shouldBe Some(Number.zero)
+    Expression(10).log(base).materialize.asNumber shouldBe Some(Number.one)
+  }
+  it should "fail to evaluate log 1 x or log 0 x" in {
+    val base = Expression(1)
+    a[NumberException] should be thrownBy One.log(base).materialize.asNumber
+  }
   it should "evaluate ln E" in {
     val x: Expression = ConstE
-    val y: Expression = x.log
+    val y: Expression = x.ln
     y.materialize shouldBe Constants.one
   }
   it should "evaluate ln 2E" in {
     val x: Expression = ConstE * 2
-    val y: Expression = x.log
+    val y: Expression = x.ln
     val result = y.materialize
     val expected = Real("1.693147180559945(13)")
     result shouldEqual expected

@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.GeneralNumber.normalizeRoot
-import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
+import com.phasmidsoftware.number.core.Number.{negate, one, prepareWithSpecialize}
 import com.phasmidsoftware.number.core.inner.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.inner.Rational.toInts
 import com.phasmidsoftware.number.core.inner._
@@ -224,12 +224,25 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     Number.atan(this, y)
 
   /**
+    * Calculates the logarithm of the current number to the given base.
+    *
+    * @param b the base of the logarithm
+    * @return the logarithm of the current number to the given base, or NaN if the calculation fails
+    */
+  def log(b: Number): Number = {
+    if (b > one)
+      (Number.log(this) divide Number.log(b)).asNumber.getOrElse(Number.NaN)
+    else
+      throw NumberException(s"log(this, b) where b <= 1")
+  }
+
+  /**
     * Method to determine the natural log of this Number.
     * The result will be a Number with PureNumber factor.
     *
     * @return the natural log of this.
     */
-  def log: Field =
+  def ln: Field =
     Number.log(this)
 
   /**

@@ -1081,24 +1081,46 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.exp should ===(Expression(Constants.e) * Constants.e)
   }
 
-  behavior of "log"
+  behavior of "ln"
   it should "be 1 for E" in {
     val target = Number.e
-    target.log shouldBe Constants.one
+    target.ln shouldBe Constants.one
   }
   it should "be 0 for 1" in {
     val target = Number.one
-    val log = target.log
+    val log = target.ln
     log shouldBe Constants.zero
   }
   it should "be 2 for E^2" in {
     val target: Number = Expression(Constants.e) * Constants.e
-    target.log should ===(Number.two)
+    target.ln should ===(Number.two)
   }
   it should "be 0.69... for 2" in {
     val target = Number.two
-    val log = target.log
+    val log = target.ln
     log should ===(0.6931471805599453)
+  }
+
+  behavior of "log"
+  it should "be 1 for E" in {
+    val target = Number.e
+    val actual = Real(target.log(Number.e))
+    actual shouldBe Constants.one
+  }
+  it should "be 0 for 1" in {
+    val target = Number.one
+    val actual = Real(target.log(Number.two))
+    actual shouldBe Constants.zero
+  }
+  it should "be 0.69... for 2" in {
+    val target = Number.two
+    val actual = target.log(Number.e)
+    actual should ===(0.6931471805599453)
+  }
+  it should "lg 1024" in {
+    val target = Number(1024)
+    val actual = target.log(Number.two)
+    actual should ===(10)
   }
 
   behavior of "toInt"

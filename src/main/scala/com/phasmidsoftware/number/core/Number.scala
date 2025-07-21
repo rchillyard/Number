@@ -455,13 +455,21 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def atan(y: Number): Number
 
   /**
+    * Returns the log of this Number in base b.
+    *
+    * @param b the base for which to calculate the logarithm
+    * @return the logarithm of the input number to base b
+    */
+  def log(b: Number): Number
+
+  /**
     * Method to determine the natural log of this Number.
     * The result will be a Number with `PureNumber` factor.
     * CONSIDER renaming this as "ln" but keep in mind that the Java library calls the function "log."
     *
     * @return the natural log of this.
     */
-  def log: Field
+  def ln: Field
 
   /**
     * Method to raise e to the power of this number.
@@ -1504,7 +1512,7 @@ object Number {
     case PureNumber =>
       log(x.scale(NatLog))
     case SquareRoot if x.signum < 0 =>
-      ComplexPolar(x.make(PureNumber).makeNegative, piBy2, 2).log
+      ComplexPolar(x.make(PureNumber).makeNegative, piBy2, 2).ln
     case Root(r) if x.signum > 0 =>
       Real(log(x.make(PureNumber)) divide Real(r))
     case _ =>
