@@ -268,4 +268,21 @@ object ExactNumber {
   def apply(x: Int): ExactNumber =
     apply(x, PureNumber)
 
+  /**
+    * Calculates the logarithm of a given `ExactNumber` `x` with base `b`.
+    * The method searches for an integer value `i` in the range -10 to 10 such that
+    * raising `b` to the power of `i` equals `x`. If such an `i` is found, it is
+    * returned wrapped in an `Option` as a `Number`. Otherwise, returns `None`.
+    *
+    * @param x the number for which the logarithm is to be calculated.
+    * @param b the base of the logarithm.
+    * @return an `Option` containing the logarithm result as a `Number` if
+    *         an integer solution exists within the searched range, or `None` otherwise.
+    */
+  def log(x: ExactNumber, b: ExactNumber): Option[Number] =
+    (for {
+      i <- -10 to 10
+      z <- Option.when((b power i) == x)(i)
+    } yield z).headOption.map(Number(_)) // TODO we can improve on this, I think
+
 }

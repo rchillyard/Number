@@ -229,12 +229,15 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @param b the base of the logarithm
     * @return the logarithm of the current number to the given base, or NaN if the calculation fails
     */
-  def log(b: Number): Number = {
+  def log(b: Number): Number =
     if (b > one)
-      (Number.log(this) divide Number.log(b)).asNumber.getOrElse(Number.NaN)
-    else
+      (this, b) match {
+        case (y: ExactNumber, z: ExactNumber) =>
+          ExactNumber.log(y, z) getOrElse doLog(b)
+        case _ =>
+          doLog(b)
+      } else
       throw NumberException(s"log(this, b) where b <= 1")
-  }
 
   /**
     * Method to determine the natural log of this Number.
@@ -675,6 +678,14 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     val vo: Option[Value] = Operations.doComposeValueDyadic(nominalValue, other.nominalValue)(functions)
     for (v <- vo) yield make(v, f) // CONSIDER what about extra fuzz?
   }
+
+  /**
+    * Computes the logarithm of the current number to the specified base.
+    *
+    * @param b the base of the logarithm; must be a positive number not equal to 1
+    */
+  private def doLog(b: Number) =
+    (Number.log(this) divide Number.log(b)).asNumber.getOrElse(Number.NaN)
 
   /**
     * An optional Int that corresponds to the nominalValue of this Number (but ignoring the factor).

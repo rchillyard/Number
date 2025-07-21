@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sBoltzmann
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{NumberIsOrdering, negate, one, root2, zeroR}
+import com.phasmidsoftware.number.core.Number.{NumberIsOrdering, inverse, negate, one, root2, zeroR}
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, convertFieldToExpression}
@@ -1122,6 +1122,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val actual = target.log(Number.two)
     actual should ===(10)
   }
+
+  it should "log exact" in {
+    Number.one.log(2) shouldBe Number.zero
+    Number(1024).log(2) shouldBe Number(10)
+    inverse(Number(1024)).log(2) shouldBe Number(-10)
+    Number(1000).log(10) shouldBe Number(3)
+    Number("0.00100").log(10) shouldBe Number(-3)
+  }
+
 
   behavior of "toInt"
   it should "work for 1" in {
