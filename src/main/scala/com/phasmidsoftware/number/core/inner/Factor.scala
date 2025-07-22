@@ -143,7 +143,7 @@ sealed trait Factor {
   def invert(x: Value): Option[ProtoNumber]
 
   /**
-    * Adds two values together and computes an appropriate factor for the result.
+    * Attempts to add two values together (each based on `this Factor`) and computes an appropriate factor for the result.
     *
     * @param x the first value
     * @param y the addend
@@ -1198,6 +1198,34 @@ case object SquareRoot extends Root(2) {
       case _ =>
         None
     }
+
+  /**
+    * Attempts to add two `Value` instances under the influence of a given `Factor`.
+    *
+    * The method verifies whether the operation can be applied with the given factor
+    * (e.g., a square root) and performs rational arithmetic to compute the result.
+    * The operation ensures that the values can be combined via integer arithmetic
+    * after factoring out common divisors and applies root simplifications where necessary.
+    *
+    * @param x the first value to be added
+    * @param y the second value to be added
+    * @param f the factor defining the context for the addition (e.g., square root)
+    * @return an optional `ProtoNumber` that contains the resultant `Value`, its factor,
+    *         and optional metadata; `None` if the operation cannot be performed
+    */
+  override def add(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+    whenever(this == f)(
+      for {
+        a <- Value.maybeRational(x)
+        b <- Value.maybeRational(y)
+        h = a.d.gcd(b.d)
+        p = a * h if p.isInteger
+        q = b * h if q.isInteger
+        g = p.n.gcd(q.n)
+        z = p / g + q / g
+        if h.isValidInt
+        r <- Rational.squareRoots.get(h.toInt) // NOTE this is the only code that depends on this being SquareRoot
+      } yield (Value.fromRational(z * g / r), f, None))
 
   /**
     * Provides an implicit conversion from an `Int` to an imaginary number representation.

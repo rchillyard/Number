@@ -133,13 +133,13 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     phi.scale(-1) shouldBe Algebraic_Quadratic(Quadratic(1, -1), pos = false)
   }
 
-  // TODO find out why this does not work correctly
-  ignore should "add phi" in {
+  // Test case for Issue #127
+  it should "add phi" in {
     val actual = phi.add(phi)
     val expected = phi.scale(2)
     println(s"actual = ${actual}, expected = ${expected.normalize}")
     actual shouldBe expected
-  }//fixed
+  }
 
   it should "add phi and psi" in {
     val actual: Algebraic = phi add psi

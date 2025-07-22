@@ -13,11 +13,15 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Factor"
 
-  it should "add" in {
+  it should "add pure numbers" in {
     PureNumber.add(fromInt(1), fromInt(2), PureNumber) shouldBe Some((fromInt(3), PureNumber, None))
     PureNumber.add(fromInt(1), fromInt(2), Radian) shouldBe None
     PureNumber.add(fromInt(1), fromInt(2), SquareRoot) shouldBe None
     PureNumber.add(fromInt(1), fromInt(2), NatLog) shouldBe None
+  }
+
+  it should "add roots" in {
+    SquareRoot.add(fromRational(Rational(5, 4)), fromRational(Rational(5, 4)), SquareRoot) shouldBe Some((fromInt(5), SquareRoot, None))
   }
 
   it should "multiply PureNumber by Other" in {
