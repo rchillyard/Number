@@ -1450,6 +1450,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(Function(a, Negate))
       case BiFunction(MinusOne, b, Product) =>
         em.Match(Function(b, Negate))
+      case BiFunction(a, MinusOne, Power) =>
+        em.Match(Function(a, Reciprocal))
       case BiFunction(a, b, Sum) if a == b =>
         em.Match(BiFunction(a, Two, Product))
       case BiFunction(a, b, Product) if a == b =>
@@ -1501,11 +1503,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case BiFunction(a, Function(b, Negate), Product) if a == b =>
       val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))   // x²
       em.Match(Function(xSq, Negate))
-
     case BiFunction(Function(a, Negate), b, Product) if a == b =>  // TESTME
       val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
       em.Match(Function(xSq, Negate))
-
     case b@BiFunction(_, _, _) =>
       ((em.complementaryTermsEliminatorBiFunction |
           em.matchBiFunctionAsAggregate & em.literalsCombiner) &

@@ -1229,7 +1229,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.successful shouldBe true
     result.get shouldBe Zero
   }
-  ignore should "get 1 from 1/√3 * √3" in {
+  // test for Issue #126
+  it should "get 1 from 1/√3 * √3" in {
     import BiFunction._
     val p = Expression.matchSimpler
     val root3: Number = √(3)
@@ -1238,6 +1239,22 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result = p(e)
     result.successful shouldBe true
     result.get shouldBe One
+  }
+  it should "simplify -1 * √3 as negate(√3)" in {
+    import BiFunction._
+    val p = Expression.matchSimpler
+    val e: DyadicTriple = Product ~ MinusOne ~ Literal(Number.root3)
+    val result = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Function(Number.root3, Negate)
+  }
+  it should "simplify √3 * -1 as negate(√3)" in {
+    import BiFunction._
+    val p = Expression.matchSimpler
+    val e: DyadicTriple = Product ~ Literal(Number.root3) ~ MinusOne
+    val result = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Function(Number.root3, Negate)
   }
   it should "simplify various" in {
     import BiFunction._
