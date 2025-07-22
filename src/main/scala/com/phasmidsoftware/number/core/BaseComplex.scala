@@ -146,7 +146,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *          Can represent integer, rational, or other numerical values.
     * @return A new `Field` instance that is the result of performing the power operation.
     */
-  def power(n: Number): Field = this match {
+  def power(n: Number): Complex = this match {
     case ComplexPolar(re, im, w) if n.isRational =>
       doRationalPowerForComplexPolar(n, re, im, w)
     case ComplexPolar(re, im, w) =>
@@ -159,7 +159,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       case Number.two =>
         c.square
       case _ =>
-        convertToPolar(c).power(n) // CONSIDER try to improve upon this
+        convertToPolar(c).power(n).asInstanceOf[Complex] // CONSIDER try to improve upon this
     }
   }
 

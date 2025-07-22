@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import org.scalatest.tagobjects.Slow
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -147,7 +148,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   // TODO fix this--it fails in CircleCI (fails here, too)
   // NOTE this is quite bizarre
-  ignore should "work for NatLog, SquareRoot" in { //fixed
+  it should "work for NatLog, SquareRoot" taggedAs Slow in { //fixed
     val target = Number.e
     val expected = Number(math.E * math.E, SquareRoot)
     val result: Field = target.scale(SquareRoot).normalize
@@ -157,7 +158,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     convertFieldToExpression(result) should ===(expected)
   }
   // NOTE same issues as previous test
-  ignore should "work for NatLog, SquareRoot approx" in {
+  it should "work for NatLog, SquareRoot approx" taggedAs Slow in {
     val target = Number.e
     val expected = Number(math.E * math.E, SquareRoot)
     val normalized = target.scale(SquareRoot).normalize

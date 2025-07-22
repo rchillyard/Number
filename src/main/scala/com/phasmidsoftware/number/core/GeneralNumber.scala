@@ -463,9 +463,9 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
         val ro1 = maybeIntValue.filter(_ > 0).flatMap(Rational.squareRoots.get).map(Real(_))
         val ro2 = maybeIntValue.filter(_ > 0).map(_ => Real(this))
         val ro3 = maybeIntValue.filter(_ < 0).filter(x => math.abs(x) <= Rational.maxSquare).map(_ => Real(this))
-        ro1 orElse ro2 orElse ro3 getOrElse normalizeRoot(nominalValue, r)
+        ro1 orElse ro2 orElse ro3 getOrElse normalizeRoot(this)
       case r@Root(_) =>
-        normalizeRoot(nominalValue, r)
+        normalizeRoot(this)
       case Radian =>
         Real(this) // Number.modulate(this) NOTE: we do modulation at other times
       case _ =>
@@ -1011,6 +1011,8 @@ object GeneralNumber {
   }
 
   /**
+    * NOTE this makes absolutely no sense to me. It is invoked very rarely.
+    *
     * Normalizes a given value and root by transforming the value monadically and constructing
     * a ComplexCartesian representation.
     * If the transformation fails, an exception is thrown.
@@ -1019,12 +1021,17 @@ object GeneralNumber {
     * @param r     the root used in the normalization process.
     * @throws NumberException if the transformation logic fails.
     */
-  private def normalizeRoot(value: Value, r: Root) = {
+  private def normalizeRootOld(value: Value, r: Root) = {
     Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
       case Some(q) =>
         ComplexCartesian(Number.zero, ExactNumber(q, r).scale(PureNumber))
       case None =>
         throw NumberException("GeneralNumber.normalizeRoot: logic error")
     }
+  }
+
+  private def normalizeRoot(x: Number): Field = {
+    val result: Number = x.scale(PureNumber)
+    Real(result)
   }
 }
