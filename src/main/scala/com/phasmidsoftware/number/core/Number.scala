@@ -752,6 +752,10 @@ object Number {
     */
   val two: Number = 2
   /**
+    * A constant value representing the number three as a `Number` type.
+    */
+  val three: Number = 3
+  /**
     * Exact value of 1/2
     */
   val half: Number = Rational.half

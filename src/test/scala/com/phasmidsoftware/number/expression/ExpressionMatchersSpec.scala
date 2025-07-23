@@ -739,45 +739,48 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchComplementary"
   it should "cancel plus and minus" in {
-    val p = em.matchComplementary
+    val p = Expression.matchSimpler
     val x = Literal(Number.pi)
     val y = -x
-    val result = p(Sum ~ x ~ y)
-    result should matchPattern { case em.Match(Zero) => }
+    val result = p(BiFunction(x, y, Sum))
+    result should matchPattern { case em.Match(Literal(Real(Number.zeroR), _)) => }
   }
 
   behavior of "matchDyadicTrivial"
   it should "handle Sum" in {
-    val p = em.matchDyadicTrivial
+    import BiFunction._
+    val p = Expression.matchSimpler
     p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
     p(Sum ~ Two ~ Two) shouldBe em.Match(Expression(4))
-    p(Sum ~ One ~ Two) should matchPattern { case em.Miss(_, _) => }
+    p(Sum ~ One ~ Two) shouldBe em.Match(Literal(Constants.three))
   }
   it should "handle Product" in {
-    val p = em.matchDyadicTrivial
-
+    import BiFunction._
+    val p = Expression.matchSimpler
     p(Product ~ One ~ Zero) shouldBe em.Match(Zero)
     p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
     p(Product ~ Two ~ One) shouldBe em.Match(Two)
     p(Product ~ One ~ Two) shouldBe em.Match(Two)
     p(Product ~ Two ~ Two) shouldBe em.Match(Expression(4))
-    p(Product ~ Two ~ 3) should matchPattern { case em.Miss(_, _) => }
+    p(BiFunction(Two, 3, Product)) shouldBe em.Match(Expression(6))
   }
   it should "handle Power" in {
-    val p = em.matchDyadicTrivial
+    import BiFunction._
+    val p = Expression.matchSimpler
     p(Power ~ Two ~ Zero) shouldBe em.Match(One)
     p(Power ~ Two ~ One) shouldBe em.Match(Two)
     p(Power ~ One ~ Two) shouldBe em.Match(One)
-    p(Power ~ Two ~ Two) should matchPattern { case em.Miss(_, _) => }
+    p(Power ~ Two ~ Two) shouldBe em.Match(Expression(4))
     p(Power ~ Literal(root2) ~ Two) shouldBe em.Match(Two)
   }
   it should "cancel multiplication and division" in {
-    val p = em.matchDyadicTrivial
+    import BiFunction._
+    val p = Expression.matchSimpler
     val x = Literal(Number.pi) * 2
     val y = One / 2
     val result = p(Product ~ x ~ y)
-    result should matchPattern { case em.Miss(_, _) => }
+    result shouldBe em.Match(ConstPi)
   }
   it should "cancel value and reciprocal 1" in {
     val p = em.matchComplementaryExpressions
@@ -815,13 +818,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "matchSimplifyDyadicTermsTwoLevels"
 
   it should "match 1" in {
-    val p = em.matchSimplifyDyadicTermsTwoLevels
+    import BiFunction._
+    val p = Expression.matchSimpler
     // CONSIDER these shouldn't be handled by matchSimplifyDyadicTermsTwoLevels since they are handled by matchComplementary
     p(Sum ~ One ~ expression.Function(One, Negate)) shouldBe em.Match(Zero)
     p(Sum ~ expression.Function(One, Negate) ~ One) shouldBe em.Match(Zero)
   }
   it should "match 2" in {
-    val p = em.matchSimplifyDyadicTermsTwoLevels
+    import BiFunction._
+    val p = Expression.matchSimpler
     p(Sum ~ One ~ expression.Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
     p(Sum ~ expression.Function(ConstPi, Cosine) ~ One) shouldBe em.Match(Zero)
     p(Sum ~ expression.Function(Zero, Cosine) ~ expression.Function(ConstPi, Cosine)) shouldBe em.Match(Zero)
@@ -1283,7 +1288,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Sum ~ Two ~ BiFunction(MinusOne, Two, Product)) shouldBe em.Match(Zero)
   }
   it should "simplify root3 * 2 / 2" in {
-    val p: em.Matcher[em.DyadicTriple, Expression] = em.matchDyadicTwoLevels
+    import BiFunction._
+    val p = Expression.matchSimpler
     val root3: Number = √(3)
     val x: Expression = Literal(root3) * Constants.two
     val y: Expression = Expression(Constants.two).reciprocal
