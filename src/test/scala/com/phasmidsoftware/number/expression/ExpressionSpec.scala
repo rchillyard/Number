@@ -11,12 +11,13 @@ import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, pi}
+import com.phasmidsoftware.number.mill.{Expr, Stack}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import scala.util.{Failure, Success}
+import scala.util.Success
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
 
@@ -51,9 +52,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "parse"
   private val syp = ShuntingYardParser
   it should "parse 1" in {
-    syp.parseInfix("1") should matchPattern { case Success(_) => }
-    syp.parseInfix("(1)") should matchPattern { case Failure(_) => } // tokens must currently be separated by white space
-    syp.parseInfix("( 1 )") should matchPattern { case Success(_) => }
+    syp.parseInfix("1") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix("(1)") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix(" (1)") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix(" (1 )") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix(" (1 )") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix("( 1 ) ") should matchPattern { case Success(Stack(List(Expr(One)))) => }
     syp.parseInfix("( ( 0.5 + 3 ) + ( 2 * ( 0.5 + 3 ) ) )") should matchPattern { case Success(_) => }
     syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
   }
