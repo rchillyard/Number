@@ -690,15 +690,6 @@ sealed trait CompositeExpression extends Expression {
   def simplifyComposite: em.AutoMatcher[Expression]
 
   /**
-    * Substitutes the terms of this `CompositeExpression` with the provided sequence of expressions.
-    *
-    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
-    * @return a new `Expression` where the terms are substituted with the given sequence.
-    */
-  @deprecated("Use substituteTerms instead", "0.1.0")
-  def substituteTerms(terms: Seq[Expression]): CompositeExpression
-
-  /**
     * Method to render this NumberLike in a presentable manner.
     *
     * @return a String
@@ -1393,15 +1384,6 @@ case class Function(x: Expression, f: ExpressionMonoFunction) extends CompositeE
   def terms: Seq[Expression] = Seq(x) // TESTME
 
   /**
-    * Substitutes the terms of this `CompositeExpression` with the provided sequence of expressions.
-    *
-    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
-    * @return a new `Expression` where the terms are substituted with the given sequence.
-    */
-  def substituteTerms(terms: Seq[Expression]): CompositeExpression =
-    copy(x = terms.head)
-
-  /**
     * Method to determine the depth of this Expression.
     *
     * @return the 1 + depth of x.
@@ -1672,17 +1654,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     Seq(a, b) // TESTME
 
   /**
-    * Substitutes the terms of this `CompositeExpression` with the provided sequence of expressions.
-    *
-    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
-    * @return a new `Expression` where the terms are substituted with the given sequence.
-    */
-  def substituteTerms(terms: Seq[Expression]): CompositeExpression = {
-    val Seq(a, b) = terms
-    BiFunction(a, b, f)
-  }
-
-  /**
     * Render this BiFunction for debugging purposes.
     *
     * @return a String showing a, f, and b in parentheses (or in braces if not exact).
@@ -1917,15 +1888,6 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return xs.
     */
   def terms: Seq[Expression] = xs
-
-  /**
-    * Substitutes the terms of this `CompositeExpression` with the provided sequence of expressions.
-    *
-    * @param terms the sequence of `Expression` objects to replace the terms of this `CompositeExpression`.
-    * @return a new `Expression` where the terms are substituted with the given sequence.
-    */
-  def substituteTerms(terms: Seq[Expression]): CompositeExpression =
-    copy(xs = terms)
 
   /**
     * Method to determine the depth of this Expression.
