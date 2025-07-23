@@ -276,10 +276,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Try(xs.sortBy(sortFunction)) match {
         case Success(sorted) =>
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-          if (list.length < xs.length) {
-            // TODO write instead Match(CompositeExpression(....))
+          if (list.length < xs.length)
+            // CONSIDER write=ing instead `Match(CompositeExpression(f, list))` But be careful!
             Match(Aggregate(f, list))
-          } else
+          else
             Miss(s"complementaryTermsEliminatorAggregate: $a", a)
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
@@ -308,6 +308,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           Miss("literalsCombiner: no pure numbers", g)
         case (literals, others) =>
           // XXX next, we evaluate an Aggregate based solely on the pure number elements (literals) and combine the result with the other elements (others)
+          // CONSIDER using CompositeExpression.apply
           (Aggregate(f, literals).evaluate(RestrictedContext(PureNumber)), others) match {
             case (Some(z), Nil) =>
               Match(z)

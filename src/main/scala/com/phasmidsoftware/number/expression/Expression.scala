@@ -370,10 +370,11 @@ object Expression {
   /**
     * Implicitly converts an integer into an `Expression` by wrapping it,
     * facilitating seamless conversions in mathematical operations.
+    * TODO have a cache of existing values
     *
     * @param x the integer to be converted into an `Expression`
     * @return an `Expression` that represents the given integer
-    */// TODO have a cache of existing values
+    */
   implicit def convertIntToExpression(x: Int): Expression =
     Expression(x)
 
@@ -718,12 +719,11 @@ object CompositeExpression {
     * Creates an `Aggregate` instance from the given sequence of `Field` inputs.
     * Each `Field` is converted to a `Literal` expression and combined into an `Aggregate`.
     *
-    * TODO include the ExpressionBiFunction (currently, it is always Sum).
-    *
+    * @param f The function to be applied to all elements of the result.
     * @param xs The sequence of `Field` instances used to create the `Aggregate`.
     * @return An `Aggregate` instance containing the converted `Literal` expressions.
     */
-  def apply(xs: Expression*): Expression =
+  def apply(f: ExpressionBiFunction, xs: Seq[Expression]): Expression =
     xs.toList match {
       case Nil =>
         throw new IllegalArgumentException("Empty Sequence") // TESTME
@@ -740,11 +740,12 @@ object CompositeExpression {
     * Each `Field` is converted to a `Literal` expression and combined into a `Aggregate`.
     * TESTME
     *
+    * @param f the `ExpressionBiFunction` to be used to combine all the given elements.
     * @param xs The sequence of `Field` instances used to create the `Aggregate`.
     * @return An `Aggregate` instance containing the converted `Literal` expressions.
     */
-  def create(xs: Field*): Expression =
-    apply(xs map (x => Literal(x, None)): _*) // TESTME
+  def create(f: ExpressionBiFunction, xs: Field*): Expression =
+    apply(f, xs map (x => Literal(x, None))) // TESTME
 }
 
 /**

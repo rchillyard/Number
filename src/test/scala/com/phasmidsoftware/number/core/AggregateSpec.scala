@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Constants.root5
 import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

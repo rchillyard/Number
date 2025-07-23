@@ -505,7 +505,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   it should "simplify aggregate 2b" in {
     // NOTE: this does not create a Aggregate but instead creates a BiFunction.
-    val target: Expression = CompositeExpression(ConstPi, -ConstPi)
+    val target: Expression = CompositeExpression.create(Sum, Constants.pi, -Constants.pi)
     //val expected = ExactNumber(0, Radian) // Ideally, the result should equal this but for now, we only test isZero.
     //val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
     val result = target.simplify.materialize
@@ -1335,6 +1335,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val e = result.get
     val actual = p(e)
     actual.successful shouldBe true
+    // NOTE it's not trivially easy to arrange for this and it's not really that necessary, either. So let's be happy!
     val idealExpectedExpression = BiFunction(ConstPi ^ 2, MinusOne, Sum)
     val interimExpectedExpression = Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power)))
     actual.get shouldBe interimExpectedExpression
