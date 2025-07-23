@@ -8,7 +8,7 @@ import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.Constants.{half, piBy2}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, Number, Real}
+import com.phasmidsoftware.number.core.{Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.matchers._
 import com.phasmidsoftware.number.misc.Bumperator
@@ -91,7 +91,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param rm The match result instance to test the input value against.
     * @return A MatchResult containing the result of the matching operation.
     */
-  def autoMatch[Q, R >: Q](q: Q, msg: String)(rm: MatchResult[R]): MatchResult[R] = rm match {
+  private def autoMatch[Q, R >: Q](q: Q, msg: String)(rm: MatchResult[R]): MatchResult[R] = rm match {
     case Match(r) if r == q =>
       System.out.println(s"autoMatch at $msg: $rm is a Match of $q")
       rm
@@ -227,7 +227,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   @deprecated
   def functionSimplifier: ExpressionTransformer =
-    (matchFunction & alt(functionElementSimplifier) & (matchMonadicTrivial | (matchSimplifyMonadicTerm & evaluateMonadicDuple) | (matchTwoMonadicLevels & matchAndCancelTwoMonadicLevels))) :| "functionSimplifier"
+    (matchFunction & alt(functionElementSimplifier) & (matchMonadicTrivial | (matchTwoMonadicLevels & matchAndCancelTwoMonadicLevels))) :| "functionSimplifier"
 
   /**
     * Matches and aggregates expressions involving binary functions (BiFunction)
@@ -386,7 +386,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   @deprecated("use simplify", "0.1.0")
   def matchDyadicTwoLevels: Matcher[DyadicTriple, Expression] = (
-
           (matchTwoDyadicTripleLevels & matchAndCollectTwoDyadicLevels) |
           (matchTwoDyadicLevelsL & (matchAndCancelTwoDyadicLevelsL | matchAndCollectTwoDyadicLevelsL)) |
           (matchTwoDyadicLevelsR & (matchAndCancelTwoDyadicLevelsR | matchAndCollectTwoDyadicLevelsR)) |
@@ -428,17 +427,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-    * If the operand can be simplified, then it will be.
-    *
-    * @return a `AutoMatcher[MonadicDuple]`.
-    */
-  @deprecated
-  def matchSimplifyMonadicTerm: AutoMatcher[MonadicDuple] = Matcher("matchSimplifyMonadicTerm") {
-    case Cosine ~ x => Match(Sine) ~ matchAndMaybeSimplify(x plus ConstPi / 2) // CHECK this is OK
-    case z => Miss("matchSimplifyMonadicTerm: no simplification available", z) // Match(f) ~ exactMaterializer(x)
-  }
-
-  /**
     * Matcher which matches a Function and results in a MonadicDuple.
     *
     * @return ExpressionMatcher[MonadicDuple]
@@ -457,18 +445,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Matcher[Expression, R] which is also an ExpressionMatcher[R].
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
-
-  /**
-    * Matches and evaluates a monadic duple, where a function and its operand are provided.
-    * The method attempts to simplifyAndEvaluate the function expression with the operand, producing a literal result.
-    * An exact materialization strategy is utilized for this evaluation.
-    *
-    * @return A Matcher that applies the evaluation logic for monadic duples, producing an Expression.
-    */
-  @deprecated("use simplify", "0.1.0")
-  def evaluateMonadicDuple: Matcher[MonadicDuple, Expression] = Matcher("evaluateMonadicDuple") {
-    case f ~ x => exactMaterialization(AnyContext)(Function(x, f)) map (Literal(_)) // CONSIDER use exactMaterializer
-  }
 
   /**
     * Attempts to match and transform a nested monadic structure in two levels.
@@ -523,19 +499,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           case _ => false
         }
     }).contains(true)
-
-  /**
-    * Matches two `DyadicTriple` objects where at least one of the operands has a depth greater than 1.
-    *
-    * @return A Matcher that validates if at least one of the two DyadicTriple operands has a depth greater than 1.
-    *         Returns a Match with the input if the condition is met, or a Miss with a message otherwise.
-    */
-  private def matchTwoDyadicLevels: AutoMatcher[DyadicTriple] = Matcher("matchTwoDyadicLevels") {
-    case f ~ x ~ y if x.depth > 1 || y.depth > 1 =>
-      Match(f ~ x ~ y)
-    case z =>
-      Miss("matchTwoDyadicLevels: neither operand has depth > 1", z)
-  }
 
   /**
     * Matches two levels of dyadic triples represented as BiFunction structures
@@ -659,7 +622,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *
     * @return ExpressionMatcher[Expression]
     */
-  def matchAggregate: ExpressionMatcher[Aggregate] = ExpressionMatcher {
+  private def matchAggregate: ExpressionMatcher[Aggregate] = ExpressionMatcher {
     case a@Aggregate(_, _) =>
       Match(a) // TESTME
     case e =>
@@ -808,7 +771,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @param y the second expression to be checked
     * @return true if the bi-function is complementary for the given expressions, false otherwise
     */
-  def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
+  private def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
     val identityCheck: Expression => Boolean = isIdentityFunction(f)
     (matchComplementaryExpressions(f ~ x ~ y) & filter(identityCheck)).successful
   }
@@ -850,28 +813,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   @deprecated("use simplify", "0.1.0")
   private def functionElementSimplifier: AutoMatcher[MonadicDuple] = Matcher[MonadicDuple, MonadicDuple]("functionElementSimplifier") {
     case f ~ x => simplifier(x) map (y => f ~ y)
-  }
-
-  /**
-    * Attempts to simplify the given expression that is being squared it is a square root,
-    * or a quadratic-like structure. Matches specific patterns in the expression
-    * to reduce or transform it into a simplified form.
-    * TESTME (partial)
-    *
-    * @param x The input expression to be matched and simplified.
-    * @return A MatchResult containing the simplified expression if a match is
-    *         found, or a Miss indicating that no simplification could be applied.
-    */
-  private def matchSimplifySquare(x: Expression): MatchResult[Expression] = x match {
-    case ReducedQuadraticRoot(_, -1, 0, _) => Match(x)
-    case ReducedQuadraticRoot(_, p, 0, _) => Match(x * -p) // CONSIDER matchAndMaybeSimplify
-    case ReducedQuadraticRoot(_, -1, q, _) => Match(x plus -q) // CONSIDER matchAndMaybeSimplify
-    case ReducedQuadraticRoot(_, p, q, _) => Match((x * -p) plus -q) // CONSIDER matchAndMaybeSimplify
-    case Literal(z, _) => Match(Literal(z power 2))
-    case Literal(Real(ExactNumber(z, SquareRoot)), _) => Match(Literal(Real(ExactNumber(z, PureNumber))))
-    // NOTE x is being squared so if it is itself a square root, then the powers cancel.
-    case BiFunction(z, y, Power) if y.evaluateAsIs.contains(Constants.half) => Match(z) // CONSIDER matchAndMaybeSimplify
-    case _ => Miss("matchSimplifySquare: can't be simplified", x)
   }
 
   /**

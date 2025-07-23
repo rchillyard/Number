@@ -10,7 +10,7 @@ import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Approximatable, Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, Number, NumberException, NumberLike, Real}
-import com.phasmidsoftware.number.expression.Expression.em.{DyadicTriple, ExpressionTransformer}
+import com.phasmidsoftware.number.expression.Expression.em.{DyadicTriple, ExpressionTransformer, MonadicDuple}
 import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.misc.FP.recover
@@ -1493,6 +1493,28 @@ case class Function(x: Expression, f: ExpressionMonoFunction) extends CompositeE
       case x: Expression =>
         em.Miss[Expression, Expression]("Function.simplifyComposite: not complementary", x)
     }
+}
+
+object Function {
+  /**
+    * Constructs a Function instance based on the provided MonadicDuple.
+    * The method converts the left side of the MonadicDuple to a tuple and pairs it with the right side,
+    * creating a Function with the extracted components.
+    *
+    * NOTE: this is here mostly for historical purposes.
+    * We no longer use MonadicDuple except as a convenience in the unit tests.
+    *
+    * @param md the MonadicDuple from which the Function will be initialized.
+    *           The left side of the MonadicDuple is expected to provide a tuple,
+    *           and the right side will be combined with this tuple to construct the Function.
+    * @return a new Function initialized with the components derived from the given MonadicDuple.
+    */
+  def apply(md: MonadicDuple): Function = {
+    val tuple = (md.l, md.r)
+    new Function(tuple._2, tuple._1)
+  }
+
+  implicit def convertFromMonadicDuple(md: MonadicDuple): Function = apply(md)
 }
 
 /**

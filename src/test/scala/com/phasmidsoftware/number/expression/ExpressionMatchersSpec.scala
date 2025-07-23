@@ -1203,19 +1203,25 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "evaluateMonadicDuple"
 
   it should "simplify E" in {
-    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Exp ~ One)
+    import Function._
+    val p = Expression.matchSimpler
+    val r = p(Exp ~ One)
     r.successful shouldBe true
     r.get shouldBe ConstE
   }
 
   it should "simplify ln(E)" in {
-    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Ln ~ ConstE)
+    import Function._
+    val p = Expression.matchSimpler
+    val r = p(Ln ~ ConstE)
     r.successful shouldBe true
     r.get shouldBe One
   }
 
   it should "simplify ln(1)" in {
-    val r: em.MatchResult[Expression] = em.evaluateMonadicDuple(Ln ~ One)
+    import Function._
+    val p = Expression.matchSimpler
+    val r = p(Ln ~ One)
     r.successful shouldBe true
     r.get shouldBe Zero
   }
