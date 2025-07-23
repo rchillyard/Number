@@ -5,8 +5,6 @@
 package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
-import com.phasmidsoftware.number.core.Constants.{half, piBy2}
-import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.{isIdentityFunction, matchSimpler}
@@ -72,7 +70,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   implicit def matcherConverter[R](m: Matcher[Expression, R]): ExpressionMatcher[R] = ExpressionMatcher(m)
 
-
   /**
     * Matcher which tries to evaluate the input exactly as a PureNumber and then wraps the result as an Expression.
     * NOTE: currently, the expression will be materialized without regard to the `PureNumber` context.
@@ -131,24 +128,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-    * This method is called by materializer and therefore will return a Field, regardless of whether any simplifications
-    * were possible.
-    * CONSIDER this should be an instance method of Expression.
-    * CONSIDER we should make this method a `Matcher`
-    *
-    * @param x the Expression to be evaluated as a Field.
-    * @return the value of the original Expression or a simplified version of the Expression.
-    */
-  @deprecated
-  def simplifyAndEvaluate(x: Expression, context: Context): Option[Field] =
-    simplifier(x) match {
-      case Match(e) =>
-        e.evaluate(context)
-      case _ =>
-        x.evaluate(context) // TESTME
-    }
-
-  /**
     * A Matcher that simplifies an expression into a simpler form.
     *
     * @return An instance of ExpressionTransformer.
@@ -178,9 +157,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   @deprecated
   def compositeSimplifier: Matcher[CompositeExpression, Expression] = ExpressionMatcher {
-    case f@Function(_, _) =>
-      val result = functionSimplifier(f) & alt(simplifier)
-      autoMatch[CompositeExpression, Expression](f, "compositeSimplifier: Function")(result)
     case a@Aggregate(_, _) =>
       val m1: MatchResult[Expression] = aggregateSimplifier(a)
       //      val result = m1 & alt(simplifier)
@@ -219,15 +195,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       c.substituteTerms(substitutions)
     }
   }
-
-  /**
-    * Method to match an Expression, which is a Function, and replace it with a simplified expression.
-    *
-    * @return an ExpressionTransformer.
-    */
-  @deprecated
-  def functionSimplifier: ExpressionTransformer =
-    (matchFunction & alt(functionElementSimplifier) & (matchMonadicTrivial | (matchTwoMonadicLevels & matchAndCancelTwoMonadicLevels))) :| "functionSimplifier"
 
   /**
     * Matches and aggregates expressions involving binary functions (BiFunction)
@@ -270,60 +237,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   @deprecated("use simplify", "0.1.0")
   def aggregateSimplifier: ExpressionTransformer =
     (matchAggregate & simplifyAggregate) :| "aggregateSimplifier"
-
-  /**
-    * Method to match an Expression which is a BiFunction and replace it with a simplified expression.
-    *
-    * NOTE: there may be some redundancies here.
-    *
-    * @return a Matcher[DyadicTriple, Expression].
-    */
-  @deprecated("use simplify", "0.1.0")
-  def biFunctionTransformer: Matcher[DyadicTriple, Expression] =
-    (simplifyIdentityDyadic | biFunctionAggregator | matchComplementary | matchDyadicTwoLevels) :| "biFunctionTransformer"
-
-  /**
-    * Simplifies dyadic expressions where one side is an identity element according to a given function.
-    * Matches expressions in the form where either the left operand or the right operand
-    * is an identity element for the operation and reduces them to the non-identity operand.
-    *
-    * @return A Matcher that reduces dyadic expressions with identity elements to their simplified form.
-    */
-  @deprecated
-  def simplifyIdentityDyadic: Matcher[DyadicTriple, Expression] = Matcher("simplifyIdentityDyadic") {
-    case ExpressionBiFunction(_, _, fo, None) ~ x ~ y if isIdentity(x, fo) => Match(y) // TESTME
-    case ExpressionBiFunction(_, _, fo, None) ~ x ~ y if isIdentity(y, fo) => Match(x) // TESTME
-    case ExpressionBiFunction(_, _, None, fo) ~ x ~ y if isIdentity(y, fo) => Match(x) // TESTME
-    case ExpressionBiFunction(_, _, fo, _) ~ x ~ y if isIdentity(x, fo) => Match(y) // TESTME
-    case ExpressionBiFunction(_, _, _, fo) ~ x ~ y if isIdentity(y, fo) => Match(x) // TESTME
-    case t ~ _ ~ _ => Miss("simplifyIdentityDyadic", t) // XXX don't really need this case
-  }
-
-  /**
-    * Matches a `DyadicTriple` against a complementary expression pattern.
-    * Uses the specified matcher to attempt a matching process between the
-    * provided triple and specific complementary expressions.
-    * If a match is found, it evaluates the resulting expression and wraps it in a `Literal`.
-    * If no match can be made, it returns a `Miss` with a corresponding message and inputs.
-    *
-    * TODO handle other complementary cases
-    * CONSIDER eliminating this method as it really does nothing.
-    *
-    * @return A `Matcher` that performs complementary expression matching on a `DyadicTriple`,
-    *         resulting in either a match with an evaluated expression or a miss.
-    */
-  @deprecated
-  def matchComplementary: Matcher[DyadicTriple, Expression] = Matcher("matchComplementary") {
-    case f ~ x ~ y =>
-      matchComplementaryExpressions(f ~ x ~ y) match {
-        case Match(z) =>
-          z.evaluateAsIs match {
-            case Some(y) => Match(Literal(y))
-            case None => Miss("matchComplementary: no exact match", x ~ y)
-          }
-        case _ => Miss("matchComplementary: no match", x ~ y)
-      }
-  }
 
   /**
     * Matches complementary mathematical expressions based on specified patterns.
@@ -386,56 +299,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   @deprecated("use simplify", "0.1.0")
   def matchDyadicTwoLevels: Matcher[DyadicTriple, Expression] = (
-          (matchTwoDyadicTripleLevels & matchAndCollectTwoDyadicLevels) |
           (matchTwoDyadicLevelsL & (matchAndCancelTwoDyadicLevelsL | matchAndCollectTwoDyadicLevelsL)) |
           (matchTwoDyadicLevelsR & (matchAndCancelTwoDyadicLevelsR | matchAndCollectTwoDyadicLevelsR)) |
           fail("twoLevel")
       ) :| "matchDyadicTwoLevels"
-
-  /**
-    * Defines a matcher for monadic expressions and constants, performing trivial simplifications.
-    * The matcher evaluates pairs of monadic operators and constants, returning their simplified forms
-    * if a specific pattern is identified, or marking it as a miss otherwise.
-    *
-    * TESTME none of the non-default cases appear to be tested
-    *
-    * @return A `Matcher` that matches a `MonadicDuple` (monadic operator and constant pair) to an `Expression`,
-    *         providing pre-defined trivial simplifications or signaling no match with a descriptive message.
-    */
-  @deprecated
-  def matchMonadicTrivial: Matcher[MonadicDuple, Expression] = Matcher("matchMonadicTrivial") {
-    case Negate ~ Zero => Match(Zero)
-    case Negate ~ One => Match(MinusOne)
-    case Negate ~ MinusOne => Match(One)
-    case Reciprocal ~ One => Match(One)
-    case Reciprocal ~ Zero => Match(infinity)
-    case Reciprocal ~ Two => Match(half)
-    case Exp ~ Literal(x, _) if x == Real(infinity.negate) => Match(Zero)
-    case Exp ~ Zero => Match(One)
-    case Exp ~ One => Match(ConstE)
-    case Ln ~ One => Match(Zero)
-    case Ln ~ Zero => Match(infinity.negate)
-    case Ln ~ ConstE => Match(One)
-    case Sine ~ Literal(x, _) if x == piBy2 => Match(One)
-    case Sine ~ Literal(x, _) if (x + piBy2).isZero => Match(MinusOne)
-    case Sine ~ Zero | Sine ~ ConstPi => Match(Zero)
-    case Cosine ~ Zero => Match(One)
-    case Cosine ~ ConstPi => Match(MinusOne)
-    case Cosine ~ Literal(x, _) if x == piBy2 => Match(Zero)
-    case Cosine ~ Literal(x, _) if (x + piBy2).isZero => Match(Zero)
-    case x => Miss(s"matchMonadicTrivial: no trivial match", x)
-  }
-
-  /**
-    * Matcher which matches a Function and results in a MonadicDuple.
-    *
-    * @return ExpressionMatcher[MonadicDuple]
-    */
-  @deprecated
-  def matchFunction: ExpressionMatcher[MonadicDuple] = ExpressionMatcher {
-    case Function(x, f) => Match(f ~ x)
-    case e => Miss("matchFunction", e)
-  }.named("matchFunction")
 
   /**
     * Method to create an ExpressionMatcher.
@@ -445,37 +312,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return a Matcher[Expression, R] which is also an ExpressionMatcher[R].
     */
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
-
-  /**
-    * Attempts to match and transform a nested monadic structure in two levels.
-    * This matcher pattern matches between a MonadicDuple and a combination of
-    * an ExpressionMonoFunction and a MonadicDuple, handling a specific transformation
-    * logic when the second operand is a Function.
-    *
-    * @return A Matcher object capable of processing the provided monadic structure
-    *         and performing the matching logic.
-    *         If matched, it returns a Match with
-    *         the transformed representation. If no match is found, it returns a Miss.
-    */
-  @deprecated
-  def matchTwoMonadicLevels: Matcher[MonadicDuple, ExpressionMonoFunction ~ MonadicDuple] = Matcher("matchTwoMonadicLevels") {
-    case f ~ Function(x, g) =>
-      Match(f ~ (g ~ x))
-    case f ~ x =>
-      Miss(s"matchTwoMonadicLevels: argument $x is not a Function", f ~ x)
-  }
-
-  /**
-    * Matches and cancels two monadic levels if they are complementary, and extracts the inner expression.
-    *
-    * @return A `Matcher` that tries to match and cancel complementary monadic levels in an expression
-    *         and produces the inner expression if successful, or provides a failure message otherwise.
-    */
-  @deprecated
-  def matchAndCancelTwoMonadicLevels: Matcher[ExpressionMonoFunction ~ MonadicDuple, Expression] = Matcher("matchAndCancelTwoMonadicLevels") {
-    case f ~ (g ~ x) if complementaryMonadic(f, g) => matchAndMaybeSimplify(x)
-    case f ~ (g ~ x) => Miss("cannot combine two monadic levels", f ~ (g ~ x)) // TESTME
-  }
 
   /**
     * Determines whether the factors of the given expressions match
@@ -578,20 +414,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       case `x` => Match(x) // TESTME
       case e => Miss("matchNumber", e)
     }
-
-  /**
-    * @see #collectTermsDyadicTwoLevels
-    *      * Collect equal terms (fuzzy terms since this method won't be called if all the terms are exact) from an expression of the following two types:
-    *
-    *      w power x * y power z where w = y => x power (y + z)
-    *      w * x + y * z where w = y => w * (x + z)
-    * @return a Match of the simplified expression, or a Miss.
-    */
-  // private but used by unit tests
-  @deprecated
-  def matchAndCollectTwoDyadicLevels: Matcher[ExpressionBiFunction ~ DyadicTriple ~ DyadicTriple, Expression] = Matcher("matchAndCollectTwoDyadicLevels") {
-    case f ~ (g ~ w ~ x) ~ (h ~ y ~ z) => collectTermsDyadicTwoLevels(f, g, w, x, h, y, z) // TESTME
-  }
 
   /**
     * Matches and transforms nested BiFunction structures into an Aggregate if they meet
@@ -792,30 +614,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   } :| "matchAndSimplifyComposite"
 
   /**
-    * Checks if the given expression corresponds to the identity element with respect to the field option provided.
-    *
-    * @param x  the expression to evaluate.
-    * @param fo an optional identity value (a `Field`) to compare against the evaluated result of the expression.
-    * @return true if the expression matches the identity element of the given field, false otherwise.
-    */
-  private def isIdentity(x: Expression, fo: Option[Field]) = x match {
-    case Literal(z, _) => fo.contains(z) // CONSIDER why should this be treated differently than other FieldExpressions?
-    case c: FieldExpression => fo == c.evaluateAsIs
-    case _ => false
-  }
-
-  /**
-    * Transforms and simplifies `Function` expressions by applying the `maybeSimplify` function
-    * to each element in the expression.
-    *
-    * @return A AutoMatcher that matches and simplifies `Function` expressions.
-    */
-  @deprecated("use simplify", "0.1.0")
-  private def functionElementSimplifier: AutoMatcher[MonadicDuple] = Matcher[MonadicDuple, MonadicDuple]("functionElementSimplifier") {
-    case f ~ x => simplifier(x) map (y => f ~ y)
-  }
-
-  /**
     * Materializes an expression into a field object within the given context.
     *
     * CONSIDER inlining this method as it performs no real function.
@@ -843,45 +641,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   @deprecated("use simplify", "0.1.0")
   private def matchAndMaybeSimplify(x: Expression): MatchResult[Expression] = Match(x) & alt(simplifier)
-
-  /**
-    * Collect equal terms (fuzzy terms since this method won't be called if all the terms are exact) from an expression of the following two types:
-    * TESTME (partial)
-    *
-    * w power x * y power z where w = y => x power (y + z)
-    * w * x + y * z where w = y => w * (x + z)
-    *
-    * CONSIDER pulling the flatMap simplifier out of each case and putting after the result is known. Applies to similar methods.
-    *
-    * @param f the higher level function.
-    * @param g the lower level function of the left branch.
-    * @param w the left/left expression.
-    * @param x the left/right expression.
-    * @param h the lower level function of the right branch.
-    * @param y the right/left expression.
-    * @param z the right/right expression.
-    * @return a Match of the simplified expression, or a Miss.
-    */
-  @deprecated("use simplify", "0.1.0")
-  private def collectTermsDyadicTwoLevels(f: ExpressionBiFunction, g: ExpressionBiFunction, w: Expression, x: Expression, h: ExpressionBiFunction, y: Expression, z: Expression): MatchResult[Expression] = (f, g, h) match {
-    case (Product, Power, Power) if w == y =>
-      replaceAndSimplify(x, z, w, Sum, Power)
-    case (Product, Product, Power) if x == y && z == MinusOne =>
-      matchAndMaybeSimplify(w) // CONSIDER this is a special case and I'm not sure it really belongs here  // TESTME
-    case (Sum, Product, Product) if w == y =>
-      replaceAndSimplify(x, z, w, Sum, Product)
-    case (Sum, Product, Product) if w == z =>
-      replaceAndSimplify(x, y, w, Sum, Product) // TESTME
-    case (Sum, Product, Product) if x == y =>
-      replaceAndSimplify(w, z, x, Sum, Product) // TESTME
-    case (Sum, Product, Product) if x == z =>
-      replaceAndSimplify(w, y, x, Sum, Product)
-    case (Product, Sum, Sum) => // TESTME
-      val terms = cartesianProduct(w ~ x, y ~ z) map matchExpressionPair(Product)
-      combineTerms(Sum, terms, Miss("collectTermsDyadicTwoLevels: no *++ terms to collect", f ~ g ~ w ~ x ~ h ~ y ~ z))
-    case _ =>
-      Miss("collectTermsDyadicTwoLevels: functions don't match", f ~ g ~ w ~ x ~ h ~ y ~ z)
-  }
 
   /**
     * Replaces and simplifies an expression using specified bi-functions and simplification logic.
