@@ -821,16 +821,16 @@ case object Noop extends AtomicExpression {
 sealed abstract class FieldExpression(val value: Field, val maybeName: Option[String] = None) extends AtomicExpression {
 
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic expression as its result.
     * NOTE that, if there is a result defined, it is exact and, preferably, a `FieldExpression`.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing a `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression]
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression]
 
 
   /**
@@ -1013,15 +1013,15 @@ case class Literal(override val value: Field, override val maybeName: Option[Str
   }
 
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Negate =>
       value match {
         case Real(ExactNumber(_, _: Scalar)) =>
@@ -1150,15 +1150,15 @@ abstract class ScalarConstant(x: Field, name: String) extends NamedConstant(x, n
   */
 case object Zero extends ScalarConstant(Constants.zero, "0") {
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Negate =>
       Some(this)
     case Exp =>
@@ -1183,15 +1183,15 @@ case object Zero extends ScalarConstant(Constants.zero, "0") {
   */
 case object Half extends ScalarConstant(Constants.half, "\u00BD") {
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Negate =>
       Some(Literal(-Constants.half)) // TESTME
     case Reciprocal =>
@@ -1209,15 +1209,15 @@ case object Half extends ScalarConstant(Constants.half, "\u00BD") {
   */
 case object One extends ScalarConstant(Constants.one, "1") {
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Negate =>
       Some(MinusOne)
     case Reciprocal =>
@@ -1242,15 +1242,15 @@ case object One extends ScalarConstant(Constants.one, "1") {
   */
 case object MinusOne extends ScalarConstant(Constants.minusOne, "-1") {
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Negate =>
       Some(One)
     case Reciprocal =>
@@ -1268,15 +1268,15 @@ case object MinusOne extends ScalarConstant(Constants.minusOne, "-1") {
   */
 case object Two extends ScalarConstant(Constants.two, "2") {
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Reciprocal =>
       Some(Half)
     case Negate =>
@@ -1291,15 +1291,15 @@ case object Two extends ScalarConstant(Constants.two, "2") {
   */
 case object ConstPi extends ScalarConstant(Constants.pi, "π") {
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Sine =>
       Some(Zero)
     case Cosine =>
@@ -1315,15 +1315,15 @@ case object ConstPi extends ScalarConstant(Constants.pi, "π") {
   */
 case object ConstE extends NamedConstant(Constants.e, "e") {
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Ln =>
       Some(One)
     case _ =>
@@ -1337,15 +1337,15 @@ case object ConstE extends NamedConstant(Constants.e, "e") {
   */
 case object ConstI extends NamedConstant(Constants.i, "i") { // TESTME
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case _ =>
       None
   }
@@ -1361,15 +1361,15 @@ case object ConstI extends NamedConstant(Constants.i, "i") { // TESTME
   */
 case object Infinity extends NamedConstant(Rational.infinity, "∞") {
   /**
-    * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
     *
-    * @param f the `ExpressionFunction` to be applied. This function determines how the
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `FieldExpression` into a potential result.
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionFunction): Option[FieldExpression] = f match { // TESTME
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match { // TESTME
     case Reciprocal =>
       Some(Zero)
     case _ =>
@@ -1383,7 +1383,7 @@ case object Infinity extends NamedConstant(Rational.infinity, "∞") {
   * @param x the expression being operated on.
   * @param f the function to be applied to x.
   */
-case class Function(x: Expression, f: ExpressionFunction) extends CompositeExpression {
+case class Function(x: Expression, f: ExpressionMonoFunction) extends CompositeExpression {
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
@@ -2315,7 +2315,7 @@ object Phi extends ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true)
 object Psi extends ReducedQuadraticRoot("\uD835\uDED9", -1, -1, false)
 
 /**
-  * Represents a trigonometric function, either sine or cosine, that is derived from the abstract `ExpressionFunction`.
+  * Represents a trigonometric function, either sine or cosine, that is derived from the abstract `ExpressionMonoFunction`.
   *
   * The `SineCos` class applies a specified trigonometric function (`sin` or `cos`) to an `Expression`.
   * The function to be applied is determined by the given `sine` boolean parameter.
@@ -2324,7 +2324,7 @@ object Psi extends ReducedQuadraticRoot("\uD835\uDED9", -1, -1, false)
   *
   * @param sine a boolean indicating whether the sine function should be used (`true` for sine, `false` for cosine).
   */
-abstract class SineCos(sine: Boolean) extends ExpressionFunction(if (sine) "sin" else "cos", x => if (sine) x.sin else x.cos) {
+abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if (sine) "sin" else "cos", x => if (sine) x.sin else x.cos) {
   /**
     * Regardless of the value of `context`, the required `Context` for the parameter is `Radian`.
     *

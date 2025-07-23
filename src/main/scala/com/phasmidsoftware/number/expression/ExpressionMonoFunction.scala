@@ -150,14 +150,14 @@ case object Log extends ExpressionBiFunction("log", Real.log, false, None, None)
 }
 
 /**
-  * Represents the natural logarithmic function as an ExpressionFunction.
+  * Represents the natural logarithmic function as an ExpressionMonoFunction.
   *
   * Renaming this function as Ln (logarithmus naturalis).
   *
   * This object provides functionality to compute the natural logarithm (ln) of a given Number.
   * The underlying implementation utilizes the `log` method of the Number type.
   */
-case object Ln extends ExpressionFunction("ln", x => x.ln) {
+case object Ln extends ExpressionMonoFunction("ln", x => x.ln) {
   /**
     * Regardless of the value of `context`, the required `Context` for the parameter is `PureNumber`.
     *
@@ -190,10 +190,10 @@ case object Ln extends ExpressionFunction("ln", x => x.ln) {
 
 /**
   * Represents a mathematical exponential function, exp(x), where e is the base of natural logarithms.
-  * This case object extends ExpressionFunction and applies the exp operation on a given number.
+  * This case object extends ExpressionMonoFunction and applies the exp operation on a given number.
   * It defines the exponential operation for transformation or evaluation within expressions.
   */
-case object Exp extends ExpressionFunction("exp", x => x.exp) {
+case object Exp extends ExpressionMonoFunction("exp", x => x.exp) {
   /**
     * Ignores the provided `context` and returns `AnyScalar`.
     *
@@ -227,7 +227,7 @@ case object Exp extends ExpressionFunction("exp", x => x.exp) {
 }
 
 /**
-  * Negate is a specific implementation of the ExpressionFunction that changes the sign of a numeric value.
+  * Negate is a specific implementation of the ExpressionMonoFunction that changes the sign of a numeric value.
   *
   * This object represents the mathematical negation operation ("-") applied to a numeric input.
   * It uses the `negate` method, which evaluates the negation of a given Number while handling specific cases
@@ -235,7 +235,7 @@ case object Exp extends ExpressionFunction("exp", x => x.exp) {
   *
   * The function is exact and operates lazily.
   */
-case object Negate extends ExpressionFunction("-", x => -x) {
+case object Negate extends ExpressionMonoFunction("-", x => -x) {
   /**
     * Ignores the specified `context` and returns `AnyScalar`.
     *
@@ -266,13 +266,13 @@ case object Negate extends ExpressionFunction("-", x => -x) {
 }
 
 /**
-  * `Reciprocal` is an `ExpressionFunction` representing the mathematical reciprocal operation.
+  * `Reciprocal` is an `ExpressionMonoFunction` representing the mathematical reciprocal operation.
   * The function takes a numeric input `x` and computes `1 / x`.
   * It is identified by the name "rec".
   *
   * The operation is performed lazily and adheres to the behavior defined in its parent class.
   */
-case object Reciprocal extends ExpressionFunction("rec", x => x.invert) {
+case object Reciprocal extends ExpressionMonoFunction("rec", x => x.invert) {
   /**
     * Attempts to compute the reciprocal (exact inverse) of the given `Field`.
     * For specific cases of `Real` representations, such as `ExactNumber` with pure, logarithmic, or root factors,
@@ -511,18 +511,18 @@ case object Power extends ExpressionBiFunction("^", (x, y) => x.power(y), isExac
   * @param f    the function Number => Number.
   * @param name the name of this function.
   */
-abstract class ExpressionFunction(val name: String, val f: Field => Field) extends (Field => Field) {
+abstract class ExpressionMonoFunction(val name: String, val f: Field => Field) extends (Field => Field) {
 
   /**
     * Specifies the context in which the parameter of the function `f` must be evaluated.
     *
-    * @param context the `Context` in which this `ExpressionFunction` must be evaluated.
+    * @param context the `Context` in which this `ExpressionMonoFunction` must be evaluated.
     * @return the `Context` to be used when evaluating the parameter.
     */
   def paramContext(context: Context): Context
 
   /**
-    * Attempts to evaluate the given `Field` exactly using this `ExpressionFunction`.
+    * Attempts to evaluate the given `Field` exactly using this `ExpressionMonoFunction`.
     * If the operation can be performed exactly, it returns the resulting `Field` wrapped
     * in an `Option`. If the operation cannot be performed exactly, it returns `None`.
     *
@@ -533,7 +533,7 @@ abstract class ExpressionFunction(val name: String, val f: Field => Field) exten
 
   /**
     * Evaluates an `Expression` within a given `Context`, performing operations as defined
-    * by the `ExpressionFunction`. The method attempts to apply the function exactly if
+    * by the `ExpressionMonoFunction`. The method attempts to apply the function exactly if
     * possible. If the evaluation fails at any step, it returns `None`.
     *
     * TESTME this is never used.
@@ -557,7 +557,7 @@ abstract class ExpressionFunction(val name: String, val f: Field => Field) exten
   def apply(x: Field): Field = f(x)
 
   /**
-    * Generate helpful debugging information about this ExpressionFunction.
+    * Generate helpful debugging information about this ExpressionMonoFunction.
     *
     * @return a String.
     */
@@ -565,18 +565,18 @@ abstract class ExpressionFunction(val name: String, val f: Field => Field) exten
 }
 
 /**
-  * The companion object for the ExpressionFunction class.
-  * Provides utility methods for working with ExpressionFunction instances.
+  * The companion object for the ExpressionMonoFunction class.
+  * Provides utility methods for working with ExpressionMonoFunction instances.
   */
-object ExpressionFunction {
+object ExpressionMonoFunction {
   /**
-    * Extractor method for `ExpressionFunction`, enabling pattern matching.
+    * Extractor method for `ExpressionMonoFunction`, enabling pattern matching.
     * TESTME ?
     *
-    * @param arg the `ExpressionFunction` instance from which components are extracted.
-    * @return an `Option` containing a tuple of the function `Number => Number` and the name `String` of the `ExpressionFunction`, or `None` if the input is null.
+    * @param arg the `ExpressionMonoFunction` instance from which components are extracted.
+    * @return an `Option` containing a tuple of the function `Number => Number` and the name `String` of the `ExpressionMonoFunction`, or `None` if the input is null.
     */
-  def unapply(arg: ExpressionFunction): Option[(String, Field => Field)] =
+  def unapply(arg: ExpressionMonoFunction): Option[(String, Field => Field)] =
     Some(arg.name, arg.f) // TESTME
 }
 
@@ -725,7 +725,7 @@ abstract class ExpressionBiFunction(
     for (a <- x.evaluateAsIs; b <- y.evaluateAsIs) yield f(a, b)
 
   /**
-    * Generate helpful debugging information about this ExpressionFunction.
+    * Generate helpful debugging information about this ExpressionMonoFunction.
     *
     * @return a String.
     */

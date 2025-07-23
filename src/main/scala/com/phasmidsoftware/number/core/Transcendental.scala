@@ -101,12 +101,12 @@ trait Transcendental extends NumberLike {
   def expression: Expression
 
   /**
-    * Applies the provided `ExpressionFunction` to this `Transcendental` entity.
+    * Applies the provided `ExpressionMonoFunction` to this `Transcendental` entity.
     *
-    * @param f the `ExpressionFunction` to be applied, defining a transformation or operation on this `Transcendental`.
+    * @param f the `ExpressionMonoFunction` to be applied, defining a transformation or operation on this `Transcendental`.
     * @return a new `Transcendental` instance representing the result of applying the function.
     */
-  def function(f: ExpressionFunction): Transcendental
+  def function(f: ExpressionMonoFunction): Transcendental
 
   /**
     * Action to evaluate this `Expression` as a `Field`, if possible.
@@ -128,12 +128,12 @@ trait Transcendental extends NumberLike {
 abstract class AbstractTranscendental(val name: String, val expression: Expression) extends Transcendental {
 
   /**
-    * Applies a given `ExpressionFunction` to create a new instance of `Transcendental`.
+    * Applies a given `ExpressionMonoFunction` to create a new instance of `Transcendental`.
     *
-    * @param f the `ExpressionFunction` to be applied, representing a lazy monadic operation.
+    * @param f the `ExpressionMonoFunction` to be applied, representing a lazy monadic operation.
     * @return a new `Transcendental` instance that encapsulates the applied function and updated expression.
     */
-  def function(f: ExpressionFunction): Transcendental =
+  def function(f: ExpressionMonoFunction): Transcendental =
     new AbstractTranscendental(s"${f.name}($name)", com.phasmidsoftware.number.expression.Function(expression, f).simplify) {}
 
   /**

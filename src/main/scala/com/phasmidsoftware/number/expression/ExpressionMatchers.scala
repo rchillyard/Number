@@ -59,7 +59,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
     * Type alias for a monadic duple (purpose of this is solely for brevity).
     */
-  private[expression] type MonadicDuple = ExpressionFunction ~ Expression
+  private[expression] type MonadicDuple = ExpressionMonoFunction ~ Expression
 
   /**
     * Implicit method to convert a Matcher[Expression, R] into an ExpressionMatcher[R].
@@ -521,7 +521,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
     * Attempts to match and transform a nested monadic structure in two levels.
     * This matcher pattern matches between a MonadicDuple and a combination of
-    * an ExpressionFunction and a MonadicDuple, handling a specific transformation
+    * an ExpressionMonoFunction and a MonadicDuple, handling a specific transformation
     * logic when the second operand is a Function.
     *
     * @return A Matcher object capable of processing the provided monadic structure
@@ -530,7 +530,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *         the transformed representation. If no match is found, it returns a Miss.
     */
   @deprecated
-  def matchTwoMonadicLevels: Matcher[MonadicDuple, ExpressionFunction ~ MonadicDuple] = Matcher("matchTwoMonadicLevels") {
+  def matchTwoMonadicLevels: Matcher[MonadicDuple, ExpressionMonoFunction ~ MonadicDuple] = Matcher("matchTwoMonadicLevels") {
     case f ~ Function(x, g) =>
       Match(f ~ (g ~ x))
     case f ~ x =>
@@ -544,7 +544,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *         and produces the inner expression if successful, or provides a failure message otherwise.
     */
   @deprecated
-  def matchAndCancelTwoMonadicLevels: Matcher[ExpressionFunction ~ MonadicDuple, Expression] = Matcher("matchAndCancelTwoMonadicLevels") {
+  def matchAndCancelTwoMonadicLevels: Matcher[ExpressionMonoFunction ~ MonadicDuple, Expression] = Matcher("matchAndCancelTwoMonadicLevels") {
     case f ~ (g ~ x) if complementaryMonadic(f, g) => matchAndMaybeSimplify(x)
     case f ~ (g ~ x) => Miss("cannot combine two monadic levels", f ~ (g ~ x)) // TESTME
   }
@@ -1378,14 +1378,14 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   }
 
   /**
-    * Determines whether the provided pair of `ExpressionFunction` values are complementary
+    * Determines whether the provided pair of `ExpressionMonoFunction` values are complementary
     * monadic functions such as exponential and logarithmic.
     *
-    * @param f The first `ExpressionFunction` value to compare.
-    * @param g The second `ExpressionFunction` value to compare.
+    * @param f The first `ExpressionMonoFunction` value to compare.
+    * @param g The second `ExpressionMonoFunction` value to compare.
     * @return True if the functions are complementary, otherwise false.
     */
-  def complementaryMonadic(f: ExpressionFunction, g: ExpressionFunction): Boolean = (f, g) match {
+  def complementaryMonadic(f: ExpressionMonoFunction, g: ExpressionMonoFunction): Boolean = (f, g) match {
     case (Exp, Ln) => true
     case (Ln, Exp) => true  // TESTME
     case (Negate, Negate) => true

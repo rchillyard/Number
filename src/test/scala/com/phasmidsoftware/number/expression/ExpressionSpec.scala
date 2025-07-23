@@ -87,22 +87,22 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 //    f(Constants.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
   }
   it should "work for Exp" in {
-    val f: ExpressionFunction = Exp
+    val f: ExpressionMonoFunction = Exp
     f(Constants.zero) shouldBe Constants.one
     f(Constants.one) shouldBe Constants.e
   }
   it should "work for Ln" in {
-    val f: ExpressionFunction = Ln
+    val f: ExpressionMonoFunction = Ln
     f(Constants.one) shouldBe Constants.zero
     f(Constants.e) shouldBe Constants.one
   }
   it should "work for Sine" in {
-    val f: ExpressionFunction = Sine
+    val f: ExpressionMonoFunction = Sine
     f(Constants.piBy2) shouldBe Constants.one
     f(Constants.zero) shouldBe Constants.zero
   }
   it should "work for Cosine" in {
-    val f: ExpressionFunction = Cosine
+    val f: ExpressionMonoFunction = Cosine
     f(Constants.piBy2) shouldBe Constants.zero
     f(Constants.zero) shouldBe Constants.one
   }
