@@ -12,6 +12,290 @@ import scala.Option.when
 import scala.language.implicitConversions
 
 /**
+  * Represents a named, generic computation or transformation from an input of type `P`
+  * to an output value of type `Field`. The `ExpressionFunction` trait defines
+  * an abstract function by extending the `(P => Field)` function type. It can be
+  * used to model mathematical or computational expressions with a specific name.
+  * It is the super-type of `ExpressionMonoFunction` and `ExpressionBiFunction`.
+  *
+  * @tparam P the type of the input parameter to the function
+  */
+sealed trait ExpressionFunction[P] extends (P => Field) {
+  /**
+    * Returns the name of the expression function.
+    *
+    * @return a string representing the name of the function
+    */
+  def name: String
+}
+
+/**
+  * A lazy monadic expression function.
+  *
+  * TODO need to mark whether this function is exact or not (but I can't think of many which are exact).
+  *
+  * TODO implement also for other fields than Numbers.
+  *
+  * @param f    the function Number => Number.
+  * @param name the name of this function.
+  */
+abstract class ExpressionMonoFunction(val name: String, val f: Field => Field) extends ExpressionFunction[Field] {
+
+  /**
+    * Specifies the context in which the parameter of the function `f` must be evaluated.
+    *
+    * @param context the `Context` in which this `ExpressionMonoFunction` must be evaluated.
+    * @return the `Context` to be used when evaluating the parameter.
+    */
+  def paramContext(context: Context): Context
+
+  /**
+    * Attempts to evaluate the given `Field` exactly using this `ExpressionMonoFunction`.
+    * If the operation can be performed exactly, it returns the resulting `Field` wrapped
+    * in an `Option`. If the operation cannot be performed exactly, it returns `None`.
+    *
+    * @param x the input parameter of type `Field` to be evaluated.
+    * @return an `Option` containing the exact result as a `Field` if the evaluation succeeds, or `None` if it does not.
+    */
+  def applyExact(x: Field): Option[Field]
+
+  /**
+    * Evaluates an `Expression` within a given `Context`, performing operations as defined
+    * by the `ExpressionMonoFunction`. The method attempts to apply the function exactly if
+    * possible. If the evaluation fails at any step, it returns `None`.
+    *
+    * TESTME this is never used.
+    *
+    * @param x       the `Expression` to be evaluated.
+    * @param context the `Context` within which the evaluation occurs.
+    * @return an `Option[Field]` containing the result if the evaluation succeeds, or `None` if it fails.
+    */
+  def evaluate(x: Expression)(context: Context): Option[Field] = // TESTME
+    for {
+      a <- x.evaluate(paramContext(context))
+      z <- applyExact(a)
+    } yield z
+
+  /**
+    * Evaluate this function on Field x.
+    *
+    * @param x the parameter to the function.
+    * @return the result of f(x).
+    */
+  def apply(x: Field): Field = f(x)
+
+  /**
+    * Generate helpful debugging information about this ExpressionMonoFunction.
+    *
+    * @return a String.
+    */
+  override def toString: String = name
+}
+
+/**
+  * The companion object for the ExpressionMonoFunction class.
+  * Provides utility methods for working with ExpressionMonoFunction instances.
+  */
+object ExpressionMonoFunction {
+  /**
+    * Extractor method for `ExpressionMonoFunction`, enabling pattern matching.
+    * TESTME ?
+    *
+    * @param arg the `ExpressionMonoFunction` instance from which components are extracted.
+    * @return an `Option` containing a tuple of the function `Number => Number` and the name `String` of the `ExpressionMonoFunction`, or `None` if the input is null.
+    */
+  def unapply(arg: ExpressionMonoFunction): Option[(String, Field => Field)] =
+    Some(arg.name, arg.f) // TESTME
+}
+
+/**
+  * Represents a bi-functional operation on two `Field` arguments that returns a `Field` result.
+  * Provides additional metadata such as the function's name, whether the function is exact,
+  * and optional identity elements.
+  *
+  * CONSIDER changing `isExact` to a predicate based on two `Field` objects.
+  *
+  * @param f              the binary evaluation function to be applied to two `Field` arguments.
+  * @param name           the name of the function, used for debugging and descriptive purposes.
+  * @param isExact        a boolean indicating if the function is exact in all its computations.
+  *                       Even if false, there may be special cases that are exact.
+  * @param maybeIdentityL the optional left identity element for the function.
+  *                       That's to say, `identityL f y` can be replaced by `y`.
+  *                       If `None`, then the function has no identity value.
+  * @param maybeIdentityR an optional right identity element for the function, if applicable.
+  *                       That's to say, `x f identityR` can be replaced by `x`.
+  *                       If `None`, then the function is commutative and the only identity
+  *                       required is given by `identityL`.
+  */
+abstract class ExpressionBiFunction(
+                                       val name: String,
+                                       val f: (Field, Field) => Field,
+                                       val isExact: Boolean,
+                                       val maybeIdentityL: Option[Field],
+                                       val maybeIdentityR: Option[Field]
+                                   ) extends ExpressionFunction[(Field, Field)] {
+
+  /**
+    * Indicates whether the binary operation represented by this instance commutes,
+    * meaning the result remains unchanged for arbitrary swapping of inputs.
+    * This is determined based on the absence of a right-hand identity (`maybeIdentityR`).
+    */
+  lazy val commutes: Boolean = maybeIdentityL.isDefined && maybeIdentityR.isEmpty
+
+  /**
+    * Applies a trivial binary function to the provided `Field` elements `a` and `b`.
+    * Typically returns a default or neutral result without performing any meaningful operation.
+    *
+    * @param a the first operand, a `Field` instance.
+    * @param b the second operand, a `Field` instance.
+    * @return an `Option[Field]` containing the result of the trivial operation,
+    *         or `None` to signify no computation or transformation.
+    */
+  def trivialEvaluation(a: Field, b: Field): Option[Field] = None
+
+  /**
+    * Evaluate this function on x.
+    *
+    * @param a the first parameter to the function.
+    * @param b the second parameter to the function.
+    * @return the result of f(x).
+    */
+  def apply(a: Field, b: Field): Field =
+    f(a, b)
+
+  /**
+    * Alternative apply method which satisfies the type declaration.
+    * Applies the binary function `f` to the given tuple of `Field` elements.
+    *
+    * @param ff a tuple containing two `Field` elements, representing the inputs to the binary function.
+    * @return a `Field` that is the result of applying the binary function to the input tuple.
+    */
+  def apply(ff: (Field, Field)): Field =
+    f.tupled(ff)
+
+  /**
+    * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
+    *
+    * @param context the `Context` typically based on the context for the evaluation of the whole function.
+    * @return the left-hand `Context` of the binary function.
+    */
+  def leftContext(context: Context): Context
+
+  /**
+    * Defines the `Context` appropriate for evaluating the right-hand parameter of this function
+    * based on the provided `Factor`.
+    *
+    * CONSIDER eliminating context as a parameter, or maybe changing it to the overall context
+    * as used by leftContext.
+    *
+    * @param factor  the `Factor` used to determine the specific right-hand `Context`.
+    * @param context the initial `Context` typically derived from the evaluation of the left-hand parameter.
+    * @return the updated right-hand `Context` for use in further evaluations.
+    */
+  def rightContext(factor: Factor)(context: Context): Context
+
+  /**
+    * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
+    * and returns an optional result.
+    * The evaluation succeeds only if the operation satisfies specific conditions
+    * (e.g., exact representations or mathematical constraints).
+    *
+    * @param a the first operand, a `Field` instance.
+    * @param b the second operand, a `Field` instance.
+    * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
+    *         or `None` if the operation fails to meet exactness requirements.
+    */
+  def applyExact(a: Field, b: Field): Option[Field]
+
+  /**
+    * Evaluates two expressions `x` and `y` in a given context and determines the resulting `Field` based on specific identity and evaluation rules.
+    * Trivial identities are recognized and evaluated appropriately.
+    *
+    * @param x       the first expression to be evaluated.
+    * @param y       the second expression to be evaluated.
+    * @param context the evaluation context providing the necessary environment for resolving expressions.
+    * @return an `Option[Field]` containing the result of the evaluation if successful, or `None` if evaluation fails.
+    */
+  def evaluate(x: Expression, y: Expression)(context: Context): Option[Field] = (x.evaluateAsIs, y.evaluateAsIs) match {
+    case (Some(a), _) if maybeIdentityL contains a =>
+      y.evaluate(context)
+    case (_, Some(b)) if maybeIdentityR contains b =>
+      x.evaluate(context)
+    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
+      trivialEvaluation(a, b)
+    case _ =>
+      val xy = doEvaluate(x, y)(context)
+      val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
+      context.qualifyingField(xy orElse yx)
+  }
+
+  /**
+    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
+    * through an exact binary operation, and returns the output if all operations are successful.
+    *
+    * This method performs a sequential evaluation where:
+    * 1. The `x` expression is evaluated in the left-hand context to produce an intermediate result.
+    * 2. The intermediate result is used to derive a right-hand context, in which the `y` expression is evaluated.
+    * 3. If both expressions are successfully evaluated, their results are combined using a strict binary operation.
+    *
+    * @param x the first expression to be evaluated in the left-hand context.
+    * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
+    * @return an `Option[Field]` containing the result of the exact binary operation on the evaluated results
+    *         of `x` and `y`, or `None` if any step in the process fails.
+    */
+  private def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Field] =
+    for {
+      a <- x.evaluate(leftContext(context))
+      f <- a.maybeFactor
+      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
+      z <- applyExact(a, b)
+    } yield z
+
+  /**
+    * Evaluates two expressions as-is (without any simplification or conversion) and applies the function `f`
+    * to the results if both evaluations are successful.
+    *
+    * @param x the first expression to be evaluated.
+    * @param y the second expression to be evaluated.
+    * @return an `Option[Field]` containing the result of applying the binary function to the
+    *         evaluated results of `x` and `y`, or `None` if either evaluation fails.
+    */
+  def evaluateAsIs(x: Expression, y: Expression): Option[Field] =
+    for (a <- x.evaluateAsIs; b <- y.evaluateAsIs) yield f(a, b)
+
+  /**
+    * Generate helpful debugging information about this ExpressionMonoFunction.
+    *
+    * @return a String.
+    */
+  override def toString: String = name
+}
+
+/**
+  * Companion object for the `ExpressionBiFunction` class.
+  *
+  * Provides an extractor method to deconstruct `ExpressionBiFunction` instances
+  * into their associated function and name.
+  */
+object ExpressionBiFunction {
+  /**
+    * Extracts the components of an `ExpressionBiFunction` instance.
+    * TESTME ?? Not currently used.
+    * CONSIDER returning other fields.
+    *
+    * @param f the binary function of type `((Field, Field)) => Field` to be matched and deconstructed.
+    * @return an `Option` containing a tuple of the function `(Field, Field) => Field` and its associated name `String`
+    *         if the input matches an `ExpressionBiFunction`, or `None` otherwise.
+    */
+  def unapply(f: ExpressionBiFunction): Option[((Field, Field) => Field, String, Option[Field], Option[Field])] = f match {
+    case e: ExpressionBiFunction =>
+      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
+    case _ =>
+      None // TESTME
+  }
+}
+
+/**
   * Represents an arctangent operation as a binary function.
   * Calculates the angle (in radians) whose tangent is the quotient of the two provided fields.
   * If either input is not a real number, the result will be `NaN` encapsulated in a `Real`.
@@ -392,7 +676,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     * based on the specific rules for different types of contexts.
     *
     * CONSIDER reworking this method to take a Factor (from the left-hand parameter) and a Context (the overall context).
-    * OTherwise, I don't think it's going to work properly.
+    * Otherwise, I don't think it's going to work properly.
     *
     * @param context the initial `Context` to be evaluated and transformed.
     * @return the resulting `Context` after applying the transformation logic.
@@ -496,261 +780,6 @@ case object Power extends ExpressionBiFunction("^", (x, y) => x.power(y), isExac
     case (Real(x@ExactNumber(_, _)), Real(y@ExactNumber(_, PureNumber))) =>
       val result: Number = x.doPower(y)
       when(result.isExact)(Real(result))
-    case _ =>
-      None // TESTME
-  }
-}
-
-/**
-  * A lazy monadic expression function.
-  *
-  * TODO need to mark whether this function is exact or not (but I can't think of many which are exact).
-  *
-  * TODO implement also for other fields than Numbers.
-  *
-  * @param f    the function Number => Number.
-  * @param name the name of this function.
-  */
-abstract class ExpressionMonoFunction(val name: String, val f: Field => Field) extends (Field => Field) {
-
-  /**
-    * Specifies the context in which the parameter of the function `f` must be evaluated.
-    *
-    * @param context the `Context` in which this `ExpressionMonoFunction` must be evaluated.
-    * @return the `Context` to be used when evaluating the parameter.
-    */
-  def paramContext(context: Context): Context
-
-  /**
-    * Attempts to evaluate the given `Field` exactly using this `ExpressionMonoFunction`.
-    * If the operation can be performed exactly, it returns the resulting `Field` wrapped
-    * in an `Option`. If the operation cannot be performed exactly, it returns `None`.
-    *
-    * @param x the input parameter of type `Field` to be evaluated.
-    * @return an `Option` containing the exact result as a `Field` if the evaluation succeeds, or `None` if it does not.
-    */
-  def applyExact(x: Field): Option[Field]
-
-  /**
-    * Evaluates an `Expression` within a given `Context`, performing operations as defined
-    * by the `ExpressionMonoFunction`. The method attempts to apply the function exactly if
-    * possible. If the evaluation fails at any step, it returns `None`.
-    *
-    * TESTME this is never used.
-    *
-    * @param x       the `Expression` to be evaluated.
-    * @param context the `Context` within which the evaluation occurs.
-    * @return an `Option[Field]` containing the result if the evaluation succeeds, or `None` if it fails.
-    */
-  def evaluate(x: Expression)(context: Context): Option[Field] = // TESTME
-    for {
-      a <- x.evaluate(paramContext(context))
-      z <- applyExact(a)
-    } yield z
-
-  /**
-    * Evaluate this function on Field x.
-    *
-    * @param x the parameter to the function.
-    * @return the result of f(x).
-    */
-  def apply(x: Field): Field = f(x)
-
-  /**
-    * Generate helpful debugging information about this ExpressionMonoFunction.
-    *
-    * @return a String.
-    */
-  override def toString: String = name
-}
-
-/**
-  * The companion object for the ExpressionMonoFunction class.
-  * Provides utility methods for working with ExpressionMonoFunction instances.
-  */
-object ExpressionMonoFunction {
-  /**
-    * Extractor method for `ExpressionMonoFunction`, enabling pattern matching.
-    * TESTME ?
-    *
-    * @param arg the `ExpressionMonoFunction` instance from which components are extracted.
-    * @return an `Option` containing a tuple of the function `Number => Number` and the name `String` of the `ExpressionMonoFunction`, or `None` if the input is null.
-    */
-  def unapply(arg: ExpressionMonoFunction): Option[(String, Field => Field)] =
-    Some(arg.name, arg.f) // TESTME
-}
-
-/**
-  * Represents a bi-functional operation on two `Field` arguments that returns a `Field` result.
-  * Provides additional metadata such as the function's name, whether the function is exact,
-  * and optional identity elements.
-  *
-  * CONSIDER changing `isExact` to a predicate based on two `Field` objects.
-  *
-  * @param f              the binary evaluation function to be applied to two `Field` arguments.
-  * @param name           the name of the function, used for debugging and descriptive purposes.
-  * @param isExact        a boolean indicating if the function is exact in all its computations.
-  *                       Even if false, there may be special cases that are exact.
-  * @param maybeIdentityL the optional left identity element for the function.
-  *                       That's to say, `identityL f y` can be replaced by `y`.
-  *                       If `None`, then the function has no identity value.
-  * @param maybeIdentityR an optional right identity element for the function, if applicable.
-  *                       That's to say, `x f identityR` can be replaced by `x`.
-  *                       If `None`, then the function is commutative and the only identity
-  *                       required is given by `identityL`.
-  */
-abstract class ExpressionBiFunction(
-                                       val name: String,
-                                       val f: (Field, Field) => Field,
-                                       val isExact: Boolean,
-                                       val maybeIdentityL: Option[Field],
-                                       val maybeIdentityR: Option[Field]
-                                   ) extends ((Field, Field) => Field) {
-
-  /**
-    * Indicates whether the binary operation represented by this instance commutes,
-    * meaning the result remains unchanged for arbitrary swapping of inputs.
-    * This is determined based on the absence of a right-hand identity (`maybeIdentityR`).
-    */
-  lazy val commutes: Boolean = maybeIdentityL.isDefined && maybeIdentityR.isEmpty
-
-  /**
-    * Applies a trivial binary function to the provided `Field` elements `a` and `b`.
-    * Typically returns a default or neutral result without performing any meaningful operation.
-    *
-    * @param a the first operand, a `Field` instance.
-    * @param b the second operand, a `Field` instance.
-    * @return an `Option[Field]` containing the result of the trivial operation,
-    *         or `None` to signify no computation or transformation.
-    */
-  def trivialEvaluation(a: Field, b: Field): Option[Field] = None
-
-  /**
-    * Evaluate this function on x.
-    *
-    * @param a the first parameter to the function.
-    * @param b the second parameter to the function.
-    * @return the result of f(x).
-    */
-  def apply(a: Field, b: Field): Field = f(a, b)
-
-  /**
-    * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
-    *
-    * @param context the `Context` typically based on the context for the evaluation of the whole function.
-    * @return the left-hand `Context` of the binary function.
-    */
-  def leftContext(context: Context): Context
-
-  /**
-    * Defines the `Context` appropriate for evaluating the right-hand parameter of this function
-    * based on the provided `Factor`.
-    *
-    * CONSIDER eliminating context as a parameter, or maybe changing it to the overall context
-    * as used by leftContext.
-    *
-    * @param factor  the `Factor` used to determine the specific right-hand `Context`.
-    * @param context the initial `Context` typically derived from the evaluation of the left-hand parameter.
-    * @return the updated right-hand `Context` for use in further evaluations.
-    */
-  def rightContext(factor: Factor)(context: Context): Context
-
-  /**
-    * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
-    * and returns an optional result.
-    * The evaluation succeeds only if the operation satisfies specific conditions
-    * (e.g., exact representations or mathematical constraints).
-    *
-    * @param a the first operand, a `Field` instance.
-    * @param b the second operand, a `Field` instance.
-    * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
-    *         or `None` if the operation fails to meet exactness requirements.
-    */
-  def applyExact(a: Field, b: Field): Option[Field]
-
-  /**
-    * Evaluates two expressions `x` and `y` in a given context and determines the resulting `Field` based on specific identity and evaluation rules.
-    * Trivial identities are recognized and evaluated appropriately.
-    *
-    * @param x       the first expression to be evaluated.
-    * @param y       the second expression to be evaluated.
-    * @param context the evaluation context providing the necessary environment for resolving expressions.
-    * @return an `Option[Field]` containing the result of the evaluation if successful, or `None` if evaluation fails.
-    */
-  def evaluate(x: Expression, y: Expression)(context: Context): Option[Field] = (x.evaluateAsIs, y.evaluateAsIs) match {
-    case (Some(a), _) if maybeIdentityL contains a =>
-      y.evaluate(context)
-    case (_, Some(b)) if maybeIdentityR contains b =>
-      x.evaluate(context)
-    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
-      trivialEvaluation(a, b)
-    case _ =>
-      val xy = doEvaluate(x, y)(context)
-      val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
-      context.qualifyingField(xy orElse yx)
-  }
-
-  /**
-    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
-    * through an exact binary operation, and returns the output if all operations are successful.
-    *
-    * This method performs a sequential evaluation where:
-    * 1. The `x` expression is evaluated in the left-hand context to produce an intermediate result.
-    * 2. The intermediate result is used to derive a right-hand context, in which the `y` expression is evaluated.
-    * 3. If both expressions are successfully evaluated, their results are combined using a strict binary operation.
-    *
-    * @param x the first expression to be evaluated in the left-hand context.
-    * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
-    * @return an `Option[Field]` containing the result of the exact binary operation on the evaluated results
-    *         of `x` and `y`, or `None` if any step in the process fails.
-    */
-  private def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Field] =
-    for {
-      a <- x.evaluate(leftContext(context))
-      f <- a.maybeFactor
-      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
-      z <- applyExact(a, b)
-    } yield z
-
-  /**
-    * Evaluates two expressions as-is (without any simplification or conversion) and applies the function `f`
-    * to the results if both evaluations are successful.
-    *
-    * @param x the first expression to be evaluated.
-    * @param y the second expression to be evaluated.
-    * @return an `Option[Field]` containing the result of applying the binary function to the
-    *         evaluated results of `x` and `y`, or `None` if either evaluation fails.
-    */
-  def evaluateAsIs(x: Expression, y: Expression): Option[Field] =
-    for (a <- x.evaluateAsIs; b <- y.evaluateAsIs) yield f(a, b)
-
-  /**
-    * Generate helpful debugging information about this ExpressionMonoFunction.
-    *
-    * @return a String.
-    */
-  override def toString: String = name
-}
-
-/**
-  * Companion object for the `ExpressionBiFunction` class.
-  *
-  * Provides an extractor method to deconstruct `ExpressionBiFunction` instances
-  * into their associated function and name.
-  */
-object ExpressionBiFunction {
-  /**
-    * Extracts the components of an `ExpressionBiFunction` instance.
-    * TESTME ?? Not currently used.
-    * CONSIDER returning other fields.
-    *
-    * @param f the binary function of type `((Field, Field)) => Field` to be matched and deconstructed.
-    * @return an `Option` containing a tuple of the function `(Field, Field) => Field` and its associated name `String`
-    *         if the input matches an `ExpressionBiFunction`, or `None` otherwise.
-    */
-  def unapply(f: ExpressionBiFunction): Option[((Field, Field) => Field, String, Option[Field], Option[Field])] = f match {
-    case e: ExpressionBiFunction =>
-      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
     case _ =>
       None // TESTME
   }

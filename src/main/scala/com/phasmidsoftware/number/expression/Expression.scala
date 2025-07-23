@@ -1609,6 +1609,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
     case BiFunction(a, Function(b, Negate), Product) if a == b =>
+      // NOTE: duplicate code
       val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))   // x²
       em.Match(Function(xSq, Negate))
     case BiFunction(Function(a, Negate), b, Product) if a == b =>  // TESTME
@@ -1923,7 +1924,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   def approximation: Option[Real] = { // TESTME
     val identity: Field = function.maybeIdentityL.getOrElse(Constants.zero) // NOTE should never require the default
     val maybeFields: Seq[Option[Field]] = xs.map(e => e.approximation)
-    FP.sequence(maybeFields) map (xs => xs.foldLeft[Field](identity)(function)) match {
+    FP.sequence(maybeFields) map (xs => xs.foldLeft[Field](identity)(function.apply)) match {
       case Some(r: Real) =>
         Some(r)
       case _ =>

@@ -772,7 +772,7 @@ The hierarchy of _Expression_ types is as follows (as of version V 1.2.2):
   * _Sum_
   * _Product_
   * _Power_
-* _ExpressionFunction_ (trait used in _Function_ above)
+* _ExpressionMonoFunction_ (trait used in _Function_ above)
   * _Cosine_
   * _Sine_
   * _Exp_
@@ -862,4 +862,4 @@ Versions
 Future Upgrades
 ===============
 We intend to restructure the hierarchy of numeric types entirely.
-The traits and classes should strictly follow the matchematical concepts of field, ring, etc.
+The traits and classes should strictly follow the mathematical concepts of field, ring, etc.
