@@ -53,10 +53,4 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
     target.simplify shouldBe Literal(-2)
   }
 
-  it should "simplifier 2" in {
-    val target = Aggregate.total(One, root5)
-    val result = em.matchCompositeAndSimplify(target)
-    result.successful shouldBe false
-  }
-
 }
