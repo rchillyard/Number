@@ -443,7 +443,7 @@ object Expression {
     case x: ReducedQuadraticRoot =>
       em.Match(x.asAlgebraic)
     case x: AtomicExpression =>
-      em.Miss("matchSimpler: cannot be simplified", x)
+      x.simplifyAtomic(x)
     case x: CompositeExpression =>
       em.eitherOr(simplifyComponents,
         em.eitherOr(simplifyTrivial,
@@ -462,6 +462,8 @@ object Expression {
     *         in a `CompositeExpression`.
     */
   def simplifyComponents: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyComponents") {
+    case a: AtomicExpression =>
+      a.simplifyAtomic(a)
     case c: CompositeExpression =>
       c.simplifyComponents(c)
     case x =>
@@ -548,6 +550,14 @@ sealed trait AtomicExpression extends Expression {
     * @return 1.
     */
   def depth: Int = 1
+
+  /**
+    * Attempts to simplify an atomic expression.
+    *
+    * @return an `em.AutoMatcher[Expression]` representing
+    *         the process of handling or matching the atomic expression.
+    */
+  def simplifyAtomic: em.AutoMatcher[Expression]
 }
 
 /**
@@ -747,6 +757,14 @@ case object Noop extends AtomicExpression {
     * @return an optional `Factor`.
     */
   def maybeFactor: Option[Factor] = None
+
+  /**
+    *
+    */
+  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic")(
+    _ =>
+      em.Miss[Expression, Expression]("AtomicExpression: simplifyAtomic: Noop", this)
+  )
 }
 
 /**
@@ -773,6 +791,7 @@ abstract class FieldExpression(val value: Field, val maybeName: Option[String] =
     *         or `None` if the evaluation fails.
     */
   def monadicFunction(f: ExpressionFunction): Option[FieldExpression]
+
 
   /**
     * Evaluates the current field expression within the given context and determines
@@ -870,6 +889,7 @@ abstract class FieldExpression(val value: Field, val maybeName: Option[String] =
     val state = Seq(value, maybeName)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+
 }
 
 /**
@@ -910,6 +930,48 @@ object FieldExpression {
   * @param maybeName an optional name (typically this will be None).
   */
 case class Literal(override val value: Field, override val maybeName: Option[String] = None) extends FieldExpression(value, maybeName) {
+
+  /**
+    * Attempts to simplify literal expressions within the `Expression` context by matching against predefined constants.
+    * The method pattern matches on the literal values and maps them to their corresponding simplified representations:
+    * - `Constants.zero` maps to `Zero`
+    * - `Constants.one` maps to `One`
+    * - `Constants.minusOne` maps to `MinusOne`
+    * - `Constants.two` maps to `Two`
+    * - `Constants.half` maps to `Half`
+    * - `Constants.pi` maps to `ConstPi`
+    * - `Constants.e` maps to `ConstE`
+    * - `Constants.i` maps to `ConstI`
+    * - `Constants.infinity` maps to `Infinity`
+    *
+    * If the input does not match any supported constants, it returns a miss indicating the inability to simplify.
+    *
+    * @return an `em.AutoMatcher[Expression]` that simplifies literal constants to their predefined values
+    *         or returns a miss if no simplification is applicable.
+    */
+  override def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic") {
+    case Literal(Constants.zero, _) =>
+      em.Match(Zero)
+    case Literal(Constants.one, _) =>
+      em.Match(One)
+    case Literal(Constants.minusOne, _) =>
+      em.Match(MinusOne)
+    case Literal(Constants.two, _) =>
+      em.Match(Two)
+    case Literal(Constants.half, _) =>
+      em.Match(Half)
+    case Literal(Constants.pi, _) | Literal(Real(Number.pi), _) =>
+      em.Match(ConstPi)
+    case Literal(Constants.e, _) =>
+      em.Match(ConstE)
+    case Literal(Constants.i, _) =>
+      em.Match(ConstI)
+    case Literal(Constants.infinity, _) =>
+      em.Match(Infinity)
+    case x =>
+      em.Miss("simplifyAtomic: cannot be simplified", x)
+  }
+
   /**
     * Applies the given `ExpressionFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
@@ -1020,7 +1082,13 @@ object Literal {
   * @param x    the mathematical field to which this constant belongs.
   * @param name the name associated with this constant.
   */
-abstract class NamedConstant(x: Field, name: String) extends FieldExpression(x, Some(name))
+abstract class NamedConstant(x: Field, name: String) extends FieldExpression(x, Some(name)) {
+  def simplifyAtomic: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("simplifyAtomic")(
+      _ =>
+        em.Miss[Expression, Expression]("AtomicExpression: simplifyAtomic: NamedConstant", this)
+    )
+}
 
 /**
   * An abstract representation of a scalar constant in a specific mathematical field,
@@ -2145,6 +2213,11 @@ class ReducedQuadraticRoot(val name: String, val p: Int, val q: Int, val pos: Bo
     val maybeValue: Option[Value] = when(Value.isZero(v1))(v2)
     maybeValue.map(v => new Real(Number.create(v)))
   }
+
+  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic")(
+    _ =>
+      em.Miss[Expression, Expression]("AtomicExpression: simplifyAtomic: ReducedQuadraticRoot", this)
+  )
 }
 
 /**

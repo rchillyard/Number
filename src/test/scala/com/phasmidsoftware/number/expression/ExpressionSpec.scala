@@ -346,6 +346,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     target shouldBe Expression(-2 * Constants.pi)
   }
 
+  behavior of "Sum"
+  it should "add pi to -pi" in {
+    val x1 = ConstPi
+    val x2 = ConstPi * MinusOne
+    val e: Expression = x1 + x2
+    val simplify = e.simplify
+    simplify.materialize.asNumber shouldBe Some(Number.zeroR)
+  }
+
+
 //  behavior of "asAggregate"
 //  it should "aggregate 1" in {
 //    val target = One * ConstPi + Two * MinusOne

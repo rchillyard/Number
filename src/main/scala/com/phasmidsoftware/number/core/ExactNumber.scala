@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.inner._
+import java.util.Objects
 
 /**
   * This class is designed to model an exact Numeral.
@@ -41,14 +42,30 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
       c.isSame(Real(this))
   }
 
-//  override def equals(obj: Any): Boolean = obj match {
-//    case that: ExactNumber =>
-//      this.nominalValue == that.nominalValue && this.factor == that.factor
-//    case _ =>
-//      false
-//  }
-//
-//  override def hashCode(): Int = Objects.hash(nominalValue, factor)
+  /**
+    * Compares this instance with another object to determine equality.
+    * Equality is determined based on specific conditions for the `ExactNumber` type.
+    * NOTE that there may be a few rare situations where we return false for two "equal" numbers.
+    * However, generally speaking, numbers should be normalized before equality testing.
+    *
+    * @param obj the object to be compared with this instance
+    * @return true if the specified object is equal to this instance; false otherwise
+    */
+  override def equals(obj: Any): Boolean = (this, obj) match {
+    case (ExactNumber(v1, f1), ExactNumber(v2, f2)) if f1 == f2 =>
+      Value.isEqual(v1, v2)
+    case _ =>
+      false
+  }
+
+  /**
+    * Generates a hash code for this `ExactNumber` object.
+    * The hash code is computed based on the `nominalValue` and `factor` fields
+    * and is therefore consistent with `equals`.
+    *
+    * @return an integer hash code value for this object.
+    */
+  override def hashCode(): Int = Objects.hash(nominalValue, factor)
 
   /**
     * @return true if this Number is equal to zero.

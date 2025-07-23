@@ -90,8 +90,13 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
     PureNumber.isA(AnyContext) shouldBe true
   }
 
-  it should "value" in {
-
+  it should "modulate" in {
+    PureNumber.modulate(Value.fromInt(1)) shouldBe (Value.fromInt(1))
+    Radian.modulate(Value.fromInt(-1)) shouldBe (Value.fromInt(-1))
+    Radian.modulate(Value.fromInt(0)) shouldBe (Value.fromInt(0))
+    Radian.modulate(Value.fromInt(1)) shouldBe (Value.fromInt(1))
+    Radian.modulate(Value.fromInt(2)) shouldBe (Value.fromInt(0))
+    Radian.modulate(Value.fromInt(3)) shouldBe (Value.fromInt(1))
   }
 
   it should "render" in {

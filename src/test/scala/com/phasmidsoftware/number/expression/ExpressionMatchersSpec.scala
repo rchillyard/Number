@@ -8,7 +8,7 @@ import com.phasmidsoftware.matchers._
 import com.phasmidsoftware.number
 import com.phasmidsoftware.number.core.Constants.root3
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{piBy2, root2, √}
+import com.phasmidsoftware.number.core.Number.{piBy2, root2, zeroR, √}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
@@ -281,12 +281,27 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result: em.MatchResult[Expression] = p(x)
     result shouldBe em.Match(Aggregate.total(ConstPi))
   }
-  behavior of "matchSimpler"
+  behavior of "simplifyAtomic"
   it should "leave atomic expression as is" in {
+    val p = matchSimpler
     val x: Expression = One
-    val result = matchSimpler(x)
-    result shouldBe em.Miss("matchSimpler: cannot be simplified", One)
+    val result = p(x)
+    result shouldBe em.Miss("AtomicExpression: simplifyAtomic: NamedConstant", One)
   }
+  it should "simplify literal expression one" in {
+    val p = matchSimpler
+    val x: Expression = Literal(Constants.one)
+    val result = p(x)
+    result shouldBe em.Match(One)
+  }
+  it should "simplify literal expression pi" in {
+    val p = matchSimpler
+    val x: Expression = Literal(Constants.pi)
+    val result = p(x)
+    result shouldBe em.Match(ConstPi)
+  }
+
+  behavior of "matchSimpler"
   it should "simplify sqrt(7)^2" in {
     val x: Expression = Expression(7)
     val y = x.sqrt
@@ -475,8 +490,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   it should "simplify aggregate 2a" in {
     val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
-    val result = target.simplify.materialize
-    convertToNumber(result).isZero shouldBe true
+    val simplify = target.simplify
+    val result = simplify.materialize
+    result.asNumber shouldBe Some(zeroR)
+    val number = convertToNumber(result)
+    number.isZero shouldBe true
     //val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
 //    result match {
 //      case em.Match(x: Field) =>
@@ -1274,18 +1292,37 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "matchAndCollectTwoDyadicLevels"
-  ignore should "work for √3 * √3" in {
-    val p = em.matchAndCollectTwoDyadicLevels
-    val result: em.MatchResult[Expression] = p(Product ~ (Power ~ Expression(3) ~ Expression(Rational.half)) ~ (Power ~ Expression(3) ~ Expression(Rational.half)))
+  it should "work for √3 * √3" in {
+    import BiFunction._
+    val p = Expression.matchSimpler
+    val e1: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
+    val e2: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
+    val e: DyadicTriple = Product ~ e1 ~ e2
+    val triple: DyadicTriple = e
+    val result = p(triple)
     result.successful shouldBe true
     result.get shouldBe Expression(3)
   }
-  ignore should "work for (π + 1) * (π - 1)" in {
-    val p = em.matchAndCollectTwoDyadicLevels
+  it should "work for √3 + -√3" in {
+    val p = Expression.matchSimpler
     val root3: Expression = Expression(3).sqrt
-    val result: em.MatchResult[Expression] = p(Sum ~ (Product ~ root3 ~ One) ~ (Product ~ root3 ~ MinusOne))
+    val e1 = BiFunction(root3, One, Product)
+    val e2 = BiFunction(root3, MinusOne, Product)
+    val result = p(Sum ~ e1 ~ e2)
     result.successful shouldBe true
     result.get shouldBe Zero
+  }
+  // Issue #128
+  ignore should "work for (π + 1) * (π - 1)" in {
+    val p = Expression.matchSimpler
+    val e1 = BiFunction(ConstPi, One, Sum)
+    val e2 = BiFunction(ConstPi, MinusOne, Sum)
+    val result = p(Product ~ e1 ~ e2)
+    result.successful shouldBe true
+    val e = result.get
+    val actual = p(e)
+    actual.successful shouldBe true
+    actual.get shouldBe BiFunction(ConstPi ^ 2, MinusOne, Sum)
   }
 }
 

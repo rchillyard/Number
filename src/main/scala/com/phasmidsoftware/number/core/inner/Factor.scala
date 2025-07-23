@@ -52,6 +52,14 @@ sealed trait Factor {
   def canMultiply(f: Factor): Boolean
 
   /**
+    * Modulates the given value according to the context or rules defined by this factor.
+    *
+    * @param v the value to be modulated
+    * @return the modulated value
+    */
+  def modulate(v: Value): Value
+
+  /**
     * Determines whether `this` factor can be raised by the given factor `f`.
     * CONSIDER do we need this method now that we have raise(x, y, this)?
     *
@@ -313,6 +321,14 @@ sealed trait Logarithmic extends Factor {
   val base: String
 
   /**
+    * Modulates a given value and returns the result.
+    *
+    * @param v the value to be modulated
+    * @return the original value
+    */
+  def modulate(v: Value): Value = v
+
+  /**
     * Determines whether given `value` with this `Factor` can be rendered exactly.
     *
     * @return true if this `Factor` can be rendered exactly; false otherwise.
@@ -553,6 +569,14 @@ sealed trait InversePower extends Factor {
     * @return an optional String representing the root form of the value, or None if the conversion is not applicable.
     */
   def asRoot(value: Value): Option[String]
+
+  /**
+    * Modulates the given value according to the context or rules defined by this factor.
+    *
+    * @param v the value to be modulated
+    * @return the modulated value
+    */
+  def modulate(v: Value): Value = v
 
   /**
     * Determines whether given `value` with this `Factor` can be rendered exactly.
@@ -923,6 +947,14 @@ case object PureNumber extends Scalar {
   def render(x: String): String = x
 
   /**
+    * Applies modulation to the given value.
+    *
+    * @param v the input value to be modulated
+    * @return the given value
+    */
+  def modulate(v: Value): Value = v
+
+  /**
     * Computes the inverse of a given Value, leveraging the monadic transformation functions defined
     * in MonadicOperationInvert. This method allows for the calculation of an inverted number when valid.
     *
@@ -993,6 +1025,20 @@ case object Radian extends Scalar {
     * This value is commonly used in trigonometric, geometric, and other mathematical computations.
     */
   val value: Double = Math.PI
+
+  /**
+    * Modulates the provided value using a monadic transformation defined by
+    * a specific range and circularity settings.
+    *
+    * TODO there are other places in the code where we use the MonadicOperationModulate more directly.
+    * We should get those place to use this method.
+    *
+    * @param value the input value to be modulated.
+    * @return the modulated value if the transformation is successful,
+    *         or the original value if the operation fails.
+    */
+  def modulate(value: Value): Value =
+    (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-1, 1, circular = false).functions)} yield v) getOrElse value
 
   /**
     * Determines whether `this` factor can be raised by the given factor `f`.

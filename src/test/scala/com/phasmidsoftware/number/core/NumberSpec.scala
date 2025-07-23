@@ -736,6 +736,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val x2 = Real(Number.root5)
     (x1 add x2) should ===(Real(3.23606797749979))
   }
+  it should "add pi to -pi" in {
+    val x1: Number = Number.pi
+    val x2: Number = negate(x1)
+    (x1 doAdd x2) shouldBe zeroR
+  }
 
   behavior of "minus"
   it should "negate 1" in {
