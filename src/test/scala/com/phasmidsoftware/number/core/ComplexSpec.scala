@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, piBy2, root3, zeroR, √}
+import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, pi, piBy2, root3, zeroR, √}
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Expression
@@ -219,7 +219,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "conjugate (2)" in {
-    p1_pi.conjugate shouldBe p1_pi
+    p1_pi.conjugate shouldBe ComplexPolar(one, negate(pi), 1)
   }
 
   it should "invert" in {
@@ -400,9 +400,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     C"1-i1" should matchPattern { case ComplexCartesian(Number.one, Number.negOne) => }
     C"1-i-1" should matchPattern { case ComplexCartesian(Number.one, Number.one) => }
     C"0-i1" should matchPattern { case ComplexCartesian(Number.zero, Number.negOne) => }
-    C"1-ipi" should matchPattern { case ComplexPolar(Number.one, Number.pi, 1) => }
+    C"1-ipi" should matchPattern { case ComplexPolar(Number.one, Number.minusPi, 1) => }
 //    C"1-i0.5pi" should matchPattern { case (ComplexPolar(Number.one, negate(Number.piBy2), 1)) => }
-    C"0-ipi" should matchPattern { case ComplexPolar(Number.zero, Number.pi, 1) => }
+    C"0-ipi" should matchPattern { case ComplexPolar(Number.zero, Number.minusPi, 1) => }
 
   }
 }

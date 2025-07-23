@@ -1313,16 +1313,19 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.get shouldBe Zero
   }
   // Issue #128
-  ignore should "work for (π + 1) * (π - 1)" in {
+  it should "work for (π + 1) * (π - 1)" in {
     val p = Expression.matchSimpler
     val e1 = BiFunction(ConstPi, One, Sum)
-    val e2 = BiFunction(ConstPi, MinusOne, Sum)
+    val e2 = BiFunction(Literal(Constants.pi), MinusOne, Sum)
     val result = p(Product ~ e1 ~ e2)
     result.successful shouldBe true
+    result shouldBe em.Match(Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power))))
     val e = result.get
     val actual = p(e)
     actual.successful shouldBe true
-    actual.get shouldBe BiFunction(ConstPi ^ 2, MinusOne, Sum)
+    val idealExpectedExpression = BiFunction(ConstPi ^ 2, MinusOne, Sum)
+    val interimExpectedExpression = Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power)))
+    actual.get shouldBe interimExpectedExpression
   }
 }
 

@@ -168,7 +168,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     ExactNumber(v, f)
 
   /**
-    * We cannot add fuzziness to an Exact number so we return the equivalent FuzzyNumber.
+    * We cannot add fuzziness to an Exact number, so we return the equivalent FuzzyNumber.
     *
     * @param fo the (optional) fuzziness.
     * @return a Number.
@@ -197,13 +197,13 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
-    * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
+    * If this `FuzzyNumber` cannot be distinguished from zero with `p` confidence, then
     * the result will be zero.
     *
     * TESTME
     *
     * @param p the confidence desired (ignored).
-    * @return an Int which is negative, zero, or positive according to the magnitude of this.
+    * @return an `Int` which is negative, zero, or positive, according to the magnitude of this.
     */
   def signum(p: Double): Int = signum
 
@@ -238,6 +238,8 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   override def toString: String = modulate match {
     case Number.pi =>
       Radian.toString
+    case ExactNumber(Right(-1), Radian) =>
+      "-" + Radian.toString
     case _ =>
       val sb = new StringBuilder()
       factor match {

@@ -214,11 +214,11 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     else {
       val substitutions: Seq[Expression] =
         for (er <- frs)
-          yield (er match {
+          yield er match {
             case Match(e) => Literal(e)
             case Miss(_, v: Expression) => v // XXX this will match all Misses so Match is in fact exhaustive.
             case Error(x) => throw x // TESTME
-          })
+          }
       c.substituteTerms(substitutions)
     }
   }
@@ -415,8 +415,14 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   def complementaryFields(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
     if (x.maybeFactor == y.maybeFactor) { // TODO logic here is same as for value in BiFunction
       val fo = f.evaluateAsIs(x, y)
-      if (fo == f.maybeIdentityL) fo map (Literal(_))
-      else None
+      (fo, f.maybeIdentityL) match {
+        case (Some(field1), Some(field2)) if field1 == field2 =>
+          Some(Literal(field1))
+        case (Some(Real(Number.zeroR)), Some(field2)) if field2.isZero =>
+          Some(Literal(field2))
+        case _ =>
+          None
+      }
     }
     else None
 
@@ -859,9 +865,10 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Try(xs.sortBy(sortFunction)) match {
         case Success(sorted) =>
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-          if (list.length < xs.length)
+          if (list.length < xs.length) {
+            // TODO write instead Match(CompositeExpression(....))
             Match(Aggregate(f, list))
-          else
+          } else
             Miss(s"complementaryTermsEliminatorAggregate: $a", a)
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME

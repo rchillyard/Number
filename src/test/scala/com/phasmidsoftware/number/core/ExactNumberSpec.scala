@@ -54,7 +54,8 @@ class ExactNumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "render" in {
-
+    Number.pi.render shouldBe "\uD835\uDED1"
+    Number.pi.makeNegative.render shouldBe "-\uD835\uDED1"
   }
 
   it should "make" in {

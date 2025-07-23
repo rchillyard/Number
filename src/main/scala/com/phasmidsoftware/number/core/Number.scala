@@ -1564,7 +1564,8 @@ object Number {
     */
   def modulate(x: Number): Number = x.factor match {
     case f@Radian =>
-      prepare(x.transformMonadic(f)(MonadicOperationModulate(-1, 1, circular = true)))
+      // CONSIDER using f.modulate(...)
+      prepare(x.transformMonadic(f)(MonadicOperationModulate(-1, 1, circular = false)))
     case _ =>
       x
   }

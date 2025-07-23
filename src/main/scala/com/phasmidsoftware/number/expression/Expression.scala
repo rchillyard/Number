@@ -97,7 +97,7 @@ sealed trait Expression extends NumberLike with Approximatable {
   /**
     * Method to determine the depth of this Expression.
     *
-    * @return the depth (an atomic expression has depth of 1).
+    * @return the depth (an atomic expression has a depth of 1).
     */
   def depth: Int
 
@@ -280,9 +280,9 @@ object Expression {
       Function(x, Exp)
 
     /**
-      * Method to lazily get the value of atan2(x, y), i.e., if the result is z, then tan(z) = y/x.
+      * Method to lazily get the value of `atan2(x, y)`, i.e., if the result is `z`, then `tan(z) = y/x`.
       *
-      * @return an Expression representing atan2(x, y).
+      * @return an Expression representing `atan2(x, y)`.
       */
     def atan(y: Expression): Expression =
       BiFunction(x, y, Atan)
@@ -516,11 +516,10 @@ object Expression {
     case x =>
       em.Miss("simplifyComposite: not a Composite expression type", x)
   }
-
 }
 
 /**
-  * An Expression which cannot be further simplified.
+  * An Expression that is based on one simple constant value.
   */
 sealed trait AtomicExpression extends Expression {
   /**
@@ -552,7 +551,8 @@ sealed trait AtomicExpression extends Expression {
   def depth: Int = 1
 
   /**
-    * Attempts to simplify an atomic expression.
+    * Attempts to simplify an atomic expression, for example,
+    * we replace `Literal(Constants.pi)` with `ConstPi`.
     *
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.
@@ -1073,7 +1073,7 @@ object Literal {
 }
 
 /**
-  * Represents a specific constant whose value is a `Field`, with an associated name.
+  * Represents a specific constant whose value is a `Field` with an associated name.
   *
   * This abstract class extends [[FieldExpression]], allowing for named representation
   * of constants in mathematical expressions, while being tied to a specific field type.
@@ -2286,6 +2286,8 @@ object CompositeExpression {
     * Creates an `Aggregate` instance from the given sequence of `Field` inputs.
     * Each `Field` is converted to a `Literal` expression and combined into an `Aggregate`.
     *
+    * TODO include the ExpressionBiFunction (currently, it is always Sum).
+    *
     * @param xs The sequence of `Field` instances used to create the `Aggregate`.
     * @return An `Aggregate` instance containing the converted `Literal` expressions.
     */
@@ -2618,6 +2620,7 @@ case object Negate extends ExpressionFunction("-", x => -x) {
     *         otherwise `None`.
     */
   def applyExact(x: Field): Option[Field] = x match {
+    // CONSIDER combining these cases by using `Scalar`
     case Real(ExactNumber(v, f@PureNumber)) =>
       Some(Real(ExactNumber(Value.negate(v), f)))
     case Real(ExactNumber(v, f@Radian)) =>
