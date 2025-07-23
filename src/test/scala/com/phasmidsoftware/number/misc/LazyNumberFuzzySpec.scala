@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.misc
 
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
+import org.scalatest.tagobjects.Slow
 
 /**
   * @author scalaprof
@@ -70,14 +71,14 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   behavior of "fuzzy composition" //fixed
   // Fails on CircleCI
-  ignore should "work" in {
+  it should "work" taggedAs Slow in {
     val p = fuzz1.map(ExpDifferentiable[Fuzzy]()(Fuzzy.FuzzyNumeric))
     val z = p.get
 //    z should be(2.718281828459045)
     p.get shouldBe Exact(2.7182818284590455)
   }
   // Fails on CircleCI
-  ignore should "work with fuzzy 1" in {
+  it should "work with fuzzy 1" taggedAs Slow in {
     val f = LazyFuzzy(Bounded(1, 1E-3))
     val p = f.map(ExpDifferentiable[Fuzzy]()(FuzzyNumeric))
 //    p.get should be(2.718281828459045)
