@@ -766,19 +766,20 @@ The hierarchy of _Expression_ types is as follows (as of version V 1.2.2):
     * _Function_ (case class: one expression modified by a function--see below)
     * _Aggregate_ (case class: similar to _BiFunction_ but with multiple expressions all combined by the same dyadic function)
 * _Transcendental_ (trait defining an Expression)
-* _ExpressionBiFunction_ (trait used in _BiFunction_ (above))
-  * _Atan_
-  * _Log_
-  * _Sum_
-  * _Product_
-  * _Power_
-* _ExpressionMonoFunction_ (trait used in _Function_ above)
-  * _Cosine_
-  * _Sine_
-  * _Exp_
-  * _Ln_
-  * _Negate_
-  * _Reciprocal_
+* _ExpressionFunction_ (trait)
+  * _ExpressionBiFunction_ (trait used in _BiFunction_ (above))
+    * _Atan_
+    * _Log_
+    * _Sum_
+    * _Product_
+    * _Power_
+  * _ExpressionMonoFunction_ (trait used in _Function_ above)
+    * _Cosine_
+    * _Sine_
+    * _Exp_
+    * _Ln_
+    * _Negate_
+    * _Reciprocal_
 
 Other Types
 ===========
@@ -818,6 +819,7 @@ Other types (for reference):
 Versions
 ========
 * Version 1.2.7: Introduced dyadic _Log_ functions and, in general, renamed (natural) _log_ method as _ln_, allowing for new dyadic _log_ method.
+  * Also, fixed various bugs and restructured the Expression classes.
 * Version 1.2.6: Added Transcendental Numbers.
 * Version 1.2.5: Fixed badges in this README file; also added social card.
 * Version 1.2.4: Restored functioning of CircleCI as well as some very minor changes to Rational (and fewer ignored tests).
