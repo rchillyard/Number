@@ -539,7 +539,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
    */
   def doAdd(complex: Complex): BaseComplex = complex match {
     case ComplexCartesian(a, b) =>
-      // FIXME we should not be relying on expression package here.
+      // CONSIDER we should not be relying on expression package here.
       import com.phasmidsoftware.number.expression.Expression.ExpressionOps
       // TODO replace materialize with evaluateAsIs and do the appropriate things below (a for-comprehension).
       val partA = Literal(x).+(Real(a)).materialize

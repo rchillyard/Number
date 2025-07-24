@@ -902,7 +902,8 @@ object Number {
 
   /**
     * Implicit converter from Expression to Number.
-    * FIXME we should not be relying on expression package here.
+    * CONSIDER we should try to move this implicit converter into Expression...
+    * but be warned--it's not easy!
     *
     * @param x the Expression to be converted.
     * @return the equivalent exact Number.
