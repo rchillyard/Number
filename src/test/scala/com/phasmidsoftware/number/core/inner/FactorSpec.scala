@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.core.inner
 
+import com.phasmidsoftware.number.core.inner.Factor.{sE, sEi}
 import com.phasmidsoftware.number.core.inner.Value.{fromInt, fromRational}
 import com.phasmidsoftware.number.core.{GeneralNumber, Number}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -126,7 +127,8 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "sE" in {
-
+  it should "sE and sEi" in {
+    sE shouldBe "\uD835\uDF00"
+    sEi shouldBe "\uD835\uDF00ⁱ"
   }
 }

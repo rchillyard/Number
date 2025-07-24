@@ -164,27 +164,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   }
 
   /**
-    * Method to compute the result of raising a complex number, represented in polar form,
-    * to a rational power. This involves converting the given power to a rational, computing
-    * the radial component raised to the power, and resolving the appropriate branch for the
-    * result based on the total number of branches `w`.
-    *
-    * @param n  the power to which the complex number is raised.
-    * @param re the radial component (magnitude) of the complex number in polar form.
-    * @param im the angular component (argument) of the complex number in polar form.
-    * @param w  the number of branches to consider for the result, typically used for
-    *           handling multi-valued functions like roots in the complex plane.
-    */
-  private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = recover(
-    for {
-      z <- n.toNominalRational
-      r = re power n
-      branches <- (z.invert * w).maybeInt
-    } yield ComplexPolar(r, im.doMultiple(z), branches),
-    ComplexException("logic error: power")
-  )
-
-  /**
    * Raise this Complex to the power p.
    *
    * @param p a Number.
@@ -346,6 +325,27 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       }
       s"${sign}i${x.abs.render}"
   }
+
+  /**
+    * Method to compute the result of raising a complex number, represented in polar form,
+    * to a rational power. This involves converting the given power to a rational, computing
+    * the radial component raised to the power, and resolving the appropriate branch for the
+    * result based on the total number of branches `w`.
+    *
+    * @param n  the power to which the complex number is raised.
+    * @param re the radial component (magnitude) of the complex number in polar form.
+    * @param im the angular component (argument) of the complex number in polar form.
+    * @param w  the number of branches to consider for the result, typically used for
+    *           handling multi-valued functions like roots in the complex plane.
+    */
+  private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = recover(
+    for {
+      z <- n.toNominalRational
+      r = re power n
+      branches <- (z.invert * w).maybeInt
+    } yield ComplexPolar(r, im.doMultiple(z), branches),
+    ComplexException("logic error: power")
+  )
 }
 
 /**
@@ -549,6 +549,13 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
       doAdd(convertToCartesian(c))
   }
 
+  /**
+    * Computes the square of a complex number represented in Cartesian form.
+    * The result is a new `ComplexCartesian` value obtained by applying the formula:
+    * (x^2 - y^2, 2xy), where `x` and `y` are the real and imaginary parts respectively.
+    *
+    * @return a `ComplexCartesian` instance representing the square of the original complex number.
+    */
   def square: ComplexCartesian =
     ComplexCartesian(x.doPower(Number.two) doSubtract y.doPower(Number.two), x doMultiply y doMultiply Number.two)
 

@@ -45,10 +45,15 @@ class ValueSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "valueToString 1" in {
-    valueToString(fromRational(Rational("22/7"))) shouldBe "3.<142857>"
+    valueToString(fromRational(Rational("22/7")), skipOne = false) shouldBe "3.<142857>"
   }
+
   it should "valueToString 2" in {
-    valueToString(fromRational(Rational("1/524287"))) shouldBe "0.000001907352270798245998851773932979456..."
+    valueToString(fromRational(Rational("1/524287")), skipOne = false) shouldBe "0.000001907352270798245998851773932979456..."
+  }
+
+  it should "valueToString 3" in {
+    valueToString(fromInt(1), skipOne = true) shouldBe ""
   }
 
   it should "maybeInt" in {

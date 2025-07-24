@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, Number, Real}
+import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number.misc.FP
 import scala.Option.when
 import scala.language.implicitConversions
@@ -426,6 +426,8 @@ case object Log extends ExpressionBiFunction("log", Real.log, false, None, None)
         Some(Real(x.make(PureNumber)))
       case (Real(x@ExactNumber(_, NatLog)), Constants.e) => // XXX not strictly necessary as this will be handled by the default case
         Some(Real(x.make(PureNumber)))
+      case (Real(x@ExactNumber(_, Euler)), Constants.e) =>
+        Some(ComplexPolar(Number.one, x.make(Radian).simplify))
       case _ if a == b =>
         Some(Constants.one)
       case _ =>

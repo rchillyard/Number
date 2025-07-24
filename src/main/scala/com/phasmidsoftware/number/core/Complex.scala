@@ -201,9 +201,8 @@ object Complex {
    */
   def parse(w: String): Try[Complex] = ComplexParser.parse(w)
 
-
   /**
-   * Implicit class RationalHelper to allow definition of Rationals by Strings of the form r"n/d".
+    * Implicit class ComplexHelper to allow definition of ComplexHelper by Strings of the form C"x+iy".
    *
    * @param sc a StringContext.
    */

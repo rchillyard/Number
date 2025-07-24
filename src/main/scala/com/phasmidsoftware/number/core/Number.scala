@@ -1312,6 +1312,8 @@ object Number {
       else if (x == Number.NaN || y == Number.NaN) throw NumberException("cannot compare NaN with non-NaN")
       else if (x.factor == NatLog && y.factor == NatLog)
         compare(x.make(PureNumber), y.make(PureNumber)) // TESTME why do we need to convert to PureNumber?
+      else if (x.factor == Euler && y.factor == Euler)
+        compare(x.make(Radian), y.make(Radian)) // TESTME why do we need to convert to Radian?
       else {
         // CONSIDER invoking the compare method in GeneralNumber.
         GeneralNumber.plus(x, Number.negate(y)).signum
@@ -1393,6 +1395,9 @@ object Number {
           case _ =>
             prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
         }
+      case (Euler, _) | (_, Euler) =>
+        throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
+//        n // CONSIDER will this cause problems? Should we throw an Exception instead?
       case (Logarithmic(_), Scalar(_)) =>
         scale(scale(n, NatLog), factor)
       case (InversePower(_), Logarithmic(_)) =>
@@ -1521,6 +1526,8 @@ object Number {
   def log(x: Number): Field = x.factor match {
     case NatLog =>
       Real(x.make(PureNumber).simplify)
+    case Euler =>
+      ComplexPolar(Number.one, x.make(Radian).simplify)
     case PureNumber =>
       log(x.scale(NatLog))
     case SquareRoot if x.signum < 0 =>
@@ -1532,11 +1539,11 @@ object Number {
   }
 
   /**
-    * Yield the exponential of x i.e. e to the power of x.
-    * If the factor is PureNumber, then we force the factor to be NatLog and simplify.
-    * Otherwise, we convert to a PureNumber number and call exp recursively.
+    * Yield the exponential of x i.e., e to the power of x.
+    * If the factor is `PureNumber`, then we force the factor to be `NatLog` and simplify.
+    * Otherwise, we convert to a `PureNumber` number and call `exp` recursively.
     *
-    * @param x a Number whose factor is NatLog.
+    * @param x a (real) Number whose factor is NatLog.
     * @return the value of e raised to the power of x.
     */
   @tailrec
@@ -1568,9 +1575,9 @@ object Number {
     * @return either x or a number equivalent to x with value in defined range.
     */
   def modulate(x: Number): Number = x.factor match {
-    case f@Radian =>
+    case Radian | Euler =>
       // CONSIDER using f.modulate(...)
-      prepare(x.transformMonadic(f)(MonadicOperationModulate(-1, 1, circular = false)))
+      prepare(x.transformMonadic(x.factor)(MonadicOperationModulate(-1, 1, circular = false)))
     case _ =>
       x
   }

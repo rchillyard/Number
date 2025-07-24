@@ -80,6 +80,10 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   def simplify: Number = (factor, nominalValue) match {
     case (Logarithmic(_), Right(0)) =>
       Number.one
+    case (Euler, Right(1)) => // this is `e^i𝛑`, which equals `-1` by Euler's Identity
+      Number(-1)
+    case (Euler, Left(Right(Rational.half))) => // this is `e^i𝛑/2`, which equals `i` by Euler's Identity
+      Number.i
     // XXX this handles all roots (of which there are currently only SquareRoot and CubeRoot)
     case (Root(n), v) =>
       v match {
@@ -243,10 +247,12 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     case _ =>
       val sb = new StringBuilder()
       factor match {
+        case Euler =>
+          sb.append(s"e^i${Value.valueToString(nominalValue, skipOne = true)}𝛑")
         case Logarithmic(_) =>
           sb.append(factor.render(nominalValue))
         case Scalar(_) =>
-          sb.append(Value.valueToString(nominalValue))
+          sb.append(Value.valueToString(nominalValue, skipOne = false))
           sb.append(factor.toString)
         case InversePower(_) =>
           sb.append(factor.render(nominalValue))

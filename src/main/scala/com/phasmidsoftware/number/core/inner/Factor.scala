@@ -120,7 +120,7 @@ sealed trait Factor {
     * @return a String.
     */
   def render(x: Value): String =
-    render(valueToString(x))
+    render(valueToString(x, skipOne = false))
 
   /**
     * Method to render a Value (which has already been converted to a String) in the context of this Factor.
@@ -312,7 +312,8 @@ object Scalar {
 }
 
 /**
-  * Trait to define a Factor which is a scaled version of the natural log.
+  * Trait to define a `Factor` which indicates that the true value of a Number with this `Factor`
+  * is the base raised to the power of the (nominal) `Value`.
   */
 sealed trait Logarithmic extends Factor {
   /**
@@ -1125,6 +1126,36 @@ case object NatLog extends Logarithmic {
 }
 
 /**
+  * This factor allows the representation of quantities of the form `e power ix`.
+  *
+  * NOTE: A number in factor Euler will evaluate as e raised to (`i` times that power).
+  * So, the `value` is the natural log of the evaluation.
+  *
+  * We call this Euler because it is used in Euler's formula [[https://en.wikipedia.org/wiki/Euler's_formula]].
+  * However, let the record state that Roger Cotes, an English mathematician, used this quantity before Euler
+  * [[https://en.wikipedia.org/wiki/Euler's_formula#History]].
+  *
+  * Thus the range of such values is subject to the same modulation as Radian.
+  */
+case object Euler extends Logarithmic {
+  /**
+    * Represents the base symbol used for the `NatLog` factor.
+    *
+    * The symbol is defined as the mathematical constant `ℯ` to the power `i`.
+    * This constant is used to indicate the base of the imaginary natural logarithm
+    * and is sourced from the `Factor` object.
+    */
+  val base: String = Factor.sEi
+
+  /**
+    * Represents the default value for the `Euler` factor. Should not be used.
+    */
+  val value: Double = 1.0
+
+  override def toString: String = Factor.sEi
+}
+
+/**
   * Object representing the logarithm to base 2.
   *
   * This object extends the `Logarithmic` trait and provides specific functionality
@@ -1219,7 +1250,7 @@ case object SquareRoot extends Root(2) {
     * @return an Option containing the concatenated string representation of the root
     *         and the value, or None if the string construction is unsuccessful.
     */
-  def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value)}")
+  def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value, skipOne = false)}")
 
   /**
     * Raises the value `x` to the power of the value `y`.
@@ -1340,7 +1371,7 @@ case object CubeRoot extends Root(3) {
     * @return an optional string representing the root concatenated with the value.
     */
   def asRoot(value: Value): Option[String] =
-    Some(s"$toString${valueToString(value)}")
+    Some(s"$toString${valueToString(value, skipOne = false)}")
 }
 
 /**
@@ -1403,7 +1434,7 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
     * @return an optional string representing the root concatenated with the value.
     */
   def asRoot(value: Value): Option[String] =
-    Some(s"${valueToString(value)}$toString")
+    Some(s"${valueToString(value, skipOne = false)}$toString")
 }
 
 /**
@@ -1425,6 +1456,15 @@ object Factor {
     * Represents the Unicode character ℯ (𝜀), which is commonly used to denote Euler's number in mathematics.
     */
   val sE = "\uD835\uDF00"
+  /**
+    * Represents the Unicode sequence for the mathematical constant ℯ
+    * combined with a modifier character.
+    *
+    * The value is a combination of:
+    * - The Unicode character for ℯ (U+1D700)
+    * - A modifier character (U+02E3)
+    */
+  val sEi = "\uD835\uDF00\u2071"
   /**
     * Represents the symbol for π (pi) in unicode format.
     * This constant can be used to identify and match the mathematical symbol π
@@ -1474,6 +1514,8 @@ object Factor {
       Radian
     case `sE` =>
       NatLog
+    case `sEi` =>
+      Euler
     case _ =>
       PureNumber
   }
