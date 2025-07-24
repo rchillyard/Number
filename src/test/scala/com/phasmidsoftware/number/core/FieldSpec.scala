@@ -27,13 +27,13 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "take the natural log of i" in {
-    val x = Constants.i.log
+    val x = Constants.i.ln
     x shouldBe ComplexCartesian(Number.zero, Constants.piBy2.x)
     x.render shouldBe "i½\uD835\uDED1"
   }
 
   it should "take the natural log of 2" in {
-    val x = Constants.two.log
+    val x = Constants.two.ln
     x should matchPattern { case Real(FuzzyNumber(Left(Left(Some(0.6931471805599453))), PureNumber, _)) => }
     x.render shouldBe "0.6931471805599453±0.00000000000020%"
   }

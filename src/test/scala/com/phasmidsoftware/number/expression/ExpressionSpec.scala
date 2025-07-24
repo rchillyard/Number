@@ -8,15 +8,16 @@ import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Real}
+import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, pi}
+import com.phasmidsoftware.number.mill.{Expr, Stack}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import scala.util.{Failure, Success}
+import scala.util.Success
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
 
@@ -51,9 +52,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "parse"
   private val syp = ShuntingYardParser
   it should "parse 1" in {
-    syp.parseInfix("1") should matchPattern { case Success(_) => }
-    syp.parseInfix("(1)") should matchPattern { case Failure(_) => } // tokens must currently be separated by white space
-    syp.parseInfix("( 1 )") should matchPattern { case Success(_) => }
+    syp.parseInfix("1") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix("(1)") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix(" (1)") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix(" (1 )") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix(" (1 )") should matchPattern { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix("( 1 ) ") should matchPattern { case Success(Stack(List(Expr(One)))) => }
     syp.parseInfix("( ( 0.5 + 3 ) + ( 2 * ( 0.5 + 3 ) ) )") should matchPattern { case Success(_) => }
     syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
   }
@@ -87,22 +91,22 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 //    f(Constants.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
   }
   it should "work for Exp" in {
-    val f: ExpressionFunction = Exp
+    val f: ExpressionMonoFunction = Exp
     f(Constants.zero) shouldBe Constants.one
     f(Constants.one) shouldBe Constants.e
   }
-  it should "work for Log" in {
-    val f: ExpressionFunction = Log
+  it should "work for Ln" in {
+    val f: ExpressionMonoFunction = Ln
     f(Constants.one) shouldBe Constants.zero
     f(Constants.e) shouldBe Constants.one
   }
   it should "work for Sine" in {
-    val f: ExpressionFunction = Sine
+    val f: ExpressionMonoFunction = Sine
     f(Constants.piBy2) shouldBe Constants.one
     f(Constants.zero) shouldBe Constants.zero
   }
   it should "work for Cosine" in {
-    val f: ExpressionFunction = Cosine
+    val f: ExpressionMonoFunction = Cosine
     f(Constants.piBy2) shouldBe Constants.zero
     f(Constants.zero) shouldBe Constants.one
   }
@@ -116,8 +120,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for Reciprocal" in {
     expression.Function(Two, Reciprocal).materialize shouldBe Constants.half
   }
-  it should "work for Exp(Log(2))" in {
-    val x = expression.Function(expression.Function(Two, Log), Exp)
+  it should "work for Exp(Ln(2))" in {
+    val x = expression.Function(expression.Function(Two, Ln), Exp)
     val result = x.materialize
     result shouldBe Constants.two
   }
@@ -189,16 +193,44 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     One.atan(Constants.root3).evaluateAsIs shouldBe Some(Constants.piBy3)
     One.atan(One).evaluateAsIs shouldBe Some(Constants.piBy4)
   }
+  it should "evaluate log 2" in {
+    val base = Two
+    One.log(base).materialize.asNumber shouldBe Some(Number.zero)
+    Two.log(base).materialize.asNumber shouldBe Some(Number.one)
+//    Expression(4).log(base).materialize.asNumber shouldBe Some(Number.two)
+  }
+  it should "evaluate log e" in {
+    val base = ConstE
+    One.log(base).materialize.asNumber shouldBe Some(Number.zero)
+    ConstE.log(base).materialize.asNumber shouldBe Some(Number.one)
+  }
+  it should "evaluate log 10" in {
+    val base = Expression(10)
+    One.log(base).materialize.asNumber shouldBe Some(Number.zero)
+    Expression(10).log(base).materialize.asNumber shouldBe Some(Number.one)
+  }
+  it should "fail to evaluate log 1 x or log 0 x" in {
+    val base = Expression(1)
+    a[NumberException] should be thrownBy Two.log(base).materialize.asNumber
+  }
   it should "evaluate ln E" in {
     val x: Expression = ConstE
-    val y: Expression = x.log
+    val y: Expression = x.ln
     y.materialize shouldBe Constants.one
   }
   it should "evaluate ln 2E" in {
     val x: Expression = ConstE * 2
-    val y: Expression = x.log
+    val y: Expression = x.ln
     val result = y.materialize
     val expected = Real("1.693147180559945(13)")
+    result shouldEqual expected
+  }
+  it should "evaluate xxx" in {
+    val x: Expression = ConstE.log(Two) // lg E with value close to √2
+    val y: Expression = x.reciprocal.simplify
+    // NOTE eventually, we should be able to compare y with L2 (this is Issue #125)
+    val result = y.materialize
+    val expected = Real("0.6931471805599453(13)")
     result shouldEqual expected
   }
 
@@ -317,6 +349,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val target = (One * ConstPi * Two * MinusOne).simplify
     target shouldBe Expression(-2 * Constants.pi)
   }
+
+  behavior of "Sum"
+  it should "add pi to -pi" in {
+    val x1 = ConstPi
+    val x2 = ConstPi * MinusOne
+    val e: Expression = x1 + x2
+    val simplify = e.simplify
+    simplify.materialize.asNumber shouldBe Some(Number.zeroR)
+  }
+
 
 //  behavior of "asAggregate"
 //  it should "aggregate 1" in {

@@ -146,7 +146,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *          Can represent integer, rational, or other numerical values.
     * @return A new `Field` instance that is the result of performing the power operation.
     */
-  def power(n: Number): Field = this match {
+  def power(n: Number): Complex = this match {
     case ComplexPolar(re, im, w) if n.isRational =>
       doRationalPowerForComplexPolar(n, re, im, w)
     case ComplexPolar(re, im, w) =>
@@ -159,7 +159,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       case Number.two =>
         c.square
       case _ =>
-        convertToPolar(c).power(n) // CONSIDER try to improve upon this
+        convertToPolar(c).power(n).asInstanceOf[Complex] // CONSIDER try to improve upon this
     }
   }
 
@@ -302,7 +302,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  def log: Field
+  def ln: Field
 
   /**
     * Computes the exponential of this complex number.
@@ -502,7 +502,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  def log: Field = throw ComplexException("not implemented: ComplexCartesian.log")
+  def ln: Field = throw ComplexException("not implemented: ComplexCartesian.ln")
 
   /**
    * TESTME
@@ -765,12 +765,12 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  def log: Field =
-    r.log match {
+  def ln: Field =
+    r.ln match {
       case Real(n) =>
         ComplexCartesian(n, theta)
       case _ =>
-        throw ComplexException("logic error: ComplexPolar.log")
+        throw ComplexException("logic error: ComplexPolar.ln")
     }
 
   /**

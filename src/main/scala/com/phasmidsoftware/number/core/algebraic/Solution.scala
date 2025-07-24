@@ -305,11 +305,11 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
   def add(solution: Solution): Option[Solution] =
     when(solution.offset == Value.zero)(this) orElse {
       if (factor == solution.factor) {
-        val functions = DyadicOperationPlus.functions
         for {
-          x <- doComposeValueDyadic(base, solution.base)(functions)
-          y <- doComposeValueDyadic(branchOffset, solution.branchOffset)(functions)
-        } yield QuadraticSolution(x, y, factor, branch = branch)
+          x <- doComposeValueDyadic(base, solution.base)(DyadicOperationPlus.functions)
+          (v, f, z) <- factor.add(branchOffset, solution.branchOffset, factor)
+          if f == factor && z.isEmpty
+        } yield QuadraticSolution(x, v, factor, branch = branch)
       }
       else
         None // TESTME

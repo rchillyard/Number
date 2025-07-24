@@ -13,11 +13,15 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Factor"
 
-  it should "add" in {
+  it should "add pure numbers" in {
     PureNumber.add(fromInt(1), fromInt(2), PureNumber) shouldBe Some((fromInt(3), PureNumber, None))
     PureNumber.add(fromInt(1), fromInt(2), Radian) shouldBe None
     PureNumber.add(fromInt(1), fromInt(2), SquareRoot) shouldBe None
     PureNumber.add(fromInt(1), fromInt(2), NatLog) shouldBe None
+  }
+
+  it should "add roots" in {
+    SquareRoot.add(fromRational(Rational(5, 4)), fromRational(Rational(5, 4)), SquareRoot) shouldBe Some((fromInt(5), SquareRoot, None))
   }
 
   it should "multiply PureNumber by Other" in {
@@ -37,7 +41,7 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
     Log2.multiply(fromInt(2), fromInt(3), PureNumber) shouldBe None
   }
 
-  it should "multiply Other by Log" in {
+  it should "multiply Other by Ln" in {
     NatLog.multiply(fromInt(2), fromInt(4), NatLog) shouldBe Some((fromInt(6), NatLog, None))
     Radian.multiply(fromInt(2), fromInt(3), NatLog) shouldBe None
     SquareRoot.multiply(fromInt(2), fromInt(3), NatLog) shouldBe None
@@ -86,8 +90,13 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
     PureNumber.isA(AnyContext) shouldBe true
   }
 
-  it should "value" in {
-
+  it should "modulate" in {
+    PureNumber.modulate(Value.fromInt(1)) shouldBe (Value.fromInt(1))
+    Radian.modulate(Value.fromInt(-1)) shouldBe (Value.fromInt(-1))
+    Radian.modulate(Value.fromInt(0)) shouldBe (Value.fromInt(0))
+    Radian.modulate(Value.fromInt(1)) shouldBe (Value.fromInt(1))
+    Radian.modulate(Value.fromInt(2)) shouldBe (Value.fromInt(0))
+    Radian.modulate(Value.fromInt(3)) shouldBe (Value.fromInt(1))
   }
 
   it should "render" in {

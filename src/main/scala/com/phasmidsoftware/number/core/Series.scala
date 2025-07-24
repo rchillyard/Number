@@ -72,6 +72,7 @@ trait Series[X] {
     val sb = new StringBuilder().append("Series: ")
     nTerms.foreach(n => sb.append(s"($n terms) "))
     terms.take(n).foreach(x => sb.append(s"$x, "))
+    sb.append("...")
     sb.toString()
   }
 }

@@ -110,11 +110,15 @@ object Value {
     * @return `true` if the transformed and composed values result in equality
     *         after performing operations, otherwise `false`.
     */
-  def isEqual(v1: Value, v2: Value): Boolean =
-    (for {
-      x <- Operations.doTransformValueMonadic(v1)(MonadicOperationNegate.functions)
-      y <- Operations.doComposeValueDyadic(x, v2)(DyadicOperationPlus.functions) if isZero(y)
-    } yield true) getOrElse false
+  def isEqual(v1: Value, v2: Value): Boolean = {
+    // First, check to see if v1.equals(v2) returns true
+    v1 == v2 ||
+    // Next, check to see if v1 + v2 = 0
+        ((for {
+          x <- Operations.doTransformValueMonadic(v1)(MonadicOperationNegate.functions)
+          y <- Operations.doComposeValueDyadic(x, v2)(DyadicOperationPlus.functions) if isZero(y)
+        } yield true) getOrElse false)
+  }
 
   /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the factor).

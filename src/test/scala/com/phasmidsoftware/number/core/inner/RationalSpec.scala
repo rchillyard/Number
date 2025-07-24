@@ -256,6 +256,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "equal infinity when r-interpolator has 0 denominator" in {
     r"1/0" shouldBe infinitySymbol
   }
+  it should "equal infinities" in {
+    val r1 = zero.invert
+    val r2 = Rational(0).invert
+    r1 shouldBe r2
+  }
 
   behavior of "+"
   it should "return 4 for 2+2" in {

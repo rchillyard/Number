@@ -197,10 +197,11 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
 
   /**
     * Computes the natural logarithm (log base e) of this Field.
+    * CONSIDER renaming this as "ln" but note that the Java library calls this operation "log."
     *
     * @return a new Field representing the result of the logarithmic computation.
     */
-  def log: Field
+  def ln: Field
 
   /**
     * Computes the exponential of this Field.

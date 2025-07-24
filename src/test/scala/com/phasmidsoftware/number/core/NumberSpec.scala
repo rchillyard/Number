@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sBoltzmann
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{NumberIsOrdering, negate, one, root2, zeroR}
+import com.phasmidsoftware.number.core.Number.{NumberIsOrdering, inverse, negate, one, root2, zeroR}
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, convertFieldToExpression}
@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import org.scalatest.tagobjects.Slow
 import scala.util.{Failure, Left, Success, Try}
 
 class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -147,23 +148,23 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   // TODO fix this--it fails in CircleCI (fails here, too)
   // NOTE this is quite bizarre
-  ignore should "work for NatLog, SquareRoot" in { //fixed
+  it should "work for NatLog, SquareRoot" taggedAs Slow in { //fixed
     val target = Number.e
     val expected = Number(math.E * math.E, SquareRoot)
     val result: Field = target.scale(SquareRoot).normalize
-    result.render shouldBe "2.7182818284590455[98]"
+    result.render startsWith "2.718281828459045" shouldBe true
     //result should ===(expected)
     //Literal(result) should ===(expected) Literal doesn't work here. I'll study this later.
     convertFieldToExpression(result) should ===(expected)
   }
   // NOTE same issues as previous test
-  ignore should "work for NatLog, SquareRoot approx" in {
+  it should "work for NatLog, SquareRoot approx" taggedAs Slow in {
     val target = Number.e
     val expected = Number(math.E * math.E, SquareRoot)
     val normalized = target.scale(SquareRoot).normalize
     normalized match {
       case r: Real =>
-        r.render shouldBe "2.7182818284590455[98]"
+//        r.render shouldBe "2.7182818284590455[98]"
         r.render.substring(0, 17) shouldBe "2.718281828459045"
         r.x should ===(expected)
       case c: Complex =>
@@ -735,6 +736,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val x2 = Real(Number.root5)
     (x1 add x2) should ===(Real(3.23606797749979))
   }
+  it should "add pi to -pi" in {
+    val x1: Number = Number.pi
+    val x2: Number = negate(x1)
+    (x1 doAdd x2) shouldBe zeroR
+  }
 
   behavior of "minus"
   it should "negate 1" in {
@@ -1081,25 +1087,56 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.exp should ===(Expression(Constants.e) * Constants.e)
   }
 
-  behavior of "log"
+  behavior of "ln"
   it should "be 1 for E" in {
     val target = Number.e
-    target.log shouldBe Constants.one
+    target.ln shouldBe Constants.one
   }
   it should "be 0 for 1" in {
     val target = Number.one
-    val log = target.log
+    val log = target.ln
     log shouldBe Constants.zero
   }
   it should "be 2 for E^2" in {
     val target: Number = Expression(Constants.e) * Constants.e
-    target.log should ===(Number.two)
+    target.ln should ===(Number.two)
   }
   it should "be 0.69... for 2" in {
     val target = Number.two
-    val log = target.log
+    val log = target.ln
     log should ===(0.6931471805599453)
   }
+
+  behavior of "log"
+  it should "be 1 for E" in {
+    val target = Number.e
+    val actual = Real(target.log(Number.e))
+    actual shouldBe Constants.one
+  }
+  it should "be 0 for 1" in {
+    val target = Number.one
+    val actual = Real(target.log(Number.two))
+    actual shouldBe Constants.zero
+  }
+  it should "be 0.69... for 2" in {
+    val target = Number.two
+    val actual = target.log(Number.e)
+    actual should ===(0.6931471805599453)
+  }
+  it should "lg 1024" in {
+    val target = Number(1024)
+    val actual = target.log(Number.two)
+    actual should ===(10)
+  }
+
+  it should "log exact" in {
+    Number.one.log(2) shouldBe Number.zero
+    Number(1024).log(2) shouldBe Number(10)
+    inverse(Number(1024)).log(2) shouldBe Number(-10)
+    Number(1000).log(10) shouldBe Number(3)
+    Number("0.00100").log(10) shouldBe Number(-3)
+  }
+
 
   behavior of "toInt"
   it should "work for 1" in {

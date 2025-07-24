@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, piBy2, root3, zeroR, √}
+import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, pi, piBy2, root3, zeroR, √}
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Expression
@@ -148,12 +148,17 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   // TODO fix me. This arose when working with Factor.raise
-  ignore should "c1_2^1/2" in {
-    val result: Field = c1_2 power half
+  it should "c1_2^1/2" in {
+    val z: Field = convertToPolar(c1_2)
+    val result: Complex = c1_2 power half
+    println(math.sqrt(math.sqrt(5)))
     // result should be 1.27201965 + i0.786151378
     result should matchPattern { case ComplexPolar(_, _, _) => }
     result match {
-      case c@ComplexPolar(_, _, _) => c.modulus.toNominalDouble.get shouldBe 1.495348781221220 +- 1E-9
+      case c@ComplexPolar(_, _, _) =>
+        val modulus = c.modulus.scale(PureNumber).toNominalDouble.get
+        modulus shouldBe 1.495348781221220 +- 1E-9
+        c.theta.scale(PureNumber).toNominalDouble.get shouldBe 0.553574358897045 +- 1E-9
     }
     (result * result).compare(c1_2) shouldBe 0
   }
@@ -214,7 +219,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "conjugate (2)" in {
-    p1_pi.conjugate shouldBe p1_pi
+    p1_pi.conjugate shouldBe ComplexPolar(one, negate(pi), 1)
   }
 
   it should "invert" in {
@@ -395,9 +400,9 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     C"1-i1" should matchPattern { case ComplexCartesian(Number.one, Number.negOne) => }
     C"1-i-1" should matchPattern { case ComplexCartesian(Number.one, Number.one) => }
     C"0-i1" should matchPattern { case ComplexCartesian(Number.zero, Number.negOne) => }
-    C"1-ipi" should matchPattern { case ComplexPolar(Number.one, Number.pi, 1) => }
+    C"1-ipi" should matchPattern { case ComplexPolar(Number.one, Number.minusPi, 1) => }
 //    C"1-i0.5pi" should matchPattern { case (ComplexPolar(Number.one, negate(Number.piBy2), 1)) => }
-    C"0-ipi" should matchPattern { case ComplexPolar(Number.zero, Number.pi, 1) => }
+    C"0-ipi" should matchPattern { case ComplexPolar(Number.zero, Number.minusPi, 1) => }
 
   }
 }

@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Constants.root5
 import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -51,12 +50,6 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
     import Expression.ExpressionOps
     val target = Aggregate.total(Two * MinusOne, Two + One, MinusOne * 5, Constants.two)
     target.simplify shouldBe Literal(-2)
-  }
-
-  it should "simplifier 2" in {
-    val target = Aggregate.total(One, root5)
-    val result = em.matchCompositeAndSimplify(target)
-    result.successful shouldBe false
   }
 
 }

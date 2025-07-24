@@ -240,7 +240,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   /**
     * Perform an exact scalar multiplication of this `Number` by the scale factor `r`.
     *
-    * NOTE that numbers with `Log` factor cannot be scaled exactly in this way.
+    * NOTE that numbers with `Logarithmic` factors cannot be scaled exactly in this way.
     *
     * @param r a Rational.
     * @return a new Number which is this Number scaled by z.
@@ -455,12 +455,21 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def atan(y: Number): Number
 
   /**
+    * Returns the log of this Number in base b.
+    *
+    * @param b the base for which to calculate the logarithm
+    * @return the logarithm of the input number to base b
+    */
+  def log(b: Number): Number
+
+  /**
     * Method to determine the natural log of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with `PureNumber` factor.
+    * CONSIDER renaming this as "ln" but keep in mind that the Java library calls the function "log."
     *
     * @return the natural log of this.
     */
-  def log: Field
+  def ln: Field
 
   /**
     * Method to raise e to the power of this number.
@@ -742,6 +751,10 @@ object Number {
     * Exact value of 2
     */
   val two: Number = 2
+  /**
+    * A constant value representing the number three as a `Number` type.
+    */
+  val three: Number = 3
   /**
     * Exact value of 1/2
     */
@@ -1354,9 +1367,12 @@ object Number {
       case (PureNumber, NatLog) =>
         prepare(n.transformMonadic(factor)(MonadicOperationLog))
       case (Root(_), PureNumber) if Value.signum(n.nominalValue) < 0 =>
+        // CONSIDER we should handle i, the imaginary number here
         Number.NaN
       case (SquareRoot, PureNumber) =>
         prepare(n.transformMonadic(factor)(MonadicOperationSqrt)) // CONSIDER use of convert
+      case (InversePower(r), PureNumber) =>
+        prepare(n.composeDyadic(r.invert, factor)(DyadicOperationPower)) // CHECK that this handles fuzz correctly
       case (NatLog, Scalar(_)) | (Scalar(_), NatLog) | (Logarithmic(_), Root(_)) =>
         scale(scale(n, PureNumber), factor)
       case (PureNumber, Logarithmic(_)) =>
@@ -1376,8 +1392,12 @@ object Number {
           case _ =>
             prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
         }
-      case (Logarithmic(_), Scalar(_)) | (InversePower(_), Logarithmic(_)) | (InversePower(_), Scalar(_)) =>
+      case (Logarithmic(_), Scalar(_)) =>
         scale(scale(n, NatLog), factor)
+      case (InversePower(_), Logarithmic(_)) =>
+        scale(scale(n, NatLog), factor)
+      case (InversePower(_), Scalar(_)) =>
+        scale(n, factor)
       case _ =>
         throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
     }
@@ -1503,7 +1523,7 @@ object Number {
     case PureNumber =>
       log(x.scale(NatLog))
     case SquareRoot if x.signum < 0 =>
-      ComplexPolar(x.make(PureNumber).makeNegative, piBy2, 2).log
+      ComplexPolar(x.make(PureNumber).makeNegative, piBy2, 2).ln
     case Root(r) if x.signum > 0 =>
       Real(log(x.make(PureNumber)) divide Real(r))
     case _ =>
@@ -1548,7 +1568,8 @@ object Number {
     */
   def modulate(x: Number): Number = x.factor match {
     case f@Radian =>
-      prepare(x.transformMonadic(f)(MonadicOperationModulate(-1, 1, circular = true)))
+      // CONSIDER using f.modulate(...)
+      prepare(x.transformMonadic(f)(MonadicOperationModulate(-1, 1, circular = false)))
     case _ =>
       x
   }

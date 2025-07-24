@@ -28,6 +28,7 @@ import scala.util._
 sealed trait Factor {
   /**
     * A value which can be used to convert a value associated with this Factor to a different Factor.
+    * CONSIDER redefining this as a Number (which could be exact or fuzzy).
     */
   val value: Double
 
@@ -49,6 +50,14 @@ sealed trait Factor {
     * @return true if the factors can be multiplied; false otherwise.
     */
   def canMultiply(f: Factor): Boolean
+
+  /**
+    * Modulates the given value according to the context or rules defined by this factor.
+    *
+    * @param v the value to be modulated
+    * @return the modulated value
+    */
+  def modulate(v: Value): Value
 
   /**
     * Determines whether `this` factor can be raised by the given factor `f`.
@@ -142,7 +151,7 @@ sealed trait Factor {
   def invert(x: Value): Option[ProtoNumber]
 
   /**
-    * Adds two values together and computes an appropriate factor for the result.
+    * Attempts to add two values together (each based on `this Factor`) and computes an appropriate factor for the result.
     *
     * @param x the first value
     * @param y the addend
@@ -310,6 +319,14 @@ sealed trait Logarithmic extends Factor {
     * This is a `String` representation of the base of the logarithm used for this `Factor`.
     */
   val base: String
+
+  /**
+    * Modulates a given value and returns the result.
+    *
+    * @param v the value to be modulated
+    * @return the original value
+    */
+  def modulate(v: Value): Value = v
 
   /**
     * Determines whether given `value` with this `Factor` can be rendered exactly.
@@ -552,6 +569,14 @@ sealed trait InversePower extends Factor {
     * @return an optional String representing the root form of the value, or None if the conversion is not applicable.
     */
   def asRoot(value: Value): Option[String]
+
+  /**
+    * Modulates the given value according to the context or rules defined by this factor.
+    *
+    * @param v the value to be modulated
+    * @return the modulated value
+    */
+  def modulate(v: Value): Value = v
 
   /**
     * Determines whether given `value` with this `Factor` can be rendered exactly.
@@ -922,6 +947,14 @@ case object PureNumber extends Scalar {
   def render(x: String): String = x
 
   /**
+    * Applies modulation to the given value.
+    *
+    * @param v the input value to be modulated
+    * @return the given value
+    */
+  def modulate(v: Value): Value = v
+
+  /**
     * Computes the inverse of a given Value, leveraging the monadic transformation functions defined
     * in MonadicOperationInvert. This method allows for the calculation of an inverted number when valid.
     *
@@ -992,6 +1025,20 @@ case object Radian extends Scalar {
     * This value is commonly used in trigonometric, geometric, and other mathematical computations.
     */
   val value: Double = Math.PI
+
+  /**
+    * Modulates the provided value using a monadic transformation defined by
+    * a specific range and circularity settings.
+    *
+    * TODO there are other places in the code where we use the MonadicOperationModulate more directly.
+    * We should get those place to use this method.
+    *
+    * @param value the input value to be modulated.
+    * @return the modulated value if the transformation is successful,
+    *         or the original value if the operation fails.
+    */
+  def modulate(value: Value): Value =
+    (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-1, 1, circular = false).functions)} yield v) getOrElse value
 
   /**
     * Determines whether `this` factor can be raised by the given factor `f`.
@@ -1197,6 +1244,34 @@ case object SquareRoot extends Root(2) {
       case _ =>
         None
     }
+
+  /**
+    * Attempts to add two `Value` instances under the influence of a given `Factor`.
+    *
+    * The method verifies whether the operation can be applied with the given factor
+    * (e.g., a square root) and performs rational arithmetic to compute the result.
+    * The operation ensures that the values can be combined via integer arithmetic
+    * after factoring out common divisors and applies root simplifications where necessary.
+    *
+    * @param x the first value to be added
+    * @param y the second value to be added
+    * @param f the factor defining the context for the addition (e.g., square root)
+    * @return an optional `ProtoNumber` that contains the resultant `Value`, its factor,
+    *         and optional metadata; `None` if the operation cannot be performed
+    */
+  override def add(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+    whenever(this == f)(
+      for {
+        a <- Value.maybeRational(x)
+        b <- Value.maybeRational(y)
+        h = a.d.gcd(b.d)
+        p = a * h if p.isInteger
+        q = b * h if q.isInteger
+        g = p.n.gcd(q.n)
+        z = p / g + q / g
+        if h.isValidInt
+        r <- Rational.squareRoots.get(h.toInt) // NOTE this is the only code that depends on this being SquareRoot
+      } yield (Value.fromRational(z * g / r), f, None))
 
   /**
     * Provides an implicit conversion from an `Int` to an imaginary number representation.

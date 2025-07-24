@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.inner._
+import java.util.Objects
 
 /**
   * This class is designed to model an exact Numeral.
@@ -41,14 +42,30 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
       c.isSame(Real(this))
   }
 
-//  override def equals(obj: Any): Boolean = obj match {
-//    case that: ExactNumber =>
-//      this.nominalValue == that.nominalValue && this.factor == that.factor
-//    case _ =>
-//      false
-//  }
-//
-//  override def hashCode(): Int = Objects.hash(nominalValue, factor)
+  /**
+    * Compares this instance with another object to determine equality.
+    * Equality is determined based on specific conditions for the `ExactNumber` type.
+    * NOTE that there may be a few rare situations where we return false for two "equal" numbers.
+    * However, generally speaking, numbers should be normalized before equality testing.
+    *
+    * @param obj the object to be compared with this instance
+    * @return true if the specified object is equal to this instance; false otherwise
+    */
+  override def equals(obj: Any): Boolean = (this, obj) match {
+    case (ExactNumber(v1, f1), ExactNumber(v2, f2)) if f1 == f2 =>
+      Value.isEqual(v1, v2)
+    case _ =>
+      false
+  }
+
+  /**
+    * Generates a hash code for this `ExactNumber` object.
+    * The hash code is computed based on the `nominalValue` and `factor` fields
+    * and is therefore consistent with `equals`.
+    *
+    * @return an integer hash code value for this object.
+    */
+  override def hashCode(): Int = Objects.hash(nominalValue, factor)
 
   /**
     * @return true if this Number is equal to zero.
@@ -151,7 +168,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     ExactNumber(v, f)
 
   /**
-    * We cannot add fuzziness to an Exact number so we return the equivalent FuzzyNumber.
+    * We cannot add fuzziness to an Exact number, so we return the equivalent FuzzyNumber.
     *
     * @param fo the (optional) fuzziness.
     * @return a Number.
@@ -180,13 +197,13 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
-    * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
+    * If this `FuzzyNumber` cannot be distinguished from zero with `p` confidence, then
     * the result will be zero.
     *
     * TESTME
     *
     * @param p the confidence desired (ignored).
-    * @return an Int which is negative, zero, or positive according to the magnitude of this.
+    * @return an `Int` which is negative, zero, or positive, according to the magnitude of this.
     */
   def signum(p: Double): Int = signum
 
@@ -221,6 +238,8 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   override def toString: String = modulate match {
     case Number.pi =>
       Radian.toString
+    case ExactNumber(Right(-1), Radian) =>
+      "-" + Radian.toString
     case _ =>
       val sb = new StringBuilder()
       factor match {
@@ -267,5 +286,22 @@ object ExactNumber {
    */
   def apply(x: Int): ExactNumber =
     apply(x, PureNumber)
+
+  /**
+    * Calculates the logarithm of a given `ExactNumber` `x` with base `b`.
+    * The method searches for an integer value `i` in the range -10 to 10 such that
+    * raising `b` to the power of `i` equals `x`. If such an `i` is found, it is
+    * returned wrapped in an `Option` as a `Number`. Otherwise, returns `None`.
+    *
+    * @param x the number for which the logarithm is to be calculated.
+    * @param b the base of the logarithm.
+    * @return an `Option` containing the logarithm result as a `Number` if
+    *         an integer solution exists within the searched range, or `None` otherwise.
+    */
+  def log(x: ExactNumber, b: ExactNumber): Option[Number] =
+    (for {
+      i <- -10 to 10
+      z <- Option.when((b power i) == x)(i)
+    } yield z).headOption.map(Number(_)) // TODO we can improve on this, I think
 
 }

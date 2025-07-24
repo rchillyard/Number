@@ -385,7 +385,9 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for pi/2" in {
     val target = Number.piBy2
-    target.tan shouldBe Number(Rational.infinity, PureNumber)
+    val actual = target.tan
+    val expected = Number(Rational.infinity, PureNumber)
+    actual shouldBe expected
   }
   it should "work for 3pi/2" in {
     val target = Number.piBy2 doMultiply Number(3)

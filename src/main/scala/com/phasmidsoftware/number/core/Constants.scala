@@ -34,6 +34,14 @@ object Constants {
     */
   val two: Real = Real(Number.two)
   /**
+    * Represents the mathematical constant three as a `Real` number.
+    */
+  val three: Real = Real(Number.three)
+  /**
+    * Represents the mathematical constant 10 as a `Real` number.
+    */
+  val ten: Real = Real(Number.ten)
+  /**
     * Represents the constant value of one-half (0.5) as a `Real`.
     *
     * This value is derived from `Number.half`.

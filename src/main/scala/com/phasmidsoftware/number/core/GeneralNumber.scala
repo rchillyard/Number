@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.GeneralNumber.normalizeRoot
-import com.phasmidsoftware.number.core.Number.{negate, prepareWithSpecialize}
+import com.phasmidsoftware.number.core.Number.{negate, one, prepareWithSpecialize}
 import com.phasmidsoftware.number.core.inner.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.inner.Rational.toInts
 import com.phasmidsoftware.number.core.inner._
@@ -224,12 +224,28 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     Number.atan(this, y)
 
   /**
+    * Calculates the logarithm of the current number to the given base.
+    *
+    * @param b the base of the logarithm
+    * @return the logarithm of the current number to the given base, or NaN if the calculation fails
+    */
+  def log(b: Number): Number =
+    if (b > one)
+      (this, b) match {
+        case (y: ExactNumber, z: ExactNumber) =>
+          ExactNumber.log(y, z) getOrElse doLog(b)
+        case _ =>
+          doLog(b)
+      } else
+      throw NumberException(s"log(this, b) where b <= 1")
+
+  /**
     * Method to determine the natural log of this Number.
     * The result will be a Number with PureNumber factor.
     *
     * @return the natural log of this.
     */
-  def log: Field =
+  def ln: Field =
     Number.log(this)
 
   /**
@@ -447,9 +463,9 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
         val ro1 = maybeIntValue.filter(_ > 0).flatMap(Rational.squareRoots.get).map(Real(_))
         val ro2 = maybeIntValue.filter(_ > 0).map(_ => Real(this))
         val ro3 = maybeIntValue.filter(_ < 0).filter(x => math.abs(x) <= Rational.maxSquare).map(_ => Real(this))
-        ro1 orElse ro2 orElse ro3 getOrElse normalizeRoot(nominalValue, r)
+        ro1 orElse ro2 orElse ro3 getOrElse normalizeRoot(this)
       case r@Root(_) =>
-        normalizeRoot(nominalValue, r)
+        normalizeRoot(this)
       case Radian =>
         Real(this) // Number.modulate(this) NOTE: we do modulation at other times
       case _ =>
@@ -662,6 +678,14 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     val vo: Option[Value] = Operations.doComposeValueDyadic(nominalValue, other.nominalValue)(functions)
     for (v <- vo) yield make(v, f) // CONSIDER what about extra fuzz?
   }
+
+  /**
+    * Computes the logarithm of the current number to the specified base.
+    *
+    * @param b the base of the logarithm; must be a positive number not equal to 1
+    */
+  private def doLog(b: Number) =
+    (Number.log(this) divide Number.log(b)).asNumber.getOrElse(Number.NaN)
 
   /**
     * An optional Int that corresponds to the nominalValue of this Number (but ignoring the factor).
@@ -987,6 +1011,8 @@ object GeneralNumber {
   }
 
   /**
+    * NOTE this makes absolutely no sense to me. It is invoked very rarely.
+    *
     * Normalizes a given value and root by transforming the value monadically and constructing
     * a ComplexCartesian representation.
     * If the transformation fails, an exception is thrown.
@@ -995,12 +1021,17 @@ object GeneralNumber {
     * @param r     the root used in the normalization process.
     * @throws NumberException if the transformation logic fails.
     */
-  private def normalizeRoot(value: Value, r: Root) = {
+  private def normalizeRootOld(value: Value, r: Root) = {
     Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
       case Some(q) =>
         ComplexCartesian(Number.zero, ExactNumber(q, r).scale(PureNumber))
       case None =>
         throw NumberException("GeneralNumber.normalizeRoot: logic error")
     }
+  }
+
+  private def normalizeRoot(x: Number): Field = {
+    val result: Number = x.scale(PureNumber)
+    Real(result)
   }
 }

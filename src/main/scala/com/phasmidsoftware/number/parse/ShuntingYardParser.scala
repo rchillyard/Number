@@ -129,7 +129,7 @@ object ShuntingYardParser extends BaseMillParser {
     *
     * @return a Parser[ShuntingYard].
     */
-  def shuntingYard: Parser[ShuntingYard] = repSepSp(infixToken) :| "shuntingYard" ^^ (tokens => ShuntingYard(tokens))
+  def shuntingYard: Parser[ShuntingYard] = opt(whiteSpace) ~> rep(infixToken) :| "shuntingYard" ^^ (tokens => ShuntingYard(tokens))
 
   /**
     * Parser for an InfixToken.
@@ -137,7 +137,7 @@ object ShuntingYardParser extends BaseMillParser {
     *
     * @return a Parser[InfixToken].
     */
-  private def infixToken: Parser[InfixToken] = (maybeNumber ?| operator) :| "infixToken" ^^ {
+  private def infixToken: Parser[InfixToken] = (maybeNumber ?| operator) <~ opt(whiteSpace) :| "infixToken" ^^ {
     case Right(x) => InfixToken(Some(Right(x)), paren = false)
     case Left("(") => InfixToken(None, paren = true)
     case Left(")") => InfixToken(None, paren = false)
