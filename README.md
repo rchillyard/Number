@@ -865,3 +865,21 @@ Future Upgrades
 ===============
 We intend to restructure the hierarchy of numeric types entirely.
 The traits and classes should strictly follow the mathematical concepts of field, ring, etc.
+To begin, the hierarchy should look like this:
+
+* _Expression_ (trait that is the root of all lazy values with the key method being _evaluate(Context)_: _Option\[Field]_
+  * _AtomicExpression_ (as now but with _ReducedQuadraticRoot_ being completely replaced by _Algebraic_)
+    * _Algebraic_ (quadratic, linear, equations, etc.) (as now, but with _solve_ changed to _evaluate_)
+  * _BiFunction_ (as now)
+  * _Function_ (renamed as MonoFunction, perhaps?) (as now)
+  * _Aggregate_ (more or less as now but with _PowerSeries_ included--such that the length of the components may or may not be known)
+    * _PowerSeries_ (as now, but extending _Aggregate_, and with an additional method _apply(X)_)
+  * _Transcendental_ (as now but extends _Expression_)
+* _Field_ (as now, but with _Solution_ and _Series_ included)
+  * _Real_ (as now a single _Number_)
+  * _BranchedField_ (similar to _Multivariate_ in that there are multiple solutions or branches--these are the solutions to _Algebraic_s)
+    * _Complex_ (as now with two _Number_ fields--real and imaginary--conceivably, we might merge _Complex_ and _Solution_ and insist that the imaginary aspect of a _Number_ is represented in the _Number_ itself)
+    * _Solution_ (with real roots)
+  * _Series_
+
+
