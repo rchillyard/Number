@@ -180,7 +180,7 @@ object Expression {
       * @return an Expression which is this negated.
       */
     def unary_- : Expression =
-      Function(x, Negate)
+      UniFunction(x, Negate)
 
     /**
       * Method to lazily multiply x by y.
@@ -199,7 +199,7 @@ object Expression {
       * @return an Expression representing the reciprocal of x.
       */
     def reciprocal: Expression =
-      Function(x, Reciprocal)
+      UniFunction(x, Reciprocal)
 
     /**
       * Method to lazily divide x by y.
@@ -242,7 +242,7 @@ object Expression {
       * @return an Expression representing the sin(x).
       */
     def sin: Expression =
-      Function(x, Sine)
+      UniFunction(x, Sine)
 
     /**
       * Method to lazily get the cosine of x.
@@ -250,7 +250,7 @@ object Expression {
       * @return an Expression representing the cos(x).
       */
     def cos: Expression =
-      Function(x, Cosine)
+      UniFunction(x, Cosine)
 
     /**
       * Method to lazily get the tangent of x.
@@ -268,7 +268,7 @@ object Expression {
       * @return an Expression representing the log of x.
       */
     def ln: Expression =
-      Function(x, Ln)
+      UniFunction(x, Ln)
 
     /**
       * Method to lazily get the value of `e` raised to the power of x.
@@ -276,7 +276,7 @@ object Expression {
       * @return an Expression representing `e` raised to the power of x.
       */
     def exp: Expression =
-      Function(x, Exp)
+      UniFunction(x, Exp)
 
     /**
       * Method to lazily get the value of `atan2(x, y)`, i.e., if the result is `z`, then `tan(z) = y/x`.
@@ -1375,7 +1375,7 @@ case object Infinity extends NamedConstant(Rational.infinity, "∞") {
   * @param x the expression being operated on.
   * @param f the function to be applied to x.
   */
-case class Function(x: Expression, f: ExpressionMonoFunction) extends CompositeExpression {
+case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends CompositeExpression {
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
@@ -1428,8 +1428,8 @@ case class Function(x: Expression, f: ExpressionMonoFunction) extends CompositeE
     *         of this `Expression` using the `matchSimpler` logic.
     */
   def simplifyComponents: em.AutoMatcher[Expression] =
-    em.Matcher("Function: simplifyComponents") {
-      case Function(x, _) =>
+    em.Matcher("UniFunction: simplifyComponents") {
+      case UniFunction(x, _) =>
         val matcher = matchSimpler map (z => copy(x = z))
         matcher(x)
     }
@@ -1442,20 +1442,20 @@ case class Function(x: Expression, f: ExpressionMonoFunction) extends CompositeE
     *         as no trivial simplifications are possible.
     */
   def simplifyTrivial: em.AutoMatcher[Expression] =
-    em.Matcher("Function: simplifyTrivial") {
+    em.Matcher("UniFunction: simplifyTrivial") {
 
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
-      case Function(Function(x, Ln), Reciprocal) =>
+      case UniFunction(UniFunction(x, Ln), Reciprocal) =>
         em.Match(BiFunction(ConstE, x, Log))
-      case Function(BiFunction(x, b, Log), Reciprocal) =>
+      case UniFunction(BiFunction(x, b, Log), Reciprocal) =>
         em.Match(BiFunction(b, x, Log))
 
       // XXX we check for certain exact literal function results
-      case Function(e@FieldExpression(_, _), f) if e.monadicFunction(f).isDefined =>
+      case UniFunction(e@FieldExpression(_, _), f) if e.monadicFunction(f).isDefined =>
         em.matchIfDefined(e.monadicFunction(f))(e)
 
       case expr =>
-        em.Miss("Function: simplifyTrivial: no trivial simplifications", expr)
+        em.Miss("UniFunction: simplifyTrivial: no trivial simplifications", expr)
     }
 
 
@@ -1471,33 +1471,37 @@ case class Function(x: Expression, f: ExpressionMonoFunction) extends CompositeE
     */
   def simplifyComposite: em.AutoMatcher[Expression] =
     em.Matcher("simplifyComposite") {
-      case Function(Function(x, f), g) if em.complementaryMonadic(f, g) =>
+      case UniFunction(UniFunction(x, f), g) if em.complementaryMonadic(f, g) =>
         em.Match(x)
       case x: Expression =>
-        em.Miss[Expression, Expression]("Function.simplifyComposite: not complementary", x)
+        em.Miss[Expression, Expression]("UniFunction.simplifyComposite: not complementary", x)
     }
 }
 
-object Function {
+/**
+  * The `UniFunction` companion object provides utility methods for initializing and converting `UniFunction` instances.
+  * It includes methods to construct a `UniFunction` from a `MonadicDuple` as well as an implicit conversion mechanism.
+  */
+object UniFunction {
   /**
-    * Constructs a Function instance based on the provided MonadicDuple.
+    * Constructs a UniFunction instance based on the provided MonadicDuple.
     * The method converts the left side of the MonadicDuple to a tuple and pairs it with the right side,
-    * creating a Function with the extracted components.
+    * creating a UniFunction with the extracted components.
     *
     * NOTE: this is here mostly for historical purposes.
     * We no longer use MonadicDuple except as a convenience in the unit tests.
     *
-    * @param md the MonadicDuple from which the Function will be initialized.
+    * @param md the MonadicDuple from which the UniFunction will be initialized.
     *           The left side of the MonadicDuple is expected to provide a tuple,
-    *           and the right side will be combined with this tuple to construct the Function.
-    * @return a new Function initialized with the components derived from the given MonadicDuple.
+    *           and the right side will be combined with this tuple to construct the UniFunction.
+    * @return a new UniFunction initialized with the components derived from the given MonadicDuple.
     */
-  def apply(md: MonadicDuple): Function = {
+  def apply(md: MonadicDuple): UniFunction = {
     val tuple = (md.l, md.r)
-    new Function(tuple._2, tuple._1)
+    new UniFunction(tuple._2, tuple._1)
   }
 
-  implicit def convertFromMonadicDuple(md: MonadicDuple): Function = apply(md)
+  implicit def convertFromMonadicDuple(md: MonadicDuple): UniFunction = apply(md)
 }
 
 /**
@@ -1560,11 +1564,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case BiFunction(_, Zero, Power) =>
         em.Match(One)
       case BiFunction(a, MinusOne, Product) =>
-        em.Match(Function(a, Negate))
+        em.Match(UniFunction(a, Negate))
       case BiFunction(MinusOne, b, Product) =>
-        em.Match(Function(b, Negate))
+        em.Match(UniFunction(b, Negate))
       case BiFunction(a, MinusOne, Power) =>
-        em.Match(Function(a, Reciprocal))
+        em.Match(UniFunction(a, Reciprocal))
       case BiFunction(a, b, Sum) if a == b =>
         em.Match(BiFunction(a, Two, Product))
       case BiFunction(a, b, Product) if a == b =>
@@ -1580,7 +1584,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case BiFunction(a, b, Log) if a == b =>
         em.Match(One)
       case BiFunction(a, ConstE, Log) =>
-        em.Match(Function(a, Ln))
+        em.Match(UniFunction(a, Ln))
       // TODO match on Algebraic_Linear also
       case BiFunction(Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
         // XXX Apply Vieta's formula
@@ -1613,13 +1617,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
-    case BiFunction(a, Function(b, Negate), Product) if a == b =>
+    case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
       // NOTE: duplicate code
       val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))   // x²
-      em.Match(Function(xSq, Negate))
-    case BiFunction(Function(a, Negate), b, Product) if a == b =>  // TESTME
+      em.Match(UniFunction(xSq, Negate))
+    case BiFunction(UniFunction(a, Negate), b, Product) if a == b =>  // TESTME
       val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
-      em.Match(Function(xSq, Negate))
+      em.Match(UniFunction(xSq, Negate))
     case b@BiFunction(_, _, _) =>
       ((em.complementaryTermsEliminatorBiFunction |
           em.matchBiFunctionAsAggregate & em.literalsCombiner) &

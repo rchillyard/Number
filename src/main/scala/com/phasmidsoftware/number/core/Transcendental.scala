@@ -134,7 +134,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     * @return a new `Transcendental` instance that encapsulates the applied function and updated expression.
     */
   def function(f: ExpressionMonoFunction): Transcendental =
-    new AbstractTranscendental(s"${f.name}($name)", com.phasmidsoftware.number.expression.Function(expression, f).simplify) {}
+    new AbstractTranscendental(s"${f.name}($name)", com.phasmidsoftware.number.expression.UniFunction(expression, f).simplify) {}
 
   /**
     * Method to determine if the materialized value of this `Expression` is defined and corresponds to a `Number`.

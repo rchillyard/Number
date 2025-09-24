@@ -74,7 +74,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   // NOTE that the apply function always takes a Field and returns a Field. Not to be confused with applyExact.
-  behavior of "apply Function"
+  behavior of "apply UniFunction"
   it should "work for Negate" in {
     val f: Negate.type = Negate
     f(Constants.zero) shouldBe Constants.zero
@@ -111,17 +111,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     f(Constants.zero) shouldBe Constants.one
   }
 
-  behavior of "materialize Function"
+  behavior of "materialize UniFunction"
   it should "work for Exp(1)" in {
-    val x = expression.Function(One, Exp)
+    val x = expression.UniFunction(One, Exp)
     val result = x.materialize
     result shouldBe Constants.e
   }
   it should "work for Reciprocal" in {
-    expression.Function(Two, Reciprocal).materialize shouldBe Constants.half
+    expression.UniFunction(Two, Reciprocal).materialize shouldBe Constants.half
   }
   it should "work for Exp(Ln(2))" in {
-    val x = expression.Function(expression.Function(Two, Ln), Exp)
+    val x = expression.UniFunction(expression.UniFunction(Two, Ln), Exp)
     val result = x.materialize
     result shouldBe Constants.two
   }
@@ -275,10 +275,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Expression(1).depth shouldBe 1
     pi.depth shouldBe 1
   }
-  it should "be 2 for any Function expression" in {
-    expression.Function(1, Negate).depth shouldBe 2
-    expression.Function(1, Cosine).depth shouldBe 2
-    expression.Function(1, Sine).depth shouldBe 2
+  it should "be 2 for any UniFunction expression" in {
+    expression.UniFunction(1, Negate).depth shouldBe 2
+    expression.UniFunction(1, Cosine).depth shouldBe 2
+    expression.UniFunction(1, Sine).depth shouldBe 2
   }
   it should "be more than 1 for other expression" in {
     (ConstE * 2).depth shouldBe 2
@@ -330,9 +330,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Phi.simplify.materialize should ===(1.618033988749895)
   }
   it should "simplify function expressions" in {
-    expression.Function(expression.Function(One, Negate), Negate).simplify shouldBe One
-    expression.Function(Two, Reciprocal).simplify shouldBe Expression(Constants.half)
-    expression.Function(Constants.pi, Sine).simplify shouldBe Expression(Constants.zero)
+    expression.UniFunction(expression.UniFunction(One, Negate), Negate).simplify shouldBe One
+    expression.UniFunction(Two, Reciprocal).simplify shouldBe Expression(Constants.half)
+    expression.UniFunction(Constants.pi, Sine).simplify shouldBe Expression(Constants.zero)
   }
   it should "simplify biFunction expressions" in {
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).simplify shouldBe Zero
