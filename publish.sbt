@@ -1,9 +1,22 @@
-ThisBuild / organization := "com.phasmidsoftware"
+// Optional but useful
+ThisBuild / description := "Fuzzy, Lazy Scala library for numerical computation"
+ThisBuild / homepage := Some(url("https://github.com/rchillyard/Number"))
 ThisBuild / organizationName := "Phasmid Software"
 ThisBuild / organizationHomepage := Some(url("https://phasmidsoftware.com/"))
 
-// (deprecated):  ThisBuild / useGpg := true
+// Publishing configuration
+ThisBuild / publishTo := {
+  val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
+  if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
+  else localStaging.value
+}
+ThisBuild / publishMavenStyle := true
 
+// Credentials
+ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
+
+// Required POM metadata for Maven Central
+ThisBuild / licenses := List("MIT" -> url("http://opensource.org/licenses/MIT"))
 ThisBuild / scmInfo := Some(
   ScmInfo(
     url("https://github.com/rchillyard/Number"),
@@ -19,16 +32,15 @@ ThisBuild / developers := List(
   )
 )
 
-ThisBuild / description := "Fuzzy, Lazy Scala library for numerical computation"
-ThisBuild / licenses := List("MIT" -> url("http://opensource.org/licenses/MIT"))
-ThisBuild / homepage := Some(url("https://github.com/rchillyard/Number"))
+// Optional
+
+// Publishing settings
+ThisBuild / versionScheme := Some("early-semver")
+ThisBuild / publishConfiguration := publishConfiguration.value.withOverwrite(true)
+ThisBuild / publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
+
+// Optional: Skip publishing of docs and sources for snapshot versions
+ThisBuild / publishArtifact := true
 
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }
-ThisBuild / publishTo := {
-  val nexus = "https://ossrh-staging-api.central.sonatype.com"
-  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
-  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
-}
-ThisBuild / publishMavenStyle := true
-
