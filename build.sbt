@@ -23,5 +23,3 @@ libraryDependencies ++= Seq(
 
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
 
-publishTo := sonatypePublishToBundle.value
-
