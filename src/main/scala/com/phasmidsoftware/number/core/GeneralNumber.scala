@@ -258,14 +258,6 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     Number.exp(this)
 
   /**
-    * Method to determine the sense of this number: negative, zero, or positive.
-    *
-    * @return an Int which is negative, zero, or positive according to the magnitude of this.
-    */
-  def signum: Int =
-    Number.signum(this)
-
-  /**
     * Method to yield the absolute value of this Number.
     *
     * @return this if its positive, else - this.
@@ -284,14 +276,6 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     */
   def scale(f: Factor): Number =
     Number.scale(this, f).specialize
-
-  /**
-    * Action to render this GeneralNumber as a String.
-    *
-    * @return a String.
-    */
-  def render: String =
-    simplify.toString
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.

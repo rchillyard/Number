@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.expression
 
+import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
@@ -337,7 +338,7 @@ case class Literal(override val value: Field, override val maybeName: Option[Str
     * @return an `em.AutoMatcher[Expression]` that simplifies literal constants to their predefined values
     *         or returns a miss if no simplification is applicable.
     */
-  override def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic") {
+  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic") {
     case Literal(Constants.zero, _) =>
       em.Match(Zero)
     case Literal(Constants.one, _) =>
@@ -724,6 +725,153 @@ case object Infinity extends NamedConstant(Rational.infinity, "∞") {
       None
   }
 }
+
+/**
+  * Represents a type of `AtomicExpression` that embodies a transcendental entity.
+  * A transcendental entity typically includes non-algebraic constants or functions
+  * that cannot arise from finite polynomial equations with rational coefficients.
+  *
+  * This trait extends the characteristics of `AtomicExpression` by enabling the
+  * application of a transformation or computation defined as an `ExpressionMonoFunction`.
+  */
+trait Transcendental extends AtomicExpression {
+
+  /**
+    * Applies the provided `ExpressionMonoFunction` to this `Transcendental` entity.
+    *
+    * @param f the `ExpressionMonoFunction` to be applied, defining a transformation or operation on this `Transcendental`.
+    * @return a new `Transcendental` instance representing the result of applying the function.
+    */
+  def function(f: ExpressionMonoFunction): Transcendental
+}
+
+/**
+  * An abstract class representing a transcendental mathematical entity, extending the `Transcendental` trait.
+  * This class encapsulates a human-readable name and an `Expression` representing its value.
+  *
+  * @constructor Creates a new instance of `AbstractTranscendental`.
+  * @param name       A `String` representing the name of the transcendental entity.
+  * @param expression An `Expression` representing the mathematical definition or value of the transcendental entity.
+  */
+abstract class AbstractTranscendental(val name: String, val expression: Expression) extends Transcendental {
+
+  /**
+    * Attempts to simplify an atomic expression, for example,
+    * we replace `Literal(Constants.pi)` with `ConstPi`.
+    *
+    * @return an `em.AutoMatcher[Expression]` representing
+    *         the process of handling or matching the atomic expression.
+    */
+  def simplifyAtomic: em.AutoMatcher[Expression] =
+    expression match {
+      case atomicExpression: AtomicExpression =>
+        atomicExpression.simplifyAtomic
+      case compositeExpression: CompositeExpression =>
+        compositeExpression.simplifyComposite
+      case _ =>
+        throw ExpressionException("AbstractTranscendental.simplifyAtomic: impossible case (all Expressions are either Atomic or Composite)")
+    }
+
+  /**
+    * Applies a given `ExpressionMonoFunction` to create a new instance of `Transcendental`.
+    *
+    * @param f the `ExpressionMonoFunction` to be applied, representing a lazy monadic operation.
+    * @return a new `Transcendental` instance that encapsulates the applied function and updated expression.
+    */
+  def function(f: ExpressionMonoFunction): Transcendental =
+    new AbstractTranscendental(s"${f.name}($name)", com.phasmidsoftware.number.expression.UniFunction(expression, f).simplify) {}
+
+  /**
+    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Unlike context, a `None` result is not permissive.
+    *
+    * @return an optional `Factor`.
+    */
+  def maybeFactor: Option[Factor] = expression.maybeFactor
+
+  /**
+    * Method to render this NumberLike in a presentable manner.
+    *
+    * @return a String
+    */
+  def render: String = name
+
+  /**
+    * Action to evaluate this `Expression` as a `Field`, if possible.
+    * NOTE: no simplification or factor-based conversion occurs here.
+    *
+    * @return an optional `Field`.
+    */
+  def evaluate(context: Context): Option[Field] = expression.evaluate(context)
+
+  /**
+    * Computes and returns an approximate numerical value for this Approximatable.
+    * All Fields, PowerSeries and Expressions that implement this method should work except for complex quantities.
+    *
+    * @return if possible, returns a `Real` representing the approximation of this expression.
+    */
+  def approximation: Option[Real] = expression.approximation
+}
+
+/**
+  * Pi is a case object representing the mathematical constant π (pi).
+  * It extends the AbstractTranscendental class, with a symbolic name "π" and ConstPi as its exact value.
+  *
+  * This object provides an exact representation of π and inherits capabilities
+  * for evaluation, materialization, and comparison from its abstract superclass.
+  */
+case object Pi extends AbstractTranscendental("\uDED1", ConstPi)
+
+/**
+  * Case object representing the transcendental constant `e`.
+  *
+  * Extends the `AbstractTranscendental` class, providing implementations specific to
+  * the mathematical constant `e` (Euler's number), known for its importance in the field
+  * of mathematics, particularly in calculus and exponential growth behavior.
+  *
+  * The `name` parameter is set to "xD835DF00", which represents a unique identifier for
+  * this transcendental, and its `expression` is given by the constant `ConstE`.
+  *
+  * The `E` object inherits all methods and properties from `AbstractTranscendental`, allowing
+  * it to be treated as an atomic and exact mathematical expression with various evaluative
+  * and comparison capabilities. It also ensures consistency in rendering and context-based
+  * operations.
+  */
+case object E extends AbstractTranscendental("\uD835\uDF00", ConstE)
+
+/**
+  * Represents the natural logarithm of 2 as a transcendental constant.
+  * NOTE that L2 evaluates to None because generating a Double from L2 would lose precision.
+  *
+  * This is a case object extending the `AbstractTranscendental` class, encapsulating
+  * the mathematical expression for the natural log of 2 (`ln(2)`) and the corresponding
+  * expression (`Two.log`).
+  *
+  * The `L2` object is defined as a named transcendental entity and can be used
+  * in operations or expressions involving transcendental numbers.
+  */
+case object L2 extends AbstractTranscendental("ln(2)", Two.ln)
+
+/**
+  * Represents the natural logarithm of 2 as a transcendental constant.
+  * NOTE that L2 evaluates to None because generating a Double from L2 would lose precision.
+  *
+  * This is a case object extending the `AbstractTranscendental` class, encapsulating
+  * the mathematical expression for the natural log of 2 (`ln(2)`) and the corresponding
+  * expression (`Two.log`).
+  *
+  * The `L2` object is defined as a named transcendental entity and can be used
+  * in operations or expressions involving transcendental numbers.
+  */
+case object LgE extends AbstractTranscendental("log2e", Two.ln.reciprocal.simplify)
+
+/**
+  * Singleton object representing the Euler-Mascheroni constant (𝛾), a fundamental mathematical constant.
+  * It extends `AbstractTranscendental` to encapsulate its symbolic representation and mathematical definition.
+  *
+  * The Euler-Mascheroni constant is a transcendental entity commonly used in number theory and analysis.
+  */
+case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma)
 
 /**
   * Represents an exact reduced quadratic root expression derived from a quadratic equation.

@@ -201,6 +201,14 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
+    *
+    * @return an Int which is negative, zero, or positive according to the magnitude of this.
+    */
+  def signum: Int =
+    Number.signum(this)
+
+  /**
+    * Method to determine the sense of this number: negative, zero, or positive.
     * If this `FuzzyNumber` cannot be distinguished from zero with `p` confidence, then
     * the result will be zero.
     *
@@ -225,7 +233,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
    *
    * @return the String representation of this ExactNumber.
    */
-  override def render: String = factor match {
+  def render: String = factor match {
     case SquareRoot =>
       val sb = new StringBuilder()
       sb.append(SquareRoot.render(nominalValue))

@@ -465,6 +465,6 @@ case class LinearSolution(value: Value) extends Solution {
     *
     * @return a string representation of the solution
     */
-  override def render: String =
+  def render: String =
     maybeRational(value) map (_.toString) getOrElse toString
 }

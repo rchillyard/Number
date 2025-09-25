@@ -78,6 +78,15 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def simplify: Number
 
   /**
+    * Method to determine the sense of this number: negative, zero, or positive.
+    * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
+    *
+    * @param p the confidence desired.
+    * @return an Int which is negative, zero, or positive according to the magnitude of this.
+    */
+  def signum(p: Double): Int
+
+  /**
     * Method to apply a function to this Number.
     *
     * @param f      a function Double=>Double.
@@ -485,15 +494,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   def signum: Int
-
-  /**
-    * Method to determine the sense of this number: negative, zero, or positive.
-    * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
-    *
-    * @param p the confidence desired.
-    * @return an Int which is negative, zero, or positive according to the magnitude of this.
-    */
-  def signum(p: Double): Int
 
   /**
     * Method to yield the absolute value of this Number.
