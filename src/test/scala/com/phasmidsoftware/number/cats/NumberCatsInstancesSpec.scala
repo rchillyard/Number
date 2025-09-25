@@ -2,12 +2,12 @@
  * Tests for Cats Kernel instances: Rational/ExactNumber/Number
  */
 
-package com.phasmidsoftware.number.core.inner
+package com.phasmidsoftware.number.cats
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import com.phasmidsoftware.number.instances.catsKernel._
+import com.phasmidsoftware.number.cats.catsKernel._
 import cats.kernel.{Eq, Order, PartialOrder}
 import cats.Show
 import cats.instances.option._
@@ -16,8 +16,8 @@ import cats.syntax.order._
 import cats.syntax.show._
 
 import com.phasmidsoftware.number.core.{ExactNumber, Number}
-import com.phasmidsoftware.number.core.{FuzzyNumber, AbsoluteFuzz, Box}
-import com.phasmidsoftware.number.core.inner.Value
+import com.phasmidsoftware.number.core.{FuzzyNumber, AbsoluteFuzz, Box, Gaussian}
+import com.phasmidsoftware.number.core.inner.{Rational, Value}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian}
 
 class NumberCatsInstancesSpec extends AnyFlatSpec with Matchers {
@@ -30,8 +30,10 @@ class NumberCatsInstancesSpec extends AnyFlatSpec with Matchers {
     val r3: Option[Rational] = Some(Rational(4))
 
     // Eq
-    assert(r1 === r2)
-    assert(Eq[Option[Rational]].neqv(r1, r3))
+    
+    r1 === r2 shouldBe true
+
+    Eq[Option[Rational]].neqv(r1, r3) shouldBe true
 
     // Order
     Order[Option[Rational]].compare(r1, r2) shouldBe 0
@@ -60,8 +62,9 @@ class NumberCatsInstancesSpec extends AnyFlatSpec with Matchers {
     val e3 = ExactNumber(Value.fromRational(Rational(2)), PureNumber)
 
     // Eq
-    assert(Eq[ExactNumber].eqv(e1, e2))
-    assert(!Eq[ExactNumber].eqv(e1, e3))
+    
+    Eq[ExactNumber].eqv(e1, e2) shouldBe true
+    Eq[ExactNumber].eqv(e1, e3) shouldBe false
 
     // Order
     Order[ExactNumber].compare(e1, e2) shouldBe 0
@@ -99,7 +102,7 @@ class NumberCatsInstancesSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "Eq[Number] structural: different fuzz not equal" in {
-    import com.phasmidsoftware.number.instances.catsKernel
+    import com.phasmidsoftware.number.cats.catsKernel
     val a: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.1, Box)))
     val b: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.2, Box)))
     val c: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, None)
@@ -111,6 +114,21 @@ class NumberCatsInstancesSpec extends AnyFlatSpec with Matchers {
     val x: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, None)
     val y: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), Radian, None)
     Eq[Number].eqv(x, y) shouldBe false
+  }
+
+  it should "Eq[Number]/PartialOrder[Number] respect Gaussian fuzz" in {
+    val g1: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.1, Gaussian)))
+    val g2: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.1, Gaussian)))
+    val b1: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.1, Box)))
+    val g3: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.2, Gaussian)))
+
+    Eq[Number].eqv(g1, g2) shouldBe true
+    Eq[Number].eqv(g1, b1) shouldBe false
+    Eq[Number].eqv(g1, g3) shouldBe false
+
+    val po = PartialOrder[Number]
+    po.partialCompare(g1, b1) should not be 0.0
+    po.partialCompare(g1, g2) shouldBe 0.0
   }
 
   it should "Eq[Number] structural: reflexive for Fuzzy" in {
