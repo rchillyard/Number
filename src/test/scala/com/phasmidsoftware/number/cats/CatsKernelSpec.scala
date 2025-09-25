@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.cats
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import com.phasmidsoftware.number.cats.catsKernel._
+import com.phasmidsoftware.number.cats.CatsKernel._
 import cats.kernel.{Eq, Order, PartialOrder}
 import cats.Show
 import cats.instances.option._
@@ -20,7 +20,7 @@ import com.phasmidsoftware.number.core.{FuzzyNumber, AbsoluteFuzz, Box, Gaussian
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian}
 
-class NumberCatsInstancesSpec extends AnyFlatSpec with Matchers {
+class CatsKernelSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Cats instances for Rational"
 
@@ -102,7 +102,7 @@ class NumberCatsInstancesSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "Eq[Number] structural: different fuzz not equal" in {
-    import com.phasmidsoftware.number.cats.catsKernel
+    import com.phasmidsoftware.number.cats.CatsKernel
     val a: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.1, Box)))
     val b: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.2, Box)))
     val c: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, None)

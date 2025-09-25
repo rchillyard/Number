@@ -9,7 +9,7 @@ import cats.kernel.laws.discipline.{EqTests, OrderTests, PartialOrderTests}
 
 import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, ExactNumber, FuzzyNumber, Gaussian, GeneralNumber, Number}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
-import com.phasmidsoftware.number.cats.catsKernel._
+import com.phasmidsoftware.number.cats.CatsKernel._
 
 /**
   * Discipline-based law tests for Cats Kernel instances defined in `instances.catsKernel`.
@@ -29,7 +29,7 @@ import com.phasmidsoftware.number.cats.catsKernel._
   * - Uses `FunSuiteDiscipline` to integrate Cats laws into ScalaTest.
   * - `Checkers` mixed in for default ScalaCheck configuration; adjust if you need larger sample sizes.
   */
-class NumberCatsInstancesLawSpec
+class CatsKernelLawSpec
     extends AnyFunSuite
     with Checkers
     with FunSuiteDiscipline {

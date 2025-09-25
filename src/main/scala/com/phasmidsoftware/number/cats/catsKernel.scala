@@ -69,6 +69,6 @@ trait CatsKernelInstances {
   implicit val numberShow: Show[Number] = Show.show(_.render)
 }
 
-object catsKernel extends CatsKernelInstances
+object CatsKernel extends CatsKernelInstances
 
 
