@@ -380,7 +380,7 @@ Additionally (see below), it is possible to define imaginary values on their own
 
 Algebraic
 =======
-An _Algebraic_ is a root of some polynomial function.
+An _Algebraic_ is a particular root of some polynomial function.
 It has an equation attribute (of type _Equation_) and a branch attribute (where the number of branches is the degree of the polynomial).
 In order to realize an _Algebraic_ as an actual numerical value (or _String_), you must solve it and thus create s
 _Solution_.
@@ -392,6 +392,8 @@ An _Algebraic_ is considered an exact value, although rendering it in decimal fo
 An _Algebraic_ extends _Field_ so can be operated on as any other field.
 Additionally, there are other operations, unique to _Algebraic_, that allow exact transformations.
 Examples include scale, negate, add, multiply, etc.
+
+_Algebraic_ is a parallel concept to _Complex_ (and _Real_).
 
 The hierarchy of _Algebraic_ is (currently) as follows:
 * _Algebraic_
@@ -722,7 +724,6 @@ Note that the type hierarchy is very likely to change in version 1.3
     * _LinearSolution_ (case class: a linear solution)
     * _QuadraticSolution_ (case class: a quadratic solution)
   * _Expression_ (trait: lazy numeric quantities: see below)
-  * _Transcendental_ (trait) defining exact numbers with no other definition
 * _Series_ (trait)
   * _AbstractSeries_
     * _FiniteSeries_
@@ -741,7 +742,7 @@ even though it might not be possible to represent it exactly using
 base-10 (or base-2) notation.
 Obviously, we could represent $\pi$ exactly if we wrote it in base-$\pi$ notation.
 
-The hierarchy of _Expression_ types is as follows (as of version V 1.2.2):
+The hierarchy of _Expression_ (i.e., lazy) types is as follows (as of version V 1.2.8):
 * _Expression_ (trait: all lazy _NumberLike_ objects)
   * _AtomicExpression_ (trait: a single exact number)
     * _FieldExpression_ (abstract class)
@@ -757,6 +758,7 @@ The hierarchy of _Expression_ types is as follows (as of version V 1.2.2):
         * _Infinity_
         * _ConstE_
         * _ConstI_
+    * _Transcendental_ (trait) defining exact numbers with no other definition
     * _ReducedQuadraticRoot_ (class: mildly deprecated: we could replace these quantities by _FieldExpressions_)
       * _Phi_ (object: $\phi$, the Golden Ratio)
       * _Psi_ (object: $\psi$, the conjugate of $\phi$)
@@ -765,7 +767,6 @@ The hierarchy of _Expression_ types is as follows (as of version V 1.2.2):
     * _BiFunction_ (case class: two expressions combined by a dyadic function--see below)
     * _Function_ (case class: one expression modified by a function--see below)
     * _Aggregate_ (case class: similar to _BiFunction_ but with multiple expressions all combined by the same dyadic function)
-* _Transcendental_ (trait defining an Expression)
 * _ExpressionFunction_ (trait)
   * _ExpressionBiFunction_ (trait used in _BiFunction_ (above))
     * _Atan_

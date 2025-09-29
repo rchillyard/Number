@@ -48,7 +48,7 @@ trait Solution extends NumberLike {
     * For a polynomial of degree `n`, there will, in general be `n` branches or roots.
     * Branch 0 is always the branch with the smallest positive offset.
     *
-    * @return the branch number. if the offset is negative, false otherwise
+    * @return the branch number.
     */
   def branch: Int
 
