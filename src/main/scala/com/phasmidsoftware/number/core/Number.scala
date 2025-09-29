@@ -256,6 +256,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     */
   def doDivide(n: Number): Number
 
+
   /**
     * Add x to this Number and return the result.
     *
