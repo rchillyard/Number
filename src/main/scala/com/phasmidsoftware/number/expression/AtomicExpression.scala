@@ -100,7 +100,7 @@ object AtomicExpression {
       Some(f) // CONSIDER eliminate this?
     case r@ReducedQuadraticRoot(_, _, _, _) => // TESTME
       r.evaluateAsIs
-    case Noop => // TESTME
+    case _ => // TESTME
       None
   }
 }
@@ -112,7 +112,7 @@ object AtomicExpression {
   */
 case object Noop extends AtomicExpression {
 
-  lazy val value: Field =
+  def value: Field =
     throw new UnsupportedOperationException("Noop.value")
 
   /**

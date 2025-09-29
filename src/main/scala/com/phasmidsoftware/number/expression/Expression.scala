@@ -63,6 +63,8 @@ trait Expression extends NumberLike with Approximatable {
         e
       case em.Match(e: Expression) =>
         inner(e)
+      case m =>
+        throw new ExpressionException(s"simplify.inner($x): logic error on $m")
     }
 
     inner(this)
