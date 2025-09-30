@@ -70,7 +70,7 @@ The current version is 1.2.5. Here's a summary of what's new since 1.2.1:
   * These represent solutions to equations that cannot be represented precisely with one quantity
     * _Quadratic_ equations, for example, we can represent the Golden ratio $\phi$ exactly this way.
     * _Linear_ equations (these solutions can already be represented, but this is just for completeness)
-* The _Root_ domain has been restructured to be more general.
+* The _NthRoot_ (renamed from _Root_) domain has been restructured to be more general.
   * In addition to _SquareRoot_ and _CubeRoot_ (which were renamed from the ambiguous _Root2_ and _Root3_), there are
     more general roots based on a rational inverse power.
 * This _README.md_ file has been improved (including a logo, thanks to Zijie).
@@ -819,6 +819,7 @@ Other types (for reference):
 
 Versions
 ========
+* Version 1.2.8: Major restructuring: renamed old _Root_ as _NthRoot_.
 * Version 1.2.7: Introduced dyadic _Log_ functions and, in general, renamed (natural) _log_ method as _ln_, allowing for new dyadic _log_ method.
   * Also, fixed various bugs and restructured the Expression classes.
 * Version 1.2.6: Added Transcendental Numbers.
@@ -831,7 +832,7 @@ Versions
   - In particular:
   - ExpressionMatchers has undergone a complete re-write.
   - Solution has been added as a Field type (with RQR as a subtype of Solution).
-  - Root classes have been refactored (now based on InversePower).
+  - NthRoot classes have been refactored (now based on InversePower).
   -
 * Version 1.1.1: Massive refactoring: fixed many issues. Most significantly, expressions are evaluated in the context of a Factor.
 * Version 1.1.0: Significant refactoring:
@@ -841,7 +842,7 @@ Versions
 * Version 1.0.16: Added C-interpolator for Complex objects; various other fixes, including radian values now range from -$\pi$ to $\pi$.
 * Version 1.0.15: Significant improvements to the rendering of rational numbers.
 * Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
-* Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.
+* Version 1.0.13: Mostly cleanup together with some fixes related to NthRoot factors and rendering of fuzziness.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
 * Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.
 * Version 1.0.10: Many improvements and fixes:

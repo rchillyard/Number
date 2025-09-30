@@ -79,7 +79,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
       ExactNumber(nominalValue, factor).simplify
     case _ =>
       factor match {
-        case Root(_) => scale(PureNumber)
+        case NthRoot(_) => scale(PureNumber)
         case _ => this
       }
   }

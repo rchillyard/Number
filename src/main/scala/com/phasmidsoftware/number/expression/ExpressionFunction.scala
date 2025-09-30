@@ -575,7 +575,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", x => x.invert) {
           Real(ExactNumber(x, f))))
     case Real(ExactNumber(v, f@Logarithmic(_))) =>
       Some(Real(ExactNumber(Value.negate(v), f))) // TESTME
-    case Real(ExactNumber(v, f@Root(_))) =>
+    case Real(ExactNumber(v, f@NthRoot(_))) =>
       Value.inverse(v) map (x =>
         Real(ExactNumber(x, f)))
     case _ =>

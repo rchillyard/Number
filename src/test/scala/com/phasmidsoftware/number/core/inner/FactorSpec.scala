@@ -52,7 +52,7 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
     Log2.multiply(fromInt(2), fromInt(3), Log2) shouldBe Some((fromInt(5), Log2, None))
   }
 
-  it should "multiply Other by Root" in {
+  it should "multiply Other by NthRoot" in {
     val maybeNumber1 = PureNumber.multiply(fromInt(-1), fromRational(Rational(3).invert), SquareRoot)
     maybeNumber1 shouldBe None
     val maybeNumber2 = SquareRoot.multiply(fromRational(Rational(3).invert), fromInt(-1), SquareRoot)

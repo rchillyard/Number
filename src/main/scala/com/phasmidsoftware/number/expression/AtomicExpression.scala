@@ -17,7 +17,9 @@ import scala.language.implicitConversions
 /**
   * An Expression that is based on one simple constant value.
   */
-sealed trait AtomicExpression extends Expression {
+
+/** sealed */
+trait AtomicExpression extends Expression {
   /**
     * Method to determine if this NumberLike object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.

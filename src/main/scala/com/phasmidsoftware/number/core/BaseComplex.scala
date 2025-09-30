@@ -952,14 +952,14 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
 object ComplexPolar {
   /**
    * Creates a ComplexPolar object based on the provided magnitude.
-   * If the input number has a root (Root), it calculates using the root and sets a default angle.
+    * If the input number has a root (NthRoot), it calculates using the root and sets a default angle.
    * Otherwise, it uses zero as the angle.
    *
    * @param r a Number representing the magnitude of the ComplexPolar object
    * @return a ComplexPolar object with the specified magnitude and calculated or default angle
    */
   def apply(r: Number): ComplexPolar = r match {
-    case Number(_, Root(n)) =>
+    case Number(_, NthRoot(n)) =>
       apply(r, Number.zeroR, n)
     case _ =>
       apply(r, Number.zeroR)

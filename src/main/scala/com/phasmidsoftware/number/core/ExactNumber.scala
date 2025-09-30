@@ -85,7 +85,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     case (Euler, Left(Right(Rational.half))) => // this is `e^i𝛑/2`, which equals `i` by Euler's Identity
       Number.i
     // XXX this handles all roots (of which there are currently only SquareRoot and CubeRoot)
-    case (Root(n), v) =>
+    case (NthRoot(n), v) =>
       v match {
       case Right(x) =>
         (Rational.squareRoots.get(x) map (make(_, PureNumber))).getOrElse(this)
