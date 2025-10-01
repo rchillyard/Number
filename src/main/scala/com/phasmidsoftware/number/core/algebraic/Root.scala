@@ -90,15 +90,11 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.
     */
-  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
+  def simplifyAtomic: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
     case r@Root(_, _) =>
-      // CONSIDER refactoring this based on conditional match method.
-      r.maybeValue match {
-        case Some(value) =>
-          matchAndSimplify(value)
-        case None =>
-          em.Miss("Root.simplifyAtomic: cannot simplify this Root: " + r, r)
-      }
+//      em.lens[Root](_.maybeValue.isDefined)(r) flatMap matchAndSimplify
+      em.matchIfDefined(r.maybeValue)(r) flatMap matchAndSimplify
   }
 
   /**

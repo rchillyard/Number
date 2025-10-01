@@ -12,7 +12,7 @@ val scalaTestVersion = "3.2.19"
 
 libraryDependencies ++= Seq(
   "com.phasmidsoftware" %% "flog" % "1.0.10",
-  "com.phasmidsoftware" %% "matchers" % "1.0.10",
+  "com.phasmidsoftware" %% "matchers" % "1.0.11",
   "org.apache.commons" % "commons-math3" % "3.6.1",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
   "com.novocode" % "junit-interface" % "0.11" % "test", // NOTE vulnerability here
