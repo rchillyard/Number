@@ -5,7 +5,8 @@
 package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.Constants
-import com.phasmidsoftware.number.core.inner.{Context, PureNumber, RestrictedContext, SquareRoot}
+import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.expression.Literal
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -18,20 +19,25 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
   val one = Root(Quadratic(-2, 1), 0)
   val zero = Root(Quadratic(0, 0), 0)
   val rootTwo = Root(Quadratic.rootTwoEquation, 0)
+  val half = Root(LinearEquation(Rational.half.negate), 0)
 
   it should "evaluateAsIs" in {
     one.evaluateAsIs shouldBe Some(Constants.one)
     zero.evaluateAsIs shouldBe Some(Constants.zero)
     phi.evaluateAsIs shouldBe Some(Algebraic.phi)
     psi.evaluateAsIs shouldBe Some(Algebraic.psi)
+    rootTwo.evaluateAsIs shouldBe Some(Constants.root2)
+    half.evaluateAsIs shouldBe Some(Constants.half)
   }
 
   it should "solution" in {
     phi.solution shouldBe QuadraticSolution.phi
+    rootTwo.solution shouldBe QuadraticSolution(Value.zero, Value.fromInt(2), SquareRoot, 0)
   }
 
   it should "isExact" in {
     phi.isExact shouldBe true
+    rootTwo.isExact shouldBe true
   }
 
   it should "maybeFactor" in {
@@ -45,6 +51,8 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     psi.render shouldBe "𝛙"
     one.render shouldBe "1"
     zero.render shouldBe "0"
+    rootTwo.render shouldBe "√2"
+    half.render shouldBe "½"
   }
 
   it should "approximation" in {
@@ -52,12 +60,16 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     psi.approximation.get === 0.618033988749895
     one.approximation.get shouldBe Constants.one
     zero.approximation.get shouldBe Constants.zero
+    rootTwo.approximation.get === 1.4142135623730951
+    half.approximation.get === 0.5
   }
 
   it should "maybeValue" in {
     phi.maybeValue shouldBe Some(Algebraic.phi)
     one.maybeValue shouldBe Some(Constants.one)
     zero.maybeValue shouldBe Some(Constants.zero)
+    rootTwo.maybeValue shouldBe Some(Constants.root2)
+    half.maybeValue shouldBe Some(Constants.half)
   }
 
   it should "simplify" in {
@@ -67,6 +79,7 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
   it should "isAtomic" in {
     phi.isAtomic shouldBe true
     one.isAtomic shouldBe true
+    half.isAtomic shouldBe true
   }
 
   it should "simplifyAtomic" in {
@@ -78,12 +91,32 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     zero.evaluate(RestrictedContext(PureNumber)) shouldBe Some(Constants.zero)
     phi.evaluate(RestrictedContext(PureNumber)) shouldBe None
     psi.evaluate(RestrictedContext(PureNumber)) shouldBe None
+    rootTwo.evaluate(RestrictedContext(PureNumber)) shouldBe None
+    half.evaluate(RestrictedContext(PureNumber)) shouldBe Some(Constants.half)
   }
 
   it should "evaluate(NthRoot)" in {
     one.evaluate(Context.AnyRoot) shouldBe None
     phi.evaluate(Context.AnyRoot) shouldBe None
     rootTwo.evaluate(Context.AnyRoot) shouldBe Some(Constants.root2)
+    half.evaluate(Context.AnyRoot) shouldBe None
   }
 
+  behavior of "Root expressions"
+
+  it should "evaluate 1" in {
+    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    val expression = (phi + psi) / (phi - psi)
+    val simplified = expression.simplify
+    println(s"simplified = $simplified")
+    simplified.materialize === Constants.root5.invert
+  }
+
+  // FIXME Issue #130
+  ignore should "evaluate 2" in {
+    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    val expression = (phi + psi) / (phi - psi)
+    val simplified = expression.simplify
+    simplified shouldBe Literal(Constants.root5).reciprocal
+  }
 }

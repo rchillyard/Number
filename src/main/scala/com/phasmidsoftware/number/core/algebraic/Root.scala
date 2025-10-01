@@ -38,16 +38,23 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
   lazy val solution: Solution = algebraic.solve
 
   /**
-    * A lazily evaluated optional `Field` derived from the `solution`. The value depends on the specific
-    * type and properties of the solution:
+    * Lazily evaluates and determines a possible `Field` value based on the
+    * provided `solution` and, if necessary, the `equation` and `branch`.
     *
-    * - If the solution is of type `LinearSolution`, the `Field` is created using the solution's property `x`
-    * and the factor `PureNumber`.
-    * - If the solution is of type `QuadraticSolution` and the base value is zero, the `Field` is computed
-    * by combining the offset, factor, and branch values through specific operations.
-    * - If the solution is of type `QuadraticSolution` and the offset value is zero, the `Field` is created
-    * based solely on the base value and the factor `PureNumber`.
-    * - For all other cases, the value remains `None`.
+    * The computation involves analyzing the type and properties of the
+    * `solution` to generate the appropriate `Field`. For linear or
+    * quadratic solutions, specific conditions are checked to determine
+    * validity, and associated calculations are performed. For cases
+    * outside these, additional context such as `equation` and `branch` is
+    * utilized to derive potential results.
+    *
+    * The function handles the following cases:
+    * - A `LinearSolution` generates a `Field` with the specified value.
+    * - A `QuadraticSolution` derives a `Field` under specific constraints, such as when the offset is zero or the base is zero.
+    * - For non-matching solutions, specific `equation` and `branch` combinations (e.g., golden ratio equations) are evaluated.
+    * - If none of the conditions are satisfied, it results in `None`.
+    *
+    * @return an optional `Field` instance based on the evaluated criteria.
     */
   lazy val maybeValue: Option[Field] = solution match {
     case LinearSolution(x) =>
@@ -93,7 +100,6 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
   def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
     case r@Root(_, _) =>
-//      em.lens[Root](_.maybeValue.isDefined)(r) flatMap matchAndSimplify
       em.matchIfDefined(r.maybeValue)(r) flatMap matchAndSimplify
   }
 
