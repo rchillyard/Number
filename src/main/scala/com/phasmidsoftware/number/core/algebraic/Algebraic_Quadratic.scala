@@ -54,7 +54,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse toString
+  def render: String = maybeName getOrElse solve.render
 
   /**
     * Scales the current `Algebraic_Quadratic` instance by a given `Rational` value.
@@ -395,6 +395,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
 
 object Quadratic {
   val goldenRatioEquation: Quadratic = Quadratic(Rational.negOne, Rational.negOne)
+  val rootTwoEquation: Quadratic = Quadratic(Rational.zero, Rational.two.negate)
 
   /**
     * Generates a string representation of the sign and the absolute value of the given rational number.
@@ -406,6 +407,8 @@ object Quadratic {
     * @return a string in the format "+ n" or "- n", where "n" represents the absolute value of the input
     */
   def termSign(x: Field, add: Boolean = true): String = (if (add) if (x.signum < 0) "- " else "+ " else "") + x.abs.render
+
+  val phiApprox = 1.6180339887498948
 }
 
 /**

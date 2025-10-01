@@ -4,7 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.Number.one
+import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
 import com.phasmidsoftware.number.misc.FP.recover
 import scala.language.implicitConversions
 
@@ -39,7 +40,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
   def isComplex: Boolean
 
   /**
-    * Method to determine if this Field is real-valued (i.e. the point lies on the real axis).
+    * Method to determine if this Field is real-valued (i.e., the point lies on the real axis).
     *
     * @return true if not imaginary.
     */
@@ -216,6 +217,17 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
  * It also acts as a container for implicit definitions and helpers relating to the Field type.
  */
 object Field {
+
+  /**
+    * Creates a `Field` instance based on the provided `Value` and `Factor`.
+    *
+    * @param value  the `Value` to be used in the creation of the `Field`.
+    * @param factor the `Factor` to be used in the creation of the `Field`.
+    * @return a `Field` instance constructed from the given `Value` and `Factor`.
+    */
+  def apply(value: Value, factor: Factor): Field =
+    Real(one.make(value, factor))
+
   /**
     * Attempt to force the given field to be a Number.
     * Because this may throw an Exception, it is much better to use asNumber, an instance method of Field.

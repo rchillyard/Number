@@ -32,7 +32,7 @@ trait Context {
     * @return true if the field's associated factor qualifies, or if no factor is associated; false otherwise.
     */
   def fieldQualifies(f: Field): Boolean =
-    f.maybeFactor.forall(factorQualifies)
+    f.maybeFactor.exists(factorQualifies)
 
   /**
     * Determines whether a given optional field qualifies based on its associated factor.

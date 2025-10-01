@@ -185,14 +185,30 @@ trait Solution extends NumberLike {
 case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch: Int) extends Solution {
 
   /**
+    * Represents the radical term of the quadratic solution (the square root of the discriminant with the correct sign applied).
+    *
+    * The `radicalTerm` is derived based on the `branch` value:
+    * - If `branch` is `0`, the `offset` value is used directly.
+    * - Otherwise, the negated value of `offset` is used.
+    */
+  lazy val radicalTerm: Value = if (branch == 0) offset else Value.negate(offset)
+
+  /**
     * Method to render this NumberLike in a presentable manner.
     * CONSIDER improve this in the event that offset itself is negative (as opposed to imaginary).
     * However, that scenario is unlikely, I believe.
     *
     * @return a String
     */
-  def render: String =  // TESTME
-    s"Solution: $base + ${if (branch == 1) "- " else "+ "} ${factor.render(offset)}"
+  def render: String =
+    if (this == QuadraticSolution.phi)
+      Algebraic.phi.render
+    else if (this == QuadraticSolution.psi)
+      Algebraic.psi.render
+    else if (Value.isZero(offset) || Value.isZero(base))
+      asField.render
+    else
+      s"Solution: $base + ${if (branch == 1) "- " else "+ "} ${factor.render(offset)}"
 
   /**
     * Checks if the solution represented by this instance is equivalent to zero.
@@ -243,6 +259,8 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
   /**
     * Converts the current QuadraticSolution instance into a Field representation.
     *
+    * TODO refactor this code using radicalTerm
+    *
     * The method computes a Field value based on the `base`, `offset`, and `factor`.
     * If the `offset` component is zero, the result is the `base` number as a Field.
     * Otherwise, it incorporates the `offset` and possibly an imaginary component
@@ -255,30 +273,30 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     if (Value.isZero(offset))
       ExactNumber(base, PureNumber)
     else {
-    val offsetNumber: ExactNumber = ExactNumber(offset, factor)
+      val offsetNumber: ExactNumber = ExactNumber(offset, factor)
 
-    def offsetToNumber = {
-      val maybeValue = factor.convert(offset, PureNumber) map (v => ExactNumber(v, PureNumber))
-      val maybeApproximation = offsetNumber.asNumber
-      FP.toTry(maybeValue orElse maybeApproximation, Failure(new Exception("QuadraticSolution.asField: factor.convert failed")))
-    }
+      def offsetToNumber = {
+        val maybeValue = factor.convert(offset, PureNumber) map (v => ExactNumber(v, PureNumber))
+        val maybeApproximation = offsetNumber.asNumber
+        FP.toTry(maybeValue orElse maybeApproximation, Failure(new Exception("QuadraticSolution.asField: factor.convert failed")))
+      }
 
-    if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
-      val imaginaryPart = {
-        // CONSIDER can we use branchOffset here?
-        if (branch == 0) // TESTME
-          ExactNumber(Value.negate(offset), factor)
-        else
-          offsetToNumber.get // TODO convert to a proper exception
-      } // CONSIDER handling this unlikely but possible exception properly
-      ComplexCartesian(ExactNumber(base, PureNumber), imaginaryPart)
+      if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
+        val imaginaryPart = {
+          // CONSIDER can we use branchOffset here?
+          if (branch == 0) // TESTME
+            ExactNumber(Value.negate(offset), factor)
+          else
+            offsetToNumber.get // TODO convert to a proper exception
+        } // CONSIDER handling this unlikely but possible exception properly
+        ComplexCartesian(ExactNumber(base, PureNumber), imaginaryPart)
+      }
+      else {
+        // CONSIDER using branchOffset here
+        val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
+        ExactNumber(base, PureNumber) + (if (branch == 1) variablePart.makeNegative else variablePart)
+      }
     }
-    else {
-      // CONSIDER using branchOffset here
-      val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
-      ExactNumber(base, PureNumber) + (if (branch == 1) variablePart.makeNegative else variablePart)
-    }
-  }
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Solution` as the result.
@@ -333,6 +351,33 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
       (v, g, None) <- factor.multiply(offset, fromRational(r), factor)
     } yield QuadraticSolution(x, v, g, branch)
 
+}
+
+/**
+  * Object containing predefined solutions to a quadratic equation and utilities.
+  *
+  * The object includes two specific solutions (`phi` and `psi`) that are parametrized
+  * using the `QuadraticSolution` class, demonstrating the representation of roots
+  * of a quadratic equation. These roots are computed using predefined rational
+  * coefficients and specified root indices.
+  */
+object QuadraticSolution {
+  /**
+    * Represents the value `phi`, which is a solution of a quadratic equation
+    * derived using `QuadraticSolution`. The solution is constructed from:
+    * - The first coefficient provided by converting `1/2` into a `Value` using `Value.fromRational`.
+    * - The second coefficient provided by converting `5/4` into a `Value` using `Value.fromRational`.
+    * - The root type specified as `SquareRoot`.
+    * - The root index specified as `0`, which identifies this as one of the possible roots.
+    */
+  val phi = QuadraticSolution(Value.fromRational(Rational.half), Value.fromRational(Rational(5, 4)), SquareRoot, 0)
+  /**
+    * Represents a specific quadratic solution characterized by its parameters.
+    *
+    * @see QuadraticSolution
+    * @see Value.fromRational
+    */
+  val psi = QuadraticSolution(Value.fromRational(Rational.half), Value.fromRational(Rational(5, 4)), SquareRoot, 1)
 }
 
 /**
