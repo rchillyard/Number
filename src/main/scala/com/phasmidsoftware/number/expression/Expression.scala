@@ -64,7 +64,7 @@ trait Expression extends NumberLike with Approximatable {
       case em.Match(e: Expression) =>
         inner(e)
       case m =>
-        throw new ExpressionException(s"simplify.inner($x): logic error on $m")
+        throw ExpressionException(s"simplify.inner($x): logic error on $m")
     }
 
     inner(this)
@@ -441,6 +441,7 @@ object Expression {
     *         the input `Expression`, depending on its type and structure.
     */
   def matchSimpler: ExpressionTransformer = {
+    // TODO eliminate ReducedQuadraticRoot
     case x: ReducedQuadraticRoot =>
       em.Match(x.asAlgebraic)
     case x: AtomicExpression =>

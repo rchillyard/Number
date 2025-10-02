@@ -4,7 +4,8 @@
 
 package com.phasmidsoftware.number.expression
 
-import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
+import com.phasmidsoftware.number.core.Number.convertExpression
+import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Root}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Constants, Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.em.{DyadicTriple, MonadicDuple}
@@ -236,6 +237,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       case UniFunction(e@FieldExpression(_, _), f) if e.monadicFunction(f).isDefined =>
         em.matchIfDefined(e.monadicFunction(f))(e)
 
+      case UniFunction(r@Root(_, _), Reciprocal) =>
+        em.Match(r.reciprocal)
       case expr =>
         em.Miss("UniFunction: simplifyTrivial: no trivial simplifications", expr)
     }
@@ -366,17 +369,27 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(One)
       case BiFunction(a, ConstE, Log) =>
         em.Match(UniFunction(a, Ln))
-      // TODO match on Algebraic_Linear also
-      case BiFunction(Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
-        // XXX Apply Vieta's formula
+      case BiFunction(Root(e1, b1), Root(e2, b2), f) if e1 == e2 && e1.branches == 2 =>
+        val q1: Algebraic_Quadratic = e1.asInstanceOf[Algebraic_Quadratic]
         f match {
           case Sum if b1 != b2 =>
-            em.Match(e1.p.makeNegative)
+            em.Match(q1.equation.conjugateSum)
           case Product if b1 != b2 =>
-            em.Match(e1.q)
+            em.Match(q1.equation.conjugateProduct)
+          case _ =>
+            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Roots and $f", this) // TESTME
+        }
+      // TODO match on Algebraic_Linear also
+      case BiFunction(Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
+        f match {
+          case Sum if b1 != b2 =>
+            em.Match(e1.conjugateSum)
+          case Product if b1 != b2 =>
+            em.Match(e1.conjugateProduct)
           case _ =>
             em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
         }
+      // FIXME add case for Root
       case BiFunction(Literal(a@Algebraic_Quadratic(_, _, _), _), x, f) =>
         modifyQuadratic(a, x, f)
       case BiFunction(x, Literal(a@Algebraic_Quadratic(_, _, _), _), f) =>
@@ -398,6 +411,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
+    case BiFunction(r@Root(_, _), p, Power) =>
+      p.toInt match {
+        case Some(n) =>
+          em.Match(r.power(n))
+        case None =>
+          em.Miss("BiFunction:simplifyComposite", b)
+      }
+    // NOTE these first two cases are kind of strange! CONSIDER removing them.
     case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
       // NOTE: duplicate code
       val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))   // x²
@@ -405,6 +426,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case BiFunction(UniFunction(a, Negate), b, Product) if a == b =>  // TESTME
       val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
       em.Match(UniFunction(xSq, Negate))
+    // CONSIDER eliminating this case.
+    case BiFunction(a, b, Product) if a == b =>  // TESTME
+      em.Match(BiFunction(a, Two, Power))
     case b@BiFunction(_, _, _) =>
       ((em.complementaryTermsEliminatorBiFunction |
           em.matchBiFunctionAsAggregate & em.literalsCombiner) &

@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.Number.convertInt
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
+import com.phasmidsoftware.number.core.algebraic._
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
@@ -98,6 +98,8 @@ object AtomicExpression {
       Some(x) // NOTE we lose the name here.
     case Literal(x, _) =>
       Some(x) // NOTE we lose the name here. // TESTME
+    case r@Root(_, _) =>
+      r.evaluateAsIs // TESTME
     case f: Field =>
       Some(f) // CONSIDER eliminate this?
     case r@ReducedQuadraticRoot(_, _, _, _) => // TESTME

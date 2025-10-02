@@ -343,6 +343,28 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     transform((p, q) => p / q, (_, q) => q.invert)
 
   /**
+    * Computes the sum of the conjugates for this instance of `Quadratic`.
+    * The sum of conjugates is mathematically derived as the negation of the `p` coefficient
+    * in a quadratic equation of the form `x^2 + p*x + q = 0`.
+    *
+    * @return a `Rational` value representing the sum of conjugates.
+    */
+  def conjugateSum: Rational =
+    p.negate
+
+  /**
+    * Computes the product of the conjugate roots of the quadratic equation represented by this instance.
+    * The product of the conjugates is determined directly from the coefficients of the quadratic equation
+    * and is equivalent to the constant term divided by the leading coefficient.
+    *
+    * This is a special case of Vieta's formula for the product of the roots of a polynomial.
+    *
+    * @return a `Rational` value representing the product of the conjugate roots of the quadratic equation.
+    */
+  def conjugateProduct: Rational =
+    q
+
+  /**
     * Transforms the current instance of `Quadratic` by applying provided functions
     * to the `p` and `q` components.
     *

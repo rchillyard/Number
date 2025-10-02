@@ -104,12 +104,19 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Root expressions"
 
-  it should "evaluate 1" in {
+  it should "evaluate 1 / √5" in {
     import com.phasmidsoftware.number.expression.Expression.ExpressionOps
     val expression = (phi + psi) / (phi - psi)
     val simplified = expression.simplify
-    println(s"simplified = $simplified")
     simplified.materialize === Constants.root5.invert
+  }
+
+  it should "evaluate phi^2" in {
+    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    val expression = phi ^ 2
+    val simplified = expression.simplify
+    simplified.materialize === 2.618033988749895
+    simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(-3, 1), pos = true))
   }
 
   // FIXME Issue #130

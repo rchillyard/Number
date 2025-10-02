@@ -224,7 +224,7 @@ sealed abstract class ExpressionBiFunction(
       trivialEvaluation(a, b)
     case _ =>
       val xy = doEvaluate(x, y)(context)
-      val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
+      lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
       context.qualifyingField(xy orElse yx)
   }
 

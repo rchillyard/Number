@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Field, Real}
 import com.phasmidsoftware.number.expression.Expression.em
-import com.phasmidsoftware.number.expression.{AtomicExpression, Expression, Literal}
+import com.phasmidsoftware.number.expression.{AtomicExpression, Expression, Literal, One}
 
 /**
   * Represents the root of an equation, associated with a specific branch.
@@ -99,9 +99,9 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
     */
   def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
-    case r@Root(_, _) =>
-      em.matchIfDefined(r.maybeValue)(r) flatMap matchAndSimplify
-  }
+      case r@Root(_, _) =>
+        em.matchIfDefined(r.maybeValue)(r) flatMap matchAndSimplify
+    }
 
   /**
     * Action to evaluate this `Expression` as a `Field`, if possible.
@@ -131,6 +131,60 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
     * @return a String
     */
   def render: String = algebraic.render
+
+  /**
+    * Computes the square of the current `Expression`.
+    * If the current equation is quadratic, it computes the result of the operation: this * -p + q.
+    * If the current equation is linear, it computes the result of the operation: this * -r.
+    * Otherwise, it returns the square of this expression by performing this * this.
+    *
+    * @return the result of squaring the current `Expression`, evaluated according to the type of the equation.
+    */
+  def power(n: Int): Expression = n match {
+    case x if x < 0 =>
+      power(-x).reciprocal
+    case 0 =>
+      One
+    case 1 =>
+      this
+    case x =>
+      import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+      squared * power(x - 2)
+  }
+
+  /**
+    * Computes the square of the current `Expression`.
+    * If the current equation is quadratic, it computes the result of the operation: this * -p + q.
+    * If the current equation is linear, it computes the result of the operation: this * -r.
+    * Otherwise, it returns the square of this expression by performing this * this.
+    *
+    * @return the result of squaring the current `Expression`, evaluated according to the type of the equation.
+    */
+  def reciprocal: Expression = equation match {
+    case Quadratic(p, q) =>
+      import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+      this / Literal(-q) + Literal(-p / q)
+    case _ =>
+      One / this
+  }
+
+  /**
+    * Computes the square of the current `Expression`.
+    * If the current equation is quadratic, it computes the result of the operation: this * -p + q.
+    * If the current equation is linear, it computes the result of the operation: this * -r.
+    * Otherwise, it returns the square of this expression by performing this * this.
+    *
+    * @return the result of squaring the current `Expression`, evaluated according to the type of the equation.
+    */
+  private def squared: Expression = equation match {
+    case Quadratic(p, q) =>
+      import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+      this * Literal(-p) + Literal(-q)
+    case LinearEquation(r) =>
+      this * Literal(-r)
+    case _ =>
+      this * this
+  }
 
   /**
     * Matches the given `Field` instance and attempts to simplify its representation

@@ -6,11 +6,11 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Root}
+import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
 import com.phasmidsoftware.number.expression
-import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, pi}
+import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.mill.{Expr, Stack}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
@@ -349,6 +349,27 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val target = (One * ConstPi * Two * MinusOne).simplify
     target shouldBe Expression(-2 * Constants.pi)
   }
+  it should "evaluate e * e" in {
+    val expression: Expression = ConstE * ConstE
+    expression.simplify shouldBe Literal(Real(ExactNumber(2, NatLog)))
+  }
+
+  it should "evaluate phi * phi" in {
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val expression: Expression = phi * phi
+    val simplified = expression.simplify
+    simplified.approximation.get.toDouble === 2.61803398875
+    simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(-3, 1), pos = true))
+  }
+
+  it should "evaluate 1 / phi" in {
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val expression: Expression = phi.reciprocal
+    val simplified = expression.simplify
+    println(s"simplified = $simplified")
+    simplified.approximation.get.toDouble === 0.61803398875
+    simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(1, -1), pos = true))
+  }
 
   behavior of "Sum"
   it should "add pi to -pi" in {
@@ -359,6 +380,24 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplify.materialize.asNumber shouldBe Some(Number.zeroR)
   }
 
+  behavior of "simplifyComposite"
+
+  it should "evaluate e * e" in {
+    val expression: Expression = ConstE * ConstE
+    val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
+    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
+    y shouldBe em.Match(BiFunction(ConstE, Literal(2), Power))
+    val simplified = y.get.simplify
+    simplified shouldBe Literal(Real(ExactNumber(2, NatLog)))
+  }
+
+  it should "evaluate phi * phi" in {
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val expression: Expression = phi * phi
+    val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
+    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
+    y shouldBe em.Match(BiFunction(phi, Literal(2), Power))
+  }
 
 //  behavior of "asAggregate"
 //  it should "aggregate 1" in {

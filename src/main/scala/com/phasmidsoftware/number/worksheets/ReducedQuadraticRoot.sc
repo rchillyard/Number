@@ -1,5 +1,6 @@
 import com.phasmidsoftware.number.expression.{Expression, Phi, Psi, ReducedQuadraticRoot}
 // this worksheet demonstrates ReducedQuadraticRoot
+// TODO replace ReducedQuadraticRoot with Root
 
 val phi = new ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true)
 phi.toString
