@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core.Constants.{sGamma, sPhi}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Fuzziness.showPercentage
 import com.phasmidsoftware.number.core.Number.{negate, twoPi}
+import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
@@ -90,7 +91,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val z = zy.get
     z.isExact shouldBe false
     z.fuzz.get shouldBe AbsoluteFuzz(5.0E-105, Box)
-    z.toNominalDouble.get shouldBe 1.618033988749894 +- 1E-13
+    z.toNominalDouble.get === phiApprox
   }
   it should "parse G" in {
     val z = Number.parse("6.67430(15)E-11")

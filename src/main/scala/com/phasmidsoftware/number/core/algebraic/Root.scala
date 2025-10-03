@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Field, Real}
 import com.phasmidsoftware.number.expression.Expression.em
-import com.phasmidsoftware.number.expression.{AtomicExpression, Expression, Literal, One}
+import com.phasmidsoftware.number.expression._
 
 /**
   * Represents the root of an equation, associated with a specific branch.
@@ -18,6 +18,8 @@ import com.phasmidsoftware.number.expression.{AtomicExpression, Expression, Lite
   * is solved for a specific branch index, yielding a solution that adheres to
   * the constraints defined in the `Solution` trait. It extends `AtomicExpression`
   * to integrate with the broader mathematical expression framework.
+  *
+  * CONSIDER moving this class/object into AtomicExpression.scala.
   *
   * @param equation the mathematical equation whose solution is represented by this root
   * @param branch   the branch index used to solve the equation
@@ -123,7 +125,13 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
     *
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */
-  def approximation: Option[Real] = maybeValue flatMap (_.approximation)
+  def approximation: Option[Real] =
+    maybeValue match {
+      case Some(value) =>
+        value.approximation
+      case None =>
+        solution.asNumber map (Real(_))
+    }
 
   /**
     * Method to render this NumberLike in a presentable manner.
@@ -133,23 +141,28 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
   def render: String = algebraic.render
 
   /**
-    * Computes the square of the current `Expression`.
-    * If the current equation is quadratic, it computes the result of the operation: this * -p + q.
-    * If the current equation is linear, it computes the result of the operation: this * -r.
-    * Otherwise, it returns the square of this expression by performing this * this.
+    * Computes the power of the current `Expression` raised to the specified `Rational` exponent.
     *
-    * @return the result of squaring the current `Expression`, evaluated according to the type of the equation.
+    * @param r the `Rational` exponent to which the current `Expression` is to be raised.
+    *          If the exponent is negative, the method computes the reciprocal of the positive power.
+    *          If the exponent is zero, the result is the identity `One`.
+    *          Otherwise, the computation involves recursive calls to this method.
+    * @return an `Expression` representing the result of raising the current `Expression` to the power of `r`.
     */
-  def power(n: Int): Expression = n match {
+  def power(r: Rational): Expression = r match {
+    case Rational.zero =>
+      One
+    case Rational.one =>
+      this
     case x if x < 0 =>
       power(-x).reciprocal
-    case 0 =>
-      One
-    case 1 =>
-      this
-    case x =>
+    case Rational.half =>
+      squareRoot(branch == 0)
+    case x if x >= 2 =>
       import com.phasmidsoftware.number.expression.Expression.ExpressionOps
       squared * power(x - 2)
+    case _ =>
+      throw ExpressionException(s"power: unable to compute power of $this to $r")
   }
 
   /**
@@ -168,6 +181,22 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
       One / this
   }
 
+  /**
+    * Computes the square root of this `Root`.
+    * For a `Quadratic` equation, this method calculates one of its roots based on the specified parameter.
+    * If the `Expression` is not quadratic, an `ExpressionException` is thrown.
+    *
+    * @param plus a boolean value that determines which square root (positive or negative root) to compute:
+    *             if true, compute the positive root; if false, compute the negative root.
+    * @return an `Expression` representing the computed square root of the current `Expression`.
+    * @throws ExpressionException if the square root computation is not supported for the current `Expression`.
+    */
+  def squareRoot(plus: Boolean): Expression = equation match {
+    case Quadratic(p, q) =>
+      Root(Quadratic(-p.invert, -q / p), if (plus) 0 else 1)
+    case _ =>
+      throw ExpressionException(s"squareRoot: cannot compute square root of $this")
+  }
   /**
     * Computes the square of the current `Expression`.
     * If the current equation is quadratic, it computes the result of the operation: this * -p + q.

@@ -477,6 +477,15 @@ object Real {
   def parse(w: String): Try[Real] =
     Number.parse(w) map (Real(_))
 
+  /**
+    * Converts a given `Number` into a `Field`.
+    *
+    * TODO change this method to be non-implicit. Implicit conversions are evil.
+    * Don't forget to remove the implicitConversions flag from other sources.
+    *
+    * @param x the `Number` to be converted into a `Field`.
+    * @return a `Field` representation of the provided `Number`.
+    */
   implicit def convertFromNumber(x: Number): Field =
     Real(x)
 

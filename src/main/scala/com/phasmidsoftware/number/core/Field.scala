@@ -47,6 +47,14 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
   def isReal: Boolean
 
   /**
+    * Converts this Field instance to its equivalent rational representation if it is real-valued.
+    *
+    * @return an Option containing the rational representation of this Field if it is real-valued; otherwise, None.
+    */
+  def toRational: Option[Rational] =
+    if (isReal) asNumber.flatMap(_.toNominalRational) else None
+
+  /**
     * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
     *
     * @return true if this is imaginary.

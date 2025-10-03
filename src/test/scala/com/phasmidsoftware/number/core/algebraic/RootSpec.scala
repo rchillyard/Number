@@ -119,6 +119,14 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(-3, 1), pos = true))
   }
 
+  it should "evaluate squareRoot(phi)" in {
+    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    val expression = phi ^ Rational.half
+    val simplified = expression.simplify
+    simplified.approximation.get === 1.2599210498948732
+    simplified shouldBe Root(Quadratic(1, -1), 0)
+  }
+
   // FIXME Issue #130
   ignore should "evaluate 2" in {
     import com.phasmidsoftware.number.expression.Expression.ExpressionOps

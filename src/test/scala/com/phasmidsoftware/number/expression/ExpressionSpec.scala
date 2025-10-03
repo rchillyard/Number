@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
+import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Root}
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
@@ -327,7 +328,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     ConstPi.simplify shouldBe ConstPi
     val simplify = Phi.simplify
     simplify shouldBe Expression(Algebraic.phi)
-    Phi.simplify.materialize should ===(1.618033988749895)
+    Phi.simplify.materialize should ===(phiApprox)
   }
   it should "simplify function expressions" in {
     expression.UniFunction(expression.UniFunction(One, Negate), Negate).simplify shouldBe One

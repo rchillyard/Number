@@ -554,6 +554,7 @@ case object Negate extends ExpressionMonoFunction("-", x => -x) {
   * `Reciprocal` is an `ExpressionMonoFunction` representing the mathematical reciprocal operation.
   * The function takes a numeric input `x` and computes `1 / x`.
   * It is identified by the name "rec".
+  * CONSIDER eliminating this and forcing any reciprocal to be power of negative one.
   *
   * The operation is performed lazily and adheres to the behavior defined in its parent class.
   */
