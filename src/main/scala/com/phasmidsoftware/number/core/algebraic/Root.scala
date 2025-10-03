@@ -38,7 +38,37 @@ trait Root extends AtomicExpression {
     */
   def branch: Int
 
+  /**
+    * Computes the result of raising the current `Root` to the power of the provided `Rational` value.
+    *
+    * @param r the `Rational` exponent to which the current `Root` is raised.
+    *          It represents the power operation to apply to the `Root`.
+    * @return an `Expression` representing the result of the operation,
+    *         where the current `Root` is raised to the specified `Rational` power.
+    */
   def power(r: Rational): Expression
+
+  /**
+    * Computes the square of the current `Expression`.
+    * If the current equation is quadratic, it computes the result of the operation: this * -p + q.
+    * If the current equation is linear, it computes the result of the operation: this * -r.
+    * Otherwise, it returns the square of this expression by performing this * this.
+    *
+    * @return the result of squaring the current `Expression`, evaluated according to the type of the equation.
+    */
+  def reciprocal: Expression
+
+  /**
+    * Computes the square root of this `Root`.
+    * For a `Quadratic` equation, this method calculates one of its roots based on the specified parameter.
+    * If the `Expression` is not quadratic, an `ExpressionException` is thrown.
+    *
+    * @param plus a boolean value that determines which square root (positive or negative root) to compute:
+    *             if true, compute the positive root; if false, compute the negative root.
+    * @return an `Expression` representing the computed square root of the current `Expression`.
+    * @throws ExpressionException if the square root computation is not supported for the current `Expression`.
+    */
+  def squareRoot(plus: Boolean): Expression
 }
 
 /**
@@ -119,13 +149,18 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
   * the constraints defined in the `Solution` trait. It extends `AtomicExpression`
   * to integrate with the broader mathematical expression framework.
   *
-  * CONSIDER moving this class/object into AtomicExpression.scala.
-  *
   * @param equ the mathematical equation whose solution is represented by this root
   * @param branch   the branch index used to solve the equation
   */
 abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
 
+  /**
+    * Computes and returns a `Root` associated with the given `Equation` and branch.
+    *
+    * @param equ    the `Equation` for which the `Root` is to be computed.
+    * @param branch an integer value representing the specific branch of the `Equation`.
+    * @return the `Root` corresponding to the provided `Equation` and branch.
+    */
   def pure(equ: Equation, branch: Int): Root
 
   /**
