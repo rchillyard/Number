@@ -14,12 +14,12 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Root"
 
-  val phi = Root(Quadratic.goldenRatioEquation, 0)
-  val psi = Root(Quadratic.goldenRatioEquation, 1)
-  val one = Root(Quadratic(-2, 1), 0)
-  val zero = Root(Quadratic(0, 0), 0)
-  val rootTwo = Root(Quadratic.rootTwoEquation, 0)
-  val half = Root(LinearEquation(Rational.half.negate), 0)
+  val phi: QuadraticRoot = Root.phi
+  val psi: QuadraticRoot = Root.psi
+  val one: QuadraticRoot = Root.one
+  val zero: QuadraticRoot = Root.zero
+  val rootTwo: QuadraticRoot = Root.rootTwo
+  val half: LinearRoot = Root.half
 
   it should "evaluateAsIs" in {
     one.evaluateAsIs shouldBe Some(Constants.one)
@@ -124,7 +124,7 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     val expression = phi ^ Rational.half
     val simplified = expression.simplify
     simplified.approximation.get === 1.2599210498948732
-    simplified shouldBe Root(Quadratic(1, -1), 0)
+    simplified shouldBe QuadraticRoot(Quadratic(1, -1), 0)
   }
 
   // FIXME Issue #130

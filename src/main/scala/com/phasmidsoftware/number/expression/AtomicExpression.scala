@@ -98,7 +98,7 @@ object AtomicExpression {
       Some(x) // NOTE we lose the name here.
     case Literal(x, _) =>
       Some(x) // NOTE we lose the name here. // TESTME
-    case r@Root(_, _) =>
+    case r: Root =>
       r.evaluateAsIs // TESTME
     case f: Field =>
       Some(f) // CONSIDER eliminate this?

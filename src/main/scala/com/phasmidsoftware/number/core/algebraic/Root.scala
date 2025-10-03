@@ -12,6 +12,106 @@ import com.phasmidsoftware.number.expression.Expression.em
 import com.phasmidsoftware.number.expression._
 
 /**
+  * The `Root` trait represents a mathematical root derived from a specific equation.
+  * It corresponds to a solution of a multivalued mathematical expression
+  * that is typically associated with a monic polynomial equation.
+  * Each root is uniquely identified by its underlying equation and a branch index
+  * that represents a specific solution when multiple solutions are possible.
+  */
+trait Root extends AtomicExpression {
+  /**
+    * Retrieves the `Equation` associated with this `Root`.
+    *
+    * @return an `Equation`, which represents a mathematical relationship, typically
+    *         defined by a monic polynomial and may have multiple branches of solutions.
+    */
+  def equation: Equation
+
+  /**
+    * Retrieves the branch index for this `Root`. A branch represents a specific solution
+    * or interpretation of an associated multivalued mathematical expression, typically
+    * derived from an underlying `Equation`.
+    *
+    * @return the index of the branch as an integer. This value is typically
+    *         within the range `0` to `branches - 1`, where `branches` is the
+    *         total number of solution branches for the corresponding `Equation`.
+    */
+  def branch: Int
+
+  def power(r: Rational): Expression
+}
+
+/**
+  * Represents a root of a quadratic equation with a specified branch.
+  * This class is a case class extending the `AbstractRoot`, which models the root of an equation
+  * and provides required functionality for specific implementations.
+  *
+  * The `QuadraticRoot` works specifically with quadratic equations, which have two branches corresponding
+  * to their solutions. Each instance of `QuadraticRoot` is associated with one branch of the equation.
+  *
+  * @param equ    the equation whose root is being represented. It must be an instance of the `Equation` trait.
+  * @param branch the branch index indicating the solution branch of the equation. This value should be within
+  *               the valid range of branches supported by the equation, typically `0` or `1` for quadratic equations.
+  */
+case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, branch) {
+  /**
+    * Constructs a `Root` for a given quadratic equation and its specific solution branch.
+    *
+    * @param equ    the quadratic equation for which the root is to be constructed. It must be
+    *               an instance of the `Equation` trait.
+    * @param branch the branch index corresponding to the desired root of the equation.
+    *               Typically, for quadratic equations, this value is 0 or 1.
+    * @return a `Root` representing the solution branch of the specified quadratic equation.
+    */
+  def pure(equ: Equation, branch: Int): Root = QuadraticRoot(equ, branch)
+
+  /**
+    * Returns the associated `Quadratic` equation for this instance.
+    *
+    * @return the `Quadratic` equation represented by this root.
+    */
+  def equation: Quadratic = equ.asInstanceOf[Quadratic]
+}
+
+/**
+  * Represents the linear root of a given equation. A `LinearRoot` is an extension
+  * of the `AbstractRoot` class, specialized for cases where the root corresponds
+  * to a degree-1 (linear) polynomial equation.
+  *
+  * This implementation assumes the linear root is unique and thus corresponds
+  * to the only solution available for a first-degree equation.
+  *
+  * @param equ the `Equation` instance associated with this root.
+  *            Assumes the equation is linear (degree 1).
+  */
+case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
+  /**
+    * @return 0.
+    */
+  def branch: Int = 0
+
+  /**
+    * Creates a new root instance corresponding to the specified equation and branch.
+    * This method is used to produce a mathematical solution associated with the given input parameters.
+    *
+    * @param equ    the equation from which the root is derived. The equation represents a
+    *               mathematical relationship, typically a monic polynomial.
+    * @param branch the branch index associated with this root. It specifies a particular
+    *               solution for the equation if multiple solutions exist.
+    * @return a new `Root` instance corresponding to the provided equation and branch.
+    */
+  def pure(equ: Equation, branch: Int): Root = LinearRoot(equ)
+
+  /**
+    * Retrieves the `LinearEquation` associated with this `Root`.
+    *
+    * @return an `Equation`, which represents a mathematical relationship, typically
+    *         defined by a monic polynomial and may have multiple branches of solutions.
+    */
+  def equation: LinearEquation = equ.asInstanceOf[LinearEquation]
+}
+
+/**
   * Represents the root of an equation, associated with a specific branch.
   *
   * This class models the concept of a mathematical root, where an equation
@@ -21,16 +121,18 @@ import com.phasmidsoftware.number.expression._
   *
   * CONSIDER moving this class/object into AtomicExpression.scala.
   *
-  * @param equation the mathematical equation whose solution is represented by this root
+  * @param equ the mathematical equation whose solution is represented by this root
   * @param branch   the branch index used to solve the equation
   */
-case class Root(equation: Equation, branch: Int) extends AtomicExpression {
+abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
+
+  def pure(equ: Equation, branch: Int): Root
 
   /**
     * Represents an algebraic instance derived from the associated equation and branch.
     * This value is lazily evaluated and used within the context of symbolic or algebraic computations.
     */
-  lazy val algebraic: Algebraic = Algebraic(equation, branch)
+  lazy val algebraic: Algebraic = Algebraic(equ, branch)
 
   /**
     * Represents the solution of an equation for a specific branch in the context of a mathematical expression.
@@ -66,7 +168,7 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
     case s@QuadraticSolution(base, _, factor, _) if Value.isZero(base) =>
       Some(Real(one.make(s.radicalTerm, factor)))
     case _ =>
-      (equation, branch) match {
+      (equ, branch) match {
         case (Quadratic.goldenRatioEquation, 0) =>
           Some(phi)
         case (Quadratic.goldenRatioEquation, 1) =>
@@ -101,7 +203,7 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
     */
   def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
-      case r@Root(_, _) =>
+      case r: AbstractRoot =>
         em.matchIfDefined(r.maybeValue)(r) flatMap matchAndSimplify
     }
 
@@ -193,7 +295,7 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
     */
   def squareRoot(plus: Boolean): Expression = equation match {
     case Quadratic(p, q) =>
-      Root(Quadratic(-p.invert, -q / p), if (plus) 0 else 1)
+      pure(Quadratic(-p.invert, -q / p), if (plus) 0 else 1)
     case _ =>
       throw ExpressionException(s"squareRoot: cannot compute square root of $this")
   }
@@ -225,4 +327,53 @@ case class Root(equation: Equation, branch: Int) extends AtomicExpression {
     */
   private def matchAndSimplify(field: Field): em.MatchResult[Expression] =
     em.Match(Literal(field)) flatMap simplifyAtomic
+}
+
+/**
+  * The `Root` object provides predefined mathematical constants or solutions to
+  * well-known equations modeled as roots. These constants are instances of `QuadraticRoot`
+  * or `LinearRoot` corresponding to specific root solutions of their respective equations.
+  */
+object Root {
+  /**
+    * Represents the mathematical constant φ (phi), also known as the golden ratio.
+    * The golden ratio is defined as the positive root of the quadratic equation `x² + x - 1 = 0`.
+    * It is an irrational number approximately equal to 1.6180339887498948.
+    *
+    * This value is modeled using a `QuadraticRoot` instance, which takes the predefined golden ratio quadratic equation
+    * (`Quadratic.goldenRatioEquation`) and specifies the branch `0`, representing the positive root.
+    */
+  val phi = QuadraticRoot(Quadratic.goldenRatioEquation, 0)
+  /**
+    * Represents the conjugate root of the golden ratio equation (`x² + x - 1 = 0`),
+    * commonly referred to as ψ (psi). This value is the second root of the quadratic equation,
+    * distinct from the golden ratio (φ, phi). It is calculated using the `QuadraticRoot` constructor,
+    * with the golden ratio equation as its basis and branch index set to 1.
+    */
+  val psi = QuadraticRoot(Quadratic.goldenRatioEquation, 1)
+  /**
+    * Represents the constant root `1` of a quadratic equation.
+    * This value is a particular solution of the quadratic equation `-2x + 1 = 0` on branch `0`.
+    */
+  val one = QuadraticRoot(Quadratic(-2, 1), 0)
+  /**
+    * Represents the quadratic root when both the quadratic coefficients and the branch index are zero.
+    * This constant corresponds to the simplest quadratic equation with all coefficients as zero and the solution at branch zero.
+    */
+  val zero = QuadraticRoot(Quadratic(0, 0), 0)
+  /**
+    * Represents the root solution corresponding to the quadratic equation for ±√2.
+    *
+    * The `rootTwo` value is an instance of `QuadraticRoot` that is initialized with the predefined
+    * quadratic equation `x² - 2 = 0` (`Quadratic.rootTwoEquation`) and specifies the primary root (`branch 0`).
+    *
+    * This root is a well-known mathematical constant (the square root of 2), widely used in
+    * geometry, algebra, and various other mathematical applications.
+    */
+  val rootTwo = QuadraticRoot(Quadratic.rootTwoEquation, 0)
+  /**
+    * Represents the value one-half as a linear root, constructed from a linear equation
+    * with a negated half rational coefficient.
+    */
+  val half = LinearRoot(LinearEquation(Rational.half.negate))
 }
