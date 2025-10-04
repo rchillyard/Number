@@ -594,7 +594,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
                 em.Match(Literal(a.scale(z)))
               case (Some(r), Power) =>
                 // XXX in this case, we revert this `Algebraic_Quadratic` (viz., a Field) to a `Root` (viz., an `Expression`)
-                val root = QuadraticRoot(a.equation, a.branch).power(r)
+                val root = Root(a.equation, a.branch).power(r)
                 em.Match(root)
               case (None, _) =>
                 em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Rational)", this) // TESTME

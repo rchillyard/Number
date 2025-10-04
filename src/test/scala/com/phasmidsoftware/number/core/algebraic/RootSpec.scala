@@ -15,9 +15,9 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Root"
 
   val phi: QuadraticRoot = Root.phi
-  val psi: QuadraticRoot = Root.psi
-  val one: QuadraticRoot = Root.one
-  val zero: QuadraticRoot = Root.zero
+  val psi: Root = Root.psi
+  val one: Root = Root.one
+  val zero: Root = Root.zero
   val rootTwo: QuadraticRoot = Root.rootTwo
   val half: LinearRoot = Root.half
 
@@ -124,7 +124,7 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     val expression = phi ^ Rational.half
     val simplified = expression.simplify
     simplified.approximation.get === 1.2599210498948732
-    simplified shouldBe QuadraticRoot(Quadratic(1, -1), 0)
+    simplified shouldBe Root(Quadratic(1, -1), 0)
   }
 
   // FIXME Issue #130

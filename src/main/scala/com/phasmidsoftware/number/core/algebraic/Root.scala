@@ -39,6 +39,14 @@ trait Root extends AtomicExpression {
   def branch: Int
 
   /**
+    * Retrieves an optional value of type `Field` associated with this `Root`.
+    * The result will be defined if either the base or the offset is zero (in the case of a quadratic root).
+    *
+    * @return an `Option[Field]` that may contain the value. If no value is associated, returns `None`.
+    */
+  def maybeValue: Option[Field]
+
+  /**
     * Computes the result of raising the current `Root` to the power of the provided `Rational` value.
     *
     * @param r the `Rational` exponent to which the current `Root` is raised.

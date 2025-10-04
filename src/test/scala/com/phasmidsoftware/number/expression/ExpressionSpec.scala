@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.Root.phi
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, QuadraticRoot}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Root}
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
 import com.phasmidsoftware.number.expression
@@ -357,7 +357,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   it should "evaluate phi * phi" in {
-    val phi = QuadraticRoot(Quadratic.goldenRatioEquation, 0)
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
     val simplified = expression.simplify
     simplified.approximation.get.toDouble === 2.61803398875
@@ -365,7 +365,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   it should "evaluate 1 / phi" in {
-    val phi = QuadraticRoot(Quadratic.goldenRatioEquation, 0)
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi.reciprocal
     val simplified = expression.simplify
     println(s"simplified = $simplified")
@@ -394,7 +394,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   it should "evaluate phi * phi" in {
-    val phi = QuadraticRoot(Quadratic.goldenRatioEquation, 0)
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
     val y: em.MatchResult[Expression] = x.simplifyComposite(x)
