@@ -1,15 +1,16 @@
-import com.phasmidsoftware.number.expression.{Expression, Phi, Psi, ReducedQuadraticRoot}
+import com.phasmidsoftware.number.core.algebraic.Root
+import com.phasmidsoftware.number.expression.{Expression, Phi, Psi}
 // this worksheet demonstrates ReducedQuadraticRoot
 // TODO replace ReducedQuadraticRoot with Root
 
-val phi = new ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true)
+val phi = Root.phi
 phi.toString
-phi.asAlgebraic.render
-phi.evaluateAsIs
-val psi = new ReducedQuadraticRoot("\uD835\uDED9", -1, -1, false)
+val algebraicPhi = phi.evaluateAsIs.get
+algebraicPhi.render
+val psi = Root.psi
 psi.toString
-psi.asAlgebraic.render
-psi.evaluateAsIs
+val algebraicPsi = psi.evaluateAsIs.get
+algebraicPsi.render
 
 val x1: Expression = phi plus psi
 x1.render

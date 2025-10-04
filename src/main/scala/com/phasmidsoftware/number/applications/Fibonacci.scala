@@ -1,10 +1,11 @@
 package com.phasmidsoftware.number.applications
 
 import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.core.algebraic.Root
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.inner.Value.maybeRational
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
-import com.phasmidsoftware.number.expression.{Expression, Phi, Psi}
+import com.phasmidsoftware.number.expression.Expression
 
 /**
   * Provides utilities and methods for working with the Fibonacci sequence, leveraging
@@ -21,14 +22,14 @@ object Fibonacci {
     * This value can be used in computations involving algebraic expressions,
     * such as in the calculation of Fibonacci numbers using Binet's formula.
     */
-  val phi: Expression = Phi
+  val phi: Expression = Root.phi
   /**
     * Psi represents the conjugate of `Phi`, used in computations involving
     * properties of the Fibonacci sequence and Binet's formula.
     * It is a reduced quadratic root and part of the algebraic expressions
     * in the Fibonacci number calculations.
     */
-  val psi: Expression = Psi
+  val psi: Expression = Root.psi
 
   /**
    * Computes the nth Fibonacci number using algebraic expressions for phi (the golden ratio)

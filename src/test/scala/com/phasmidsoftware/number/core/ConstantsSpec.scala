@@ -1,9 +1,10 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sGamma
+import com.phasmidsoftware.number.core.algebraic.Root
 import com.phasmidsoftware.number.core.inner.{Log2, Rational}
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
-import com.phasmidsoftware.number.expression.{Expression, Literal, Phi}
+import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -103,7 +104,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   it should "have phi" in {
     val target = Constants.phi
     target.isExact shouldBe true
-    val goldenRatio = Phi
+    val goldenRatio = Root.phi
     val maybeNumber: Option[Number] = goldenRatio.asNumber
     maybeNumber.isDefined shouldBe true
     Real(maybeNumber.get) should ===(target)

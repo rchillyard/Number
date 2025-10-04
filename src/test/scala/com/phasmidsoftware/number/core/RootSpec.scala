@@ -5,8 +5,8 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sPhi
-import com.phasmidsoftware.number.core.algebraic.Root.phi
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
+import com.phasmidsoftware.number.core.algebraic.Root.{phi, psi}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Root}
 import com.phasmidsoftware.number.core.inner.{AnyContext, PureNumber, Rational}
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.expression._
@@ -18,43 +18,42 @@ class RootSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   behavior of "Root"
 
   it should "work from first principles" in {
-    val target = new ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true)
-    target shouldBe Phi
+    val target = Root(Quadratic(-1, -1), 0)
+    target shouldBe phi
     target.evaluateAsIs.isDefined shouldBe true
     target.evaluateAsIs.get should ===(Real(sPhi))
-    target should matchPattern { case ReducedQuadraticRoot("\uD835\uDED7", -1, -1, true) => }
   }
   it should "evaluate Phi correctly" in {
-    (((Phi ^ 2) - 1).materialize - Real(Constants.sPhi)).isZero shouldBe true
-    Phi.materialize should ===(Constants.phi)
+    (((phi ^ 2) - 1).materialize - Real(Constants.sPhi)).isZero shouldBe true
+    phi.materialize should ===(Constants.phi)
   }
   it should "evaluate Phi^2 correctly" in {
-    val expression = Phi ^ 2
+    val expression = phi ^ 2
     val simplified = expression.simplify
-    val z: Algebraic = Phi.asAlgebraic.add(Rational.one)
+    val z: Algebraic = Algebraic.phi.add(Rational.one)
 //    simplified shouldBe Literal(z)
     simplified.materialize should ===(2.618033988749895)
   }
   it should "evaluate Phi + Psi" in {
-    val expression: Expression = Phi + Psi
+    val expression: Expression = phi + psi
     val simplified = expression.simplify
     simplified shouldBe One
   }
   it should "evaluate Phi * Psi" in {
-    val expression = Phi * Psi
+    val expression = phi * psi
     val simplified = expression.simplify
     simplified shouldBe MinusOne
   }
   it should "evaluate Phi + Phi" in {
-    val expression = Phi + Phi
+    val expression = phi + phi
     val simplified = expression.simplify
     val minus2 = Rational(-2)
     val minus4 = Rational(-4)
-    simplified should matchPattern { case Literal(Algebraic_Quadratic(_, Quadratic(`minus2`, `minus4`), _), _) => }
+    simplified should matchPattern { case BiFunction(`phi`, Two, Product) => }
     simplified.materialize should ===(3.23606797749979)
   }
   it should "evaluate 2 * Phi" in {
-    val expression = Two * Phi
+    val expression = Two * phi
     val simplified = expression.simplify
     val minus2 = Rational(-2)
     val minus4 = Rational(-4)
@@ -62,7 +61,7 @@ class RootSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     simplified.materialize should ===(3.23606797749979)
   }
   it should "evaluate 2 + Phi" in {
-    val expression = Two + Phi
+    val expression = Two + phi
     val simplified = expression.simplify
     val minus5 = Rational(-5)
     val plus5 = Rational(5)
@@ -90,7 +89,7 @@ class RootSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 
   it should "maybeFactor" in {
     phi.maybeFactor shouldBe None
-    ReducedQuadraticRoot.create(Algebraic.zero) flatMap (_.maybeFactor) shouldBe Some(PureNumber)
+    Root.zero.maybeFactor shouldBe Some(PureNumber)
   }
 
   it should "isExact" in {
@@ -105,11 +104,6 @@ class RootSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val maybeNumber = phi.asNumber
     maybeNumber.isDefined shouldBe true
     maybeNumber.get.isSame(Number(sPhi)) shouldBe true
-  }
-
-  it should "create" in {
-    val phi = Algebraic.phi
-    ReducedQuadraticRoot.create(phi) shouldBe Some(Phi)
   }
 
   it should "depth" in {

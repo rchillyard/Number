@@ -441,9 +441,6 @@ object Expression {
     *         the input `Expression`, depending on its type and structure.
     */
   def matchSimpler: ExpressionTransformer = {
-    // TODO eliminate ReducedQuadraticRoot
-    case x: ReducedQuadraticRoot =>
-      em.Match(x.asAlgebraic)
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
     case x: CompositeExpression =>

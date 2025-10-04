@@ -101,6 +101,15 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     * @return the `Quadratic` equation represented by this root.
     */
   def equation: Quadratic = equ.asInstanceOf[Quadratic]
+
+  override def toString: String = (equ, branch) match {
+  case (Quadratic.goldenRatioEquation, 0) =>
+    "\uD835\uDED7"
+  case (Quadratic.goldenRatioEquation, 1) =>
+    "\uD835\uDED9"
+  case _ =>
+    s"QuadraticRoot($equ, $branch)"
+  }
 }
 
 /**
@@ -221,9 +230,11 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   def maybeFactor: Option[Factor] = solution match {
     case LinearSolution(_) =>
       Some(PureNumber)
-    case QuadraticSolution(base, _, factor, _) if Value.isZero(base) =>
+    case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) =>
+      Some(PureNumber)
+    case QuadraticSolution(Value.zero, _, factor, _) =>
       Some(factor)
-    case QuadraticSolution(_, offset, _, _) if Value.isZero(offset) =>
+    case QuadraticSolution(_, Value.zero, _, _) =>
       Some(PureNumber)
     case _ =>
       None
@@ -334,6 +345,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     case _ =>
       throw ExpressionException(s"squareRoot: cannot compute square root of $this")
   }
+
   /**
     * Computes the square of the current `Expression`.
     * If the current equation is quadratic, it computes the result of the operation: this * -p + q.
@@ -370,6 +382,24 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   * or `LinearRoot` corresponding to specific root solutions of their respective equations.
   */
 object Root {
+  /**
+    * Applies the given `Equation` instance and a branch index to determine the corresponding `Root`.
+    * Depending on the type of the equation, the method computes and returns an appropriate `Root` representation.
+    *
+    * @param equation the `Equation` instance to process, which represents a mathematical relationship.
+    *                 It may include multiple solutions or branches (e.g., quadratic or linear equations).
+    * @param branch   an integer representing the branch index to compute. The branch identifies
+    *                 a specific solution for equations with multiple branches.
+    * @return a `Root` instance that corresponds to the given `Equation` and branch index.
+    *         The returned `Root` is specialized for `Quadratic` or `LinearEquation` types.
+    */
+  def apply(equation: Equation, branch: Int): Root = equation match {
+    case q: Quadratic =>
+      QuadraticRoot(q, branch)
+    case l: LinearEquation =>
+      LinearRoot(l)
+  }
+
   /**
     * Represents the mathematical constant φ (phi), also known as the golden ratio.
     * The golden ratio is defined as the positive root of the quadratic equation `x² + x - 1 = 0`.

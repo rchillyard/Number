@@ -419,13 +419,13 @@ The hierarchy of _Factor_ is as follows:
     * _Log2_ (object: $\log_2$)
     * _Log10_ (object: $\log_{10}$)
   * _InversePower_ (trait: all the roots)
-    * _Root_ (abstract class)
+    * _NthRoot_ (abstract class)
       * _SquareRoot_ (object: the domain of square roots)
       * _CubeRoot_ (object: the domain of cube roots)
     * _AnyRoot_ (case class: a generalized root based on a _Rational_)
 
-As of V 1.0.2, _Root_ is a subclass of _InversePower_.
-The inverse power (which root) is a _Rational_ in the case of _InversePower_ but an _Int_ in the case of _Root_.
+As of V 1.0.2, _NthRoot_ is a subclass of _InversePower_.
+The inverse power (which root) is a _Rational_ in the case of _InversePower_ but an _Int_ in the case of _NthRoot_.
 
 These allow certain quantities to be expressed exactly, for example, $sin(\frac{\pi}{3})$ is the square root of $\frac{3}{4}$.
 The true (_Scalar_) values of the logarithmic numbers are
@@ -759,9 +759,9 @@ The hierarchy of _Expression_ (i.e., lazy) types is as follows (as of version V 
         * _ConstE_
         * _ConstI_
     * _Transcendental_ (trait) defining exact numbers with no other definition
-    * _ReducedQuadraticRoot_ (class: mildly deprecated: we could replace these quantities by _FieldExpressions_)
-      * _Phi_ (object: $\phi$, the Golden Ratio)
-      * _Psi_ (object: $\psi$, the conjugate of $\phi$)
+    * _Root_ 
+      * _phi_ (object: $\phi$, the Golden Ratio)
+      * _psi_ (object: $\psi$, the conjugate of $\phi$)
     * _Noop_ (object: not an expression)
   * _CompositeExpression_ (trait for any Expression that is defined by a tree of functions)
     * _BiFunction_ (case class: two expressions combined by a dyadic function--see below)
@@ -787,9 +787,10 @@ Other Types
 Other types (for reference):
 * _Factor_ (see above)
 * _Context_ (see above)
-* _Equation_ (trait defining an equation to be used in an _Algebraic_ quantity)
-  * _Quadratic_ (case class defining a monic quadratic equation)
-  * _LinearEquation_ (case class defining a monic linear equation)
+* _Multivalued_
+  * _Equation_ (trait defining an equation to be used in an _Algebraic_ quantity)
+    * _Quadratic_ (case class defining a monic quadratic equation)
+    * _LinearEquation_ (case class defining a monic linear equation)
 * _Fuzz_
   * _GeneralNumber_
   * _Number_
@@ -819,7 +820,7 @@ Other types (for reference):
 
 Versions
 ========
-* Version 1.2.8: Major restructuring: renamed old _Root_ as _NthRoot_.
+* Version 1.2.8: Major restructuring: renamed old _Root_ as _NthRoot_ and introduced new _Root_ which effectively replaced _ReducedQuadraticRoot_.
 * Version 1.2.7: Introduced dyadic _Log_ functions and, in general, renamed (natural) _log_ method as _ln_, allowing for new dyadic _log_ method.
   * Also, fixed various bugs and restructured the Expression classes.
 * Version 1.2.6: Added Transcendental Numbers.
