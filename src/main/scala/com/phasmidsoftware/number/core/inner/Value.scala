@@ -250,7 +250,8 @@ object Value {
     * @param v the value to be rendered.
     * @return a String.
     */
-  def valueToString(v: Value, exact: Boolean = true): String = (renderValue(v, exact), exact) match {
+  def valueToString(v: Value, skipOne: Boolean, exact: Boolean = true): String = (renderValue(v, exact), exact) match {
+    case (("1", true), _) if skipOne => ""
     case ((x, true), _) => x
     case ((x, _), false) => x
     case (x, false) => x.toString() + "*"

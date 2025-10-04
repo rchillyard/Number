@@ -5,10 +5,11 @@
 package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.core.Constants.sPhi
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.{maybeRational, negateConditional}
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.{Field, NumberException, algebraic}
+import com.phasmidsoftware.number.core.{Field, NumberException, Real, algebraic}
 import java.util.Objects
 
 /**
@@ -54,7 +55,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse toString
+  def render: String = maybeName getOrElse solve.render
 
   /**
     * Scales the current `Algebraic_Quadratic` instance by a given `Rational` value.
@@ -343,6 +344,28 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     transform((p, q) => p / q, (_, q) => q.invert)
 
   /**
+    * Computes the sum of the conjugates for this instance of `Quadratic`.
+    * The sum of conjugates is mathematically derived as the negation of the `p` coefficient
+    * in a quadratic equation of the form `x^2 + p*x + q = 0`.
+    *
+    * @return a `Rational` value representing the sum of conjugates.
+    */
+  def conjugateSum: Rational =
+    p.negate
+
+  /**
+    * Computes the product of the conjugate roots of the quadratic equation represented by this instance.
+    * The product of the conjugates is determined directly from the coefficients of the quadratic equation
+    * and is equivalent to the constant term divided by the leading coefficient.
+    *
+    * This is a special case of Vieta's formula for the product of the roots of a polynomial.
+    *
+    * @return a `Rational` value representing the product of the conjugate roots of the quadratic equation.
+    */
+  def conjugateProduct: Rational =
+    q
+
+  /**
     * Transforms the current instance of `Quadratic` by applying provided functions
     * to the `p` and `q` components.
     *
@@ -393,19 +416,55 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     copy(p = x * p, q = x * x * q)
 }
 
+/**
+  * The `Quadratic` object provides commonly used quadratic equations and utility methods related to them.
+  */
 object Quadratic {
-  val goldenRatioEquation: Quadratic = Quadratic(Rational.negOne, Rational.negOne)
+  /**
+    * Creates a quadratic equation whose solutions are plus or minus the square root of the given `Rational` number.
+    * The quadratic equation is defined as `Quadratic(0, -r)`, where the first term is zero
+    * and the second term is the negation of the input parameter.
+    *
+    * @param r the `Rational` number used as the coefficient for the square root equation.
+    * @return a `Quadratic` instance that represents the square root equation.
+    */
+  def squareRootEquation(r: Rational): Quadratic = Quadratic(Rational.zero, r.negate)
 
   /**
-    * Generates a string representation of the sign and the absolute value of the given rational number.
-    * The sign is determined based on the value of the input: a negative sign ("-") for negative numbers
-    * and a positive sign ("+") for non-negative numbers. The absolute value is appended to the sign.
-    * TODO move this into Field
-    *
-    * @param x the rational number whose sign and absolute value are to be rendered as a string
-    * @return a string in the format "+ n" or "- n", where "n" represents the absolute value of the input
+    * An approximation of the golden ratio (φ), which is an irrational number
+    * often encountered in mathematics, art, and nature. Its value is approximately
+    * 1.6180339887498948.
     */
-  def termSign(x: Field, add: Boolean = true): String = (if (add) if (x.signum < 0) "- " else "+ " else "") + x.abs.render
+  val phiApprox = Real(sPhi)
+  /**
+    * A predefined quadratic equation relating to the golden ratio.
+    * The equation is represented as `x² + x - 1 = 0`.
+    * The roots of this equation are the golden ratio (phi) and its conjugate (psi).
+    */
+  val goldenRatioEquation: Quadratic = Quadratic(Rational.negOne, Rational.negOne)
+  /**
+    * Represents the equation `x² - 2 = 0`, which defines the relationship for the square root of 2.
+    * This specific quadratic equation has the following form:
+    *
+    * `p = 0` (no linear term) and `q = -2` (constant term).
+    *
+    * Geometrically, this equation corresponds to a parabola, and its roots are at ±√2.
+    * The equation is a notable instance of a quadratic, useful in various mathematical contexts.
+    */
+  val rootTwoEquation: Quadratic = squareRootEquation(Rational.two)
+
+  /**
+    * Formats the sign and absolute value of a given Field instance as a String.
+    * The resulting string includes a sign ("+ " for positive or "- " for negative)
+    * if the `add` parameter is true, followed by the absolute value of the Field
+    * rendered as a String.
+    *
+    * @param x   the Field instance to be formatted.
+    * @param add a Boolean flag indicating whether to prepend a sign ("+ " or "- ") to the result;
+    *            defaults to true.
+    * @return a formatted String representation of the Field's sign and absolute value.
+    */
+  private def termSign(x: Field, add: Boolean = true): String = (if (add) if (x.signum < 0) "- " else "+ " else "") + x.abs.render
 }
 
 /**

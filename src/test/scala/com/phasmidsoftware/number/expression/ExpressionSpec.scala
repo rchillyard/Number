@@ -6,11 +6,13 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.inner.{Radian, SquareRoot}
+import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
+import com.phasmidsoftware.number.core.algebraic.Root.phi
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Root}
+import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
 import com.phasmidsoftware.number.expression
-import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, pi}
+import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.mill.{Expr, Stack}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
@@ -74,7 +76,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   // NOTE that the apply function always takes a Field and returns a Field. Not to be confused with applyExact.
-  behavior of "apply Function"
+  behavior of "apply UniFunction"
   it should "work for Negate" in {
     val f: Negate.type = Negate
     f(Constants.zero) shouldBe Constants.zero
@@ -111,17 +113,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     f(Constants.zero) shouldBe Constants.one
   }
 
-  behavior of "materialize Function"
+  behavior of "materialize UniFunction"
   it should "work for Exp(1)" in {
-    val x = expression.Function(One, Exp)
+    val x = expression.UniFunction(One, Exp)
     val result = x.materialize
     result shouldBe Constants.e
   }
   it should "work for Reciprocal" in {
-    expression.Function(Two, Reciprocal).materialize shouldBe Constants.half
+    expression.UniFunction(Two, Reciprocal).materialize shouldBe Constants.half
   }
   it should "work for Exp(Ln(2))" in {
-    val x = expression.Function(expression.Function(Two, Ln), Exp)
+    val x = expression.UniFunction(expression.UniFunction(Two, Ln), Exp)
     val result = x.materialize
     result shouldBe Constants.two
   }
@@ -275,10 +277,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Expression(1).depth shouldBe 1
     pi.depth shouldBe 1
   }
-  it should "be 2 for any Function expression" in {
-    expression.Function(1, Negate).depth shouldBe 2
-    expression.Function(1, Cosine).depth shouldBe 2
-    expression.Function(1, Sine).depth shouldBe 2
+  it should "be 2 for any UniFunction expression" in {
+    expression.UniFunction(1, Negate).depth shouldBe 2
+    expression.UniFunction(1, Cosine).depth shouldBe 2
+    expression.UniFunction(1, Sine).depth shouldBe 2
   }
   it should "be more than 1 for other expression" in {
     (ConstE * 2).depth shouldBe 2
@@ -325,14 +327,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "simplify field expressions" in {
     Expression(1).simplify shouldBe Expression(1)
     ConstPi.simplify shouldBe ConstPi
-    val simplify = Phi.simplify
+    val simplify = phi.simplify
     simplify shouldBe Expression(Algebraic.phi)
-    Phi.simplify.materialize should ===(1.618033988749895)
+    phi.simplify.materialize should ===(phiApprox)
   }
   it should "simplify function expressions" in {
-    expression.Function(expression.Function(One, Negate), Negate).simplify shouldBe One
-    expression.Function(Two, Reciprocal).simplify shouldBe Expression(Constants.half)
-    expression.Function(Constants.pi, Sine).simplify shouldBe Expression(Constants.zero)
+    expression.UniFunction(expression.UniFunction(One, Negate), Negate).simplify shouldBe One
+    expression.UniFunction(Two, Reciprocal).simplify shouldBe Expression(Constants.half)
+    expression.UniFunction(Constants.pi, Sine).simplify shouldBe Expression(Constants.zero)
   }
   it should "simplify biFunction expressions" in {
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).simplify shouldBe Zero
@@ -349,6 +351,27 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val target = (One * ConstPi * Two * MinusOne).simplify
     target shouldBe Expression(-2 * Constants.pi)
   }
+  it should "evaluate e * e" in {
+    val expression: Expression = ConstE * ConstE
+    expression.simplify shouldBe Literal(Real(ExactNumber(2, NatLog)))
+  }
+
+  it should "evaluate phi * phi" in {
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val expression: Expression = phi * phi
+    val simplified = expression.simplify
+    simplified.approximation.get.toDouble === 2.61803398875
+    simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(-3, 1), pos = true))
+  }
+
+  it should "evaluate 1 / phi" in {
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val expression: Expression = phi.reciprocal
+    val simplified = expression.simplify
+    println(s"simplified = $simplified")
+    simplified.approximation.get.toDouble === 0.61803398875
+    simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(1, -1), pos = true))
+  }
 
   behavior of "Sum"
   it should "add pi to -pi" in {
@@ -359,6 +382,24 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplify.materialize.asNumber shouldBe Some(Number.zeroR)
   }
 
+  behavior of "simplifyComposite"
+
+  it should "evaluate e * e" in {
+    val expression: Expression = ConstE * ConstE
+    val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
+    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
+    y shouldBe em.Match(BiFunction(ConstE, Literal(2), Power))
+    val simplified = y.get.simplify
+    simplified shouldBe Literal(Real(ExactNumber(2, NatLog)))
+  }
+
+  it should "evaluate phi * phi" in {
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val expression: Expression = phi * phi
+    val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
+    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
+    y shouldBe em.Match(BiFunction(phi, Literal(2), Power))
+  }
 
 //  behavior of "asAggregate"
 //  it should "aggregate 1" in {

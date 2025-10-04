@@ -35,11 +35,6 @@ trait Mill extends Iterable[Item] {
   def pop: (Option[Item], Mill)
 
   /**
-    * @return true if this Mill is empty.
-    */
-  def isEmpty: Boolean
-
-  /**
     * Method to evaluate this Mill.
     *
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.

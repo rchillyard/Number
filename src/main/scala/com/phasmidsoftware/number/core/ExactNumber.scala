@@ -80,8 +80,12 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   def simplify: Number = (factor, nominalValue) match {
     case (Logarithmic(_), Right(0)) =>
       Number.one
+    case (Euler, Right(1)) => // this is `e^i𝛑`, which equals `-1` by Euler's Identity
+      Number(-1)
+    case (Euler, Left(Right(Rational.half))) => // this is `e^i𝛑/2`, which equals `i` by Euler's Identity
+      Number.i
     // XXX this handles all roots (of which there are currently only SquareRoot and CubeRoot)
-    case (Root(n), v) =>
+    case (NthRoot(n), v) =>
       v match {
       case Right(x) =>
         (Rational.squareRoots.get(x) map (make(_, PureNumber))).getOrElse(this)
@@ -197,6 +201,14 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
+    *
+    * @return an Int which is negative, zero, or positive according to the magnitude of this.
+    */
+  def signum: Int =
+    Number.signum(this)
+
+  /**
+    * Method to determine the sense of this number: negative, zero, or positive.
     * If this `FuzzyNumber` cannot be distinguished from zero with `p` confidence, then
     * the result will be zero.
     *
@@ -221,7 +233,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
    *
    * @return the String representation of this ExactNumber.
    */
-  override def render: String = factor match {
+  def render: String = factor match {
     case SquareRoot =>
       val sb = new StringBuilder()
       sb.append(SquareRoot.render(nominalValue))
@@ -243,10 +255,12 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     case _ =>
       val sb = new StringBuilder()
       factor match {
+        case Euler =>
+          sb.append(s"e^i${Value.valueToString(nominalValue, skipOne = true)}𝛑")
         case Logarithmic(_) =>
           sb.append(factor.render(nominalValue))
         case Scalar(_) =>
-          sb.append(Value.valueToString(nominalValue))
+          sb.append(Value.valueToString(nominalValue, skipOne = false))
           sb.append(factor.toString)
         case InversePower(_) =>
           sb.append(factor.render(nominalValue))

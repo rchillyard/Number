@@ -16,7 +16,7 @@ case class Cicada(next: Int, period: Int) extends (Int => Boolean) {
     * @param x the year given
     * @return true if this Cicada brood will emerge in year x
     */
-  override def apply(x: Int): Boolean = period |> (x - next)
+  def apply(x: Int): Boolean = period |> (x - next)
 }
 
 /**

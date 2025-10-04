@@ -164,27 +164,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   }
 
   /**
-    * Method to compute the result of raising a complex number, represented in polar form,
-    * to a rational power. This involves converting the given power to a rational, computing
-    * the radial component raised to the power, and resolving the appropriate branch for the
-    * result based on the total number of branches `w`.
-    *
-    * @param n  the power to which the complex number is raised.
-    * @param re the radial component (magnitude) of the complex number in polar form.
-    * @param im the angular component (argument) of the complex number in polar form.
-    * @param w  the number of branches to consider for the result, typically used for
-    *           handling multi-valued functions like roots in the complex plane.
-    */
-  private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = recover(
-    for {
-      z <- n.toNominalRational
-      r = re power n
-      branches <- (z.invert * w).maybeInt
-    } yield ComplexPolar(r, im.doMultiple(z), branches),
-    ComplexException("logic error: power")
-  )
-
-  /**
    * Raise this Complex to the power p.
    *
    * @param p a Number.
@@ -346,6 +325,27 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       }
       s"${sign}i${x.abs.render}"
   }
+
+  /**
+    * Method to compute the result of raising a complex number, represented in polar form,
+    * to a rational power. This involves converting the given power to a rational, computing
+    * the radial component raised to the power, and resolving the appropriate branch for the
+    * result based on the total number of branches `w`.
+    *
+    * @param n  the power to which the complex number is raised.
+    * @param re the radial component (magnitude) of the complex number in polar form.
+    * @param im the angular component (argument) of the complex number in polar form.
+    * @param w  the number of branches to consider for the result, typically used for
+    *           handling multi-valued functions like roots in the complex plane.
+    */
+  private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = recover(
+    for {
+      z <- n.toNominalRational
+      r = re power n
+      branches <- (z.invert * w).maybeInt
+    } yield ComplexPolar(r, im.doMultiple(z), branches),
+    ComplexException("logic error: power")
+  )
 }
 
 /**
@@ -539,7 +539,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
    */
   def doAdd(complex: Complex): BaseComplex = complex match {
     case ComplexCartesian(a, b) =>
-      // FIXME we should not be relying on expression package here.
+      // CONSIDER we should not be relying on expression package here.
       import com.phasmidsoftware.number.expression.Expression.ExpressionOps
       // TODO replace materialize with evaluateAsIs and do the appropriate things below (a for-comprehension).
       val partA = Literal(x).+(Real(a)).materialize
@@ -549,6 +549,13 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
       doAdd(convertToCartesian(c))
   }
 
+  /**
+    * Computes the square of a complex number represented in Cartesian form.
+    * The result is a new `ComplexCartesian` value obtained by applying the formula:
+    * (x^2 - y^2, 2xy), where `x` and `y` are the real and imaginary parts respectively.
+    *
+    * @return a `ComplexCartesian` instance representing the square of the original complex number.
+    */
   def square: ComplexCartesian =
     ComplexCartesian(x.doPower(Number.two) doSubtract y.doPower(Number.two), x doMultiply y doMultiply Number.two)
 
@@ -945,14 +952,14 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
 object ComplexPolar {
   /**
    * Creates a ComplexPolar object based on the provided magnitude.
-   * If the input number has a root (Root), it calculates using the root and sets a default angle.
+    * If the input number has a root (NthRoot), it calculates using the root and sets a default angle.
    * Otherwise, it uses zero as the angle.
    *
    * @param r a Number representing the magnitude of the ComplexPolar object
    * @return a ComplexPolar object with the specified magnitude and calculated or default angle
    */
   def apply(r: Number): ComplexPolar = r match {
-    case Number(_, Root(n)) =>
+    case Number(_, NthRoot(n)) =>
       apply(r, Number.zeroR, n)
     case _ =>
       apply(r, Number.zeroR)

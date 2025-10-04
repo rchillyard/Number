@@ -70,7 +70,7 @@ The current version is 1.2.5. Here's a summary of what's new since 1.2.1:
   * These represent solutions to equations that cannot be represented precisely with one quantity
     * _Quadratic_ equations, for example, we can represent the Golden ratio $\phi$ exactly this way.
     * _Linear_ equations (these solutions can already be represented, but this is just for completeness)
-* The _Root_ domain has been restructured to be more general.
+* The _NthRoot_ (renamed from _Root_) domain has been restructured to be more general.
   * In addition to _SquareRoot_ and _CubeRoot_ (which were renamed from the ambiguous _Root2_ and _Root3_), there are
     more general roots based on a rational inverse power.
 * This _README.md_ file has been improved (including a logo, thanks to Zijie).
@@ -380,7 +380,7 @@ Additionally (see below), it is possible to define imaginary values on their own
 
 Algebraic
 =======
-An _Algebraic_ is a root of some polynomial function.
+An _Algebraic_ is a particular root of some polynomial function.
 It has an equation attribute (of type _Equation_) and a branch attribute (where the number of branches is the degree of the polynomial).
 In order to realize an _Algebraic_ as an actual numerical value (or _String_), you must solve it and thus create s
 _Solution_.
@@ -392,6 +392,8 @@ An _Algebraic_ is considered an exact value, although rendering it in decimal fo
 An _Algebraic_ extends _Field_ so can be operated on as any other field.
 Additionally, there are other operations, unique to _Algebraic_, that allow exact transformations.
 Examples include scale, negate, add, multiply, etc.
+
+_Algebraic_ is a parallel concept to _Complex_ (and _Real_).
 
 The hierarchy of _Algebraic_ is (currently) as follows:
 * _Algebraic_
@@ -417,13 +419,13 @@ The hierarchy of _Factor_ is as follows:
     * _Log2_ (object: $\log_2$)
     * _Log10_ (object: $\log_{10}$)
   * _InversePower_ (trait: all the roots)
-    * _Root_ (abstract class)
+    * _NthRoot_ (abstract class)
       * _SquareRoot_ (object: the domain of square roots)
       * _CubeRoot_ (object: the domain of cube roots)
     * _AnyRoot_ (case class: a generalized root based on a _Rational_)
 
-As of V 1.0.2, _Root_ is a subclass of _InversePower_.
-The inverse power (which root) is a _Rational_ in the case of _InversePower_ but an _Int_ in the case of _Root_.
+As of V 1.0.2, _NthRoot_ is a subclass of _InversePower_.
+The inverse power (which root) is a _Rational_ in the case of _InversePower_ but an _Int_ in the case of _NthRoot_.
 
 These allow certain quantities to be expressed exactly, for example, $sin(\frac{\pi}{3})$ is the square root of $\frac{3}{4}$.
 The true (_Scalar_) values of the logarithmic numbers are
@@ -722,7 +724,6 @@ Note that the type hierarchy is very likely to change in version 1.3
     * _LinearSolution_ (case class: a linear solution)
     * _QuadraticSolution_ (case class: a quadratic solution)
   * _Expression_ (trait: lazy numeric quantities: see below)
-  * _Transcendental_ (trait) defining exact numbers with no other definition
 * _Series_ (trait)
   * _AbstractSeries_
     * _FiniteSeries_
@@ -741,7 +742,7 @@ even though it might not be possible to represent it exactly using
 base-10 (or base-2) notation.
 Obviously, we could represent $\pi$ exactly if we wrote it in base-$\pi$ notation.
 
-The hierarchy of _Expression_ types is as follows (as of version V 1.2.2):
+The hierarchy of _Expression_ (i.e., lazy) types is as follows (as of version V 1.2.8):
 * _Expression_ (trait: all lazy _NumberLike_ objects)
   * _AtomicExpression_ (trait: a single exact number)
     * _FieldExpression_ (abstract class)
@@ -757,15 +758,15 @@ The hierarchy of _Expression_ types is as follows (as of version V 1.2.2):
         * _Infinity_
         * _ConstE_
         * _ConstI_
-    * _ReducedQuadraticRoot_ (class: mildly deprecated: we could replace these quantities by _FieldExpressions_)
-      * _Phi_ (object: $\phi$, the Golden Ratio)
-      * _Psi_ (object: $\psi$, the conjugate of $\phi$)
+    * _Transcendental_ (trait) defining exact numbers with no other definition
+    * _Root_ 
+      * _phi_ (object: $\phi$, the Golden Ratio)
+      * _psi_ (object: $\psi$, the conjugate of $\phi$)
     * _Noop_ (object: not an expression)
   * _CompositeExpression_ (trait for any Expression that is defined by a tree of functions)
     * _BiFunction_ (case class: two expressions combined by a dyadic function--see below)
     * _Function_ (case class: one expression modified by a function--see below)
     * _Aggregate_ (case class: similar to _BiFunction_ but with multiple expressions all combined by the same dyadic function)
-* _Transcendental_ (trait defining an Expression)
 * _ExpressionFunction_ (trait)
   * _ExpressionBiFunction_ (trait used in _BiFunction_ (above))
     * _Atan_
@@ -786,9 +787,10 @@ Other Types
 Other types (for reference):
 * _Factor_ (see above)
 * _Context_ (see above)
-* _Equation_ (trait defining an equation to be used in an _Algebraic_ quantity)
-  * _Quadratic_ (case class defining a monic quadratic equation)
-  * _LinearEquation_ (case class defining a monic linear equation)
+* _Multivalued_
+  * _Equation_ (trait defining an equation to be used in an _Algebraic_ quantity)
+    * _Quadratic_ (case class defining a monic quadratic equation)
+    * _LinearEquation_ (case class defining a monic linear equation)
 * _Fuzz_
   * _GeneralNumber_
   * _Number_
@@ -818,6 +820,7 @@ Other types (for reference):
 
 Versions
 ========
+* Version 1.2.8: Major restructuring: renamed old _Root_ as _NthRoot_ and introduced new _Root_ which effectively replaced _ReducedQuadraticRoot_.
 * Version 1.2.7: Introduced dyadic _Log_ functions and, in general, renamed (natural) _log_ method as _ln_, allowing for new dyadic _log_ method.
   * Also, fixed various bugs and restructured the Expression classes.
 * Version 1.2.6: Added Transcendental Numbers.
@@ -830,7 +833,7 @@ Versions
   - In particular:
   - ExpressionMatchers has undergone a complete re-write.
   - Solution has been added as a Field type (with RQR as a subtype of Solution).
-  - Root classes have been refactored (now based on InversePower).
+  - NthRoot classes have been refactored (now based on InversePower).
   -
 * Version 1.1.1: Massive refactoring: fixed many issues. Most significantly, expressions are evaluated in the context of a Factor.
 * Version 1.1.0: Significant refactoring:
@@ -840,7 +843,7 @@ Versions
 * Version 1.0.16: Added C-interpolator for Complex objects; various other fixes, including radian values now range from -$\pi$ to $\pi$.
 * Version 1.0.15: Significant improvements to the rendering of rational numbers.
 * Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
-* Version 1.0.13: Mostly cleanup together with some fixes related to Root factors and rendering of fuzziness.
+* Version 1.0.13: Mostly cleanup together with some fixes related to NthRoot factors and rendering of fuzziness.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
 * Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.
 * Version 1.0.10: Many improvements and fixes:
@@ -865,3 +868,21 @@ Future Upgrades
 ===============
 We intend to restructure the hierarchy of numeric types entirely.
 The traits and classes should strictly follow the mathematical concepts of field, ring, etc.
+To begin, the hierarchy should look like this:
+
+* _Expression_ (trait that is the root of all lazy values with the key method being _evaluate(Context)_: _Option\[Field]_
+  * _AtomicExpression_ (as now but with _ReducedQuadraticRoot_ being completely replaced by _Algebraic_)
+    * _Algebraic_ (quadratic, linear, equations, etc.) (as now, but with _solve_ changed to _evaluate_)
+  * _BiFunction_ (as now)
+  * _Function_ (renamed as MonoFunction, perhaps?) (as now)
+  * _Aggregate_ (more or less as now but with _PowerSeries_ included--such that the length of the components may or may not be known)
+    * _PowerSeries_ (as now, but extending _Aggregate_, and with an additional method _apply(X)_)
+  * _Transcendental_ (as now but extends _Expression_)
+* _Field_ (as now, but with _Solution_ and _Series_ included)
+  * _Real_ (as now a single _Number_)
+  * _BranchedField_ (similar to _Multivariate_ in that there are multiple solutions or branches--these are the solutions to _Algebraic_s)
+    * _Complex_ (as now with two _Number_ fields--real and imaginary--conceivably, we might merge _Complex_ and _Solution_ and insist that the imaginary aspect of a _Number_ is represented in the _Number_ itself)
+    * _Solution_ (with real roots)
+  * _Series_
+
+

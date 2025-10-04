@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.misc.Factorial
 
 /**
-  * A representation of a mathematical power series which is an infinite sum of terms expressed as powers of a variable.
+  * A representation of a mathematical power series which is the sum of a finite or infinite sequence terms expressed as powers of a variable.
   */
 trait PowerSeries[X, Y] extends (X => Series[Y]) {
 

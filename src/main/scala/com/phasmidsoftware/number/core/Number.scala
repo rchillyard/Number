@@ -78,6 +78,15 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def simplify: Number
 
   /**
+    * Method to determine the sense of this number: negative, zero, or positive.
+    * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
+    *
+    * @param p the confidence desired.
+    * @return an Int which is negative, zero, or positive according to the magnitude of this.
+    */
+  def signum(p: Double): Int
+
+  /**
     * Method to apply a function to this Number.
     *
     * @param f      a function Double=>Double.
@@ -487,15 +496,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def signum: Int
 
   /**
-    * Method to determine the sense of this number: negative, zero, or positive.
-    * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
-    *
-    * @param p the confidence desired.
-    * @return an Int which is negative, zero, or positive according to the magnitude of this.
-    */
-  def signum(p: Double): Int
-
-  /**
     * Method to yield the absolute value of this Number.
     *
     * @return this if its positive, else - this.
@@ -902,7 +902,8 @@ object Number {
 
   /**
     * Implicit converter from Expression to Number.
-    * FIXME we should not be relying on expression package here.
+    * CONSIDER we should try to move this implicit converter into Expression...
+    * but be warned--it's not easy!
     *
     * @param x the Expression to be converted.
     * @return the equivalent exact Number.
@@ -1311,6 +1312,8 @@ object Number {
       else if (x == Number.NaN || y == Number.NaN) throw NumberException("cannot compare NaN with non-NaN")
       else if (x.factor == NatLog && y.factor == NatLog)
         compare(x.make(PureNumber), y.make(PureNumber)) // TESTME why do we need to convert to PureNumber?
+      else if (x.factor == Euler && y.factor == Euler)
+        compare(x.make(Radian), y.make(Radian)) // TESTME why do we need to convert to Radian?
       else {
         // CONSIDER invoking the compare method in GeneralNumber.
         GeneralNumber.plus(x, Number.negate(y)).signum
@@ -1366,20 +1369,20 @@ object Number {
         prepare(n.transformMonadic(factor)(MonadicOperationExp))
       case (PureNumber, NatLog) =>
         prepare(n.transformMonadic(factor)(MonadicOperationLog))
-      case (Root(_), PureNumber) if Value.signum(n.nominalValue) < 0 =>
+      case (NthRoot(_), PureNumber) if Value.signum(n.nominalValue) < 0 =>
         // CONSIDER we should handle i, the imaginary number here
         Number.NaN
       case (SquareRoot, PureNumber) =>
         prepare(n.transformMonadic(factor)(MonadicOperationSqrt)) // CONSIDER use of convert
       case (InversePower(r), PureNumber) =>
         prepare(n.composeDyadic(r.invert, factor)(DyadicOperationPower)) // CHECK that this handles fuzz correctly
-      case (NatLog, Scalar(_)) | (Scalar(_), NatLog) | (Logarithmic(_), Root(_)) =>
+      case (NatLog, Scalar(_)) | (Scalar(_), NatLog) | (Logarithmic(_), NthRoot(_)) =>
         scale(scale(n, PureNumber), factor)
       case (PureNumber, Logarithmic(_)) =>
         scale(scale(n, NatLog), factor)
-      case (PureNumber, Root(f)) =>
+      case (PureNumber, NthRoot(f)) =>
         convertScalarToRoot(n, factor, f)
-      case (Root(f), NatLog) =>
+      case (NthRoot(f), NatLog) =>
         convertRootToNatLog(n, factor, f)
       case (Scalar(_), Scalar(_)) =>
         prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
@@ -1392,6 +1395,9 @@ object Number {
           case _ =>
             prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
         }
+      case (Euler, _) | (_, Euler) =>
+        throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
+//        n // CONSIDER will this cause problems? Should we throw an Exception instead?
       case (Logarithmic(_), Scalar(_)) =>
         scale(scale(n, NatLog), factor)
       case (InversePower(_), Logarithmic(_)) =>
@@ -1418,7 +1424,7 @@ object Number {
     x.factor match {
       case p@Scalar(_) =>
         prepare(x.transformMonadic(p)(MonadicOperationNegate))
-      case Root(_) if Value.signum(x.nominalValue) < 0 =>
+      case NthRoot(_) if Value.signum(x.nominalValue) < 0 =>
         throw NumberException(s"cannot negate imaginary number: $x")
       case _ =>
         negate(x.scale(PureNumber))
@@ -1433,7 +1439,7 @@ object Number {
   def inverse(x: Number): Number = x.factor match {
     case PureNumber =>
       prepare(x.transformMonadic(PureNumber)(MonadicOperationInvert))
-    case f@Root(_) =>
+    case f@NthRoot(_) =>
       f.invert(x.nominalValue) match {
         case Some((v, f, _)) =>
           ExactNumber(v, f)
@@ -1520,22 +1526,24 @@ object Number {
   def log(x: Number): Field = x.factor match {
     case NatLog =>
       Real(x.make(PureNumber).simplify)
+    case Euler =>
+      ComplexPolar(Number.one, x.make(Radian).simplify)
     case PureNumber =>
       log(x.scale(NatLog))
     case SquareRoot if x.signum < 0 =>
       ComplexPolar(x.make(PureNumber).makeNegative, piBy2, 2).ln
-    case Root(r) if x.signum > 0 =>
+    case NthRoot(r) if x.signum > 0 =>
       Real(log(x.make(PureNumber)) divide Real(r))
     case _ =>
       log(x.scale(PureNumber))
   }
 
   /**
-    * Yield the exponential of x i.e. e to the power of x.
-    * If the factor is PureNumber, then we force the factor to be NatLog and simplify.
-    * Otherwise, we convert to a PureNumber number and call exp recursively.
+    * Yield the exponential of x i.e., e to the power of x.
+    * If the factor is `PureNumber`, then we force the factor to be `NatLog` and simplify.
+    * Otherwise, we convert to a `PureNumber` number and call `exp` recursively.
     *
-    * @param x a Number whose factor is NatLog.
+    * @param x a (real) Number whose factor is NatLog.
     * @return the value of e raised to the power of x.
     */
   @tailrec
@@ -1567,9 +1575,9 @@ object Number {
     * @return either x or a number equivalent to x with value in defined range.
     */
   def modulate(x: Number): Number = x.factor match {
-    case f@Radian =>
+    case Radian | Euler =>
       // CONSIDER using f.modulate(...)
-      prepare(x.transformMonadic(f)(MonadicOperationModulate(-1, 1, circular = false)))
+      prepare(x.transformMonadic(x.factor)(MonadicOperationModulate(-1, 1, circular = false)))
     case _ =>
       x
   }

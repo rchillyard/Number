@@ -2,9 +2,8 @@ package com.phasmidsoftware.number.applications
 
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.{one, root5, two}
-import com.phasmidsoftware.number.core.Real.convertFromNumber
 import com.phasmidsoftware.number.core._
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Root}
 import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -32,17 +31,16 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     actual shouldBe "2.6180339887498950(55)"
   }
   it should "render phi+1 as an Expression" in {
-    val target: Expression = Phi plus One
-    target.toString shouldBe "BiFunction{\uD835\uDED7 + 1}"
+    val target: Expression = Root.phi plus One
+    target.simplify.toString shouldBe "BiFunction{\uD835\uDED7 + 1}"
     val simplified = target.simplify
     println(simplified)
-    simplified should matchPattern { case Literal(Algebraic_Quadratic(_, _, _), _) => }
-//    simplified.materialize should matchPattern { case Algebraic_Quadratic(_, _, _) => }
+    simplified should matchPattern { case BiFunction(`phi`, One, Sum) => }
     simplified.materialize should ===(2.618033988749895)
   }
 
-  val psi: Expression = Psi //(Expression(Constants.one) - Constants.root5) / Constants.two
-  val phi: Expression = Phi // (Expression(Constants.one) plus Constants.root5) / Constants.two
+  val psi: Expression = Root.psi //(Expression(Constants.one) - Constants.root5) / Constants.two
+  val phi: Expression = Root.phi // (Expression(Constants.one) plus Constants.root5) / Constants.two
 
 
   it should "fib0" in {
@@ -92,6 +90,10 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   }
 
   it should "psiFuzzy" in {
+    import scala.language.implicitConversions
+
+    implicit def convertFromNumber(x: Number): Field = Real(x)
+
     val expected: Field = (one - root5) / two
     val actual: Field = Fibonacci.psi.materialize
     actual should ===(expected)

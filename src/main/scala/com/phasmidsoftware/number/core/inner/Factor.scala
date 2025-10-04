@@ -98,7 +98,7 @@ sealed trait Factor {
     * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
     * If the factors are incompatible, then None will be returned.
     *
-    * NOTE: only Scalar<->Scalar, Root<->Root or Logarithmic<->Logarithmic conversions can be effected.
+    * NOTE: only Scalar<->Scalar, NthRoot<->NthRoot or Logarithmic<->Logarithmic conversions can be effected.
     *
     * @param v the value to be converted.
     * @param f the factor of the result.
@@ -120,7 +120,7 @@ sealed trait Factor {
     * @return a String.
     */
   def render(x: Value): String =
-    render(valueToString(x))
+    render(valueToString(x, skipOne = false))
 
   /**
     * Method to render a Value (which has already been converted to a String) in the context of this Factor.
@@ -312,7 +312,8 @@ object Scalar {
 }
 
 /**
-  * Trait to define a Factor which is a scaled version of the natural log.
+  * Trait to define a `Factor` which indicates that the true value of a Number with this `Factor`
+  * is the base raised to the power of the (nominal) `Value`.
   */
 sealed trait Logarithmic extends Factor {
   /**
@@ -693,22 +694,22 @@ sealed trait InversePower extends Factor {
     */
   def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
     (this, f) match {
-    case (Root(r), PureNumber) =>
-      clean(for {
-        a <- Value.maybeRational(x)
-        b <- Value.maybeRational(y)
-        z = a * (b ∧ r) if b.signum > 0
-      } yield (Value.fromRational(z), this, None))
-    case (Root(r), Root(s)) =>
-      clean(multiplyRootValues(x, r, y, s))
-    case (_, Log2) =>
-      clean(for {
-        z <- Log2.asPureValue(y)
-        q <- multiply(x, z, PureNumber)
-      } yield q)
-    case _ =>
-      None
-  }
+      case (NthRoot(r), PureNumber) =>
+        clean(for {
+          a <- Value.maybeRational(x)
+          b <- Value.maybeRational(y)
+          z = a * (b ∧ r) if b.signum > 0
+        } yield (Value.fromRational(z), this, None))
+      case (NthRoot(r), NthRoot(s)) =>
+        clean(multiplyRootValues(x, r, y, s))
+      case (_, Log2) =>
+        clean(for {
+          z <- Log2.asPureValue(y)
+          q <- multiply(x, z, PureNumber)
+        } yield q)
+      case _ =>
+        None
+    }
 
   /**
     * Multiplies the root values of two given `Value` objects based on their respective root degrees.
@@ -747,7 +748,7 @@ sealed trait InversePower extends Factor {
     *         representing the computed value if the operation is valid, or `None` otherwise
     */
   def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] = this match {
-    case Root(r) =>
+    case NthRoot(r) =>
       for {
         q: Rational <- Value.maybeRational(y)
         z = q / r
@@ -793,16 +794,16 @@ sealed trait InversePower extends Factor {
 }
 
 /**
-  * Companion object for the `Root` trait, providing utility methods for working with `Root` instances.
+  * Companion object for the `NthRoot` trait, providing utility methods for working with `NthRoot` instances.
   */
 object InversePower {
   /**
-    * Extractor method to retrieve the root degree from a `Root` instance.
+    * Extractor method to retrieve the root degree from a `NthRoot` instance.
     *
     * This method is used for pattern matching to extract the integer root degree
-    * associated with the given `Root` object.
+    * associated with the given `NthRoot` object.
     *
-    * @param arg the `Root` instance from which to extract the root degree.
+    * @param arg the `NthRoot` instance from which to extract the root degree.
     * @return an `Option` containing the root degree as an `Int`, or `None` if the extraction fails.
     */
   def unapply(arg: InversePower): Option[Rational] = Some(arg.inversePower)
@@ -812,17 +813,17 @@ object InversePower {
   * Represents an abstract base class for mathematical root operations by extending `InversePower`.
   *
   * A number with value `x` and factor `InversePower(n)` represents the `nth` root of `x` where `n` is a `Rational`.
-  * For example, `ExactNumber(5, SquareRoot)` is the square root of 5, where `SquareRoot` is an alias for `Root(2)`.
+  * For example, `ExactNumber(5, SquareRoot)` is the square root of 5, where `SquareRoot` is an alias for `NthRoot(2)`.
   *
-  * The `Root` class encapsulates the concept of a mathematical `nth` root and provides
+  * The `NthRoot` class encapsulates the concept of a mathematical `nth` root and provides
   * methods to retrieve the degree of the root.
   * It is intended to be extended by concrete implementations that define specific behaviors
   * for inverse power computation.
   *
-  * @constructor Creates a new instance of the `Root` class with the specified root degree.
+  * @constructor Creates a new instance of the `NthRoot` class with the specified root degree.
   * @param root the integer value representing the nth root degree.
   */
-abstract class Root(val root: Int) extends InversePower {
+abstract class NthRoot(val n: Int) extends InversePower {
 
   /**
     * Retrieves the root degree represented by this factor in the form of a Rational.
@@ -833,11 +834,11 @@ abstract class Root(val root: Int) extends InversePower {
     *
     * @return the integer value of the root degree.
     */
-  def inversePower: Rational = root
+  def inversePower: Rational = n
 
   /**
     * Converts a given Value `v` from one Factor `this` to another Factor `f`, if possible.
-    * Specifically handles cases where the target factor `f` is of type Root.
+    * Specifically handles cases where the target factor `f` is of type NthRoot.
     *
     * @param v the value to be converted.
     * @param f the target factor for the conversion.
@@ -845,8 +846,8 @@ abstract class Root(val root: Int) extends InversePower {
     *         conversion is not possible.
     */
   def convert(v: Value, f: Factor): Option[Value] = f match {
-    case Root(z) =>
-      val po = this.raise(v, Value.fromRational(Rational(z, root)), PureNumber)
+    case NthRoot(z) =>
+      val po = this.raise(v, Value.fromRational(Rational(z, n)), PureNumber)
       (po map {
         case (x, _, _) =>
           x
@@ -869,10 +870,10 @@ abstract class Root(val root: Int) extends InversePower {
   override def canRaise(f: Factor, exponent: Field): Boolean = f match {
     case PureNumber =>
       exponent match {
-        case Real(n: Number) =>
-          n.isInteger && {
-            val x = n.toInt.get
-            x > 0 && x % root == 0
+        case Real(z: Number) =>
+          z.isInteger && {
+            val x = z.toInt.get
+            x > 0 && x % n == 0
           }
         case _ =>
           false
@@ -890,8 +891,8 @@ abstract class Root(val root: Int) extends InversePower {
     * @return true if the factors can be multiplied; false otherwise.
     */
   def canMultiply(f: Factor): Boolean = f match {
-    case x: Root =>
-      x.root == this.root
+    case x: NthRoot =>
+      x.n == this.n
     case _ =>
       false
   }
@@ -899,19 +900,19 @@ abstract class Root(val root: Int) extends InversePower {
 }
 
 /**
-  * Represents the companion object for the `Root` class.
+  * Represents the companion object for the `NthRoot` class.
   *
-  * Provides utility functionality related to `Root`, including methods for
-  * matching and extracting values from instances of the `Root` type.
+  * Provides utility functionality related to `NthRoot`, including methods for
+  * matching and extracting values from instances of the `NthRoot` type.
   */
-object Root {
+object NthRoot {
   /**
-    * Extracts the root integer value encapsulated in the given `Root` instance.
+    * Extracts the root integer value encapsulated in the given `NthRoot` instance.
     *
-    * @param r the `Root` instance from which the integer value is to be extracted.
+    * @param r the `NthRoot` instance from which the integer value is to be extracted.
     * @return an `Option` containing the root integer if extraction is successful, or `None` if not.
     */
-  def unapply(r: Root): Option[Int] = Some(r.root)
+  def unapply(r: NthRoot): Option[Int] = Some(r.n)
 }
 
 /**
@@ -1125,6 +1126,36 @@ case object NatLog extends Logarithmic {
 }
 
 /**
+  * This factor allows the representation of quantities of the form `e power ix`.
+  *
+  * NOTE: A number in factor Euler will evaluate as e raised to (`i` times that power).
+  * So, the `value` is the natural log of the evaluation.
+  *
+  * We call this Euler because it is used in Euler's formula [[https://en.wikipedia.org/wiki/Euler's_formula]].
+  * However, let the record state that Roger Cotes, an English mathematician, used this quantity before Euler
+  * [[https://en.wikipedia.org/wiki/Euler's_formula#History]].
+  *
+  * Thus the range of such values is subject to the same modulation as Radian.
+  */
+case object Euler extends Logarithmic {
+  /**
+    * Represents the base symbol used for the `NatLog` factor.
+    *
+    * The symbol is defined as the mathematical constant `ℯ` to the power `i`.
+    * This constant is used to indicate the base of the imaginary natural logarithm
+    * and is sourced from the `Factor` object.
+    */
+  val base: String = Factor.sEi
+
+  /**
+    * Represents the default value for the `Euler` factor. Should not be used.
+    */
+  val value: Double = 1.0
+
+  override def toString: String = Factor.sEi
+}
+
+/**
   * Object representing the logarithm to base 2.
   *
   * This object extends the `Logarithmic` trait and provides specific functionality
@@ -1199,7 +1230,7 @@ case object Log10 extends Logarithmic {
 /**
   * This object represents the square root factor.
   */
-case object SquareRoot extends Root(2) {
+case object SquareRoot extends NthRoot(2) {
 
   override def toString: String = "√"
 
@@ -1219,12 +1250,12 @@ case object SquareRoot extends Root(2) {
     * @return an Option containing the concatenated string representation of the root
     *         and the value, or None if the string construction is unsuccessful.
     */
-  def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value)}")
+  def asRoot(value: Value): Option[String] = Some(s"$toString${valueToString(value, skipOne = false)}")
 
   /**
     * Raises the value `x` to the power of the value `y`.
     *
-    * TODO move this up into Root.
+    * TODO move this up into NthRoot.
     *
     * @param x the base value to be raised
     * @param y the exponent value (from a PureNumber)
@@ -1233,12 +1264,12 @@ case object SquareRoot extends Root(2) {
     */
   override def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
     Value.maybeInt(y) match {
-      case Some(`root`) =>
+      case Some(`n`) =>
         Some((x, PureNumber, None))
       case None =>
         for {
           p <- Value.maybeRational(y)
-          z = p / root
+          z = p / n
           q <- composeDyadic(x, Value.fromRational(z.n))(DyadicOperationPower)
         } yield (q, AnyRoot(z.d), None)
       case _ =>
@@ -1299,7 +1330,7 @@ case object SquareRoot extends Root(2) {
 /**
   * This object represents the cube root factor.
   */
-case object CubeRoot extends Root(3) {
+case object CubeRoot extends NthRoot(3) {
 
   /**
     * Converts the object into its string representation.
@@ -1326,7 +1357,7 @@ case object CubeRoot extends Root(3) {
     */
   override def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
     y match {
-      case Right(`root`) =>
+      case Right(`n`) =>
         Some((x, PureNumber, None))
       case _ =>
         None
@@ -1340,7 +1371,7 @@ case object CubeRoot extends Root(3) {
     * @return an optional string representing the root concatenated with the value.
     */
   def asRoot(value: Value): Option[String] =
-    Some(s"$toString${valueToString(value)}")
+    Some(s"$toString${valueToString(value, skipOne = false)}")
 }
 
 /**
@@ -1361,7 +1392,7 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
     * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
     * If the factors are incompatible, then None will be returned.
     *
-    * NOTE: only Scalar<->Scalar, Root<->Root or Logarithmic<->Logarithmic conversions can be effected.
+    * NOTE: only Scalar<->Scalar, NthRoot<->NthRoot or Logarithmic<->Logarithmic conversions can be effected.
     *
     * @param v the value to be converted.
     * @param f the factor of the result.
@@ -1403,7 +1434,7 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
     * @return an optional string representing the root concatenated with the value.
     */
   def asRoot(value: Value): Option[String] =
-    Some(s"${valueToString(value)}$toString")
+    Some(s"${valueToString(value, skipOne = false)}$toString")
 }
 
 /**
@@ -1425,6 +1456,15 @@ object Factor {
     * Represents the Unicode character ℯ (𝜀), which is commonly used to denote Euler's number in mathematics.
     */
   val sE = "\uD835\uDF00"
+  /**
+    * Represents the Unicode sequence for the mathematical constant ℯ
+    * combined with a modifier character.
+    *
+    * The value is a combination of:
+    * - The Unicode character for ℯ (U+1D700)
+    * - A modifier character (U+02E3)
+    */
+  val sEi = "\uD835\uDF00\u2071"
   /**
     * Represents the symbol for π (pi) in unicode format.
     * This constant can be used to identify and match the mathematical symbol π
@@ -1474,6 +1514,8 @@ object Factor {
       Radian
     case `sE` =>
       NatLog
+    case `sEi` =>
+      Euler
     case _ =>
       PureNumber
   }

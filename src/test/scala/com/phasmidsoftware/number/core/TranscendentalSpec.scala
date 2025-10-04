@@ -14,26 +14,26 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Transcendental"
 
   it should "evaluate pi" in {
-    Pi.evaluate shouldBe Some(Constants.pi)
+    Pi.evaluateAsIs shouldBe Some(Constants.pi)
   }
   it should "evaluate e" in {
-    E.evaluate shouldBe Some(Constants.e)
+    E.evaluateAsIs shouldBe Some(Constants.e)
   }
   it should "evaluate l2" in {
-    L2.evaluate shouldBe None
+    L2.evaluateAsIs shouldBe None
     L2.asNumber should matchPattern { case Some(FuzzyNumber(_, _, _)) => }
     L2.asNumber map (_.render) shouldBe Some("0.6931471805599453±0.00000000000020%")
   }
   // Test for Issue #124
   it should "evaluate lg2e" in {
-    LgE.evaluate shouldBe None
+    LgE.evaluateAsIs shouldBe None
     (Two ^ LgE.expression).simplify shouldEqual ConstE
   }
   it should "evaluate gamma" in {
     val rational = Rational("7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000")
     val fuzz = AbsoluteFuzz(5.0E-51, Box)
     val value1 = Value.fromRational(rational)
-    EulerMascheroni.evaluate should matchPattern { case Some(Real(FuzzyNumber(`value1`, PureNumber, Some(`fuzz`)))) => }
+    EulerMascheroni.evaluateAsIs should matchPattern { case Some(Real(FuzzyNumber(`value1`, PureNumber, Some(`fuzz`)))) => }
     EulerMascheroni.asNumber map (_.render) shouldBe Some("0.5772156649015329*")
   }
   it should "expression pi" in {
@@ -47,14 +47,14 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "function 1" in {
-    val result = Pi.function(Sine).expression.simplify
+    val result = Pi.function(Sine).simplify
     val expected = Expression.zero
     result shouldEqual expected
   }
 
   it should "function 2" in {
     val natLog2 = L2
-    val result = natLog2.function(Exp).expression.simplify
+    val result = natLog2.function(Exp).simplify
     val expected = Expression.two
     result shouldEqual expected
   }

@@ -79,7 +79,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
       ExactNumber(nominalValue, factor).simplify
     case _ =>
       factor match {
-        case Root(_) => scale(PureNumber)
+        case NthRoot(_) => scale(PureNumber)
         case _ => this
       }
   }
@@ -141,7 +141,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  override def signum: Int =
+  def signum: Int =
     signum(0.5)
 
   /**
@@ -152,7 +152,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   def signum(p: Double): Int =
-    if (isProbablyZero(p)) 0 else super.signum
+    if (isProbablyZero(p)) 0 else Number.signum(this)
 
   /**
     * @param p the confidence desired. Ignored if isZero is true.
@@ -185,7 +185,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return a String representation of this FuzzyNumber.
     */
-  override def render: String = toString
+  def render: String = toString
 
   /**
     * Render this FuzzyNumber in String form, including the factor, and the fuzz.
@@ -196,7 +196,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     */
   override def toString: String = {
     val sb = new mutable.StringBuilder()
-    lazy val valueAsString = Value.valueToString(nominalValue, fuzz.isEmpty)
+    lazy val valueAsString = Value.valueToString(nominalValue, skipOne = false, exact = fuzz.isEmpty)
     val z = fuzz match {
       // CONSIDER will the following test work in all cases?
       case Some(f) if f.wiggle(0.5) > 1E-16 =>

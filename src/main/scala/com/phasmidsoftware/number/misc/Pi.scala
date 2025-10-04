@@ -20,7 +20,7 @@ object Pi extends App {
     zs take n filter (radius(_) < 1)
   }
 
-  def calculatePi(n: Int)(implicit r: Random): Future[Double] = Future {
+  def calculatePi(n: Int)(implicit r: Random): Double = {
     val points: List[(Double, Double)] = getPoints(n).toList
     val result = 4.0 * points.length / n
     System.err.println(s"pi: $result")
@@ -32,11 +32,11 @@ object Pi extends App {
   import scala.language.postfixOps
 
   implicit val r: Random = Random
-  val N = 10000000
+  val N = 10_000_000
   val p = 2
 
   val (result, milliseconds) = 1.times {
-    val xfs: Seq[Future[Double]] = Seq.fill(p)(calculatePi(N))
+    val xfs: Seq[Future[Double]] = Seq.fill(p)((Future(calculatePi(N))))
     val xs: Seq[Double] = Await.result(Future.sequence(xfs), 100 second)
     xs.sum / xs.length
   }

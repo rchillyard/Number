@@ -477,9 +477,6 @@ object Real {
   def parse(w: String): Try[Real] =
     Number.parse(w) map (Real(_))
 
-  implicit def convertFromNumber(x: Number): Field =
-    Real(x)
-
   /**
     * Implicit class to operate on Numbers introduced as integers.
     *
