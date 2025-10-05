@@ -344,24 +344,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(a)
       case BiFunction(One, b, Product) =>
         em.Match(b)
-      case BiFunction(_, Zero, Power) =>
-        em.Match(One)
+      case BiFunction(a, b, Power) =>
+        matchBiFunctionPower(a, b)
       case BiFunction(a, MinusOne, Product) =>
         em.Match(UniFunction(a, Negate))
       case BiFunction(MinusOne, b, Product) =>
         em.Match(UniFunction(b, Negate))
-      case BiFunction(a, MinusOne, Power) =>
-        em.Match(UniFunction(a, Reciprocal))
       case BiFunction(a, b, Sum) if a == b =>
         em.Match(BiFunction(a, Two, Product))
       case BiFunction(a, b, Product) if a == b =>
         em.Match(BiFunction(a, Two, Power))
-      case BiFunction(ConstE, Literal(ComplexCartesian(Number.zero, Number.pi), _), Power) =>
-        em.Match(MinusOne)
-      case BiFunction(ConstE, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _), Power) =>
-        em.Match(MinusOne)
-      case BiFunction(a, BiFunction(x, b, Log), Power) if a == b =>
-        em.Match(x)
       case BiFunction(One, _, Log) =>
         em.Match(Zero)
       case BiFunction(a, b, Log) if a == b =>
@@ -514,6 +506,32 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ =>
       false
   }
+
+  /**
+    * Attempts to match and simplify a bi-function of type "Power" based on specific rules.
+    *
+    * @param a The base expression of the power.
+    * @param b The exponent expression of the power.
+    * @return A MatchResult containing the simplified expression if a matching rule is found,
+    *         or a Miss result if no rules apply.
+    */
+  private def matchBiFunctionPower(a: Expression, b: Expression): em.MatchResult[Expression] =
+    (a, b) match {
+      case (_, Zero) =>
+        em.Match(One)
+      case (_, MinusOne) =>
+        em.Match(UniFunction(a, Reciprocal))
+      case (BiFunction(x, y, Power), z) =>
+        em.Match(BiFunction(x, y * z, Power))
+      case (ConstE, Literal(ComplexCartesian(Number.zero, Number.pi), _)) =>
+        em.Match(MinusOne)
+      case (ConstE, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
+        em.Match(MinusOne)
+      case (x, BiFunction(y, z, Log)) if x == z =>
+        em.Match(y)
+      case _ =>
+        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications for Power", this)
+    }
 
   /**
     * Checks if a given `Expression` matches the identity element of a specific `ExpressionBiFunction`.
