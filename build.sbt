@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
   "com.novocode" % "junit-interface" % "0.11" % "test", // NOTE vulnerability here
   "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-  "ch.qos.logback" % "logback-classic" % "1.5.18" % "test",
+  "ch.qos.logback" % "logback-classic" % "1.5.19" % "test",
   "org.scalacheck" %% "scalacheck" % "1.19.0" % "test" // This is used for testing Rational
 )
 
