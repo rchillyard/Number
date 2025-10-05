@@ -338,18 +338,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(b)
       case BiFunction(a, b, f) if matchingIdentity(b, f, left = false).contains(true) =>
         em.Match(a)
+      case BiFunction(a, b, Sum) =>
+        matchBiFunctionSum(a, b)
       case BiFunction(a, b, Product) =>
         matchBiFunctionProduct(a, b)
       case BiFunction(a, b, Power) =>
         matchBiFunctionPower(a, b)
-      case BiFunction(a, b, Sum) if a == b =>
-        em.Match(BiFunction(a, Two, Product))
-      case BiFunction(One, _, Log) =>
-        em.Match(Zero)
-      case BiFunction(a, b, Log) if a == b =>
-        em.Match(One)
-      case BiFunction(a, ConstE, Log) =>
-        em.Match(UniFunction(a, Ln))
+      case BiFunction(a, b, Log) =>
+        matchBiFunctionLog(a, b)
+      // TODO Handle tha Atan cases
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications", this)
     }
@@ -498,6 +495,23 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   /**
+    * Matches two expressions and simplifies them into a BiFunction if they are equal.
+    * If the expressions do not satisfy the conditions for simplification, a Miss is returned.
+    *
+    * @param a the first expression to be matched
+    * @param b the second expression to be matched
+    * @return a MatchResult containing the simplified BiFunction if the expressions are equal,
+    *         or a Miss if the conditions for simplification are not met
+    */
+  private def matchBiFunctionSum(a: Expression, b: Expression): em.MatchResult[Expression] =
+    (a, b) match {
+      case (a, b) if a == b =>
+        em.Match(BiFunction(a, Two, Product))
+      case _ =>
+        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplification for Sum", this)
+    }
+
+  /**
     * Attempts to simplify two given expressions through pattern matching for special cases
     * of product operations that can be reduced to simpler forms.
     *
@@ -550,6 +564,28 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(y)
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications for Power", this)
+    }
+
+  /**
+    * Matches two expressions and attempts to simplify them based on a set of predefined rules
+    * for handling specific cases. If matching succeeds, a simplified `Expression` is returned.
+    * Otherwise, it returns a failed match result with an appropriate message.
+    *
+    * @param a the first `Expression` to be matched
+    * @param b the second `Expression` to be matched
+    * @return an `em.MatchResult[Expression]`, representing either a successfully matched and
+    *         simplified expression or a failure with a descriptive message
+    */
+  private def matchBiFunctionLog(a: Expression, b: Expression): em.MatchResult[Expression] =
+    (a, b) match {
+      case (One, _) =>
+        em.Match(Zero)
+      case (a, b) if a == b =>
+        em.Match(One)
+      case (a, ConstE) =>
+        em.Match(UniFunction(a, Ln))
+      case _ =>
+        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications for Log", this)
     }
 
   /**
