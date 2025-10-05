@@ -16,7 +16,7 @@ import scala.util._
 /**
   * This class is designed to model a Numerical value of various possible different types and of various possible factors.
   * The types are: Int, BigInt, Rational, Double.
-  * The factors are: Scalar, Logarithmic, and Root (with various subtypes).
+  * The factors are: Scalar, Logarithmic, and NthRoot (with various subtypes).
   *
   * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber.
   *
@@ -258,14 +258,6 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     Number.exp(this)
 
   /**
-    * Method to determine the sense of this number: negative, zero, or positive.
-    *
-    * @return an Int which is negative, zero, or positive according to the magnitude of this.
-    */
-  def signum: Int =
-    Number.signum(this)
-
-  /**
     * Method to yield the absolute value of this Number.
     *
     * @return this if its positive, else - this.
@@ -284,14 +276,6 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     */
   def scale(f: Factor): Number =
     Number.scale(this, f).specialize
-
-  /**
-    * Action to render this GeneralNumber as a String.
-    *
-    * @return a String.
-    */
-  def render: String =
-    simplify.toString
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
@@ -459,12 +443,12 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     val z: Field = factor match {
       case PureNumber =>
         Real(this)
-      case r@Root(2) if maybeIntValue.isDefined =>
+      case r@NthRoot(2) if maybeIntValue.isDefined =>
         val ro1 = maybeIntValue.filter(_ > 0).flatMap(Rational.squareRoots.get).map(Real(_))
         val ro2 = maybeIntValue.filter(_ > 0).map(_ => Real(this))
         val ro3 = maybeIntValue.filter(_ < 0).filter(x => math.abs(x) <= Rational.maxSquare).map(_ => Real(this))
         ro1 orElse ro2 orElse ro3 getOrElse normalizeRoot(this)
-      case r@Root(_) =>
+      case r@NthRoot(_) =>
         normalizeRoot(this)
       case Radian =>
         Real(this) // Number.modulate(this) NOTE: we do modulation at other times
@@ -761,7 +745,7 @@ object GeneralNumber {
         a.factor match {
           case Logarithmic(_) =>
             plusAligned(a.scale(PureNumber), b.scale(PureNumber))
-          case Root(_) =>
+          case NthRoot(_) =>
             plusAligned(a.scale(PureNumber), b.scale(PureNumber))
           case _ =>
             plusAligned(a, b)
@@ -803,12 +787,12 @@ object GeneralNumber {
               prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
             case (_: Logarithmic, PureNumber) =>
               times(p.scale(PureNumber), q)
-            case (Root(m), Root(n)) if m == 2 && n == 2 =>
+            case (NthRoot(m), NthRoot(n)) if m == 2 && n == 2 =>
               doTimes(p, q, p.factor)
-            case (Root(_), Root(_)) if p == q =>
+            case (NthRoot(_), NthRoot(_)) if p == q =>
               p.make(PureNumber)
             // NOTE see RQRSpec for discussion of this code.
-            case (r@Root(_), g) =>
+            case (r@NthRoot(_), g) =>
               // NOTE duplicate code below
               r.multiply(p.nominalValue, q.nominalValue, g) match {
                 case Some((v, f, _)) =>
@@ -816,14 +800,14 @@ object GeneralNumber {
                 case None =>
                   times(p.scale(PureNumber), q.scale(PureNumber))
               }
-            case (g, r@Root(_)) =>
+            case (g, r@NthRoot(_)) =>
               g.multiply(p.nominalValue, q.nominalValue, r) match {
                 case Some((v, f, _)) =>
                   p.make(v, f)
                 case None =>
                   times(p.scale(PureNumber), q.scale(PureNumber))
               }
-            case (Root(_), Root(_)) =>
+            case (NthRoot(_), NthRoot(_)) =>
               doTimes(p, q.scale(p.factor), p.factor)
             case _ =>
               times(p.scale(PureNumber), q.scale(PureNumber))
@@ -855,8 +839,8 @@ object GeneralNumber {
   //            case (PureNumber, Scalar(_)) => doTimes(p, q, q.factor)
   //            case (f: Logarithmic, PureNumber) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
   //            case (_: Logarithmic, PureNumber) => times(p.scale(PureNumber), q)
-  //            case (Root(_), Root(_)) if p == q => p.make(PureNumber)
-//            case (Root(_), Root(_)) => doTimes(p, q.scale(p.factor), p.factor)
+  //            case (NthRoot(_), NthRoot(_)) if p == q => p.make(PureNumber)
+//            case (NthRoot(_), NthRoot(_)) => doTimes(p, q.scale(p.factor), p.factor)
   //            case _ => times(p.scale(PureNumber), q.scale(PureNumber))
 //          }
 //      }
@@ -929,7 +913,7 @@ object GeneralNumber {
             throw NumberException("rational power cannot be represented as two Ints")
         }
       // TODO we should also handle some situations where r.d is not 1.
-      case Root(n) if r.n == n && r.d == 1 =>
+      case NthRoot(n) if r.n == n && r.d == 1 =>
         x.make(PureNumber)
       case _ =>
         power(x.scale(PureNumber), r)
@@ -1021,7 +1005,7 @@ object GeneralNumber {
     * @param r     the root used in the normalization process.
     * @throws NumberException if the transformation logic fails.
     */
-  private def normalizeRootOld(value: Value, r: Root) = {
+  private def normalizeRootOld(value: Value, r: NthRoot) = {
     Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
       case Some(q) =>
         ComplexCartesian(Number.zero, ExactNumber(q, r).scale(PureNumber))

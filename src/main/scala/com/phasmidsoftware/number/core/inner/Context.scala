@@ -32,7 +32,7 @@ trait Context {
     * @return true if the field's associated factor qualifies, or if no factor is associated; false otherwise.
     */
   def fieldQualifies(f: Field): Boolean =
-    f.maybeFactor.forall(factorQualifies)
+    f.maybeFactor.exists(factorQualifies)
 
   /**
     * Determines whether a given optional field qualifies based on its associated factor.
@@ -180,7 +180,7 @@ object Context {
     * A value qualifies for this context if it qualifies for any of the three individual
     * restricted logarithmic contexts.
     */
-  val AnyLog: Context = RestrictedContext(NatLog) or RestrictedContext(Log2) or RestrictedContext(Log10)
+  val AnyLog: Context = RestrictedContext(NatLog) or RestrictedContext(Log2) or RestrictedContext(Log10) or RestrictedContext(Euler)
   /**
     * A `Context` that qualifies factors as either square roots (`SquareRoot`) or cube roots (`CubeRoot`).
     * Combines the qualification conditions of `SquareRoot` and `CubeRoot` contexts using logical OR.

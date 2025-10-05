@@ -10,6 +10,7 @@ package object inner {
 
   /**
     * This is the type of the nominalValue parameter of a GeneralNumber.
+    * CONSIDER redefining this as a class rather than as a type alias.
     *
     * There is a companion object to this type in module Value.scala.
     */

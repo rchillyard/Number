@@ -28,7 +28,7 @@ case class InfiniteProduct[X: Numeric](f: Int => X) extends (Int => X) {
     * @param n the number which specifies how many terms we should use to evaluate this infinite product.
     * @return an X which represents an approximation to the infinite product.
     */
-  override def apply(n: Int): X = asLazyList.take(n).foldLeft(xn.one)(xn.times)
+  def apply(n: Int): X = asLazyList.take(n).foldLeft(xn.one)(xn.times)
 
   /**
     * A function which takes a number n and returns a Double representing the (finite) product of the

@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.expression.Expression
 
 /**
   * The `Equation` trait represents a mathematical equation that may have multiple solutions or branches.
@@ -12,7 +13,7 @@ import com.phasmidsoftware.number.core.inner.Rational
   * This type of equation is typically of the form `P(x) = 0` where `P(x)` is a monic polynomial in `x` and where the
   * coefficients `Pi` (i.e., the `i`th coefficient of `P`) are `Rational` numbers.
   */
-trait Equation {
+trait Equation extends Multivalued {
 
   /**
     * Method to compute the number of branches related to a specific computation or process.
@@ -21,6 +22,18 @@ trait Equation {
     * @return the number of branches as an integer.
     */
   def branches: Int
+
+  /**
+    * Evaluates the specified branch of a multivalued mathematical expression.
+    * A branch represents an independent solution or interpretation of the expression.
+    *
+    * @param branch the index of the solution branch to evaluate. Must be a valid branch index
+    *               within the range `0` to `branches - 1` where `branches` represents the total
+    *               number of available branches for this expression.
+    * @return the `Expression` corresponding to the evaluated branch.
+    */
+  def apply(branch: Int): Expression = ??? // TODO implement this
+
 
   /**
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.

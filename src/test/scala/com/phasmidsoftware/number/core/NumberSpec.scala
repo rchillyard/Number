@@ -55,6 +55,28 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.nominalValue should matchPattern { case Right(_) => }
     target.factor shouldBe Radian
   }
+  it should "yield ExactNumber(1, Euler)" in {
+    val target = ExactNumber(1, Euler)
+    target should matchPattern { case ExactNumber(_, _) => }
+    target.nominalValue should matchPattern { case Right(_) => }
+    target.factor shouldBe Euler
+    target.simplify shouldBe Number(-1)
+    val logValue = Number.log(target)
+    logValue.render shouldBe "-1"
+    logValue shouldBe ComplexPolar(1, Number.pi, 1)
+    logValue.asNumber shouldBe Some(Number(-1))
+  }
+  it should "yield ExactNumber(1/2, Euler)" in {
+    val target = ExactNumber(Value.fromRational(Rational.half), Euler)
+    target should matchPattern { case ExactNumber(_, _) => }
+    target.nominalValue should matchPattern { case Left(Right(Rational.half)) => }
+    target.factor shouldBe Euler
+    target.simplify shouldBe Number.i
+    target.simplify.render shouldBe "i"
+    val logValue = Number.log(target)
+    logValue shouldBe ComplexPolar(1, Number.piBy2, 1)
+    logValue.asNumber shouldBe Some(Number.i)
+  }
   it should "yield Right(1, Radian, Fuzz)" in {
     val target = Number.create(Right(1), Radian, Some(standardFuzz))
     target should matchPattern { case FuzzyNumber(_, _, _) => }
@@ -86,6 +108,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for Pi" in {
     Number.pi.toString shouldBe "\uD835\uDED1"
   }
+  it should "work for E" in {
+    Number.e.toString shouldBe "\uD835\uDF00"
+  }
   it should "work for Radian as scalar" in {
     val target = Number.pi.scale(PureNumber)
     // NOTE that:       Pi is 3.1415926535897932384626433...
@@ -93,9 +118,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     // In IEEE 754 binary, pi is 400921fb54442d18, which is:
     //                        3.141592653589793
     target.toString shouldBe "3.141592653589793[5]"
-  }
-  it should "work for E" in {
-    Number.e.toString shouldBe "\uD835\uDF00"
   }
   it should "work for E as scalar (rel fuzzy)" in {
     val target = Number.e.scale(PureNumber)
@@ -129,6 +151,10 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for i" in {
     val target = Number.i
     target.toString shouldBe "i"
+  }
+  it should "work for e^ix" in {
+    val target = ExactNumber(1, Euler)
+    target.toString shouldBe "e^i\uD835\uDED1"
   }
 
   behavior of "normalize"

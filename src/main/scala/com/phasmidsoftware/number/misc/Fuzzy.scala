@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.misc.Fuzzy.parser
 import org.apache.commons.math3.distribution._
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util._
@@ -233,7 +232,6 @@ case class Gaussian(mu: Double, sigma: Double) extends FuzzyBase(mu, sigma, new 
     tryFuzzy.toOption
   }
 
-  //override def map2(f: DiFunc[Double])(delta2: Double) = throw new UnsupportedOperationException("NYI")
   override def map2(f: DiFunc[Double])(delta2: Double): Fuzzy = newFuzzy(f.f(mu), math.sqrt(math.pow(f.df_dx(0)(mu) * sigma, 2) + math.pow(f.df_dx(1)(mu)* sigma, 2)))
 }
 

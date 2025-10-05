@@ -28,7 +28,7 @@ case class InfiniteSum[X: Numeric](x0: X, f: (Long, X) => X) extends (Int => X) 
     * @param n the number which specifies how many terms we should use to evaluate this infinite sum.
     * @return an X which represents an approximation to the infinite sum.
     */
-  override def apply(n: Int): X = asLazyList.take(n).foldLeft(xn.zero)(xn.plus)
+  def apply(n: Int): X = asLazyList.take(n).foldLeft(xn.zero)(xn.plus)
 
   /**
     * A function which takes a number n and returns a Double representing the (finite) sum of the

@@ -42,7 +42,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
     * Type alias for a pair of expressions (purpose of this is solely for brevity).
     */
-  private[expression] type Expressions = Expression ~ Expression
+//  private[expression] type Expressions = Expression ~ Expression
 
   /**
     * Type alias for a dyadic triple (purpose of this is solely for brevity).
@@ -80,18 +80,18 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     *         or returns information about a failure to match.
     */
   def matchComplementaryExpressions: Matcher[DyadicTriple, Expression] = Matcher("matchComplementaryExpressions") {
-    case Sum ~ x ~ Function(y, Negate) if x == y => Match(Zero) // TESTME
-    case Sum ~ Function(x, Negate) ~ y if x == y => Match(Zero) // TESTME
-    case Sum ~ BiFunction(w, x, Sum) ~ Function(y, Negate) if x == y => Match(w) // TESTME
-    case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == z => Match(y) // TESTME
-    case Sum ~ BiFunction(w, x, Sum) ~ Function(y, Negate) if w == y => Match(x) // TESTME
-    case Sum ~ Function(x, Negate) ~ BiFunction(y, z, Sum) if x == y => Match(z) // TESTME
-    case Product ~ x ~ Function(y, Reciprocal) if x == y => Match(One)
-    case Product ~ Function(x, Reciprocal) ~ y if x == y => Match(One) // TESTME
-    case Product ~ BiFunction(w, x, Product) ~ Function(y, Reciprocal) if x == y => Match(w) // TESTME
-    case Product ~ Function(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w => Match(z) // TESTME
-    case Product ~ BiFunction(w, x, Product) ~ Function(y, Reciprocal) if w == y => Match(x) // TESTME
-    case Product ~ Function(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z => Match(w) // TESTME
+    case Sum ~ x ~ UniFunction(y, Negate) if x == y => Match(Zero) // TESTME
+    case Sum ~ UniFunction(x, Negate) ~ y if x == y => Match(Zero) // TESTME
+    case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if x == y => Match(w) // TESTME
+    case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == z => Match(y) // TESTME
+    case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if w == y => Match(x) // TESTME
+    case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == y => Match(z) // TESTME
+    case Product ~ x ~ UniFunction(y, Reciprocal) if x == y => Match(One)
+    case Product ~ UniFunction(x, Reciprocal) ~ y if x == y => Match(One) // TESTME
+    case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if x == y => Match(w) // TESTME
+    case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w => Match(z) // TESTME
+    case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if w == y => Match(x) // TESTME
+    case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z => Match(w) // TESTME
     case f ~ x ~ y =>
       complementaryFields(f, x, y) match {
         case Some(z) => Match(z)

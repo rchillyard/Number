@@ -6,10 +6,9 @@ package com.phasmidsoftware.number.expression
 
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, Number, Real}
+import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number.misc.FP
 import scala.Option.when
-import scala.language.implicitConversions
 
 /**
   * Represents a named, generic computation or transformation from an input of type `P`
@@ -39,7 +38,7 @@ sealed trait ExpressionFunction[P] extends (P => Field) {
   * @param f    the function Number => Number.
   * @param name the name of this function.
   */
-abstract class ExpressionMonoFunction(val name: String, val f: Field => Field) extends ExpressionFunction[Field] {
+sealed abstract class ExpressionMonoFunction(val name: String, val f: Field => Field) extends ExpressionFunction[Field] {
 
   /**
     * Specifies the context in which the parameter of the function `f` must be evaluated.
@@ -127,7 +126,7 @@ object ExpressionMonoFunction {
   *                       If `None`, then the function is commutative and the only identity
   *                       required is given by `identityL`.
   */
-abstract class ExpressionBiFunction(
+sealed abstract class ExpressionBiFunction(
                                        val name: String,
                                        val f: (Field, Field) => Field,
                                        val isExact: Boolean,
@@ -225,7 +224,7 @@ abstract class ExpressionBiFunction(
       trivialEvaluation(a, b)
     case _ =>
       val xy = doEvaluate(x, y)(context)
-      val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
+      lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
       context.qualifyingField(xy orElse yx)
   }
 
@@ -426,6 +425,8 @@ case object Log extends ExpressionBiFunction("log", Real.log, false, None, None)
         Some(Real(x.make(PureNumber)))
       case (Real(x@ExactNumber(_, NatLog)), Constants.e) => // XXX not strictly necessary as this will be handled by the default case
         Some(Real(x.make(PureNumber)))
+      case (Real(x@ExactNumber(_, Euler)), Constants.e) =>
+        Some(ComplexPolar(Number.one, x.make(Radian).simplify))
       case _ if a == b =>
         Some(Constants.one)
       case _ =>
@@ -553,6 +554,7 @@ case object Negate extends ExpressionMonoFunction("-", x => -x) {
   * `Reciprocal` is an `ExpressionMonoFunction` representing the mathematical reciprocal operation.
   * The function takes a numeric input `x` and computes `1 / x`.
   * It is identified by the name "rec".
+  * CONSIDER eliminating this and forcing any reciprocal to be power of negative one.
   *
   * The operation is performed lazily and adheres to the behavior defined in its parent class.
   */
@@ -574,7 +576,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", x => x.invert) {
           Real(ExactNumber(x, f))))
     case Real(ExactNumber(v, f@Logarithmic(_))) =>
       Some(Real(ExactNumber(Value.negate(v), f))) // TESTME
-    case Real(ExactNumber(v, f@Root(_))) =>
+    case Real(ExactNumber(v, f@NthRoot(_))) =>
       Value.inverse(v) map (x =>
         Real(ExactNumber(x, f)))
     case _ =>
@@ -784,3 +786,65 @@ case object Power extends ExpressionBiFunction("^", (x, y) => x.power(y), isExac
       None // TESTME
   }
 }
+
+/**
+  * Represents a trigonometric function, either sine or cosine, that is derived from the abstract `ExpressionMonoFunction`.
+  *
+  * The `SineCos` class applies a specified trigonometric function (`sin` or `cos`) to an `Expression`.
+  * The function to be applied is determined by the given `sine` boolean parameter.
+  *
+  * If `sine` is true, the sine (`sin`) function is applied, otherwise, the cosine (`cos`) function is applied.
+  *
+  * @param sine a boolean indicating whether the sine function should be used (`true` for sine, `false` for cosine).
+  */
+abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if (sine) "sin" else "cos", x => if (sine) x.sin else x.cos) {
+  /**
+    * Regardless of the value of `context`, the required `Context` for the parameter is `Radian`.
+    *
+    * @param context ignored.
+    * @return a new `RestrictedContext` instance configured with the `Radian` factor.
+    */
+  def paramContext(context: Context): Context =
+    RestrictedContext(Radian) // TESTME
+
+  /**
+    * Applies the sine or cosine function to a given `Field` value if the value matches specific constants.
+    * Returns an exact result for known trigonometric values of zero, π/2, π, and 3π/2.
+    *
+    * @param x the input `Field` value to be evaluated.
+    * @return an `Option[Field]` containing the result of the sine or cosine function if the input matches a known constant,
+    *         or `None` if the input does not match any predefined constants.
+    */
+  def applyExact(x: Field): Option[Field] = x match {
+    case Constants.zero =>
+      Some(if (sine) Constants.zero else Constants.one)
+    case Constants.piBy2 =>
+      Some(if (sine) Constants.one else Constants.zero)
+    case Constants.pi =>
+      Some(if (sine) Constants.zero else -Constants.one)
+    case Constants.piBy2Times3 =>
+      Some(if (sine) -Constants.one else Constants.zero) // TESTME
+    case _ =>
+      None // TESTME
+  }
+}
+
+/**
+  * Represents the sine trigonometric function.
+  *
+  * `Sine` is a case object of the `SineCos` abstract class with the `sine` parameter set to `true`,
+  * which designates that the sine (`sin`) function is to be applied to expressions.
+  *
+  * It applies the sine function to a given mathematical expression and inherits all behavior
+  * defined in the `SineCos` abstract class.
+  */
+case object Sine extends SineCos(true)
+
+/**
+  * Represents the cosine trigonometric function.
+  *
+  * `Cosine` is a specific instance of the `SineCos` class with `sine` set to `false`,
+  * meaning it applies the cosine (`cos`) function to an `Expression`.
+  */
+case object Cosine extends SineCos(false)
+

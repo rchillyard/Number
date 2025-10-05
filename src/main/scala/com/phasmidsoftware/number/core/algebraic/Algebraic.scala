@@ -365,11 +365,39 @@ trait Algebraic extends Multivariate {
 }
 
 /**
-  * Algebraic represents specific algebraic numbers, implemented using quadratic equations.
-  * It includes mathematical constants such as the golden ratio and its conjugate, as well
-  * as basic algebraic constants like zero and one.
+  * The `Algebraic` object provides utilities for constructing and representing algebraic
+  * objects, including solutions to linear and quadratic equations as well as predefined
+  * constants such as `phi`, `psi`, `one`, `zero`, and `half`.
+  *
+  * It facilitates the encapsulation of numerical solutions into specific algebraic forms,
+  * enabling consistent operations and representations within algebraic computations.
   */
 object Algebraic {
+
+  /**
+    * Constructs an `Algebraic` instance from the given `Equation` and branch index.
+    * The method selects the appropriate algebraic representation based on the type of equation provided.
+    *
+    * @param equation the input equation, which can be a linear or quadratic equation.
+    *                 For linear equations, an `Algebraic_Linear` instance is created.
+    *                 For quadratic equations, an `Algebraic_Quadratic` instance is created.
+    *                 If the equation does not match these cases, an exception is thrown.
+    * @param branch   the branch index that determines the solution to use for quadratic equations.
+    *                 Typically, `0` corresponds to the positive root, and `1` corresponds to the negative root
+    *                 of a quadratic equation.
+    * @return an `Algebraic` instance representing the solution of the given equation.
+    *         The solution can be linear (`Algebraic_Linear`) or quadratic (`Algebraic_Quadratic`),
+    *         depending on the equation type.
+    * @throws NumberException if the equation type is unsupported for constructing an `Algebraic` instance.
+    */
+  def apply(equation: Equation, branch: Int): Algebraic = equation match {
+    case e@LinearEquation(_) =>
+      Algebraic_Linear(e)
+    case e@Quadratic(_, _) =>
+      Algebraic_Quadratic(e, branch == 0)
+    case _ =>
+      throw NumberException(s"Algebraic: cannot create algebraic from equation $equation")
+  }
   /**
     * Represents the golden ratio as an instance of Algebraic_Quadratic, defined by the
     * golden ratio equation. The `pos` parameter set to `true` chooses the positive root
@@ -456,7 +484,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
   /**
     * Adds the given Algebraic object to the current Algebraic.
     *
-    * @param s the Algebraic object to be added
+    * @param a the Algebraic object to be added
     * @return a new Algebraic resulting from the addition
     */
   def add(a: Algebraic): Algebraic = {
@@ -489,7 +517,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @return a String
     */
   def render: String =
-    maybeName getOrElse toString
+    maybeName getOrElse solve.render
 }
 
 /**

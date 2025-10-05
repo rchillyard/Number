@@ -16,7 +16,7 @@ object XXX extends App {
       * @param x the year given
       * @return true if this Cicada brood will emerge in year x
       */
-    override def apply(x: Int): Boolean = (x - next) % period == 0
+    def apply(x: Int): Boolean = (x - next) % period == 0
   }
 
   /**
