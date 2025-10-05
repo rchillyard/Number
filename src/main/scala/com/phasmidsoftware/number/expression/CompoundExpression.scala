@@ -338,22 +338,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(b)
       case BiFunction(a, b, f) if matchingIdentity(b, f, left = false).contains(true) =>
         em.Match(a)
-      case BiFunction(Zero, _, Product) | BiFunction(_, Zero, Product) =>
-        em.Match(Zero)
-      case BiFunction(a, One, Product) =>
-        em.Match(a)
-      case BiFunction(One, b, Product) =>
-        em.Match(b)
+      case BiFunction(a, b, Product) =>
+        matchBiFunctionProduct(a, b)
       case BiFunction(a, b, Power) =>
         matchBiFunctionPower(a, b)
-      case BiFunction(a, MinusOne, Product) =>
-        em.Match(UniFunction(a, Negate))
-      case BiFunction(MinusOne, b, Product) =>
-        em.Match(UniFunction(b, Negate))
       case BiFunction(a, b, Sum) if a == b =>
         em.Match(BiFunction(a, Two, Product))
-      case BiFunction(a, b, Product) if a == b =>
-        em.Match(BiFunction(a, Two, Power))
       case BiFunction(One, _, Log) =>
         em.Match(Zero)
       case BiFunction(a, b, Log) if a == b =>
@@ -506,6 +496,35 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ =>
       false
   }
+
+  /**
+    * Attempts to simplify two given expressions through pattern matching for special cases
+    * of product operations that can be reduced to simpler forms.
+    *
+    * @param a the first expression to match and simplify
+    * @param b the second expression to match and simplify
+    * @return a match result containing the simplified expression if a trivial simplification pattern is found,
+    *         otherwise a miss result with an explanation
+    */
+  private def matchBiFunctionProduct(a: Expression, b: Expression): em.MatchResult[Expression] =
+    (a, b) match {
+      case (Zero, _) | (_, Zero) =>
+        em.Match(Zero)
+      case (a, One) =>
+        em.Match(a)
+      case (One, b) =>
+        em.Match(b)
+      case (a, MinusOne) =>
+        em.Match(UniFunction(a, Negate))
+      case (MinusOne, b) =>
+        em.Match(UniFunction(b, Negate))
+      case (a, b) if a == b =>
+        em.Match(BiFunction(a, Two, Power))
+      case (BiFunction(w, x, Power), BiFunction(y, z, Power)) if w == y =>
+        em.Match(BiFunction(w, x plus y, Power))
+      case _ =>
+        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplification for Product", this)
+    }
 
   /**
     * Attempts to match and simplify a bi-function of type "Power" based on specific rules.
