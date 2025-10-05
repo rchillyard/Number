@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.Constants
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.expression.Literal
+import com.phasmidsoftware.number.expression.{LinearRoot, Literal, QuadraticRoot, Root}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

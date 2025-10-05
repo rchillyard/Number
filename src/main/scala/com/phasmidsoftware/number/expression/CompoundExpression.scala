@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression
 
-import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic, QuadraticRoot, Root}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Constants, Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.em.{DyadicTriple, MonadicDuple}
@@ -357,6 +357,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * - Converts the `BiFunction` into an `Aggregate` for consistent simplification processing.
     * - Attempts to simplify complementary terms within the `BiFunction`.
     * - Applies additional simplification logic as defined by `Expression.simplifyComposite` and `matchSimpler`.
+    *
+    * TODO try to shorten this method.
     *
     * If the expression cannot be simplified, the result will indicate the failure.
     *

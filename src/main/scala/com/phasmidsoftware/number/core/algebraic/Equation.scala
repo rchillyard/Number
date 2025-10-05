@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.expression.Expression
+import com.phasmidsoftware.number.expression.{Expression, Root}
 
 /**
   * The `Equation` trait represents a mathematical equation that may have multiple solutions or branches.

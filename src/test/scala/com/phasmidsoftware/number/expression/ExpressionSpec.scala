@@ -7,12 +7,12 @@ package com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
-import com.phasmidsoftware.number.core.algebraic.Root.phi
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Root}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, em, pi}
+import com.phasmidsoftware.number.expression.Root.phi
 import com.phasmidsoftware.number.mill.{Expr, Stack}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
