@@ -567,10 +567,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(UniFunction(a, Reciprocal))
       case (BiFunction(x, y, Power), z) =>
         em.Match(BiFunction(x, y * z, Power))
+      case (ConstE, BiFunction(ConstI, ConstPi, Product)) | (ConstE, BiFunction(ConstPi, ConstI, Product)) =>
+        em.Match(MinusOne)
       case (ConstE, Literal(ComplexCartesian(Number.zero, Number.pi), _)) =>
-        em.Match(MinusOne)
+        em.Match(MinusOne) // CONSIDER this should be 1/e, right?
       case (ConstE, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
-        em.Match(MinusOne)
+        em.Match(MinusOne) // CONSIDER what should this be?
       case (x, BiFunction(y, z, Log)) if x == z =>
         em.Match(y)
       case _ =>
@@ -858,7 +860,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   /**
     * Combines an accumulator and an expression to produce a new tuple containing an optional field
     * and an updated context.
-    * This is the function that is invoked by `foldLeft` in the `evaluate` method.
+    * This is the function that's invoked by `foldLeft` in the `evaluate` method.
     *
     * @param accum a tuple consisting of an optional field and the current context. The field represents
     *              a computed value (if any), and the context provides additional information
