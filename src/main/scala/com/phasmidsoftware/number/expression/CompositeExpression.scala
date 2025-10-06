@@ -73,8 +73,6 @@ sealed trait CompositeExpression extends Expression {
     */
   def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
     expr =>
-      // Issue #125
-      // CONSIDER trying to recognize `Transcendental`s are returning them as a matched `Expression` (but, currently, `Transcendental` does not extend `Expression`)
       expr.evaluateAsIs match {
         case Some(f) =>
           em.Match(Expression(f)) map (_.simplify)
@@ -225,7 +223,6 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     */
   def simplifyTrivial: em.AutoMatcher[Expression] =
     em.Matcher("UniFunction: simplifyTrivial") {
-
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
       case UniFunction(UniFunction(x, Ln), Reciprocal) =>
         em.Match(BiFunction(ConstE, x, Log))

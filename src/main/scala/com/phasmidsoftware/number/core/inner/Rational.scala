@@ -304,7 +304,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
   /**
    * Method to determine if this Rational can be represented exactly as a decimal string.
    *
-   * NOTE: Issue #85
+   * NOTE: re: (fixed) Issue #85
    * It's inappropriate to look for prime factors of very large numbers just to determine
    * if we can represent this Rational as a decimal.
    *

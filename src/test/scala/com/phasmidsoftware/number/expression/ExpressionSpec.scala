@@ -230,7 +230,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate xxx" in {
     val x: Expression = ConstE.log(Two) // lg E with value close to √2
     val y: Expression = x.reciprocal.simplify
-    // NOTE eventually, we should be able to compare y with L2 (this is Issue #125)
+    // TODO we should be able to compare y with L2 (this is Issue #125)
+//    y shouldBe L2
     val result = y.materialize
     val expected = Real("0.6931471805599453(13)")
     result shouldEqual expected
