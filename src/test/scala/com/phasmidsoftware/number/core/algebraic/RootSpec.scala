@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.Constants
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.expression.{LinearRoot, Literal, QuadraticRoot, Root}
+import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -125,6 +125,13 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     val simplified = expression.simplify
     simplified.approximation.get === 1.2599210498948732
     simplified shouldBe Root(Quadratic(1, -1), 0)
+  }
+
+  it should "evaluate phi + psi" in {
+    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    val expression = phi + psi
+    val simplified = expression.simplify
+    simplified shouldBe One
   }
 
   // FIXME Issue #130

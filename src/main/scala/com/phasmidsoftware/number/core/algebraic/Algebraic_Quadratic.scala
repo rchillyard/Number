@@ -79,6 +79,8 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     this.solve add algebraic.solve match {
       case Some(s: QuadraticSolution) =>
         Algebraic_Quadratic(s)
+      case Some(s: LinearSolution) =>
+        Algebraic_Linear(s)
       case None =>
         algebraic match {
           case Algebraic_Quadratic(_, `equation`, b) =>
@@ -91,8 +93,8 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
           case _ =>
             throw NumberException(s"add($algebraic) is not supported for Algebraic_Quadratic")
         }
-      case _ =>
-        throw NumberException(s"add($algebraic) is not supported for solutions which are not QuadraticSolutions")
+      case x =>
+        throw NumberException(s"add($algebraic) is not supported for solutions which are not QuadraticSolutions: $x")
     }
 
   /**

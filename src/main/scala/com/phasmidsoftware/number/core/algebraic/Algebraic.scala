@@ -398,6 +398,21 @@ object Algebraic {
     case _ =>
       throw NumberException(s"Algebraic: cannot create algebraic from equation $equation")
   }
+
+  /**
+    * Constructs an `Algebraic` instance from the given `Solution`.
+    * This method matches the type of the solution to provide the corresponding
+    * algebraic representation. Currently, it handles quadratic solutions.
+    *
+    * @param solution the input `Solution` instance, which can represent a quadratic solution.
+    * @return an `Algebraic` instance that represents the solution algebraically.
+    */
+  def apply(solution: Solution): Algebraic = solution match {
+    case s: LinearSolution =>
+      Algebraic_Linear(s)
+    case s: QuadraticSolution =>
+      Algebraic_Quadratic(s)
+  }
   /**
     * Represents the golden ratio as an instance of Algebraic_Quadratic, defined by the
     * golden ratio equation. The `pos` parameter set to `true` chooses the positive root
@@ -525,6 +540,24 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
   * This object provides utility methods for creating and manipulating `Algebraic_Linear` instances.
   */
 object Algebraic_Linear {
+  /**
+    * Applies the provided `Solution` to create an instance of `Algebraic_Linear`.
+    * The method checks the type of the solution and attempts to construct
+    * an `Algebraic_Linear` object if the solution is of type `LinearSolution`.
+    *
+    * @param s the `Solution` instance to be processed and converted into an `Algebraic_Linear` object
+    * @return the created `Algebraic_Linear` object if the input solution is valid and convertible
+    * @throws NumberException if the solution is not a `LinearSolution` or cannot be converted into an `Algebraic_Linear` object
+    */
+  def apply(s: Solution): Algebraic_Linear = s match {
+    case s: LinearSolution =>
+      create(s) match {
+        case Some(x) => x
+        case None => throw NumberException(s"AlgebraicLinear: cannot create algebraic from solution $s")
+      }
+    case _ => throw NumberException(s"AlgebraicLinear: cannot create algebraic from solution $s")
+  }
+
   /**
     * Creates an optional `Algebraic_Linear` object from a given `LinearSolution`.
     * The method converts the value of the `LinearSolution` to a potential rational number,

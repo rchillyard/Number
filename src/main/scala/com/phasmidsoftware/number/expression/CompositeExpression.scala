@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression
 
-import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Constants, Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.em.{DyadicTriple, MonadicDuple}
@@ -297,19 +297,28 @@ object UniFunction {
 case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends CompositeExpression {
 
   /**
-    * Simplifies the components of this `CompositeExpression` using a matching mechanism to identify
-    * and transform sub-expressions into simpler forms if possible.
-    * NOTE: we always convert a BiFunction into an Aggregate before simplifying its components.
-    * That's because we only want that simplification logic in one place and that place has to be Aggregate.
+    * Simplifies the components of a `BiFunction` expression by applying a matcher that reduces its
+    * constituent expressions (`x` and `y`) to their simpler forms.
     *
-    * @return the result of the simplification attempt encapsulated in a `MatchResult`, which either contains
-    *         a simplified `Expression` or indicates that no simplification was possible.
+    * @return An `AutoMatcher` for the `Expression` type that matches and simplifies `BiFunction` expressions.
     */
   def simplifyComponents: em.AutoMatcher[Expression] =
     em.Matcher("BiFunction: simplifyComponents") {
+      case b@BiFunction(r1@QuadraticRoot(_, _), r2@QuadraticRoot(_, _), f) if r1.maybeValue.isEmpty && r2.maybeValue.isEmpty =>
+        val so: Option[Solution] = f match {
+          case Sum => r1.solution add r2.solution
+//          case Product => r1.solution multiply r2.solution
+          case _ => None
+        }
+        val eo: Option[Expression] = so map (Algebraic(_))
+        em.matchIfDefined(eo)(b)
+
+
+      // NOTE I'm confused by own logic here. I don't know why we need this.
       case BiFunction(x, y, f) =>
         val matcher: em.Matcher[Seq[Expression], BiFunction] =
           em.sequence(matchSimpler) & em.lift { xs => val Seq(newX, newY) = xs; BiFunction(newX, newY, f) }
+        // NOTE this is almost always a Miss.
         matcher.apply(List[Expression](x, y))
     }
 
@@ -537,7 +546,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (a, b) if a == b =>
         em.Match(BiFunction(a, Two, Power))
       case (BiFunction(w, x, Power), BiFunction(y, z, Power)) if w == y =>
-        em.Match(BiFunction(w, x plus y, Power))
+        em.Match(BiFunction(w, x plus z, Power))
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplification for Product", this)
     }

@@ -1328,6 +1328,12 @@ object Root {
     */
   val rootTwo = QuadraticRoot(Quadratic.rootTwoEquation, 0)
   /**
+    * Represents the negative root of the quadratic equation `x² - 2 = 0`.
+    * This equation defines the square root of 2, with the two roots being `±√2`.
+    * The `branch` parameter set to 1 in this instance corresponds to the negative root (i.e., `-√2`).
+    */
+  val negRootTwo = QuadraticRoot(Quadratic.rootTwoEquation, 1)
+  /**
     * Represents the value one-half as a linear root, constructed from a linear equation
     * with a negated half rational coefficient.
     */
