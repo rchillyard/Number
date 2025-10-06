@@ -66,7 +66,7 @@ trait Solution extends NumberLike {
     if (isPureNumber)
       Some(PureNumber)
     else if (Value.isZero(base))
-      Some(factor) // TESTME
+      Some(factor)
     else
       None
 
@@ -151,19 +151,6 @@ trait Solution extends NumberLike {
     *         or `None` if scaling cannot be performed
     */
   def scale(r: Rational): Option[Solution]
-
-  /**
-    * Computes the branch offset of the solution.
-    * If the offset is determined to be negative based on the `negative` method,
-    * the offset value is negated; otherwise, the offset value is returned as is.
-    *
-    * NOTE see the note regarding `Solution` and non-quadratic solutions.
-    *
-    * @return the computed branch offset of type `Value`, which may be negated
-    *         depending on the `negative` condition
-    */
-//  def branchOffset: Value =
-//    if (branch == 1) Value.negate(offset) else offset
 }
 
 /**
@@ -261,7 +248,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     * @return true if both the `base` and `offset` are zero, otherwise false.
     */
   def isZero: Boolean =
-    Value.isZero(base) && isPureNumber // TESTME
+    Value.isZero(base) && isPureNumber
 
   /**
     * Determines if the current quadratic solution represents a pure number.
@@ -284,7 +271,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     * @return true if the solution represents unity, otherwise false.
     */
   def isUnity: Boolean =
-    isPureNumber && maybeRational(base).contains(Rational.one) // TESTME
+    isPureNumber && maybeRational(base).contains(Rational.one)
 
   /**
     * Determines the "sign" of the current quadratic solution.
@@ -340,7 +327,6 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
 
       if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
         val imaginaryPart = {
-          // CONSIDER can we use branchOffset here?
           if (branch == 0) // TESTME
             ExactNumber(Value.negate(offset), factor)
           else
@@ -349,7 +335,6 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
         ComplexCartesian(ExactNumber(base, PureNumber), imaginaryPart)
       }
       else {
-        // CONSIDER using branchOffset here
         val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
         ExactNumber(base, PureNumber) + (if (branch == 1) variablePart.makeNegative else variablePart)
       }
@@ -378,8 +363,6 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     * @return an Option containing the resulting solution after the addition if the conditions are met, or None otherwise
     */
   def add(solution: Solution): Option[Solution] =
-    // TODO check that this is correct
-//    when(solution.offset == Value.zero)(copy(base = Value.add(base, solution.base))) orElse
     solution match {
       case q: QuadraticSolution =>
         if (factor == q.factor) {
@@ -399,6 +382,27 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
         None  // TESTME
     }
 
+  // TODO this needs more work and testing. For example, factors don't have to be the same.
+  private def multiply(solution: Solution): Option[Solution] =
+    solution match {
+      case q: QuadraticSolution =>
+        if (factor == q.factor) {
+          // CONSIDER should we be using z here?
+          val (a, b, z) = (branch, q.branch) match {
+            case (0, _) => (this, q, branch)
+            case (_, 0) => (q, this, q.branch)
+            case _ => (this.conjugate, q.conjugate, 1 - branch)
+          }
+          for {
+            x <- doComposeValueDyadic(a.base, b.base)(DyadicOperationTimes.functions)
+            (v, f, z) <- factor.multiply(a.offset, b.offset, factor)
+            if f == factor && z.isEmpty
+          } yield Solution(x, v, factor, branch = a.branch)
+        }
+        else
+          None  // TESTME
+    }
+
 
   /**
     * Scales the quadratic solution using a given rational factor.
@@ -410,11 +414,11 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     * @param r the scaling factor as a Rational value
     * @return an Option containing the scaled quadratic solution if calculations succeed, otherwise None
     */
-  def scale(r: Rational): Option[Solution] = // TESTME
+  def scale(r: Rational): Option[Solution] =
     for {
       b <- maybeRational(base)
       x = fromRational(b * r)
-      (v, g, None) <- factor.multiply(offset, fromRational(r), factor)
+      (v, g, None) <- factor.multiply(offset, fromRational(r), PureNumber)
     } yield QuadraticSolution(x, v, g, branch)
 
 }

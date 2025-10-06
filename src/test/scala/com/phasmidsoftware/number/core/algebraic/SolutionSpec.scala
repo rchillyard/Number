@@ -33,7 +33,9 @@ class SolutionSpec extends AnyFlatSpec {
   }
 
   it should "scale" in {
-    phi.scale(2) flatMap (_.scale(Rational.half)) shouldBe Some(phi)
+    val twoPhi = phi.scale(2)
+    twoPhi shouldBe Some(QuadraticSolution(Value.one, Value.fromInt(5), SquareRoot, 0))
+    twoPhi flatMap (_.scale(Rational.half)) shouldBe Some(phi)
   }
 
   it should "branch" in {
@@ -81,6 +83,7 @@ class SolutionSpec extends AnyFlatSpec {
   it should "add" in {
     phi.add(psi) shouldBe Some(LinearSolution(Value.one))
     root2.add(negRoot2) shouldBe Some(LinearSolution(Value.zero))
+    phi.add(root2) shouldBe None
   }
 
   it should "offset" in {
