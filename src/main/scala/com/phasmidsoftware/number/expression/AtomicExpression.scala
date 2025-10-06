@@ -1058,31 +1058,29 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   lazy val solution: Solution = algebraic.solve
 
   /**
-    * Lazily evaluates and determines a possible `Field` value based on the
-    * provided `solution` and, if necessary, the `equation` and `branch`.
+    * Lazily computes an optional `Field` value (`maybeValue`) based on the type of the solution
+    * and specific cases associated with the given `solution` and `equation`.
     *
-    * The computation involves analyzing the type and properties of the
-    * `solution` to generate the appropriate `Field`. For linear or
-    * quadratic solutions, specific conditions are checked to determine
-    * validity, and associated calculations are performed. For cases
-    * outside these, additional context such as `equation` and `branch` is
-    * utilized to derive potential results.
+    * The computation involves pattern matching on the type and properties of the `solution`.
     *
-    * The function handles the following cases:
-    * - A `LinearSolution` generates a `Field` with the specified value.
-    * - A `QuadraticSolution` derives a `Field` under specific constraints, such as when the offset is zero or the base is zero.
-    * - For non-matching solutions, specific `equation` and `branch` combinations (e.g., golden ratio equations) are evaluated.
-    * - If none of the conditions are satisfied, it results in `None`.
+    * - For a `LinearSolution`, a `Field` is created using the solution's value and the `PureNumber` factor.
+    * - For a `QuadraticSolution`, specific conditions are checked (e.g., offset is zero, base and factor conditions),
+    * to determine how the corresponding `Field` is computed, which may include a calculation with a branch.
+    * - For special cases related to the `Quadratic` golden ratio equation, named constants `phi` or `psi` are returned,
+    * depending on the branch.
+    * - Returns `None` if none of the conditions match.
     *
-    * @return an optional `Field` instance based on the evaluated criteria.
+    * The computation incorporates the logic for determining whether the solution is linear or quadratic
+    * and evaluates branches of quadratic solutions based on specific properties.
     */
   lazy val maybeValue: Option[Field] = solution match {
     case LinearSolution(x) =>
       Some(Field(x, PureNumber))
     case QuadraticSolution(base, offset, _, _) if Value.isZero(offset) =>
       Some(Field(base, PureNumber))
-    case s@QuadraticSolution(base, _, factor, _) if Value.isZero(base) =>
-      Some(Real(one.make(s.radicalTerm, factor)))
+    case QuadraticSolution(base, offset, factor, branch) if Value.isZero(base) && (factor == PureNumber || branch == 0) =>
+      val radicalTerm = if (branch == 0) offset else Value.negate(offset)
+      Some(Real(one.make(radicalTerm, factor)))
     case _ =>
       (equ, branch) match {
         case (Quadratic.goldenRatioEquation, 0) =>

@@ -204,15 +204,6 @@ object Solution {
 case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch: Int) extends Solution {
 
   /**
-    * Represents the radical term of the quadratic solution (the square root of the discriminant with the correct sign applied).
-    *
-    * The `radicalTerm` is derived based on the `branch` value:
-    * - If `branch` is `0`, the `offset` value is used directly.
-    * - Otherwise, the negated value of `offset` is used.
-    */
-  lazy val radicalTerm: Value = if (branch == 0) offset else Value.negate(offset)
-
-  /**
     * Method to render this NumberLike in a presentable manner.
     * CONSIDER improve this in the event that offset itself is negative (as opposed to imaginary).
     * However, that scenario is unlikely, I believe.
