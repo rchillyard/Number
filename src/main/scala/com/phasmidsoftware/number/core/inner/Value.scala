@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Render.renderValue
 import com.phasmidsoftware.number.misc.FP._
 import java.lang
@@ -25,6 +26,22 @@ object Value {
     * The `Value` is constructed as a `Right` type containing the integer `0`.
     */
   val zero: Value = Right(0)
+
+  /**
+    * Represents the value `2` as a `Value` type,
+    * where `Right(2)` signifies a valid integer representation
+    * wrapped in a `Right`, indicating successful creation as a `Value`.
+    */
+  val two: Value = Right(2)
+
+  /**
+    * A pre-defined constant `Value` representing one-half.
+    * This `Value` is derived from the `Rational` representation of half (1/2).
+    *
+    * It is created using the `fromRational` method to ensure an appropriate `Value`
+    * representation of the rational number one-half.
+    */
+  val half: Value = fromRational(Rational.half)
 
   /**
     * Convert an Int to a Value.
@@ -182,11 +199,43 @@ object Value {
     * @return an Int.
     */
   def abs(value: Value): Value = value match {
-    case Right(x) => Right(math.abs(x))
-    case Left(Right(x)) => Left(Right(x.abs))
-    case Left(Left(Some(x))) => Left(Left(Some(math.abs(x))))
-    case _ => fromNothing()
+    case Right(x) =>
+      Right(math.abs(x))
+    case Left(Right(x)) =>
+      Left(Right(x.abs))
+    case Left(Left(Some(x))) =>
+      Left(Left(Some(math.abs(x))))
+    case _ =>
+      fromNothing()
   }
+
+  /**
+    * Adds two `Value` instances and returns the result.
+    *
+    * The method attempts to perform addition by considering various combinations
+    * of `Value` types. If the addition cannot be performed, an invalid `Value`
+    * is returned.
+    *
+    * @param v1 the first `Value` to be added
+    * @param v2 the second `Value` to be added
+    * @return a `Value` representing the sum of `v1` and `v2`
+    */
+  def add(v1: Value, v2: Value): Value =
+    doComposeValueDyadic(v1, v2)(DyadicOperationPlus.functions) getOrElse fromNothing()
+
+  /**
+    * Multiplies two `Value` instances and returns the result.
+    *
+    * This method attempts to perform multiplication by considering various combinations
+    * of `Value` types. If the multiplication cannot be performed, an invalid `Value`
+    * is returned.
+    *
+    * @param v1 the first `Value` to be multiplied
+    * @param v2 the second `Value` to be multiplied
+    * @return a `Value` representing the product of `v1` and `v2`
+    */
+  def multiply(v1: Value, v2: Value): Value =
+    doComposeValueDyadic(v1, v2)(DyadicOperationTimes.functions) getOrElse fromNothing()
 
   /**
     * Negates the given Value.

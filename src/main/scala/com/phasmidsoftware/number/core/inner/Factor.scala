@@ -156,9 +156,10 @@ sealed trait Factor {
     * @param x the first value
     * @param y the addend
     * @param f the factor associated with y
+    * @param negative true if the y value has negative sense (this is relevant for some factors such as SquareRoot).
     * @return an optional tuple containing the resultant value and its factor
     */
-  def add(x: Value, y: Value, f: Factor): Option[ProtoNumber]
+  def add(x: Value, y: Value, f: Factor, negative: Boolean = false): Option[ProtoNumber]
 
   /**
     * Multiplies two values together and computes an appropriate factor for the result.
@@ -290,13 +291,16 @@ sealed trait Scalar extends Factor {
   /**
     * Adds two values together, applying the specified factor, to compute a resultant value and factor.
     *
+    * TODO handle the negative cases properly
+    *
     * @param x the first value to be added
     * @param y the second value (addend) to be added
     * @param f the factor associated with the operation
+    * @param negative NOTE ignored.
     * @return an optional tuple containing the resultant value, its factor, and optional fuzziness,
     *         or None if the operation cannot be performed under the given factor
     */
-  def add(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+  def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] =
     for {v <- Factor.composeDyadic(x, y)(DyadicOperationPlus) if this == f} yield (v, f, None)
 
 }
@@ -449,9 +453,10 @@ sealed trait Logarithmic extends Factor {
     * @param x the first value
     * @param y the addend
     * @param f the factor associated with y
+    * @param negative NOTE ignored.
     * @return an optional tuple containing the resultant value and its factor
     */
-  def add(x: Value, y: Value, f: Factor): Option[ProtoNumber] = None
+  def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] = None
 
   /**
     * Multiplies two values together and computes an appropriate factor for the result.
@@ -680,9 +685,10 @@ sealed trait InversePower extends Factor {
     * @param x the first value
     * @param y the addend
     * @param f the factor associated with y
+    * @param negative NOTE ignored.
     * @return an optional tuple containing the resultant value and its factor
     */
-  def add(x: Value, y: Value, f: Factor): Option[ProtoNumber] = None
+  def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] = None
 
   /**
     * Multiplies two values together and computes an appropriate factor for the result.
@@ -821,7 +827,7 @@ object InversePower {
   * for inverse power computation.
   *
   * @constructor Creates a new instance of the `NthRoot` class with the specified root degree.
-  * @param root the integer value representing the nth root degree.
+  * @param n the integer value representing the nth root degree.
   */
 abstract class NthRoot(val n: Int) extends InversePower {
 
@@ -1287,10 +1293,12 @@ case object SquareRoot extends NthRoot(2) {
     * @param x the first value to be added
     * @param y the second value to be added
     * @param f the factor defining the context for the addition (e.g., square root)
+    * @param negative true if the `y` value should be considered as being subtracted from the x value.
+    * NOTE this is not the same thing as the `y` value being negative, which would imply an imaginary number.
     * @return an optional `ProtoNumber` that contains the resultant `Value`, its factor,
     *         and optional metadata; `None` if the operation cannot be performed
     */
-  override def add(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+  override def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] =
     whenever(this == f)(
       for {
         a <- Value.maybeRational(x)
@@ -1299,7 +1307,7 @@ case object SquareRoot extends NthRoot(2) {
         p = a * h if p.isInteger
         q = b * h if q.isInteger
         g = p.n.gcd(q.n)
-        z = p / g + q / g
+        z = p / g + (if (negative) -q else q) / g
         if h.isValidInt
         r <- Rational.squareRoots.get(h.toInt) // NOTE this is the only code that depends on this being SquareRoot
       } yield (Value.fromRational(z * g / r), f, None))

@@ -446,7 +446,7 @@ object Prime {
     /**
      * Tail-recursive method to get the prime factors of a composite number with their exponents.
      *
-     * This is related to Issue #85. We really should not call this method with very large n when all we're trying
+     * This is related to (fixed) Issue #85. We really should not call this method with very large n when all we're trying
      * to do is to format a Rational nicely.
      *
      * @param result the current version of the map.

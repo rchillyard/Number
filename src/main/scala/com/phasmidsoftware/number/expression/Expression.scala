@@ -492,6 +492,8 @@ object Expression {
     *         where constants can be evaluated or reduced, returning the simplified `Expression`.
     */
   def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
+    case UniFunction(Two, Ln) =>
+      em.Match(L2) flatMap matchSimpler
     case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
       if n == 2 && theta.isZero =>
       em.Match(Literal(r.power(2)))

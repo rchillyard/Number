@@ -29,7 +29,8 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     * @param p the coefficient to prepend.
     * @return a new ContinuedFraction with x prepended.
     */
-  def +:(p: Pair): ContinuedFraction = ContinuedFraction(p +: cf, infinite, markov)
+  def +:(p: Pair): ContinuedFraction =
+    ContinuedFraction(p +: cf, infinite, markov)
 
   /**
     * Yield a finite ContinuedFraction from this by considering only a prefix of the coefficients.
@@ -38,7 +39,8 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     *          If n = 0, we get the number 1, if n = 1, we get a sub 0. and so on.
     * @return a ContinuedFraction which is a prefix of this.
     */
-  def prefix(n: Int): ContinuedFraction = ContinuedFraction(cf.take(n), infinite = false, markov)
+  def prefix(n: Int): ContinuedFraction =
+    ContinuedFraction(cf.take(n), infinite = false, markov)
 
   /**
     * Method to get the coefficient pairs.
@@ -46,7 +48,8 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     * @see ConFrac#coefficients.
     * @return a LazyList of Pairs.
     */
-  def coefficients: LazyList[Pair] = cf.coefficients
+  def coefficients: LazyList[Pair] =
+    cf.coefficients
 
   /**
     * Method to get the convergents.
@@ -54,7 +57,8 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     * @see ConFrac#convergents.
     * @return a LazyList of Rationals.
     */
-  def convergents: LazyList[Rational] = cf.convergents
+  def convergents: LazyList[Rational] =
+    cf.convergents
 
   /**
     * Method to get the coefficients in reverse order, providing that this ContinuedFraction is not infinite.
@@ -64,8 +68,11 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     * @return the coefficients in reverse order
     * @throws ConFracException if cf is infinite.
     */
-  def reverseCoefficients: LazyList[Pair] = if (!infinite) cf.reverseCoefficients
-  else throw ConFracException("cannot get coefficients for infinite ConFrac")
+  def reverseCoefficients: LazyList[Pair] =
+    if (!infinite)
+      cf.reverseCoefficients
+    else
+      throw ConFracException("cannot get coefficients for infinite ConFrac")
 
   /**
     * Method to yield a Rational from the first n elements of this ContinuedFraction.
@@ -94,6 +101,11 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
   def toDouble(epsilon: Double): Option[Double] = cf.toDouble(epsilon, markov)
 }
 
+/**
+  * This object represents utility methods and predefined constants for working
+  * with continued fractions. It provides functionality to construct, transform,
+  * and manipulate ContinuedFraction instances.
+  */
 object ContinuedFraction {
   /**
     * Construct a ContinuedFraction based on a LazyList of Pairs.
@@ -172,7 +184,8 @@ object ContinuedFraction {
     * @param x a Long value which will be repeated continually to create the simple ContinuedFraction.
     * @return a (simple) ContinuedFraction.
     */
-  def createInfinite(x: Long): ContinuedFraction = createInfinite(Pair(x))
+  def createInfinite(x: Long): ContinuedFraction =
+    createInfinite(Pair(x))
 
   /**
     * Construct a ContinuedFraction based on an initial pattern and a transforming function.
@@ -240,18 +253,37 @@ object ContinuedFraction {
     * This is the Leibniz formula for pi.
     */
   val fPiBy4Leibniz: LazyList[Pair] = Pair.zip(1L +: LazyList.continually(2L), LazyList.from(0).map(2L * _ + 1).map(x => x * x))
+  /**
+    * Represents the continued fraction for 4 divided by Pi, derived using the Leibniz series.
+    *
+    * This is an infinite continued fraction built using the function `fPiBy4Leibniz`.
+    * The default Markov constant, `Hurwitz`, is used.
+    */
   val FourOverPiLeibniz: ContinuedFraction = ContinuedFraction(fPiBy4Leibniz, infinite = true, Hurwitz)
 
   /**
     * This is the Somayaji formula for pi.
     */
   private val fPiSomayaji: LazyList[Pair] = Pair.zip(3L +: LazyList.continually(6L), LazyList.from(0).map(2L * _ + 1).map(x => x * x))
+  /**
+    * Represents an infinite continued fraction of Pi based on the fPiSomayaji function.
+    *
+    * This specific continued fraction is constructed using the fPiSomayaji generator function,
+    * designating it to be infinite and associated with the Hurwitz Markov constant.
+    */
   val PiSomayaji: ContinuedFraction = ContinuedFraction(fPiSomayaji, infinite = true, Hurwitz)
 
   /**
     * This is the most direct and fastest-converging formula for pi (I think).
     */
   private val fPi: LazyList[Pair] = Pair.zip(0L +: LazyList.from(0).map(2L * _ + 1), 4L +: LazyList.from(1).map(x => 1L * x * x))
+  /**
+    * Represents the continued fraction representation of π (Pi) using a specific functional series,
+    * denoting an infinite continued fraction approximation of the mathematical constant π.
+    *
+    * This value is built using the `fPi` function as its series function and specifies that the
+    * continued fraction is infinite. The Markov constant used in this instance is `Hurwitz`.
+    */
   val PiA: ContinuedFraction = ContinuedFraction(fPi, infinite = true, Hurwitz)
 
   /**
@@ -289,7 +321,8 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     * @param p the coefficient pair to prepend before this ConFrac. Typically, this will be (b, 1).
     * @return a new ConFrac whose initial value is y and whose co value is Some(this).
     */
-  def +:(p: Pair): ConFrac = new ConFrac(p.b, Some(CF(p.a, this)))
+  def +:(p: Pair): ConFrac =
+    new ConFrac(p.b, Some(CF(p.a, this)))
 
   /**
     * Method to convert an infinite continued fraction into a finite continued fraction.
@@ -300,11 +333,13 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     * @return a ConFrac which starts out the same as this, but after n elements, the tail (co) will be None.
     */
   def take(n: Int): ConFrac =
-    if (n <= 0) new ConFrac(b, None)
-    else co match {
-      case None => this
-      case Some(cf) => new ConFrac(b, Some(CF(cf.a, cf.c.take(n - 1))))
-    }
+    if (n <= 0)
+      new ConFrac(b, None)
+    else
+      co match {
+        case None => this
+        case Some(cf) => new ConFrac(b, Some(CF(cf.a, cf.c.take(n - 1))))
+      }
 
   /**
     * Method to convert an infinite continued fraction into a finite continued fraction.
@@ -315,7 +350,8 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     *                  as long as true is returned, we continue to take elements.
     * @return a ConFrac which starts out the same as this but, once the predicate has failed on this, the tail (co) will be None.
     */
-  def takeWhile(predicate: Rational => Boolean): ConFrac = ConFrac.innerTakeWhile(predicate, this, Rational.infinity)
+  def takeWhile(predicate: Rational => Boolean): ConFrac =
+    ConFrac.innerTakeWhile(predicate, this, Rational.infinity)
 
   /**
     * Method to yield the "convergents" from this ConFrac.
@@ -418,7 +454,8 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     * @param markov  the Markov constant for this ConFrac.
     * @return either Some(r), where r approximates this ConFrac, or None if the tolerance value could not be achieved.
     */
-  def toRational(epsilon: Double)(markov: Double): Option[Rational] = Try(takeWhile(ConFrac.hurwitz(epsilon, markov)).toRational).toOption
+  def toRational(epsilon: Double)(markov: Double): Option[Rational] =
+    Try(takeWhile(ConFrac.hurwitz(epsilon, markov)).toRational).toOption
 
   /**
     * Method to convert this ConFrac to an (optional) Double, according to the epsilon value.
@@ -428,7 +465,8 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     * @param epsilon the maximum allowable error.
     * @return an optional approximate value.
     */
-  def toDouble(epsilon: Double, markov: Double): Option[Double] = toRational(epsilon)(markov).map(_.toDouble)
+  def toDouble(epsilon: Double, markov: Double): Option[Double] =
+    toRational(epsilon)(markov).map(_.toDouble)
 }
 
 /**
@@ -448,8 +486,10 @@ object ConFrac {
     * @return a ConFrac where the a and b coefficients derive from successive Pairs.
     */
   def apply(ps: LazyList[Pair]): ConFrac = ps match {
-    case p #:: LazyList() => new ConFrac(p.b, None)
-    case p #:: tail => new ConFrac(p.b, Some(CF(p.a, ConFrac(tail))))
+    case p #:: LazyList() =>
+      new ConFrac(p.b, None)
+    case p #:: tail =>
+      new ConFrac(p.b, Some(CF(p.a, ConFrac(tail))))
   }
 
   /**
@@ -458,7 +498,8 @@ object ConFrac {
     * @param xs a lazy list of Ints.
     * @return a ConFrac where all of the "a" coefficients (the ones on top) are 1.
     */
-  def simple(xs: LazyList[Long]): ConFrac = ConFrac(Pair.zip(xs, LazyList.continually(1L)))
+  def simple(xs: LazyList[Long]): ConFrac =
+    ConFrac(Pair.zip(xs, LazyList.continually(1L)))
 
   /**
     * Utility method to construct a LazyList[Long] of increasing values, starting at m.
@@ -466,7 +507,8 @@ object ConFrac {
     * @param n the starting value (an Int).
     * @return a LazyList[Long] whose first value is n as a Long.
     */
-  def LongLazyListFrom(n: Int): LazyList[Long] = LazyList.from(n).map(_.toLong)
+  def LongLazyListFrom(n: Int): LazyList[Long] =
+    LazyList.from(n).map(_.toLong)
 
   /**
     * Method to evaluate a ConFrac until either it encounters a None for the tailOption (in which case an exception is thrown);
@@ -480,7 +522,8 @@ object ConFrac {
     */
   private def innerTakeWhile(predicate: Rational => Boolean, cf: ConFrac, r: Rational): ConFrac =
     cf.tailOption match {
-      case None => throw ConFracException("predicate is never fails")
+      case None =>
+        throw ConFracException("predicate is never fails")
       case Some(c) =>
         val z = r.invert * c.a + cf.b
         if (predicate(z)) new ConFrac(cf.b, Some(CF(c.a, innerTakeWhile(predicate, c.c, z))))
@@ -494,8 +537,10 @@ object ConFrac {
     * @return Some((Long), Option[CF]) is x is a ConFrac, otherwise, None.
     */
   def unapply(x: Any): Option[(Long, Option[CF])] = x match {
-    case c: ConFrac => Some(c.b, c.tailOption)
-    case _ => None
+    case c: ConFrac =>
+      Some(c.b, c.tailOption)
+    case _ =>
+      None
   }
 
   /**
@@ -508,39 +553,106 @@ object ConFrac {
     * @param r       the Rational value to be tested (we only look at the denominator).
     * @return true if the error estimate is greater than the epsilon value.
     */
-  def hurwitz(epsilon: Double, markov: Double)(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / markov > epsilon
+  def hurwitz(epsilon: Double, markov: Double)(r: Rational): Boolean =
+    1.0 / r.d.toDouble / r.d.toDouble / markov > epsilon
 
   /**
     * CONSIDER most if not all of the following definitions should be in the Spec file (they are duplicated in ContinuousFraction).
     */
-  private val lFib: LazyList[Long] = 1L #:: lFib.scanLeft(1L)(_ + _)
+  private val lFib: LazyList[Long] =
+    1L #:: lFib.scanLeft(1L)(_ + _)
 
-  private val lPhi: LazyList[Long] = LazyList.continually(1L)
+  /**
+    * A LazyList of Long values representing an infinite sequence where each value is `1L`.
+    * This sequence is continually repeated and is lazily evaluated.
+    */
+  private val lPhi: LazyList[Long] =
+    LazyList.continually(1L)
 
-  private val lE: LazyList[Long] = 2L #:: LazyList.iterate(Seq(1L, 2, 1)) { case Seq(x, y, z) => Seq(x, y + 2, z) }.flatten
+  /**
+    * A lazy list that generates Euler's number continued fraction representation.
+    *
+    * The sequence starts with 2L and continues by iterating over nested sequences
+    * of Long values, which are flattened into a single LazyList of Long.
+    * Each iteration generates a sequence of three values: x, y + 2, and z,
+    * where x, y, and z are elements from the previous sequence.
+    */
+  private val lE: LazyList[Long] =
+    2L #:: LazyList.iterate(Seq(1L, 2, 1)) { case Seq(x, y, z) => Seq(x, y + 2, z) }.flatten
 
   /**
     * Continued Fraction for Pi from the sequence [[https://oeis.org/A001203]].
     * NOTE: there is no repeating sequence.
     */
-  val lPi: LazyList[Long] = LazyList(3L, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1, 84, 2, 1, 1, 15, 3, 13, 1, 4, 2, 6, 6, 99, 1, 2, 2, 6, 3, 5, 1, 1, 6, 8, 1, 7, 1, 2, 3, 7, 1, 2, 1, 1, 12, 1, 1, 1, 3, 1, 1, 8, 1, 1, 2, 1, 6, 1, 1, 5, 2, 2, 3, 1, 2, 4, 4, 16, 1, 161, 45, 1, 22, 1, 2, 2, 1, 4, 1, 2, 24, 1, 2, 1, 3, 1, 2, 1)
+  val lPi: LazyList[Long] =
+    LazyList(3L, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1, 84, 2, 1, 1, 15, 3, 13, 1, 4, 2, 6, 6, 99, 1, 2, 2, 6, 3, 5, 1, 1, 6, 8, 1, 7, 1, 2, 3, 7, 1, 2, 1, 1, 12, 1, 1, 1, 3, 1, 1, 8, 1, 1, 2, 1, 6, 1, 1, 5, 2, 2, 3, 1, 2, 4, 4, 16, 1, 161, 45, 1, 22, 1, 2, 2, 1, 4, 1, 2, 24, 1, 2, 1, 3, 1, 2, 1)
 
-  val lRoot19: LazyList[Long] = 4L #:: LazyList.continually(Seq(2L, 1, 3, 1, 2, 8)).flatten
+  /**
+    * A LazyList representing the continued fraction coefficients for the square root of 19.
+    * The sequence is constructed with an initial term of 4 followed by a repeating cycle of [2, 1, 3, 1, 2, 8].
+    */
+  val lRoot19: LazyList[Long] =
+    4L #:: LazyList.continually(Seq(2L, 1, 3, 1, 2, 8)).flatten
 
-  val lRoot3: LazyList[Long] = 1L #:: LazyList.continually(Seq(1L, 2)).flatten
+  /**
+    * A LazyList of Long values starting with 1 and followed by a repeating pattern of values 1 and 2.
+    *
+    * This structure is formed by prepending the value 1 (`1L`) to a continuously generated LazyList
+    * of alternating values 1 (`1L`) and 2 (`2`). The `LazyList.continually` creates an infinite sequence
+    * of a given pattern, and the `.flatten` ensures the sequence elements are expanded into the resulting LazyList.
+    *
+    * The sequence is intended for generating elements of a continued fraction or a related numerical sequence.
+    */
+  val lRoot3: LazyList[Long] =
+    1L #:: LazyList.continually(Seq(1L, 2)).flatten
 
-  val lRoot2: LazyList[Long] = 1L #:: LazyList.continually(2L)
+  /**
+    * A LazyList representing the continued fraction coefficients for the square root of 2.
+    * The first element is 1, followed by a repeated sequence of 2.
+    */
+  val lRoot2: LazyList[Long] =
+    1L #:: LazyList.continually(2L)
 
+  /**
+    * Represents the continued fraction expansion of the square root of 19 as a simple continued fraction.
+    * It is constructed using the `ConFrac.simple` method with a predefined lazy list of coefficients (`lRoot19`).
+    */
   val root19: ConFrac = ConFrac.simple(lRoot19)
 
+  /**
+    * A constant Continued Fraction representation of the square root of 2.
+    *
+    * Constructs a simple Continued Fraction (ConFrac) using a predefined
+    * lazy list `lRoot2` representing the sequence of coefficients providing
+    * the continued fraction expansion for the square root of 2.
+    */
   val root2: ConFrac = ConFrac.simple(lRoot2)
 
+  /**
+    * A constant `ConFrac` representing the continued fraction approximation for the square root of 3.
+    * Constructed as a simple continued fraction using a lazy list of integers.
+    */
   val root3: ConFrac = ConFrac.simple(lRoot3)
 
+  /**
+    * Represents the golden ratio (φ) as a continued fraction.
+    * This value is constructed using the `ConFrac.simple` method applied
+    * to the predefined lazy list `lPhi`.
+    */
   val phi: ConFrac = ConFrac.simple(lPhi)
 
+  /**
+    * A constant value representing the continued fraction for the mathematical constant *e*.
+    * Defined using the `simple` construction method of the `ConFrac` class,
+    * which produces a continued fraction with all "a" coefficients set to 1.
+    */
   val E: ConFrac = ConFrac.simple(lE)
 
+  /**
+    * Represents a simplified continued fraction for Pi using the `simple` method of `ConFrac`.
+    * Constructs a continued fraction where all the "a" coefficients (numerators) are 1,
+    * utilizing the predefined lazy list `lPi`.
+    */
   val PiSimple: ConFrac = ConFrac.simple(lPi)
 
 }
@@ -575,6 +687,9 @@ case class Pair(b: Long, a: Long) {
   def toRational: Rational = Rational(a, b)
 }
 
+/**
+  * Companion object for constructing and operating on Pair objects.
+  */
 object Pair {
   /**
     * Method to construct a Pair from a single Long value (useful for simple continued fractions).
@@ -643,6 +758,16 @@ trait Evaluatable {
   def toDouble(epsilon: Double, markov: Double): Option[Double]
 }
 
+/**
+  * The `Approximate` trait provides a mechanism to compute approximate representations of values of type `X` as `Double`.
+  * Implementations of this trait define how to compute this approximation while adhering to a specified maximum allowable error.
+  *
+  * This is particularly useful for applications where an approximation with controlled precision is sufficient and can improve performance.
+  *
+  * It operates based on an implicit `epsilon` value, which determines the acceptable error tolerance between the true value and the approximate result.
+  *
+  * @tparam X The type of the input object to be approximated.
+  */
 trait Approximate[X] {
   /**
     * Evaluate this Approximatable object as a Double such that the absolute error between the true value and the result
@@ -655,4 +780,12 @@ trait Approximate[X] {
   def toDouble(x: X)(implicit epsilon: Double): Double
 }
 
+/**
+  * Represents an exception that is specifically thrown in the context of
+  * continued fraction computations or related operations.
+  *
+  * @constructor Creates a new instance of ConFracException with the
+  *              provided error message.
+  * @param str The error message associated with this exception.
+  */
 case class ConFracException(str: String) extends RuntimeException(str)

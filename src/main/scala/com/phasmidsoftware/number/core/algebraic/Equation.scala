@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.expression.Expression
+import com.phasmidsoftware.number.expression.{Expression, Root}
 
 /**
   * The `Equation` trait represents a mathematical equation that may have multiple solutions or branches.
@@ -32,8 +32,8 @@ trait Equation extends Multivalued {
     *               number of available branches for this expression.
     * @return the `Expression` corresponding to the evaluated branch.
     */
-  def apply(branch: Int): Expression = ??? // TODO implement this
-
+  def apply(branch: Int): Expression =
+    Root(this, branch)
 
   /**
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.
