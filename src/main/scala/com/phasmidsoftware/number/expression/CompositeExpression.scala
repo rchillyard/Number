@@ -228,11 +228,9 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
         em.Match(BiFunction(ConstE, x, Log))
       case UniFunction(BiFunction(x, b, Log), Reciprocal) =>
         em.Match(BiFunction(b, x, Log))
-
       // XXX we check for certain exact literal function results
       case UniFunction(e: FieldExpression, f) if e.monadicFunction(f).isDefined =>
         em.matchIfDefined(e.monadicFunction(f))(e)
-
       case UniFunction(r: Root, Reciprocal) =>
         em.Match(r.reciprocal)
       case UniFunction(r: Root, Negate) =>
@@ -374,26 +372,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
-    case BiFunction(r: Root, p, Power) =>
-      p.evaluate(RestrictedContext(PureNumber)) flatMap (_.toRational) match {
-        case Some(n) =>
-          em.Match(r.power(n))
-        case None =>
-          em.Miss("BiFunction:simplifyComposite", b)
-      }
-    case BiFunction(QuadraticRoot(e1, b1), QuadraticRoot(e2, b2), f) if e1 == e2 =>
-      val q1: Quadratic = e1.asInstanceOf[Quadratic]
-      f match {
-        case Sum if b1 != b2 =>
-          em.Match(q1.conjugateSum)
-        case Product if b1 != b2 =>
-          em.Match(q1.conjugateProduct)
-        case _ =>
-          em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Roots and $f", this) // TESTME
-      }
-    case BiFunction(q1@QuadraticRoot(_, _), q2@QuadraticRoot(_, _), Sum) =>
-      val maybeRoot = q1 add q2
-      em.matchIfDefined(maybeRoot)(this)
+    case BiFunction(r: Root, x, f) =>
+      matchRoot(r, x, f)
     case BiFunction(Literal(a@Algebraic_Quadratic(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
       em.Match(Literal(a add q.algebraic))
     case BiFunction(q@QuadraticRoot(_, _), Literal(a@Algebraic_Quadratic(_, _, _), _), Sum) =>
@@ -438,6 +418,29 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           em.alt(matchSimpler))(b)
     case b =>
       em.Miss("simplifyComposite", b) // TESTME
+  }
+
+  private def matchRoot(r: Root, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] = (r, x, f) match {
+    case (r, p, Power) =>
+      p.evaluate(RestrictedContext(PureNumber)) flatMap (_.toRational) match {
+        case Some(n) =>
+          em.Match(r.power(n))
+        case None =>
+          em.Miss("BiFunction:matchRoot Power", BiFunction(r, p, Power))
+      }
+    case (q1@QuadraticRoot(e1, b1), q2@QuadraticRoot(e2, b2), f) if e1 == e2 =>
+      val quadratic: Quadratic = e1.asInstanceOf[Quadratic]
+      f match {
+        case Sum if b1 != b2 =>
+          em.Match(quadratic.conjugateSum)
+        case Product if b1 != b2 =>
+          em.Match(quadratic.conjugateProduct)
+        case _ =>
+          em.Miss[Expression, Expression](s"BiFunction: matchRoot: QuadraticRoots and $f", BiFunction(q1, q2, f)) // TESTME
+      }
+    case (q1@QuadraticRoot(_, _), q2@QuadraticRoot(_, _), Sum) =>
+      val maybeRoot = q1 add q2
+      em.matchIfDefined(maybeRoot)(BiFunction(q1, q2, f))
   }
 
   /**

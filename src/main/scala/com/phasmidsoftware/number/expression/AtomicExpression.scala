@@ -377,11 +377,13 @@ case class Literal(override val value: Field, override val maybeName: Option[Str
       someLiteral(-r)
     case (Reciprocal, r@Real(ExactNumber(_, PureNumber))) =>
       someLiteral(r.invert)
-    case (Reciprocal, a@Algebraic_Quadratic(_, _, _)) =>
+    case (Reciprocal, a: Algebraic) =>
       someLiteral(a.invert)
-    case (Ln, r@Real(ExactNumber(_, _: Scalar))) =>
+    case (Reciprocal, c: Complex) =>
+      someLiteral(c.invert)
+    case (Ln, r@Real(ExactNumber(_, PureNumber))) =>
       someLiteral(r.ln)
-    case (Exp, r@Real(ExactNumber(_, _: Scalar))) =>
+    case (Exp, r@Real(ExactNumber(_, PureNumber))) =>
       someLiteral(r.exp)
     case (Sine, r@Real(ExactNumber(_, Radian))) =>
       someLiteral(r.sin)
