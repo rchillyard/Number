@@ -992,7 +992,7 @@ object Rational {
    * This is the only instance in the domain of Rational with a negative denominator.
    */
   private[core] lazy val negZero = new Rational(0, -1)
-  private[inner] val negInfinity: Rational = new Rational(-1, 0)
+  private[core] val negInfinity: Rational = new Rational(-1, 0)
   private[inner] val negZeroDouble: Double = "-0.0".toDouble // negative zero as a Double
   private[inner] lazy val pi_5000: Rational = Rational(sPi_5000)
   private[inner] lazy val sPi_5000: String =

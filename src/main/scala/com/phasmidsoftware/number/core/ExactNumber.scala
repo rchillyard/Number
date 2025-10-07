@@ -80,6 +80,10 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   def simplify: Number = (factor, nominalValue) match {
     case (Logarithmic(_), Right(0)) =>
       Number.one
+    case (Logarithmic(_), Left(Right(Rational.negInfinity))) =>
+      Number.zero
+    case (Logarithmic(_), Left(Right(Rational.infinity))) =>
+      ExactNumber(Value.fromRational(Rational.infinity), PureNumber)
     case (Euler, Right(1)) => // this is `e^i𝛑`, which equals `-1` by Euler's Identity
       Number(-1)
     case (Euler, Left(Right(Rational.half))) => // this is `e^i𝛑/2`, which equals `i` by Euler's Identity

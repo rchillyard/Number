@@ -221,6 +221,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = expression.UniFunction(Two, Reciprocal).simplify
     x shouldBe Literal(half)
   }
+  it should "work for Exp Infinity" in {
+    val x = expression.UniFunction(Expression(infinity), Exp).simplify
+    x shouldBe Infinity
+  }
   it should "work for Exp neg Infinity" in {
     val x = expression.UniFunction(Expression(infinity.negate), Exp).simplify
     x shouldBe Zero

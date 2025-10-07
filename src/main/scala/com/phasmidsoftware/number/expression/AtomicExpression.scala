@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.core.algebraic._
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.em
+import com.phasmidsoftware.number.expression.Literal.someLiteral
 import scala.language.implicitConversions
 
 /**
@@ -371,23 +372,21 @@ case class Literal(override val value: Field, override val maybeName: Option[Str
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
-    case Negate =>
-      value match {
-        case Real(ExactNumber(_, _: Scalar)) =>
-          Some(Literal(-value))
-        case _ =>
-          None
-      }
-    case Reciprocal =>
-      value match {
-        case Real(ExactNumber(_, _: Scalar)) =>
-          Some(Literal(value.invert))
-        case a@Algebraic_Quadratic(_, _, _) =>
-          Some(Literal(a.invert))
-        case _ =>
-          None
-      }
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = (f, value) match {
+    case (Negate, r@Real(ExactNumber(_, _: Scalar))) =>
+      someLiteral(-r)
+    case (Reciprocal, r@Real(ExactNumber(_, PureNumber))) =>
+      someLiteral(r.invert)
+    case (Reciprocal, a@Algebraic_Quadratic(_, _, _)) =>
+      someLiteral(a.invert)
+    case (Ln, r@Real(ExactNumber(_, _: Scalar))) =>
+      someLiteral(r.ln)
+    case (Exp, r@Real(ExactNumber(_, _: Scalar))) =>
+      someLiteral(r.exp)
+    case (Sine, r@Real(ExactNumber(_, Radian))) =>
+      someLiteral(r.sin)
+    case (Cosine, r@Real(ExactNumber(_, Radian))) =>
+      someLiteral(r.cos)
     // TODO implement for other functions
     case _ =>
       None
@@ -469,6 +468,8 @@ object Literal {
     case _ =>
       Literal(Real(x))
   }
+
+  def someLiteral(x: Field): Option[Literal] = Some(Literal(x))
 }
 
 /**
@@ -552,7 +553,7 @@ case object Half extends ScalarConstant(Constants.half, "\u00BD") {
     */
   def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Negate =>
-      Some(Literal(-Constants.half)) // TESTME
+      Literal.someLiteral(-Constants.half) // TESTME
     case Reciprocal =>
       Some(Two) // TESTME
     case _ =>
@@ -731,6 +732,8 @@ case object Infinity extends NamedConstant(Rational.infinity, "∞") {
   def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match { // TESTME
     case Reciprocal =>
       Some(Zero)
+    case Exp =>
+      Some(Infinity)
     case _ =>
       None
   }
