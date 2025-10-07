@@ -379,6 +379,15 @@ case class Literal(override val value: Field, override val maybeName: Option[Str
         case _ =>
           None
       }
+    case Reciprocal =>
+      value match {
+        case Real(ExactNumber(_, _: Scalar)) =>
+          Some(Literal(value.invert))
+        case a@Algebraic_Quadratic(_, _, _) =>
+          Some(Literal(a.invert))
+        case _ =>
+          None
+      }
     // TODO implement for other functions
     case _ =>
       None

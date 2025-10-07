@@ -230,7 +230,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
         em.Match(BiFunction(b, x, Log))
 
       // XXX we check for certain exact literal function results
-      case UniFunction(e@FieldExpression(_, _), f) if e.monadicFunction(f).isDefined =>
+      case UniFunction(e: FieldExpression, f) if e.monadicFunction(f).isDefined =>
         em.matchIfDefined(e.monadicFunction(f))(e)
 
       case UniFunction(r: Root, Reciprocal) =>
@@ -391,13 +391,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         case _ =>
           em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Roots and $f", this) // TESTME
       }
-//    case BiFunction(q1@QuadraticRoot(_, _), q2@QuadraticRoot(_, _), Sum) =>
-//      val maybeRoot = q1 add q2
-//      em.matchIfDefined(maybeRoot)(this)
-//    case BiFunction(Literal(a@Algebraic_Quadratic(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
-//      em.Match(QuadraticRoot(a add q.algebraic))
-//    case BiFunction(q@QuadraticRoot(_, _), Literal(a@Algebraic_Quadratic(_, _, _), _), Sum) =>
-//      em.Match(QuadraticRoot(a add q.algebraic))
+    case BiFunction(q1@QuadraticRoot(_, _), q2@QuadraticRoot(_, _), Sum) =>
+      val maybeRoot = q1 add q2
+      em.matchIfDefined(maybeRoot)(this)
+    case BiFunction(Literal(a@Algebraic_Quadratic(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
+      em.Match(Literal(a add q.algebraic))
+    case BiFunction(q@QuadraticRoot(_, _), Literal(a@Algebraic_Quadratic(_, _, _), _), Sum) =>
+      em.Match(Literal(a add q.algebraic))
     case BiFunction(r: Root, x, f) =>
       modifyQuadratic(r, x, f)
     case BiFunction(x, r: Root, f) if f.commutes =>
