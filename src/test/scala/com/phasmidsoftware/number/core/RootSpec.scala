@@ -5,10 +5,10 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sPhi
-import com.phasmidsoftware.number.core.algebraic.Root.{phi, psi}
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Root}
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{AnyContext, PureNumber, Rational}
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+import com.phasmidsoftware.number.expression.Root.{phi, psi}
 import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

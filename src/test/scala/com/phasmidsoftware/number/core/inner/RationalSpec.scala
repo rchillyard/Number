@@ -204,7 +204,6 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "be true for 3.14" in {
     createExact(3.14).get.isDecimal shouldBe true
   }
-  // XXX Was posted as Issue #85 which is still open
   it should "be true for 223606797749979/200000000000000" in {
     val target = r"223606797749979/200000000000000"
     target.isDecimal shouldBe true
@@ -1098,7 +1097,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     half.renderExact shouldBe "½"
   }
   it should "render thirds" in {
-    (third).renderExact shouldBe "⅓"
+    third.renderExact shouldBe "⅓"
     (2 * third).renderExact shouldBe "⅔"
   }
   it should "render quarters" in {

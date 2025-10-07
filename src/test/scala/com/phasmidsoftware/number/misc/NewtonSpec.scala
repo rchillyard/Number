@@ -1,8 +1,11 @@
 package com.phasmidsoftware.number.misc
 
+import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.core.Constants
+import com.phasmidsoftware.number.core.Number.piBy2
+import com.phasmidsoftware.number.expression.Expression
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.util.{Failure, Success}
 
 class NewtonSpec extends AnyFlatSpec with should.Matchers {
@@ -27,4 +30,20 @@ class NewtonSpec extends AnyFlatSpec with should.Matchers {
     }
   }
 
+  behavior of "Newton Worksheet"
+  it should "worksheet" in {
+
+    /**
+      * Some trigonometric identities.
+      */
+    val iPi = Expression(Constants.i) * Constants.pi
+    val euler = Expression(Constants.e) ^ iPi
+    println(euler.asNumber)
+
+    val a: core.Number = piBy2.cos
+    println(a)
+    val b: core.Number = piBy2.sin
+    println(b)
+    println(piBy2.tan)
+  }
 }

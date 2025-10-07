@@ -48,7 +48,8 @@ val length: Number = expression
   */
 val iPi = Expression(Constants.i) * Constants.pi
 val euler = Expression(Constants.e) ^ iPi
-euler.asNumber
+val number = euler.asNumber
+println(number)
 
 piBy2.cos
 piBy2.sin

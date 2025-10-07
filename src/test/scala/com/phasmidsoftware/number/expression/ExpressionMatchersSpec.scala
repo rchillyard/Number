@@ -94,7 +94,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   import Expression.ExpressionOps
 
-  behavior of "simplifyIdentityDyadic"
+  behavior of "matchSimpler"
 
   import Matchers._
 
@@ -102,11 +102,25 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     import BiFunction._
     val p = Expression.matchSimpler
     val x: Expression = Number.pi
-    p(Sum ~ x ~ Literal(Number.zero)) shouldBe em.Match(x)
-    p(Sum ~ Literal(Number.zero) ~ x) shouldBe em.Match(x)
-    p(Product ~ x ~ Literal(Number.one)) shouldBe em.Match(x)
-    p(Product ~ Literal(Number.one) ~ x) shouldBe em.Match(x)
-    p(Power ~ x ~ Literal(Number.one)) shouldBe em.Match(x)
+    p(Sum ~ x ~ Zero) shouldBe em.Match(x)
+    p(Sum ~ Zero ~ x) shouldBe em.Match(x)
+    p(Product ~ x ~ One) shouldBe em.Match(x)
+    p(Product ~ One ~ x) shouldBe em.Match(x)
+    p(Product ~ x ~ Zero) shouldBe em.Match(Zero)
+    p(Product ~ Zero ~ x) shouldBe em.Match(Zero)
+    p(Power ~ x ~ One) shouldBe em.Match(x)
+  }
+  it should "simplifyTrivial 1" in {
+    import BiFunction._
+    val p = Expression.simplifyTrivial
+    val x: Expression = Number.pi
+    p(Sum ~ x ~ Zero) shouldBe em.Match(x)
+    p(Sum ~ Zero ~ x) shouldBe em.Match(x)
+    p(Product ~ x ~ One) shouldBe em.Match(x)
+    p(Product ~ One ~ x) shouldBe em.Match(x)
+    p(Product ~ x ~ Zero) shouldBe em.Match(Zero)
+    p(Product ~ Zero ~ x) shouldBe em.Match(Zero)
+    p(Power ~ x ~ One) shouldBe em.Match(x)
   }
 
   //  behavior of "evaluateExactDyadicTriple"

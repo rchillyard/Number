@@ -1,10 +1,9 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sGamma
-import com.phasmidsoftware.number.core.algebraic.Root
 import com.phasmidsoftware.number.core.inner.{Log2, Rational}
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
-import com.phasmidsoftware.number.expression.{Expression, Literal}
+import com.phasmidsoftware.number.expression.{Expression, Literal, Root}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
