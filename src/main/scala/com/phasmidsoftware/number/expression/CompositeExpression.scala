@@ -376,8 +376,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       matchRoot(r, x, f)
     case BiFunction(Literal(a@Algebraic_Quadratic(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
       em.Match(Literal(a add q.algebraic))
-    case BiFunction(q@QuadraticRoot(_, _), Literal(a@Algebraic_Quadratic(_, _, _), _), Sum) =>
-      em.Match(Literal(a add q.algebraic))
     case BiFunction(r: Root, x, f) =>
       modifyQuadratic(r, x, f)
     case BiFunction(x, r: Root, f) if f.commutes =>
@@ -441,6 +439,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case (q1@QuadraticRoot(_, _), q2@QuadraticRoot(_, _), Sum) =>
       val maybeRoot = q1 add q2
       em.matchIfDefined(maybeRoot)(BiFunction(q1, q2, f))
+    case (q@QuadraticRoot(_, _), Literal(a@Algebraic_Quadratic(_, _, _), _), Sum) =>
+      em.Match(Literal(a add q.algebraic))
+    case _ =>
+      em.Miss[Expression, Expression](s"BiFunction: matchRoot: ", BiFunction(r, x, f)) // TESTME
   }
 
   /**
