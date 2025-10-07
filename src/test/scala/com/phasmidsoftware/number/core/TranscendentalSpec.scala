@@ -46,6 +46,19 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
     L2.expression shouldEqual Two.ln
   }
 
+
+  it should "simplify pi" in {
+    val actual = Pi.simplify
+    val expected = ConstPi
+    actual shouldBe expected
+  }
+  it should "simplify e" in {
+    E.simplify shouldBe ConstE
+  }
+  it should "simplify l2" in {
+    L2.simplify === Two.ln
+  }
+
   it should "function 1" in {
     val result = Pi.function(Sine).simplify
     val expected = Expression.zero
