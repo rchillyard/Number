@@ -378,6 +378,15 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(1, -1), pos = true))
   }
 
+  // FIXME now
+  ignore should "evaluate - phi" in {
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val expression: Expression = phi.negate
+    val simplified = expression.simplify
+    simplified.approximation.get.toDouble === -1.61803398875
+    simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(1, -1), pos = false))
+  }
+
   behavior of "Sum"
   it should "add pi to -pi" in {
     val x1 = ConstPi

@@ -269,8 +269,8 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     Objects.hash(equation, pos)
   }
 
-  override def toString: String =
-    s"Algebraic_Quadratic($solve, $equation, $pos)"
+  override def toString: String = render
+//    s"Algebraic_Quadratic($solve, $equation, $pos)"
 
   /**
     * Adds the given Rational object to the current Algebraic.

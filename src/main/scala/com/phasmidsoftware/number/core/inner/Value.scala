@@ -294,10 +294,14 @@ object Value {
   def scaleDouble(x: Double, fThis: Double, fResult: Double): Double = x * fThis / fResult
 
   /**
-    * Method to render a Value as a String.
+    * Converts a given `Value` into its string representation, with options to skip certain outputs or use exact formatting.
     *
-    * @param v the value to be rendered.
-    * @return a String.
+    * @param v       the `Value` to be converted into a string.
+    * @param skipOne a Boolean indicating whether to skip returning the string representation if the value equals "1"
+    *                (only when `exact` is true).
+    * @param exact   a Boolean (default is true) specifying whether the string representation should be exact
+    *                or adjusted with additional formatting (e.g., appending a "*").
+    * @return a `String` representing the `Value`, formatted according to the given parameters.
     */
   def valueToString(v: Value, skipOne: Boolean, exact: Boolean = true): String = (renderValue(v, exact), exact) match {
     case (("1", true), _) if skipOne => ""

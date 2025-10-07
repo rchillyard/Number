@@ -903,6 +903,19 @@ trait Root extends AtomicExpression {
   def branch: Int
 
   /**
+    * Adds another `Root` to this `Root`, resulting in a new `Root` that
+    * represents the sum of the two roots. If the addition is not valid or
+    * cannot be performed, returns `None`.
+    *
+    * @param other the `Root` to be added to the current `Root`.
+    *              This parameter represents another mathematical root to
+    *              combine with the current `Root`.
+    * @return an `Option[Root]` containing the resulting `Root` if the addition
+    *         is successful, or `None` if the addition is not valid.
+    */
+  def add(other: Root): Option[Root]
+
+  /**
     * Retrieves an optional value of type `Field` associated with this `Root`.
     * The result will be defined if either the base or the offset is zero (in the case of a quadratic root).
     *
@@ -929,6 +942,14 @@ trait Root extends AtomicExpression {
     * @return the result of squaring the current `Expression`, evaluated according to the type of the equation.
     */
   def reciprocal: Expression
+
+  /**
+    * Creates a new `Expression` that represents the negation of the current `Expression`.
+    * This operation is equivalent to multiplying the current `Expression` by -1.
+    *
+    * @return an `Expression` representing the negation of the current `Expression`.
+    */
+  def negate: Expression
 
   /**
     * Computes the square root of this `Root`.
@@ -968,6 +989,20 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
   def pure(equ: Equation, branch: Int): Root = QuadraticRoot(equ, branch)
 
   /**
+    * Adds another `Root` to this `Root`, yielding a new `Root` as a result.
+    *
+    * @param other the `Root` to be added to the current `Root`.
+    *              This represents the operand added to this `Root`.
+    * @return a new `Root` which is the sum of this `Root` and the provided `other` `Root`.
+    */
+  def add(other: Root): Option[Root] = other match {
+    case q: QuadraticRoot =>
+      Some(QuadraticRoot(algebraic add q.algebraic))
+    case _ =>
+      None
+  }
+
+  /**
     * Returns the associated `Quadratic` equation for this instance.
     *
     * @return the `Quadratic` equation represented by this root.
@@ -982,6 +1017,24 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     case _ =>
       s"QuadraticRoot($equ, $branch)"
   }
+}
+
+/**
+  * The `QuadraticRoot` object provides functionality to construct and manipulate roots of quadratic equations.
+  *
+  * This object acts as a factory for creating instances of `QuadraticRoot` using algebraic data,
+  * and offers methods for working with quadratic equations and their solutions.
+  */
+object QuadraticRoot {
+  /**
+    * Creates a new instance of `QuadraticRoot` based on the provided algebraic equation and branch.
+    *
+    * @param algebraic an instance of `Algebraic` that provides the equation and branch
+    *                  used to construct the `QuadraticRoot`
+    * @return a new instance of `QuadraticRoot` created from the specified algebraic data
+    */
+  def apply(algebraic: Algebraic): QuadraticRoot =
+    QuadraticRoot(algebraic.equation, algebraic.branch)
 }
 
 /**
@@ -1020,6 +1073,25 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
     *         defined by a monic polynomial and may have multiple branches of solutions.
     */
   def equation: LinearEquation = equ.asInstanceOf[LinearEquation]
+
+  /**
+    * Adds another `Root` to this `Root`, resulting in a new `Root` that
+    * represents the sum of the two roots. If the addition is not valid or
+    * cannot be performed, returns `None`.
+    *
+    * @param other the `Root` to be added to the current `Root`.
+    *              This parameter represents another mathematical root to
+    *              combine with the current `Root`.
+    * @return an `Option[Root]` containing the resulting `Root` if the addition
+    *         is successful, or `None` if the addition is not valid.
+    */
+  def add(other: Root): Option[Root] = other match {
+    case l: LinearRoot =>
+      val result = algebraic add l.algebraic
+      Some(LinearRoot(result.equation))
+    case _ =>
+      None
+  }
 }
 
 /**
@@ -1197,6 +1269,17 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
       this / Literal(-q) + Literal(-p / q)
     case _ =>
       One / this
+  }
+
+  /**
+    * Creates a new `Expression` that represents the negation of the current `Expression`.
+    * This operation is equivalent to multiplying the current `Expression` by -1.
+    *
+    * @return an `Expression` representing the negation of the current `Expression`.
+    */
+  def negate: Expression = {
+    val result: Algebraic = Algebraic(algebraic.negate.solve)
+    Root(result.equation, result.branch)
   }
 
   /**

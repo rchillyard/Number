@@ -134,11 +134,13 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     simplified shouldBe One
   }
 
-  // FIXME Issue #130
+  // Fixed Issue #130
+  // FIXME now
   ignore should "evaluate 2" in {
     import com.phasmidsoftware.number.expression.Expression.ExpressionOps
-    val expression = (phi + psi) / (phi - psi)
-    val simplified = expression.simplify
-    simplified shouldBe Literal(Constants.root5).reciprocal
+    val top = (phi + psi).simplify
+    val bottom = (phi - psi).simplify
+    val expression = top / bottom
+    expression.simplify shouldBe Literal(Constants.root5).reciprocal.simplify
   }
 }

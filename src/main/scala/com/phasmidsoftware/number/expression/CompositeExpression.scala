@@ -235,6 +235,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
 
       case UniFunction(r: Root, Reciprocal) =>
         em.Match(r.reciprocal)
+      case UniFunction(r: Root, Negate) =>
+        em.Match(r.negate)
       case expr =>
         em.Miss("UniFunction: simplifyTrivial: no trivial simplifications", expr)
     }
@@ -389,6 +391,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         case _ =>
           em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Roots and $f", this) // TESTME
       }
+//    case BiFunction(q1@QuadraticRoot(_, _), q2@QuadraticRoot(_, _), Sum) =>
+//      val maybeRoot = q1 add q2
+//      em.matchIfDefined(maybeRoot)(this)
+//    case BiFunction(Literal(a@Algebraic_Quadratic(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
+//      em.Match(QuadraticRoot(a add q.algebraic))
+//    case BiFunction(q@QuadraticRoot(_, _), Literal(a@Algebraic_Quadratic(_, _, _), _), Sum) =>
+//      em.Match(QuadraticRoot(a add q.algebraic))
     case BiFunction(r: Root, x, f) =>
       modifyQuadratic(r, x, f)
     case BiFunction(x, r: Root, f) if f.commutes =>
