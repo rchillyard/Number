@@ -936,11 +936,19 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     pi should matchPattern { case ComplexPolar(_, `zeroR`, 2) => }
     pi.render shouldBe "±3.1397452125928944±0.030%"
   }
-  // Issue #121 why does this work out differently from power by one half?
+  // CONSIDER Issue #121 why does this work out differently from power by one half?
   // the precision is different and it's a FuzzyNumber instead of a ComplexPolar.
+  // XXX I don't know what this comment is about but please note that using power of a half
+  // (the following test) works exactly the same.
   it should "sqrt" in {
     val x = Number("1.643(1)")
     val pi = Number.sqrt(x doMultiple 6)
+    pi should matchPattern { case FuzzyNumber(_, _, _) => }
+    pi.render shouldBe "3.1397452125928944±0.0050%"
+  }
+  it should "power 1/2" in {
+    val x = Number("1.643(1)")
+    val pi = (x doMultiple 6) power Number.half
     pi should matchPattern { case FuzzyNumber(_, _, _) => }
     pi.render shouldBe "3.1397452125928944±0.0050%"
   }
