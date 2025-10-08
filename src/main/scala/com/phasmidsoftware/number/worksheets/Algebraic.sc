@@ -26,13 +26,13 @@ val sum = (phi add psi).asNumber
 // the product of phi and psi should be -1
 val product = phi * psi
 
-// the equation that defines phi: x^2 + px + qx = 0 where p = q = -1
+// the equation that defines phi: x∧2 + px + qx = 0 where p = q = -1
 val goldenRationEquation = phi.equation
 
 // The value of the product should be -r from the equation
 val productString = product.render
 
-// phi^2 should be the same thing as phi + 1
+// phi∧2 should be the same thing as phi + 1
 val phiSquared = phi.square
 
 val phiSquareApprox = phiSquared.solve.asField

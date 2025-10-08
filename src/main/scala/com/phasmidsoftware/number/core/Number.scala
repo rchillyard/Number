@@ -880,7 +880,7 @@ object Number {
       * @param y the exponent, an Int.
       * @return a Number whose value is x / y.
       */
-    def ^(y: Int): Number = x ^ y // TESTME
+    def ∧(y: Int): Number = x ∧ y // TESTME
 
     /**
       * Raise x to the power of y (an Rational) and yield a Number.
@@ -888,7 +888,7 @@ object Number {
       * @param y the exponent, a Rational.
       * @return a Number whose value is x / y.
       */
-    def ^(y: Rational): Number = x ^ y // TESTME
+    def ∧(y: Rational): Number = x ∧ y // TESTME
   }
 
   /**

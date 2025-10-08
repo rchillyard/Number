@@ -22,10 +22,10 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 
   import com.phasmidsoftware.number.core.Number.FuzzOps
 
-  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
-  val sBoltzmann = "1380649.E-29" // J K ^ -1
-  val sPlanck = "6.6260701500E-34" // J Hz ^ -1
-  val sC = "299792458" // m sec ^ -1
+  val sG = "6.67430(15)E-11" // m ∧ 3 kg ∧ -1 s ∧ -2
+  val sBoltzmann = "1380649.E-29" // J K ∧ -1
+  val sPlanck = "6.6260701500E-34" // J Hz ∧ -1
+  val sC = "299792458" // m sec ∧ -1
   val sMu = "1836.15267343(11)" // (dimensionless)
 
   behavior of "constants"

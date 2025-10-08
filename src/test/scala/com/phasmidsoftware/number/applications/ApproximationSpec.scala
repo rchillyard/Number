@@ -126,8 +126,8 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val correctionSymbol = Symbol("correction")
     val z = PrivateMethod[Try[Number]](correctionSymbol)
     val x = Number(0.1)
-    val py = evaluateWithoutDerivative(newtonsPolynomial)(x) // x^3 + 6x^2 + 10x - 1
-    val qy = evaluateWithoutDerivative(newtonsDerivative)(x) // 3x^2 + 12x + 10
+    val py = evaluateWithoutDerivative(newtonsPolynomial)(x) // x∧3 + 6x∧2 + 10x - 1
+    val qy = evaluateWithoutDerivative(newtonsDerivative)(x) // 3x∧2 + 12x + 10
     val ry = for (p <- py; q <- qy) yield p doDivide q
     val cy: Try[Number] = Approximation invokePrivate z(qy.get, x, negate(ry.get), Seq(newtonsPolynomial, newtonsDerivative, newtonsSecondDerivative))
     cy.isSuccess shouldBe true

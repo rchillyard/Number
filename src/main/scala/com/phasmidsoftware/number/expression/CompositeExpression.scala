@@ -607,9 +607,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (ConstE, BiFunction(ConstI, ConstPi, Product)) | (ConstE, BiFunction(ConstPi, ConstI, Product)) =>
         em.Match(MinusOne)
       case (ConstE, Literal(ComplexCartesian(Number.zero, Number.pi), _)) =>
-        em.Match(MinusOne) // CONSIDER this should be 1/e, right?
+        em.Match(MinusOne) // NOTE Euler's identity
       case (ConstE, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
-        em.Match(MinusOne) // CONSIDER what should this be?
+        em.Match(MinusOne) // NOTE Also Euler's identity
       case (x, BiFunction(y, z, Log)) if x == z =>
         em.Match(y)
       case _ =>

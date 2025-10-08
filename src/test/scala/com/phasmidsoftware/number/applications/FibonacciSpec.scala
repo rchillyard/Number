@@ -13,18 +13,16 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   behavior of "Fibonacci"
 
   it should "psi" in {
-    val expression: Expression = (Constants.one) - Constants.root5
+    val expression: Expression = Constants.one - Constants.root5
     val psi: Expression = expression / Constants.two
     psi shouldBe BiFunction(expression, Expression(Constants.two).reciprocal, Product)
   }
 
   it should "phi" in {
-    val expression: Expression = (Constants.one) + Constants.root5
+    val expression: Expression = Constants.one + Constants.root5
     val phi: Expression = expression / Constants.two
     phi shouldBe BiFunction(expression, Two.reciprocal, Product)
   }
-
-  // NOTE this and the following test should change when we fix Issue #48
   it should "render phi+1 as a Field" in {
     val target: Field = Algebraic.phi + Constants.one
     val actual = target.render
@@ -44,9 +42,9 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 
 
   it should "fib0" in {
-    val phi0: Expression = phi ^ 0
+    val phi0: Expression = phi ∧ 0
     phi0.simplify shouldBe One
-    val psi0: Expression = psi ^ 0
+    val psi0: Expression = psi ∧ 0
     psi0.simplify shouldBe One
     val top: Expression = phi0 - psi0
     top.materialize shouldBe Constants.zero
@@ -62,9 +60,9 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   }
 
   it should "fib2" in {
-    val phi2: Expression = phi ^ 2
+    val phi2: Expression = phi ∧ 2
     println(s"phi2 = ${phi2.render}")
-    val psi2: Expression = psi ^ 2
+    val psi2: Expression = psi ∧ 2
     println(s"psi2 = ${psi2.render}")
     val top: Expression = phi2 - psi2
     val topM = top.materialize

@@ -127,28 +127,28 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "power"
 
-  it should "c1_2^1" in {
+  it should "c1_2∧1" in {
     val z: Field = c1_2 power 1
     z shouldBe c1_2
   }
 
-  it should "c1_2^2" in {
+  it should "c1_2∧2" in {
     val z: Field = c1_2 power 2
     z should matchPattern { case ComplexCartesian(ExactNumber(Right(-3), PureNumber), ExactNumber(Right(4), PureNumber)) => }
   }
 
-  it should "c1_2^0" in {
+  it should "c1_2∧0" in {
     val z = c1_2 power 0
     z shouldBe Constants.one
   }
 
-  it should "c1_2^-1" in {
+  it should "c1_2∧-1" in {
     val z = c1_2 power -1
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
 
   // TODO fix me. This arose when working with Factor.raise
-  it should "c1_2^1/2" in {
+  it should "c1_2∧1/2" in {
     val z: Field = convertToPolar(c1_2)
     val result: Complex = c1_2 power half
     println(math.sqrt(math.sqrt(5)))
@@ -162,40 +162,40 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     }
     (result * result).compare(c1_2) shouldBe 0
   }
-  it should "c2_0^1/2" in {
+  it should "c2_0∧1/2" in {
     val result: Field = c2_0 power half
     result should matchPattern { case ComplexPolar(_, _, 2) => }
     val squaredResult = result * result
     squaredResult.compare(c2_0) shouldBe 0
   }
 
-  it should "p1_pi_2^1" in {
+  it should "p1_pi_2∧1" in {
     val z: Field = p1_pi_2 power 1
     z shouldBe p1_pi_2
   }
 
-  it should "p1_pi_2^2" in {
+  it should "p1_pi_2∧2" in {
     val z: Field = p1_pi_2 power 2
     z shouldBe p1_pi
   }
 
-  it should "p1_pi_2^0" in {
+  it should "p1_pi_2∧0" in {
     val z = p1_pi_2 power 0
     z shouldBe Constants.one
   }
 
-  it should "p1_pi_2^-1" in {
+  it should "p1_pi_2∧-1" in {
     val z: Field = p1_pi_2 power -1
     (z * p1_pi_2).normalize shouldBe Constants.one
     val normalized = z.normalize
     normalized shouldBe p1_pi_2.conjugate
   }
 
-  it should "p1_1^-1/2" in {
+  it should "p1_1∧-1/2" in {
     p1_1 power half shouldBe ComplexPolar(Number.one, Number.piBy2, 2)
   }
 
-  it should "c2_0^1/3" in {
+  it should "c2_0∧1/3" in {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
     cubeRootOfTwo shouldBe ComplexPolar(Number(2, CubeRoot), Number.zeroR, 3)
   }
@@ -260,7 +260,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val c = ComplexCartesian(Number.zero, Number.two)
     val z = Complex.convertToPolar(c)
     z shouldBe ComplexPolar(Number.two, piBy2, 1)
-    z.render shouldBe "2e^i½\uD835\uDED1"
+    z.render shouldBe "2e∧i½\uD835\uDED1"
   }
 
   it should "check that math.atan really works 1" in {
@@ -312,11 +312,11 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     c1_2.render shouldBe "(1+i2)"
     p1_0.render shouldBe "1"
     p1_pi.render shouldBe "-1"
-    p1_pi_2.render shouldBe "1e^i\u00BD\uD835\uDED1"
+    p1_pi_2.render shouldBe "1e∧i\u00BD\uD835\uDED1"
   }
   it should "work for negative polar angle" in {
     val conjugate = p1_pi_2.conjugate
-    conjugate.render shouldBe "1e^-i\u00BD\uD835\uDED1"
+    conjugate.render shouldBe "1e∧-i\u00BD\uD835\uDED1"
   }
   it should "work for iPi" in {
     val target = Constants.iPi
@@ -325,13 +325,13 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "work for zero" in {
     p1_pi.add(Constants.one).render shouldBe "0"
   }
-  it should "work for root 2 in c2_0^1/2" in {
+  it should "work for root 2 in c2_0∧1/2" in {
     val result: Field = c2_0 power half
     result.render shouldBe "±√2"
   }
-  it should "render c2_0^1/3" in {
+  it should "render c2_0∧1/3" in {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
-    cubeRootOfTwo.render shouldBe "{³√2, ±³√2e^i⅔\uD835\uDED1}"
+    cubeRootOfTwo.render shouldBe "{³√2, ±³√2e∧i⅔\uD835\uDED1}"
   }
   it should "render root2s" in {
     val target = Constants.root2s

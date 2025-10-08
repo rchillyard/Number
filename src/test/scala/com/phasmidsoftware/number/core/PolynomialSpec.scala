@@ -44,13 +44,10 @@ class PolynomialSpec extends AnyFlatSpec {
     p2.coefficients shouldBe Seq(Rational.one, Rational.one, Rational.one)
     p4.coefficients shouldBe Seq(Rational.three, Rational.two, Rational(5), Rational.four, Rational.one)
   }
-
   it should "derivativeN" in {
     p2.derivativeN(1) shouldBe RationalPolynomial(1, 2)
   }
-
   it should "nthDerivative" in {
 
   }
-
 }

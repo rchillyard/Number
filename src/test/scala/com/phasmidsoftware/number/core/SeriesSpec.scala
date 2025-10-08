@@ -12,11 +12,8 @@ import scala.util.Random
 class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   behavior of "FiniteSeries"
-
   val coefficients: Seq[FuzzyDouble] = Seq(1, 2, 3, 4, 5, 6, 7)
-
   val s = FiniteSeries(coefficients)
-
   it should "term" in {
     s.term(0) shouldBe Some(FuzzyDouble(1))
     s.term(1) shouldBe Some(FuzzyDouble(2))
@@ -24,19 +21,15 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     s.term(6) shouldBe Some(FuzzyDouble(7))
     s.term(7) shouldBe None
   }
-
   it should "evaluateToTolerance n" in {
     s.evaluate(None) should matchPattern { case Some(FuzzyDouble(28, _)) => }
   }
-
   it should "evaluateToTolerance epsilon" in {
 
   }
 
   behavior of "InfiniteSeries"
-
   val t: InfiniteSeries[Int] = InfiniteSeries(LazyList.from(1), 0.01)
-
   it should "term" in {
     t.term(0) shouldBe Some(1)
     t.term(1) shouldBe Some(2)
@@ -44,7 +37,6 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     t.term(6) shouldBe Some(7)
     t.term(7) shouldBe Some(8)
   }
-
   it should "evaluateToTolerance n" in {
     t.evaluate(Some(1)) shouldBe Some(1)
     t.evaluate(Some(4)) shouldBe Some(10)
@@ -55,19 +47,15 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   it should "evaluateToTolerance infinity" in {
     t.evaluate(None) shouldBe None
   }
-
   it should "evaluateToTolerance epsilon" in {
   }
 
   behavior of "Basel Problem"
-
   val basel: InfiniteSeries[Number] = InfiniteSeries(LazyList.from(1).map(x => Rational(x).invert.square), 0.001)
-
   it should "term" in {
     basel.term(0) shouldBe Some(Number.one)
     basel.term(1) shouldBe Number(4).invert.asNumber
   }
-
   it should "evaluateToTolerance n" in {
     basel.evaluate(Some(1)) shouldBe Some(Number.one)
     basel.evaluate(Some(2)) shouldBe Number(Rational(5, 4)).asNumber
@@ -100,6 +88,4 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     fuzz.probability(wiggle, 0.001) shouldBe 0.203 +- 1E-2
     difference.isProbablyZero(0.001) shouldBe true
   }
-
-
 }

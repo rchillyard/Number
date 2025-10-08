@@ -8,8 +8,8 @@ C"1i0".render // should be "1"
 C"1+i0".render // should be "1"
 C"1-i1".render // should be "(1-i1)"
 C"1i0pi".render // should be "1"
-C"1i0.5pi".render // should render as "1e^i½𝛑"k
-C"1i0.5𝛑".render // should render as "1e^i½𝛑"
+C"1i0.5pi".render // should render as "1e∧i½𝛑"k
+C"1i0.5𝛑".render // should render as "1e∧i½𝛑"
 
 (C"1+i0" + C"1-i1").render
 

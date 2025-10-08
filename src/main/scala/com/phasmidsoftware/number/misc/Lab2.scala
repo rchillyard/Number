@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.misc
 
 object Lab2 extends App {
 
-  // TODO create a lazy list with the values 1/x^2
+  // TODO create a lazy list with the values 1/x∧2
 
   val xs = LazyList from 1 map (x => 1.0 / x / x)
 

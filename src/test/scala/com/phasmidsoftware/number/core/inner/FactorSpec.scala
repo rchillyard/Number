@@ -92,19 +92,19 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "modulate" in {
-    PureNumber.modulate(Value.fromInt(1)) shouldBe (Value.fromInt(1))
-    Radian.modulate(Value.fromInt(-1)) shouldBe (Value.fromInt(-1))
-    Radian.modulate(Value.fromInt(0)) shouldBe (Value.fromInt(0))
-    Radian.modulate(Value.fromInt(1)) shouldBe (Value.fromInt(1))
-    Radian.modulate(Value.fromInt(2)) shouldBe (Value.fromInt(0))
-    Radian.modulate(Value.fromInt(3)) shouldBe (Value.fromInt(1))
+    PureNumber.modulate(Value.fromInt(1)) shouldBe Value.fromInt(1)
+    Radian.modulate(Value.fromInt(-1)) shouldBe Value.fromInt(-1)
+    Radian.modulate(Value.fromInt(0)) shouldBe Value.fromInt(0)
+    Radian.modulate(Value.fromInt(1)) shouldBe Value.fromInt(1)
+    Radian.modulate(Value.fromInt(2)) shouldBe Value.fromInt(0)
+    Radian.modulate(Value.fromInt(3)) shouldBe Value.fromInt(1)
   }
 
   it should "render" in {
     val z: Option[ProtoNumber] = CubeRoot.multiply(fromInt(2), fromInt(3), SquareRoot)
     val p = Number.one
     val q: Option[Number] = z map GeneralNumber.protoNumberFunction(p)
-    q map (_.render) shouldBe Some("108^(1/6)")
+    q map (_.render) shouldBe Some("108∧(1/6)")
   }
 
   it should "sPiAlt2" in {

@@ -820,6 +820,7 @@ Other types (for reference):
 
 Versions
 ========
+* Version 1.2.10: Another housekeeping release.
 * Version 1.2.9: Mostly minor details that missed the previous version.
 * Version 1.2.8: Major restructuring: renamed old _Root_ as _NthRoot_ and introduced new _Root_ which effectively replaced _ReducedQuadraticRoot_.
 * Version 1.2.7: Introduced dyadic _Log_ functions and, in general, renamed (natural) _log_ method as _ln_, allowing for new dyadic _log_ method.

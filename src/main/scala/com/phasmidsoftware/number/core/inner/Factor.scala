@@ -405,7 +405,7 @@ sealed trait Logarithmic extends Factor {
     case Left(Right(r)) if r * 4 == Rational.one =>
       Some("\u221C" + base)
     case Right(x) =>
-      Some(base + "^" + x)
+      Some(base + "∧" + x)
     case _ =>
       None
   }
@@ -428,7 +428,7 @@ sealed trait Logarithmic extends Factor {
     * @param v the input value to be rendered, represented as a string
     * @return a string combining the base and the input value in a specific exponential format
     */
-  def render(v: String): String = base + "^" + v
+  def render(v: String): String = base + "∧" + v
 
   /**
     * Inverts the given value by raising it to the power of -1, using a pure number factor.
@@ -597,7 +597,7 @@ sealed trait InversePower extends Factor {
     *
     * @return a string representation of the object
     */
-  override def toString: String = s"^(${inversePower.invert})"
+  override def toString: String = s"∧(${inversePower.invert})"
 
   /**
     * Generates a string representation of the cube root for a given input.
@@ -1205,7 +1205,7 @@ case object Log2 extends Logarithmic {
   def asPureValue(y: Value): Option[Value] =
     for {
       v <- Value.maybeRational(y)
-      p <- (Rational.two ^ v).toOption
+      p <- (Rational.two ∧ v).toOption
       i <- p.maybeInt
     } yield Value.fromInt(i)
 }
@@ -1566,7 +1566,7 @@ object Render {
     optionMap(v)(
       y => renderInt(y),
       x => optionMap(x)(
-        // TODO Issue #48
+        // XXX related to (fixed) Issue #48
         y => if (exact) renderRational(y) else (y.renderApproximate(100, Some(16)).stripLeading(), false),
         {
           case Some(n) =>

@@ -445,12 +445,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     target.power(Rational(2, 3)) shouldBe Success(Rational(4, 9))
   }
 
-  it should "work for Rational ^ (4)" in {
+  it should "work for Rational ∧ (4)" in {
     val target = Rational(8, 27)
-    target ^ Rational(2, 3) shouldBe Success(Rational(4, 9))
+    target ∧ Rational(2, 3) shouldBe Success(Rational(4, 9))
   }
 
-  it should "get the correct precedence for ^" in {
+  it should "get the correct precedence for ∧" in {
     val q = Rational(-1)
     val p = Rational(-1)
     (2 * q) - p ∧ 2 shouldBe Rational(-3)
@@ -578,7 +578,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "equal BigDecimal(10)" in {
     Rational.ten.toBigDecimal shouldBe Some(BigDecimal(10))
   }
-  it should "equal a million when raised to 6th powe (^)r" in {
+  it should "equal a million when raised to 6th powe (∧)r" in {
     (Rational.ten ∧ 6) shouldBe Rational(1000000)
   }
 
@@ -608,7 +608,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = Rational(2, 3)
     (r * r) shouldBe Rational(4, 9)
   }
-  it should "equal 4/9 when squared using ^" in {
+  it should "equal 4/9 when squared using ∧" in {
     (Rational(2, 3) ∧ 2) shouldBe Rational(4, 9)
   }
   it should "barf when toInt invoked" in {

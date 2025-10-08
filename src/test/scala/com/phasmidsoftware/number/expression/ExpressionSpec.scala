@@ -32,17 +32,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "evaluate"
-
   it should "evaluate 1 + -1" in {
     val x = Expression(1) + -1
     x.evaluateAsIs shouldBe Some(Constants.zero)
   }
-
   it should "evaluate 1 * -1" in {
     val x = Expression(1) * -1
     x.evaluateAsIs shouldBe Some(Real(-1))
   }
-
   it should "evaluate i * 2" in {
     val x = ConstI * 2
     val result = x.evaluateAsIs
@@ -63,14 +60,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     syp.parseInfix("( ( 0.5 + 3 ) + ( 2 * ( 0.5 + 3 ) ) )") should matchPattern { case Success(_) => }
     syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
   }
-
   it should "parse and evaluate sqrt(3)" in {
-    val eo: Option[Expression] = Expression.parse("3 ^ ( 2 ^ -1 )")
+    val eo: Option[Expression] = Expression.parse("3 ∧ ( 2 ∧ -1 )")
     eo should matchPattern { case Some(_) => }
     eo.get shouldBe BiFunction(Expression(3), BiFunction(Expression(2), Expression(-1), Power), Power)
   }
   it should "parse and evaluate half" in {
-    val eo: Option[Expression] = Expression.parse("2 ^ -1")
+    val eo: Option[Expression] = Expression.parse("2 ∧ -1")
     eo should matchPattern { case Some(_) => }
     eo.get shouldBe BiFunction(Expression(2), Expression(-1), Power)
   }
@@ -129,7 +125,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "Expression"
-
   it should "simplifyAndEvaluate" in {
     val x1 = Number.one
     val x2 = Number.pi
@@ -137,7 +132,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val result = e.materialize
     convertToNumber(result) shouldEqual Number(Math.PI + 1)
   }
-
   it should "render" in {
     val x1 = Number.one
     val x2 = Number.pi
@@ -147,7 +141,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     e.render shouldBe "4.1415926535897930(41)"
     e.materialize.render shouldBe "4.1415926535897930(41)"
   }
-
   it should "evaluate 3 5 + 7 2 – *" in {
     val expression = (Expression(3) + 5) * (7 - 2)
     val result = expression.simplify.materialize
@@ -155,7 +148,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "ExpressionOps"
-
   it should "evaluate +" in {
     val x = Expression(1) + 2
     val y: Number = x
@@ -174,8 +166,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x = Expression(6) / 2
     x shouldEqual Number(3)
   }
-  it should "evaluate ^ 2" in {
-    val x = Expression(6) ^ 2
+  it should "evaluate ∧ 2" in {
+    val x = Expression(6) ∧ 2
     x shouldEqual Number(36)
   }
   it should "evaluate sqrt 36" in {
@@ -242,10 +234,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "toString"
-  it should "work for (sqrt 7)^2" in {
+  it should "work for (sqrt 7)∧2" in {
     val seven: Expression = 7
-    val result: Expression = seven.sqrt ^ 2
-    result.toString shouldBe "BiFunction{√7 ^ 2}"
+    val result: Expression = seven.sqrt ∧ 2
+    result.toString shouldBe "BiFunction{√7 ∧ 2}"
   }
 
   behavior of "various operations"
@@ -290,19 +282,19 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "be more than 1 for other expression" in {
     (ConstE * 2).depth shouldBe 2
     (ConstE * 2 / 2).depth shouldBe 3
-    val expression = Expression(7).sqrt ^ 2
+    val expression = Expression(7).sqrt ∧ 2
     expression.depth shouldBe 2
   }
 
   behavior of "Euler"
   it should "prove Euler's identity 1" in {
     val iPi = ComplexCartesian(0, Number.pi)
-    val euler: Expression = Expression(Constants.e) ^ iPi
+    val euler: Expression = Expression(Constants.e) ∧ iPi
     euler.materialize shouldBe Constants.minusOne
   }
   it should "prove Euler's identity 2" in {
     val iPi = Complex.convertToPolar(ComplexCartesian(0, Number.pi))
-    val euler: Expression = Expression(Constants.e) ^ iPi
+    val euler: Expression = Expression(Constants.e) ∧ iPi
     euler.materialize shouldBe Constants.minusOne
   }
 
@@ -360,7 +352,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val expression: Expression = ConstE * ConstE
     expression.simplify shouldBe Literal(Real(ExactNumber(2, NatLog)))
   }
-
   it should "evaluate phi * phi" in {
     val phi = Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
@@ -368,7 +359,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplified.approximation.get.toDouble === 2.61803398875
     simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(-3, 1), pos = true))
   }
-
   it should "evaluate 1 / phi" in {
     val phi = Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi.reciprocal
@@ -377,13 +367,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplified.approximation.get.toDouble === 0.61803398875
     simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(1, -1), pos = true))
   }
-
   it should "evaluate - phi" in {
     val phi = Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi.negate
     val simplified = expression.simplify
     simplified.approximation.get.toDouble === -1.61803398875
-    val expected = (Algebraic_Quadratic(Quadratic(1, -1), pos = false))
+    val expected = Algebraic_Quadratic(Quadratic(1, -1), pos = false)
     val actual = simplified.asInstanceOf[QuadraticRoot].algebraic
     actual shouldBe expected
   }
@@ -398,7 +387,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "simplifyComposite"
-
   it should "evaluate e * e" in {
     val expression: Expression = ConstE * ConstE
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
@@ -407,29 +395,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val simplified = y.get.simplify
     simplified shouldBe Literal(Real(ExactNumber(2, NatLog)))
   }
-
-  // NOTE this test is not really appropriate anyway. We'd expect to match this situation in simplifyTrivial
-//  it should "evaluate phi * phi" in {
-//    val phi = Root(Quadratic.goldenRatioEquation, 0)
-//    val expression: Expression = phi * phi
-//    val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-//    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
-//    y shouldBe em.Match(BiFunction(phi, Literal(2), Power))
-//  }
-
-//  behavior of "asAggregate"
-//  it should "aggregate 1" in {
-//    val target = One * ConstPi + Two * MinusOne
-//    (target match {
-//      case biFunction: BiFunction =>
-//        em.matchBiFunctionAsAggregate
-//        biFunction.asAggregate
-//    }) shouldBe target
-//  }
-//  it should "aggregate 2" in {
-//    val target = One * ConstPi * Two * MinusOne
-//    (target match {
-//      case biFunction: BiFunction => biFunction.asAggregate
-//    }) shouldBe Aggregate.product(One * ConstPi, Two, MinusOne)
-//  }
+  it should "evaluate phi * phi" in {
+    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val expression: Expression = phi * phi
+    val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
+    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
+    y shouldBe em.Match(BiFunction(phi, Literal(2), Power))
+  }
 }

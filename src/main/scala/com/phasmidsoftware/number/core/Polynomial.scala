@@ -32,7 +32,7 @@ trait Polynomial[X] extends (X => X) {
   /**
     * Retrieves the coefficients of the polynomial in ascending order of powers.
     *
-    * @return a sequence of coefficients of type X, where the ith element corresponds to the coefficient of the `x^i` term
+    * @return a sequence of coefficients of type X, where the ith element corresponds to the coefficient of the `x∧i` term
     */
   def coefficients: Seq[X]
 
@@ -58,7 +58,7 @@ trait Polynomial[X] extends (X => X) {
     * Constructs a polynomial with the given degree and coefficients.
     *
     * @param degree       the degree of the polynomial, an integer representing the highest power of x
-    * @param coefficients a sequence of coefficients of type X, where the ith element corresponds to the coefficient of the `x^i` term
+    * @param coefficients a sequence of coefficients of type X, where the ith element corresponds to the coefficient of the `x∧i` term
     * @param xn           an implicit Numeric instance that provides numeric operations for the type X
     * @return a new Polynomial instance of type X constructed with the specified degree and coefficients
     */
@@ -112,7 +112,7 @@ trait Polynomial[X] extends (X => X) {
   *
   * @constructor Creates a NumberPolynomial instance with the specified degree, coefficients, and an implicit Numeric instance.
   * @param degree       the degree of the polynomial, which is the highest power of x.
-  * @param coefficients a sequence of coefficients where the ith element corresponds to the coefficient of the `x^i` term.
+  * @param coefficients a sequence of coefficients where the ith element corresponds to the coefficient of the `x∧i` term.
   * @param ev           an implicit Numeric instance providing numeric operations for the coefficient type.
   */
 case class NumberPolynomial(degree: Int, coefficients: Seq[Number])(implicit ev: Numeric[Number]) extends Polynomial[Number] {
@@ -120,7 +120,7 @@ case class NumberPolynomial(degree: Int, coefficients: Seq[Number])(implicit ev:
     * Constructs a polynomial with the given degree and coefficients.
     *
     * @param degree       the degree of the polynomial, an integer representing the highest power of x
-    * @param coefficients a sequence of coefficients of type X, where the ith element corresponds to the coefficient of the `x^i` term
+    * @param coefficients a sequence of coefficients of type X, where the ith element corresponds to the coefficient of the `x∧i` term
     * @param xn           an implicit Numeric instance that provides numeric operations for the type X
     * @return a new Polynomial instance of type X constructed with the specified degree and coefficients
     */
@@ -146,7 +146,7 @@ object NumberPolynomial {
   *
   * @constructor Creates a new rational polynomial with a specified degree and coefficients.
   * @param degree       The degree of the polynomial, representing the highest power of x.
-  * @param coefficients A sequence of coefficients of type Rational, where the ith element corresponds to the coefficient of the `x^i` term.
+  * @param coefficients A sequence of coefficients of type Rational, where the ith element corresponds to the coefficient of the `x∧i` term.
   * @param ev           An implicit Numeric instance for Rational, providing numeric operations for the coefficients.
   */
 case class RationalPolynomial(degree: Int, coefficients: Seq[Rational])(implicit ev: Numeric[Rational]) extends Polynomial[Rational] {
@@ -154,7 +154,7 @@ case class RationalPolynomial(degree: Int, coefficients: Seq[Rational])(implicit
     * Constructs a polynomial with the given degree and coefficients.
     *
     * @param degree       the degree of the polynomial, an integer representing the highest power of x
-    * @param coefficients a sequence of coefficients of type X, where the ith element corresponds to the coefficient of the `x^i` term
+    * @param coefficients a sequence of coefficients of type X, where the ith element corresponds to the coefficient of the `x∧i` term
     * @param xn           an implicit Numeric instance that provides numeric operations for the type X
     * @return a new Polynomial instance of type X constructed with the specified degree and coefficients
     */

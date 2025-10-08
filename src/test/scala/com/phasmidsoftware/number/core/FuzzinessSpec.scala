@@ -320,7 +320,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "power"
 
-  it should "work for e^x" in {
+  it should "work for e∧x" in {
     val two = Number("2.00[2]")
     val nominalValueOfTwo = 2
     val relativeErrorOfTwo = 0.01
