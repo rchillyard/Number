@@ -28,5 +28,4 @@ class OperationsSpec extends AnyFlatSpec with should.Matchers {
     val (fInt, _, _) = z.functions
     fInt(-1) shouldBe Success(-1)
   }
-
 }

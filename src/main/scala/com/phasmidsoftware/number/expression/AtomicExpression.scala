@@ -888,7 +888,6 @@ case object LgE extends AbstractTranscendental("log2e", Two.ln.reciprocal.simpli
   */
 case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma)
 
-
 /**
   * The `Root` trait represents a mathematical root derived from a specific equation.
   * It corresponds to a solution of a multivalued mathematical expression

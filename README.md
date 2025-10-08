@@ -29,6 +29,11 @@ However, if you write the idiomatically correct form:
 
 then _x_ will be a _Number_ with value __exactly__ one half.
 
+Even better is to use the lazy expression mechanism:
+
+    val half: Expression = One / 2
+    half.materialize
+
 You probably want to see some code: so go to the _worksheets_ package and take a look, starting with
 NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
 
@@ -55,27 +60,11 @@ These allow the exact representation of roots, logarithmic numbers, radians, and
 
 Current Version
 ---------------
-The current version is 1.2.5. Here's a summary of what's new since 1.2.1:
-
-* The entire _ExpressionMatchers_ code base has been rewritten (leaving many deprecated methods which need to be cleaned
-  up):
-  * The key method for simplifying _Expression_s is _simplify_. This operates recursively by invoking _matchSimpler_
-    until it encounters a miss, in which case it returns the previous simplified version. There are four phases of
-    simplification for a _CompositeExpression_:
-    * _simplifyComponents_
-    * _simplifyTrivial_
-    * _simplifyConstant_
-    * _simplifyComposite_
-* _Algebraic_ quantities have been introduced:
-  * These represent solutions to equations that cannot be represented precisely with one quantity
-    * _Quadratic_ equations, for example, we can represent the Golden ratio $\phi$ exactly this way.
-    * _Linear_ equations (these solutions can already be represented, but this is just for completeness)
-* The _NthRoot_ (renamed from _Root_) domain has been restructured to be more general.
-  * In addition to _SquareRoot_ and _CubeRoot_ (which were renamed from the ambiguous _Root2_ and _Root3_), there are
-    more general roots based on a rational inverse power.
-* This _README.md_ file has been improved (including a logo, thanks to Zijie).
-* Added Series and PowerSeries
-* Fixed CircleCI issues
+The current version is 1.2.10. Here's a summary of what's new since 1.2.5:
+* A major restructuring where we effectively replaced _ReducedQuadraticRoot_ with _Root_ but where _Root_ is an _Expression_. In order for this to work, we renamed the old _Root_ (a subtype of _Factor_) as _NthRoot_.
+* Another subtype of Expression was introduced: _Transcendental_. These are subtypes of AtomicExpression but rather than have a literal value, they define a value and an _ExpressionMonoFunction_ to be applied to that value.
+* The _Log_ function is now dyadic and, in a parallel change, the old (natural) _log_ method has been renamed _ln_, allowing for new dyadic _log_ method.
+* Additional tests have been introduced, including tests for _Root_ and _Transcendental_, while many other tests have been fixed. The only ignored tests are those that CircleCI objects to.
 
 Sources
 -------
@@ -91,6 +80,12 @@ You can also find the 7th printing free online:
 
 [1]: https://archive.org/details/handbookofmathem00abra
 
+Operators
+=========
+
+The most important operators are those defined in _Expression.ExpressionOps_. 
+That's because you should normally be using the (lazy) expressions mechanism for arithmetic expressions.
+These are the usual operators, except that the power operator is ∧ (not ^ or **).
 
 Java API
 ========
@@ -189,7 +184,7 @@ It's probably the simplest just to include:
     import Rational._
 
 _Doubles_ are where the trickiest conversions apply.
-Writing something like _Number(3.1415927)_ will result in a _FuzzyNumber_ with error bounds of 5 * 10^-7.
+Writing something like _Number(3.1415927)_ will result in a _FuzzyNumber_ with error bounds of 5 * 10∧-7.
 To be consistent with the _String_ representation, _Number(1.25)_ will result in an _ExactNumber_ represented internally
 by a _Rational_ of 5/4.
 However, if you want to force a number like 3.1415927 to be exact, then you will need to write
@@ -278,7 +273,7 @@ to build a _Mill_.
 
 Some of the operators of _Mill_ are as follows:
 
-    ^: Power
+    ∧: Power (also ^)
     +: Add
     -: Subtract
     *: Multiply (also ×)
@@ -406,7 +401,7 @@ Factor represents the domain in which a numerical quantity exists.
 We are most familiar with the pure-number domain, including all the counting numbers,
 the decimal numbers, and the so-called "real" numbers.
 
-Slightly less familiar are numbers like $2\pi$ (we call the domain of such numbers "radians"), $\log_e 2$, $e^2$, and $√2$.
+Slightly less familiar are numbers like $2\pi$ (we call the domain of such numbers "radians"), $\log_e 2$, $e∧2$, and $√2$.
 All these numbers can be represented exactly by judicious use of the following classes.
 
 The hierarchy of _Factor_ is as follows:
@@ -429,7 +424,7 @@ The inverse power (which root) is a _Rational_ in the case of _InversePower_ but
 
 These allow certain quantities to be expressed exactly, for example, $sin(\frac{\pi}{3})$ is the square root of $\frac{3}{4}$.
 The true (_Scalar_) values of the logarithmic numbers are
-$e^x$, $2^x$, and $10^x$ respectively, where $x$ is the "value" of the _Number_.
+$e∧x$, $2∧x$, and $10∧x$ respectively, where $x$ is the "value" of the _Number_.
 
 Trigonometrical functions are designed to work with _Radian_ quantities.
 Such values are limited (modulated) to be in the range $-\pi...\pi$.
@@ -443,9 +438,9 @@ Similarly, if you use the _atan_ method on a _Scalar_ number, the result will be
 
 The 𝜀 factor works quite differently.
 It is not a simple matter of scaling.
-A _Number_ of the form _Number(x, NatLog)_ actually evaluates to $e^x$ rather than $e x$.
+A _Number_ of the form _Number(x, NatLog)_ actually evaluates to $e∧x$ rather than $e x$.
 
-It would be possible to implement $\pi$ values similarly to 𝜀 values (as evaluations of $e^{ix}$).
+It would be possible to implement $\pi$ values similarly to 𝜀 values (as evaluations of $e∧{ix}$).
 However, this is not currently done (future enhancement?).
 See Complex numbers.
 
@@ -530,16 +525,16 @@ proportional to exactly 7.
 
 It's important to realize that, to get the benefit of this behavior, you must use the _Expression_ mechanism (not a pure _Number_).
 
-      it should "give precise result for sqrt(7)^2" in {
+      it should "give precise result for sqrt(7)∧2" in {
         val x: Expression = Number(7)
         val y = x.sqrt
-        val z = y ^ 2
+        val z = y ∧ 2
         z.materialize shouldBe Number(7)
       }
-      it should "show ^2 and sqrt for illustrative purposes" in {
+      it should "show ∧2 and sqrt for illustrative purposes" in {
         val seven = Number(7)
         val x = seven.sqrt
-        val y = x power 2
+        val y = x ∧ 2
         y shouldEqual Number(7)
         y shouldBe Number(7)
       }
@@ -580,13 +575,12 @@ The _hierarchy_ of Context is as follows:
 
 Transcendental Numbers
 ======================
-Apart from the special cases of $\pi$ and e, there is no way currently to store
-transcendental numbers. 
-For numbers such as natural log of 2, we can express this lazily through an _Expression_.
-A transcendental is based on an expression which can be evaluated.
-Other transcendentals that are not based on an expression, are specified
-simply as constants, for example, $\gamma$, the Euler-Mascheroni constant.
-See the _Introduction.sc_ worksheet for examples.
+Transcendental numbers are declared as subtypes of _Transcendental_, although $\pi$ and e are, additionally, declared as _Number_, _Real_, and _Expression_.
+A transcendental is declared as a (named) _Expression_, where the expression might simply be a constant.
+For example, L2 is defined as the natural log of 2 and has a name: "ln(2)".
+Another example is $\gamma$, the Euler-Mascheroni constant.
+See the _Introduction.sc_ worksheet for examples of usage.
+The current list of transcendental numbers includes: $\pi$, e, $\gamma$, _ln(2)_, _lg(e)_, where _lg_ represents log to the base 2.
 
 Error Bounds (Fuzziness)
 ========================
@@ -640,7 +634,7 @@ is given by slightly different expressions depending on whether the PDFs are ind
 See the code (_Fuzz_) for details.
 
 Things get only slightly more complex when applying monadic (single operand) functions or applying a function such
-as $z=x^y$:
+as $z=x∧y$:
 
 In general, when we apply a monadic operator $y=f(x)$ (such as constant factor, as above, or power, or one of the trigonometric operators),
 the formula for the relative fuzz of the result $\frac{Δy}{y}$ based on the relative fuzz of the input $\frac{Δx}{x}$ is:
@@ -649,7 +643,7 @@ $$\frac{Δy}{y}=\frac{x \frac{dy}{dx}(x)}{f(x)}\frac{Δx}{x}$$
 
 Constants cancel, powers survive as is and so on.
 
-For example, if $y=e^x$ then
+For example, if $y=e∧x$ then
 
 $$\frac{Δy}{y}=x\frac{Δx}{x}$$
 
@@ -708,8 +702,8 @@ Note that the type hierarchy is very likely to change in version 1.3
 * _NumberLike_ (trait)
   * _Numerical_ (trait: most numeric quantities)
     * _Field_ (trait: something like the mathematical concept of a field)
-      * _Real_ (case class: a real number based on one _Number_)
-      * _Multivariate_ (trait which really should be called Algebraic)
+      * _Real_ (case class: a "real" number based on one _Number_)
+      * _Multivariate_ (trait: perhaps should be called "Algebraic")
         * _Complex_ (trait: a complex number)
           * _BaseComplex_ (abstract class)
             * _ComplexCartesian_ (case class: Cartesian form of complex number)
@@ -882,7 +876,7 @@ To begin, the hierarchy should look like this:
   * _Transcendental_ (as now but extends _Expression_)
 * _Field_ (as now, but with _Solution_ and _Series_ included)
   * _Real_ (as now a single _Number_)
-  * _BranchedField_ (similar to _Multivariate_ in that there are multiple solutions or branches--these are the solutions to _Algebraic_s)
+  * _Multivariate_ (similar to _Multivalued_ in that there are multiple solutions or branches--these are the solutions to _Algebraic_s)
     * _Complex_ (as now with two _Number_ fields--real and imaginary--conceivably, we might merge _Complex_ and _Solution_ and insist that the imaginary aspect of a _Number_ is represented in the _Number_ itself)
     * _Solution_ (with real roots)
   * _Series_

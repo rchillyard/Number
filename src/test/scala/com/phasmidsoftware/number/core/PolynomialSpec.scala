@@ -12,10 +12,8 @@ import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 class PolynomialSpec extends AnyFlatSpec {
 
   behavior of "Polynomial"
-
   val p2: RationalPolynomial = RationalPolynomial(1, 1, 1)
   val p4: RationalPolynomial = RationalPolynomial(3, 2, 5, 4, 1)
-
   it should "apply 0" in {
     p2.apply(0) shouldBe Rational.one
     p4.apply(0) shouldBe Rational.three

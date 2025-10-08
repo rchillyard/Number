@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Constants.{sGamma, sPhi}
+import com.phasmidsoftware.number.core.Constants.{`𝛑`, sGamma, sPhi}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Fuzziness.showPercentage
 import com.phasmidsoftware.number.core.Number.{negate, twoPi}
@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.expression.Expression.ExpressionOps
-import com.phasmidsoftware.number.expression.{ConstPi, Expression, Literal, Two}
+import com.phasmidsoftware.number.expression.{ConstPi, Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -531,12 +531,12 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     import Expression.ExpressionOps
     val l: Expression = Real("22.45*")
     val t: Expression = Real("9.5*")
-    val g: Expression = l * ((ConstPi * Two / t) ∧ 2)
+    val twoPi: Expression = 2 * 𝛑
+    val g: Expression = l * (twoPi / t) ∧ 2
     val gField: Field = g.materialize
-    println(gField)
     val fuzzyNumber = gField.asNumber.get
     fuzzyNumber.nominalValue shouldBe Left(Left(Some(9.820393077205809)))
-    // Why is the fuzz absolute?
+    // XXX Why is the fuzz absolute?
     fuzzyNumber.fuzz should matchPattern { case Some(AbsoluteFuzz(5.3869477499213, Gaussian)) => }
   }
 }

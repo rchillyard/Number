@@ -8,6 +8,8 @@ scalaVersion := "2.13.16"
 
 scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused" )
 
+//Test / unmanagedSourceDirectories += baseDirectory.value / "it/scala"
+
 val scalaTestVersion = "3.2.19"
 
 libraryDependencies ++= Seq(

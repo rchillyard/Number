@@ -15,9 +15,7 @@ import org.scalatest.matchers.should.Matchers
 class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
 
   behavior of "Quadratic"
-
   private val phiReal: Real = Real(Constants.sPhi)
-
   it should "normalize" in {
     val expected: Real = phiReal
     val phiNormalized = phi.normalize

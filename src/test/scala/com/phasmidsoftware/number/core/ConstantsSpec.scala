@@ -111,7 +111,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val result: Field = goldenRatio.materialize
     result.render shouldBe "1.6180339887498950(47)"
   }
-it should "have alpha" in {
+  it should "have alpha" in {
   val target = Constants.alpha
   target.isExact shouldBe false
   val alpha = for (number <- (target invert).asNumber; x <- number.toNominalDouble) yield x
@@ -119,7 +119,6 @@ it should "have alpha" in {
 }
 
   behavior of "toString"
-
   it should "work for G" in {
     val target = Constants.G
     target.toString shouldBe sG

@@ -1298,7 +1298,7 @@ case object SquareRoot extends NthRoot(2) {
     * @return an optional `ProtoNumber` that contains the resultant `Value`, its factor,
     *         and optional metadata; `None` if the operation cannot be performed
     */
-  override def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] =
+  override def add(x: Value, y: Value, f: Factor, negative: Boolean = false): Option[ProtoNumber] =
     whenever(this == f)(
       for {
         a <- Value.maybeRational(x)
