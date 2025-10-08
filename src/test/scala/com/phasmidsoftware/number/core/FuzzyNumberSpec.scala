@@ -534,6 +534,9 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val g: Expression = l * ((ConstPi * Two / t) ∧ 2)
     val gField: Field = g.materialize
     println(gField)
-    gField.asNumber.get.fuzz should matchPattern { case Some(AbsoluteFuzz(5.3869477499213, Gaussian)) => }
+    val fuzzyNumber = gField.asNumber.get
+    fuzzyNumber.nominalValue shouldBe Left(Left(Some(9.820393077205809)))
+    // Why is the fuzz absolute?
+    fuzzyNumber.fuzz should matchPattern { case Some(AbsoluteFuzz(5.3869477499213, Gaussian)) => }
   }
 }
