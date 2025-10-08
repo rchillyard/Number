@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.misc
 
+import com.phasmidsoftware.number.Slow
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
-import org.scalatest.tagobjects.Slow
 
 /**
   * @author scalaprof
