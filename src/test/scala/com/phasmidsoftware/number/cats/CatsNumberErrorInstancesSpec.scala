@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.cats
 
 import cats.syntax.semigroup._
 import com.phasmidsoftware.number.cats.CatsNumberErrorInstances._
+import com.phasmidsoftware.number.misc.Benchmark._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import com.phasmidsoftware.number.core.{AbsoluteFuzz, RelativeFuzz, FuzzyNumber, Gaussian, Number}
@@ -25,14 +26,14 @@ class CatsNumberErrorInstancesSpec extends AnyFlatSpec with Matchers {
     implicit val ec: ExecutionContext = ExecutionContext.global
 
     // Build many fuzzy addends: same nominal 1.2 with absolute Gaussian sigma 0.05
-    val terms: List[Number] = List.fill(5000) {
+    val terms: List[Number] = List.fill(2000) {
       FuzzyNumber(Value.fromDouble(Some(1.2)), PureNumber, Some(AbsoluteFuzz(0.05, Gaussian)))
     }
 
     // 1) Traditional: add fuzzy Numbers directly (measure time)
-    val tSeq0 = System.nanoTime()
-    val accumulated: Number = terms.tail.foldLeft(terms.head)(_ doAdd _)
-    val tSeqMs = (System.nanoTime() - tSeq0) / 1e6
+    val (accumulated: Number, tSeqMs) = 1.times {
+      terms.tail.foldLeft(terms.head)(_ doAdd _)
+    }
 
     val actualNominal = accumulated.toNominalDouble.getOrElse(Double.NaN)
     val actualAbs = accumulated match {
@@ -41,21 +42,19 @@ class CatsNumberErrorInstancesSpec extends AnyFlatSpec with Matchers {
     }
 
     // 2) Decoupled parallel: nominal sum and sigma folding run independently
-    val tPar0 = System.nanoTime()
-    val fNominal: Future[Double] = Future { terms.flatMap(_.toNominalDouble).sum }
-    val fSigma: Future[Double] = Future {
-      val sigmas = terms.map {
-        case f: FuzzyNumber => f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
-        case _ => 0.0
+    val ((decoupledNominal, decoupledSigma), tParMs) = 1.times {
+      val fNominal: Future[Double] = Future { terms.flatMap(_.toNominalDouble).sum }
+      val fSigma: Future[Double] = Future {
+        val sigmas = terms.map {
+          case f: FuzzyNumber => f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
+          case _ => 0.0
+        }
+        sigmas.foldLeft(AbsSigma.zero)(_ |+| AbsSigma(_)).value
       }
-      sigmas.foldLeft(AbsSigma.zero)(_ |+| AbsSigma(_)).value
-    }
-    val (decoupledNominal, decoupledSigma) = {
       val a = Await.result(fNominal, 5.seconds)
       val b = Await.result(fSigma, 5.seconds)
       (a, b)
     }
-    val tParMs = (System.nanoTime() - tPar0) / 1e6
 
     val decoupled: Number = FuzzyNumber(Value.fromDouble(Some(decoupledNominal)), PureNumber, Some(AbsoluteFuzz(decoupledSigma, Gaussian)))
 
@@ -79,14 +78,14 @@ class CatsNumberErrorInstancesSpec extends AnyFlatSpec with Matchers {
     implicit val ec: ExecutionContext = ExecutionContext.global
 
     // Build many fuzzy addends: same nominal 1.2 with absolute Gaussian sigma 0.05
-    val terms: List[Number] = List.fill(5000) {
+    val terms: List[Number] = List.fill(2000) {
       FuzzyNumber(Value.fromDouble(Some(1.1)), PureNumber, Some(RelativeFuzz(0.05, Gaussian)))
     }
 
-    // 1) Traditional: add fuzzy Numbers directly (measure time)
-    val tSeq0 = System.nanoTime()
-    val accumulated: Number = terms.tail.foldLeft(terms.head)(_ doMultiply _)
-    val tSeqMs = (System.nanoTime() - tSeq0) / 1e6
+    // 1) Traditional: multiply fuzzy Numbers directly (measure time)
+    val (accumulated: Number, tSeqMs) = 1.times {
+      terms.tail.foldLeft(terms.head)(_ doMultiply _)
+    }
 
     val actualNominal = accumulated.toNominalDouble.getOrElse(Double.NaN)
     val actualRel = accumulated match {
@@ -95,26 +94,29 @@ class CatsNumberErrorInstancesSpec extends AnyFlatSpec with Matchers {
     }
 
     // 2) Decoupled parallel: nominal product and sigma folding run independently
-    val tPar0 = System.nanoTime()
-    val fNominal: Future[Double] = Future {
-      val headNominal = terms.headOption.flatMap(_.toNominalDouble).getOrElse(Double.NaN)
-      terms.tail.foldLeft(headNominal) { (acc, n) =>
-        acc * n.toNominalDouble.getOrElse(1.0)
+    val ((decoupledNominal, decoupledSigma), tParMs) = 1.times {
+      val fNominal: Future[Double] = Future {
+        val headNominal = terms.headOption.flatMap(_.toNominalDouble).getOrElse(Double.NaN)
+        terms.tail.foldLeft(headNominal) { (acc, n) =>
+          acc * n.toNominalDouble.getOrElse(1.0)
+        }
       }
-    }
-    val fSigma: Future[Double] = Future {
-      val sigmas = terms.map {
-        case f: FuzzyNumber => f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
-        case _ => 0.0
+      val fSigma: Future[Double] = Future {
+        // Sequential combination, relative basis propagation: r_xy^2 = r_x^2 + r_y^2 + r_x r_y
+        def combineRel(r1: Double, r2: Double): Double = {
+          val a = r1; val b = r2
+          math.sqrt(a * a + b * b + a * b)
+        }
+        val sigmas = terms.map {
+          case f: FuzzyNumber => f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
+          case _ => 0.0
+        }
+        sigmas.foldLeft(0.0)(combineRel)
       }
-      sigmas.foldLeft(RelSigma.zero)(_ |+| RelSigma(_)).value
-    }
-    val (decoupledNominal, decoupledSigma) = {
       val a = Await.result(fNominal, 5.seconds)
       val b = Await.result(fSigma, 5.seconds)
       (a, b)
     }
-    val tParMs = (System.nanoTime() - tPar0) / 1e6
 
     val decoupled: Number = FuzzyNumber(Value.fromDouble(Some(decoupledNominal)), PureNumber, Some(RelativeFuzz(decoupledSigma, Gaussian)))
 

@@ -39,16 +39,6 @@ object CatsNumberErrorInstances {
     private def square(x: Double): Double = x * x
 
     val zero: RelSigma = RelSigma(0.0)
-
-    implicit val commutativeMonoid: CommutativeMonoid[RelSigma] = new CommutativeMonoid[RelSigma] {
-      override def empty: RelSigma = zero
-
-      override def combine(x: RelSigma, y: RelSigma): RelSigma = {
-        val r1 = x.value
-        val r2 = y.value
-        RelSigma(math.sqrt(square(r1) + square(r2) + r1 * r2))
-      }
-    }
   }
 }
 
