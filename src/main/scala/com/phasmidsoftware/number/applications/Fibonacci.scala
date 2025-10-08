@@ -15,7 +15,7 @@ object Fibonacci {
   /**
     * Represents the golden ratio, denoted as φ (phi), as an instance of `Expression`.
     * The golden ratio is a mathematical constant that satisfies the quadratic equation
-    * `x^2 = x + 1` and is associated with numerous applications in mathematics,
+    * `x∧2 = x + 1` and is associated with numerous applications in mathematics,
     * art, and nature.
     *
     * This value can be used in computations involving algebraic expressions,
@@ -42,7 +42,7 @@ object Fibonacci {
    */
   def fib(n: Int): BigInt = {
     val expression = fibExpression(n)
-    val errorMessage = s"fib($n) = ${((phi ^ n) - (psi ^ n)) / Constants.root5}"
+    val errorMessage = s"fib($n) = ${((phi ∧ n) - (psi ∧ n)) / Constants.root5}"
     // CONSIDER should this be PureNumber or Scalar?
     expression.materialize match {
       case Real(x) => x match {
@@ -61,6 +61,6 @@ object Fibonacci {
   }
 
   private[applications] def fibExpression(n: Int): Expression =
-    ((phi ^ n) - (psi ^ n)) / Constants.root5
+    ((phi ∧ n) - (psi ∧ n)) / Constants.root5
 }
 

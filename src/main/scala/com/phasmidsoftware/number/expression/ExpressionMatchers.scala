@@ -8,6 +8,7 @@ import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.{isIdentityFunction, matchSimpler}
+import com.phasmidsoftware.number.expression.Literal.someLiteral
 import com.phasmidsoftware.number.matchers._
 import com.phasmidsoftware.number.misc.Bumperator
 import scala.language.implicitConversions
@@ -114,9 +115,9 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       val fo = f.evaluateAsIs(x, y)
       (fo, f.maybeIdentityL) match {
         case (Some(field1), Some(field2)) if field1 == field2 =>
-          Some(Literal(field1))
+          someLiteral(field1)
         case (Some(Real(Number.zeroR)), Some(field2)) if field2.isZero =>
-          Some(Literal(field2))
+          someLiteral(field2)
         case _ =>
           None
       }

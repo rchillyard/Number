@@ -30,8 +30,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   private val bigBigInt = BigInt(2147483648L)
   private val standardFuzz = AbsoluteFuzz[Double](1E-7, Gaussian)
   private val sAlpha = "0.0072973525693(11)"
-  private val sPlanck = "6.6260701500E-34" // J Hz ^ -1
-  private val sAvagadro = "6.0221407600E23" // mole ^ -1
+  private val sPlanck = "6.6260701500E-34" // J Hz ∧ -1
+  private val sAvagadro = "6.0221407600E23" // mole ∧ -1
 
   behavior of "create"
   it should "yield Right(1)" in {
@@ -128,21 +128,21 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for 1 scaled as Radian" in {
     Number.one.scale(Radian).toString shouldBe "0.3183098861837907[5]\uD835\uDED1"
   }
-  it should "work for E^2" in {
+  it should "work for E∧2" in {
     val target = Number.e doPower 2
     target.toString shouldBe "\uD835\uDF00\u00B2"
   }
-  it should "work for E^3" in {
+  it should "work for E∧3" in {
     val target = Number.e doPower 3
     target.toString shouldBe "\uD835\uDF00\u00B3"
   }
-  it should "work for E^4" in {
+  it should "work for E∧4" in {
     val target = Number.e doPower 4
     target.toString shouldBe "\uD835\uDF00\u2074"
   }
-  it should "work for E^10" in {
+  it should "work for E∧10" in {
     val target = Number.e doPower 10
-    target.toString shouldBe "\uD835\uDF00^10"
+    target.toString shouldBe "\uD835\uDF00∧10"
   }
   it should "work for square root E" in {
     val target = Number.e.sqrt
@@ -152,18 +152,17 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number.i
     target.toString shouldBe "i"
   }
-  it should "work for e^ix" in {
+  it should "work for e∧ix" in {
     val target = ExactNumber(1, Euler)
-    target.toString shouldBe "e^i\uD835\uDED1"
+    target.toString shouldBe "e∧i\uD835\uDED1"
   }
 
   behavior of "normalize"
-
   it should "work for E as scalar (abs fuzzy)" in {
     val target = Number.e.scale(PureNumber).normalize
     target.toString.substring(0, 17) shouldBe "2.718281828459045"
   }
-  it should "work for E^2 as Real" in {
+  it should "work for E∧2 as Real" in {
     val target = Number("2\uD835\uDF00").normalize.asInstanceOf[Real]
     target.x.scale(PureNumber).toString shouldBe "7.389056098930650(44)"
   }
@@ -378,7 +377,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     z.get.isExact shouldBe true
   }
   it should "parse c" in {
-    val z = Number.parse("299792458") // m sec ^ -1
+    val z = Number.parse("299792458") // m sec ∧ -1
     z should matchPattern { case Success(_) => }
     z.get.isExact shouldBe true
   }
@@ -896,7 +895,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 
   // XXX what is this ** operator?
   behavior of "**"
-  it should "work for 2^2" in {
+  it should "work for 2∧2" in {
     val target = Constants.two
     (target power 2) shouldBe Real(4)
   }
@@ -936,11 +935,15 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     pi should matchPattern { case ComplexPolar(_, `zeroR`, 2) => }
     pi.render shouldBe "±3.1397452125928944±0.030%"
   }
-  // Issue #121 why does this work out differently from power by one half?
-  // the precision is different and it's a FuzzyNumber instead of a ComplexPolar.
   it should "sqrt" in {
     val x = Number("1.643(1)")
     val pi = Number.sqrt(x doMultiple 6)
+    pi should matchPattern { case FuzzyNumber(_, _, _) => }
+    pi.render shouldBe "3.1397452125928944±0.0050%"
+  }
+  it should "power 1/2" in {
+    val x = Number("1.643(1)")
+    val pi = (x doMultiple 6) power Number.half
     pi should matchPattern { case FuzzyNumber(_, _, _) => }
     pi.render shouldBe "3.1397452125928944±0.0050%"
   }
@@ -1108,7 +1111,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number.zero
     target.exp shouldBe one
   }
-  it should "be e^2 for 2" in {
+  it should "be e∧2 for 2" in {
     val target = Number.two
     target.exp should ===(Expression(Constants.e) * Constants.e)
   }
@@ -1123,7 +1126,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val log = target.ln
     log shouldBe Constants.zero
   }
-  it should "be 2 for E^2" in {
+  it should "be 2 for E∧2" in {
     val target: Number = Expression(Constants.e) * Constants.e
     target.ln should ===(Number.two)
   }
@@ -1154,7 +1157,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val actual = target.log(Number.two)
     actual should ===(10)
   }
-
   it should "log exact" in {
     Number.one.log(2) shouldBe Number.zero
     Number(1024).log(2) shouldBe Number(10)
@@ -1162,7 +1164,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Number(1000).log(10) shouldBe Number(3)
     Number("0.00100").log(10) shouldBe Number(-3)
   }
-
 
   behavior of "toInt"
   it should "work for 1" in {
@@ -1411,9 +1412,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   behavior of "NumberOps"
-
   import com.phasmidsoftware.number.core.Number.NumberOps
-
   it should "work for 2 + Number(3)" in {
     val x: Number = 2 + Number(3)
     x shouldBe Number(5)

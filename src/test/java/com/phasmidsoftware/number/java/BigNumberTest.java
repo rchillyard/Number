@@ -41,7 +41,6 @@ public class BigNumberTest {
         assertEquals(0, BigNumber.pi.longValue());
     }
 
-
     @Test
     public void testLongValue() {
         assertEquals(0L, BigNumber.value(0).longValue());

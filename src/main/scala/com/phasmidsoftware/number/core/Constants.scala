@@ -191,12 +191,12 @@ object Constants {
   /**
     * [[https://en.wikipedia.org/wiki/Planck_constant]] (exact).
     */
-  lazy val planck: Real = Real("6.6260701500E-34") // J Hz ^ -1
+  lazy val planck: Real = Real("6.6260701500E-34") // J Hz ∧ -1
 
   /**
     * [[https://en.wikipedia.org/wiki/Speed_of_light]] (exact).
     */
-  lazy val c: Real = Real("299792458") // m sec ^ -1
+  lazy val c: Real = Real("299792458") // m sec ∧ -1
 
   /**
     * [[https://en.wikipedia.org/wiki/Proton-to-electron_mass_ratio]]
@@ -227,6 +227,6 @@ object Constants {
    */
   val sPhi = "1.61803398874989484820458683436563811772030917980576286213544862270526046281890244970720720418939113748475"
   val sGamma = "0.57721566490153286060651209008240243104215933593992*"
-  val sG = "6.67430(15)E-11" // m ^ 3 kg ^ -1 s ^ -2
-  val sBoltzmann = "1380649.E-29" // J K ^ -1
+  val sG = "6.67430(15)E-11" // m ∧ 3 kg ∧ -1 s ∧ -2
+  val sBoltzmann = "1380649.E-29" // J K ∧ -1
 }

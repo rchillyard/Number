@@ -729,7 +729,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
   * Extends `ExpressionBiFunction` where the specific function is implemented
   * using the `power` method from the `Field` class.
   */
-case object Power extends ExpressionBiFunction("^", (x, y) => x.power(y), isExact = false, None, Some(Constants.one)) {
+case object Power extends ExpressionBiFunction("∧", (x, y) => x.power(y), isExact = false, None, Some(Constants.one)) {
   /**
     * Evaluates two `Field` instances and determines a trivial result based on predefined conditions.
     * Specifically, it checks if the first `Field` instance is equivalent to the constant `zero`.

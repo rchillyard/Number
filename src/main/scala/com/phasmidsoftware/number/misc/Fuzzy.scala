@@ -115,7 +115,7 @@ abstract class FuzzyBase(nominal: Double, delta: Double, distribution: AbstractR
 
   def /(that: Long): Fuzzy = this / Exact(that.toDouble)
 
-  def ^(that: Int): Fuzzy = power(that)
+  def ∧(that: Int): Fuzzy = power(that)
 
   // Members declared in scala.math.Numeric
   def fromInt(x: Int): Exact = Exact(x)
@@ -261,7 +261,7 @@ case class General(dist: AbstractRealDistribution) extends FuzzyBase(dist.getNum
   def newFuzzy(x: Double, delta: Double): Fuzzy =
     Gaussian(x, delta)
 
-  override def map2(f: DiFunc[Double])(delta2: Double) =
+  override def map2(f: DiFunc[Double])(delta2: Double): Fuzzy =
     throw new UnsupportedOperationException("NYI")
 
   // TODO implement me

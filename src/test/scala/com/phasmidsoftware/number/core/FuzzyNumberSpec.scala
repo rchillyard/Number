@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core
 
-import com.phasmidsoftware.number.core.Constants.{sGamma, sPhi}
+import com.phasmidsoftware.number.core.Constants.{`𝛑`, sGamma, sPhi}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Fuzziness.showPercentage
 import com.phasmidsoftware.number.core.Number.{negate, twoPi}
@@ -113,9 +113,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     z.get.fuzz.get shouldBe AbsoluteFuzz(1.1E-7, Gaussian)
   }
 
-
   behavior of "plus"
-
   it should "add 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), PureNumber, None)
     val z = convertToNumber(x add Constants.two)
@@ -206,7 +204,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     result.factor shouldBe PureNumber
     result.fuzz should matchPattern { case Some(AbsoluteFuzz(1.5, Box)) => }  // NOTE this was formerly 0.75 // CHECK it
   }
-  it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Box))" in {
+  it should "work for (fuzzy 3)∧2 (i.e. an constant Int power (Box))" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), PureNumber, Some(RelativeFuzz(0.1, Box)))
     val z: Number = x.doMultiply(x)
     z.nominalValue shouldBe Right(9)
@@ -239,9 +237,9 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "power"
-  it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Box))" in {
+  it should "work for (fuzzy 3)∧2 (i.e. an constant Int power (Box))" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), PureNumber, Some(RelativeFuzz(0.1, Box)))
-    val z: Number = convertToNumber((Literal(x) ^ 2).materialize)
+    val z: Number = convertToNumber((Literal(x) ∧ 2).materialize)
     z.nominalValue shouldBe Right(9)
     z.factor shouldBe PureNumber
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
@@ -249,9 +247,9 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
       case RelativeFuzz(m, Box) => m shouldBe 0.2 +- 0.00001
     }
   }
-  it should "work for (fuzzy 3)^2 (i.e. an constant Int power (Gaussian))" in {
+  it should "work for (fuzzy 3)∧2 (i.e. an constant Int power (Gaussian))" in {
     val x: FuzzyNumber = FuzzyNumber(Value.fromInt(3), PureNumber, Some(RelativeFuzz(0.1, Gaussian)))
-    val z: Number = convertToNumber((Literal(x) ^ 2).materialize)
+    val z: Number = convertToNumber((Literal(x) ∧ 2).materialize)
     z.nominalValue shouldBe Right(9)
     z.factor shouldBe PureNumber
     z.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
@@ -263,7 +261,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val xy: Try[Number] = Number.parse("2.0*")
     xy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.05, Box)) => }
     xy.get.fuzz.get.normalizeShape.normalize(1, relative = true) should matchPattern { case Some(RelativeFuzz(0.028867513459481294, Gaussian)) => }
-    val zy = for (x <- xy) yield (Literal(x) ^ 2).materialize
+    val zy = for (x <- xy) yield (Literal(x) ∧ 2).materialize
     zy should matchPattern { case Success(_) => }
     val result: Number = convertToNumber(zy.get)
     result.nominalValue shouldBe Right(4)
@@ -423,9 +421,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "same"
-
   import FuzzyNumber._
-
   it should "think 1 and 1 are the same" in {
     val x = Number.one
     val y = Number.one
@@ -481,7 +477,6 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val (_, w) = z.get.fuzz.get.toString(x)
     w.substring(0, 17) + w.substring(18, 22) shouldBe "2.718281828459045[27]"
   }
-
   it should "implement asComparedWith" in {
     val n: Number = Number(r"22/7")
     showPercentage(n.asComparedWith(Number.pi)) shouldBe "0.020%"
@@ -497,7 +492,6 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
   }
-
   it should "calculate length of Foucault's pendulum but with relative box fuzziness" in {
     // NOTE this is here to support Foucault1.sc
     val g = Number("9.81*")
@@ -514,7 +508,6 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
     length.get.fuzz shouldBe Some(RelativeFuzz(0.00657029005653496, Box))
-//    println(length.get)
   }
   it should "calculate length of Foucault's pendulum" in {
     // NOTE this is here to support Foucault2.sc
@@ -533,7 +526,17 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 
     val length: Option[Number] = square flatMap (x => (x doMultiply g).asNumber)
     length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648325369, Gaussian))
-
-//    println(length.get)
+  }
+  it should "calculate the acceleration due to gravity based on the London Foucault's pendulum" in {
+    import Expression.ExpressionOps
+    val l: Expression = Real("22.45*")
+    val t: Expression = Real("9.5*")
+    val twoPi: Expression = 2 * 𝛑
+    val g: Expression = l * (twoPi / t) ∧ 2
+    val gField: Field = g.materialize
+    val fuzzyNumber = gField.asNumber.get
+    fuzzyNumber.nominalValue shouldBe Left(Left(Some(9.820393077205809)))
+    // XXX Why is the fuzz absolute?
+    fuzzyNumber.fuzz should matchPattern { case Some(AbsoluteFuzz(5.3869477499213, Gaussian)) => }
   }
 }

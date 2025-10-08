@@ -11,7 +11,6 @@ import org.scalatest.matchers.should
 class NumberLikeSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "NumberLike"
-
   it should "asJavaNumber" in {
     Constants.zero.asJavaNumber shouldBe Some(Int.box(0))
     Constants.half.asJavaNumber shouldBe Some(Double.box(0.5))
@@ -20,23 +19,18 @@ class NumberLikeSpec extends AnyFlatSpec with should.Matchers {
     Constants.pi.asJavaNumber shouldBe None
     Constants.e.asJavaNumber shouldBe None
   }
-
   it should "asNumber" in {
 
   }
-
   it should "maybeFactor" in {
 
   }
-
   it should "isExact" in {
 
   }
-
   it should "memberOf" in {
 
   }
-
   it should "render" in {
     Constants.zero.render shouldBe "0"
     Constants.half.render shouldBe "½"
@@ -45,5 +39,4 @@ class NumberLikeSpec extends AnyFlatSpec with should.Matchers {
     Constants.root2.render shouldBe "√2"
     Constants.phi.render shouldBe "𝛗"
   }
-
 }

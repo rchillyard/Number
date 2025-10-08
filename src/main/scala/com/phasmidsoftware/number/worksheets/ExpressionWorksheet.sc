@@ -3,7 +3,7 @@
   */
 
 import com.phasmidsoftware.number.core.{Constants, Number}
-import com.phasmidsoftware.number.expression.Expression
+import com.phasmidsoftware.number.expression.{Expression, One}
 
 val root3 = Expression(3).sqrt
 
@@ -18,3 +18,7 @@ val y: Number = root3MinusOne
 
 // Two should be exactly 2
 val two: Number = root3PlusOne * root3MinusOne
+
+val half: Expression = One / 2
+// This should be rendered as ½
+half.materialize

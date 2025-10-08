@@ -246,7 +246,7 @@ case class Stack(stack: List[Item]) extends Mill {
     case Add => x2 + x1
     case Subtract => x2 + -x1
     case Divide => x2 * x1.reciprocal
-    case Power => x2 ^ x1
+    case Power => x2 ∧ x1
   }
 
   private def evaluateSwap = {

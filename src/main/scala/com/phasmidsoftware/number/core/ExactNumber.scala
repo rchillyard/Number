@@ -11,7 +11,7 @@ import java.util.Objects
   * This class is designed to model an exact Numeral.
   * See GeneralNumber for more details on the actual representation.
   *
-  * TODO implement scientific notation by having factors such os 10^3, 10^6, etc. (alternatively, add a separate parameter)
+  * TODO implement scientific notation by having factors such os 10∧3, 10∧6, etc. (alternatively, add a separate parameter)
   *
  * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
  * @param factor  the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
@@ -80,9 +80,13 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   def simplify: Number = (factor, nominalValue) match {
     case (Logarithmic(_), Right(0)) =>
       Number.one
-    case (Euler, Right(1)) => // this is `e^i𝛑`, which equals `-1` by Euler's Identity
+    case (Logarithmic(_), Left(Right(Rational.negInfinity))) =>
+      Number.zero
+    case (Logarithmic(_), Left(Right(Rational.infinity))) =>
+      ExactNumber(Value.fromRational(Rational.infinity), PureNumber)
+    case (Euler, Right(1)) => // this is `e∧i𝛑`, which equals `-1` by Euler's Identity
       Number(-1)
-    case (Euler, Left(Right(Rational.half))) => // this is `e^i𝛑/2`, which equals `i` by Euler's Identity
+    case (Euler, Left(Right(Rational.half))) => // this is `e∧i𝛑/2`, which equals `i` by Euler's Identity
       Number.i
     // XXX this handles all roots (of which there are currently only SquareRoot and CubeRoot)
     case (NthRoot(n), v) =>
@@ -256,7 +260,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
       val sb = new StringBuilder()
       factor match {
         case Euler =>
-          sb.append(s"e^i${Value.valueToString(nominalValue, skipOne = true)}𝛑")
+          sb.append(s"e∧i${Value.valueToString(nominalValue, skipOne = true)}𝛑")
         case Logarithmic(_) =>
           sb.append(factor.render(nominalValue))
         case Scalar(_) =>

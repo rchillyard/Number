@@ -183,7 +183,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case (ComplexCartesian(_, Number.zeroR), x) =>
       power(x)
     case _ =>
-      throw NumberException(s"power not supported for: $this ^ $p")
+      throw NumberException(s"power not supported for: $this ∧ $p")
   }
 
   /**
@@ -552,7 +552,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   /**
     * Computes the square of a complex number represented in Cartesian form.
     * The result is a new `ComplexCartesian` value obtained by applying the formula:
-    * (x^2 - y^2, 2xy), where `x` and `y` are the real and imaginary parts respectively.
+    * (x∧2 - y∧2, 2xy), where `x` and `y` are the real and imaginary parts respectively.
     *
     * @return a `ComplexCartesian` instance representing the square of the original complex number.
     */
@@ -849,21 +849,21 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
         case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) =>
           "\u00b1" + rAsString // +-
         case _ =>
-          s"${rAsString}e^${showImaginary(polar = true)}"
+          s"${rAsString}e∧${showImaginary(polar = true)}"
     }
     case (_, _, 3) =>
       val rAsString = r.render
       theta.nominalValue match {
         case Value(0) | Value(_, Rational.zero) | Value(_, _, 0.0) =>
-          s"{$rAsString, ±${rAsString}e^${showImaginary(polar = true, 1, 3)}}"
+          s"{$rAsString, ±${rAsString}e∧${showImaginary(polar = true, 1, 3)}}"
         case _ =>
-          s"${rAsString}e^${showImaginary(polar = true)}"
+          s"${rAsString}e∧${showImaginary(polar = true)}"
     }
     // TODO handle the case where n is greater than 2
     case _ =>
       val rAsString = r.render
       val w = showImaginary(polar = true)
-      if (w == "0") rAsString else s"${rAsString}e^$w"
+      if (w == "0") rAsString else s"${rAsString}e∧$w"
   }
 
   /**

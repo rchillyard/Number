@@ -19,7 +19,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime(257).bits shouldBe 9
     Prime(7919).bits shouldBe 13
   }
-
   it should "isProbablePrime" in {
     Prime.isProbablePrime(2) shouldBe true
     Prime.isProbablePrime(7) shouldBe true
@@ -27,7 +26,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.isProbablePrime(11) shouldBe true
     Prime.isProbablePrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
-
   it should "isProbableOddPrime" in {
     // It's OK to call this method on 2 (but not any other even number).
     Prime.isProbableOddPrime(2) shouldBe true
@@ -36,7 +34,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.isProbableOddPrime(7919) shouldBe true
     Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
-
   /**
     * 1 (not actually a prime number)
     */
@@ -73,31 +70,26 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     * 23
     */
   private val p9: Prime = allPrimes(8)
-
   it should "fermat" in {
     p4.fermat(2) shouldBe 1
     Prime(71).fermat(9) shouldBe 1
   }
-
   it should "implement Lucas for 7 and 71" in {
     p4.Lucas shouldBe true
     Prime(71).Lucas shouldBe true
   }
-
   it should "implement primeFactors" in {
     Prime.primeFactors(23) shouldBe Seq(23).map(Prime(_))
     Prime.primeFactors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
     Prime.primeFactors(70906) shouldBe Seq(2, 11, 11, 293).map(Prime(_))
     Prime.primeFactors(7894609062L).sorted shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
   }
-
   it should "implement primeFactorMultiplicity" in {
     Prime.primeFactorMultiplicity(23) shouldBe Map(Prime(23) -> 1)
     Prime.primeFactorMultiplicity(70) shouldBe Map(Prime(2) -> 1, Prime(5) -> 1, Prime(7) -> 1)
     Prime.primeFactorMultiplicity(70906) shouldBe Map(Prime(2) -> 1, Prime(11) -> 2, Prime(293) -> 1)
     Prime.primeFactorMultiplicity(7894609062L) shouldBe Map(Prime(2) -> 1, Prime(11411) -> 1, Prime(3) -> 1, Prime(67) -> 1, Prime(1721) -> 1)
   }
-
   it should "implement Lucas()" in {
     val p = Prime(71)
     val pMinus1: BigInt = p.n - 1
@@ -105,7 +97,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     p.Lucas(pMinus1, factors)(17) shouldBe false
     p.Lucas(pMinus1, factors)(11) shouldBe true
   }
-
   it should "implement testPrimitiveRoot" in {
     p3.testPrimitiveRoot(2) shouldBe true
     p4.testPrimitiveRoot(2) shouldBe false
@@ -128,7 +119,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     p9.testPrimitiveRoot(20) shouldBe true
     p9.testPrimitiveRoot(21) shouldBe true
   }
-
   it should "implement primitiveRoot" in {
     p3.primitiveRoot shouldBe BigInt(2)
     p4.primitiveRoot shouldBe BigInt(3)
@@ -137,7 +127,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     val root23 = p9.primitiveRoot
     Seq(BigInt(5), BigInt(7), BigInt(10), BigInt(11), BigInt(14), BigInt(15), BigInt(17), BigInt(19), BigInt(20), BigInt(21)) contains root23 shouldBe true
   }
-
   it should "multiplicativeInverse" in {
     p5.multiplicativeInverse(3) shouldBe 4
     p5.multiplicativeInverse(4) shouldBe 3
@@ -146,7 +135,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     p9.multiplicativeInverse(18) shouldBe 9
     p9.multiplicativeInverse(9) shouldBe 18
   }
-
   it should "multiplicativeInverse1" in {
     multiplicativeInverse(3, BigInt(11)) shouldBe 4
     multiplicativeInverse(4, BigInt(11)) shouldBe 3
@@ -155,7 +143,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     multiplicativeInverse(18, BigInt(23)) shouldBe 9
     multiplicativeInverse(9, BigInt(23)) shouldBe 18
   }
-
   // NOTE this test needs double-checking.
   //  It derives originally (I think) from the Diffie-Hellman key exchange
   it should "multiplicativeInverse2" in {
@@ -174,7 +161,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     //Fermat's little theorem
     p7.modPow(z, n - 1) shouldBe 1
   }
-
   it should "validated" in {
     Prime(2).validated shouldBe true
     Prime(4).validated shouldBe false
@@ -182,7 +168,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime(120).validated shouldBe false
     Prime(7919).validated shouldBe true
   }
-
   it should "next" in {
     p0.next shouldBe p1
     p1.next shouldBe p2
@@ -195,55 +180,49 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     p7.next shouldBe p19
     p19.next shouldBe p9
   }
-
   it should "create primes from Mersenne numbers" in {
     val xs = for (i <- Seq(2, 3, 5, 7, 13, 17, 19, 31)) yield Prime.isProbablePrime(mersenneNumber(Prime(i)))
     xs.forall(_ == true) shouldBe true
   }
 // 2, 3, 5, 7, 13, 17, 19, 31, 61, 89, 107, 127, 521, 607, 1279, 2203, 2281, 3217, 4253, 4423, 9689, 9941, 11213, 19937, 21701, 23209, 44497, 86243, 110503, 132049, 216091, 756839, 859433, 1257787, 1398269, 2976221, 3021377, 6972593, 13466917, 20996011, 24036583, 25964951, 30402457, 32582657, 37156667, 42643801, 43112609, 57885161
   it should "create (potential) Mersenne numbers" in {
-    mersenneNumber(0) shouldBe 3 // 2^2 - 1
-    mersenneNumber(1) shouldBe 7 // 2^3 - 1
-    mersenneNumber(2) shouldBe 31 // 2^5 - 1
-    mersenneNumber(3) shouldBe 127 // 2^7 - 1
-    mersenneNumber(4) shouldBe 2047 // 2^11 - 1 NOT a prime
-    mersenneNumber(5) shouldBe 8191 // 2^13 - 1
-    mersenneNumber(6) shouldBe 131071 // 2^17 - 1
-    mersenneNumber(7) shouldBe 524287 // 2^19 - 1
-    mersenneNumber(8) shouldBe 8388607 // 2^23 - 1 NOT a prime
-    mersenneNumber(9) shouldBe 536870911 // 2^29 - 1 NOT a prime
-    mersenneNumber(10) shouldBe 2147483647 // 2^31 - 1
-    mersenneNumber(11) shouldBe 137438953471L // 2^37 - 1 NOT a prime
-    mersenneNumber(12) shouldBe 2199023255551L // 2^41 - 1 NOT a prime
-    mersenneNumber(13) shouldBe 8796093022207L // 2^43 - 1 NOT a prime
-    mersenneNumber(14) shouldBe 140737488355327L // 2^47 - 1 NOT a prime
-    mersenneNumber(15) shouldBe 9007199254740991L // 2^53 - 1 NOT a prime
-    mersenneNumber(16) shouldBe 576460752303423487L // 2^59 - 1 NOT a prime
-    mersenneNumber(17) shouldBe 2305843009213693951L // 2^61 - 1
+    mersenneNumber(0) shouldBe 3 // 2∧2 - 1
+    mersenneNumber(1) shouldBe 7 // 2∧3 - 1
+    mersenneNumber(2) shouldBe 31 // 2∧5 - 1
+    mersenneNumber(3) shouldBe 127 // 2∧7 - 1
+    mersenneNumber(4) shouldBe 2047 // 2∧11 - 1 NOT a prime
+    mersenneNumber(5) shouldBe 8191 // 2∧13 - 1
+    mersenneNumber(6) shouldBe 131071 // 2∧17 - 1
+    mersenneNumber(7) shouldBe 524287 // 2∧19 - 1
+    mersenneNumber(8) shouldBe 8388607 // 2∧23 - 1 NOT a prime
+    mersenneNumber(9) shouldBe 536870911 // 2∧29 - 1 NOT a prime
+    mersenneNumber(10) shouldBe 2147483647 // 2∧31 - 1
+    mersenneNumber(11) shouldBe 137438953471L // 2∧37 - 1 NOT a prime
+    mersenneNumber(12) shouldBe 2199023255551L // 2∧41 - 1 NOT a prime
+    mersenneNumber(13) shouldBe 8796093022207L // 2∧43 - 1 NOT a prime
+    mersenneNumber(14) shouldBe 140737488355327L // 2∧47 - 1 NOT a prime
+    mersenneNumber(15) shouldBe 9007199254740991L // 2∧53 - 1 NOT a prime
+    mersenneNumber(16) shouldBe 576460752303423487L // 2∧59 - 1 NOT a prime
+    mersenneNumber(17) shouldBe 2305843009213693951L // 2∧61 - 1
   }
-
   it should "get first 100 primes" in {
     val first100: Seq[Prime] = Primes.allPrimes.take(100).toList
     first100.last shouldBe Prime(541)
   }
-
   it should "get first 1000 primes" in {
     val first1000: Seq[Prime] = Primes.allPrimes.take(1000).toList
     first1000.last shouldBe Prime(7919)
   }
-
   it should "get primes < 1000" in {
     val lessThan1000: Seq[Prime] = Primes.probablePrimes(_.n < 1000)
     lessThan1000.size shouldBe 168
     lessThan1000.last shouldBe Prime(997)
   }
-
   it should "test MillerRabin" in {
     MillerRabin.millerRabinTester("test", "7919") shouldBe "PRIME"
     MillerRabin.millerRabinTester("test", "516119616549881") shouldBe "PRIME"
     MillerRabin.millerRabinTester("test", "516119616549887") shouldBe "COMPOSITE"
   }
-
   it should "totient" in {
     Prime.totient(1) shouldBe 1
     Prime.totient(2) shouldBe 1
@@ -262,19 +241,10 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.totient(20) shouldBe 8
     Prime.totient(30) shouldBe 8
   }
-  // 1, 1, 2, 2, 4, 2, 6, 4, 6, 4,
-  // 10, 4, 12, 6, 8, 8, 16, 6, 18, 8,
-  // 12, 10, 22, 8, 20, 12, 18, 12, 28, 8,
-  // 30, 16, 20, 16, 24, 12, 36, 18, 24, 16,
-  // 40, 12, 42, 20, 24, 22, 46, 16, 42, 20,
-  // 32, 24, 52, 18, 40, 24, 36, 28, 58, 16,
-  // 60, 30, 36, 32, 48, 20, 66, 32, 44, 24
-
   it should "form toString correctly" in {
     val mp17 = Prime(mersenneNumber(17))
-    mp17.toString() shouldBe "2,305,843,009,213,693,951"
+    mp17.toString shouldBe "2,305,843,009,213,693,951"
   }
-
   it should "get the reciprocal period" in {
     Prime(2).reciprocalPeriod shouldBe Some(0)
     Prime(3).reciprocalPeriod shouldBe Some(1)

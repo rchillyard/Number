@@ -290,9 +290,9 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     // Now, the umber of houses on the street y is such that Y = 2y + 1
     // And the house number x is such that X = 2x
     // However, only the results from the odd numbers of terms are the solution to the Strand puzzle by Henry Dudeney,
-    // which obeys the Pell equation = Y^2 - 2 X^2 = 1 (see https://en.wikipedia.org/wiki/Pell%27s_equation).
-    // Incidentally, the even numbers of terms result in solutions to the complementary Pell equation: Y^2 - 2 X^2 = - 1
-    // Obviously, if we solve Y^2 - = 2 X^2, we get the square root of 2, but this is an irrational number, not a rational number.
+    // which obeys the Pell equation = Y∧2 - 2 X∧2 = 1 (see https://en.wikipedia.org/wiki/Pell%27s_equation).
+    // Incidentally, the even numbers of terms result in solutions to the complementary Pell equation: Y∧2 - 2 X∧2 = - 1
+    // Obviously, if we solve Y∧2 - = 2 X∧2, we get the square root of 2, but this is an irrational number, not a rational number.
     val cf: ConFrac = ConFrac.root2
     cf.take(1).toRational shouldBe r"3/2" // NOTE: house # 1 on street of 1 houses
     cf.take(3).toRational shouldBe r"17/12" // NOTE: house # 6 on street of 8 houses

@@ -21,7 +21,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime(257).bits shouldBe 9
     Prime(7919).bits shouldBe 13
   }
-
   it should "isProbablePrime" in {
     Prime.isProbablePrime(2) shouldBe true
     Prime.isProbablePrime(7) shouldBe true
@@ -29,7 +28,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.isProbablePrime(11) shouldBe true
     Prime.isProbablePrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
-
   it should "isProbableOddPrime" in {
     // It's OK to call this method on 2 (but not any other even number).
     Prime.isProbableOddPrime(2) shouldBe true
@@ -38,7 +36,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.isProbableOddPrime(7919) shouldBe true
     Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
-
   private val p1: Prime = Prime(1) // Not actually a prime number
   private val p2: Prime = Prime(2)
   private val p3: Prime = Prime(3)
@@ -48,25 +45,21 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   private val p13: Prime = Prime(13)
   private val p17: Prime = Prime(17)
   private val p23: Prime = Prime(23)
-
   it should "fermat" in {
     p7.fermat(2) shouldBe 1
     Prime(71).fermat(9) shouldBe 1
   }
-
   // NOTE This has been known to fail occasionally
   it should "implement Lucas for 7 and 71" in {
     p7.Lucas shouldBe true
     Prime(71).Lucas shouldBe true
   }
-
   it should "implement primeFactors" in {
     Prime.primeFactors(23) shouldBe Seq(23).map(Prime(_))
     Prime.primeFactors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
     Prime.primeFactors(70906) shouldBe Seq(2, 11, 11, 293).map(Prime(_))
     Prime.primeFactors(7894609062L).sorted shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
   }
-
   it should "implement primeFactorMultiplicity" in {
     Prime.primeFactorMultiplicity(23) shouldBe Map(Prime(23) -> 1)
     Prime.primeFactorMultiplicity(70) shouldBe Map(Prime(2) -> 1, Prime(5) -> 1, Prime(7) -> 1)
@@ -75,7 +68,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.primeFactorMultiplicity(663168016) shouldBe Map(Prime(2) -> 4, Prime(7) -> 1, Prime(5987) -> 1, Prime(43) -> 1, Prime(23) -> 1)
     Prime.primeFactorMultiplicity(7894609062L) shouldBe Map(Prime(2) -> 1, Prime(11411) -> 1, Prime(3) -> 1, Prime(67) -> 1, Prime(1721) -> 1)
   }
-
   it should "implement Lucas()" in {
     val p = Prime(71)
     val pMinus1: BigInt = p.toBigInt - 1
@@ -83,7 +75,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     p.Lucas(pMinus1, factors)(17) shouldBe false
     p.Lucas(pMinus1, factors)(11) shouldBe true
   }
-
   it should "implement testPrimitiveRoot" in {
     p5.testPrimitiveRoot(2) shouldBe true
     p7.testPrimitiveRoot(2) shouldBe false
@@ -106,7 +97,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     p23.testPrimitiveRoot(20) shouldBe true
     p23.testPrimitiveRoot(21) shouldBe true
   }
-
   it should "implement primitiveRoot" in {
     p5.primitiveRoot shouldBe BigInt(2)
     p7.primitiveRoot shouldBe BigInt(3)
@@ -115,7 +105,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     val root23 = p23.primitiveRoot
     Seq(BigInt(5), BigInt(7), BigInt(10), BigInt(11), BigInt(14), BigInt(15), BigInt(17), BigInt(19), BigInt(20), BigInt(21)) contains root23 shouldBe true
   }
-
   it should "multiplicativeInverse" in {
     p11.multiplicativeInverse(3) shouldBe 4
     p11.multiplicativeInverse(4) shouldBe 3
@@ -124,7 +113,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     p23.multiplicativeInverse(18) shouldBe 9
     p23.multiplicativeInverse(9) shouldBe 18
   }
-
   it should "validate" in {
     Prime(2).validated shouldBe true
     Prime(4).validated shouldBe false
@@ -132,7 +120,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime(120).validated shouldBe false
     Prime(7919).validated shouldBe true
   }
-
   it should "next" in {
     p1.next shouldBe p2
     p2.next shouldBe p3
@@ -145,30 +132,26 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     p17.next shouldBe p19
     p19.next shouldBe p23
   }
-
   it should "isCarmichaelNumber2" in {
     val tests = for (n <- Seq(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461)) yield Prime.isCarmichaelNumber(n)
     tests.forall(p => p) shouldBe true
   }
-
   it should "isCarmichaelNumber3" in {
     Prime.isCarmichaelNumber(530881) shouldBe true
   }
-
   it should "create primes from Mersenne numbers" in {
     val xs = for (i <- Seq(2, 3, 5, 7, 13, 17, 19, 31)) yield Prime.isProbablePrime(Prime.mersenneNumber(Prime(i)))
     xs.forall(p => p) shouldBe true
   }
-
   it should "create Mersenne numbers" in {
-    Prime.mersenneNumber(0) shouldBe 3 // 2^2 - 1
-    Prime.mersenneNumber(1) shouldBe 7 // 2^3 - 1
-    Prime.mersenneNumber(2) shouldBe 31 // 2^5 - 1
-    Prime.mersenneNumber(3) shouldBe 127 // 2^7 - 1
-    Prime.mersenneNumber(4) shouldBe 2047 // 2^11 - 1
-    Prime.mersenneNumber(5) shouldBe 8191 // 2^13 - 1
-    Prime.mersenneNumber(6) shouldBe 131071 // 2^17 - 1
-    Prime.mersenneNumber(7) shouldBe 524287 // 2^19 - 1
+    Prime.mersenneNumber(0) shouldBe 3 // 2∧2 - 1
+    Prime.mersenneNumber(1) shouldBe 7 // 2∧3 - 1
+    Prime.mersenneNumber(2) shouldBe 31 // 2∧5 - 1
+    Prime.mersenneNumber(3) shouldBe 127 // 2∧7 - 1
+    Prime.mersenneNumber(4) shouldBe 2047 // 2∧11 - 1
+    Prime.mersenneNumber(5) shouldBe 8191 // 2∧13 - 1
+    Prime.mersenneNumber(6) shouldBe 131071 // 2∧17 - 1
+    Prime.mersenneNumber(7) shouldBe 524287 // 2∧19 - 1
     Prime.mersenneNumber(8) shouldBe 8388607
     Prime.mersenneNumber(9) shouldBe 536870911
     Prime.mersenneNumber(10) shouldBe 2147483647
@@ -180,7 +163,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.mersenneNumber(16) shouldBe 576460752303423487L
     Prime.mersenneNumber(17) shouldBe 2305843009213693951L
   }
-
   it should "create Mersenne prime" in {
     Prime.createMersennePrime(0) map (_.validated) shouldBe Some(true)
     Prime.createMersennePrime(1) map (_.validated) shouldBe Some(true)
@@ -191,18 +173,15 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.createMersennePrime(6) map (_.validated) shouldBe Some(true)
 //    Prime.createMersennePrime(7) map (_.validate) shouldBe Some(true)
   }
-
   it should "get first 100 primes" in {
     val first100: Seq[Prime] = Primes.allPrimes.take(100).toList
     first100.last shouldBe Prime(541)
   }
-
   // SLOW
   it should "get first 1000 primes" in {
     val first1000: Seq[Prime] = Primes.allPrimes.take(1000).toList
     first1000.last shouldBe Prime(7919)
   }
-
   it should "get primes < 1000" in {
     val lessThan1000: Seq[Prime] = Primes.probablePrimes(_.toBigInt < 1000)
     lessThan1000.size shouldBe 168
@@ -210,7 +189,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "piApprox"
-
   it should "be correct for specific values" in {
     // 5 (2 3 5 7 11)
     piApprox(11) shouldBe 5.0 +- 1
@@ -221,8 +199,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     // 13 (... 37 41)
     piApprox(41) shouldBe 13.0 +- 2
   }
-
-  it should "be correct for 10^x" in {
+  it should "be correct for 10∧x" in {
     piApprox(100) shouldBe 25.0 +- 3.5
     piApprox(1000) shouldBe 168.0 +- 24
     piApprox(10000) shouldBe 1229.0 +- 144
@@ -235,26 +212,22 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     lessThan1000.size shouldBe 168
     lessThan1000.last shouldBe Prime(997)
   }
-
   it should "eSieve for primes < 1000" in {
     val lessThan1000: Seq[Prime] = Primes.eSieve(1000)
     lessThan1000.size shouldBe 168
     lessThan1000.last shouldBe Prime(997)
   }
-
   // SLOW
   it should "eSieve for primes < 10000" in {
     val lessThan1000: Seq[Prime] = Primes.eSieve(100000)
     lessThan1000.size shouldBe 9592
     lessThan1000.last shouldBe Prime(99991)
   }
-
   it should "test MillerRabin" in {
     MillerRabin.millerRabinTester("test", "7919") shouldBe "PRIME"
     MillerRabin.millerRabinTester("test", "516119616549881") shouldBe "PRIME"
     MillerRabin.millerRabinTester("test", "516119616549887") shouldBe "COMPOSITE"
   }
-
   it should "totient" in {
     Prime.totient(1) shouldBe 1
     Prime.totient(2) shouldBe 1
@@ -273,11 +246,4 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.totient(20) shouldBe 8
     Prime.totient(30) shouldBe 8
   }
-  // 1, 1, 2, 2, 4, 2, 6, 4, 6, 4,
-  // 10, 4, 12, 6, 8, 8, 16, 6, 18, 8,
-  // 12, 10, 22, 8, 20, 12, 18, 12, 28, 8,
-  // 30, 16, 20, 16, 24, 12, 36, 18, 24, 16,
-  // 40, 12, 42, 20, 24, 22, 46, 16, 42, 20,
-  // 32, 24, 52, 18, 40, 24, 36, 28, 58, 16,
-  // 60, 30, 36, 32, 48, 20, 66, 32, 44, 24
 }

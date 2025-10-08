@@ -120,7 +120,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     case z ~ os ~ y ~ x => DyadicTerm(x, MonadicTerm(y, os, z))
   }
 
-  def dyadicOperator: Parser[String] = ("+" | "*" | "×" | "^" | "-" | "−" | "–" | "/" | "÷") :| "dyadicOperator"
+  def dyadicOperator: Parser[String] = ("+" | "*" | "×" | "^" | "∧" | "-" | "−" | "–" | "/" | "÷") :| "dyadicOperator"
 
   def monadicOperator: Parser[String] = """(?i)chs|inv|v|ln|exp|sin|cos""".r :| "monadicOperator"
 

@@ -49,21 +49,21 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for E" in {
     Constants.e.toString shouldBe "\uD835\uDF00"
   }
-  it should "work for E^2" in {
+  it should "work for E∧2" in {
     val target = Constants.e power Real(2)
     target.toString shouldBe "\uD835\uDF00\u00B2"
   }
-  it should "work for E^3" in {
+  it should "work for E∧3" in {
     val target = Constants.e power 3
     target.toString shouldBe "\uD835\uDF00\u00B3"
   }
-  it should "work for E^4" in {
+  it should "work for E∧4" in {
     val target = Constants.e power 4
     target.toString shouldBe "\uD835\uDF00\u2074"
   }
-  it should "work for E^10" in {
+  it should "work for E∧10" in {
     val target = Constants.e power 10
-    target.toString shouldBe "\uD835\uDF00^10"
+    target.toString shouldBe "\uD835\uDF00∧10"
   }
 
   behavior of "render"
@@ -302,7 +302,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Constants.zero
     target.exp shouldBe one
   }
-  it should "be e^2 for 2" in {
+  it should "be e∧2 for 2" in {
     val target = Number.two
     target.exp should ===(Expression(Constants.e) * Constants.e)
   }
@@ -317,11 +317,10 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val log = target.ln
     log shouldBe Constants.zero
   }
-  it should "be 2 for E^2" in {
+  it should "be 2 for E∧2" in {
     val target: Number = Expression(Constants.e) * Constants.e
     target.ln should ===(Number.two)
   }
-
 
   // NOTE: Following are tests of Ordering[Real]
   private val no: Ordering[Real] = RealIsOrdering
@@ -375,7 +374,6 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = one
     nn.toDouble(target) shouldBe 1.0
   }
-
 
   behavior of "Numeric plus"
   it should "work for 1" in {
@@ -441,9 +439,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   behavior of "RealOps"
-
   import Real.RealOps
-
   it should "work for 2 + Real(3)" in {
     val x: Real = 2 + Real(3)
     x shouldBe Real(5)

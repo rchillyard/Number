@@ -37,7 +37,7 @@ class NewtonSpec extends AnyFlatSpec with should.Matchers {
       * Some trigonometric identities.
       */
     val iPi = Expression(Constants.i) * Constants.pi
-    val euler = Expression(Constants.e) ^ iPi
+    val euler = Expression(Constants.e) ∧ iPi
     println(euler.asNumber)
 
     val a: core.Number = piBy2.cos

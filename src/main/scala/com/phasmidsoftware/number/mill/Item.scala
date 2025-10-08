@@ -204,7 +204,8 @@ object Item {
     */
   def apply(s: String): Item = s.toLowerCase match {
     // XXX Dyadic operators
-    case "^" => Power
+    case "∧" => Power
+    case "∧" => Power
     case "+" => Add
     case "-" | "−" | "–" => Subtract
     case "*" | "×" => Multiply

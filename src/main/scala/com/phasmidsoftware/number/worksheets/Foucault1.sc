@@ -4,7 +4,7 @@ import com.phasmidsoftware.number.expression.Expression
 
 val g = Expression(Real("9.81*"))
 val t = Expression(Real("16.5*"))
-val expression = g * ((t / Constants.twoPi) ^ 2)
+val expression = g * ((t / Constants.twoPi) ∧ 2)
 
 // NOTE the length should be 67.65(25)
 val length: Number = expression
