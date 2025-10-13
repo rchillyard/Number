@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.cats
+package com.phasmidsoftware.number.cats.laws
 
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
@@ -8,17 +8,17 @@ import org.typelevel.discipline.scalatest.FunSuiteDiscipline
 import cats.kernel.Eq
 import cats.kernel.laws.discipline.CommutativeMonoidTests
 
-import com.phasmidsoftware.number.cats.CatsNumberErrorInstances._
+import com.phasmidsoftware.number.cats.ErrorCommutativeMonoid._
 
 /**
-  * Cats laws for error metric wrappers defined in CatsNumberErrorInstances.
+  * Cats laws for error metric wrappers defined in ErrorCommutativeMonoid.
   *
   * We verify CommutativeMonoid laws for:
   * - AbsSigma: absolute standard deviation aggregation (independent, additive context).
   *
   * Floating-point rounding can cause tiny deviations, so we use a relative-tolerance Eq.
   */
-class CatsNumberErrorInstancesLawSpec
+class ErrorCommutativeMonoidLawSpec
     extends AnyFunSuite
     with Checkers
     with FunSuiteDiscipline {

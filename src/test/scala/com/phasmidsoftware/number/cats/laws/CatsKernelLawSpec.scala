@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.cats
+package com.phasmidsoftware.number.cats.laws
 
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalatest.funsuite.AnyFunSuite
@@ -7,7 +7,8 @@ import org.typelevel.discipline.scalatest.FunSuiteDiscipline
 
 import cats.kernel.laws.discipline.{EqTests, OrderTests, PartialOrderTests}
 
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, ExactNumber, FuzzyNumber, Gaussian, GeneralNumber, Number}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, ExactNumber, FuzzyNumber, Gaussian, GeneralNumber, Number, Real, Field, Complex, ComplexCartesian, ComplexPolar}
+import com.phasmidsoftware.number.core.inner.Radian
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.cats.CatsKernel._
 
@@ -107,10 +108,77 @@ class CatsKernelLawSpec
       (nominalDouble, nominalRational, factorId, fuzzInfo)
     }
 
+  // Arbitrary[Real] and Cogen[Real]: delegate to underlying Number generators
+  implicit val arbitraryReal: Arbitrary[Real] =
+    Arbitrary(arbitraryNumber.arbitrary.map(n => Real(n)))
+
+  implicit val cogenReal: Cogen[Real] =
+    cogenNumber.contramap(_.x)
+
+  // Arbitrary/Cogen[Field]: combine Real and simple Complex constructors
+  implicit val arbitraryField: Arbitrary[Field] = Arbitrary {
+    val genReal: Gen[Field] = arbitraryReal.arbitrary
+    val genCartesian: Gen[Field] = for {
+      x <- arbitraryNumber.arbitrary
+      y <- arbitraryNumber.arbitrary
+    } yield ComplexCartesian(x, y)
+    // Restrict theta to valid Radian-typed angles to satisfy ComplexPolar.apply
+    val genThetaRadian: Gen[Number] = Gen.oneOf(Number.zeroR, Number.pi, Number.minusPi, Number.piBy2)
+    val genPolar: Gen[Field] = for {
+      r <- arbitraryNumber.arbitrary
+      theta <- genThetaRadian
+    } yield ComplexPolar(r, theta, 1)
+    Gen.frequency(
+      6 -> genReal,
+      3 -> genCartesian,
+      1 -> genPolar
+    )
+  }
+
+  implicit val cogenField: Cogen[Field] = Cogen[(Int, Option[Double], Option[(BigInt, BigInt)], String, Option[(Double, String, Boolean)], Option[Double], Option[(BigInt, BigInt)], Int)].contramap {
+    case Real(n) =>
+      (0, n.toNominalDouble, n.toNominalRational.map(r => (r.n, r.d)), n.factor.toString, None, None, None, 0)
+    case ComplexCartesian(x, y) =>
+      (1, x.toNominalDouble, x.toNominalRational.map(r => (r.n, r.d)), x.factor.toString, None, y.toNominalDouble, y.toNominalRational.map(r => (r.n, r.d)), 0)
+    case ComplexPolar(r, t, n) =>
+      (2, r.toNominalDouble, r.toNominalRational.map(r0 => (r0.n, r0.d)), r.factor.toString, None, t.toNominalDouble, t.toNominalRational.map(t0 => (t0.n, t0.d)), n)
+  }
+
+  // Arbitrary/Cogen[Complex]: restrict theta to valid radians for polar
+  implicit val arbitraryComplex: Arbitrary[Complex] = Arbitrary {
+    val genCartesian: Gen[Complex] = for {
+      x <- arbitraryNumber.arbitrary
+      y <- arbitraryNumber.arbitrary
+    } yield ComplexCartesian(x, y)
+    val genThetaRadian: Gen[Number] = Gen.oneOf(Number.zeroR, Number.pi, Number.minusPi, Number.piBy2)
+    val genPolar: Gen[Complex] = for {
+      r <- arbitraryNumber.arbitrary
+      theta <- genThetaRadian
+    } yield ComplexPolar(r, theta, 1)
+    Gen.frequency(
+      3 -> genCartesian,
+      1 -> genPolar
+    )
+  }
+
+  implicit val cogenComplex: Cogen[Complex] = Cogen[(Int, Option[Double], Option[(BigInt, BigInt)], String, Option[Double], Option[(BigInt, BigInt)], Int)].contramap {
+    case ComplexCartesian(x, y) =>
+      (1, x.toNominalDouble, x.toNominalRational.map(r => (r.n, r.d)), x.factor.toString, y.toNominalDouble, y.toNominalRational.map(r => (r.n, r.d)), 0)
+    case ComplexPolar(r, t, n) =>
+      (2, r.toNominalDouble, r.toNominalRational.map(r0 => (r0.n, r0.d)), r.factor.toString, t.toNominalDouble, t.toNominalRational.map(t0 => (t0.n, t0.d)), n)
+  }
+
+
   // Law checks
   checkAll("Rational", OrderTests[Rational].order)
   checkAll("ExactNumber", OrderTests[ExactNumber].order)
   checkAll("Number", EqTests[Number].eqv)
   checkAll("Number", PartialOrderTests[Number].partialOrder)
+  checkAll("Real", EqTests[Real].eqv)
+  checkAll("Real", PartialOrderTests[Real].partialOrder)
+  // Now that Eq[Field] is provided globally, we can test Eq and PartialOrder
+  checkAll("Field", EqTests[Field].eqv)
+  checkAll("Field", PartialOrderTests[Field].partialOrder)
+  checkAll("Complex", EqTests[Complex].eqv)
 }
 

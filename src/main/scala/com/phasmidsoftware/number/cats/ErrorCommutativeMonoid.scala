@@ -9,7 +9,7 @@ import cats.kernel.CommutativeMonoid
   * Each wrapper models the magnitude of an uncertainty under the assumption of independent errors.
   * They serve as the core building blocks for folding or parallel aggregation of fuzzy quantities.
   */
-object CatsNumberErrorInstances {
+object ErrorCommutativeMonoid {
 
   /** Absolute standard deviation (σ). Suitable for additive error propagation. */
   final case class AbsSigma(value: Double) extends AnyVal

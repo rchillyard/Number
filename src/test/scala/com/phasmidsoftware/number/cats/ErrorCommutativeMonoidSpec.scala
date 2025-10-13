@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.cats
 
 import cats.syntax.semigroup._
-import com.phasmidsoftware.number.cats.CatsNumberErrorInstances._
+import com.phasmidsoftware.number.cats.ErrorCommutativeMonoid._
 import com.phasmidsoftware.number.misc.Benchmark._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -16,7 +16,7 @@ import scala.concurrent.duration._
   *
   * These tests are intentionally lightweight demonstrations rather than law checks.
   */
-class CatsNumberErrorInstancesSpec extends AnyFlatSpec with Matchers {
+class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Abstracting advocacy communication into lawful scalar folding"
 
