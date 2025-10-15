@@ -13,7 +13,6 @@ import scala.util.Try
 class PowerSeriesSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "PowerSeries"
-
   it should "apply" in {
     val coefficients: Seq[FuzzyDouble] = Seq(1, 2, 3, 4, 5)
     val powerSeries: FinitePowerSeries[Double, FuzzyDouble] = FinitePowerSeries[Double, FuzzyDouble](coefficients)(FuzzyDouble.apply)

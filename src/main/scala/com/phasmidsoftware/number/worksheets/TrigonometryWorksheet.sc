@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.expression.Expression.ExpressionOps
   */
 
 val iPi = Expression(i) * pi
-val euler = Expression(e) ^ iPi
+val euler = Expression(e) ∧ iPi
 euler.asNumber
 
 piBy2.cos

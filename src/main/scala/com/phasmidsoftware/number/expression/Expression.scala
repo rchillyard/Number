@@ -213,11 +213,12 @@ object Expression {
 
     /**
       * Method to lazily raise x to the power of y.
+      * NOTE that this is not the caret character.
       *
       * @param y the power to which x should be raised (an Expression).
       * @return an Expression representing x to the power of y.
       */
-    def ^(y: Expression): Expression =
+    def ∧(y: Expression): Expression =
       BiFunction(x, y, Power)
 
     /**
@@ -231,10 +232,10 @@ object Expression {
           case Some(q) =>
             Literal(q.sqrt)
           case _ =>
-            x ^ Constants.half // TESTME
+            x ∧ Constants.half // TESTME
         }
       case _ =>
-        x ^ Constants.half // TESTME
+        x ∧ Constants.half // TESTME
     }
 
     /**

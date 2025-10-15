@@ -42,12 +42,14 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     z.get.get.isExact shouldBe false
     z.get.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
+
   behavior of "number"
   it should "" in {
     val z: p.ParseResult[Number] = p.parseAll(p.number, sG)
     z.get.isExact shouldBe false
     z.get.fuzz.get shouldBe AbsoluteFuzz(1.5E-15, Gaussian)
   }
+
   behavior of "StringParser"
   it should "" in {
     val x = NumberParser
@@ -174,6 +176,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 5" in {
     createFuzz(5) shouldBe RelativeFuzz(5.12E-15, Box)
   }
+
   behavior of "render"
   private val z = implicitly[Valuable[Double]]
   it should "render Pi" in {
@@ -265,7 +268,6 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     q.shape.wiggle(r, 0.9) shouldBe (r * 0.08885599049425764 / Gaussian.sigma) +- 0.00001
     q.shape.wiggle(r, 1) shouldBe 0
   }
-
   it should "define the following ranges" in {
     val x = Number.zero
     x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.5) shouldBe 0.6744897501960815
@@ -276,7 +278,6 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.001) shouldBe 3.2905267314918945
     x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(0.0001) shouldBe 3.8905918864131213
   }
-
   it should "be likely." in {
     val x = Number.zero
     x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(1 - 0.6827) shouldBe 1.0000217133229987
@@ -319,8 +320,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "power"
-
-  it should "work for e^x" in {
+  it should "work for e∧x" in {
     val two = Number("2.00[2]")
     val nominalValueOfTwo = 2
     val relativeErrorOfTwo = 0.01

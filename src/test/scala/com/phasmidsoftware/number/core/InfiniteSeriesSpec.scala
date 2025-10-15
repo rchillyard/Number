@@ -12,21 +12,16 @@ import org.scalatest.matchers.should
 class InfiniteSeriesSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "InfiniteSeries"
-
   val basel: InfiniteSeries[Number] = InfiniteSeries(LazyList.from(1).map(x => Rational(x).invert.square), 0.001)
-
   it should "terms" in {
 
   }
-
   it should "convergenceRate" in {
     basel.convergenceRate shouldBe 0.001
   }
-
   it should "nTerms" in {
 
   }
-
   it should "evaluateToTolerance 0.001" in {
     val xy = basel.evaluateToTolerance(0.001)
     xy.isSuccess shouldBe true

@@ -173,7 +173,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
 
   /**
     * Raises this Rational number to the power of the given exponent.
-    * WARNING: this is deprecated in favor of `^`(that: Int) because the precedence for this operator
+    * WARNING: this is deprecated in favor of `∧`(that: Int) because the precedence for this operator
     * is lower than for multiplication, addition, etc.
     *
     * @param that the exponent to which this Rational number will be raised
@@ -229,7 +229,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return a Try containing the resulting Rational number if the operation is successful,
     *         or a Failure if an error occurs during the calculation
     */
-  def ^(that: Rational): Try[Rational] =
+  def ∧(that: Rational): Try[Rational] =
     power(that)
 
   /**
@@ -409,7 +409,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * If the Rational number represents infinity, an exception is thrown.
     *
     * @return A BigDecimal representing the Rational number.
-    * @throws com.phasmidsoftware.number.core.inner.RationalException if the Rational number is infinity.
+    * @throws RationalException if the Rational number is infinity.
     */
   def forceToBigDecimal: BigDecimal =
     if (!isInfinity)
@@ -992,7 +992,7 @@ object Rational {
    * This is the only instance in the domain of Rational with a negative denominator.
    */
   private[core] lazy val negZero = new Rational(0, -1)
-  private[inner] val negInfinity: Rational = new Rational(-1, 0)
+  private[core] val negInfinity: Rational = new Rational(-1, 0)
   private[inner] val negZeroDouble: Double = "-0.0".toDouble // negative zero as a Double
   private[inner] lazy val pi_5000: Rational = Rational(sPi_5000)
   private[inner] lazy val sPi_5000: String =
@@ -1176,7 +1176,7 @@ object Rational {
    *
    * @param x the BigDecimal to convert.
    * @return a Rational which is equal to x.
-   * @throws com.phasmidsoftware.number.core.inner.RationalException if x cannot be represented as a Rational.
+   * @throws RationalException if x cannot be represented as a Rational.
    */
   def apply(x: BigDecimal): Rational =
     if (x.scale >= 0) {
@@ -1202,7 +1202,7 @@ object Rational {
    *
    * @param w the String value.
    * @return a Rational corresponding to the value given by w.
-   * @throws com.phasmidsoftware.number.parse.RationalParserException if w is malformed.
+   * @throws RationalParserException if w is malformed.
    */
   def apply(w: String): Rational =
     toTry(VulgarFraction(w), Failure(new NoSuchElementException)).orElse(parse(w)) match {
@@ -1295,7 +1295,7 @@ object Rational {
     * @param top    the expected numerator of the ratio
     * @param bottom the expected denominator of the ratio
     * @return true if the Rational number has the correct ratio, false otherwise
-    * @throws com.phasmidsoftware.number.core.inner.RationalException if the ratio is incorrect
+    * @throws RationalException if the ratio is incorrect
     */// CONSIDER making this private or moving back into RationalSpec
   def hasCorrectRatio(r: Rational, top: BigInt, bottom: BigInt): Boolean = {
     val _a = r * bottom

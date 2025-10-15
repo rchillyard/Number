@@ -82,8 +82,8 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val x: Mill = create(List("+", ""))
     an[MillException] shouldBe thrownBy(x.evaluate)
   }
-  it should "process list of Items: 3, 2, ^" in {
-    checkMill(Real(9), List("3", "2", "^")) should matchPattern { case Succeeded => }
+  it should "process list of Items: 3, 2, ∧" in {
+    checkMill(Real(9), List("3", "2", "∧")) should matchPattern { case Succeeded => }
   }
   it should "process list of Items: 7, chs" in {
     checkMill(Real(-7), List("7", "CHS")) should matchPattern { case Succeeded => }
@@ -107,8 +107,8 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     value should matchPattern { case Success(_) => }
     value map (checkMill(Real(158), _)) should matchPattern { case Success(_) => }
   }
-  it should "parse and evaluate: 2 3 ^" in {
-    val value: Try[Mill] = p.parseMill("2 3 ^")
+  it should "parse and evaluate: 2 3 ∧" in {
+    val value: Try[Mill] = p.parseMill("2 3 ∧")
     value should matchPattern { case Success(_) => }
     value map (checkMill(Real(8), _)) should matchPattern { case Success(_) => }
   }
@@ -181,7 +181,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     value map (checkMill(Real(207), _)) should matchPattern { case Success(_) => }
   }
   it should "parse and evaluate:  9" in {
-    val w = "3 2 ^"
+    val w = "3 2 ∧"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
     value map (checkMill(Real(9), _)) should matchPattern { case Success(_) => }
@@ -193,8 +193,8 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     value map (checkMill(Real(40), _)) should matchPattern { case Success(_) => }
   }
   // this is from https://en.wikipedia.org/wiki/Shunting-yard_algorithm
-  it should "parse 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +" in {
-    val w = "3 4 2 × 1 5 − 2 3 ^ ^ ÷ +"
+  it should "parse 3 4 2 × 1 5 − 2 3 ∧ ∧ ÷ +" in {
+    val w = "3 4 2 × 1 5 − 2 3 ∧ ∧ ÷ +"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
     val q: Option[Expression] = value.toOption flatMap (_.evaluate)
@@ -205,10 +205,10 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 
   it should "parse and evaluate:  220xxxx with trailing space" in {
     val w =
-      """ 6    5  ^   7    4  ^ +
-        | 8    3  ^   9    2  ^ + ×
-        | 2    9  ^   3    8  ^ +
-        | 4    7  ^   5    6  ^ + × –""".stripMargin
+      """ 6    5  ∧   7    4  ∧ +
+        | 8    3  ∧   9    2  ∧ + ×
+        | 2    9  ∧   3    8  ∧ +
+        | 4    7  ∧   5    6  ∧ + × –""".stripMargin
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
     value map (checkMill(Real(-220364696), _)) should matchPattern { case Success(_) => }

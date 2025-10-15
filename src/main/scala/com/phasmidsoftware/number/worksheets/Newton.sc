@@ -40,14 +40,14 @@ val result = Approximation.solve(0.9, inverseSquareRoot, inverseDerivative)(Numb
   */
 val g = Expression(Real("9.81*"))
 val t = Expression(Real("16.5*"))
-val expression = g * ((t / Constants.twoPi) ^ 2)
+val expression = g * ((t / Constants.twoPi) ∧ 2)
 val length: Number = expression
 
 /**
   * Some trigonometric identities.
   */
 val iPi = Expression(Constants.i) * Constants.pi
-val euler = Expression(Constants.e) ^ iPi
+val euler = Expression(Constants.e) ∧ iPi
 val number = euler.asNumber
 println(number)
 

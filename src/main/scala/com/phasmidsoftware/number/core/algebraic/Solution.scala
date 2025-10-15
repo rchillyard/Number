@@ -144,6 +144,24 @@ trait Solution extends NumberLike {
   def add(solution: Solution): Option[Solution]
 
   /**
+    * Negates the current solution by applying a unary negation operation.
+    *
+    * @return a new `Solution` instance representing the negated value of the current solution
+    */
+  def negate: Solution
+
+  /**
+    * Adds the given solution to the current solution and returns an optional result.
+    * The addition may fail under certain conditions, in which case `None` is returned.
+    *
+    * @param solution the `Solution` to be added to the current solution
+    * @return an `Option` containing the resulting `Solution` if the addition is successful,
+    *         or `None` if the addition cannot be performed
+    */
+  def subtract(solution: Solution): Option[Solution] =
+    add(solution.negate)
+
+  /**
     * Scales the current solution by multiplying its base and offset values by the specified `Rational` factor.
     *
     * @param r the `Rational` value used as the scaling factor
@@ -210,15 +228,18 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     *
     * @return a String
     */
-  def render: String =
-    if (this == QuadraticSolution.phi)
+  def render: String = this match {
+    case QuadraticSolution.phi =>
       Algebraic.phi.render
-    else if (this == QuadraticSolution.psi)
+    case QuadraticSolution.psi =>
       Algebraic.psi.render
-    else if (Value.isZero(offset) || Value.isZero(base))
-      asField.render
-    else
-      s"Solution: $base + ${if (branch == 1) "- " else "+ "} ${factor.render(offset)}"
+    case q@QuadraticSolution(base, offset, factor, branch) if Value.isZero(offset) || Value.isZero(base) =>
+      q.asField.render
+    case QuadraticSolution(base, offset, factor, branch) =>
+      s"Solution: ${Value.valueToString(base, skipOne = false)} + ${if (branch == 1) "- " else "+ "} ${factor.render(offset)}"
+  }
+
+  override def toString: String = render
 
   /**
     * Computes the conjugate of the current quadratic solution.
@@ -230,6 +251,20 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     */
   def conjugate: QuadraticSolution =
     copy(branch = 1 - branch)
+
+  /**
+    * Negates the current quadratic solution by applying a negation
+    * operation to its `offset` component and then computing the conjugate.
+    *
+    * The negation is accomplished by using the `Value.negate` function on
+    * the solution's `offset`, and the resulting solution's conjugate
+    * is returned as a new instance of `QuadraticSolution`.
+    *
+    * @return a new QuadraticSolution instance that represents the negation and conjugation
+    *         of the current quadratic solution
+    */
+  def negate: QuadraticSolution =
+    copy(offset = Value.negate(offset)).conjugate
 
   /**
     * Checks if the solution represented by this instance is equivalent to zero.
@@ -515,6 +550,13 @@ case class LinearSolution(value: Value) extends Solution {
     *         a positive value if the solution is positive, or a negative value if the solution is negative.
     */
   def signum: Int = Value.signum(value)
+
+  /**
+    * Negates the current instance of the solution by inverting its base and offset values.
+    *
+    * @return a new instance of `QuadraticSolution` representing the negated version of the current solution
+    */
+  def negate: Solution = LinearSolution(Value.negate(value))
 
   /**
     * Adds the specified solution to the current solution and returns

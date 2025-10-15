@@ -93,7 +93,7 @@ class InfiniteSumSpec extends AnyFlatSpec with should.Matchers {
     * It's amazing how all these things are connected.
     * See https://en.wikipedia.org/wiki/Stefan–Boltzmann_law.
     * The famous fourth-power law of Stefan-Boltzmann actually includes the value of this infinite series in its constant of proportionality.
-    * In particular, the constant is zeta4 * 8 pi * k^4^ / c^2^ / h^3^.
+    * In particular, the constant is zeta4 * 8 pi * k∧4∧ / c∧2∧ / h∧3∧.
     */
   val f4: (Long, Rational) => Rational = riemannPosEvenInt(2)
   val zeta4: Double = math.Pi * math.Pi * math.Pi * math.Pi / 90

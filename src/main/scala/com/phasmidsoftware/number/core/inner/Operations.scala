@@ -743,7 +743,7 @@ case object DyadicOperationPower extends DyadicOperation {
   /**
     * Computes the power of an integer raised to a non-negative integer exponent.
     *
-    * The method computes the power `x^p` where `x` is the base and `p` is the exponent.
+    * The method computes the power `x∧p` where `x` is the base and `p` is the exponent.
     * If the exponent is negative, the operation fails with a `OperationsException`.
     * If the result exceeds the range of type `Int`, the operation fails with
     * a `RationalException` during precision narrowing.

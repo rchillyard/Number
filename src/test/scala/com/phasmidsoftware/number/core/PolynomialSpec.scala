@@ -12,10 +12,8 @@ import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 class PolynomialSpec extends AnyFlatSpec {
 
   behavior of "Polynomial"
-
   val p2: RationalPolynomial = RationalPolynomial(1, 1, 1)
   val p4: RationalPolynomial = RationalPolynomial(3, 2, 5, 4, 1)
-
   it should "apply 0" in {
     p2.apply(0) shouldBe Rational.one
     p4.apply(0) shouldBe Rational.three
@@ -44,13 +42,10 @@ class PolynomialSpec extends AnyFlatSpec {
     p2.coefficients shouldBe Seq(Rational.one, Rational.one, Rational.one)
     p4.coefficients shouldBe Seq(Rational.three, Rational.two, Rational(5), Rational.four, Rational.one)
   }
-
   it should "derivativeN" in {
     p2.derivativeN(1) shouldBe RationalPolynomial(1, 2)
   }
-
   it should "nthDerivative" in {
 
   }
-
 }

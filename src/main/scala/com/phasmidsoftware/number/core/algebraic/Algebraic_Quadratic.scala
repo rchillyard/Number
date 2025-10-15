@@ -269,8 +269,8 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     Objects.hash(equation, pos)
   }
 
-  override def toString: String =
-    s"Algebraic_Quadratic($solve, $equation, $pos)"
+  override def toString: String = render
+//    s"Algebraic_Quadratic($solve, $equation, $pos)"
 
   /**
     * Adds the given Rational object to the current Algebraic.
@@ -296,7 +296,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
   *       - - - - - - - - - - - - x - + - - - - - - - - - - - - - ⋏
   *                                   |
   *</pre>
-  * The roots of the equation (if such exist) are at `-w ± √(w^2-q)` where `w = ½p`
+  * The roots of the equation (if such exist) are at `-w ± √(w∧2-q)` where `w = ½p`
   * For more information regarding quadratic equations, see:
   * [[https://en.wikipedia.org/wiki/Quadratic_equation]]
   *
@@ -348,7 +348,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
   /**
     * Computes the sum of the conjugates for this instance of `Quadratic`.
     * The sum of conjugates is mathematically derived as the negation of the `p` coefficient
-    * in a quadratic equation of the form `x^2 + p*x + q = 0`.
+    * in a quadratic equation of the form `x∧2 + p*x + q = 0`.
     *
     * @return a `Rational` value representing the sum of conjugates.
     */
@@ -379,7 +379,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     copy(p = fP(p, q), q = fQ(p, q))
 
   /**
-    * Computes the discriminant of a quadratic equation based on the formula `p^2 - 4 * q`.
+    * Computes the discriminant of a quadratic equation based on the formula `p∧2 - 4 * q`.
     * The discriminant is a critical component in determining the nature of the roots of a
     * quadratic equation.
     * If the discriminant is positive, then there are two distinct roots;
@@ -391,7 +391,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
   def discriminant: Rational =
     p * p - 4 * q
 
-  override def toString: String = s"Quadratic Equation: x^2 ${Quadratic.termSign(p)}x ${Quadratic.termSign(q)} = 0"
+  override def toString: String = s"Quadratic Equation: x∧2 ${Quadratic.termSign(p)}x ${Quadratic.termSign(q)} = 0"
 
   /**
     * Determines if the given object can be considered equal to this instance.
@@ -405,11 +405,11 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
 
   /**
     * Scales the equation by a given rational factor.
-    * We are essentially transforming the equation into a new equation with coefficients `x * p` and `x^2 * q`.
+    * We are essentially transforming the equation into a new equation with coefficients `x * p` and `x∧2 * q`.
     *
     * The equation is represented by coefficients `p` and `q`, and scaling is applied as:
     * - `p` is multiplied by `x`
-    * - `q` is multiplied by `x^2`
+    * - `q` is multiplied by `x∧2`
     *
     * @param x the scaling factor as a `Rational`.
     * @return a new `Equation` resulting from scaling the current equation by the factor `x`.

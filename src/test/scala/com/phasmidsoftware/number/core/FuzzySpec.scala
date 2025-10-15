@@ -5,8 +5,6 @@ import org.scalatest.matchers.should
 
 class FuzzySpec extends AnyFlatSpec with should.Matchers {
 
-  behavior of "Fuzzy"
-
   case class Color(r: Short, g: Short, b: Short) {
     def difference(x: Color): Color = Color(math.abs(r - x.r), math.abs(g - x.g), math.abs(b - x.b))
 
@@ -23,14 +21,13 @@ class FuzzySpec extends AnyFlatSpec with should.Matchers {
     implicit object FuzzyColor extends FuzzyColor
   }
 
+  behavior of "Fuzzy"
   import Color._
-
   private val white = Color(255, 255, 255)
   private val red = Color(255, 0, 0)
   private val veryLightBlue = Color(255, 255, 254)
   private val lightPurple = Color(241, 241, 241)
   private val slightlyLighterPurple = Color(242, 242, 242)
-
   it should "same" in {
     val requiredConfidence = 0.8 // 80% confidence
     val f: (Color, Color) => Boolean = implicitly[Fuzzy[Color]].same(requiredConfidence)
@@ -39,5 +36,4 @@ class FuzzySpec extends AnyFlatSpec with should.Matchers {
     f(white, lightPurple) shouldBe false
     f(white, slightlyLighterPurple) shouldBe true
   }
-
 }
