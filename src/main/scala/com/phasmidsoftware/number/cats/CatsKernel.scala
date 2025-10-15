@@ -54,6 +54,8 @@ trait CatsKernelInstances {
             case (Some(x), Some(y)) => java.lang.Integer.compare(x, y)
             case _ =>
               // Finally fall back to raw double bits
+              // CONSIDER: this looks wrong to me--shouldn't you be using Double.compare instead of Long.compare?
+              // (Also, I see you're using doubleToRawLongBits, but I don't see any use of doubleToLongBits. elsewhere, too)
               (Value.maybeDouble(a), Value.maybeDouble(b)) match {
                 case (Some(x), Some(y)) => compareLong(java.lang.Double.doubleToRawLongBits(x), java.lang.Double.doubleToRawLongBits(y))
                 case (Some(_), None)    => 1
