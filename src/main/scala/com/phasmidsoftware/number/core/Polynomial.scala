@@ -141,6 +141,7 @@ object NumberPolynomial {
   def apply(coefficients: Number*)(implicit ev: Numeric[Number]): NumberPolynomial =
     new NumberPolynomial(coefficients.size - 1, coefficients)(ev)
 }
+
 /**
   * Represents a rational polynomial, defined by a degree and a sequence of rational coefficients.
   *

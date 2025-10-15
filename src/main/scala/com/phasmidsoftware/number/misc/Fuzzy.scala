@@ -232,7 +232,7 @@ case class Gaussian(mu: Double, sigma: Double) extends FuzzyBase(mu, sigma, new 
     tryFuzzy.toOption
   }
 
-  override def map2(f: DiFunc[Double])(delta2: Double): Fuzzy = newFuzzy(f.f(mu), math.sqrt(math.pow(f.df_dx(0)(mu) * sigma, 2) + math.pow(f.df_dx(1)(mu)* sigma, 2)))
+  override def map2(f: DiFunc[Double])(delta2: Double): Fuzzy = newFuzzy(f.f(mu), math.sqrt(math.pow(f.df_dx(0)(mu) * sigma, 2) + math.pow(f.df_dx(1)(mu) * sigma, 2)))
 }
 
 case class Bounded(mu: Double, delta: Double) extends FuzzyBase(mu, delta, new UniformRealDistribution(mu - math.abs(delta), mu + math.abs(delta))) {

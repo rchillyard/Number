@@ -130,7 +130,7 @@ object Value {
   def isEqual(v1: Value, v2: Value): Boolean = {
     // First, check to see if v1.equals(v2) returns true
     v1 == v2 ||
-    // Next, check to see if v1 + v2 = 0
+        // Next, check to see if v1 + v2 = 0
         ((for {
           x <- Operations.doTransformValueMonadic(v1)(MonadicOperationNegate.functions)
           y <- Operations.doComposeValueDyadic(x, v2)(DyadicOperationPlus.functions) if isZero(y)

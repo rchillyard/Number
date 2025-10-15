@@ -9,7 +9,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import scala.util.Random
 
-class SeriesFuncSpec extends AnyFlatSpec with Matchers with FuzzyEquality{
+class SeriesFuncSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   behavior of "Basel Problem"
 
   val basel: InfiniteSeries[Number] = InfiniteSeries(LazyList.from(1).map(x => Rational(x).invert.square))

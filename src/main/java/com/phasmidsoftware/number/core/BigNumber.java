@@ -374,10 +374,10 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * Multiplies two integer arrays representing numerical values and returns the result in an array.
      * TESTME
      *
-     * @param arr1 the first integer array representing a number
-     * @param arr2 the second integer array representing a number
-     * @param start the starting index for the portion of the arrays to be considered
-     * @param end the ending index for the portion of the arrays to be considered
+     * @param arr1       the first integer array representing a number
+     * @param arr2       the second integer array representing a number
+     * @param start      the starting index for the portion of the arrays to be considered
+     * @param end        the ending index for the portion of the arrays to be considered
      * @param resultSize the size of the resulting array
      * @return an integer array representing the result of the multiplication
      */
@@ -410,10 +410,10 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * efficient computation of the product.
      * TESTME
      *
-     * @param first The first integer array, where each element represents part of a larger number.
-     * @param second The second integer array, where each element represents part of a larger number.
-     * @param start The starting index for the relevant segment of the arrays to be considered for multiplication.
-     * @param end The ending index for the relevant segment of the arrays to be considered for multiplication.
+     * @param first   The first integer array, where each element represents part of a larger number.
+     * @param second  The second integer array, where each element represents part of a larger number.
+     * @param start   The starting index for the relevant segment of the arrays to be considered for multiplication.
+     * @param end     The ending index for the relevant segment of the arrays to be considered for multiplication.
      * @param resSize The size of the result array to store the product of the two arrays.
      * @return An array representing the product of the two numbers, with the result properly sized as per resSize.
      */
@@ -460,7 +460,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * Zeros are appended to the end of the array to maintain the original length.
      * TESTME
      *
-     * @param arr the array of integers to be shifted; must not be null
+     * @param arr    the array of integers to be shifted; must not be null
      * @param offset the number of positions to shift the elements to the left; must be non-negative
      */
     private void leftShift(final int[] arr, final int offset) {
@@ -479,10 +479,10 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * and stores the result in a new array of specified size.
      * TESTME
      *
-     * @param first the input array from which elements are added
-     * @param start the starting index of the first part in the array
-     * @param middle the ending index of the first part in the array
-     * @param end the ending index of the second part in the array
+     * @param first   the input array from which elements are added
+     * @param start   the starting index of the first part in the array
+     * @param middle  the ending index of the first part in the array
+     * @param end     the ending index of the second part in the array
      * @param resSize the size of the resulting array
      * @return an array containing the result of the addition with carry
      */
@@ -516,8 +516,8 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * Handles carry values appropriately during addition.
      * TESTME
      *
-     * @param first the array representing the first number. Must be large enough
-     *              to accommodate the result of the addition.
+     * @param first  the array representing the first number. Must be large enough
+     *               to accommodate the result of the addition.
      * @param second the array representing the second number. Its digits will be
      *               added to the corresponding digits of the first array.
      */
@@ -646,14 +646,13 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      *
      * @param o the object to be compared for equality with this BigNumber
      * @return true if the specified object is a BigNumber, has the same whole part,
-     *         sign, and decimals as this BigNumber; otherwise, false
+     * sign, and decimals as this BigNumber; otherwise, false
      */
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
         // NOTE That if you replace this as recommended, you must ensure that Java is compiling on CircleCI with the correct compiler (Java 16).
-        if ( !(o instanceof BigNumber ) ) return false;
-        final BigNumber bigNumber = (BigNumber) o;
+        if (!(o instanceof BigNumber bigNumber)) return false;
         return whole.equals(bigNumber.whole) && sign == bigNumber.sign && Arrays.equals(decimals, bigNumber.decimals);
     }
 
@@ -731,7 +730,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      *          if positive, retrieves the corresponding decimal index;
      *          if negative, returns 0.
      * @return the element value as a long; the whole number if the index is 0,
-     *         the decimal value if the index is positive, or 0 if the index is negative.
+     * the decimal value if the index is positive, or 0 if the index is negative.
      */
     private long element(final int i) {
         if (i == 0) return whole.longValueExact();
@@ -768,7 +767,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     /**
      * Measures and compares the performance of two multiplication algorithms (standard and Karatsuba) for large numbers.
      * TESTME
-     *
+     * <p>
      * The method performs the following steps:
      * 1. Initializes a large constant string representing a seed value and extracts a portion for computation.
      * 2. Parses the seed string into a `BigNumber` object for arithmetic operations.
@@ -776,7 +775,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * 4. Computes the average execution time for the standard multiplication method.
      * 5. Repeats the process for the Karatsuba multiplication method, measuring and calculating average execution time.
      * 6. Prints the execution times for both methods, and computes the percentage improvement offered by the Karatsuba method.
-     *
+     * <p>
      * Notes:
      * - Considers the potential use of performance measurement utilities such as `StopWatch` or `Timer`.
      * - Ensures timing accuracy by iterating over each method multiple times and averaging the results.

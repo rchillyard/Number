@@ -22,7 +22,7 @@ import scala.util._
   *
   * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
   * @param factor       the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
-  * @param fuzz   the (optional) fuzziness of this Number.
+  * @param fuzz         the (optional) fuzziness of this Number.
   */
 abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
 
@@ -569,13 +569,13 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
         // XXX this nominalValue is a real Number: convert x to a Number based on real.
         case Left(Left(Some(_))) =>
           x.nominalValue match {
-          // XXX x's nominalValue is invalid: swap the order so the the first element is invalid
-          case Left(Left(None)) =>
-            x.alignTypes(this)
-          // XXX otherwise: return this and x re-cast as a Double
-          case _ =>
-            (this, Number.prepare(x.maybeNominalDouble.map(y => make(y, x.factor, x.fuzz).specialize)))
-        }
+            // XXX x's nominalValue is invalid: swap the order so the the first element is invalid
+            case Left(Left(None)) =>
+              x.alignTypes(this)
+            // XXX otherwise: return this and x re-cast as a Double
+            case _ =>
+              (this, Number.prepare(x.maybeNominalDouble.map(y => make(y, x.factor, x.fuzz).specialize)))
+          }
         // XXX this nominalValue is a Rational:
         case Left(Right(_)) =>
           x.nominalValue match {
@@ -887,39 +887,39 @@ object GeneralNumber {
     */
   private def power(x: Number, r: Rational): Number =
     if (r.isZero) Number.one
-  else if (r.isUnity || x == Number.one) x
-  else {
-    x.factor.raise(x.nominalValue, Value.fromRational(r), PureNumber) map protoNumberFunction(x) getOrElse {
-    x.factor match {
-      case Logarithmic(_) =>
-        doTransformValueMonadic(x.nominalValue)(MonadicOperationScale(r).functions) match {
-          case Some(v) =>
-            x.make(v)
-          case None =>
-            throw NumberException("power: logic error")
-        }
-      case Radian =>
-        power(x.scale(PureNumber), r)
-      case PureNumber =>
-        toInts(r) match {
-          case Some((n, d)) =>
-            root(power(x, n), d) match {
-              case Some(q) =>
-                q.simplify
+    else if (r.isUnity || x == Number.one) x
+    else {
+      x.factor.raise(x.nominalValue, Value.fromRational(r), PureNumber) map protoNumberFunction(x) getOrElse {
+        x.factor match {
+          case Logarithmic(_) =>
+            doTransformValueMonadic(x.nominalValue)(MonadicOperationScale(r).functions) match {
+              case Some(v) =>
+                x.make(v)
               case None =>
-                Number(r.toDouble)
+                throw NumberException("power: logic error")
             }
+          case Radian =>
+            power(x.scale(PureNumber), r)
+          case PureNumber =>
+            toInts(r) match {
+              case Some((n, d)) =>
+                root(power(x, n), d) match {
+                  case Some(q) =>
+                    q.simplify
+                  case None =>
+                    Number(r.toDouble)
+                }
+              case _ =>
+                throw NumberException("rational power cannot be represented as two Ints")
+            }
+          // TODO we should also handle some situations where r.d is not 1.
+          case NthRoot(n) if r.n == n && r.d == 1 =>
+            x.make(PureNumber)
           case _ =>
-            throw NumberException("rational power cannot be represented as two Ints")
+            power(x.scale(PureNumber), r)
         }
-      // TODO we should also handle some situations where r.d is not 1.
-      case NthRoot(n) if r.n == n && r.d == 1 =>
-        x.make(PureNumber)
-      case _ =>
-        power(x.scale(PureNumber), r)
+      }
     }
-    }
-  }
 
   /**
     * Method to take the ith root of n.

@@ -439,7 +439,9 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   behavior of "RealOps"
+
   import Real.RealOps
+
   it should "work for 2 + Real(3)" in {
     val x: Real = 2 + Real(3)
     x shouldBe Real(5)
