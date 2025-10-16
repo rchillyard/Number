@@ -474,7 +474,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   override def equals(obj: Any): Boolean = obj match {
     case BiFunction(c, d, g) =>
-      f == g && (a == c && b == d | f != Power && a == d && b == c)
+      f == g && (a == c && b == d | f.commutes && a == d && b == c)
     case _ =>
       false
   }
