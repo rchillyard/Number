@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.em
 import com.phasmidsoftware.number.expression.Literal.someLiteral
+import java.util.Objects
 import scala.language.implicitConversions
 
 /**
@@ -243,15 +244,6 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
   override def toString: String =
     maybeName getOrElse value.toString
 
-  /**
-    * Determines whether the provided object can be considered equal to an instance of `FieldExpression`.
-    *
-    * @param other the object to compare with this instance.
-    * @return true if the provided object is an instance of `FieldExpression`, false otherwise.
-    */
-  private def canEqual(other: Any): Boolean =
-    other.isInstanceOf[FieldExpression]
-
   override def equals(other: Any): Boolean = other match {
     case that: FieldExpression =>
       that.canEqual(this) &&
@@ -261,13 +253,17 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
       false
   }
 
+  override def hashCode(): Int = value.hashCode()
+
   /**
-    * Compares the `maybeName` field of this `FieldExpression` with the `maybeName` field
-    * of another `FieldExpression` to determine if they match.
+    * Determines whether the provided object can be considered equal to an instance of `FieldExpression`.
     *
-    * @param other the other `FieldExpression` instance to compare with.
-    * @return true if both `maybeName` values are defined and equal, or if any of them is undefined; false otherwise.
+    * @param other the object to compare with this instance.
+    * @return true if the provided object is an instance of `FieldExpression`, false otherwise.
     */
+  private def canEqual(other: Any): Boolean =
+    other.isInstanceOf[FieldExpression]
+
   private def namesMatch(other: FieldExpression): Boolean =
     (maybeName, other.maybeName) match {
       case (Some(x), Some(y)) =>
@@ -275,12 +271,6 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
       case _ =>
         true
     }
-
-  override def hashCode(): Int = { // TESTME
-    val state = Seq(value, maybeName)
-    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
-  }
-
 }
 
 /**
@@ -826,6 +816,26 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */
   def approximation: Option[Real] = expression.approximation
+
+  override def equals(other: Any): Boolean = other match {
+    case that: AbstractTranscendental =>
+      that.canEqual(this) &&
+          expression == that.expression
+    case _ =>
+      false
+  }
+
+  override def hashCode(): Int = expression.hashCode()
+
+  /**
+    * Determines if the provided object can be considered equal to the current instance.
+    *
+    * @param other the object to be compared with the current instance
+    * @return true if the provided object is an instance of `AbstractTranscendental`, false otherwise
+    */
+  private def canEqual(other: Any): Boolean =
+    other.isInstanceOf[AbstractTranscendental]
+
 }
 
 /**
@@ -1311,6 +1321,43 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     case _ =>
       throw ExpressionException(s"squareRoot: cannot compute square root of $this")
   }
+
+  /**
+    * Compares this `AbstractRoot` instance with another object for equality.
+    * The method checks if the other object is of a compatible type and
+    * whether all relevant fields of both objects are equal.
+    *
+    * @param other the object to compare for equality with this instance
+    * @return true if the given object is an instance of `AbstractRoot`,
+    *         has `canEqual` compatibility with this instance, and
+    *         if all relevant fields are equal; otherwise, false
+    */
+  override def equals(other: Any): Boolean =
+    other match {
+      case that: AbstractRoot =>
+        that.canEqual(this) &&
+            equ == that.equation &&
+            branch == that.branch
+      case _ =>
+        false
+    }
+
+  /**
+    * Generates a hash code for the instance based on its `equ` and `branch` fields.
+    *
+    * @return an integer hash code value obtained by hashing the `equ` and `branch` fields.
+    */
+  override def hashCode(): Int =
+    Objects.hash(equ, branch)
+
+  /**
+    * Determines if the given object is of a type that can be compared for equality with this instance.
+    *
+    * @param other the object to compare with this instance
+    * @return true if the given object is an instance of AbstractRoot, false otherwise
+    */
+  private def canEqual(other: Any): Boolean =
+    other.isInstanceOf[AbstractRoot]
 
   /**
     * Transforms the given `AbstractRoot` into a `BiFunction` by deriving
