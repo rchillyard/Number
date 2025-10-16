@@ -4,11 +4,12 @@
 
 package com.phasmidsoftware.number.cats
 
-import cats.kernel.{Eq, Order, PartialOrder}
 import cats.Show
-import com.phasmidsoftware.number.core.{ExactNumber, Number, GeneralNumber, Real, Field, Complex, ComplexCartesian, ComplexPolar}
-import com.phasmidsoftware.number.core.inner.{Rational, Value, Factor}
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, RelativeFuzz}
+import cats.implicits.catsSyntaxEq
+import cats.kernel.{Eq, Order, PartialOrder}
+import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, GeneralNumber, Number, Real, RelativeFuzz}
+import com.phasmidsoftware.number.expression.Expression
 
 /**
   * Centralized Cats Kernel instances, kept out of core companion objects
@@ -18,6 +19,18 @@ import com.phasmidsoftware.number.core.{AbsoluteFuzz, RelativeFuzz}
   *   import com.phasmidsoftware.number.instances.catsKernel._
   */
 trait CatsKernelInstances {
+
+  // Expression
+  implicit val expressionEq: Eq[Expression] = Eq.instance {
+    (x, y) => x == y || x.simplify == y.simplify || x.evaluateAsIs === y.evaluateAsIs
+  }
+  implicit val expressionOrder: PartialOrder[Expression] =
+    (x: Expression, y: Expression) =>
+      if (x == y || x.simplify == y.simplify || x.evaluateAsIs === y.evaluateAsIs)
+        0.0
+      else
+        (for (xx <- x.approximation; yy <- y.approximation) yield fieldPartialOrder.partialCompare(xx, yy)).getOrElse(Double.NaN)
+  implicit val expressionShow: Show[Expression] = Show.show(_.render)
 
   // Rational
   implicit val rationalEq: Eq[Rational] = Eq.instance((x, y) => x.compare(y) == 0)
@@ -57,7 +70,7 @@ trait CatsKernelInstances {
               // CONSIDER: this looks wrong to me--shouldn't you be using Double.compare instead of Long.compare?
               // (Also, I see you're using doubleToRawLongBits, but I don't see any use of doubleToLongBits. elsewhere, too)
               (Value.maybeDouble(a), Value.maybeDouble(b)) match {
-                case (Some(x), Some(y)) => compareLong(java.lang.Double.doubleToRawLongBits(x), java.lang.Double.doubleToRawLongBits(y))
+                case (Some(x), Some(y)) => java.lang.Double.compare(x, y)
                 case (Some(_), None)    => 1
                 case (None, Some(_))    => -1
                 case _                  => 0
