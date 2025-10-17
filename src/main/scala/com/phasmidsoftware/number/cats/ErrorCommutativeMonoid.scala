@@ -31,7 +31,7 @@ object ErrorCommutativeMonoid {
     * Relative standard deviation (σ / μ). Suitable for multiplicative error propagation.
     *
     * NOTE: uses the same rule as Gaussian.convolutionProduct for independent operands:
-    *   r_xy^2 = r_x^2 + r_y^2 + (r_x r_y).
+    *   `r_xy^2 = r_x^2 + r_y^2 + (r_x r_y).`
     */
   final case class RelSigma(value: Double) extends AnyVal
 

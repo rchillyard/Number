@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core;
 
 import com.phasmidsoftware.number.core.inner.Rational;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -92,7 +93,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * TESTME
      *
      * @param whole    a non-negative long.
-     * @param decimals a non-negative long, for example 14 for a 3.14 valued result.
+     * @param decimals a non-negative long, for example, 14 for a 3.14 valued result.
      * @param sign     true if the result should be positive.
      * @return a new BigNumber.
      */
@@ -115,7 +116,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * TESTME
      *
      * @param whole    a non-negative long.
-     * @param decimals a non-negative long, for example 14 for a 3.14 valued result.
+     * @param decimals a non-negative long, for example, 14 for a 3.14 valued result.
      * @return a new BigNumber.
      */
     public static BigNumber value(final long whole, final long decimals) {
@@ -275,7 +276,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         final boolean subtract = !that.sign;
         for (int i = resultLength - 1; i >= 0; i--) {
             int sum = carry;
-            borrow = false;
             if (i < thisLength) sum += decimals[i];
             if (i < thatLength) sum += subtract ? -that.decimals[i] : that.decimals[i];
             if (sum < 0) {
@@ -302,7 +302,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param that the object to be compared.
      * @return a negative, zero, or positive int.
      */
-    public int compareTo(final BigNumber that) {
+    public int compareTo(@NotNull final BigNumber that) {
         if (this.equals(that))
             return 0;
         else {
@@ -701,7 +701,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     }
 
     /**
-     * Secondary constructor to creat a BigNumber which has no decimal part.
+     * Secondary constructor to create a BigNumber which has no decimal part.
      *
      * @param whole any BigInteger value (positive or negative).
      */
@@ -773,7 +773,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * 3. Uses a loop to measure the time taken to execute multiplication using the standard multiplication method.
      * 4. Computes the average execution time for the standard multiplication method.
      * 5. Repeats the process for the Karatsuba multiplication method, measuring and calculating average execution time.
-     * 6. Prints the execution times for both methods, and computes the percentage improvement offered by the Karatsuba method.
+     * 6. Prints the execution times for both methods and computes the percentage improvement offered by the Karatsuba method.
      * <p>
      * Notes:
      * - Considers the potential use of performance measurement utilities such as `StopWatch` or `Timer`.

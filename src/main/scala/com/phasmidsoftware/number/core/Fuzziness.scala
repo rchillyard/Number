@@ -718,7 +718,7 @@ case object Gaussian extends Shape {
     *
     * @param sigma1      the first standard deviation.
     * @param sigma2      the second standard deviation.
-    * @param independent whether or not the distributions are independent.
+    * @param independent whether the distributions are independent.
     * @return
     */
   def convolutionProduct(sigma1: Double, sigma2: Double, independent: Boolean): Double =
