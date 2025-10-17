@@ -5,7 +5,6 @@
 package com.phasmidsoftware.number.core;
 
 import com.phasmidsoftware.number.core.inner.Rational;
-import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -302,7 +301,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @param that the object to be compared.
      * @return a negative, zero, or positive int.
      */
-    public int compareTo(@NotNull final BigNumber that) {
+    public int compareTo(final BigNumber that) {
         if (this.equals(that))
             return 0;
         else {
