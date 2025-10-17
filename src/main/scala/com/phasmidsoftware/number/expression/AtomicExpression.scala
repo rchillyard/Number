@@ -244,15 +244,31 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
   override def toString: String =
     maybeName getOrElse value.toString
 
+  /**
+    * Compares this `FieldExpression` with another object for equality.
+    * The comparison considers the `value` field and whether the other object can
+    * be equal to this instance.
+    *
+    * @param other the object to compare for equality with this instance.
+    * @return true if the provided object is equal to this instance, false otherwise.
+    */
   override def equals(other: Any): Boolean = other match {
     case that: FieldExpression =>
       that.canEqual(this) &&
-          value == that.value &&
-          namesMatch(that)
+          value == that.value
     case _ =>
       false
   }
 
+  /**
+    * Computes the hash code for this `FieldExpression` instance.
+    *
+    * The hash code is derived from the hash code of the `value` field, ensuring
+    * that the behavior adheres to the contract of the `hashCode` method,
+    * particularly in relation to the `equals` method.
+    *
+    * @return an integer hash code that represents this `FieldExpression` instance.
+    */
   override def hashCode(): Int = value.hashCode()
 
   /**
@@ -263,14 +279,6 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     */
   private def canEqual(other: Any): Boolean =
     other.isInstanceOf[FieldExpression]
-
-  private def namesMatch(other: FieldExpression): Boolean =
-    (maybeName, other.maybeName) match {
-      case (Some(x), Some(y)) =>
-        x == y
-      case _ =>
-        true
-    }
 }
 
 /**
@@ -811,20 +819,32 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
 
   /**
     * Computes and returns an approximate numerical value for this Approximatable.
-    * All Fields, PowerSeries and Expressions that implement this method should work except for complex quantities.
+    * All `Fields`, `PowerSeries` and `Expressions` that implement this method should work except for complex quantities.
     *
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */
   def approximation: Option[Real] = expression.approximation
 
+  /**
+    * Determines if the provided object is equal to the current instance.
+    * The comparison considers the object's type and specific attributes.
+    *
+    * @param other the object to be compared with the current instance
+    * @return true if the provided object is an instance of `AbstractTranscendental`,
+    *         can be equal to the current instance, and has the same `expression` value; false otherwise
+    */
   override def equals(other: Any): Boolean = other match {
     case that: AbstractTranscendental =>
-      that.canEqual(this) &&
-          expression == that.expression
+      that.canEqual(this) && expression == that.expression
     case _ =>
       false
   }
 
+  /**
+    * Computes the hash code for this instance of `AbstractTranscendental`.
+    *
+    * @return an integer representing the hash code of the `expression` field.
+    */
   override def hashCode(): Int = expression.hashCode()
 
   /**
@@ -1032,6 +1052,15 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     */
   def equation: Quadratic = equ.asInstanceOf[Quadratic]
 
+  /**
+    * Produces a string representation of this `QuadraticRoot` instance.
+    * Depending on the equation and branch, the result may represent specific
+    * notable constants (e.g., the golden ratio and its conjugate) or a general
+    * description of the quadratic root.
+    *
+    * @return a string representation of the `QuadraticRoot` based on its equation
+    *         and branch index.
+    */
   override def toString: String = (equ, branch) match {
     case (Quadratic.goldenRatioEquation, 0) =>
       "\uD835\uDED7"
@@ -1279,12 +1308,13 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   }
 
   /**
-    * Computes the square of the current `Expression`.
-    * If the current equation is quadratic, it computes the result of the operation: this * -p + q.
-    * If the current equation is linear, it computes the result of the operation: this * -r.
-    * Otherwise, it returns the square of this expression by performing this * this.
+    * Computes the reciprocal of the current `Expression`.
     *
-    * @return the result of squaring the current `Expression`, evaluated according to the type of the equation.
+    * For a quadratic equation in the form Quadratic(p, q), the reciprocal is computed as:
+    * (this / Literal(-q)) + Literal(-p / q).
+    * Otherwise, the reciprocal is calculated as `One / this`.
+    *
+    * @return an `Expression` representing the reciprocal of the current `Expression`.
     */
   def reciprocal: Expression = equation match {
     case Quadratic(p, q) =>
@@ -1358,25 +1388,6 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     */
   private def canEqual(other: Any): Boolean =
     other.isInstanceOf[AbstractRoot]
-
-  /**
-    * Transforms the given `AbstractRoot` into a `BiFunction` by deriving
-    * its base and offset numbers using the solution associated with the root.
-    *
-    * NOTE that this method should only be used when the root has no defined value (i.e., maybeValue is None).
-    * It is designed for the case where two such roots are multiplied or added together.
-    *
-    * @param r the `AbstractRoot` instance, containing the solution details
-    *          used to compute the base and offset numbers for the `BiFunction`.
-    * @return a `BiFunction` created with the specified base number, offset number,
-    *         and sum operation.
-    */
-  private def toBiFunction(r: AbstractRoot): BiFunction = {
-    val solution = r.solution
-    val baseNumber = Number.one.make(solution.base)
-    val offsetNumber = Number.one.make(solution.offset, solution.factor)
-    BiFunction(baseNumber, offsetNumber, Sum)
-  }
 
   /**
     * Computes the square of the current `Expression`.
