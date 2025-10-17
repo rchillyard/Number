@@ -331,6 +331,8 @@ case class Real(x: Number) extends Field {
   /**
     * Compares the current object with the specified object for equality.
     *
+    * CONSIDER eliminating this method as it is simply the default implementation.
+    *
     * @param obj the object to compare with the current object
     * @return true if the specified object is of type `Real` and its value matches the current object's value, false otherwise
     */

@@ -167,6 +167,8 @@ case object Noop extends AtomicExpression {
   * It extends the `AtomicExpression` trait, allowing it to be used wherever atomic
   * expressions are valid.
   *
+  * CONSIDER placing maybeName in the second parameter list.
+  *
   * @param value     the `Field` associated with the expression
   * @param maybeName an optional name for the field expression
   */
@@ -183,7 +185,6 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     *         or `None` if the evaluation fails.
     */
   def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression]
-
 
   /**
     * Evaluates the current field expression within the given context and determines

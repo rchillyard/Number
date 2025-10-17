@@ -512,10 +512,20 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   override def equals(obj: Any): Boolean = obj match {
     case BiFunction(c, d, g) =>
-      f == g && (a == c && b == d | f.commutes && a == d && b == c)
+      f == g && (operandsMatch(c, d) || f.commutes && operandsMatch(d, c))
     case _ =>
       false
   }
+
+  /**
+    * Determines if the two given operands match `a` and `b`.
+    *
+    * @param op1 the first operand
+    * @param op2 the second operand
+    * @return true if the operands match the criteria, false otherwise
+    */
+  private def operandsMatch(op1: Expression, op2: Expression): Boolean =
+    a == op1 && b == op2
 
   /**
     * Matches a given literal expression against another expression using a specified binary function.
