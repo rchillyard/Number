@@ -303,23 +303,22 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * @return a negative, zero, or positive int.
      */
     public int compareTo(final BigNumber that) {
-        if (this.equals(that)) {
+        if (this.equals(that))
             return 0;
-        } else {
+        else {
             int wholeComparison = this.whole.compareTo(that.whole);
-            if (wholeComparison != 0) {
+            if (wholeComparison != 0)
                 return this.sign ? wholeComparison : -wholeComparison;
-            } else {
+            else {
                 final int[] thisDecimals = this.decimals;
                 final int[] thatDecimals = that.decimals;
                 final int maxLength = Math.max(thisDecimals.length, thatDecimals.length);
                 for (int i = 0; i < maxLength; i++) {
                     int thisNumber = (i < thisDecimals.length) ? thisDecimals[i] : 0;
                     int thatNumber = (i < thatDecimals.length) ? thatDecimals[i] : 0;
-                    if (thisNumber != thatNumber) {
+                    if (thisNumber != thatNumber)
                         return this.sign ? Integer.compare(thisNumber, thatNumber)
                                 : Integer.compare(thatNumber, thisNumber);
-                    }
                 }
                 return 0;
             }

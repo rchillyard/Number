@@ -338,7 +338,7 @@ case class Real(x: Number) extends Field {
     */
   override def equals(obj: Any): Boolean = obj match {
     case that: Real =>
-      x.equals(that.x)
+      x == that.x
     case _ =>
       false
   }
