@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{piBy2, root2, zeroR, √}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational}
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
+import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, matchSimpler}
@@ -1204,6 +1204,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val r = p(Ln ~ One)
     r.successful shouldBe true
     r.get shouldBe Zero
+  }
+  it should "simplify ln(-1)" in {
+    import UniFunction._
+    val p = Expression.matchSimpler
+    val r = p(Ln ~ MinusOne)
+    r.successful shouldBe true
+    val actual = r.get
+    val expected = Literal(ComplexPolar(Number.pi, Number.piBy2.makeNegative, 1))
+    actual shouldBe expected
   }
 
   // CONSIDER move the following

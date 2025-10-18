@@ -363,7 +363,7 @@ object FP {
   def toOption[X](xy: Try[X]): Option[X] = xy match {
     case Success(x) => Some(x)
     case Failure(x) =>
-      println(s"FP.toOption: $x") // TODO log this error
+      System.err.println(s"FP.toOption: $x") // TODO log this error
       None
   }
 

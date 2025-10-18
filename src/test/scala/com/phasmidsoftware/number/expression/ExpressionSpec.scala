@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
+import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.expression.Root.phi
@@ -72,16 +72,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   // NOTE that the apply function always takes a Field and returns a Field. Not to be confused with applyExact.
-  behavior of "apply UniFunction"
+  behavior of "ExpressionMonoFunction"
   it should "work for Negate" in {
-    val f: Negate.type = Negate
+    val f: ExpressionMonoFunction = Negate
     f(Constants.zero) shouldBe Constants.zero
     f(Constants.one) shouldBe Constants.minusOne
     f(Constants.minusOne) shouldBe Constants.one
     f(f(Constants.two)) shouldBe Constants.two
   }
   it should "work for Reciprocal" in {
-    val f: Reciprocal.type = Reciprocal
+    val f: ExpressionMonoFunction = Reciprocal
     f(Constants.zero) shouldBe Constants.infinity
     f(Constants.one) shouldBe Constants.one
     f(Constants.half) should ===(Constants.two)
@@ -107,6 +107,22 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val f: ExpressionMonoFunction = Cosine
     f(Constants.piBy2) shouldBe Constants.zero
     f(Constants.zero) shouldBe Constants.one
+  }
+
+
+  behavior of "evaluateAsIs for UniFunction"
+  it should "work for Exp(1)" in {
+    val x = expression.UniFunction(One, Exp)
+    val result = x.evaluateAsIs
+    result shouldBe Some(Constants.e)
+  }
+  it should "work for Reciprocal" in {
+    expression.UniFunction(Two, Reciprocal).evaluateAsIs shouldBe Some(Constants.half)
+  }
+  it should "work for Ln(-1)" in {
+    val x = expression.UniFunction(MinusOne, Ln)
+    val result = x.evaluateAsIs
+    result shouldBe Some(ComplexPolar(Number.pi, Number.piBy2.makeNegative, 1))
   }
 
   behavior of "materialize UniFunction"
