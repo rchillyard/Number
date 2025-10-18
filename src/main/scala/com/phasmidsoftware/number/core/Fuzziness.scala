@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.Valuable.ValuableDouble
 import com.phasmidsoftware.number.core.inner.MonadicOperation
+import com.phasmidsoftware.number.misc.Variance.{convolution, rootSumSquares}
 import java.text.DecimalFormat
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
 import scala.math.Numeric.DoubleIsFractional
@@ -44,11 +45,11 @@ trait Fuzziness[T] {
   /**
     * Perform a convolution on this Fuzziness[T] with the given addend.
     * There are two different Fuzziness[T] shapes, and they clearly have different effects.
-    * When the shapes are absolute, this operation is suitable for addition of Numbers.
+    * When the shapes are absolute, this operation is suitable for the addition of Numbers.
     * When the shapes are relative, this operation is suitable for multiplication of Numbers.
     *
     * Whether or not this is a true convolution, I'm not sure.
-    * But is an operation to combine two probability density functions and, as such, f * g = g * f.
+    * But, it is an operation to combine two probability density functions and, as such, f * g = g * f.
     *
     * @param convolute   the convolute, which must have the same shape as this.
     * @param independent true if the fuzz distributions are independent.
@@ -57,11 +58,11 @@ trait Fuzziness[T] {
   def *(convolute: Fuzziness[T], independent: Boolean): Fuzziness[T]
 
   /**
-    * Method to possibly change the style of this Fuzziness[T}.
+    * Method to possibly change the style of this `Fuzziness[T]`.
     *
-    * @param t        the magnitude of the relevant Number.
+    * @param t        the magnitude of the relevant `Number`.
     * @param relative if true then change to Relative (if Absolute).
-    * @return the (optional) Fuzziness as a Relative or Absolute Fuzziness, according to relative.
+    * @return the (optional) `Fuzziness` as a Relative or Absolute `Fuzziness`, according to relative.
     */
   def normalize(t: T, relative: Boolean): Option[Fuzziness[T]]
 
@@ -155,7 +156,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * Typically, func will be the derivative of the relevant Number function.
     *
     * @param func the function to apply to this Fuzziness[T].
-    * @param t    the value of t (i.e. the input value) which will be passed into func.
+    * @param t    the value of t (i.e., the input value) which will be passed into func.
     * @tparam U the underlying type of the result.
     * @tparam V the type of the quotient of T/U.
     * @return a transformed version of Fuzziness[U].
@@ -178,7 +179,7 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
   }
 
   /**
-    * Return either a AbsoluteFuzz equivalent or this, according to relative.
+    * Return either an AbsoluteFuzz equivalent or this, according to relative.
     *
     * @param t        the magnitude of the relevant Number.
     * @param relative if true then convert to RelativeFuzz otherwise wrap this in Some().
@@ -453,7 +454,7 @@ object Fuzziness {
   /**
     * Combine the fuzz values using a convolution.
     * The order of fuzz1 and fuzz2 is not significant.
-    * Note that we normalize the style of each fuzz according to the value of relative.
+    * Note that we normalize the style of each fuzz according to the value of `relative`.
     * Note also that we normalize the shape of each fuzz to ensure Gaussian, since we cannot combine Box shapes into Box
     * (we could combine Box shapes into trapezoids but who needs that?).
     *
@@ -483,7 +484,7 @@ object Fuzziness {
 
   /**
     * Map the fuzz value with a function (typically the derivative of the function being applied to the Fuzzy quantity).
-    * Note that we normalize the style of each fuzz according to the value of relative.
+    * Note that we normalize the style of each fuzz according to the value of `relative`.
     * Note also that we normalize the shape of each fuzz to ensure Gaussian, since we cannot combine Box shapes into Box
     * (we could combine Box shapes into trapezoids but who needs that?).
     *
@@ -527,8 +528,8 @@ object Fuzziness {
 
   /**
     * Normalize the magnitude qualifier of the given fuzz according to relative.
-    * If relative is true then the returned value will be a RelativeFuzz.
-    * If relative is false then the returned value will be an AbsoluteFuzz.
+    * If `relative` is true then the returned value will be a RelativeFuzz.
+    * If `relative` is false then the returned value will be an AbsoluteFuzz.
     *
     * @param fuzz     the optional Fuzziness to work on.
     * @param t        the value of T that the fuzz IS or result SHOULD BE relative to.
@@ -660,7 +661,7 @@ case object Box extends Shape {
     *
     * @param l the half-width of a Box.
     * @param p the confidence that we wish to place on the likelihood: typical value is 0.5.
-    *          Unless is is either 0 or 1, the actual p value is ignored.
+    *          Unless it is either 0 or 1, the actual `p` value is ignored.
     * @return the value of x at which the probability density transitions from possible to impossible.
     */
   def wiggle(l: Double, p: Double): Double = p match {
@@ -699,10 +700,10 @@ case object Gaussian extends Shape {
     *
     * @param sigma1 the first standard deviation.
     * @param sigma2 the second standard deviation.
-    * @return a double which is the root mean square of the sigmas.
+    * @return a double which is the root-mean-square of the sigmas.
     */
   def convolutionSum(sigma1: Double, sigma2: Double): Double =
-    math.sqrt(sigma1 * sigma1 + sigma2 * sigma2)
+    rootSumSquares(sigma1, sigma2)
 
   /**
     * For the convolution of the product of two (independent) Gaussian distributions (see https://en.wikipedia.org/wiki/Variance).
@@ -712,7 +713,7 @@ case object Gaussian extends Shape {
     *
     * Therefore, (sigma(x*y))**2 = (mux sigma(y))**2 + (muy sigma(x))**2 + (sigma(x) sigma(y))**2
     *
-    * Or, dividing by (mux muy)**2 (i.e. using relative variations)
+    * Or, dividing by (mux muy)**2 (i.e., using relative variations)
     *
     * sigma(x/mux 8 y/muy)**2 = sigma(x/mux)**2 + sigma(y/muy)**2 + (sigma(x/mux) sigma(y/muy))**2
     *
@@ -723,7 +724,7 @@ case object Gaussian extends Shape {
     */
   def convolutionProduct(sigma1: Double, sigma2: Double, independent: Boolean): Double =
     if (independent)
-      math.sqrt(sigma1 * sigma1 + sigma2 * sigma2 + sigma1 * sigma2)
+      convolution(sigma1, sigma2)
     else
       sigma1 + sigma2
 
@@ -830,14 +831,14 @@ trait Valuable[T] extends Fractional[T] {
     * This is essentially the inverse of the ratio method.
     *
     * @param t a T value.
-    * @param f a factor (a Double, i.e. dimensionless).
+    * @param f a factor (a Double, i.e., dimensionless).
     * @return a scaled value of T.
     */
   def scale(t: T, f: Double): T
 
   /**
     * Method to yield a "normalized" version of x.
-    * For a Numeric object, this implies the absolute value, i.e. with no sign.
+    * For a Numeric object, this implies the absolute value, i.e., with no sign.
     *
     * @param x the value.
     * @return the value, without any sign.
@@ -859,10 +860,10 @@ trait Valuable[T] extends Fractional[T] {
     toDouble(t1) / toDouble(t2)
 
   /**
-    * Method to multiply a U by a V, resulting in a T.
+    * Method to multiply a `U` by a `V`, resulting in a `T`.
     *
-    * @param u a value of U.
-    * @param v a value of V.
+    * @param u a `U` value.
+    * @param v a `V` value.
     * @tparam U the type of u.
     * @tparam V the type of v.
     * @return a T whose value is u * v.
