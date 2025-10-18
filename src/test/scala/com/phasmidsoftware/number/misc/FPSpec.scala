@@ -53,8 +53,8 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   behavior of "doMap function"
   it should "doMap: return Success(Z) when given Right(R)" in {
     val r2Z: Int => String = _.toString
-    val l2Zy: String=>Try[String] = _ => Failure(new RuntimeException("Should not be called"))
-    doMap(Right(42))(r2Z,l2Zy) shouldBe Success("42")
+    val l2Zy: String => Try[String] = _ => Failure(new RuntimeException("Should not be called"))
+    doMap(Right(42))(r2Z, l2Zy) shouldBe Success("42")
   }
 
   it should "doMap: call tryMapLeft and return its result when given Left(L)" in {
@@ -74,7 +74,7 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   }
 
   // TODO try to understand why this doesn't work for CircleCI (actually, it doesn't work locally either)
-  ignore should "readFromResource" taggedAs(Slow) in {
+  ignore should "readFromResource" taggedAs (Slow) in {
     val result: Try[Seq[BigInt]] = readFromResource("/carmichael.txt", wa => wa.lastOption)
     result.isSuccess shouldBe true
     result.get.contains(BigInt(530881)) shouldBe true

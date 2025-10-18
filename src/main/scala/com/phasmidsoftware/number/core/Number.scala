@@ -265,6 +265,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     */
   def doDivide(n: Number): Number
 
+
   /**
     * Add x to this Number and return the result.
     *
@@ -1110,7 +1111,7 @@ object Number {
   /**
     * Method to construct a Number from an Int.
     *
-    * @param x the Int value.
+    * @param x      the Int value.
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
@@ -1157,7 +1158,7 @@ object Number {
   /**
     * Method to construct a Number from a BigInt.
     *
-    * @param x the BigInt value.
+    * @param x      the BigInt value.
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
@@ -1205,7 +1206,7 @@ object Number {
   /**
     * Method to construct a Number from a BigDecimal.
     *
-    * @param x the BigDecimal value.
+    * @param x      the BigDecimal value.
     * @param factor the appropriate factor
     * @return a Number based on x.
     */
@@ -1215,7 +1216,7 @@ object Number {
   /**
     * Method to construct a Number from a BigDecimal.
     *
-    * @param x the BigDecimal value.
+    * @param x      the BigDecimal value.
     * @param factor the appropriate factor
     * @return a Number based on x.
     */

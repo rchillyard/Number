@@ -496,7 +496,7 @@ object ConFrac {
     * Method to construct a Simple ConFrac from a lazy list of Int elements.
     *
     * @param xs a lazy list of Ints.
-    * @return a ConFrac where all of the "a" coefficients (the ones on top) are 1.
+    * @return a ConFrac where all the "a" coefficients (the ones on top) are 1.
     */
   def simple(xs: LazyList[Long]): ConFrac =
     ConFrac(Pair.zip(xs, LazyList.continually(1L)))

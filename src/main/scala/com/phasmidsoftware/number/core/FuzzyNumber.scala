@@ -324,17 +324,17 @@ object FuzzyNumber {
     */
   def plus(x: FuzzyNumber, y: Number): Number =
     x.alignFactors(y) match {
-    case (a: GeneralNumber, b: GeneralNumber) =>
-      val (p, q) = a.alignTypes(b)
-      (p, q) match {
-        case (n: FuzzyNumber, _) =>
-          composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
-        case (_, n: FuzzyNumber) =>
-          composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
-        case (_, _) =>
-          p doAdd q
-      }
-  }
+      case (a: GeneralNumber, b: GeneralNumber) =>
+        val (p, q) = a.alignTypes(b)
+        (p, q) match {
+          case (n: FuzzyNumber, _) =>
+            composeDyadic(n, q, p.factor, DyadicOperationPlus, independent = true, None)
+          case (_, n: FuzzyNumber) =>
+            composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
+          case (_, _) =>
+            p doAdd q
+        }
+    }
 
   /**
     * Evaluate a dyadic operator, defined by op, on n and q.
@@ -394,7 +394,7 @@ object FuzzyNumber {
         addFuzz(n, v, fo, f)
       case _ =>
         n
-  }
+    }
 
   /**
     * Adds fuzziness to a given number.

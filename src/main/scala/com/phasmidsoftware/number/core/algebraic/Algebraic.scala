@@ -413,6 +413,7 @@ object Algebraic {
     case s: QuadraticSolution =>
       Algebraic_Quadratic(s)
   }
+
   /**
     * Represents the golden ratio as an instance of Algebraic_Quadratic, defined by the
     * golden ratio equation. The `pos` parameter set to `true` chooses the positive root
@@ -446,6 +447,7 @@ object Algebraic {
     */
   val half: Algebraic = Algebraic_Linear(LinearEquation(-Rational.half))
 }
+
 /**
   * Represents an algebraic transformation or operation based on a linear equation.
   * Extends the functionalities of the `Algebraic` class, enabling operations specific to linear equations.

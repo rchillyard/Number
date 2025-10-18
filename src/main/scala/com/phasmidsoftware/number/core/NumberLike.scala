@@ -14,11 +14,11 @@ import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Value}
 trait NumberLike {
 
   /**
-   * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
-   * Unlike context, a `None` result is not permissive.
-   *
-   * @return an optional `Factor`.
-   */
+    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Unlike context, a `None` result is not permissive.
+    *
+    * @return an optional `Factor`.
+    */
   def maybeFactor: Option[Factor]
 
   /**

@@ -31,15 +31,15 @@ object Fibonacci {
   val psi: Expression = Root.psi
 
   /**
-   * Computes the nth Fibonacci number using algebraic expressions for phi (the golden ratio)
-   * and psi, derived from Binet's formula. The calculation involves powers, subtraction,
-   * and division of these expressions and produces a BigInt representation of the result.
-   * CONSIDER refactoring to avoid repetition of exceptions.
-   *
-   * @param n the index of the Fibonacci sequence (must be a non-negative integer).
-   * @return the nth Fibonacci number as a BigInt.
-   * @throws java.lang.IllegalArgumentException if the result cannot be computed as an exact BigInt.
-   */
+    * Computes the nth Fibonacci number using algebraic expressions for phi (the golden ratio)
+    * and psi, derived from Binet's formula. The calculation involves powers, subtraction,
+    * and division of these expressions and produces a BigInt representation of the result.
+    * CONSIDER refactoring to avoid repetition of exceptions.
+    *
+    * @param n the index of the Fibonacci sequence (must be a non-negative integer).
+    * @return the nth Fibonacci number as a BigInt.
+    * @throws java.lang.IllegalArgumentException if the result cannot be computed as an exact BigInt.
+    */
   def fib(n: Int): BigInt = {
     val expression = fibExpression(n)
     val errorMessage = s"fib($n) = ${((phi ∧ n) - (psi ∧ n)) / Constants.root5}"

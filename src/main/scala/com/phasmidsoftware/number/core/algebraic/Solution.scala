@@ -398,14 +398,14 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
             case (_, 0) => (q, this, q.branch)
             case _ => (this.conjugate, q.conjugate, 1 - branch)
           }
-        for {
-          x <- doComposeValueDyadic(a.base, b.base)(DyadicOperationPlus.functions)
-          (v, f, z) <- factor.add(a.offset, b.offset, factor, b.branch == 1)
-          if f == factor && z.isEmpty
-        } yield Solution(x, v, factor, branch = a.branch)
-      }
-      else
-        None  // TESTME
+          for {
+            x <- doComposeValueDyadic(a.base, b.base)(DyadicOperationPlus.functions)
+            (v, f, z) <- factor.add(a.offset, b.offset, factor, b.branch == 1)
+            if f == factor && z.isEmpty
+          } yield Solution(x, v, factor, branch = a.branch)
+        }
+        else
+          None  // TESTME
     }
 
   // TODO this needs more work and testing. For example, factors don't have to be the same.

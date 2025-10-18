@@ -127,12 +127,12 @@ object ExpressionMonoFunction {
   *                       required is given by `identityL`.
   */
 sealed abstract class ExpressionBiFunction(
-                                       val name: String,
-                                       val f: (Field, Field) => Field,
-                                       val isExact: Boolean,
-                                       val maybeIdentityL: Option[Field],
-                                       val maybeIdentityR: Option[Field]
-                                   ) extends ExpressionFunction[(Field, Field)] {
+                                              val name: String,
+                                              val f: (Field, Field) => Field,
+                                              val isExact: Boolean,
+                                              val maybeIdentityL: Option[Field],
+                                              val maybeIdentityR: Option[Field]
+                                          ) extends ExpressionFunction[(Field, Field)] {
 
   /**
     * Indicates whether the binary operation represented by this instance commutes,

@@ -71,7 +71,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
         val t1 = x / Constants.root5
         val t2 = y / Constants.root5
         val q = t1 plus t2
-        // TODO restore the following
+      // TODO restore the following
       //       q shouldBe Constants.one (really?  Doesn't seem like it)
 //        q.materialize should ===(Constants.one)
     }

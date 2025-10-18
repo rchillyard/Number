@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number.expression.Expression.em
 import com.phasmidsoftware.number.expression.Literal.someLiteral
+import java.util.Objects
 import scala.language.implicitConversions
 
 /**
@@ -166,6 +167,8 @@ case object Noop extends AtomicExpression {
   * It extends the `AtomicExpression` trait, allowing it to be used wherever atomic
   * expressions are valid.
   *
+  * CONSIDER placing maybeName in the second parameter list.
+  *
   * @param value     the `Field` associated with the expression
   * @param maybeName an optional name for the field expression
   */
@@ -182,7 +185,6 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     *         or `None` if the evaluation fails.
     */
   def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression]
-
 
   /**
     * Evaluates the current field expression within the given context and determines
@@ -244,6 +246,33 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     maybeName getOrElse value.toString
 
   /**
+    * Compares this `FieldExpression` with another object for equality.
+    * The comparison considers the `value` field and whether the other object can
+    * be equal to this instance.
+    *
+    * @param other the object to compare for equality with this instance.
+    * @return true if the provided object is equal to this instance, false otherwise.
+    */
+  override def equals(other: Any): Boolean = other match {
+    case that: FieldExpression =>
+      that.canEqual(this) &&
+          value == that.value
+    case _ =>
+      false
+  }
+
+  /**
+    * Computes the hash code for this `FieldExpression` instance.
+    *
+    * The hash code is derived from the hash code of the `value` field, ensuring
+    * that the behavior adheres to the contract of the `hashCode` method,
+    * particularly in relation to the `equals` method.
+    *
+    * @return an integer hash code that represents this `FieldExpression` instance.
+    */
+  override def hashCode(): Int = value.hashCode()
+
+  /**
     * Determines whether the provided object can be considered equal to an instance of `FieldExpression`.
     *
     * @param other the object to compare with this instance.
@@ -251,36 +280,6 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     */
   private def canEqual(other: Any): Boolean =
     other.isInstanceOf[FieldExpression]
-
-  override def equals(other: Any): Boolean = other match {
-    case that: FieldExpression =>
-      that.canEqual(this) &&
-          value == that.value &&
-          namesMatch(that)
-    case _ =>
-      false
-  }
-
-  /**
-    * Compares the `maybeName` field of this `FieldExpression` with the `maybeName` field
-    * of another `FieldExpression` to determine if they match.
-    *
-    * @param other the other `FieldExpression` instance to compare with.
-    * @return true if both `maybeName` values are defined and equal, or if any of them is undefined; false otherwise.
-    */
-  private def namesMatch(other: FieldExpression): Boolean =
-    (maybeName, other.maybeName) match {
-      case (Some(x), Some(y)) =>
-        x == y
-      case _ =>
-        true
-    }
-
-  override def hashCode(): Int = { // TESTME
-    val state = Seq(value, maybeName)
-    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
-  }
-
 }
 
 /**
@@ -821,11 +820,43 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
 
   /**
     * Computes and returns an approximate numerical value for this Approximatable.
-    * All Fields, PowerSeries and Expressions that implement this method should work except for complex quantities.
+    * All `Fields`, `PowerSeries` and `Expressions` that implement this method should work except for complex quantities.
     *
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */
   def approximation: Option[Real] = expression.approximation
+
+  /**
+    * Determines if the provided object is equal to the current instance.
+    * The comparison considers the object's type and specific attributes.
+    *
+    * @param other the object to be compared with the current instance
+    * @return true if the provided object is an instance of `AbstractTranscendental`,
+    *         can be equal to the current instance, and has the same `expression` value; false otherwise
+    */
+  override def equals(other: Any): Boolean = other match {
+    case that: AbstractTranscendental =>
+      that.canEqual(this) && expression == that.expression
+    case _ =>
+      false
+  }
+
+  /**
+    * Computes the hash code for this instance of `AbstractTranscendental`.
+    *
+    * @return an integer representing the hash code of the `expression` field.
+    */
+  override def hashCode(): Int = expression.hashCode()
+
+  /**
+    * Determines if the provided object can be considered equal to the current instance.
+    *
+    * @param other the object to be compared with the current instance
+    * @return true if the provided object is an instance of `AbstractTranscendental`, false otherwise
+    */
+  private def canEqual(other: Any): Boolean =
+    other.isInstanceOf[AbstractTranscendental]
+
 }
 
 /**
@@ -1022,6 +1053,15 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     */
   def equation: Quadratic = equ.asInstanceOf[Quadratic]
 
+  /**
+    * Produces a string representation of this `QuadraticRoot` instance.
+    * Depending on the equation and branch, the result may represent specific
+    * notable constants (e.g., the golden ratio and its conjugate) or a general
+    * description of the quadratic root.
+    *
+    * @return a string representation of the `QuadraticRoot` based on its equation
+    *         and branch index.
+    */
   override def toString: String = (equ, branch) match {
     case (Quadratic.goldenRatioEquation, 0) =>
       "\uD835\uDED7"
@@ -1269,12 +1309,13 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   }
 
   /**
-    * Computes the square of the current `Expression`.
-    * If the current equation is quadratic, it computes the result of the operation: this * -p + q.
-    * If the current equation is linear, it computes the result of the operation: this * -r.
-    * Otherwise, it returns the square of this expression by performing this * this.
+    * Computes the reciprocal of the current `Expression`.
     *
-    * @return the result of squaring the current `Expression`, evaluated according to the type of the equation.
+    * For a quadratic equation in the form Quadratic(p, q), the reciprocal is computed as:
+    * (this / Literal(-q)) + Literal(-p / q).
+    * Otherwise, the reciprocal is calculated as `One / this`.
+    *
+    * @return an `Expression` representing the reciprocal of the current `Expression`.
     */
   def reciprocal: Expression = equation match {
     case Quadratic(p, q) =>
@@ -1313,23 +1354,41 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   }
 
   /**
-    * Transforms the given `AbstractRoot` into a `BiFunction` by deriving
-    * its base and offset numbers using the solution associated with the root.
+    * Compares this `AbstractRoot` instance with another object for equality.
+    * The method checks if the other object is of a compatible type and
+    * whether all relevant fields of both objects are equal.
     *
-    * NOTE that this method should only be used when the root has no defined value (i.e., maybeValue is None).
-    * It is designed for the case where two such roots are multiplied or added together.
-    *
-    * @param r the `AbstractRoot` instance, containing the solution details
-    *          used to compute the base and offset numbers for the `BiFunction`.
-    * @return a `BiFunction` created with the specified base number, offset number,
-    *         and sum operation.
+    * @param other the object to compare for equality with this instance
+    * @return true if the given object is an instance of `AbstractRoot`,
+    *         has `canEqual` compatibility with this instance, and
+    *         if all relevant fields are equal; otherwise, false
     */
-  private def toBiFunction(r: AbstractRoot): BiFunction = {
-    val solution = r.solution
-    val baseNumber = Number.one.make(solution.base)
-    val offsetNumber = Number.one.make(solution.offset, solution.factor)
-    BiFunction(baseNumber, offsetNumber, Sum)
-  }
+  override def equals(other: Any): Boolean =
+    other match {
+      case that: AbstractRoot =>
+        that.canEqual(this) &&
+            equ == that.equation &&
+            branch == that.branch
+      case _ =>
+        false
+    }
+
+  /**
+    * Generates a hash code for the instance based on its `equ` and `branch` fields.
+    *
+    * @return an integer hash code value obtained by hashing the `equ` and `branch` fields.
+    */
+  override def hashCode(): Int =
+    Objects.hash(equ, branch)
+
+  /**
+    * Determines if the given object is of a type that can be compared for equality with this instance.
+    *
+    * @param other the object to compare with this instance
+    * @return true if the given object is an instance of AbstractRoot, false otherwise
+    */
+  private def canEqual(other: Any): Boolean =
+    other.isInstanceOf[AbstractRoot]
 
   /**
     * Computes the square of the current `Expression`.

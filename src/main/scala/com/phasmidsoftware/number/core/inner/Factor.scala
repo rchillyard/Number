@@ -153,9 +153,9 @@ sealed trait Factor {
   /**
     * Attempts to add two values together (each based on `this Factor`) and computes an appropriate factor for the result.
     *
-    * @param x the first value
-    * @param y the addend
-    * @param f the factor associated with y
+    * @param x        the first value
+    * @param y        the addend
+    * @param f        the factor associated with y
     * @param negative true if the y value has negative sense (this is relevant for some factors such as SquareRoot).
     * @return an optional tuple containing the resultant value and its factor
     */
@@ -293,9 +293,9 @@ sealed trait Scalar extends Factor {
     *
     * TODO handle the negative cases properly
     *
-    * @param x the first value to be added
-    * @param y the second value (addend) to be added
-    * @param f the factor associated with the operation
+    * @param x        the first value to be added
+    * @param y        the second value (addend) to be added
+    * @param f        the factor associated with the operation
     * @param negative NOTE ignored.
     * @return an optional tuple containing the resultant value, its factor, and optional fuzziness,
     *         or None if the operation cannot be performed under the given factor
@@ -450,9 +450,9 @@ sealed trait Logarithmic extends Factor {
   /**
     * Adds two values together and computes an appropriate factor for the result.
     *
-    * @param x the first value
-    * @param y the addend
-    * @param f the factor associated with y
+    * @param x        the first value
+    * @param y        the addend
+    * @param f        the factor associated with y
     * @param negative NOTE ignored.
     * @return an optional tuple containing the resultant value and its factor
     */
@@ -682,9 +682,9 @@ sealed trait InversePower extends Factor {
   /**
     * Adds two values together and computes an appropriate factor for the result.
     *
-    * @param x the first value
-    * @param y the addend
-    * @param f the factor associated with y
+    * @param x        the first value
+    * @param y        the addend
+    * @param f        the factor associated with y
     * @param negative NOTE ignored.
     * @return an optional tuple containing the resultant value and its factor
     */
@@ -1209,6 +1209,7 @@ case object Log2 extends Logarithmic {
       i <- p.maybeInt
     } yield Value.fromInt(i)
 }
+
 /**
   * Represents the logarithm with base 10.
   *
@@ -1290,11 +1291,11 @@ case object SquareRoot extends NthRoot(2) {
     * The operation ensures that the values can be combined via integer arithmetic
     * after factoring out common divisors and applies root simplifications where necessary.
     *
-    * @param x the first value to be added
-    * @param y the second value to be added
-    * @param f the factor defining the context for the addition (e.g., square root)
+    * @param x        the first value to be added
+    * @param y        the second value to be added
+    * @param f        the factor defining the context for the addition (e.g., square root)
     * @param negative true if the `y` value should be considered as being subtracted from the x value.
-    * NOTE this is not the same thing as the `y` value being negative, which would imply an imaginary number.
+    *                 NOTE this is not the same thing as the `y` value being negative, which would imply an imaginary number.
     * @return an optional `ProtoNumber` that contains the resultant `Value`, its factor,
     *         and optional metadata; `None` if the operation cannot be performed
     */

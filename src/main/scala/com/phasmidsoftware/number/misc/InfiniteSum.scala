@@ -17,7 +17,7 @@ case class InfiniteSum[X: Numeric](x0: X, f: (Long, X) => X) extends (Int => X) 
   private val g = (getNext _).tupled
 
   /**
-    * A lazy val representing the LazyList[X] which is all of the terms of the infinite sum.
+    * A lazy val representing the LazyList[X] which is all the terms of the infinite sum.
     */
   lazy val asLazyList: LazyList[X] = LazyList.iterate[(Long, X)]((0L, x0))(g).map(_._2)
 

@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Constant
 import com.phasmidsoftware.number.expression.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.misc.FP
+import java.util.Objects
 import scala.language.implicitConversions
 
 /**
@@ -256,6 +257,43 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       case x: Expression =>
         em.Miss[Expression, Expression]("UniFunction.simplifyComposite: not complementary", x)
     }
+
+  /**
+    * Compares this `AbstractRoot` instance with another object for equality.
+    * The method checks if the other object is of a compatible type and
+    * whether all relevant fields of both objects are equal.
+    *
+    * @param other the object to compare for equality with this instance
+    * @return true if the given object is an instance of `AbstractRoot`,
+    *         has `canEqual` compatibility with this instance, and
+    *         if all relevant fields are equal; otherwise, false
+    */
+  override def equals(other: Any): Boolean = other match {
+    case that: UniFunction =>
+      that.canEqual(this) &&
+          x == that.x &&
+          f == that.f
+    case _ =>
+      false
+  }
+
+  /**
+    * Generates a hash code for the instance based on its `equ` and `branch` fields.
+    *
+    * @return an integer hash code value obtained by hashing the `equ` and `branch` fields.
+    */
+  override def hashCode(): Int =
+    Objects.hash(x, f)
+
+  /**
+    * Determines if the given object is of a type that can be compared for equality with this instance.
+    *
+    * @param other the object to compare with this instance
+    * @return true if the given object is an instance of AbstractRoot, false otherwise
+    */
+  def canEqual(other: Any): Boolean =
+    other.isInstanceOf[UniFunction]
+
 }
 
 /**
@@ -474,10 +512,20 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   override def equals(obj: Any): Boolean = obj match {
     case BiFunction(c, d, g) =>
-      f == g && (a == c && b == d | f != Power && a == d && b == c)
+      f == g && (operandsMatch(c, d) || f.commutes && operandsMatch(d, c))
     case _ =>
       false
   }
+
+  /**
+    * Determines if the two given operands match `a` and `b`.
+    *
+    * @param op1 the first operand
+    * @param op2 the second operand
+    * @return true if the operands match the criteria, false otherwise
+    */
+  private def operandsMatch(op1: Expression, op2: Expression): Boolean =
+    a == op1 && b == op2
 
   /**
     * Matches a given literal expression against another expression using a specified binary function.

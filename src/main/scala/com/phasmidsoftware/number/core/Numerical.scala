@@ -64,7 +64,7 @@ trait Numerical extends NumberLike {
 
   /**
     * Yields the inverse of this Field.
-   * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
+    * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     * TODO note that this method does not belong in Numerical: it belongs in Field.
     */

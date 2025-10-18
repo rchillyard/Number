@@ -103,11 +103,11 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
   def multiply(x: Field): Field
 
   /**
-   * Multiply this Field by the given Field and return the result.
-   *
-   * @param x the multiplicand, an instance of Field.
-   * @return the product of this Field and the given Field.
-   */
+    * Multiply this Field by the given Field and return the result.
+    *
+    * @param x the multiplicand, an instance of Field.
+    * @return the product of this Field and the given Field.
+    */
   def *(x: Field): Field = multiply(x)
 
   /**
@@ -149,11 +149,11 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
   def square: Field
 
   /**
-   * Raises this Field to the power of the specified number.
-   *
-   * @param p the exponent, provided as a Number.
-   * @return the result of raising this Field to the power p.
-   */
+    * Raises this Field to the power of the specified number.
+    *
+    * @param p the exponent, provided as a Number.
+    * @return the result of raising this Field to the power p.
+    */
   def power(p: Number): Field
 
   /**
@@ -221,9 +221,9 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
 }
 
 /**
- * Companion object Field provides utility methods and implicit conversions for the Field type.
- * It also acts as a container for implicit definitions and helpers relating to the Field type.
- */
+  * Companion object Field provides utility methods and implicit conversions for the Field type.
+  * It also acts as a container for implicit definitions and helpers relating to the Field type.
+  */
 object Field {
 
   /**
