@@ -8,7 +8,11 @@ import org.typelevel.discipline.scalatest.FunSuiteDiscipline
 import cats.kernel.laws.discipline.{EqTests, OrderTests, PartialOrderTests}
 
 import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, ExactNumber, FuzzyNumber, Gaussian, GeneralNumber, Number, Real, Field, Complex, ComplexCartesian, ComplexPolar}
+import com.phasmidsoftware.number.core.{Fuzziness, RelativeFuzz}
 import com.phasmidsoftware.number.core.inner.Radian
+import com.phasmidsoftware.number.expression.Expression
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, LinearEquation}
+import com.phasmidsoftware.number.core.algebraic.Quadratic
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.cats.CatsKernel._
 
@@ -168,8 +172,71 @@ class CatsKernelLawSpec
       (2, r.toNominalDouble, r.toNominalRational.map(r0 => (r0.n, r0.d)), r.factor.toString, t.toNominalDouble, t.toNominalRational.map(t0 => (t0.n, t0.d)), n)
   }
 
+  // Arbitrary/Cogen[Fuzziness[Double]]: cover Abs/Rel × Box/Gaussian with stable magnitude bits
+  implicit val arbitraryFuzz: Arbitrary[Fuzziness[Double]] = Arbitrary {
+    for {
+      m <- Gen.chooseNum(0.0, 1.0)
+      shape <- Gen.oneOf(Box, Gaussian)
+      useAbs <- Gen.oneOf(true, false)
+    } yield if (useAbs) AbsoluteFuzz[Double](m, shape) else RelativeFuzz[Double](m, shape)
+  }
+
+  implicit val cogenFuzz: Cogen[Fuzziness[Double]] =
+    Cogen[(Int, Int, Long)].contramap {
+      case AbsoluteFuzz(m, s) => (0, if (s == Box) 0 else 1, java.lang.Double.doubleToRawLongBits(m))
+      case RelativeFuzz(m, s) => (1, if (s == Box) 0 else 1, java.lang.Double.doubleToRawLongBits(m))
+    }
+
+  // Lightweight generators for Expression
+  import com.phasmidsoftware.number.expression.Expression._
+  implicit val arbitraryExpression: Arbitrary[Expression] = Arbitrary {
+    val genConst: Gen[Expression] = Gen.oneOf(zero, one, two, pi, e, minusOne)
+    val genLiteral: Gen[Expression] = arbitraryNumber.arbitrary.map(n => Expression(Real(n)))
+    val genBin: Gen[Expression] = for {
+      a <- genLiteral
+      b <- genLiteral
+      op <- Gen.oneOf(0, 1)
+    } yield if (op == 0) a + b else a * b
+    Gen.frequency(
+      6 -> genLiteral,
+      2 -> genConst,
+      2 -> genBin
+    )
+  }
+
+  implicit val cogenExpression: Cogen[Expression] =
+    Cogen[Option[Field]].contramap(_.evaluateAsIs)
+
+  // Lightweight generators for Algebraic
+  implicit val arbitraryAlgebraic: Arbitrary[Algebraic] = Arbitrary {
+    val genConst: Gen[Algebraic] = Gen.oneOf(Algebraic.one, Algebraic.zero, Algebraic.half, Algebraic.phi, Algebraic.psi)
+    val genLinear: Gen[Algebraic] = for {
+      n <- Arbitrary.arbitrary[Long].map(BigInt(_))
+      d <- Gen.chooseNum[Long](1L, 1000000000L).map(BigInt(_))
+    } yield Algebraic(LinearEquation(Rational(n, d)), 0)
+    val genQuadratic: Gen[Algebraic] = for {
+      p <- arbitraryRational.arbitrary
+      q <- arbitraryRational.arbitrary
+      branch <- Gen.oneOf(0, 1)
+    } yield Algebraic(Quadratic(p, q), branch)
+    Gen.frequency(
+      4 -> genConst,
+      4 -> genLinear,
+      2 -> genQuadratic
+    )
+  }
+
+  implicit val cogenAlgebraic: Cogen[Algebraic] =
+    cogenField.contramap(_.value)
+
 
   // Law checks
+  checkAll("Fuzziness[Double]", EqTests[Fuzziness[Double]].eqv)
+  checkAll("Fuzziness[Double]", PartialOrderTests[Fuzziness[Double]].partialOrder)
+  checkAll("Expression", EqTests[Expression].eqv)
+  checkAll("Expression", PartialOrderTests[Expression].partialOrder)
+  checkAll("Algebraic", EqTests[Algebraic].eqv)
+  checkAll("Algebraic", PartialOrderTests[Algebraic].partialOrder)
   checkAll("Rational", OrderTests[Rational].order)
   checkAll("ExactNumber", OrderTests[ExactNumber].order)
   checkAll("Number", EqTests[Number].eqv)
