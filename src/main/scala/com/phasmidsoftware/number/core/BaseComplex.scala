@@ -33,20 +33,22 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * Required by implementing Ordered[Field].
     * NOTE if the difference is a Complex number, we try to do fuzzy comparison (with confidence of 0.5).
     *
+    * TODO Complex should not implement compare (that's to say Field should not extend Ordering).
+    *
     * @param that (a Field).
     * @return the comparison.
     */
   def compare(that: Field): Int = that match {
     case y: Complex =>
-      val difference = this + -y
+      val difference: Field = this + -y
       if (difference.isZero) 0
       else difference match {
         case c: Complex if c.modulus.isProbablyZero() =>
           0
-        case c: Complex =>
-          c.modulus.compareTo(Number.zero) // TESTME is this right?
-        case _ =>
-          throw ComplexException(s"not implemented")
+        case c: Complex if c.isImaginary =>
+          c.modulus.signum
+        case c =>
+          c.signum
       }
     case Real(y) =>
       compare(ComplexCartesian(y))
@@ -178,8 +180,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       invert
     case (_, Constants.two) =>
       square
-    case (ComplexPolar(Number.e, Number.zeroR, _), ComplexCartesian(Number.zero, Number.pi)) =>
-      Constants.minusOne
+    case (c, p) if c.compare(Constants.e) == 0 && isIPi(p) =>
+      Constants.minusOne // XXX Euler's identity
     case (ComplexCartesian(_, Number.zeroR), x) =>
       power(x)
     case _ =>
@@ -327,6 +329,21 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   }
 
   /**
+    * Determines if the given `Field` is a complex number that represents
+    * an imaginary number with a modulus equal to π.
+    *
+    * @param p the `Field` object to evaluate, which can be a complex number or any other type.
+    *          If it is a complex, the method checks if it is purely imaginary and its modulus is π.
+    * @return true if the `Field` is a purely imaginary complex number with modulus π, false otherwise.
+    */
+  private def isIPi(p: Field) = p match {
+    case complex: Complex =>
+      complex.isImaginary && complex.modulus == Number.pi
+    case _ =>
+      false
+  }
+
+  /**
     * Method to compute the result of raising a complex number, represented in polar form,
     * to a rational power. This involves converting the given power to a rational, computing
     * the radial component raised to the power, and resolving the appropriate branch for the
@@ -411,7 +428,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     if (isReal) real else if (isImaginary) imag else convertToPolar(this).asInstanceOf[BaseComplex].real
 
   /**
-    * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
+    * Method to determine if this Complex is real-valued (i.e., the point lies on the real axis).
     *
     * @return true is y is zero.
     */
@@ -613,7 +630,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
 
   /**
     * Determine the "sign" of this field.
-    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
+    * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left, or at the origin.
     * For a complex number, we get the signum of the real part.
     *
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
@@ -699,7 +716,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     println(s"Warning: Polar r is zero: $this") // TODO make this a requirement
 
   /**
-    * Method to determine if this Complex is imaginary-valued (i.e. the point lies on the imaginary axis).
+    * Method to determine if this Complex is imaginary-valued (i.e., the point lies on the imaginary axis).
     *
     * @return true if the real part is zero (argument is a multiple of pi/2).
     */
@@ -707,7 +724,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     rotate.isReal
 
   /**
-    * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).
+    * Rotate this Complex number by pi/2 counter-clockwise (i.e., multiply by i).
     *
     * @return the value of this * i.
     */

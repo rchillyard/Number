@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.misc
 
+import com.phasmidsoftware.number.misc.Variance.rootSumSquares
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 
@@ -10,9 +11,8 @@ object Pi extends App {
   def getPoints(n: Int)(implicit r: Random): LazyList[(Double, Double)] = {
     def getCoordinate: Double = (r.nextDouble() - 0.5) * 2
 
-    def sqr(x: Double) = x * x
-
-    def radius(t: (Double, Double)): Double = math.sqrt(sqr(t._1) + sqr(t._2))
+    def radius(t: (Double, Double)): Double =
+      rootSumSquares(t._1, t._2)
 
     val xs = LazyList.continually(getCoordinate)
     val ys = LazyList.continually(getCoordinate)
@@ -36,7 +36,7 @@ object Pi extends App {
   val p = 2
 
   val (result, milliseconds) = 1.times {
-    val xfs: Seq[Future[Double]] = Seq.fill(p)((Future(calculatePi(N))))
+    val xfs: Seq[Future[Double]] = Seq.fill(p)(Future(calculatePi(N)))
     val xs: Seq[Double] = Await.result(Future.sequence(xfs), 100 second)
     xs.sum / xs.length
   }

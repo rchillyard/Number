@@ -1232,7 +1232,7 @@ object Rational {
     RationalParser.parse(w)
 
   /**
-    * Implicit object which bestows all of the Ordering, Numeric, etc. functionality to a Rational.
+    * Implicit object which bestows all the Ordering, Numeric, etc. functionality to a Rational.
     */
   implicit object RationalFractional extends RationalIsFractional
 

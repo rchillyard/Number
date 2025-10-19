@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.cats
 
 import cats.kernel.CommutativeMonoid
+import com.phasmidsoftware.number.misc.Variance.rootSumSquares
 
 /**
   * Lightweight wrappers representing common error metrics so that we can endow them with
@@ -15,7 +16,6 @@ object ErrorCommutativeMonoid {
   final case class AbsSigma(value: Double) extends AnyVal
 
   object AbsSigma {
-    private def square(x: Double): Double = x * x
 
     val zero: AbsSigma = AbsSigma(0.0)
 
@@ -23,7 +23,7 @@ object ErrorCommutativeMonoid {
       override def empty: AbsSigma = zero
 
       override def combine(x: AbsSigma, y: AbsSigma): AbsSigma =
-        AbsSigma(math.sqrt(square(x.value) + square(y.value)))
+        AbsSigma(rootSumSquares(x.value, y.value))
     }
   }
 
@@ -31,12 +31,11 @@ object ErrorCommutativeMonoid {
     * Relative standard deviation (σ / μ). Suitable for multiplicative error propagation.
     *
     * NOTE: uses the same rule as Gaussian.convolutionProduct for independent operands:
-    *   r_xy^2 = r_x^2 + r_y^2 + (r_x r_y).
+    *   `r_xy^2 = r_x^2 + r_y^2 + (r_x r_y).`
     */
   final case class RelSigma(value: Double) extends AnyVal
 
   object RelSigma {
-    private def square(x: Double): Double = x * x
 
     val zero: RelSigma = RelSigma(0.0)
   }

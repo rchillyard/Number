@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.misc.FP
 import java.util.Objects
 import scala.language.implicitConversions
+import scala.util.Try
 
 /**
   * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
@@ -178,12 +179,18 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *
     * @return the materialized Field.
     */
-  def evaluate(context: Context): Option[Field] = x match {
+  def evaluate(context: Context): Option[Field] =
+    x match {
     case AtomicExpression(field) =>
-      f.applyExact(field)
+      // NOTE: here we catch any exceptions that are thrown by applyExact.
+      // CONSIDER: we should never throw exceptions (see e.g., ComplexPolar.apply).
+      FP.toOption(Try(f.applyExact(field))).flatten
     case _ =>
       x.evaluate(context) map f
   }
+  // NOTE that the equivalent method for BiFunction is as follows
+//  context.qualifyingField(f.evaluate(a, b)(context))
+
 
   /**
     * Provides an approximation of the result of applying the function `f` to the
@@ -239,7 +246,6 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       case expr =>
         em.Miss("UniFunction: simplifyTrivial: no trivial simplifications", expr)
     }
-
 
   /**
     * Simplifies a composite `Expression` by attempting to match it with a simpler form.
@@ -512,10 +518,20 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   override def equals(obj: Any): Boolean = obj match {
     case BiFunction(c, d, g) =>
-      f == g && (a == c && b == d | f.commutes && a == d && b == c)
+      f == g && (operandsMatch(c, d) || f.commutes && operandsMatch(d, c))
     case _ =>
       false
   }
+
+  /**
+    * Determines if the two given operands match `a` and `b`.
+    *
+    * @param op1 the first operand
+    * @param op2 the second operand
+    * @return true if the operands match the criteria, false otherwise
+    */
+  private def operandsMatch(op1: Expression, op2: Expression): Boolean =
+    a == op1 && b == op2
 
   /**
     * Matches a given literal expression against another expression using a specified binary function.
@@ -935,7 +951,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   /**
     * Combines an accumulator and an expression to produce a new tuple containing an optional field
     * and an updated context.
-    * This is the function that's invoked by `foldLeft` in the `evaluate` method.
+    * This is the function invoked by `foldLeft` in the `evaluate` method.
     *
     * @param accum a tuple consisting of an optional field and the current context. The field represents
     *              a computed value (if any), and the context provides additional information

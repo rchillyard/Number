@@ -2,14 +2,13 @@ package com.phasmidsoftware.number.cats
 
 import cats.syntax.semigroup._
 import com.phasmidsoftware.number.cats.ErrorCommutativeMonoid._
+import com.phasmidsoftware.number.core.inner.{PureNumber, Value}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, FuzzyNumber, Gaussian, Number, RelativeFuzz}
 import com.phasmidsoftware.number.misc.Benchmark._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, RelativeFuzz, FuzzyNumber, Gaussian, Number}
-import com.phasmidsoftware.number.core.inner.PureNumber
-import com.phasmidsoftware.number.core.inner.Value
-import scala.concurrent.{ExecutionContext, Future, Await}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * Usage-focused examples for the error metric Monoid instances.
@@ -74,6 +73,7 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
     assert(tParMs <= tSeqMs, s"decoupled parallel folding should be faster: par=${tParMs}ms vs seq=${tSeqMs}ms")
   }
 
+  // CONSIDER this test is slow. We might want to tag it as Slow (or perhaps try to speed it up)
   it should "match decoupled parallel error folding with direct Number multiplication (all multiplication)" in {
     implicit val ec: ExecutionContext = ExecutionContext.global
 

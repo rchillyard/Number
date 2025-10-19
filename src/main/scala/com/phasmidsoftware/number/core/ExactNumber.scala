@@ -37,7 +37,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     case n: FuzzyNumber =>
       n.isSame(this)
     case n@ExactNumber(v, f) =>
-      Value.isEqual(nominalValue, v) && factor.equals(f) || doSubtract(n).isZero
+      Value.isEqual(nominalValue, v) && factor == f || doSubtract(n).isZero
     case c: Complex =>
       c.isSame(Real(this))
   }

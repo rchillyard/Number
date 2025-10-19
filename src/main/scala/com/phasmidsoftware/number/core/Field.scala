@@ -13,10 +13,10 @@ import scala.language.implicitConversions
   * Trait which describes the behavior of all Numbers and Complex instances.
   * See [[https://en.wikipedia.org/wiki/Field_(mathematics)]].
   *
-  * Currently, the only sub-classes of Field are Number and Complex.
-  *
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
+  *
+  * TODO it is inappropriate to extend Ordered here since complex numbers do not have an intrinsic order.
   */
 trait Field extends Numerical with Approximatable with Ordered[Field] {
 
@@ -55,7 +55,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     if (isReal) asNumber.flatMap(_.toNominalRational) else None
 
   /**
-    * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
+    * Method to determine if this Field is imaginary-valued (i.e., the point lies on the imaginary axis).
     *
     * @return true if this is imaginary.
     */
