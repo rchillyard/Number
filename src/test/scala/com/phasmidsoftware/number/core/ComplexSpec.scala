@@ -175,6 +175,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
     cubeRootOfTwo shouldBe ComplexPolar(Number(2, CubeRoot), Number.zeroR, 3)
   }
+  it should "e^i𝛑" in {
+    val z = Constants.e.power(Constants.iPi)
+    z shouldBe Constants.minusOne
+  }
 
   behavior of "other"
   it should "modulus" in {
