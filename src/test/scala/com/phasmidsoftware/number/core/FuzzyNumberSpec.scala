@@ -421,7 +421,9 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "same"
+
   import FuzzyNumber._
+
   it should "think 1 and 1 are the same" in {
     val x = Number.one
     val y = Number.one

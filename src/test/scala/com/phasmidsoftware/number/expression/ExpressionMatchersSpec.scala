@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{piBy2, root2, zeroR, √}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational}
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
+import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, matchSimpler}
@@ -717,7 +717,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //val result = p(x)
     val result = x match {
       case b: BiFunction => em.matchBiFunctionAsAggregate(b)
-      case _             => em.Miss("not a BiFunction chain", x)
+      case _ => em.Miss("not a BiFunction chain", x)
     }
     result shouldBe em.Match(Aggregate.total(7, Two, expression.UniFunction(Expression(3), Negate)))
   }
@@ -728,7 +728,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     // CONSIDER why is this behavior different than that for 7 + 2 - 3?
     val result = x match {
       case b: BiFunction => em.matchBiFunctionAsAggregate(b)
-      case _             => em.Miss("not a BiFunction chain", x)
+      case _ => em.Miss("not a BiFunction chain", x)
     }
     result shouldBe em.Match(Aggregate.product(7, Two, -3))
   }
@@ -1122,7 +1122,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "biFunctionTransformer (2)"
+
   import BiFunction._
+
   private val p = Expression.matchSimpler
   it should "simplify 1 + 1" in {
 
@@ -1202,6 +1204,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val r = p(Ln ~ One)
     r.successful shouldBe true
     r.get shouldBe Zero
+  }
+  it should "simplify ln(-1)" in {
+    import UniFunction._
+    val p = Expression.matchSimpler
+    val r = p(Ln ~ MinusOne)
+    r.successful shouldBe true
+    val actual = r.get
+    val expected = Literal(ComplexPolar(Number.pi, Number.piBy2.makeNegative, 1))
+    actual shouldBe expected
   }
 
   // CONSIDER move the following

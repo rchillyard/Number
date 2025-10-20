@@ -814,6 +814,8 @@ Other types (for reference):
 
 Versions
 ========
+* Version 1.2.12: 
+* Version 1.2.11: Mostly the introduction of classes based on cats.
 * Version 1.2.10: Another housekeeping release.
 * Version 1.2.9: Mostly minor details that missed the previous version.
 * Version 1.2.8: Major restructuring: renamed old _Root_ as _NthRoot_ and introduced new _Root_ which effectively replaced _ReducedQuadraticRoot_.

@@ -22,7 +22,9 @@ class FuzzySpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "Fuzzy"
+
   import Color._
+
   private val white = Color(255, 255, 255)
   private val red = Color(255, 0, 0)
   private val veryLightBlue = Color(255, 255, 254)

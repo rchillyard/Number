@@ -443,9 +443,20 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   it should "define ContinuedFraction.PiSimple" in {
     val z: ContinuedFraction = ContinuedFraction.PiSimple
+    println(z.convergents.take(10).mkString("\n"))
     val qo = z.toRational(1E-10)
     qo should matchPattern { case Some(_) => }
-    qo.get.toDouble shouldBe math.Pi +- 1E-9
+    val ratio = qo.get
+    println(s"ratio = $ratio")
+    ratio.toDouble shouldBe math.Pi +- 1E-9
+  }
+  it should "get ContinuedFraction.PiSimple with precision 1 in 10^10" in {
+    val z: ContinuedFraction = ContinuedFraction.PiSimple
+    val qo = z.toRational(1E-10)
+    qo should matchPattern { case Some(_) => }
+    val ratio = qo.get
+    println(s"ratio = $ratio")
+    ratio.toDouble shouldBe math.Pi +- 1E-9
   }
 
   it should "define ContinuedFraction.PiSomayaji" in {

@@ -175,6 +175,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
     cubeRootOfTwo shouldBe ComplexPolar(Number(2, CubeRoot), Number.zeroR, 3)
   }
+  it should "e^i𝛑" in {
+    val z = Constants.e.power(Constants.iPi)
+    z shouldBe Constants.minusOne
+  }
 
   behavior of "other"
   it should "modulus" in {
@@ -254,6 +258,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     for (i <- 0 to 10; j <- 0 to 10)
       if (i != 0 || j != 0) checkAtan2(i, j)
   }
+
   private def checkAtan2(opposite: Int, adjacent: Int): Unit = {
     val theta = math.atan2(opposite, adjacent)
     val result = math.tan(theta)
@@ -262,6 +267,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     if (expected != Double.PositiveInfinity)
       result shouldBe expected +- 1E-6
   }
+
   it should "convertToCartesian" in {
     convertToCartesian(p1_pi) shouldBe ComplexCartesian(-1, 0)
   }
