@@ -59,23 +59,6 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Field => F
   def applyExact(x: Field): Option[Field]
 
   /**
-    * Evaluates an `Expression` within a given `Context`, performing operations as defined
-    * by the `ExpressionMonoFunction`. The method attempts to apply the function exactly if
-    * possible. If the evaluation fails at any step, it returns `None`.
-    *
-    * TESTME this is never used.
-    *
-    * @param x       the `Expression` to be evaluated.
-    * @param context the `Context` within which the evaluation occurs.
-    * @return an `Option[Field]` containing the result if the evaluation succeeds, or `None` if it fails.
-    */
-  def evaluate(x: Expression)(context: Context): Option[Field] = // TESTME
-    for {
-      a <- x.evaluate(paramContext(context))
-      z <- applyExact(a)
-    } yield z
-
-  /**
     * Evaluate this function on Field x.
     *
     * @param x the parameter to the function.
@@ -127,12 +110,12 @@ object ExpressionMonoFunction {
   *                       required is given by `identityL`.
   */
 sealed abstract class ExpressionBiFunction(
-                                       val name: String,
-                                       val f: (Field, Field) => Field,
-                                       val isExact: Boolean,
-                                       val maybeIdentityL: Option[Field],
-                                       val maybeIdentityR: Option[Field]
-                                   ) extends ExpressionFunction[(Field, Field)] {
+                                              val name: String,
+                                              val f: (Field, Field) => Field,
+                                              val isExact: Boolean,
+                                              val maybeIdentityL: Option[Field],
+                                              val maybeIdentityR: Option[Field]
+                                          ) extends ExpressionFunction[(Field, Field)] {
 
   /**
     * Indicates whether the binary operation represented by this instance commutes,
@@ -468,6 +451,8 @@ case object Ln extends ExpressionMonoFunction("ln", x => x.ln) {
       Some(Constants.zero)
     case Constants.zero =>
       Some(Constants.negInfinity)
+    case Constants.minusOne =>
+      Some(-ComplexPolar(Number.pi, Number.piBy2))
     case _ =>
       None
   }

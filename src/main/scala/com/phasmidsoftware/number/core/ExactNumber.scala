@@ -13,8 +13,8 @@ import java.util.Objects
   *
   * TODO implement scientific notation by having factors such os 10∧3, 10∧6, etc. (alternatively, add a separate parameter)
   *
- * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
- * @param factor  the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
+  * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
+  * @param factor       the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
   */
 case class ExactNumber(override val nominalValue: Value, override val factor: Factor) extends GeneralNumber(nominalValue, factor, None) {
   /**
@@ -37,7 +37,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     case n: FuzzyNumber =>
       n.isSame(this)
     case n@ExactNumber(v, f) =>
-      Value.isEqual(nominalValue, v) && factor.equals(f) || doSubtract(n).isZero
+      Value.isEqual(nominalValue, v) && factor == f || doSubtract(n).isZero
     case c: Complex =>
       c.isSame(Real(this))
   }
@@ -91,20 +91,20 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     // XXX this handles all roots (of which there are currently only SquareRoot and CubeRoot)
     case (NthRoot(n), v) =>
       v match {
-      case Right(x) =>
-        (Rational.squareRoots.get(x) map (make(_, PureNumber))).getOrElse(this)
-      case Left(Right(r)) =>
-        r.root(n) match {
-          case Some(x) =>
-            ExactNumber(Value.fromRational(x), PureNumber)
-          case _ =>
-            this
+        case Right(x) =>
+          (Rational.squareRoots.get(x) map (make(_, PureNumber))).getOrElse(this)
+        case Left(Right(r)) =>
+          r.root(n) match {
+            case Some(x) =>
+              ExactNumber(Value.fromRational(x), PureNumber)
+            case _ =>
+              this
+          }
+        case Left(Left(Some(_))) =>
+          scale(PureNumber)
+        case _ =>
+          this
       }
-      case Left(Left(Some(_))) =>
-        scale(PureNumber)
-      case _ =>
-        this
-    }
     case _ =>
       this
   }
@@ -186,12 +186,12 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-   * Only the nominalValue and factor will change.
+    * Only the nominalValue and factor will change.
     * This method should be followed by a call to specialize.
     *
     * TESTME
     *
-   * @param v the nominalValue (a Double).
+    * @param v  the nominalValue (a Double).
     * @param f  Factor.
     * @param fo optional fuzz.
     * @return either a Number.
@@ -228,15 +228,15 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * It is used particularly when comparing two Numbers to see if they are the same.
     *
     * @param p the confidence desired. Ignored.
-   * @return true if this Number is actually zero.
+    * @return true if this Number is actually zero.
     */
   def isProbablyZero(p: Double = 0.5): Boolean = isZero
 
   /**
-   * Render this ExactNumber as a String representation.
-   *
-   * @return the String representation of this ExactNumber.
-   */
+    * Render this ExactNumber as a String representation.
+    *
+    * @return the String representation of this ExactNumber.
+    */
   def render: String = factor match {
     case SquareRoot =>
       val sb = new StringBuilder()
@@ -276,32 +276,32 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
 }
 
 /**
- * Companion object for the `ExactNumber` class.
- *
- * Provides factory methods for creating instances of `ExactNumber`. These methods allow
- * creation with a given `Factor` or default to the `PureNumber` factor. This object encapsulates
- * logic to initialize `ExactNumber` instances with consistent internal representations and initializes
- * the required values.
- */
+  * Companion object for the `ExactNumber` class.
+  *
+  * Provides factory methods for creating instances of `ExactNumber`. These methods allow
+  * creation with a given `Factor` or default to the `PureNumber` factor. This object encapsulates
+  * logic to initialize `ExactNumber` instances with consistent internal representations and initializes
+  * the required values.
+  */
 object ExactNumber {
 
   /**
-   * Creates a new instance of `ExactNumber` from a given integer value and a specified factor.
-   *
-   * @param x      the integer value to be encapsulated by the `ExactNumber`.
-   * @param factor the factor associated with the `ExactNumber` instance.
-   * @return a new `ExactNumber` instance with the specified value and factor.
-   */
+    * Creates a new instance of `ExactNumber` from a given integer value and a specified factor.
+    *
+    * @param x      the integer value to be encapsulated by the `ExactNumber`.
+    * @param factor the factor associated with the `ExactNumber` instance.
+    * @return a new `ExactNumber` instance with the specified value and factor.
+    */
   def apply(x: Int, factor: Factor): ExactNumber =
     new ExactNumber(Value.fromInt(x), factor)
 
   /**
-   * Creates an instance of `ExactNumber` with the value `x` and a default factor of `PureNumber`.
-   * TESTME
-   *
-   * @param x an integer representing the value of the `ExactNumber`.
-   * @return an instance of `ExactNumber` with the specified value and the `PureNumber` factor.
-   */
+    * Creates an instance of `ExactNumber` with the value `x` and a default factor of `PureNumber`.
+    * TESTME
+    *
+    * @param x an integer representing the value of the `ExactNumber`.
+    * @return an instance of `ExactNumber` with the specified value and the `PureNumber` factor.
+    */
   def apply(x: Int): ExactNumber =
     apply(x, PureNumber)
 

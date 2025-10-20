@@ -244,6 +244,8 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * The comparison checks if the other object is of the same type and has equivalent values
     * for the properties of `p`, `q`, and `pos`.
     *
+    * CONSIDER eliminating this method as it is simply the default implementation of `equals`.
+    *
     * @param other the object to compare with this instance for equality.
     * @return `true` if the provided object is an `Algebraic_Quadratic` and has the same values
     *         for the relevant properties; otherwise, `false`.

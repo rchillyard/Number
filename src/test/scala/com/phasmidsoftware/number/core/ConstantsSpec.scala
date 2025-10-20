@@ -112,11 +112,11 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     result.render shouldBe "1.6180339887498950(47)"
   }
   it should "have alpha" in {
-  val target = Constants.alpha
-  target.isExact shouldBe false
-  val alpha = for (number <- (target invert).asNumber; x <- number.toNominalDouble) yield x
-  alpha.get shouldBe 137.0 +- 0.04
-}
+    val target = Constants.alpha
+    target.isExact shouldBe false
+    val alpha = for (number <- (target invert).asNumber; x <- number.toNominalDouble) yield x
+    alpha.get shouldBe 137.0 +- 0.04
+  }
 
   behavior of "toString"
   it should "work for G" in {

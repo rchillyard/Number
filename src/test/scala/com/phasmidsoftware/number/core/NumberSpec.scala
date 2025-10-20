@@ -1412,7 +1412,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   behavior of "NumberOps"
+
   import com.phasmidsoftware.number.core.Number.NumberOps
+
   it should "work for 2 + Number(3)" in {
     val x: Number = 2 + Number(3)
     x shouldBe Number(5)

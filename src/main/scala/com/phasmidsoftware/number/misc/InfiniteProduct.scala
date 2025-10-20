@@ -17,7 +17,7 @@ case class InfiniteProduct[X: Numeric](f: Int => X) extends (Int => X) {
   private val xn = implicitly[Numeric[X]]
 
   /**
-    * A lazy val representing the LazyList[X] which is all of the terms of the infinite product.
+    * A lazy val representing the LazyList[X] which is all the terms of the infinite product.
     */
   lazy val asLazyList: LazyList[X] = primes.map(f)
 

@@ -28,7 +28,7 @@ class FuzzSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val dist = Gaussian(2, 2)
     //println(s"dist = ${dist * dist}")
 //    an[UnsupportedOperationException] should be thrownBy dist * dist
-    dist * dist shouldBe Gaussian( 4.0, 5.656854249492381)
+    dist * dist shouldBe Gaussian(4.0, 5.656854249492381)
   }
 
   "Bounded" should "sum with self" in {
