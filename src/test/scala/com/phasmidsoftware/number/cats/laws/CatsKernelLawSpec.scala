@@ -1,20 +1,15 @@
 package com.phasmidsoftware.number.cats.laws
 
+import cats.kernel.laws.discipline.{EqTests, OrderTests, PartialOrderTests}
+import com.phasmidsoftware.number.cats.CatsKernel._
+import com.phasmidsoftware.number.core.algebraic.{Algebraic, LinearEquation, Quadratic}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, Fuzziness, FuzzyNumber, Gaussian, GeneralNumber, Number, Real, RelativeFuzz}
+import com.phasmidsoftware.number.expression.Expression
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.Checkers
 import org.typelevel.discipline.scalatest.FunSuiteDiscipline
-
-import cats.kernel.laws.discipline.{EqTests, OrderTests, PartialOrderTests}
-
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, ExactNumber, FuzzyNumber, Gaussian, GeneralNumber, Number, Real, Field, Complex, ComplexCartesian, ComplexPolar}
-import com.phasmidsoftware.number.core.{Fuzziness, RelativeFuzz}
-import com.phasmidsoftware.number.core.inner.Radian
-import com.phasmidsoftware.number.expression.Expression
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, LinearEquation}
-import com.phasmidsoftware.number.core.algebraic.Quadratic
-import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
-import com.phasmidsoftware.number.cats.CatsKernel._
 
 /**
   * Discipline-based law tests for Cats Kernel instances defined in `instances.catsKernel`.
@@ -28,7 +23,7 @@ import com.phasmidsoftware.number.cats.CatsKernel._
   * - Rational: reasonably distributed finite rationals with positive denominators to avoid degenerate cases.
   * - ExactNumber: wraps a generated Rational into `Value` with the `PureNumber` factor.
   * - Number: mix of exact values, fuzzy values (Box/Gaussian shapes with width in [0, 1.0]), and a small portion of NaN.
-  *   This ensures we exercise both Eq and PartialOrder semantics across typical and edge scenarios.
+  * This ensures we exercise both Eq and PartialOrder semantics across typical and edge scenarios.
   *
   * Test runner:
   * - Uses `FunSuiteDiscipline` to integrate Cats laws into ScalaTest.
@@ -36,8 +31,8 @@ import com.phasmidsoftware.number.cats.CatsKernel._
   */
 class CatsKernelLawSpec
     extends AnyFunSuite
-    with Checkers
-    with FunSuiteDiscipline {
+        with Checkers
+        with FunSuiteDiscipline {
 
   // Arbitrary[Rational]: generate normalized rationals with positive denominators.
   implicit val arbitraryRational: Arbitrary[Rational] = Arbitrary {
@@ -83,7 +78,7 @@ class CatsKernelLawSpec
     } yield FuzzyNumber(base.nominalValue, base.factor, Some(AbsoluteFuzz[Double](fuzzWidth, fuzzType)))
 
     val genNaN = Gen.const(Number.NaN)
-    
+
     //About 70% generate ExactNumber, 25% generate FuzzyNumber, and 5% generate Number.NaN
     Gen.frequency(
       70 -> genExact,
@@ -188,7 +183,9 @@ class CatsKernelLawSpec
     }
 
   // Lightweight generators for Expression
+
   import com.phasmidsoftware.number.expression.Expression._
+
   implicit val arbitraryExpression: Arbitrary[Expression] = Arbitrary {
     val genConst: Gen[Expression] = Gen.oneOf(zero, one, two, pi, e, minusOne)
     val genLiteral: Gen[Expression] = arbitraryNumber.arbitrary.map(n => Expression(Real(n)))

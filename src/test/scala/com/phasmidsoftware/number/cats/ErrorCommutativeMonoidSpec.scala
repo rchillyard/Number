@@ -41,7 +41,9 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
 
     // 2) Decoupled parallel: nominal sum and sigma folding run independently
     val ((decoupledNominal, decoupledSigma), tParMs) = 1.times {
-      val fNominal: Future[Double] = Future { terms.flatMap(_.toNominalDouble).sum }
+      val fNominal: Future[Double] = Future {
+        terms.flatMap(_.toNominalDouble).sum
+      }
       val fSigma: Future[Double] = Future {
         val sigmas = terms.map {
           case f: FuzzyNumber => f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
@@ -103,9 +105,11 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
       val fSigma: Future[Double] = Future {
         // Sequential combination, relative basis propagation: r_xy^2 = r_x^2 + r_y^2 + r_x r_y
         def combineRel(r1: Double, r2: Double): Double = {
-          val a = r1; val b = r2
+          val a = r1
+          val b = r2
           math.sqrt(a * a + b * b + a * b)
         }
+
         val sigmas = terms.map {
           case f: FuzzyNumber => f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
           case _ => 0.0

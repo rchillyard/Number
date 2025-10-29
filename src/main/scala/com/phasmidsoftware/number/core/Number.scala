@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.core.Number.{inverse, negate}
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.core.inner._
+// TODO eliminate references to expression package
 import com.phasmidsoftware.number.expression.{Expression, ExpressionException}
 import com.phasmidsoftware.number.misc.FP.{optional, toTry}
 import com.phasmidsoftware.number.parse.NumberParser
@@ -24,6 +25,8 @@ import scala.util._
   * CONSIDER storing all numbers in the form `r e to the power of i theta`.
   *
   * CONSIDER eliminate extending Field
+  *
+  * TODO remove references to Expression
   *
   * Every number has three properties:
   * * nominalValue: Value
@@ -908,7 +911,6 @@ object Number {
     *
     * @param x the Expression to be converted.
     * @return the equivalent exact Number.
-    * @throws com.phasmidsoftware.number.expression.ExpressionException if x cannot be converted to a Number.
     */
   //noinspection Annotator
   implicit def convertExpression(x: Expression): Number =

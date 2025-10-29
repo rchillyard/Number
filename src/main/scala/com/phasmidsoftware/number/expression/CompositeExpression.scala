@@ -181,13 +181,13 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     */
   def evaluate(context: Context): Option[Field] =
     x match {
-    case AtomicExpression(field) =>
-      // NOTE: here we catch any exceptions that are thrown by applyExact.
-      // CONSIDER: we should never throw exceptions (see e.g., ComplexPolar.apply).
-      FP.toOption(Try(f.applyExact(field))).flatten
-    case _ =>
-      x.evaluate(context) map f
-  }
+      case AtomicExpression(field) =>
+        // NOTE: here we catch any exceptions that are thrown by applyExact.
+        // CONSIDER: we should never throw exceptions (see e.g., ComplexPolar.apply).
+        FP.toOption(Try(f.applyExact(field))).flatten
+      case _ =>
+        x.evaluate(context) map f
+    }
   // NOTE that the equivalent method for BiFunction is as follows
 //  context.qualifyingField(f.evaluate(a, b)(context))
 

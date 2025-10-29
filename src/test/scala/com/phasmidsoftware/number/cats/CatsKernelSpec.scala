@@ -4,21 +4,14 @@
 
 package com.phasmidsoftware.number.cats
 
+import cats.instances.option._
+import cats.kernel.{Eq, Order, PartialOrder}
+import cats.syntax.show._
+import com.phasmidsoftware.number.cats.CatsKernel._
+import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational, Value}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, ExactNumber, FuzzyNumber, Gaussian, Number}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
-import com.phasmidsoftware.number.cats.CatsKernel._
-import cats.kernel.{Eq, Order, PartialOrder}
-import cats.Show
-import cats.instances.option._
-import cats.syntax.eq._
-import cats.syntax.order._
-import cats.syntax.show._
-
-import com.phasmidsoftware.number.core.{ExactNumber, Number}
-import com.phasmidsoftware.number.core.{FuzzyNumber, AbsoluteFuzz, Box, Gaussian}
-import com.phasmidsoftware.number.core.inner.{Rational, Value}
-import com.phasmidsoftware.number.core.inner.{PureNumber, Radian}
 
 class CatsKernelSpec extends AnyFlatSpec with Matchers {
 
@@ -30,7 +23,7 @@ class CatsKernelSpec extends AnyFlatSpec with Matchers {
     val r3: Option[Rational] = Some(Rational(4))
 
     // Eq
-    
+
     r1 === r2 shouldBe true
 
     Eq[Option[Rational]].neqv(r1, r3) shouldBe true
@@ -62,7 +55,7 @@ class CatsKernelSpec extends AnyFlatSpec with Matchers {
     val e3 = ExactNumber(Value.fromRational(Rational(2)), PureNumber)
 
     // Eq
-    
+
     Eq[ExactNumber].eqv(e1, e2) shouldBe true
     Eq[ExactNumber].eqv(e1, e3) shouldBe false
 
@@ -102,7 +95,6 @@ class CatsKernelSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "Eq[Number] structural: different fuzz not equal" in {
-    import com.phasmidsoftware.number.cats.CatsKernel
     val a: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.1, Box)))
     val b: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.2, Box)))
     val c: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, None)

@@ -993,7 +993,7 @@ case object PureNumber extends Scalar {
     * @return an optional result of type `ProtoNumber`,
     *         representing the computed value if the operation is valid, or `None` otherwise
     */
-  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] = {
+  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
     Value.inverse(y) flatMap Value.maybeRational match {
       case Some(Rational.two) =>
         clean(Some((x, SquareRoot, None)))
@@ -1006,8 +1006,6 @@ case object PureNumber extends Scalar {
           v <- Factor.composeDyadic(x, y)(DyadicOperationPower)
         } yield (v, this, None)
     }
-  }
-
 }
 
 /**

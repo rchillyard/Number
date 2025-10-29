@@ -17,7 +17,6 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Abstracting advocacy communication into lawful scalar folding"
 
-  
 
   it should "match decoupled parallel error folding with direct Number addition (all addition)" in {
     implicit val ec: ExecutionContext = ExecutionContext.global
@@ -40,7 +39,9 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
 
     // 2) Decoupled parallel: nominal sum and sigma folding run independently
     val ((decoupledNominal, decoupledSigma), tParMs) = 1.times {
-      val fNominal: Future[Double] = Future { terms.flatMap(_.toNominalDouble).sum }
+      val fNominal: Future[Double] = Future {
+        terms.flatMap(_.toNominalDouble).sum
+      }
       val fSigma: Future[Double] = Future {
         val sigmas = terms.map {
           case f: FuzzyNumber => f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
@@ -105,6 +106,7 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
           val a = r1; val b = r2
           math.sqrt(a * a + b * b + a * b)
         }
+
         val sigmas = terms.map {
           case f: FuzzyNumber => f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
           case _ => 0.0

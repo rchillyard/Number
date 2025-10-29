@@ -7,14 +7,6 @@ package com.phasmidsoftware.number
 package object core {
 
   // Spire std instances re-export for numeric types commonly used in core
-  import spire.std.int._
-  import spire.std.long._
-  import spire.std.short._
-  import spire.std.byte._
-  import spire.std.float._
-  import spire.std.double._
-  import spire.std.bigInt._
-  import spire.std.bigDecimal._
 
   /**
     * This is the (approximate) error bound on double precision numbers.
