@@ -806,6 +806,22 @@ object Number {
     * Exact value of e
     */
   lazy val e: Number = ExactNumber(1, NatLog)
+  /**
+    * Exact value of i
+    */
+  lazy val i: Number = ExactNumber(-1, SquareRoot)
+  /**
+    * Exact value of the Number √2 (not Complex)
+    */
+  lazy val root2: Number = Number(2, SquareRoot)
+  /**
+    * Exact value of √3
+    */
+  lazy val root3: Number = Number(3, SquareRoot)
+  /**
+    * Exact value of √5
+    */
+  lazy val root5: Number = Number(5, SquareRoot)
 
   /**
     * Implicit class which takes a Double, and using method ~ and an Int parameter,
@@ -896,15 +912,6 @@ object Number {
   }
 
   /**
-    * Exact value of i
-    */
-  val i: Number = ExactNumber(-1, SquareRoot)
-  /**
-    * Exact value of the Number √2 (not Complex)
-    */
-  val root2: Number = Number(2, SquareRoot)
-
-  /**
     * Implicit converter from Expression to Number.
     * CONSIDER we should try to move this implicit converter into Expression...
     * but be warned--it's not easy!
@@ -939,11 +946,6 @@ object Number {
   implicit def convertDouble(x: Double): Number = Number(x)
 
   /**
-    * Exact value of √3
-    */
-  val root3: Number = Number(3, SquareRoot)
-
-  /**
     * Implicit class which takes a String, and using method ~ and an Int parameter,
     * yields a Number with the appropriate degree of fuzziness.
     * This class provides an alternative to having to parse a fuzzy number from a String.
@@ -975,11 +977,6 @@ object Number {
         p = y * math.pow(10, e - f.length)
       } yield x.make(Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
   }
-
-  /**
-    * Exact value of √5
-    */
-  val root5: Number = Number(5, SquareRoot)
 
   /**
     * NOTE: this unapply method does not match on the fuzz of a Number.
@@ -1274,13 +1271,13 @@ object Number {
   /**
     * Invalid number.
     */
-  val NaN: Number = Number(None)
+  lazy val NaN: Number = Number(None)
 
   /**
     * Represents a constant value for positive infinity.
     * This value is defined using a `Number` wrapper around `Double.PositiveInfinity`.
     */
-  val Infinity: Number = Number(Double.PositiveInfinity)
+  lazy val Infinity: Number = Number(Double.PositiveInfinity)
 
   private val numberParser = NumberParser
 
