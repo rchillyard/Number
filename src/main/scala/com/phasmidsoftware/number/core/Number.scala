@@ -738,74 +738,74 @@ object Number {
   /**
     * Exact value of 0
     */
-  val zero: Number = 0
+  lazy val zero: Number = 0
   /**
     * Exact value of -0
     */
-  val negZero: Number = Rational.negZero
+  lazy val negZero: Number = Rational.negZero
   /**
     * Exact value of 1
     */
-  val one: Number = 1
+  lazy val one: Number = 1
   /**
     * Exact value of -1
     */
-  val negOne: Number = -1
+  lazy val negOne: Number = -1
   /**
     * Exact value of 2
     */
-  val two: Number = 2
+  lazy val two: Number = 2
   /**
     * A constant value representing the number three as a `Number` type.
     */
-  val three: Number = 3
+  lazy val three: Number = 3
   /**
     * Exact value of 1/2
     */
-  val half: Number = Rational.half
+  lazy val half: Number = Rational.half
   /**
     * Exact value of 10
     */
-  val ten: Number = Rational.ten
+  lazy val ten: Number = Rational.ten
   /**
     * Exact value of pi
     */
-  val pi: Number = Number(1, Radian)
+  lazy val pi: Number = Number(1, Radian)
   /**
     * Exact value of 𝛑
     */
   //noinspection NonAsciiCharacters
-  val `𝛑`: Number = pi
+  lazy val `𝛑`: Number = pi
   /**
     * Exact value of 2 pi
     */
-  val twoPi: Number = Number(2, Radian)
+  lazy val twoPi: Number = Number(2, Radian)
   /**
     * Exact value of pi/2
     */
-  val piBy2: Number = Number(Rational.half, Radian)
+  lazy val piBy2: Number = Number(Rational.half, Radian)
   /**
     * Exact value of pi/4
     */
-  val piBy4: Number = Number(Rational(1, 4), Radian)
+  lazy val piBy4: Number = Number(Rational(1, 4), Radian)
   /**
     * Represents the mathematical constant π/3.
     * It is defined as a `Number` with a rational value of 1/3
     * and a unit of measurement as `Radian`.
     */
-  val piBy3: Number = Number(Rational(1, 3), Radian)
+  lazy val piBy3: Number = Number(Rational(1, 3), Radian)
   /**
     * Exact value of -pi
     */
-  val minusPi: Number = negate(pi)
+  lazy val minusPi: Number = negate(pi)
   /**
     * Exact value of zero radians
     */
-  val zeroR: Number = Number(0, Radian)
+  lazy val zeroR: Number = Number(0, Radian)
   /**
     * Exact value of e
     */
-  val e: Number = ExactNumber(1, NatLog)
+  lazy val e: Number = ExactNumber(1, NatLog)
 
   /**
     * Implicit class which takes a Double, and using method ~ and an Int parameter,
