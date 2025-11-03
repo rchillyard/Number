@@ -24,11 +24,10 @@ libraryDependencies ++= Seq(
     "org.scalacheck" %% "scalacheck" % "1.19.0" % "test", // This is used for testing Rational
     "org.typelevel" %% "cats-laws" % "2.10.0" % "test",
     "org.typelevel" %% "discipline-scalatest" % "2.3.0" % "test",
-    "org.typelevel" %% "spire" % "0.18.0",
+  "org.typelevel" %% "algebra-laws" % "2.10.0" % "test",
     "org.typelevel" %% "cats-kernel" % "2.10.0",
-    "org.typelevel" %% "cats-core" % "2.10.0"
-
-
+    "org.typelevel" %% "cats-core" % "2.10.0",
+    "org.typelevel" %% "algebra" % "2.10.0"
 )
 
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"

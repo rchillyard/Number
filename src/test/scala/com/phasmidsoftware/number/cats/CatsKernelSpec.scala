@@ -9,14 +9,14 @@ import org.scalatest.matchers.should.Matchers
 
 import com.phasmidsoftware.number.cats.CatsKernel._
 import cats.kernel.{Eq, Order, PartialOrder}
-import cats.Show
 import cats.instances.option._
-import cats.syntax.eq._
-import cats.syntax.order._
 import cats.syntax.show._
 
 import com.phasmidsoftware.number.core.{ExactNumber, Number}
 import com.phasmidsoftware.number.core.{FuzzyNumber, AbsoluteFuzz, Box, Gaussian}
+import com.phasmidsoftware.number.core.{Field, Real, ComplexCartesian, ComplexPolar}
+import com.phasmidsoftware.number.expression.Expression
+import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian}
 
@@ -31,7 +31,7 @@ class CatsKernelSpec extends AnyFlatSpec with Matchers {
 
     // Eq
     
-    r1 === r2 shouldBe true
+    Eq[Option[Rational]].eqv(r1, r2) shouldBe true
 
     Eq[Option[Rational]].neqv(r1, r3) shouldBe true
 
@@ -102,7 +102,6 @@ class CatsKernelSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "Eq[Number] structural: different fuzz not equal" in {
-    import com.phasmidsoftware.number.cats.CatsKernel
     val a: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.1, Box)))
     val b: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, Some(AbsoluteFuzz(0.2, Box)))
     val c: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, None)
@@ -140,6 +139,71 @@ class CatsKernelSpec extends AnyFlatSpec with Matchers {
     val n1: Number = Number.NaN
     val n2: Number = Number.NaN
     Eq[Number].eqv(n1, n2) shouldBe true
+  }
+
+  // ===== Field =====
+  behavior of "Cats instances for Field"
+
+  it should "provide PartialOrder/Eq/Show for Field" in {
+    val f1: Field = Real(Number.one)
+    val f1b: Field = Real(Number(1))
+    val f2: Field = ComplexCartesian(Number.one, Number.zero)
+    val f3: Field = ComplexPolar(Number.one, Number.zeroR, 1)
+    val f4: Field = ComplexCartesian(Number.one, Number.one)
+
+    // Eq
+    Eq[Field].eqv(f1, f1b) shouldBe true
+    Eq[Field].eqv(f2, f3) shouldBe true
+    // Real vs Complex are not structurally equal
+    Eq[Field].eqv(f1, f2) shouldBe false
+
+    // PartialOrder
+    val po = PartialOrder[Field]
+    po.partialCompare(f1, f1b) shouldBe 0.0
+    // For unequal Complex values, PartialOrder returns NaN (unordered)
+    po.partialCompare(f2, f4).isNaN shouldBe true
+
+    // Show
+    f1.show should not be empty
+  }
+
+  // ===== Algebraic =====
+  behavior of "Cats instances for Algebraic"
+
+  it should "provide PartialOrder/Eq/Show for Algebraic" in {
+    val a1: Algebraic = Algebraic.phi
+    val a2: Algebraic = Algebraic.psi
+
+    // Eq
+    Eq[Algebraic].eqv(a1, a1) shouldBe true
+    Eq[Algebraic].eqv(a1, a2) shouldBe false
+
+    // PartialOrder (delegates to Field ordering on values)
+    val po = PartialOrder[Algebraic]
+    po.lteqv(a2, a1) shouldBe true // psi < phi
+    po.partialCompare(a1, a2) > 0.0 shouldBe true
+
+    // Show
+    a1.show should not be empty
+  }
+
+  // ===== Expression =====
+  behavior of "Cats instances for Expression"
+
+  it should "provide PartialOrder/Eq/Show for Expression" in {
+    val e1: Expression = Expression(1) - 1
+    val e2: Expression = Expression(0)
+
+    // Eq (by simplify/evaluateAsIs)
+    Eq[Expression].eqv(e1, e2) shouldBe true
+
+    // PartialOrder (by approximation fallback)
+    val po = PartialOrder[Expression]
+    po.partialCompare(Expression(1), Expression(2)) < 0.0 shouldBe true
+    po.partialCompare(Expression(2), Expression(1)) > 0.0 shouldBe true
+
+    // Show
+    Expression(1).show should not be empty
   }
 }
 

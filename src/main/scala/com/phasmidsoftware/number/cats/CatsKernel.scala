@@ -45,7 +45,6 @@ trait CatsKernelInstances {
 
   //implicit val fuzzyNumberIsFuzzy: Fuzzy[Number] = FuzzyNumber.NumberIsFuzzy
 
-
   // ===== Fuzziness equality/ordering (used by Number partial order fallback) =====
   import com.phasmidsoftware.number.core.{Fuzziness, AbsoluteFuzz => Abs, RelativeFuzz => Rel}
 
@@ -98,21 +97,42 @@ trait CatsKernelInstances {
     }
   }
 
-  private implicit val optionFuzzPartialOrder: PartialOrder[Option[Fuzziness[Double]]] = new PartialOrder[Option[Fuzziness[Double]]] {
-    def partialCompare(a: Option[Fuzziness[Double]], b: Option[Fuzziness[Double]]): Double = (a, b) match {
-      case (None, None)       => 0.0
-      case (None, Some(_))    => -1.0
-      case (Some(_), None)    => 1.0
-      case (Some(f), Some(g)) => fuzzPartialOrder.partialCompare(f, g)
-    }
-  }
+  /*
+   * WARNING: Avoid providing inputs that "look like zero but are not exactly zero".
+   * Examples: 0.00(...), 0.00[...], 0* — these are fuzzy renderings whose nominal values may be non-zero.
+   * This Eq[Number] deems two numbers equal only if their numeric values are equal within a tolerance AND their factors match.
+   * Near-zero-but-non-zero inputs can therefore compare unequal to exact zero and may violate users’ expectations in equality/ordering checks.
+   *
+   * Guidance for callers:
+   * - When zero is intended, pass an exact zero (e.g., ExactNumber(Rational(0,1)) or Number.zeroR), not a fuzzy/near-zero value.
+   * - Upstream, normalize or filter values with |x| <= 1e-10 to exact zero if semantic zero is desired.
+   * - Avoid comparing numbers across different factors unless you first normalize them into the same factor.
+   */
 
   // A strict Eq for Number: structural or zero-difference equality, excluding NaN
   implicit val numberEq: Eq[Number] = Eq.instance {
+    case (Number.NaN, Number.NaN) => true
     case (a: GeneralNumber, b: GeneralNumber) =>
-      a.nominalValue == b.nominalValue &&
-      a.factor       == b.factor &&
-      a.fuzz         == b.fuzz
+      val ax = a.simplify.specialize
+      val bx = b.simplify.specialize
+
+      def asDouble(v: Value): Option[Double] =
+        Value.maybeRational(v).map(r => (BigDecimal(r.n) / BigDecimal(r.d)).toDouble)
+          .orElse(Value.maybeInt(v).map(_.toDouble))
+          .orElse(Value.maybeDouble(v))
+      
+      def isNearZero(d: Double, eps: Double) = d == 0.0 || math.abs(d) < eps
+
+      def numericEqual(v1: Value, v2: Value, eps: Double = 1e-9): Boolean =
+        (asDouble(v1), asDouble(v2)) match {
+          case (Some(x), Some(y)) => (isNearZero(x, eps) && isNearZero(y, eps)) || math.abs(x - y) < eps
+          case _ => false
+        }
+
+      if (numericEqual(ax.nominalValue, bx.nominalValue) && ax.factor == bx.factor) true
+      else false
+      
+    case _ => false
   }
 
   implicit val numberShow: Show[Number] = Show.show(_.render)
@@ -120,61 +140,48 @@ trait CatsKernelInstances {
   // Number: prefer PartialOrder to reflect fuzzy/NaN comparability limits
   implicit val numberPartialOrder: PartialOrder[Number] = new PartialOrder[Number] {
 
-    private def factorId(f: Factor): String = f.getClass.getName
 
     private def compareBigInt(a: BigInt, b: BigInt): Int =
       if (a == b) 0 else if (a < b) -1 else 1
 
-    private def nominalKeyCompare(a: Value, b: Value): Int = {
-      // Prefer exact rational comparison
-      (Value.maybeRational(a), Value.maybeRational(b)) match {
+
+    private def numericCompareStrict(a: Value, b: Value): Option[Int] = {
+      def asRational(v: Value): Option[Rational] =
+        Value.maybeRational(v).orElse(Value.maybeInt(v).map(Rational(_)))
+
+      (asRational(a), asRational(b)) match {
         case (Some(ra), Some(rb)) =>
           val num = compareBigInt(ra.n, rb.n)
-          if (num != 0) num else compareBigInt(ra.d, rb.d)
+          Some(if (num != 0) num else compareBigInt(ra.d, rb.d))
         case _ =>
-          // Fall back to integer if available
-          (Value.maybeInt(a), Value.maybeInt(b)) match {
-            case (Some(x), Some(y)) => java.lang.Integer.compare(x, y)
-            case _ =>
-              // Finally fall back to raw double bits
-              // CONSIDER: this looks wrong to me--shouldn't you be using Double.compare instead of Long.compare?
-              // (Also, I see you're using doubleToRawLongBits, but I don't see any use of doubleToLongBits. elsewhere, too)
-              // Solved
-              (Value.maybeDouble(a), Value.maybeDouble(b)) match {
-                case (Some(x), Some(y)) => java.lang.Double.compare(x, y)
-                case (Some(_), None)    => 1
-                case (None, Some(_))    => -1
-                case _                  => 0
-              }
+          (Value.maybeDouble(a), Value.maybeDouble(b)) match {
+            case (Some(x), Some(y)) => Some(java.lang.Double.compare(x, y))
+            case _ => None
           }
       }
     }
 
-    // Fuzziness ordering is delegated to PartialOrder instances below
+    private def normalizeToPure(n: GeneralNumber): Option[GeneralNumber] =
+    n.normalize match {
+      case Real(m: GeneralNumber) => Some(m.simplify.specialize.asInstanceOf[GeneralNumber])
+      case _                      => None
+    }
+
+    // Strict partial order: returns nonzero only if the values ​​are comparable; otherwise returns NaN
     def partialCompare(x: Number, y: Number): Double = {
-      // 1) Consistent with Eq: Structural equivalence -> 0
-      // Cannot use x === y in PartialOrder because of StackOverflowError
       if (numberEq.eqv(x, y)) 0.0
-      
-      // 2) NaN handling
       else if (x == Number.NaN || y == Number.NaN) Double.NaN
-      // 3) Otherwise gives a fixed ±1 via structural key ordering (never 0)
       else (x, y) match {
         case (a: GeneralNumber, b: GeneralNumber) =>
-          val c1 = factorId(a.factor).compareTo(factorId(b.factor))
-          if (c1 != 0) c1.toDouble
-          else {
-            val c2 = nominalKeyCompare(a.nominalValue, b.nominalValue)
-            if (c2 != 0) c2.toDouble
-            else {
-              val c3d = optionFuzzPartialOrder.partialCompare(a.fuzz, b.fuzz)
-              if (c3d != 0.0) c3d
-              else x.getClass.getName.compareTo(y.getClass.getName).toDouble
-            }
+          (normalizeToPure(a), normalizeToPure(b)) match {
+            case (Some(pa), Some(pb)) =>
+              numericCompareStrict(pa.nominalValue, pb.nominalValue) match {
+                case Some(c) if c != 0 => c.toDouble
+                case _ => Double.NaN
+              }
+            case _ => Double.NaN
           }
-        case _ =>
-          // Fallback: consistent non-zero using class name
-          x.getClass.getName.compare(y.getClass.getName).toDouble
+        case _ => Double.NaN
       }
     }
     
@@ -182,8 +189,11 @@ trait CatsKernelInstances {
 
   // Real: delegate to underlying Number semantics
   implicit val realEq: Eq[Real] = Eq.instance((a, b) => a.x === b.x)
-  implicit val realPartialOrder: PartialOrder[Real] =
-    PartialOrder.by[Real, Number](_.x)(numberPartialOrder)
+  implicit val realPartialOrder: PartialOrder[Real] = new PartialOrder[Real] {
+    def partialCompare(a: Real, b: Real): Double =
+      if (realEq.eqv(a, b)) 0.0 else numberPartialOrder.partialCompare(a.x, b.x)
+    override def eqv(a: Real, b: Real): Boolean = realEq.eqv(a, b)
+  }
 
   implicit val realShow: Show[Real] = Show.show(_.render)
 
