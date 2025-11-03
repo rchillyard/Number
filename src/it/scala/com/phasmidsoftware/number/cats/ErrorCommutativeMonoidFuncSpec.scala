@@ -1,26 +1,25 @@
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.cats
 
-import cats.syntax.semigroup._
 import com.phasmidsoftware.number.cats.ErrorCommutativeMonoid._
 import com.phasmidsoftware.number.core.inner.{PureNumber, Value}
 import com.phasmidsoftware.number.core.{AbsoluteFuzz, FuzzyNumber, Gaussian, Number, RelativeFuzz}
-import com.phasmidsoftware.number.misc.Benchmark._
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.tagobjects.Slow
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * Usage-focused examples for the error metric Monoid instances.
   *
   * These tests are intentionally lightweight demonstrations rather than law checks.
   */
-class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
+class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Abstracting advocacy communication into lawful scalar folding"
 
-  it should "match decoupled parallel error folding with direct Number addition (all addition)" taggedAs Slow in {
+  
+
+  it should "match decoupled parallel error folding with direct Number addition (all addition)" in {
     implicit val ec: ExecutionContext = ExecutionContext.global
 
     // Build many fuzzy addends: same nominal 1.2 with absolute Gaussian sigma 0.05
@@ -77,7 +76,7 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
     implicit val ec: ExecutionContext = ExecutionContext.global
 
     // Build many fuzzy addends: same nominal 1.2 with absolute Gaussian sigma 0.05
-    val terms: List[Number] = List.fill(500) {
+    val terms: List[Number] = List.fill(2000) {
       FuzzyNumber(Value.fromDouble(Some(1.1)), PureNumber, Some(RelativeFuzz(0.05, Gaussian)))
     }
 
@@ -134,6 +133,7 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
     println(s"tParMs: $tParMs, tSeqMs: $tSeqMs")
     assert(tParMs <= tSeqMs, s"decoupled parallel folding should be faster: par=${tParMs}ms vs seq=${tSeqMs}ms")
   }
+
 }
 
 
