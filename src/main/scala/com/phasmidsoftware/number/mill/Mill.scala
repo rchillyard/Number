@@ -4,10 +4,7 @@
 
 package com.phasmidsoftware.number.mill
 
-import com.phasmidsoftware.number.expression.Expression
-import com.phasmidsoftware.number.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.parse.{MillParser, ShuntingYardParser}
-import scala.language.postfixOps
 import scala.util.Try
 
 /**
@@ -223,9 +220,9 @@ case class Stack(stack: List[Item]) extends Mill {
     * @throws MillException operator f is not supported.
     */
   private def calculateMonadic(f: Monadic, x: Expression) = f match {
-    case Chs => x * Expression(-1)
-    case Inv => x reciprocal
-    case Sqrt => x sqrt
+    case Chs => x * TerminalExpression(-1)
+    case Inv => x.reciprocal
+    case Sqrt => x.sqrt
     case Ln => x.ln
     case Exponent => x.exp
     case Sin => x.sin
@@ -244,7 +241,7 @@ case class Stack(stack: List[Item]) extends Mill {
   private def calculateDyadic(f: Dyadic, x1: Expression, x2: Expression) = f match {
     case Multiply => x2 * x1
     case Add => x2 + x1
-    case Subtract => x2 + -x1
+    case Subtract => x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate
     case Divide => x2 * x1.reciprocal
     case Power => x2 ∧ x1
   }

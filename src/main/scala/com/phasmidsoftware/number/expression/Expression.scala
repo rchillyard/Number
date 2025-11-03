@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Approximatable, ComplexPolar, Constants, Field, Number, NumberException, NumberLike, Real}
 import com.phasmidsoftware.number.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
+import com.phasmidsoftware.number.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.misc.FP.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import scala.annotation.tailrec
@@ -358,8 +359,29 @@ object Expression {
     * NOTE that it might be a problem with render instead.
     */
   def parse(x: String): Option[Expression] =
-    ShuntingYardParser.parseInfix(x).toOption flatMap (_.evaluate)
+    ShuntingYardParser.parseInfix(x).toOption flatMap (_.evaluate) map convertMillExpressionToExpression
 
+  def convertMillExpressionToExpression(expr: com.phasmidsoftware.number.mill.Expression): Expression =
+    expr match {
+      case TerminalExpression(value) => Literal(value)
+      case MonadicExpression(expression, str) =>
+        str match {
+          case "-" => -convertMillExpressionToExpression(expression)
+          case "/" => convertMillExpressionToExpression(expression).reciprocal
+          case "√" => convertMillExpressionToExpression(expression).sqrt
+          case "ln" => convertMillExpressionToExpression(expression).ln
+          case "exp" => convertMillExpressionToExpression(expression).exp
+          case "sin" => convertMillExpressionToExpression(expression).sin
+          case "cos" => convertMillExpressionToExpression(expression).cos
+          case _ => throw ExpressionException(s"convertMillExpressionToExpression: unknown operator: $str")
+        }
+      case DyadicExpression(left, right, operator) =>
+        operator match {
+          case "+" => convertMillExpressionToExpression(left) + convertMillExpressionToExpression(right)
+          case "*" => convertMillExpressionToExpression(left) * convertMillExpressionToExpression(right)
+          case "∧" => convertMillExpressionToExpression(left) ∧ convertMillExpressionToExpression(right)
+        }
+    }
   /**
     * Converts a `Field` instance into an `Expression`.
     *

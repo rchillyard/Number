@@ -1,8 +1,7 @@
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core._
-import com.phasmidsoftware.number.expression.Expression
-import com.phasmidsoftware.number.mill.{Expr, Item, Mill}
+import com.phasmidsoftware.number.mill.{Expr, Item, Mill, TerminalExpression}
 import scala.util.Try
 
 /**
@@ -31,7 +30,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     def toItems: Seq[Item] = this match {
       case AnadicTerm(x) => x match {
         case Left(w) => Seq(Item(w))
-        case Right(n) => Seq(Expr(Expression(Real(n))))
+        case Right(n) => Seq(Expr(TerminalExpression(n)))
       }
       case MonadicTerm(x, os, p) => x.toItems ++ os.map(Item(_)) :+ Item(p)
       case DyadicTerm(x, p) => x.toItems ++ p.toItems

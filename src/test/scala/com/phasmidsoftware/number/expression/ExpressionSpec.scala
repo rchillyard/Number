@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, ComplexPolar,
 import com.phasmidsoftware.number.expression
 import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.expression.Root.phi
-import com.phasmidsoftware.number.mill.{Expr, Stack}
+import com.phasmidsoftware.number.mill.{Expr, Stack, TerminalExpression}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
@@ -51,12 +51,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "parse"
   private val syp: ShuntingYardParser.type = ShuntingYardParser
   it should "parse 1" in {
-    syp.parseInfix("1") should matchPattern.apply { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix("(1)") should matchPattern.apply { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix(" (1)") should matchPattern.apply { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix(" (1 )") should matchPattern.apply { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix(" (1 )") should matchPattern.apply { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix("( 1 ) ") should matchPattern.apply { case Success(Stack(List(Expr(One)))) => }
+    syp.parseInfix("1") should matchPattern.apply { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+    syp.parseInfix("(1)") should matchPattern.apply { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+    syp.parseInfix(" (1)") should matchPattern.apply { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+    syp.parseInfix(" (1 )") should matchPattern.apply { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+    syp.parseInfix(" (1 )") should matchPattern.apply { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+    syp.parseInfix("( 1 ) ") should matchPattern.apply { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
     syp.parseInfix("( ( 0.5 + 3 ) + ( 2 * ( 0.5 + 3 ) ) )") should matchPattern.apply { case Success(_) => }
     syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern.apply { case Success(_) => }
   }

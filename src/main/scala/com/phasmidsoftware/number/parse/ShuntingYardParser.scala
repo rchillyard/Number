@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core._
-import com.phasmidsoftware.number.expression.Expression
 import com.phasmidsoftware.number.mill._
 import scala.annotation.tailrec
 import scala.util.Try
@@ -69,7 +68,7 @@ object ShuntingYardParser extends BaseMillParser {
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 
-    private def :+(number: Number) = ShuntingYard(values :+ Expr(Expression(Real(number))), operators)
+    private def :+(number: Number) = ShuntingYard(values :+ Expr(TerminalExpression(number)), operators)
 
     @tailrec
     private def :+(operator: String): ShuntingYard = Item(operator) match {
