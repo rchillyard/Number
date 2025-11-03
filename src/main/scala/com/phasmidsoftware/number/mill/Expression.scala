@@ -4,12 +4,15 @@
 
 package com.phasmidsoftware.number.mill
 
+import com.phasmidsoftware.number.core.{Field, Number, Real}
+
 /**
   * Trait representing a mathematical expression, which can be combined or transformed
   * using various operations. This is intended as a fundamental building block for
   * creating complex expressions or performing symbolic computations.
   */
 trait Expression {
+  def value: Number
 
   /**
     * Combines the current expression with another expression using the addition operator.
@@ -100,6 +103,14 @@ trait Expression {
   */
 case class DyadicExpression(left: Expression, right: Expression, operator: String) extends Expression {
   override def toString: String = s"($left $operator $right)"
+
+  def value: Number = operator match {
+    case "+" => left.value.doAdd(right.value)
+    case "*" => left.value.doMultiply(right.value)
+    case "∧" => left.value.doPower(right.value)
+    case _ => throw new IllegalArgumentException(s"unknown operator $operator")
+  }
+
 }
 
 /**
@@ -111,6 +122,20 @@ case class DyadicExpression(left: Expression, right: Expression, operator: Strin
   */
 case class MonadicExpression(expression: Expression, str: String) extends Expression {
   override def toString: String = s"$str($expression)"
+
+  def value: Number = {
+    val f: Number => Field = str match {
+      case "-" => (x => -x)
+      case "/" => (x => x.invert)
+      case "√" => (x => Real(x.sqrt))
+      case "ln" => (x => x.ln)
+      case "exp" => (x => Real(x.exp))
+      case "sin" => (x => Real(x.sin))
+      case "cos" => (x => Real(x.cos))
+      case _ => throw new IllegalArgumentException(s"unknown operator $str")
+    }
+    f(expression.value).asNumber.get // TODO this should not be a problem but we should make it more elegant
+  }
 }
 
 /**
@@ -118,11 +143,29 @@ case class MonadicExpression(expression: Expression, str: String) extends Expres
   *
   * A TerminalExpression is a leaf node in the expression structure,
   * encapsulating a numeric value. It directly stores a value of type
-  * `com.phasmidsoftware.number.core.Number`.
+  * `com.phasmidsoftware.number.Number`.
   *
   * @constructor Creates a TerminalExpression with the specified numeric value.
   * @param value The numeric value encapsulated by this terminal expression.
   */
-case class TerminalExpression(value: com.phasmidsoftware.number.core.Number) extends Expression {
+case class TerminalExpression(value: Number) extends Expression {
   override def toString: String = value.toString
+}
+
+/**
+  * Represents an `Expression` in a symbolic mathematical computation system.
+  *
+  * This class provides operations for mathematical and logical manipulations,
+  * including arithmetic, trigonometric, and monadic transformations.
+  */
+object Expression {
+  /**
+    * Parses a string in infix notation into an `Expression`, if valid.
+    * NOTE that `Expression` refers to the mill package `Expression` (not the core `Expression`).
+    *
+    * @param x the input string representing a mathematical expression in infix notation.
+    * @return an `Option` containing the resulting `Expression` if parsing and evaluation are successful, or `None` otherwise.
+    */
+  def parseToExpression(x: String): Option[Expression] =
+    Mill.parseInfix(x).toOption.flatMap(_.evaluate)
 }

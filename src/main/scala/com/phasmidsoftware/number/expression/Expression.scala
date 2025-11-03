@@ -361,6 +361,15 @@ object Expression {
   def parse(x: String): Option[Expression] =
     ShuntingYardParser.parseInfix(x).toOption flatMap (_.evaluate) map convertMillExpressionToExpression
 
+  /**
+    * Converts an instance of `com.phasmidsoftware.number.mill.Expression` into an `Expression`.
+    * This method recursively transforms the input `Expression` through pattern matching on its structure,
+    * handling terminal, monadic, and dyadic expressions, as well as their respective operators.
+    *
+    * @param expr the `com.phasmidsoftware.number.mill.Expression` to be converted
+    * @return an `Expression` instance representing the equivalent form of the input
+    * @throws ExpressionException if an unknown operator is encountered during conversion
+    */
   def convertMillExpressionToExpression(expr: com.phasmidsoftware.number.mill.Expression): Expression =
     expr match {
       case TerminalExpression(value) => Literal(value)
