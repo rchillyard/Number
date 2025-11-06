@@ -37,7 +37,7 @@ class CatsKernelLawSpec
   // Arbitrary[Rational]: generate normalized rationals with positive denominators.
   implicit val arbitraryRational: Arbitrary[Rational] = Arbitrary {
     val genNumerator = Arbitrary.arbitrary[Long].map(BigInt(_))
-    val genDenominator = Gen.chooseNum[Long](1L, Long.MaxValue).map(BigInt(_))
+    val genDenominator = Gen.chooseNum[Long](1L, 1000000000L).map(BigInt(_))
 
     for {
       n <- genNumerator

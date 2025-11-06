@@ -26,6 +26,7 @@ libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.11" % "test", // NOTE vulnerability here
   "org.scalacheck" %% "scalacheck" % "1.19.0" % "test", // This is used for testing Rational
   "org.typelevel" %% "cats-laws" % catsVersion % "test",
+  "org.typelevel" %% "algebra-laws" % catsVersion % "test",
   "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
   "ch.qos.logback" % "logback-classic" % "1.5.20" % "runtime"
 )

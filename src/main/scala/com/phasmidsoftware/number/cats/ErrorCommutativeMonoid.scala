@@ -32,6 +32,8 @@ object ErrorCommutativeMonoid {
     *
     * NOTE: uses the same rule as Gaussian.convolutionProduct for independent operands:
     *   `r_xy^2 = r_x^2 + r_y^2 + (r_x r_y).`
+    *
+    * This is abolished.
     */
   final case class RelSigma(value: Double) extends AnyVal
 
