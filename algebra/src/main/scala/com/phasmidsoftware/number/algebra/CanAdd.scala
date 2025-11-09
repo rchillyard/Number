@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
-import algebra.CommutativeMonoid
+import algebra.ring.AdditiveCommutativeMonoid
 import cats.kernel.CommutativeGroup
 import scala.reflect.ClassTag
 
@@ -12,7 +12,12 @@ import scala.reflect.ClassTag
   */
 trait CanAdd[T <: Structure : ClassTag, U <: Structure] {
 
-  def cm(using CommutativeMonoid[T]): CommutativeMonoid[T] = summon[CommutativeMonoid[T]]
+  def zero: T
+
+  def +(that: T)(using AdditiveCommutativeMonoid[T]): T =
+    cm.additive.combine(asT, that)
+
+  def cm(using AdditiveCommutativeMonoid[T]): AdditiveCommutativeMonoid[T] = summon[AdditiveCommutativeMonoid[T]]
 
   def asT: T = this.asInstanceOf[T]
 
@@ -23,10 +28,10 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] {
     * @param that the `T` to be added to the current instance
     * @return an `Option[T]` containing the result of the addition, or `None` if the operation is not valid
     */
-  infix def doPlus(that: U)(using CommutativeMonoid[T]): Option[T] = {
+  infix def doPlus(that: U)(using AdditiveCommutativeMonoid[T]): Option[T] = {
     that match {
-      case u: T => Some(cm.combine(asT, u))
-      case u => u.convert(asT).flatMap(x => Some(cm.combine(asT, x)))
+      case u: T => Some(cm.additive.combine(asT, u))
+      case u => u.convert(asT).flatMap(x => Some(cm.additive.combine(asT, x)))
     }
   }
 }

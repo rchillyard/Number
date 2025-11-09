@@ -4,12 +4,11 @@
 
 package com.phasmidsoftware.number.algebra
 
-import algebra.ring.CommutativeRing
+import algebra.ring.{AdditiveCommutativeMonoid, CommutativeRing}
 import cats.Show
-import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import spire.math.SafeLong
@@ -169,14 +168,14 @@ case class WholeNumber(x: SafeLong) extends CanAdd[WholeNumber, WholeNumber] wit
   def unary_- : WholeNumber =
     WholeNumberIsCommutativeRing.negate(this)
 
-  /**
-    * Adds the specified `T` to this `T` instance.
-    *
-    * @param t an instance of `T` to be added to this `T`
-    * @return a new `T` representing the sum of this `T` and the given `T`
-    */
-  def +(t: WholeNumber): WholeNumber =
-    WholeNumberIsCommutativeRing.plus(this, t)
+//  /**
+//    * Adds the specified `T` to this `T` instance.
+//    *
+//    * @param t an instance of `T` to be added to this `T`
+//    * @return a new `T` representing the sum of this `T` and the given `T`
+//    */
+//  def +(t: WholeNumber): WholeNumber =
+//    WholeNumberIsCommutativeRing.plus(this, t)
 //
 //  /**
 //    * Subtracts the specified `T` from this `T` instance.
