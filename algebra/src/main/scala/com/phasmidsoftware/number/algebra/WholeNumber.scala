@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra
 
-import algebra.ring.{AdditiveCommutativeMonoid, CommutativeRing}
+import algebra.ring.CommutativeRing
 import cats.Show
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
@@ -21,7 +21,7 @@ import spire.math.SafeLong
   *
   * @param x a SafeLong value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends CanAdd[WholeNumber, WholeNumber] with Number {
+case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with Number with Q with Z {
 
   /**
     * Compares the current `WholeNumber` instance with another `Number` to determine their exact order.
@@ -83,15 +83,14 @@ case class WholeNumber(x: SafeLong) extends CanAdd[WholeNumber, WholeNumber] wit
     * @return an `Option[Int]` containing the integer representation of this `WholeNumber`
     *         if it can be exactly represented as an `Int`, or `None` otherwise.
     */
-  def toInt: Option[Int] = toRational.flatMap(z => z.maybeInt)
+  def toInt: Option[Int] = asRational.maybeInt
 
   /**
-    * Converts this `Number` into its corresponding `Rational` representation, if possible.
+    * Converts this `Q` instance into its corresponding `Rational` representation.
     *
-    * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
-    *         if it can be converted, or `None` if the conversion is not possible.
+    * @return a `Rational` value representing this `WholeNumber`.
     */
-  def toRational: Option[Rational] = Some(Rational(x.toBigInt))
+  def asRational: Rational = Rational(x.toBigInt)
 
   /**
     * Scale this Real by the given scalar, provided that it is exact.
@@ -102,7 +101,12 @@ case class WholeNumber(x: SafeLong) extends CanAdd[WholeNumber, WholeNumber] wit
     * @return a scaled Real with the same relative error as this.
     */
   def scale(scalar: Scalar): Option[Number] =
-    scalar.toRational.filter(_.isInteger).map(x => WholeNumber(x.toLong))
+    scalar match {
+      case WholeNumber(i) =>
+        Some(WholeNumber(x.toBigInt * i.toBigInt))
+      case _ => // TODO add other cases as the become available
+        None
+    }
 
   /**
     * Scales the instance of type T by the given integer multiplier.
@@ -166,7 +170,7 @@ case class WholeNumber(x: SafeLong) extends CanAdd[WholeNumber, WholeNumber] wit
     * @return a new `WholeNumber` instance representing the additive inverse of the current WholeNumber.
     */
   def unary_- : WholeNumber =
-    WholeNumberIsCommutativeRing.negate(this)
+    negate
 
 //  /**
 //    * Adds the specified `T` to this `T` instance.

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
-import algebra.ring.CommutativeRing
+import algebra.CommutativeGroup
+import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

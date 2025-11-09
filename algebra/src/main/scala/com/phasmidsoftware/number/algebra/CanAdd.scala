@@ -1,47 +1,82 @@
 package com.phasmidsoftware.number.algebra
 
-import algebra.ring.AdditiveCommutativeMonoid
-import cats.kernel.CommutativeGroup
+import algebra.CommutativeGroup
+import algebra.ring.{AdditiveCommutativeGroup, AdditiveCommutativeMonoid}
 import scala.reflect.ClassTag
 
 /**
-  * Behavior that includes the addition of an instance of a similar type.
-  * This is intended to be used as a mixin, not as a typeclass.
+  * Represents a type class for types `T` and `U`, both of which extend `Structure`, enabling addition operations
+  * between these types with specific constraints. This trait provides functionality for adding instances
+  * of type `T` to each other and for attempting to add instances of type `U` to `T`.
   *
-  * @tparam T the underlying type.
+  * The operations are designed to work within the context of an `AdditiveCommutativeMonoid`, ensuring
+  * that the defined addition operations respect the algebraic properties of associativity, commutativity, and identity.
+  *
+  * Type Parameters:
+  * - `T`: A type extending `Structure` that supports addition operations and satisfies the properties
+  * of an additive commutative monoid.
+  * - `U`: A type extending `Structure` that is potentially compatible with `T` in certain addition operations.
   */
 trait CanAdd[T <: Structure : ClassTag, U <: Structure] {
 
+  /**
+    * Returns the zero value of type T.
+    * This value serves as the identity element for the addition operation of T.
+    *
+    * @return The zero value of type T.
+    */
   def zero: T
 
+  /**
+    * Adds the given instance of the same type to this instance, leveraging the properties 
+    * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
+    *
+    * @param that The instance of the same type to be added to this instance.
+    * @return The result of adding this instance and the provided instance.
+    */
   def +(that: T)(using AdditiveCommutativeMonoid[T]): T =
-    cm.additive.combine(asT, that)
+    acm.additive.combine(asT, that)
 
-  def cm(using AdditiveCommutativeMonoid[T]): AdditiveCommutativeMonoid[T] = summon[AdditiveCommutativeMonoid[T]]
-
+  /**
+    * Casts the current instance to the type parameter `T`.
+    *
+    * @return the current instance cast to type `T`
+    */
   def asT: T = this.asInstanceOf[T]
 
   /**
-    * Adds this instance of type `T` to another `T` and returns the result as an `Option[T]`.
-    * The addition may not always be valid, depending on the context or properties of the `T`s.
+    * Combines the current instance of type `T` with another instance of type `U`
+    * using an additive operation, if the conversion and compatibility conditions are met.
     *
-    * @param that the `T` to be added to the current instance
-    * @return an `Option[T]` containing the result of the addition, or `None` if the operation is not valid
+    * @param that                      the instance of type `U` to combine with the current instance.
+    * @param AdditiveCommutativeMonoid a context parameter providing the additive operations for type `T`.
+    * @return an `Option` containing the combined result of type `T` if the operation is successful, 
+    *         or `None` if the combination is not feasible due to type conversion failure or other constraints.
     */
   infix def doPlus(that: U)(using AdditiveCommutativeMonoid[T]): Option[T] = {
     that match {
-      case u: T => Some(cm.additive.combine(asT, u))
-      case u => u.convert(asT).flatMap(x => Some(cm.additive.combine(asT, x)))
+      case u: T => Some(acm.additive.combine(asT, u))
+      case u => u.convert(asT).flatMap(x => Some(acm.additive.combine(asT, x)))
     }
   }
+
+  /**
+    * Provides the implicitly summoned instance of `AdditiveCommutativeMonoid` for the type `T`.
+    *
+    * @param using The context-bound `AdditiveCommutativeMonoid` instance for the type `T`.
+    * @return The summoned `AdditiveCommutativeMonoid[T]` instance.
+    */
+  private def acm(using AdditiveCommutativeMonoid[T]): AdditiveCommutativeMonoid[T] = summon[AdditiveCommutativeMonoid[T]]
 }
 
 trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAdd[T, U] {
 
-  def cg(using CommutativeGroup[T]): CommutativeGroup[T] = summon[CommutativeGroup[T]]
+  def cg(using AdditiveCommutativeGroup[T]): AdditiveCommutativeGroup[T] = summon[AdditiveCommutativeGroup[T]]
 
-  def negate(using CommutativeGroup[T]): T =
-    cg.inverse(asT)
+  def negate(using AdditiveCommutativeGroup[T]): T =
+    cg.additive.inverse(asT)
+
+  def unary_- : WholeNumber
 }
 
 /**

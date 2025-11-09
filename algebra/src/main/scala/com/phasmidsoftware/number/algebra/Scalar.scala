@@ -31,14 +31,6 @@ trait Scalar extends Monotone {
   def compareExact(that: Scalar): Option[Int]
 
   /**
-    * Converts this `Number` into its corresponding `Rational` representation, if possible.
-    *
-    * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
-    *         if it can be converted, or `None` if the conversion is not possible.
-    */
-  def toRational: Option[inner.Rational]
-
-  /**
     * Represents the scaleFactor of a scalar value as a `Double`.
     * This value indicates the magnitude by which a scalar is scaled,
     * and the conversion factor to yield a `PureNumber`.
