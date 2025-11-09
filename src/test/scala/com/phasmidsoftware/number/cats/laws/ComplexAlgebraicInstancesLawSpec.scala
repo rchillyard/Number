@@ -65,6 +65,7 @@ class ComplexAlgebraicInstancesLawSpec
     )
   }
 
+  import com.phasmidsoftware.number.cats.CatsKernel.complexEq
   checkAll("Complex", RingLaws[Complex].commutativeRing)
 }
 

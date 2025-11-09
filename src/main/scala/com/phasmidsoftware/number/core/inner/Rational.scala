@@ -442,7 +442,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     else
       (n, d, x, epsilon) match {
         case (_, `bigOne`, 2, Some(e)) =>
-          Rational.squareRoot(n, e)
+          Rational.doSpecialsquareRoot(n, e)
         case _ =>
           for (a <- rootOfBigInt(n, x); b <- rootOfBigInt(d, x)) yield Rational(a, b)
       }
@@ -1558,7 +1558,7 @@ object Rational {
     * @return an `Option[Rational]` containing the rational approximation of
     *         the square root if supported, or `None` if the case is not implemented
     */
-  private def squareRoot(n: BigInt, epsilon: Double): Option[Rational] = n match {
+  private def doSpecialsquareRoot(n: BigInt, epsilon: Double): Option[Rational] = n match {
     case `bigTwo` =>
       ContinuedFraction.root2.toRational(epsilon)
     case `bigThree` =>
