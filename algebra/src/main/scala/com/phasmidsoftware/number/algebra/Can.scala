@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
-import algebra.CommutativeGroup
-import algebra.ring.{AdditiveCommutativeGroup, AdditiveCommutativeMonoid}
+import algebra.ring.{AdditiveCommutativeGroup, AdditiveCommutativeMonoid, CommutativeRing, MultiplicativeMonoid}
 import scala.reflect.ClassTag
 
 /**
@@ -17,7 +16,7 @@ import scala.reflect.ClassTag
   * of an additive commutative monoid.
   * - `U`: A type extending `Structure` that is potentially compatible with `T` in certain addition operations.
   */
-trait CanAdd[T <: Structure : ClassTag, U <: Structure] {
+trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
 
   /**
     * Returns the zero value of type T.
@@ -28,7 +27,7 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] {
   def zero: T
 
   /**
-    * Adds the given instance of the same type to this instance, leveraging the properties 
+    * Adds the given instance of the same type to this instance, leveraging the properties
     * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
     *
     * @param that The instance of the same type to be added to this instance.
@@ -38,19 +37,12 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] {
     acm.additive.combine(asT, that)
 
   /**
-    * Casts the current instance to the type parameter `T`.
-    *
-    * @return the current instance cast to type `T`
-    */
-  def asT: T = this.asInstanceOf[T]
-
-  /**
     * Combines the current instance of type `T` with another instance of type `U`
     * using an additive operation, if the conversion and compatibility conditions are met.
     *
     * @param that                      the instance of type `U` to combine with the current instance.
     * @param AdditiveCommutativeMonoid a context parameter providing the additive operations for type `T`.
-    * @return an `Option` containing the combined result of type `T` if the operation is successful, 
+    * @return an `Option` containing the combined result of type `T` if the operation is successful,
     *         or `None` if the combination is not feasible due to type conversion failure or other constraints.
     */
   infix def doPlus(that: U)(using AdditiveCommutativeMonoid[T]): Option[T] = {
@@ -69,14 +61,36 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] {
   private def acm(using AdditiveCommutativeMonoid[T]): AdditiveCommutativeMonoid[T] = summon[AdditiveCommutativeMonoid[T]]
 }
 
+/**
+  * A trait that extends `CanAdd` and provides additional functionality for types
+  * supporting both addition and subtraction operations. It introduces the ability
+  * to negate instances of type `T` and override the unary negation operator.
+  *
+  * Type Parameters:
+  * - `T`: A type extending `Structure` that supports addition, subtraction, and negation operations
+  * with an implicit `AdditiveCommutativeGroup[T]` evidence.
+  * - `U`: A type extending `Structure` that is compatible with `T` in additive operations.
+  */
 trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAdd[T, U] {
 
-  def cg(using AdditiveCommutativeGroup[T]): AdditiveCommutativeGroup[T] = summon[AdditiveCommutativeGroup[T]]
-
+  /**
+    * Negates the current instance of type `T` by utilizing the additive inverse.
+    *
+    * @param acg evidence of an implicit `AdditiveCommutativeGroup[T]` providing the
+    *            additive group structure for type `T`
+    * @return the additive inverse of the current instance as type `T`
+    */
   def negate(using AdditiveCommutativeGroup[T]): T =
-    cg.additive.inverse(asT)
+    acg.additive.inverse(asT)
 
+  /**
+    * Negates the current WholeNumber instance, producing its additive inverse.
+    *
+    * @return The additive inverse of the current WholeNumber.
+    */
   def unary_- : WholeNumber
+
+  private def acg(using AdditiveCommutativeGroup[T]): AdditiveCommutativeGroup[T] = summon[AdditiveCommutativeGroup[T]]
 }
 
 /**
@@ -114,7 +128,7 @@ trait CanScaleWhole[T] {
   *
   * @tparam T the type of the instance that can be scaled
   */
-trait CanScale[T] {
+trait CanScale[T <: Structure, U <: Structure] {
 
   /**
     * Scales the current instance of type `T` using the given `Number` multiplier.
@@ -127,7 +141,56 @@ trait CanScale[T] {
     * @param that the `Number` multiplier used to scale the current instance
     * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
     */
-  def doScale(that: Number): Option[T]
+  def doScale(that: U): Option[T]
+}
+
+trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] with CanScale[T, Number] {
+
+  /**
+    * Returns the multiplicative identity element of type `T` in the context
+    * of a structure that supports multiplication.
+    *
+    * @return the instance of type `T` that acts as the identity element for multiplication
+    */
+  def one: T
+
+  /**
+    * Multiplies the current instance of type `T` with another instance of type `T`, using the
+    * provided `MultiplicativeMonoid` context.
+    *
+    * @param that the instance of type `T` to be multiplied with the current instance.
+    * @return the result of multiplying the current instance by the given instance of type `T`.
+    */
+  def *(that: T)(using MultiplicativeMonoid[T]): T =
+    mm.multiplicative.combine(asT, that)
+
+  /**
+    * Combines the current instance of type `T` with another instance of type `U`
+    * using an additive operation, if the conversion and compatibility conditions are met.
+    *
+    * @param that            the instance of type `U` to combine with the current instance.
+    * @param CommutativeRing a context parameter providing the additive operations for type `T`.
+    * @return an `Option` containing the combined result of type `T` if the operation is successful,
+    *         or `None` if the combination is not feasible due to type conversion failure or other constraints.
+    */
+  infix def doTimes(that: U)(using CommutativeRing[T]): Option[T] = {
+    that match {
+      case u: T => Some(mm.multiplicative.combine(asT, u))
+      case u => u.convert(asT).flatMap(x => Some(mm.multiplicative.combine(asT, x)))
+    }
+  }
+
+  /**
+    * Retrieves an implicit instance of `MultiplicativeMonoid[T]` from the given context.
+    * CONSIDER whether this is exactly the correct type to use.
+    * It needs to support all required properties and it must be a superclass of `CommutativeRing`.
+    *
+    * @param evidence an implicit parameter of type `MultiplicativeMonoid[T]`, representing the context
+    *                 within which multiplicative operations are defined for type `T`.
+    * @return an instance of `MultiplicativeMonoid[T]`, which provides methods and properties
+    *         for performing multiplicative operations on type `T` values.
+    */
+  private def mm(using MultiplicativeMonoid[T]): MultiplicativeMonoid[T] = summon[MultiplicativeMonoid[T]]
 }
 
 /**
@@ -152,4 +215,13 @@ trait CanPower[T] {
     * @return an `Option[T]` containing the result of the power operation if it is defined, or `None` otherwise
     */
   infix def doPower(that: Scalar): Option[T]
+}
+
+trait Can[T <: Structure] {
+  /**
+    * Casts the current instance to the type parameter `T` of the enclosing `Can` trait.
+    *
+    * @return the current instance as an instance of type `T`
+    */
+  def asT: T = this.asInstanceOf[T]
 }

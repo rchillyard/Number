@@ -21,7 +21,7 @@ import spire.math.SafeLong
   *
   * @param x a SafeLong value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with Number with Q with Z {
+case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with Number with Q with Z {
 
   /**
     * Compares the current `WholeNumber` instance with another `Number` to determine their exact order.
@@ -71,7 +71,15 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     * results in the same element. For any element `x`, `x + zero` and `zero + x` should
     * equal `x`.
     */
-  val zero: WholeNumber = WholeNumberIsCommutativeRing.empty
+  lazy val zero: WholeNumber = WholeNumberIsCommutativeRing.empty
+
+  /**
+    * Represents the multiplicative identity element of the structure.
+    *
+    * The `one` value serves as the neutral element for the multiplication operation, meaning
+    * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
+    */
+  lazy val one: WholeNumber = WholeNumber.one
 
   /**
     * Converts this `WholeNumber` into an `Int` representation, if possible.
@@ -107,6 +115,20 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
       case _ => // TODO add other cases as the become available
         None
     }
+
+  /**
+    * Scales the current instance of type `T` using the given `Number` multiplier.
+    *
+    * This method performs a scaling operation by multiplying the current instance
+    * with the provided `Number`. The result of the scaling operation is returned
+    * as an `Option`, allowing for cases where the operation might not be valid or
+    * possible.
+    *
+    * @param that the `Number` multiplier used to scale the current instance
+    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+    */
+  def doScale(that: Number): Option[WholeNumber] =
+    scale(that).asInstanceOf[Option[WholeNumber]] // TODO check this
 
   /**
     * Scales the instance of type T by the given integer multiplier.
@@ -216,14 +238,6 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     * @return Some(PureNumber)
     */
   def maybeFactor: Option[Factor] = Some(PureNumber)
-
-  /**
-    * Represents the multiplicative identity element of the structure.
-    *
-    * The `one` value serves as the neutral element for the multiplication operation, meaning
-    * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
-    */
-  def one: WholeNumber = WholeNumber.one
 //
 //  /**
 //    * Multiplies the specified `T` by this `T` instance.
@@ -250,10 +264,10 @@ object WholeNumber {
     * This value denotes zero, serving as the identity element in
     * the group structure of WholeNumbers.
     */
-  val zero: WholeNumber = WholeNumber(0L)
-  val one: WholeNumber = WholeNumber(1L)
-  val minusOne: WholeNumber = WholeNumber(-1L)
-  val two: WholeNumber = WholeNumber(2L)
+  lazy val zero: WholeNumber = WholeNumber(0L)
+  lazy val one: WholeNumber = WholeNumber(1L)
+  lazy val minusOne: WholeNumber = WholeNumber(-1L)
+  lazy val two: WholeNumber = WholeNumber(2L)
 
   /**
     * Provides an implicit `Show` instance for the `WholeNumber` class, enabling conversion
@@ -369,7 +383,6 @@ object WholeNumber {
       */
     def times(x: WholeNumber, y: WholeNumber): WholeNumber = WholeNumber(x.x * y.x)
   }
-
 
   /**
     * Provides an implicit implementation of a commutative group for the `WholeNumber` type, supporting

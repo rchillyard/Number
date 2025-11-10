@@ -11,7 +11,7 @@ import scala.language.implicitConversions
   *
   * CONSIDER why does it not extend Ordered[Number]?
   */
-trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
+trait Number extends Scalar with Ordered[Scalar] {
   /**
     * Compares this `Number` instance with a `Scalar` instance.
     *
@@ -96,19 +96,19 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
 //        (this doPlus a).asInstanceOf[Option[Number]] // TODO check that this is OK and if not, fix it.
 //      case (None, _) => None
 //    }
-
-  /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
-    *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
-    *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
-    */
-  def doScale(that: Number): Option[Number] = scale(that)
+//
+//  /**
+//    * Scales the current instance of type `T` using the given `Number` multiplier.
+//    *
+//    * This method performs a scaling operation by multiplying the current instance
+//    * with the provided `Number`. The result of the scaling operation is returned
+//    * as an `Option`, allowing for cases where the operation might not be valid or
+//    * possible.
+//    *
+//    * @param that the `Number` multiplier used to scale the current instance
+//    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+//    */
+//  def doScale(that: Number): Option[Number] = scale(that)
 
   /**
     * Scale this Real by the given scalar, provided that it is exact.
