@@ -68,11 +68,11 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   }
   it should "convert" in {
   }
-  it should "doPlus" in {
-    WholeNumber.zero doPlus WholeNumber.one shouldBe Some(WholeNumber.one)
+  it should "plus" in {
+    WholeNumber.zero plus RationalNumber.one shouldBe Some(WholeNumber.one)
   }
-  it should "doTimes" in {
-    WholeNumber.one doTimes WholeNumber.minusOne shouldBe Some(WholeNumber.minusOne)
+  it should "times" in {
+    WholeNumber.one times RationalNumber.minusOne shouldBe Some(WholeNumber.minusOne)
   }
   it should "doScale" in {
   }
@@ -113,9 +113,7 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
     WholeNumber(42).maybeInt shouldBe Some(42)
   }
   it should "toString" in {
-    // toString should really show what we've got
-//    WholeNumber(42).toString shouldBe "WholeNumber(42)"
-    WholeNumber(42).toString shouldBe "42"
+    WholeNumber(42).toString shouldBe "WholeNumber(42)"
   }
   it should "zero" in {
     WholeNumber.zero.zero shouldBe zero

@@ -12,29 +12,38 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers {
 
   behavior of "RationalNumber"
 
-//  it should "doPlus RationalNumber" in {
+  it should "render" in {
+    RationalNumber(42).render shouldBe "42"
+  }
+  it should "toString" in {
+    RationalNumber(42).toString shouldBe "RationalNumber(42)"
+  }
+  it should "parse" in {
+    RationalNumber.parse("84/2") shouldBe Some(RationalNumber(42))
+  }
+//  it should "plus RationalNumber" in {
 //    val x = RationalNumber(1)
 //    val y = RationalNumber(2)
-//    x doPlus y shouldBe Some(RationalNumber(3))
+//    x plus y shouldBe Some(RationalNumber(3))
 //    val z = Angle.pi
 //    val expected = Some(Real(4.141592653589793, Some(AbsoluteFuzz(5.02654824574367E-16, Box))))
-//    x doPlus z shouldBe expected
-//    z doPlus x shouldBe expected
+//    x plus z shouldBe expected
+//    z plus x shouldBe expected
 //  }
 
-//  it should "doPlus Angle" in {
+//  it should "plus Angle" in {
 //    val x = Angle.pi
 //    val y = Angle.piBy2
-//    x doPlus y shouldBe Some(-y)
+//    x plus y shouldBe Some(-y)
 //    val z = Angle.pi
-//    x doPlus z shouldBe Some(Angle.zero)
-//    z doPlus x shouldBe Some(Angle.zero)
+//    x plus z shouldBe Some(Angle.zero)
+//    z plus x shouldBe Some(Angle.zero)
 //  }
 
-//  it should "doPlus Real" in {
+//  it should "plus Real" in {
 //    val x = Real(42)
 //    val y = Angle.pi
-//    x doPlus y shouldBe Some(Real(45.1415926535898, Some(AbsoluteFuzz(5.02654824574367E-16, Box))))
+//    x plus y shouldBe Some(Real(45.1415926535898, Some(AbsoluteFuzz(5.02654824574367E-16, Box))))
 //  }
 
   // Basic arithmetic operations

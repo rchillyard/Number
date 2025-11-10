@@ -37,20 +37,21 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     acm.additive.combine(asT, that)
 
   /**
-    * Combines the current instance of type `T` with another instance of type `U`
-    * using an additive operation, if the conversion and compatibility conditions are met.
+    * Computes the addition of this object and the given `Structure` object using the additive properties
+    * of an `AdditiveCommutativeMonoid`. The operation returns an optional result where the addition
+    * succeeds if a valid transformation and combination can be performed.
     *
-    * @param that                      the instance of type `U` to combine with the current instance.
-    * @param AdditiveCommutativeMonoid a context parameter providing the additive operations for type `T`.
-    * @return an `Option` containing the combined result of type `T` if the operation is successful,
-    *         or `None` if the combination is not feasible due to type conversion failure or other constraints.
+    * @param that  the `Structure` object to be added to this object.
+    * @param using an implicitly provided instance of `AdditiveCommutativeMonoid[T]` that defines the additive
+    *              behavior for the type `T`.
+    * @return an `Option` containing the result of the addition if successful, or `None` if the operation
+    *         cannot be completed.
     */
-  infix def doPlus(that: U)(using AdditiveCommutativeMonoid[T]): Option[T] = {
+  infix def plus(that: Structure)(using AdditiveCommutativeMonoid[T]): Option[T] =
     that match {
-      case u: T => Some(acm.additive.combine(asT, u))
+      case t: T => Some(acm.additive.combine(asT, t))
       case u => u.convert(asT).flatMap(x => Some(acm.additive.combine(asT, x)))
     }
-  }
 
   /**
     * Provides the implicitly summoned instance of `AdditiveCommutativeMonoid` for the type `T`.
@@ -74,16 +75,20 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
 trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAdd[T, U] {
 
   /**
-    * Adds the given instance of the same type to this instance, leveraging the properties
-    * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
+    * Subtracts the given instance of type `T` from the current instance.
     *
-    * @param that The instance of the same type to be added to this instance.
-    * @return The result of adding this instance and the provided instance.
+    * This method computes the result of subtracting the `that` instance from the current instance
+    * by utilizing the properties of an additive commutative group defined for type `T`.
+    *
+    * @param that     the instance of type `T` to subtract from the current instance
+    * @param Additive evidence of an implicit `AdditiveCommutativeGroup[T]` that provides
+    *                 the additive commutative group structure supporting subtraction
+    * @return the resulting value of type `T` after subtraction
     */
   def -(that: T)(using AdditiveCommutativeGroup[T]): T
 
   /**
-    * Negates the current instance of type `T` by utilizing the additive inverse.
+    * Negates this instance of type `CanAddAndSubtract[T]` by utilizing the additive inverse.
     *
     * @param acg evidence of an implicit `AdditiveCommutativeGroup[T]` providing the
     *            additive group structure for type `T`
@@ -109,6 +114,111 @@ trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAd
     *         group structure for the type `T`.
     */
   private def acg(using AdditiveCommutativeGroup[T]): AdditiveCommutativeGroup[T] = summon[AdditiveCommutativeGroup[T]]
+}
+
+/**
+  * Represents a trait that extends the capabilities of mathematical structures defined by `T` and `U`
+  * to support multiplication operations within an algebraic framework.
+  *
+  * This trait builds upon the foundational traits `Can`, `CanAddAndSubtract`, and `CanScale`,
+  * adding multiplicative behavior and related utilities. It defines operations such as
+  * obtaining the multiplicative identity, performing multiplication, and combining structures
+  * in a multiplicative context with optional compatibility checks.
+  *
+  * It's conceivable that some algebraic structures might support multiplication but not addition.
+  *
+  * @tparam T the type of structure that supports multiplication, bounded by `Structure` and requiring a `ClassTag`
+  * @tparam U a secondary structure type used in combinatory operations, also bounded by `Structure`
+  */
+trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] with CanScale[T, Number] {
+
+  /**
+    * Returns the multiplicative identity element of type `T` in the context
+    * of a structure that supports multiplication.
+    *
+    * @return the instance of type `T` that acts as the identity element for multiplication
+    */
+  def one: T
+
+  /**
+    * Multiplies the current instance of type `T` with another instance of type `T`, using the
+    * provided `MultiplicativeMonoid` context.
+    *
+    * @param that the instance of type `T` to be multiplied with the current instance.
+    * @return the result of multiplying the current instance by the given instance of type `T`.
+    */
+  def *(that: T)(using MultiplicativeMonoid[T]): T =
+    mm.multiplicative.combine(asT, that)
+
+  /**
+    * Multiplies this instance with another algebraic structure using the provided
+    * `CommutativeRing` context, if possible.
+    *
+    * @param that            the input `Structure` instance to be multiplied with the current instance.
+    * @param CommutativeRing an implicit parameter providing the context for performing
+    *                        multiplication operations on objects of type `T`.
+    * @return an `Option[T]` containing the result of the multiplication if it can be
+    *         successfully performed, or `None` otherwise.
+    */
+  infix def times(that: Structure)(using CommutativeRing[T]): Option[T] =
+    that match {
+      case t: T => Some(mm.multiplicative.combine(asT, t))
+      case u => u.convert(asT).flatMap(x => Some(mm.multiplicative.combine(asT, x)))
+    }
+
+  /**
+    * Retrieves an implicit instance of `MultiplicativeMonoid[T]` from the given context.
+    * CONSIDER whether this is exactly the correct type to use.
+    * It needs to support all required properties and it must be a superclass of `CommutativeRing`.
+    *
+    * @param evidence an implicit parameter of type `MultiplicativeMonoid[T]`, representing the context
+    *                 within which multiplicative operations are defined for type `T`.
+    * @return an instance of `MultiplicativeMonoid[T]`, which provides methods and properties
+    *         for performing multiplicative operations on type `T` values.
+    */
+  private def mm(using MultiplicativeMonoid[T]): MultiplicativeMonoid[T] = summon[MultiplicativeMonoid[T]]
+}
+
+/**
+  * Represents a trait that extends the functionalities of `CanMultiply` to support both
+  * multiplication and division operations within an algebraic structure for types `T` and `U`.
+  *
+  * This trait builds upon the `CanMultiply` trait by introducing additional properties and
+  * utilities to work within a multiplicative framework. The primary addition is the inclusion
+  * of the multiplicative identity element for types that support multiplication.
+  *
+  * @tparam T the primary type of the structure that supports multiplication and division,
+  *           constrained to extend `Structure` and requiring a `ClassTag` for runtime type resolution
+  * @tparam U a secondary structure type, also constrained to extend `Structure`
+  */
+trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] {
+
+  /**
+    * Calculates the reciprocal of the given value `t` within the context of a multiplicative group.
+    *
+    * @param t the value for which the reciprocal is to be calculated, belonging to type `T`
+    * @return the reciprocal of the given value `t`, computed within the rules of the provided `MultiplicativeGroup[T]`
+    */
+  def reciprocal(using MultiplicativeGroup[T]): T =
+    mg.reciprocal(asT)
+
+  /**
+    * Divides the current instance by the given value `that` within the context of a `MultiplicativeGroup[T]`.
+    *
+    * @param that the value by which the current instance is to be divided, belonging to type `T`
+    * @return the result of the division, computed as per the rules defined by the `MultiplicativeGroup[T]`
+    */
+  def /(that: T)(using MultiplicativeGroup[T]): T =
+    mg.div(asT, that)
+
+  /**
+    * Returns the implicit `MultiplicativeGroup[T]` for the type `T`.
+    * CONSIDER whether this is exactly the correct type to use.
+    *
+    * @param evidence an implicit parameter that provides evidence that `T` has a `MultiplicativeGroup` structure
+    * @return the `MultiplicativeGroup[T]` instance for type `T`
+    */
+  private def mg(using MultiplicativeGroup[T]): MultiplicativeGroup[T] = summon[MultiplicativeGroup[T]]
 }
 
 /**
@@ -160,111 +270,6 @@ trait CanScale[T <: Structure, U <: Structure] {
     * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
     */
   def doScale(that: U): Option[T]
-}
-
-/**
-  * Represents a trait that extends the capabilities of mathematical structures defined by `T` and `U`
-  * to support multiplication operations within an algebraic framework.
-  *
-  * This trait builds upon the foundational traits `Can`, `CanAddAndSubtract`, and `CanScale`,
-  * adding multiplicative behavior and related utilities. It defines operations such as
-  * obtaining the multiplicative identity, performing multiplication, and combining structures
-  * in a multiplicative context with optional compatibility checks.
-  *
-  * @tparam T the type of structure that supports multiplication, bounded by `Structure` and requiring a `ClassTag`
-  * @tparam U a secondary structure type used in combinatory operations, also bounded by `Structure`
-  */
-trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends CanAddAndSubtract[T, U] with CanScale[T, Number] {
-
-  /**
-    * Returns the multiplicative identity element of type `T` in the context
-    * of a structure that supports multiplication.
-    *
-    * @return the instance of type `T` that acts as the identity element for multiplication
-    */
-  def one: T
-
-  /**
-    * Multiplies the current instance of type `T` with another instance of type `T`, using the
-    * provided `MultiplicativeMonoid` context.
-    *
-    * @param that the instance of type `T` to be multiplied with the current instance.
-    * @return the result of multiplying the current instance by the given instance of type `T`.
-    */
-  def *(that: T)(using MultiplicativeMonoid[T]): T =
-    mm.multiplicative.combine(asT, that)
-
-  /**
-    * Combines the current instance of type `T` with another instance of type `U`
-    * using an additive operation, if the conversion and compatibility conditions are met.
-    *
-    * @param that            the instance of type `U` to combine with the current instance.
-    * @param CommutativeRing a context parameter providing the additive operations for type `T`.
-    * @return an `Option` containing the combined result of type `T` if the operation is successful,
-    *         or `None` if the combination is not feasible due to type conversion failure or other constraints.
-    */
-  infix def doTimes(that: U)(using CommutativeRing[T]): Option[T] =
-    that match {
-      case u: T => Some(mm.multiplicative.combine(asT, u))
-      case u => u.convert(asT).flatMap(x => Some(mm.multiplicative.combine(asT, x)))
-    }
-
-  /**
-    * Retrieves an implicit instance of `MultiplicativeMonoid[T]` from the given context.
-    * CONSIDER whether this is exactly the correct type to use.
-    * It needs to support all required properties and it must be a superclass of `CommutativeRing`.
-    *
-    * @param evidence an implicit parameter of type `MultiplicativeMonoid[T]`, representing the context
-    *                 within which multiplicative operations are defined for type `T`.
-    * @return an instance of `MultiplicativeMonoid[T]`, which provides methods and properties
-    *         for performing multiplicative operations on type `T` values.
-    */
-  private def mm(using MultiplicativeMonoid[T]): MultiplicativeMonoid[T] = summon[MultiplicativeMonoid[T]]
-}
-
-/**
-  * Represents a trait that extends the functionalities of `CanMultiply` to support both
-  * multiplication and division operations within an algebraic structure for types `T` and `U`.
-  *
-  * This trait builds upon the `CanMultiply` trait by introducing additional properties and
-  * utilities to work within a multiplicative framework. The primary addition is the inclusion
-  * of the multiplicative identity element for types that support multiplication.
-  *
-  * @tparam T the primary type of the structure that supports multiplication and division,
-  *           constrained to extend `Structure` and requiring a `ClassTag` for runtime type resolution
-  * @tparam U a secondary structure type, also constrained to extend `Structure`
-  */
-trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] {
-
-  /**
-    * Calculates the reciprocal of the given value `t` within the context of a multiplicative group.
-    *
-    * @param t the value for which the reciprocal is to be calculated, belonging to type `T`
-    * @return the reciprocal of the given value `t`, computed within the rules of the provided `MultiplicativeGroup[T]`
-    */
-  def reciprocal(using MultiplicativeGroup[T]): T =
-    mg.reciprocal(asT)
-
-  /**
-    * Divides the current instance by the given value `that` within the context of a `MultiplicativeGroup[T]`.
-    *
-    * @param that the value by which the current instance is to be divided, belonging to type `T`
-    * @return the result of the division, computed as per the rules defined by the `MultiplicativeGroup[T]`
-    */
-  def /(that: T)(using MultiplicativeGroup[T]): T =
-    mg.div(asT, that)
-
-  /**
-    * Retrieves an implicit instance of `MultiplicativeMonoid[T]` from the given context.
-    * CONSIDER whether this is exactly the correct type to use.
-    * It needs to support all required properties and it must be a superclass of `CommutativeRing`.
-    *
-    * @param evidence an implicit parameter of type `MultiplicativeMonoid[T]`, representing the context
-    *                 within which multiplicative operations are defined for type `T`.
-    * @return an instance of `MultiplicativeMonoid[T]`, which provides methods and properties
-    *         for performing multiplicative operations on type `T` values.
-    */
-  private def mg(using MultiplicativeGroup[T]): MultiplicativeGroup[T] = summon[MultiplicativeGroup[T]]
 }
 
 /**

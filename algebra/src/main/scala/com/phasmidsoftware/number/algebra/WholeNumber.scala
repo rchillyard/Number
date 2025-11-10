@@ -23,59 +23,62 @@ import spire.math.SafeLong
   */
 case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with Number with Z {
   /**
-    * Converts this instance of `Z` to its corresponding int representation--if possible.
+    * Converts this instance to its corresponding integer representation.
     *
-    * @return an `Option[Int]` representing this value, providing that it can fit in an `Int`.
-    *         If the value cannot fit in an `Int`, then the `Option` will be `None`.
-    *         If the value can fit in an `Int`, then the `Option` will be `Some(Int)`.
+    * @return the integer value corresponding to this instance
     */
   def toInt: Int = x.toInt // CHECK this or have it return BigInt!
 
   /**
-    * Converts this instance of `Q` to its corresponding rational representation.
+    * Converts the WholeNumber instance into a Rational equivalent.
     *
-    * @return a Rational instance representing the current value
+    * @return a Rational representation of the current WholeNumber.
     */
   def toRational: Rational = Rational(x.toBigInt)
 
-  def maybeZ: Option[Z] = Some(this)//(Rational(x.toBigInt).maybeInt.map(WholeNumber(_)))
+  /**
+    * Retrieves an `Option` containing this instance as an object of type `Z`.
+    *
+    * @return an `Option[Z]` that wraps the current instance, which is always `Some(this)`.
+    */
+  def maybeZ: Option[Z] = Some(this)
 
   /**
-    * Converts the current instance to a Double representation.
-    * CONSIDER changing to maybeDouble returning Option[Double].
+    * Converts this `WholeNumber` instance to its `Double` representation.
     *
-    * @return the Double value corresponding to the current instance
+    * @return the `Double` value obtained by converting this `WholeNumber` to a `Rational` and then to a `Double`.
     */
   def asDouble: Double = toRational.toDouble
 
   /**
-    * Creates an instance of `R` from the given `Rational` value.
+    * Converts the current instance of `WholeNumber` to an optional `Q`.
     *
-    * @param q the `Rational` value to be converted into an instance of `R`
-    * @return an instance of `R` representing the specified `Rational` value
+    * @return an `Option[Q]` representing the current `WholeNumber` as a `Q`,
+    *         or `None` if the conversion is not possible. The returned value
+    *         will typically encapsulate the `WholeNumber` as a rational
+    *         representation.
     */
-  def maybeQ: Option[Q] = ???
+  def maybeQ: Option[Q] = Some(RationalNumber(toRational))
 
   /**
-    * Adds the given instance of the same type to this instance, leveraging the properties
-    * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
+    * Subtracts the specified WholeNumber from this WholeNumber.
     *
-    * @param that The instance of the same type to be added to this instance.
-    * @return The result of adding this instance and the provided instance.
+    * @param that the WholeNumber to subtract from this WholeNumber
+    * @return the result of subtracting the specified WholeNumber from this WholeNumber
     */
   def -(that: WholeNumber)(using AdditiveCommutativeGroup[WholeNumber]): WholeNumber =
     WholeNumberIsCommutativeRing.minus(this, that)
 
   /**
-    * Compares the current `WholeNumber` instance with another `Number` to determine their exact order.
+    * Compares this instance with another `Scalar` for exact equivalence.
+    * This method attempts to compare the two instances based on their exact numerical representation.
     *
-    * If the provided `Number` is a `WholeNumber`, this method compares their underlying SafeLong values.
-    * If the provided `Number` is not a `WholeNumber`, the comparison cannot be performed, and `None` is returned.
-    *
-    * @param that the `Number` instance to compare with the current `WholeNumber` instance
-    * @return an `Option[Int]`, where `Some(-1)` indicates that the current `WholeNumber` is less than the provided `WholeNumber`,
-    *         `Some(0)` indicates that both WholeNumbers are equal, `Some(1)` indicates that the current `WholeNumber` is greater,
-    *         and `None` is returned if the comparison cannot be made
+    * @param that the `Scalar` instance to compare against
+    * @return an `Option[Int]` value:
+    *         - `Some(-1)` if this `Scalar` is less than `that`
+    *         - `Some(0)` if this `Scalar` is equal to `that`
+    *         - `Some(1)` if this `Scalar` is greater than `that`
+    *         - `None` if the exact comparison is not possible
     */
   def compareExact(that: Scalar): Option[Int] = that match {
     case WholeNumber(o) =>
@@ -87,14 +90,15 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
   }
 
   /**
-    * Converts the current number to a representation of the specified type `T`, if possible.
+    * Converts the given `Structure` instance to an optional transformed instance of the same type.
+    * The conversion will vary depending on the specific subclass of `Structure`.
+    * If the input type is unsupported for conversion, `None` is returned.
     *
-    * This method attempts to convert the number to a type `T` that has implicit evidence
-    * of `Ordering`. If the conversion is successful, it returns an `Option` containing the
-    * resulting typed value. If the conversion is not valid or not possible for the given
-    * type `T`, it returns `None`.
-    *
-    * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
+    * @param t the input object of type `T`, which must be a subtype of `Structure`.
+    *          The input is expected to be of a type that matches the patterns in the conversion logic.
+    * @tparam T the type parameter constrained to subtypes of `Structure` with a `ClassTag` evidence.
+    * @return an `Option` containing a converted instance of the same type `T`
+    *         if the conversion is successful, or `None` otherwise.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: RationalNumber =>
@@ -107,49 +111,47 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
   }
 
   /**
-    * Represents the additive identity element for the type `T`.
+    * Represents the zero element of the `WholeNumber` type, adhering to the identity element defined
+    * in the commutative ring algebraic structure for whole numbers.
     *
-    * The additive identity, commonly referred to as "zero," is the element in an
-    * additive algebraic structure that, when added to any element of the structure,
-    * results in the same element. For any element `x`, `x + zero` and `zero + x` should
-    * equal `x`.
+    * This `lazy val` provides a reference to the identity of the additive group, which is a `WholeNumber`
+    * with a value of zero. It delegates the instantiation to `WholeNumberIsCommutativeRing.empty`.
     */
   lazy val zero: WholeNumber = WholeNumberIsCommutativeRing.empty
 
   /**
-    * Represents the multiplicative identity element of the structure.
+    * Represents the multiplicative identity for WholeNumbers.
     *
-    * The `one` value serves as the neutral element for the multiplication operation, meaning
-    * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
+    * This value denotes one, serving as the identity element in
+    * the group structure of WholeNumbers under multiplication.
     */
   lazy val one: WholeNumber = WholeNumber.one
 
   /**
-    * Converts this `WholeNumber` into an `Int` representation, if possible.
+    * Returns an optional integer representation of this `WholeNumber`.
+    * This method attempts to retrieve the corresponding integer value from its `maybeRational` representation,
+    * provided such a conversion is possible.
+    * If the rational representation is not a whole number or cannot be converted to an integer, `None` is returned.
     *
-    * This method first converts the `WholeNumber` to its `Rational` representation and then 
-    * attempts to extract the corresponding integer value. If the `WholeNumber` cannot be 
-    * represented as an exact integer, the result is `None`.
-    *
-    * @return an `Option[Int]` containing the integer representation of this `WholeNumber`
-    *         if it can be exactly represented as an `Int`, or `None` otherwise.
+    * @return an `Option[Int]`, where `Some(intValue)` represents a valid integer conversion, or `None` if not possible.
     */
   def maybeInt: Option[Int] = maybeRational.flatMap(_.maybeInt)
 
   /**
-    * Converts this `Q` instance into its corresponding `Rational` representation.
+    * Returns an optional Rational representation of the WholeNumber.
+    * This operation attempts to convert the WholeNumber into a Rational number.
     *
-    * @return a `Rational` value representing this `WholeNumber`.
+    * @return an Option containing a Rational if the conversion succeeds, or None if it does not.
     */
   def maybeRational: Option[Rational] = Some(Rational(x.toBigInt))
 
   /**
-    * Scale this Real by the given scalar, provided that it is exact.
-    * This method is used to scale a Real by a scalar that is known to be exact.
-    * If you want to simply multiply this Real by a scalar, use the * operator.
+    * Scales the current instance by a given scalar.
     *
-    * @param scalar the exact scalar to scale by
-    * @return a scaled Real with the same relative error as this.
+    * @param scalar the scalar by which the instance should be scaled
+    * @return an `Option[Number]` representing the scaled value:
+    *         - `Some(Number)` containing the result of scaling when the operation is successful
+    *         - `None` if the operation cannot be performed or is not supported for the given scalar
     */
   def scale(scalar: Scalar): Option[Number] =
     scalar match {
@@ -160,138 +162,86 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     }
 
   /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
+    * Scales the current `WholeNumber` instance using the provided `Number`.
     *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
+    * This method leverages the `scale` function to perform the scaling operation and ensures
+    * the result is downcast to an `Option[WholeNumber]` if possible. The operation may return
+    * `None` if the scaling cannot be performed or the resulting type is not compatible.
     *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+    * @param that the `Number` to be used as the scaling factor
+    * @return an `Option[WholeNumber]` containing the scaled result, or `None` if the operation fails or the result is not a `WholeNumber`
     */
   def doScale(that: Number): Option[WholeNumber] =
     scale(that).asInstanceOf[Option[WholeNumber]] // TODO check this
 
   /**
-    * Scales the instance of type T by the given integer multiplier.
+    * Scales the current `WholeNumber` by a given integer multiplier and returns the result
+    * wrapped as an `Option[Monotone]`.
     *
-    * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
-    * the scaling operation is valid for the specific implementation.
-    *
-    * @param that the integer multiplier used to scale the instance
-    * @return an Option containing the scaled result of type T, or None if the operation is invalid
+    * @param that the integer multiplier to scale the current `WholeNumber`
+    * @return an `Option[Monotone]` representing the scaled result
     */
   def doScaleInt(that: Int): Option[Monotone] =
     Some(WholeNumber(x * that))
 
   /**
-    * Determines the sign of the scalar value represented by this instance.
-    * Returns an integer indicating whether the value is positive, negative, or zero.
+    * Computes the signum of this WholeNumber.
     *
-    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    * @return an integer value representing the sign of the number:
+    *         - `0` if the number is zero,
+    *         - `1` if the number is positive,
+    *         - `-1` if the number is negative.
     */
   def signum: Int = x.compare(SafeLong.zero)
 
   /**
-    * Determines if the current number is equal to zero.
+    * Determines if the value of the current instance is equal to zero.
     *
-    * @return true if the number is zero, false otherwise
+    * @return true if the current instance equals zero, false otherwise
     */
   def isZero: Boolean = x == SafeLong.zero
 
   /**
-    * Method to determine if this Structure object is exact.
-    * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
+    * Determines if the number is exact.
     *
-    * @return true if this `Structure` object is exact in the context of No factor, else false.
+    * This method checks whether the current instance represents a number that is exact,
+    * as opposed to an approximation or inexact value. In the context of the `WholeNumber` class,
+    * this method always returns `true` since whole numbers are inherently exact by definition.
+    *
+    * @return true, indicating that the number is exact
     */
   override def isExact: Boolean = true
 
   /**
-    * If this `Valuable` is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a Real--only for exact numbers.
+    * Computes an `Option[Double]` representation of this `WholeNumber`.
     *
-    * @return Some(x) where x is a Double if this is exact, else None.
+    * @return an `Option[Double]` where the value is the `Double` representation of the `WholeNumber`,
+    *         or `None` if a `Double` representation cannot be provided.
     */
   def maybeDouble: Option[Double] =
     Some(x.toDouble)
 
   /**
-    * Renders this `WholeNumber` instance as a string representation of its SafeLong.
+    * Renders the `WholeNumber` instance as a string representation.
     *
-    * @return a string representation of the `WholeNumber`
+    * @return the string representation of this `WholeNumber` instance
     */
   def render: String = x.toString
 
   /**
-    * Computes the additive inverse of the current `WholeNumber` instance.
+    * Negates the current `WholeNumber` instance, returning its additive inverse.
     *
-    * This method negates the current WholeNumber, returning a new `WholeNumber` instance
-    * with the opposite value, relative to `WholeNumber.zero`.
-    *
-    * @return a new `WholeNumber` instance representing the additive inverse of the current WholeNumber.
+    * @return A new `WholeNumber` instance representing the negation of the current number.
     */
   def unary_- : WholeNumber =
     negate
 
-//  /**
-//    * Adds the specified `T` to this `T` instance.
-//    *
-//    * @param t an instance of `T` to be added to this `T`
-//    * @return a new `T` representing the sum of this `T` and the given `T`
-//    */
-//  def +(t: WholeNumber): WholeNumber =
-//    WholeNumberIsCommutativeRing.plus(this, t)
-//
-//  /**
-//    * Subtracts the specified `T` from this `T` instance.
-//    *
-//    * @param t an instance of `T` to be subtracted from this `T`
-//    * @return a new `Additive[T]` representing the result of the subtraction of the given `T` from this `T`
-//    */
-//  def -(t: WholeNumber): WholeNumber = doPlus(-t) match {
-//    case Some(s) =>
-//      s.asInstanceOf[WholeNumber]
-//    case None =>
-//      throw NumberException(s"WholeNumber.-: cannot subtract $t from $this")
-//  }
-//
-//  /**
-//    * Adds the given `Scalar` instance to the current instance, returning the result as an `Option[Scalar]`.
-//    *
-//    * If the provided `Scalar` is a `WholeNumber`, the method will calculate the sum and return it as `Some(WholeNumber)`.
-//    * For other types of `Scalar`, the behavior is delegated to the `doPlus` method of the provided instance.
-//    *
-//    * @param that the `Scalar` instance to be added to the current instance
-//    * @return an `Option[Scalar]` containing the result of the addition, or `None` if the addition is not valid
-//    */
-//  infix def doPlus(that: Scalar): Option[Scalar] = that match {
-//    case a: WholeNumber =>
-//      Some(this + a)
-//    case x =>
-//      x doPlus this
-//  }
-
   /**
-    * Computes the potential factor associated with this instance.
+    * Retrieves an optional factor associated with the current instance.
     *
-    * @return Some(PureNumber)
+    * @return an Option containing a Factor if one is available, or None otherwise.
     */
   def maybeFactor: Option[Factor] = Some(PureNumber)
-//
-//  /**
-//    * Multiplies the specified `T` by this `T` instance.
-//    *
-//    * @param t an instance of `T` to be multiplied by this `T`
-//    * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
-//    */
-//  def *(t: WholeNumber): Multiplicative[WholeNumber] =
-//    WholeNumberIsCommutativeRing.times(this, t)
-
-  override def toString: String = x.toString
 }
 
 /**
@@ -302,14 +252,31 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
 object WholeNumber {
 
   /**
-    * Represents the additive identity for WholeNumbers.
+    * Represents the WholeNumber constant for the value zero (0).
     *
-    * This value denotes zero, serving as the identity element in
-    * the group structure of WholeNumbers.
+    * This is a lazily evaluated instance of `WholeNumber` initialized with the value 0.
     */
   lazy val zero: WholeNumber = WholeNumber(0L)
+  /**
+    * Represents the whole number value `1` as an instance of `WholeNumber`.
+    *
+    * This is a lazy value, ensuring that the object is not instantiated until it is accessed,
+    * and thereafter remains constant for the duration of the application's lifecycle.
+    */
   lazy val one: WholeNumber = WholeNumber(1L)
+  /**
+    * Represents the constant whole number value of -1.
+    *
+    * This is a lazily computed instance of the `WholeNumber` type,
+    * initialized with the value -1.
+    */
   lazy val minusOne: WholeNumber = WholeNumber(-1L)
+  /**
+    * Represents the whole number two as a lazy value of type `WholeNumber`.
+    *
+    * This is a predefined constant for convenient access to the numeric value 2
+    * in the context of `WholeNumber` operations and conversions.
+    */
   lazy val two: WholeNumber = WholeNumber(2L)
 
   /**
@@ -330,35 +297,6 @@ object WholeNumber {
     * @return the converted `WholeNumber` instance
     */
   implicit def convIntWholeNumber(x: Int): WholeNumber = WholeNumber(x)
-
-//  implicit object wholeNumberIsAdditive extends Additive[WholeNumber] with WholeNumberIsCommutativeRing {
-//    /**
-//      * Represents the additive identity element for the type `T`.
-//      *
-//      * The additive identity, commonly referred to as "zero," is the element in an
-//      * additive algebraic structure that, when added to any element of the structure,
-//      * results in the same element. For any element `x`, `x + zero` and `zero + x` should
-//      * equal `x`.
-//      */
-//    def zero: WholeNumber = empty
-//
-//    /**
-//      * Adds the specified `T` to this `T` instance.
-//      *
-//      * @param t an instance of `T` to be added to this `T`
-//      * @return a new `T` representing the sum of this `T` and the given `T`
-//      */
-//    def +(t1: WholeNumber, t2: WholeNumber): WholeNumber =
-//      plus(t1, t2)
-//
-//    /**
-//      * Subtracts the specified `T` from this `T` instance.
-//      *
-//      * @param t an instance of `T` to be subtracted from this `T`
-//      * @return a new `Additive[T]` representing the result of the subtraction of the given `T` from this `T`
-//      */
-//    def -(t: WholeNumber): WholeNumber = negate(t)
-//  }
 
   /**
     * Provides an implicit implementation of a commutative group for the `WholeNumber` type, supporting

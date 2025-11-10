@@ -6,87 +6,83 @@ import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.reflect.ClassTag
-import sun.jvm.hotspot.gc.shared.GCName.Z
 
 /**
-  * Represents a rational number and provides arithmetic operations
-  * along with functions to retrieve its identity and inverse elements.
+  * Represents a rational number based on the `Rational` type, providing various
+  * mathematical operations and utilities applicable to rational numbers.
   *
-  * This class extends `Number` and `Field` to provide additional
-  * operations specific to rational numbers.
+  * This class extends several traits to enable arithmetic operations such as addition,
+  * subtraction, multiplication, and division. It also supports comparisons, conversions,
+  * scaling, and power operations.
   *
-  * A "field" notated (F, +, x), is formed from two abelian (commutative) groups:
-  * - the additive group (F, +) in which every element has an (additive) inverse;
-  * - the multiplicative group (F*, x) in which every nonzero element has a (multiplicative) inverse.
-  * Note that the multiplicative group does not include the zero element (zero is the identity of the
-  * additive group but plays no part in the multiplicative group.
+  * The class is designed to work seamlessly with precise and exact number representations,
+  * ensuring that operations maintain a high level of numeric fidelity.
   *
-  * `RationalNumber`, however, is a field that includes both zero and infinity so that it is a complete field.
-  *
-  * @constructor Creates a new RationalNumber instance with the given
-  *              rational value `r`.
-  * @param r the underlying rational value
+  * @constructor Creates a `RationalNumber` with the given `Rational` value.
+  * @param r The `Rational` value represented by this `RationalNumber`.
   */
-case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[RationalNumber] with Number {
+case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Number {
   /**
-    * Adds the given instance of the same type to this instance, leveraging the properties
-    * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
+    * Subtracts the given rational number from this one.
     *
-    * @param that The instance of the same type to be added to this instance.
-    * @return The result of adding this instance and the provided instance.
+    * @param that the rational number to subtract
+    * @return the result of the subtraction
     */
   def -(that: RationalNumber)(using AdditiveCommutativeGroup[RationalNumber]): RationalNumber =
     this + -that
 
   /**
-    * Represents the additive identity element for the type `T`.
+    * Represents the zero value of the `RationalNumber` type within the field of rational numbers.
     *
-    * The additive identity, commonly referred to as "zero," is the element in an
-    * additive algebraic structure that, when added to any element of the structure,
-    * results in the same element. For any element `x`, `x + zero` and `zero + x` should
-    * equal `x`.
+    * This value is defined as the additive identity in the context of the `Field` type class,
+    * meaning any `RationalNumber` added to this value will result in the original `RationalNumber`.
     */
   val zero: RationalNumber = rationalNumberIsField.zero
 
   /**
-    * Represents the multiplicative identity element of the structure.
+    * A constant that represents the identity element for multiplication within the field of `RationalNumber`.
     *
-    * The `one` value serves as the neutral element for the multiplication operation, meaning
-    * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
+    * This value is provided by the implicit `Field` instance for `RationalNumber` and is equal to a `RationalNumber` representation of one.
     */
   val one: RationalNumber = rationalNumberIsField.one
 
+  /**
+    * Computes the optional representation of this value as a `Z` (integer-like structure).
+    * Transforms the optional integer representation of the underlying number (`maybeInt`)
+    * into a corresponding `Z` instance, wrapped in `Option`.
+    *
+    * @return an `Option[Z]` where `Some(Z)` represents a valid integer-like structure
+    *         derived from the current value, and `None` indicates that the value cannot
+    *         be expressed as a `Z` (e.g., if the number is not a whole number or out of range).
+    */
   def maybeZ: Option[Z] =
     r.maybeInt.map(WholeNumber(_))
 
   /**
-    * Converts the current instance to a Double representation.
-    * CONSIDER changing to maybeDouble returning Option[Double].
+    * Converts this `RationalNumber` instance to its corresponding `Double` representation.
     *
-    * @return the Double value corresponding to the current instance
+    * @return the `Double` value of this `RationalNumber`
     */
   def asDouble: Double = r.toDouble
 
   /**
-    * Creates an instance of `R` from the given `Rational` value.
+    * Returns an Option containing this instance cast as type `Q`.
     *
-    * @param q the `Rational` value to be converted into an instance of `R`
-    * @return an instance of `R` representing the specified `Rational` value
+    * @return an Option wrapping this instance as a type `Q`
     */
   def maybeQ: Option[Q] = Some(this)
 
   /**
-    * Compares the current `Number` instance with another `Number` instance exactly.
+    * Compares this `RationalNumber` instance with another `Scalar` instance for exact equivalence.
+    * The comparison is performed by checking the type of the given `Scalar` and attempting an exact comparison
+    * if applicable. The result is encapsulated in an `Option[Int]`.
     *
-    * This method performs a comparison of two `Number` instances only if both numbers are exact.
-    * It is expected to throw an exception or return undefined behavior if used inappropriately
-    * with numbers that are not exact, depending on the implementation in the subtype.
-    *
-    * @param that the `Number` to compare against
-    * @return an integer value:
-    *         - a negative value if this `Number` is less than `that`
-    *         - zero if this `Number` is equal to `that`
-    *         - a positive value if this `Number` is greater than `that`
+    * @param that the `Scalar` instance to compare against
+    * @return an `Option[Int]`:
+    *         - `Some(-1)` if this `RationalNumber` is less than `that`
+    *         - `Some(0)` if this `RationalNumber` is equal to `that`
+    *         - `Some(1)` if this `RationalNumber` is greater than `that`
+    *         - `None` if the exact comparison is not possible
     */
   def compareExact(that: Scalar): Option[Int] = that match {
     case RationalNumber(o) =>
@@ -98,14 +94,14 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
   }
 
   /**
-    * Converts the given number to an instance of the specified type, if possible.
+    * Converts the given instance of type `T` (a subtype of `Structure`) into an optional transformed instance of the same type.
     *
-    * The method attempts to convert the input into a `Real` if it matches the specific type constraint,
-    * or returns `None` otherwise.
+    * The method attempts to match the input object `t` to specific subtypes (`Real`, `WholeNumber`) and performs
+    * a corresponding transformation if possible. If the input `t` does not match any recognized subtype, the result is `None`.
     *
-    * @param t a prototype of the required output.
-    * @tparam T the type of the number, which must be a subtype of `Number`
-    * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible
+    * @param t the input object of type `T`, where `T` is a subtype of `Structure`.
+    * @tparam T the type of the input object, which must be a subtype of `Structure` and must have an available `ClassTag`.
+    * @return an `Option` containing the transformed instance of type `T` if the conversion is successful, or `None` if it is not.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: Real =>
@@ -117,22 +113,21 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
   }
 
   /**
-    * Converts this instance of `Q` to its corresponding rational representation.
+    * Converts the current RationalNumber instance to a Rational representation.
     *
-    * @return a Rational instance representing the current value
+    * @return the Rational representation of this RationalNumber.
     */
   def toRational: Rational = r
 
   /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
+    * Scales this `RationalNumber` by a specified `Scalar`.
+    * If the provided scalar is of type `Z`, it attempts to perform the scaling operation
+    * using the underlying `Rational` values.
     *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
-    *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+    * @param that the `Scalar` to scale this `RationalNumber` by. It must be of type `Z` to proceed
+    *             with the scaling operation.
+    * @return an `Option[RationalNumber]` containing the scaled `RationalNumber` if the operation
+    *         is possible, or `None` if `that` is not of type `Z` or the scaling operation fails.
     */
   def scale(that: Scalar): Option[RationalNumber] = that match {
     case rn: Z =>
@@ -142,133 +137,111 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
   }
 
   /**
-    * Raises this `RationalNumber` to the specified power represented by a `Rational`.
+    * Computes the power of the rational number with the given rational exponent.
     *
-    * @param p the `Rational` exponent to which this `RationalNumber` is to be raised
-    * @return a `MultiplicativeWithPower[RationalNumber]` representing the result of raising this `RationalNumber` to the power of `p`
+    * @param p the rational exponent to which the rational number is to be raised
+    * @return an Option containing the resulting RationalNumber if successful, or None if the computation is not possible
     */
   def power(p: Rational): Option[RationalNumber] =
     r.power(p).map(RationalNumber(_)).toOption
 
   /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
+    * Scales the current `RationalNumber` instance using the provided `Number` multiplier.
     *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
+    * This method performs a scaling operation where the current instance is scaled
+    * by the specified `Number`. The result is returned as an `Option[RationalNumber]`,
+    * allowing for cases where the scaling operation might not be valid or possible.
     *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+    * @param that the `Number` used to scale the current instance
+    * @return an `Option[RationalNumber]` containing the scaled instance, 
+    *         or `None` if the operation cannot be performed
     */
   override def doScale(that: Number): Option[RationalNumber] = doScale(that)
 
   /**
-    * Scales the instance of type T by the given integer multiplier.
+    * Scales the current instance of `RationalNumber` by the given `Int` value.
     *
-    * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
-    * the scaling operation is valid for the specific implementation.
-    *
-    * @param that the integer multiplier used to scale the instance
-    * @return an Option containing the scaled result of type T, or None if the operation is invalid
+    * @param that the integer value to scale the `RationalNumber` instance by
+    * @return an `Option[RationalNumber]` representing the scaled result; returns `None` if the operation cannot be performed
     */
   def doScaleInt(that: Int): Option[RationalNumber] =
     doScale(RationalNumber(Rational(that)))
 
   /**
-    * Determines the sign of the scalar value represented by this instance.
-    * Returns an integer indicating whether the value is positive, negative, or zero.
+    * Computes the sign of the current `RationalNumber`.
+    * It evaluates to:
+    * - 0 if the value is zero.
+    * - 1 if the value is positive.
+    * - -1 if the value is negative.
     *
-    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    * @return an integer representing the sign of the number: 0 for zero, 1 for positive, and -1 for negative.
     */
   def signum: Int = r.signum
 
   /**
-    * Determines if the number is represented exactly without any approximation.
+    * Determines if the current instance of RationalNumber is represented exactly.
     *
-    * @return true if the number is exact, false otherwise
+    * @return true as the instance is always exact.
     */
   override def isExact: Boolean = true
 
   /**
-    * If this `Valuable` is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a Real--only for exact numbers.
+    * Retrieves an optional `Double` representation of the current rational number.
+    * This method checks if the rational number can be exactly represented as a `Double`.
+    * If it can, the value is converted to `Double` and returned wrapped in `Some`.
+    * Otherwise, `None` is returned.
     *
-    * @return Some(x) where x is a Double if this is exact, else None.
+    * @return an `Option[Double]`, where `Some(Double)` is returned if the rational
+    *         number can be exactly represented as a `Double`, and `None` otherwise.
     */
   def maybeDouble: Option[Double] = r.maybeDouble
 
   /**
-    * Determines if the current number is equal to zero.
+    * Checks if the value represented by this instance is zero.
     *
-    * @return true if the number is zero, false otherwise
+    * @return true if the value is zero, false otherwise
     */
   def isZero: Boolean = r.isZero
 
   /**
-    * Method to render this RationalNumber for presentable.
+    * Renders the string representation of the current `RationalNumber` instance.
+    * Delegates the rendering logic to the associated `r` instance's `render` method.
     *
-    * @return a String
+    * @return the string representation of this `RationalNumber`.
     */
   def render: String = r.render
 
   /**
-    * Converts this instance of `Q` to its corresponding rational representation.
+    * Retrieves an optional Rational value.
     *
-    * @return a Rational instance representing the current value
+    * @return an Option containing a Rational, if available; otherwise, None.
     */
   def maybeRational: Option[Rational] = Some(r)
 
   /**
-    * Converts this instance of `Z` to its corresponding int representation--if possible.
+    * Returns an optional integer representation of this `RationalNumber`.
+    * The result depends on whether the underlying `Rational` value can be converted to an integer.
     *
-    * @return an `Option[Int]` representing this value, providing that it can fit in an `Int`.
-    *         If the value cannot fit in an `Int`, then the `Option` will be `None`.
-    *         If the value can fit in an `Int`, then the `Option` will be `Some(Int)`.
+    * @return an `Option[Int]` containing the integer value if the conversion is possible; `None` otherwise.
     */
   def maybeInt: Option[Int] = maybeRational.flatMap(_.maybeInt)
 
   /**
-    * Computes the additive inverse of this instance.
+    * Computes the negation of this `RationalNumber`.
     *
-    * This method returns a new instance representing the negation of this value,
-    * as defined in the additive structure of the type `T`.
+    * This method returns a new `RationalNumber` instance that represents the negation of the current value.
     *
-    * @return a new instance of type `T` that is the additive inverse of this instance
+    * @return a new `RationalNumber` which is the additive inverse of this `RationalNumber`
     */
   def unary_- : RationalNumber =
     rationalNumberIsField.negate(this)
 
   /**
-    * Adds the given `Scalar` to this `Scalar` and returns the result as an `Option[Scalar]`.
+    * Retrieves an optional factor representation of the current `RationalNumber`.
     *
-    * The addition is performed based on the type of the input `Scalar`. If the input is:
-    * - A `RationalNumber`, the result is computed by adding it to this instance.
-    * - An `Angle`, the angle is converted to a `Real` to determine compatibility for addition.
-    * - A `Real`, an attempt is made to convert this instance to a compatible `Real` and perform the operation.
-    *
-    * @param that the `Scalar` to be added to the current instance
-    * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
-    */
-//  infix def doPlus(that: Scalar): Option[Scalar] = that match {
-//    case w@WholeNumber(_) =>
-//      w.convert(RationalNumber.zero).flatMap(this.doPlus)
-//    case r@RationalNumber(_) => Some(this + r)
-////    case a@Angle(_) =>
-////      a.convert(Real.zero).flatMap(this.doPlus)
-//    case f@Real(_, _) =>
-//      this.convert(Real.zero).map(x => realIsRing.plus(x, f))
-//  }
-
-  /**
-    * Computes the potential factor associated with this instance.
-    *
-    * @return Some(PureNumber).
+    * @return an `Option[Factor]` containing the factor if available, or `None` if the factor cannot be determined.
     */
   def maybeFactor: Option[Factor] = Some(PureNumber)
-
 }
 
 /**
@@ -278,64 +251,70 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
   */
 object RationalNumber {
   /**
-    * Creates a new `RationalNumber` instance from the given `Rational` value.
+    * Converts a given `Rational` to a `RationalNumber`.
     *
-    * @param r the `Rational` value to be converted into a `RationalNumber`
+    * @param r the `Rational` value to be converted
     * @return a new `RationalNumber` instance representing the given `Rational`
     */
   def apply(r: Rational): RationalNumber = new RationalNumber(r)
 
   /**
-    * Creates a `RationalNumber` instance from two `Long` values representing the numerator and denominator.
+    * Creates a `RationalNumber` instance from two provided `Long` values,
+    * representing the numerator and denominator of a rational number.
     *
     * @param x the numerator of the rational number
     * @param y the denominator of the rational number
-    * @return a new `RationalNumber` instance representing the fraction x / y
+    * @return a `RationalNumber` instance constructed from the given numerator and denominator
     */
   def apply(x: Long, y: Long): RationalNumber = RationalNumber(Rational(x, y))
 
   /**
-    * Creates a new `RationalNumber` instance from the given `Long` value.
+    * Creates a rational number representation from a given integer value.
     *
-    * This method converts the specified `Long` value into a `RationalNumber` representation.
-    *
-    * @param x the `Long` value to be converted into a `RationalNumber`
-    * @return a new `RationalNumber` instance constructed from the given `Long` value.
+    * @param x the integer value to be converted into a rational number
+    * @return a `RationalNumber` representing the input integer
     */
   def apply(x: Long): RationalNumber = RationalNumber(Rational(x))
 
   /**
-    * Provides an implicit `Show` instance for `RationalNumber`.
+    * Parses a string representation of a rational number and converts it into an `Option[RationalNumber]`.
     *
-    * This implicit instance utilizes the `render` method of `RationalNumber`
-    * to define how instances of `RationalNumber` are represented as a string.
-    * It integrates with the `Show` typeclass to allow consistent string representation
-    * of rational numbers.
+    * @param w the string representation of the rational number to be parsed
+    * @return an `Option[RationalNumber]` containing the parsed rational number if successful, or `None` if parsing fails
+    */
+  def parse(w: String): Option[RationalNumber] = (Rational.parse(w)).map(RationalNumber(_)).toOption
+
+  /**
+    * Provides an implicit `Show` instance for the `RationalNumber` class.
+    * This instance defines how a `RationalNumber` is transformed into a `String`
+    * representation by using its `render` method.
     */
   implicit val showRationalNumber: Show[RationalNumber] = Show.show(_.render)
 
   /**
-    * Returns the additive identity for `RationalNumber`.
-    *
-    * This method provides the zero value of type `RationalNumber`, which acts as
-    * the identity element for addition in the context of rational numbers.
-    *
-    * @return the zero value as a `RationalNumber` instance.
+    * Represents the rational number zero.
+    * This is a predefined constant in the RationalNumber class.
     */
-  def zero: RationalNumber =
+  val zero: RationalNumber =
     RationalNumber(Rational.zero)
 
   /**
-    * Provides the multiplicative identity element for `RationalNumber`.
-    *
-    * This method returns a `RationalNumber` instance equivalent to the value `1`,
-    * which serves as the identity element for multiplication in the context of rational numbers.
-    *
-    * @return a `RationalNumber` instance representing the multiplicative identity `1`.
+    * Represents the rational number one as an instance of RationalNumber.
     */
-  def one: RationalNumber =
+  val one: RationalNumber =
     RationalNumber(Rational.one)
 
+  /**
+    * Represents the rational number -1 as a predefined constant.
+    * This is an instance of the `RationalNumber` class initialized
+    * with the negative one value from the `Rational` type.
+    */
+  val minusOne: RationalNumber = RationalNumber(Rational.negOne)
+
+  /**
+    * Represents a predefined constant value of one-half as a RationalNumber.
+    * This is a convenience representation of the fraction 1/2 in the system of rational numbers.
+    */
   val half: RationalNumber = RationalNumber(Rational.half)
 
   /**
