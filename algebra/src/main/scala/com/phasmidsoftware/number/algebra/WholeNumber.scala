@@ -21,7 +21,41 @@ import spire.math.SafeLong
   *
   * @param x a SafeLong value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with Number with Q with Z {
+case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with Number with Z {
+  /**
+    * Converts this instance of `Z` to its corresponding int representation--if possible.
+    *
+    * @return an `Option[Int]` representing this value, providing that it can fit in an `Int`.
+    *         If the value cannot fit in an `Int`, then the `Option` will be `None`.
+    *         If the value can fit in an `Int`, then the `Option` will be `Some(Int)`.
+    */
+  def toInt: Int = x.toInt // CHECK this or have it return BigInt!
+
+  /**
+    * Converts this instance of `Q` to its corresponding rational representation.
+    *
+    * @return a Rational instance representing the current value
+    */
+  def toRational: Rational = Rational(x.toBigInt)
+
+  def maybeZ: Option[Z] = Some(this)//(Rational(x.toBigInt).maybeInt.map(WholeNumber(_)))
+
+  /**
+    * Converts the current instance to a Double representation.
+    * CONSIDER changing to maybeDouble returning Option[Double].
+    *
+    * @return the Double value corresponding to the current instance
+    */
+  def asDouble: Double = toRational.toDouble
+
+  /**
+    * Creates an instance of `R` from the given `Rational` value.
+    *
+    * @param q the `Rational` value to be converted into an instance of `R`
+    * @return an instance of `R` representing the specified `Rational` value
+    */
+  def maybeQ: Option[Q] = ???
+
   /**
     * Adds the given instance of the same type to this instance, leveraging the properties
     * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
@@ -100,14 +134,14 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     * @return an `Option[Int]` containing the integer representation of this `WholeNumber`
     *         if it can be exactly represented as an `Int`, or `None` otherwise.
     */
-  def toInt: Option[Int] = asRational.maybeInt
+  def maybeInt: Option[Int] = maybeRational.flatMap(_.maybeInt)
 
   /**
     * Converts this `Q` instance into its corresponding `Rational` representation.
     *
     * @return a `Rational` value representing this `WholeNumber`.
     */
-  def asRational: Rational = Rational(x.toBigInt)
+  def maybeRational: Option[Rational] = Some(Rational(x.toBigInt))
 
   /**
     * Scale this Real by the given scalar, provided that it is exact.

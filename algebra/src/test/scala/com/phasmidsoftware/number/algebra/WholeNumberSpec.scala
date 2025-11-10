@@ -54,8 +54,8 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   }
   it should "asJavaNumber" in {
   }
-  it should "asRational" in {
-    WholeNumber(42).asRational shouldBe Rational(42)
+  it should "maybeRational" in {
+    WholeNumber(42).maybeRational shouldBe Some(Rational(42))
   }
   it should "asT" in {
     WholeNumber(42).asT shouldBe WholeNumber(42)
@@ -109,8 +109,8 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
     WholeNumber.one.signum shouldBe 1
     WholeNumber.minusOne.signum shouldBe -1
   }
-  it should "toInt" in {
-    WholeNumber(42).toInt shouldBe Some(42)
+  it should "maybeInt" in {
+    WholeNumber(42).maybeInt shouldBe Some(42)
   }
   it should "toString" in {
     // toString should really show what we've got

@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Valu
 import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber, NumberException}
 import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.parse.NumberParser
+import jdk.javadoc.internal.doclint.HtmlTag.Q
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -28,7 +29,22 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends CanAdd[Real, Structure] with Number {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAdd[Real, Structure] with Number {
+  /**
+    * Converts the current instance to a Double representation.
+    * CONSIDER changing to maybeDouble returning Option[Double].
+    *
+    * @return the Double value corresponding to the current instance
+    */
+  def asDouble: Double = value
+
+  /**
+    * Creates an instance of `R` from the given `Rational` value.
+    *
+    * @param q the `Rational` value to be converted into an instance of `R`
+    * @return an instance of `R` representing the specified `Rational` value
+    */
+  def maybeQ: Option[Q] = Rational.createExact(value).toOption.map(RationalNumber(_))
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no fuzz.
@@ -198,14 +214,15 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends CanAdd[R
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
   def maybeFactor: Option[Factor] = Some(PureNumber)
-
-  /**
-    * Adds the specified `T` to this `T` instance.
-    *
-    * @param t an instance of `T` to be added to this `T`
-    * @return a new `T` representing the sum of this `T` and the given `T`
-    */
-  def +(t: Real): Real = realIsRing.plus(this, t)
+//
+//  /**
+//    * Adds the specified `T` to this `T` instance.
+//    *
+//    * @param t an instance of `T` to be added to this `T`
+//    * @return a new `T` representing the sum of this `T` and the given `T`
+//    */
+//  def +(t: Real): Real = realIsRing.plus(this, t)
+//
 
   /**
     * Computes the additive inverse of this instance.

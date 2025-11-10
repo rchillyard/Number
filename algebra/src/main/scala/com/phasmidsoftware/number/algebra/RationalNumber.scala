@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.reflect.ClassTag
+import sun.jvm.hotspot.gc.shared.GCName.Z
 
 /**
   * Represents a rational number and provides arithmetic operations
@@ -55,6 +56,25 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
     */
   val one: RationalNumber = rationalNumberIsField.one
 
+  def maybeZ: Option[Z] =
+    r.maybeInt.map(WholeNumber(_))
+
+  /**
+    * Converts the current instance to a Double representation.
+    * CONSIDER changing to maybeDouble returning Option[Double].
+    *
+    * @return the Double value corresponding to the current instance
+    */
+  def asDouble: Double = r.toDouble
+
+  /**
+    * Creates an instance of `R` from the given `Rational` value.
+    *
+    * @param q the `Rational` value to be converted into an instance of `R`
+    * @return an instance of `R` representing the specified `Rational` value
+    */
+  def maybeQ: Option[Q] = Some(this)
+
   /**
     * Compares the current `Number` instance with another `Number` instance exactly.
     *
@@ -97,12 +117,11 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
   }
 
   /**
-    * Converts this `Number` into its corresponding `Rational` representation, if possible.
+    * Converts this instance of `Q` to its corresponding rational representation.
     *
-    * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
-    *         if it can be converted, or `None` if the conversion is not possible.
+    * @return a Rational instance representing the current value
     */
-  def toRational: Option[Rational] = Some(r)
+  def toRational: Rational = r
 
   /**
     * Scales the current instance of type `T` using the given `Number` multiplier.
@@ -116,8 +135,8 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
     * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
     */
   def scale(that: Scalar): Option[RationalNumber] = that match {
-    case rn: Q =>
-      Some(RationalNumber(r * rn.asRational))
+    case rn: Z =>
+      rn.maybeQ map (q => RationalNumber(r * q.toRational))
     case _ =>
       None
   }
@@ -200,7 +219,7 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
     *
     * @return a Rational instance representing the current value
     */
-  def asRational: Rational = r
+  def maybeRational: Option[Rational] = Some(r)
 
   /**
     * Converts this instance of `Z` to its corresponding int representation--if possible.
@@ -209,7 +228,7 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
     *         If the value cannot fit in an `Int`, then the `Option` will be `None`.
     *         If the value can fit in an `Int`, then the `Option` will be `Some(Int)`.
     */
-  def toInt: Option[Int] = asRational.maybeInt
+  def maybeInt: Option[Int] = maybeRational.flatMap(_.maybeInt)
 
   /**
     * Computes the additive inverse of this instance.

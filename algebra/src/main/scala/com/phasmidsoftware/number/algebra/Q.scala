@@ -11,13 +11,22 @@ import com.phasmidsoftware.number.core.inner.Rational
   *
   * It inherits the capability to be represented as a `Rational` from `Q` and adds functionality for conversion to a `Double`.
   */
-trait R extends Q {
+trait R {
   /**
     * Converts the current instance to a Double representation.
+    * CONSIDER changing to maybeDouble returning Option[Double].
     *
     * @return the Double value corresponding to the current instance
     */
   def asDouble: Double
+
+  /**
+    * Creates an instance of `R` from the given `Rational` value.
+    *
+    * @param q the `Rational` value to be converted into an instance of `R`
+    * @return an instance of `R` representing the specified `Rational` value
+    */
+  def maybeQ: Option[Q]
 }
 
 /**
@@ -25,14 +34,16 @@ trait R extends Q {
   *
   * It provides a method to convert the implementing instance into a `Rational` representation.
   */
-trait Q extends Z {
+trait Q extends R {
 
   /**
     * Converts this instance of `Q` to its corresponding rational representation.
     *
     * @return a Rational instance representing the current value
     */
-  def asRational: Rational
+  def toRational: Rational
+
+  def maybeZ: Option[Z]
 }
 
 /**
@@ -40,7 +51,7 @@ trait Q extends Z {
   * This abstraction can be used in scenarios where values may or may not fit within the bounds of
   * a 32-bit signed integer.
   */
-trait Z {
+trait Z extends Q {
   /**
     * Converts this instance of `Z` to its corresponding int representation--if possible.
     *
@@ -48,5 +59,5 @@ trait Z {
     *         If the value cannot fit in an `Int`, then the `Option` will be `None`.
     *         If the value can fit in an `Int`, then the `Option` will be `Some(Int)`.
     */
-  def toInt: Option[Int]
+  def toInt: Int
 }
