@@ -110,8 +110,8 @@ object Scalar {
         WholeNumber(x)
       case (Right(x), _) =>
         Real(x, fuzz)
-//      case (Left(Right(x)), None) =>
-//        RationalNumber(x)
+      case (Left(Right(x)), None) =>
+        RationalNumber(x)
       case (Left(Right(x)), _) =>
         Real(x.toDouble, fuzz)
       case (Left(Left(Some(x))), _) =>

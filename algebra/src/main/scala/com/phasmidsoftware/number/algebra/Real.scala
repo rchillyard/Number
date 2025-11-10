@@ -2,13 +2,13 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Ring
 import cats.Show
+import com.phasmidsoftware.number.algebra.Real.realIsRing
+import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber, NumberException}
-import com.phasmidsoftware.number.parse.NumberParser
-import com.phasmidsoftware.number.algebra.Real.realIsRing
-import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.misc.FP
+import com.phasmidsoftware.number.parse.NumberParser
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -53,8 +53,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends CanAdd[R
     * @return an Option wrapping the input number if the conversion is successful, otherwise None
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
-//    case _: RationalNumber =>
-//      FP.whenever(isExact)(Rational.createExact(value).toOption).asInstanceOf[Option[T]]
+    case _: RationalNumber =>
+      FP.whenever(isExact)(Rational.createExact(value).toOption).asInstanceOf[Option[T]]
     case _: Real =>
       Some(this).asInstanceOf[Option[T]]
 //    case _: Angle =>

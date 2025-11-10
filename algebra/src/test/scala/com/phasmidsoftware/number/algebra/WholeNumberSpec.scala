@@ -22,7 +22,7 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
 
   it should "test conversion to other Structures" in {
     zero.convert(Real.zero) shouldBe Some(Real(0, None))
-//    zero.convert(RationalNumber.zero) shouldBe Some(RationalNumber.zero)
+    zero.convert(RationalNumber.zero) shouldBe Some(RationalNumber.zero)
   }
 
   it should "test comparison" in {
@@ -35,7 +35,7 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   it should "test arithmetic operations" in {
     zero + one shouldBe one
     one + -one shouldBe zero
-//    one - one shouldBe zero
+    one - one shouldBe zero
   }
 
   behavior of "WholeNumberSpec 2"

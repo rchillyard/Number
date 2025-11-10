@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.{Constants, NumberException, NumberExceptionWithCause}
 import com.phasmidsoftware.number.parse.NumberParser
 import scala.language.implicitConversions
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 /**
   * A trait representing an object that is in some sense numerical and has a value (or possibly more than one value).
@@ -69,7 +69,7 @@ object Valuable {
   lazy val one: Valuable = Number.one
   lazy val minusOne: Valuable = Number.minusOne
   lazy val two: Valuable = Scalar(2)
-  //  lazy val half: Valuable = RationalNumber(Rational.half)
+  lazy val half: Valuable = RationalNumber(Rational.half)
   lazy val ten: Valuable = Scalar(10)
   //  lazy val pi: Valuable = Angle.pi
 //  lazy val piBy2: Valuable = Angle.piBy2

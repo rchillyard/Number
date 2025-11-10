@@ -4,11 +4,10 @@
 
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.inner.Factor
-import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.{Real, Valuable}
+import com.phasmidsoftware.number.{algebra, core}
 import com.phasmidsoftware.number.core.*
+import com.phasmidsoftware.number.core.inner.Factor
 import scala.reflect.ClassTag
 
 /**
@@ -46,7 +45,7 @@ trait Structure extends Valuable {
   def asJavaNumber: Option[java.lang.Number] = this match {
 //    case algebra.Angle(number) => number.convert(Real.zero).flatMap(x => x.asJavaNumber)
     case algebra.Real(value, _) => Some(value)
-//    case algebra.RationalNumber(r) => Some(r.toDouble)
+    case algebra.RationalNumber(r) => Some(r.toDouble)
     case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")
   }
 //

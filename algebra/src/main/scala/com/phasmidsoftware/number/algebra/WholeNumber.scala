@@ -46,8 +46,8 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
   def compareExact(that: Scalar): Option[Int] = that match {
     case WholeNumber(o) =>
       Some(x.compare(o))
-//    case RationalNumber(r) =>
-//      Some(Rational(x.toBigInt).compare(r))
+    case RationalNumber(r) =>
+      Some(Rational(x.toBigInt).compare(r))
     case _ =>
       None
   }
@@ -63,9 +63,9 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
-//    case _: RationalNumber =>
-//      val number = RationalNumber(Rational(x.toBigInt))
-//      Some(number.asInstanceOf[T])
+    case _: RationalNumber =>
+      val number = RationalNumber(Rational(x.toBigInt))
+      Some(number.asInstanceOf[T])
     case _: Real =>
       Some(Real(x.toDouble, None).asInstanceOf[T])
     case _ =>

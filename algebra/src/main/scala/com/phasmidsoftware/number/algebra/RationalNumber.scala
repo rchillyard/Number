@@ -194,15 +194,6 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
     * @return a String
     */
   def render: String = r.render
-//
-//  /**
-//    * Adds the specified `T` to this `T` instance.
-//    *
-//    * @param t an instance of `T` to be added to this `T`
-//    * @return a new `T` representing the sum of this `T` and the given `T`
-//    */
-//  def +(t: RationalNumber): RationalNumber =
-//    rationalNumberIsField.plus(this, t) // CONSIDER why doesn't this work with implicitly...?
 
   /**
     * Converts this instance of `Q` to its corresponding rational representation.
@@ -210,16 +201,6 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
     * @return a Rational instance representing the current value
     */
   def asRational: Rational = r
-//
-//  /**
-//    * Adds the given instance of the same type to this instance, leveraging the properties
-//    * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
-//    *
-//    * @param that The instance of the same type to be added to this instance.
-//    * @return The result of adding this instance and the provided instance.
-//    */
-//  def -(that: RationalNumber)(using AdditiveCommutativeGroup[RationalNumber]): RationalNumber =
-//    rationalNumberIsField.plus(this, -that)
 
   /**
     * Converts this instance of `Z` to its corresponding int representation--if possible.
@@ -240,43 +221,6 @@ case class RationalNumber(r: Rational) extends Q with CanMultiplyAndDivide[Ratio
     */
   def unary_- : RationalNumber =
     rationalNumberIsField.negate(this)
-
-//  /**
-//    * Subtracts the specified `RationalNumber` from this `RationalNumber`.
-//    *
-//    * This method computes the difference between the current `RationalNumber` instance
-//    * and the given `RationalNumber` by adding the additive inverse of the operand.
-//    *
-//    * @param t the `RationalNumber` to be subtracted from this instance
-//    * @return a new `RationalNumber` representing the result of the subtraction
-//    */
-//  def -(t: RationalNumber): RationalNumber = this + -t
-//
-//  /**
-//    * Multiplies the specified `T` by this `T` instance.
-//    *
-//    * @param t an instance of `T` to be multiplied by this `T`
-//    * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
-//    */
-//  def *(t: RationalNumber): RationalNumber = rationalNumberIsField.times(this, t)
-//
-//  /**
-//    * Divides this `T` instance by the specified `T`.
-//    *
-//    * @param t an instance of `T` to be the divisor
-//    * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
-//    */
-//  def /(t: RationalNumber): RationalNumber = rationalNumberIsField.div(this, t)
-//
-//  /**
-//    * Computes the multiplicative inverse of this instance.
-//    *
-//    * The inverse is defined as an element that, when multiplied with this instance, yields the
-//    * multiplicative identity element (`one`) of the structure.
-//    *
-//    * @return a new `Multiplicative[T]` representing the multiplicative inverse of this instance
-//    */
-//  def inverse: RationalNumber = one / this
 
   /**
     * Adds the given `Scalar` to this `Scalar` and returns the result as an `Option[Scalar]`.
