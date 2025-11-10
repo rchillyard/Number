@@ -7,11 +7,25 @@ package com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.core.inner.Rational
 
 /**
+  * Trait `R` extends `Q` and represents all Real numbers.
+  *
+  * It inherits the capability to be represented as a `Rational` from `Q` and adds functionality for conversion to a `Double`.
+  */
+trait R extends Q {
+  /**
+    * Converts the current instance to a Double representation.
+    *
+    * @return the Double value corresponding to the current instance
+    */
+  def asDouble: Double
+}
+
+/**
   * Trait `Q` serves as a marker for entities that can be represented as a rational number.
   *
   * It provides a method to convert the implementing instance into a `Rational` representation.
   */
-trait Q {
+trait Q extends Z {
 
   /**
     * Converts this instance of `Q` to its corresponding rational representation.
@@ -20,7 +34,6 @@ trait Q {
     */
   def asRational: Rational
 }
-
 
 /**
   * Trait `Z` represents a structure that can potentially be converted to an integer representation.

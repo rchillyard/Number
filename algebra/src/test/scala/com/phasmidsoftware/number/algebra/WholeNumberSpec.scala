@@ -39,12 +39,14 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   }
 
   behavior of "WholeNumberSpec 2"
-
   it should "$plus" in {
     WholeNumber.zero + WholeNumber.one shouldBe WholeNumber.one
   }
   it should "$times" in {
     WholeNumber(6) * WholeNumber(7) shouldBe WholeNumber(42)
+  }
+  it should "$minus" in {
+    WholeNumber(6) - WholeNumber(7) shouldBe WholeNumber.minusOne
   }
   it should "apply" in {
   }
@@ -58,8 +60,8 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   it should "asT" in {
     WholeNumber(42).asT shouldBe WholeNumber(42)
   }
-//  it should "compare" in {
-//  }
+  it should "compare" in {
+  }
   it should "compareExact" in {
   }
   it should "compareTo" in {

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra
 
-import algebra.ring.CommutativeRing
+import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
@@ -22,6 +22,15 @@ import spire.math.SafeLong
   * @param x a SafeLong value representing the whole number
   */
 case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with Number with Q with Z {
+  /**
+    * Adds the given instance of the same type to this instance, leveraging the properties
+    * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
+    *
+    * @param that The instance of the same type to be added to this instance.
+    * @return The result of adding this instance and the provided instance.
+    */
+  def -(that: WholeNumber)(using AdditiveCommutativeGroup[WholeNumber]): WholeNumber =
+    WholeNumberIsCommutativeRing.minus(this, that)
 
   /**
     * Compares the current `WholeNumber` instance with another `Number` to determine their exact order.
@@ -112,7 +121,7 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     scalar match {
       case WholeNumber(i) =>
         Some(WholeNumber(x.toBigInt * i.toBigInt))
-      case _ => // TODO add other cases as the become available
+      case _ => // TODO add other cases as they become available
         None
     }
 
