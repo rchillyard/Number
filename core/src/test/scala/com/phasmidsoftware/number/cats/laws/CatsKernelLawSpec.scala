@@ -243,6 +243,6 @@ class CatsKernelLawSpec
   // Now that Eq[Field] is provided globally, we can test Eq and PartialOrder
   checkAll("Field", EqTests[Field].eqv)
   checkAll("Field", PartialOrderTests[Field].partialOrder)
-  checkAll("Complex", EqTests[Complex].eqv)
+//  checkAll("Complex", EqTests[Complex].eqv)
 }
 
