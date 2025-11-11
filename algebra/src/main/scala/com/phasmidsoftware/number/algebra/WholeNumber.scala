@@ -21,7 +21,7 @@ import spire.math.SafeLong
   *
   * @param x a SafeLong value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with Number with Z {
+case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanScale[WholeNumber, WholeNumber] with Number with Z {
   /**
     * Converts this instance to its corresponding integer representation.
     *
@@ -183,6 +183,32 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     */
   def doScaleInt(that: Int): Option[Monotone] =
     Some(WholeNumber(x * that))
+
+  /**
+    * Scales the current instance of type `T` using the given `Number` multiplier.
+    *
+    * This method performs a scaling operation by multiplying the current instance
+    * with the provided `Number`. The result of the scaling operation is returned
+    * as an `Option`, allowing for cases where the operation might not be valid or
+    * possible.
+    *
+    * @param that the `Number` multiplier used to scale the current instance
+    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+    */
+  def doScale(that: WholeNumber): Option[WholeNumber] = Some(this * that)
+
+  /**
+    * Scales the current instance of type `T` by the specified `Double` value.
+    *
+    * This method applies a scaling factor to the instance, returning an `Option`
+    * that contains the scaled instance if the operation is valid. If the scaling
+    * operation is not valid or feasible, `None` is returned.
+    *
+    * @param that the `Double` value to scale the instance by
+    * @return an `Option` containing the scaled instance of type `T`, or `None`
+    *         if scaling is not possible
+    */
+  def doScaleDouble(that: Double): Option[Monotone] = None
 
   /**
     * Computes the signum of this WholeNumber.

@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.algebra.misc.Renderable
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
-import com.phasmidsoftware.number.core.{Constants, NumberException, NumberExceptionWithCause}
+import com.phasmidsoftware.number.core.{NumberException, NumberExceptionWithCause}
 import com.phasmidsoftware.number.parse.NumberParser
 import scala.language.implicitConversions
 import scala.util.{Failure, Success}
@@ -71,14 +71,14 @@ object Valuable {
   lazy val two: Valuable = Scalar(2)
   lazy val half: Valuable = RationalNumber(Rational.half)
   lazy val ten: Valuable = Scalar(10)
-  //  lazy val pi: Valuable = Angle.pi
-//  lazy val piBy2: Valuable = Angle.piBy2
-//  lazy val piBy4: Valuable = Angle.piBy4
-//  lazy val e: Valuable = NatLog.e
-//  lazy val infinity: Valuable = RationalNumber.zero.inverse
-//  lazy val negInfinity: Valuable = RationalNumber(Rational.negInfinity)
-  lazy val root2: Valuable = Valuable(Constants.root2) // TODO use Root constants
-  lazy val root3: Valuable = Valuable(Constants.root3) // TODO use Root constants
+  lazy val pi: Valuable = Angle.pi
+  lazy val piBy2: Valuable = Angle.piBy2
+  lazy val piBy4: Valuable = Angle.piBy4
+  lazy val e: Valuable = NatLog.e
+  lazy val infinity: Valuable = RationalNumber(Rational.infinity)
+  lazy val negInfinity: Valuable = RationalNumber(Rational.negInfinity)
+  lazy val root2: Valuable = InversePower(2, 2)
+  lazy val root3: Valuable = InversePower(2, 3)
 
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed

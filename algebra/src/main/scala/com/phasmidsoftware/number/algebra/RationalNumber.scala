@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
   * @param r The `Rational` value represented by this `RationalNumber`.
   */
-case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Number {
+case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with CanScale[RationalNumber, WholeNumber] with Number {
   /**
     * Subtracts the given rational number from this one.
     *
@@ -137,6 +137,21 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
   }
 
   /**
+    * Scales the current instance of type `T` by the specified `Double` value.
+    *
+    * CONSIDER does this method makes sense here? Maybe it's declared in the wrong place.
+    *
+    * This method applies a scaling factor to the instance, returning an `Option`
+    * that contains the scaled instance if the operation is valid. If the scaling
+    * operation is not valid or feasible, `None` is returned.
+    *
+    * @param that the `Double` value to scale the instance by
+    * @return an `Option` containing the scaled instance of type `T`, or `None`
+    *         if scaling is not possible
+    */
+  def doScaleDouble(that: Double): Option[Monotone] = None
+
+  /**
     * Computes the power of the rational number with the given rational exponent.
     *
     * @param p the rational exponent to which the rational number is to be raised
@@ -146,17 +161,18 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     r.power(p).map(RationalNumber(_)).toOption
 
   /**
-    * Scales the current `RationalNumber` instance using the provided `Number` multiplier.
+    * Scales the current instance of type `T` using the given `Number` multiplier.
     *
-    * This method performs a scaling operation where the current instance is scaled
-    * by the specified `Number`. The result is returned as an `Option[RationalNumber]`,
-    * allowing for cases where the scaling operation might not be valid or possible.
+    * This method performs a scaling operation by multiplying the current instance
+    * with the provided `Number`. The result of the scaling operation is returned
+    * as an `Option`, allowing for cases where the operation might not be valid or
+    * possible.
     *
-    * @param that the `Number` used to scale the current instance
-    * @return an `Option[RationalNumber]` containing the scaled instance, 
-    *         or `None` if the operation cannot be performed
+    * @param that the `Number` multiplier used to scale the current instance
+    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
     */
-  override def doScale(that: Number): Option[RationalNumber] = doScale(that)
+  def doScale(that: WholeNumber): Option[RationalNumber] =
+    doScaleInt(that.toInt)
 
   /**
     * Scales the current instance of `RationalNumber` by the given `Int` value.
@@ -165,7 +181,7 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     * @return an `Option[RationalNumber]` representing the scaled result; returns `None` if the operation cannot be performed
     */
   def doScaleInt(that: Int): Option[RationalNumber] =
-    doScale(RationalNumber(Rational(that)))
+    Some(RationalNumber(r * that))
 
   /**
     * Computes the sign of the current `RationalNumber`.

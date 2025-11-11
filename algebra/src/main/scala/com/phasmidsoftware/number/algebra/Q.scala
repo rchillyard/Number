@@ -61,3 +61,9 @@ trait Z extends Q {
     */
   def toInt: Int
 }
+
+/**
+  * Trait `Circle` extends the `R` trait and represents the "circle group."
+  * Values are limited to the range of -pi to pi, inclusive.
+  */
+trait Circle extends R

@@ -130,7 +130,7 @@ trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAd
   * @tparam T the type of structure that supports multiplication, bounded by `Structure` and requiring a `ClassTag`
   * @tparam U a secondary structure type used in combinatory operations, also bounded by `Structure`
   */
-trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] with CanScale[T, Number] {
+trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
 
   /**
     * Returns the multiplicative identity element of type `T` in the context
@@ -248,6 +248,31 @@ trait CanScaleWhole[T] {
 }
 
 /**
+  * Trait `CanScaleDouble` defines the capability to scale instances of type `T` by a `Double` factor.
+  *
+  * Classes or traits implementing this trait are required to provide logic for scaling
+  * their instances using the `doScaleDouble` method. The result of the scaling operation
+  * is wrapped in an `Option` to account for cases where the scaling may not be possible or valid.
+  *
+  * @tparam T the type of the instance that can be scaled by a `Double`
+  */
+trait CanScaleDouble[T] {
+
+  /**
+    * Scales the current instance of type `T` by the specified `Double` value.
+    *
+    * This method applies a scaling factor to the instance, returning an `Option`
+    * that contains the scaled instance if the operation is valid. If the scaling
+    * operation is not valid or feasible, `None` is returned.
+    *
+    * @param that the `Double` value to scale the instance by
+    * @return an `Option` containing the scaled instance of type `T`, or `None`
+    *         if scaling is not possible
+    */
+  def doScaleDouble(that: Double): Option[T]
+}
+
+/**
   * Represents a capability of scaling instances of type `T`.
   *
   * This trait defines a method for scaling an object of type `T` using a `Number` multiplier.
@@ -285,15 +310,31 @@ trait CanScale[T <: Structure, U <: Structure] {
 trait CanPower[T] {
 
   /**
-    * Performs a power operation using this instance and the provided `Scalar`.
+    * Computes the result of raising an instance of type `T` to the power 
+    * specified by the given `RationalNumber`.
     *
-    * This method calculates the result of raising this instance to the power of the given `Scalar` value.
-    * The result may be optionally defined, depending on the implementation or the validity of the operation.
+    * The method returns an `Option[T]` to represent the possibility of invalid
+    * operations or unsupported inputs where the computation cannot be performed.
     *
-    * @param that the `Scalar` instance representing the power to which this instance is raised
-    * @return an `Option[T]` containing the result of the power operation if it is defined, or `None` otherwise
+    * @param that the `RationalNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid, 
+    *         or `None` if the operation could not be performed
     */
-  infix def doPower(that: Scalar): Option[T]
+  infix def pow(that: RationalNumber): Option[T]
+
+  /**
+    * Computes the result of raising an instance of type `T` to the power 
+    * specified by the given `WholeNumber`.
+    *
+    * This method performs the power operation and returns the result wrapped 
+    * in an `Option[T]`. If the operation is invalid or cannot be performed, 
+    * `None` is returned.
+    *
+    * @param that the `WholeNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid, 
+    *         or `None` if the operation could not be performed
+    */
+  infix def pow(that: WholeNumber): Option[T]
 }
 
 /**

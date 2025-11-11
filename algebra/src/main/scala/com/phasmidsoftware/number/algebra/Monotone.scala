@@ -1,8 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.algebra.Structure
-
+import com.phasmidsoftware.number.core.inner.*
 import scala.reflect.ClassTag
 
 /**
@@ -14,7 +13,7 @@ import scala.reflect.ClassTag
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with CanScaleWhole[Monotone] with Approximate {
+trait Monotone extends Structure with CanScaleWhole[Monotone] with CanScaleDouble[Monotone] with Approximate {
 
   /**
     * Method to determine if this `Structure` object is exact.

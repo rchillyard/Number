@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
-import algebra.ring.Ring
+import algebra.ring.{AdditiveCommutativeGroup, Ring}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
@@ -29,7 +29,7 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAdd[Real, Structure] with Number {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAddAndSubtract[Real, Structure] with Number {
   /**
     * Converts the current instance to a Double representation.
     * CONSIDER changing to maybeDouble returning Option[Double].
@@ -187,6 +187,34 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     * @return a string representation of the `Real`
     */
   lazy val render: String = new core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
+
+  /**
+    * Subtracts the given instance of type `T` from the current instance.
+    *
+    * This method computes the result of subtracting the `that` instance from the current instance
+    * by utilizing the properties of an additive commutative group defined for type `T`.
+    *
+    * @param that     the instance of type `T` to subtract from the current instance
+    * @param Additive evidence of an implicit `AdditiveCommutativeGroup[T]` that provides
+    *                 the additive commutative group structure supporting subtraction
+    * @return the resulting value of type `T` after subtraction
+    */
+  def -(that: Real)(using AdditiveCommutativeGroup[Real]): Real =
+    realIsRing.minus(this, that)
+
+  /**
+    * Scales the current instance of type `T` by the specified `Double` value.
+    *
+    * This method applies a scaling factor to the instance, returning an `Option`
+    * that contains the scaled instance if the operation is valid. If the scaling
+    * operation is not valid or feasible, `None` is returned.
+    *
+    * @param that the `Double` value to scale the instance by
+    * @return an `Option` containing the scaled instance of type `T`, or `None`
+    *         if scaling is not possible
+    */
+  def doScaleDouble(that: Double): Option[Monotone] =
+    Some(copy(value = value * that))
 
   /**
     * Performs an addition operation between the current scalar and another scalar.

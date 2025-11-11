@@ -1,0 +1,415 @@
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.algebra
+
+import algebra.ring.AdditiveCommutativeGroup
+import cats.Show
+import com.phasmidsoftware.number.algebra.Angle.angleIsCommutativeGroup
+import com.phasmidsoftware.number.algebra.{Radians, Structure}
+import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
+import com.phasmidsoftware.number.misc.FP
+import scala.reflect.ClassTag
+
+/**
+  * A case class representing an angle in radians. This class implements the `Additive` and `Radians` traits,
+  * allowing operations such as addition, subtraction, and various type conversions.
+  * Angle represents the "circle group," which is a compact Abelian (commutative) group under angle addition,
+  * where the addition wraps around the circle.
+  * It is compact in that it is bounded by -𝛑 and 𝛑.
+  *
+  * Angle does not support ordering or comparison.
+  *
+  * @param radians the value of the angle in radians
+  */
+case class Angle private[algebra](radians: Number) extends Circle with Radians {
+  /**
+    * Compares the current `Angle` instance with another `Number` to determine their exact order.
+    *
+    * If the provided `Number` is an `Angle`, this method compares their underlying radian values.
+    * If the provided `Number` is not an `Angle`, the comparison cannot be performed, and `None` is returned.
+    *
+    * @param that the `Number` instance to compare with the current `Angle` instance
+    * @return an `Option[Int]`, where `Some(-1)` indicates that the current `Angle` is less than the provided `Angle`,
+    *         `Some(0)` indicates that both angles are equal, `Some(1)` indicates that the current `Angle` is greater,
+    *         and `None` is returned if the comparison cannot be made
+    */
+  def compareExact(that: Scalar): Option[Int] = that match {
+    case Angle(r) =>
+      Some(radians.compare(r))
+    case _ =>
+      None
+  }
+
+  /**
+    * Converts this Angle to a representation of the specified type `T`, if possible.
+    *
+    * This method attempts to convert the number to a type `T` that has implicit evidence
+    * of `Ordering`. If the conversion is successful, it returns an `Option` containing the
+    * resulting typed value. If the conversion is not valid or not possible for the given
+    * type `T`, it returns `None`.
+    *
+    * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
+    */
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+    case _: Real =>
+      radians.approximation.map(x => x.scaleByPi).asInstanceOf[Option[T]]
+    case _ =>
+      None
+  }
+
+  /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = radians.isZero
+
+  /**
+    * Represents the zero value of the `Angle` class.
+    *
+    * This is a predefined constant that corresponds to an `Angle` of zero radians.
+    * It is used as the additive identity in operations involving angles.
+    */
+  val zero: Angle = Angle.zero
+
+  /**
+    * Determines the sign of the scalar value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = compareExact(Angle.zero).get
+
+  /**
+    * Method to determine if this Structure object is exact.
+    * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    *
+    * @return true if this Structure object is exact in the context of No factor, else false.
+    */
+  override def isExact: Boolean = radians.isExact
+
+  /**
+    * Converts the current instance to a Double representation.
+    *
+    * @return the Double value corresponding to the current instance
+    */
+  def asDouble: Double = scaleFactor * radians.toDouble
+
+  /**
+    * Creates an instance of `R` from the given `Rational` value.
+    *
+    * @param q the `Rational` value to be converted into an instance of `R`
+    * @return an instance of `R` representing the specified `Rational` value
+    */
+  def maybeQ: Option[Q] = ???
+
+  /**
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
+    *
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  def maybeDouble: Option[Double] =
+    FP.whenever(isExact)(convert(Real.zero) map (_.value))
+
+  /**
+    * Renders this `Angle` instance as a string representation of radians in terms of π.
+    *
+    * The method formats the radius equivalent to π, omitting the numeric coefficient if it is 1.
+    *
+    * @return a string representation of the `Angle` in terms of π
+    */
+  def render: String = {
+    val prefix = radians.render
+    val suffix = "𝛑"
+    (if prefix == "1" then "" else prefix) + suffix
+  }
+
+  /**
+    * Computes the additive inverse of the current `Angle` instance.
+    *
+    * This method negates the current angle, returning a new `Angle` instance
+    * with the opposite value, relative to `Angle.zero`.
+    *
+    * @return a new `Angle` instance representing the additive inverse of the current angle.
+    */
+  def unary_- : Angle = angleIsCommutativeGroup.negate(this)
+
+  /**
+    * Adds the specified `Angle` to the current `Angle` instance.
+    *
+    * This method combines the current angle with the provided angle
+    * by adding their respective radians, returning a new `Angle` instance
+    * representing the sum.
+    *
+    * @param a the `Angle` to be added to the current `Angle`
+    * @return a new `Angle` representing the sum of the current `Angle` and the specified `Angle`
+    */
+  def +(a: Angle): Angle =
+    angleIsCommutativeGroup.plus(this, a)
+
+  /**
+    * Adds the specified `Scalar` to the current `Scalar` and returns the result as an `Option[Scalar]`.
+    * This method handles addition based on the type of `Scalar` provided. If the input is an `Angle`,
+    * it computes the sum of the current `Angle` and the provided `Angle`. If the input is a `Number`,
+    * the addition is delegated to the `doPlus` implementation of the `Number`.
+    *
+    * @param that the `Scalar` to be added to the current instance
+    * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
+    */
+  infix def doPlus(that: Scalar): Option[Scalar] = that match {
+    case a: Angle =>
+      Some(this + a)
+    case x: Scalar =>
+      convert(Real.zero) flatMap (r => r doPlus x)
+  }
+
+  /**
+    * Scales the instance of type T by the given integer multiplier.
+    *
+    * This method performs a multiplication operation between the current instance and
+    * the specified integer, returning an optional result. The result is defined if
+    * the scaling operation is valid for the specific implementation.
+    *
+    * @param that the integer multiplier used to scale the instance
+    * @return an Option containing the scaled result of type T, or None if the operation is invalid
+    */
+  infix def doScaleInt(that: Int): Option[Angle] =
+    radians.doScaleInt(that).map(x => Angle.create(x))
+
+  /**
+    * Scales the current instance of type `T` by the specified `Double` value.
+    *
+    * This method applies a scaling factor to the instance, returning an `Option`
+    * that contains the scaled instance if the operation is valid. If the scaling
+    * operation is not valid or feasible, `None` is returned.
+    *
+    * @param that the `Double` value to scale the instance by
+    * @return an `Option` containing the scaled instance of type `T`, or `None`
+    *         if scaling is not possible
+    */
+  def doScaleDouble(that: Double): Option[Angle] =
+    radians.doScaleDouble(that) map (x => Angle.create(x))
+
+  /**
+    * Computes the potential factor associated with this instance.
+    *
+    * @return an `Option` containing a `Factor` if available, otherwise `None`
+    */
+  def maybeFactor: Option[Factor] = Some(Radian)
+
+  /**
+    * Provides an approximation of this number, if applicable.
+    *
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
+    */
+  def approximation: Option[Real] = convert(Real.zero)
+
+  override def toString: String = render
+}
+
+/**
+  * The `Angle` companion object contains utility methods, predefined constants, and
+  * typeclass instances for working with angles. Angles are represented using
+  * rational numbers and comply with the algebraic structure of a commutative group.
+  */
+object Angle {
+  /**
+    * Converts a `Value` into an `Angle` instance based on its structure.
+    *
+    * @param value the input `Value` which may represent different numeric types;
+    *              `Right(x)` is treated as a whole number,
+    *              `Left(Right(x))` is treated as a rational number,
+    *              `Left(Left(Some(x)))` is treated as a real number,
+    *              and `Left(Left(None))` represents an invalid or undefined angle.
+    * @return an `Angle` instance corresponding to the structure of the input `Value`;
+    *         returns `Angle.nan` if the input represents an undefined value.
+    */
+  def apply(value: Value): Angle = Radian.modulate(value) match {
+    case Right(x) =>
+      new Angle(WholeNumber(x))
+    case Left(Right(x)) =>
+      new Angle(RationalNumber(x))
+    case Left(Left(Some(x))) =>
+      new Angle(Real(x))
+    case Left(Left(None)) =>
+      Angle.nan
+  }
+
+  /**
+    * Converts the given integer value to an `Angle` instance.
+    *
+    * @param x the input integer value to be converted into an angle
+    * @return an `Angle` instance corresponding to the given integer value
+    */
+  def apply(x: Int): Angle =
+    apply(Value.fromInt(x))
+
+  /**
+    * Converts the given long value to an `Angle` instance.
+    *
+    * @param x the input long value to be converted into an angle
+    * @return an `Angle` instance corresponding to the given long value
+    */
+  def apply(x: Long): Angle =
+    apply(Rational(x))
+
+  /**
+    * Converts the given rational value into an `Angle`.
+    *
+    * @param rational the `Rational` value representing the input to be converted into an `Angle`
+    * @return an `Angle` instance corresponding to the given `Rational` value
+    */
+  def apply(rational: Rational): Angle =
+    apply(Value.fromRational(rational))
+
+  /**
+    * Converts the given rational number to an `Angle` instance by performing modulation and necessary computations.
+    *
+    * @param r the input `RationalNumber` representing the rational value to be converted into an angle
+    * @return an `Angle` instance corresponding to the given rational value
+    */
+  def apply(r: RationalNumber): Angle = Angle(r.r)
+
+  /**
+    * Converts the given whole number into an `Angle` instance.
+    *
+    * @param r the input `WholeNumber` to be converted into an angle
+    * @return an `Angle` instance corresponding to the given whole number
+    */
+  def apply(r: WholeNumber): Angle = Angle(r.x.toBigInt)
+
+  /**
+    * Creates an `Angle` instance based on the input `Monotone` value.
+    *
+    * Converts the input `Monotone` into an `Angle`, handling various types of numerical structures.
+    * If the input is already an `Angle`, or if the type is unsupported, an exception is thrown.
+    *
+    * @param s the input `Monotone` to be converted into an `Angle`; can represent a whole number,
+    *          rational number, or real number. Passing an existing `Angle` or unsupported type
+    *          results in an exception.
+    * @return an `Angle` instance corresponding to the input `Monotone` value
+    * @throws NumberException if the input is already an `Angle` or is of an unsupported type
+    */
+  def create(s: Monotone): Angle = s match {
+    case number: WholeNumber =>
+      Angle(number)
+    case radians: RationalNumber =>
+      Angle(radians)
+    case Real(x, f) =>
+      Angle(Real(x, f))
+    case Angle(r) =>
+      throw NumberException(s"Angle.create: $r is already an Angle")
+    case _ =>
+      throw NumberException(s"Angle.create: not supported for $s")
+  }
+
+  /**
+    * Represents the additive identity for angles.
+    *
+    * This value denotes an angle of zero radians, serving as the identity element in
+    * the group structure of angles. It is constructed using the `Angle` companion object
+    * initialized with the additive identity of `RationalNumber`.
+    */
+  val zero: Angle = Angle(RationalNumber.zero)
+
+  /**
+    * Represents an angle equivalent to mathematical π radians.
+    *
+    * The value `pi` is an instance of the `Angle` class initialized with the
+    * `RationalNumber.one`, which corresponds to the rational representation of π
+    * in the specific context of the `Angle` implementation.
+    */
+  val pi: Angle = Angle(RationalNumber.one)
+
+  /**
+    * Alias for the `pi` value, representing an angle equivalent to mathematical π radians.
+    *
+    * This value is a symbolic representation of π radians, reused from the `Angle.pi` value.
+    * It is denoted by the Greek mathematical symbol 𝛑 and can be used interchangeably with `pi`.
+    */
+  val 𝛑: Angle = pi
+
+  /**
+    * Represents an angle equivalent to π/2 radians.
+    *
+    * The value `piBy2` is a constant instance of the `Angle` class initialized using
+    * a `RationalNumber` constructed with a value of 1/2. This corresponds
+    * to π/2 radians in mathematical terms.
+    */
+  val piBy2: Angle = Angle(RationalNumber(Rational.half))
+  val piBy3: Angle = Angle(RationalNumber(Rational.third))
+  val piBy4: Angle = Angle(RationalNumber(Rational(1, 4)))
+  val piBy2Times3: Angle = Angle(RationalNumber(Rational(3, 2)))
+  val twoPi: Angle = Angle(RationalNumber(Rational.two))
+  val negPi: Angle = Angle(RationalNumber(Rational.negOne))
+  val nan: Angle = Angle(RationalNumber(Rational.NaN))
+
+  /**
+    * Provides an implicit `Show` instance for the `Angle` class, enabling conversion
+    * of an `Angle` instance to a string representation using its `render` method.
+    *
+    * This allows the `Angle` class to integrate seamlessly with libraries or frameworks
+    * requiring a `Show` typeclass instance for displaying or logging purposes.
+    */
+  implicit val showAngle: Show[Angle] = Show.show(_.render)
+
+  /**
+    * Provides an implicit implementation of a commutative group for the `Angle` type, supporting
+    * group operations such as identity, combination, and inversion.
+    *
+    * This allows `Angle` objects to adhere to the algebraic structure of a commutative group, where
+    * the `combine` operation is associative and commutative, an identity element exists, and
+    * each element has an additive inverse.
+    */
+  implicit object angleIsCommutativeGroup extends AdditiveCommutativeGroup[Angle] {
+    /**
+      * Provides the identity element for the `Angle` group, representing an angle of zero radians.
+      *
+      * @return an `Angle` instance with zero radians, acting as the identity element in the group structure.
+      */
+    def zero: Angle = Angle.zero
+
+
+    /**
+      * Combines two `Angle` instances by adding their respective radians.
+      *
+      * @param x the first `Angle` to combine
+      * @param y the second `Angle` to combine
+      * @return a new `Angle` representing the sum of the radians of the two provided `Angle` instances
+      */
+    def plus(x: Angle, y: Angle): Angle = (x, y) match {
+      case (Angle(x1: CanAdd[Number, Number]), Angle(x2: CanAdd[Number, Number])) =>
+        val maybeMonotone = x1 plus x2
+        Angle.create(FP.getOrThrow(maybeMonotone, new UnsupportedOperationException("Angle.combine")))
+    }
+
+    /**
+      * Computes the additive inverse of the given `Angle`.
+      *
+      * This method negates the input angle, returning an `Angle` instance
+      * that represents its additive inverse, relative to `Angle.zero`.
+      *
+      * @param a the `Angle` instance to be inverted
+      * @return a new `Angle` instance representing the additive inverse of the input
+      */
+    def negate(a: Angle): Angle = a.radians match {
+      case WholeNumber(x) =>
+        Angle(-x.toBigInt)
+      case RationalNumber(r) =>
+        Angle(RationalNumber(r.negate))
+      case Real(x, f) =>
+        Angle(Real(-x, f))
+    }
+  }
+}

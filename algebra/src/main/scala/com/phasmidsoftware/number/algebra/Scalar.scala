@@ -122,17 +122,17 @@ object Scalar {
     factor match {
       case inner.PureNumber =>
         number
-//      case inner.Radian =>
-//        Angle(number)
-//      case inner.NatLog =>
-//        NatLog(number)
-//      case inner.InversePower(r) =>
-//        r.maybeInt match {
-//          case Some(n) =>
-//            Root(n, number)
-//          case _ =>
-//            throw new NumberException(s"Scalar.createScalar: unsupported inverse power $factor")
-//        }
+      case inner.Radian =>
+        Angle(number)
+      case inner.NatLog =>
+        NatLog(number)
+      case inner.InversePower(r) =>
+        r.maybeInt match {
+          case Some(n) =>
+            InversePower(n, number)
+          case _ =>
+            throw NumberException(s"Scalar.createScalar: unsupported inverse power $factor")
+        }
       case _ =>
         throw NumberException(s"Scalar.createScalar: unsupported factor $factor")
     }

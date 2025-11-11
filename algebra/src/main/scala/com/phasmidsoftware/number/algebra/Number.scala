@@ -1,7 +1,9 @@
 package com.phasmidsoftware.number.algebra
 
+import algebra.ring.AdditiveCommutativeMonoid
 import com.phasmidsoftware.number.algebra.misc.FP
 import com.phasmidsoftware.number.core.NumberException
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 
 /**
@@ -153,9 +155,67 @@ object Number {
     * It is a predefined constant in the `Number` object.
     */
   val two: Number = WholeNumber.two
-
   /**
     *
     */
   implicit def convIntToNumber(x: Int): Number = WholeNumber(x)
+
+  /**
+    * Provides an implicit additive commutative monoid implementation for the `Number` type.
+    *
+    * This object defines the `zero` element and the `plus` operation for the `Number` type,
+    * conforming to the algebraic structure of an additive commutative monoid.
+    *
+    * The `zero` element acts as the additive identity, and the `plus` operation is
+    * both associative and commutative, enabling addition of two `Number` instances.
+    */
+  implicit object NumberIsAdditiveCommutativeMonoid extends AdditiveCommutativeMonoid[Number] {
+    /**
+      * Returns the additive identity element for the `Number` type.
+      *
+      * This method provides the `zero` element, which serves as the neutral element in
+      * addition operations for instances of `Number`. Adding `zero` to any `Number`
+      * instance will result in the same `Number` instance.
+      *
+      * @return the additive identity element for `Number`
+      */
+    def zero: Number = Number.zero
+
+    /**
+      * Adds two `Number` instances together.
+      *
+      * The method determines the type of the given `Number` instances and performs the appropriate
+      * addition operation. It supports addition for `Real`, `RationalNumber`, and `WholeNumber` types.
+      * If the types are incompatible or cannot be converted to corresponding types, it throws a `NumberException`.
+      *
+      * This method is marked as `@tailrec` to optimize recursive addition operations.
+      *
+      * @param x the first `Number` instance
+      * @param y the second `Number` instance
+      * @return a `Number` instance representing the result of the addition of `x` and `y`
+      * @throws NumberException if the types of `x` and `y` cannot be added
+      */
+    @tailrec
+    def plus(x: Number, y: Number): Number = (x, y) match {
+      case (a: Real, b: Real) =>
+        a + b
+      case (a, b: Real) =>
+        plus(y, x)
+      case (a: Real, b) =>
+        FP.recover(b.convert(Real.zero).map(_ + a))(NumberException("Number.plus: logic error: cannot convert " + b + " to a Real"))
+      case (a: RationalNumber, b: RationalNumber) =>
+        a + b
+      case (a, b: RationalNumber) =>
+        plus(y, x)
+      case (a: RationalNumber, b) =>
+        FP.recover(b.convert(RationalNumber.zero).map(a + _))(NumberException("Number.plus: logic error: cannot convert " + b + " to a RationalNumber"))
+      case (a: WholeNumber, b: WholeNumber) =>
+        a + b
+      case (a, b: WholeNumber) =>
+        plus(y, x)
+      case _ =>
+        throw NumberException("Number.plus: logic error: cannot add " + x + " and " + y)
+    }
+
+  }
 }
