@@ -814,7 +814,11 @@ Other types (for reference):
 
 Versions
 ========
-* Version 1.2.12: 
+* Version 1.3.2: bringing over the Expression packages from Number3 project.
+* Version 1.3.1: 
+  * Restructured the project into two modules: core and algebra;
+  * Introduced the algebra package which will replace all of the Number classes (see Future Upgrades below).
+* Version 1.2.12: No changes.
 * Version 1.2.11: Mostly the introduction of classes based on cats.
 * Version 1.2.10: Another housekeeping release.
 * Version 1.2.9: Mostly minor details that missed the previous version.

@@ -2,7 +2,7 @@ ThisBuild / organization := "com.phasmidsoftware"
 
 name := "Number"
 
-ThisBuild / version := "1.3.1"
+ThisBuild / version := "1.3.2"
 
 lazy val root = (project in file("."))
     .aggregate(core, algebra)
