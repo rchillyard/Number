@@ -38,19 +38,11 @@ sealed trait Nat extends Valuable with N {
   lazy val inc: Nat = Succ(this)
 
   /**
-    * Converts this natural number into an integer.
-    * TODO eliminate this method and use toInt instead.
-    *
-    * @return the integer value corresponding to this natural number
-    */
-  def asInt: Int
-
-  /**
     * Method to render this Structure for presentation to the user.
     *
     * @return a String
     */
-  lazy val render: String = asInt.toString
+  lazy val render: String = toInt.toString
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
@@ -67,27 +59,18 @@ sealed trait Nat extends Valuable with N {
   def isExact: Boolean = true
 
   /**
-    * Converts this instance of `Z` to its corresponding int representation--if possible.
-    *
-    * @return an `Option[Int]` representing this value, providing that it can fit in an `Int`.
-    *         If the value cannot fit in an `Int`, then the `Option` will be `None`.
-    *         If the value can fit in an `Int`, then the `Option` will be `Some(Int)`.
-    */
-  def toInt: Int = asInt
-
-  /**
     * Converts this instance of `Q` to its corresponding rational representation.
     *
     * @return a Rational instance representing the current value
     */
-  def toRational: Rational = Rational(asInt)
+  def toRational: Rational = Rational(toInt)
 
   /**
     * Computes a potential representation of this `Nat` instance as `Z`.
     *
     * @return an `Option[Z]` containing a corresponding instance of `Z` if available; otherwise, `None`.
     */
-  def maybeZ: Option[Z] = Some(WholeNumber(asInt))
+  def maybeZ: Option[Z] = Some(WholeNumber(toInt))
 
   /**
     * Converts the current instance to a Double representation.
@@ -126,7 +109,7 @@ sealed trait Nat extends Valuable with N {
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  lazy val maybeDouble: Option[Double] = Some(asInt)
+  lazy val maybeDouble: Option[Double] = Some(toInt)
 
   /**
     * Attempts to yield a factor for the instance, if available.
@@ -160,7 +143,7 @@ case object Zero extends Nat {
     *
     * @return 0
     */
-  val asInt: Int = 0
+  val toInt: Int = 0
 }
 
 /**
@@ -214,7 +197,7 @@ case class Succ(pred: Nat) extends Nat {
     *
     * @return the integer value corresponding to this natural number
     */
-  lazy val asInt: Int = {
+  lazy val toInt: Int = {
     @tailrec
     def inner(r: Int)(n: Nat): Int = n match {
       case Zero => r
@@ -339,7 +322,7 @@ object Nat {
       // XXX if either `Nat` object is greater than ten (arbitrary),
       //  then we use `Int` multiplication instead (for performance reasons)
       if compare(x, ten) > 0 || compare(y, ten) > 0 then
-        Nat(x.asInt * y.asInt)
+        Nat(x.toInt * y.toInt)
       else
         inner(zero)(x, y)
     }

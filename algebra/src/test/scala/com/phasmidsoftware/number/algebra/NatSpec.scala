@@ -8,7 +8,7 @@ import scala.util.Random
 class NatSpec extends AnyFlatSpec with should.Matchers {
 
   implicit val customPrettifier: Prettifier = Prettifier {
-    case myObj: Nat => s"Nat:${myObj.asInt}"
+    case myObj: Nat => s"Nat:${myObj.toInt}"
     case other => Prettifier.default(other)
   }
 
@@ -21,8 +21,8 @@ class NatSpec extends AnyFlatSpec with should.Matchers {
   it should "have correct constant elements" in {
     natIsSemiring.zero shouldBe Nat(0)
     natIsSemiring.one shouldBe Nat(1)
-    natIsSemiring.zero.asInt shouldBe 0
-    natIsSemiring.one.asInt shouldBe 1
+    natIsSemiring.zero.toInt shouldBe 0
+    natIsSemiring.one.toInt shouldBe 1
   }
 
   it should "inc" in {
@@ -48,7 +48,7 @@ class NatSpec extends AnyFlatSpec with should.Matchers {
     val max = 100_000
     val r1 = Nat(random.between(0, max))
     val r2 = Nat(random.between(0, max))
-    val expected = Nat(r1.asInt + r2.asInt)
+    val expected = Nat(r1.toInt + r2.toInt)
     r1 + r2 shouldBe expected
     r2 + r1 shouldBe expected
   }
