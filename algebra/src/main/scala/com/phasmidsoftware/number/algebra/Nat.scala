@@ -1,9 +1,8 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Semiring
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import com.phasmidsoftware.number.algebra.Nat.natIsSemiring
-
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.annotation.tailrec
 
 /**
@@ -22,7 +21,7 @@ import scala.annotation.tailrec
   * CONSIDER increasing the use of the `asInt` value for better performance.
   * But note that doing that destroys the Peano aspect of this class (keep in mind that we also have WholeNumber).
   */
-sealed trait Nat extends Valuable {
+sealed trait Nat extends Valuable with N {
   /**
     * Adds the specified natural number to this natural number.
     *
@@ -40,6 +39,7 @@ sealed trait Nat extends Valuable {
 
   /**
     * Converts this natural number into an integer.
+    * TODO eliminate this method and use toInt instead.
     *
     * @return the integer value corresponding to this natural number
     */
@@ -51,14 +51,6 @@ sealed trait Nat extends Valuable {
     * @return a String
     */
   lazy val render: String = asInt.toString
-
-  /**
-    * Converts this natural number into its string representation using render.
-    * We do this because large Nat numbers will cause a very long string representation otherwise.
-    *
-    * @return a string representation of this natural number
-    */
-  override def toString: String = render
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
@@ -73,6 +65,45 @@ sealed trait Nat extends Valuable {
     *         or has an approximation (`false`).
     */
   def isExact: Boolean = true
+
+  /**
+    * Converts this instance of `Z` to its corresponding int representation--if possible.
+    *
+    * @return an `Option[Int]` representing this value, providing that it can fit in an `Int`.
+    *         If the value cannot fit in an `Int`, then the `Option` will be `None`.
+    *         If the value can fit in an `Int`, then the `Option` will be `Some(Int)`.
+    */
+  def toInt: Int = asInt
+
+  /**
+    * Converts this instance of `Q` to its corresponding rational representation.
+    *
+    * @return a Rational instance representing the current value
+    */
+  def toRational: Rational = Rational(asInt)
+
+  /**
+    * Computes a potential representation of this `Nat` instance as `Z`.
+    *
+    * @return an `Option[Z]` containing a corresponding instance of `Z` if available; otherwise, `None`.
+    */
+  def maybeZ: Option[Z] = Some(WholeNumber(asInt))
+
+  /**
+    * Converts the current instance to a Double representation.
+    * CONSIDER changing to maybeDouble returning Option[Double].
+    *
+    * @return the Double value corresponding to the current instance
+    */
+  def asDouble: Double = toInt.toDouble
+
+  /**
+    * Creates an instance of `R` from the given `Rational` value.
+    *
+    * @param q the `Rational` value to be converted into an instance of `R`
+    * @return an instance of `R` representing the specified `Rational` value
+    */
+  def maybeQ: Option[Q] = Some(RationalNumber(toRational))
 
   /**
     * Yields an approximation of this `Valuable` object, if applicable.

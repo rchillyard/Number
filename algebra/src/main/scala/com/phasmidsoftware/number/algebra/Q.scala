@@ -43,6 +43,11 @@ trait Q extends R {
     */
   def toRational: Rational
 
+  /**
+    * Retrieves an optional instance of `Z` if it exists.
+    *
+    * @return an `Option[Z]` that contains a `Z` instance if it's available, or `None` if not.
+    */
   def maybeZ: Option[Z]
 }
 
@@ -61,6 +66,11 @@ trait Z extends Q {
     */
   def toInt: Int
 }
+
+/**
+  * Trait `N` represents the Natural numbers, that's to say the integers from 0 to infinity.
+  */
+trait N extends Z
 
 /**
   * Trait `Circle` extends the `R` trait and represents the "circle group."
