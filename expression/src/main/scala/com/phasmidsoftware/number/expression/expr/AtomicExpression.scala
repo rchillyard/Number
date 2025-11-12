@@ -5,17 +5,16 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
+import com.phasmidsoftware.number.algebra.{Angle, CanAddAndSubtract, CanMultiplyAndDivide, Complex, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.{Constants, Field, NumberException}
-import com.phasmidsoftware.number.algebra.{Angle, CanAdd, CanAddAndSubtract, CanMultiplyAndDivide, Complex, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
-import com.phasmidsoftware.number.expression.expr.UniFunction
-import com.phasmidsoftware.number.expression.expr.CompositeExpression
-import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.core.{AnyContext, Context}
+import com.phasmidsoftware.number.expression.expr.Expression.em
+import com.phasmidsoftware.number.expression.expr.{CompositeExpression, UniFunction}
 import java.util.Objects
 import scala.language.implicitConversions
 
@@ -306,6 +305,14 @@ sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option
 object ValueExpression {
 
   /**
+    * Creates a `ValueExpression` instance by wrapping the provided `Valuable` object.
+    *
+    * @param v the `Valuable` instance to be encapsulated within a `ValueExpression`.
+    * @return a `ValueExpression` representing the provided `Valuable` object, with its rendered representation.
+    */
+  def apply(v: Valuable): ValueExpression = Literal(v, Some(v.render))
+
+  /**
     * Creates a Literal instance using an integer value.
     *
     * @param x the integer value to be used for constructing the Literal.
@@ -316,7 +323,7 @@ object ValueExpression {
     case 1 => One
     case -1 => MinusOne
     case 2 => Two
-    case _ => Literal(WholeNumber(x), Some(x.toString))
+    case _ => ValueExpression(WholeNumber(x))
   }
 
   /**
@@ -494,7 +501,7 @@ object Literal {
     * @param x the `Valuable` instance to be wrapped within an optional `Literal`.
     * @return an `Option[Literal]` containing the created `Literal` if successful, or `None` otherwise.
     */
-  def someLiteral(x: Valuable): Option[Literal] = Some(Literal(x))
+  def someLiteral(x: Valuable): Option[Literal] = Some(Literal(x, Some(x.render)))
 }
 
 /**
