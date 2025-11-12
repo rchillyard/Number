@@ -9,8 +9,8 @@ import scala.annotation.tailrec
   * Represents natural numbers using Peano arithmetic.
   *
   * The `Nat` trait has two possible subtypes:
-  * - `Zero`, representing the number 0.
-  * - `Succ`, representing the successor of another `Nat` (e.g., `Succ(Zero)` represents 1, `Succ(Succ(Zero))` represents 2, and so on).
+  * - `NatZero`, representing the number 0.
+  * - `Succ`, representing the successor of another `Nat` (e.g., `Succ(NatZero)` represents 1, `Succ(Succ(NatZero))` represents 2, and so on).
   *
   * This encoding provides a type-level representation of natural numbers
   * that can be used in functional programming constructs.
@@ -125,16 +125,16 @@ sealed trait Nat extends Valuable with N {
 /**
   * Represents the natural number 0 in Peano arithmetic.
   *
-  * `Zero` is the base case of the `Nat` type, signifying the absence of any successors.
+  * `NatZero` is the base case of the `Nat` type, signifying the absence of any successors.
   * It serves as the foundation for constructing all other natural numbers through
   * the `Succ` type.
   */
-case object Zero extends Nat {
+case object NatZero extends Nat {
   /**
     * Adds the specified natural number to this instance.
     *
     * @param that a natural number to be added to this
-    * @return that, since Zero is the additive identity.
+    * @return that, since NatZero is the additive identity.
     */
   def +(that: Nat): Nat = that
 
@@ -169,9 +169,9 @@ case class Succ(pred: Nat) extends Nat {
     case that: Succ =>
       @tailrec
       def inner(x: Nat, y: Nat): Boolean = (x, y) match {
-        case (Zero, Zero) => true
-        case (Zero, _) => false
-        case (_, Zero) => false
+        case (NatZero, NatZero) => true
+        case (NatZero, _) => false
+        case (_, NatZero) => false
         case (Succ(xPred), Succ(yPred)) => inner(xPred, yPred)
       }
 
@@ -200,7 +200,7 @@ case class Succ(pred: Nat) extends Nat {
   lazy val toInt: Int = {
     @tailrec
     def inner(r: Int)(n: Nat): Int = n match {
-      case Zero => r
+      case NatZero => r
       case Succ(nPred) => inner(r + 1)(nPred)
     }
 
@@ -221,12 +221,12 @@ object Nat {
     * Converts a given non-negative integer into its corresponding `Nat` representation.
     *
     * The method uses Peano arithmetic to construct the natural number representation.
-    * It begins with the base case `Zero` and iteratively applies `Succ` to build
+    * It begins with the base case `NatZero` and iteratively applies `Succ` to build
     * the representation of the integer.
     *
     * @param x A non-negative integer to be converted into a `Nat` representation.
     *          Must be greater than or equal to 0.
-    * @return The `Nat` representation of the given integer. The result is `Zero`
+    * @return The `Nat` representation of the given integer. The result is `NatZero`
     *         if `x` is 0, or a `Succ` chain equivalent to `x` if `x` is greater than 0.
     */
   def apply(x: Int): Nat = {
@@ -238,7 +238,7 @@ object Nat {
       case _ => inner(Succ(r))(z - 1)
     }
 
-    inner(Zero)(x)
+    inner(NatZero)(x)
   }
 
   /**
@@ -246,8 +246,8 @@ object Nat {
     * enabling operations such as addition and multiplication following the rules of Peano arithmetic.
     *
     * This instance defines the behavior for:
-    * - `zero`: The base natural number `Zero`, representing the additive identity.
-    * - `one`: The smallest positive natural number, represented as the successor of `Zero`.
+    * - `zero`: The base natural number `NatZero`, representing the additive identity.
+    * - `one`: The smallest positive natural number, represented as the successor of `NatZero`.
     * - `plus`: Addition of two natural numbers, defined recursively.
     * - `times`: Multiplication of two natural numbers, defined recursively using addition.
     * - `compare`: Comparison of two natural numbers, defined recursively.
@@ -256,22 +256,22 @@ object Nat {
     /**
       * Represents the zero value of a natural number.
       *
-      * @return the Zero instance of the Nat type, representing the starting point of natural numbers.
+      * @return the NatZero instance of the Nat type, representing the starting point of natural numbers.
       */
-    val zero: Nat = Zero
+    val zero: Nat = NatZero
 
     /**
       * Represents the natural number one in Peano arithmetic.
       *
       * @return A value of type `Nat` representing the successor of zero.
       */
-    val one: Nat = Succ(Zero)
+    val one: Nat = Succ(NatZero)
 
     /**
       * Computes the sum of two natural numbers represented using Peano arithmetic.
       *
       * The addition operation is implemented iteratively with tail recursion:
-      * - If both numbers are `Zero`, the result is `Zero`.
+      * - If both numbers are `NatZero`, the result is `NatZero`.
       * - If at least one of the numbers has a successor (`Succ`), the result
       * is recursively incremented by adding the predecessors of the numbers.
       *
@@ -283,19 +283,19 @@ object Nat {
       @tailrec
       def inner(r: Nat)(w: Nat, z: Nat): Nat =
         (w, z) match {
-          case (Zero, Zero) => r
+          case (NatZero, NatZero) => r
           case (Succ(wPred), _) => inner(r.inc)(wPred, z)
           case (_, Succ(zPred)) => inner(r.inc)(w, zPred)
         }
 
-      inner(Zero)(x, y)
+      inner(NatZero)(x, y)
     }
 
     /**
       * Computes the product of two natural numbers represented using Peano arithmetic.
       *
       * The multiplication operation is implemented iteratively with tail recursion:
-      * - If either number is `Zero`, the result is `Zero`.
+      * - If either number is `NatZero`, the result is `NatZero`.
       * - Otherwise, the result is computed by recursively adding one number to itself
       * based on the value of the other number.
       *
@@ -306,7 +306,7 @@ object Nat {
     def times(x: Nat, y: Nat): Nat = {
       @tailrec
       def inner(r: Nat)(w: Nat, z: Nat): Nat = (w, z) match {
-        case (Zero, _) | (_, Zero) =>
+        case (NatZero, _) | (_, NatZero) =>
           r
         case (`one`, `one`) =>
           r
@@ -331,8 +331,8 @@ object Nat {
       * Compares two natural numbers represented using Peano arithmetic.
       *
       * The comparison is performed as follows:
-      * - If both numbers are `Zero`, they are considered equal, and the result is 0.
-      * - If one number is `Zero` and the other is not, the result is -1 or 1 depending on the order.
+      * - If both numbers are `NatZero`, they are considered equal, and the result is 0.
+      * - If one number is `NatZero` and the other is not, the result is -1 or 1 depending on the order.
       * - If both numbers are successors, the comparison is performed recursively on their predecessors.
       *
       * @param x the first natural number to be compared
@@ -345,9 +345,9 @@ object Nat {
     def compare(x: Nat, y: Nat): Int = {
       @tailrec
       def inner(x: Nat, y: Nat): Int = (x, y) match {
-        case (Zero, Zero) => 0
-        case (Zero, _) => -1
-        case (_, Zero) => 1
+        case (NatZero, NatZero) => 0
+        case (NatZero, _) => -1
+        case (_, NatZero) => 1
         case (Succ(xPred), Succ(yPred)) => inner(xPred, yPred)
       }
 

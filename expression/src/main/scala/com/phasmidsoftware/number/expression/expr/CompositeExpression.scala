@@ -146,7 +146,7 @@ object CompositeExpression {
     * @return An `Aggregate` instance containing the converted `Literal` expressions.
     */
   def create(f: ExpressionBiFunction, xs: Valuable*): Expression =
-    apply(f, xs map (x => Literal(x, None))) // TESTME
+    apply(f, xs map (x => Literal(x, Some(x.render)))) // TESTME
 }
 
 /**

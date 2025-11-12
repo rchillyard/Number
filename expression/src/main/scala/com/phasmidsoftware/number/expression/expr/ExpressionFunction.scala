@@ -827,9 +827,9 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     * @return an `Option[Valuable]`, where `Some(a)` is returned if `a` is `zero`; otherwise, `None`.
     */
   override def trivialEvaluation(a: Valuable, b: Valuable): Option[Valuable] = (a, b) match {
-    case (Valuable.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.Zero, _) =>
+    case (Valuable.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero, _) =>
       Some(a) // TESTME
-    case (_, Valuable.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.Zero) =>
+    case (_, Valuable.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero) =>
       Some(Valuable.one) // TESTME
     case (_, Valuable.one | RationalNumber.one) =>
       Some(a) // TESTME

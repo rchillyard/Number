@@ -5,12 +5,12 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.*
+import com.phasmidsoftware.number.algebra.{Angle, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.{piBy2, root2, √}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, Field, FuzzyNumber}
-import com.phasmidsoftware.number.algebra.{Angle, Valuable, WholeNumber}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, matchSimpler, zero}
@@ -165,7 +165,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
     p(Product ~ Two ~ One) shouldBe em.Match(Two)
     p(Product ~ One ~ Two) shouldBe em.Match(Two)
-    p(Product ~ Two ~ Two) shouldBe em.Match(BiFunction(Two, Two, Power))
+    p(Product ~ Two ~ Two) shouldBe em.Match(WholeNumber(4))
     p(Product ~ Two ~ ValueExpression(3)) shouldBe em.Match(Literal(6))
   }
   it should "handle Power" in {
@@ -183,7 +183,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Expression.one
     val y = Expression.minusOne
     val result = p(Sum ~ y ~ x)
-    result should matchPattern { case em.Match(Zero) => }
+    result.successful shouldBe true
+    result.get shouldBe Zero
   }
   it should "cancel multiplication and division" in {
     import BiFunction.*
