@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.*
-import com.phasmidsoftware.number.algebra.{Angle, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.{Angle, RationalNumber, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.{piBy2, root2, √}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
@@ -222,14 +222,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = x.reciprocal
     val z = x * y
     val p = matchSimpler(z)
-    p should matchPattern { case em.Match(One) => }
+    p shouldBe em.Match(Literal(RationalNumber(1)))
   }
   it should "cancel 2 * 1/2 (b)" in {
     val x = Expression(2) * Expression.one
     val y = x.reciprocal
     val z = y * x
     val p = matchSimpler(z)
-    p should matchPattern { case em.Match(One) => }
+    p shouldBe em.Match(Literal(RationalNumber(1)))
   }
   it should "cancel ∧2 and sqrt for 7" in {
     val seven = Expression(7)
@@ -242,8 +242,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val seven = Expression(7)
     val x: Expression = seven.sqrt
     val y = x ∧ two
-    y.isExact shouldBe true
-    y shouldBe seven
+    val simplify = y.simplify
+    simplify.isExact shouldBe true
+    simplify shouldBe seven
   }
   it should "cancel multiplication and division 2" in {
     val x = Literal(Valuable.pi) * 2 / 2

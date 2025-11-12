@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
+import com.phasmidsoftware.number.algebra.misc.FP
 import com.phasmidsoftware.number.algebra.{Angle, CanAddAndSubtract, CanMultiplyAndDivide, Complex, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.gamma
@@ -129,6 +130,15 @@ case object Noop extends AtomicExpression {
   def render: String = "Noop"
 
   /**
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
+    *
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  def maybeDouble: Option[Double] = None
+
+  /**
     *
     */
   def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic")(
@@ -175,6 +185,14 @@ def newRealToOldReal(r: Real) =
   * @param maybeName an optional name for the Valuable expression
   */
 sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option[String] = None) extends AtomicExpression {
+  /**
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
+    *
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  def maybeDouble: Option[Double] = value.maybeDouble
 
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
@@ -484,7 +502,7 @@ object Literal {
     case core.Number.e =>
       ConstE
     case _ =>
-      Literal(Scalar(x))
+      ValueExpression(Scalar(x))
   }
 
   /**
@@ -799,6 +817,15 @@ trait Transcendental extends AtomicExpression {
   * @param expression An `Expression` representing the mathematical definition or value of the transcendental entity.
   */
 abstract class AbstractTranscendental(val name: String, val expression: Expression) extends Transcendental {
+
+  /**
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
+    *
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  def maybeDouble: Option[Double] = expression.maybeDouble
 
   /**
     * Attempts to simplify an atomic expression, for example,
@@ -1230,6 +1257,17 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     * The resulting solution is exact and adheres to the constraints described in the `Solution` trait.
     */
   lazy val solution: Solution = algebraic.solve
+
+  /**
+    * Represents an optional value for the current `AbstractRoot` instance, resulting from a numerical
+    * transformation of its associated solution if the solution is exact.
+    *
+    * The value is computed by invoking the `whenever` method with a predicate that checks whether
+    * the associated solution is exact (`solution.isExact`). If the predicate is true, the `asField` method
+    * of the solution is accessed, and its value is converted to a real number and subsequently mapped to a
+    * `Double`. If the predicate is false */
+  lazy val maybeDouble: Option[Double] =
+    FP.whenever(solution.isExact)(solution.asField.asReal.map(_.toDouble))
 
   /**
     * Lazily computes an optional `Valuable` value (`maybeValue`) based on the type of the solution

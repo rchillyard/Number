@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.number.algebra.misc.Renderable
+import com.phasmidsoftware.number.algebra.misc.{MaybeNumeric, Renderable}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational, Value}
@@ -23,7 +23,7 @@ import scala.util.{Failure, Success, Try}
   * NOTE: this trait has the same name as the `Valuable` typeclass in the `com.phasmidsoftware.number` package,
   * but it is not the same thing.
   */
-trait Valuable extends Renderable {
+trait Valuable extends Renderable with MaybeNumeric {
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
@@ -38,15 +38,6 @@ trait Valuable extends Renderable {
     *         or has an approximation (`false`).
     */
   def isExact: Boolean
-
-  /**
-    * If this `Valuable` is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
-    *
-    * @return Some(x) where x is a Double if this is exact, else None.
-    */
-  def maybeDouble: Option[Double]
 
   /**
     * Optionally retrieves a factor associated with this `Valuable` if one exists (this is a Scalar).

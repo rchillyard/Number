@@ -25,7 +25,7 @@ import scala.language.implicitConversions
   * NOTE there are only two subtypes of Expression: AtomicExpression and CompositeExpression
   * We do not use "sealed" because this module would grow much too large.
   */
-trait Expression extends NumberLike with Approximate {
+trait Expression extends Valuable with Approximate {
 
   /**
     * Method to determine if this Expression cannot be simplified on account of it being atomic.

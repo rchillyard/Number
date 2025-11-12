@@ -43,6 +43,15 @@ sealed trait CompositeExpression extends Expression {
     evaluateAsIs.exists(_.isExact)
 
   /**
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
+    *
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  def maybeDouble: Option[Double] = FP.whenever(isExact)(evaluate(RestrictedContext(PureNumber)).flatMap(_.maybeDouble))
+
+  /**
     * Provides the terms that comprise this `CompositeExpression`.
     *
     * @return a sequence of `Expression` objects representing the individual terms of this `CompositeExpression`.
