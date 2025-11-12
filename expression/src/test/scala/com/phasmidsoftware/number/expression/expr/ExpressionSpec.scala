@@ -184,8 +184,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     x.materialize shouldEqual Valuable(6)
   }
   it should "evaluate /" in {
+    // CONSIDER should this be Valuable(3)?
     val x = Expression(6) / 2
-    x.materialize shouldEqual Valuable(3)
+    x.materialize shouldEqual RationalNumber(3)
   }
   it should "evaluate ∧ 2" in {
     val x = Expression(6) ∧ 2

@@ -5,17 +5,15 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
-import com.phasmidsoftware.number.{algebra, core, expression}
+import com.phasmidsoftware.number.algebra.misc.FP
+import com.phasmidsoftware.number.algebra.{CanPower, NatLog, Q, RationalNumber, Structure, Valuable}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Field, Number, Real}
-import com.phasmidsoftware.number.algebra.{CanPower, NatLog, Q, RationalNumber, Structure, Valuable}
 import com.phasmidsoftware.number.expression.core.{Context, ImpossibleContext, RestrictedContext}
-import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.expression.expr.CompositeExpression
-import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
-import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
+import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
+import com.phasmidsoftware.number.{algebra, core, expression}
 import java.util.Objects
 import scala.language.implicitConversions
 import scala.util.Try
@@ -502,8 +500,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation(force: Boolean): Option[algebra.Real] =
-    for x <- a.approximation(true); y <- b.approximation(true) yield f(x, y).asInstanceOf[algebra.Real]
+  def approximation(force: Boolean): Option[algebra.Real] = {
+    val maybeValuable = for {x <- a.approximation(true); y <- b.approximation(true)} yield f(x, y)
+    // FIXME this cast is a problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
+    maybeValuable.asInstanceOf[Option[algebra.Real]]
+  }
 
   /**
     * Regular hashCode method.
@@ -542,6 +543,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * If a specific pattern is identified, returns a simplified or transformed expression wrapped in a MatchResult.
     * Otherwise, returns a Miss indicating the match was unsuccessful.
     *
+    * CONSIDER 1st and 2nd params should probably by ValueExpression
+    *
     * @param l the literal expression used as the matching base
     * @param x the expression to match against the literal
     * @param f the binary function dictating the transformation or operation between the literal and the expression
@@ -560,7 +563,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         case _ =>
           em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
       }
-    // NOTE not sure why we need to add this but it did make a difference.
     case (a, b, Product) =>
       val qqq: Option[Expression] = for {
         w <- a.evaluateAsIs
@@ -570,6 +572,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.matchIfDefined(qqq)(this)
     case (Literal(a: CanPower[Structure], _), Literal(b: RationalNumber, _), Power) =>
       em.matchIfDefined(a.pow(b).map(x => Literal(x)))(this)
+    case (a, b, Power) =>
+      val qqq: Option[Expression] = for {
+        w <- a.evaluateAsIs
+        z <- b.evaluate(RestrictedContext(PureNumber))
+        y <- f.applyExact(w, z)
+      } yield y
+      em.matchIfDefined(qqq)(this)
     case _ =>
       em.Miss[Expression, Expression](s"BiFunction: matchLiteral: ", expression.expr.BiFunction(l, x, f)) // TESTME
   }

@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRi
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
+import scala.util.Try
 import spire.math.SafeLong
 
 /**
@@ -21,7 +22,7 @@ import spire.math.SafeLong
   *
   * @param x a SafeLong value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanScale[WholeNumber, WholeNumber] with Number with Z {
+case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanScale[WholeNumber, WholeNumber] with CanPower[WholeNumber] with Number with Z {
   /**
     * Converts this instance to its corresponding integer representation.
     *
@@ -70,6 +71,35 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     WholeNumberIsCommutativeRing.minus(this, that)
 
   /**
+    * Computes the result of raising an instance of type `T` to the power
+    * specified by the given `RationalNumber`.
+    *
+    * The method returns an `Option[T]` to represent the possibility of invalid
+    * operations or unsupported inputs where the computation cannot be performed.
+    *
+    * @param that the `RationalNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid,
+    *         or `None` if the operation could not be performed
+    */
+  infix def pow(that: RationalNumber): Option[WholeNumber] =
+    that.maybeInt.flatMap(pow(_)) // TODO there are cases where we can, for example, take the square root of an integer.
+
+  /**
+    * Computes the result of raising an instance of type `T` to the power
+    * specified by the given `WholeNumber`.
+    *
+    * This method performs the power operation and returns the result wrapped
+    * in an `Option[T]`. If the operation is invalid or cannot be performed,
+    * `None` is returned.
+    *
+    * @param that the `WholeNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid,
+    *         or `None` if the operation could not be performed
+    */
+  infix def pow(that: WholeNumber): Option[WholeNumber] =
+    Try(WholeNumber(x.toBigInt.pow(that.toInt))).toOption
+
+  /**
     * Compares this instance with another `Scalar` for exact equivalence.
     * This method attempts to compare the two instances based on their exact numerical representation.
     *
@@ -105,6 +135,8 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
       val number = RationalNumber(Rational(x.toBigInt))
       Some(number.asInstanceOf[T])
     case _: Real =>
+      // CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here.
+      // For now, we use the default fuzziness of None.
       Some(Real(x.toDouble, None).asInstanceOf[T])
     case _ =>
       None

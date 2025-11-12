@@ -4,14 +4,13 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
+import com.phasmidsoftware.number.algebra.{Angle, CanAdd, CanMultiply, CanPower, Number, Q, RationalNumber, Scalar, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, FuzzyNumber, NumberException, Real}
-import com.phasmidsoftware.number.algebra.{Angle, CanAdd, CanMultiply, CanPower, Complex, Nat, Number, Q, RationalNumber, Scalar, Structure, Valuable}
-import com.phasmidsoftware.number.core.inner.{Euler, Factor, Log10, Log2, MonadicOperationAtan, NatLog, Operations, PureNumber, Radian, Rational, SquareRoot, Value}
-import com.phasmidsoftware.number.expression.core.{AnyContext, Context, ImpossibleContext, RestrictedContext}
+import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, NumberException, Real}
 import com.phasmidsoftware.number.expression.core.Context.{AnyLog, AnyRoot, AnyScalar}
+import com.phasmidsoftware.number.expression.core.{AnyContext, Context, ImpossibleContext, RestrictedContext}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
 import com.phasmidsoftware.number.misc.FP
 
@@ -827,9 +826,17 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     * @param b the second operand, a `Valuable` instance, which is ignored in this implementation.
     * @return an `Option[Valuable]`, where `Some(a)` is returned if `a` is `zero`; otherwise, `None`.
     */
-  override def trivialEvaluation(a: Valuable, b: Valuable): Option[Valuable] = a match {
-    case Valuable.zero =>
+  override def trivialEvaluation(a: Valuable, b: Valuable): Option[Valuable] = (a, b) match {
+    case (Valuable.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.Zero, _) =>
       Some(a) // TESTME
+    case (_, Valuable.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.Zero) =>
+      Some(Valuable.one) // TESTME
+    case (_, Valuable.one | RationalNumber.one) =>
+      Some(a) // TESTME
+    case (p: WholeNumber, q: Q) =>
+      p.asInstanceOf[CanPower[WholeNumber]].pow(RationalNumber(q.toRational)).asInstanceOf[Option[Valuable]]
+    case (p: RationalNumber, q: Q) =>
+      p.asInstanceOf[CanPower[RationalNumber]].pow(RationalNumber(q.toRational)).asInstanceOf[Option[Valuable]]
     case _ =>
       None
   }

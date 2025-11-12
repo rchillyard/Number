@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
   * @param r The `Rational` value represented by this `RationalNumber`.
   */
-case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with CanScale[RationalNumber, WholeNumber] with Number {
+case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with CanPower[RationalNumber] with CanScale[RationalNumber, WholeNumber] with Number {
   /**
     * Subtracts the given rational number from this one.
     *
@@ -118,6 +118,34 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     * @return the Rational representation of this RationalNumber.
     */
   def toRational: Rational = r
+
+  /**
+    * Computes the result of raising an instance of type `T` to the power 
+    * specified by the given `RationalNumber`.
+    *
+    * The method returns an `Option[T]` to represent the possibility of invalid
+    * operations or unsupported inputs where the computation cannot be performed.
+    *
+    * @param that the `RationalNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid, 
+    *         or `None` if the operation could not be performed
+    */
+  infix def pow(that: RationalNumber): Option[RationalNumber] = 
+    r.power(that.r).map(RationalNumber(_)).toOption
+
+  /**
+    * Computes the result of raising an instance of type `T` to the power 
+    * specified by the given `WholeNumber`.
+    *
+    * This method performs the power operation and returns the result wrapped 
+    * in an `Option[T]`. If the operation is invalid or cannot be performed, 
+    * `None` is returned.
+    *
+    * @param that the `WholeNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid, 
+    *         or `None` if the operation could not be performed
+    */
+  infix def pow(that: WholeNumber): Option[RationalNumber] = that.convert(RationalNumber.zero) flatMap pow
 
   /**
     * Scales this `RationalNumber` by a specified `Scalar`.

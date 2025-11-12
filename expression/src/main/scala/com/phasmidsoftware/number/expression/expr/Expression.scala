@@ -5,20 +5,17 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.{core, expression}
+import com.phasmidsoftware.number.algebra.misc.FP.recover
+import com.phasmidsoftware.number.algebra.{Valuable, *}
 import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
-import com.phasmidsoftware.number.algebra.{Valuable, *}
 import com.phasmidsoftware.number.expression.core.{AnyContext, Context}
 import com.phasmidsoftware.number.expression.expr.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
-import com.phasmidsoftware.number.expression.core.Context
-import com.phasmidsoftware.number.expression.expr.{BiFunction, UniFunction}
+import com.phasmidsoftware.number.expression.expr.{BiFunction, CompositeExpression, UniFunction}
 import com.phasmidsoftware.number.expression.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
-import com.phasmidsoftware.number.algebra.misc.FP.recover
-import com.phasmidsoftware.number.expression.expr.CompositeExpression
-import com.phasmidsoftware.number.expression.parse.MillParser.mill
+import com.phasmidsoftware.number.{core, expression}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -101,8 +98,8 @@ trait Expression extends NumberLike with Approximate {
   def materialize: Valuable = {
     val simplified = simplify
     val asIs = simplified.evaluateAsIs
-    val approximation1 = simplified.approximation(true)
-    val maybeValuable1 = approximation1
+    lazy val approximation1 = simplified.approximation(true)
+    lazy val maybeValuable1 = approximation1
     val maybeValuable = asIs orElse maybeValuable1
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
