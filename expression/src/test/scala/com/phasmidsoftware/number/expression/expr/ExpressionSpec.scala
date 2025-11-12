@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
-import com.phasmidsoftware.number.core.inner.{NatLog, SquareRoot}
+import com.phasmidsoftware.number.core.inner.{NatLog, Rational, SquareRoot}
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, ExactNumber, GeneralNumber, NumberException, Real}
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.algebra.*
@@ -158,7 +158,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x1 = Valuable.one
     val x2 = Valuable.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.toString shouldBe "BiFunction{1 + \uD835\uDED1}"
+    e.toString shouldBe "BiFunction{WholeNumber(1) + \uD835\uDED1}"
     e.render shouldBe "4.1415926535897930(67)"
     e.materialize.render shouldBe "4.1415926535897930(67)"
   }
@@ -175,7 +175,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate -" in {
     val x = Expression(1) - 2
-    val result = x.simplify.materialize
+    val simplifiedExpression = x.simplify
+    val result = simplifiedExpression.materialize
     result shouldBe Valuable.minusOne
   }
   it should "evaluate *" in {
@@ -257,7 +258,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for (sqrt 7)∧2" in {
     val seven: Expression = 7
     val result: Expression = seven.sqrt ∧ 2
-    result.toString shouldBe "BiFunction{√7 ∧ 2}"
+    result.toString shouldBe BiFunction(BiFunction(WholeNumber(7), RationalNumber(Rational.half), Power), 2, Power).toString
   }
 
   behavior of "various operations"
@@ -419,7 +420,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val expression: Expression = ConstE * ConstE
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
     val y: em.MatchResult[Expression] = x.simplifyComposite(x)
-    y shouldBe em.Match(BiFunction(ConstE, Literal(2), Power))
+    y shouldBe em.Match(BiFunction(ConstE, ValueExpression(2), Power))
     val simplified = y.get.simplify
     simplified shouldBe Literal(Valuable(core.Real(ExactNumber(2, NatLog))))
   }
@@ -428,6 +429,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val expression: Expression = phi * phi
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
     val y: em.MatchResult[Expression] = x.simplifyComposite(x)
-    y shouldBe em.Match(BiFunction(phi, Literal(2), Power))
+    y shouldBe em.Match(BiFunction(phi, ValueExpression(2), Power))
   }
 }

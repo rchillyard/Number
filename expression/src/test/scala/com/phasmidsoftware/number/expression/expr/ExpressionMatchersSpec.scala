@@ -10,7 +10,7 @@ import com.phasmidsoftware.number.core.Number.{piBy2, root2, √}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, Field, FuzzyNumber}
-import com.phasmidsoftware.number.algebra.{Angle, Valuable}
+import com.phasmidsoftware.number.algebra.{Angle, Valuable, WholeNumber}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, matchSimpler, zero}
@@ -18,7 +18,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.languageFeature.implicitConversions.*
 
 /**
@@ -155,8 +154,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Valuable.pi
     p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
-    p(Sum ~ Two ~ Two) shouldBe em.Match(Literal(4))
-    p(Sum ~ One ~ Two) shouldBe em.Match(Literal(3))
+    p(Sum ~ Two ~ Two) shouldBe em.Match(ValueExpression(4))
+    p(Sum ~ One ~ Two) shouldBe em.Match(ValueExpression(3))
     p(Sum ~ One ~ Literal(root2)) should matchPattern { case em.Miss(_, _) => }
   }
   it should "handle Product" in {
@@ -167,7 +166,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ Two ~ One) shouldBe em.Match(Two)
     p(Product ~ One ~ Two) shouldBe em.Match(Two)
     p(Product ~ Two ~ Two) shouldBe em.Match(BiFunction(Two, Two, Power))
-    p(Product ~ Two ~ Literal(3)) shouldBe em.Match(Literal(6))
+    p(Product ~ Two ~ ValueExpression(3)) shouldBe em.Match(Literal(6))
   }
   it should "handle Power" in {
     import BiFunction.*
@@ -175,7 +174,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ Two ~ Zero) shouldBe em.Match(One)
     p(Power ~ Two ~ One) shouldBe em.Match(Two)
     p(Power ~ One ~ Two) shouldBe em.Match(One)
-    p(Power ~ Two ~ Two) shouldBe em.Match(Literal(4))
+    p(Power ~ Two ~ Two) shouldBe em.Match(ValueExpression(4))
   }
   it should "cancel -1 and - 1" in {
     import BiFunction.*
@@ -302,7 +301,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val a = BiFunction(One, Two, Sum)
     val b = BiFunction(Two, One, Sum)
     val z = p(Product ~ a ~ b)
-    z shouldBe em.Match(Expression(9))
+    z shouldBe em.Match(BiFunction(WholeNumber(3), 2, Power))
   }
   it should "properly simplify 1 * (root3 / root3 * 3)" in {
     val z: Expression = Expression(3).sqrt
@@ -343,7 +342,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val a = BiFunction(One, Two, Sum)
     val b = BiFunction(Two, One, Sum)
     val z = p(Product ~ a ~ b)
-    z shouldBe em.Match(Expression(9))
+    z shouldBe em.Match(BiFunction(WholeNumber(3), 2, Power))
   }
   it should "distributeProductSum a" in {
     import BiFunction.*
@@ -662,7 +661,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "simplifyAndEvaluate (a)"
   it should "show ∧2 and sqrt for illustrative purposes (a)" in {
-    val y: Expression = Literal(7).sqrt ∧ Valuable.two
+    val y: Expression = ValueExpression(7).sqrt ∧ Valuable.two
     y.materialize shouldBe Valuable(7)
   }
   it should "evaluate E * 2" in {

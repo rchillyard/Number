@@ -304,6 +304,21 @@ sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option
   * @see Literal
   */
 object ValueExpression {
+
+  /**
+    * Creates a Literal instance using an integer value.
+    *
+    * @param x the integer value to be used for constructing the Literal.
+    * @return a Literal instance wrapping the provided integer value as a Real number.
+    */
+  def apply(x: Int): ValueExpression = x match {
+    case 0 => Zero
+    case 1 => One
+    case -1 => MinusOne
+    case 2 => Two
+    case _ => Literal(WholeNumber(x), Some(x.toString))
+  }
+
   /**
     * Extracts components from a `ValueExpression` instance, enabling pattern matching.
     *
@@ -423,20 +438,6 @@ object Literal {
     Some(arg.value, arg.maybeName)
 
   /**
-    * Creates a Literal instance using an integer value.
-    *
-    * @param x the integer value to be used for constructing the Literal.
-    * @return a Literal instance wrapping the provided integer value as a Real number.
-    */
-  def apply(x: Int): Expression = x match {
-    case 0 => Zero
-    case 1 => One
-    case -1 => MinusOne
-    case 2 => Two
-    case _ => Literal(WholeNumber(x), Some(x.toString))
-  }
-
-  /**
     * Creates a Literal instance from a Rational value.
     *
     * @param x the Rational value to be wrapped in a Literal
@@ -479,8 +480,20 @@ object Literal {
       Literal(Scalar(x))
   }
 
+  /**
+    * Applies the given Algebraic instance to create a corresponding Expression.
+    *
+    * @param x the Algebraic instance to be converted into an Expression
+    * @return an Expression instance representing the given Algebraic input
+    */
   def apply(x: Algebraic): Expression = Literal(Valuable(x))
 
+  /**
+    * Creates a `Literal` instance wrapping the provided `Valuable` object.
+    *
+    * @param x the `Valuable` instance to be wrapped within an optional `Literal`.
+    * @return an `Option[Literal]` containing the created `Literal` if successful, or `None` otherwise.
+    */
   def someLiteral(x: Valuable): Option[Literal] = Some(Literal(x))
 }
 
@@ -652,7 +665,7 @@ case object Two extends ScalarConstant(WholeNumber.two, "2") {
     case Reciprocal =>
       Some(Half)
     case Negate =>
-      Some(Literal(-2))
+      Some(ValueExpression(-2))
     case _ =>
       None
   }

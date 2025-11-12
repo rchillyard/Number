@@ -440,7 +440,7 @@ object Expression {
     case 2 =>
       two // TESTME
     case _ =>
-      Literal(x)
+      ValueExpression(x)
   }
 
   /**
