@@ -5,22 +5,25 @@ name := "Number"
 ThisBuild / version := "1.3.2"
 
 lazy val root = (project in file("."))
-    .aggregate(core, algebra)
+    .aggregate(core, algebra, expression)
     .settings(
-      name := "my-project"
+      name := "number"
     )
 
 lazy val core = (project in file("core"))
     .settings(
       scalaVersion := "2.13.16",
-      // other Scala 2 specific settings
     )
 
 lazy val algebra = (project in file("algebra"))
     .settings(
       scalaVersion := "3.7.3",
-      // other Scala 3 specific settings
     ).dependsOn(core)
+
+lazy val expression = (project in file("expression"))
+    .settings(
+      scalaVersion := "3.7.3",
+    ).dependsOn(core, algebra)
 
 scalaVersion := "2.13.16"
 

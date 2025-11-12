@@ -2,16 +2,16 @@
  * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.expression
+package com.phasmidsoftware.number.core.expression
 
 import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.Number.one
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.algebraic._
+import com.phasmidsoftware.number.core.expression.Expression.em
+import com.phasmidsoftware.number.core.expression.Literal.someLiteral
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
-import com.phasmidsoftware.number.expression.Expression.em
-import com.phasmidsoftware.number.expression.Literal.someLiteral
 import java.util.Objects
 import scala.language.implicitConversions
 
@@ -793,7 +793,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     * @return a new `Transcendental` instance that encapsulates the applied function and updated expression.
     */
   def function(f: ExpressionMonoFunction): Transcendental =
-    new AbstractTranscendental(s"${f.name}($name)", com.phasmidsoftware.number.expression.UniFunction(expression, f).simplify) {}
+    new AbstractTranscendental(s"${f.name}($name)", UniFunction(expression, f).simplify) {}
 
   /**
     * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
@@ -1302,7 +1302,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     case Rational.half =>
       squareRoot(branch == 0)
     case x if x >= 2 =>
-      import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+      import Expression.ExpressionOps
       squared * power(x - 2)
     case _ =>
       throw ExpressionException(s"power: unable to compute power of $this to $r")
@@ -1319,7 +1319,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     */
   def reciprocal: Expression = equation match {
     case Quadratic(p, q) =>
-      import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+      import Expression.ExpressionOps
       this / Literal(-q) + Literal(-p / q)
     case _ =>
       One / this
@@ -1400,7 +1400,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     */
   private def squared: Expression = equation match {
     case Quadratic(p, q) =>
-      import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+      import Expression.ExpressionOps
       this * Literal(-p) + Literal(-q)
     case LinearEquation(r) =>
       this * Literal(-r)

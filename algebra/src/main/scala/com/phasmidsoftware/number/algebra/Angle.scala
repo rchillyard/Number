@@ -104,7 +104,10 @@ case class Angle private[algebra](radians: Number) extends Circle with Radians {
     * @param q the `Rational` value to be converted into an instance of `R`
     * @return an instance of `R` representing the specified `Rational` value
     */
-  def maybeQ: Option[Q] = ???
+  def maybeQ: Option[Q] = radians match {
+    case q: Q => Some(q)
+    case _ => None
+  }
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.

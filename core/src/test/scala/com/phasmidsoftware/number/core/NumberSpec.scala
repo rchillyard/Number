@@ -3,10 +3,10 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.sBoltzmann
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{NumberIsOrdering, inverse, negate, one, root2, zeroR}
+import com.phasmidsoftware.number.core.expression.Expression.{ExpressionOps, convertFieldToExpression}
+import com.phasmidsoftware.number.core.expression.{Expression, Literal}
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, convertFieldToExpression}
-import com.phasmidsoftware.number.expression.{Expression, Literal}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
-import com.phasmidsoftware.number.expression.Expression
+import com.phasmidsoftware.number.core.expression.Expression
 
 /**
   * Trait representing a multivalued mathematical expression. These expressions have multiple

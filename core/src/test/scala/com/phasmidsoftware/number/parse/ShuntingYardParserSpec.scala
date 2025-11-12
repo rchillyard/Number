@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.parse
 
+import com.phasmidsoftware.number.core.expression.Expression
+import com.phasmidsoftware.number.core.expression.Expression.convertMillExpressionToExpression
 import com.phasmidsoftware.number.core.{Constants, Number}
-import com.phasmidsoftware.number.expression.Expression
-import com.phasmidsoftware.number.expression.Expression.convertMillExpressionToExpression
 import com.phasmidsoftware.number.mill.Mill
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec

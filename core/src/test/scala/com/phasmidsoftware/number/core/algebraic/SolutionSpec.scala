@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
+import com.phasmidsoftware.number.core.expression.Root
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
-import com.phasmidsoftware.number.expression.Root
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 

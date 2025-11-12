@@ -10,7 +10,7 @@ import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.core.inner._
 // TODO eliminate references to expression package
-import com.phasmidsoftware.number.expression.{Expression, ExpressionException}
+import com.phasmidsoftware.number.core.expression.{Expression, ExpressionException}
 import com.phasmidsoftware.number.misc.FP.{optional, toTry}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.parse.RationalParser.parseComponents

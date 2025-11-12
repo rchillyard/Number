@@ -2,13 +2,13 @@
  * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.expression
+package com.phasmidsoftware.number.core.expression
 
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
+import com.phasmidsoftware.number.core.expression.Expression.em.{DyadicTriple, MonadicDuple}
+import com.phasmidsoftware.number.core.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Constants, Field, Number, Real}
-import com.phasmidsoftware.number.expression.Expression.em.{DyadicTriple, MonadicDuple}
-import com.phasmidsoftware.number.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.misc.FP
 import java.util.Objects
 import scala.language.implicitConversions

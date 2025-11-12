@@ -2,17 +2,17 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.expression
+package com.phasmidsoftware.number.core.expression
 
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.ComplexPolar.±
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
+import com.phasmidsoftware.number.core.expression.Expression.{ExpressionOps, em, pi}
+import com.phasmidsoftware.number.core.expression.Root.phi
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
-import com.phasmidsoftware.number.expression
-import com.phasmidsoftware.number.expression.Expression.{ExpressionOps, em, pi}
-import com.phasmidsoftware.number.expression.Root.phi
 import com.phasmidsoftware.number.mill.{Expr, Stack, TerminalExpression}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
@@ -112,30 +112,30 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "evaluateAsIs for UniFunction"
   it should "work for Exp(1)" in {
-    val x = expression.UniFunction.apply(One, Exp)
+    val x = UniFunction.apply(One, Exp)
     val result = x.evaluateAsIs
     result shouldBe Some.apply(Constants.e)
   }
   it should "work for Reciprocal" in {
-    expression.UniFunction.apply(Two, Reciprocal).evaluateAsIs shouldBe Some.apply(Constants.half)
+    core.expression.UniFunction.apply(Two, Reciprocal).evaluateAsIs shouldBe Some.apply(Constants.half)
   }
   it should "work for Ln(-1)" in {
-    val x = expression.UniFunction.apply(MinusOne, Ln)
+    val x = core.expression.UniFunction.apply(MinusOne, Ln)
     val result = x.evaluateAsIs
     result shouldBe Some.apply(ComplexPolar.apply(Number.pi, Number.piBy2.makeNegative, 1))
   }
 
   behavior of "materialize UniFunction"
   it should "work for Exp(1)" in {
-    val x = expression.UniFunction.apply(One, Exp)
+    val x = core.expression.UniFunction.apply(One, Exp)
     val result = x.materialize
     result shouldBe Constants.e
   }
   it should "work for Reciprocal" in {
-    expression.UniFunction.apply(Two, Reciprocal).materialize shouldBe Constants.half
+    core.expression.UniFunction.apply(Two, Reciprocal).materialize shouldBe Constants.half
   }
   it should "work for Exp(Ln(2))" in {
-    val x = expression.UniFunction.apply(expression.UniFunction.apply(Two, Ln), Exp)
+    val x = core.expression.UniFunction.apply(core.expression.UniFunction.apply(Two, Ln), Exp)
     val result = x.materialize
     result shouldBe Constants.two
   }
@@ -291,9 +291,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     pi.depth shouldBe 1
   }
   it should "be 2 for any UniFunction expression" in {
-    expression.UniFunction.apply(1, Negate).depth shouldBe 2
-    expression.UniFunction.apply(1, Cosine).depth shouldBe 2
-    expression.UniFunction.apply(1, Sine).depth shouldBe 2
+    core.expression.UniFunction.apply(1, Negate).depth shouldBe 2
+    core.expression.UniFunction.apply(1, Cosine).depth shouldBe 2
+    core.expression.UniFunction.apply(1, Sine).depth shouldBe 2
   }
   it should "be more than 1 for other expression" in {
     (ConstE * 2).depth shouldBe 2
@@ -345,9 +345,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     phi.simplify.materialize should ===(phiApprox)
   }
   it should "simplify function expressions" in {
-    expression.UniFunction.apply(expression.UniFunction.apply(One, Negate), Negate).simplify shouldBe One
-    expression.UniFunction.apply(Two, Reciprocal).simplify shouldBe Expression.apply(Constants.half)
-    expression.UniFunction.apply(Constants.pi, Sine).simplify shouldBe Expression.apply(Constants.zero)
+    core.expression.UniFunction.apply(core.expression.UniFunction.apply(One, Negate), Negate).simplify shouldBe One
+    core.expression.UniFunction.apply(Two, Reciprocal).simplify shouldBe Expression.apply(Constants.half)
+    core.expression.UniFunction.apply(Constants.pi, Sine).simplify shouldBe Expression.apply(Constants.zero)
   }
   it should "simplify biFunction expressions" in {
     BiFunction.apply(BiFunction.apply(Two, MinusOne, Product), Two, Sum).simplify shouldBe Zero

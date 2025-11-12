@@ -16,7 +16,7 @@ import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
 
 /**
   * This module is concerned with the generic operations for operating on Numbers.
-  *
+  * TODO move this into the core module.
   */
 object FP {
 

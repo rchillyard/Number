@@ -2,7 +2,7 @@
  * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.expression
+package com.phasmidsoftware.number.core.expression
 
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.inner._

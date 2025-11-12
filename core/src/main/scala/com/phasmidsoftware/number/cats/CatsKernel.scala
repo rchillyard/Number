@@ -8,9 +8,9 @@ import cats.Show
 import cats.implicits.catsSyntaxEq
 import cats.kernel.{Eq, Order, PartialOrder}
 import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
+import com.phasmidsoftware.number.core.expression.Expression
+import com.phasmidsoftware.number.core.inner.{Rational, Value}
 import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, GeneralNumber, Number, Real}
-import com.phasmidsoftware.number.expression.Expression
 
 /**
   * Centralized Cats Kernel instances, kept out of core companion objects

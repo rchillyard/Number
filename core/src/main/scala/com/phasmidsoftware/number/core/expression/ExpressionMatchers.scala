@@ -2,13 +2,13 @@
  * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.expression
+package com.phasmidsoftware.number.core.expression
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
+import com.phasmidsoftware.number.core.expression.Expression.{isIdentityFunction, matchSimpler}
+import com.phasmidsoftware.number.core.expression.Literal.someLiteral
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Field, Number, Real}
-import com.phasmidsoftware.number.expression.Expression.{isIdentityFunction, matchSimpler}
-import com.phasmidsoftware.number.expression.Literal.someLiteral
 import com.phasmidsoftware.number.matchers._
 import com.phasmidsoftware.number.misc.Bumperator
 import scala.language.implicitConversions

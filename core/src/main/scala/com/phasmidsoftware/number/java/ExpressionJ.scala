@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.java
 
-import com.phasmidsoftware.number.expression.Expression
+import com.phasmidsoftware.number.core.expression.Expression
 
 object ExpressionJ {
 

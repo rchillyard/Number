@@ -8,11 +8,11 @@ import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.algebra.misc.Renderable
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.inner.{Factor, Rational}
-import com.phasmidsoftware.number.core.{NumberException, NumberExceptionWithCause}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational, Value}
+import com.phasmidsoftware.number.core.{ExactNumber, Field, FuzzyNumber, NumberException, NumberExceptionWithCause, Real}
 import com.phasmidsoftware.number.parse.NumberParser
 import scala.language.implicitConversions
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 /**
   * A trait representing an object that is in some sense numerical and has a value (or possibly more than one value).
@@ -117,16 +117,35 @@ object Valuable {
       case a: Algebraic =>
         throw new NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }
-//
-//  /**
-//    * Extractor method to convert a `Valuable` instance into an `Option` containing its corresponding `Field` representation.
-//    * This allows for safe pattern matching and handling of `Valuable` objects that may or may not be convertible to a `Field`.
-//    *
-//    * @param v the `Valuable` instance to be converted into an `Option[Field]`
-//    * @return `Some(Field)` if the conversion is successful, or `None` if it fails
-//    */
-//  def unapply(v: Valuable): Option[core.Field] =
-//    Try(valuableToField(v)).toOption
+
+  private def rationalToFIeld(rational: Rational, factor: Factor) = Real(ExactNumber(Value.fromRational(rational), factor))
+
+  private def intToField(x: Int, factor: Factor) = Real(ExactNumber(Value.fromInt(x), factor))
+
+  def valuableToField(v: Valuable): Field = v match {
+    case Complex(complex) =>
+      complex
+    case nat: Nat =>
+      intToField(nat.toInt, PureNumber)
+    case com.phasmidsoftware.number.algebra.Real(x, fo) =>
+      core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
+    case q: Q =>
+      rationalToFIeld(q.toRational, PureNumber)
+    case a@Angle(radians: Q) =>
+      rationalToFIeld(radians.toRational, Radian)
+    case _ =>
+      throw NumberException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field")
+  }
+
+  /**
+    * Extractor method to convert a `Valuable` instance into an `Option` containing its corresponding `Field` representation.
+    * This allows for safe pattern matching and handling of `Valuable` objects that may or may not be convertible to a `Field`.
+    *
+    * @param v the `Valuable` instance to be converted into an `Option[Field]`
+    * @return `Some(Field)` if the conversion is successful, or `None` if it fails
+    */
+  def unapply(v: Valuable): Option[core.Field] =
+    Try(valuableToField(v)).toOption
 
   /**
     * Converts a given string into a `Valuable` representation.

@@ -2,8 +2,8 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Number.convertExpression
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
+import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.expression.Expression
 import org.scalactic.Equality
 
 trait FuzzyEquality {

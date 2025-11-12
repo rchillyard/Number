@@ -2,8 +2,8 @@
   * This worksheet illustrates the use of Expressions (for lazy evaluation).
   */
 
+import com.phasmidsoftware.number.core.expression.{Expression, One}
 import com.phasmidsoftware.number.core.{Constants, Number}
-import com.phasmidsoftware.number.expression.{Expression, One}
 
 val root3 = Expression(3).sqrt
 

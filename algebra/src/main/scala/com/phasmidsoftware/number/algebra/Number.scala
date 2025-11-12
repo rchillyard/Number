@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
-import algebra.ring.AdditiveCommutativeMonoid
+import algebra.ring.{AdditiveCommutativeMonoid, MultiplicativeGroup}
 import com.phasmidsoftware.number.algebra.misc.FP
 import com.phasmidsoftware.number.core.NumberException
 import scala.annotation.tailrec
@@ -216,6 +216,59 @@ object Number {
       case _ =>
         throw NumberException("Number.plus: logic error: cannot add " + x + " and " + y)
     }
+  }
 
+  /**
+    * An implicit object defining the multiplicative group structure for `Number` instances.
+    *
+    * The `NumberIsMultiplicativeGroup` provides implementations for the methods required 
+    * by the `MultiplicativeGroup` type class, enabling operations such as multiplication 
+    * (`times`) and division (`div`) as well as access to the multiplicative identity (`one`).
+    * It supports a variety of `Number` subtypes, including `Real`, `RationalNumber`, and `WholeNumber`, 
+    * and handles necessary conversions or raises exceptions when operations cannot be performed.
+    */
+  implicit object NumberIsMultiplicativeGroup extends MultiplicativeGroup[Number] {
+    /**
+      * Retrieves the numerical value that represents one.
+      *
+      * @return the predefined constant representing the number one
+      */
+    def one: Number = Number.one
+
+    /**
+      * Multiplies two `Number` instances and returns the resulting `Number`.
+      *
+      * This method performs multiplication between two instances of `Number`. The exact operation depends on the type of the
+      * input numbers, supporting various types such as `Real`, `RationalNumber`, and `WholeNumber`. If the types mismatch
+      * or a conversion between types is required, the appropriate logic is applied to carry out the multiplication. If the
+      * numbers cannot be multiplied due to an unsupported type or incorrect conversion, an exception is thrown.
+      *
+      * @param x the first `Number` to be multiplied
+      * @param y the second `Number` to be multiplied
+      * @return the result of multiplying `x` and `y` as a `Number`
+      * @throws NumberException if the multiplication is not possible for the given inputs
+      */
+    def times(x: Number, y: Number): Number = (x, y) match {
+      case (a: Real, b: Real) =>
+        a * b
+      case (a, b: Real) =>
+        times(y, x)
+      case (a: Real, b) =>
+        FP.recover(b.convert(Real.zero).map(_ * a))(NumberException("Number.plus: logic error: cannot convert " + b + " to a Real"))
+      case (a: RationalNumber, b: RationalNumber) =>
+        a * b
+      case (a, b: RationalNumber) =>
+        times(y, x)
+      case (a: RationalNumber, b) =>
+        FP.recover(b.convert(RationalNumber.zero).map(a * _))(NumberException("Number.plus: logic error: cannot convert " + b + " to a RationalNumber"))
+      case (a: WholeNumber, b: WholeNumber) =>
+        a * b
+      case (a, b: WholeNumber) =>
+        times(y, x)
+      case _ =>
+        throw NumberException("Number.times: logic error: cannot multiply " + x + " and " + y)
+    }
+
+    def div(x: Number, y: Number): Number = ???
   }
 }
