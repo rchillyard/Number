@@ -14,6 +14,7 @@ import com.phasmidsoftware.number.expression.core.{AnyContext, Context}
 import com.phasmidsoftware.number.expression.expr.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.{BiFunction, CompositeExpression, UniFunction}
+import com.phasmidsoftware.number.expression.mill
 import com.phasmidsoftware.number.expression.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.{core, expression}
 import scala.annotation.tailrec
@@ -148,6 +149,7 @@ trait Expression extends Valuable with Approximate {
 }
 
 object ExpressionHelper {
+
   /**
     * Adds utility methods for evaluating and materializing expressions from a String.
     * These methods allow parsing and processing of a string as a mathematical or logical expression.
@@ -168,11 +170,23 @@ object ExpressionHelper {
     def times(y: Valuable): Option[Valuable] =
       Expression.parse(s"$x * $y").flatMap(_.evaluateAsIs)
 
+  /**
+    * Extension method `math` for `StringContext`.
+    *
+    * This method provides support for creating `Expression` objects by interpolating
+    * strings within a `StringContext`. It processes the string parts and interpolated
+    * arguments, combining them into a single string, which is then used to construct
+    * a new `Expression`.
+    *
+    * @param args the arguments to interpolate into the string context.
+    * @return an instance of `Expression` derived from the interpolated string.
+    */
   extension (inline sc: StringContext)
     inline def math(args: Any*): Expression =
       val parts = sc.parts
       val interleaved = parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)
       Expression(interleaved.mkString)
+
 }
 
 /**
@@ -448,7 +462,7 @@ object Expression {
     * NOTE that it might be a problem with render instead.
     */
   def parse(x: String): Option[Expression] =
-    com.phasmidsoftware.number.expression.mill.Expression.parseToExpression(x).map(convertMillExpressionToExpression)
+    mill.Expression.parseToExpression(x).map(convertMillExpressionToExpression)
 
   /**
     * Converts a `mill.Expression` into an `Expression` by interpreting the structure 
@@ -459,7 +473,7 @@ object Expression {
     * @return The corresponding `Expression` after applying the transformations.
     * @throws ExpressionException if an unknown operator is encountered.
     */
-  def convertMillExpressionToExpression(expr: com.phasmidsoftware.number.expression.mill.Expression): Expression =
+  def convertMillExpressionToExpression(expr: mill.Expression): Expression =
     expr match {
       case TerminalExpression(value) => Literal(value)
       case MonadicExpression(expression, str) =>

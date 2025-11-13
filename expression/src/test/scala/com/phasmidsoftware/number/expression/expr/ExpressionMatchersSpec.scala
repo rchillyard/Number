@@ -315,7 +315,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val a = BiFunction(One, Two, Sum)
     val b = BiFunction(Two, One, Sum)
     val z = p(Product ~ a ~ b)
-    z shouldBe em.Match(BiFunction(WholeNumber(3), 2, Power))
+    z shouldBe em.Match(Literal(WholeNumber(9)))
   }
   it should "properly simplify 1 * (root3 / root3 * 3)" in {
     val z: Expression = Expression(3).sqrt

@@ -28,7 +28,8 @@ abstract class BaseMillParser extends BaseNumberParser {
     * @param w the String to parse.
     * @return a Mill, wrapped in Try.
     */
-  def parseMill(w: String): Try[Mill] = stringParser(mill, w.trim.split("""\s+""").reverse.mkString(" "))
+  def parseMill(w: String): Try[Mill] =
+    stringParser(mill, w.trim.split("""\s+""").reverse.mkString(" "))
 
   /**
     * Trait Term which represents a dyadic, monadic, anadic term (the latter including a Number).
@@ -118,7 +119,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     ("+" | "*" | "×" | "^" | "∧" | "-" | "−" | "–" | "/" | "÷") :| "dyadicOperator"
 
   def monadicOperator: Parser[String] =
-    """(?i)chs|inv|v|ln|exp|sin|cos""".r :| "monadicOperator"
+    """(?i)chs|inv|√|ln|exp|sin|cos""".r :| "monadicOperator"
 
   def anadicOperator: Parser[String] =
     """rcl""".r :| "anadicOperator"
