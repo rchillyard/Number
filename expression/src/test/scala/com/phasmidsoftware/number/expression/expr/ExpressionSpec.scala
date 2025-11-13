@@ -16,6 +16,7 @@ import com.phasmidsoftware.number.algebra.RationalNumber.half
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, pi}
+import com.phasmidsoftware.number.expression.expr.ExpressionHelper.math
 import com.phasmidsoftware.number.expression.expr.Root.phi
 import com.phasmidsoftware.number.expression.parse.ShuntingYardParser
 import org.scalactic.Equality
@@ -431,5 +432,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
     val y: em.MatchResult[Expression] = x.simplifyComposite(x)
     y shouldBe em.Match(BiFunction(phi, ValueExpression(2), Power))
+  }
+
+  behavior of "math"
+  it should "" in {
+    // NOTE than when you explicitly specify "math," you don't need to add a type annotation of Expression
+    val expression = math"√(4)"
+    expression shouldBe BiFunction(ValueExpression(4), RationalNumber(Rational.half), Power)
   }
 }

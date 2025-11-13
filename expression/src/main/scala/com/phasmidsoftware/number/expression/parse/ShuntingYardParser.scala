@@ -128,7 +128,8 @@ object ShuntingYardParser extends BaseMillParser {
     *
     * @return a Parser[ShuntingYard].
     */
-  def shuntingYard: Parser[ShuntingYard] = opt(whiteSpace) ~> rep(infixToken) :| "shuntingYard" ^^ (tokens => ShuntingYard(tokens))
+  def shuntingYard: Parser[ShuntingYard] =
+    opt(whiteSpace) ~> rep(infixToken) :| "shuntingYard" ^^ (tokens => ShuntingYard(tokens))
 
   /**
     * Parser for an InfixToken.
@@ -149,7 +150,8 @@ object ShuntingYardParser extends BaseMillParser {
     *
     * @return Parser[String].
     */
-  def operator: Parser[String] = (dyadicOperator | monadicOperator | anadicOperator | neutralOperator2 | openParenthesis | closeParenthesis) :| "operator"
+  def operator: Parser[String] =
+    (dyadicOperator | monadicOperator | anadicOperator | neutralOperator2 | openParenthesis | closeParenthesis) :| "operator"
 
   private val openParenthesis: String = "("
 

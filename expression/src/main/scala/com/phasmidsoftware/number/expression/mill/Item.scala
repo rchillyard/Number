@@ -211,7 +211,7 @@ object Item {
     // XXX Monadic operators
     case "chs" => Chs
     case "inv" => Inv
-    case "v" | "sqrt" => Sqrt
+    case "√" | "sqrt" => Sqrt
     case "ln" => Ln
     case "exp" => Exponent
     case "sin" => Sin
