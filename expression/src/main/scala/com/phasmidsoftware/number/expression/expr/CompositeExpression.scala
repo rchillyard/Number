@@ -457,6 +457,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     //      matchProduct
     // NOTE this case is definitely required
     case b@BiFunction(_, _, _) =>
+      // TODO this frequently results in a Miss which is interpreted as a failure. 
+      //  A Miss in simplifyComposite should be treated as the termination of the simplify process.
       ((em.complementaryTermsEliminatorBiFunction |
           em.matchBiFunctionAsAggregate & em.literalsCombiner) &
           em.alt(matchSimpler))(b)

@@ -262,14 +262,14 @@ sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option
     * @return a String
     */
   def render: String = maybeName getOrElse value.render // TESTME
-
-  /**
-    * Generate a String for debugging purposes.
-    *
-    * @return a String representation of this Literal.
-    */
-  override def toString: String =
-    maybeName getOrElse value.toString
+//
+//  /**
+//    * Generate a String for debugging purposes.
+//    *
+//    * @return a String representation of this Literal.
+//    */
+//  override def toString: String =
+//    maybeName getOrElse value.toString
 
   /**
     * Compares this `ValueExpression` with another object for equality.
@@ -443,6 +443,7 @@ case class Literal(override val value: Valuable, override val maybeName: Option[
       case (Cosine, r@Real(x, None)) =>
         Valuable(valuableToField(r).cos)
       case _ =>
+        // TODO change the expected result to Option[Valuable] and return None here
         throw NumberException(s"monadicFunction: cannot apply $f to $value")
     }
   }

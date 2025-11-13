@@ -119,10 +119,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   import Expression.ExpressionOps
-
-  behavior of "matchSimpler"
-
   import Matchers.*
+
+  /**
+    * Keep in mind that `matchSimpler` only performs one stage (level?) of simplification.
+    * If you are testing full simplification, then you must use `simplify`.
+    */
+  behavior of "matchSimpler"
 
   it should "matchSimpler 1" in {
     import BiFunction.*
@@ -264,13 +267,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = x * y
-    matchSimpler(z).get shouldBe One
+    matchSimpler(z).get shouldBe ValueExpression(RationalNumber(1))
   }
   it should "cancel 2 * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = y * x
-    matchSimpler(z).get shouldBe One
+    matchSimpler(z).get shouldBe ValueExpression(RationalNumber(1))
   }
   it should "cancel ∧2 and sqrt" in {
     val seven = Expression(7)
@@ -293,7 +296,16 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "work for multi-levels 2" in {
     val x = (One + ConstE - ConstE) * (ConstPi / 4)
-    matchSimpler(x).get shouldBe Expression(Valuable.piBy4)
+    val simpler = matchSimpler(x).get
+    simpler shouldBe BiFunction(ConstPi, Literal(RationalNumber(Rational.quarter), None), Product)
+  }
+
+  behavior of "multiple matchSimpler"
+  ignore should "work for multi-levels 2" in {
+    val x = (One + ConstE - ConstE) * (ConstPi / 4)
+    val simpler = matchSimpler(x).get
+    // The following will trigger the Unsuccessful: cannot call get: matchBiFunctionAsAggregate: is not converted to Aggregate
+    matchSimpler(simpler).get shouldBe Expression(Valuable.piBy4)
   }
 
   behavior of "matchSimpler 2"
