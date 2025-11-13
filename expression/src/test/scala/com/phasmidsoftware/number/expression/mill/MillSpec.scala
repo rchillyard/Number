@@ -117,8 +117,8 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     value should matchPattern { case Success(_) => }
     value map (checkMill(Number("2/3"), _)) should matchPattern { case Success(_) => }
   }
-  it should "parse and evaluate: 2 v" in {
-    val value: Try[Mill] = p.parseMill("2 v")
+  it should "parse and evaluate: 2 √" in {
+    val value: Try[Mill] = p.parseMill("2 √")
     value should matchPattern { case Success(_) => }
     value map (checkMill(Number(2).sqrt, _)) should matchPattern { case Success(_) => }
   }

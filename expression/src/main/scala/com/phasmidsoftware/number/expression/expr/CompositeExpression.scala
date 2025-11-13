@@ -39,8 +39,8 @@ sealed trait CompositeExpression extends Expression {
     *
     * @return true if this `NumberLike` object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean =
-    evaluateAsIs.exists(_.isExact)
+//  def isExact: Boolean =
+//    evaluateAsIs.exists(_.isExact)
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -165,6 +165,19 @@ object CompositeExpression {
   * @param f the function to be applied to x.
   */
 case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends expression.expr.CompositeExpression {
+  /**
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
+    *
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    *
+    * The method returns `true` if there is no approximate representation
+    * available (i.e., `approximation` is `None`), indicating that the
+    * entity is exact. Otherwise, it returns `false`.
+    *
+    * @return a `Boolean` indicating whether the entity is exact (`true`)
+    *         or has an approximation (`false`).
+    */
+  def isExact: Boolean = x.isExact
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
@@ -342,6 +355,19 @@ object UniFunction {
   * @param f the function to be applied to a and b.
   */
 case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends expression.expr.CompositeExpression {
+  /**
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
+    *
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    *
+    * The method returns `true` if there is no approximate representation
+    * available (i.e., `approximation` is `None`), indicating that the
+    * entity is exact. Otherwise, it returns `false`.
+    *
+    * @return a `Boolean` indicating whether the entity is exact (`true`)
+    *         or has an approximation (`false`).
+    */
+  def isExact: Boolean = a.isExact && b.isExact
 
   /**
     * Simplifies the components of a `BiFunction` expression by applying a matcher that reduces its
@@ -862,6 +888,19 @@ object BiFunction {
   * @param xs A non-empty sequence of expressions to be totaled.
   */
 case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extends expression.expr.CompositeExpression {
+  /**
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
+    *
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    *
+    * The method returns `true` if there is no approximate representation
+    * available (i.e., `approximation` is `None`), indicating that the
+    * entity is exact. Otherwise, it returns `false`.
+    *
+    * @return a `Boolean` indicating whether the entity is exact (`true`)
+    *         or has an approximation (`false`).
+    */
+  def isExact: Boolean = xs.forall(_.isExact)
 
   /**
     * Simplifies the components of this `CompositeExpression` using a matching mechanism to identify
