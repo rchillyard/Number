@@ -144,7 +144,7 @@ object Scalar {
   * It extends the `Scalar` trait, inheriting its properties and behaviors for numerical operations
   * and comparison, while specifically associating the scalar with a conversion factor defined by Pi.
   */
-trait Radians extends Scalar {
+trait Radians extends Scalar with CanScale[Radians, Number] {
   /**
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.
     */

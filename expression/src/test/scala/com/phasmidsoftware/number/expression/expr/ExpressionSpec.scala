@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, ExactNum
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.RationalNumber.half
-import com.phasmidsoftware.number.algebra.Valuable.valuableToField
+import com.phasmidsoftware.number.algebra.Valuable.{valuableToField, valuableToMaybeField}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.expression.expr.ExpressionHelper.math
@@ -153,7 +153,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x2 = Valuable.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
     val result: Valuable = e.materialize
-    valuableToField(result) shouldEqual core.Real(core.Number(Math.PI + 1))
+    valuableToMaybeField(result) shouldEqual core.Real(core.Number(Math.PI + 1))
   }
   it should "render" in {
     val x1 = Valuable.one
@@ -341,6 +341,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Expression.simplifyConstant(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
     BiFunction(Two, MinusOne, Product).simplify shouldBe Expression(-2)
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Valuable.zero)
+  }
+
+  behavior of "simplifyExact"
+  it should "simplify biFunction expressions" in {
+    val em: ExpressionMatchers = Expression.em
+    Expression.simplifyExact(BiFunction(Literal(Angle.twoPi, None), RationalNumber.half, Product)) should matchPattern { case em.Match(Literal(Angle.pi, _)) => }
   }
 
   behavior of "simplify"

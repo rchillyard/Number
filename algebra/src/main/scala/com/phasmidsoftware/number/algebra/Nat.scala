@@ -21,7 +21,7 @@ import scala.annotation.tailrec
   * CONSIDER increasing the use of the `asInt` value for better performance.
   * But note that doing that destroys the Peano aspect of this class (keep in mind that we also have WholeNumber).
   */
-sealed trait Nat extends Valuable with N {
+sealed trait Nat extends Eager with N {
   /**
     * Adds the specified natural number to this natural number.
     *

@@ -52,7 +52,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     def areEqual(a: Expression, b: Any): Boolean = b match {
       case v: Valuable => a.compare(Literal(v)) == 0
       case n: core.Number => new ExpressionOps(a).compare(Literal(n)) == 0
-      case n: Expression => a.compare(n) == 0
       case _ => false
     }
   }
@@ -126,7 +125,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     * If you are testing full simplification, then you must use `simplify`.
     */
   behavior of "matchSimpler"
-
   it should "matchSimpler 1" in {
     import BiFunction.*
     val p = Expression.matchSimpler
@@ -196,6 +194,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = One / 2
     val result = p(Product ~ x ~ y)
     result shouldBe em.Match(ConstPi)
+  }
+  it should "cancel multiplication and division with simplify" in {
+    val x = Literal(Valuable.pi) * 2
+    val y = One / 2
+    (x * y).simplify shouldBe ConstPi
   }
   it should "simplify sqrt(7)∧2" in {
     val x: Expression = Expression(7)
@@ -492,6 +495,183 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work for Cosine pi" in {
     val x = expr.UniFunction(ConstPi, Cosine)
     x.simplify shouldBe MinusOne
+  }
+
+  behavior of "simplify rather than matchSimpler"
+  it should "matchSimpler 1" in {
+    import BiFunction.*
+    val p = Expression.matchSimpler
+    val x: Expression = Valuable.pi
+    (Sum ~ x ~ Zero).simplify shouldBe x
+    (Sum ~ Zero ~ x).simplify shouldBe (x)
+    (Product ~ x ~ One).simplify shouldBe (x)
+    (Product ~ One ~ x).simplify shouldBe (x)
+    (Product ~ x ~ Zero).simplify shouldBe (Zero)
+    (Product ~ Zero ~ x).simplify shouldBe (Zero)
+    (Power ~ x ~ One).simplify shouldBe (x)
+  }
+  it should "simplifyTrivial 1" in {
+    import BiFunction.*
+    val p = Expression.simplifyTrivial
+    val x: Expression = Valuable.pi
+    (Sum ~ x ~ Zero).simplify shouldBe (x)
+    (Sum ~ Zero ~ x).simplify shouldBe (x)
+    (Product ~ x ~ One).simplify shouldBe (x)
+    (Product ~ One ~ x).simplify shouldBe (x)
+    (Product ~ x ~ Zero).simplify shouldBe (Zero)
+    (Product ~ Zero ~ x).simplify shouldBe (Zero)
+    (Power ~ x ~ One).simplify shouldBe (x)
+  }
+  it should "handle Sum" in {
+    import BiFunction.*
+    val p = Expression.matchSimpler
+    val x: Expression = Valuable.pi
+    (Sum ~ Two ~ Zero).simplify shouldBe (Two)
+    (Sum ~ Zero ~ Two).simplify shouldBe (Two)
+    (Sum ~ Two ~ Two).simplify shouldBe (ValueExpression(4))
+    (Sum ~ One ~ Two).simplify shouldBe (ValueExpression(3))
+//    (Sum ~ One ~ Literal(root2)).simplify shouldBe (ValueExpression(3))  // This one is not supposed to match
+  }
+  it should "handle Product" in {
+    import BiFunction.*
+    val p = Expression.matchSimpler
+    (Product ~ One ~ Zero).simplify shouldBe (Zero)
+    (Product ~ Zero ~ One).simplify shouldBe (Zero)
+    (Product ~ Two ~ One).simplify shouldBe (Two)
+    (Product ~ One ~ Two).simplify shouldBe (Two)
+    (Product ~ Two ~ Two).simplify shouldBe (ValueExpression(WholeNumber(4)))
+    (Product ~ Two ~ ValueExpression(3)).simplify shouldBe (ValueExpression(WholeNumber(6)))
+  }
+  it should "handle Power" in {
+    import BiFunction.*
+    val p = Expression.matchSimpler
+    (Power ~ Two ~ Zero).simplify shouldBe (One)
+    (Power ~ Two ~ One).simplify shouldBe (Two)
+    (Power ~ One ~ Two).simplify shouldBe (One)
+    (Power ~ Two ~ Two).simplify shouldBe (ValueExpression(4))
+  }
+  it should "cancel -1 and - 1" in {
+    import BiFunction.*
+    val p = Expression.matchSimpler
+    sb.append("cancel -1 and - 1:\n")
+    val x: Expression = Expression.one
+    val y = Expression.minusOne
+    val result = (Sum ~ y ~ x).simplify shouldBe Zero
+  }
+  it should "cancel multiplication and division" in {
+    import BiFunction.*
+    val p = Expression.matchSimpler
+    val x = Literal(Valuable.pi) * 2
+    val y = One / 2
+    val result = (Product ~ x ~ y).simplify
+    result shouldBe (ConstPi)
+  }
+  it should "cancel multiplication and division with simplify" in {
+    val x = Literal(Valuable.pi) * 2
+    val y = One / 2
+    (x * y).simplify shouldBe ConstPi
+  }
+  it should "simplify sqrt(7)∧2" in {
+    val x: Expression = Expression(7)
+    val y = x.sqrt
+    val z = y ∧ 2
+    val q = (z).simplify
+    q shouldBe (Expression(7))
+  }
+  it should "cancel 1 and - -1" in {
+    sb.append("cancel 1 and - -1:\n")
+    val x: Expression = Expression.one
+    val y = -x
+    val z = x + y
+    val p = (z).simplify
+    p should matchPattern { case (Zero) => }
+  }
+  it should "cancel 1 and - -1 b" in {
+    sb.append("cancel 1 and - -1 b:\n")
+    val x: Expression = Expression.one
+    val y = MinusOne * x
+    val z = x + y
+    val p = (z).simplify
+    p should matchPattern { case (Zero) => }
+  }
+  it should "cancel 2 * 1/2 (a)" in {
+    val x = Expression.one * 2
+    val y = x.reciprocal
+    val z = x * y
+    val p = (z).simplify
+    p shouldBe (Literal(RationalNumber(1)))
+  }
+  it should "cancel 2 * 1/2 (b)" in {
+    val x = Expression(2) * Expression.one
+    val y = x.reciprocal
+    val z = y * x
+    val p = (z).simplify
+    p shouldBe (Literal(RationalNumber(1)))
+  }
+  it should "cancel ∧2 and sqrt for 7" in {
+    val seven = Expression(7)
+    val x: Expression = seven.sqrt
+    val y = x ∧ 2
+    val p = (y).simplify
+    p shouldBe (seven)
+  }
+  it should "show that lazy evaluation sometimes works even when you don't use it (a)" in {
+    val seven = Expression(7)
+    val x: Expression = seven.sqrt
+    val y = x ∧ two
+    val simplify = y.simplify
+    simplify.isExact shouldBe true
+    simplify shouldBe seven
+  }
+  it should "cancel multiplication and division 2" in {
+    val x = Literal(Valuable.pi) * 2 / 2
+    (x).simplify shouldBe ConstPi
+  }
+  it should "cancel multiplication and division backwards" in {
+    val x = Literal(Valuable.pi) / 2 * 2
+    (x).simplify shouldBe ConstPi
+  }
+  it should "cancel 1 and - -1 (a)" in {
+    val x: Expression = Expression.one
+    val y = -x
+    val z = x + y
+    (z).simplify shouldBe Zero
+  }
+  it should "cancel 2 and * 1/2" in {
+    val x = Expression.one * 2
+    val y = x.reciprocal
+    val z = x * y
+    (z).simplify shouldBe ValueExpression(RationalNumber(1))
+  }
+  it should "cancel 2 * 1/2" in {
+    val x = Expression.one * 2
+    val y = x.reciprocal
+    val z = y * x
+    (z).simplify shouldBe ValueExpression(RationalNumber(1))
+  }
+  it should "cancel ∧2 and sqrt" in {
+    val seven = Expression(7)
+    val x: Expression = seven.sqrt
+    val y = x ∧ 2
+    (y).simplify shouldBe Expression(7)
+  }
+  it should "cancel addition and subtraction of 3" in {
+    val x = One + 3 - 3
+    (x).simplify shouldBe One
+  }
+  it should "cancel addition and subtraction of e" in {
+    val y: Expression = One + ConstE
+    val z = y + expr.UniFunction(ConstE, Negate)
+    (z).simplify shouldBe One
+  }
+  it should "work for multi-levels 1" in {
+    val x = (One + 3 - 3) * (Two / 4)
+    (x).simplify shouldBe Half
+  }
+  it should "work for multi-levels 2" in {
+    val x = (One + ConstE - ConstE) * (ConstPi / 4)
+    val simpler = (x).simplify
+    simpler shouldBe BiFunction(ConstPi, Literal(RationalNumber(Rational.quarter), None), Product)
   }
 
   behavior of "complementaryTermsEliminatorAggregate"

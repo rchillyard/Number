@@ -25,6 +25,33 @@ import scala.reflect.ClassTag
   * @param radians the value of the angle in radians
   */
 case class Angle private[algebra](radians: Number) extends Circle with Radians {
+
+  /**
+    * Normalizes an angle instance to its equivalent value within the standard range of radians.
+    *
+    * This method processes the `radians` value of the current `Angle` and adjusts it
+    * to lie within the expected range, typically between 0 and 2π or -π to π, depending
+    * on the implementation of the `Radian.modulate` logic.
+    * Various specific cases are covered based on the type of the input:
+    *   - Rational numbers are converted using their rational representation.
+    *   - Reals are adjusted using their double value, with fuzz consideration pending implementation.
+    *   - Whole numbers are directly handled using their integer representation.
+    *
+    * An exception is thrown if the input type is not recognized.
+    *
+    * @return a new instance of `Angle` representing the normalized value
+    */
+  def normalize: Angle = radians match {
+    case RationalNumber(r) =>
+      Angle(Radian.modulate(Value.fromRational(r)))
+    case Real(value, fuzz) =>
+      Angle(Radian.modulate(Value.fromDouble(Some(value)))) // TODO take care of fuzz
+    case WholeNumber(x) =>
+      Angle(Radian.modulate(Value.fromRational(Rational(x.toBigInt))))
+    case _ =>
+      throw NumberException(s"normalize: unexpected type $radians")
+  }
+
   /**
     * Compares the current `Angle` instance with another `Number` to determine their exact order.
     *
@@ -38,6 +65,7 @@ case class Angle private[algebra](radians: Number) extends Circle with Radians {
     */
   def compareExact(that: Scalar): Option[Int] = that match {
     case Angle(r) =>
+      // TODO normalize before comparison
       Some(radians.compare(r))
     case _ =>
       None
@@ -55,6 +83,7 @@ case class Angle private[algebra](radians: Number) extends Circle with Radians {
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: Real =>
+      // TODO normalize before conversion
       radians.approximation.map(x => x.scaleByPi).asInstanceOf[Option[T]]
     case _ =>
       None
@@ -127,7 +156,8 @@ case class Angle private[algebra](radians: Number) extends Circle with Radians {
     * @return a string representation of the `Angle` in terms of π
     */
   def render: String = {
-    val prefix = radians.render
+    val normalized = normalize
+    val prefix = normalized.radians.render
     val suffix = "𝛑"
     (if prefix == "1" then "" else prefix) + suffix
   }
@@ -169,6 +199,22 @@ case class Angle private[algebra](radians: Number) extends Circle with Radians {
       Some(this + a)
     case x: Scalar =>
       convert(Real.zero) flatMap (r => r doPlus x)
+  }
+
+  /**
+    * Scales the current instance of type `T` using the given `Number` multiplier.
+    *
+    * This method performs a scaling operation by multiplying the current instance
+    * with the provided `Number`. The result of the scaling operation is returned
+    * as an `Option`, allowing for cases where the operation might not be valid or
+    * possible.
+    *
+    * @param that the `Number` multiplier used to scale the current instance
+    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+    */
+  def doScale(that: Number): Option[Radians] = {
+    val maybeNumber = radians.scale(that)
+    maybeNumber map (x => copy(radians = x))
   }
 
   /**
@@ -218,7 +264,6 @@ case class Angle private[algebra](radians: Number) extends Circle with Radians {
     */
   def approximation: Option[Real] = convert(Real.zero)
 
-  override def toString: String = render
 }
 
 /**
@@ -238,7 +283,7 @@ object Angle {
     * @return an `Angle` instance corresponding to the structure of the input `Value`;
     *         returns `Angle.nan` if the input represents an undefined value.
     */
-  def apply(value: Value): Angle = Radian.modulate(value) match {
+  def apply(value: Value): Angle = value match {
     case Right(x) =>
       new Angle(WholeNumber(x))
     case Left(Right(x)) =>
@@ -385,16 +430,22 @@ object Angle {
 
 
     /**
-      * Combines two `Angle` instances by adding their respective radians.
+      * Adds two `Angle` instances together and returns the resulting `Angle` after normalization.
       *
-      * @param x the first `Angle` to combine
-      * @param y the second `Angle` to combine
-      * @return a new `Angle` representing the sum of the radians of the two provided `Angle` instances
+      * This method combines the components of two `Angle` objects using their `plus` operation
+      * and ensures that the resulting `Angle` is in a normalized form to comply with the
+      * characteristics of the `Angle` algebraic structure.
+      *
+      * @param x the first `Angle` instance to be added
+      * @param y the second `Angle` instance to be added
+      * @return a new `Angle` instance representing the sum of the two input angles, normalized
       */
     def plus(x: Angle, y: Angle): Angle = (x, y) match {
-      case (Angle(x1: CanAdd[Number, Number]), Angle(x2: CanAdd[Number, Number])) =>
+      case (Angle(x1: CanAdd[Number, Number] @unchecked), Angle(x2: CanAdd[Number, Number] @unchecked)) =>
         val maybeMonotone = x1 plus x2
-        Angle.create(FP.getOrThrow(maybeMonotone, new UnsupportedOperationException("Angle.combine")))
+        Angle.create(FP.getOrThrow(maybeMonotone, new UnsupportedOperationException("Angle.combine"))).normalize
+      case _ =>
+        throw new UnsupportedOperationException(s"Angle.combine: $x + $y")
     }
 
     /**

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.Valuable.valuableToField
+import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
 import com.phasmidsoftware.number.algebra.{CanPower, NatLog, Q, RationalNumber, Structure, Valuable}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
@@ -66,6 +66,17 @@ sealed trait CompositeExpression extends Expression {
     *         a simplified `Expression` or indicates that no simplification was possible.
     */
   def simplifyComponents: em.AutoMatcher[Expression]
+
+  /**
+    * Simplifies the exact form of a `CompositeExpression` by identifying and transforming
+    * sub-expressions into their precise, simplified forms. This method focuses on exact
+    * mathematical simplifications that can be performed without introducing approximations.
+    *
+    * @return an `em.AutoMatcher[Expression]` that encapsulates the logic for simplifying
+    *         exact expressions. The result contains the simplified `Expression` if successful,
+    *         or indicates no simplification was possible.
+    */
+  def simplifyExact: em.AutoMatcher[Expression]
 
   /**
     * Attempts to simplify the `CompositeExpression` by identifying and reducing trivial expressions
@@ -226,6 +237,26 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     x.approximation(force) map (x => f.apply(x).asInstanceOf[algebra.Real])
 
   /**
+    * Simplifies a `UniFunction` expression by applying the function's exact operation.
+    * If the exact operation produces a valid result, it returns the simplified expression
+    * wrapped in a matcher. The method also ensures that the resulting expression is exact.
+    * If no exact simplification can be made, the matcher indicates a miss case with a relevant message.
+    *
+    * @return an `em.AutoMatcher[Expression]` that matches the simplified exact expression,
+    *         or a miss if no exact simplification is applicable.
+    */
+  def simplifyExact: em.AutoMatcher[Expression] =
+    em.Matcher("UniFunction: simplifyExact") {
+      case UniFunction(x, z) =>
+        z.applyExact(x) match {
+          case Some(value) =>
+            em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
+          case None =>
+            em.Miss[Expression, Expression]("UniFunction: simplifyExact: no trivial simplifications", this)
+        }
+    }
+
+  /**
     * Simplifies the components of this `Expression` by transforming it using the `matchSimpler`
     * expression transformer. The resulting transformed expression is used to create a copy
     * of the current instance with the updated components.
@@ -370,6 +401,26 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   def isExact: Boolean = a.isExact && b.isExact
 
   /**
+    * Simplifies an exact mathematical expression using a binary function (BiFunction) if applicable.
+    * This method evaluates the given BiFunction with provided operands and checks if the
+    * resulting value can simplify the expression to an exact value.
+    *
+    * @return An AutoMatcher that attempts to simplify the expression and returns a
+    *         matching ValueExpression if the simplification is exact, or a Miss if no
+    *         exact simplifications can be made.
+    */
+  def simplifyExact: em.AutoMatcher[Expression] =
+    em.Matcher("BiFunction: simplifyExact") {
+      case BiFunction(x, y, z) =>
+        z.applyExact(x, y) match {
+          case Some(value) =>
+            em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
+          case None =>
+            em.Miss[Expression, Expression]("BiFunction: simplifyExact: no simplifications", this)
+        }
+    }
+
+  /**
     * Simplifies the components of a `BiFunction` expression by applying a matcher that reduces its
     * constituent expressions (`x` and `y`) to their simpler forms.
     *
@@ -390,8 +441,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case BiFunction(x, y, f) =>
         val matcher: em.Matcher[Seq[Expression], expression.expr.BiFunction] =
           em.sequence(matchSimpler) & em.lift { xs => val Seq(newX, newY) = xs; expression.expr.BiFunction(newX, newY, f) }
-        // NOTE this is almost always a Miss.
-        matcher.apply(List[Expression](x, y))
+        // NOTE this is a Match when one or more of the components are simplified.
+        val result = matcher.apply(List[Expression](x, y))
+        result match {
+          case z@em.Match(r) =>
+            z
+          case z =>
+            z
+        }
     }
 
   /**
@@ -455,17 +512,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(Literal(NatLog(v)))
     case BiFunction(r: Root, x, f) =>
       matchRoot(r, x, f)
-    case BiFunction(l: Literal, q: QuadraticRoot, Sum) =>
-      matchLiteral(l, q, Sum)
-    case BiFunction(l1: Literal, l2: Literal, f) =>
-      matchLiteral(l1, l2, f)
     case BiFunction(x, r: Root, f) if f.commutes =>
       r.evaluateAsIs match {
         case Some(y: Algebraic_Quadratic) =>
           modifyAlgebraicQuadratic(y, x, f)
         case _ =>
-          em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Root,  and $f", this) // TESTME
+          em.Miss[Expression, Expression](s"BiFunction: simplifyComposite: no trivial simplification for Root,  and $f", this) // TESTME
       }
+    case BiFunction(l: Literal, q: QuadraticRoot, Sum) =>
+      matchLiteral(l, q, Sum)
     case BiFunction(Literal(a: Algebraic_Quadratic, _), x, f) =>
       modifyAlgebraicQuadratic(a, x, f)
     case BiFunction(x, Literal(a: Algebraic_Quadratic, _), f) if f.commutes =>
@@ -482,14 +537,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     //    case BiFunction(a, b, Product) =>
     //      matchProduct
     // NOTE this case is definitely required
-    case b@BiFunction(_, _, _) =>
-      // TODO this frequently results in a Miss which is interpreted as a failure. 
+    case x@BiFunction(_, _, _) =>
+      // TODO this frequently results in a Miss which is interpreted as a failure.
       //  A Miss in simplifyComposite should be treated as the termination of the simplify process.
       ((em.complementaryTermsEliminatorBiFunction |
           em.matchBiFunctionAsAggregate & em.literalsCombiner) &
-          em.alt(matchSimpler))(b)
-    case b =>
-      em.Miss("simplifyComposite", b) // TESTME
+          em.alt(matchSimpler))(x)
+    case x =>
+      em.Miss("simplifyComposite", x) // TESTME
   }
 
   /**
@@ -588,7 +643,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return a MatchResult of type Expression indicating success (Match with the resulting expression)
     *         or failure (Miss with additional debug information)
     */
-  private def matchLiteral(l: Literal, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] = (l, x, f) match {
+  private def matchLiteral(l: Expression, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] = (l, x, f) match {
     case (Literal(a@Algebraic_Quadratic(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
       em.Match(Literal(a add q.algebraic))
     case (Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
@@ -601,12 +656,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
       }
     case (a, b, Product) =>
-      val qqq: Option[Expression] = for {
-        w <- a.evaluateAsIs
-        q <- a.maybeFactor
-        z <- b.evaluate(RestrictedContext(q))
-      } yield Literal(Valuable(valuableToField(w) * valuableToField(z)))
-      em.matchIfDefined(qqq)(this)
+      val qqq: Option[Valuable] = Product.applyExact(a, b)
+      em.matchIfDefined(qqq)(this).map(q => expression.expr.ValueExpression(q))
     case (Literal(a: CanPower[Structure], _), Literal(b: RationalNumber, _), Power) =>
       em.matchIfDefined(a.pow(b).map(x => Literal(x)))(this)
     case (a, b, Power) =>
@@ -855,7 +906,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   private def evaluateAsScalar[T <: Structure](x: Expression): Option[core.Field] =
-    x.evaluate(RestrictedContext(PureNumber)).map(valuableToField)
+    x.evaluate(RestrictedContext(PureNumber)).flatMap(valuableToMaybeField)
 }
 
 object BiFunction {
@@ -901,6 +952,9 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *         or has an approximation (`false`).
     */
   def isExact: Boolean = xs.forall(_.isExact)
+
+  def simplifyExact: em.AutoMatcher[Expression] =
+    em.fail("Aggregate: simplifyExact") // TODO implement me properly
 
   /**
     * Simplifies the components of this `CompositeExpression` using a matching mechanism to identify

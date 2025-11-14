@@ -64,9 +64,11 @@ trait Expression extends Valuable with Approximate {
   lazy val simplify: Expression = {
     @tailrec
     def inner(x: Expression): Expression = matchSimpler(x) match {
-      case em.Miss(_, e: Expression) =>
+      case em.Miss(msg, e: Expression) =>
+//        println(s"simplification of $x terminated by: $msg")
         e
       case em.Match(e: Expression) =>
+//        println(s"simplification of $x: $e")
         inner(e)
       case m =>
         throw ExpressionException(s"simplify.inner($x): logic error on $m")
@@ -547,47 +549,61 @@ object Expression {
     f.maybeIdentityL == z.evaluateAsIs // CONSIDER comparing with maybeIdentityR if this is not true
 
   /**
-    * Attempts to simplify an `Expression` by pattern matching on its type and applying
-    * the appropriate simplification logic based on the expression's structure.
+    * Matches and simplifies expressions based on their type.
+    * For `AtomicExpression` instances, it applies `simplifyAtomic` specific to the atomic expression.
+    * For `CompositeExpression`, it uses a compound matcher that attempts simplifications
+    * in the following order: `simplifyComponents`, `simplifyTrivial`,
+    * `simplifyConstant`, and `simplifyComposite`.
+    * For unsupported expression types, it returns an error message.
     *
-    * For `AtomicExpression` instances, a message indicating the inability to simplify is returned.
-    * For `CompositeExpression` instances, a series of simplification methods (`simplifyComponents`,
-    * `simplifyTrivial`, `simplifyConstant`, and `simplifyComposite`) are applied, either recursively
-    * or selectively, to achieve a simplified expression.
-    * For unsupported expression types, an error is returned.
-    *
-    * @return an `ExpressionTransformer` that performs the transformation or simplification of
-    *         the input `Expression`, depending on its type and structure.
+    * @return an `ExpressionTransformer` that matches and applies the appropriate
+    *         simplifications or transformations to the provided expression.
     */
   def matchSimpler: ExpressionTransformer = {
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
     case x: CompositeExpression =>
       em.eitherOr(simplifyComponents,
-        em.eitherOr(simplifyTrivial,
-          em.eitherOr(simplifyConstant,
-            simplifyComposite)))(x)
+        em.eitherOr(simplifyExact,
+          em.eitherOr(simplifyTrivial,
+            em.eitherOr(simplifyConstant,
+              simplifyComposite))))(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x")) // TESTME
   }
 
   /**
-    * Matches and simplifies the components of a `CompositeExpression`.
-    * For input expressions of type `CompositeExpression`, it applies the `simplifyComponents` method recursively
-    * to its underlying components.
+    * Attempts to simplify components of a composite expression.
+    * For `CompositeExpression`, it invokes the `simplifyComponents` method applicable
+    * to the specific composite expression. For non-composite expressions, it registers a miss indicating the type is not applicable.
     *
-    * @return an `em.AutoMatcher[Expression]` that performs the matching and simplification of components
-    *         in a `CompositeExpression`.
+    * @return an `em.AutoMatcher[Expression]` for matching and simplifying components of composite expressions or
+    *         signaling when simplification is not applicable to the given expression type.
     */
   def simplifyComponents: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyComponents") {
     case a: AtomicExpression =>
-      a.simplifyAtomic(a)
+      a.simplifyAtomic(a) // CONSIDER eliminating this case
     case c: CompositeExpression =>
       c.simplifyComponents(c)
     case x =>
       em.Miss("simplifyComponents: not a Composite expression type", x) // TESTME
   }
 
+  /**
+    * Attempts to simplify an `Expression` exactly based on specific rules for composite expressions.
+    * If the expression is of type `CompositeExpression`, it applies the `simplifyExact` method
+    * specific to that type. For other expression types, it returns a miss, indicating that simplification
+    * is not applicable for the given type.
+    *
+    * @return an `em.AutoMatcher[Expression]` that matches and simplifies exact cases for composite expressions
+    *         or signals when simplification is not applicable to non-composite expressions.
+    */
+  def simplifyExact: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyExact") {
+    case c: CompositeExpression =>
+      c.simplifyExact(c)
+    case x =>
+      em.Miss("simplifyExact: not a Composite expression type", x) // TESTME
+  }
   /**
     * Attempts to simplify trivial cases within a `CompositeExpression`.
     * This method patterns matches on `CompositeExpression` instances and applies trivial simplifications

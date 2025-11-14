@@ -189,6 +189,9 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     scalar match {
       case WholeNumber(i) =>
         Some(WholeNumber(x.toBigInt * i.toBigInt))
+      case RationalNumber(r) =>
+        val product: Rational = Rational(x.toBigInt) * r
+        Option.when(product.isWhole)(WholeNumber(product.toBigInt))
       case _ => // TODO add other cases as they become available
         None
     }

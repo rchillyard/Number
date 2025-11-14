@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.algebra.{Real, Valuable}
+import com.phasmidsoftware.number.algebra.Real
 import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.{algebra, core}
@@ -17,7 +17,7 @@ import scala.reflect.ClassTag
   * rendering, and set membership analysis.
   * In general, we cannot order `Structure` objects, but we can test them for exactness.
   */
-trait Structure extends Valuable {
+trait Structure extends Eager {
 
   /**
     * Converts the given `Structure` object to an optional instance of the same type.
@@ -72,7 +72,7 @@ trait Structure extends Valuable {
   *
   * @see com.phasmidsoftware.number.core.Complex
   */
-case class Complex(complex: core.Complex) extends Valuable {
+case class Complex(complex: core.Complex) extends Eager {
   /**
     * Method to render this `Valuable` for presentation to the user.
     *

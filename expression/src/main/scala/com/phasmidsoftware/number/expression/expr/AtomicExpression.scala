@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.Valuable.valuableToField
+import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
 import com.phasmidsoftware.number.algebra.{Angle, CanAddAndSubtract, CanMultiplyAndDivide, Complex, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
@@ -174,7 +174,7 @@ case object Noop extends AtomicExpression {
   * @param r The new `Real` type that needs to be converted to the old `Real` type.
   */
 def newRealToOldReal(r: Real) =
-  valuableToField(r).asInstanceOf[core.Real]
+  valuableToMaybeField(r).get.asInstanceOf[core.Real] // TODO fix this
 
 /**
   * Represents an abstract expression for a Valuable that can optionally be associated with a name.
@@ -447,14 +447,8 @@ case class Literal(override val value: Valuable, override val maybeName: Option[
       //            (a.invert)
       case (Reciprocal, c: Complex) =>
         Complex(c.complex.invert.asInstanceOf[core.Complex])
-      case (Ln, r@Real(x, None)) =>
-        Valuable(valuableToField(r).ln)
-      case (Exp, r@Real(x, None)) =>
-        Valuable(valuableToField(r).exp)
-      case (Sine, r@Real(x, None)) =>
-        Valuable(valuableToField(r).sin)
-      case (Cosine, r@Real(x, None)) =>
-        Valuable(valuableToField(r).cos)
+      case (function, q) =>
+        function(q)
       case _ =>
         // TODO change the expected result to Option[Valuable] and return None here
         throw NumberException(s"monadicFunction: cannot apply $f to $value")

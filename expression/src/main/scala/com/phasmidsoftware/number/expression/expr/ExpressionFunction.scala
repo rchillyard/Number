@@ -5,14 +5,15 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
-import com.phasmidsoftware.number.algebra.{Angle, CanAdd, CanMultiply, CanPower, Number, Q, RationalNumber, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.misc.FP
+import com.phasmidsoftware.number.algebra.{Angle, CanAdd, CanMultiply, CanPower, CanScale, Number, Q, RationalNumber, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, NumberException, Real}
 import com.phasmidsoftware.number.expression.core.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.expression.core.{AnyContext, Context, ImpossibleContext, RestrictedContext}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
-import com.phasmidsoftware.number.misc.FP
+import scala.annotation.tailrec
 
 /**
   * Represents a named, generic computation or transformation from an input of type `P`
@@ -58,10 +59,6 @@ object ExpressionFunction {
   def lift2(f: (Field, Field) => Field): (Valuable, Valuable) => Valuable = {
     (v1, v2) => Valuable(f(valuableToField(v1), valuableToField(v2)))
   }
-
-  private def rationalToFIeld(rational: Rational, factor: Factor) = Real(ExactNumber(Value.fromRational(rational), factor))
-
-  private def intToField(x: Int, factor: Factor) = Real(ExactNumber(Value.fromInt(x), factor))
 
   /**
     * Converts a `Valuable` instance into a corresponding `Field` representation.
@@ -793,6 +790,7 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
     * @return an `Option[Valuable]` containing the resulting Valuable if the operation is valid and applicable,
     *         or `None` if the conditions for exact multiplication are not met.
     */
+  @tailrec
   def applyExact(a: Valuable, b: Valuable): Option[Valuable] = (a, b) match {
     case (Valuable.one, _) =>
       Some(b)
@@ -802,7 +800,21 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       Some(Valuable.zero)
     case (x: CanMultiply[Number, Number] @unchecked, y: Number) =>
       Option.when(x.isExact && y.isExact)((x * y).asInstanceOf[Valuable]).filter(_.isExact)
+    case (x: Number, y: CanMultiply[Number, Number] @unchecked) =>
+      Option.when(x.isExact && y.isExact)((y * x).asInstanceOf[Valuable]).filter(_.isExact)
+    case (x: CanScale[Structure, Number] @unchecked, y: Number) =>
+      val maybeStructure = FP.whenever(x.isExact && y.isExact)(x.doScale(y))
+      maybeStructure.filter(_.isExact)
+    case (x: Number, y: CanScale[Structure, Number] @unchecked) =>
+      FP.whenever(x.isExact && y.isExact)(y.doScale(x)).filter(_.isExact)
+    case (ValueExpression(x, _), y: Number) =>
+      applyExact(x, y)
+    case (ValueExpression(x, _), ValueExpression(y, _)) =>
+      applyExact(x, y)
+    case (x: Number, ValueExpression(y, _)) =>
+      applyExact(x, y)
     case _ =>
+//      println(s"Product:applyExact: a = $a, b = $b resulted in None")
       None
   }
 }

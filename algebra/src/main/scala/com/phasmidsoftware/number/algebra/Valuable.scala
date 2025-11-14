@@ -5,14 +5,14 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.number.algebra.misc.{MaybeNumeric, Renderable}
-import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.algebra.misc.{FP, MaybeNumeric, Renderable}
 import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational, Value}
-import com.phasmidsoftware.number.core.{ExactNumber, Field, FuzzyNumber, NumberException, NumberExceptionWithCause, Real}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.{ExactNumber, Field, FuzzyNumber, NumberException, NumberExceptionWithCause, Real, inner}
 import com.phasmidsoftware.number.parse.NumberParser
+import com.phasmidsoftware.number.{algebra, core}
 import scala.language.implicitConversions
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 /**
   * A trait representing an object that is in some sense numerical and has a value (or possibly more than one value).
@@ -87,6 +87,12 @@ object Valuable {
         throw NumberExceptionWithCause("Valuable.apply", exception)
     }
 
+  /**
+    * Creates a `Valuable` instance representing the given long value.
+    *
+    * @param x the input value of type `Long` to be wrapped in a `Valuable` representation.
+    * @return a `Valuable` object corresponding to the input value.
+    */
   def apply(x: Long): Valuable = WholeNumber(x)
 
   /**
@@ -109,23 +115,48 @@ object Valuable {
         throw new NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }
 
-  private def rationalToFIeld(rational: Rational, factor: Factor) = Real(ExactNumber(Value.fromRational(rational), factor))
+  /**
+    * TODO change the type of the input to `Eager`.
+    *
+    * Converts a `Valuable` instance into a `Field` representation.
+    * If the conversion fails, it recovers by throwing a `NumberException`
+    * with an appropriate error message indicating the failure.
+    *
+    * @param v the `Valuable` instance to be converted into a `Field`.
+    *          This is expected to represent a numerical value.
+    * @return the `Field` representation of the input `Valuable`.
+    *         If conversion is not possible, a `NumberException` is thrown.
+    */
+  def valuableToField(v: Valuable): Field =
+    FP.recover(valuableToMaybeField(v))(NumberException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field"))
 
-  private def intToField(x: Int, factor: Factor) = Real(ExactNumber(Value.fromInt(x), factor))
-
-  def valuableToField(v: Valuable): Field = v match {
+  /**
+    * Attempts to convert a given eager `Valuable` instance into an `Option[Field]`.
+    * This method performs pattern matching on the input `Valuable` object to map
+    * it to a corresponding `Field` representation if possible. If no valid mapping
+    * exists, it returns `None`.
+    *
+    * TODO change the type of the input parameter to `Eager`.
+    *
+    * @param v the `Valuable` instance that is to be converted into an `Option[Field]`.
+    * @return `Some(Field)` if the conversion is successful, or `None` if the
+    *         `Valuable` cannot be converted.
+    */
+  def valuableToMaybeField(v: Valuable): Option[Field] = v match {
     case Complex(complex) =>
-      complex
+      Some(complex)
     case nat: Nat =>
-      intToField(nat.toInt, PureNumber)
+      Some(intToField(nat.toInt, PureNumber))
     case com.phasmidsoftware.number.algebra.Real(x, fo) =>
-      core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
+      Some(core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo)))
     case q: Q =>
-      rationalToFIeld(q.toRational, PureNumber)
-    case a@Angle(radians: Q) =>
-      rationalToFIeld(radians.toRational, Radian)
+      Some(rationalToField(q.toRational, PureNumber))
+    case a@Angle(radians) =>
+      Some(Real(numberToField(radians).x.make(inner.Radian)))
+    case l@NatLog(x) =>
+      Some(Real(numberToField(x).x.make(inner.NatLog)))
     case _ =>
-      throw NumberException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field")
+      None // XXX v should be an Expression in this case (but expressions are not known in this package).
   }
 
   /**
@@ -136,7 +167,7 @@ object Valuable {
     * @return `Some(Field)` if the conversion is successful, or `None` if it fails
     */
   def unapply(v: Valuable): Option[core.Field] =
-    Try(valuableToField(v)).toOption
+    valuableToMaybeField(v)
 
   /**
     * Converts a given string into a `Valuable` representation.
@@ -147,7 +178,70 @@ object Valuable {
     */
   implicit def toValuable(w: String): Valuable = apply(w)
 
+  /**
+    * Implicit object `LoggableValuable` provides a `Loggable` implementation for the `Valuable` type.
+    * This allows `Valuable` instances to be formatted as strings suitable for logging purposes.
+    *
+    * The implementation utilizes the `toString` method of the `Valuable` instance
+    * to generate the log representation.
+    *
+    * @tparam Valuable the type parameter representing a numerical entity that implements the `Valuable` trait.
+    */
   implicit object LoggableValuable extends Loggable[Valuable] {
     def toLog(t: Valuable): String = t.toString
   }
+
+  /**
+    * Converts a `Number` into a corresponding `Field` representation.
+    * The input number is matched against various cases to determine its specific type
+    * (e.g., RationalNumber, Real, WholeNumber) and is subsequently converted.
+    * If the conversion is not supported for the given `Number` type, a `NumberException` is thrown.
+    *
+    * @param number the `Number` to be converted into a `Field`. It can represent different
+    *               numerical types such as RationalNumber, algebra.Real, or WholeNumber.
+    * @throws NumberException if the input `Number` cannot be converted into a `Field`.
+    */
+  private def numberToField(number: Number) = number match {
+    case RationalNumber(r) =>
+      rationalToField(r, PureNumber)
+    case algebra.Real(x, fo) =>
+      core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
+    case WholeNumber(x) =>
+      (Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber)))
+    case _ =>
+      throw NumberException(s"Valuable.numberToField: Cannot convert $number to a Field")
+  }
+
+  /**
+    * Converts a `Rational` value into a `Field` representation, taking into account a specific scaling factor.
+    *
+    * @param rational the `Rational` number to be converted into a `Field`.
+    * @param factor   the scaling `Factor` to be applied to the conversion.
+    * @return a `Real` representation of the `Rational` number scaled by the given `Factor`.
+    */
+  private def rationalToField(rational: Rational, factor: Factor) = Real(ExactNumber(Value.fromRational(rational), factor))
+
+  /**
+    * Converts an integer value into a `Field` representation, encapsulated as a `Real`,
+    * based on the provided multiplication factor.
+    *
+    * @param x      the integer value to be converted into a `Field`.
+    * @param factor the factor to be applied in the `Real` representation.
+    * @return a `Real` representing the converted integer value.
+    */
+  private def intToField(x: Int, factor: Factor) = Real(ExactNumber(Value.fromInt(x), factor))
+
 }
+
+/**
+  * Trait `Eager` extends `Valuable` and is used to represent entities that evaluate their values eagerly.
+  * That's to say, `Valuable` objects that do not extend `Expression`.
+  *
+  * Unlike lazy evaluation, eager evaluation computes and stores the value immediately when the entity is created
+  * or instantiated. This behavior can be useful in scenarios where prompt computation is essential, and
+  * deferred or lazy evaluation may introduce undesired complexities or delays.
+  *
+  * `Eager` does not introduce additional properties or methods but serves as a marker trait
+  * that confirms the eager nature of an extending type.
+  */
+trait Eager extends Valuable
