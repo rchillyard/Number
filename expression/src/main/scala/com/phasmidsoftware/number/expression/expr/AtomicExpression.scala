@@ -25,14 +25,6 @@ import scala.language.implicitConversions
 
 /** sealed */
 sealed trait AtomicExpression extends Expression {
-  /**
-    * Method to determine if this Structure object is exact.
-    * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
-    *
-    * @return true if this Structure object is exact in the context of No factor, else false.
-    */
-  def isExact: Boolean =
-    evaluateAsIs.exists(_.isExact)
 
   /**
     * Indicates whether the expression is atomic.
@@ -109,6 +101,19 @@ object AtomicExpression {
   * of the `AtomicExpression` trait.
   */
 case object Noop extends AtomicExpression {
+  /**
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
+    *
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    *
+    * The method returns `true` if there is no approximate representation
+    * available (i.e., `approximation` is `None`), indicating that the
+    * entity is exact. Otherwise, it returns `false`.
+    *
+    * @return a `Boolean` indicating whether the entity is exact (`true`)
+    *         or has an approximation (`false`).
+    */
+  def isExact: Boolean = false
 
   def value: Valuable =
     throw new UnsupportedOperationException("Noop.value")
@@ -185,6 +190,14 @@ def newRealToOldReal(r: Real) =
   * @param maybeName an optional name for the Valuable expression
   */
 sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option[String] = None) extends AtomicExpression {
+  /**
+    * Method to determine if this Structure object is exact.
+    * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    *
+    * @return true if this Structure object is exact in the context of No factor, else false.
+    */
+  override def isExact: Boolean = value.isExact
+
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
@@ -427,7 +440,7 @@ case class Literal(override val value: Valuable, override val maybeName: Option[
     (f, value) match {
       case (Negate, r: CanAddAndSubtract[?, ?]) =>
         ((-r).asInstanceOf[Valuable])
-      case (Reciprocal, r: CanMultiplyAndDivide[Number]) =>
+      case (Reciprocal, r: CanMultiplyAndDivide[Number] @unchecked) =>
         import Number.NumberIsMultiplicativeGroup
         r.reciprocal
       //      case (Reciprocal, a: Algebraic) =>
@@ -820,6 +833,20 @@ trait Transcendental extends AtomicExpression {
 abstract class AbstractTranscendental(val name: String, val expression: Expression) extends Transcendental {
 
   /**
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
+    *
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    *
+    * The method returns `true` if there is no approximate representation
+    * available (i.e., `approximation` is `None`), indicating that the
+    * entity is exact. Otherwise, it returns `false`.
+    *
+    * @return a `Boolean` indicating whether the entity is exact (`true`)
+    *         or has an approximation (`false`).
+    */
+  def isExact: Boolean = expression.isExact
+
+  /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
@@ -1011,6 +1038,20 @@ trait Root extends AtomicExpression {
   def branch: Int
 
   /**
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
+    *
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    *
+    * The method returns `true` if there is no approximate representation
+    * available (i.e., `approximation` is `None`), indicating that the
+    * entity is exact. Otherwise, it returns `false`.
+    *
+    * @return a `Boolean` indicating whether the entity is exact (`true`)
+    *         or has an approximation (`false`).
+    */
+  def isExact: Boolean = true
+
+  /**
     * Adds another `Root` to this `Root`, resulting in a new `Root` that
     * represents the sum of the two roots. If the addition is not valid or
     * cannot be performed, returns `None`.
@@ -1098,6 +1139,7 @@ trait Root extends AtomicExpression {
   *               the valid range of branches supported by the equation, typically `0` or `1` for quadratic equations.
   */
 case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, branch) {
+
   /**
     * Constructs a `Root` for a given quadratic equation and its specific solution branch.
     *
