@@ -473,11 +473,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     x.simplify shouldBe One
   }
   it should "work for Sine 0" in {
-    val x = expr.UniFunction(Zero, Sine)
-    x.simplify shouldBe Zero
+    val x = expr.UniFunction(Angle.zero, Sine)
+    val simplify = x.simplify
+    simplify shouldBe Zero
   }
   it should "work for Sine pi/2" in {
-    val x = expr.UniFunction(Literal(piBy2), Sine)
+    val x = expr.UniFunction(Angle.piBy2, Sine)
     x.simplify shouldBe One
   }
   it should "work for Sine pi" in {
@@ -485,7 +486,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     x.simplify shouldBe Zero
   }
   it should "work for Cosine 0" in {
-    val x = expr.UniFunction(Zero, Cosine)
+    val x = expr.UniFunction(Angle.zero, Cosine)
     x.simplify shouldBe One
   }
   it should "work for Cosine pi/2" in {

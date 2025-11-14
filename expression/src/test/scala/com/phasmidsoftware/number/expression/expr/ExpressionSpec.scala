@@ -107,13 +107,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "work for Sine" in {
     val f: ExpressionMonoFunction = Sine
-    f(Valuable.piBy2) shouldBe Valuable.one
-    f(Valuable.zero) shouldBe Valuable.zero
+    f(Angle.piBy2) shouldBe Valuable.one
+    f(Angle.zero) shouldBe Valuable.zero
   }
   it should "work for Cosine" in {
     val f: ExpressionMonoFunction = Cosine
-    f(Valuable.piBy2) shouldBe Valuable.zero
-    f(Valuable.zero) shouldBe Valuable.one
+    f(Angle.piBy2) shouldBe Valuable.zero
+    f(Angle.zero) shouldBe Valuable.one
   }
 
 
