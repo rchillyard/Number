@@ -789,7 +789,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
     val simplify = target.simplify
     val result: Valuable = simplify.materialize
-    result shouldBe Valuable.zero
+    result shouldBe Angle.zero
     //val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
     //    result match {
     //      case em.Match(x: Field) =>
@@ -803,7 +803,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //val expected = ExactNumber(0, Radian) // Ideally, the result should equal this but for now, we only test isZero.
     //val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
     val result = target.simplify.materialize
-    result shouldBe Valuable.zero
+    result shouldBe Angle.zero
     //    result match {
     //      case em.Match(x: Field) =>
     //        convertToNumber(x).isZero shouldBe true
@@ -860,7 +860,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y.materialize shouldBe Valuable(7)
   }
   it should "evaluate E * 2" in {
-    (Literal(Valuable.e) * 2).materialize.toString shouldBe "5.436563656918091[15]"
+    (Literal(Valuable.e) * 2).materialize.toString shouldBe "Real(5.43656365691809,Some(AbsoluteFuzz(5.086985018510689E-14,Box)))"
   }
 
   behavior of "simplifyTerms"
@@ -1046,7 +1046,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ Two ~ One) shouldBe em.Match(Two)
     p(Power ~ One ~ Two) shouldBe em.Match(One)
     p(Power ~ Two ~ Two) shouldBe em.Match(Expression(4))
-    p(Power ~ Literal(root2) ~ Two) shouldBe em.Match(Two)
+    (Power ~ Literal(Valuable.root2) ~ Two).simplify shouldBe (Two)
   }
   it should "cancel multiplication and division" in {
     import BiFunction.*
@@ -1103,7 +1103,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = Expression.matchSimpler
     p(Sum ~ One ~ expr.UniFunction(ConstPi, Cosine)) shouldBe em.Match(Zero)
     p(Sum ~ expr.UniFunction(ConstPi, Cosine) ~ One) shouldBe em.Match(Zero)
-    p(Sum ~ expr.UniFunction(Zero, Cosine) ~ expr.UniFunction(ConstPi, Cosine)) shouldBe em.Match(Zero)
+    p(Sum ~ expr.UniFunction(Angle.zero, Cosine) ~ expr.UniFunction(ConstPi, Cosine)) shouldBe em.Match(Zero)
   }
 
   behavior of "biFunctionSimplifier"
