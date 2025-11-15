@@ -153,13 +153,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x2 = Valuable.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
     val result: Valuable = e.materialize
-    valuableToMaybeField(result) shouldEqual core.Real(core.Number(Math.PI + 1))
+    valuableToField(result) shouldEqual core.Real(core.Number(Math.PI + 1))
   }
   it should "render" in {
     val x1 = Valuable.one
     val x2 = Valuable.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.toString shouldBe "BiFunction{Literal(WholeNumber(1),None) + Literal(\uD835\uDED1,None)}"
+    e.toString shouldBe "BiFunction{Literal(WholeNumber(1),None) + Literal(Angle(WholeNumber(1)),None)}"
     e.render shouldBe "4.1415926535897930(67)"
     e.materialize.render shouldBe "4.1415926535897930(67)"
   }
@@ -267,7 +267,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate E * 2" in {
     val z: Valuable = (ConstE * 2).materialize
     val q = valuableToField(z).normalize
-    q.toString shouldBe "5.436563656918091[15]"
+    q.toString shouldBe "5.436563656918090[51]"
   }
 
   behavior of "isExact"
@@ -305,8 +305,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "be more than 1 for other expression" in {
     (ConstE * 2).depth shouldBe 2
     (ConstE * 2 / 2).depth shouldBe 3
-    val expression = (Expression(7).sqrt ∧ 2).simplify
-    expression.depth shouldBe 2
+    (Expression(7).sqrt ∧ 2).depth shouldBe 3
   }
 
   behavior of "Euler"
@@ -375,7 +374,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "aggregate 2" in {
     val target = (One * ConstPi * Two * MinusOne).simplify
-    val expected = Expression("-2 * 𝛑")
+    val expected = Angle.𝛑.doScaleInt(-2).map(ValueExpression.apply).get
     target shouldBe expected
   }
   it should "evaluate e * e" in {

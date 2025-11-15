@@ -24,7 +24,7 @@ import scala.reflect.ClassTag
   *
   * @param radians the value of the angle in radians
   */
-case class Angle private[algebra](radians: Number) extends Circle with Radians {
+case class Angle private[algebra](radians: Number) extends Circle with Radians with CanNormalize[Angle] {
 
   /**
     * Normalizes an angle instance to its equivalent value within the standard range of radians.

@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{Angle, CanAddAndSubtract, CanMultiplyAndDivide, Complex, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.{Angle, CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Complex, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.algebraic.*
@@ -236,6 +236,8 @@ sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option
   def evaluate(context: Context): Option[Valuable] = value match {
     case nat: Nat =>
       Some(nat)
+    case normalizable: CanNormalize[?] =>
+      Option.when(normalizable.maybeFactor.isDefined && context.valuableQualifies(normalizable))(normalizable.normalize)
     case structure: Structure =>
       Option.when(structure.maybeFactor.isDefined && context.valuableQualifies(structure))(value)
     case _ =>
