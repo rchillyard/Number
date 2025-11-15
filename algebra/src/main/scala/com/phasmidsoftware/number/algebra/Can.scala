@@ -1,6 +1,9 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.*
+import com.phasmidsoftware.number.algebra.Real.Infinity.asT
+import com.phasmidsoftware.number.algebra.misc.FP
+import com.phasmidsoftware.number.core.NumberException
 import scala.reflect.ClassTag
 
 /**
@@ -245,6 +248,19 @@ trait CanScaleWhole[T] {
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
   def doScaleInt(that: Int): Option[T]
+
+  /**
+    * Scales the instance of type `T` by the given integer multiplier.
+    *
+    * This method attempts to scale the current instance using the provided integer.
+    * If the scaling operation is valid, the resulting scaled value of type `T` is returned.
+    * If the operation is invalid, a `NumberException` is thrown.
+    *
+    * @param that the integer multiplier used to scale the instance
+    * @return the scaled result of type `T`
+    */
+  def *(that: Int): T =
+    FP.recover(doScaleInt(that))(NumberException(s"Cannot * $asT by $that"))
 }
 
 /**
@@ -270,6 +286,20 @@ trait CanScaleDouble[T] {
     *         if scaling is not possible
     */
   def doScaleDouble(that: Double): Option[T]
+
+  /**
+    * Scales the current instance of type `T` by the specified `Double` value.
+    *
+    * Performs the scaling operation using the provided `Double` factor and returns
+    * the scaled instance of type `T`. If scaling cannot be performed, a `NumberException`
+    * is thrown with relevant details.
+    *
+    * @param that the `Double` value by which to scale the instance
+    * @return the scaled instance of type `T`
+    * @throws NumberException if scaling cannot be performed
+    */
+  def *(that: Double): T =
+    FP.recover(doScaleDouble(that))(NumberException(s"Cannot * $asT by $that"))
 }
 
 /**
