@@ -276,6 +276,8 @@ sealed abstract class ExpressionBiFunction(
   /**
     * Evaluates two expressions `x` and `y` in a given context and determines the resulting `Valuable` based on specific identity and evaluation rules.
     * Trivial identities are recognized and evaluated appropriately.
+    * 
+    * TODO why not use `applyExact` when possible?
     *
     * @param x       the first expression to be evaluated.
     * @param y       the second expression to be evaluated.

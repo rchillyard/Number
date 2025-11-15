@@ -1282,7 +1282,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(Literal(one)).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
+    sb.toString shouldBe "trying matcher value on Literal(WholeNumber(1),None)...\n... value: Match: WholeNumber(1)\n"
   }
   it should "work with value on One" in {
     val em = ems
@@ -1290,7 +1290,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(One).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
+    sb.toString shouldBe "trying matcher value on One...\n... value: Match: WholeNumber(1)\n"
   }
   it should "work with value on Number.one" in {
     val em = ems
@@ -1298,7 +1298,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(One).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
+    sb.toString shouldBe "trying matcher value on One...\n... value: Match: WholeNumber(1)\n"
   }
   it should "work with value on Real" in {
     val em = ems
@@ -1307,7 +1307,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(Literal(FuzzyNumber(Right(1), PureNumber, None))).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
+    sb.toString shouldBe "trying matcher value on Literal(WholeNumber(1),Some(1))...\n... value: Match: WholeNumber(1)\n"
   }
   it should "fail on non-value" in {
     val em = ems
@@ -1316,7 +1316,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(x).successful shouldBe false
-    sb.toString shouldBe "trying matcher value on BiFunction{1 * 2}...\n... value(BiFunction{1 * 2}): Miss: value: BiFunction{1 * 2}\n"
+    sb.toString shouldBe "trying matcher value on BiFunction{One * Two}...\n... value(BiFunction{One * Two}): Miss: value: BiFunction{One * Two}\n"
   }
 
   behavior of "biFunctionTransformer (2)"
@@ -1370,7 +1370,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.successful shouldBe true
     r.get shouldBe MinusOne
   }
-  it should "simplify 2 ∧ -1" in {
+  it should "evaluateAsIs 2 ∧ -1" in {
     val r: Expression = Two ∧ MinusOne
     import Rational.RationalOps
     r.evaluateAsIs shouldBe Some(Valuable(1 :/ 2))
