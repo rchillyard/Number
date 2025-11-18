@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.Constants
-import com.phasmidsoftware.number.core.inner.Context.AnyRoot
+import com.phasmidsoftware.number.core.inner.CoreContext.AnyRoot
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 

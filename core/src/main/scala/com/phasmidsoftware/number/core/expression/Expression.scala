@@ -37,7 +37,7 @@ trait Expression extends NumberLike with Approximatable {
     *
     * @return an optional `Field`.
     */
-  def evaluate(context: Context): Option[Field]
+  def evaluate(context: CoreContext): Option[Field]
 
   /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.

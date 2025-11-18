@@ -8,7 +8,7 @@ import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, PureNumber, Rational}
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -296,13 +296,6 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     */
   def unary_- : WholeNumber =
     negate
-
-  /**
-    * Retrieves an optional factor associated with the current instance.
-    *
-    * @return an Option containing a Factor if one is available, or None otherwise.
-    */
-  def maybeFactor: Option[Factor] = Some(PureNumber)
 }
 
 /**

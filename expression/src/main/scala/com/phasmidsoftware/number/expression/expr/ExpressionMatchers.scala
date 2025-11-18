@@ -5,16 +5,15 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
-import com.phasmidsoftware.number.{core, expression}
+import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.{Field, Real}
-import com.phasmidsoftware.number.misc.Bumperator
-import com.phasmidsoftware.number.algebra.{Monotone, Valuable}
-import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
-import com.phasmidsoftware.number.expression.core.RestrictedContext
 import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.Literal.someLiteral
+import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
 import com.phasmidsoftware.number.matchers.*
+import com.phasmidsoftware.number.misc.Bumperator
+import com.phasmidsoftware.number.{core, expression}
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
@@ -46,7 +45,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
 
   def MatchCheck[R](r: R)(o: R): Match[R] =
     if r == o then {
-      System.err.println(s"Match is unchanged: ${r}");
+      System.err.println(s"Match is unchanged: $r")
       Match(r)
     } else
       Match(r)
@@ -137,8 +136,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return True if the expressions are complementary, according to the binary function, false otherwise.
     */
   private def complementaryFields(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
-    if x.maybeFactor == y.maybeFactor then { // TODO logic here is same as for value in BiFunction
-      val fo: Option[Valuable] = f.evaluateAsIs(x, y)
+    if x.maybeFactor(AnyContext) == y.maybeFactor(AnyContext) then { // TODO logic here is same as for value in BiFunction
+      val fo: Option[Eager] = f.evaluateAsIs(x, y)
       // CONSIDER if `fo` is a defined `Valuable`, then why wouldn't we just return it (wrapped in `Literal`)?
       (fo, f.maybeIdentityL) match {
         case (Some(field1), Some(field2)) if field1 == field2 =>
@@ -171,7 +170,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return True if the factors match according to the binary function, false otherwise.
     */
   def factorsMatch(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean =
-    (for fx <- x.maybeFactor; fy <- y.maybeFactor yield f match {
+    (for fx <- x.maybeFactor(AnyContext); fy <- y.maybeFactor(AnyContext) yield f match {
       case Sum =>
         fx.canAdd(fy)
       case Product =>

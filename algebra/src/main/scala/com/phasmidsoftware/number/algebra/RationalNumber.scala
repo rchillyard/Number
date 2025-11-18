@@ -4,7 +4,7 @@ import algebra.ring.{AdditiveCommutativeGroup, Field}
 import cats.Show
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 
 /**
@@ -279,13 +279,6 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     */
   def unary_- : RationalNumber =
     rationalNumberIsField.negate(this)
-
-  /**
-    * Retrieves an optional factor representation of the current `RationalNumber`.
-    *
-    * @return an `Option[Factor]` containing the factor if available, or `None` if the factor cannot be determined.
-    */
-  def maybeFactor: Option[Factor] = Some(PureNumber)
 }
 
 /**
@@ -326,7 +319,7 @@ object RationalNumber {
     * @param w the string representation of the rational number to be parsed
     * @return an `Option[RationalNumber]` containing the parsed rational number if successful, or `None` if parsing fails
     */
-  def parse(w: String): Option[RationalNumber] = (Rational.parse(w)).map(RationalNumber(_)).toOption
+  def parse(w: String): Option[RationalNumber] = Rational.parse(w).map(RationalNumber(_)).toOption
 
   /**
     * Provides an implicit `Show` instance for the `RationalNumber` class.

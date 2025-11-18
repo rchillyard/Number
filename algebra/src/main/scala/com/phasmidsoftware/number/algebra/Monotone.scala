@@ -31,7 +31,7 @@ trait Monotone extends Structure with CanScaleWhole[Monotone] with CanScaleDoubl
     * @return an `Option[Factor]` containing the factor representation of this object,
     *         or `None` if factorization is not applicable or unavailable.
     */
-  def maybeFactor: Option[Factor]
+  def maybeFactor(context: ExpressionContext): Option[Factor]
 
   /**
     * Provides an approximation of this number, if applicable.

@@ -5,11 +5,10 @@ import cats.Show
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber, NumberException}
 import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.parse.NumberParser
-import jdk.javadoc.internal.doclint.HtmlTag.Q
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -39,10 +38,10 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
   def asDouble: Double = value
 
   /**
-    * Creates an instance of `R` from the given `Rational` value.
+    * Converts the specified value into an exact rational representation if possible,
+    * and wraps it in an Option. If the conversion fails, returns None.
     *
-    * @param q the `Rational` value to be converted into an instance of `R`
-    * @return an instance of `R` representing the specified `Rational` value
+    * @return Some instance of Q if the conversion is successful, or None if it fails.
     */
   def maybeQ: Option[Q] = Rational.createExact(value).toOption.map(RationalNumber(_))
 
@@ -189,15 +188,11 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
   lazy val render: String = new core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
 
   /**
-    * Subtracts the given instance of type `T` from the current instance.
+    * Subtracts the specified `Real` value from this `Real` value.
     *
-    * This method computes the result of subtracting the `that` instance from the current instance
-    * by utilizing the properties of an additive commutative group defined for type `T`.
-    *
-    * @param that     the instance of type `T` to subtract from the current instance
-    * @param Additive evidence of an implicit `AdditiveCommutativeGroup[T]` that provides
-    *                 the additive commutative group structure supporting subtraction
-    * @return the resulting value of type `T` after subtraction
+    * @param that     the `Real` value to subtract from this `Real` value
+    * @param evidence evidence parameter providing an `AdditiveCommutativeGroup` instance for `Real`
+    * @return the result of subtracting `that` from this `Real` value
     */
   def -(that: Real)(using AdditiveCommutativeGroup[Real]): Real =
     realIsRing.minus(this, that)
@@ -235,22 +230,6 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     case n =>
       n.convert(this) map (x => realIsRing.plus(this, x))
   }
-
-  /**
-    * Computes the potential factor associated with this instance.
-    *
-    * @return an `Option` containing a `Factor` if available, otherwise `None`
-    */
-  def maybeFactor: Option[Factor] = Some(PureNumber)
-//
-//  /**
-//    * Adds the specified `T` to this `T` instance.
-//    *
-//    * @param t an instance of `T` to be added to this `T`
-//    * @return a new `T` representing the sum of this `T` and the given `T`
-//    */
-//  def +(t: Real): Real = realIsRing.plus(this, t)
-//
 
   /**
     * Computes the additive inverse of this instance.
@@ -338,12 +317,11 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     Real(value * Real.pi.value, Some(Fuzziness.doublePrecision))
 
   /**
-    * Raises the current instance of type `T` to the rational power `n`.
-    * This operation extends the `Multiplicative` structure by allowing
-    * instances to be exponentiated with rational exponents.
+    * Computes the power of the current value raised to the provided `Rational` exponent.
     *
-    * @param n the rational exponent to which the current instance is raised
-    * @return an `Option` containing the result of the exponentiation if applicable, or `None` if the operation is undefined
+    * @param r the `Rational` exponent to which the value is raised
+    * @return an `Option[Real]` containing the result of the power operation, 
+    *         if the computation is successful
     */
   def power(r: Rational): Option[Real] =
     Some(Real(math.pow(value, r.toDouble), fuzz.map(Fuzziness.scaleTransform(r.toDouble))))

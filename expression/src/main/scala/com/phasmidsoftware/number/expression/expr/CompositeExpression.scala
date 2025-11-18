@@ -6,17 +6,15 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{CanPower, NatLog, Q, RationalNumber, Structure, Valuable}
+import com.phasmidsoftware.number.algebra.{CanPower, Eager, ExpressionContext, NatLog, Q, RationalNumber, RestrictedContext, Structure, Valuable}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
-import com.phasmidsoftware.number.core.inner.PureNumber
-import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Field, Number, Real}
-import com.phasmidsoftware.number.expression.core.{Context, ImpossibleContext, RestrictedContext}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
+import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Field, Number, Real, inner}
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.{algebra, core, expression}
 import java.util.Objects
 import scala.language.implicitConversions
-import scala.util.Try
 
 type OldNumber = Number
 
@@ -76,7 +74,17 @@ sealed trait CompositeExpression extends Expression {
     *         exact expressions. The result contains the simplified `Expression` if successful,
     *         or indicates no simplification was possible.
     */
-  def simplifyExact: em.AutoMatcher[Expression]
+  def simplifyExact: em.AutoMatcher[Expression] =
+    em.Matcher("BiFunction: simplifyExact") {
+      case expr: Expression =>
+        expr.evaluateAsIs match {
+          case Some(value) =>
+//            println(s"BiFunction: simplifyExact: value = $value")
+            em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
+          case None =>
+            em.Miss[Expression, Expression]("BiFunction: simplifyExact: no simplifications", this)
+        }
+    }
 
   /**
     * Attempts to simplify the `CompositeExpression` by identifying and reducing trivial expressions
@@ -165,7 +173,7 @@ object CompositeExpression {
     * @param xs The sequence of `Field` instances used to create the `Aggregate`.
     * @return An `Aggregate` instance containing the converted `Literal` expressions.
     */
-  def create(f: ExpressionBiFunction, xs: Valuable*): Expression =
+  def create(f: ExpressionBiFunction, xs: Eager*): Expression =
     apply(f, xs map (x => Literal(x, Some(x.render)))) // TESTME
 }
 
@@ -176,6 +184,14 @@ object CompositeExpression {
   * @param f the function to be applied to x.
   */
 case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends expression.expr.CompositeExpression {
+  /**
+    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
+    *
+    * @return an optional `Factor`.
+    */
+  def maybeFactor(context: ExpressionContext): Option[Factor] =
+    evaluate(context) flatMap (v => v.maybeFactor(context))
+
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
@@ -210,17 +226,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     *
     * @return the materialized Field.
     */
-  def evaluate(context: Context): Option[Valuable] =
-    x match {
-      case AtomicExpression(field) =>
-        // NOTE: here we catch any exceptions that are thrown by applyExact.
-        // CONSIDER: we should never throw exceptions (see e.g., ComplexPolar.apply).
-        FP.toOption(Try(f.applyExact(field))).flatten
-      case _ =>
-        x.evaluate(context).map(f)
-    }
-  // NOTE that the equivalent method for BiFunction is as follows
-  //  context.qualifyingValuable(f.evaluate(a, b)(context))
+  def evaluate(context: ExpressionContext): Option[Eager] =
+    context.qualifyingEagerValue(x.evaluateAsIs flatMap f.applyExact)
 
   /**
     * Provides an approximation of this number, if applicable.
@@ -235,26 +242,6 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     */
   def approximation(force: Boolean): Option[algebra.Real] =
     x.approximation(force) map (x => f.apply(x).asInstanceOf[algebra.Real])
-
-  /**
-    * Simplifies a `UniFunction` expression by applying the function's exact operation.
-    * If the exact operation produces a valid result, it returns the simplified expression
-    * wrapped in a matcher. The method also ensures that the resulting expression is exact.
-    * If no exact simplification can be made, the matcher indicates a miss case with a relevant message.
-    *
-    * @return an `em.AutoMatcher[Expression]` that matches the simplified exact expression,
-    *         or a miss if no exact simplification is applicable.
-    */
-  def simplifyExact: em.AutoMatcher[Expression] =
-    em.Matcher("UniFunction: simplifyExact") {
-      case UniFunction(x, z) =>
-        z.applyExact(x) match {
-          case Some(value) =>
-            em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
-          case None =>
-            em.Miss[Expression, Expression]("UniFunction: simplifyExact: no trivial simplifications", this)
-        }
-    }
 
   /**
     * Simplifies the components of this `Expression` by transforming it using the `matchSimpler`
@@ -387,6 +374,16 @@ object UniFunction {
   */
 case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends expression.expr.CompositeExpression {
   /**
+    * Attempts to retrieve a factor based on the provided context.
+    * This method evaluates whether there is an applicable factor within the given context.
+    *
+    * @param context the context in which the factor is evaluated.
+    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
+    */
+  def maybeFactor(context: ExpressionContext): Option[Factor] =
+    evaluate(context) flatMap (v => v.maybeFactor(context))
+
+  /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
     * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
@@ -399,26 +396,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         or has an approximation (`false`).
     */
   def isExact: Boolean = a.isExact && b.isExact
-
-  /**
-    * Simplifies an exact mathematical expression using a binary function (BiFunction) if applicable.
-    * This method evaluates the given BiFunction with provided operands and checks if the
-    * resulting value can simplify the expression to an exact value.
-    *
-    * @return An AutoMatcher that attempts to simplify the expression and returns a
-    *         matching ValueExpression if the simplification is exact, or a Miss if no
-    *         exact simplifications can be made.
-    */
-  def simplifyExact: em.AutoMatcher[Expression] =
-    em.Matcher("BiFunction: simplifyExact") {
-      case BiFunction(x, y, z) =>
-        z.applyExact(x, y) match {
-          case Some(value) =>
-            em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
-          case None =>
-            em.Miss[Expression, Expression]("BiFunction: simplifyExact: no simplifications", this)
-        }
-    }
 
   /**
     * Simplifies the components of a `BiFunction` expression by applying a matcher that reduces its
@@ -434,7 +411,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           //          case Product => r1.solution multiply r2.solution
           case _ => None
         }
-        val eo: Option[Expression] = so map (s => Literal(Valuable(Algebraic(s))))
+        val eo: Option[Expression] = so map (s => Literal(Eager(Algebraic(s))))
         em.matchIfDefined(eo)(b)
 
       // NOTE I'm confused by my own logic here. I don't know why we need this.
@@ -540,10 +517,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case x@BiFunction(_, _, _) =>
       // TODO this frequently results in a Miss which is interpreted as a failure.
       //  A Miss in simplifyComposite should be treated as the termination of the simplify process.
+      // NOTE the reason we see this as a Miss so often, is that it is always
+      // the last match to be attempted.
       ((em.complementaryTermsEliminatorBiFunction |
           em.matchBiFunctionAsAggregate & em.literalsCombiner) &
           em.alt(matchSimpler))(x)
-    case x =>
+    case x => // NOTE we cannot reach this case.
       em.Miss("simplifyComposite", x) // TESTME
   }
 
@@ -558,12 +537,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   /**
     * Action to simplify this Expression as a Field.
     * NOTE that because we need to be able to evaluate this Expression exactly,
-    * we need to be sure that the Context passed in to f.evaluate is not None.
+    * we need to be sure that the ExpressionContext passed in to f.evaluate is not None.
     *
     * @return the materialized Field.
     */
-  def evaluate(context: Context): Option[Valuable] =
-    context.qualifyingValuable(f.evaluate(a, b)(context))
+  def evaluate(context: ExpressionContext): Option[Eager] =
+    val vo: Option[Eager] = for (x <- a.evaluateAsIs; y <- b.evaluateAsIs; z <- f.applyExact((x, y))) yield z
+    context.qualifyingEagerValue(vo)
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
@@ -655,10 +635,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         case _ =>
           em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
       }
-    case (a, b, Product) =>
-      val qqq: Option[Valuable] = Product.applyExact(a, b)
-      em.matchIfDefined(qqq)(this).map(q => expression.expr.ValueExpression(q))
-    case (Literal(a: CanPower[Structure], _), Literal(b: RationalNumber, _), Power) =>
+//    case (a, b, Product) =>
+//      val qqq: Option[Valuable] = Product.applyExact(a, b)
+//      em.matchIfDefined(qqq)(this).map(q => expression.expr.ValueExpression(q))
+    case (Literal(a: CanPower[Structure] @unchecked, _), Literal(b: RationalNumber, _), Power) =>
       em.matchIfDefined(a.pow(b).map(x => Literal(x)))(this)
     case (a, b, Power) =>
       val qqq: Option[Expression] = for {
@@ -899,8 +879,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       x <- evaluateAsScalar(a)
       y <- evaluateAsScalar(b)
     } yield x * y
+    // TODO sort this out!
     val product: Option[Expression] = z match {
-      case Some(z: Valuable) => Some(Literal(z))
+      case Some(field) => Some(Literal(Eager(field)))
+      case _ => None
     }
     em.matchIfDefined(product)(expression.expr.BiFunction(a, b, Product))
   }
@@ -953,8 +935,8 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     */
   def isExact: Boolean = xs.forall(_.isExact)
 
-  def simplifyExact: em.AutoMatcher[Expression] =
-    em.fail("Aggregate: simplifyExact") // TODO implement me properly
+//  def simplifyExact: em.AutoMatcher[Expression] =
+//    em.fail("Aggregate: simplifyExact") // TODO implement me properly
 
   /**
     * Simplifies the components of this `CompositeExpression` using a matching mechanism to identify
@@ -1006,6 +988,16 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   }
 
   /**
+    * Attempts to retrieve a factor based on the provided context.
+    * This method evaluates whether there is an applicable factor within the given context.
+    *
+    * @param context the context in which the factor is evaluated.
+    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
+    */
+  def maybeFactor(context: ExpressionContext): Option[Factor] =
+    evaluate(context) flatMap (v => v.maybeFactor(context))
+
+  /**
     * Evaluates the given context to produce an optional field, leveraging the aggregate function
     * and associated evaluation logic. The method employs an iterative process to evaluate a sequence
     * of terms within the provided context while considering identity elements and context transformation rules.
@@ -1015,19 +1007,12 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return an `Option[Field]` representing the result of the evaluation. Returns `None`
     *         if the evaluation cannot produce a valid field or if an invalid context is encountered.
     */
-  def evaluate(context: Context): Option[Valuable] = {
-
-    // NOTE we combine the expressions of this `Aggregate` but maintain a context which in general changes as we combine terms.
-    // The initial context is determined by the parameter `context` and the function's `leftContext` method.
-    // The resulting tuple of optional Field and Context is then matched.
-    // If the context is impossible (for example, we multiplied a pure number by a logarithmic number such as `e`,
-    // then we cannot evaluate this `Aggregate` exactly.
-    xs.foldLeft[(Option[Valuable], Context)]((function.maybeIdentityL, function.leftContext(context)))(combineExpressions) match {
-      case (_, ImpossibleContext) =>
-        None
-      case (fo, _) =>
-        fo
+  def evaluate(context: ExpressionContext): Option[Eager] = {
+    val vo = xs.foldLeft(function.maybeIdentityL) {
+      (ao, x) =>
+        for (a <- ao; b <- x.evaluateAsIs; c <- function.applyExact(a, b)) yield c
     }
+    context.qualifyingEagerValue(vo)
   }
 
   /**
@@ -1076,9 +1061,9 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation(force: Boolean): Option[algebra.Real] = { // TESTME
-    val identity: Valuable = function.maybeIdentityL.getOrElse(Valuable.zero) // NOTE should never require the default
+    val identity: Eager = function.maybeIdentityL.getOrElse(Valuable.zero) // NOTE should never require the default
     val vos: Seq[Option[algebra.Real]] = xs map (x => x.approximation(force))
-    FP.sequence(vos) map (xs => xs.foldLeft[Valuable](identity)(function.apply).asInstanceOf[algebra.Real])
+    FP.sequence(vos) map (xs => xs.foldLeft[Eager](identity)(function.apply).asInstanceOf[algebra.Real])
   }
 
   /**
@@ -1090,25 +1075,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     xs.mkString(s"Aggregate{${function.toString},", ",", "}")
 
   /**
-    * Combines an accumulator and an expression to produce a new tuple containing an optional field
-    * and an updated context.
-    * This is the function invoked by `foldLeft` in the `evaluate` method.
-    *
-    * @param accum a tuple consisting of an optional field and the current context. The field represents
-    *              a computed value (if any), and the context provides additional information
-    *              required for processing.
-    * @param x     the expression to be combined with the accumulator. This expression is used to derive
-    *              updates to the field and/or context within the tuple.
-    * @return a new tuple containing an updated optional field and context after combining
-    *         the accumulator and the given expression.
-    */
-  private def combineExpressions(accum: (Option[Valuable], Context), x: Expression): (Option[Valuable], Context) = {
-    val (fo, context) = accum
-    combineFieldsAndContexts(x, fo, context)
-  }
-
-  /**
-    * Combines a given `Expression`, an optional `Field`, and a `Context` into a new tuple containing an updated
+    * Combines a given `Expression`, an optional `Field`, and a `ExpressionContext` into a new tuple containing an updated
     * optional field and context. The combination logic evaluates the expression within the given context, applying
     * transformations to the field and context when applicable.
     *
@@ -1120,15 +1087,15 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return a tuple consisting of an updated optional field and the resulting context after processing the
     *         given expression with the provided field and context.
     */
-  private def combineFieldsAndContexts(x: Expression, fo: Option[Valuable], context: Context): (Option[Valuable], Context) =
+  private def combineFieldsAndContexts(x: Expression, fo: Option[Eager], context: ExpressionContext): (Option[Eager], ExpressionContext) =
     (for a <- fo; b <- x.evaluate(context) yield {
       val field = function(a, b)
-      field -> (for factor <- field.maybeFactor yield function.rightContext(factor)(context))
+      field -> (for factor <- field.maybeFactor(context) yield function.rightContext(factor)(context))
     }) match {
       case Some((f, Some(qq))) =>
         Some(f) -> qq
       case _ =>
-        None -> Context.AnyScalar
+        None -> ExpressionContext.AnyScalar
     }
 }
 

@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.algebra
 import algebra.ring.{AdditiveCommutativeMonoid, MultiplicativeGroup}
 import com.phasmidsoftware.number.algebra.misc.FP
 import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -14,6 +15,22 @@ import scala.language.implicitConversions
   * CONSIDER why does it not extend Ordered[Number]?
   */
 trait Number extends Scalar with Ordered[Scalar] {
+
+  /**
+    * Attempts to obtain a `Factor` representation in a specific `Context`.
+    *
+    * A `Factor` could represent entities like `PureNumber`, `Radian`, etc., that
+    * provide numerical or dimensional meaning to a value. This method evaluates
+    * the current instance within the given `Context` to determine if a valid
+    * factor can be generated.
+    *
+    * @param context the evaluation context in which to determine the factor. The `Context`
+    *                specifies the criteria under which the factorization is valid.
+    * @return an `Option[Factor]` containing the factor if it can be determined,
+    *         or `None` if no suitable factor exists within the provided `Context`.
+    */
+  def maybeFactor(context: ExpressionContext): Option[Factor] = Some(PureNumber)
+
   /**
     * Compares this `Number` instance with a `Scalar` instance.
     *
@@ -248,6 +265,7 @@ object Number {
       * @return the result of multiplying `x` and `y` as a `Number`
       * @throws NumberException if the multiplication is not possible for the given inputs
       */
+    @tailrec
     def times(x: Number, y: Number): Number = (x, y) match {
       case (a: Real, b: Real) =>
         a * b
@@ -269,6 +287,6 @@ object Number {
         throw NumberException("Number.times: logic error: cannot multiply " + x + " and " + y)
     }
 
-    def div(x: Number, y: Number): Number = ???
+    def div(x: Number, y: Number): Number = times(x, multiplicative.inverse(y))
   }
 }

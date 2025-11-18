@@ -83,10 +83,10 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     half.evaluate(RestrictedContext(PureNumber)) shouldBe Some(Constants.half)
   }
   it should "evaluate(NthRoot)" in {
-    one.evaluate(Context.AnyRoot) shouldBe None
-    phi.evaluate(Context.AnyRoot) shouldBe None
-    rootTwo.evaluate(Context.AnyRoot) shouldBe Some(Constants.root2)
-    half.evaluate(Context.AnyRoot) shouldBe None
+    one.evaluate(CoreContext.AnyRoot) shouldBe None
+    phi.evaluate(CoreContext.AnyRoot) shouldBe None
+    rootTwo.evaluate(CoreContext.AnyRoot) shouldBe Some(Constants.root2)
+    half.evaluate(CoreContext.AnyRoot) shouldBe None
   }
 
   behavior of "Root expressions"

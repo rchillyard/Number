@@ -9,7 +9,7 @@ import cats.Show
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number.core.inner.{CubeRoot, Factor, Rational, SquareRoot}
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -200,7 +200,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     (that, base) match {
       case (x: CanPower[Number] @unchecked, y: Z) =>
         val triedRational = y.toRational.power(Rational(n).invert).toOption
-        val value: Option[Number] = (triedRational).flatMap(r => x.pow(RationalNumber(r)))
+        val value: Option[Number] = triedRational.flatMap(r => x.pow(RationalNumber(r)))
         value.asInstanceOf[Option[InversePower]]
       // TODO need to match on types, not use isInstanceOf, etc.
       case _ =>
@@ -213,7 +213,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
-  def maybeFactor: Option[Factor] = n match {
+  def maybeFactor(context: ExpressionContext): Option[Factor] = n match {
     case 2 => Some(SquareRoot)
     case 3 => Some(CubeRoot)
     case _ => throw NumberException(s"InversePower.maybeFactor: no factor for $n")

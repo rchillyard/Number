@@ -249,7 +249,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
-  def maybeFactor: Option[Factor] = Some(core.inner.NatLog)
+  def maybeFactor(context: ExpressionContext): Option[Factor] = Some(core.inner.NatLog)
 
   /**
     * Returns the multiplicative identity element of type `T` in the context

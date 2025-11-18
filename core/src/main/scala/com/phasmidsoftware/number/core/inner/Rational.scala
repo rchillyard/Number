@@ -442,7 +442,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     else
       (n, d, x, epsilon) match {
         case (_, `bigOne`, 2, Some(e)) =>
-          Rational.doSpecialsquareRoot(n, e)
+          Rational.doSpecialSquareRoot(n, e)
         case _ =>
           for (a <- rootOfBigInt(n, x); b <- rootOfBigInt(d, x)) yield Rational(a, b)
       }
@@ -634,7 +634,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *                if factor is None then, the result will depend solely on whether this is exact.
     * @return true if this NumberLike object is exact in the context of factor, else false.
     */
-  def isExactInContext(context: Context): Boolean = true
+  def isExactInContext(context: CoreContext): Boolean = true
 
   /**
     * Method to determine if this Field is actually a real Number (i.e. not complex).
@@ -1572,7 +1572,7 @@ object Rational {
     * @return an `Option[Rational]` containing the rational approximation of
     *         the square root if supported, or `None` if the case is not implemented
     */
-  private def doSpecialsquareRoot(n: BigInt, epsilon: Double): Option[Rational] = n match {
+  private def doSpecialSquareRoot(n: BigInt, epsilon: Double): Option[Rational] = n match {
     case `bigTwo` =>
       ContinuedFraction.root2.toRational(epsilon)
     case `bigThree` =>

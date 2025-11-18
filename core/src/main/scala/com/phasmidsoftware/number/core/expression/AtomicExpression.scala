@@ -124,7 +124,7 @@ case object Noop extends AtomicExpression {
     *
     * @return a `Field`.
     */
-  def evaluate(context: Context): Option[Field] =
+  def evaluate(context: CoreContext): Option[Field] =
     throw new UnsupportedOperationException("Noop.evaluate")
 
   /**
@@ -200,7 +200,7 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     *                qualification rules for determining whether the field is valid.
     * @return `Some(Field)` if the field qualifies within the given context, otherwise `None`.
     */
-  def evaluate(context: Context): Option[Field] =
+  def evaluate(context: CoreContext): Option[Field] =
     Option.when(value.maybeFactor.isDefined && context.fieldQualifies(value))(value)
 
   /**
@@ -816,7 +816,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     *
     * @return an optional `Field`.
     */
-  def evaluate(context: Context): Option[Field] = expression.evaluate(context)
+  def evaluate(context: CoreContext): Option[Field] = expression.evaluate(context)
 
   /**
     * Computes and returns an approximate numerical value for this Approximatable.
@@ -1254,7 +1254,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return an optional `Field`.
     */
-  def evaluate(context: Context): Option[Field] =
+  def evaluate(context: CoreContext): Option[Field] =
     maybeValue match {
       case x@Some(value) if context.fieldQualifies(value) =>
         x

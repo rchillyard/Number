@@ -179,7 +179,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *
     * @return the materialized Field.
     */
-  def evaluate(context: Context): Option[Field] =
+  def evaluate(context: CoreContext): Option[Field] =
     x match {
       case AtomicExpression(field) =>
         // NOTE: here we catch any exceptions that are thrown by applyExact.
@@ -467,7 +467,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the materialized Field.
     */
-  def evaluate(context: Context): Option[Field] =
+  def evaluate(context: CoreContext): Option[Field] =
     context.qualifyingField(f.evaluate(a, b)(context))
 
   /**
@@ -872,14 +872,14 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return an `Option[Field]` representing the result of the evaluation. Returns `None`
     *         if the evaluation cannot produce a valid field or if an invalid context is encountered.
     */
-  def evaluate(context: Context): Option[Field] = {
+  def evaluate(context: CoreContext): Option[Field] = {
 
     // NOTE we combine the expressions of this `Aggregate` but maintain a context which in general changes as we combine terms.
     // The initial context is determined by the parameter `context` and the function's `leftContext` method.
     // The resulting tuple of optional Field and Context is then matched.
     // If the context is impossible (for example, we multiplied a pure number by a logarithmic number such as `e`,
     // then we cannot evaluate this `Aggregate` exactly.
-    xs.foldLeft[(Option[Field], Context)]((function.maybeIdentityL, function.leftContext(context)))(combineExpressions) match {
+    xs.foldLeft[(Option[Field], CoreContext)]((function.maybeIdentityL, function.leftContext(context)))(combineExpressions) match {
       case (_, ImpossibleContext) =>
         None
       case (fo, _) =>
@@ -961,7 +961,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return a new tuple containing an updated optional field and context after combining
     *         the accumulator and the given expression.
     */
-  private def combineExpressions(accum: (Option[Field], Context), x: Expression): (Option[Field], Context) = {
+  private def combineExpressions(accum: (Option[Field], CoreContext), x: Expression): (Option[Field], CoreContext) = {
     val (fo, context) = accum
     combineFieldsAndContexts(x, fo, context)
   }
@@ -979,7 +979,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return a tuple consisting of an updated optional field and the resulting context after processing the
     *         given expression with the provided field and context.
     */
-  private def combineFieldsAndContexts(x: Expression, fo: Option[Field], context: Context): (Option[Field], Context) =
+  private def combineFieldsAndContexts(x: Expression, fo: Option[Field], context: CoreContext): (Option[Field], CoreContext) =
     (for (a <- fo; b <- x.evaluate(context)) yield {
       val field = function(a, b)
       field -> (for (factor <- field.maybeFactor) yield function.rightContext(factor)(context))

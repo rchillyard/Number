@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.expression
 
-import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
+import com.phasmidsoftware.number.core.inner.CoreContext.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number.misc.FP
@@ -46,7 +46,7 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Field => F
     * @param context the `Context` in which this `ExpressionMonoFunction` must be evaluated.
     * @return the `Context` to be used when evaluating the parameter.
     */
-  def paramContext(context: Context): Context
+  def paramContext(context: CoreContext): CoreContext
 
   /**
     * Attempts to evaluate the given `Field` exactly using this `ExpressionMonoFunction`.
@@ -161,7 +161,7 @@ sealed abstract class ExpressionBiFunction(
     * @param context the `Context` typically based on the context for the evaluation of the whole function.
     * @return the left-hand `Context` of the binary function.
     */
-  def leftContext(context: Context): Context
+  def leftContext(context: CoreContext): CoreContext
 
   /**
     * Defines the `Context` appropriate for evaluating the right-hand parameter of this function
@@ -174,7 +174,7 @@ sealed abstract class ExpressionBiFunction(
     * @param context the initial `Context` typically derived from the evaluation of the left-hand parameter.
     * @return the updated right-hand `Context` for use in further evaluations.
     */
-  def rightContext(factor: Factor)(context: Context): Context
+  def rightContext(factor: Factor)(context: CoreContext): CoreContext
 
   /**
     * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
@@ -198,7 +198,7 @@ sealed abstract class ExpressionBiFunction(
     * @param context the evaluation context providing the necessary environment for resolving expressions.
     * @return an `Option[Field]` containing the result of the evaluation if successful, or `None` if evaluation fails.
     */
-  def evaluate(x: Expression, y: Expression)(context: Context): Option[Field] = (x.evaluateAsIs, y.evaluateAsIs) match {
+  def evaluate(x: Expression, y: Expression)(context: CoreContext): Option[Field] = (x.evaluateAsIs, y.evaluateAsIs) match {
     case (Some(a), _) if maybeIdentityL contains a =>
       y.evaluate(context)
     case (_, Some(b)) if maybeIdentityR contains b =>
@@ -225,7 +225,7 @@ sealed abstract class ExpressionBiFunction(
     * @return an `Option[Field]` containing the result of the exact binary operation on the evaluated results
     *         of `x` and `y`, or `None` if any step in the process fails.
     */
-  private def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Field] =
+  private def doEvaluate(x: Expression, y: Expression)(context: CoreContext): Option[Field] =
     for {
       a <- x.evaluate(leftContext(context))
       f <- a.maybeFactor
@@ -300,7 +300,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
     * @param context the input evaluation `Context` that defines the left-hand context for the operation.
     * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
-  def leftContext(context: Context): Context =
+  def leftContext(context: CoreContext): CoreContext =
     RestrictedContext(PureNumber) or AnyRoot
 
   /**
@@ -309,7 +309,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
     * @param context the input evaluation `Context` that specifies the right-hand context for the operation.
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
-  def rightContext(factor: Factor)(context: Context): Context =
+  def rightContext(factor: Factor)(context: CoreContext): CoreContext =
     RestrictedContext(PureNumber) or AnyRoot
 
   /**
@@ -371,7 +371,7 @@ case object Log extends ExpressionBiFunction("log", Real.log, false, None, None)
     * @param context the input evaluation `Context` that defines the left-hand context for the operation.
     * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
-  def leftContext(context: Context): Context =
+  def leftContext(context: CoreContext): CoreContext =
     RestrictedContext(PureNumber) or AnyRoot
 
   /**
@@ -380,7 +380,7 @@ case object Log extends ExpressionBiFunction("log", Real.log, false, None, None)
     * @param context the input evaluation `Context` that specifies the right-hand context for the operation.
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
-  def rightContext(factor: Factor)(context: Context): Context =
+  def rightContext(factor: Factor)(context: CoreContext): CoreContext =
     RestrictedContext(PureNumber)
 
   /**
@@ -432,7 +432,7 @@ case object Ln extends ExpressionMonoFunction("ln", x => x.ln) {
     * @param context the initial `Context` to be modified or restricted.
     * @return a new `Context` object, which is a restricted version of the provided `context`.
     */
-  def paramContext(context: Context): Context =
+  def paramContext(context: CoreContext): CoreContext =
     AnyScalar or AnyLog // CONSIDER should we be allowing Log2 and Log10?  // TESTME
 
   /**
@@ -470,7 +470,7 @@ case object Exp extends ExpressionMonoFunction("exp", x => x.exp) {
     * @param context ignored.
     * @return a new or modified `Context` after applying the associated operation
     */
-  def paramContext(context: Context): Context =
+  def paramContext(context: CoreContext): CoreContext =
     AnyScalar // TESTME
 
   /**
@@ -512,7 +512,7 @@ case object Negate extends ExpressionMonoFunction("-", x => -x) {
     * @param context ignored.
     * @return a `Context` object derived from or related to the provided `context`.
     */
-  def paramContext(context: Context): Context = AnyScalar // TESTME
+  def paramContext(context: CoreContext): CoreContext = AnyScalar // TESTME
 
   /**
     * Applies an exact mathematical operation to negate certain types of exact numeric fields.
@@ -575,7 +575,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", x => x.invert) {
     * @return a new context resulting from the combination of the `RestrictedContext` defined with `PureNumber`
     *         and the `AnyLog` condition using the logical "or" operation.
     */
-  def paramContext(context: Context): Context =
+  def paramContext(context: CoreContext): CoreContext =
     RestrictedContext(PureNumber) or AnyLog // TESTME
 }
 
@@ -592,7 +592,7 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
     * @param context the `Context` typically based on the context for the evaluation of the whole function.
     * @return the left-hand `Context` of the binary function.
     */
-  def leftContext(context: Context): Context =
+  def leftContext(context: CoreContext): CoreContext =
     context
 
   /**
@@ -601,7 +601,7 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
     * @param context the `Context` typically based on the value of the left-hand parameter.
     * @return the right-hand `Context` of the binary function.
     */
-  def rightContext(factor: Factor)(context: Context): Context =
+  def rightContext(factor: Factor)(context: CoreContext): CoreContext =
     context
 
   /**
@@ -654,7 +654,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     *
     * @return None.
     */
-  def leftContext(context: Context): Context = context
+  def leftContext(context: CoreContext): CoreContext = context
 
   /**
     * Determines the right-hand evaluation context for a given `Context`.
@@ -668,7 +668,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     * @param context the initial `Context` to be evaluated and transformed.
     * @return the resulting `Context` after applying the transformation logic.
     */
-  def rightContext(factor: Factor)(context: Context): Context = context match {
+  def rightContext(factor: Factor)(context: CoreContext): CoreContext = context match {
     case AnyScalar | AnyContext =>
       context or RestrictedContext(PureNumber) // TESTME
     case AnyLog =>
@@ -738,7 +738,7 @@ case object Power extends ExpressionBiFunction("∧", (x, y) => x.power(y), isEx
     * @param context the input `Context` to evaluate.
     * @return None.
     */
-  def leftContext(context: Context): Context = context
+  def leftContext(context: CoreContext): CoreContext = context
 
   /**
     * Determines the right-hand evaluation context for a given input context.
@@ -749,7 +749,7 @@ case object Power extends ExpressionBiFunction("∧", (x, y) => x.power(y), isEx
     * @return the updated `Context` after applying the evaluation logic. Returns `None` if the input
     *         context matches `Some(PureNumber)`, otherwise returns `Some(PureNumber)`.
     */
-  def rightContext(factor: Factor)(context: Context): Context =
+  def rightContext(factor: Factor)(context: CoreContext): CoreContext =
     AnyScalar // ignore both parameters
 
   /**
@@ -789,7 +789,7 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if (sine) "
     * @param context ignored.
     * @return a new `RestrictedContext` instance configured with the `Radian` factor.
     */
-  def paramContext(context: Context): Context =
+  def paramContext(context: CoreContext): CoreContext =
     RestrictedContext(Radian) // TESTME
 
   /**

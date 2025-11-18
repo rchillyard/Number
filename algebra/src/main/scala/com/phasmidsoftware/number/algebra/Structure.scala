@@ -113,7 +113,7 @@ case class Complex(complex: core.Complex) extends Eager {
     *
     * @return an `Option` containing the `Factor` if available, otherwise `None`.
     */
-  def maybeFactor: Option[Factor] = complex.maybeFactor
+  def maybeFactor(context: ExpressionContext): Option[Factor] = complex.maybeFactor
 }
 
 //trait Scalar extends Structure with Ordered[Scalar]

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, PureNumber, Radian}
 import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber, NumberException, inner}
 
 /**
@@ -36,16 +37,6 @@ trait Scalar extends Monotone {
     * and the conversion factor to yield a `PureNumber`.
     */
   def scaleFactor: Double
-
-  /**
-    * Attempts to yield a factor for the instance, if available.
-    *
-    * A `Factor` is a representation of the underlying numerical domain, for example, `PureNumber`, `Radian`, etc.
-    *
-    * @return an `Option[Factor]` containing the factor representation of this object,
-    *         or `None` if factorization is not applicable or unavailable.
-    */
-  def maybeFactor: Option[inner.Factor]
 
   /**
     * Determines if the current number is equal to zero.
@@ -145,6 +136,17 @@ object Scalar {
   * and comparison, while specifically associating the scalar with a conversion factor defined by Pi.
   */
 trait Radians extends Scalar with CanScale[Radians, Number] {
+
+  /**
+    * Retrieves an optional factor associated with the specified context.
+    * The factor may represent a transformation or scaling associated with a computation
+    * in a particular evaluation context.
+    *
+    * @param context the evaluation context within which the factor is to be determined.
+    * @return an `Option` containing the factor if it exists; `None` otherwise.
+    */
+  def maybeFactor(context: ExpressionContext): Option[Factor] = Some(Radian)
+
   /**
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.
     */

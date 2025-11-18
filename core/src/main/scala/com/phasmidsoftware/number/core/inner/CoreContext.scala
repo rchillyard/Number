@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.core.Field
   * factor or field qualifies within the scope of a specific context. It supports
   * logical operations (`or`, `and`, `not`) to compose complex contexts from simpler ones.
   */
-trait Context {
+trait CoreContext {
 
   /**
     * Determines whether the given factor is acceptable in this `Context`.
@@ -55,8 +55,8 @@ trait Context {
     * @param that the other `Context` to combine with this `Context`.
     * @return a new `Context` that represents the logical OR of the two contexts.
     */
-  def or(that: Context): Context =
-    (f: Factor) => Context.this.factorQualifies(f) || that.factorQualifies(f)
+  def or(that: CoreContext): CoreContext =
+    (f: Factor) => CoreContext.this.factorQualifies(f) || that.factorQualifies(f)
 
   /**
     * Produces a new context that requires both this context and the provided context to qualify a factor.
@@ -65,16 +65,16 @@ trait Context {
     * @param that the second context that will be combined with this context using a logical AND operation.
     * @return a new `Context` that qualifies a factor only if it qualifies in both this context and the given context.
     */
-  def and(that: Context): Context =
-    (f: Factor) => Context.this.factorQualifies(f) && that.factorQualifies(f)
+  def and(that: CoreContext): CoreContext =
+    (f: Factor) => CoreContext.this.factorQualifies(f) && that.factorQualifies(f)
 
   /**
     * Negates the qualification of a factor in the current context.
     *
     * @return A new context that inverts the qualification logic for factors.
     */
-  def not: Context =
-    (f: Factor) => !Context.this.factorQualifies(f)
+  def not: CoreContext =
+    (f: Factor) => !CoreContext.this.factorQualifies(f)
 }
 
 /**
@@ -88,7 +88,7 @@ trait Context {
   * @constructor Creates a `RestrictedContext` with a predefined `Factor` to enforce context-based restrictions.
   * @param context the specific factor that defines the restrictive context. Only factors matching this will qualify.
   */
-case class RestrictedContext(context: Factor) extends Context {
+case class RestrictedContext(context: Factor) extends CoreContext {
   /**
     * Determines whether the given factor qualifies for this `Context`.
     *
@@ -114,7 +114,7 @@ case class RestrictedContext(context: Factor) extends Context {
   * by always returning `true` for any given factor. It is useful as a
   * catch-all context where no restrictions are applied.
   */
-case object AnyContext extends Context {
+case object AnyContext extends CoreContext {
   /**
     * Determines whether the given factor qualifies for this `AnyContext`.
     *
@@ -137,7 +137,7 @@ case object AnyContext extends Context {
   * This context acts as the logical negation of all other possible contexts,
   * prohibiting any factor from being considered qualifying.
   */
-case object ImpossibleContext extends Context {
+case object ImpossibleContext extends CoreContext {
   /**
     * Determines whether the given factor qualifies for this `ImpossibleContext`.
     *
@@ -157,7 +157,7 @@ case object ImpossibleContext extends Context {
   * under specific mathematical or functional conditions. This includes contexts
   * for scalars, logarithms, and roots, along with utility functions for determining qualification.
   */
-object Context {
+object CoreContext {
   /**
     * Represents a context that supports either purely numerical scalars (`PureNumber`)
     * or angular units represented in radians (`Radian`).
@@ -168,7 +168,7 @@ object Context {
     * Defined by combining `RestrictedContext(PureNumber)` and `RestrictedContext(Radian)`
     * using the `or` method, which permits qualification within either of these contexts.
     */
-  val AnyScalar: Context = RestrictedContext(PureNumber) or RestrictedContext(Radian)
+  val AnyScalar: CoreContext = RestrictedContext(PureNumber) or RestrictedContext(Radian)
   /**
     * A combined `Context` that represents any type of logarithmic base.
     *
@@ -180,10 +180,10 @@ object Context {
     * A value qualifies for this context if it qualifies for any of the three individual
     * restricted logarithmic contexts.
     */
-  val AnyLog: Context = RestrictedContext(NatLog) or RestrictedContext(Log2) or RestrictedContext(Log10) or RestrictedContext(Euler)
+  val AnyLog: CoreContext = RestrictedContext(NatLog) or RestrictedContext(Log2) or RestrictedContext(Log10) or RestrictedContext(Euler)
   /**
     * A `Context` that qualifies factors as either square roots (`SquareRoot`) or cube roots (`CubeRoot`).
     * Combines the qualification conditions of `SquareRoot` and `CubeRoot` contexts using logical OR.
     */
-  val AnyRoot: Context = RestrictedContext(SquareRoot) or RestrictedContext(CubeRoot)
+  val AnyRoot: CoreContext = RestrictedContext(SquareRoot) or RestrictedContext(CubeRoot)
 }

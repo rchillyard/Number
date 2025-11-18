@@ -843,7 +843,7 @@ object Number {
     def ~(y: Int): Number =
       if (y >= 10 && y < 100) {
         val p = y * math.pow(10.0, -BigDecimal(x).scale)
-        Number(x, PureNumber, Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
+        Number(x, PureNumber, Some(AbsoluteFuzz(implicitly[HasValue[Double]].fromDouble(p), Gaussian)))
       }
       else
         throw NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
@@ -975,7 +975,7 @@ object Number {
         e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(NumberException(s"Logic error: " + exp)))
         y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
         p = y * math.pow(10, e - f.length)
-      } yield x.make(Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
+      } yield x.make(Some(AbsoluteFuzz(implicitly[HasValue[Double]].fromDouble(p), Gaussian)))
   }
 
   /**

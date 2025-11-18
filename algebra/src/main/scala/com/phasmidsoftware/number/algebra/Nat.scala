@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Semiring
 import com.phasmidsoftware.number.algebra.Nat.natIsSemiring
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, PureNumber, Rational}
 import scala.annotation.tailrec
 
 /**
@@ -22,6 +22,22 @@ import scala.annotation.tailrec
   * But note that doing that destroys the Peano aspect of this class (keep in mind that we also have WholeNumber).
   */
 sealed trait Nat extends Eager with N {
+
+  /**
+    * Attempts to obtain a `Factor` representation in a specific `Context`.
+    *
+    * A `Factor` could represent entities like `PureNumber`, `Radian`, etc., that
+    * provide numerical or dimensional meaning to a value. This method evaluates
+    * the current instance within the given `Context` to determine if a valid
+    * factor can be generated.
+    *
+    * @param context the evaluation context in which to determine the factor. The `Context`
+    *                specifies the criteria under which the factorization is valid.
+    * @return an `Option[Factor]` containing the factor if it can be determined,
+    *         or `None` if no suitable factor exists within the provided `Context`.
+    */
+  def maybeFactor(context: ExpressionContext): Option[Factor] = Some(PureNumber)
+
   /**
     * Adds the specified natural number to this natural number.
     *
@@ -81,10 +97,11 @@ sealed trait Nat extends Eager with N {
   def asDouble: Double = toInt.toDouble
 
   /**
-    * Creates an instance of `R` from the given `Rational` value.
+    * Constructs an optional instance of `Q` for this `Nat`.
+    * The `Q` instance is derived from the rational representation of the `Nat` itself.
     *
-    * @param q the `Rational` value to be converted into an instance of `R`
-    * @return an instance of `R` representing the specified `Rational` value
+    * @return an `Option[Q]` that contains the `Q` instance built from the rational value
+    *         of the current `Nat`, or `None` if the representation cannot be determined.
     */
   def maybeQ: Option[Q] = Some(RationalNumber(toRational))
 
@@ -110,16 +127,6 @@ sealed trait Nat extends Eager with N {
     * @return Some(x) where x is a Double if this is exact, else None.
     */
   lazy val maybeDouble: Option[Double] = Some(toInt)
-
-  /**
-    * Attempts to yield a factor for the instance, if available.
-    *
-    * A `Factor` is a representation of the underlying numerical domain, for example, `PureNumber`, `Radian`, etc.
-    *
-    * @return an `Option[Factor]` containing the factor representation of this object,
-    *         or `None` if factorization is not applicable or unavailable.
-    */
-  lazy val maybeFactor: Option[Factor] = Some(PureNumber)
 }
 
 /**

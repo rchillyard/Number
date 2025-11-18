@@ -92,7 +92,7 @@ sealed trait Factor {
     * @param context the context in which the factor is evaluated.
     * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
     */
-  def isA(context: Context): Boolean
+  def isA(context: CoreContext): Boolean
 
   /**
     * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
@@ -267,7 +267,7 @@ sealed trait Scalar extends Factor {
     * @param context the context in which the factor is evaluated.
     * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
     */
-  def isA(context: Context): Boolean =
+  def isA(context: CoreContext): Boolean =
     context.factorQualifies(this)
 
   /**
@@ -364,7 +364,7 @@ sealed trait Logarithmic extends Factor {
     * @param context the context in which the factor is evaluated.
     * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
     */
-  def isA(context: Context): Boolean =
+  def isA(context: CoreContext): Boolean =
     context.factorQualifies(this)
 
   /**
@@ -795,7 +795,7 @@ sealed trait InversePower extends Factor {
     * @param context the context in which the factor is evaluated.
     * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
     */
-  def isA(context: Context): Boolean =
+  def isA(context: CoreContext): Boolean =
     context.factorQualifies(this)
 }
 
@@ -926,7 +926,7 @@ object NthRoot {
   * `PureNumber` extends the `Scalar` trait and behaves as a unit scalar factor.
   *
   * CONSIDER expanding to include a DecimalNumber as well as a PureNumber (which logically should be represented in binary).
-  * Just because we can represent somehing exactly in binary doesn't mean we can represent it in decimal (and vice versa).
+  * Just because we can represent something exactly in binary doesn't mean we can represent it in decimal (and vice versa).
   *
   * This object encapsulates the value of 1, providing a representation of a pure scalar.
   * It includes functionality to render a string representation of a value.
@@ -940,7 +940,7 @@ case object PureNumber extends Scalar {
     * @param context the context in which the factor is evaluated.
     * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
     */
-  override def isA(context: Context): Boolean =
+  override def isA(context: CoreContext): Boolean =
     context.factorQualifies(this)
 
   override def toString: String = ""

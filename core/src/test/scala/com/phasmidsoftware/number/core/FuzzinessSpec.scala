@@ -178,7 +178,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "render"
-  private val z = implicitly[Valuable[Double]]
+  private val z = implicitly[HasValue[Double]]
   it should "render Pi" in {
     z.render(3.1415927) shouldBe "3.141592700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
   }

@@ -11,7 +11,7 @@ import scala.util.Try
   * A trait representing a mathematical series, where terms can be computed
   * and evaluated up to a certain level of precision or number of terms.
   *
-  * CONSIDER extending some trait like Valuable, NumberLike, Numerical, Evaluatable, or Fuzz...
+  * CONSIDER extending some trait like HasValue, NumberLike, Numerical, Evaluatable, or Fuzz...
   *
   * @tparam X the type of the series terms
   */

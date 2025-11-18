@@ -40,15 +40,13 @@ trait Valuable extends Renderable with MaybeNumeric {
   def isExact: Boolean
 
   /**
-    * Optionally retrieves a factor associated with this `Valuable` if one exists (this is a Scalar).
+    * Attempts to retrieve a factor based on the provided context.
+    * This method evaluates whether there is an applicable factor within the given context.
     *
-    * Factors are components or divisors related to the numerical value represented 
-    * by this `Valuable`. If no such factor exists or is applicable, the result will 
-    * be `None`.
-    *
-    * @return an `Option` containing the `Factor` if available, otherwise `None`.
+    * @param context the context in which the factor is evaluated.
+    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeFactor: Option[Factor]
+  def maybeFactor(context: ExpressionContext): Option[Factor]
 }
 
 /**
@@ -56,64 +54,20 @@ trait Valuable extends Renderable with MaybeNumeric {
   * enabling parsing and conversion of strings to `Valuable` representations.
   */
 object Valuable {
-  lazy val zero: Valuable = Number.zero
-  lazy val one: Valuable = Number.one
-  lazy val minusOne: Valuable = Number.minusOne
-  lazy val two: Valuable = Scalar(2)
-  lazy val half: Valuable = RationalNumber(Rational.half)
-  lazy val ten: Valuable = Scalar(10)
-  lazy val pi: Valuable = Angle.pi
-  lazy val piBy2: Valuable = Angle.piBy2
-  lazy val piBy4: Valuable = Angle.piBy4
-  lazy val e: Valuable = NatLog.e
-  lazy val infinity: Valuable = RationalNumber(Rational.infinity)
-  lazy val negInfinity: Valuable = RationalNumber(Rational.negInfinity)
-  lazy val root2: Valuable = InversePower(2, 2)
-  lazy val root3: Valuable = InversePower(2, 3)
-
-  /**
-    * Parses the given string into a `Valuable` representation. If the string cannot be parsed
-    * into a valid `Number`, an exception is thrown.
-    *
-    * @param str the input string representing a numerical value.
-    * @return a `Valuable` representation of the parsed `Number`.
-    * @throws NumberExceptionWithCause if parsing the string fails.
-    */
-  def apply(str: String): Valuable =
-    NumberParser.parseNumber(str) match {
-      case Success(number) =>
-        Scalar(number)
-      case Failure(exception) =>
-        throw NumberExceptionWithCause("Valuable.apply", exception)
-    }
-
-  /**
-    * Creates a `Valuable` instance representing the given long value.
-    *
-    * @param x the input value of type `Long` to be wrapped in a `Valuable` representation.
-    * @return a `Valuable` object corresponding to the input value.
-    */
-  def apply(x: Long): Valuable = WholeNumber(x)
-
-  /**
-    * Creates a `Valuable` instance based on the given `Field`.
-    * If the `Field` is a `Real` object, it converts it into a `Scalar` representation.
-    * Otherwise, it throws an `IllegalArgumentException`.
-    *
-    * @param field the input field to be converted into a `Valuable`. It is expected
-    *              to be of type `com.phasmidsoftware.number.core.Real`.
-    * @return a `Valuable` representation of the input `Field` as a `Scalar`.
-    * @throws IllegalArgumentException if the provided `Field` is not of type `Real`.
-    */
-  def apply(field: core.Field): Valuable =
-    field match {
-      case core.Real(n) =>
-        Scalar(n)
-      case c: core.Complex =>
-        Complex(c)
-      case a: Algebraic =>
-        throw new NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")
-    }
+  lazy val zero: Eager = Number.zero
+  lazy val one: Eager = Number.one
+  lazy val minusOne: Eager = Number.minusOne
+  lazy val two: Eager = Scalar(2)
+  lazy val half: Eager = RationalNumber(Rational.half)
+  lazy val ten: Eager = Scalar(10)
+  lazy val pi: Eager = Angle.pi
+  lazy val piBy2: Eager = Angle.piBy2
+  lazy val piBy4: Eager = Angle.piBy4
+  lazy val e: Eager = NatLog.e
+  lazy val infinity: Eager = RationalNumber(Rational.infinity)
+  lazy val negInfinity: Eager = RationalNumber(Rational.negInfinity)
+  lazy val root2: Eager = InversePower(2, 2)
+  lazy val root3: Eager = InversePower(2, 3)
 
   /**
     * TODO change the type of the input to `Eager`.
@@ -163,6 +117,8 @@ object Valuable {
     * Extractor method to convert a `Valuable` instance into an `Option` containing its corresponding `Field` representation.
     * This allows for safe pattern matching and handling of `Valuable` objects that may or may not be convertible to a `Field`.
     *
+    * TODO we should move this method to the companion object of `Eager`.
+    *
     * @param v the `Valuable` instance to be converted into an `Option[Field]`
     * @return `Some(Field)` if the conversion is successful, or `None` if it fails
     */
@@ -176,7 +132,7 @@ object Valuable {
     * @param w the input string to be converted into a `Valuable`.
     * @return a `Valuable` instance parsed from the provided string.
     */
-  implicit def toValuable(w: String): Valuable = apply(w)
+  implicit def toValuable(w: String): Valuable = Eager(w)
 
   /**
     * Implicit object `LoggableValuable` provides a `Loggable` implementation for the `Valuable` type.
@@ -207,7 +163,7 @@ object Valuable {
     case algebra.Real(x, fo) =>
       core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
     case WholeNumber(x) =>
-      (Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber)))
+      Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber))
     case _ =>
       throw NumberException(s"Valuable.numberToField: Cannot convert $number to a Field")
   }
@@ -236,6 +192,7 @@ object Valuable {
 /**
   * Trait `Eager` extends `Valuable` and is used to represent entities that evaluate their values eagerly.
   * That's to say, `Valuable` objects that do not extend `Expression`.
+  * At present, `Eager` is extended by `Structure, Complex`, and `Nat`.
   *
   * Unlike lazy evaluation, eager evaluation computes and stores the value immediately when the entity is created
   * or instantiated. This behavior can be useful in scenarios where prompt computation is essential, and
@@ -245,3 +202,56 @@ object Valuable {
   * that confirms the eager nature of an extending type.
   */
 trait Eager extends Valuable
+
+/**
+  * The `Eager` object provides factory methods to create instances of `Valuable` entities
+  * that are evaluated eagerly. These entities can represent numerical values parsed from
+  * strings, long integers, or specific types of mathematical fields.
+  */
+object Eager {
+
+  /**
+    * Parses the given string into a `Valuable` representation. If the string cannot be parsed
+    * into a valid `Number`, an exception is thrown.
+    *
+    * @param str the input string representing a numerical value.
+    * @return a `Valuable` representation of the parsed `Number`.
+    * @throws NumberExceptionWithCause if parsing the string fails.
+    */
+  def apply(str: String): Eager =
+    NumberParser.parseNumber(str) match {
+      case Success(number) =>
+        Scalar(number)
+      case Failure(exception) =>
+        throw NumberExceptionWithCause("Valuable.apply", exception)
+    }
+
+  /**
+    * Creates a `Valuable` instance representing the given long value.
+    *
+    * @param x the input value of type `Long` to be wrapped in a `Valuable` representation.
+    * @return a `Valuable` object corresponding to the input value.
+    */
+  def apply(x: Long): Eager = WholeNumber(x)
+
+  /**
+    * Creates a `Valuable` instance based on the given `Field`.
+    * If the `Field` is a `Real` object, it converts it into a `Scalar` representation.
+    * Otherwise, it throws an `IllegalArgumentException`.
+    *
+    * @param field the input field to be converted into a `Valuable`. It is expected
+    *              to be of type `com.phasmidsoftware.number.core.Real`.
+    * @return a `Valuable` representation of the input `Field` as a `Scalar`.
+    * @throws IllegalArgumentException if the provided `Field` is not of type `Real`.
+    */
+  def apply(field: core.Field): Eager =
+    field match {
+      case core.Real(n) =>
+        Scalar(n)
+      case c: core.Complex =>
+        Complex(c)
+      case a: Algebraic =>
+        throw NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")
+    }
+
+}

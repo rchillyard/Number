@@ -9,7 +9,7 @@ import cats.Show
 import com.phasmidsoftware.number.algebra.Angle.angleIsCommutativeGroup
 import com.phasmidsoftware.number.algebra.{Radians, Structure}
 import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -128,10 +128,12 @@ case class Angle private[algebra](radians: Number) extends Circle with Radians w
   def asDouble: Double = scaleFactor * radians.toDouble
 
   /**
-    * Creates an instance of `R` from the given `Rational` value.
+    * Determines if the `radians` value can be interpreted as an instance of `Q`.
+    * If `radians` matches the type `Q`, it returns an `Option` containing the value of `Q`.
+    * Otherwise, it returns `None`.
     *
-    * @param q the `Rational` value to be converted into an instance of `R`
-    * @return an instance of `R` representing the specified `Rational` value
+    * @return an `Option[Q]` where `Some(Q)` is returned if `radians` is of type `Q`,
+    *         otherwise `None`.
     */
   def maybeQ: Option[Q] = radians match {
     case q: Q => Some(q)
@@ -243,13 +245,6 @@ case class Angle private[algebra](radians: Number) extends Circle with Radians w
     */
   def doScaleDouble(that: Double): Option[Angle] =
     radians.doScaleDouble(that) map (x => Angle.create(x))
-
-  /**
-    * Computes the potential factor associated with this instance.
-    *
-    * @return an `Option` containing a `Factor` if available, otherwise `None`
-    */
-  def maybeFactor: Option[Factor] = Some(Radian)
 
   /**
     * Provides an approximation of this number, if applicable.

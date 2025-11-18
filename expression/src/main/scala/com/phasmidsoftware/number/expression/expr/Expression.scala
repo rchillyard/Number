@@ -6,11 +6,10 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.misc.FP.recover
-import com.phasmidsoftware.number.algebra.{Valuable, *}
+import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.Number.convertInt
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
-import com.phasmidsoftware.number.expression.core.{AnyContext, Context}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.expression.expr.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.{BiFunction, CompositeExpression, UniFunction}
@@ -41,7 +40,7 @@ trait Expression extends Valuable with Approximate {
     *
     * @return an optional `Field`.
     */
-  def evaluate(context: Context): Option[Valuable]
+  def evaluate(context: ExpressionContext): Option[Eager]
 
   /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
@@ -50,7 +49,7 @@ trait Expression extends Valuable with Approximate {
     *
     * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
     */
-  lazy val evaluateAsIs: Option[Valuable] =
+  lazy val evaluateAsIs: Option[Eager] =
     evaluate(AnyContext)
 
   /**
@@ -76,21 +75,6 @@ trait Expression extends Valuable with Approximate {
 
     inner(this)
   }
-
-  /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
-    *
-    * @return an optional `Factor`.
-    */
-  def maybeFactor: Option[Factor] =
-    evaluateAsIs match {
-      case Some(scalar: Scalar) =>
-        scalar.maybeFactor
-      case Some(_) =>
-        None // TODO implement also for Algebraics, `ComplexCartesian`, etc. 
-      case None =>
-        None
-    }
 
   /**
     * Materializes the current `Expression` by simplifying and evaluating it as a `Field`.
@@ -161,7 +145,7 @@ object ExpressionHelper {
   extension (x: String)
     def evaluateAsIs: Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluateAsIs)
-    def evaluate(context: Context = com.phasmidsoftware.number.expression.core.RestrictedContext(PureNumber)): Option[Valuable] =
+    def evaluate(context: ExpressionContext = com.phasmidsoftware.number.algebra.RestrictedContext(PureNumber)): Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluate(context))
     def materialize: Option[Valuable] =
       Expression.parse(x).map(_.materialize)
@@ -399,7 +383,7 @@ object Expression {
     * @return an Expression representing the input number
     */
   implicit def convert(x: core.Number): Expression =
-    apply(Valuable(core.Real(x)))
+    apply(Eager(core.Real(x)))
 
   /**
     * The following constants are helpful in getting an expression started.
@@ -418,7 +402,7 @@ object Expression {
     * @param x the `Field` instance to be converted into an `Expression`
     * @return an `Expression` representing the input `Field`, either as a predefined constant or a wrapped literal
     */
-  def apply(x: Valuable): Expression = x match {
+  def apply(x: Eager): Expression = x match {
     case Valuable.zero =>
       Zero // TESTME (applies to all except default case)
     case Valuable.one =>
@@ -437,7 +421,7 @@ object Expression {
 
   def apply(w: String): Expression = parse(w) getOrElse Noop
 
-  def apply(r: Rational): Expression = apply(Valuable(r))
+  def apply(r: Rational): Expression = apply(Eager(r))
 
   /**
     * The following method is helpful in getting an expression started
@@ -503,7 +487,7 @@ object Expression {
     * @param f the `Field` to be converted into an `Expression`
     * @return an `Expression` instance representing the input `Field`
     */
-  implicit def convertFieldToExpression(f: Valuable): Expression =
+  implicit def convertFieldToExpression(f: Eager): Expression =
     Expression(f)
 
   /**
@@ -563,8 +547,8 @@ object Expression {
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
     case x: CompositeExpression =>
-      em.eitherOr(simplifyComponents,
-        em.eitherOr(simplifyExact,
+      em.eitherOr(simplifyExact,
+        em.eitherOr(simplifyComponents,
           em.eitherOr(simplifyTrivial,
             em.eitherOr(simplifyConstant,
               simplifyComposite))))(x)
