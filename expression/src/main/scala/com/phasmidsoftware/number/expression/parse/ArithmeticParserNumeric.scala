@@ -10,7 +10,7 @@ import scala.util.Try
 /**
   * @author scalaprof
   */
-abstract class ExpressionParserNumeric[T: Numeric] extends ExpressionParser[T] {
+abstract class ArithmeticParserNumeric[T: Numeric] extends ArithmeticParser[T] {
   self =>
 
   val num: Numeric[T] = implicitly[Numeric[T]]
@@ -31,18 +31,18 @@ abstract class ExpressionParserNumeric[T: Numeric] extends ExpressionParser[T] {
   def times: (T, T) => T = num.times
 }
 
-object DoubleExpressionParser extends ExpressionParserNumeric[Double] {
+object DoubleArithmeticParser extends ArithmeticParserNumeric[Double] {
   def apply(s: String): Try[Double] = Try(s.toDouble)
 }
 
-object IntExpressionParser extends ExpressionParserNumeric[Int] {
+object IntArithmeticParser extends ArithmeticParserNumeric[Int] {
   def apply(s: String): Try[Int] = Try(s.toInt)
 }
 
-object RationalExpressionParser extends ExpressionParserNumeric[Rational] {
+object RationalArithmeticParser extends ArithmeticParserNumeric[Rational] {
   def apply(s: String): Try[Rational] = Rational.parse(s)
 }
 
-//object FuzzyExpressionParser extends ExpressionParserNumeric[Fuzzy] {
+//object FuzzyExpressionParser extends ArithmeticParserNumeric[Fuzzy] {
 //  def apply(s: String): Try[Fuzzy] = Try(Fuzzy.apply(s))
 //}

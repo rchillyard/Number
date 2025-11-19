@@ -10,7 +10,7 @@ import scala.util.parsing.combinator.*
 /**
   * @author scalaprof
   */
-abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[T]) {
+abstract class ArithmeticParser[T] extends JavaTokenParsers with (String => Try[T]) {
   self =>
 
   /**

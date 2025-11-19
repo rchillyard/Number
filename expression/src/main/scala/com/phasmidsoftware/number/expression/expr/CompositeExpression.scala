@@ -76,7 +76,7 @@ sealed trait CompositeExpression extends Expression {
     */
   def simplifyExact: em.AutoMatcher[Expression] =
     em.Matcher("BiFunction: simplifyExact") {
-      case expr: Expression =>
+      (expr: Expression) =>
         expr.evaluateAsIs match {
           case Some(value) =>
 //            println(s"BiFunction: simplifyExact: value = $value")
