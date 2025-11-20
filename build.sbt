@@ -25,7 +25,15 @@ lazy val expression = (project in file("expression"))
       scalaVersion := "3.7.3",
     ).dependsOn(core, algebra)
 
-scalaVersion := "2.13.16"
+lazy val parse = (project in file("parse"))
+    .settings(
+      scalaVersion := "3.7.3",
+    ).dependsOn(core, algebra, expression)
+
+lazy val top = (project in file("top"))
+    .settings(
+      scalaVersion := "3.7.3",
+    ).dependsOn(core, algebra, expression, parse)
 
 scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation")
 

@@ -419,7 +419,8 @@ object Expression {
       Literal(x)
   }
 
-  def apply(w: String): Expression = parse(w) getOrElse Noop
+  def apply(w: String): Expression =
+    parse(w) getOrElse Noop
 
   def apply(r: Rational): Expression = apply(Eager(r))
 
@@ -461,7 +462,12 @@ object Expression {
     */
   def convertMillExpressionToExpression(expr: mill.Expression): Expression =
     expr match {
-      case TerminalExpression(value) => Literal(value)
+      case TerminalExpression(core.Number.one) =>
+        One
+      case TerminalExpression(core.Number.two) =>
+        Two
+      case TerminalExpression(value) =>
+        Literal(value)
       case MonadicExpression(expression, str) =>
         str match {
           case "-" => -convertMillExpressionToExpression(expression)
