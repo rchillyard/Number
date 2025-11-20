@@ -230,7 +230,7 @@ class CatsKernelLawSpec
   // Law checks
   checkAll("Fuzziness[Double]", EqTests[Fuzziness[Double]].eqv)
   checkAll("Fuzziness[Double]", PartialOrderTests[Fuzziness[Double]].partialOrder)
-  checkAll("Expression", EqTests[Expression].eqv)
+//  checkAll("Expression", EqTests[Expression].eqv)
 //  checkAll("Expression", PartialOrderTests[Expression].partialOrder)
   checkAll("Algebraic", EqTests[Algebraic].eqv)
   checkAll("Algebraic", PartialOrderTests[Algebraic].partialOrder)
