@@ -4,12 +4,33 @@
 
 package com.phasmidsoftware.number.expression.parse
 
-import com.phasmidsoftware.number.expression.parse.TokenType.{MonadicOperator, Number}
+import com.phasmidsoftware.number.expression.parse.TokenType.{DyadicOperator, MonadicOperator, Number}
 import scala.util.Try
 import scala.util.parsing.combinator.*
 
 /**
-  * @author scalaprof
+  * `ExpressionParser` is a parsing utility designed for processing and interpreting arithmetic
+  * expressions. It extends `JavaTokenParsers` to leverage combinator-based parsing functionality.
+  *
+  * CONSIDER I'm not sure that the Expression structure is that helpful in creating expressions such as BiFunction, etc.
+  * Probably we should put the operator first (or maybe last).
+  *
+  * The parser supports parsing arithmetic expressions involving addition, subtraction,
+  * multiplication, and division, as well as handling nested expressions using parentheses.
+  * It is capable of transforming input strings into structured representations of expressions
+  * using a robust parsing approach. The class provides detailed breakdowns of expressions
+  * into components like terms, factors, numeric values, and additional constructs.
+  *
+  * This class also supports error handling, ensuring any invalid input is captured and reported
+  * as a `Failure` within a `Try`.
+  *
+  * Additionally, this class offers utility methods for combining and transforming parse results,
+  * and encapsulates complex parsing rules for modular expression parsing.
+  *
+  * Superclasses:
+  * - `scala.util.parsing.combinator.JavaTokenParsers`
+  * - `scala.Function1`
+  * - `java.lang.Object`
   */
 class ExpressionParser extends JavaTokenParsers with (String => Try[Expression]) {
   self =>
@@ -34,10 +55,12 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
     * @return a Try[X].
     */
   def stringParser[X](p: Parser[X], w: String): Try[X] = parseAll(p, w) match {
-    case Success(t, _) => scala.util.Success(t)
+    case Success(t, _) =>
+      scala.util.Success(t)
     case Failure(m, x) =>
-      scala.util.Failure(SignificantSpaceParserException(s"""$m did not match "${x.source}" at offset ${x.offset}"""))
-    case Error(m, _) => scala.util.Failure(SignificantSpaceParserException(m))
+      scala.util.Failure(ExpressionParserException(s"""$m did not match "${x.source}" at offset ${x.offset}"""))
+    case Error(m, _) =>
+      scala.util.Failure(ExpressionParserException(m))
   }
 
 
@@ -97,11 +120,11 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
   case class Expr(t: Term, ts: List[String ~ Term]) extends Tokens {
     def termVal(t: String ~ Term): Try[Expression] = t match {
       case "+" ~ x =>
-        x.value
+        x.value map (z => ExpressionToken.plus +: z)
       case "-" ~ x =>
-        x.value map (z => ExpressionToken("-", MonadicOperator) +: z)
+        x.value map (z => ExpressionToken.plus +: ExpressionToken.minus +: z)
       case z ~ _ =>
-        scala.util.Failure(ParseException(s"Expr: operator $z is not supported"))
+        scala.util.Failure(ExpressionParserException(s"Expr: operator $z is not supported"))
     }
 
     /**
@@ -113,9 +136,8 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
       *         evaluated, it returns a `Success` containing the final result. If an error occurs,
       *         it returns a `Failure` describing the issue.
       */
-    def value: Try[Expression] = {
+    def value: Try[Expression] =
       ts.foldLeft[Try[Expression]](t.value)((a, x) => map2(a, termVal(x))(_ + _))
-    }
   }
 
   /**
@@ -145,19 +167,23 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
       */
     def factorVal(t: String ~ Factor): Try[Expression] = t match {
       case "*" ~ x =>
-        x.value
+        x.value map (z => ExpressionToken.times +: z)
       case "/" ~ x =>
-        x.value map (z => ExpressionToken("/", MonadicOperator) +: z)
+        x.value map (z => ExpressionToken.times +: ExpressionToken.rec +: z)
       case z ~ _ =>
-        scala.util.Failure(ParseException(s"Term: operator $z is not supported"))
+        scala.util.Failure(ExpressionParserException(s"Term: operator $z is not supported"))
     }
   }
 
   /**
-    * The `FloatingPoint` case class extends the `Factor` abstraction and represents
-    * a factor that holds a floating-point value in string representation.
+    * Represents a floating-point numerical factor within an expression.
     *
-    * @param x the string value representing a floating-point number to be parsed and utilized.
+    * The `FloatingPoint` class models a specific type of `Factor` where the value is
+    * defined by a floating-point number, represented as a string. The class provides
+    * parsing capabilities to convert this string representation into an `Expression` format
+    * using defined parsing logic.
+    *
+    * @param x the string representation of the floating-point number.
     */
   case class FloatingPoint(x: String) extends Factor {
     /**
@@ -211,7 +237,7 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
       * @return a `Try[Expression]`, which will always be a `Failure` containing a `ParseException`.
       */
     def value: Try[Expression] =
-      scala.util.Failure(ParseException(s"\n$x\n"))
+      scala.util.Failure(ExpressionParserException(s"\n$x\n"))
   }
 
   /**
@@ -251,13 +277,30 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
     number | parentheses | failure("factor")
 
   /**
-    * Parses a floating-point number string and converts it to a FloatingPoint object.
+    * Parses a numeric value, such as a floating-point number, or the mathematical constants
+    * "pi" (π) and "e" (Euler's number), into a `Factor`. If no valid number or constant is
+    * provided, parsing will fail.
     *
-    * @return a Parser that processes a floating-point number and returns a Factor in the form of a FloatingPoint instance.
+    * CONSIDER why do we need to repeat so many of the strings taken care of by the methods pi and e?
+    *
+    * @return a `Parser[Factor]` that converts the input into a `Factor` instance representing
+    *         either the numeric value or a mathematical constant.
     */
   def number: Parser[Factor] =
-    floatingPointNumber ^^ (x => FloatingPoint(x))
+    (floatingPointNumber | pi | e | failure("number")) ^^ {
+      case "pi" | """𝛑""" | """\uD835\uDED1""" =>
+        FloatingPoint("Pi")
+      case "Euler" | "e" =>
+        FloatingPoint("Euler")
+      case x =>
+        FloatingPoint(x)
+    }
 
+  def pi: Parser[String] = "pi" | """𝛑""" | """\uD835\uDED1""" | "π" ^^ { _ => "pi" }
+
+  def e: Parser[String] = "e" | "\uD835\uDF00" ^^ (_ => "Euler")
+
+//  factor ::= "Pi" | "pi" | "PI" | 𝛑 | 𝜀 | √ | ³√
   /**
     * Parses an expression enclosed in parentheses. Ensures that the inner expression is
     * evaluated as a single unit by encapsulating it within a `Parentheses` instance.
@@ -294,6 +337,13 @@ object Expression {
 
 case class ExpressionToken(token: String, tokenType: TokenType)
 
+object ExpressionToken {
+  val plus = ExpressionToken("+", DyadicOperator)
+  val times = ExpressionToken("*", DyadicOperator)
+  val minus = ExpressionToken("-", MonadicOperator)
+  val rec = ExpressionToken("/", MonadicOperator)
+}
+
 case class ExpressionTokens(tokens: Seq[ExpressionToken]) extends Expression {
   def +:(token: ExpressionToken): ExpressionTokens = ExpressionTokens(token +: tokens)
 }
@@ -313,3 +363,5 @@ object ExpressionTokens {
 enum TokenType {
   case Number, AnadicOperator, MonadicOperator, DyadicOperator
 }
+
+case class ExpressionParserException(message: String) extends Exception(message)
