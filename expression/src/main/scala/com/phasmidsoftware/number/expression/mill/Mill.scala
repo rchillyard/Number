@@ -85,9 +85,12 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return a tuple consisting of the top element wrapped in Some, and the new Mill without that element.
     */
   def pop: (Option[Item], Mill) = stack match {
-    case Nil => (None, Empty) // NOTE: in practice, this will never occur
-    case h :: Nil => (Some(h), Empty)
-    case h :: t => (Some(h), Stack(t))
+    case Nil =>
+      (None, Empty) // NOTE: in practice, this will never occur
+    case h :: Nil =>
+      (Some(h), Empty)
+    case h :: t =>
+      (Some(h), Stack(t))
   }
 
   /**
@@ -102,8 +105,10 @@ case class Stack(stack: List[Item]) extends Mill {
     * @throws MillException logic error when the Mill is not fully consumed or the optional expression is None.
     */
   def evaluate: Option[Expression] = evaluateInternal match {
-    case (xo, Empty) => xo
-    case (_, m) => throw MillException(s"evaluate: logic error: remaining stack is not empty: $m")
+    case (xo, Empty) =>
+      xo
+    case (_, m) =>
+      throw MillException(s"evaluate: logic error: remaining stack is not empty: $m")
   }
 
   /**
@@ -119,10 +124,14 @@ case class Stack(stack: List[Item]) extends Mill {
     * @throws MillException this Mill is empty or some other logic error occurred.
     */
   def evaluateInternal: (Option[Expression], Mill) = pop match {
-    case (Some(Expr(e)), Empty) => (Some(e), Empty)
-    case (Some(x), m: Stack) => m.evaluate1(x)
-    case (None, _) => throw MillException(s"evaluate: this stack is empty")
-    case (_, _) => throw MillException(s"evaluate: logic error: $this") // NOTE: improbable
+    case (Some(Expr(e)), Empty) =>
+      (Some(e), Empty)
+    case (Some(x), m: Stack) =>
+      m.evaluate1(x)
+    case (None, _) =>
+      throw MillException(s"evaluate: this stack is empty")
+    case (_, _) =>
+      throw MillException(s"evaluate: logic error: $this") // NOTE: improbable
   }
 
   /**
@@ -137,13 +146,20 @@ case class Stack(stack: List[Item]) extends Mill {
     */
   private def evaluate1(x: Item): (Option[Expression], Mill) =
     x match {
-      case d: Dyadic => evaluateDyadic(d)
-      case o: Monadic => evaluateMonadic(o)
-      case Expr(e) => (Some(e), this)
-      case Clr => (None, Empty)
-      case Noop => evaluateInternal
-      case Swap => evaluateSwap
-      case x => throw MillException(s"evaluate1: $x not a supported Item")
+      case d: Dyadic =>
+        evaluateDyadic(d)
+      case o: Monadic =>
+        evaluateMonadic(o)
+      case Expr(e) =>
+        (Some(e), this)
+      case Clr =>
+        (None, Empty)
+      case Noop =>
+        evaluateInternal
+      case Swap =>
+        evaluateSwap
+      case x =>
+        throw MillException(s"evaluate1: $x not a supported Item")
     }
 
   /**
@@ -158,7 +174,8 @@ case class Stack(stack: List[Item]) extends Mill {
     case (Some(e), m) =>
       val expression = calculateMonadic(f, e)
       m.push(Expr(expression)).asInstanceOf[Stack].evaluateInternal
-    case (None, _) => throw MillException(s"evaluateMonadic: $this is empty")
+    case (None, _) =>
+      throw MillException(s"evaluateMonadic: $this is empty")
   }
 
   /**
@@ -173,20 +190,26 @@ case class Stack(stack: List[Item]) extends Mill {
     */
   private def evaluateDyadic(f: Dyadic): (Option[Expression], Mill) = {
     def inner(e: Expression, m: Mill) = m match {
-      case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
-      case m: Stack => m.evaluate2(f, e)
+      case Empty =>
+        throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
+      case m: Stack =>
+        m.evaluate2(f, e)
     }
 
     pop match {
-      case (Some(Expr(e)), m) => inner(e, m)
-      case (Some(i), m) => m.push(i) match {
+      case (Some(Expr(e)), m) =>
+        inner(e, m)
+      case (Some(i), m) =>
+        m.push(i) match {
         case n: Stack => n.evaluateInternal match {
           case (Some(e), m) => inner(e, m)
           case _ => throw MillException(s"evaluateDyadic: logic error): $f, $n")
         }
-        case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
+        case Empty =>
+          throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
       }
-      case _ => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
+      case _ =>
+        throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
     }
   }
 
@@ -220,14 +243,22 @@ case class Stack(stack: List[Item]) extends Mill {
     * @throws MillException operator f is not supported.
     */
   private def calculateMonadic(f: Monadic, x: Expression) = f match {
-    case Chs => x * TerminalExpression(-1)
-    case Inv => x.reciprocal
-    case Sqrt => x.sqrt
-    case Ln => x.ln
-    case Exponent => x.exp
-    case Sin => x.sin
-    case Cos => x.cos
-    case _ => throw MillException(s"calculateMonadic: $f not supported")
+    case Chs =>
+      x * TerminalExpression(-1)
+    case Inv =>
+      x.reciprocal
+    case Sqrt =>
+      x.sqrt
+    case Ln =>
+      x.ln
+    case Exponent =>
+      x.exp
+    case Sin =>
+      x.sin
+    case Cos =>
+      x.cos
+    case _ =>
+      throw MillException(s"calculateMonadic: $f not supported")
   }
 
   /**
@@ -239,23 +270,35 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return an Expression which is f(x2, x1)
     */
   private def calculateDyadic(f: Dyadic, x1: Expression, x2: Expression) = f match {
-    case Multiply => x2 * x1
-    case Add => x2 + x1
-    case Subtract => x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate
-    case Divide => x2 * x1.reciprocal
-    case Power => x2 ∧ x1
+    case Multiply =>
+      x2 * x1
+    case Add =>
+      x2 + x1
+    case Subtract =>
+      x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate
+    case Divide =>
+      x2 * x1.reciprocal
+    case Power =>
+      x2 ∧ x1
   }
 
   private def evaluateSwap = {
-    val (zo, m) = pop
-    val (yo, n) = m.pop
-    val result: Option[(Option[Expression], Mill)] = (for (z <- zo; y <- yo; x = n.push(z).push(y)) yield x).map {
-      case mill: Stack => mill.evaluateInternal
-      case _ => throw MillException(s"evaluateSwap: logic error")
+    val (zo, m) =
+      pop
+    val (yo, n) =
+      m.pop
+    val result: Option[(Option[Expression], Mill)] =
+      (for (z <- zo; y <- yo; x = n.push(z).push(y)) yield x).map {
+        case mill: Stack =>
+          mill.evaluateInternal
+        case _ =>
+          throw MillException(s"evaluateSwap: logic error")
     }
     result match {
-      case Some((eo, m)) => eo -> m
-      case None => throw MillException(s"evaluateSwap: logic error")
+      case Some((eo, m)) =>
+        eo -> m
+      case None =>
+        throw MillException(s"evaluateSwap: logic error")
     }
   }
 
@@ -307,7 +350,8 @@ object Mill {
     * @param xs a comma-separated sequence of Item.
     * @return an appropriate Mill.
     */
-  def apply(xs: Item*): Mill = if (xs.isEmpty) Empty else Stack(xs.reverse.to(List))
+  def apply(xs: Item*): Mill =
+    if (xs.isEmpty) Empty else Stack(xs.reverse.to(List))
 
   /**
     * Alternative method of creating a Mill from a list of Items.
@@ -315,7 +359,8 @@ object Mill {
     * @param items sequence of Item.
     * @return a new Mill.
     */
-  def create(items: Seq[Item]): Mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
+  def create(items: Seq[Item]): Mill =
+    items.foldLeft(Mill.empty)((m, x) => m.push(x))
 
   /**
     * Method to parse a String in RPN (may extend over multiple lines) into a Mill.
@@ -323,7 +368,8 @@ object Mill {
     * @param w the input String.
     * @return a Mill, wrapped in Try.
     */
-  def parse(w: String): Try[Mill] = MillParser.parseMill(w)
+  def parse(w: String): Try[Mill] =
+    MillParser.parseMill(w)
 
   /**
     * Method to parse a String in infix notation (may extend over multiple lines) into a Mill.
@@ -331,7 +377,8 @@ object Mill {
     * @param w the input String.
     * @return a Mill, wrapped in Try.
     */
-  def parseInfix(w: String): Try[Mill] = ShuntingYardParser.parseInfix(w)
+  def parseInfix(w: String): Try[Mill] =
+    ShuntingYardParser.parseInfix(w)
 }
 
 case class MillException(s: String) extends Exception(s)

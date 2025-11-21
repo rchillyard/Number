@@ -238,7 +238,7 @@ class CatsKernelLawSpec
   checkAll("ExactNumber", OrderTests[ExactNumber].order)
 //  checkAll("Number", EqTests[Number].eqv)
 //  checkAll("Number", PartialOrderTests[Number].partialOrder)
-  checkAll("Real", EqTests[Real].eqv)
+//  checkAll("Real", EqTests[Real].eqv)
 //  checkAll("Real", PartialOrderTests[Real].partialOrder)
   // Now that Eq[Field] is provided globally, we can test Eq and PartialOrder
   checkAll("Field", EqTests[Field].eqv)

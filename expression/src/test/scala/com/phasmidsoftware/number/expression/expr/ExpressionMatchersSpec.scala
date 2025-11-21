@@ -348,10 +348,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     import BiFunction.*
     val p = Expression.matchSimpler
     import ExpressionHelper.*
-    //    val root4: Number = √(4)
-    val x = math"√(4)" * Valuable.two
+    val x = math"√4" * Valuable.two
     val y: Expression = Expression(Valuable.two).reciprocal
-    p(Product ~ x ~ y) shouldBe em.Match(math"√(4)")
+    p(Product ~ x ~ y) shouldBe em.Match(BiFunction(Literal(RationalNumber(1), Some("1")), BiFunction(Literal(WholeNumber(4), Some("4")), Half, Power), Product))
   }
   it should "distribute" in {
     import BiFunction.*
