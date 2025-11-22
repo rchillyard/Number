@@ -58,17 +58,17 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   /**
     * Type alias for a dyadic triple (purpose of this is solely for brevity).
     */
-  private[expression] type DyadicTriple = ExpressionBiFunction ~ Expression ~ Expression
+  private[number] type DyadicTriple = ExpressionBiFunction ~ Expression ~ Expression
 
   /**
     * Type alias for the kind of ExpressionMatcher which results in a possibly different Expression.
     */
-  private[expression] type ExpressionTransformer = AutoMatcher[Expression]
+  private[number] type ExpressionTransformer = AutoMatcher[Expression]
 
   /**
     * Type alias for a monadic duple (purpose of this is solely for brevity).
     */
-  private[expression] type MonadicDuple = ExpressionMonoFunction ~ Expression
+  private[number] type MonadicDuple = ExpressionMonoFunction ~ Expression
 
   /**
     * Implicit method to convert a Matcher[Expression, R] into an ExpressionMatcher[R].
