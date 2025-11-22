@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable
-import com.phasmidsoftware.number.expression.expr.ExpressionHelper.math
+//import com.phasmidsoftware.number.expression.expr.ExpressionHelper.math
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -28,7 +28,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with should.Matchers {
     val x1 = Valuable.one
     val x2 = Valuable.pi
     //    val e = math"\\sin(\\pi) * -1"
-    val e = math"sin(𝛑) * -1"
+    val e = Expression("sin(𝛑) * -1")
     e match {
       case expression: CompositeExpression => expression.simplifyExact(expression).successful shouldBe false
       case x => fail(s"expected CompositeExpression, got $x")

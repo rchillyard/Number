@@ -347,8 +347,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify root4 * 2 / 2" in {
     import BiFunction.*
     val p = Expression.matchSimpler
-    import ExpressionHelper.*
-    val x = math"√4" * Valuable.two
+    val x = Expression("√4") * Valuable.two
     val y: Expression = Expression(Valuable.two).reciprocal
     p(Product ~ x ~ y) shouldBe em.Match(BiFunction(Literal(RationalNumber(1), Some("1")), BiFunction(Literal(WholeNumber(4), Some("4")), Half, Power), Product))
   }

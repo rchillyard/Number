@@ -5,8 +5,8 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.algebra.misc.FP.recover
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.misc.FP.recover
 import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
@@ -155,24 +155,6 @@ object ExpressionHelper {
       Expression.parse(s"$x + $y").flatMap(_.evaluateAsIs)
     def times(y: Valuable): Option[Valuable] =
       Expression.parse(s"$x * $y").flatMap(_.evaluateAsIs)
-
-  /**
-    * Extension method `math` for `StringContext`.
-    *
-    * This method provides support for creating `Expression` objects by interpolating
-    * strings within a `StringContext`. It processes the string parts and interpolated
-    * arguments, combining them into a single string, which is then used to construct
-    * a new `Expression`.
-    *
-    * @param args the arguments to interpolate into the string context.
-    * @return an instance of `Expression` derived from the interpolated string.
-    */
-  extension (inline sc: StringContext)
-    inline def math(args: Any*): Expression =
-      val parts = sc.parts
-      val interleaved = parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)
-      Expression(interleaved.mkString)
-
 }
 
 /**

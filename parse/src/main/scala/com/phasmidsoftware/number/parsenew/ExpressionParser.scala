@@ -25,17 +25,14 @@ object ExpressionParser {
   extension (inline sc: StringContext)
     inline def math(args: Any*): Option[Expression] =
       val parts = sc.parts
-      val interleaved = parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)
-      val result = latexParser(interleaved.mkString)
-      result match {
-        case Parsed.Success(value, index) if (index == interleaved.length) =>
-          Some(value)
-        case Parsed.Success(value, index) if (index == interleaved.length) =>
-          throw LaTeXParserException(s"ExpressionParser: expected to parse all of $interleaved, but only parsed $index of them")
+      val string = (parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)).mkString
+      latexParser(string) match {
         case failure: Parsed.Failure =>
-          throw LaTeXParserException(s"ExpressionParser: parse failure: $failure")
-        case x =>
-          throw LaTeXParserException(s"ExpressionParser: parse error: $x")
+          None
+        case Parsed.Success(value, index) if (index == string.length) =>
+          Some(value)
+        case Parsed.Success(_, index) =>
+          throw LaTeXParserException(s"ExpressionParser: expected to parse all of $string, but only parsed $index of them")
       }
 }
 
