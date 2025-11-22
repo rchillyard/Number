@@ -62,7 +62,7 @@ object LaTeXParser {
     *         (e.g., `ConstPi` for π) based on the recognized input.
     */
   def greekLetter[X: P]: P[MathExpr] = P(
-    ("""\pi""" | """\mathrm{\pi}""").!.map(_ => ConstPi) //|
+    ("""𝛑""" | """π""").!.map(_ => ConstPi)
 //        "\\theta".map(_ => Literal(Eager("θ"))) |
 //        "\\alpha".map(_ => Literal(Eager("α")))
   )
@@ -77,7 +77,9 @@ object LaTeXParser {
     */
   def mathSymbol[X: P]: P[MathExpr] = P(
     ("""\pi""" | """\mathrm{\pi}""").!.map(_ => ConstPi) |
-        ("""\e""" | """\mathrm{e}""").!.map(_ => ConstE)
+        ("""\e""" | """\mathrm{e}""").!.map(_ => ConstE) |
+        "½".!.map(_ => Half) |
+        "∞".!.map(_ => Infinity)
   )
 
   /**

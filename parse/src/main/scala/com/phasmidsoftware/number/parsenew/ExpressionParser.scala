@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.expression.expr.Expression
+import com.phasmidsoftware.number.expression.expr.{Expression, Noop}
 import fastparse.Parsed
 
 object ExpressionParser {
@@ -23,14 +23,14 @@ object ExpressionParser {
     * @return an instance of `Expression` derived from the interpolated string.
     */
   extension (inline sc: StringContext)
-    inline def math(args: Any*): Option[Expression] =
+    inline def math(args: Any*): Expression =
       val parts = sc.parts
       val string = (parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)).mkString
       latexParser(string) match {
         case failure: Parsed.Failure =>
-          None
-        case Parsed.Success(value, index) if (index == string.length) =>
-          Some(value)
+          Noop
+        case Parsed.Success(value, index) if index == string.length =>
+          value
         case Parsed.Success(_, index) =>
           throw LaTeXParserException(s"ExpressionParser: expected to parse all of $string, but only parsed $index of them")
       }

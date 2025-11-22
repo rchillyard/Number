@@ -45,7 +45,7 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "apply functions" in {
     p("""\sqrt{2}""") shouldBe Parsed.Success(BiFunction(Two, Half, Power), 8)
-    p("""√2""") shouldBe Parsed.Success(BiFunction(Two, Half, Power), 2)
+    p("√2") shouldBe Parsed.Success(BiFunction(Two, Half, Power), 2)
     p("""\sin(\pi)""") shouldBe Parsed.Success(UniFunction(ConstPi, Sine), 9)
     p("""\cos(\pi)""") shouldBe Parsed.Success(UniFunction(ConstPi, Cosine), 9)
     p("""\tan(\pi)""") shouldBe Parsed.Success(BiFunction(UniFunction(ConstPi, Sine), UniFunction(UniFunction(ConstPi, Cosine), Reciprocal), Product), 9)

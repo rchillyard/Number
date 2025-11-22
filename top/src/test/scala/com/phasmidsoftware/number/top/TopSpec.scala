@@ -10,7 +10,7 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.{piBy2, root2}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.infinity
-import com.phasmidsoftware.number.core.{ComplexPolar, Constants}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, ComplexPolar, Constants, Gaussian}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.*
 import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
@@ -79,35 +79,27 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   import Expression.ExpressionOps
   import Matchers.*
+  import Rational.RationalHelper
+  import com.phasmidsoftware.number.parsenew.ExpressionParser.*
 
   behavior of "simplify"
   it should "cancel multiplication and division with simplify 1" in {
-    val x = Literal(Valuable.pi) * 2
-    val y = One / 2
-    (x * y).simplify shouldBe ConstPi
+    math"2𝛑*1/2".simplify shouldBe ConstPi
   }
   it should "show that lazy evaluation sometimes works even when you don't use it (a2)" in {
-    val seven = Expression(7)
-    val x: Expression = seven.sqrt
-    val y = x ∧ two
-    val simplify = y.simplify
-    simplify.isExact shouldBe true
-    simplify shouldBe seven
+    math"√7 ^ 2".simplify shouldBe Expression(7)
   }
   it should "properly simplify 1 * (root3 / root3 * 3)" in {
-    val z: Expression = Expression(3).sqrt
-    val x = z * z.reciprocal * Eager(3)
-    val simplified = x.simplify
-    simplified.evaluateAsIs shouldBe Some(Eager(3))
+    math"√3 / √3 * 3".materialize shouldBe WholeNumber(3)
   }
-  it should "distributeProductSum b" in {
-    import Rational.RationalHelper
-    val x = Eager("2.00")
-    val y = Eager("3.00")
-    val a = BiFunction(One, Literal(x), Sum)
-    val b = BiFunction(Literal(half), Literal(y), Sum)
-    val z = a * b
-    z.evaluateAsIs shouldBe Some(Eager(core.Real(r"21/2")))
+  it should "distributeProductSum b 0" in {
+    math"(2 + 1) * (3 + \frac{1}{2})".materialize shouldBe Eager(r"21/2")
+  }
+  it should "distributeProductSum b 1" in {
+    math"(2.00 + 1) * (3.00 + ½)".materialize shouldBe Eager(r"21/2")
+  }
+  it should "distributeProductSum b 2" in {
+    math"(2.005 + 1) * (2.995 + ½)".materialize should ===(Real(10.502475, Some(AbsoluteFuzz(0.012835619415020195, Gaussian))))
   }
   it should "distributeProductPower on root(3) * root(3)" in {
     import BiFunction.*
