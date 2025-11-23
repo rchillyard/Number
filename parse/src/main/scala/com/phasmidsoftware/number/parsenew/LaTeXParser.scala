@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.parsenew
 
+import com.phasmidsoftware.number.algebra.Eager
+import com.phasmidsoftware.number.core.Constants
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.*
 import fastparse.*
@@ -24,19 +26,22 @@ object LaTeXParser {
   type MathExpr = com.phasmidsoftware.number.expression.expr.Expression
 
   /**
+    * Parses a mathematical expression from the provided input string.
+    *
+    * @param input the string containing the mathematical expression to be parsed
+    * @return a `Parsed[MathExpr]` result, where `MathExpr` represents the parsed expression
+    *         or an error if parsing fails
+    */
+  def parse(input: String): Parsed[MathExpr] =
+    fastparse.parse(input, p => parseExpr(using p))
+
+  /**
     * Parses zero or more whitespace characters (spaces, tabs, and newlines) and consumes them in the input stream.
     * This is used to handle and ignore whitespace between different components of a LaTeX expression.
     *
     * @return a parser that matches and consumes whitespace, returning a unit value to indicate success.
     */
   private def ws[X: P]: P[Unit] = P(CharsWhileIn(" \t\n", 0))
-
-  /**
-    * Parses a single-digit character (0-9).
-    *
-    * @return a parser that matches any single numeric character.
-    */
-  def digit[X: P]: P[Unit] = P(CharIn("0-9"))
 
   /**
     * Parses a sequence of numeric characters (digits) from the input and returns it as a string.
@@ -57,20 +62,6 @@ object LaTeXParser {
     P(("-".? ~ digits ~ ("." ~ digits).?).!).map(s => Expression(s))
 
   /**
-    * Parses and recognizes specific Greek letter symbols or their equivalent LaTeX representations
-    * that are mapped to mathematical constants or expressions.
-    *
-    * @tparam X implicit evidence of a `P` context required for the parsing process.
-    * @return a parser (`P`) that produces a `MathExpr` representing the corresponding constant
-    *         (e.g., `ConstPi` for π) based on the recognized input.
-    */
-  private def greekLetter[X: P]: P[MathExpr] = P(
-    ("""𝛑""" | """π""").!.map(_ => ConstPi)
-//        "\\theta".map(_ => Literal(Eager("θ"))) |
-//        "\\alpha".map(_ => Literal(Eager("α")))
-  )
-
-  /**
     * Parses specific mathematical symbols represented as strings into their corresponding mathematical constants.
     * This method recognizes the symbols for π (pi) and e, both in plain and LaTeX-style representations,
     * and maps them to their respective case objects `ConstPi` and `ConstE`.
@@ -79,8 +70,9 @@ object LaTeXParser {
     *         to their corresponding `MathExpr` representations (`ConstPi` or `ConstE`).
     */
   private def mathSymbol[X: P]: P[MathExpr] = P(
-    ("""\pi""" | """\mathrm{\pi}""").!.map(_ => ConstPi) |
+    ("""\pi""" | """\mathrm{\pi}""" | "\uD835\uDED1" | "π").!.map(_ => ConstPi) |
         ("""\e""" | """\mathrm{e}""").!.map(_ => ConstE) |
+        ("\uD835\uDEFE").!.map(_ => Literal(Eager(Constants.gamma))) |
         "½".!.map(_ => Half) |
         "∞".!.map(_ => Infinity)
   )
@@ -195,39 +187,28 @@ object LaTeXParser {
   }
 
   /**
-    * Parses an atomic mathematical expression. This can be a number, a mathematical function,
-    * a fraction, a square root expression, a Greek letter, a mathematical symbol, or a parenthesized
-    * sub-expression that itself can contain nested expressions.
+    * Parses an atomic mathematical expression, which can be either a numeric value
+    * or a symbolic representation.
     *
-    * @return a parser for a mathematical expression represented by the `MathExpr` type.
+    * @return a parsed mathematical expression as an instance of MathExpr.
     */
   private def atom[X: P]: P[MathExpr] = P(
-    number |
-        function |
-        frac |
-        sqrt |
-        greekLetter |
-        mathSymbol |
-        "(" ~ ws ~ expr ~ ws ~ ")"
+    number | symbolicAtom
   )
 
   /**
-    * Defines a parser for symbolic atoms that can act as the right side
-    * of implicit multiplication in mathematical expressions. Symbolic
-    * atoms include Greek letters, mathematical symbols, functions,
-    * fractions, square roots, or expressions enclosed in parentheses.
+    * Parses a symbolic mathematical atom, which includes non-numeric entities like functions, symbols, fractions, 
+    * square roots, or a parenthesized expression.
     *
-    * @return A parser that produces a MathExpr representing the parsed symbolic atom.
+    * @return A parser that parses and returns a `MathExpr` representing the symbolic mathematical atom.
     */
   private def symbolicAtom[X: P]: P[MathExpr] = P(
-    greekLetter |      // \pi, etc.
-        mathSymbol |     // \e, etc.
-        function |         // \sin, etc.
-        frac |             // \frac{}{}
-        sqrt |             // \sqrt{} or √
+    function |
+        mathSymbol |
+        frac |
+        sqrt |
         "(" ~ ws ~ expr ~ ws ~ ")"
   )
-
   /**
     * Parses a mathematical expression with potential implicit multiplication.
     * Recognizes a sequence of elements consisting of a power expression followed
@@ -305,16 +286,6 @@ object LaTeXParser {
     * @return a `P[MathExpr]` representing a fully parsed mathematical expression.
     */
   private def parseExpr[X: P]: P[MathExpr] = P(expr ~ End)
-
-  /**
-    * Parses a mathematical expression from the provided input string.
-    *
-    * @param input the string containing the mathematical expression to be parsed
-    * @return a `Parsed[MathExpr]` result, where `MathExpr` represents the parsed expression
-    *         or an error if parsing fails
-    */
-  def parse(input: String): Parsed[MathExpr] =
-    fastparse.parse(input, p => parseExpr(using p))
 }
 
 case class LaTeXParserException(message: String) extends RuntimeException(message)
