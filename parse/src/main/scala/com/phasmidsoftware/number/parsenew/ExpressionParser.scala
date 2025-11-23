@@ -28,7 +28,7 @@ object ExpressionParser {
       val string = (parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)).mkString
       latexParser(string) match {
         case failure: Parsed.Failure =>
-          Noop
+          Noop(failure.toString)
         case Parsed.Success(value, index) if index == string.length =>
           value
         case Parsed.Success(_, index) =>

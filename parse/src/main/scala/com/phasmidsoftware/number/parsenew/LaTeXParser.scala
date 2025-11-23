@@ -14,6 +14,9 @@ import fastparse.NoWhitespace.*
   * This method recognizes explicit multiplication ("*") and division ("/") symbols between terms
   * and combines them accordingly.
   *
+  * @author Claude
+  * @author Robin Hillyard
+  *
   * @return a parser for a sequence of mathematical expressions with multiplication and division operations.
   */
 object LaTeXParser {
@@ -26,7 +29,7 @@ object LaTeXParser {
     *
     * @return a parser that matches and consumes whitespace, returning a unit value to indicate success.
     */
-  def ws[X: P]: P[Unit] = P(CharsWhileIn(" \t\n", 0))
+  private def ws[X: P]: P[Unit] = P(CharsWhileIn(" \t\n", 0))
 
   /**
     * Parses a single-digit character (0-9).
@@ -42,7 +45,7 @@ object LaTeXParser {
     *
     * @return a parser that extracts a sequence of digits as a string.
     */
-  def digits[X: P]: P[String] = P(CharsWhileIn("0-9")).!
+  private def digits[X: P]: P[String] = P(CharsWhileIn("0-9")).!
 
   /**
     * Parses a mathematical number, which can include an optional negative sign,
@@ -61,7 +64,7 @@ object LaTeXParser {
     * @return a parser (`P`) that produces a `MathExpr` representing the corresponding constant
     *         (e.g., `ConstPi` for π) based on the recognized input.
     */
-  def greekLetter[X: P]: P[MathExpr] = P(
+  private def greekLetter[X: P]: P[MathExpr] = P(
     ("""𝛑""" | """π""").!.map(_ => ConstPi)
 //        "\\theta".map(_ => Literal(Eager("θ"))) |
 //        "\\alpha".map(_ => Literal(Eager("α")))
@@ -75,7 +78,7 @@ object LaTeXParser {
     * @return a parser that matches strings representing mathematical constants and maps them
     *         to their corresponding `MathExpr` representations (`ConstPi` or `ConstE`).
     */
-  def mathSymbol[X: P]: P[MathExpr] = P(
+  private def mathSymbol[X: P]: P[MathExpr] = P(
     ("""\pi""" | """\mathrm{\pi}""").!.map(_ => ConstPi) |
         ("""\e""" | """\mathrm{e}""").!.map(_ => ConstE) |
         "½".!.map(_ => Half) |
@@ -122,7 +125,7 @@ object LaTeXParser {
     * @return A parser that produces a `MathExpr` representing the parsed expression, which may
     *         include an exponentiation operation.
     */
-  def power[X: P]: P[MathExpr] =
+  private def power[X: P]: P[MathExpr] =
     P(unary ~ (ws ~ "^" ~ ws ~ exponent).?).map {
       case (base, Some(exp)) =>
         BiFunction(base, exp, Power)
@@ -138,7 +141,7 @@ object LaTeXParser {
     * @return a parsed mathematical expression (`MathExpr`) representing either a negated atomic expression
     *         or a standalone atomic mathematical entity.
     */
-  def unary[X: P]: P[MathExpr] = P(
+  private def unary[X: P]: P[MathExpr] = P(
     ("-" ~ atom).map(a => UniFunction(a, Negate)) |
         atom
   )
@@ -150,7 +153,7 @@ object LaTeXParser {
     *
     * @return a parser combinator `P` that results in a `MathExpr` representing the parsed exponent.
     */
-  def exponent[X: P]: P[MathExpr] =
+  private def exponent[X: P]: P[MathExpr] =
     P("{" ~ ws ~ expr ~ ws ~ "}" | atom)
 
   /**
@@ -171,8 +174,8 @@ object LaTeXParser {
     * If an unknown function name is encountered, a `LaTeXParserException` is thrown.
     *
     * @return a parsed `MathExpr` representing the function operation applied to the argument.
-    */// Function calls
-  def function[X: P]: P[MathExpr] = P(
+    */
+  private def function[X: P]: P[MathExpr] = P(
     "\\" ~ (
         "sin" | "cos" | "tan" | "ln" | "exp"
         ).! ~ ws ~ (("{" ~ ws ~ expr ~ ws ~ "}") | atom)
@@ -198,7 +201,7 @@ object LaTeXParser {
     *
     * @return a parser for a mathematical expression represented by the `MathExpr` type.
     */
-  def atom[X: P]: P[MathExpr] = P(
+  private def atom[X: P]: P[MathExpr] = P(
     number |
         function |
         frac |
@@ -209,24 +212,36 @@ object LaTeXParser {
   )
 
   /**
-    * Parses a sequence of mathematical expressions separated implicitly by whitespace
-    * and combines them using a multiplication operation. This implementation assumes
-    * implicit multiplication when no explicit operator is provided between terms.
+    * Defines a parser for symbolic atoms that can act as the right side
+    * of implicit multiplication in mathematical expressions. Symbolic
+    * atoms include Greek letters, mathematical symbols, functions,
+    * fractions, square roots, or expressions enclosed in parentheses.
     *
-    * The function processes a repeated pattern of terms (with at least one term)
-    * derived from the `power` rule. If there is only one term, it is returned as-is.
-    * If multiple terms are found, they are combined into a binary function representing
-    * their product.
-    *
-    * @return A parser (`P[MathExpr]`) that handles implicit multiplication for a
-    *         sequence of mathematical expressions.
-    */// Implicit multiplication (no operator)
-  def implicitMul[X: P]: P[MathExpr] = P(
-    power.rep(1, sep = ws).map { terms =>
-      if (terms.length == 1) terms.head
-      else terms.reduce((a, b) => BiFunction(a, b, Product))
-    }
+    * @return A parser that produces a MathExpr representing the parsed symbolic atom.
+    */
+  private def symbolicAtom[X: P]: P[MathExpr] = P(
+    greekLetter |      // \pi, etc.
+        mathSymbol |     // \e, etc.
+        function |         // \sin, etc.
+        frac |             // \frac{}{}
+        sqrt |             // \sqrt{} or √
+        "(" ~ ws ~ expr ~ ws ~ ")"
   )
+
+  /**
+    * Parses a mathematical expression with potential implicit multiplication.
+    * Recognizes a sequence of elements consisting of a power expression followed
+    * by zero or more symbolic atoms, and combines them with a product operation.
+    *
+    * @return A parser that produces a `MathExpr` representing the implicit multiplication
+    *         of the parsed elements.
+    */
+  private def implicitMul[X: P]: P[MathExpr] = P(
+    power ~ symbolicAtom.rep
+  ).map { case (first, rest) =>
+    if (rest.isEmpty) first
+    else (first +: rest).reduce((a, b) => BiFunction(a, b, Product))
+  }
 
   /**
     * Parses and evaluates explicit multiplication and division expressions.
@@ -238,8 +253,8 @@ object LaTeXParser {
     *
     * @return a parser that produces a `MathExpr` representing the result of evaluating
     *         multiplication and division operations on the provided terms.
-    */// Explicit multiplication and division
-  def term[X: P]: P[MathExpr] = P(
+    */
+  private def term[X: P]: P[MathExpr] = P(
     implicitMul ~ (ws ~ ("*" | "/").! ~ ws ~ implicitMul).rep
   ).map {
     case (first, rest) =>
@@ -289,7 +304,7 @@ object LaTeXParser {
     *
     * @return a `P[MathExpr]` representing a fully parsed mathematical expression.
     */
-  def parseExpr[X: P]: P[MathExpr] = P(expr ~ End)
+  private def parseExpr[X: P]: P[MathExpr] = P(expr ~ End)
 
   /**
     * Parses a mathematical expression from the provided input string.

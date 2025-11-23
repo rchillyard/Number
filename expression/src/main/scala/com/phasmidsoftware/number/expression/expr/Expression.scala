@@ -402,7 +402,7 @@ object Expression {
   }
 
   def apply(w: String): Expression =
-    parse(w) getOrElse Noop
+    parse(w) getOrElse Noop(w)
 
   def apply(r: Rational): Expression = apply(Eager(r))
 

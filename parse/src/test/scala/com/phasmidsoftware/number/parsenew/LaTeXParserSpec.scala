@@ -22,6 +22,7 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
     p("-1") shouldBe Parsed.Success(UniFunction(One, Negate), 2)
     p("-(42)") shouldBe Parsed.Success(UniFunction(Literal(WholeNumber(42), Some("42")), Negate), 5)
     p("1+2") shouldBe Parsed.Success(BiFunction(One, Two, Sum), 3)
+    p("1 2").isSuccess shouldBe false
     p("6*7") shouldBe Parsed.Success(BiFunction(Literal(WholeNumber(6), Some("6")), Literal(WholeNumber(7), Some("7")), Product), 3)
     p("42/7") shouldBe Parsed.Success(BiFunction(Literal(WholeNumber(42), Some("42")), UniFunction(Literal(WholeNumber(7), Some("7")), Reciprocal), Product), 4)
     p("6*(3+4)") shouldBe Parsed.Success(BiFunction(Literal(WholeNumber(6), Some("6")), BiFunction(Literal(WholeNumber(3), Some("3")), Literal(WholeNumber(4), Some("4")), Sum), Product), 7)
@@ -37,6 +38,7 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
     p("""2\pi""") shouldBe Parsed.Success(BiFunction(Two, ConstPi, Product), 4)
     p("""2*\pi""") shouldBe Parsed.Success(BiFunction(Two, ConstPi, Product), 5)
     p("""\pi^2""") shouldBe Parsed.Success(BiFunction(ConstPi, Two, Power), 5)
+    p("""\pi+3-3""") shouldBe Parsed.Success(BiFunction(BiFunction(ConstPi, Literal(WholeNumber(3), Some("3")), Sum), UniFunction(Literal(WholeNumber(3), Some("3")), Negate), Sum), 7)
   }
   it should "apply e" in {
     p("""\e""") shouldBe Parsed.Success(ConstE, 2)

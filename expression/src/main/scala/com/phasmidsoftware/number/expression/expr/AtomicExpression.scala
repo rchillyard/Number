@@ -99,7 +99,7 @@ object AtomicExpression {
   * It cannot be evaluated, simplified, or associated with any specific factor. It is a concrete implementation
   * of the `AtomicExpression` trait.
   */
-case object Noop extends AtomicExpression {
+case class Noop(w: String) extends AtomicExpression {
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
@@ -115,7 +115,7 @@ case object Noop extends AtomicExpression {
   def isExact: Boolean = false
 
   def value: Valuable =
-    throw new UnsupportedOperationException("Noop.value")
+    throw new UnsupportedOperationException("Not a Valuable: $w")
 
   /**
     * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
@@ -131,14 +131,14 @@ case object Noop extends AtomicExpression {
     * @return a `Valuable`.
     */
   def evaluate(context: ExpressionContext): Option[Eager] =
-    throw new UnsupportedOperationException("Noop.evaluate")
+    throw new UnsupportedOperationException(s"Can''t evaluate: $this")
 
   /**
     * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */
-  def render: String = "Noop"
+  def render: String = toString
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -154,7 +154,7 @@ case object Noop extends AtomicExpression {
     */
   def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic")(
     _ =>
-      em.Miss[Expression, Expression]("AtomicExpression: simplifyAtomic: Noop", this)
+      em.Miss[Expression, Expression]("simplifyAtomic: ", this)
   )
 
   /**
@@ -169,6 +169,8 @@ case object Noop extends AtomicExpression {
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation(force: Boolean): Option[Real] = None
+
+  override def toString: String = s"Noop: not an Expression: $w"
 }
 
 /**

@@ -108,11 +108,13 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     val q = p(Product ~ x ~ x)
     q should matchPattern { case em.Match(_) => }
     q.get.materialize shouldBe Eager(3)
+    math"""\sqrt{3}^2""".simplify shouldBe Expression(3)
   }
   it should "cancel addition and subtraction (a)" in {
     val x = ConstPi + 3 - 3
     val simplified = x.simplify
     simplified.evaluateAsIs shouldBe Some(Valuable.pi)
+    math"""\pi+3-3""".simplify shouldBe ConstPi
   }
   it should "use multiply instead of addition" in {
     val x = ConstPi + ConstPi
