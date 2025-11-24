@@ -166,6 +166,22 @@ A number must have at least one of either the value or the factor components.
 If no explicit factor is specified, then the number will be a _PureNumber_ (an ordinary number).
 If you want to get exact trigonometric values, then it's important to specify the factor as $\pi$ (or e).
 
+Expression
+==========
+
+Expressions are lazily evaluated and so can be used to avoid any unnecessary computation and, especially, any approximation of what should be an exact value.
+The best way to define expressions is to use the LaTeX-like syntax which you can invoke as follows:
+
+    val theAnswer = math"6*(3+4)"    
+    val seven = math"""\frac{42}{6}"""
+    val rootTwo = math"""\sqrt{2}"""
+    val rootTwoAlt = math"√2"
+    val pi = math"""\pi"""
+    val twoPi = math"""2\pi"""
+
+You just need to import the `ExpressionParser` (`com.phasmidsoftware.number.parsenew.ExpressionParser.*`)
+
+.
 Number creation
 ===============
 Parsing, described above, is really the most precise way of specifying numerical values.

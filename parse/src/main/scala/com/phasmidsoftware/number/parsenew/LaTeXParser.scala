@@ -12,14 +12,8 @@ import fastparse.*
 import fastparse.NoWhitespace.*
 
 /**
-  * Parses a mathematical expression, combining terms with multiplication and division operations.
-  * This method recognizes explicit multiplication ("*") and division ("/") symbols between terms
-  * and combines them accordingly.
-  *
-  * @author Claude
-  * @author Robin Hillyard
-  *
-  * @return a parser for a sequence of mathematical expressions with multiplication and division operations.
+  * Object responsible for parsing LaTeX-style mathematical expressions
+  * into an internal representation (`MathExpr`).
   */
 object LaTeXParser {
 
@@ -169,7 +163,7 @@ object LaTeXParser {
     */
   private def function[X: P]: P[MathExpr] = P(
     "\\" ~ (
-        "sin" | "cos" | "tan" | "ln" | "exp"
+        "sin" | "cos" | "tan" | "ln" | "exp" | "rec" | "neg"
         ).! ~ ws ~ (("{" ~ ws ~ expr ~ ws ~ "}") | atom)
   ).map {
     case ("sin", arg) =>
@@ -182,6 +176,10 @@ object LaTeXParser {
       UniFunction(arg, Ln)
     case ("exp", arg) =>
       UniFunction(arg, Exp)
+    case ("rec", arg) =>
+      UniFunction(arg, Reciprocal)
+    case ("neg", arg) =>
+      UniFunction(arg, Negate)
     case (x, _) =>
       throw LaTeXParserException(s"unknown function: $x")
   }
@@ -192,12 +190,10 @@ object LaTeXParser {
     *
     * @return a parsed mathematical expression as an instance of MathExpr.
     */
-  private def atom[X: P]: P[MathExpr] = P(
-    number | symbolicAtom
-  )
+  private def atom[X: P]: P[MathExpr] = P(number | symbolicAtom)
 
   /**
-    * Parses a symbolic mathematical atom, which includes non-numeric entities like functions, symbols, fractions, 
+    * Parses a symbolic mathematical atom, which includes non-numeric entities like functions, symbols, fractions,
     * square roots, or a parenthesized expression.
     *
     * @return A parser that parses and returns a `MathExpr` representing the symbolic mathematical atom.

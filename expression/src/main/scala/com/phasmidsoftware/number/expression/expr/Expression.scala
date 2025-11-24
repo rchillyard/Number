@@ -207,6 +207,15 @@ object Expression {
       x plus y
 
     /**
+      * Method to lazily append the given expression to this expression using addition.
+      *
+      * @param y an Expression to be added to this expression.
+      * @return an Expression resulting from the addition of this expression and the provided expression.
+      */
+    def :+(y: Expression): Expression =
+      x + y
+
+    /**
       * Method to lazily subtract the Field y from x.
       *
       * @param y a Field.
@@ -231,6 +240,15 @@ object Expression {
       */
     def *(y: Expression): Expression =
       expression.expr.BiFunction(x, y, Product)
+
+    /**
+      * Method to lazily perform an operation on x and y.
+      *
+      * @param y another Expression.
+      * @return an Expression which represents the result of the operation.
+      */
+    def :*(y: Expression): Expression =
+      x * y
 
     /**
       * Method to lazily yield the reciprocal of x.

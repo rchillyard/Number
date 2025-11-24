@@ -228,14 +228,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = x.reciprocal
     val z = x * y
     val p = matchSimpler(z)
-    p shouldBe em.Match(Literal(RationalNumber(1)))
+    p shouldBe em.Match(Literal(WholeNumber(1)))
   }
   it should "cancel 2 * 1/2 (b)" in {
     val x = Expression(2) * Expression.one
     val y = x.reciprocal
     val z = y * x
     val p = matchSimpler(z)
-    p shouldBe em.Match(Literal(RationalNumber(1)))
+    p shouldBe em.Match(Literal(WholeNumber(1)))
   }
   it should "cancel ∧2 and sqrt for 7" in {
     val seven = Expression(7)
@@ -270,13 +270,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = x * y
-    matchSimpler(z).get shouldBe ValueExpression(RationalNumber(1))
+    matchSimpler(z).get shouldBe ValueExpression(WholeNumber(1))
   }
   it should "cancel 2 * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = y * x
-    matchSimpler(z).get shouldBe ValueExpression(RationalNumber(1))
+    matchSimpler(z).get shouldBe ValueExpression(WholeNumber(1))
   }
   it should "cancel ∧2 and sqrt" in {
     val seven = Expression(7)
@@ -349,7 +349,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = Expression.matchSimpler
     val x = Expression("√4") * Valuable.two
     val y: Expression = Expression(Valuable.two).reciprocal
-    p(Product ~ x ~ y) shouldBe em.Match(BiFunction(Literal(RationalNumber(1), Some("1")), BiFunction(Literal(WholeNumber(4), Some("4")), Half, Power), Product))
+    p(Product ~ x ~ y) shouldBe em.Match(BiFunction(Literal(WholeNumber(1), Some("1")), BiFunction(Literal(WholeNumber(4), Some("4")), Half, Power), Product))
   }
   it should "distribute" in {
     import BiFunction.*
@@ -598,14 +598,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = x.reciprocal
     val z = x * y
     val p = z.simplify
-    p shouldBe Literal(RationalNumber(1))
+    p shouldBe One
   }
   it should "cancel 2 * 1/2 (b)" in {
     val x = Expression(2) * Expression.one
     val y = x.reciprocal
     val z = y * x
     val p = z.simplify
-    p shouldBe Literal(RationalNumber(1))
+    p shouldBe One
   }
   it should "cancel ∧2 and sqrt for 7" in {
     val seven = Expression(7)
@@ -640,13 +640,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = x * y
-    z.simplify shouldBe ValueExpression(RationalNumber(1))
+    z.simplify shouldBe One
   }
   it should "cancel 2 * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = y * x
-    z.simplify shouldBe ValueExpression(RationalNumber(1))
+    z.simplify shouldBe One
   }
   it should "cancel ∧2 and sqrt" in {
     val seven = Expression(7)

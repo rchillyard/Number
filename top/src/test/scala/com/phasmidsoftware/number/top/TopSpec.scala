@@ -31,7 +31,7 @@ import scala.languageFeature.implicitConversions.*
   * The tests involve operations such as addition, subtraction, multiplication, division, power, square root,
   * and comparison on various types of `Expression` instances, including `Literal`, `One`, `Number`, and constants like `pi` and `e`.
   *
-  * The operations are tested against specific matching rules for common scenarios in symbolic math expressions,
+  * The operations are tested against specific matching rules for common scenarios in symbolic lazymath expressions,
   * ensuring the correctness of `ExpressionMatchers`, custom defined `ExpressionMatchers.ExpressionMatcher` implementations,
   * and simplification functionalities such as `matchSimpler` and `simplifyTrivial`.
   *
@@ -84,22 +84,22 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   behavior of "simplify"
   it should "cancel multiplication and division with simplify 1" in {
-    math"2𝛑*1/2".simplify shouldBe ConstPi
+    lazymath"2𝛑*1/2".simplify shouldBe ConstPi
   }
   it should "show that lazy evaluation sometimes works even when you don't use it (a2)" in {
-    math"√7 ^ 2".simplify shouldBe Expression(7)
+    math"√7 ^ 2" shouldBe WholeNumber(7)
   }
   it should "properly simplify 1 * (root3 / root3 * 3)" in {
-    math"√3 / √3 * 3".materialize shouldBe WholeNumber(3)
+    lazymath"√3 / √3 * 3".materialize shouldBe WholeNumber(3)
   }
   it should "distributeProductSum b 0" in {
-    math"(2 + 1) * (3 + \frac{1}{2})".materialize shouldBe Eager(r"21/2")
+    lazymath"(2 + 1) * (3 + \frac{1}{2})".materialize shouldBe Eager(r"21/2")
   }
   it should "distributeProductSum b 1" in {
-    math"(2.00 + 1) * (3.00 + ½)".materialize shouldBe Eager(r"21/2")
+    lazymath"(2.00 + 1) * (3.00 + ½)".materialize shouldBe Eager(r"21/2")
   }
   it should "distributeProductSum b 2" in {
-    math"(2.005 + 1) * (2.995 + ½)".materialize should ===(Real(10.502475, Some(AbsoluteFuzz(0.012835619415020195, Gaussian))))
+    lazymath"(2.005 + 1) * (2.995 + ½)".materialize should ===(Real(10.502475, Some(AbsoluteFuzz(0.012835619415020195, Gaussian))))
   }
   it should "distributeProductPower on root(3) * root(3)" in {
     import BiFunction.*
@@ -108,56 +108,54 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     val q = p(Product ~ x ~ x)
     q should matchPattern { case em.Match(_) => }
     q.get.materialize shouldBe Eager(3)
-    math"""\sqrt{3}^2""".simplify shouldBe Expression(3)
+    lazymath"\sqrt{3}^2".simplify shouldBe Expression(3)
   }
   it should "cancel addition and subtraction (a)" in {
-    val x = ConstPi + 3 - 3
-    val simplified = x.simplify
-    simplified.evaluateAsIs shouldBe Some(Valuable.pi)
-    math"""\pi+3-3""".simplify shouldBe ConstPi
+    val expression = lazymath"""\pi+3-3"""
+    expression.simplify shouldBe ConstPi
+    expression.materialize shouldBe Valuable.pi
   }
   it should "use multiply instead of addition" in {
-    val x = ConstPi + ConstPi
+    val x = lazymath"\pi+𝛑"
     val simplified = x.simplify
     import core.Real.RealOps
-    val expected = Expression(Eager(2 * Constants.pi))
-    simplified shouldBe expected
+    simplified shouldBe Expression(Eager(2 * Constants.pi))
+    simplified.materialize shouldBe Angle.zero
   }
   it should "work for Negate" in {
-    val x = expr.UniFunction(One, Negate)
-    x.simplify shouldBe MinusOne
+    lazymath"-1".simplify shouldBe MinusOne
+    lazymath"-1*1".simplify shouldBe MinusOne
+    lazymath"-(-𝛑)".simplify shouldBe ConstPi
   }
   it should "work for Negate Negate" in {
     val x = expr.UniFunction(expr.UniFunction(One, Negate), Negate)
     x.simplify shouldBe One
   }
   it should "work for Reciprocal" in {
-    val x = expr.UniFunction(Two, Reciprocal)
-    x.simplify shouldBe Literal(half)
+    lazymath"1/2".simplify shouldBe Literal(half)
+    lazymath"\rec(2)".simplify shouldBe Literal(half)
   }
   it should "work for Reciprocal Reciprocal" in {
-    val x = expr.UniFunction(expr.UniFunction(ConstPi, Reciprocal), Reciprocal)
-    x.simplify shouldBe ConstPi
+    lazymath"\rec{\rec{𝛑}}".simplify shouldBe ConstPi
   }
   it should "work for Negate Zero" in {
-    val x = expr.UniFunction(Zero, Negate).simplify
-    x shouldBe Zero
+    val e = Zero.materialize
+    lazymath"-${e.render}".simplify shouldBe Zero
   }
   it should "work for Negate MinusOne" in {
     val x = expr.UniFunction(MinusOne, Negate).simplify
     x shouldBe One
   }
   it should "work for Reciprocal Zero" in {
-    val x = expr.UniFunction(Zero, Reciprocal).simplify
-    x shouldBe Expression(infinity)
+    val e = Zero.materialize
+    lazymath"\rec{${e.render}}".simplify shouldBe Infinity
   }
   it should "work for Reciprocal One" in {
     val x = expr.UniFunction(One, Reciprocal).simplify
-    x shouldBe One
+    lazymath"1/1".simplify shouldBe One
   }
   it should "work for Reciprocal Two" in {
-    val x = expr.UniFunction(Two, Reciprocal).simplify
-    x shouldBe Literal(half)
+    lazymath"1/2".simplify shouldBe Literal(half)
   }
   it should "work for Exp Infinity" in {
     val x = expr.UniFunction(Expression(infinity), Exp).simplify
@@ -245,14 +243,14 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     val y = x.reciprocal
     val z = x * y
     val p = z.simplify
-    p shouldBe Literal(RationalNumber(1))
+    p shouldBe One
   }
   it should "cancel 2 * 1/2 (b)" in {
     val x = Expression(2) * Expression.one
     val y = x.reciprocal
     val z = y * x
     val p = z.simplify
-    p shouldBe Literal(RationalNumber(1))
+    p shouldBe One
   }
   it should "cancel ∧2 and sqrt for 7" in {
     val seven = Expression(7)
@@ -287,13 +285,13 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = x * y
-    z.simplify shouldBe ValueExpression(RationalNumber(1))
+    z.simplify shouldBe One
   }
   it should "cancel 2 * 1/2" in {
     val x = Expression.one * 2
     val y = x.reciprocal
     val z = y * x
-    z.simplify shouldBe ValueExpression(RationalNumber(1))
+    z.simplify shouldBe One
   }
   it should "cancel ∧2 and sqrt" in {
     val seven = Expression(7)
