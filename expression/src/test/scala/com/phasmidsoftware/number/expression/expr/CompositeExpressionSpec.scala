@@ -36,7 +36,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with should.Matchers {
     }
   }
   it should "simplifyExact 3" in {
-    val e: CompositeExpression = ((Expression(3) + 5) * (7 - 2)).asInstanceOf[CompositeExpression]
+    val e: CompositeExpression = ((Expression(3) :+ 5) * (7 - 2)).asInstanceOf[CompositeExpression]
     val m = e.simplifyExact(e)
     m.successful shouldBe true
     val expected = Expression(40)

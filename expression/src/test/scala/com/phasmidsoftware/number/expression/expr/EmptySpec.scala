@@ -18,7 +18,7 @@ class EmptySpec extends AnyFlatSpec with should.Matchers {
     ∅ + 42 shouldBe Literal(Eager(42))
   }
   it should "yield 42b" in {
-    ((∅ + 6) + 36) shouldBe BiFunction(Literal(WholeNumber(6), Some("6")), Literal(WholeNumber(36), Some("36")), Sum)
+    ((∅ + 6) :+ 36) shouldBe BiFunction(Literal(WholeNumber(6), Some("6")), Literal(WholeNumber(36), Some("36")), Sum)
   }
   it should "yield 42c" in {
     (∅ + 6 :+ 36) shouldBe BiFunction(Literal(WholeNumber(6), Some("6")), Literal(WholeNumber(36), Some("36")), Sum)
@@ -28,7 +28,7 @@ class EmptySpec extends AnyFlatSpec with should.Matchers {
     expression.materialize shouldBe Eager(4)
   }
   it should "yield 4b" in {
-    val expression = (∅ + 6) * RationalNumber(2, 3)
+    val expression = (∅ + 6) :* RationalNumber(2, 3)
     expression.materialize shouldBe Eager(4)
   }
   it should "yield 4c" in {
@@ -41,9 +41,9 @@ class EmptySpec extends AnyFlatSpec with should.Matchers {
     val expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) :+ One
     expression.materialize shouldBe Eager(5)
   }
-  it should "NOT yield 5" in {
+  it should "NOT yield 10" in {
     import Expression.ExpressionOps
-    val expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) + One
-    expression.materialize shouldBe Eager(10)
+    val expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) :+ One
+    expression.materialize shouldBe Eager(5)
   }
 }

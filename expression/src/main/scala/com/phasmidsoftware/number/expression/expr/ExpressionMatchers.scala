@@ -115,7 +115,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Match(x) // TESTME
     case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z =>
       Match(w) // TESTME
-    case Power ~ BiFunction(w, x, Power) ~ z if x * z == One =>
+    case Power ~ BiFunction(w, x, Power) ~ z if x :* z == One =>
       Match(w)
     case f ~ x ~ y =>
       complementaryFields(f, x, y) match {
@@ -231,11 +231,11 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def matchBiFunctionAsAggregate: Matcher[BiFunction, expression.expr.Aggregate] = Matcher[BiFunction, expression.expr.Aggregate]("matchBiFunctionAsAggregate") {
     case BiFunction(BiFunction(w, x, Sum), BiFunction(y, z, Sum), Product) =>
-      Match(expression.expr.Aggregate(Sum, Seq((w * y).simplify, (w * z).simplify, (x * y).simplify, (x * z).simplify)))
+      Match(expression.expr.Aggregate(Sum, Seq((w :* y).simplify, (w :* z).simplify, (x :* y).simplify, (x :* z).simplify)))
     case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
       Match(expression.expr.Aggregate(f, Seq(w, x, y, z)))
     case BiFunction(BiFunction(w, x, Power), y, Power) =>
-      Match(expression.expr.Aggregate(Power, Seq(w, x * y)))
+      Match(expression.expr.Aggregate(Power, Seq(w, x :* y)))
     case BiFunction(BiFunction(w, x, f), y, h) if f == h =>
       Match(expression.expr.Aggregate(f, Seq(w, x, y)))
     case BiFunction(x, BiFunction(y, z, f), h) if f == h =>

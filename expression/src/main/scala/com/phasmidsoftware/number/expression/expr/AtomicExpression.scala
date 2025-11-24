@@ -1458,7 +1458,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
       squareRoot(branch == 0)
     case x if x >= 2 =>
       import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
-      squared * power(x - 2)
+      squared :* power(x - 2)
     case _ =>
       throw ExpressionException(s"power: unable to compute power of $this to $r")
   }
@@ -1475,7 +1475,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   def reciprocal: Expression = equation match {
     case Quadratic(p, q) =>
       import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
-      this / Literal(-q) + Literal(-p / q)
+      this / Literal(-q) :+ Literal(-p / q)
     case _ =>
       One / this
   }
@@ -1556,11 +1556,11 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   private def squared: Expression = equation match {
     case Quadratic(p, q) =>
       import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
-      this * Literal(-p) + Literal(-q)
+      this :* Literal(-p) :+ Literal(-q)
     case LinearEquation(r) =>
-      this * Literal(-r)
+      this :* Literal(-r)
     case _ =>
-      this * this
+      this :* this
   }
 
   /**

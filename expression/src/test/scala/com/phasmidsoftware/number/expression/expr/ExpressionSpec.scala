@@ -38,7 +38,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "evaluate"
   it should "evaluate 1 + -1" in {
-    val x: Expression = Expression(1) + -1
+    val x: Expression = Expression(1) :+ -1
     x.evaluateAsIs shouldBe Some(Valuable.zero)
   }
   it should "evaluate 1 * -1" in {
@@ -164,14 +164,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     e.materialize.render shouldBe "4.1415926535897930(67)"
   }
   it should "evaluate 3 5 + 7 2 – *" in {
-    val expression = (Expression(3) + 5) * (7 - 2)
+    val expression = (Expression(3) :+ 5) * (7 - 2)
     val result = expression.simplify.materialize
     result shouldEqual WholeNumber(40)
   }
 
   behavior of "ExpressionOps"
   it should "evaluate +" in {
-    val x: Expression = Expression(1) + 2
+    val x: Expression = Expression(1) :+ 2
     x shouldBe BiFunction(Expression(1), Expression(2), Sum)
   }
   it should "evaluate -" in {
@@ -287,8 +287,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Valuable.pi.isExact shouldBe true
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
-    (One + Valuable.two).isExact shouldBe true
-    (ConstPi + Valuable.pi).isExact shouldBe true
+    (One :+ Valuable.two).isExact shouldBe true
+    (ConstPi :+ Valuable.pi).isExact shouldBe true
   }
   // TODO Issue #140
   ignore should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
@@ -431,7 +431,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   ignore should "add pi to -pi" in {
     val x1 = ConstPi
     val x2 = ConstPi * MinusOne
-    val e: Expression = x1 + x2
+    val e: Expression = x1 :+ x2
     val simplify = e.simplify
     simplify.materialize shouldBe Angle.zero
   }

@@ -197,14 +197,14 @@ object Expression {
     infix def plus(y: Expression): Expression =
       expression.expr.BiFunction(x, y, Sum)
 
-    /**
-      * Method to lazily multiply x by y.
-      *
-      * @param y another Expression.
-      * @return an Expression which is the lazy product of x and y.
-      */
-    def +(y: Expression): Expression =
-      x plus y
+//    /**
+//      * Method to lazily multiply x by y.
+//      *
+//      * @param y another Expression.
+//      * @return an Expression which is the lazy product of x and y.
+//      */
+//    def +(y: Expression): Expression =
+//      x plus y
 
     /**
       * Method to lazily append the given expression to this expression using addition.
@@ -213,7 +213,7 @@ object Expression {
       * @return an Expression resulting from the addition of this expression and the provided expression.
       */
     def :+(y: Expression): Expression =
-      x + y
+      x plus y
 
     /**
       * Method to lazily subtract the Field y from x.
@@ -232,6 +232,9 @@ object Expression {
     def unary_- : Expression =
       expression.expr.UniFunction(x, Negate)
 
+    infix def times(y: Expression): Expression =
+      expression.expr.BiFunction(x, y, Product)
+
     /**
       * Method to lazily multiply x by y.
       *
@@ -248,7 +251,7 @@ object Expression {
       * @return an Expression which represents the result of the operation.
       */
     def :*(y: Expression): Expression =
-      x * y
+      x times y
 
     /**
       * Method to lazily yield the reciprocal of x.
@@ -267,7 +270,7 @@ object Expression {
       * @return an Expression which is the lazy quotient of x / y.
       */
     def /(y: Expression): Expression =
-      *(y.reciprocal)
+      :*(y.reciprocal)
 
     /**
       * Method to lazily raise x to the power of y.
@@ -322,7 +325,7 @@ object Expression {
       * @return an Expression representing the tan(x).
       */
     def tan: Expression =
-      sin * cos.reciprocal // TESTME
+      sin :* cos.reciprocal // TESTME
 
     /**
       * Method to lazily get the natural log of x.
@@ -481,8 +484,8 @@ object Expression {
         }
       case DyadicExpression(left, right, operator) =>
         operator match {
-          case "+" => convertMillExpressionToExpression(left) + convertMillExpressionToExpression(right)
-          case "*" => convertMillExpressionToExpression(left) * convertMillExpressionToExpression(right)
+          case "+" => convertMillExpressionToExpression(left) :+ convertMillExpressionToExpression(right)
+          case "*" => convertMillExpressionToExpression(left) :* convertMillExpressionToExpression(right)
           case "∧" => convertMillExpressionToExpression(left) ∧ convertMillExpressionToExpression(right)
         }
     }

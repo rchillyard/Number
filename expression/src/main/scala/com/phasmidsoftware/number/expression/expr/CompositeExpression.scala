@@ -748,7 +748,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (_, MinusOne) =>
         em.Match(expression.expr.UniFunction(a, Reciprocal))
       case (BiFunction(x, y, Power), z) =>
-        em.Match(expression.expr.BiFunction(x, y * z, Power))
+        em.Match(expression.expr.BiFunction(x, y :* z, Power))
       case (ConstE, BiFunction(ConstI, ConstPi, Product)) | (ConstE, BiFunction(ConstPi, ConstI, Product)) =>
         em.Match(MinusOne)
       case (ConstE, Literal(ComplexCartesian(Number.zero, Number.pi), _)) =>
