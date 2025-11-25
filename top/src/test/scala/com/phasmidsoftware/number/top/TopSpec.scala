@@ -82,6 +82,17 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   import Rational.RationalHelper
   import com.phasmidsoftware.number.parsenew.ExpressionParser.*
 
+  behavior of "Noop"
+  it should "return Noop" in {
+    lazymath" " should matchPattern { case Noop(_) => }
+  }
+  it should "throw exception" in {
+    an[Exception] shouldBe thrownBy(math" ")
+  }
+  it should "return None" in {
+    mathOpt" " shouldBe None
+  }
+
   behavior of "simplify"
   it should "cancel multiplication and division with simplify 1" in {
     lazymath"2𝛑*1/2".simplify shouldBe ConstPi
@@ -226,7 +237,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     sb.append("cancel 1 and - -1:\n")
     val x: Expression = Expression.one
     val y = -x
-    val z = x + y
+    val z = x :+ y
     val p = z.simplify
     p should matchPattern { case Zero => }
   }
@@ -234,7 +245,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     sb.append("cancel 1 and - -1 b:\n")
     val x: Expression = Expression.one
     val y = MinusOne * x
-    val z = x + y
+    val z = x :+ y
     val p = z.simplify
     p should matchPattern { case Zero => }
   }
@@ -278,7 +289,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   it should "cancel 1 and - -1 (a)" in {
     val x: Expression = Expression.one
     val y = -x
-    val z = x + y
+    val z = x :+ y
     z.simplify shouldBe Zero
   }
   it should "cancel 2 and * 1/2" in {
@@ -300,20 +311,20 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     y.simplify shouldBe Expression(7)
   }
   it should "cancel addition and subtraction of 3" in {
-    val x = One + 3 - 3
+    val x = One :+ 3 - 3
     x.simplify shouldBe One
   }
   it should "cancel addition and subtraction of e" in {
-    val y: Expression = One + ConstE
-    val z = y + expr.UniFunction(ConstE, Negate)
+    val y: Expression = One :+ ConstE
+    val z = y :+ expr.UniFunction(ConstE, Negate)
     z.simplify shouldBe One
   }
   it should "work for multi-levels 1" in {
-    val x = (One + 3 - 3) * (Two / 4)
+    val x = (One :+ 3 - 3) * (Two / 4)
     x.simplify shouldBe Half
   }
   it should "work for multi-levels 2" in {
-    val x = (One + ConstE - ConstE) * (ConstPi / 4)
+    val x = (One :+ ConstE - ConstE) * (ConstPi / 4)
     val simpler = x.simplify
     simpler shouldBe BiFunction(ConstPi, Literal(RationalNumber(Rational.quarter), None), Product)
   }
@@ -435,8 +446,8 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "work for sums" in {
     val seven = Expression(7)
-    val x: Expression = seven + 2
-    val y = x + 3
+    val x: Expression = seven :+ 2
+    val y = x :+ 3
     y.simplify shouldBe Expression(12)
   }
   it should "gather powers of 2 and * 1/2" in {
@@ -457,13 +468,13 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "simplify (√3 + 1)(√3 - 1) as 2 exactly" in {
     val root3 = Expression(3).sqrt
-    val x: Expression = (root3 + 1) * (root3 - 1)
+    val x: Expression = (root3 :+ 1) * (root3 - 1)
     val z: Expression = x.simplify
     z shouldBe Expression(2)
   }
   it should "evaluate (√3 + 1)(√3 + -1) as 2 exactly" in {
     val root3: Expression = Expression(3).sqrt
-    val x: Expression = (root3 + 1) * (root3 + MinusOne)
+    val x: Expression = (root3 :+ 1) * (root3 :+ MinusOne)
     x.simplify shouldBe Expression(2)
   }
   it should "biFunctionSimplifier on (1 + -3)" in {
@@ -483,16 +494,16 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "properly simplify 1 + root3 - root3 + 0" in {
     val z: Expression = Expression(3).sqrt
-    val x = z plus -z + Zero
-    val r = One + x
+    val x = z plus -z :+ Zero
+    val r = One :+ x
     val simplified = r.simplify
     simplified shouldBe One
   }
   it should "properly simplify (1 + root3) + (zero - root3)" in {
     val root3 = Expression(3).sqrt
-    val x: Expression = One + root3
+    val x: Expression = One :+ root3
     val z = Zero - root3
-    val expression = x + z
+    val expression = x :+ z
     val simplified = expression.simplify
     simplified shouldBe One
   }

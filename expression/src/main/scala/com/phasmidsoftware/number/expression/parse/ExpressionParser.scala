@@ -301,6 +301,7 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
   def e: Parser[String] = "e" | "\uD835\uDF00" ^^ (_ => "Euler")
 
 //  factor ::= "Pi" | "pi" | "PI" | 𝛑 | 𝜀 | √ | ³√
+
   /**
     * Parses an expression enclosed in parentheses. Ensures that the inner expression is
     * evaluated as a single unit by encapsulating it within a `Parentheses` instance.

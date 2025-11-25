@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.parsenew
 import com.phasmidsoftware.number.algebra.Valuable
 import com.phasmidsoftware.number.expression.expr.{Expression, Noop}
 import fastparse.Parsed
+import scala.util.Try
 
 object ExpressionParser {
 
@@ -35,6 +36,9 @@ object ExpressionParser {
         case Parsed.Success(_, index) =>
           throw LaTeXParserException(s"ExpressionParser: expected to parse all of $string, but only parsed $index of them")
       }
-    inline def math(args: Any*): Valuable = lazymath(args: _*).materialize
+    inline def math(args: Any*): Valuable =
+      lazymath(args: _*).materialize
+    inline def mathOpt(args: Any*): Option[Valuable] =
+      Try(math(args: _*)).toOption
 }
 

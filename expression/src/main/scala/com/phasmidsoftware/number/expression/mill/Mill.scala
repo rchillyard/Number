@@ -201,13 +201,13 @@ case class Stack(stack: List[Item]) extends Mill {
         inner(e, m)
       case (Some(i), m) =>
         m.push(i) match {
-        case n: Stack => n.evaluateInternal match {
-          case (Some(e), m) => inner(e, m)
-          case _ => throw MillException(s"evaluateDyadic: logic error): $f, $n")
+          case n: Stack => n.evaluateInternal match {
+            case (Some(e), m) => inner(e, m)
+            case _ => throw MillException(s"evaluateDyadic: logic error): $f, $n")
+          }
+          case Empty =>
+            throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
         }
-        case Empty =>
-          throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
-      }
       case _ =>
         throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
     }
@@ -293,7 +293,7 @@ case class Stack(stack: List[Item]) extends Mill {
           mill.evaluateInternal
         case _ =>
           throw MillException(s"evaluateSwap: logic error")
-    }
+      }
     result match {
       case Some((eo, m)) =>
         eo -> m

@@ -597,6 +597,7 @@ object Expression {
     case x =>
       em.Miss("simplifyExact: not a Composite expression type", x) // TESTME
   }
+
   /**
     * Attempts to simplify trivial cases within a `CompositeExpression`.
     * This method patterns matches on `CompositeExpression` instances and applies trivial simplifications
