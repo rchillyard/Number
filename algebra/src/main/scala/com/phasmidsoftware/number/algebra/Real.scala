@@ -276,7 +276,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     * @param scale the integer multiplier used to scale the instance
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
-  def scale(factor: Rational): Real =
+  def *(factor: Rational): Real =
     (copy(value = value * factor.toDouble))
 
   /**

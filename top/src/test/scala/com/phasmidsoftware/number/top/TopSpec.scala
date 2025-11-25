@@ -324,7 +324,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     val x = (One :+ ConstE - ConstE) * (ConstPi / 4)
     val simpler = x.simplify
     simpler shouldBe BiFunction(ConstPi, Literal(RationalNumber(Rational.quarter), None), Product)
-    simpler.materialize shouldBe (Angle.pi.scale(Rational.quarter))
+    simpler.materialize shouldBe Angle.pi * Rational.quarter
   }
   it should "simplify aggregate 1" in {
     val x: Expression = Aggregate(Sum, Seq(One, 3, -3))

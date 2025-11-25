@@ -210,10 +210,11 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     scale(that).asInstanceOf[Option[WholeNumber]] // TODO check this
 
   /**
-    * Scales the current `WholeNumber` by a given integer multiplier and returns the result
+    * Scales the current `WholeNumber` by a given Rational multiplier and returns the result
     * wrapped as an `Option[Monotone]`.
-    *
-    * @param scale the integer multiplier to scale the current `WholeNumber`
+    * CONSIDER renaming as `*`
+    * 
+    * @param scale the Rational multiplier to scale the current `WholeNumber`
     * @return an `Option[Monotone]` representing the scaled result
     */
   def scale(scale: Rational): Number =

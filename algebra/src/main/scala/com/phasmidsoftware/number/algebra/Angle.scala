@@ -212,9 +212,9 @@ case class Angle private[algebra](radians: Number) extends Circle with Scalable[
     * @param factor the rational number representing the scale factor
     * @return the scaled instance of type `T`
     */
-  def scale(factor: Rational): Angle = radians match {
-    case r: RationalNumber => Angle(r.scale(factor))
-    case r: Real => Angle(r.scale(factor))
+  def *(factor: Rational): Angle = radians match {
+    case r: RationalNumber => Angle(r * factor)
+    case r: Real => Angle(r * factor)
     case w: WholeNumber => Angle(w.scale(factor))
   }
 

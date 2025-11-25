@@ -244,7 +244,7 @@ trait Scalable[T <: Scalable[T]] {
     * @param factor the rational number representing the scale factor
     * @return the scaled instance of type `T`
     */
-  def scale(factor: Rational): T
+  infix def *(factor: Rational): T
 
   /**
     * Scales the current instance using an integer factor.
@@ -255,7 +255,7 @@ trait Scalable[T <: Scalable[T]] {
     * @param factor the integer value representing the scale factor
     * @return the scaled instance of type `T`
     */
-  def doScaleInt(factor: Int): T = scale(Rational(factor))
+  def doScaleInt(factor: Int): T = this * Rational(factor)
 }
 
 /**

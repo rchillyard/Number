@@ -194,7 +194,7 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     * @param factor the integer value to scale the `RationalNumber` instance by
     * @return an `Option[RationalNumber]` representing the scaled result; returns `None` if the operation cannot be performed
     */
-  def scale(factor: Rational): RationalNumber =
+  def *(factor: Rational): RationalNumber =
     RationalNumber(r * factor)
 
   /**
