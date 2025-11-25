@@ -83,19 +83,6 @@ abstract class Logarithm(val value: Number) extends CanMultiply[Logarithm, Logar
       None
 
   /**
-    * Scales the instance of type T by the given integer multiplier.
-    *
-    * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
-    * the scaling operation is valid for the specific implementation.
-    *
-    * @param that the integer multiplier used to scale the instance
-    * @return an Option containing the scaled result of type T, or None if the operation is invalid
-    */
-  def doScaleInt(that: Int): Option[Monotone] =
-    throw NumberException("Logarithm.doScaleInt: not supported")
-
-  /**
     * Determines if the current number is equal to zero.
     *
     * @return true if the number is zero, false otherwise

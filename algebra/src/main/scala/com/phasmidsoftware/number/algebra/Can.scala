@@ -1,9 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.*
-import com.phasmidsoftware.number.algebra.Real.Infinity.asT
-import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 
 /**
@@ -235,96 +233,29 @@ trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] 
   *
   * @tparam T the type of the instance that can be scaled
   */
-trait CanScaleWhole[T] {
+trait Scalable[T <: Scalable[T]] {
 
   /**
-    * Scales the instance of type T by the given integer multiplier.
+    * Scales the current instance by the given factor.
     *
-    * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
-    * the scaling operation is valid for the specific implementation.
+    * This method applies a scaling operation on the instance using the provided
+    * rational factor and returns the resulting scaled instance.
     *
-    * @param that the integer multiplier used to scale the instance
-    * @return an Option containing the scaled result of type T, or None if the operation is invalid
-    */
-  def doScaleInt(that: Int): Option[T]
-
-  /**
-    * Scales the instance of type `T` by the given integer multiplier.
-    *
-    * This method attempts to scale the current instance using the provided integer.
-    * If the scaling operation is valid, the resulting scaled value of type `T` is returned.
-    * If the operation is invalid, a `NumberException` is thrown.
-    *
-    * @param that the integer multiplier used to scale the instance
-    * @return the scaled result of type `T`
-    */
-  def *(that: Int): T =
-    FP.recover(doScaleInt(that))(NumberException(s"Cannot * $asT by $that"))
-}
-
-/**
-  * Trait `CanScaleDouble` defines the capability to scale instances of type `T` by a `Double` factor.
-  *
-  * Classes or traits implementing this trait are required to provide logic for scaling
-  * their instances using the `doScaleDouble` method. The result of the scaling operation
-  * is wrapped in an `Option` to account for cases where the scaling may not be possible or valid.
-  *
-  * @tparam T the type of the instance that can be scaled by a `Double`
-  */
-trait CanScaleDouble[T] {
-
-  /**
-    * Scales the current instance of type `T` by the specified `Double` value.
-    *
-    * This method applies a scaling factor to the instance, returning an `Option`
-    * that contains the scaled instance if the operation is valid. If the scaling
-    * operation is not valid or feasible, `None` is returned.
-    *
-    * @param that the `Double` value to scale the instance by
-    * @return an `Option` containing the scaled instance of type `T`, or `None`
-    *         if scaling is not possible
-    */
-  def doScaleDouble(that: Double): Option[T]
-
-  /**
-    * Scales the current instance of type `T` by the specified `Double` value.
-    *
-    * Performs the scaling operation using the provided `Double` factor and returns
-    * the scaled instance of type `T`. If scaling cannot be performed, a `NumberException`
-    * is thrown with relevant details.
-    *
-    * @param that the `Double` value by which to scale the instance
+    * @param factor the rational number representing the scale factor
     * @return the scaled instance of type `T`
-    * @throws NumberException if scaling cannot be performed
     */
-  def *(that: Double): T =
-    FP.recover(doScaleDouble(that))(NumberException(s"Cannot * $asT by $that"))
-}
-
-/**
-  * Represents a capability of scaling instances of type `T`.
-  *
-  * This trait defines a method for scaling an object of type `T` using a `Number` multiplier.
-  * The operation allows for the result to be optionally returned, reflecting cases where scaling
-  * might not be applicable or feasible.
-  *
-  * @tparam T the type of the instance that can be scaled
-  */
-trait CanScale[T <: Structure, U <: Structure] {
+  def scale(factor: Rational): T
 
   /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
+    * Scales the current instance using an integer factor.
     *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
+    * This method applies a scaling operation on the instance by converting the given integer factor
+    * into a rational number, delegating the scaling to the `scale` method, and returning the result.
     *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+    * @param factor the integer value representing the scale factor
+    * @return the scaled instance of type `T`
     */
-  def doScale(that: U): Option[T]
+  def doScaleInt(factor: Int): T = scale(Rational(factor))
 }
 
 /**

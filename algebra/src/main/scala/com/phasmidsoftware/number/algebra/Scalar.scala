@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, PureNumber, Radian}
+import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber, NumberException, inner}
+import scala.reflect.ClassTag
 
 /**
   * Represents a `Scalar`, which is a `Monotone` that is linear with other scalar quantities and
@@ -52,6 +53,7 @@ trait Scalar extends Monotone {
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
   def signum: Int
+
 }
 
 /**
@@ -96,7 +98,7 @@ object Scalar {
     * @return the resulting `Scalar` based on the input values, factor, and optional fuzziness.
     */
   def createScalar(value: inner.Value, factor: inner.Factor, fuzz: Option[Fuzziness[Double]]): Monotone = {
-    val number = (value, fuzz) match {
+    val number: Number = (value, fuzz) match {
       case (Right(x), None) =>
         WholeNumber(x)
       case (Right(x), _) =>
@@ -130,12 +132,85 @@ object Scalar {
   }
 }
 
+case object NoScalar extends Scalar {
+  /**
+    * Compares this `Scalar` with another `Scalar` for exact equivalence.
+    * This method checks if both instances can be compared exactly.
+    *
+    * CONSIDER moving this up into Monotone and having `that` be a `Monotone`
+    *
+    * @param that the `Scalar` instance to compare against
+    * @return an `Option[Int]` value:
+    *         - `Some(-1)` if this `Scalar` is less than `that`
+    *         - `Some(0)` if this `Scalar` is equal to `that`
+    *         - `Some(1)` if this `Scalar` is greater than `that`
+    *         - `None` if the exact comparison is not possible
+    */
+  def compareExact(that: Scalar): Option[Int] = throw NumberException(s"NoScalar.compareExact: unsupported operation")
+
+  /**
+    * Represents the scaleFactor of a scalar value as a `Double`.
+    * This value indicates the magnitude by which a scalar is scaled,
+    * and the conversion factor to yield a `PureNumber`.
+    */
+  def scaleFactor: Double = Double.NaN
+
+  /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = false
+
+  /**
+    * Determines the sign of the scalar value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = throw NumberException(s"NoScalar.signum: unsupported operation")
+
+  /**
+    * Attempts to yield a factor for the instance, if available.
+    *
+    * A `Factor` is a representation of the underlying numerical domain, for example, `PureNumber`, `Radian`, etc.
+    *
+    * @return an `Option[Factor]` containing the factor representation of this object,
+    *         or `None` if factorization is not applicable or unavailable.
+    */
+  def maybeFactor(context: ExpressionContext): Option[Factor] = None
+
+  /**
+    * Converts the given `Structure` object to an optional instance of the same type.
+    *
+    * @param t the input object of type `T` which is a subtype of `Structure`.
+    * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
+    */
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = None
+
+  /**
+    * If this is exact, it returns the exact value as a Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
+    *
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  def maybeDouble: Option[Double] = None
+
+  /**
+    * Method to render this `Valuable` for presentation to the user.
+    *
+    * @return a String
+    */
+  def render: String = "Not a Scalar"
+}
+
 /**
   * The `Radians` trait represents a scalar quantity expressed in radians, a unit of angular measure.
   * It extends the `Scalar` trait, inheriting its properties and behaviors for numerical operations
   * and comparison, while specifically associating the scalar with a conversion factor defined by Pi.
   */
-trait Radians extends Scalar with CanScale[Radians, Number] {
+trait Radians extends Scalar {
 
   /**
     * Retrieves an optional factor associated with the specified context.

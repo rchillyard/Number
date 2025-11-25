@@ -28,7 +28,7 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAddAndSubtract[Real, Structure] with Number {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAddAndSubtract[Real, Structure] with Number with Scalable[Real] {
   /**
     * Converts the current instance to a Double representation.
     * CONSIDER changing to maybeDouble returning Option[Double].
@@ -273,11 +273,11 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     * the specified integer, returning an optional result. The result is defined if
     * the scaling operation is valid for the specific implementation.
     *
-    * @param that the integer multiplier used to scale the instance
+    * @param scale the integer multiplier used to scale the instance
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
-  def doScaleInt(that: Int): Option[Monotone] =
-    Some(copy(value = that * value))
+  def scale(factor: Rational): Real =
+    (copy(value = value * factor.toDouble))
 
   /**
     * Scale this Real by the given scalar, provided that it is exact.

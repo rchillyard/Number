@@ -37,8 +37,8 @@ object ExpressionParser {
           throw LaTeXParserException(s"ExpressionParser: expected to parse all of $string, but only parsed $index of them")
       }
     inline def math(args: Any*): Valuable =
-      lazymath(args: _*).materialize
+      lazymath(args *).materialize
     inline def mathOpt(args: Any*): Option[Valuable] =
-      Try(math(args: _*)).toOption
+      Try(math(args *)).toOption
 }
 

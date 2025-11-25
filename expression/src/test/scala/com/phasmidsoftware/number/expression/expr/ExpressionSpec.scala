@@ -391,7 +391,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "aggregate 2" in {
     val target = (One * ConstPi * Two * MinusOne).simplify
-    val expected = Angle.𝛑.doScaleInt(-2).map(ValueExpression.apply).get
+    val expected = UniFunction(BiFunction(ConstPi, Two, Product), Negate)
     target shouldBe expected
   }
   it should "evaluate e * e" in {

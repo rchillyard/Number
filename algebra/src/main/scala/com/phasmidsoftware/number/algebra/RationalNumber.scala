@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
   * @param r The `Rational` value represented by this `RationalNumber`.
   */
-case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with CanPower[RationalNumber] with CanScale[RationalNumber, WholeNumber] with Number {
+case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Number {
   /**
     * Subtracts the given rational number from this one.
     *
@@ -189,27 +189,13 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     r.power(p).map(RationalNumber(_)).toOption
 
   /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
-    *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
-    *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
-    */
-  def doScale(that: WholeNumber): Option[RationalNumber] =
-    doScaleInt(that.toInt)
-
-  /**
     * Scales the current instance of `RationalNumber` by the given `Int` value.
     *
-    * @param that the integer value to scale the `RationalNumber` instance by
+    * @param factor the integer value to scale the `RationalNumber` instance by
     * @return an `Option[RationalNumber]` representing the scaled result; returns `None` if the operation cannot be performed
     */
-  def doScaleInt(that: Int): Option[RationalNumber] =
-    Some(RationalNumber(r * that))
+  def scale(factor: Rational): RationalNumber =
+    RationalNumber(r * factor)
 
   /**
     * Computes the sign of the current `RationalNumber`.

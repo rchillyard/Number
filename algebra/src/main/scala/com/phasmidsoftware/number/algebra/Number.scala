@@ -97,47 +97,6 @@ trait Number extends Scalar with Ordered[Scalar] {
     */
   def approximation: Option[Real] =
     convert(Real.zero)
-//
-//  /**
-//    * Performs a multiplication operation on the current `Number` instance by repeated addition.
-//    *
-//    * This method calculates the result of multiplying the current `Number` instance by an integer `n`
-//    * by repeatedly adding the instance to itself `n - 1` times.
-//    *
-//    * This is really scaleInt(n).
-//    *
-//    * @param n the multiplier, an integer value by which the current `Number` instance is to be multiplied
-//    * @return a new `Number` instance representing the result of the multiplication
-//    */
-//  def *(n: Int): Option[Number] =
-//    Range(1, n).foldLeft[Option[Number]](Some(this)) { // CONSIDER putting "Range(1,n)" back to "1 until n".
-//      case (Some(a), _) =>
-//        (this plus a).asInstanceOf[Option[Number]] // TODO check that this is OK and if not, fix it.
-//      case (None, _) => None
-//    }
-//
-//  /**
-//    * Scales the current instance of type `T` using the given `Number` multiplier.
-//    *
-//    * This method performs a scaling operation by multiplying the current instance
-//    * with the provided `Number`. The result of the scaling operation is returned
-//    * as an `Option`, allowing for cases where the operation might not be valid or
-//    * possible.
-//    *
-//    * @param that the `Number` multiplier used to scale the current instance
-//    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
-//    */
-//  def doScale(that: Number): Option[Number] = scale(that)
-
-  /**
-    * Scale this Real by the given scalar, provided that it is exact.
-    * This method is used to scale a Real by a scalar that is known to be exact.
-    * If you want to simply multiply this Real by a scalar, use the * operator.
-    *
-    * @param scalar the exact scalar to scale by
-    * @return a scaled Real with the same relative error as this.
-    */
-  def scale(scalar: Scalar): Option[Number]
 
   /**
     * A scale factor applied to this `Number`.

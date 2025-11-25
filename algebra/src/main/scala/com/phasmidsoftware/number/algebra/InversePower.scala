@@ -24,7 +24,7 @@ import scala.reflect.ClassTag
   * @param n    the degree of the root, specified as an integer
   * @param base the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] with CanScale[InversePower, Number] {
+case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
   def compare(that: InversePower): Int = (this.isExact, that.isExact) match {
     case (true, true) =>
       compareExact(that).getOrElse(0) // TODO fix this
@@ -172,19 +172,6 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
       case _ => toString
     }
   }
-
-  /**
-    * Scales the instance of type T by the given integer multiplier.
-    *
-    * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
-    * the scaling operation is valid for the specific implementation.
-    *
-    * @param that the integer multiplier used to scale the instance
-    * @return an Option containing the scaled result of type T, or None if the operation is invalid
-    */
-  infix def doScaleInt(that: Int): Option[InversePower] =
-    doScale(WholeNumber(that))
 
   /**
     * Scales the current instance using the provided `Number`.

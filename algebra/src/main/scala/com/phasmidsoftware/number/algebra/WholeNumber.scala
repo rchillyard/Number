@@ -22,7 +22,7 @@ import spire.math.SafeLong
   *
   * @param x a SafeLong value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanScale[WholeNumber, WholeNumber] with CanPower[WholeNumber] with Number with Z {
+case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] with Number with Z {
   /**
     * Converts this instance to its corresponding integer representation.
     *
@@ -213,11 +213,14 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     * Scales the current `WholeNumber` by a given integer multiplier and returns the result
     * wrapped as an `Option[Monotone]`.
     *
-    * @param that the integer multiplier to scale the current `WholeNumber`
+    * @param scale the integer multiplier to scale the current `WholeNumber`
     * @return an `Option[Monotone]` representing the scaled result
     */
-  def doScaleInt(that: Int): Option[Monotone] =
-    Some(WholeNumber(x * that))
+  def scale(scale: Rational): Number =
+    scale * x.toBigInt match {
+      case r if r.isWhole => WholeNumber(r.toBigInt)
+      case r => RationalNumber(r)
+    }
 
   /**
     * Scales the current instance of type `T` using the given `Number` multiplier.

@@ -13,7 +13,7 @@ import scala.reflect.ClassTag
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with CanScaleWhole[Monotone] with CanScaleDouble[Monotone] with Approximate {
+trait Monotone extends Structure with Approximate {
 
   /**
     * Method to determine if this `Structure` object is exact.
@@ -60,6 +60,7 @@ trait Monotone extends Structure with CanScaleWhole[Monotone] with CanScaleDoubl
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
   def signum: Int
+
 }
 
 /**

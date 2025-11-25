@@ -9,7 +9,7 @@ import cats.Show
 import com.phasmidsoftware.number.algebra.Angle.angleIsCommutativeGroup
 import com.phasmidsoftware.number.algebra.{Radians, Structure}
 import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, Radian, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -24,7 +24,7 @@ import scala.reflect.ClassTag
   *
   * @param radians the value of the angle in radians
   */
-case class Angle private[algebra](radians: Number) extends Circle with Radians with CanNormalize[Angle] {
+case class Angle private[algebra](radians: Number) extends Circle with Scalable[Angle] with Radians with CanNormalize[Angle] {
 
   /**
     * Normalizes an angle instance to its equivalent value within the standard range of radians.
@@ -204,47 +204,19 @@ case class Angle private[algebra](radians: Number) extends Circle with Radians w
   }
 
   /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
+    * Scales the current instance by the given factor.
     *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
+    * This method applies a scaling operation on the instance using the provided
+    * rational factor and returns the resulting scaled instance.
     *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+    * @param factor the rational number representing the scale factor
+    * @return the scaled instance of type `T`
     */
-  def doScale(that: Number): Option[Radians] = {
-    val maybeNumber = radians.scale(that)
-    maybeNumber map (x => copy(radians = x))
+  def scale(factor: Rational): Angle = radians match {
+    case r: RationalNumber => Angle(r.scale(factor))
+    case r: Real => Angle(r.scale(factor))
+    case w: WholeNumber => Angle(w.scale(factor))
   }
-
-  /**
-    * Scales the instance of type T by the given integer multiplier.
-    *
-    * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
-    * the scaling operation is valid for the specific implementation.
-    *
-    * @param that the integer multiplier used to scale the instance
-    * @return an Option containing the scaled result of type T, or None if the operation is invalid
-    */
-  infix def doScaleInt(that: Int): Option[Angle] =
-    radians.doScaleInt(that).map(x => Angle.create(x))
-
-  /**
-    * Scales the current instance of type `T` by the specified `Double` value.
-    *
-    * This method applies a scaling factor to the instance, returning an `Option`
-    * that contains the scaled instance if the operation is valid. If the scaling
-    * operation is not valid or feasible, `None` is returned.
-    *
-    * @param that the `Double` value to scale the instance by
-    * @return an `Option` containing the scaled instance of type `T`, or `None`
-    *         if scaling is not possible
-    */
-  def doScaleDouble(that: Double): Option[Angle] =
-    radians.doScaleDouble(that) map (x => Angle.create(x))
 
   /**
     * Provides an approximation of this number, if applicable.
@@ -396,6 +368,7 @@ object Angle {
   val piBy2Times3: Angle = Angle(RationalNumber(Rational(3, 2)))
   val twoPi: Angle = Angle(RationalNumber(Rational.two))
   val negPi: Angle = Angle(RationalNumber(Rational.negOne))
+  // CONSIDER using NoScalar instead
   val nan: Angle = Angle(RationalNumber(Rational.NaN))
 
   /**

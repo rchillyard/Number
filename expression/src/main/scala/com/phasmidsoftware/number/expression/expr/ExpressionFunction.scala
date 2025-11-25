@@ -7,10 +7,10 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.ExpressionContext.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAdd, CanMultiply, CanPower, CanScale, Eager, ExpressionContext, ImpossibleContext, Number, Q, RationalNumber, RestrictedContext, Scalar, Structure, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAdd, CanMultiply, CanPower, Eager, ExpressionContext, ImpossibleContext, Number, Q, RationalNumber, RestrictedContext, Scalar, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, NumberException, Real}
+import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Real}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
 import scala.annotation.tailrec
 
@@ -786,11 +786,11 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       Option.when(x.isExact && y.isExact)((x * y).asInstanceOf[Eager]).filter(_.isExact)
     case (x: Number, y: CanMultiply[Number, Number] @unchecked) =>
       Option.when(x.isExact && y.isExact)((y * x).asInstanceOf[Eager]).filter(_.isExact)
-    case (x: CanScale[Structure, Number] @unchecked, y: Number) =>
-      val maybeStructure = FP.whenever(x.isExact && y.isExact)(x.doScale(y))
-      maybeStructure.filter(_.isExact)
-    case (x: Number, y: CanScale[Structure, Number] @unchecked) =>
-      FP.whenever(x.isExact && y.isExact)(y.doScale(x)).filter(_.isExact)
+//    case (x: CanScale[Structure, Number] @unchecked, y: Number) =>
+//      val maybeStructure = FP.whenever(x.isExact && y.isExact)(x.doScale(y))
+//      maybeStructure.filter(_.isExact)
+//    case (x: Number, y: CanScale[Structure, Number] @unchecked) =>
+//      FP.whenever(x.isExact && y.isExact)(y.doScale(x)).filter(_.isExact)
     case (ValueExpression(x, _), y: Number) =>
       applyExact(x, y)
     case (ValueExpression(x, _), ValueExpression(y, _)) =>
