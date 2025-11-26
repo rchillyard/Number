@@ -125,13 +125,13 @@ case class MonadicExpression(expression: Expression, str: String) extends Expres
 
   def value: Number = {
     val f: Number => Field = str match {
-      case "-" => (x => -x)
-      case "/" => (x => x.invert)
-      case "√" => (x => Real(x.sqrt))
-      case "ln" => (x => x.ln)
-      case "exp" => (x => Real(x.exp))
-      case "sin" => (x => Real(x.sin))
-      case "cos" => (x => Real(x.cos))
+      case "-" => x => -x
+      case "/" => x => x.invert
+      case "√" => x => Real(x.sqrt)
+      case "ln" => x => x.ln
+      case "exp" => x => Real(x.exp)
+      case "sin" => x => Real(x.sin)
+      case "cos" => x => Real(x.cos)
       case _ => throw new IllegalArgumentException(s"unknown operator $str")
     }
     f(expression.value).asNumber.get // TODO this should not be a problem but we should make it more elegant

@@ -913,7 +913,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "biFunctionAggregator"
   it should "work for 7 :+ 2 - 3 a" in {
     val x: Expression = Expression(7) :+ 2 - 3
-    x shouldBe (BiFunction(Literal(WholeNumber(7), Some("7")), MinusOne, Sum))
+    x shouldBe BiFunction(Literal(WholeNumber(7), Some("7")), MinusOne, Sum)
     x.materialize shouldBe Eager(6)
   }
   it should "work for 7 :+ 2 - 3 b" in {

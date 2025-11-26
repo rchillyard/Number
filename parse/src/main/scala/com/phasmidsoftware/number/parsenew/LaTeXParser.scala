@@ -66,7 +66,7 @@ object LaTeXParser {
   private def mathSymbol[X: P]: P[MathExpr] = P(
     ("""\pi""" | """\mathrm{\pi}""" | "\uD835\uDED1" | "π").!.map(_ => ConstPi) |
         ("""\e""" | """\mathrm{e}""").!.map(_ => ConstE) |
-        ("\uD835\uDEFE").!.map(_ => Literal(Eager(Constants.gamma))) |
+        "\uD835\uDEFE".!.map(_ => Literal(Eager(Constants.gamma))) |
         "½".!.map(_ => Half) |
         "∞".!.map(_ => Infinity)
   )

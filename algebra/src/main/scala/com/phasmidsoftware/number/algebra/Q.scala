@@ -21,10 +21,9 @@ trait R {
   def asDouble: Double
 
   /**
-    * Creates an instance of `R` from the given `Rational` value.
+    * Returns an optional instance of `Q` from this `R` value.
     *
-    * @param q the `Rational` value to be converted into an instance of `R`
-    * @return an instance of `R` representing the specified `Rational` value
+    * @return an optional instance of `Q` representing this specified `R` value
     */
   def maybeQ: Option[Q]
 }

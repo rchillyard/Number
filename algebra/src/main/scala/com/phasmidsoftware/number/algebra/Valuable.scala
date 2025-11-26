@@ -140,8 +140,6 @@ object Valuable {
     *
     * The implementation utilizes the `toString` method of the `Valuable` instance
     * to generate the log representation.
-    *
-    * @tparam Valuable the type parameter representing a numerical entity that implements the `Valuable` trait.
     */
   implicit object LoggableValuable extends Loggable[Valuable] {
     def toLog(t: Valuable): String = t.toString

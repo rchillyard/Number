@@ -1,4 +1,4 @@
-package com.phasmidsoftware.expression.parse
+package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.Number
 import com.phasmidsoftware.number.misc.{Exact, FuzzyParser, Gaussian}

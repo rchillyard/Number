@@ -191,7 +191,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     * Subtracts the specified `Real` value from this `Real` value.
     *
     * @param that     the `Real` value to subtract from this `Real` value
-    * @param evidence evidence parameter providing an `AdditiveCommutativeGroup` instance for `Real`
+    * @param using evidence parameter providing an `AdditiveCommutativeGroup` instance for `Real`
     * @return the result of subtracting `that` from this `Real` value
     */
   def -(that: Real)(using AdditiveCommutativeGroup[Real]): Real =
@@ -267,17 +267,17 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     realIsRing.inverse(t) map (z => realIsRing.times(this, z)) getOrElse Real.Infinity
 
   /**
-    * Scales the instance of type T by the given integer multiplier.
+    * Scales the instance of type T by the given rational multiplier.
     *
     * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
+    * the specified rational, returning an optional result. The result is defined if
     * the scaling operation is valid for the specific implementation.
     *
-    * @param scale the integer multiplier used to scale the instance
+    * @param factor the rational multiplier used to scale the instance
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
   def *(factor: Rational): Real =
-    (copy(value = value * factor.toDouble))
+    copy(value = value * factor.toDouble)
 
   /**
     * Scale this Real by the given scalar, provided that it is exact.

@@ -28,7 +28,7 @@ trait Renderable {
 trait MaybeNumeric {
 
   /**
-    * If this is exact, it returns the exact value as a Double`.
+    * If this is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
     *
