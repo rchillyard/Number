@@ -32,7 +32,7 @@ object ExpressionParser {
       * @return An `Expression` object parsed from the constructed string. If parsing fails, it returns a `Noop` with error details.
       *         Throws a `LaTeXParserException` if the input string is not fully parsed.
       */
-    inline def lazymath(args: Any*): Expression =
+    inline def puremath(args: Any*): Expression =
       val parts = sc.parts
       val string = (parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)).mkString
       latexParser(string) match {
@@ -43,6 +43,8 @@ object ExpressionParser {
         case Parsed.Success(_, index) =>
           throw LaTeXParserException(s"ExpressionParser: expected to parse all of $string, but only parsed $index of them")
       }
+    inline def lazymath(args: Any*): Expression =
+      puremath(args *).simplify
     /**
       * Processes LaTeX-like mathematical expressions using interpolation and evaluates the resulting expression
       * into a `Valuable` instance. This method uses the `lazymath` extension to parse the expression and 

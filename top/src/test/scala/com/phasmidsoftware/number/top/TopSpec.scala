@@ -101,16 +101,16 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"√7 ^ 2" shouldBe WholeNumber(7)
   }
   it should "properly simplify 1 * (root3 / root3 * 3)" in {
-    lazymath"√3 / √3 * 3".materialize shouldBe WholeNumber(3)
+    math"√3 / √3 * 3" shouldBe WholeNumber(3)
   }
   it should "distributeProductSum b 0" in {
-    lazymath"(2 + 1) * (3 + \frac{1}{2})".materialize shouldBe Eager(r"21/2")
+    math"(2 + 1) * (3 + \frac{1}{2})" shouldBe Eager(r"21/2")
   }
   it should "distributeProductSum b 1" in {
-    lazymath"(2.00 + 1) * (3.00 + ½)".materialize shouldBe Eager(r"21/2")
+    math"(2.00 + 1) * (3.00 + ½)" shouldBe Eager(r"21/2")
   }
   it should "distributeProductSum b 2" in {
-    lazymath"(2.005 + 1) * (2.995 + ½)".materialize should ===(Real(10.502475, Some(AbsoluteFuzz(0.012835619415020195, Gaussian))))
+    math"(2.005 + 1) * (2.995 + ½)" should ===(Real(10.502475, Some(AbsoluteFuzz(0.012835619415020195, Gaussian))))
   }
   it should "distributeProductPower on root(3) * root(3)" in {
     val exp = """\sqrt{3}^2"""
@@ -118,9 +118,8 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"$exp" shouldBe Eager(3)
   }
   it should "cancel addition and subtraction (a)" in {
-    val expression = lazymath"""\pi+3-3"""
-    expression.simplify shouldBe ConstPi
-    expression.materialize shouldBe Valuable.pi
+    lazymath"""\pi+3-3""".simplify shouldBe ConstPi
+    math"""\pi+3-3""" shouldBe Valuable.pi
   }
   // TODO Angle normalization not occurring.
   ignore should "use multiply instead of addition" in {
