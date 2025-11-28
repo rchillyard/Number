@@ -95,7 +95,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   behavior of "simplify"
   it should "cancel multiplication and division with simplify 1" in {
-    lazymath"2𝛑*1/2".simplify shouldBe ConstPi
+    lazymath"2𝛑*1/2" shouldBe ConstPi
   }
   it should "show that lazy evaluation sometimes works even when you don't use it (a2)" in {
     math"√7 ^ 2" shouldBe WholeNumber(7)
@@ -114,11 +114,11 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "distributeProductPower on root(3) * root(3)" in {
     val exp = """\sqrt{3}^2"""
-    lazymath"$exp".simplify shouldBe Expression(3)
+    lazymath"$exp" shouldBe Expression(3)
     math"$exp" shouldBe Eager(3)
   }
   it should "cancel addition and subtraction (a)" in {
-    lazymath"""\pi+3-3""".simplify shouldBe ConstPi
+    lazymath"""\pi+3-3""" shouldBe ConstPi
     math"""\pi+3-3""" shouldBe Valuable.pi
   }
   it should "use multiply instead of addition" in {
@@ -128,55 +128,50 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     y shouldBe Angle.zero
   }
   it should "work for Negate" in {
-    lazymath"-1".simplify shouldBe MinusOne
-    lazymath"-1*1".simplify shouldBe MinusOne
-    lazymath"-(-𝛑)".simplify shouldBe ConstPi
+    lazymath"-1" shouldBe MinusOne
+    lazymath"-1*1" shouldBe MinusOne
   }
   it should "work for Negate Negate" in {
-    val x = expr.UniFunction(expr.UniFunction(One, Negate), Negate)
-    x.simplify shouldBe One
+    lazymath"-(-1)" shouldBe One
+    lazymath"-(-𝛑)" shouldBe ConstPi
   }
   it should "work for Reciprocal" in {
-    lazymath"1/2".simplify shouldBe Literal(half)
-    lazymath"\rec(2)".simplify shouldBe Literal(half)
+    lazymath"1/2" shouldBe Literal(half)
+    lazymath"\rec(2)" shouldBe Literal(half)
   }
   it should "work for Reciprocal Reciprocal" in {
-    lazymath"\rec{\rec{𝛑}}".simplify shouldBe ConstPi
+    lazymath"\rec{\rec{𝛑}}" shouldBe ConstPi
   }
   it should "work for Negate Zero" in {
     val e = Zero.materialize
-    lazymath"-${e.render}".simplify shouldBe Zero
-  }
-  it should "work for Negate MinusOne" in {
-    val x = expr.UniFunction(MinusOne, Negate).simplify
-    x shouldBe One
+    lazymath"-${e.render}" shouldBe Zero
   }
   it should "work for Reciprocal Zero" in {
     val e = Zero.materialize
-    lazymath"\rec{${e.render}}".simplify shouldBe Infinity
+    lazymath"\rec{${e.render}}" shouldBe Infinity
   }
   it should "work for Reciprocal One" in {
-    val x = expr.UniFunction(One, Reciprocal).simplify
-    lazymath"1/1".simplify shouldBe One
+    val x = expr.UniFunction(One, Reciprocal)
+    lazymath"1/1" shouldBe One
   }
   it should "work for Reciprocal Two" in {
-    lazymath"1/2".simplify shouldBe Literal(half)
+    lazymath"1/2" shouldBe Literal(half)
   }
   it should "work for Exp Infinity" in {
+    // TODO allow Infinity to be used in expressions.
     val x = expr.UniFunction(Expression(infinity), Exp).simplify
     x shouldBe Infinity
   }
   it should "work for Exp neg Infinity" in {
+    // TODO allow Infinity to be used in expressions.
     val x = expr.UniFunction(Expression(infinity.negate), Exp).simplify
     x shouldBe Zero
   }
   it should "work for Exp Zero" in {
-    val x = expr.UniFunction(Zero, Exp)
-    x.simplify shouldBe One
+    lazymath"\e^0" shouldBe One
   }
   it should "work for Exp One" in {
-    val x = expr.UniFunction(One, Exp)
-    x.simplify shouldBe ConstE
+    lazymath"\e^1" shouldBe ConstE
   }
   it should "work for Ln Zero" in {
     val x = expr.UniFunction(Zero, Ln)
