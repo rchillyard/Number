@@ -35,28 +35,37 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
     lazymath"-1" shouldBe MinusOne
     lazymath"-(42)" shouldBe Literal(WholeNumber(-42), Some("-42"))
     lazymath"1+2" shouldBe Literal(WholeNumber(3), Some("3"))
-    // TODO fix the rest of these...
-//    lazymath"6*7" shouldBe BiFunction(Literal(WholeNumber(6), Some("6")), Literal(WholeNumber(7), Some("7")), Product)
-//    lazymath"42/7" shouldBe BiFunction(Literal(WholeNumber(42), Some("42")), UniFunction(Literal(WholeNumber(7), Some("7")), Reciprocal), Product)
-//    lazymath"6*(3+4)" shouldBe BiFunction(Literal(WholeNumber(6), Some("6")), BiFunction(Literal(WholeNumber(3), Some("3")), Literal(WholeNumber(4), Some("4")), Sum), Product)
-//    lazymath"\frac{42}{6}" shouldBe BiFunction(Literal(WholeNumber(42), Some("42")), UniFunction(Literal(WholeNumber(6), Some("6")), Reciprocal), Product)
-//    lazymath"3^2" shouldBe BiFunction(Literal(WholeNumber(3), Some("3")), Literal(WholeNumber(2), Some("2")), Power)
-//    lazymath"-3^2" shouldBe BiFunction(UniFunction(Literal(WholeNumber(3), Some("3")), Negate), Literal(WholeNumber(2), Some("2")), Power)
-//    lazymath"2+3*4" shouldBe BiFunction(Two, BiFunction(Literal(WholeNumber(3), Some("3")), Literal(WholeNumber(4), Some("4")), Product), Sum)
-//    lazymath"3^2+4" shouldBe BiFunction(BiFunction(Literal(WholeNumber(3), Some("3")), Literal(WholeNumber(2), Some("2")), Power), Literal(WholeNumber(4), Some("4")), Sum)
-//    lazymath"3^2+4*5" shouldBe BiFunction(BiFunction(Literal(WholeNumber(3), Some("3")), Literal(WholeNumber(2), Some("2")), Power), BiFunction(Literal(WholeNumber(4), Some("4")), Literal(WholeNumber(5), Some("5")), Product), Sum)
+    lazymath"6*7" shouldBe Literal(WholeNumber(42), Some("42"))
+    lazymath"42/7" shouldBe Literal(WholeNumber(6), Some("6"))
+    lazymath"6*(3+4)" shouldBe Literal(WholeNumber(42), Some("42"))
+    lazymath"\frac{42}{6}" shouldBe Literal(WholeNumber(7), Some("7"))
+    lazymath"3^2" shouldBe Literal(WholeNumber(9), Some("9"))
+    lazymath"-3^2" shouldBe Literal(WholeNumber(9), Some("9"))
+    lazymath"2+3*4" shouldBe Literal(WholeNumber(14), Some("14"))
+    lazymath"3^2+4" shouldBe Literal(WholeNumber(13), Some("13"))
+    lazymath"3^2+4*5" shouldBe Literal(WholeNumber(29), Some("29"))
   }
   // NOTE don't worry about highlighting issues here. The code is good.
-  it should "apply pi" in {
+  it should "puremath pi" in {
+    puremath"""\pi""" shouldBe ConstPi
+    puremath"""2\pi""" shouldBe BiFunction(Two, ConstPi, Product)
+    puremath"""2*\pi""" shouldBe BiFunction(Two, ConstPi, Product)
+    puremath"""\pi^2""" shouldBe BiFunction(ConstPi, Two, Power)
+  }
+  it should "lazymath pi" in {
     lazymath"""\pi""" shouldBe ConstPi
     lazymath"""2\pi""" shouldBe BiFunction(Two, ConstPi, Product)
     lazymath"""2*\pi""" shouldBe BiFunction(Two, ConstPi, Product)
     lazymath"""\pi^2""" shouldBe BiFunction(ConstPi, Two, Power)
   }
-  it should "apply e" in {
+  it should "puremath e" in {
+    puremath"""\e""" shouldBe ConstE
+    puremath"""\mathrm{e}""" shouldBe ConstE
+    puremath"""\e^2""" shouldBe BiFunction(ConstE, Two, Power)
+  }
+  it should "lazymath e" in {
     lazymath"""\e""" shouldBe ConstE
     lazymath"""\mathrm{e}""" shouldBe ConstE
-    puremath"""\e^2""" shouldBe BiFunction(ConstE, Two, Power)
     lazymath"""\e^2""" shouldBe Literal(NatLog(WholeNumber(2)), Some("e^2"))
   }
   it should "puremath functions" in {
@@ -76,7 +85,13 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
     lazymath"""\sin(\pi * -1)""" shouldBe Zero
     lazymath"""\exp(2)""" shouldBe UniFunction(Two, Exp)
   }
-  it should "apply symbols" in {
+  it should "puremath symbols" in {
+    puremath"½" shouldBe Half
+    puremath"2𝛑" shouldBe BiFunction(Two, ConstPi, Product)
+    puremath"2*π" shouldBe BiFunction(Two, ConstPi, Product)
+    puremath"∞" shouldBe Infinity
+  }
+  it should "lazymath symbols" in {
     lazymath"½" shouldBe Half
     lazymath"2𝛑" shouldBe BiFunction(Two, ConstPi, Product)
     lazymath"2*π" shouldBe BiFunction(Two, ConstPi, Product)
