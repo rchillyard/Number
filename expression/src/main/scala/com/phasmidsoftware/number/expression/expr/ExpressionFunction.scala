@@ -687,6 +687,10 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
   def applyExact(a: Eager, b: Eager): Option[Eager] = (a, b) match {
     case (x: Expression, y: Expression) =>
       for (p <- x.evaluateAsIs; q <- y.evaluateAsIs; r <- applyExact(p, q)) yield r
+    case (x: Angle, y: Angle) =>
+      val g = Angle.angleIsCommutativeGroup
+      val q = g.additive.combine(x, y)
+      Some(q)
     case (x: CanAdd[Number, Number] @unchecked, y: Number) =>
       import Number.NumberIsAdditiveCommutativeMonoid
       Some(x + y)

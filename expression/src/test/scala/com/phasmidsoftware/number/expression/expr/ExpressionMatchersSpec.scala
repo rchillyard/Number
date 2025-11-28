@@ -403,7 +403,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "use multiply instead of addition" in {
     val x = ConstPi :+ ConstPi
     val simplified = x.simplify
-    val expected = BiFunction(ConstPi, Two, Product)
+    val expected = Literal(Angle.zero)
     simplified shouldBe expected
   }
   it should "work for Negate" in {
@@ -1347,7 +1347,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify pi :+ pi" in {
     val r = p(Sum ~ ConstPi ~ ConstPi)
     r.successful shouldBe true
-    r.get shouldBe BiFunction(ConstPi, Two, Product)
+    r.get shouldBe Literal(Angle.zero)
   }
   it should "simplify 1 :+ 0" in {
     val r = p(Sum ~ One ~ Zero)

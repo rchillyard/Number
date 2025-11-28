@@ -121,12 +121,11 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     lazymath"""\pi+3-3""".simplify shouldBe ConstPi
     math"""\pi+3-3""" shouldBe Valuable.pi
   }
-  // TODO Angle normalization not occurring.
-  ignore should "use multiply instead of addition" in {
-    val x = lazymath"\pi+𝛑"
-    val simplified = x.simplify
-    simplified shouldBe BiFunction(ConstPi, Two, Product)
-    simplified.materialize shouldBe Angle.zero
+  it should "use multiply instead of addition" in {
+    val x = puremath"\pi+𝛑"
+    x shouldBe BiFunction(ConstPi, ConstPi, Sum)
+    val y = math"\pi+𝛑"
+    y shouldBe Angle.zero
   }
   it should "work for Negate" in {
     lazymath"-1".simplify shouldBe MinusOne
