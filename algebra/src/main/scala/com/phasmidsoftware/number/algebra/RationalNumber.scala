@@ -341,6 +341,13 @@ object RationalNumber {
   val half: RationalNumber = RationalNumber(Rational.half)
 
   /**
+    * Represents a rational number with an infinite value.
+    *
+    * This value is constructed from the infinity representation of the `Rational` type.
+    */
+  val infinity: RationalNumber = RationalNumber(Rational.infinity)
+
+  /**
     * Provides an implicit implementation of the `Field` type class for the `RationalNumber` type.
     *
     * This object defines the standard operations required for `RationalNumber`

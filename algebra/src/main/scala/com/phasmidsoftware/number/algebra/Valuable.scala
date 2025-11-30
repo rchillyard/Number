@@ -54,6 +54,7 @@ trait Valuable extends Renderable with MaybeNumeric {
   * enabling parsing and conversion of strings to `Valuable` representations.
   */
 object Valuable {
+  // CONSIDER moving these to Eager
   lazy val zero: Eager = Number.zero
   lazy val one: Eager = Number.one
   lazy val minusOne: Eager = Number.minusOne

@@ -517,6 +517,8 @@ case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
       Some(Valuable.zero)
     case Valuable.zero =>
       Some(Valuable.negInfinity)
+    case Valuable.infinity =>
+      Some(x)
     case Valuable.minusOne =>
       Some(Eager(-ComplexPolar(core.Number.pi, core.Number.piBy2)))
     case _ =>
@@ -877,6 +879,10 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     *         or `None` if the operation fails to meet exactness requirements.
     */
   def applyExact(a: Eager, b: Eager): Option[Eager] = (a, b) match {
+    case (Valuable.one, _) =>
+      Some(Valuable.one)
+    case (_, com.phasmidsoftware.number.algebra.Real.infinity | RationalNumber.infinity) =>
+      Some(b)
     case (x: CanPower[Scalar] @unchecked, y: Q) if x.isExact && y.isExact =>
       for {
         f <- y.maybeFactor(AnyContext) if f == PureNumber

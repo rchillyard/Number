@@ -190,6 +190,8 @@ case class NatLog(x: Number) extends Logarithm(x) {
         value match {
           case WholeNumber.one | RationalNumber(Rational.one) =>
             Real(math.E)
+          case RationalNumber(Rational.infinity) =>
+            Real.∞
           case Real(value, fuzz) =>
             Real(math.log(value), fuzz)
           case _ =>

@@ -415,7 +415,25 @@ object Real {
     *
     * @return a `Real` initialized with the value of π and the default fuzziness level
     */
-  def pi: Real = apply(Math.PI)
+  val pi: Real = apply(Math.PI)
+
+  /**
+    * Represents a mathematical concept of positive infinity as a `Real` value.
+    *
+    * The symbol `∞` is predefined as a `Real` instance, initialized to `Double.PositiveInfinity`
+    * with no associated fuzziness. It serves to denote a value that is unbounded in the positive 
+    * direction within the context of real numbers.
+    */
+  val infinity: Real = Real(Double.PositiveInfinity, None)
+
+  /**
+    * Represents the mathematical concept of infinity within the `Real` class.
+    *
+    * This value is an alias for the predefined `infinity` constant in the `Real` class,
+    * which signifies a positive infinite quantity. It is typically used in calculations
+    * or scenarios where an infinitely large value is required or represented.
+    */
+  val ∞ : Real = infinity
 
   /**
     * Provides an implicit instance of `Show` for the `Real` type.
