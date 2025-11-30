@@ -55,6 +55,10 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
     SquareRoot.multiply(fromInt(2), fromInt(2), SquareRoot) shouldBe Some((fromInt(2), PureNumber, None))
     CubeRoot.multiply(fromInt(2), fromInt(3), SquareRoot) shouldBe Some((fromInt(108), AnyRoot(6), None))
   }
+  it should "handle percentages" in {
+    Percent.add(fromInt(1), fromInt(2), PureNumber) shouldBe Some((Left(Left(Some(2.01))), PureNumber, None))
+    PureNumber.add(fromInt(1), fromInt(2), Percent) shouldBe Some((Left(Left(Some(1.02))), PureNumber, None))
+  }
   it should "raise" in {
     PureNumber.raise(fromInt(3), fromInt(2), PureNumber) shouldBe Some((fromInt(9), PureNumber, None))
     SquareRoot.raise(fromInt(3), fromInt(2), PureNumber) shouldBe Some((fromInt(3), PureNumber, None))

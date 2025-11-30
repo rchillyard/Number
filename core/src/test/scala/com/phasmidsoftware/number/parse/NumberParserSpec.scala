@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core._
-import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational}
+import com.phasmidsoftware.number.core.inner._
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 import scala.util.{Left, Try}
@@ -12,6 +12,27 @@ import scala.util.{Left, Try}
   */
 class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
   private val p = NumberParser
+
+  behavior of "percentage"
+  it should "parse 10%" in {
+    val r: p.ParseResult[Number] = p.parseAll(p.number, "10%")
+    r should matchPattern { case p.Success(_, _) => }
+    r.get shouldBe ExactNumber(Right(10), Percent)
+    r.get.render shouldBe "10%"
+  }
+  it should "parse 10.35%" in {
+    val r: p.ParseResult[Number] = p.parseAll(p.number, "10.35%")
+    r should matchPattern { case p.Success(_, _) => }
+    r.get shouldBe ExactNumber(Value.fromRational(Rational(1035, 100)), Percent)
+    r.get.render shouldBe "10.35%"
+  }
+  it should "parse 10.352%" in {
+    val r: p.ParseResult[Number] = p.parseAll(p.number, "10.352%")
+    r should matchPattern { case p.Success(_, _) => }
+    val x: Number = r.get
+    x shouldBe FuzzyNumber(Value.fromRational(Rational(10352, 1000)), Percent, Some(AbsoluteFuzz(0.0005, Box)))
+    r.get.render shouldBe "10.3520[5]%"
+  }
 
   behavior of "numberWithFuzziness"
   it should "parse 1.0*" in {

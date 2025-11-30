@@ -1073,11 +1073,13 @@ object Number {
     }
 
   /**
-    * Method to construct a Number from a String.
+    * Method to construct a `Number` from a `String`.
     * This is by far the best way of creating the number that you really want.
     *
-    * @param x the String representation of the value.
-    * @return a Number based on x.
+    * CONSIDER why does this not invoke `apply(String,Factor)` in turn?
+    *
+    * @param x the `String` representation of the value.
+    * @return a Number based on `x`.
     */
   def apply(x: String): Number =
     parse(x) match {

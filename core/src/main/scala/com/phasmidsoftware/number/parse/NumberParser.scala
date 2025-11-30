@@ -24,10 +24,6 @@ abstract class BaseNumberParser extends BaseRationalParser {
     */
   def parseNumber(w: String): Try[Number] = stringParser(number, w)
 
-  trait WithFuzziness {
-    def fuzz: Option[Fuzziness[Double]]
-  }
-
   /**
     * Parser class to represent a number with fuzziness.
     *
@@ -64,8 +60,26 @@ abstract class BaseNumberParser extends BaseRationalParser {
     private def getExponent = maybeExponent.getOrElse("0").toInt
   }
 
+  /**
+    * Parses a token representing a number. The parsing process may provide
+    * a default fuzzy number if no explicit number is identified. The result
+    * is tagged for clarity to indicate the type of parser.
+    *
+    * @return a Parser that yields a Number instance. If the parsing does not
+    *         identify a concrete number, it defaults to a FuzzyNumber.
+    */
   def number: Parser[Number] = maybeNumber :| "number" ^^ { no => no.getOrElse(FuzzyNumber()) }
 
+  /**
+    * This method defines a parser that attempts to parse an optional numerical value.
+    * The parser evaluates two optional components: a general number and a factor.
+    * It returns an optional `Number`, based on the combination of these parsed components.
+    * The parsing process is labeled as "maybeNumber".
+    *
+    * @return a `Parser` that yields an `Option[Number]`.
+    *         The result is `Some(Number)` if either a general number or a factor is parsed,
+    *         or `None` if neither component is present.
+    */
   def maybeNumber: Parser[Option[Number]] = (opt(generalNumber) ~ opt(factor)) :| "maybeNumber" ^^ {
     case no ~ fo => optionalNumber(no, fo)
   }
@@ -87,15 +101,39 @@ abstract class BaseNumberParser extends BaseRationalParser {
     }
   }
 
-  def generalNumber: Parser[ValuableNumber] = (numberWithFuzziness | rationalNumber) :| "generalNumber"
+  /**
+    * Parses either a number with fuzziness or a rational number.
+    * This method combines the parsing of two distinct numeric formats:
+    * - A number with an optional degree of fuzziness.
+    * - A rational representation of a number.
+    * The parser attempts to parse input and tag the result as `generalNumber`.
+    *
+    * @return a Parser that yields a ValuableNumber.
+    *         The result is determined by the successful parsing of one of the numeric formats.
+    */
+  def generalNumber: Parser[ValuableNumber] =
+    (numberWithFuzziness | rationalNumber) :| "generalNumber"
 
-  def numberWithFuzziness: Parser[NumberWithFuzziness] = (realNumber ~ fuzz ~ opt(exponent)) :| "numberWithFuzziness" ^^ {
-    case rn ~ f ~ expo => NumberWithFuzziness(rn, f, expo)
-  }
+  /**
+    * Parses a representation of a number that includes an optional degree of fuzziness
+    * and an optional exponent. The parser expects a combination of a real number,
+    * fuzziness indicator, and possibly an exponent. The fuzziness can represent
+    * uncertainty or range encoded in specific formats like "*", "...", or digits in
+    * parentheses or brackets.
+    *
+    * @return a Parser that yields a `NumberWithFuzziness` instance. The result contains
+    *         the parsed real number, the optional fuzz description, and the optional
+    *         exponent value.
+    */
+  def numberWithFuzziness: Parser[NumberWithFuzziness] =
+    (realNumber ~ fuzz ~ opt(exponent)) :| "numberWithFuzziness" ^^ {
+      case rn ~ f ~ expo => NumberWithFuzziness(rn, f, expo)
+    }
 
   // NOTE: if you copy numbers from HTML, you may end up with an illegal "-" character.
   // Error message will be something like: string matching regex '-?\d+' expected but '−' found
-  def exponent: Parser[String] = (rE ~> wholeNumber) :| "exponent"
+  def exponent: Parser[String] =
+    (rE ~> wholeNumber) :| "exponent"
 
   private val rE = "[eE]".r
 
@@ -122,7 +160,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
   import Factor._
 
-  def factor: Parser[Factor] = (sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("factor")) :| "factor" ^^ { w => Factor(w) }
+  def factor: Parser[Factor] = (sPercent | sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("factor")) :| "factor" ^^ { w => Factor(w) }
 }
 
 object NumberParser extends BaseNumberParser

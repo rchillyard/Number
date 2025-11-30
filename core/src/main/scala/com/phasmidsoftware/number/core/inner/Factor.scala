@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.inner.Factor.composeDyadic
+import com.phasmidsoftware.number.core.inner.Factor.{composeDyadic, sPercent}
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, toIntOption}
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
-import com.phasmidsoftware.number.core.{Field, Number, Real}
+import com.phasmidsoftware.number.core.{Field, Fuzziness, Number, Real}
 import com.phasmidsoftware.number.misc.FP._
 import scala.language.implicitConversions
 import scala.util._
@@ -31,6 +31,13 @@ sealed trait Factor {
     * CONSIDER redefining this as a Number (which could be exact or fuzzy).
     */
   val value: Double
+
+  /**
+    * Determines whether the current scalar can be exactly converted to a PureNumber.
+    *
+    * @return true if the scalar represents an exact value; false otherwise.
+    */
+  def isExact: Boolean
 
   /**
     * Determines whether the current factor can be augmented by the given factor.
@@ -301,8 +308,18 @@ sealed trait Scalar extends Factor {
     *         or None if the operation cannot be performed under the given factor
     */
   def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] =
-    for {v <- Factor.composeDyadic(x, y)(DyadicOperationPlus) if this == f} yield (v, f, None)
-
+    (this, f) match {
+      case (a: PureNumber.type, b: PureNumber.type) =>
+        for {
+          v <- Factor.composeDyadic(x, y)(DyadicOperationPlus)
+        } yield (v, this, None)
+      case (a: PureNumber.type, b: Scalar) if b.isExact =>
+        b.convert(y, a) flatMap (v => a.add(x, v, PureNumber, negative))
+      case (b: Scalar, a: PureNumber.type) if b.isExact =>
+        b.convert(x, a) flatMap (v => a.add(y, v, PureNumber, negative))
+      case _ =>
+        None
+    }
 }
 
 /**
@@ -567,6 +584,13 @@ sealed trait InversePower extends Factor {
     * A value which can be used to convert a value associated with this Factor to a different Factor.
     */
   val value: Double = inversePower.toDouble
+
+  /**
+    * Determines whether the current scalar can be exactly converted to a PureNumber.
+    *
+    * @return true if the scalar represents an exact value; false otherwise.
+    */
+  def isExact: Boolean = false
 
   /**
     * Converts the given value into its root representation if applicable.
@@ -932,7 +956,17 @@ object NthRoot {
   * It includes functionality to render a string representation of a value.
   */
 case object PureNumber extends Scalar {
+  /**
+    * Represents a specific constant scalar value (1).
+    */
   val value: Double = 1
+
+  /**
+    * Determines whether the current scalar can be exactly converted to a PureNumber.
+    *
+    * @return true if the scalar represents an exact value; false otherwise.
+    */
+  def isExact: Boolean = true
 
   /**
     * Determines if the current factor satisfies certain conditions within the given context.
@@ -1008,6 +1042,90 @@ case object PureNumber extends Scalar {
     }
 }
 
+case object Percent extends Scalar {
+  /**
+    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    * CONSIDER redefining this as a Number (which could be exact or fuzzy).
+    */
+  val value: Double = 0.01
+
+  /**
+    * Determines whether the current scalar can be exactly converted to a PureNumber.
+    *
+    * @return true if the scalar represents an exact value; false otherwise.
+    */
+  def isExact: Boolean = true
+
+  /**
+    * Modulates the given value according to the context or rules defined by this factor.
+    *
+    * @param v the value to be modulated
+    * @return the modulated value
+    */
+  def modulate(v: Value): Value = v
+
+  /**
+    * Method to render a Value (which has already been converted to a String) in the context of this Factor.
+    *
+    * @param v a String representing the Value.
+    * @return a String.
+    */
+  def render(v: String): String = v + sPercent
+
+  /**
+    * Computes the multiplicative inverse of the given value if it exists.
+    *
+    * @param x the value to be inverted
+    * @return an optional `ProtoNumber` representing the inverse of `x`,
+    *         or `None` if the inverse cannot be computed
+    */
+  def invert(x: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] =
+    Value.maybeRational(x).map(r => (Value.fromRational(r.invert * 100), PureNumber, None))
+
+  /**
+    * Multiplies two values together and computes an appropriate factor for the result.
+    *
+    * @param x the first value
+    * @param y the multiplicand
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def multiply(x: Value, y: Value, f: Factor): Option[(Value, Factor, Option[Fuzziness[Double]])] =
+    // CONSIDER clean this up
+    f match {
+      case PureNumber =>
+        clean(for {
+          a <- Value.maybeRational(x)
+          b <- Value.maybeRational(y)
+          z = a * b
+        } yield (Value.fromRational(z), this, None))
+      case Percent =>
+        clean(for {
+          a <- Value.maybeRational(x)
+          b <- Value.maybeRational(y)
+          z = a * b
+        } yield (Value.fromRational(z / 100), this, None))
+      case _ =>
+        None
+    }
+
+  /**
+    * Raises the value `x` to the power of the value `y`.
+    *
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
+    */
+  def doRaiseByPureNumber(x: Value, y: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] =
+    for {
+      q <- Value.maybeRational(x)
+      result <- doRaiseByPureNumber(Value.fromRational(q / 100), y)
+    } yield result
+
+  override def toString: String = "%"
+}
+
 /**
   * This factor is primarily used for rotation by an angle.
   *
@@ -1030,6 +1148,13 @@ case object Radian extends Scalar {
     * This value is commonly used in trigonometric, geometric, and other mathematical computations.
     */
   val value: Double = Math.PI
+
+  /**
+    * Determines whether the current Radian instance represents an exact value.
+    *
+    * @return true if the instance is considered exact, false otherwise.
+    */
+  def isExact: Boolean = false
 
   /**
     * Modulates the provided value using a monadic transformation defined by
@@ -1068,7 +1193,6 @@ case object Radian extends Scalar {
     * @return a new string consisting of the input string followed by the symbol for pi
     */
   def render(x: String): String = x + Factor.sPi
-
 
   /**
     * Inverts the given value by raising it to the power of -1, using a pure number factor.
@@ -1126,6 +1250,13 @@ case object NatLog extends Logarithmic {
     */
   val value: Double = 1.0
 
+  /**
+    * Determines whether the current scalar can be exactly converted to a PureNumber.
+    *
+    * @return true if the scalar represents an exact value; false otherwise.
+    */
+  def isExact: Boolean = false
+
   override def toString: String = Factor.sE
 }
 
@@ -1155,6 +1286,13 @@ case object Euler extends Logarithmic {
     * Represents the default value for the `Euler` factor. Should not be used.
     */
   val value: Double = 1.0
+
+  /**
+    * Determines whether the current scalar can be exactly converted to a PureNumber.
+    *
+    * @return true if the scalar represents an exact value; false otherwise.
+    */
+  def isExact: Boolean = true
 
   override def toString: String = Factor.sEi
 }
@@ -1188,6 +1326,13 @@ case object Log2 extends Logarithmic {
     * This value is used in conversions (it's the natural log of 2, approximately 0.69).
     */
   val value: Double = math.log(2)
+
+  /**
+    * Determines whether the current scalar can be exactly converted to a PureNumber.
+    *
+    * @return true if the scalar represents an exact value; false otherwise.
+    */
+  def isExact: Boolean = false
 
   override def toString: String = "log2"
 
@@ -1228,6 +1373,13 @@ case object Log10 extends Logarithmic {
     * This value is a constant that evaluates to the natural logarithm (base e) of the number 10.
     */
   val value: Double = math.log(10)
+
+  /**
+    * Determines whether the current scalar can be exactly converted to a PureNumber.
+    *
+    * @return true if the scalar represents an exact value; false otherwise.
+    */
+  def isExact: Boolean = false
 
   override def toString: String = "log10"
 }
@@ -1460,6 +1612,13 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
   */
 object Factor {
   /**
+    * Represents the percent symbol (`%`) as a constant string.
+    *
+    * This field is used within the `Factor` class to identify specific behavior
+    * or matching criteria, potentially related to percentages or division operations.
+    */
+  val sPercent = "%"
+  /**
     * Represents the Unicode character ℯ (𝜀), which is commonly used to denote Euler's number in mathematics.
     */
   val sE = "\uD835\uDF00"
@@ -1517,6 +1676,8 @@ object Factor {
     *         - `PureNumber` otherwise.
     */
   def apply(w: String): Factor = w match {
+    case `sPercent` =>
+      Percent
     case `sPi` | `sPiAlt0` | `sPiAlt1` | `sPiAlt2` =>
       Radian
     case `sE` =>

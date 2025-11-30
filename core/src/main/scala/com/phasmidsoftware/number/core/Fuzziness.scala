@@ -766,6 +766,27 @@ case object Gaussian extends Shape {
 }
 
 /**
+  * Represents a trait that provides an optional fuzzy characteristic.
+  *
+  * This trait is used to encapsulate fuzziness-related behavior.
+  * The fuzziness is represented as an optional value of type `Fuzziness[Double]`.
+  *
+  * Suitable when there's a need to describe uncertain or imprecise values
+  * through a specific fuzziness model.
+  */
+trait WithFuzziness {
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]]
+}
+
+/**
   * Trait which models the behavior of something with (maybe) fuzziness.
   *
   * See also related trait Fuzzy[X] but note that there, the parametric type X
@@ -773,11 +794,7 @@ case object Gaussian extends Shape {
   *
   * @tparam T the type of fuzziness.
   */
-trait Fuzz[T] {
-  /**
-    * The (optional) fuzziness: if None, then there is no fuzziness.
-    */
-  val fuzz: Option[Fuzziness[T]]
+trait Fuzz[T] extends WithFuzziness {
 
   /**
     * Adds the provided fuzziness to the current `Fuzz[T]` and returns the resulting value.

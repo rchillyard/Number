@@ -40,6 +40,7 @@ object LaTeXParser {
   /**
     * Parses a sequence of numeric characters (digits) from the input and returns it as a string.
     * The parser succeeds if it encounters one or more numeric characters.
+    * TODO we need to handle the "%" character for a percentage values.
     * TODO we need to handle the "*[]" characters that specify precision here.
     * TODO we need to handle "e+-n" for scientific notation here.
     *
