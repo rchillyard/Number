@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.ExpressionContext.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAdd, CanMultiply, CanPower, Eager, ExpressionContext, ImpossibleContext, Number, Q, RationalNumber, RestrictedContext, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAdd, CanMultiply, CanPower, Eager, ExpressionContext, ImpossibleContext, Number, Q, RationalNumber, RestrictedContext, Scalable, Scalar, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Real}
@@ -801,6 +801,8 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       applyExact(x, y)
     case (x: Number, ValueExpression(y, _)) =>
       applyExact(x, y)
+    case (x: Scalable[Eager] @unchecked, y: Q) =>
+      Some(x * y.toRational)
     case _ =>
 //      println(s"Product:applyExact: a = $a, b = $b resulted in None")
       None

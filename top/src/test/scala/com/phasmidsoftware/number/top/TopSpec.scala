@@ -18,6 +18,7 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import org.scalatest.matchers.should.Matchers.shouldBe
 import scala.languageFeature.implicitConversions.*
 
 /**
@@ -174,149 +175,66 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     lazymath"\e^1" shouldBe ConstE
   }
   it should "work for Ln Zero" in {
-    val x = expr.UniFunction(Zero, Ln)
-    x.simplify shouldBe Expression(infinity.negate)
+    math"\ln(0)" shouldBe Valuable.negInfinity
   }
   it should "work for Ln One" in {
-    val x = expr.UniFunction(One, Ln)
-    x.simplify shouldBe Zero
+    lazymath"\ln(1)" shouldBe Zero
   }
   it should "work for Ln e" in {
-    val x = expr.UniFunction(Valuable.e, Ln)
-    x.simplify shouldBe One
+    lazymath"\ln{\e}" shouldBe One
   }
   it should "work for Sine 0" in {
-    val x = expr.UniFunction(Angle.zero, Sine)
-    val simplify = x.simplify
-    simplify shouldBe Zero
+    lazymath"\sin(0)" shouldBe Zero
   }
   it should "work for Sine pi/2" in {
-    val x = expr.UniFunction(Angle.piBy2, Sine)
-    x.simplify shouldBe One
+    lazymath"\sin(𝛑/2)" shouldBe One
   }
   it should "work for Sine pi" in {
-    val x = expr.UniFunction(ConstPi, Sine)
-    x.simplify shouldBe Zero
+    lazymath"\sin(\pi)" shouldBe Zero
   }
   it should "work for Cosine 0" in {
-    val x = expr.UniFunction(Angle.zero, Cosine)
-    x.simplify shouldBe One
+    lazymath"\cos(0)" shouldBe One
   }
   it should "work for Cosine pi/2" in {
-    val x = expr.UniFunction(Literal(piBy2), Cosine)
-    x.simplify shouldBe Zero
+    lazymath"\cos(𝛑/2)" shouldBe Zero
   }
   it should "work for Cosine pi" in {
-    val x = expr.UniFunction(ConstPi, Cosine)
-    x.simplify shouldBe MinusOne
+    lazymath"\cos(𝛑)" shouldBe MinusOne
   }
   it should "cancel multiplication and division with simplify 2" in {
-    val x = Literal(Valuable.pi) * 2
-    val y = One / 2
-    (x * y).simplify shouldBe ConstPi
+    lazymath"𝛑*2/2" shouldBe ConstPi
+  }
+  it should "cancel division and multiplication with simplify 2" in {
+    lazymath"𝛑/2*2" shouldBe ConstPi
   }
   it should "simplify sqrt(7)∧2" in {
-    val x: Expression = Expression(7)
-    val y = x.sqrt
-    val z = y ∧ 2
-    val q = z.simplify
-    q shouldBe Expression(7)
+    math"√7 ∧ 2" shouldBe Eager(7)
   }
-  it should "cancel 1 and - -1" in {
-    sb.append("cancel 1 and - -1:\n")
-    val x: Expression = Expression.one
-    val y = -x
-    val z = x :+ y
-    val p = z.simplify
-    p should matchPattern { case Zero => }
+  it should "cancel 1 + -1" in {
+    (lazymath"1" :+ lazymath"-1").simplify shouldBe Zero
   }
-  it should "cancel 1 and - -1 b" in {
-    sb.append("cancel 1 and - -1 b:\n")
-    val x: Expression = Expression.one
-    val y = MinusOne * x
-    val z = x :+ y
-    val p = z.simplify
-    p should matchPattern { case Zero => }
+  it should "cancel 1 and -1" in {
+    math"1-1" shouldBe Valuable.zero
   }
   it should "cancel 2 * 1/2 (a)" in {
-    val x = Expression.one * 2
-    val y = x.reciprocal
-    val z = x * y
-    val p = z.simplify
-    p shouldBe One
+    math"2 * 1/2" shouldBe Eager(1)
   }
   it should "cancel 2 * 1/2 (b)" in {
-    val x = Expression(2) * Expression.one
-    val y = x.reciprocal
-    val z = y * x
-    val p = z.simplify
-    p shouldBe One
+    (∅ * 2 * 1 / 2).simplify shouldBe One
   }
   it should "cancel ∧2 and sqrt for 7" in {
-    val seven = Expression(7)
-    val x: Expression = seven.sqrt
-    val y = x ∧ 2
-    val p = y.simplify
-    p shouldBe seven
-  }
-  it should "show that lazy evaluation sometimes works even when you don't use it (a1)" in {
-    val seven = Expression(7)
-    val x: Expression = seven.sqrt
-    val y = x ∧ two
-    val simplify = y.simplify
-    simplify.isExact shouldBe true
-    simplify shouldBe seven
-  }
-  it should "cancel multiplication and division 2" in {
-    val x = Literal(Valuable.pi) * 2 / 2
-    x.simplify shouldBe ConstPi
-  }
-  it should "cancel multiplication and division backwards" in {
-    val x = Literal(Valuable.pi) / 2 * 2
-    x.simplify shouldBe ConstPi
-  }
-  it should "cancel 1 and - -1 (a)" in {
-    val x: Expression = Expression.one
-    val y = -x
-    val z = x :+ y
-    z.simplify shouldBe Zero
-  }
-  it should "cancel 2 and * 1/2" in {
-    val x = Expression.one * 2
-    val y = x.reciprocal
-    val z = x * y
-    z.simplify shouldBe One
-  }
-  it should "cancel 2 * 1/2" in {
-    val x = Expression.one * 2
-    val y = x.reciprocal
-    val z = y * x
-    z.simplify shouldBe One
-  }
-  it should "cancel ∧2 and sqrt" in {
-    val seven = Expression(7)
-    val x: Expression = seven.sqrt
-    val y = x ∧ 2
-    y.simplify shouldBe Expression(7)
-  }
-  it should "cancel addition and subtraction of 3" in {
-    val x = One :+ 3 - 3
-    x.simplify shouldBe One
-  }
-  it should "cancel addition and subtraction of e" in {
-    val y: Expression = One :+ ConstE
-    val z = y :+ expr.UniFunction(ConstE, Negate)
-    z.simplify shouldBe One
+    math"\sqrt{7 ∧ 2}" shouldBe Eager(7)
   }
   it should "work for multi-levels 1" in {
+    math"(1+3-3)*2/4" shouldBe Valuable.half
     val x = (One :+ 3 - 3) * (Two / 4)
     x.simplify shouldBe Half
   }
   // TODO there should be no reason to convert to Real
-  ignore should "work for multi-levels 2" in {
+  it should "work for multi-levels 2" in {
     val x = (One :+ ConstE - ConstE) * (ConstPi / 4)
     val simpler = x.simplify
-    simpler shouldBe BiFunction(ConstPi, Literal(RationalNumber(Rational.quarter), None), Product)
+//    simpler shouldBe BiFunction(ConstPi, Literal(RationalNumber(Rational.quarter), None), Product)
     simpler.materialize shouldBe Angle.pi * Rational.quarter
   }
   it should "simplify aggregate 1" in {

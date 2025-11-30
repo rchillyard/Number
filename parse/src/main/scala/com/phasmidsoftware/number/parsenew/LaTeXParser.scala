@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.algebra.Eager
+import com.phasmidsoftware.number.algebra.{Angle, Eager}
 import com.phasmidsoftware.number.core.Constants
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.*
@@ -112,7 +112,7 @@ object LaTeXParser {
     *         include an exponentiation operation.
     */
   private def power[X: P]: P[MathExpr] =
-    P(unary ~ (ws ~ "^" ~ ws ~ exponent).?).map {
+    P(unary ~ (ws ~ ("^" | "∧") ~ ws ~ exponent).?).map {
       case (base, Some(exp)) =>
         BiFunction(base, exp, Power)
       case (base, None) =>
@@ -143,6 +143,42 @@ object LaTeXParser {
     P("{" ~ ws ~ expr ~ ws ~ "}" | atom)
 
   /**
+    * Transforms a tuple representing a function and its argument into a corresponding `MathExpr`.
+    * The function name and the argument are used to construct a mathematical expression using
+    * predefined operations such as sine, cosine, tangent, natural logarithm, exponential, reciprocal
+    * and negation. Throws a `LaTeXParserException` if the provided function name is not recognized.
+    *
+    * Supported functions:
+    * - "sin": Represents the sine function.
+    * - "cos": Represents the cosine function.
+    * - "tan": Represents the tangent function, constructed as sin(x) / cos(x).
+    * - "ln": Represents the natural logarithm function.
+    * - "exp": Represents the exponential function.
+    * - "rec": Represents the reciprocal function.
+    * - "neg": Represents the negation function.
+    *
+    * @throws LaTeXParserException if the function name is not recognized.
+    */
+  private val tupleToFunctionExpression: ((String, MathExpr)) => MathExpr = {
+    case ("sin", arg) =>
+      UniFunction(trigTransform(arg), Sine)
+    case ("cos", arg) =>
+      UniFunction(trigTransform(arg), Cosine)
+    case ("tan", arg) =>
+      BiFunction(UniFunction(trigTransform(arg), Sine), UniFunction(UniFunction(trigTransform(arg), Cosine), Reciprocal), Product)
+    case ("ln", arg) =>
+      UniFunction(arg, Ln)
+    case ("exp", arg) =>
+      UniFunction(arg, Exp)
+    case ("rec", arg) =>
+      UniFunction(arg, Reciprocal)
+    case ("neg", arg) =>
+      UniFunction(arg, Negate)
+    case (x, _) =>
+      throw LaTeXParserException(s"unknown function: $x")
+  }
+
+  /**
     * Parses mathematical expressions representing specific functions such as sine, cosine, tangent,
     * natural logarithm, or exponential, based on LaTeX syntax.
     *
@@ -161,27 +197,12 @@ object LaTeXParser {
     *
     * @return a parsed `MathExpr` representing the function operation applied to the argument.
     */
-  private def function[X: P]: P[MathExpr] = P(
-    "\\" ~ (
-        "sin" | "cos" | "tan" | "ln" | "exp" | "rec" | "neg"
-        ).! ~ ws ~ (("{" ~ ws ~ expr ~ ws ~ "}") | atom)
-  ).map {
-    case ("sin", arg) =>
-      UniFunction(arg, Sine)
-    case ("cos", arg) =>
-      UniFunction(arg, Cosine)
-    case ("tan", arg) =>
-      BiFunction(UniFunction(arg, Sine), UniFunction(UniFunction(arg, Cosine), Reciprocal), Product)
-    case ("ln", arg) =>
-      UniFunction(arg, Ln)
-    case ("exp", arg) =>
-      UniFunction(arg, Exp)
-    case ("rec", arg) =>
-      UniFunction(arg, Reciprocal)
-    case ("neg", arg) =>
-      UniFunction(arg, Negate)
-    case (x, _) =>
-      throw LaTeXParserException(s"unknown function: $x")
+  private def function[X: P]: P[MathExpr] = {
+    P(
+      "\\" ~ (
+          "sin" | "cos" | "tan" | "ln" | "exp" | "rec" | "neg"
+          ).! ~ ws ~ (("{" ~ ws ~ expr ~ ws ~ "}") | atom)
+    ).map(tupleToFunctionExpression)
   }
 
   /**
@@ -282,6 +303,19 @@ object LaTeXParser {
     * @return a `P[MathExpr]` representing a fully parsed mathematical expression.
     */
   private def parseExpr[X: P]: P[MathExpr] = P(expr ~ End)
+
+  /**
+    * Transforms a given mathematical expression into a trigonometric representation.
+    *
+    * @param atom The mathematical expression to be transformed. This parameter represents an
+    *             instance of MathExpr that is processed to determine its trigonometric equivalent.
+    * @return A Literal containing the trigonometric representation of the input expression,
+    *         or the original expression if no transformation applies.
+    */
+  private def trigTransform(atom: MathExpr): MathExpr = atom match {
+    case Zero => Literal(Angle.zero)
+    case x => x
+  }
 }
 
 case class LaTeXParserException(message: String) extends RuntimeException(message)

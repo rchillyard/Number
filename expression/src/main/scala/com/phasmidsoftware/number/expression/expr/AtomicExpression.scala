@@ -248,16 +248,22 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *                qualification rules for determining whether the Valuable is valid.
     * @return `Some(Valuable)` if the Valuable qualifies within the given context, otherwise `None`.
     */
-  def evaluate(context: ExpressionContext): Option[Eager] = value match {
-    case nat: Nat =>
-      Some(nat)
-    case normalizable: CanNormalize[?] =>
-      Option.when(normalizable.maybeFactor(context).isDefined && context.valuableQualifies(normalizable))(normalizable.normalize)
-    case structure: Structure =>
-      Option.when(structure.maybeFactor(context).isDefined && context.valuableQualifies(structure))(value)
-    case _ =>
-      throw NumberException(s"evaluate: cannot evaluate $value in $context")
-  }
+  def evaluate(context: ExpressionContext): Option[Eager] =
+    if (context.valuableQualifies(value))
+      Some(value)
+    else
+      value match {
+        case nat: Nat =>
+          Some(nat)
+        case normalizable: CanNormalize[?] =>
+          // CONSIDER putting the conditional in the pattern
+          Option.when(normalizable.maybeFactor(context).isDefined && context.valuableQualifies(normalizable))(normalizable.normalize)
+        case structure: Structure =>
+          // CONSIDER putting the conditional in the pattern
+          Option.when(structure.maybeFactor(context).isDefined && context.valuableQualifies(structure))(value)
+        case _ =>
+          throw NumberException(s"evaluate: cannot evaluate $value in $context")
+      }
 
   /**
     * Provides an approximation of this number, if applicable.

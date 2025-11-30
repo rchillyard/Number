@@ -300,7 +300,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work for multi-levels 2" in {
     val x = (One :+ ConstE - ConstE) * (ConstPi / 4)
     val simpler = matchSimpler(x).get
-    simpler shouldBe BiFunction(ConstPi, Literal(RationalNumber(Rational.quarter), None), Product)
+    simpler shouldBe Literal(Angle(Rational.quarter), Some("¼𝛑"))
   }
 
   behavior of "multiple matchSimpler"
@@ -670,7 +670,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work for multi-levels 2" in {
     val x = (One :+ ConstE - ConstE) * (ConstPi / 4)
     val simpler = x.simplify
-    simpler shouldBe BiFunction(ConstPi, Literal(RationalNumber(Rational.quarter), None), Product)
+    simpler shouldBe Literal(Angle(Rational.quarter), Some("¼𝛑"))
   }
 
   behavior of "complementaryTermsEliminatorAggregate"
