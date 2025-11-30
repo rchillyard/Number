@@ -33,6 +33,29 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     x shouldBe FuzzyNumber(Value.fromRational(Rational(10352, 1000)), Percent, Some(AbsoluteFuzz(0.0005, Box)))
     r.get.render shouldBe "10.3520[5]%"
   }
+  behavior of "degree"
+  it should "parse 180°" in {
+    val r: p.ParseResult[Number] = p.parseAll(p.number, "180°")
+    r.successful shouldBe true
+    val x: Number = r.get
+    x shouldBe ExactNumber(Right(180), Degree)
+    x.render shouldBe "180°"
+    val radians: Option[Value] = Degree.convert(x.nominalValue, Radian)
+    radians shouldBe Some(Left(Left(Some(1))))
+  }
+  it should "parse -180°" in {
+    val r: p.ParseResult[Number] = p.parseAll(p.number, "-180°")
+    r.successful shouldBe true
+    r.get shouldBe ExactNumber(Right(-180), Degree)
+    r.get.render shouldBe "-180°"
+  }
+  it should "parse 0°" in {
+    val r: p.ParseResult[Number] = p.parseAll(p.number, "0°")
+    r.successful shouldBe true
+    val x: Number = r.get
+    r.get shouldBe ExactNumber(Right(0), Degree)
+    r.get.render shouldBe "0°"
+  }
 
   behavior of "numberWithFuzziness"
   it should "parse 1.0*" in {

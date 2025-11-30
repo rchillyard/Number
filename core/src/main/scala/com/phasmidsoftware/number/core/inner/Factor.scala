@@ -1042,6 +1042,10 @@ case object PureNumber extends Scalar {
     }
 }
 
+/**
+  * The `Percent` object represents the percentage scalar.
+  * It serves as a factor for scaling values, interpreting them as percentages.
+  */
 case object Percent extends Scalar {
   /**
     * A value which can be used to convert a value associated with this Factor to a different Factor.
@@ -1193,6 +1197,89 @@ case object Radian extends Scalar {
     * @return a new string consisting of the input string followed by the symbol for pi
     */
   def render(x: String): String = x + Factor.sPi
+
+  /**
+    * Inverts the given value by raising it to the power of -1, using a pure number factor.
+    *
+    * @param x the value to be inverted
+    * @return None.
+    */
+  def invert(x: Value): Option[ProtoNumber] =
+    None
+
+  /**
+    * Multiplies x with y provided that f is a PureNumber.
+    *
+    * @param x the first value
+    * @param y the multiplicand
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+    clean(for {v <- Factor.composeDyadic(x, y)(DyadicOperationTimes); if f == PureNumber} yield (v, this, None))
+
+  /**
+    * Raises the value `x` to the power of the value `y`.
+    *
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
+    */
+  def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] = None
+}
+
+/**
+  * Case object representing the Degree unit, which is a scalar factor for angle measurements.
+  * It provides functionality to convert, manipulate, and perform mathematical operations
+  * associated with the degree unit.
+  */
+case object Degree extends Scalar {
+  /**
+    * Represents the conversion factor from degrees to radians.
+    * The value is defined as the mathematical constant π divided by 180.
+    */
+  val value: Double = math.Pi / 180
+
+  /**
+    * Determines whether the current Radian instance represents an exact value.
+    *
+    * @return true if the instance is considered exact, false otherwise.
+    */
+  def isExact: Boolean = false
+
+  /**
+    * Modulates a given `Value` within the range of -180 to 180, using a monadic transformation.
+    *
+    * @param value the `Value` to be modulated.
+    * @return the modulated `Value`. If the transformation fails, the original `Value` is returned.
+    */
+  def modulate(value: Value): Value =
+    (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-180, 180, circular = false).functions)} yield v) getOrElse value
+
+  /**
+    * Determines whether `this` factor can be raised by the given factor `f`.
+    *
+    * @param f the factor to be checked for compatibility with raising to a power.
+    * @return true if the factors can be powered; false otherwise.
+    */
+  override def canRaise(f: Factor, exponent: Field): Boolean =
+    exponent.isZero || exponent.isUnity
+
+  /**
+    * Returns the string representation of the `Radian` factor.
+    *
+    * @return a string representation of the mathematical constant π.
+    */
+  override def toString: String = Factor.sDegree
+
+  /**
+    * Renders a string by appending the mathematical symbol for pi (π).
+    *
+    * @param x the input string to which the mathematical symbol for pi will be appended
+    * @return a new string consisting of the input string followed by the symbol for pi
+    */
+  def render(x: String): String = x + Factor.sDegree
 
   /**
     * Inverts the given value by raising it to the power of -1, using a pure number factor.
@@ -1619,6 +1706,10 @@ object Factor {
     */
   val sPercent = "%"
   /**
+    * Represents the degree symbol ("°") used to denote angular measurement.
+    */
+  val sDegree = "°"
+  /**
     * Represents the Unicode character ℯ (𝜀), which is commonly used to denote Euler's number in mathematics.
     */
   val sE = "\uD835\uDF00"
@@ -1678,6 +1769,8 @@ object Factor {
   def apply(w: String): Factor = w match {
     case `sPercent` =>
       Percent
+    case `sDegree` =>
+      Degree
     case `sPi` | `sPiAlt0` | `sPiAlt1` | `sPiAlt2` =>
       Radian
     case `sE` =>

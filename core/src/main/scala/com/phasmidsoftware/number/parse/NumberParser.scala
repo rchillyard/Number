@@ -22,7 +22,8 @@ abstract class BaseNumberParser extends BaseRationalParser {
     * @param w the String to parse.
     * @return a Number, wrapped in Try.
     */
-  def parseNumber(w: String): Try[Number] = stringParser(number, w)
+  def parseNumber(w: String): Try[Number] =
+    stringParser(number, w)
 
   /**
     * Parser class to represent a number with fuzziness.
@@ -33,7 +34,8 @@ abstract class BaseNumberParser extends BaseRationalParser {
     */
   case class NumberWithFuzziness(realNumber: RealNumber, fuzziness: Option[String], maybeExponent: Option[String]) extends ValuableNumber with WithFuzziness {
 
-    def value: Try[Rational] = realNumber.value.map(r => r.applyExponent(getExponent))
+    def value: Try[Rational] =
+      realNumber.value.map(r => r.applyExponent(getExponent))
 
     def fuzz: Option[Fuzziness[Double]] = fuzziness match {
       // XXX: first we deal with the "None" case
@@ -57,7 +59,8 @@ abstract class BaseNumberParser extends BaseRationalParser {
     }
 
     // CONSIDER making this a method and having two places call it
-    private def getExponent = maybeExponent.getOrElse("0").toInt
+    private def getExponent =
+      maybeExponent.getOrElse("0").toInt
   }
 
   /**
@@ -68,7 +71,8 @@ abstract class BaseNumberParser extends BaseRationalParser {
     * @return a Parser that yields a Number instance. If the parsing does not
     *         identify a concrete number, it defaults to a FuzzyNumber.
     */
-  def number: Parser[Number] = maybeNumber :| "number" ^^ { no => no.getOrElse(FuzzyNumber()) }
+  def number: Parser[Number] =
+    maybeNumber :| "number" ^^ { no => no.getOrElse(FuzzyNumber()) }
 
   /**
     * This method defines a parser that attempts to parse an optional numerical value.
@@ -80,9 +84,10 @@ abstract class BaseNumberParser extends BaseRationalParser {
     *         The result is `Some(Number)` if either a general number or a factor is parsed,
     *         or `None` if neither component is present.
     */
-  def maybeNumber: Parser[Option[Number]] = (opt(generalNumber) ~ opt(factor)) :| "maybeNumber" ^^ {
-    case no ~ fo => optionalNumber(no, fo)
-  }
+  def maybeNumber: Parser[Option[Number]] =
+    (opt(generalNumber) ~ opt(factor)) :| "maybeNumber" ^^ {
+      case no ~ fo => optionalNumber(no, fo)
+    }
 
   /**
     * Method to parse fuzz, consisting of the strings "*", "...", or one or two digits enclosed in () or [].
@@ -156,12 +161,45 @@ abstract class BaseNumberParser extends BaseRationalParser {
       }
     else None
 
-  private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzziness[Double]] = Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
+  /**
+    * Calculates fuzziness based on the given exponent and decimal places.
+    *
+    * @param exponent      the exponent used in the calculation, representing the magnitude.
+    * @param decimalPlaces the number of decimal places to account for in the calculation.
+    * @return an `Option` containing a `Fuzziness[Double]` instance if the calculation succeeds.
+    */
+  private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzziness[Double]] =
+    Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
 
   import Factor._
 
-  def factor: Parser[Factor] = (sPercent | sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("factor")) :| "factor" ^^ { w => Factor(w) }
+  /**
+    * Parses a factor from the input. A factor can represent specific mathematical constants,
+    * symbols, or degrees. The parser attempts to match various predefined symbols such as
+    * a percentage sign, degree symbol, multiple representations of π, or Euler's number.
+    * If none of these are matched, the parser will fail with a defined error message.
+    *
+    * @return a `Parser` that produces a `Factor` instance.
+    *         The result encapsulates the matched symbol or numerical value of the factor.
+    */
+  def factor: Parser[Factor] = (sPercent | sDegree | sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("factor")) :| "factor" ^^ { w => Factor(w) }
 }
 
+/**
+  * Object for parsing numerical values, extending the functionality of the
+  * `BaseNumberParser` class. Provides methods for parsing, interpreting, and
+  * representing numbers, potentially with fuzziness, exponents, and other
+  * modifications.
+  *
+  * This object specializes in defining the parsing rules for various numeric
+  * representations, including:
+  * - Simple numbers or rational numbers.
+  * - Numbers with fuzziness or uncertainty.
+  * - Factors representing constants, symbols, or mathematical concepts.
+  *
+  * The parsing logic accounts for optional components such as fractional parts
+  * and exponents, and encapsulates results within domain-specific types, such
+  * as `Number`, `NumberWithFuzziness`, and `ValuableNumber`.
+  */
 object NumberParser extends BaseNumberParser
 
