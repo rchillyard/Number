@@ -40,22 +40,53 @@ object LaTeXParser {
   /**
     * Parses a sequence of numeric characters (digits) from the input and returns it as a string.
     * The parser succeeds if it encounters one or more numeric characters.
-    * TODO we need to handle the "%" character for a percentage values.
-    * TODO we need to handle the "*[]" characters that specify precision here.
-    * TODO we need to handle "e+-n" for scientific notation here.
     *
     * @return a parser that extracts a sequence of digits as a string.
     */
   private def digits[X: P]: P[String] = P(CharsWhileIn("0-9")).!
 
   /**
+    * Parses a scientific notation exponent (e.g., "e10", "E-5").
+    *
+    * @return a parser that extracts the exponent value as an integer.
+    */
+  private def scientificExponent[X: P]: P[Int] =
+    P(CharIn("eE") ~ CharIn("+\\-").? ~ digits).!.map { s =>
+      // Remove the 'e' or 'E' prefix and parse
+      s.substring(1).toInt
+    }
+
+  /**
+    * Parses a unit suffix (% for percent, ° for degree).
+    *
+    * @return a parser that extracts the unit suffix as a String.
+    */
+  private def unitSuffix[X: P]: P[String] = P(CharIn("%°").!)
+
+  /**
     * Parses a mathematical number, which can include an optional negative sign,
-    * an optional decimal point with digits before and/or after it.
+    * an optional decimal point with digits before and/or after it, optional scientific notation,
+    * and optional unit suffix (% or °).
     *
     * @return a `P[MathExpr]` representing the parsed mathematical expression.
     */
   def number[X: P]: P[MathExpr] =
-    P(("-".? ~ digits ~ ("." ~ digits).?).!).map(s => Expression(s))
+    P("-".!.? ~ digits ~ ("." ~ digits).? ~ scientificExponent.? ~ unitSuffix.?).map {
+      case (sign, intPart, fracPart, expPart, unitPart) =>
+        // Construct the base numeric string
+        val signStr = sign.getOrElse("")
+        val fracStr = fracPart.map(f => s".$f").getOrElse("")
+        val unitStr = unitPart.getOrElse("")
+        val baseNumStr = s"$signStr$intPart$fracStr"
+
+        // Apply scientific notation if present
+        val numStr = expPart match {
+          case Some(exp) => s"${baseNumStr}e$exp$unitStr"
+          case None => s"$baseNumStr$unitStr"
+        }
+
+        Eager(numStr)
+    }
 
   /**
     * Parses specific mathematical symbols represented as strings into their corresponding mathematical constants.
@@ -114,7 +145,7 @@ object LaTeXParser {
     *         include an exponentiation operation.
     */
   private def power[X: P]: P[MathExpr] =
-    P(unary ~ (ws ~ ("^" | "∧") ~ ws ~ exponent).?).map {
+    P(unary ~ (ws ~ ("^" | "∧") ~ ws ~ powerExponent).?).map {
       case (base, Some(exp)) =>
         BiFunction(base, exp, Power)
       case (base, None) =>
@@ -141,7 +172,7 @@ object LaTeXParser {
     *
     * @return a parser combinator `P` that results in a `MathExpr` representing the parsed exponent.
     */
-  private def exponent[X: P]: P[MathExpr] =
+  private def powerExponent[X: P]: P[MathExpr] =
     P("{" ~ ws ~ expr ~ ws ~ "}" | atom)
 
   /**
@@ -219,7 +250,7 @@ object LaTeXParser {
     * Parses a symbolic mathematical atom, which includes non-numeric entities like functions, symbols, fractions,
     * square roots, or a parenthesized expression.
     *
-    * @return A parser that parses and returns a `MathExpr` representing the symbolic mathematical atom.
+    * @return A parser that produces a `MathExpr` representing the symbolic mathematical atom.
     */
   private def symbolicAtom[X: P]: P[MathExpr] = P(
     function |
@@ -228,6 +259,7 @@ object LaTeXParser {
         sqrt |
         "(" ~ ws ~ expr ~ ws ~ ")"
   )
+
   /**
     * Parses a mathematical expression with potential implicit multiplication.
     * Recognizes a sequence of elements consisting of a power expression followed

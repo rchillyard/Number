@@ -63,4 +63,9 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
     parsed.get.value.evaluateAsIs shouldBe Some(WholeNumber(14))
   }
 
+  behavior of "degrees and percentages"
+  ignore should "parse percentages and degrees" in {
+    p("50%") shouldBe Parsed.Success(Literal(???, Some("50%")), 3) // TODO fix this
+    p("90°") shouldBe Parsed.Success(Literal(???, Some("90°")), 3) // TODO fix this
+  }
 }

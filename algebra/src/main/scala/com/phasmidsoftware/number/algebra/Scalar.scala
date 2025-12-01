@@ -127,6 +127,7 @@ object Scalar {
             throw NumberException(s"Scalar.createScalar: unsupported inverse power $factor")
         }
       case _ =>
+        // TODO implement other factors (%, and degrees)
         throw NumberException(s"Scalar.createScalar: unsupported factor $factor")
     }
   }
