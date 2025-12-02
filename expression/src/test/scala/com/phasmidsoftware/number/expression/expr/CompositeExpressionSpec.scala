@@ -31,8 +31,10 @@ class CompositeExpressionSpec extends AnyFlatSpec with should.Matchers {
     //    val e = math"\\sin(\\pi) * -1"
     val e = Expression("sin(𝛑) * -1")
     e match {
-      case expression: CompositeExpression => expression.simplifyExact(expression).successful shouldBe false
-      case x => fail(s"expected CompositeExpression, got $x")
+      case expression: CompositeExpression =>
+        expression.simplifyExact(expression).successful shouldBe false
+      case x =>
+        fail(s"expected CompositeExpression, got $x")
     }
   }
   it should "simplifyExact 3" in {

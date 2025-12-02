@@ -36,12 +36,17 @@ abstract class BaseMillParser extends BaseNumberParser {
     */
   trait Term {
     def toItems: Seq[Item] = this match {
-      case AnadicTerm(x) => x match {
-        case Left(w) => Seq(Item(w))
-        case Right(n) => Seq(Expr(TerminalExpression(n)))
-      }
-      case MonadicTerm(x, os, p) => x.toItems ++ os.map(Item(_)) :+ Item(p)
-      case DyadicTerm(x, p) => x.toItems ++ p.toItems
+      case AnadicTerm(x) =>
+        x match {
+          case Left(w) =>
+            Seq(Item(w))
+          case Right(n) =>
+            Seq(Expr(TerminalExpression(n)))
+        }
+      case MonadicTerm(x, os, p) =>
+        x.toItems ++ os.map(Item(_)) :+ Item(p)
+      case DyadicTerm(x, p) =>
+        x.toItems ++ p.toItems
     }
   }
 
@@ -52,8 +57,10 @@ abstract class BaseMillParser extends BaseNumberParser {
     */
   case class AnadicTerm(t: Token) extends Term {
     override def toString: String = t match {
-      case Right(x) => x.toString
-      case Left(x) => x
+      case Right(x) =>
+        x.toString
+      case Left(x) =>
+        x
     }
   }
 
@@ -95,8 +102,10 @@ abstract class BaseMillParser extends BaseNumberParser {
     */
   def anadicTerm: Parser[AnadicTerm] =
     (maybeNumber ?| anadicOperator) :| "anadicTerm" ^^ {
-      case Left(x) => AnadicTerm(Left(x))
-      case Right(w) => AnadicTerm(Right(w))
+      case Left(x) =>
+        AnadicTerm(Left(x))
+      case Right(w) =>
+        AnadicTerm(Right(w))
     }
 
   /**
@@ -107,12 +116,14 @@ abstract class BaseMillParser extends BaseNumberParser {
     */
   def monadicTerm: Parser[MonadicTerm] =
     (trim(monadicOperator) ~ trim(repSepSp(neutralOperator1)) ~ term) :| "monadicTerm" ^^ {
-      case y ~ os ~ x => MonadicTerm(x, os, y)
+      case y ~ os ~ x =>
+        MonadicTerm(x, os, y)
     }
 
   def dyadicTerm: Parser[Term] =
     (trim(dyadicOperator) ~ trim(repSepSp(neutralOperator2)) ~ trim(term) ~ term) :| "dyadicTerm" ^^ {
-      case z ~ os ~ y ~ x => DyadicTerm(x, MonadicTerm(y, os, z))
+      case z ~ os ~ y ~ x =>
+        DyadicTerm(x, MonadicTerm(y, os, z))
     }
 
   def dyadicOperator: Parser[String] =
@@ -142,4 +153,3 @@ abstract class BaseMillParser extends BaseNumberParser {
 }
 
 object MillParser extends BaseMillParser
-

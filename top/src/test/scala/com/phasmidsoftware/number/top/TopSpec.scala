@@ -178,7 +178,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     // CONSIDER should this be Real.∞ instead?
     math"\e^∞" shouldBe RationalNumber(Rational.infinity)
   }
-  ignore should "work for Exp neg Infinity" in {
+  it should "work for Exp neg Infinity" in {
     // TODO allow Negative Infinity to be used in expressions.
     val x = expr.UniFunction(Expression(infinity.negate), Exp).simplify
     x shouldBe Zero

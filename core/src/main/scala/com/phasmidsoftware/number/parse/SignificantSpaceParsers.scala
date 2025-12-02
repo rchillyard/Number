@@ -22,10 +22,12 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @return a Try[X].
     */
   def stringParser[X](p: Parser[X], w: String): Try[X] = parseAll(p, w) match {
-    case Success(t, _) => scala.util.Success(t)
+    case Success(t, _) =>
+      scala.util.Success(t)
     case Failure(m, x) =>
       scala.util.Failure(SignificantSpaceParserException(s"""$m did not match "${x.source}" at offset ${x.offset}"""))
-    case Error(m, _) => scala.util.Failure(SignificantSpaceParserException(m))
+    case Error(m, _) =>
+      scala.util.Failure(SignificantSpaceParserException(m))
   }
 
   /**
@@ -42,7 +44,8 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam T the underlying type of p.
     * @return a Parser[T] that ignores trailing white space.
     */
-  def trim[T](p: Parser[T]): Parser[T] = p <~ opt(whiteSpace)
+  def trim[T](p: Parser[T]): Parser[T] =
+    p <~ opt(whiteSpace)
 
   /**
     * A parser which parses a list of Ts separated by white space.
@@ -51,7 +54,8 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam T the underlying type of p.
     * @return a Parser of List[T] that expects elements to be separated by white space.
     */
-  def repSepSp[T](p: Parser[T]): Parser[List[T]] = repsep(p, whiteSpace)
+  def repSepSp[T](p: Parser[T]): Parser[List[T]] =
+    repsep(p, whiteSpace)
 
   /**
     * Implicit class ParserOps which allows us to use the method :| on a Parser[X].
@@ -60,7 +64,8 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam X the underlying type of p.
     */
   implicit class ParserOps[X](p: Parser[X]) {
-    def :|(name: String)(implicit ll: LogLevel): Parser[X] = logit(p)(name)
+    def :|(name: String)(implicit ll: LogLevel): Parser[X] =
+      logit(p)(name)
   }
 
   /**
@@ -70,9 +75,11 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam X the under-underlying type of p.
     */
   implicit class ParserOptionOps[X](p: Parser[Option[X]]) {
-    def ??(q: => Parser[X]): Parser[X] = compose(p, q) :| "compose"
+    def ??(q: => Parser[X]): Parser[X] =
+      compose(p, q) :| "compose"
 
-    def ?|[Y](q: => Parser[Y]): Parser[Either[Y, X]] = composeOption(p, q) :| "composeOption"
+    def ?|[Y](q: => Parser[Y]): Parser[Either[Y, X]] =
+      composeOption(p, q) :| "composeOption"
   }
 
   /**
@@ -81,21 +88,8 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @param r a Regex.
     */
   implicit class RegexOps(r: Regex) {
-    def :|(name: String)(implicit ll: LogLevel): Parser[String] = logit(r)(name)
-  }
-
-  /**
-    * Tee method.
-    * This method will return its input, however, a side-effect occurs which is to invoke f(x).
-    *
-    * @param x an X value.
-    * @param f a function which takes an X and yields Unit.
-    * @tparam X the underlying type of x.
-    * @return x unchanged.
-    */
-  def tee[X](x: X)(f: X => Unit): X = {
-    f(x)
-    x
+    def :|(name: String)(implicit ll: LogLevel): Parser[String] =
+      logit(r)(name)
   }
 
   /**
@@ -111,18 +105,35 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @return a Parser[T].
     */
   def logit[T](p: => Parser[T])(name: => String)(implicit ll: LogLevel): Parser[T] = ll match {
-    case LogDebug => log(p | failure(name))(name)
-
+    case LogDebug =>
+      log(p | failure(name))(name)
     case LogInfo =>
       val q = p | failure(name)
       Parser { in =>
         tee(q(in)) {
-          case this.Success(x, _) => println(s"$name: matched $x")
-          case _ =>
+          case this.Success(x, _) =>
+            println(s"$name: matched $x")
+          case _
+          =>
         }
       }
 
-    case _ => p | failure(name)
+    case _ =>
+      p | failure(name)
+  }
+
+  /**
+    * Tee method.
+    * This method will return its input, however, a side-effect occurs which is to invoke f(x).
+    *
+    * @param x an X value.
+    * @param f a function which takes an X and yields Unit.
+    * @tparam X the underlying type of x.
+    * @return x unchanged.
+    */
+  def tee[X](x: X)(f: X => Unit): X = {
+    f(x)
+    x
   }
 
   // NOTE enabled and debug are not currently used.
@@ -146,11 +157,15 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
   private def compose[X](p: Parser[Option[X]], q: Parser[X]): Parser[X] = Parser {
     in =>
       p(in) match {
-        case s@this.Success(Some(x), _) => s map (_ => x)
-        case _ => q(in) match {
-          case s@this.Success(_, _) => s
-          case _ => this.Failure("compose: failed", in)
-        }
+        case s@this.Success(Some(x), _) =>
+          s map (_ => x)
+        case _ =>
+          q(in) match {
+            case s@this.Success(_, _) =>
+              s
+            case _ =>
+              this.Failure("compose: failed", in)
+          }
       }
   }
 
@@ -167,10 +182,13 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
   private def composeOption[X, Y](p: Parser[Option[X]], q: Parser[Y]): Parser[Either[Y, X]] = Parser {
     in =>
       p(in) match {
-        case s@this.Success(Some(x), _) => s map (_ => Right(x))
+        case s@this.Success(Some(x), _) =>
+          s map (_ => Right(x))
         case _ => q(in) match {
-          case s@this.Success(_, _) => s map (x => Left(x))
-          case _ => this.Failure("composeOption: failed", in)
+          case s@this.Success(_, _) =>
+            s map (x => Left(x))
+          case _ =>
+            this.Failure("composeOption: failed", in)
         }
       }
   }

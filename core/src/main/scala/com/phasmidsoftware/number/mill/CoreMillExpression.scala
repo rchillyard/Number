@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.{Field, Number, Real}
   * using various operations. This is intended as a fundamental building block for
   * creating complex expressions or performing symbolic computations.
   */
-trait Expression {
+trait CoreMillExpression {
   def value: Number
 
   /**
@@ -20,7 +20,7 @@ trait Expression {
     * @param that another Expression to be added to the current Expression.
     * @return a new Expression representing the addition of the current Expression and the specified Expression.
     */
-  def +(that: Expression): Expression = DyadicExpression(this, that, "+")
+  def +(that: CoreMillExpression): CoreMillExpression = DyadicExpression(this, that, "+")
 
   /**
     * Multiplies this expression with another expression.
@@ -28,7 +28,7 @@ trait Expression {
     * @param that the expression to multiply with this expression
     * @return a new expression representing the multiplication of this expression and the given expression
     */
-  def *(that: Expression): Expression = DyadicExpression(this, that, "*")
+  def *(that: CoreMillExpression): CoreMillExpression = DyadicExpression(this, that, "*")
 
   /**
     * Combines this `Expression` with another `Expression` using the logical conjunction (∧) operator.
@@ -36,35 +36,35 @@ trait Expression {
     * @param that the `Expression` to combine with this `Expression`.
     * @return a new `Expression` representing the conjunction of this `Expression` and the given `Expression`.
     */
-  def ∧(that: Expression): Expression = DyadicExpression(this, that, "∧")
+  def ∧(that: CoreMillExpression): CoreMillExpression = DyadicExpression(this, that, "∧")
 
   /**
     * Negates the current expression, effectively multiplying it by -1.
     *
     * @return a new expression representing the negation of the current expression.
     */
-  def negate: Expression = MonadicExpression(this, "-")
+  def negate: CoreMillExpression = MonadicExpression(this, "-")
 
   /**
     * Computes the reciprocal of the current expression, representing it as a monadic operation.
     *
     * @return a new Expression where the operation corresponds to the reciprocal (1 / this expression).
     */
-  def reciprocal: Expression = MonadicExpression(this, "/")
+  def reciprocal: CoreMillExpression = MonadicExpression(this, "/")
 
   /**
     * Computes the square root of a numeric expression.
     *
     * @return An `Expression` representing the square root operation on the current expression.
     */
-  def sqrt: Expression = MonadicExpression(this, "√")
+  def sqrt: CoreMillExpression = MonadicExpression(this, "√")
 
   /**
     * Computes the natural logarithm (ln) of the current mathematical expression.
     *
     * @return a new Expression representing the natural logarithm of this Expression.
     */
-  def ln: Expression = MonadicExpression(this, "ln")
+  def ln: CoreMillExpression = MonadicExpression(this, "ln")
 
   /**
     * Calculates the exponential of the current expression (e∧x), where x is the value
@@ -73,14 +73,14 @@ trait Expression {
     *
     * @return a new Expression representing the exponential of the current expression.
     */
-  def exp: Expression = MonadicExpression(this, "exp")
+  def exp: CoreMillExpression = MonadicExpression(this, "exp")
 
   /**
     * Computes the sine of the current mathematical expression.
     *
     * @return A new Expression representing the sine of the current expression.
     */
-  def sin: Expression = MonadicExpression(this, "sin")
+  def sin: CoreMillExpression = MonadicExpression(this, "sin")
 
   /**
     * Computes the cosine of the current expression.
@@ -90,7 +90,7 @@ trait Expression {
     *
     * @return a new Expression representing the cosine of the current expression.
     */
-  def cos: Expression = MonadicExpression(this, "cos")
+  def cos: CoreMillExpression = MonadicExpression(this, "cos")
 }
 
 /**
@@ -101,7 +101,7 @@ trait Expression {
   * @param right    the right-hand side operand of the expression, represented as an `Expression`.
   * @param operator the operator as a `String` connecting the left and right operands.
   */
-case class DyadicExpression(left: Expression, right: Expression, operator: String) extends Expression {
+case class DyadicExpression(left: CoreMillExpression, right: CoreMillExpression, operator: String) extends CoreMillExpression {
   override def toString: String = s"($left $operator $right)"
 
   def value: Number = operator match {
@@ -120,7 +120,7 @@ case class DyadicExpression(left: Expression, right: Expression, operator: Strin
   * @param expression the underlying `Expression` on which the monadic operation is applied.
   * @param str        a string representation of the operator.
   */
-case class MonadicExpression(expression: Expression, str: String) extends Expression {
+case class MonadicExpression(expression: CoreMillExpression, str: String) extends CoreMillExpression {
   override def toString: String = s"$str($expression)"
 
   def value: Number = {
@@ -148,7 +148,7 @@ case class MonadicExpression(expression: Expression, str: String) extends Expres
   * @constructor Creates a TerminalExpression with the specified numeric value.
   * @param value The numeric value encapsulated by this terminal expression.
   */
-case class TerminalExpression(value: Number) extends Expression {
+case class TerminalExpression(value: Number) extends CoreMillExpression {
   override def toString: String = value.toString
 }
 
@@ -158,7 +158,7 @@ case class TerminalExpression(value: Number) extends Expression {
   * This class provides operations for mathematical and logical manipulations,
   * including arithmetic, trigonometric, and monadic transformations.
   */
-object Expression {
+object CoreMillExpression {
   /**
     * Parses a string in infix notation into an `Expression`, if valid.
     * NOTE that `Expression` refers to the mill package `Expression` (not the core `Expression`).
@@ -166,6 +166,6 @@ object Expression {
     * @param x the input string representing a mathematical expression in infix notation.
     * @return an `Option` containing the resulting `Expression` if parsing and evaluation are successful, or `None` otherwise.
     */
-  def parseToExpression(x: String): Option[Expression] =
-    Mill.parseInfix(x).toOption.flatMap(_.evaluate)
+  def parseToExpression(x: String): Option[CoreMillExpression] =
+    CoreMill.parseInfix(x).toOption.flatMap(_.evaluate)
 }

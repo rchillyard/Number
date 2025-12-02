@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.core._
 /**
   * Trait to model the behavior of an item that goes into the Mill.
   */
-trait Item
+trait CoreMillItem
 
 /**
   * Sub-class of Item which represents a dyadic operator.
@@ -17,7 +17,7 @@ trait Item
   * @param precedence        the precedence level of the operator.
   * @param leftAssociativity the left-associativity of the operator.
   */
-class Dyadic(val precedence: Int, val leftAssociativity: Boolean = true) extends Item
+class Dyadic(val precedence: Int, val leftAssociativity: Boolean = true) extends CoreMillItem
 
 /**
   * Companion object to Dyadic.
@@ -43,12 +43,12 @@ object Dyadic {
 /**
   * Sub-trait of Item to define a Monadic operator.
   */
-trait Monadic extends Item
+trait Monadic extends CoreMillItem
 
 /**
   * Sub-trait of Item to define an Anadic operator.
   */
-trait Anadic extends Item
+trait Anadic extends CoreMillItem
 
 /**
   * Multiply operator (sub-type of Dyadic).
@@ -113,28 +113,28 @@ case object Exponent extends Monadic
 /**
   * Swap operator (sub-type of Item).
   */
-case object Swap extends Item
+case object Swap extends CoreMillItem
 
 /**
   * Clr (clear) operator (sub-type of Item).
   */
-case object Clr extends Item
+case object Clr extends CoreMillItem
 
 /**
   * Noop (no-op) operator (sub-type of Item).
   */
-case object Noop extends Item
+case object Noop extends CoreMillItem
 
 /**
   * Open (open parenthesis) operator (sub-type of Item).
   */
-case object Open extends Item
+case object Open extends CoreMillItem
 
 
 /**
   * Close (close parenthesis) operator (sub-type of Item).
   */
-case object Close extends Item
+case object Close extends CoreMillItem
 
 
 /**
@@ -142,14 +142,14 @@ case object Close extends Item
   * In old-fashioned terminology, x is the augend for the + operator,
   * and the multiplier for the * operator.
   */
-case class Expr(x: Expression) extends Item {
+case class Expr(x: CoreMillExpression) extends CoreMillItem {
   /**
     * Sum method.
     *
     * @param addend the expression to be added to x.
     * @return x + addend.
     */
-  def +(addend: Expr): Expression = x.+(addend.x)
+  def +(addend: Expr): CoreMillExpression = x.+(addend.x)
 
   /**
     * Product method.
@@ -157,7 +157,7 @@ case class Expr(x: Expression) extends Item {
     * @param multiplicand the expression to be multiplied by x.
     * @return x * multiplicand
     */
-  def *(multiplicand: Expr): Expression = x.*(multiplicand.x)
+  def *(multiplicand: Expr): CoreMillExpression = x.*(multiplicand.x)
 
   override def toString: String = x.toString
 }
@@ -179,7 +179,7 @@ object Expr {
   * Companion object to Item.
   *
   */
-object Item {
+object CoreMillItem {
 
   /**
     * Apply method to construct an Item according to the given String.
@@ -200,7 +200,7 @@ object Item {
     * @param s a String.
     * @return an Item.
     */
-  def apply(s: String): Item = s.toLowerCase match {
+  def apply(s: String): CoreMillItem = s.toLowerCase match {
     // XXX Dyadic operators
     case "∧" => Power
     case "^" => Power

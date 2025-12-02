@@ -191,7 +191,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     x.materialize shouldEqual RationalNumber(3)
   }
   // TODO Issue #140
-  ignore should "evaluate ∧ 2" in {
+  it should "evaluate ∧ 2" in {
     val x = Expression(6) ∧ 2
     x.materialize shouldEqual Eager(36)
   }
@@ -201,13 +201,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     x.materialize shouldEqual ±(6)
   }
   // TODO Issue #140
-  ignore should "evaluate sin pi/2" in {
+  it should "evaluate sin pi/2" in {
     val x: Expression = ConstPi / 2
     val y: Expression = x.sin
     y.materialize shouldBe Valuable.one
   }
   // FIXME stack overflow
-  ignore should "evaluate atan" in {
+  it should "evaluate atan" in {
     val zero: Expression = expr.Zero
     zero.atan(Valuable.one).materialize shouldBe Angle.piBy2
     One.atan(0).materialize shouldBe Angle.zero
@@ -235,7 +235,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     a[NumberException] should be thrownBy Two.log(base).materialize
   }
   // TODO Issue #140
-  ignore should "evaluate ln E" in {
+  it should "evaluate ln E" in {
     val x: Expression = ConstE
     val y: Expression = x.ln
     y.materialize shouldBe Valuable.one
@@ -266,7 +266,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "toString"
   // TODO Issue #140
-  ignore should "work for (sqrt 7)∧2" in {
+  it should "work for (sqrt 7)∧2" in {
     val seven: Expression = 7
     val result: Expression = seven.sqrt ∧ 2
     result.toString shouldBe BiFunction(BiFunction(WholeNumber(7), RationalNumber(Rational.half), Power), 2, Power).toString
@@ -282,7 +282,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "isExact"
   // TODO Issue #140
-  ignore should "be true for any constant Valuable" in {
+  it should "be true for any constant Valuable" in {
     Valuable.one.isExact shouldBe true
     Valuable.pi.isExact shouldBe true
   }
@@ -350,7 +350,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "simplifyConstant"
   // TODO Issue #140
-  ignore should "simplify biFunction expressions" in {
+  it should "simplify biFunction expressions" in {
     val em: ExpressionMatchers = Expression.em
     Expression.simplifyConstant(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
     BiFunction(Two, MinusOne, Product).simplify shouldBe Expression(-2)
@@ -359,7 +359,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "simplifyExact"
   // TODO Issue #140
-  ignore should "simplify biFunction expressions" in {
+  it should "simplify biFunction expressions" in {
     val em: ExpressionMatchers = Expression.em
     Expression.simplifyExact(BiFunction(Literal(Angle.twoPi, None), RationalNumber.half, Product)) should matchPattern { case em.Match(Literal(Angle.pi, _)) => }
   }
@@ -429,7 +429,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "Sum"
   // TODO Issue #140
-  ignore should "add pi to -pi" in {
+  it should "add pi to -pi" in {
     val x1 = ConstPi
     val x2 = ConstPi * MinusOne
     val e: Expression = x1 :+ x2

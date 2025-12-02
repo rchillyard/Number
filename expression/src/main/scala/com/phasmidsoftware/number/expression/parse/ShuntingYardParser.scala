@@ -24,7 +24,10 @@ object ShuntingYardParser extends BaseMillParser {
     * @param w the String to parse.
     * @return a Mill, wrapped in Try.
     */
-  def parseInfix(w: String): Try[Mill] = stringParser(shuntingYard, w).flatMap(_.toMill)
+  def parseInfix(w: String): Try[Mill] = {
+    val triedShuntingYard = stringParser(shuntingYard, w)
+    triedShuntingYard.flatMap(_.toMill)
+  }
 
   /**
     * A ShuntingYard consisting of two structures: a queue of values and a stack of operators.
@@ -48,13 +51,18 @@ object ShuntingYardParser extends BaseMillParser {
       *         If token is a open or close parenthesis, it is handled specially.
       */
     def :+(token: InfixToken): ShuntingYard = token match {
-      case InfixToken(Some(t), _) => t match {
-        case Left(operator) => this :+ operator
-        case Right(number) => this :+ number
+      case InfixToken(Some(t), _) =>
+        t match {
+          case Left(operator) =>
+            this :+ operator
+          case Right(number) =>
+            this :+ number
       }
       case InfixToken(None, x) =>
-        if (x) this :+ openParenthesis // open parenthesis
-        else switch // close parenthesis
+        if (x)
+          this :+ openParenthesis // open parenthesis
+        else
+          switch // close parenthesis
     }
 
     /**
@@ -64,37 +72,48 @@ object ShuntingYardParser extends BaseMillParser {
       * @return a Try[Mill].
       */
     def toMill: Try[Mill] = switch match {
-      case ShuntingYard(values, Nil) => Try(Mill(values *))
-      case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
+      case ShuntingYard(values, Nil) =>
+        Try(Mill(values *))
+      case x =>
+        scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 
-    private def :+(number: Number) = ShuntingYard(values :+ Expr(TerminalExpression(number)), operators)
+    private def :+(number: Number) =
+      ShuntingYard(values :+ Expr(TerminalExpression(number)), operators)
 
     @tailrec
     private def :+(operator: String): ShuntingYard = Item(operator) match {
       case o1@Dyadic(_, _) => operators match {
-        case Nil => ShuntingYard(values, o1 +: Nil)
-        case Open :: xs => ShuntingYard(values, o1 :: Open :: xs)
-        case op +: xs => op match {
+        case Nil =>
+          ShuntingYard(values, o1 +: Nil)
+        case Open :: xs =>
+          ShuntingYard(values, o1 :: Open :: xs)
+        case op +: xs =>
+          op match {
           case o2@Dyadic(_, _) =>
             if (implicitly[Ordering[Dyadic]].compare(o1, o2) < 0)
               ShuntingYard(values :+ o2, xs) :+ operator
             else
               ShuntingYard(values, o1 +: o2 +: xs)
-          case _ => ShuntingYard(values, op +: xs)
+          case _ =>
+            ShuntingYard(values, op +: xs)
         }
       }
-      case op => ShuntingYard(values, op +: operators)
+      case op =>
+        ShuntingYard(values, op +: operators)
     }
 
     @tailrec
-    private def switch: ShuntingYard =
-      this match {
-        case s@ShuntingYard(_, Nil) => s
-        case ShuntingYard(values, Open :: tail) => ShuntingYard(values, tail)
-        case ShuntingYard(values, operator :: operators) => ShuntingYard(values :+ operator, operators).switch
-        case _ => throw MillException("ShuntingYard.switch: logic error (probably non-matching parentheses)")
-      }
+    private def switch: ShuntingYard = this match {
+      case s@ShuntingYard(_, Nil) =>
+        s
+      case ShuntingYard(values, Open :: tail) =>
+        ShuntingYard(values, tail)
+      case ShuntingYard(values, operator :: operators) =>
+        ShuntingYard(values :+ operator, operators).switch
+      case _ =>
+        throw MillException("ShuntingYard.switch: logic error (probably non-matching parentheses)")
+    }
   }
 
   object ShuntingYard {
@@ -111,7 +130,8 @@ object ShuntingYardParser extends BaseMillParser {
       * @param tokens a list of InfixToken.
       * @return
       */
-    def apply(tokens: Seq[InfixToken]): ShuntingYard = tokens.foldLeft(ShuntingYard())(_ :+ _).switch
+    def apply(tokens: Seq[InfixToken]): ShuntingYard =
+      tokens.foldLeft(ShuntingYard())(_ :+ _).switch
   }
 
   /**
@@ -137,12 +157,17 @@ object ShuntingYardParser extends BaseMillParser {
     *
     * @return a Parser[InfixToken].
     */
-  private def infixToken: Parser[InfixToken] = (maybeNumber ?| operator) <~ opt(whiteSpace) :| "infixToken" ^^ {
-    case Right(x) => InfixToken(Some(Right(x)), paren = false)
-    case Left("(") => InfixToken(None, paren = true)
-    case Left(")") => InfixToken(None, paren = false)
-    case Left(w) => InfixToken(Some(Left(w)), paren = false)
-  }
+  private def infixToken: Parser[InfixToken] =
+    (maybeNumber ?| operator) <~ opt(whiteSpace) :| "infixToken" ^^ {
+      case Right(x) =>
+        InfixToken(Some(Right(x)), paren = false)
+      case Left("(") =>
+        InfixToken(None, paren = true)
+      case Left(")") =>
+        InfixToken(None, paren = false)
+      case Left(w) =>
+        InfixToken(Some(Left(w)), paren = false)
+    }
 
   /**
     * Parser for a String.

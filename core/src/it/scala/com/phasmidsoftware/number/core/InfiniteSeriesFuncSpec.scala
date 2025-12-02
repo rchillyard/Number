@@ -11,7 +11,7 @@ class InfiniteSeriesFuncSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InfiniteSeries"
 
   val basel: InfiniteSeries[Number] = InfiniteSeries(LazyList.from(1).map(x => Rational(x).invert.square), 0.001)
-  ignore should "evaluateToTolerance 0.0000001" in {
+  it should "evaluateToTolerance 0.0000001" in {
     val xy = basel.evaluateToTolerance(0.0000001)
     xy.isSuccess shouldBe true
     val pi = (6 * xy.get).sqrt

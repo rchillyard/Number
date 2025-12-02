@@ -13,7 +13,7 @@ import scala.util.Try
   * CONSIDER rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
   *
   */
-trait Mill extends Iterable[Item] {
+trait CoreMill extends Iterable[CoreMillItem] {
   self =>
 
   /**
@@ -22,32 +22,32 @@ trait Mill extends Iterable[Item] {
     * @param x an Item.
     * @return a Mill with the top = x and the rest the same as this.
     */
-  def push(x: Item): Mill
+  def push(x: CoreMillItem): CoreMill
 
   /**
     * Method to remove an element from the top of this Mill.
     *
     * @return a tuple consisting of the top element wrapped in Some, and the new Mill without that element.
     */
-  def pop: (Option[Item], Mill)
+  def pop: (Option[CoreMillItem], CoreMill)
 
   /**
     * Method to evaluate this Mill.
     *
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     */
-  def evaluate: Option[Expression]
+  def evaluate: Option[CoreMillExpression]
 
   /**
     * Method required by Iterable[Item].
     *
     * @return an Iterator[Item].
     */
-  def iterator: Iterator[Item] = {
+  def iterator: Iterator[CoreMillItem] = {
     // XXX using a var here, but the entire concept of an iterator pretty much requires mutability.
     var mill = this
 
-    new Iterator[Item] {
+    new Iterator[CoreMillItem] {
       /**
         * @return the value of mill.nonEmpty
         */
@@ -56,7 +56,7 @@ trait Mill extends Iterable[Item] {
       /**
         * @return the next item and update the mill variable.
         */
-      def next(): Item = {
+      def next(): CoreMillItem = {
         val (xo, m) = mill.pop
         mill = m
         xo.get // XXX this call to get is protected by the hasNext method. That's the way iterators are.
@@ -70,21 +70,21 @@ trait Mill extends Iterable[Item] {
   *
   * @param stack a List[Item] which will represent the stack.
   */
-case class Stack(stack: List[Item]) extends Mill {
+case class Stack(stack: List[CoreMillItem]) extends CoreMill {
   /**
     * Method to push an Item on to this Stack.
     *
     * @param x an Item.
     * @return a Mill with the top = x and the rest the same as this.
     */
-  def push(x: Item): Mill = Stack(x :: stack)
+  def push(x: CoreMillItem): CoreMill = Stack(x :: stack)
 
   /**
     * Method to pop an Item from this Stack.
     *
     * @return a tuple consisting of the top element wrapped in Some, and the new Mill without that element.
     */
-  def pop: (Option[Item], Mill) = stack match {
+  def pop: (Option[CoreMillItem], CoreMill) = stack match {
     case Nil => (None, Empty) // NOTE: in practice, this will never occur
     case h :: Nil => (Some(h), Empty)
     case h :: t => (Some(h), Stack(t))
@@ -101,7 +101,7 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return an Option[Expression]: Some(x) assuming this Mill is not empty and that there are no irregularities.
     * @throws MillException logic error when the Mill is not fully consumed or the optional expression is None.
     */
-  def evaluate: Option[Expression] = evaluateInternal match {
+  def evaluate: Option[CoreMillExpression] = evaluateInternal match {
     case (xo, Empty) => xo
     case (_, m) => throw MillException(s"evaluate: logic error: remaining stack is not empty: $m")
   }
@@ -118,7 +118,7 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     * @throws MillException this Mill is empty or some other logic error occurred.
     */
-  def evaluateInternal: (Option[Expression], Mill) = pop match {
+  def evaluateInternal: (Option[CoreMillExpression], CoreMill) = pop match {
     case (Some(Expr(e)), Empty) => (Some(e), Empty)
     case (Some(x), m: Stack) => m.evaluate1(x)
     case (None, _) => throw MillException(s"evaluate: this stack is empty")
@@ -135,7 +135,7 @@ case class Stack(stack: List[Item]) extends Mill {
     *         otherwise, we throw an exception.
     * @throws MillException x is not supported.
     */
-  private def evaluate1(x: Item): (Option[Expression], Mill) =
+  private def evaluate1(x: CoreMillItem): (Option[CoreMillExpression], CoreMill) =
     x match {
       case d: Dyadic => evaluateDyadic(d)
       case o: Monadic => evaluateMonadic(o)
@@ -143,7 +143,7 @@ case class Stack(stack: List[Item]) extends Mill {
       case Clr => (None, Empty)
       case Noop => evaluateInternal
       case Swap => evaluateSwap
-      case x => throw MillException(s"evaluate1: $x not a supported Item")
+      case x => throw MillException(s"evaluate1: $x not a supported CoreMillItem")
     }
 
   /**
@@ -154,7 +154,7 @@ case class Stack(stack: List[Item]) extends Mill {
     *         item replaced by the f(top).
     * @throws MillException this Mill is empty.
     */
-  private def evaluateMonadic(f: Monadic): (Option[Expression], Mill) = evaluateInternal match {
+  private def evaluateMonadic(f: Monadic): (Option[CoreMillExpression], CoreMill) = evaluateInternal match {
     case (Some(e), m) =>
       val expression = calculateMonadic(f, e)
       m.push(Expr(expression)).asInstanceOf[Stack].evaluateInternal
@@ -171,8 +171,8 @@ case class Stack(stack: List[Item]) extends Mill {
     *         replaced by the f(top, next).
     * @throws MillException malformed stack.
     */
-  private def evaluateDyadic(f: Dyadic): (Option[Expression], Mill) = {
-    def inner(e: Expression, m: Mill) = m match {
+  private def evaluateDyadic(f: Dyadic): (Option[CoreMillExpression], CoreMill) = {
+    def inner(e: CoreMillExpression, m: CoreMill) = m match {
       case Empty => throw MillException(s"evaluateDyadic: malformed stack (expression should be followed by non-empty stack): $this")
       case m: Stack => m.evaluate2(f, e)
     }
@@ -202,7 +202,7 @@ case class Stack(stack: List[Item]) extends Mill {
     *         if the result of evaluating this is not valid, we throw an exception.
     * @throws MillException this did not evaluate to an expression.
     */
-  private def evaluate2(f: Dyadic, x: Expression): (Option[Expression], Mill) =
+  private def evaluate2(f: Dyadic, x: CoreMillExpression): (Option[CoreMillExpression], CoreMill) =
     evaluateInternal match {
       case (Some(e), m) =>
         val expression = calculateDyadic(f, x, e)
@@ -219,7 +219,7 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return an Expression which is f(x).
     * @throws MillException operator f is not supported.
     */
-  private def calculateMonadic(f: Monadic, x: Expression) = f match {
+  private def calculateMonadic(f: Monadic, x: CoreMillExpression) = f match {
     case Chs => x * TerminalExpression(-1)
     case Inv => x.reciprocal
     case Sqrt => x.sqrt
@@ -238,7 +238,7 @@ case class Stack(stack: List[Item]) extends Mill {
     * @param x2 the second expression to be operated on.
     * @return an Expression which is f(x2, x1)
     */
-  private def calculateDyadic(f: Dyadic, x1: Expression, x2: Expression) = f match {
+  private def calculateDyadic(f: Dyadic, x1: CoreMillExpression, x2: CoreMillExpression) = f match {
     case Multiply => x2 * x1
     case Add => x2 + x1
     case Subtract => x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate
@@ -249,7 +249,7 @@ case class Stack(stack: List[Item]) extends Mill {
   private def evaluateSwap = {
     val (zo, m) = pop
     val (yo, n) = m.pop
-    val result: Option[(Option[Expression], Mill)] = (for (z <- zo; y <- yo; x = n.push(z).push(y)) yield x).map {
+    val result: Option[(Option[CoreMillExpression], CoreMill)] = (for (z <- zo; y <- yo; x = n.push(z).push(y)) yield x).map {
       case mill: Stack => mill.evaluateInternal
       case _ => throw MillException(s"evaluateSwap: logic error")
     }
@@ -265,19 +265,19 @@ case class Stack(stack: List[Item]) extends Mill {
 /**
   * Empty Mill definition.
   */
-case object Empty extends Mill {
+case object Empty extends CoreMill {
   /**
     * Create a new Stack with x on it.
     *
     * @param x an Item.
     * @return a Stack with just one element (x).
     */
-  def push(x: Item): Mill = Stack(List(x))
+  def push(x: CoreMillItem): CoreMill = Stack(List(x))
 
   /**
     * @return (None, Empty)
     */
-  def pop: (Option[Item], Mill) = (None, Empty)
+  def pop: (Option[CoreMillItem], CoreMill) = (None, Empty)
 
   /**
     * Overriding the isEmpty method of IterableOnceOps.
@@ -290,16 +290,16 @@ case object Empty extends Mill {
   /**
     * @return None.
     */
-  def evaluate: Option[Expression] = None
+  def evaluate: Option[CoreMillExpression] = None
 }
 
-object Mill {
+object CoreMill {
   /**
     * Empty Mill value.
     *
     * @return Empty
     */
-  val empty: Mill = Empty
+  val empty: CoreMill = Empty
 
   /**
     * Method to take a sequence of Items and create an appropriate Mill.
@@ -307,7 +307,7 @@ object Mill {
     * @param xs a comma-separated sequence of Item.
     * @return an appropriate Mill.
     */
-  def apply(xs: Item*): Mill = if (xs.isEmpty) Empty else Stack(xs.reverse.to(List))
+  def apply(xs: CoreMillItem*): CoreMill = if (xs.isEmpty) Empty else Stack(xs.reverse.to(List))
 
   /**
     * Alternative method of creating a Mill from a list of Items.
@@ -315,7 +315,7 @@ object Mill {
     * @param items sequence of Item.
     * @return a new Mill.
     */
-  def create(items: Seq[Item]): Mill = items.foldLeft(Mill.empty)((m, x) => m.push(x))
+  def create(items: Seq[CoreMillItem]): CoreMill = items.foldLeft(CoreMill.empty)((m, x) => m.push(x))
 
   /**
     * Method to parse a String in RPN (may extend over multiple lines) into a Mill.
@@ -323,7 +323,7 @@ object Mill {
     * @param w the input String.
     * @return a Mill, wrapped in Try.
     */
-  def parse(w: String): Try[Mill] = MillParser.parseMill(w)
+  def parse(w: String): Try[CoreMill] = MillParser.parseMill(w)
 
   /**
     * Method to parse a String in infix notation (may extend over multiple lines) into a Mill.
@@ -331,7 +331,7 @@ object Mill {
     * @param w the input String.
     * @return a Mill, wrapped in Try.
     */
-  def parseInfix(w: String): Try[Mill] = ShuntingYardParser.parseInfix(w)
+  def parseInfix(w: String): Try[CoreMill] = ShuntingYardParser.parseInfix(w)
 }
 
 case class MillException(s: String) extends Exception(s)

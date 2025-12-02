@@ -370,7 +370,7 @@ object Expression {
     * @return an `Expression` instance representing the equivalent form of the input
     * @throws ExpressionException if an unknown operator is encountered during conversion
     */
-  def convertMillExpressionToExpression(expr: com.phasmidsoftware.number.mill.Expression): Expression =
+  def convertMillExpressionToExpression(expr: com.phasmidsoftware.number.mill.CoreMillExpression): Expression =
     expr match {
       case TerminalExpression(value) => Literal(value)
       case MonadicExpression(expression, str) =>

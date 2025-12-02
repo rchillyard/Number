@@ -800,7 +800,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //    }
   }
   // TODO Issue #140
-  ignore should "simplify aggregate 2b" in {
+  it should "simplify aggregate 2b" in {
     // NOTE: this does not create a Aggregate but instead creates a BiFunction.
     val target: Expression = CompositeExpression.create(Sum, Valuable.pi, Angle.negPi)
     //val expected = ExactNumber(0, Radian) // Ideally, the result should equal this but for now, we only test isZero.
@@ -828,7 +828,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //    }
   }
   // FIXME this became an infinite loop when we added support for Root in algebra.
-  ignore should "simplify aggregate 3a" in {
+  it should "simplify aggregate 3a" in {
     val target: Expression = Aggregate(Sum, Seq(Literal(root2), Literal(root2) * Valuable.minusOne))
     //val value1 = em.simplifier(target)
     //val result = value1 map (_.materialize)
@@ -840,7 +840,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //    }
   }
   // FIXME infinite loop
-  ignore should "simplify aggregate 4a" in {
+  it should "simplify aggregate 4a" in {
     val target: Expression = Aggregate(Sum, Seq(One, ConstE, expr.UniFunction(ConstE, Negate)))
     //val result: em.MatchResult[Expression] = em.simplifier(target)
     val result = target.simplify
@@ -1022,7 +1022,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchComplementary"
   // TODO Issue #140
-  ignore should "cancel plus and minus" in {
+  it should "cancel plus and minus" in {
     val p = Expression.matchSimpler
     val x = Literal(Valuable.pi)
     val y = -x
@@ -1241,7 +1241,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "various"
   // TODO Issue #140
-  ignore should "distributeProductSum c" in {
+  it should "distributeProductSum c" in {
     val x = Eager("2.00*")
     val y = Eager("3.00*")
     val a = BiFunction(One, Literal(x), Sum)
@@ -1380,7 +1380,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe Zero
   }
   // TODO Issue #140
-  ignore should "simplify 1 * -1" in {
+  it should "simplify 1 * -1" in {
     val r = p(Product ~ One ~ MinusOne)
     r.successful shouldBe true
     r.get shouldBe MinusOne
@@ -1491,7 +1491,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.get shouldBe UniFunction(core.Number.root3, Negate)
   }
   // TODO Issue #140
-  ignore should "simplify various" in {
+  it should "simplify various" in {
     import BiFunction.*
     val p = Expression.matchSimpler
     p(Sum ~ BiFunction(Two, MinusOne, Product) ~ Two) shouldBe em.Match(Zero)

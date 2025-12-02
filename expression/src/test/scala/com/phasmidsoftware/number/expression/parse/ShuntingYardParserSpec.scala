@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.Number
-import com.phasmidsoftware.number.expression.mill.{DyadicExpression, Expression, Mill}
+import com.phasmidsoftware.number.expression.mill.{DyadicExpression, Expr, Expression, Item, Mill, Sin, Stack, TerminalExpression}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -82,11 +82,36 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "parse Infix and evaluate: sqrt(3)" in {
     val value: Option[Mill] = p.parseInfix("3 ∧ ( 2 ∧ -1 )").toOption
-    value should matchPattern { case Some(_) => }
+    value.isDefined shouldBe true
     val z: Option[Expression] = value.flatMap(_.evaluate)
     val q = z map (_.value)
     q shouldBe Some(Number.root3)
     // TESTME the result.
+  }
+  it should "parse Infix and evaluate: sin(𝛑)" in {
+    val value: Option[Mill] = p.parseInfix("sin(𝛑)").toOption
+    value.isDefined shouldBe true
+    val stack: List[Item] = List(Sin, Expr(TerminalExpression(Number.pi)))
+    value.get shouldBe Stack(stack)
+    val z: Option[Expression] = value.flatMap(_.evaluate)
+    val q = z map (_.value)
+    q shouldBe Some(Number.zero)
+  }
+  it should "parse Infix and evaluate: sin(𝛑/2)" in {
+    val value: Option[Mill] = p.parseInfix("sin(𝛑/2)").toOption
+    value.isDefined shouldBe true
+    val z: Option[Expression] = value.flatMap(_.evaluate)
+    val q = z map (_.value)
+    q shouldBe Some(Number.one)
+  }
+  ignore should "parse Infix and evaluate: sin(𝛑)-1" in {
+    val value: Option[Mill] = p.parseInfix("sin(𝛑)-1").toOption
+    value.isDefined shouldBe true
+    val stack: List[Item] = List(Sin, Expr(TerminalExpression(Number.pi)), Expr(TerminalExpression(Number.negOne)))
+    value.get shouldBe Stack(stack)
+    val z: Option[Expression] = value.flatMap(_.evaluate)
+    val q = z map (_.value)
+    q shouldBe Some(Number.zero)
   }
   it should "shuntingYard" in {
     p.parseInfix("( 1 + 3 ) + ( 2 * 3 )") should matchPattern { case Success(_) => }

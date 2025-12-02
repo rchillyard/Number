@@ -112,7 +112,8 @@ object Constants {
   lazy val piBy3: Real = Real(Number.piBy3)
   /**
     * Represents the mathematical constant π (pi) as a `Real` value.
-    *///noinspection NonAsciiCharacters
+    */
+  //noinspection NonAsciiCharacters
   lazy val `𝛑`: Real = Real(Number.`𝛑`)
   /**
     * Represents the mathematical constant e (Euler's number, approximately 2.718),
@@ -132,10 +133,11 @@ object Constants {
 
   /**
     * Represents the square root of 2 as a field constant.
+    * CONSIDER making this a Complex.
     *
     * This value is particularly useful in mathematical computations where the
     * irrational constant √2 is required, expressed within the `Field` type system.
-    */// CONSIDER making the following Complex
+    */
   lazy val root2: Field = Real(Number.root2)
   /**
     * Represents the constant value √3 encapsulated as a `Field` in the mathematical context.

@@ -14,7 +14,7 @@ class BenchmarkSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Benchmark"
 
   // NOTE this is quite likely to fail, especially in CircleCI
-  ignore should "do 100rRepetitions" in {
+  it should "do 100rRepetitions" in {
     import Benchmark._
     implicit val r: Random = Random
     val N = 1_000_000
@@ -25,7 +25,7 @@ class BenchmarkSpec extends AnyFlatSpec with should.Matchers {
 
     // NOTE that these tolerances can be widened if necessary
     result shouldBe 3.141592653589793 +- 1E-2
-    milliseconds shouldBe 650.0 +- 350
+    milliseconds shouldBe 650.0 +- 400
   }
 
   def calculatePi(n: Int)(implicit r: Random): Double = {
