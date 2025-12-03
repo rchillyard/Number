@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeGroup, Field}
 import cats.Show
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core.inner.Rational
@@ -18,10 +19,15 @@ import scala.reflect.ClassTag
   * The class is designed to work seamlessly with precise and exact number representations,
   * ensuring that operations maintain a high level of numeric fidelity.
   *
+  * CONSIDER adding a percentage flag to Real.
+  *
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
   * @param r The `Rational` value represented by this `RationalNumber`.
+  * @param percentage whether this is a percentage value or not.
+  * Similarly to the `degrees` attribute of `Angle`,
+  * this is a flag that is primarily cosmetic.
   */
-case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Number {
+case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Number {
   /**
     * Subtracts the given rational number from this one.
     *
@@ -85,7 +91,7 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     *         - `None` if the exact comparison is not possible
     */
   def compareExact(that: Scalar): Option[Int] = that match {
-    case RationalNumber(o) =>
+    case RationalNumber(o, _) =>
       Some(r.compareTo(o))
     case WholeNumber(x) =>
       Some(r.compare(Rational(x.toBigInt)))
@@ -230,7 +236,11 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     *
     * @return the string representation of this `RationalNumber`.
     */
-  def render: String = r.render
+  def render: String =
+    if (percentage)
+      s"${(r * 100).render}%" // CHECK that this never gives a ratio.
+    else
+      r.render
 
   /**
     * Retrieves an optional Rational value.
@@ -291,19 +301,53 @@ object RationalNumber {
   def apply(x: Long): RationalNumber = RationalNumber(Rational(x))
 
   /**
+    * Converts a given `Rational` value into a `RationalNumber` representing its percentage equivalent.
+    *
+    * @param r the `Rational` value expressed as a percentage, e.g., 50 for 50%.
+    * @return a `RationalNumber` instance representing the percentage value of the given `Rational`
+    */
+  def percentage(r: Rational): RationalNumber =
+    RationalNumber(r / 100, percentage = true)
+
+  /**
     * Parses a string representation of a rational number and converts it into an `Option[RationalNumber]`.
     *
     * @param w the string representation of the rational number to be parsed
     * @return an `Option[RationalNumber]` containing the parsed rational number if successful, or `None` if parsing fails
     */
-  def parse(w: String): Option[RationalNumber] = Rational.parse(w).map(RationalNumber(_)).toOption
+  def parse(w: String): Option[RationalNumber] = {
+    val regex = """([\d/]+)(%)?""".r
+    w match {
+      case regex(num, null) =>
+        Some(RationalNumber(Rational(num)))
+      case regex(num, s) =>
+        Some(percentage(Rational(num)))
+      case _ =>
+        None
+    }
+  }
 
   /**
     * Provides an implicit `Show` instance for the `RationalNumber` class.
     * This instance defines how a `RationalNumber` is transformed into a `String`
     * representation by using its `render` method.
     */
-  implicit val showRationalNumber: Show[RationalNumber] = Show.show(_.render)
+  implicit val showRationalNumber: Show[RationalNumber] =
+    Show.show(_.render)
+
+  /**
+    * Provides an implicit instance of the `Eq` typeclass for the `RationalNumber` class.
+    * NOTE that we do not consider the `percentage` flag when comparing two `RationalNumber`s for equality.
+    *
+    * This instance allows for equality comparison between two `RationalNumber` instances,
+    * based on the equality of their underlying `Rational` representations (`r` field of `RationalNumber`).
+    * It ensures that two `RationalNumber` instances with the same rational value are considered equal.
+    */
+  implicit val rationalNumberEq: Eq[RationalNumber] = Eq.instance {
+    (a1, a2) =>
+      // NOTE that we should be using the === operator here, but it hasn't been defined yet for for Rational.
+      a1.r == a2.r
+  }
 
   /**
     * Represents the rational number zero.
@@ -323,20 +367,23 @@ object RationalNumber {
     * This is an instance of the `RationalNumber` class initialized
     * with the negative one value from the `Rational` type.
     */
-  val minusOne: RationalNumber = RationalNumber(Rational.negOne)
+  val minusOne: RationalNumber =
+    RationalNumber(Rational.negOne)
 
   /**
     * Represents a predefined constant value of one-half as a RationalNumber.
     * This is a convenience representation of the fraction 1/2 in the system of rational numbers.
     */
-  val half: RationalNumber = RationalNumber(Rational.half)
+  val half: RationalNumber =
+    RationalNumber(Rational.half)
 
   /**
     * Represents a rational number with an infinite value.
     *
     * This value is constructed from the infinity representation of the `Rational` type.
     */
-  val infinity: RationalNumber = RationalNumber(Rational.infinity)
+  val infinity: RationalNumber =
+    RationalNumber(Rational.infinity)
 
   /**
     * Provides an implicit implementation of the `Field` type class for the `RationalNumber` type.

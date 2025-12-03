@@ -439,7 +439,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
       em.Match(ConstPi)
     case Literal(Valuable.e, _) =>
       em.Match(ConstE)
-    case Literal(RationalNumber(r), _) if r.isWhole =>
+    case Literal(RationalNumber(r, _), _) if r.isWhole =>
       em.Match(Literal(WholeNumber(r.toBigInt)))
     // TODO reinstate this match...
     //    case Literal(Valuable.i, _) =>

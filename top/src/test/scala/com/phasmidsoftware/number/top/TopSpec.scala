@@ -24,30 +24,30 @@ import org.scalatest.matchers.should.Matchers.shouldBe
 import scala.languageFeature.implicitConversions.*
 
 /**
-  * Test suite for `ExpressionMatchers` and related functionality, extending `AnyFlatSpec` with ScalaTest matchers functionalities.
+  * The `TopSpec` class represents a set of specifications for testing mathematical expressions,
+  * including their manipulation, evaluation, simplifications, and special mathematical edge cases.
   *
-  * TODO requires more simplification with removal of duplicates, etc.
+  * This class extends ScalaTest's `AnyFlatSpec` for behavior-driven development (BDD) style testing
+  * and integrates `Matchers` for expressive assertions. It also uses the `BeforeAndAfter` trait to
+  * manage setup and teardown logic around test executions.
   *
-  * This class provides unit tests for various operations and matchers related to `Expression` objects.
-  * It validates the functionality of arithmetic operations, simplifications, matchers, and custom equality logic for expressions.
+  * Key features of `TopSpec` are:
   *
-  * The tests involve operations such as addition, subtraction, multiplication, division, power, square root,
-  * and comparison on various types of `Expression` instances, including `Literal`, `One`, `Number`, and constants like `pi` and `e`.
+  * - Defines custom equality for `Expression` types using an implicit object `ExpressionEquality`.
+  * - Facilitates logging by employing an implicit `MatchLogger`.
+  * - Provides setup (`before`) and teardown (`after`) logic to clear any residual state for repeatable tests.
+  * - Declares instances of `ExpressionMatchers` to verify the behavior of mathematical expressions.
+  * - Contains extensive behavioral tests for verifying the correctness of specific mathematical operations.
   *
-  * The operations are tested against specific matching rules for common scenarios in symbolic lazymath expressions,
-  * ensuring the correctness of `ExpressionMatchers`, custom defined `ExpressionMatchers.ExpressionMatcher` implementations,
-  * and simplification functionalities such as `matchSimpler` and `simplifyTrivial`.
+  * Major areas of focus:
+  * - Mathematical evaluation for various operations, such as addition, subtraction, multiplication, division, and exponentiation.
+  * - Simplification of expressions, including cancelling terms, distributing products over sums, and reducing powers.
+  * - Handling mathematical constants like π, e, and handling scenarios like negative infinity, zero, and complex cases.
+  * - Verifying the correctness of trigonometric functions (sin, cos) across standard angle positions.
+  * - Testing edge cases such as reciprocal handling, negations, and properties of mathematical identities.
   *
-  * Behavior-driven tests are grouped by functionality to validate the logic and expected outcomes for:
-  * - Matching values via custom expression matchers.
-  * - Matching and combining rules using logical OR (`|`).
-  * - Simplification logic for trivial arithmetic and symbolic cancellations.
-  * - Handling edge cases like exact evaluation, reciprocal, and multi-level symbolic transformations.
-  *
-  * Several tests focus on validating simplification scenarios, specifically ensuring the cancellation of
-  * arithmetic operations like addition/subtraction, multiplication/division, and power/exponentiation inversions.
-  *
-  * Helper implicits such as `ExpressionEquality` and logging mechanisms (`MatchLogger`) assist in testing and debugging the logic.
+  * The test suite covers lazy and eager evaluation semantics to ensure the consistency and correctness
+  * of mathematical expression behaviors under different contexts.
   */
 class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
@@ -96,7 +96,25 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     mathOpt" " shouldBe None
   }
 
-  behavior of "simplify"
+  behavior of "math and lazymath"
+  it should "parse and render numbers" in {
+    val one = "1"
+    math"$one" shouldBe Valuable.one
+    math"$one".render shouldBe one
+    val sevenPercent = "7%"
+    import com.phasmidsoftware.number.core.inner.Rational.RationalOps
+    math"$sevenPercent" shouldBe RationalNumber(7:/100, true)
+    math"$sevenPercent".render shouldBe sevenPercent
+  }
+  it should "parse and render angles" in {
+    math"""\pi""" shouldBe Valuable.pi
+    val pi = "𝛑"
+    math"$pi" shouldBe Valuable.pi
+    math"$pi".render shouldBe pi
+    val degrees180 = "180°"
+    math"$degrees180" shouldBe Angle.degrees(180)
+    math"$degrees180".render shouldBe degrees180
+  }
   it should "cancel multiplication and division with simplify 1" in {
     lazymath"2𝛑*1/2" shouldBe ConstPi
     math"2𝛑*1/2" shouldBe 𝛑

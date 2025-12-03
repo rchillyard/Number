@@ -50,7 +50,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * @return a new instance of `Angle` representing the normalized value
     */
   def normalize: Angle = radians match {
-    case RationalNumber(r) =>
+    case RationalNumber(r, false) =>
       Angle(Radian.modulate(Value.fromRational(r)))
     case Real(value, fuzz) =>
       Angle(Radian.modulate(Value.fromDouble(Some(value)))) // TODO take care of fuzz
@@ -329,7 +329,17 @@ object Angle {
   def apply(r: WholeNumber): Angle = Angle(r.x.toBigInt)
 
   /**
+    * Converts the given numeric value to an `Angle` instance represented in degrees.
+    *
+    * @param x the numeric input value to be converted into an angle in degrees
+    * @return an `Angle` instance corresponding to the given numeric value in degrees
+    */
+  def degrees(x: Number): Angle =
+    Angle(x.scale(r180.invert).asInstanceOf[Number], true) // TODO tidy this up!
+
+  /**
     * Converts a `Value` into an `Angle` represented as degrees.
+    * CONSIDER invoking degrees(Number) instead.
     *
     * @param x the input `Value` to be converted to an angle in degrees; the type of value can represent
     *          various numeric structures such as whole numbers, rational numbers, or real numbers.
@@ -337,6 +347,15 @@ object Angle {
     */
   def degrees(x: Value): Angle =
     Angle(Value.scaleRational(r180.invert)(x)).copy(degrees = true)
+
+  /**
+    * Converts the given integer to an `Angle` instance represented in degrees.
+    *
+    * @param x the integer value to be converted into an angle in degrees
+    * @return an `Angle` instance corresponding to the given integer value in degrees
+    */
+  def degrees(x: Int): Angle = degrees(Value.fromInt(x))
+
   /**
     * Creates an `Angle` instance based on the input `Monotone` value.
     *
@@ -426,6 +445,7 @@ object Angle {
       // NOTE that we should be using the === operator here, but it hasn't been defined yet for for Number.
       a1.normalize.radians == a2.normalize.radians
   }
+
   /**
     * Provides an implicit implementation of a commutative group for the `Angle` type, supporting
     * group operations such as identity, combination, and inversion.
@@ -473,7 +493,7 @@ object Angle {
     def negate(a: Angle): Angle = a.radians match {
       case WholeNumber(x) =>
         Angle(-x.toBigInt)
-      case RationalNumber(r) =>
+      case RationalNumber(r, _) =>
         Angle(RationalNumber(r.negate))
       case Real(x, f) =>
         Angle(Real(-x, f))

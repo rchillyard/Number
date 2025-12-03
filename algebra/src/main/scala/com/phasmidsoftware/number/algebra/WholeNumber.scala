@@ -8,7 +8,7 @@ import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
-import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.Rational
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -113,7 +113,7 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
   def compareExact(that: Scalar): Option[Int] = that match {
     case WholeNumber(o) =>
       Some(x.compare(o))
-    case RationalNumber(r) =>
+    case RationalNumber(r, _) =>
       Some(Rational(x.toBigInt).compare(r))
     case _ =>
       None
@@ -189,7 +189,7 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     scalar match {
       case WholeNumber(i) =>
         Some(WholeNumber(x.toBigInt * i.toBigInt))
-      case RationalNumber(r) =>
+      case RationalNumber(r, _) =>
         val product: Rational = Rational(x.toBigInt) * r
         Option.when(product.isWhole)(WholeNumber(product.toBigInt))
       case _ => // TODO add other cases as they become available

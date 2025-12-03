@@ -157,7 +157,7 @@ object Valuable {
     * @throws NumberException if the input `Number` cannot be converted into a `Field`.
     */
   private def numberToField(number: Number) = number match {
-    case RationalNumber(r) =>
+    case RationalNumber(r, _) =>
       rationalToField(r, PureNumber)
     case algebra.Real(x, fo) =>
       core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))

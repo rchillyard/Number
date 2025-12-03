@@ -463,6 +463,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * Renders the current object into its string representation.
     * The method conditionally determines the output based on the
     * result of an internal conditional computation.
+    * TODO improve this doc! For example, how can we ensure that the output will be decimal, not a ratio?
     *
     * @return A string representation of the object. If a certain
     *         condition evaluates to true, a specific value is

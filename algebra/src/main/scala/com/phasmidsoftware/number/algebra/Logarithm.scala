@@ -188,9 +188,9 @@ case class NatLog(x: Number) extends Logarithm(x) {
     if (c.runtimeClass == classOf[Real]) {
       val result: Real =
         value match {
-          case WholeNumber.one | RationalNumber(Rational.one) =>
+          case WholeNumber.one | RationalNumber(Rational.one, _) =>
             Real(math.E)
-          case RationalNumber(Rational.infinity) =>
+          case RationalNumber(Rational.infinity, _) =>
             Real.∞
           case Real(value, fuzz) =>
             Real(math.log(value), fuzz)

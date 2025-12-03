@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.algebra.{Angle, Eager}
+import com.phasmidsoftware.number.algebra.{Angle, Complex, Eager, Nat, RationalNumber, Structure}
 import com.phasmidsoftware.number.core.Constants
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.*
@@ -81,11 +81,30 @@ object LaTeXParser {
 
         // Apply scientific notation if present
         val numStr = expPart match {
-          case Some(exp) => s"${baseNumStr}e$exp$unitStr"
-          case None => s"$baseNumStr$unitStr"
+          case Some(exp) => s"${baseNumStr}e$exp"
+          case None => s"$baseNumStr"
         }
 
-        Eager(numStr)
+        unitStr match {
+          case "%" =>
+            Rational.parse(numStr).toOption match {
+              case Some(r) =>
+                Literal(RationalNumber.percentage(r))
+              case None =>
+                Noop(s"unable to parse LaTeX: $numStr$unitStr")
+            }
+          case "°" =>
+            Eager(numStr) match {
+              case number: com.phasmidsoftware.number.algebra.Number =>
+                Literal(Angle.degrees(number))
+              case _ =>
+                Noop(s"unable to parse LaTeX: $numStr$unitStr")
+            }
+          case "" =>
+            Eager(numStr)
+        }
+
+
     }
 
   /**
