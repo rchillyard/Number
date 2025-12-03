@@ -909,7 +909,8 @@ classDiagram
     %% Notes about key types
     note for Angle "Extends Radians but breaks<br/>monotonicity due to<br/>circular structure"
     
-    note for Monotone "Implements traits:<br/>- Eager<br/>- Valuable<br/>- Renderable<br/>- MaybeNumeric<br/>- Approximate"```
+    note for Monotone "Implements traits:<br/>- Eager<br/>- Valuable<br/>- Renderable<br/>- MaybeNumeric<br/>- Approximate"
+```
 
 
 Note that the type hierarchy is very likely to change in version 1.3
