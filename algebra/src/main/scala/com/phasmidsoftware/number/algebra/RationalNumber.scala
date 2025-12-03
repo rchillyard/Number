@@ -24,8 +24,8 @@ import scala.reflect.ClassTag
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
   * @param r The `Rational` value represented by this `RationalNumber`.
   * @param percentage whether this is a percentage value or not.
-  * Similarly to the `degrees` attribute of `Angle`,
-  * this is a flag that is primarily cosmetic.
+  *                   Similarly to the `degrees` attribute of `Angle`,
+  *                   this is a flag that is primarily cosmetic.
   */
 case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Number {
   /**

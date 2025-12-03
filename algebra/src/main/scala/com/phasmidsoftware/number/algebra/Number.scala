@@ -29,7 +29,7 @@ trait Number extends Scalar with Ordered[Scalar] {
     * @return an `Option[Factor]` containing the factor if it can be determined,
     *         or `None` if no suitable factor exists within the provided `Context`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] = Some(PureNumber)
+  def maybeFactor(context: Context): Option[Factor] = Some(PureNumber)
 
   /**
     * Compares this `Number` instance with a `Scalar` instance.
@@ -74,29 +74,13 @@ trait Number extends Scalar with Ordered[Scalar] {
       FP.recover(compareExact(that))(NumberException(s"Number.compare(Number): logic error: $this, $that"))
     else if !isExact then { // XXX this is not exact
       val maybeInt: Option[Int] = for
-        x <- approximation
-        y <- that.approximation
+        x <- approximation()
+        y <- that.approximation()
       yield x.compare(y)
       FP.recover(maybeInt)(NumberException("Number.compare: Logic error"))
     }
     else // XXX this is exact and that is not exact
       -that.compare(this)
-
-  /**
-    * Provides an approximation of this number, if applicable.
-    *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
-    *
-    * CONSIDER moving this method up into Scalar.
-    *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of this `Number`, or `None` if no approximation is available.
-    */
-  def approximation: Option[Real] =
-    convert(Real.zero)
 
   /**
     * A scale factor applied to this `Number`.

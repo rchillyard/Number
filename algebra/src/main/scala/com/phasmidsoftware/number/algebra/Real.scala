@@ -174,7 +174,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     case r: Real =>
       realIsRing.compare(this, r)
     case n =>
-      FP.getOrThrow(n.approximation.map(a => compare(a)), NumberException(s"Real.compare: logic error: $this, $that"))
+      FP.getOrThrow(n.approximation().map(a => compare(a)), NumberException(s"Real.compare: logic error: $this, $that"))
   }
 
   /**

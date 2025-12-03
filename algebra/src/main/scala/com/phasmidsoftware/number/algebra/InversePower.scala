@@ -200,7 +200,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] = n match {
+  def maybeFactor(context: Context): Option[Factor] = n match {
     case 2 => Some(SquareRoot)
     case 3 => Some(CubeRoot)
     case _ => throw NumberException(s"InversePower.maybeFactor: no factor for $n")

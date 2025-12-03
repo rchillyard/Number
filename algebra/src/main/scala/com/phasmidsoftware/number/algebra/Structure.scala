@@ -48,23 +48,6 @@ trait Structure extends Eager {
     case algebra.RationalNumber(r, _) => Some(r.toDouble)
     case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")
   }
-//
-//  /**
-//    * Method to determine the NumberSet, if any, to which this Structure object belongs.
-//    * NOTE that we don't yet support H, the quaternions.
-//    *
-//    * @return Some(numberSet) or None if it doesn't belong to any (for example, it is fuzzy).
-//    */
-//  def memberOf: Option[NumberSet] =
-//    Seq(C, R, Q, Z, N).find(set => set.isMember(this))
-//
-//  /**
-//    * Method to determine if this Structure object is a member of the given set.
-//    *
-//    * @param set the candidate NumberSet.
-//    * @return true if this is exact and belongs to set.
-//    */
-//  def memberOf(set: NumberSet): Boolean = set.isMember(this)
 }
 
 /**
@@ -113,7 +96,5 @@ case class Complex(complex: core.Complex) extends Eager {
     *
     * @return an `Option` containing the `Factor` if available, otherwise `None`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] = complex.maybeFactor
+  def maybeFactor(context: Context): Option[Factor] = complex.maybeFactor
 }
-
-//trait Scalar extends Structure with Ordered[Scalar]

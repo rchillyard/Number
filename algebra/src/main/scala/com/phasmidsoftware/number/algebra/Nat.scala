@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Semiring
 import com.phasmidsoftware.number.algebra.Nat.natIsSemiring
-import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.annotation.tailrec
 
 /**
@@ -36,7 +36,7 @@ sealed trait Nat extends Eager with N {
     * @return an `Option[Factor]` containing the factor if it can be determined,
     *         or `None` if no suitable factor exists within the provided `Context`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] = Some(PureNumber)
+  def maybeFactor(context: Context): Option[Factor] = Some(PureNumber)
 
   /**
     * Adds the specified natural number to this natural number.

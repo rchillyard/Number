@@ -31,7 +31,7 @@ trait Monotone extends Structure with Approximate {
     * @return an `Option[Factor]` containing the factor representation of this object,
     *         or `None` if factorization is not applicable or unavailable.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor]
+  def maybeFactor(context: Context): Option[Factor]
 
   /**
     * Provides an approximation of this number, if applicable.

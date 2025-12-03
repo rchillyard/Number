@@ -186,7 +186,7 @@ case object NoScalar extends Scalar {
     * @return an `Option[Factor]` containing the factor representation of this object,
     *         or `None` if factorization is not applicable or unavailable.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] = None
+  def maybeFactor(context: Context): Option[Factor] = None
 
   /**
     * Converts the given `Structure` object to an optional instance of the same type.
@@ -236,7 +236,7 @@ trait Radians extends Scalar {
     * @param context the evaluation context within which the factor is to be determined.
     * @return an `Option` containing the factor if it exists; `None` otherwise.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] = Some(Radian)
+  def maybeFactor(context: Context): Option[Factor] = Some(Radian)
 
   /**
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.

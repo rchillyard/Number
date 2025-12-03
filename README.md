@@ -181,7 +181,7 @@ The best way to define expressions is to use the LaTeX-like syntax which you can
 
 You just need to import the `ExpressionParser` (`com.phasmidsoftware.number.parsenew.ExpressionParser.*`)
 
-.
+
 Number creation
 ===============
 Parsing, described above, is really the most precise way of specifying numerical values.
@@ -215,7 +215,8 @@ For example, the proton-electron mass ratio:
 
 Rendering
 =========
-The _render_ method is defined in the trait _NumberLike_ and thus is defined by all subtypes,
+The _render_ method is defined in the trait _Renderable_.
+The rest of this section pertains to the `core` module.
 including _Field_, _Number_, _Rational_, Complex, etc.
 For the prettiest output, you should use _render_ rather than _toString_ (which is basically for debugging).
 
@@ -302,7 +303,7 @@ Some of the operators of _Mill_ are as follows:
 
 Additional operators include _clr_, _chs_, _inv_, _ln_, _exp_, _sin_, _cos_.
 
-Field
+(core) Field
 =====
 The most general form of mathematical quantity is represented by a _Field_.
 See [Field](https://en.wikipedia.org/wiki/Field_(mathematics)).
@@ -314,7 +315,7 @@ _Field_ extends _Numerical_ which, in turn, extends _NumberLike_ (see definition
 The three types of _Field_ supported are _Real_, _Algebraic_, and _Complex_.
 _Real_ is a wrapper around a _Number_ (see below) while _Complex_ (see below) is a wrapper around two _Number_s (more or less).
 
-Number
+(core) Number
 ======
 _Number_ is a trait that extends _Numerical_ (but not _Field_).
 
@@ -471,7 +472,7 @@ $\pi$, _e_, _one_, _zero_, _i_, etc.
 The _Constants_ object also contains a number of fundamental (physical and mathematical) constant definitions, in addition to those defined by _Number_.
 For example, _c_ (speed of light), _alpha_ (fine structure constant), etc.
 
-NumberLike
+NumberLike (obselete)
 ==========
 _NumberLike_ is a trait that defines behavior which is of the most general number-like nature.
 The specific methods defined are:
@@ -503,7 +504,7 @@ Additional methods include:
     def asComplex: Complex
     def asReal: Option[Real]
 
-NumberSet
+NumberSet (obselete)
 =========
 _NumberSet_ is a trait that recognizes the following sets:
 * N: $\mathbb{N}$ (the counting numbers);
@@ -714,6 +715,203 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Type Hierarchy
 ==============
+```mermaid
+classDiagram
+    %% Algebra types
+    class Renderable {
+        <<trait>>
+        +render: String
+    }
+    
+    class MaybeNumeric {
+        <<trait>>
+        +maybeDouble: Double
+    }
+    
+    class Valuable {
+        <<trait>>
+        +isExact: Boolean
+        +maybeFactor: Option[Factor]
+    }
+
+    %% All non-lazy values
+    class Eager {
+        Concrete values (not lazy)
+        <<trait>>
+    }
+    
+    %% Complex (outside Structure)
+    class Complex {
+        Wraps core.Complex
+        NO Order (not totally ordered)
+    }
+    
+    %% Nat (outside Structure)
+    class Nat {
+        Based on Peano arithmetic
+        +inc: Nat
+        +approximation: Option[Real]
+    }
+    
+    class Structure {
+        <<trait>>
+        +convert(T): Option[T]
+        +asJavaNumber: Option[Number]
+    }
+    
+    class Approximate {
+        <<trait>>
+        +approximation: Option[Real]
+        +toDouble: Double
+    }
+    
+    class Monotone {
+        <<trait>>
+        Monotonically increasing with value
+        +isZero: Boolean
+        +signum: Int
+    }
+    
+    class Scalar {
+        <<trait>>
+        Linear relationship to value
+        Dimensionless quantity
+        +compareExact(x: Scalar): Option[Int]
+        +scaleFactor: Double
+        +scale(r: Rational): Scalar
+    }
+    
+    class Number {
+        <<trait>>
+        Main numeric type
+        +compare(x: Number): Int
+    }
+    
+    class RationalNumber {
+        +rational: Rational
+        +percentage flag
+        Exact rationals
+        Additional mixins: Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber]
+        +Field[RationalNumber]
+    }
+    
+    class Real {
+        Fuzzy/uncertain numbers
+        +Ring[Real] with Ordering[Real]
+    }
+    
+    class WholeNumber {
+        Integers/naturals
+        +CommutativeRing[WholeNumber]
+    }
+    
+    class Infinity {
+        Special Real case
+    }
+    
+    class InversePower {
+        <<trait>>
+        Non-linear monotone: x^(-n)
+    }
+    
+    class Transformed {
+        <<trait>>
+        Non-linear monotone
+        Mathematical transformations
+    }
+    
+    %% Angular measures
+    class Radians {
+        <<trait>>
+        Angular measurements
+    }
+    
+    class Angle {
+        +radians/degrees flag
+        +AdditiveCommutativeGroup
+        NO Order (circular)
+    }
+    
+    %% Transformed (other Monotones)
+    class Logarithm {
+        <<trait>>
+        +value: Number
+        Logarithmic values
+    }
+    
+    class NatLog {
+        Natural logarithm
+        +x: Number
+    }
+    
+    %% Sentinel
+    class NoScalar {
+        <<object>>
+        Empty/sentinel value
+    }
+    
+    %% Inheritance relationships
+    Renderable <|-- Valuable
+
+    MaybeNumeric <|-- Valuable
+    
+    Valuable <|-- Eager
+    Valuable <|-- Expression
+    
+    Eager <|-- Complex
+    Eager <|-- Nat
+    Eager <|-- Structure
+    
+    Expression <|-- CompositeExpression
+    Expression <|-- AtomicExpression
+    
+    CompositeExpression <|-- UniFunction
+    CompositeExpression <|-- BiFUnction
+    CompositeExpression <|-- Aggregate
+    
+    AtomicExpression <|--ValueExpression
+    AtomicExpression <|--Transcendental
+    AtomicExpression <|--Root
+    
+    ValueExpression <|-- Literal
+    ValueExpression <|-- NamedConstant
+    
+    Approximate <|-- Monotone
+    
+    Structure <|-- Monotone
+    Structure <|-- Complex
+    
+    %% Monotone branches
+    Monotone <|-- Scalar
+    Monotone <|-- InversePower
+    Monotone <|-- Transformed
+    
+    %% Scalar branches
+    Scalar <|-- Number
+    Scalar <|-- Radians
+    Scalar <|-- NoScalar
+    
+    %% Number branches
+    Number <|-- RationalNumber
+    Number <|-- Real
+    Number <|-- WholeNumber
+    
+    %% Real specialization
+    Real <|-- Infinity
+    
+    %% Radians specialization
+    Radians <|-- Angle
+    
+    %% Transformed branches
+    Transformed <|-- Logarithm
+    Logarithm <|-- NatLog
+    
+    %% Notes about key types
+    note for Angle "Extends Radians but breaks<br/>monotonicity due to<br/>circular structure"
+    
+    note for Monotone "Implements traits:<br/>- Eager<br/>- Valuable<br/>- Renderable<br/>- MaybeNumeric<br/>- Approximate"```
+
+
 Note that the type hierarchy is very likely to change in version 1.3
 * _NumberLike_ (trait)
   * _Numerical_ (trait: most numeric quantities)

@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{CanPower, Eager, ExpressionContext, NatLog, Q, RationalNumber, RestrictedContext, Structure, Valuable}
+import com.phasmidsoftware.number.algebra.{CanPower, Eager, Context, NatLog, Q, RationalNumber, RestrictedContext, Structure, Valuable}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Field, Number, Real, inner}
@@ -189,7 +189,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] =
+  def maybeFactor(context: Context): Option[Factor] =
     evaluate(context) flatMap (v => v.maybeFactor(context))
 
   /**
@@ -226,7 +226,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     *
     * @return the materialized Field.
     */
-  def evaluate(context: ExpressionContext): Option[Eager] =
+  def evaluate(context: Context): Option[Eager] =
     context.qualifyingEagerValue(x.evaluateAsIs flatMap f.applyExact)
 
   /**
@@ -380,7 +380,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @param context the context in which the factor is evaluated.
     * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] =
+  def maybeFactor(context: Context): Option[Factor] =
     evaluate(context) flatMap (v => v.maybeFactor(context))
 
   /**
@@ -537,11 +537,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   /**
     * Action to simplify this Expression as a Field.
     * NOTE that because we need to be able to evaluate this Expression exactly,
-    * we need to be sure that the ExpressionContext passed in to f.evaluate is not None.
+    * we need to be sure that the Context passed in to f.evaluate is not None.
     *
     * @return the materialized Field.
     */
-  def evaluate(context: ExpressionContext): Option[Eager] =
+  def evaluate(context: Context): Option[Eager] =
     val vo: Option[Eager] = for (x <- a.evaluateAsIs; y <- b.evaluateAsIs; z <- f.applyExact((x, y))) yield z
     context.qualifyingEagerValue(vo)
 
@@ -994,7 +994,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @param context the context in which the factor is evaluated.
     * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] =
+  def maybeFactor(context: Context): Option[Factor] =
     evaluate(context) flatMap (v => v.maybeFactor(context))
 
   /**
@@ -1007,7 +1007,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return an `Option[Field]` representing the result of the evaluation. Returns `None`
     *         if the evaluation cannot produce a valid field or if an invalid context is encountered.
     */
-  def evaluate(context: ExpressionContext): Option[Eager] = {
+  def evaluate(context: Context): Option[Eager] = {
     val vo = xs.foldLeft(function.maybeIdentityL) {
       (ao, x) =>
         for (a <- ao; b <- x.evaluateAsIs; c <- function.applyExact(a, b)) yield c
@@ -1075,7 +1075,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     xs.mkString(s"Aggregate{${function.toString},", ",", "}")
 
   /**
-    * Combines a given `Expression`, an optional `Field`, and a `ExpressionContext` into a new tuple containing an updated
+    * Combines a given `Expression`, an optional `Field`, and a `Context` into a new tuple containing an updated
     * optional field and context. The combination logic evaluates the expression within the given context, applying
     * transformations to the field and context when applicable.
     *
@@ -1087,7 +1087,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return a tuple consisting of an updated optional field and the resulting context after processing the
     *         given expression with the provided field and context.
     */
-  private def combineFieldsAndContexts(x: Expression, fo: Option[Eager], context: ExpressionContext): (Option[Eager], ExpressionContext) =
+  private def combineFieldsAndContexts(x: Expression, fo: Option[Eager], context: Context): (Option[Eager], Context) =
     (for a <- fo; b <- x.evaluate(context) yield {
       val field = function(a, b)
       field -> (for factor <- field.maybeFactor(context) yield function.rightContext(factor)(context))
@@ -1095,7 +1095,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
       case Some((f, Some(qq))) =>
         Some(f) -> qq
       case _ =>
-        None -> ExpressionContext.AnyScalar
+        None -> Context.AnyScalar
     }
 }
 

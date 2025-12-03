@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Complex, Eager, ExpressionContext, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Complex, Eager, Context, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.algebraic.*
@@ -122,7 +122,7 @@ case class Noop(w: String) extends AtomicExpression {
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] = None
+  def maybeFactor(context: Context): Option[Factor] = None
 
   /**
     * Action to evaluate this `Expression` as a `Valuable`,
@@ -130,7 +130,7 @@ case class Noop(w: String) extends AtomicExpression {
     *
     * @return a `Valuable`.
     */
-  def evaluate(context: ExpressionContext): Option[Eager] =
+  def evaluate(context: Context): Option[Eager] =
     throw new UnsupportedOperationException(s"Can''t evaluate: $this")
 
   /**
@@ -203,7 +203,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] = value.maybeFactor(context)
+  def maybeFactor(context: Context): Option[Factor] = value.maybeFactor(context)
 
   /**
     * Method to determine if this Structure object is exact.
@@ -248,7 +248,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *                qualification rules for determining whether the Valuable is valid.
     * @return `Some(Valuable)` if the Valuable qualifies within the given context, otherwise `None`.
     */
-  def evaluate(context: ExpressionContext): Option[Eager] =
+  def evaluate(context: Context): Option[Eager] =
     if (context.valuableQualifies(value))
       Some(value)
     else
@@ -915,7 +915,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor] = expression.maybeFactor(context)
+  def maybeFactor(context: Context): Option[Factor] = expression.maybeFactor(context)
 
   /**
     * Method to render this Structure in a presentable manner.
@@ -930,7 +930,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     *
     * @return an optional `Valuable`.
     */
-  def evaluate(context: ExpressionContext): Option[Eager] = expression.evaluate(context)
+  def evaluate(context: Context): Option[Eager] = expression.evaluate(context)
 
   /**
     * Provides an approximation of this number, if applicable.
@@ -1380,7 +1380,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return an optional `Factor`.
     */
-  override def maybeFactor(context: ExpressionContext): Option[Factor] = solution match {
+  override def maybeFactor(context: Context): Option[Factor] = solution match {
     case LinearSolution(_) =>
       Some(PureNumber)
     case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) =>
@@ -1415,7 +1415,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return an optional `Valuable`.
     */
-  def evaluate(context: ExpressionContext): Option[Eager] =
+  def evaluate(context: Context): Option[Eager] =
     maybeValue match {
       case x@Some(value) if context.valuableQualifies(Eager(value)) =>
         Some(Eager(value))

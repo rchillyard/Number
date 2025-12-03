@@ -46,7 +46,7 @@ trait Valuable extends Renderable with MaybeNumeric {
     * @param context the context in which the factor is evaluated.
     * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeFactor(context: ExpressionContext): Option[Factor]
+  def maybeFactor(context: Context): Option[Factor]
 }
 
 /**

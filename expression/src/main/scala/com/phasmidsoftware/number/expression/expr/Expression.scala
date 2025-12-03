@@ -40,7 +40,7 @@ trait Expression extends Valuable with Approximate {
     *
     * @return an optional `Field`.
     */
-  def evaluate(context: ExpressionContext): Option[Eager]
+  def evaluate(context: Context): Option[Eager]
 
   /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
@@ -145,7 +145,7 @@ object ExpressionHelper {
   extension (x: String)
     def evaluateAsIs: Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluateAsIs)
-    def evaluate(context: ExpressionContext = com.phasmidsoftware.number.algebra.RestrictedContext(PureNumber)): Option[Valuable] =
+    def evaluate(context: Context = com.phasmidsoftware.number.algebra.RestrictedContext(PureNumber)): Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluate(context))
     def materialize: Option[Valuable] =
       Expression.parse(x).map(_.materialize)
