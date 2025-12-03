@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.Number
 import com.phasmidsoftware.number.expression.mill.{DyadicExpression, Expr, Expression, Item, Mill, Sin, Stack, TerminalExpression}
+import com.phasmidsoftware.number.expression.parse.ShuntingYardParser.InfixToken
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -126,5 +127,11 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "operator" in {
 
+  }
+  // NOTE this test was really just to understand instance-method eta expansion a little better.
+  it should "essentially do nothing" in {
+    val s = new ShuntingYardParser.ShuntingYard(Nil, Nil)
+    val f: ShuntingYardParser.InfixToken => ShuntingYardParser.ShuntingYard = s.:+
+    f(InfixToken(None, false)) shouldBe s
   }
 }

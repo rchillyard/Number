@@ -280,18 +280,12 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     copy(value = value * factor.toDouble)
 
   /**
-    * Scale this Real by the given scalar, provided that it is exact.
-    * This method is used to scale a Real by a scalar that is known to be exact.
-    * If you want to simply multiply this Real by a scalar, use the * operator.
+    * Scales the current scalar instance by the specified rational factor.
     *
-    * @param scalar the exact scalar to scale by
-    * @return a scaled Real with the same relative error as this.
+    * @param r the `Rational` factor by which to scale the scalar
+    * @return a new `Scalar` instance representing the scaled value
     */
-  def scale(scalar: Scalar): Option[Real] =
-    for
-      x <- scalar.maybeDouble if scalar.isExact
-      f <- fuzz
-    yield Real(value * x, f.normalize(x, true))
+  def scale(r: Rational): Scalar = copy(value = value * r.toDouble)
 
   /**
     * Converts the current `Real` instance into an instance of `FuzzyNumber`.

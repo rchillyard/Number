@@ -43,7 +43,7 @@ trait Structure extends Eager {
     *         if the conversion is successful under the stated conditions; otherwise, `None`.
     */
   def asJavaNumber: Option[java.lang.Number] = this match {
-    case algebra.Angle(number) => number.convert(Real.zero).flatMap(x => x.asJavaNumber)
+    case algebra.Angle(number, _) => number.convert(Real.zero).flatMap(x => x.asJavaNumber)
     case algebra.Real(value, _) => Some(value)
     case algebra.RationalNumber(r) => Some(r.toDouble)
     case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")

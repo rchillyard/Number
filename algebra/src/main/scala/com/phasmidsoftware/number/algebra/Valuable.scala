@@ -106,7 +106,7 @@ object Valuable {
       Some(core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo)))
     case q: Q =>
       Some(rationalToField(q.toRational, PureNumber))
-    case a@Angle(radians) =>
+    case a@Angle(radians, _) =>
       Some(Real(numberToField(radians).x.make(inner.Radian)))
     case l@NatLog(x) =>
       Some(Real(numberToField(x).x.make(inner.NatLog)))

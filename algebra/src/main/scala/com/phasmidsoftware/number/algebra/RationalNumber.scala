@@ -148,21 +148,12 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
   infix def pow(that: WholeNumber): Option[RationalNumber] = that.convert(RationalNumber.zero) flatMap pow
 
   /**
-    * Scales this `RationalNumber` by a specified `Scalar`.
-    * If the provided scalar is of type `Z`, it attempts to perform the scaling operation
-    * using the underlying `Rational` values.
+    * Scales the current scalar instance by the specified rational factor.
     *
-    * @param that the `Scalar` to scale this `RationalNumber` by. It must be of type `Z` to proceed
-    *             with the scaling operation.
-    * @return an `Option[RationalNumber]` containing the scaled `RationalNumber` if the operation
-    *         is possible, or `None` if `that` is not of type `Z` or the scaling operation fails.
+    * @param r the `Rational` factor by which to scale the scalar
+    * @return a new `Scalar` instance representing the scaled value
     */
-  def scale(that: Scalar): Option[RationalNumber] = that match {
-    case rn: Z =>
-      rn.maybeQ map (q => RationalNumber(r * q.toRational))
-    case _ =>
-      None
-  }
+  def scale(r: Rational): Scalar = RationalNumber(r * this.r)
 
   /**
     * Scales the current instance of type `T` by the specified `Double` value.

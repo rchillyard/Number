@@ -54,6 +54,13 @@ trait Scalar extends Monotone {
     */
   def signum: Int
 
+  /**
+    * Scales the current scalar instance by the specified rational factor.
+    *
+    * @param r the `Rational` factor by which to scale the scalar
+    * @return a new `Scalar` instance representing the scaled value
+    */
+  def scale(r: Rational): Scalar
 }
 
 /**
@@ -197,6 +204,14 @@ case object NoScalar extends Scalar {
     * @return Some(x) where x is a Double if this is exact, else None.
     */
   def maybeDouble: Option[Double] = None
+
+  /**
+    * Scales the current scalar instance by the specified rational factor.
+    *
+    * @param r the `Rational` factor by which to scale the scalar
+    * @return a new `Scalar` instance representing the scaled value
+    */
+  def scale(r: Rational): Scalar = throw NumberException(s"NoScalar.scale: unsupported operation")
 
   /**
     * Method to render this `Valuable` for presentation to the user.
