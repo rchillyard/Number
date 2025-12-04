@@ -23,10 +23,10 @@ This project provides exact and fuzzy numeric computation with lazy evaluation i
 
 Number is organized into multiple modules:
 
-* **`core`** - Legacy numeric types (Number, Field, Rational, Complex)
 * **`algebra`** - Algebraic structures based on Cats typeclasses
 * **`parse`** - Parsing facilities for (lazy) expressions and (eager) algebraic structures
 * **`expressions`** - Lazy expression evaluation (being migrated to algebra)
+* **`core`** - Legacy numeric types (Number, Field, Rational, Complex, Factor, Fuzz, ****etc.)
 * **`top`** - Top level example code
 
 **Migration Note**: The `algebra` module is gradually replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
@@ -53,11 +53,13 @@ fifty.render  // "50%"
 
 ### Using the Core Module (Legacy)
 ```scala
-import com.phasmidsoftware.number.core.Number.NumberOps
+import Rational.RationalOps // For :/
+import com.phasmidsoftware.number.expression.expr.Expression._ // For One, etc.
 
 val x = 1 :/ 2  // Exact rational: 1/2
-val half: Expression = One / 2
-half.materialize
+val lazyHalf = One / 2
+val half: Eager = lazyHalf
+half shouldBe RationalNumber(x)
 ```
 
 #### Sources
@@ -373,72 +375,6 @@ class MySpec extends AnyFlatSpec with Matchers with StructuralEquality {
 
 For `Angle` and `RationalNumber`, equality ignores display flags (radians/degrees, percentage) and compares normalized mathematical values.
 
-## Expression Module
-
-Expressions are lazily evaluated and so can be used to avoid any unnecessary computation and,
-especially, any approximation of what should be an exact value.
-
-**Note** The expression module has been cloned and restructured from the `core` module. Although the expression package
-still exists in core, it should not be used directly.
-
-The Expression trait supports the following operations:
-
-* **`materialize`** - Simplifies and evaluates the expression (as an `Eager`) by applying rules of arithmetic.
-* **`simplify`** - Simplifies the expression by applying rules of arithmetic, returning a new `Expression`.
-* **`approximation`** - Approximates the expression as an `Option[Real]` value, but only if the expression is not exact.
-  An exact expression can be approximated by passing the parameter `force=true` into this method.
-* **`evaluateAsIs`** - Evaluates the expression to an `Option[Eager]` value, which will be defined providing that the
-  expression is exact (i.e., it can be evaluated in the natural context of the expression).
-* **`evaluate(Context)`** - Evaluates the expression to an `Option[Eager]` value, in the given context.
-
-There is additionally, an implicit conversion from `Expression` to `Eager`, provided that you have used the following
-import, for example:
-
-```scala
-  import Expression._
-
-val expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) :+ One
-val eager: Eager = expression // yields 5
-```
-
-The best way to define expressions (or the eager values) is to use the LaTeX-like syntax which you can invoke
-using one of the following interpolators (defined in `com.phasmidsoftware.number.parsenew.ExpressionParser`):
-
-* **`puremath`** - Parses an infix expression resulting in an `Expression` but without any simplification.
-* **`lazymath`** - Equivalent to `puremath` but with simplification.
-* **`mathOpt`** - Parses, simplifies, and evaluates an expression, returning an `Option[Eager]` rather than an
-  `Expression`.
-* **`math`** - Parses, simplifies, and evaluates an expression (same as `mathOpt`), but returns an `Eager` rather than
-  an `Option[Eager]`. Note that an exception may be thrown if the expression given cannot be parsed.
-
-The following examples illustrate the use of the `math` interpolator:
-
-```scala
-    val theAnswer: Eager = math"6*(3+4)"
-val seven: Eager = math"""\frac{42}{6}"""
-val rootTwo: Eager = math"""\sqrt{2}"""
-val rootTwoAlt: Eager = math"√2"
-val pi: Eager = math"""\pi"""
-val twoPi: Eager = math"""2\pi"""
-```
-
-You just need to import the interpolators as follows:
-
-```scala
-    import com.phasmidsoftware.number.parsenew.ExpressionParser.*
-```
-
-Another way to define expressions is to use the empty expression symbol `∅`.
-For example:
-
-```scala
-  val theAnswer0: Expression = ∅ + 42 // Defines an expression which will evaluate to 42
-val theAnswer1: Expression = ∅ * 42 // Also defines an expression which will evaluate to 42
-val theAnswer2: Expression = ∅ + 𝛑 + 42 - 𝛑 // Also defines an expression which will evaluate to 42 (exactly)
-```
-
-The empty expression ∅ evaluates to the identity for either additive or multiplicative operations.
-
 ## Parse Module
 
 Number supports flexible parsing of numeric values from strings, with automatic detection of exact vs. fuzzy numbers.
@@ -482,16 +418,19 @@ It's best always to use a String if you want to override the default behavior.
 
 In general, the form of a number to be parsed from a String is:
 
-    number ::= value? factor?
-    factor ::= "Pi" | "pi" | "PI" | 𝛑 | 𝜀 | √ | ³√
-    value ::= sign? nominalValue fuzz* exponent*
-    nominalValue ::= integerPart ( "." fractionalPart )? | rational
-    rational ::= digits "/" digits
-    integerPart ::= digits
-    fractionalPart ::= digits
-    fuzz ::= "..." | "*" | "(" fuzz ")" | "[" fuzz "]"
-    exponent ::= E sign? digits
-    fuzz ::= one or two digits
+```ebnf
+// Grammar for parsing Number strings
+number ::= value? factor?
+factor ::= "Pi" | "pi" | "PI" | π | ε | √ | ³√
+value ::= sign? nominalValue fuzz* exponent*
+nominalValue ::= integerPart ( "." fractionalPart )? | rational
+rational ::= digits "/" digits
+integerPart ::= digits
+fractionalPart ::= digits
+fuzz ::= "..." | "*" | "(" fuzz ")" | "[" fuzz "]"
+exponent ::= E sign? digits
+fuzz ::= one or two digits
+```
 
 Note that the __e__ and __pi__ symbols are, respectively,
 (in Unicode): \uD835\uDF00 and \uD835\uDED1 (&#xD835;&#xDF00; and &#xD835;&#xDED1;)  
@@ -513,7 +452,9 @@ There are two ways to specify _Rational_ numbers:
 Either of these methods will require importing the appropriate implicit classes from _Rational_.
 It's probably the simplest just to include:
 
-    import Rational._
+```scala
+import Rational._
+```
 
 _Doubles_ are where the trickiest conversions apply.
 Writing something like _Number(3.1415927)_ will result in a _FuzzyNumber_ with error bounds of 5 * 10∧-7.
@@ -553,7 +494,9 @@ Otherwise, the number will render as many digits as possible, with "..." added t
 The _Fuzzy[X]_ trait defines a typeclass which adds fuzziness to any object type.
 There is exactly one method defined and that is _same_:
 
-    def same(p: Double)(x1: X, x2: X): Boolean
+```scala
+def same(p: Double)(x1: X, x2: X): Boolean
+```
 
 Given a confidence value _p_ (a probability between 0 and 1), this method will determine if any two objects of type _X_
 can be considered the same.
@@ -588,7 +531,9 @@ The _compare(Number)_ method of _FuzzyNumber_ (arbitrarily) sets the _p_ value t
 The _Mill_ trait allows expressions to be evaluated using RPN (Reverse Polish Notation).
 For example:
 
-    val eo: Option[Expression] = Mill.parseMill("42 37 + 2 *").toOption.flatMap(_.evaluate)
+```scala
+val eo: Option[Expression] = Mill.parseMill("42 37 + 2 *").toOption.flatMap(_.evaluate)
+```
 
 yields the optional _Expression_ with a materialized value of 158.
 See the code for other methods for defining _Mill_ operations.
@@ -639,7 +584,9 @@ _GeneralNumber_ has three members:
 ### Value
 The "value" of a _Number_ is represented by the following type (see _com.phasmidsoftware.number.package.scala_):
 
-    type Value = Either[Either[Option[Double], Rational], Int]
+```scala
+type Value = Either[Either[Option[Double], Rational], Int]
+```
 
 Thus, an integer _x_ is represented by _Right(x)_.
 A _Rational_ _x_ is represented by a _Left(Right(x))_.
@@ -660,15 +607,17 @@ It's even possible to have a _Real_ which belongs to $\mathbb{C}$, in the case o
 
 In addition to the properties of _Field_, the following methods are defined:
 
-    def sqrt: Field
-    def sin: Field
-    def cos: Field
-    def tan: Field
-    def atan(y: Real): Field
-    def log(b: Real): Field
-    def ln: Field
-    def exp: Field
-    def toDouble: Double
+```scala
+def sqrt: Field
+def sin: Field
+def cos: Field
+def tan: Field
+def atan(y: Real): Field
+def log(b: Real): Field
+def ln: Field
+def exp: Field
+def toDouble: Double
+```
 
 For examples of usage, especially constructing _Real_ objects, please see _RealWorksheet.sc_.
 
@@ -693,9 +642,11 @@ For example (see also _Complex.sc_).
 
 Additionally (see below), it is possible to define imaginary values on their own using the following syntax:
 
-    val x = Number.i
-    import SquareRoot.IntToImaginary
-    val y = 2.i // to give 2i
+```scala
+val x = Number.i
+import SquareRoot.IntToImaginary
+val y = 2.i // to give 2i
+```
 
 ### Algebraic
 An _Algebraic_ is a particular root of some polynomial function.
@@ -753,9 +704,10 @@ Such values are limited (modulated) to be in the range $-\pi...\pi$.
 However, this modulation typically happens inside operations or as part of _render_, so it is still possible to define a value of $2\pi$.
 For example, if you want to check that the sine of $\frac{\pi}{2}$ is equal to 1 exactly, then you should write the following:
 
-    val target = (Number.pi/2).sin
-    target shouldBe Number.one
-
+```scala
+val target = (Number.pi/2).sin
+target shouldBe Number.one
+```
 Similarly, if you use the _atan_ method on a _Scalar_ number, the result will be a number (possibly exact) whose factor is __Radian__.
 
 The 𝜀 factor works quite differently.
@@ -780,31 +732,37 @@ For example, _c_ (speed of light), _alpha_ (fine structure constant), etc.
 _NumberLike_ is a trait that defines behavior which is of the most general number-like nature.
 The specific methods defined are:
 
-    def isExact(maybeFactor: Option[Factor]): Boolean // determines if this object is exact in the domain of the (optional) factor
-    def isExact: Boolean = isExact(None)
-    def asNumber: Option[Number]
-    def render: String
+```scala
+def isExact(maybeFactor: Option[Factor]): Boolean // determines if this object is exact in the domain of the (optional) factor
+def isExact: Boolean = isExact(None)
+def asNumber: Option[Number]
+def render: String
+```
 
 Additionally, there are two methods relating to the Set of which this _NumberLike_ object is a member, such as
 the integers ($\mathbb{Z}$)
 
-    def memberOf: Option[NumberSet]
-    def memberOf(set: NumberSet): Boolean
+```scala
+def memberOf: Option[NumberSet]
+def memberOf(set: NumberSet): Boolean
+```
 
 ### Numerical
 _Numerical_ extends _NumberLike_.
 Additional methods include:
 
-    def isSame(x: Numerical): Boolean // determines if this and x are equivalent, numerically.
-    def isInfinite: Boolean
-    def isZero: Boolean
-    def isUnity: Boolean
-    def signum: Int
-    def unary_- : Field
-    def invert: Field
-    def normalize: Field
-    def asComplex: Complex
-    def asReal: Option[Real]
+```scala
+def isSame(x: Numerical): Boolean // determines if this and x are equivalent, numerically.
+def isInfinite: Boolean
+def isZero: Boolean
+def isUnity: Boolean
+def signum: Int
+def unary_- : Field
+def invert: Field
+def normalize: Field
+def asComplex: Complex
+def asReal: Option[Real]
+```
 
 ### NumberSet (obselete)
 _NumberSet_ is a trait that recognizes the following sets:
@@ -816,7 +774,9 @@ _NumberSet_ is a trait that recognizes the following sets:
 
 The most important method is:
 
-    def isMember(x: NumberLike): Boolean
+```scala
+def isMember(x: NumberLike): Boolean
+```
 
 which will yield the most exclusive set that x belongs to.
 
@@ -866,7 +826,9 @@ This is particularly true of the example above involving the square root of 7.
 There is an implicit class _ExpressionOps_ which provides methods which allow _Number_ operations to behave as expressions.
 So, for example, you can write:
 
-    val x = Number(1) + 2
+```scala
+val x = Number(1) + 2
+```
 
 For this to compile properly, you will need to import the _ExpressionOps_ class.
 
@@ -1121,6 +1083,72 @@ Other types (for reference):
 * _Evaluatable_ (trait)
     * _ConFrac_ (class)
 
+## Expression Module
+
+Expressions are lazily evaluated and so can be used to avoid any unnecessary computation and,
+especially, any approximation of what should be an exact value.
+
+**Note** The expression module has been cloned and restructured from the `core` module. Although the expression package
+still exists in core, it should not be used directly.
+
+The Expression trait supports the following operations:
+
+* **`materialize`** - Simplifies and evaluates the expression (as an `Eager`) by applying rules of arithmetic.
+* **`simplify`** - Simplifies the expression by applying rules of arithmetic, returning a new `Expression`.
+* **`approximation`** - Approximates the expression as an `Option[Real]` value, but only if the expression is not exact.
+  An exact expression can be approximated by passing the parameter `force=true` into this method.
+* **`evaluateAsIs`** - Evaluates the expression to an `Option[Eager]` value, which will be defined providing that the
+  expression is exact (i.e., it can be evaluated in the natural context of the expression).
+* **`evaluate(Context)`** - Evaluates the expression to an `Option[Eager]` value, in the given context.
+
+There is additionally, an implicit conversion from `Expression` to `Eager`, provided that you have used the following
+import, for example:
+
+```scala
+import Expression._
+
+val expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) :+ One
+val eager: Eager = expression // yields 5
+```
+
+The best way to define expressions (or the eager values) is to use the LaTeX-like syntax which you can invoke
+using one of the following interpolators (defined in `com.phasmidsoftware.number.parsenew.ExpressionParser`):
+
+* **`puremath`** - Parses an infix expression resulting in an `Expression` but without any simplification.
+* **`lazymath`** - Equivalent to `puremath` but with simplification.
+* **`mathOpt`** - Parses, simplifies, and evaluates an expression, returning an `Option[Eager]` rather than an
+  `Expression`.
+* **`math`** - Parses, simplifies, and evaluates an expression (same as `mathOpt`), but returns an `Eager` rather than
+  an `Option[Eager]`. Note that an exception may be thrown if the expression given cannot be parsed.
+
+The following examples illustrate the use of the `math` interpolator:
+
+```scala
+val theAnswer: Eager = math"6*(3+4)"
+val seven: Eager = math"""\frac{42}{6}"""
+val rootTwo: Eager = math"""\sqrt{2}"""
+val rootTwoAlt: Eager = math"√2"
+val pi: Eager = math"""\pi"""
+val twoPi: Eager = math"""2\pi"""
+```
+
+You just need to import the interpolators as follows:
+
+```scala
+import com.phasmidsoftware.number.parsenew.ExpressionParser.*
+```
+
+Another way to define expressions is to use the empty expression symbol `∅`.
+For example:
+
+```scala
+val theAnswer0: Expression = ∅ + 42 // Defines an expression which will evaluate to 42
+val theAnswer1: Expression = ∅ * 42 // Also defines an expression which will evaluate to 42
+val theAnswer2: Expression = ∅ + 𝛑 + 42 - 𝛑 // Also defines an expression which will evaluate to 42 (exactly)
+```
+
+The empty expression ∅ evaluates to the identity for either additive or multiplicative operations.
+
 ## Core Module
 
 **Note**: This section describes the legacy `core` module (as of version 1.2.11). New code should use the `algebra` module (see above). The `core` module is being gradually superseded as we migrate to a cleaner type hierarchy based on mathematical structures.
@@ -1134,21 +1162,27 @@ The core module provides the original implementation of fuzzy, lazy numbers with
 There is no such thing as accidental loss of precision (at least, provided that code follows the recommendations).
 For example, if you write:
 
-    val x = 1 / 2
+```scala
+val x = 1 / 2
+```
 
 your _x_ will be an _Int_ of value 0, because of the way Java-style operators work (in this case, integer division).
 
 However, if you write the idiomatically correct form:
 
-    import com.phasmidsoftware.number.core.Number.NumberOps
-    val x = 1 :/ 2
+```scala
+import com.phasmidsoftware.number.core.Number.NumberOps
+val x = 1 :/ 2
+```
 
 then _x_ will be a _Number_ with value __exactly__ one half.
 
 Even better is to use the lazy expression mechanism:
 
-    val half: Expression = One / 2
-    half.materialize
+```scala
+val half: Expression = One / 2
+half.materialize
+```
 
 You probably want to see some code: so go to the _worksheets_ package and take a look, starting with
 NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
@@ -1226,7 +1260,7 @@ This module is the top-level module for the library.
 This is where you can find high-level specifications that correspond to user code.
 
 ## Versions
-* Version 1.3.2: bringing over the Expression packages from Number3 project.
+* Version 1.3.2: Complete the migration to 5-module project.
 * Version 1.3.1: 
   * Restructured the project into two modules: core and algebra;
   * Introduced the algebra package which will replace all of the Number classes (see Future Upgrades below).
@@ -1285,7 +1319,7 @@ This is where you can find high-level specifications that correspond to user cod
 The Number project is undergoing a significant restructuring:
 
 **Completed (v1.3.x)**:
-- ✅ Multi-module architecture (`core`, `algebra`, `parse`, `expressions`)
+- ✅ Multi-module architecture (`algebra`, `parse`, `expressions`, `core`, `top`)
 - ✅ Algebra module with Cats typeclass integration
 - ✅ Structure hierarchy for algebraic types
 

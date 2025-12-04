@@ -272,4 +272,14 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   it should "simplify aggregate 4b" in {
     math"(√3 + 1)*(1 - √3)" shouldBe WholeNumber(-2)
   }
+  behavior of "Other stuff"
+  it should "" in {
+    import Rational.RationalOps // For :/
+    import com.phasmidsoftware.number.expression.expr.Expression._ // For One, etc.
+
+    val x = 1 :/ 2  // Exact rational: 1/2
+    val lazyHalf = One / 2
+    val half: Eager = lazyHalf
+    half shouldBe RationalNumber(x)
+  }
 }
