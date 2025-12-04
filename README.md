@@ -1279,6 +1279,26 @@ This is where you can find high-level specifications that correspond to user cod
 * Initial version is 1.0.0
 
 ### Future Upgrades
+
+#### Active Migrations
+
+The Number project is undergoing a significant restructuring:
+
+**Completed (v1.3.x)**:
+- ✅ Multi-module architecture (`core`, `algebra`, `parse`, `expressions`)
+- ✅ Algebra module with Cats typeclass integration
+- ✅ Structure hierarchy for algebraic types
+
+**In Progress**:
+- 🔄 Migrating Expression types to the expressions module
+- 🔄 Replacing core.Number and core.Field with algebra types
+
+**Planned**:
+- Additional algebraic structures (Matrix, Vector, Polynomial)
+- Complete migration guide
+- Enhanced pattern matching and simplification
+- Extended Cats typeclass coverage
+
 We intend to restructure the hierarchy of numeric types entirely.
 The traits and classes should strictly follow the mathematical concepts of field, ring, etc.
 To begin, the hierarchy should look like this:
