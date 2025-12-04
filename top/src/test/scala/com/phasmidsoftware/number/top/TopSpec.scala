@@ -7,12 +7,10 @@ package com.phasmidsoftware.number.top
 import com.phasmidsoftware.matchers.*
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.Angle.𝛑
-import com.phasmidsoftware.number.algebra.Real.∞
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.Number.{piBy2, root2}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.infinity
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, ComplexPolar, Constants, Gaussian}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Gaussian}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.*
 import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
@@ -20,7 +18,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.scalatest.matchers.should.Matchers.shouldBe
 import scala.languageFeature.implicitConversions.*
 
 /**
@@ -81,7 +78,6 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
 
   import Expression.ExpressionOps
-  import Matchers.*
   import Rational.RationalHelper
   import com.phasmidsoftware.number.parsenew.ExpressionParser.*
 

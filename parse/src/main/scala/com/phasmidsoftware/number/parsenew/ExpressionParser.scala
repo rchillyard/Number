@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.algebra.Valuable
+import com.phasmidsoftware.number.algebra.{Eager, Valuable}
 import com.phasmidsoftware.number.expression.expr.{Expression, Noop}
 import fastparse.Parsed
 import scala.util.Try
@@ -53,7 +53,7 @@ object ExpressionParser {
       * @param args the arguments to be embedded into the LaTeX-like string for parsing and evaluation.
       * @return a `Valuable` object representing the materialized result of the parsed mathematical expression.
       */
-    inline def math(args: Any*): Valuable =
+    inline def math(args: Any*): Eager =
       lazymath(args *).materialize
     /**
       * Attempts to process and evaluate a LaTeX-like mathematical expression from the provided arguments, returning
@@ -63,7 +63,7 @@ object ExpressionParser {
       * @return an `Option[Valuable]` containing the result of the evaluated mathematical expression if successful, or `None` if
       *         the evaluation fails.
       */
-    inline def mathOpt(args: Any*): Option[Valuable] =
+    inline def mathOpt(args: Any*): Option[Eager] =
       Try(math(args *)).toOption
 }
 

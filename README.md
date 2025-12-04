@@ -375,19 +375,69 @@ For `Angle` and `RationalNumber`, equality ignores display flags (radians/degree
 
 ## Expression Module
 
-Expressions are lazily evaluated and so can be used to avoid any unnecessary computation and, especially, any approximation of what should be an exact value.
-*** Note *** The expression module has been cloned and restructured from the `core` module. Although the expression package still exists in core, it should not be used directly.
+Expressions are lazily evaluated and so can be used to avoid any unnecessary computation and,
+especially, any approximation of what should be an exact value.
 
-The best way to define expressions is to use the LaTeX-like syntax which you can invoke as follows:
+**Note** The expression module has been cloned and restructured from the `core` module. Although the expression package
+still exists in core, it should not be used directly.
 
-    val theAnswer = math"6*(3+4)"    
-    val seven = math"""\frac{42}{6}"""
-    val rootTwo = math"""\sqrt{2}"""
-    val rootTwoAlt = math"√2"
-    val pi = math"""\pi"""
-    val twoPi = math"""2\pi"""
+The Expression trait supports the following operations:
 
-You just need to import the `ExpressionParser` (`com.phasmidsoftware.number.parsenew.ExpressionParser.*`)
+* **`materialize`** - Simplifies and evaluates the expression (as an `Eager`) by applying rules of arithmetic.
+* **`simplify`** - Simplifies the expression by applying rules of arithmetic, returning a new `Expression`.
+* **`approximation`** - Approximates the expression as an `Option[Real]` value, but only if the expression is not exact.
+  An exact expression can be approximated by passing the parameter `force=true` into this method.
+* **`evaluateAsIs`** - Evaluates the expression to an `Option[Eager]` value, which will be defined providing that the
+  expression is exact (i.e., it can be evaluated in the natural context of the expression).
+* **`evaluate(Context)`** - Evaluates the expression to an `Option[Eager]` value, in the given context.
+
+There is additionally, an implicit conversion from `Expression` to `Eager`, provided that you have used the following
+import, for example:
+
+```scala
+  import Expression._
+
+val expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) :+ One
+val eager: Eager = expression // yields 5
+```
+
+The best way to define expressions (or the eager values) is to use the LaTeX-like syntax which you can invoke
+using one of the following interpolators (defined in `com.phasmidsoftware.number.parsenew.ExpressionParser`):
+
+* **`puremath`** - Parses an infix expression resulting in an `Expression` but without any simplification.
+* **`lazymath`** - Equivalent to `puremath` but with simplification.
+* **`mathOpt`** - Parses, simplifies, and evaluates an expression, returning an `Option[Eager]` rather than an
+  `Expression`.
+* **`math`** - Parses, simplifies, and evaluates an expression (same as `mathOpt`), but returns an `Eager` rather than
+  an `Option[Eager]`. Note that an exception may be thrown if the expression given cannot be parsed.
+
+The following examples illustrate the use of the `math` interpolator:
+
+```scala
+    val theAnswer: Eager = math"6*(3+4)"
+val seven: Eager = math"""\frac{42}{6}"""
+val rootTwo: Eager = math"""\sqrt{2}"""
+val rootTwoAlt: Eager = math"√2"
+val pi: Eager = math"""\pi"""
+val twoPi: Eager = math"""2\pi"""
+```
+
+You just need to import the interpolators as follows:
+
+```scala
+    import com.phasmidsoftware.number.parsenew.ExpressionParser.*
+```
+
+Another way to define expressions is to use the empty expression symbol `∅`.
+For example:
+
+```scala
+  val theAnswer0: Expression = ∅ + 42 // Defines an expression which will evaluate to 42
+val theAnswer1: Expression = ∅ * 42 // Also defines an expression which will evaluate to 42
+val theAnswer2: Expression = ∅ + 𝛑 + 42 - 𝛑 // Also defines an expression which will evaluate to 42 (exactly)
+```
+
+The empty expression ∅ evaluates to the identity for either additive or multiplicative operations.
 
 ## Parse Module
 
@@ -959,7 +1009,7 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 ### Type Hierarchy
 
-Note that the type hierarchy is very likely to change in version 1.3
+**Note** that the type hierarchy is very likely to change in version 1.3
 * _NumberLike_ (trait)
     * _Numerical_ (trait: most numeric quantities)
         * _Field_ (trait: something like the mathematical concept of a field)
@@ -1209,7 +1259,7 @@ This is where you can find high-level specifications that correspond to user cod
 * Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
 * Version 1.0.13: Mostly cleanup together with some fixes related to NthRoot factors and rendering of fuzziness.
 * Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
-* Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2 and Root3.
+* Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2, and Root3.
 * Version 1.0.10: Many improvements and fixes:
   - added Constants,
   - implicit converter from Expression to Number,

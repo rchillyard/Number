@@ -112,8 +112,6 @@ trait FuzzyEquality {
     def areEqual(a: Number, b: Any): Boolean = b match {
       case n: Number =>
         a.isSame(n)
-      case n: Expression =>
-        a.compare(n) == 0
       case x: Int =>
         a.isSame(Number(x))
       case x: Rational =>

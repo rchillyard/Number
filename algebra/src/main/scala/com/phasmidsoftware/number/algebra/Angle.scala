@@ -92,7 +92,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: Real =>
       // TODO normalize before conversion
-      radians.approximation().map(x => x.scaleByPi).asInstanceOf[Option[T]]
+      radians.approximation(true).map(x => x.scaleByPi).asInstanceOf[Option[T]]
     case _ =>
       None
   }

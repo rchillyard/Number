@@ -77,12 +77,16 @@ trait Expression extends Valuable with Approximate {
   }
 
   /**
-    * Materializes the current `Expression` by simplifying and evaluating it as a `Field`.
-    * If the evaluation fails, an `ExpressionException` is thrown, indicating a logic error.
+    * Materializes this `Expression` into an `Eager` object by simplifying it, evaluating as-is,
+    * optionally approximating it, and recovering with a defined exception in case of failure.
     *
-    * @return the materialized `Field` representation of the `Expression`.
+    * The method first simplifies the expression, attempts to evaluate it directly,
+    * and then tries an approximation if necessary. Ultimately, it ensures the resulting
+    * materialized object is an instance of `Eager`.
+    *
+    * @return an `Eager` representation of this `Expression` achieved through evaluation and/or approximation.
     */
-  def materialize: Valuable = {
+  def materialize: Eager = {
     val simplified = simplify
     val asIs = simplified.evaluateAsIs
     lazy val approximation1 = simplified.approximation(true)
@@ -116,18 +120,6 @@ trait Expression extends Valuable with Approximate {
     * @return the depth (an atomic expression has a depth of 1).
     */
   def depth: Int
-
-  /**
-    * Eagerly compare this Expression with comparand.
-    *
-    * TODO this will work only for Numbers. We need to be able to determine if two Complex numbers are essentially the same.
-    * CONSIDER does this really belong in Expression?
-    *
-    * @param comparand the expression to be compared.
-    * @return the result of comparing materialized this with materialized comparand.
-    */
-  def compare(comparand: Expression): Int =
-    recover(for x <- asNumber; y <- comparand.asNumber yield x.compare(y))(NumberException("compare: logic error"))
 
   // NOTE This can be useful for debugging: it allows you to see the value of this Expression.
   // However, it can also cause a stack overflow so use it sparingly!
@@ -378,6 +370,16 @@ object Expression {
     * @return a `Valuable` instance parsed from the provided string.
     */
   implicit def fromString(w: String): Expression = apply(w)
+
+  /**
+    * Implicitly materializes an `Expression` into its eager evaluation form.
+    * This conversion allows deferred `Expressions` to be immediately evaluated
+    * and converted into a concrete form for further use or computation.
+    *
+    * @param x the `Expression` instance to be materialized.
+    * @return an eager evaluation of the input `Expression`.
+    */
+  implicit def materialize(x: Expression): Eager = x.materialize
 
   /**
     * Converts a given number into an Expression by wrapping it as a Real.
