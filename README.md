@@ -24,11 +24,12 @@ This project provides exact and fuzzy numeric computation with lazy evaluation i
 Number is organized into multiple modules:
 
 * **`core`** - Legacy numeric types (Number, Field, Rational, Complex)
-* **`algebra`** - Modern algebraic structures based on Cats typeclasses
-* **`parse`** - Parsing facilities for numeric expressions
+* **`algebra`** - Algebraic structures based on Cats typeclasses
+* **`parse`** - Parsing facilities for (lazy) expressions and (eager) algebraic structures
 * **`expressions`** - Lazy expression evaluation (being migrated to algebra)
+* **`top`** - Top level example code
 
-**Migration Note**: The `algebra` module is gradually replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on mathematical structures.
+**Migration Note**: The `algebra` module is gradually replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
 
 ## Quick Start
 
@@ -58,6 +59,20 @@ val x = 1 :/ 2  // Exact rational: 1/2
 val half: Expression = One / 2
 half.materialize
 ```
+
+#### Sources
+Wikipedia has been my constant reference for basic mathematical relationships.
+
+However, much of the specific ideas and theory behind this project comes from the following book:
+
+- Abramowitz and Stegun, (1970). *Handbook of Mathematical Functions with Formulas, Graphs and Mathematical Tables, 9th printing*. Dover Publications.
+
+You can also find the 7th printing free online:
+
+- <cite>[Abramowitz and Stegun][1]</cite>
+
+[1]: https://archive.org/details/handbookofmathem00abra
+
 ## Algebra Module
 
 The `algebra` module provides a type hierarchy based on mathematical structures, with full integration of Cats typeclasses.
@@ -358,117 +373,44 @@ class MySpec extends AnyFlatSpec with Matchers with StructuralEquality {
 
 For `Angle` and `RationalNumber`, equality ignores display flags (radians/degrees, percentage) and compares normalized mathematical values.
 
-## Core Module (mostly for internal use)
-This project is about fuzzy, lazy, numbers and their mathematics.
-The chief features of this library are:
-* all numbers are exact _wherever it is possible_, including $e$ (Unicode: xD835DF00) and $\pi$ (Unicode: xD835DED1);
-* inexact numbers are represented along with their error bounds;
-* lazy evaluation of _expressions_ to help avoid temporary inexact values from becoming part of a result;
-* there are several domains of _Number_ (expressed with different "factors") to support angles, logarithms, and roots.
+## Expression Module
 
-There is no such thing as accidental loss of precision (at least, provided that code follows the recommendations).
-For example, if you write:
+Expressions are lazily evaluated and so can be used to avoid any unnecessary computation and, especially, any approximation of what should be an exact value.
+*** Note *** The expression module has been cloned and restructured from the `core` module. Although the expression package still exists in core, it should not be used directly.
 
-    val x = 1 / 2
+The best way to define expressions is to use the LaTeX-like syntax which you can invoke as follows:
 
-your _x_ will be an _Int_ of value 0, because of the way Java-style operators work (in this case, integer division).
+    val theAnswer = math"6*(3+4)"    
+    val seven = math"""\frac{42}{6}"""
+    val rootTwo = math"""\sqrt{2}"""
+    val rootTwoAlt = math"√2"
+    val pi = math"""\pi"""
+    val twoPi = math"""2\pi"""
 
-However, if you write the idiomatically correct form:
+You just need to import the `ExpressionParser` (`com.phasmidsoftware.number.parsenew.ExpressionParser.*`)
 
-    import com.phasmidsoftware.number.core.Number.NumberOps
-    val x = 1 :/ 2
+## Parse Module
 
-then _x_ will be a _Number_ with value __exactly__ one half.
+Number supports flexible parsing of numeric values from strings, with automatic detection of exact vs. fuzzy numbers.
 
-Even better is to use the lazy expression mechanism:
+### Algebra Module Parsing
 
-    val half: Expression = One / 2
-    half.materialize
+The algebra module does not currently have its own dedicated parser.
+The only parse method defined in the algebra module is for _RationalNumber_,
+whereby a String representing a rational number (possibly terminated with a "%" symbol)
+is passed to the _RationalNumber_ constructor.
 
-You probably want to see some code: so go to the _worksheets_ package and take a look, starting with
-NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
+```scala
+import com.phasmidsoftware.number.algebra._
 
-### Introduction
-There are three articles on Medium regarding this library.
-They are [Number (part 1)](https://medium.com/codex/number-part-1-c98313903714),
-[Number (part 2)](https://scala-prof.medium.com/number-part-2-7925400624d5), and
-[Fuzzy, lazy, functional numeric computing in Scala](https://medium.com/codex/fuzzy-lazy-functional-numeric-computing-in-scala-4b47588d310f)
+val maybeTheAnswer: Option[Number] = RationalNumber.parse("42")
+val maybeHalf: Option[Number] = RationalNumber.parse("1/2")
+val maybeSevenPercentSolution: Option[Number] = RationalNumber.parse("7%")
+```
+Other types of parsing available to the algebra module would invoke one of several parsers in the `core` package.
 
-The _Number_ project provides mathematical utilities where error bounds are tracked (and not forgotten).
-All functions handle the transformation or convolution of error bounds appropriately.
-When the error bound is sufficiently large compared to a number, that number is considered to be zero (see **Comparison**).
-This implies that, when comparing numbers, any significant overlap of their error bounds will result in them testing
-as equal (according to the _compare_ function, but not the _equals_ function).
+### Core Module Parsing
 
-The values of Numbers are represented internally as either _Int_, _Rational_, or _Double_.
-_Rational_ is simply a case class with _BigInt_ elements for the numerator and denominator.
-It is, of course, perfectly possible to use the _Rational_ classes directly,
-without using the _Number_ (or _Expression_) classes.
-
-There are four domains of values, each identified by a domain or factor (see _Factors_ below).
-These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
-
-#### Current Version
-The current version is 1.2.10. Here's a summary of what's new since 1.2.5:
-* A major restructuring where we effectively replaced _ReducedQuadraticRoot_ with _Root_ but where _Root_ is an _Expression_. In order for this to work, we renamed the old _Root_ (a subtype of _Factor_) as _NthRoot_.
-* Another subtype of Expression was introduced: _Transcendental_. These are subtypes of AtomicExpression but rather than have a literal value, they define a value and an _ExpressionMonoFunction_ to be applied to that value.
-* The _Log_ function is now dyadic and, in a parallel change, the old (natural) _log_ method has been renamed _ln_, allowing for new dyadic _log_ method.
-* Additional tests have been introduced, including tests for _Root_ and _Transcendental_, while many other tests have been fixed. The only ignored tests are those that CircleCI objects to.
-
-#### Sources
-Wikipedia has been my constant reference for basic mathematical relationships.
-
-However, much of the specific ideas and theory behind this project comes from the following book:
-
-- Abramowitz and Stegun, (1970). *Handbook of Mathematical Functions with Formulas, Graphs and Mathematical Tables, 9th printing*. Dover Publications.
-
-You can also find the 7th printing free online:
-
-- <cite>[Abramowitz and Stegun][1]</cite>
-
-[1]: https://archive.org/details/handbookofmathem00abra
-
-#### Operators
-The most important operators are those defined in _Expression.ExpressionOps_. 
-That's because you should normally be using the (lazy) expressions mechanism for arithmetic expressions.
-These are the usual operators, except that the power operator is ∧ (not ^ or **).
-
-### Java API
-In addition to the Scala API, version 1.0.14 introduces a Java API where it is harder to invoke the
-Scala classes directly from Java.
-These situations involve classes which have similar names (or have no Java equivalent).
-
-Here are the current API specifications:
-
-#### RationalJ:
-
-    def bigDecimalToRational(x: java.math.BigDecimal): Rational
-    def rationalToBigDecimal(r: Rational): java.math.BigDecimal
-    def bigIntegerToRational(x: BigInteger): Rational
-    def rationalToBigInteger(r: Rational): BigInteger
-    def longToRational(l: java.lang.Long): Rational
-    def rationalToLong(r: Rational): java.lang.Long
-    def doubleToRational(x: java.lang.Double): Rational
-    def rationalToDouble(r: Rational): java.lang.Double
-    def stringToRational(s: String): Rational
-
-#### NumberJ
-
-    def bigDecimalToNumber(x: java.math.BigDecimal): Number
-    def numberToBigDecimal(x: Number): java.math.BigDecimal
-    def bigIntegerToNumber(x: BigInteger): Number
-    def numberToBigInteger(x: Number): BigInteger
-    def longToNumber(l: java.lang.Long): Number
-    def numberToLong(x: Number): java.lang.Long
-    def doubleToNumber(x: java.lang.Double): Number
-    def stringToNumber(s: String): Number
-
-#### ExpressionJ
-
-    def add(x: Expression, y: Expression): Expression
-    def multiply(x: Expression, y: Expression): Expression
-
-### Parsing
 A String representing a number with two or fewer decimal places is considered exact--a number with more than two decimal places is
 considered fuzzy, unless it ends in two zeroes, in which case it is considered exact.
 Here are some examples:
@@ -506,21 +448,6 @@ Note that the __e__ and __pi__ symbols are, respectively,
 A number must have at least one of either the value or the factor components.
 If no explicit factor is specified, then the number will be a _PureNumber_ (an ordinary number).
 If you want to get exact trigonometric values, then it's important to specify the factor as $\pi$ (or e).
-
-### Expression (This section is to be promoted to the module level)
-
-Expressions are lazily evaluated and so can be used to avoid any unnecessary computation and, especially, any approximation of what should be an exact value.
-The best way to define expressions is to use the LaTeX-like syntax which you can invoke as follows:
-
-    val theAnswer = math"6*(3+4)"    
-    val seven = math"""\frac{42}{6}"""
-    val rootTwo = math"""\sqrt{2}"""
-    val rootTwoAlt = math"√2"
-    val pi = math"""\pi"""
-    val twoPi = math"""2\pi"""
-
-You just need to import the `ExpressionParser` (`com.phasmidsoftware.number.parsenew.ExpressionParser.*`)
-
 
 ### Number creation
 Parsing, described above, is really the most precise way of specifying numerical values.
@@ -738,8 +665,8 @@ _Algebraic_ is a parallel concept to _Complex_ (and _Real_).
 
 The hierarchy of _Algebraic_ is (currently) as follows:
 * _Algebraic_
-  * _Algebraic_Linear_ (case class representing a Rational number defined as the root (solution) of a monic linear equation)
-  * _Algebraic_Quadratic_ (case class representing a quantity defined as the root (solution) of a monic quadratic equation)
+    * _Algebraic_Linear_ (case class representing a Rational number defined as the root (solution) of a monic linear equation)
+    * _Algebraic_Quadratic_ (case class representing a quantity defined as the root (solution) of a monic quadratic equation)
 
 ### Factor
 Factor represents the domain in which a numerical quantity exists.
@@ -751,18 +678,18 @@ All these numbers can be represented exactly by judicious use of the following c
 
 The hierarchy of _Factor_ is as follows:
 * _Factor_ (trait: the domain of factors)
-  * _Scalar_ (trait: the domain of ordinary numbers)
-    * _PureNumber_ (object: the domain of pure numbers)
-    * _Radian_ (object: the domain of radians)
-  * _Logarithmic_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
-    * _NatLog_ (object: natural log, i.e., $\log_e$)
-    * _Log2_ (object: $\log_2$)
-    * _Log10_ (object: $\log_{10}$)
-  * _InversePower_ (trait: all the roots)
-    * _NthRoot_ (abstract class)
-      * _SquareRoot_ (object: the domain of square roots)
-      * _CubeRoot_ (object: the domain of cube roots)
-    * _AnyRoot_ (case class: a generalized root based on a _Rational_)
+    * _Scalar_ (trait: the domain of ordinary numbers)
+        * _PureNumber_ (object: the domain of pure numbers)
+        * _Radian_ (object: the domain of radians)
+    * _Logarithmic_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
+        * _NatLog_ (object: natural log, i.e., $\log_e$)
+        * _Log2_ (object: $\log_2$)
+        * _Log10_ (object: $\log_{10}$)
+    * _InversePower_ (trait: all the roots)
+        * _NthRoot_ (abstract class)
+            * _SquareRoot_ (object: the domain of square roots)
+            * _CubeRoot_ (object: the domain of cube roots)
+        * _AnyRoot_ (case class: a generalized root based on a _Rational_)
 
 As of V 1.0.2, _NthRoot_ is a subclass of _InversePower_.
 The inverse power (which root) is a _Rational_ in the case of _InversePower_ but an _Int_ in the case of _NthRoot_.
@@ -908,9 +835,9 @@ Often, this will require an approximation (i.e., the generation of a _FuzzyNumbe
 
 The _hierarchy_ of Context is as follows:
 * _Context_ (trait: closely related to Factor: it is used to determine which domains are acceptable in a particular context)
-  * _RestrictedContext_ (case class accepts only a specific _Factor_)
-  * _AnyContext_ (object: accepts any _Factor_)
-  * _ImpossibleContext_ (object: accepts no _Factor_)
+    * _RestrictedContext_ (case class accepts only a specific _Factor_)
+    * _AnyContext_ (object: accepts any _Factor_)
+    * _ImpossibleContext_ (object: accepts no _Factor_)
 
 ### Transcendental Numbers
 Transcendental numbers are declared as subtypes of _Transcendental_, although $\pi$ and e are, additionally, declared as _Number_, _Real_, and _Expression_.
@@ -998,21 +925,21 @@ each of which can be applied to a different type of _Value_ (viz., _Int_, _Ratio
 
 The hierarchy of Operation is as follows:
 * _Operation_ (trait)
-  * _MonadicOperation_ (trait)
-    * _MonadicOperationAtan_
-    * _MonadicOperationNegate_
-    * _MonadicOperationLog_
-    * _MonadicOperationModulate_
-    * _MonadicOperationScale_
-    * _MonadicOperationSin_
-    * _MonadicOperationFunc_
-    * _MonadicOperationSqrt_
-    * _MonadicOperationInvert_
-    * _MonadicOperationExp_
-  * _DyadicOperation_ (trait)
-    * _DyadicOperationPlus_
-    * _DyadicOperationTimes_
-    * _DyadicOperationPower_
+    * _MonadicOperation_ (trait)
+        * _MonadicOperationAtan_
+        * _MonadicOperationNegate_
+        * _MonadicOperationLog_
+        * _MonadicOperationModulate_
+        * _MonadicOperationScale_
+        * _MonadicOperationSin_
+        * _MonadicOperationFunc_
+        * _MonadicOperationSqrt_
+        * _MonadicOperationInvert_
+        * _MonadicOperationExp_
+    * _DyadicOperation_ (trait)
+        * _DyadicOperationPlus_
+        * _DyadicOperationTimes_
+        * _DyadicOperationPower_
 
 ### Approximation
 The _Approximation_ object provides a method _solve_ which will implement the Newton-Raphson method of approximation
@@ -1034,33 +961,33 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 Note that the type hierarchy is very likely to change in version 1.3
 * _NumberLike_ (trait)
-  * _Numerical_ (trait: most numeric quantities)
-    * _Field_ (trait: something like the mathematical concept of a field)
-      * _Real_ (case class: a "real" number based on one _Number_)
-      * _Multivariate_ (trait: perhaps should be called "Algebraic")
-        * _Complex_ (trait: a complex number)
-          * _BaseComplex_ (abstract class)
-            * _ComplexCartesian_ (case class: Cartesian form of complex number)
-            * _ComplexPolar_ (case class: polar form of complex number)
-        * _Algebraic_ (trait: an algebraic number)
-    * _Number_ (trait: a quantity representing a number)
-      * _GeneralNumber_ (abstract class)
-        * _ExactNumber_ (case class: an exact number defined by a _Value_ and a _Factor_)
-        * _FuzzyNumber_ (case class: an exact number defined by a _Value_, a _Factor_, and an optional _Fuzziness_)
-  * _Rational_ (case class: rational numbers)
-  * _Solution_ (trait: a solution to an _Algebraic_ quantity--think of this is defining a named tuple that represents the components of the solution)
-    * _LinearSolution_ (case class: a linear solution)
-    * _QuadraticSolution_ (case class: a quadratic solution)
-  * _Expression_ (trait: lazy numeric quantities: see below)
+    * _Numerical_ (trait: most numeric quantities)
+        * _Field_ (trait: something like the mathematical concept of a field)
+            * _Real_ (case class: a "real" number based on one _Number_)
+            * _Multivariate_ (trait: perhaps should be called "Algebraic")
+                * _Complex_ (trait: a complex number)
+                    * _BaseComplex_ (abstract class)
+                        * _ComplexCartesian_ (case class: Cartesian form of complex number)
+                        * _ComplexPolar_ (case class: polar form of complex number)
+                * _Algebraic_ (trait: an algebraic number)
+        * _Number_ (trait: a quantity representing a number)
+            * _GeneralNumber_ (abstract class)
+                * _ExactNumber_ (case class: an exact number defined by a _Value_ and a _Factor_)
+                * _FuzzyNumber_ (case class: an exact number defined by a _Value_, a _Factor_, and an optional _Fuzziness_)
+    * _Rational_ (case class: rational numbers)
+    * _Solution_ (trait: a solution to an _Algebraic_ quantity--think of this is defining a named tuple that represents the components of the solution)
+        * _LinearSolution_ (case class: a linear solution)
+        * _QuadraticSolution_ (case class: a quadratic solution)
+    * _Expression_ (trait: lazy numeric quantities: see below)
 * _Series_ (trait)
-  * _AbstractSeries_
-    * _FiniteSeries_
-  * _AbstractInfiniteSeries_
-    * _InfiniteSeries_
+    * _AbstractSeries_
+        * _FiniteSeries_
+    * _AbstractInfiniteSeries_
+        * _InfiniteSeries_
 * _PowerSeries_ (trait)
-  * _LazyPowerSeries_
-  * _FinitePowerSeries_
-  * _TaylorSeries_
+    * _LazyPowerSeries_
+    * _FinitePowerSeries_
+    * _TaylorSeries_
 
 ### Expressions
 The lazy mechanism (see above) is based on _Expressions_.
@@ -1071,70 +998,70 @@ Obviously, we could represent $\pi$ exactly if we wrote it in base-$\pi$ notatio
 
 The hierarchy of _Expression_ (i.e., lazy) types is as follows (as of version V 1.2.8):
 * _Expression_ (trait: all lazy _NumberLike_ objects)
-  * _AtomicExpression_ (trait: a single exact number)
-    * _FieldExpression_ (abstract class)
-      * _Literal_ (case class: defined as a _Field_ and an optional name)
-      * _NamedConstant_ (abstract class)
-        * _ScalarConstant_ (abstract class)
-          * _Zero_
-          * _One_
-          * _Two_
-          * _Half_
-          * _MinusOne_
-          * _ConstPi_
-        * _Infinity_
-        * _ConstE_
-        * _ConstI_
-    * _Transcendental_ (trait) defining exact numbers with no other definition
-    * _Root_ 
-      * _phi_ (object: $\phi$, the Golden Ratio)
-      * _psi_ (object: $\psi$, the conjugate of $\phi$)
-    * _Noop_ (object: not an expression)
-  * _CompositeExpression_ (trait for any Expression that is defined by a tree of functions)
-    * _BiFunction_ (case class: two expressions combined by a dyadic function--see below)
-    * _Function_ (case class: one expression modified by a function--see below)
-    * _Aggregate_ (case class: similar to _BiFunction_ but with multiple expressions all combined by the same dyadic function)
+    * _AtomicExpression_ (trait: a single exact number)
+        * _FieldExpression_ (abstract class)
+            * _Literal_ (case class: defined as a _Field_ and an optional name)
+            * _NamedConstant_ (abstract class)
+                * _ScalarConstant_ (abstract class)
+                    * _Zero_
+                    * _One_
+                    * _Two_
+                    * _Half_
+                    * _MinusOne_
+                    * _ConstPi_
+                * _Infinity_
+                * _ConstE_
+                * _ConstI_
+        * _Transcendental_ (trait) defining exact numbers with no other definition
+        * _Root_
+            * _phi_ (object: $\phi$, the Golden Ratio)
+            * _psi_ (object: $\psi$, the conjugate of $\phi$)
+        * _Noop_ (object: not an expression)
+    * _CompositeExpression_ (trait for any Expression that is defined by a tree of functions)
+        * _BiFunction_ (case class: two expressions combined by a dyadic function--see below)
+        * _Function_ (case class: one expression modified by a function--see below)
+        * _Aggregate_ (case class: similar to _BiFunction_ but with multiple expressions all combined by the same dyadic function)
 * _ExpressionFunction_ (trait)
-  * _ExpressionBiFunction_ (trait used in _BiFunction_ (above))
-    * _Atan_
-    * _Log_
-    * _Sum_
-    * _Product_
-    * _Power_
-  * _ExpressionMonoFunction_ (trait used in _Function_ above)
-    * _Cosine_
-    * _Sine_
-    * _Exp_
-    * _Ln_
-    * _Negate_
-    * _Reciprocal_
+    * _ExpressionBiFunction_ (trait used in _BiFunction_ (above))
+        * _Atan_
+        * _Log_
+        * _Sum_
+        * _Product_
+        * _Power_
+    * _ExpressionMonoFunction_ (trait used in _Function_ above)
+        * _Cosine_
+        * _Sine_
+        * _Exp_
+        * _Ln_
+        * _Negate_
+        * _Reciprocal_
 
 ### Other Types
 Other types (for reference):
 * _Factor_ (see above)
 * _Context_ (see above)
 * _Multivalued_
-  * _Equation_ (trait defining an equation to be used in an _Algebraic_ quantity)
-    * _Quadratic_ (case class defining a monic quadratic equation)
-    * _LinearEquation_ (case class defining a monic linear equation)
+    * _Equation_ (trait defining an equation to be used in an _Algebraic_ quantity)
+        * _Quadratic_ (case class defining a monic quadratic equation)
+        * _LinearEquation_ (case class defining a monic linear equation)
 * _Fuzz_
-  * _GeneralNumber_
-  * _Number_
-  * _FuzzyNumber_
+    * _GeneralNumber_
+    * _Number_
+    * _FuzzyNumber_
 * _Fuzziness_
-  * _RelativeFuzz_ (case class to represent relative values of fuzziness)
-  * _AbsoluteFuzz_ (case class to represent absolute values of fuzziness)
+    * _RelativeFuzz_ (case class to represent relative values of fuzziness)
+    * _AbsoluteFuzz_ (case class to represent absolute values of fuzziness)
 * _Shape_
-  * _Box_ (a probability density function for errors which is in the shape of a box)
-  * _Gaussian_ (a probability density function for errors which is in the shape of a "normal" (Gaussian) distribution)
+    * _Box_ (a probability density function for errors which is in the shape of a box)
+    * _Gaussian_ (a probability density function for errors which is in the shape of a "normal" (Gaussian) distribution)
 * _Valuable_ (type-class trait used in fuzzy arithmetic and which extends _Fractional_ from the Scala library)
-  * _ValuableDouble_
+    * _ValuableDouble_
 * _NumberSet_
-  * _N_ (the natural, i.e., counting numbers)
-  * _Z_ (the integers, i.e., whole numbers)
-  * _Q_ (the rational numbers)
-  * _R_ (the real numbers)
-  * _C_ (the complex numbers)
+    * _N_ (the natural, i.e., counting numbers)
+    * _Z_ (the integers, i.e., whole numbers)
+    * _Q_ (the rational numbers)
+    * _R_ (the real numbers)
+    * _C_ (the complex numbers)
 * _Approximation_ (object with methods for solving functions using the Newton-Raphson method or, more generally, Householder's method)
 * _Approximatable_ (supertype of _Field_ and _Expression_)
 * _Numerical_ (super-trait of _Field_ and _Number_)
@@ -1142,7 +1069,111 @@ Other types (for reference):
 * _Prime_ (case class)
 * _ContinuedFraction_ (case class)
 * _Evaluatable_ (trait)
-  * _ConFrac_ (class)
+    * _ConFrac_ (class)
+
+## Core Module
+
+**Note**: This section describes the legacy `core` module (as of version 1.2.11). New code should use the `algebra` module (see above). The `core` module is being gradually superseded as we migrate to a cleaner type hierarchy based on mathematical structures.
+
+The core module provides the original implementation of fuzzy, lazy numbers with the following features:
+* Exact arithmetic using Value types (Int, Rational, or Double)
+* Factor-based domains for different numeric types
+* Expression-based lazy evaluation
+* Comprehensive fuzzy number support with error tracking
+
+There is no such thing as accidental loss of precision (at least, provided that code follows the recommendations).
+For example, if you write:
+
+    val x = 1 / 2
+
+your _x_ will be an _Int_ of value 0, because of the way Java-style operators work (in this case, integer division).
+
+However, if you write the idiomatically correct form:
+
+    import com.phasmidsoftware.number.core.Number.NumberOps
+    val x = 1 :/ 2
+
+then _x_ will be a _Number_ with value __exactly__ one half.
+
+Even better is to use the lazy expression mechanism:
+
+    val half: Expression = One / 2
+    half.materialize
+
+You probably want to see some code: so go to the _worksheets_ package and take a look, starting with
+NumberWorksheet.sc, Foucault1.sc, Newton.sc, and so on.
+
+### Introduction
+There are three articles on Medium regarding this library.
+They are [Number (part 1)](https://medium.com/codex/number-part-1-c98313903714),
+[Number (part 2)](https://scala-prof.medium.com/number-part-2-7925400624d5), and
+[Fuzzy, lazy, functional numeric computing in Scala](https://medium.com/codex/fuzzy-lazy-functional-numeric-computing-in-scala-4b47588d310f)
+
+The _Number_ project provides mathematical utilities where error bounds are tracked (and not forgotten).
+All functions handle the transformation or convolution of error bounds appropriately.
+When the error bound is sufficiently large compared to a number, that number is considered to be zero (see **Comparison**).
+This implies that, when comparing numbers, any significant overlap of their error bounds will result in them testing
+as equal (according to the _compare_ function, but not the _equals_ function).
+
+The values of Numbers are represented internally as either _Int_, _Rational_, or _Double_.
+_Rational_ is simply a case class with _BigInt_ elements for the numerator and denominator.
+It is, of course, perfectly possible to use the _Rational_ classes directly,
+without using the _Number_ (or _Expression_) classes.
+
+There are four domains of values, each identified by a domain or factor (see _Factors_ below).
+These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
+
+#### Current Version
+The current version is 1.2.10. Here's a summary of what's new since 1.2.5:
+* A major restructuring where we effectively replaced _ReducedQuadraticRoot_ with _Root_ but where _Root_ is an _Expression_. In order for this to work, we renamed the old _Root_ (a subtype of _Factor_) as _NthRoot_.
+* Another subtype of Expression was introduced: _Transcendental_. These are subtypes of AtomicExpression but rather than have a literal value, they define a value and an _ExpressionMonoFunction_ to be applied to that value.
+* The _Log_ function is now dyadic and, in a parallel change, the old (natural) _log_ method has been renamed _ln_, allowing for new dyadic _log_ method.
+* Additional tests have been introduced, including tests for _Root_ and _Transcendental_, while many other tests have been fixed. The only ignored tests are those that CircleCI objects to.
+
+#### Operators
+The most important operators are those defined in _Expression.ExpressionOps_. 
+That's because you should normally be using the (lazy) expressions mechanism for arithmetic expressions.
+These are the usual operators, except that the power operator is ∧ (not ^ or **).
+
+### Java API
+In addition to the Scala API, version 1.0.14 introduces a Java API where it is harder to invoke the
+Scala classes directly from Java.
+These situations involve classes which have similar names (or have no Java equivalent).
+
+Here are the current API specifications:
+
+#### RationalJ:
+
+    def bigDecimalToRational(x: java.math.BigDecimal): Rational
+    def rationalToBigDecimal(r: Rational): java.math.BigDecimal
+    def bigIntegerToRational(x: BigInteger): Rational
+    def rationalToBigInteger(r: Rational): BigInteger
+    def longToRational(l: java.lang.Long): Rational
+    def rationalToLong(r: Rational): java.lang.Long
+    def doubleToRational(x: java.lang.Double): Rational
+    def rationalToDouble(r: Rational): java.lang.Double
+    def stringToRational(s: String): Rational
+
+#### NumberJ
+
+    def bigDecimalToNumber(x: java.math.BigDecimal): Number
+    def numberToBigDecimal(x: Number): java.math.BigDecimal
+    def bigIntegerToNumber(x: BigInteger): Number
+    def numberToBigInteger(x: Number): BigInteger
+    def longToNumber(l: java.lang.Long): Number
+    def numberToLong(x: Number): java.lang.Long
+    def doubleToNumber(x: java.lang.Double): Number
+    def stringToNumber(s: String): Number
+
+#### ExpressionJ
+
+    def add(x: Expression, y: Expression): Expression
+    def multiply(x: Expression, y: Expression): Expression
+
+## Top Module
+
+This module is the top-level module for the library.
+This is where you can find high-level specifications that correspond to user code.
 
 ## Versions
 * Version 1.3.2: bringing over the Expression packages from Number3 project.
@@ -1197,7 +1228,7 @@ Other types (for reference):
 * Version 1.0.1 Fixed many issues with minor inconsistencies.  Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_. Each of these has, significantly, a signature with a confidence value (the default value is 0.5).
 * Initial version is 1.0.0
 
-## Future Upgrades
+### Future Upgrades
 We intend to restructure the hierarchy of numeric types entirely.
 The traits and classes should strictly follow the mathematical concepts of field, ring, etc.
 To begin, the hierarchy should look like this:
