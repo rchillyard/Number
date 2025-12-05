@@ -64,7 +64,8 @@ half shouldBe RationalNumber(x)
 
 #### Sources
 Wikipedia has been my constant reference for basic mathematical relationships.
-I'm also indebted to Claude (by Anthropic) for his excellent advice regarding the restructuring in versions 1.3.2 and beyond.
+I'm also indebted to Claude (by Anthropic) for her excellent advice regarding the restructuring in versions 1.3.2 and beyond.
+**Note**: While "Claude" is typically a male name in the English-speaking world, in France it is also common as a female name. I'm particularly honoring poor Claude-Emma Debussy ("Chouchou") here. 
 
 However, many of the specific ideas and much of the theory behind this project derives from the following book:
 
