@@ -5,12 +5,12 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.number.algebra.misc.Renderable
-import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.algebra.misc.{FP, MaybeNumeric, Renderable}
 import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.inner.{Factor, Rational}
-import com.phasmidsoftware.number.core.{NumberException, NumberExceptionWithCause}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.{ExactNumber, Field, FuzzyNumber, NumberException, NumberExceptionWithCause, Real, inner}
 import com.phasmidsoftware.number.parse.NumberParser
+import com.phasmidsoftware.number.{algebra, core}
 import scala.language.implicitConversions
 import scala.util.{Failure, Success}
 
@@ -23,7 +23,7 @@ import scala.util.{Failure, Success}
   * NOTE: this trait has the same name as the `Valuable` typeclass in the `com.phasmidsoftware.number` package,
   * but it is not the same thing.
   */
-trait Valuable extends Renderable {
+trait Valuable extends Renderable with MaybeNumeric {
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
@@ -40,24 +40,13 @@ trait Valuable extends Renderable {
   def isExact: Boolean
 
   /**
-    * If this `Valuable` is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
+    * Attempts to retrieve a factor based on the provided context.
+    * This method evaluates whether there is an applicable factor within the given context.
     *
-    * @return Some(x) where x is a Double if this is exact, else None.
+    * @param context the context in which the factor is evaluated.
+    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeDouble: Option[Double]
-
-  /**
-    * Optionally retrieves a factor associated with this `Valuable` if one exists (this is a Scalar).
-    *
-    * Factors are components or divisors related to the numerical value represented 
-    * by this `Valuable`. If no such factor exists or is applicable, the result will 
-    * be `None`.
-    *
-    * @return an `Option` containing the `Factor` if available, otherwise `None`.
-    */
-  def maybeFactor: Option[Factor]
+  def maybeFactor(context: Context): Option[Factor]
 }
 
 /**
@@ -65,20 +54,160 @@ trait Valuable extends Renderable {
   * enabling parsing and conversion of strings to `Valuable` representations.
   */
 object Valuable {
-  lazy val zero: Valuable = Number.zero
-  lazy val one: Valuable = Number.one
-  lazy val minusOne: Valuable = Number.minusOne
-  lazy val two: Valuable = Scalar(2)
-  lazy val half: Valuable = RationalNumber(Rational.half)
-  lazy val ten: Valuable = Scalar(10)
-  lazy val pi: Valuable = Angle.pi
-  lazy val piBy2: Valuable = Angle.piBy2
-  lazy val piBy4: Valuable = Angle.piBy4
-  lazy val e: Valuable = NatLog.e
-  lazy val infinity: Valuable = RationalNumber(Rational.infinity)
-  lazy val negInfinity: Valuable = RationalNumber(Rational.negInfinity)
-  lazy val root2: Valuable = InversePower(2, 2)
-  lazy val root3: Valuable = InversePower(2, 3)
+  // CONSIDER moving these to Eager
+  lazy val zero: Eager = Number.zero
+  lazy val one: Eager = Number.one
+  lazy val minusOne: Eager = Number.minusOne
+  lazy val two: Eager = Scalar(2)
+  lazy val half: Eager = RationalNumber(Rational.half)
+  lazy val ten: Eager = Scalar(10)
+  lazy val pi: Eager = Angle.pi
+  lazy val piBy2: Eager = Angle.piBy2
+  lazy val piBy4: Eager = Angle.piBy4
+  lazy val e: Eager = NatLog.e
+  lazy val infinity: Eager = RationalNumber(Rational.infinity)
+  lazy val negInfinity: Eager = RationalNumber(Rational.negInfinity)
+  lazy val root2: Eager = InversePower(2, 2)
+  lazy val root3: Eager = InversePower(2, 3)
+
+  /**
+    * TODO change the type of the input to `Eager`.
+    *
+    * Converts a `Valuable` instance into a `Field` representation.
+    * If the conversion fails, it recovers by throwing a `NumberException`
+    * with an appropriate error message indicating the failure.
+    *
+    * @param v the `Valuable` instance to be converted into a `Field`.
+    *          This is expected to represent a numerical value.
+    * @return the `Field` representation of the input `Valuable`.
+    *         If conversion is not possible, a `NumberException` is thrown.
+    */
+  def valuableToField(v: Valuable): Field =
+    FP.recover(valuableToMaybeField(v))(NumberException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field"))
+
+  /**
+    * Attempts to convert a given eager `Valuable` instance into an `Option[Field]`.
+    * This method performs pattern matching on the input `Valuable` object to map
+    * it to a corresponding `Field` representation if possible. If no valid mapping
+    * exists, it returns `None`.
+    *
+    * TODO change the type of the input parameter to `Eager`.
+    *
+    * @param v the `Valuable` instance that is to be converted into an `Option[Field]`.
+    * @return `Some(Field)` if the conversion is successful, or `None` if the
+    *         `Valuable` cannot be converted.
+    */
+  def valuableToMaybeField(v: Valuable): Option[Field] = v match {
+    case Complex(complex) =>
+      Some(complex)
+    case nat: Nat =>
+      Some(intToField(nat.toInt, PureNumber))
+    case com.phasmidsoftware.number.algebra.Real(x, fo) =>
+      Some(core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo)))
+    case q: Q =>
+      Some(rationalToField(q.toRational, PureNumber))
+    case a@Angle(radians, _) =>
+      Some(Real(numberToField(radians).x.make(inner.Radian)))
+    case l@NatLog(x) =>
+      Some(Real(numberToField(x).x.make(inner.NatLog)))
+    case _ =>
+      None // XXX v should be an Expression in this case (but expressions are not known in this package).
+  }
+
+  /**
+    * Extractor method to convert a `Valuable` instance into an `Option` containing its corresponding `Field` representation.
+    * This allows for safe pattern matching and handling of `Valuable` objects that may or may not be convertible to a `Field`.
+    *
+    * TODO we should move this method to the companion object of `Eager`.
+    *
+    * @param v the `Valuable` instance to be converted into an `Option[Field]`
+    * @return `Some(Field)` if the conversion is successful, or `None` if it fails
+    */
+  def unapply(v: Valuable): Option[core.Field] =
+    valuableToMaybeField(v)
+
+  /**
+    * Converts a given string into a `Valuable` representation.
+    * This method allows implicit conversion from `String` to `Valuable`.
+    *
+    * @param w the input string to be converted into a `Valuable`.
+    * @return a `Valuable` instance parsed from the provided string.
+    */
+  implicit def toValuable(w: String): Valuable = Eager(w)
+
+  /**
+    * Implicit object `LoggableValuable` provides a `Loggable` implementation for the `Valuable` type.
+    * This allows `Valuable` instances to be formatted as strings suitable for logging purposes.
+    *
+    * The implementation utilizes the `toString` method of the `Valuable` instance
+    * to generate the log representation.
+    */
+  implicit object LoggableValuable extends Loggable[Valuable] {
+    def toLog(t: Valuable): String = t.toString
+  }
+
+  /**
+    * Converts a `Number` into a corresponding `Field` representation.
+    * The input number is matched against various cases to determine its specific type
+    * (e.g., RationalNumber, Real, WholeNumber) and is subsequently converted.
+    * If the conversion is not supported for the given `Number` type, a `NumberException` is thrown.
+    *
+    * @param number the `Number` to be converted into a `Field`. It can represent different
+    *               numerical types such as RationalNumber, algebra.Real, or WholeNumber.
+    * @throws NumberException if the input `Number` cannot be converted into a `Field`.
+    */
+  private def numberToField(number: Number) = number match {
+    case RationalNumber(r, _) =>
+      rationalToField(r, PureNumber)
+    case algebra.Real(x, fo) =>
+      core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
+    case WholeNumber(x) =>
+      Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber))
+    case _ =>
+      throw NumberException(s"Valuable.numberToField: Cannot convert $number to a Field")
+  }
+
+  /**
+    * Converts a `Rational` value into a `Field` representation, taking into account a specific scaling factor.
+    *
+    * @param rational the `Rational` number to be converted into a `Field`.
+    * @param factor   the scaling `Factor` to be applied to the conversion.
+    * @return a `Real` representation of the `Rational` number scaled by the given `Factor`.
+    */
+  private def rationalToField(rational: Rational, factor: Factor) = Real(ExactNumber(Value.fromRational(rational), factor))
+
+  /**
+    * Converts an integer value into a `Field` representation, encapsulated as a `Real`,
+    * based on the provided multiplication factor.
+    *
+    * @param x      the integer value to be converted into a `Field`.
+    * @param factor the factor to be applied in the `Real` representation.
+    * @return a `Real` representing the converted integer value.
+    */
+  private def intToField(x: Int, factor: Factor) = Real(ExactNumber(Value.fromInt(x), factor))
+
+}
+
+/**
+  * Trait `Eager` extends `Valuable` and is used to represent entities that evaluate their values eagerly.
+  * That's to say, `Valuable` objects that do not extend `Expression`.
+  * At present, `Eager` is extended by `Structure, Complex`, and `Nat`.
+  *
+  * Unlike lazy evaluation, eager evaluation computes and stores the value immediately when the entity is created
+  * or instantiated. This behavior can be useful in scenarios where prompt computation is essential, and
+  * deferred or lazy evaluation may introduce undesired complexities or delays.
+  *
+  * `Eager` does not introduce additional properties or methods but serves as a marker trait
+  * that confirms the eager nature of an extending type.
+  */
+trait Eager extends Valuable
+
+/**
+  * The `Eager` object provides factory methods to create instances of `Valuable` entities
+  * that are evaluated eagerly. These entities can represent numerical values parsed from
+  * strings, long integers, or specific types of mathematical fields.
+  */
+object Eager {
 
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed
@@ -88,7 +217,7 @@ object Valuable {
     * @return a `Valuable` representation of the parsed `Number`.
     * @throws NumberExceptionWithCause if parsing the string fails.
     */
-  def apply(str: String): Valuable =
+  def apply(str: String): Eager =
     NumberParser.parseNumber(str) match {
       case Success(number) =>
         Scalar(number)
@@ -96,7 +225,13 @@ object Valuable {
         throw NumberExceptionWithCause("Valuable.apply", exception)
     }
 
-  def apply(x: Long): Valuable = WholeNumber(x)
+  /**
+    * Creates a `Valuable` instance representing the given long value.
+    *
+    * @param x the input value of type `Long` to be wrapped in a `Valuable` representation.
+    * @return a `Valuable` object corresponding to the input value.
+    */
+  def apply(x: Long): Eager = WholeNumber(x)
 
   /**
     * Creates a `Valuable` instance based on the given `Field`.
@@ -108,36 +243,14 @@ object Valuable {
     * @return a `Valuable` representation of the input `Field` as a `Scalar`.
     * @throws IllegalArgumentException if the provided `Field` is not of type `Real`.
     */
-  def apply(field: core.Field): Valuable =
+  def apply(field: core.Field): Eager =
     field match {
       case core.Real(n) =>
         Scalar(n)
       case c: core.Complex =>
         Complex(c)
       case a: Algebraic =>
-        throw new NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")
+        throw NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }
-//
-//  /**
-//    * Extractor method to convert a `Valuable` instance into an `Option` containing its corresponding `Field` representation.
-//    * This allows for safe pattern matching and handling of `Valuable` objects that may or may not be convertible to a `Field`.
-//    *
-//    * @param v the `Valuable` instance to be converted into an `Option[Field]`
-//    * @return `Some(Field)` if the conversion is successful, or `None` if it fails
-//    */
-//  def unapply(v: Valuable): Option[core.Field] =
-//    Try(valuableToField(v)).toOption
 
-  /**
-    * Converts a given string into a `Valuable` representation.
-    * This method allows implicit conversion from `String` to `Valuable`.
-    *
-    * @param w the input string to be converted into a `Valuable`.
-    * @return a `Valuable` instance parsed from the provided string.
-    */
-  implicit def toValuable(w: String): Valuable = apply(w)
-
-  implicit object LoggableValuable extends Loggable[Valuable] {
-    def toLog(t: Valuable): String = t.toString
-  }
 }

@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
+import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core.inner.*
 import scala.reflect.ClassTag
@@ -13,7 +14,7 @@ import scala.reflect.ClassTag
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with CanScaleWhole[Monotone] with CanScaleDouble[Monotone] with Approximate {
+trait Monotone extends Structure with Approximate {
 
   /**
     * Method to determine if this `Structure` object is exact.
@@ -31,20 +32,27 @@ trait Monotone extends Structure with CanScaleWhole[Monotone] with CanScaleDoubl
     * @return an `Option[Factor]` containing the factor representation of this object,
     *         or `None` if factorization is not applicable or unavailable.
     */
-  def maybeFactor: Option[Factor]
+  def maybeFactor(context: Context): Option[Factor]
 
   /**
-    * Provides an approximation of this number, if applicable.
+    * Attempts to approximate the current instance to a `Real` value.
+    * If the instance is already of type `Real`, it is simply returned, wrapped inside `Some`.
+    * Otherwise, depending on the value of `force`, it either attempts a conversion
+    * to a default `Real` (if `force` is true), or returns `None`.
     *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
+    * CONSIDER moving this up into Approximate.
     *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of this `Number`, or `None` if no approximation is available.
+    * NOTE that this method tries to keep exact quantities exact.
+    *
+    * @param force a boolean flag indicating whether to force the conversion to a default `Real`
+    *              value when the current instance is not of type `Real`
+    * @return an `Option[Real]` containing the approximated value if successful, or `None` if approximation fails
     */
-  def approximation(force: Boolean = false): Option[Real] = convert(Real.zero)
+  def approximation(force: Boolean = false): Option[Real] = this match {
+    case real: Real => Some(real)
+    case _ if (force) => convert(Real.zero)
+    case _ => None
+  }
 
   /**
     * Determines if the current number is equal to zero.
@@ -60,6 +68,7 @@ trait Monotone extends Structure with CanScaleWhole[Monotone] with CanScaleDoubl
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
   def signum: Int
+
 }
 
 /**

@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.expression._
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
-import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

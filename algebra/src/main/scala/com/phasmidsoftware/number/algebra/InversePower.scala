@@ -9,7 +9,7 @@ import cats.Show
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number.core.inner.{CubeRoot, Factor, Rational, SquareRoot}
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -24,7 +24,7 @@ import scala.reflect.ClassTag
   * @param n    the degree of the root, specified as an integer
   * @param base the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] with CanScale[InversePower, Number] {
+case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
   def compare(that: InversePower): Int = (this.isExact, that.isExact) match {
     case (true, true) =>
       compareExact(that).getOrElse(0) // TODO fix this
@@ -174,19 +174,6 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
   }
 
   /**
-    * Scales the instance of type T by the given integer multiplier.
-    *
-    * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
-    * the scaling operation is valid for the specific implementation.
-    *
-    * @param that the integer multiplier used to scale the instance
-    * @return an Option containing the scaled result of type T, or None if the operation is invalid
-    */
-  infix def doScaleInt(that: Int): Option[InversePower] =
-    doScale(WholeNumber(that))
-
-  /**
     * Scales the current instance using the provided `Number`.
     *
     * The method performs a scaling operation by applying the given `Number` to the current instance,
@@ -200,7 +187,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     (that, base) match {
       case (x: CanPower[Number] @unchecked, y: Z) =>
         val triedRational = y.toRational.power(Rational(n).invert).toOption
-        val value: Option[Number] = (triedRational).flatMap(r => x.pow(RationalNumber(r)))
+        val value: Option[Number] = triedRational.flatMap(r => x.pow(RationalNumber(r)))
         value.asInstanceOf[Option[InversePower]]
       // TODO need to match on types, not use isInstanceOf, etc.
       case _ =>
@@ -213,7 +200,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
-  def maybeFactor: Option[Factor] = n match {
+  def maybeFactor(context: Context): Option[Factor] = n match {
     case 2 => Some(SquareRoot)
     case 3 => Some(CubeRoot)
     case _ => throw NumberException(s"InversePower.maybeFactor: no factor for $n")

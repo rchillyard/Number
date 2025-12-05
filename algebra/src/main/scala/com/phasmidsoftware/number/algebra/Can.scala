@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.*
+import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 
 /**
@@ -81,7 +82,7 @@ trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAd
     * by utilizing the properties of an additive commutative group defined for type `T`.
     *
     * @param that     the instance of type `T` to subtract from the current instance
-    * @param Additive evidence of an implicit `AdditiveCommutativeGroup[T]` that provides
+    * @param using    evidence of an implicit `AdditiveCommutativeGroup[T]` that provides
     *                 the additive commutative group structure supporting subtraction
     * @return the resulting value of type `T` after subtraction
     */
@@ -90,7 +91,7 @@ trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAd
   /**
     * Negates this instance of type `CanAddAndSubtract[T]` by utilizing the additive inverse.
     *
-    * @param acg evidence of an implicit `AdditiveCommutativeGroup[T]` providing the
+    * @param using evidence of an implicit `AdditiveCommutativeGroup[T]` providing the
     *            additive group structure for type `T`
     * @return the additive inverse of the current instance as type `T`
     */
@@ -107,7 +108,7 @@ trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAd
   /**
     * Retrieves the implicit evidence of an `AdditiveCommutativeGroup[T]` for the given type `T`.
     *
-    * @param acg an implicit parameter providing evidence of the `AdditiveCommutativeGroup[T]` structure
+    * @param using an implicit parameter providing evidence of the `AdditiveCommutativeGroup[T]` structure
     *            for the type `T`. This ensures that the type `T` satisfies the properties of an
     *            additive commutative group.
     * @return an instance of `AdditiveCommutativeGroup[T]` that represents the additive commutative
@@ -155,7 +156,7 @@ trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     * `CommutativeRing` context, if possible.
     *
     * @param that            the input `Structure` instance to be multiplied with the current instance.
-    * @param CommutativeRing an implicit parameter providing the context for performing
+    * @param using an implicit parameter providing the context for performing
     *                        multiplication operations on objects of type `T`.
     * @return an `Option[T]` containing the result of the multiplication if it can be
     *         successfully performed, or `None` otherwise.
@@ -171,7 +172,7 @@ trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     * CONSIDER whether this is exactly the correct type to use.
     * It needs to support all required properties and it must be a superclass of `CommutativeRing`.
     *
-    * @param evidence an implicit parameter of type `MultiplicativeMonoid[T]`, representing the context
+    * @param using an implicit parameter of type `MultiplicativeMonoid[T]`, representing the context
     *                 within which multiplicative operations are defined for type `T`.
     * @return an instance of `MultiplicativeMonoid[T]`, which provides methods and properties
     *         for performing multiplicative operations on type `T` values.
@@ -189,14 +190,13 @@ trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   *
   * @tparam T the primary type of the structure that supports multiplication and division,
   *           constrained to extend `Structure` and requiring a `ClassTag` for runtime type resolution
-  * @tparam U a secondary structure type, also constrained to extend `Structure`
   */
 trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] {
 
   /**
     * Calculates the reciprocal of the given value `t` within the context of a multiplicative group.
     *
-    * @param t the value for which the reciprocal is to be calculated, belonging to type `T`
+    * @param using the value of MultiplicativeGroup
     * @return the reciprocal of the given value `t`, computed within the rules of the provided `MultiplicativeGroup[T]`
     */
   def reciprocal(using MultiplicativeGroup[T]): T =
@@ -215,7 +215,7 @@ trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] 
     * Returns the implicit `MultiplicativeGroup[T]` for the type `T`.
     * CONSIDER whether this is exactly the correct type to use.
     *
-    * @param evidence an implicit parameter that provides evidence that `T` has a `MultiplicativeGroup` structure
+    * @param using an implicit parameter that provides evidence that `T` has a `MultiplicativeGroup` structure
     * @return the `MultiplicativeGroup[T]` instance for type `T`
     */
   private def mg(using MultiplicativeGroup[T]): MultiplicativeGroup[T] = summon[MultiplicativeGroup[T]]
@@ -232,69 +232,29 @@ trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] 
   *
   * @tparam T the type of the instance that can be scaled
   */
-trait CanScaleWhole[T] {
+trait Scalable[T <: Scalable[T]] {
 
   /**
-    * Scales the instance of type T by the given integer multiplier.
+    * Scales the current instance by the given factor.
     *
-    * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
-    * the scaling operation is valid for the specific implementation.
+    * This method applies a scaling operation on the instance using the provided
+    * rational factor and returns the resulting scaled instance.
     *
-    * @param that the integer multiplier used to scale the instance
-    * @return an Option containing the scaled result of type T, or None if the operation is invalid
+    * @param factor the rational number representing the scale factor
+    * @return the scaled instance of type `T`
     */
-  def doScaleInt(that: Int): Option[T]
-}
-
-/**
-  * Trait `CanScaleDouble` defines the capability to scale instances of type `T` by a `Double` factor.
-  *
-  * Classes or traits implementing this trait are required to provide logic for scaling
-  * their instances using the `doScaleDouble` method. The result of the scaling operation
-  * is wrapped in an `Option` to account for cases where the scaling may not be possible or valid.
-  *
-  * @tparam T the type of the instance that can be scaled by a `Double`
-  */
-trait CanScaleDouble[T] {
+  infix def *(factor: Rational): T
 
   /**
-    * Scales the current instance of type `T` by the specified `Double` value.
+    * Scales the current instance using an integer factor.
     *
-    * This method applies a scaling factor to the instance, returning an `Option`
-    * that contains the scaled instance if the operation is valid. If the scaling
-    * operation is not valid or feasible, `None` is returned.
+    * This method applies a scaling operation on the instance by converting the given integer factor
+    * into a rational number, delegating the scaling to the `scale` method, and returning the result.
     *
-    * @param that the `Double` value to scale the instance by
-    * @return an `Option` containing the scaled instance of type `T`, or `None`
-    *         if scaling is not possible
+    * @param factor the integer value representing the scale factor
+    * @return the scaled instance of type `T`
     */
-  def doScaleDouble(that: Double): Option[T]
-}
-
-/**
-  * Represents a capability of scaling instances of type `T`.
-  *
-  * This trait defines a method for scaling an object of type `T` using a `Number` multiplier.
-  * The operation allows for the result to be optionally returned, reflecting cases where scaling
-  * might not be applicable or feasible.
-  *
-  * @tparam T the type of the instance that can be scaled
-  */
-trait CanScale[T <: Structure, U <: Structure] {
-
-  /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
-    *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
-    *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
-    */
-  def doScale(that: U): Option[T]
+  def doScaleInt(factor: Int): T = this * Rational(factor)
 }
 
 /**
@@ -335,6 +295,25 @@ trait CanPower[T] {
     *         or `None` if the operation could not be performed
     */
   infix def pow(that: WholeNumber): Option[T]
+}
+
+/**
+  * Trait `CanNormalize` provides a mechanism to normalize instances of type `T`.
+  *
+  * Normalization is a process of transforming an entity into a standard form, often employed in mathematical,
+  * algebraic, or logical contexts to simplify representations or ensure a canonical structure.
+  * Classes or traits that implement this trait must define how an instance of `T` is normalized.
+  *
+  * @tparam T the type of the entity that can be normalized
+  */
+trait CanNormalize[T <: Structure] {
+
+  /**
+    * Normalizes the current instance according to its specific mathematical or logical definition.
+    *
+    * @return an instance of type `T` which is a normalized form of the current instance
+    */
+  def normalize: T
 }
 
 /**

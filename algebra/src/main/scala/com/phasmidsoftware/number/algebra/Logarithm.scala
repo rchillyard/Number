@@ -83,19 +83,6 @@ abstract class Logarithm(val value: Number) extends CanMultiply[Logarithm, Logar
       None
 
   /**
-    * Scales the instance of type T by the given integer multiplier.
-    *
-    * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
-    * the scaling operation is valid for the specific implementation.
-    *
-    * @param that the integer multiplier used to scale the instance
-    * @return an Option containing the scaled result of type T, or None if the operation is invalid
-    */
-  def doScaleInt(that: Int): Option[Monotone] =
-    throw NumberException("Logarithm.doScaleInt: not supported")
-
-  /**
     * Determines if the current number is equal to zero.
     *
     * @return true if the number is zero, false otherwise
@@ -201,8 +188,10 @@ case class NatLog(x: Number) extends Logarithm(x) {
     if (c.runtimeClass == classOf[Real]) {
       val result: Real =
         value match {
-          case WholeNumber.one | RationalNumber(Rational.one) =>
+          case WholeNumber.one | RationalNumber(Rational.one, _) =>
             Real(math.E)
+          case RationalNumber(Rational.infinity, _) =>
+            Real.∞
           case Real(value, fuzz) =>
             Real(math.log(value), fuzz)
           case _ =>
@@ -249,7 +238,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
-  def maybeFactor: Option[Factor] = Some(core.inner.NatLog)
+  def maybeFactor(context: Context): Option[Factor] = Some(core.inner.NatLog)
 
   /**
     * Returns the multiplicative identity element of type `T` in the context

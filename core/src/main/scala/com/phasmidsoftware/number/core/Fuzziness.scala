@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Fuzziness.toDecimalPower
-import com.phasmidsoftware.number.core.Valuable.ValuableDouble
+import com.phasmidsoftware.number.core.HasValue.HasValueDouble$
 import com.phasmidsoftware.number.core.inner.MonadicOperation
 import com.phasmidsoftware.number.misc.Variance.{convolution, rootSumSquares}
 import java.text.DecimalFormat
@@ -40,7 +40,7 @@ trait Fuzziness[T] {
     * @param func the function to apply to this Fuzziness[T].
     * @return an (optional) transformed version of Fuzziness[T].
     */
-  def transform[U: Valuable, V: Valuable](func: T => V)(t: T): Fuzziness[U]
+  def transform[U: HasValue, V: HasValue](func: T => V)(t: T): Fuzziness[U]
 
   /**
     * Perform a convolution on this Fuzziness[T] with the given addend.
@@ -106,7 +106,6 @@ trait Fuzziness[T] {
 
   /**
     * Computes the probability that random points will be found with the range `-x` to `+x` where `l` is a measure of the magnitude of this Fuzziness.
-    * ghdsew    *
     * TODO change the types of l and x to be T
     *
     * @param l the size or scale of the probability density function (e.g., standard deviation for a Gaussian distribution).
@@ -123,8 +122,8 @@ trait Fuzziness[T] {
     *
     * @return a Fuzziness[U] instance with zero fuzziness and Gaussian shape.
     */
-  def noFuzz[U >: T : Valuable]: Fuzziness[U] =
-    AbsoluteFuzz(implicitly[Valuable[U]].fromDouble(0), Gaussian)
+  def noFuzz[U >: T : HasValue]: Fuzziness[U] =
+    AbsoluteFuzz(implicitly[HasValue[U]].fromDouble(0), Gaussian)
 
   /**
     * Creates a fuzziness value using the given input magnitude and applies a Gaussian distribution.
@@ -135,7 +134,7 @@ trait Fuzziness[T] {
     * @param u the magnitude of the input value used to compute fuzziness.
     * @return a Fuzziness[Double] instance representing the absolute fuzziness with Gaussian distribution.
     */
-  def uncertainty[U >: T : Valuable](u: U): Fuzziness[U] =
+  def uncertainty[U >: T : HasValue](u: U): Fuzziness[U] =
     AbsoluteFuzz(u, Gaussian)
 
 }
@@ -145,11 +144,11 @@ trait Fuzziness[T] {
   *
   * @param tolerance the error bound.
   * @param shape     the shape (Uniform, Gaussian, etc.)
-  * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics [must have Valuable].
+  * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics [must have HasValue].
   */
-case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fuzziness[T] {
+case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fuzziness[T] {
 
-  private val tv: Valuable[T] = implicitly[Valuable[T]]
+  private val tv: HasValue[T] = implicitly[HasValue[T]]
 
   /**
     * Transform this Fuzziness[T] according to func.
@@ -161,10 +160,10 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
     * @tparam V the type of the quotient of T/U.
     * @return a transformed version of Fuzziness[U].
     */
-  def transform[U: Valuable, V: Valuable](func: T => V)(t: T): Fuzziness[U] = {
+  def transform[U: HasValue, V: HasValue](func: T => V)(t: T): Fuzziness[U] = {
     val duByDt: V = func(t)
-    val dU: U = implicitly[Valuable[U]].multiply(implicitly[Valuable[T]].fromDouble(tolerance), duByDt)
-    RelativeFuzz[U](implicitly[Valuable[U]].toDouble(dU), shape)
+    val dU: U = implicitly[HasValue[U]].multiply(implicitly[HasValue[T]].fromDouble(tolerance), duByDt)
+    RelativeFuzz[U](implicitly[HasValue[U]].toDouble(dU), shape)
   }
 
   /**
@@ -262,8 +261,8 @@ case class RelativeFuzz[T: Valuable](tolerance: Double, shape: Shape) extends Fu
   * @param shape     the shape of the fuzz.
   * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics.
   */
-case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzziness[T] {
-  private val tv = implicitly[Valuable[T]]
+case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzziness[T] {
+  private val tv = implicitly[HasValue[T]]
 
   /**
     * This method takes a value of T on which to base a relative fuzz value.
@@ -282,9 +281,9 @@ case class AbsoluteFuzz[T: Valuable](magnitude: T, shape: Shape) extends Fuzzine
     * @param func the function to apply to this Fuzziness[T].
     * @return an (optional) transformed version of Fuzziness[T].
     */
-  def transform[U: Valuable, V: Valuable](func: T => V)(t: T): Fuzziness[U] = {
+  def transform[U: HasValue, V: HasValue](func: T => V)(t: T): Fuzziness[U] = {
     val duByDt: V = func(t)
-    val dU: U = implicitly[Valuable[U]].multiply(magnitude, duByDt)
+    val dU: U = implicitly[HasValue[U]].multiply(magnitude, duByDt)
     AbsoluteFuzz(dU, shape)
   }
 
@@ -423,8 +422,8 @@ object Fuzziness {
     * @tparam T the underlying type.
     * @return a function which will transform a Fuzziness[T] into a Fuzziness[T].
     */
-  def scaleTransform[T: Valuable](k: Double): Fuzziness[T] => Fuzziness[T] =
-    tf => tf.transform(_ => implicitly[Valuable[T]].fromDouble(k))(implicitly[Valuable[T]].fromInt(1))
+  def scaleTransform[T: HasValue](k: Double): Fuzziness[T] => Fuzziness[T] =
+    tf => tf.transform(_ => implicitly[HasValue[T]].fromDouble(k))(implicitly[HasValue[T]].fromInt(1))
 
   /**
     * Method to represent an optional Fuzziness as a String.
@@ -442,11 +441,11 @@ object Fuzziness {
     * @param coefficients the coefficients (a Tuple): the coefficients of deltaX/X and deltaY/Y respectively.
     * @return the scaled fuzz values (a Tuple).
     */
-  def applyCoefficients[T: Valuable](fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]]), coefficients: Option[(T, T)]): (Option[Fuzziness[T]], Option[Fuzziness[T]]) =
+  def applyCoefficients[T: HasValue](fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]]), coefficients: Option[(T, T)]): (Option[Fuzziness[T]], Option[Fuzziness[T]]) =
     coefficients match {
       case Some((a, b)) =>
-        val f1o = fuzz._1 map scaleTransform(implicitly[Valuable[T]].toDouble(a))
-        val f2o = fuzz._2 map scaleTransform(implicitly[Valuable[T]].toDouble(b))
+        val f1o = fuzz._1 map scaleTransform(implicitly[HasValue[T]].toDouble(a))
+        val f2o = fuzz._2 map scaleTransform(implicitly[HasValue[T]].toDouble(b))
         (f1o, f2o)
       case _ => fuzz
     }
@@ -498,7 +497,7 @@ object Fuzziness {
     * @tparam V the underlying type of the result divided by the input.
     * @return an Option of Fuzziness[T].
     */
-  def map[T, U: Valuable, V: Valuable](t: T, u: U, relative: Boolean, g: T => V, fuzz: Option[Fuzziness[T]]): Option[Fuzziness[U]] = {
+  def map[T, U: HasValue, V: HasValue](t: T, u: U, relative: Boolean, g: T => V, fuzz: Option[Fuzziness[T]]): Option[Fuzziness[U]] = {
     val q: Option[Fuzziness[U]] = fuzz match {
       case Some(f1) =>
         Some(f1.transform(g)(t))
@@ -516,7 +515,7 @@ object Fuzziness {
     * @return the approximate precision for a floating point operation, expressed in terms of RelativeFuzz.
     */
   def createFuzz(relativePrecision: Int): Fuzziness[Double] =
-    RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)(ValuableDouble)
+    RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)(HasValueDouble$)
 
   /**
     * This is the (approximate) fuzziness caused in general by trying to represent numbers in double precision.
@@ -650,8 +649,8 @@ case object Box extends Shape {
     * @param t the magnitude of the Box distribution.
     * @return t/2 which will be used as the standard deviation.
     */
-  def toGaussianAbsolute[T: Valuable](t: T): T =
-    implicitly[Valuable[T]].scale(t, uniformToGaussian)
+  def toGaussianAbsolute[T: HasValue](t: T): T =
+    implicitly[HasValue[T]].scale(t, uniformToGaussian)
 
   /**
     * Determine the range +- t such that the probability of a random point being within that range is `p`,
@@ -767,6 +766,27 @@ case object Gaussian extends Shape {
 }
 
 /**
+  * Represents a trait that provides an optional fuzzy characteristic.
+  *
+  * This trait is used to encapsulate fuzziness-related behavior.
+  * The fuzziness is represented as an optional value of type `Fuzziness[Double]`.
+  *
+  * Suitable when there's a need to describe uncertain or imprecise values
+  * through a specific fuzziness model.
+  */
+trait WithFuzziness {
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]]
+}
+
+/**
   * Trait which models the behavior of something with (maybe) fuzziness.
   *
   * See also related trait Fuzzy[X] but note that there, the parametric type X
@@ -774,11 +794,7 @@ case object Gaussian extends Shape {
   *
   * @tparam T the type of fuzziness.
   */
-trait Fuzz[T] {
-  /**
-    * The (optional) fuzziness: if None, then there is no fuzziness.
-    */
-  val fuzz: Option[Fuzziness[T]]
+trait Fuzz[T] extends WithFuzziness {
 
   /**
     * Adds the provided fuzziness to the current `Fuzz[T]` and returns the resulting value.
@@ -794,21 +810,21 @@ trait Fuzz[T] {
     * This method provides a representation of deterministic or non-fuzzy values
     * by ensuring that the fuzziness magnitude is explicitly zero.
     *
-    * @tparam U a supertype of T that also satisfies the Valuable type class constraint.
+    * @tparam U a supertype of T that also satisfies the HasValue type class constraint.
     * @return a Fuzziness[U] instance with zero magnitude and Gaussian shape.
     */
-  def noFuzz[U >: T : Valuable]: Fuzziness[U] =
-    AbsoluteFuzz(implicitly[Valuable[U]].fromDouble(0), Gaussian)
+  def noFuzz[U >: T : HasValue]: Fuzziness[U] =
+    AbsoluteFuzz(implicitly[HasValue[U]].fromDouble(0), Gaussian)
 }
 
 /**
-  * Type class trait Valuable[T].
+  * Type class trait HasValue[T].
   *
   * This is used to represent quantities of different underlying units/dimensions.
   *
-  * @tparam T the underlying type of this Valuable.
+  * @tparam T the underlying type of this HasValue.
   */
-trait Valuable[T] extends Fractional[T] {
+trait HasValue[T] extends Fractional[T] {
   /**
     * Method to return a String representation of a T value.
     *
@@ -868,8 +884,8 @@ trait Valuable[T] extends Fractional[T] {
     * @tparam V the type of v.
     * @return a T whose value is u * v.
     */
-  def multiply[U: Valuable, V: Valuable](u: U, v: V): T =
-    fromDouble(implicitly[Valuable[U]].toDouble(u) * implicitly[Valuable[V]].toDouble(v))
+  def multiply[U: HasValue, V: HasValue](u: U, v: V): T =
+    fromDouble(implicitly[HasValue[U]].toDouble(u) * implicitly[HasValue[V]].toDouble(v))
 
   /**
     * Method to divide a U by a V, resulting in a T.
@@ -882,14 +898,14 @@ trait Valuable[T] extends Fractional[T] {
     * @tparam V the type of v.
     * @return a T whose value is u / v.
     */
-  def divide[U: Valuable, V: Valuable](u: U, v: V): T =
-    fromDouble(implicitly[Valuable[U]].toDouble(u) / implicitly[Valuable[V]].toDouble(v))
+  def divide[U: HasValue, V: HasValue](u: U, v: V): T =
+    fromDouble(implicitly[HasValue[U]].toDouble(u) / implicitly[HasValue[V]].toDouble(v))
 }
 
 /**
-  * Trait ValuableDouble provides functionality for manipulating `Double` values
-  * within the context of the `Valuable` type class. It extends the behavior of
-  * `Valuable[Double]`, `DoubleIsFractional`, and `Ordering.Double.IeeeOrdering` to
+  * Trait HasValueDouble provides functionality for manipulating `Double` values
+  * within the context of the `HasValue` type class. It extends the behavior of
+  * `HasValue[Double]`, `DoubleIsFractional`, and `Ordering.Double.IeeeOrdering` to
   * work specifically with `Double`-typed quantities, offering operations like rendering,
   * scaling, and normalizing `Double` values.
   *
@@ -897,7 +913,7 @@ trait Valuable[T] extends Fractional[T] {
   * representation of a `Double`, either in fixed-point or scientific notation
   * depending on the value.
   */
-trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Ordering.Double.IeeeOrdering {
+trait HasValueDouble extends HasValue[Double] with DoubleIsFractional with Ordering.Double.IeeeOrdering {
   /**
     * Renders a `Double` value as a string, choosing between fixed-point or
     * scientific notation representation based on specific criteria.
@@ -945,26 +961,26 @@ trait ValuableDouble extends Valuable[Double] with DoubleIsFractional with Order
 }
 
 /**
-  * Companion object for the Valuable type class.
+  * Companion object for the HasValue type class.
   *
-  * This object provides an implicit implementation of the Valuable type class
-  * for Double values through the ValuableDouble trait.
+  * This object provides an implicit implementation of the HasValue type class
+  * for Double values through the HasValueDouble trait.
   *
-  * The Valuable type class is designed to represent a type that can interoperate
+  * The HasValue type class is designed to represent a type that can interoperate
   * with fractional operations, scaling, normalization, and rendering to a string.
   */
-object Valuable {
+object HasValue {
 
   /**
-    * An implicit object extending `ValuableDouble`, providing functionality for
-    * working with `Double` values within the `Valuable` type class.
+    * An implicit object extending `HasValueDouble`, providing functionality for
+    * working with `Double` values within the `HasValue` type class.
     *
     * This object offers default implementations of operations such as rendering,
     * scaling, normalization, and fractional operations for `Double` values.
     *
-    * As an implicit object, it allows for automatic resolution of the `Valuable`
+    * As an implicit object, it allows for automatic resolution of the `HasValue`
     * type class for `Double` values in relevant contexts.
     */
-  implicit object ValuableDouble extends ValuableDouble
+  implicit object HasValueDouble$ extends HasValueDouble
 
 }

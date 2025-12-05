@@ -24,7 +24,7 @@ object ShuntingYardParser extends BaseMillParser {
     * @param w the String to parse.
     * @return a Mill, wrapped in Try.
     */
-  def parseInfix(w: String): Try[Mill] = stringParser(shuntingYard, w).flatMap(_.toMill)
+  def parseInfix(w: String): Try[CoreMill] = stringParser(shuntingYard, w).flatMap(_.toMill)
 
   /**
     * A ShuntingYard consisting of two structures: a queue of values and a stack of operators.
@@ -36,7 +36,7 @@ object ShuntingYardParser extends BaseMillParser {
     *                  (or the end of the string) is reached.
     * @param operators a stack of operators which is temporarily placed here until switch is called.
     */
-  case class ShuntingYard(values: Seq[Item], operators: Seq[Item]) {
+  case class ShuntingYard(values: Seq[CoreMillItem], operators: Seq[CoreMillItem]) {
 
     /**
       * Method to add a token to this ShuntingYard.
@@ -63,15 +63,15 @@ object ShuntingYardParser extends BaseMillParser {
       *
       * @return a Try[Mill].
       */
-    def toMill: Try[Mill] = switch match {
-      case ShuntingYard(values, Nil) => Try(Mill(values: _*))
+    def toMill: Try[CoreMill] = switch match {
+      case ShuntingYard(values, Nil) => Try(CoreMill(values: _*))
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 
     private def :+(number: Number) = ShuntingYard(values :+ Expr(TerminalExpression(number)), operators)
 
     @tailrec
-    private def :+(operator: String): ShuntingYard = Item(operator) match {
+    private def :+(operator: String): ShuntingYard = CoreMillItem(operator) match {
       case o1@Dyadic(_, _) => operators match {
         case Nil => ShuntingYard(values, o1 +: Nil)
         case Open :: xs => ShuntingYard(values, o1 :: Open :: xs)

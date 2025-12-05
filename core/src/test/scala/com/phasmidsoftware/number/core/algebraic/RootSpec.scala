@@ -5,8 +5,8 @@
 package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.Constants
+import com.phasmidsoftware.number.core.expression._
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.expression._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -83,42 +83,42 @@ class RootSpec extends AnyFlatSpec with should.Matchers {
     half.evaluate(RestrictedContext(PureNumber)) shouldBe Some(Constants.half)
   }
   it should "evaluate(NthRoot)" in {
-    one.evaluate(Context.AnyRoot) shouldBe None
-    phi.evaluate(Context.AnyRoot) shouldBe None
-    rootTwo.evaluate(Context.AnyRoot) shouldBe Some(Constants.root2)
-    half.evaluate(Context.AnyRoot) shouldBe None
+    one.evaluate(CoreContext.AnyRoot) shouldBe None
+    phi.evaluate(CoreContext.AnyRoot) shouldBe None
+    rootTwo.evaluate(CoreContext.AnyRoot) shouldBe Some(Constants.root2)
+    half.evaluate(CoreContext.AnyRoot) shouldBe None
   }
 
   behavior of "Root expressions"
   it should "evaluate 1 / √5" in {
-    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
     val expression = (phi + psi) / (phi - psi)
     val simplified = expression.simplify
     simplified.materialize === Constants.root5.invert
   }
   it should "evaluate phi∧2" in {
-    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
     val expression = phi ∧ 2
     val simplified = expression.simplify
     simplified.materialize === 2.618033988749895
     simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(-3, 1), pos = true))
   }
   it should "evaluate squareRoot(phi)" in {
-    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
     val expression = phi ∧ Rational.half
     val simplified = expression.simplify
     simplified.approximation.get === 1.2599210498948732
     simplified shouldBe Root(Quadratic(1, -1), 0)
   }
   it should "evaluate phi + psi" in {
-    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
     val expression = phi + psi
     val simplified = expression.simplify
     simplified shouldBe One
   }
   // Fixed Issue #130
   it should "evaluate 2" in {
-    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+    import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
     val top = (phi + psi).simplify
     val bottom = (phi - psi).simplify
     val expression = top / bottom

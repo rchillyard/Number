@@ -5,11 +5,10 @@ import cats.Show
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber, NumberException}
 import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.parse.NumberParser
-import jdk.javadoc.internal.doclint.HtmlTag.Q
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -29,7 +28,7 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAddAndSubtract[Real, Structure] with Number {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAddAndSubtract[Real, Structure] with Number with Scalable[Real] {
   /**
     * Converts the current instance to a Double representation.
     * CONSIDER changing to maybeDouble returning Option[Double].
@@ -39,10 +38,10 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
   def asDouble: Double = value
 
   /**
-    * Creates an instance of `R` from the given `Rational` value.
+    * Converts the specified value into an exact rational representation if possible,
+    * and wraps it in an Option. If the conversion fails, returns None.
     *
-    * @param q the `Rational` value to be converted into an instance of `R`
-    * @return an instance of `R` representing the specified `Rational` value
+    * @return Some instance of Q if the conversion is successful, or None if it fails.
     */
   def maybeQ: Option[Q] = Rational.createExact(value).toOption.map(RationalNumber(_))
 
@@ -175,7 +174,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     case r: Real =>
       realIsRing.compare(this, r)
     case n =>
-      FP.getOrThrow(n.approximation.map(a => compare(a)), NumberException(s"Real.compare: logic error: $this, $that"))
+      FP.getOrThrow(n.approximation(true).map(a => compare(a)), NumberException(s"Real.compare: logic error: $this, $that"))
   }
 
   /**
@@ -189,15 +188,11 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
   lazy val render: String = new core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
 
   /**
-    * Subtracts the given instance of type `T` from the current instance.
+    * Subtracts the specified `Real` value from this `Real` value.
     *
-    * This method computes the result of subtracting the `that` instance from the current instance
-    * by utilizing the properties of an additive commutative group defined for type `T`.
-    *
-    * @param that     the instance of type `T` to subtract from the current instance
-    * @param Additive evidence of an implicit `AdditiveCommutativeGroup[T]` that provides
-    *                 the additive commutative group structure supporting subtraction
-    * @return the resulting value of type `T` after subtraction
+    * @param that     the `Real` value to subtract from this `Real` value
+    * @param using evidence parameter providing an `AdditiveCommutativeGroup` instance for `Real`
+    * @return the result of subtracting `that` from this `Real` value
     */
   def -(that: Real)(using AdditiveCommutativeGroup[Real]): Real =
     realIsRing.minus(this, that)
@@ -237,22 +232,6 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
   }
 
   /**
-    * Computes the potential factor associated with this instance.
-    *
-    * @return an `Option` containing a `Factor` if available, otherwise `None`
-    */
-  def maybeFactor: Option[Factor] = Some(PureNumber)
-//
-//  /**
-//    * Adds the specified `T` to this `T` instance.
-//    *
-//    * @param t an instance of `T` to be added to this `T`
-//    * @return a new `T` representing the sum of this `T` and the given `T`
-//    */
-//  def +(t: Real): Real = realIsRing.plus(this, t)
-//
-
-  /**
     * Computes the additive inverse of this instance.
     *
     * This method returns a new instance representing the negation of this value,
@@ -288,31 +267,25 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     realIsRing.inverse(t) map (z => realIsRing.times(this, z)) getOrElse Real.Infinity
 
   /**
-    * Scales the instance of type T by the given integer multiplier.
+    * Scales the instance of type T by the given rational multiplier.
     *
     * This method performs a multiplication operation between the current instance and
-    * the specified integer, returning an optional result. The result is defined if
+    * the specified rational, returning an optional result. The result is defined if
     * the scaling operation is valid for the specific implementation.
     *
-    * @param that the integer multiplier used to scale the instance
+    * @param factor the rational multiplier used to scale the instance
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
-  def doScaleInt(that: Int): Option[Monotone] =
-    Some(copy(value = that * value))
+  def *(factor: Rational): Real =
+    copy(value = value * factor.toDouble)
 
   /**
-    * Scale this Real by the given scalar, provided that it is exact.
-    * This method is used to scale a Real by a scalar that is known to be exact.
-    * If you want to simply multiply this Real by a scalar, use the * operator.
+    * Scales the current scalar instance by the specified rational factor.
     *
-    * @param scalar the exact scalar to scale by
-    * @return a scaled Real with the same relative error as this.
+    * @param r the `Rational` factor by which to scale the scalar
+    * @return a new `Scalar` instance representing the scaled value
     */
-  def scale(scalar: Scalar): Option[Real] =
-    for
-      x <- scalar.maybeDouble if scalar.isExact
-      f <- fuzz
-    yield Real(value * x, f.normalize(x, true))
+  def scale(r: Rational): Scalar = copy(value = value * r.toDouble)
 
   /**
     * Converts the current `Real` instance into an instance of `FuzzyNumber`.
@@ -338,12 +311,11 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     Real(value * Real.pi.value, Some(Fuzziness.doublePrecision))
 
   /**
-    * Raises the current instance of type `T` to the rational power `n`.
-    * This operation extends the `Multiplicative` structure by allowing
-    * instances to be exponentiated with rational exponents.
+    * Computes the power of the current value raised to the provided `Rational` exponent.
     *
-    * @param n the rational exponent to which the current instance is raised
-    * @return an `Option` containing the result of the exponentiation if applicable, or `None` if the operation is undefined
+    * @param r the `Rational` exponent to which the value is raised
+    * @return an `Option[Real]` containing the result of the power operation, 
+    *         if the computation is successful
     */
   def power(r: Rational): Option[Real] =
     Some(Real(math.pow(value, r.toDouble), fuzz.map(Fuzziness.scaleTransform(r.toDouble))))
@@ -437,7 +409,25 @@ object Real {
     *
     * @return a `Real` initialized with the value of π and the default fuzziness level
     */
-  def pi: Real = apply(Math.PI)
+  val pi: Real = apply(Math.PI)
+
+  /**
+    * Represents a mathematical concept of positive infinity as a `Real` value.
+    *
+    * The symbol `∞` is predefined as a `Real` instance, initialized to `Double.PositiveInfinity`
+    * with no associated fuzziness. It serves to denote a value that is unbounded in the positive 
+    * direction within the context of real numbers.
+    */
+  val infinity: Real = Real(Double.PositiveInfinity, None)
+
+  /**
+    * Represents the mathematical concept of infinity within the `Real` class.
+    *
+    * This value is an alias for the predefined `infinity` constant in the `Real` class,
+    * which signifies a positive infinite quantity. It is typically used in calculations
+    * or scenarios where an infinitely large value is required or represented.
+    */
+  val ∞ : Real = infinity
 
   /**
     * Provides an implicit instance of `Show` for the `Real` type.

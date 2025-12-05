@@ -1,9 +1,9 @@
 package com.phasmidsoftware.number.parse
 
+import com.phasmidsoftware.number.core.expression.Expression
+import com.phasmidsoftware.number.core.expression.Expression.convertMillExpressionToExpression
 import com.phasmidsoftware.number.core.{Constants, Number}
-import com.phasmidsoftware.number.expression.Expression
-import com.phasmidsoftware.number.expression.Expression.convertMillExpressionToExpression
-import com.phasmidsoftware.number.mill.Mill
+import com.phasmidsoftware.number.mill.CoreMill
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -72,22 +72,36 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     xo.get shouldBe Number(101)
   }
   it should "parse Infix and evaluate:  9" in {
-    val value: Try[Mill] = p.parseInfix("3 ∧ 2")
+    val value: Try[CoreMill] = p.parseInfix("3 ∧ 2")
     value should matchPattern { case Success(_) => }
     value map (_.evaluate shouldBe 9)
   }
   it should "parse Infix and evaluate:  0.5" in {
-    val value: Try[Mill] = p.parseInfix("2 ∧ -1")
+    val value: Try[CoreMill] = p.parseInfix("2 ∧ -1")
     value should matchPattern { case Success(_) => }
     value map (_.evaluate shouldBe 0.5)
   }
   it should "parse Infix and evaluate: sqrt(3)" in {
-    val value: Option[Mill] = p.parseInfix("3 ∧ ( 2 ∧ -1 )").toOption
+    val value: Option[CoreMill] = p.parseInfix("3 ∧ ( 2 ∧ -1 )").toOption
     value should matchPattern { case Some(_) => }
     val z: Option[Expression] = value.flatMap(_.evaluate).map(convertMillExpressionToExpression)
     val q = z map (_.materialize)
     q shouldBe Some(Constants.root3)
     // TESTME the result.
+  }
+  it should "parse Infix and evaluate: sin(pi)" in {
+    val value: Option[CoreMill] = p.parseInfix("sin(𝛑)").toOption
+    value should matchPattern { case Some(_) => }
+    val z: Option[Expression] = value.flatMap(_.evaluate).map(convertMillExpressionToExpression)
+    val q = z map (_.materialize)
+    q shouldBe Some(Constants.zero)
+  }
+  it should "parse Infix and evaluate: sin(pi/2)" in {
+    val value: Option[CoreMill] = p.parseInfix("sin(𝛑/2)").toOption
+    value should matchPattern { case Some(_) => }
+    val z: Option[Expression] = value.flatMap(_.evaluate).map(convertMillExpressionToExpression)
+    val q = z map (_.materialize)
+    q shouldBe Some(Constants.one)
   }
   it should "shuntingYard" in {
     p.parseInfix("( 1 + 3 ) + ( 2 * 3 )") should matchPattern { case Success(_) => }

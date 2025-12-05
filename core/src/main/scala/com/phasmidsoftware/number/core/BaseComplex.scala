@@ -8,8 +8,8 @@ import com.phasmidsoftware.number.core.BaseComplex.narrow
 import com.phasmidsoftware.number.core.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{negate, two, zero, zeroR}
+import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.expression.Literal
 import com.phasmidsoftware.number.misc.FP.recover
 
 /**
@@ -557,7 +557,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   def doAdd(complex: Complex): BaseComplex = complex match {
     case ComplexCartesian(a, b) =>
       // CONSIDER we should not be relying on expression package here.
-      import com.phasmidsoftware.number.expression.Expression.ExpressionOps
+      import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
       // TODO replace materialize with evaluateAsIs and do the appropriate things below (a for-comprehension).
       val partA = Literal(x).+(Real(a)).materialize
       val partB = Literal(y).+(Real(b)).materialize

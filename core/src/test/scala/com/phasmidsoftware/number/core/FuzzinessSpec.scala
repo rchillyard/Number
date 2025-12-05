@@ -2,8 +2,8 @@ package com.phasmidsoftware.number.core
 
 import com.phasmidsoftware.number.core.Constants.sG
 import com.phasmidsoftware.number.core.Fuzziness.{createFuzz, monadicFuzziness}
+import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.expression.Literal
 import com.phasmidsoftware.number.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -178,7 +178,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "render"
-  private val z = implicitly[Valuable[Double]]
+  private val z = implicitly[HasValue[Double]]
   it should "render Pi" in {
     z.render(3.1415927) shouldBe "3.141592700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
   }

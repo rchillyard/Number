@@ -3,23 +3,51 @@ package com.phasmidsoftware.number.algebra
 import algebra.ring.Field
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class RationalNumberSpec extends AnyFlatSpec with Matchers {
+class RationalNumberSpec extends AnyFlatSpec with Matchers with StructuralEquality {
 
   private val rf: Field[RationalNumber] = implicitly[Field[RationalNumber]]
 
   behavior of "RationalNumber"
 
+  import com.phasmidsoftware.number.core.inner.Rational.RationalOps
+
+  it should "apply" in {
+    RationalNumber(42) shouldBe RationalNumber(Rational(42), false)
+    RationalNumber(22, 7) shouldBe RationalNumber(Rational(22, 7), false)
+    val r = 22 :/ 7
+    RationalNumber(r) shouldBe RationalNumber(Rational(22, 7), false)
+    import com.phasmidsoftware.number.core.inner.Rational.RationalOps
+    RationalNumber(r"22/7") shouldBe RationalNumber(Rational(22, 7), false)
+  }
+  it should "===" in {
+    RationalNumber(42) should ===(RationalNumber(42))
+    RationalNumber(42 :/ 100, true) should ===(RationalNumber(42 :/ 100, true))
+    RationalNumber(42 :/ 100) should ===(RationalNumber(42 :/ 100, true))
+  }
   it should "render" in {
     RationalNumber(42).render shouldBe "42"
+    RationalNumber.percentage(7).render shouldBe "7%"
+    RationalNumber.percentage(42).render shouldBe "42%"
+    RationalNumber.percentage(r"85/2").render shouldBe "42.5%"
+    RationalNumber.percentage(r"171/4").render shouldBe "42.75%"
   }
   it should "toString" in {
-    RationalNumber(42).toString shouldBe "RationalNumber(42)"
+    RationalNumber(42).toString shouldBe "RationalNumber(42,false)"
+    RationalNumber(42, true).toString shouldBe "RationalNumber(42,true)"
   }
   it should "parse" in {
+    val maybeTheAnswer: Option[Number] = RationalNumber.parse("42")
+    maybeTheAnswer shouldBe Some(RationalNumber(42))
     RationalNumber.parse("84/2") shouldBe Some(RationalNumber(42))
+    RationalNumber.parse("14/2%") shouldBe Some(RationalNumber(Rational(7, 100), true))
+    RationalNumber.parse("7%") shouldBe Some(RationalNumber(Rational(7, 100), true))
+  }
+  it should "percentage" in {
+    RationalNumber.percentage(42) shouldBe RationalNumber(Rational(21, 50), true)
   }
 //  it should "plus RationalNumber" in {
 //    val x = RationalNumber(1)

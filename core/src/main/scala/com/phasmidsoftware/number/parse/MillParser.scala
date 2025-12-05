@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core._
-import com.phasmidsoftware.number.mill.{Expr, Item, Mill, TerminalExpression}
+import com.phasmidsoftware.number.mill.{CoreMill, CoreMillItem, Expr, TerminalExpression}
 import scala.util.Try
 
 /**
@@ -21,18 +21,18 @@ abstract class BaseMillParser extends BaseNumberParser {
     * @param w the String to parse.
     * @return a Mill, wrapped in Try.
     */
-  def parseMill(w: String): Try[Mill] = stringParser(mill, w.trim.split("""\s+""").reverse.mkString(" "))
+  def parseMill(w: String): Try[CoreMill] = stringParser(mill, w.trim.split("""\s+""").reverse.mkString(" "))
 
   /**
     * Trait Term which represents a dyadic, monadic, anadic term (the latter including a Number).
     */
   trait Term {
-    def toItems: Seq[Item] = this match {
+    def toItems: Seq[CoreMillItem] = this match {
       case AnadicTerm(x) => x match {
-        case Left(w) => Seq(Item(w))
+        case Left(w) => Seq(CoreMillItem(w))
         case Right(n) => Seq(Expr(TerminalExpression(n)))
       }
-      case MonadicTerm(x, os, p) => x.toItems ++ os.map(Item(_)) :+ Item(p)
+      case MonadicTerm(x, os, p) => x.toItems ++ os.map(CoreMillItem(_)) :+ CoreMillItem(p)
       case DyadicTerm(x, p) => x.toItems ++ p.toItems
     }
   }
@@ -83,7 +83,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     *
     * @return a Parser[Mill].
     */
-  def mill: Parser[Mill] = repSepSp(term) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems): _*))
+  def mill: Parser[CoreMill] = repSepSp(term) :| "mill" ^^ (items => CoreMill(items.flatMap(_.toItems): _*))
 
   /**
     * A term is either of the form:

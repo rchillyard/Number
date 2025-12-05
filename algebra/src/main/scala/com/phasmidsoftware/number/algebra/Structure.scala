@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.algebra.{Real, Valuable}
+import com.phasmidsoftware.number.algebra.Real
 import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.{algebra, core}
@@ -17,7 +17,7 @@ import scala.reflect.ClassTag
   * rendering, and set membership analysis.
   * In general, we cannot order `Structure` objects, but we can test them for exactness.
   */
-trait Structure extends Valuable {
+trait Structure extends Eager {
 
   /**
     * Converts the given `Structure` object to an optional instance of the same type.
@@ -43,28 +43,11 @@ trait Structure extends Valuable {
     *         if the conversion is successful under the stated conditions; otherwise, `None`.
     */
   def asJavaNumber: Option[java.lang.Number] = this match {
-    case algebra.Angle(number) => number.convert(Real.zero).flatMap(x => x.asJavaNumber)
+    case algebra.Angle(number, _) => number.convert(Real.zero).flatMap(x => x.asJavaNumber)
     case algebra.Real(value, _) => Some(value)
-    case algebra.RationalNumber(r) => Some(r.toDouble)
+    case algebra.RationalNumber(r, _) => Some(r.toDouble)
     case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")
   }
-//
-//  /**
-//    * Method to determine the NumberSet, if any, to which this Structure object belongs.
-//    * NOTE that we don't yet support H, the quaternions.
-//    *
-//    * @return Some(numberSet) or None if it doesn't belong to any (for example, it is fuzzy).
-//    */
-//  def memberOf: Option[NumberSet] =
-//    Seq(C, R, Q, Z, N).find(set => set.isMember(this))
-//
-//  /**
-//    * Method to determine if this Structure object is a member of the given set.
-//    *
-//    * @param set the candidate NumberSet.
-//    * @return true if this is exact and belongs to set.
-//    */
-//  def memberOf(set: NumberSet): Boolean = set.isMember(this)
 }
 
 /**
@@ -72,7 +55,7 @@ trait Structure extends Valuable {
   *
   * @see com.phasmidsoftware.number.core.Complex
   */
-case class Complex(complex: core.Complex) extends Valuable {
+case class Complex(complex: core.Complex) extends Eager {
   /**
     * Method to render this `Valuable` for presentation to the user.
     *
@@ -113,7 +96,5 @@ case class Complex(complex: core.Complex) extends Valuable {
     *
     * @return an `Option` containing the `Factor` if available, otherwise `None`.
     */
-  def maybeFactor: Option[Factor] = complex.maybeFactor
+  def maybeFactor(context: Context): Option[Factor] = complex.maybeFactor
 }
-
-//trait Scalar extends Structure with Ordered[Scalar]

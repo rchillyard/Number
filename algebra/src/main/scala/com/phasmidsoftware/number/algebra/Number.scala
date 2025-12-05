@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.algebra
 
-import algebra.ring.AdditiveCommutativeMonoid
+import algebra.ring.{AdditiveCommutativeMonoid, MultiplicativeGroup}
 import com.phasmidsoftware.number.algebra.misc.FP
 import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -14,6 +15,22 @@ import scala.language.implicitConversions
   * CONSIDER why does it not extend Ordered[Number]?
   */
 trait Number extends Scalar with Ordered[Scalar] {
+
+  /**
+    * Attempts to obtain a `Factor` representation in a specific `Context`.
+    *
+    * A `Factor` could represent entities like `PureNumber`, `Radian`, etc., that
+    * provide numerical or dimensional meaning to a value. This method evaluates
+    * the current instance within the given `Context` to determine if a valid
+    * factor can be generated.
+    *
+    * @param context the evaluation context in which to determine the factor. The `Context`
+    *                specifies the criteria under which the factorization is valid.
+    * @return an `Option[Factor]` containing the factor if it can be determined,
+    *         or `None` if no suitable factor exists within the provided `Context`.
+    */
+  def maybeFactor(context: Context): Option[Factor] = Some(PureNumber)
+
   /**
     * Compares this `Number` instance with a `Scalar` instance.
     *
@@ -57,70 +74,13 @@ trait Number extends Scalar with Ordered[Scalar] {
       FP.recover(compareExact(that))(NumberException(s"Number.compare(Number): logic error: $this, $that"))
     else if !isExact then { // XXX this is not exact
       val maybeInt: Option[Int] = for
-        x <- approximation
-        y <- that.approximation
+        x <- approximation()
+        y <- that.approximation()
       yield x.compare(y)
       FP.recover(maybeInt)(NumberException("Number.compare: Logic error"))
     }
     else // XXX this is exact and that is not exact
       -that.compare(this)
-
-  /**
-    * Provides an approximation of this number, if applicable.
-    *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
-    *
-    * CONSIDER moving this method up into Scalar.
-    *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of this `Number`, or `None` if no approximation is available.
-    */
-  def approximation: Option[Real] =
-    convert(Real.zero)
-//
-//  /**
-//    * Performs a multiplication operation on the current `Number` instance by repeated addition.
-//    *
-//    * This method calculates the result of multiplying the current `Number` instance by an integer `n`
-//    * by repeatedly adding the instance to itself `n - 1` times.
-//    *
-//    * This is really scaleInt(n).
-//    *
-//    * @param n the multiplier, an integer value by which the current `Number` instance is to be multiplied
-//    * @return a new `Number` instance representing the result of the multiplication
-//    */
-//  def *(n: Int): Option[Number] =
-//    Range(1, n).foldLeft[Option[Number]](Some(this)) { // CONSIDER putting "Range(1,n)" back to "1 until n".
-//      case (Some(a), _) =>
-//        (this plus a).asInstanceOf[Option[Number]] // TODO check that this is OK and if not, fix it.
-//      case (None, _) => None
-//    }
-//
-//  /**
-//    * Scales the current instance of type `T` using the given `Number` multiplier.
-//    *
-//    * This method performs a scaling operation by multiplying the current instance
-//    * with the provided `Number`. The result of the scaling operation is returned
-//    * as an `Option`, allowing for cases where the operation might not be valid or
-//    * possible.
-//    *
-//    * @param that the `Number` multiplier used to scale the current instance
-//    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
-//    */
-//  def doScale(that: Number): Option[Number] = scale(that)
-
-  /**
-    * Scale this Real by the given scalar, provided that it is exact.
-    * This method is used to scale a Real by a scalar that is known to be exact.
-    * If you want to simply multiply this Real by a scalar, use the * operator.
-    *
-    * @param scalar the exact scalar to scale by
-    * @return a scaled Real with the same relative error as this.
-    */
-  def scale(scalar: Scalar): Option[Number]
 
   /**
     * A scale factor applied to this `Number`.
@@ -216,6 +176,60 @@ object Number {
       case _ =>
         throw NumberException("Number.plus: logic error: cannot add " + x + " and " + y)
     }
+  }
 
+  /**
+    * An implicit object defining the multiplicative group structure for `Number` instances.
+    *
+    * The `NumberIsMultiplicativeGroup` provides implementations for the methods required 
+    * by the `MultiplicativeGroup` type class, enabling operations such as multiplication 
+    * (`times`) and division (`div`) as well as access to the multiplicative identity (`one`).
+    * It supports a variety of `Number` subtypes, including `Real`, `RationalNumber`, and `WholeNumber`, 
+    * and handles necessary conversions or raises exceptions when operations cannot be performed.
+    */
+  implicit object NumberIsMultiplicativeGroup extends MultiplicativeGroup[Number] {
+    /**
+      * Retrieves the numerical value that represents one.
+      *
+      * @return the predefined constant representing the number one
+      */
+    def one: Number = Number.one
+
+    /**
+      * Multiplies two `Number` instances and returns the resulting `Number`.
+      *
+      * This method performs multiplication between two instances of `Number`. The exact operation depends on the type of the
+      * input numbers, supporting various types such as `Real`, `RationalNumber`, and `WholeNumber`. If the types mismatch
+      * or a conversion between types is required, the appropriate logic is applied to carry out the multiplication. If the
+      * numbers cannot be multiplied due to an unsupported type or incorrect conversion, an exception is thrown.
+      *
+      * @param x the first `Number` to be multiplied
+      * @param y the second `Number` to be multiplied
+      * @return the result of multiplying `x` and `y` as a `Number`
+      * @throws NumberException if the multiplication is not possible for the given inputs
+      */
+    @tailrec
+    def times(x: Number, y: Number): Number = (x, y) match {
+      case (a: Real, b: Real) =>
+        a * b
+      case (a, b: Real) =>
+        times(y, x)
+      case (a: Real, b) =>
+        FP.recover(b.convert(Real.zero).map(_ * a))(NumberException("Number.plus: logic error: cannot convert " + b + " to a Real"))
+      case (a: RationalNumber, b: RationalNumber) =>
+        a * b
+      case (a, b: RationalNumber) =>
+        times(y, x)
+      case (a: RationalNumber, b) =>
+        FP.recover(b.convert(RationalNumber.zero).map(a * _))(NumberException("Number.plus: logic error: cannot convert " + b + " to a RationalNumber"))
+      case (a: WholeNumber, b: WholeNumber) =>
+        a * b
+      case (a, b: WholeNumber) =>
+        times(y, x)
+      case _ =>
+        throw NumberException("Number.times: logic error: cannot multiply " + x + " and " + y)
+    }
+
+    def div(x: Number, y: Number): Number = times(x, multiplicative.inverse(y))
   }
 }

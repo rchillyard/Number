@@ -3,10 +3,10 @@ package com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.Number.{half, inverse, negate, one, pi, piBy2, root3, zeroR, √}
+import com.phasmidsoftware.number.core.expression.Expression
+import com.phasmidsoftware.number.core.expression.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.expression.Expression
-import com.phasmidsoftware.number.expression.Expression.convertFieldToExpression
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

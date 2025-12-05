@@ -39,7 +39,7 @@ class ScalarSpec extends AnyFlatSpec with should.Matchers {
   it should "perform addition using doPlus" in {
     val n1 = WholeNumber(3)
     val n2 = WholeNumber(4)
-    n1.+(n2) shouldBe (WholeNumber(7))
+    n1.+(n2) shouldBe WholeNumber(7)
   }
 
   it should "compare for equality correctly" in {

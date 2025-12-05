@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.misc
 import com.phasmidsoftware.number.core.inner.Rational
 
 /**
-  * LazyNumber is an abstract (base) class for Valuable objects.
+  * LazyNumber is an abstract (base) class for HasValue objects.
   * The value of a LazyNumber is determined by applying the function f to the nominal value x.
   * A LazyNumber is lazy in two senses:
   * <ol>

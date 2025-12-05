@@ -2,9 +2,10 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeGroup, Field}
 import cats.Show
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 
 /**
@@ -18,10 +19,15 @@ import scala.reflect.ClassTag
   * The class is designed to work seamlessly with precise and exact number representations,
   * ensuring that operations maintain a high level of numeric fidelity.
   *
+  * CONSIDER adding a percentage flag to Real.
+  *
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
   * @param r The `Rational` value represented by this `RationalNumber`.
+  * @param percentage whether this is a percentage value or not.
+  *                   Similarly to the `degrees` attribute of `Angle`,
+  *                   this is a flag that is primarily cosmetic.
   */
-case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with CanScale[RationalNumber, WholeNumber] with Number {
+case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Number {
   /**
     * Subtracts the given rational number from this one.
     *
@@ -85,7 +91,7 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     *         - `None` if the exact comparison is not possible
     */
   def compareExact(that: Scalar): Option[Int] = that match {
-    case RationalNumber(o) =>
+    case RationalNumber(o, _) =>
       Some(r.compareTo(o))
     case WholeNumber(x) =>
       Some(r.compare(Rational(x.toBigInt)))
@@ -120,21 +126,40 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
   def toRational: Rational = r
 
   /**
-    * Scales this `RationalNumber` by a specified `Scalar`.
-    * If the provided scalar is of type `Z`, it attempts to perform the scaling operation
-    * using the underlying `Rational` values.
+    * Computes the result of raising an instance of type `T` to the power 
+    * specified by the given `RationalNumber`.
     *
-    * @param that the `Scalar` to scale this `RationalNumber` by. It must be of type `Z` to proceed
-    *             with the scaling operation.
-    * @return an `Option[RationalNumber]` containing the scaled `RationalNumber` if the operation
-    *         is possible, or `None` if `that` is not of type `Z` or the scaling operation fails.
+    * The method returns an `Option[T]` to represent the possibility of invalid
+    * operations or unsupported inputs where the computation cannot be performed.
+    *
+    * @param that the `RationalNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid, 
+    *         or `None` if the operation could not be performed
     */
-  def scale(that: Scalar): Option[RationalNumber] = that match {
-    case rn: Z =>
-      rn.maybeQ map (q => RationalNumber(r * q.toRational))
-    case _ =>
-      None
-  }
+  infix def pow(that: RationalNumber): Option[RationalNumber] = 
+    r.power(that.r).map(RationalNumber(_)).toOption
+
+  /**
+    * Computes the result of raising an instance of type `T` to the power 
+    * specified by the given `WholeNumber`.
+    *
+    * This method performs the power operation and returns the result wrapped 
+    * in an `Option[T]`. If the operation is invalid or cannot be performed, 
+    * `None` is returned.
+    *
+    * @param that the `WholeNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid, 
+    *         or `None` if the operation could not be performed
+    */
+  infix def pow(that: WholeNumber): Option[RationalNumber] = that.convert(RationalNumber.zero) flatMap pow
+
+  /**
+    * Scales the current scalar instance by the specified rational factor.
+    *
+    * @param r the `Rational` factor by which to scale the scalar
+    * @return a new `Scalar` instance representing the scaled value
+    */
+  def scale(r: Rational): Scalar = RationalNumber(r * this.r)
 
   /**
     * Scales the current instance of type `T` by the specified `Double` value.
@@ -161,27 +186,13 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     r.power(p).map(RationalNumber(_)).toOption
 
   /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
-    *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
-    *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
-    */
-  def doScale(that: WholeNumber): Option[RationalNumber] =
-    doScaleInt(that.toInt)
-
-  /**
     * Scales the current instance of `RationalNumber` by the given `Int` value.
     *
-    * @param that the integer value to scale the `RationalNumber` instance by
+    * @param factor the integer value to scale the `RationalNumber` instance by
     * @return an `Option[RationalNumber]` representing the scaled result; returns `None` if the operation cannot be performed
     */
-  def doScaleInt(that: Int): Option[RationalNumber] =
-    Some(RationalNumber(r * that))
+  def *(factor: Rational): RationalNumber =
+    RationalNumber(r * factor)
 
   /**
     * Computes the sign of the current `RationalNumber`.
@@ -225,7 +236,11 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     *
     * @return the string representation of this `RationalNumber`.
     */
-  def render: String = r.render
+  def render: String =
+    if (percentage)
+      s"${(r * 100).render}%" // CHECK that this never gives a ratio.
+    else
+      r.render
 
   /**
     * Retrieves an optional Rational value.
@@ -251,13 +266,6 @@ case class RationalNumber(r: Rational) extends Q with CanAddAndSubtract[Rational
     */
   def unary_- : RationalNumber =
     rationalNumberIsField.negate(this)
-
-  /**
-    * Retrieves an optional factor representation of the current `RationalNumber`.
-    *
-    * @return an `Option[Factor]` containing the factor if available, or `None` if the factor cannot be determined.
-    */
-  def maybeFactor: Option[Factor] = Some(PureNumber)
 }
 
 /**
@@ -293,19 +301,53 @@ object RationalNumber {
   def apply(x: Long): RationalNumber = RationalNumber(Rational(x))
 
   /**
+    * Converts a given `Rational` value into a `RationalNumber` representing its percentage equivalent.
+    *
+    * @param r the `Rational` value expressed as a percentage, e.g., 50 for 50%.
+    * @return a `RationalNumber` instance representing the percentage value of the given `Rational`
+    */
+  def percentage(r: Rational): RationalNumber =
+    RationalNumber(r / 100, percentage = true)
+
+  /**
     * Parses a string representation of a rational number and converts it into an `Option[RationalNumber]`.
     *
     * @param w the string representation of the rational number to be parsed
     * @return an `Option[RationalNumber]` containing the parsed rational number if successful, or `None` if parsing fails
     */
-  def parse(w: String): Option[RationalNumber] = (Rational.parse(w)).map(RationalNumber(_)).toOption
+  def parse(w: String): Option[RationalNumber] = {
+    val regex = """([\d/]+)(%)?""".r
+    w match {
+      case regex(num, null) =>
+        Some(RationalNumber(Rational(num)))
+      case regex(num, s) =>
+        Some(percentage(Rational(num)))
+      case _ =>
+        None
+    }
+  }
 
   /**
     * Provides an implicit `Show` instance for the `RationalNumber` class.
     * This instance defines how a `RationalNumber` is transformed into a `String`
     * representation by using its `render` method.
     */
-  implicit val showRationalNumber: Show[RationalNumber] = Show.show(_.render)
+  implicit val showRationalNumber: Show[RationalNumber] =
+    Show.show(_.render)
+
+  /**
+    * Provides an implicit instance of the `Eq` typeclass for the `RationalNumber` class.
+    * NOTE that we do not consider the `percentage` flag when comparing two `RationalNumber`s for equality.
+    *
+    * This instance allows for equality comparison between two `RationalNumber` instances,
+    * based on the equality of their underlying `Rational` representations (`r` field of `RationalNumber`).
+    * It ensures that two `RationalNumber` instances with the same rational value are considered equal.
+    */
+  implicit val rationalNumberEq: Eq[RationalNumber] = Eq.instance {
+    (a1, a2) =>
+      // NOTE that we should be using the === operator here, but it hasn't been defined yet for for Rational.
+      a1.r == a2.r
+  }
 
   /**
     * Represents the rational number zero.
@@ -325,13 +367,23 @@ object RationalNumber {
     * This is an instance of the `RationalNumber` class initialized
     * with the negative one value from the `Rational` type.
     */
-  val minusOne: RationalNumber = RationalNumber(Rational.negOne)
+  val minusOne: RationalNumber =
+    RationalNumber(Rational.negOne)
 
   /**
     * Represents a predefined constant value of one-half as a RationalNumber.
     * This is a convenience representation of the fraction 1/2 in the system of rational numbers.
     */
-  val half: RationalNumber = RationalNumber(Rational.half)
+  val half: RationalNumber =
+    RationalNumber(Rational.half)
+
+  /**
+    * Represents a rational number with an infinite value.
+    *
+    * This value is constructed from the infinity representation of the `Rational` type.
+    */
+  val infinity: RationalNumber =
+    RationalNumber(Rational.infinity)
 
   /**
     * Provides an implicit implementation of the `Field` type class for the `RationalNumber` type.

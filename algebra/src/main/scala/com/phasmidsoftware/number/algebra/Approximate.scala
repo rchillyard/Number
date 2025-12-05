@@ -14,15 +14,19 @@ import com.phasmidsoftware.number.core.NumberException
 trait Approximate {
 
   /**
-    * Provides an approximation of this number, if applicable.
+    * Attempts to compute an approximate representation of the current value.
     *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
+    * This method provides an optional approximation of the value represented by 
+    * the implementing class. The approximation may account for uncertainties or 
+    * computational limitations. By default, this method does not force computation 
+    * of the approximation unless explicitly requested.
     *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of this `Number`, or `None` if no approximation is available.
+    * @param force a boolean flag indicating whether to force computation of 
+    *              the approximation. If `true`, the method will attempt to 
+    *              generate an approximation even if such computation 
+    *              is resource-intensive or not strictly necessary.
+    * @return an `Option` containing the approximate value as a `Real` if available, 
+    *         or `None` if no approximation can be computed.
     */
   def approximation(force: Boolean = false): Option[Real]
 

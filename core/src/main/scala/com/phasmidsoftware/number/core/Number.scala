@@ -10,7 +10,7 @@ import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.core.inner._
 // TODO eliminate references to expression package
-import com.phasmidsoftware.number.expression.{Expression, ExpressionException}
+import com.phasmidsoftware.number.core.expression.{Expression, ExpressionException}
 import com.phasmidsoftware.number.misc.FP.{optional, toTry}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.parse.RationalParser.parseComponents
@@ -843,7 +843,7 @@ object Number {
     def ~(y: Int): Number =
       if (y >= 10 && y < 100) {
         val p = y * math.pow(10.0, -BigDecimal(x).scale)
-        Number(x, PureNumber, Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
+        Number(x, PureNumber, Some(AbsoluteFuzz(implicitly[HasValue[Double]].fromDouble(p), Gaussian)))
       }
       else
         throw NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
@@ -975,7 +975,7 @@ object Number {
         e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(NumberException(s"Logic error: " + exp)))
         y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
         p = y * math.pow(10, e - f.length)
-      } yield x.make(Some(AbsoluteFuzz(implicitly[Valuable[Double]].fromDouble(p), Gaussian)))
+      } yield x.make(Some(AbsoluteFuzz(implicitly[HasValue[Double]].fromDouble(p), Gaussian)))
   }
 
   /**
@@ -1073,11 +1073,13 @@ object Number {
     }
 
   /**
-    * Method to construct a Number from a String.
+    * Method to construct a `Number` from a `String`.
     * This is by far the best way of creating the number that you really want.
     *
-    * @param x the String representation of the value.
-    * @return a Number based on x.
+    * CONSIDER why does this not invoke `apply(String,Factor)` in turn?
+    *
+    * @param x the `String` representation of the value.
+    * @return a Number based on `x`.
     */
   def apply(x: String): Number =
     parse(x) match {

@@ -1,12 +1,12 @@
 package com.phasmidsoftware.number.algebra
 
-import algebra.CommutativeGroup
 import algebra.ring.AdditiveCommutativeGroup
+import com.phasmidsoftware.number.core.inner.Value
 import com.phasmidsoftware.number.core.{Box, RelativeFuzz}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class AngleSpec extends AnyFlatSpec with Matchers {
+class AngleSpec extends AnyFlatSpec with Matchers with StructuralEquality {
 
   private val zero: Angle = Angle.zero
   private val pi: Angle = Angle.pi
@@ -61,6 +61,42 @@ class AngleSpec extends AnyFlatSpec with Matchers {
     pi + -pi shouldBe zero
     piBy2 + piBy2 shouldBe pi
     piBy2 + -piBy2 shouldBe zero
+  }
+
+  behavior of "Angle (in degrees)"
+
+  private val degrees0 = Angle.degrees(Value.fromInt(0))
+  private val degrees90 = Angle.degrees(Value.fromInt(90))
+  private val degrees180 = Angle.degrees(Value.fromInt(180))
+
+  it should "test equivalence" in {
+    degrees180 should ===(pi)
+    degrees180 should ===(Angle.𝛑)
+  }
+  it should "test creation" in {
+    Angle.degrees(Value.fromInt(0)) shouldBe Angle(Number.zero, true)
+    Angle.degrees(Value.fromInt(180)) shouldBe Angle(Number.one, true)
+  }
+  it should "test render" in {
+    degrees0.render shouldBe "0°"
+    degrees180.render shouldBe "180°"
+  }
+  it should "maybeDouble" in {
+    degrees180.maybeDouble shouldBe Some(3.141592653589793)
+  }
+  it should "isZero" in {
+    pi.isZero shouldBe false
+    zero.isZero shouldBe true
+  }
+  it should "test compareExact" in {
+    val xo: Option[Scalar] = degrees90.doPlus(degrees90)
+    xo flatMap (x => pi.compareExact(x)) shouldBe Some(0)
+  }
+  it should "test arithmetic operations" in {
+    degrees180 + pi shouldBe zero
+    degrees180 + -pi shouldBe zero
+    degrees90 + degrees90 shouldBe pi
+    degrees90 + -degrees90 shouldBe zero
   }
 
   behavior of "AdditiveCommutativeGroup[Angle]"

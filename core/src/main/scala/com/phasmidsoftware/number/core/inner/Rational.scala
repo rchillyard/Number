@@ -442,7 +442,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     else
       (n, d, x, epsilon) match {
         case (_, `bigOne`, 2, Some(e)) =>
-          Rational.doSpecialsquareRoot(n, e)
+          Rational.doSpecialSquareRoot(n, e)
         case _ =>
           for (a <- rootOfBigInt(n, x); b <- rootOfBigInt(d, x)) yield Rational(a, b)
       }
@@ -463,6 +463,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * Renders the current object into its string representation.
     * The method conditionally determines the output based on the
     * result of an internal conditional computation.
+    * TODO improve this doc! For example, how can we ensure that the output will be decimal, not a ratio?
     *
     * @return A string representation of the object. If a certain
     *         condition evaluates to true, a specific value is
@@ -634,7 +635,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *                if factor is None then, the result will depend solely on whether this is exact.
     * @return true if this NumberLike object is exact in the context of factor, else false.
     */
-  def isExactInContext(context: Context): Boolean = true
+  def isExactInContext(context: CoreContext): Boolean = true
 
   /**
     * Method to determine if this Field is actually a real Number (i.e. not complex).
@@ -896,6 +897,24 @@ object Rational {
     * The `invert` method on the `two` object is used to calculate this value.
     */
   val half: Rational = two.invert
+  /**
+    * Represents the rational number 10 as an instance of the `Rational` type.
+    * Utilizes the predefined value `bigTen` to create the `Rational` instance.
+    */
+  val ten: Rational = Rational(bigTen)
+  /**
+    * Represents the rational number two as a constant of type Rational.
+    * It is constructed using `Rational(bigTwo)`, where `bigTwo` presumably
+    * signifies the numerical value 2 in a predefined or imported context.
+    */
+  lazy val two: Rational = Rational(bigTwo)
+  /**
+    * Represents a Not-a-Number (NaN) value as a rational number.
+    * It is created by initializing a `Rational` object with both numerator
+    * and denominator as zero. This is a special case and does not represent
+    * a valid rational number or a real number.
+    */
+  val NaN = new Rational(0, 0)
 
   /**
     * Implicit converter from Double to Rational.
@@ -915,25 +934,6 @@ object Rational {
     */
   implicit def convertLong(x: Long): Rational =
     Rational(x)
-
-  /**
-    * Represents the rational number 10 as an instance of the `Rational` type.
-    * Utilizes the predefined value `bigTen` to create the `Rational` instance.
-    */
-  val ten: Rational = Rational(bigTen)
-  /**
-    * Represents the rational number two as a constant of type Rational.
-    * It is constructed using `Rational(bigTwo)`, where `bigTwo` presumably
-    * signifies the numerical value 2 in a predefined or imported context.
-    */
-  lazy val two: Rational = Rational(bigTwo)
-  /**
-    * Represents a Not-a-Number (NaN) value as a rational number.
-    * It is created by initializing a `Rational` object with both numerator
-    * and denominator as zero. This is a special case and does not represent
-    * a valid rational number or a real number.
-    */
-  val NaN = new Rational(0, 0)
 
   /**
     * A constant value representing zero as a BigInt.
@@ -1079,13 +1079,28 @@ object Rational {
     * The `invert` method on the `three` object is used to calculate this value.
     */
   val third: Rational = three.invert
-
   /**
     * A constant value representing the rational number 4.
     * This is created using the Rational class.
     */
-  val four: Rational = Rational(4)
-
+  val four: Rational = Rational(bigFour)
+  /**
+    * Represents a rational number equivalent to one-fourth by
+    * inverting the value of `four`.
+    *
+    * This val performs the inversion of a predefined rational number `four`,
+    * resulting in `1/4` or a quarter of a unit.
+    */
+  val quarter: Rational = four.invert
+  /**
+    * Represents a Rational number with a value equivalent to five.
+    * The value is constructed using an underlying representation of `bigFive`.
+    */
+  val five: Rational = Rational(bigFive)
+  /**
+    * Represents the reciprocal (inverted form) of the `five` Rational number.
+    */
+  val fifth: Rational = five.invert
   /**
     * Represents a rational number instance initialized with the value 9.
     */
@@ -1558,7 +1573,7 @@ object Rational {
     * @return an `Option[Rational]` containing the rational approximation of
     *         the square root if supported, or `None` if the case is not implemented
     */
-  private def doSpecialsquareRoot(n: BigInt, epsilon: Double): Option[Rational] = n match {
+  private def doSpecialSquareRoot(n: BigInt, epsilon: Double): Option[Rational] = n match {
     case `bigTwo` =>
       ContinuedFraction.root2.toRational(epsilon)
     case `bigThree` =>

@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.misc
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants
 import com.phasmidsoftware.number.core.Number.piBy2
-import com.phasmidsoftware.number.expression.Expression
+import com.phasmidsoftware.number.core.expression.Expression
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Failure, Success}
