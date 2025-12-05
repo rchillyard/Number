@@ -25,7 +25,7 @@ Number is organized into multiple modules:
 
 * **`algebra`** - Algebraic structures based on Cats typeclasses
 * **`parse`** - Parsing facilities for (lazy) expressions and (eager) algebraic structures
-* **`expressions`** - Lazy expression evaluation (being migrated to algebra)
+* **`expression`** - Lazy expression evaluation (being migrated to algebra)
 * **`core`** - Legacy numeric types (Number, Field, Rational, Complex, Factor, Fuzz, ****etc.)
 * **`top`** - Top level example code
 
@@ -381,19 +381,16 @@ Number supports flexible parsing of numeric values from strings, with automatic 
 
 ### Algebra Module Parsing
 
-The algebra module does not currently have its own dedicated parser.
-The only parse method defined in the algebra module is for _RationalNumber_,
-whereby a String representing a rational number (possibly terminated with a "%" symbol)
-is passed to the _RationalNumber_ constructor.
-
+The algebra module provides limited parsing currently:
 ```scala
 import com.phasmidsoftware.number.algebra._
 
-val maybeTheAnswer: Option[Number] = RationalNumber.parse("42")
-val maybeHalf: Option[Number] = RationalNumber.parse("1/2")
-val maybeSevenPercentSolution: Option[Number] = RationalNumber.parse("7%")
+val maybeTheAnswer: Option[RationalNumber] = RationalNumber.parse("42")
+val maybeHalf: Option[RationalNumber] = RationalNumber.parse("1/2")
+val maybeSevenPercent: Option[RationalNumber] = RationalNumber.parse("7%")
 ```
-Other types of parsing available to the algebra module would invoke one of several parsers in the `core` package.
+
+For more complex expression parsing with LaTeX-style syntax, see the **Expression Module** section below, which provides the `math`, `lazymath`, `puremath`, and `mathOpt` interpolators.
 
 ### Core Module Parsing
 
@@ -1208,11 +1205,8 @@ There are four domains of values, each identified by a domain or factor (see _Fa
 These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
 
 #### Current Version
-The current version is 1.2.10. Here's a summary of what's new since 1.2.5:
-* A major restructuring where we effectively replaced _ReducedQuadraticRoot_ with _Root_ but where _Root_ is an _Expression_. In order for this to work, we renamed the old _Root_ (a subtype of _Factor_) as _NthRoot_.
-* Another subtype of Expression was introduced: _Transcendental_. These are subtypes of AtomicExpression but rather than have a literal value, they define a value and an _ExpressionMonoFunction_ to be applied to that value.
-* The _Log_ function is now dyadic and, in a parallel change, the old (natural) _log_ method has been renamed _ln_, allowing for new dyadic _log_ method.
-* Additional tests have been introduced, including tests for _Root_ and _Transcendental_, while many other tests have been fixed. The only ignored tests are those that CircleCI objects to.
+The current version is 1.3.2. Here's a summary of what's new since 1.2.11:
+* Now a five-module Scala project; The entire `algebra` and `top` modules are new.
 
 #### Operators
 The most important operators are those defined in _Expression.ExpressionOps_. 
@@ -1256,9 +1250,34 @@ Here are the current API specifications:
 
 ## Top Module
 
-This module is the top-level module for the library.
-This is where you can find high-level specifications that correspond to user code.
+The `top` module contains high-level example code and practical demonstrations of the Number library.
+Perhaps most importantly, it houses the worksheets (listed below) and also Specification (unit tests) for high-level constructs.
 
+### Contents
+
+This module includes:
+- **Worksheets** - Interactive Scala worksheets demonstrating library features:
+    - `Introduction.sc` - Introduction to the library.
+    - `ExpressionWorksheet.sc` - Working with expressions
+    - `NumberWorksheet.sc` - Basic number operations and type conversions
+    - `RationalWorksheet.sc` - Basics of rational numbers
+    - `Foucault1.sc` - Foucault's 
+    - `Foucault1.sc` and `Foucault2.sc` - Physics calculations (Foucault pendulum) [I'm not sure why we have two]
+    - `Newton.sc` - Numerical approximation methods
+    - `RealWorksheet.sc` - Working with fuzzy/uncertain numbers
+    - `ContinuedFractions.sc` - Continued fraction demonstrations
+    - `Complex.sc` - Complex number examples
+    - `Algbraic.sc` - Algebraic number examples (from the `core` package)
+    - and others (to be added here)
+- **Examples** - Examples of how to use the library:
+    - `Foucault.scala` - Foucault pendulum example
+    - `Newton.scala` - Newton-Raphson approximation method example
+    - `Flog template.sc` - Template for how to use functional logging
+    - 
+
+- **Example Code** - Practical usage patterns showing how the modules work together
+
+See the worksheets for hands-on examples of the library in action.
 ## Versions
 * Version 1.3.2: Complete the migration to 5-module project.
 * Version 1.3.1: 
@@ -1319,12 +1338,12 @@ This is where you can find high-level specifications that correspond to user cod
 The Number project is undergoing a significant restructuring:
 
 **Completed (v1.3.x)**:
-- ✅ Multi-module architecture (`algebra`, `parse`, `expressions`, `core`, `top`)
+- ✅ Multi-module architecture (`algebra`, `parse`, `expression`, `core`, `top`)
 - ✅ Algebra module with Cats typeclass integration
 - ✅ Structure hierarchy for algebraic types
 
 **In Progress**:
-- 🔄 Migrating Expression types to the expressions module
+- 🔄 Migrating Expression types to the `expression` module
 - 🔄 Replacing core.Number and core.Field with algebra types
 
 **Planned**:
