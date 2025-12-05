@@ -561,7 +561,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "equal BigDecimal(10)" in {
     Rational.ten.toBigDecimal shouldBe Some(BigDecimal(10))
   }
-  it should "equal a million when raised to 6th powe (∧)r" in {
+  it should "equal a million (ten raised to 6th power)" in {
     (Rational.ten ∧ 6) shouldBe Rational(1000000)
   }
 

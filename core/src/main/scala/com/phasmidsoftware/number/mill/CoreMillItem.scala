@@ -46,11 +46,6 @@ object Dyadic {
 trait Monadic extends CoreMillItem
 
 /**
-  * Sub-trait of Item to define an Anadic operator.
-  */
-trait Anadic extends CoreMillItem
-
-/**
   * Multiply operator (sub-type of Dyadic).
   */
 case object Multiply extends Dyadic(3)

@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.cats
 
+import algebra.ring.{CommutativeRing, TruncatedDivision}
 import com.phasmidsoftware.number.core.inner.Rational
-import algebra.ring.{TruncatedDivision, CommutativeRing}
 
 
 trait RationalAlgebraicInstances {
@@ -18,9 +18,7 @@ trait RationalAlgebraicInstances {
         override def fromInt(n: Int): Rational = Rational(n)
 
         // Provide the required algebra.Order instance via existing compare
-        def order: algebra.Order[Rational] = new algebra.Order[Rational] {
-            def compare(x: Rational, y: Rational): Int = x.compare(y)
-        }
+        def order: algebra.Order[Rational] = (x: Rational, y: Rational) => x.compare(y)
 
         // Truncated division: quotient rounded towards zero
         def tquot(x: Rational, y: Rational): Rational = {

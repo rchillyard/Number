@@ -53,8 +53,8 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val r: p.ParseResult[Number] = p.parseAll(p.number, "0°")
     r.successful shouldBe true
     val x: Number = r.get
-    r.get shouldBe ExactNumber(Right(0), Degree)
-    r.get.render shouldBe "0°"
+    x shouldBe ExactNumber(Right(0), Degree)
+    x.render shouldBe "0°"
   }
 
   behavior of "numberWithFuzziness"

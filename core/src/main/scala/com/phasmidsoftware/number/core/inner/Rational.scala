@@ -627,17 +627,6 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
   }
 
   /**
-    * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
-    *
-    * CONSIDER whether this method should really be defined in NumberLike since it makes no sense here.
-    *
-    * @param context the (optional) context in which we want to evaluate this Expression.
-    *                if factor is None then, the result will depend solely on whether this is exact.
-    * @return true if this NumberLike object is exact in the context of factor, else false.
-    */
-  def isExactInContext(context: CoreContext): Boolean = true
-
-  /**
     * Method to determine if this Field is actually a real Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *

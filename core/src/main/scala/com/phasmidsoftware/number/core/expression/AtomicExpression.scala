@@ -793,6 +793,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     * @return a new `Transcendental` instance that encapsulates the applied function and updated expression.
     */
   def function(f: ExpressionMonoFunction): Transcendental =
+    // XXX duplicate code
     new AbstractTranscendental(s"${f.name}($name)", UniFunction(expression, f).simplify) {}
 
   /**

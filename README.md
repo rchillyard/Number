@@ -345,12 +345,12 @@ val natLog = NatLog(Number(2))  // represents ln(2)
 
 The algebra module integrates with Cats to provide standard algebraic structures:
 
-| Type | Cats Typeclass(es) | Meaning |
-|------|-------------------|---------|
-| `RationalNumber` | `Field[RationalNumber]` | All operations with inverses (strongest) |
-| `Real` | `Ring[Real]` with `Ordering[Real]` | Addition group + multiplication monoid |
-| `WholeNumber` | `CommutativeRing[WholeNumber]` | No additive inverses (can't subtract) |
-| `Angle` | `AdditiveCommutativeGroup[Angle]` | Circle group structure |
+| Type             | Cats Typeclass(es)                | Meaning                                  |
+|------------------|-----------------------------------|------------------------------------------|
+| `RationalNumber` | `Field[RationalNumber]`           | All operations with inverses (strongest) |
+| `Real`           | `Ring[Real]`                      | Addition group + multiplication monoid   |
+| `WholeNumber`    | `CommutativeRing[WholeNumber]`    | No additive inverses (can't subtract)    |
+| `Angle`          | `AdditiveCommutativeGroup[Angle]` | Circle group structure                   |
 
 #### Why These Typeclasses?
 
@@ -727,7 +727,7 @@ $\pi$, _e_, _one_, _zero_, _i_, etc.
 The _Constants_ object also contains a number of fundamental (physical and mathematical) constant definitions, in addition to those defined by _Number_.
 For example, _c_ (speed of light), _alpha_ (fine structure constant), etc.
 
-### NumberLike (obselete)
+### NumberLike (obsolete)
 _NumberLike_ is a trait that defines behavior which is of the most general number-like nature.
 The specific methods defined are:
 
@@ -763,7 +763,7 @@ def asComplex: Complex
 def asReal: Option[Real]
 ```
 
-### NumberSet (obselete)
+### NumberSet (obsolete)
 _NumberSet_ is a trait that recognizes the following sets:
 * N: $\mathbb{N}$ (the counting numbers);
 * Z: $\mathbb{Z}$ (the integers);

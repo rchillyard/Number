@@ -203,14 +203,14 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
       square
     case 3 =>
       // CONSIDER merging cases 3 and 4
-      val (p, q) = (equation.p, equation.q)
+      val (p, q) = (equation.p, equation.q) // XXX duplicate code
       val pq: Rational = p * q
       val factor = p ∧ 2 - q
       val addend = pq
       val solution = scale(factor)
       copy(equation = solution.equation.asInstanceOf[algebraic.Quadratic].shiftOrigin(addend))
     case 4 =>
-      val (p, q) = (equation.p, equation.q)
+      val (p, q) = (equation.p, equation.q) // XXX duplicate code
       val pq: Rational = p * q
       val pSquaredMinusQ = p ∧ 2 - q
       val factor = -p * pSquaredMinusQ + pq

@@ -309,7 +309,7 @@ sealed trait Scalar extends Factor {
     */
   def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] =
     (this, f) match {
-      case (a: PureNumber.type, b: PureNumber.type) =>
+      case (_: PureNumber.type, _: PureNumber.type) =>
         for {
           v <- Factor.composeDyadic(x, y)(DyadicOperationPlus)
         } yield (v, this, None)

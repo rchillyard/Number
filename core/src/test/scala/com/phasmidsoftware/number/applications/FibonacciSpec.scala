@@ -58,7 +58,6 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val psi2: Expression = psi ∧ 2
     println(s"psi2 = ${psi2.render}")
     val top: Expression = phi2 - psi2
-    val topM = top.materialize
     val bottom = phi - psi
     bottom shouldBe BiFunction(phi, -psi, Sum)
     val materialized = bottom.materialize

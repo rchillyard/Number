@@ -13,7 +13,7 @@ val flogVersion = "1.0.8"
 
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-  "ch.qos.logback" % "logback-classic" % "1.5.20" % "runtime"
+  "ch.qos.logback" % "logback-classic" % "1.5.21" % "runtime"
 )
 
 lazy val root = (project in file("."))
@@ -39,7 +39,7 @@ lazy val core = (project in file("core"))
         "org.typelevel" %% "cats-laws" % catsVersion % "test",
         "org.typelevel" %% "algebra-laws" % catsVersion % "test",
         "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-        "ch.qos.logback" % "logback-classic" % "1.5.20" % "runtime"
+        "ch.qos.logback" % "logback-classic" % "1.5.21" % "runtime"
       )
     )
 
