@@ -1261,19 +1261,17 @@ This module includes:
     - `ExpressionWorksheet.sc` - Working with expressions
     - `NumberWorksheet.sc` - Basic number operations and type conversions
     - `RationalWorksheet.sc` - Basics of rational numbers
-    - `Foucault1.sc` - Foucault's 
     - `Foucault1.sc` and `Foucault2.sc` - Physics calculations (Foucault pendulum) [I'm not sure why we have two]
     - `Newton.sc` - Numerical approximation methods
     - `RealWorksheet.sc` - Working with fuzzy/uncertain numbers
     - `ContinuedFractions.sc` - Continued fraction demonstrations
     - `Complex.sc` - Complex number examples
-    - `Algbraic.sc` - Algebraic number examples (from the `core` package)
-    - and others (to be added here)
+    - `Algebraic.sc` - Algebraic number examples (from the `core` package)
+    - and others (to be added here).
 - **Examples** - Examples of how to use the library:
     - `Foucault.scala` - Foucault pendulum example
     - `Newton.scala` - Newton-Raphson approximation method example
     - `Flog template.sc` - Template for how to use functional logging
-    - 
 
 - **Example Code** - Practical usage patterns showing how the modules work together
 
