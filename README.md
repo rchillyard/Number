@@ -64,8 +64,9 @@ half shouldBe RationalNumber(x)
 
 #### Sources
 Wikipedia has been my constant reference for basic mathematical relationships.
+I'm also indebted to Claude (by Anthropic) for his excellent advice regarding the restructuring in versions 1.3.2 and beyond.
 
-However, much of the specific ideas and theory behind this project comes from the following book:
+However, many of the specific ideas and much of the theory behind this project derives from the following book:
 
 - Abramowitz and Stegun, (1970). *Handbook of Mathematical Functions with Formulas, Graphs and Mathematical Tables, 9th printing*. Dover Publications.
 
@@ -1256,6 +1257,7 @@ Perhaps most importantly, it houses the worksheets (listed below) and also Speci
 ### Contents
 
 This module includes:
+
 - **Worksheets** - Interactive Scala worksheets demonstrating library features:
     - `Introduction.sc` - Introduction to the library.
     - `ExpressionWorksheet.sc` - Working with expressions
@@ -1268,14 +1270,14 @@ This module includes:
     - `Complex.sc` - Complex number examples
     - `Algebraic.sc` - Algebraic number examples (from the `core` package)
     - and others (to be added here).
-- **Examples** - Examples of how to use the library:
+
+- **Examples** - Practical usage patterns showing how the modules work together:
     - `Foucault.scala` - Foucault pendulum example
     - `Newton.scala` - Newton-Raphson approximation method example
     - `Flog template.sc` - Template for how to use functional logging
 
-- **Example Code** - Practical usage patterns showing how the modules work together
-
 See the worksheets for hands-on examples of the library in action.
+
 ## Versions
 * Version 1.3.2: Complete the migration to 5-module project.
 * Version 1.3.1: 
