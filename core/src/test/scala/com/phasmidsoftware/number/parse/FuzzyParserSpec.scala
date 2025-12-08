@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.numerical.Number
 import com.phasmidsoftware.number.misc.{Exact, FuzzyParser, Gaussian}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should

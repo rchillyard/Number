@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Render.renderValue
+import com.phasmidsoftware.number.core.numerical.NumberException
 import com.phasmidsoftware.number.misc.FP._
 import java.lang
 import scala.util._

@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Ring
 import com.phasmidsoftware.number.algebra.Real.realIsRing
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

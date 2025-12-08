@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.mill
 
-import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.core.numerical._
 
 /**
   * Trait to model the behavior of an item that goes into the Mill.

@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.algebra.misc
 
-import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
+import com.phasmidsoftware.number.core.numerical.NumberException
 import java.net.URL
 import scala.Option.when
 import scala.io.Source

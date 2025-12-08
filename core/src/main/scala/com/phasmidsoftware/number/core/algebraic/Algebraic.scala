@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
-import com.phasmidsoftware.number.core.{Complex, Field, Multivariate, Number, NumberException, Numerical, Real}
+import com.phasmidsoftware.number.core.numerical.{Complex, Field, Multivariate, Number, NumberException, Numerical, Real}
 import com.phasmidsoftware.number.misc.FP
 
 /**

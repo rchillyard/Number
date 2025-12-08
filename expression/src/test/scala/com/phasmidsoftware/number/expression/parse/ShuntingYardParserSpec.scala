@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.expression.parse
 
-import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.numerical.Number
 import com.phasmidsoftware.number.expression.mill.{DyadicExpression, Expr, Expression, Item, Mill, Sin, Stack, TerminalExpression}
 import com.phasmidsoftware.number.expression.parse.ShuntingYardParser.InfixToken
 import org.scalactic.Equality

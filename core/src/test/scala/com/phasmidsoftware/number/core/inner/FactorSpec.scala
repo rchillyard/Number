@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.inner.Factor.{sE, sEi}
 import com.phasmidsoftware.number.core.inner.Value.{fromInt, fromRational}
-import com.phasmidsoftware.number.core.{GeneralNumber, Number}
+import com.phasmidsoftware.number.core.numerical.{GeneralNumber, Number}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

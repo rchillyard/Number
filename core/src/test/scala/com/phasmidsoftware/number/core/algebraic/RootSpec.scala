@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
-import com.phasmidsoftware.number.core.Constants
 import com.phasmidsoftware.number.core.expression._
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.numerical.Constants
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

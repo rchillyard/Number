@@ -4,10 +4,10 @@
 
 package com.phasmidsoftware.number.applications
 
-import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.FuzzyNumber.NumberIsFuzzy
-import com.phasmidsoftware.number.core.Number.{createFromDouble, negate}
-import com.phasmidsoftware.number.core.{Number, Real}
+import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
+import com.phasmidsoftware.number.core.numerical.FuzzyNumber.NumberIsFuzzy
+import com.phasmidsoftware.number.core.numerical.Number.{createFromDouble, negate}
+import com.phasmidsoftware.number.core.numerical.{Number, Real}
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
@@ -125,6 +125,6 @@ object Approximation {
         correction = fDashDash doDivide fDash doMultiply h doDivide Number.two doAdd Number.one
       } yield h doDivide correction
     case n =>
-      Failure(com.phasmidsoftware.number.core.NumberException(s"Approximation.iterate: does not implement correction with $n functions"))
+      Failure(com.phasmidsoftware.number.core.numerical.NumberException(s"Approximation.iterate: does not implement correction with $n functions"))
   }
 }

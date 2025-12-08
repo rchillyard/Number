@@ -4,9 +4,9 @@ import algebra.ring.{AdditiveCommutativeGroup, Ring}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber, NumberException}
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber, NumberException}
 import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.parse.NumberParser
 import scala.reflect.ClassTag
@@ -185,7 +185,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     *
     * @return a string representation of the `Real`
     */
-  lazy val render: String = new core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
+  lazy val render: String = new numerical.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
 
   /**
     * Subtracts the specified `Real` value from this `Real` value.
@@ -355,15 +355,15 @@ object Real {
   def apply(value: Double): Real = apply(value, Some(Fuzziness.doublePrecision))
 
   /**
-    * Constructs a `Real` instance using the numerical value and optional fuzziness of a given `core.Real` instance.
+    * Constructs a `Real` instance using the numerical value and optional fuzziness of a given `numericalReal` instance.
     *
-    * This method extracts a double-precision value and an optional fuzziness level from the input `core.Real`,
+    * This method extracts a double-precision value and an optional fuzziness level from the input `numericalReal`,
     * and creates a new `Real` instance initialized with those parameters.
     *
-    * @param x the input `core.Real` instance, providing the value and optional fuzziness for the new `Real`
-    * @return a `Real` instance initialized with the value and fuzziness derived from the input `core.Real`
+    * @param x the input `numericalReal` instance, providing the value and optional fuzziness for the new `Real`
+    * @return a `Real` instance initialized with the value and fuzziness derived from the input `numericalReal`
     */
-  def apply(x: core.Real): Real = apply(x.toDouble, x.asNumber.flatMap(_.fuzz))
+  def apply(x: numerical.Real): Real = apply(x.toDouble, x.asNumber.flatMap(_.fuzz))
 
   /**
     * Parses a string representation of a number and constructs a `Real` instance.
@@ -373,7 +373,7 @@ object Real {
     * @return a `Real` instance constructed from the parsed numeric value of the input string
     */
   def apply(w: String): Real = {
-    val z: Try[core.Real] = NumberParser.parseNumber(w).map(x => core.Real(x))
+    val z: Try[numerical.Real] = NumberParser.parseNumber(w).map(x => numerical.Real(x))
     FP.getOrThrow[Real](z.map(x => Real(x)).toOption, NumberException(s"Real.apply(String): cannot parse $w"))
   }
 
@@ -386,7 +386,7 @@ object Real {
     * @param real the input `Real` used to initialize the new `Real` instance
     * @return a `Real` instance initialized with the value of the input `Real`
     */
-  def convertFromOldReal(real: core.Real): Real =
+  def convertFromOldReal(real: numerical.Real): Real =
     new Real(real.toDouble, real.asNumber.flatMap(_.fuzz))
 
   /**
@@ -555,10 +555,10 @@ object Real {
       * @return an Option containing the parsed Real if successful, or None if parsing fails
       */
     def parseString(str: String): Option[Real] =
-      core.Number.parse(str) match {
-        case Success(core.Number(v, PureNumber)) =>
+      numerical.Number.parse(str) match {
+        case Success(numerical.Number(v, PureNumber)) =>
           fromFuzzyPureValue(v, None)
-        case Success(core.FuzzyNumber(v, PureNumber, fo)) =>
+        case Success(numerical.FuzzyNumber(v, PureNumber, fo)) =>
           fromFuzzyPureValue(v, fo)
         case Failure(NonFatal(ex)) =>
           println(ex.getLocalizedMessage); None

@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.core
 
+import com.phasmidsoftware.number.core.numerical.Fuzziness
 import scala.util.Try
 
 package object inner {

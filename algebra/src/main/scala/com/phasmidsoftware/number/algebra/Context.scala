@@ -5,8 +5,8 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.number.algebra.{Nat, Structure, Valuable}
-import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.numerical.NumberException
 
 /**
   * Represents a trait for specifying in which evaluation-contexts a particular expression may be evaluated.

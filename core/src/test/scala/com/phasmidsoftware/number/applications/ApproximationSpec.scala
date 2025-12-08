@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.applications
 
 import com.phasmidsoftware.number.applications.Approximation.evaluateWithoutDerivative
-import com.phasmidsoftware.number.core.Number.negate
-import com.phasmidsoftware.number.core.{FuzzyEquality, Number}
+import com.phasmidsoftware.number.core.numerical.Number.negate
+import com.phasmidsoftware.number.core.numerical.{FuzzyEquality, Number}
 import org.scalatest.PrivateMethodTester
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

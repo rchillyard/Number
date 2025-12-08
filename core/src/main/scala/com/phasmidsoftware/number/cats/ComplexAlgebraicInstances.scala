@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.cats
 
 import algebra.ring.CommutativeRing
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Number}
+import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, Number}
 
 
 trait ComplexAlgebraicInstances {

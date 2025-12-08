@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.algebra.{Angle, Complex, Eager, Nat, RationalNumber, Structure}
-import com.phasmidsoftware.number.core.Constants
+import com.phasmidsoftware.number.algebra.{Angle, Eager, RationalNumber}
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.Constants
 import com.phasmidsoftware.number.expression.expr.*
 import fastparse.*
 import fastparse.NoWhitespace.*

@@ -4,12 +4,12 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
-import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.Constants.sPhi
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.{maybeRational, negateConditional}
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.{Field, NumberException, Real, algebraic}
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.Constants.sPhi
+import com.phasmidsoftware.number.core.numerical.{Field, NumberException, Real}
 import java.util.Objects
 
 /**
@@ -208,7 +208,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
       val factor = p ∧ 2 - q
       val addend = pq
       val solution = scale(factor)
-      copy(equation = solution.equation.asInstanceOf[algebraic.Quadratic].shiftOrigin(addend))
+      copy(equation = solution.equation.asInstanceOf[Quadratic].shiftOrigin(addend))
     case 4 =>
       val (p, q) = (equation.p, equation.q) // XXX duplicate code
       val pq: Rational = p * q
@@ -514,7 +514,7 @@ object Algebraic_Quadratic {
     * @param offset A `core.Number` representing the offset value of the quadratic equation.
     * @return An `Algebraic_Quadratic` instance derived from the given base and offset values.
     */
-  def apply(base: core.Number, offset: core.Number, negative: Boolean): Algebraic_Quadratic = base.factor match {
+  def apply(base: numerical.Number, offset: numerical.Number, negative: Boolean): Algebraic_Quadratic = base.factor match {
     case PureNumber =>
       apply(QuadraticSolution(base.nominalValue, offset.nominalValue, offset.factor, branch = if (negative) 1 else 0))
     case _ =>

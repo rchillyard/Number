@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
-import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
+import com.phasmidsoftware.number.core.numerical._
 import scala.util.Try
 
 /**

@@ -5,14 +5,14 @@
 package com.phasmidsoftware.number.core.expression
 
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.ComplexPolar.±
-import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.expression.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.core.expression.Root.phi
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
+import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
+import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
+import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
 import com.phasmidsoftware.number.mill.{Expr, Stack, TerminalExpression}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
@@ -42,7 +42,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate i * 2" in {
     val x: Expression = ConstI * 2
-    val result: _root_.scala.Option[_root_.com.phasmidsoftware.number.core.Field] = x.evaluateAsIs
+    val result: Option[Field] = x.evaluateAsIs
     result.isDefined shouldBe true
     val expected: Real = Real.apply(ExactNumber.apply(-4, SquareRoot))
     result.get shouldBe expected

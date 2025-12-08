@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.mill
 
-import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.numerical.Number
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec

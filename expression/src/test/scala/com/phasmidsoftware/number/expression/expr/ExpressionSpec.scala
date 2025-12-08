@@ -4,12 +4,12 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.ComplexPolar.±
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational, SquareRoot}
-import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, ExactNumber, GeneralNumber, NumberException, Real}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, ExactNumber, GeneralNumber, NumberException, Real}
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.RationalNumber.half
@@ -26,7 +26,7 @@ import org.scalatest.matchers.should
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
 
   type OldExpression = com.phasmidsoftware.number.expression.expr.Expression
-  type OldNumber = com.phasmidsoftware.number.core.Number
+  type OldNumber = com.phasmidsoftware.number.core.numerical.Number
 
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
@@ -50,7 +50,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: Expression = ConstI * 2
     val result: Option[Valuable] = x.evaluateAsIs
     result.isDefined shouldBe true
-    val expected = Eager(core.Real(ExactNumber(-4, SquareRoot)))
+    val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
     result.get shouldBe expected
   }
 
@@ -128,7 +128,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for Ln(-1)" in {
     val x = expr.UniFunction(MinusOne, Ln)
     val result = x.evaluateAsIs
-    result shouldBe Some(Complex(ComplexPolar(core.Number.pi, core.Number.piBy2.makeNegative, 1)))
+    result shouldBe Some(Complex(ComplexPolar(numerical.Number.pi, numerical.Number.piBy2.makeNegative, 1)))
   }
 
   behavior of "materialize UniFunction"
@@ -152,7 +152,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x2 = Valuable.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
     val result: Valuable = e.materialize
-    valuableToField(result) shouldEqual core.Real(core.Number(Math.PI + 1))
+    valuableToField(result) shouldEqual numerical.Real(numerical.Number(Math.PI + 1))
   }
   // TODO Issue #140
   ignore should "render" in {
@@ -323,13 +323,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "Euler"
   // TODO Issue #140
   ignore should "prove Euler's identity 1" in {
-    val iPi = ComplexCartesian(0, core.Number.pi)
+    val iPi = ComplexCartesian(0, numerical.Number.pi)
     val euler: Expression = Expression(Valuable.e) ∧ Complex(iPi)
     euler.materialize shouldBe Valuable.minusOne
   }
   // TODO Issue #140
   ignore should "prove Euler's identity 2" in {
-    val iPi = core.Complex.convertToPolar(ComplexCartesian(0, core.Number.pi))
+    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
     val euler: Expression = Expression(Valuable.e) ∧ Complex(iPi)
     euler.materialize shouldBe Valuable.minusOne
   }
@@ -397,7 +397,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate e * e" in {
     val expression: Expression = ConstE * ConstE
-    expression.simplify shouldBe Literal(Eager(core.Real(ExactNumber(2, NatLog))))
+    expression.simplify shouldBe Literal(Eager(numerical.Real(ExactNumber(2, NatLog))))
   }
   // TODO Issue #140
   ignore should "evaluate phi * phi" in {
@@ -451,7 +451,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: em.MatchResult[Expression] = x.simplifyComposite(x)
     y shouldBe em.Match(BiFunction(ConstE, ValueExpression(2), Power))
     val simplified = y.get.simplify
-    simplified shouldBe Literal(Eager(core.Real(ExactNumber(2, NatLog))))
+    simplified shouldBe Literal(Eager(numerical.Real(ExactNumber(2, NatLog))))
   }
   it should "evaluate phi * phi" in {
     val phi = expr.Root(Quadratic.goldenRatioEquation, 0)

@@ -1,9 +1,9 @@
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.Constants
-import com.phasmidsoftware.number.core.Number.piBy2
 import com.phasmidsoftware.number.core.expression.Expression
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.Constants
+import com.phasmidsoftware.number.core.numerical.Number.piBy2
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Failure, Success}
@@ -40,9 +40,9 @@ class NewtonSpec extends AnyFlatSpec with should.Matchers {
     val euler = Expression(Constants.e) ∧ iPi
     println(euler.asNumber)
 
-    val a: core.Number = piBy2.cos
+    val a: numerical.Number = piBy2.cos
     println(a)
-    val b: core.Number = piBy2.sin
+    val b: numerical.Number = piBy2.sin
     println(b)
     println(piBy2.tan)
   }

@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, PureNumber, Radian, Rational}
-import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber, NumberException, inner}
+import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber, NumberException}
 import scala.reflect.ClassTag
 
 /**
@@ -82,7 +82,7 @@ object Scalar {
     * @return the resulting `Scalar` based on the input number's properties, which
     *         encapsulates its exact value, factor, and optional fuzziness.
     */
-  def apply(x: core.Number): Monotone = x match {
+  def apply(x: numerical.Number): Monotone = x match {
     case ExactNumber(value, factor) =>
       createScalar(value, factor, None)
     case FuzzyNumber(value, factor, fuzz) =>

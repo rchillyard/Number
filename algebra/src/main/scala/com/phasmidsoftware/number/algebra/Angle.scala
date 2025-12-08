@@ -9,8 +9,8 @@ import cats.Show
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Angle.{angleIsCommutativeGroup, r180}
 import com.phasmidsoftware.number.algebra.{Radians, Structure}
-import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
+import com.phasmidsoftware.number.core.numerical.NumberException
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 

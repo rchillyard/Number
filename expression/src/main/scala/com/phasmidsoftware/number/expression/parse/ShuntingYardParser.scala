@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.expression.parse
 
-import com.phasmidsoftware.number.core.*
+import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.expression.mill.*
 import scala.annotation.tailrec
 import scala.util.Try

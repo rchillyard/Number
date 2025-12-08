@@ -1,10 +1,10 @@
 package com.phasmidsoftware.number.applications
 
-import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.Number.{one, root5, two}
-import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.expression._
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.Number.{one, root5, two}
+import com.phasmidsoftware.number.core.numerical._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -88,10 +88,10 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     actual should ===(expected)
   }
   it should "fibFuzzy" in {
-    Fibonacci.fibExpression(0).materialize should ===(core.Constants.zero)
-    Fibonacci.fibExpression(1).materialize should ===(core.Constants.one)
-    Fibonacci.fibExpression(2).materialize should ===(core.Constants.one)
-    Fibonacci.fibExpression(3).materialize should ===(core.Constants.two)
+    Fibonacci.fibExpression(0).materialize should ===(numerical.Constants.zero)
+    Fibonacci.fibExpression(1).materialize should ===(numerical.Constants.one)
+    Fibonacci.fibExpression(2).materialize should ===(numerical.Constants.one)
+    Fibonacci.fibExpression(3).materialize should ===(numerical.Constants.two)
   }
   it should "fib" in {
     Fibonacci.fib(0) shouldBe BigInt(0)

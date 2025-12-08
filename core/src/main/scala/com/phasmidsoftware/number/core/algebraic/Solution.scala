@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.core.algebraic
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.{fromRational, maybeRational}
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.{ComplexCartesian, ExactNumber, Field, Number, NumberLike, Real}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ExactNumber, Field, Number, NumberLike, Real}
 import com.phasmidsoftware.number.misc.FP
 import scala.Option.when
 import scala.util.Failure

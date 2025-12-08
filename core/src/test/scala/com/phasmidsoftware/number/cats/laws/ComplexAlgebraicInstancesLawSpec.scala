@@ -1,9 +1,9 @@
 package com.phasmidsoftware.number.cats.laws
 
 import com.phasmidsoftware.number.cats.{ComplexAlgebraicInstances => CI}
-import com.phasmidsoftware.number.core.Number.FuzzOps
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Number}
+import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
+import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, Number}
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.Checkers
@@ -63,8 +63,6 @@ class ComplexAlgebraicInstancesLawSpec
       1 -> genImagAxis
     )
   }
-
-  import com.phasmidsoftware.number.cats.CatsKernel.complexEq
 //  checkAll("Complex", RingLaws[Complex].commutativeRing)
 }
 

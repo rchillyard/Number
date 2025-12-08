@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.cats
 
 import algebra.ring.{CommutativeRing, TruncatedDivision}
-import com.phasmidsoftware.number.core.{Constants, Real}
-import com.phasmidsoftware.number.core.Real.createFromRealField
+import com.phasmidsoftware.number.core.numerical.Real.createFromRealField
+import com.phasmidsoftware.number.core.numerical.{Constants, Real}
 
 
 trait RealAlgebraicInstances {

@@ -2,8 +2,8 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeMonoid, MultiplicativeGroup}
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
+import com.phasmidsoftware.number.core.numerical.NumberException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 

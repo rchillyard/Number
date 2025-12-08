@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.core.inner.Factor.{composeDyadic, sPercent}
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, toIntOption}
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
-import com.phasmidsoftware.number.core.{Field, Fuzziness, Number, Real}
+import com.phasmidsoftware.number.core.numerical.{Field, Fuzziness, Number, Real}
 import com.phasmidsoftware.number.misc.FP._
 import scala.language.implicitConversions
 import scala.util._

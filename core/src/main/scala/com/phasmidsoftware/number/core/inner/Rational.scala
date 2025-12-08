@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times, toInts}
-import com.phasmidsoftware.number.core.{BigNumber, Number, NumberLike, Prime}
+import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
+import com.phasmidsoftware.number.core.numerical.{BigNumber, Number, NumberLike, Prime}
 import com.phasmidsoftware.number.misc.FP.{toTry, toTryWithRationalException}
 import com.phasmidsoftware.number.misc.{ContinuedFraction, FP}
 import com.phasmidsoftware.number.parse.RationalParser
@@ -315,7 +315,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     */
   def isDecimal: Boolean =
     isWhole || {
-      import com.phasmidsoftware.number.core.Divides.IntDivides
+      import com.phasmidsoftware.number.core.numerical.Divides.IntDivides
       (2 |> d) || (5 |> d)
     }
 

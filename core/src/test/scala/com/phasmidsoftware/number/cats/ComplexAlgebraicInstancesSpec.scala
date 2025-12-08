@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.cats
 
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, Number}
 import algebra.ring.CommutativeRing
+import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, Number}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

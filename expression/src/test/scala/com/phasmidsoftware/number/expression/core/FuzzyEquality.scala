@@ -1,16 +1,16 @@
 package com.phasmidsoftware.number.expression.core
 
 import com.phasmidsoftware.number.algebra.Valuable
-import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.{Complex, Field, Number, Numerical, Real}
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.{Complex, Field, Number, Numerical, Real}
 import com.phasmidsoftware.number.expression.expr.{Expression, ExpressionFunction}
 import org.scalactic.Equality
 
 trait FuzzyEquality {
 
-  type OldNumberLike = core.NumberLike
+  type OldNumberLike = numerical.NumberLike
 
   /**
     * An implicit equality implementation for instances of `Structure`.

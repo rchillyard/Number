@@ -1,10 +1,10 @@
 package com.phasmidsoftware.number.applications
 
-import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.expression.{Expression, Root}
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.inner.Value.maybeRational
+import com.phasmidsoftware.number.core.numerical._
 
 /**
   * Provides utilities and methods for working with the Fibonacci sequence, leveraging

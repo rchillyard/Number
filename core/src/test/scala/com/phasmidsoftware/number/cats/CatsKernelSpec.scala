@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.cats.CatsKernel._
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational, Value}
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, ComplexCartesian, ComplexPolar, ExactNumber, Field, FuzzyNumber, Gaussian, Number, Real}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, ComplexCartesian, ComplexPolar, ExactNumber, Field, FuzzyNumber, Gaussian, Number, Real}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

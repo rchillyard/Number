@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical._
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 import scala.util.{Left, Try}
@@ -201,57 +201,57 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   behavior of "number"
   it should "parse 1.*" in {
-    val np: p.ParseResult[core.Number] = p.parseAll(p.number, "1.*")
+    val np: p.ParseResult[numerical.Number] = p.parseAll(p.number, "1.*")
     np should matchPattern { case p.Success(_, _) => }
-    val n: core.Number = np.get
+    val n: numerical.Number = np.get
     n shouldBe FuzzyNumber(Right(1), PureNumber, Some(AbsoluteFuzz(0.5, Box)))
   }
   it should "work for 3.14" in {
     val np = p.parseAll(p.number, "3.14")
     np should matchPattern { case p.Success(_, _) => }
-    val n: core.Number = np.get
+    val n: numerical.Number = np.get
     n shouldBe ExactNumber(Left(Right(Rational(314, 100))), PureNumber)
   }
   it should "work for 3.1415927" in {
     val np = p.parseAll(p.number, "3.1415927")
     np should matchPattern { case p.Success(_, _) => }
-    val n: core.Number = np.get
+    val n: numerical.Number = np.get
     n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), PureNumber, Some(AbsoluteFuzz(0.00000005, Box)))
   }
   it should "parse 3.1415927*" in {
     val np = p.parseAll(p.number, "3.1415927*")
     np should matchPattern { case p.Success(_, _) => }
-    val n: core.Number = np.get
+    val n: numerical.Number = np.get
     n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), PureNumber, Some(AbsoluteFuzz(0.00000005, Box)))
   }
   it should "parse 3.1415927*E1" in {
-    val np: p.ParseResult[core.Number] = p.parseAll(p.number, "3.1415927*E1")
+    val np: p.ParseResult[numerical.Number] = p.parseAll(p.number, "3.1415927*E1")
     np should matchPattern { case p.Success(_, _) => }
-    val n: core.Number = np.get
+    val n: numerical.Number = np.get
     n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 1000000))), PureNumber, Some(AbsoluteFuzz(0.0000005, Box)))
   }
   it should "parse 3.141592653589793*" in {
-    val np: p.ParseResult[core.Number] = p.parseAll(p.number, "3.141592653589793*")
+    val np: p.ParseResult[numerical.Number] = p.parseAll(p.number, "3.141592653589793*")
     np should matchPattern { case p.Success(_, _) => }
     val n = np.get
     n should matchPattern { case FuzzyNumber(_, _, _) => }
   }
   it should "parse \uD835\uDED1" in {
-    val np: p.ParseResult[core.Number] = p.parseAll(p.number, "\uD835\uDED1")
+    val np: p.ParseResult[numerical.Number] = p.parseAll(p.number, "\uD835\uDED1")
     np should matchPattern { case p.Success(_, _) => }
     val n = np.get
     n should matchPattern { case ExactNumber(_, Radian) => }
     n.nominalValue shouldBe Right(1)
   }
   it should "parse 1\uD835\uDED1" in {
-    val np: p.ParseResult[core.Number] = p.parseAll(p.number, "1\uD835\uDED1")
+    val np: p.ParseResult[numerical.Number] = p.parseAll(p.number, "1\uD835\uDED1")
     np should matchPattern { case p.Success(_, _) => }
     val n = np.get
     n should matchPattern { case ExactNumber(_, Radian) => }
     n.nominalValue shouldBe Right(1)
   }
   it should "reject 1 \uD835\uDED1" in {
-    val np: p.ParseResult[core.Number] = p.parseAll(p.number, "1 \uD835\uDED1")
+    val np: p.ParseResult[numerical.Number] = p.parseAll(p.number, "1 \uD835\uDED1")
     np should matchPattern { case p.Failure(_, _) => }
   }
 

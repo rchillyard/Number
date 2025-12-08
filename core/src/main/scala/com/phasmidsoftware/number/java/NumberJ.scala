@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.java
 
-import com.phasmidsoftware.number.core.{Number, NumberException}
+import com.phasmidsoftware.number.core.numerical.{Number, NumberException}
 import com.phasmidsoftware.number.misc.FP.getOrThrow
 import java.math.BigInteger
 

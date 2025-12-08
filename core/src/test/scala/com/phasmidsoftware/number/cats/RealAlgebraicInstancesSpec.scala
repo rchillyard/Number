@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.cats
 
-import com.phasmidsoftware.number.core.{Constants, Real}
-import algebra.ring.{Field => AlgebraField}
+import com.phasmidsoftware.number.core.numerical.Real
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

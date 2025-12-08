@@ -5,14 +5,14 @@
 package com.phasmidsoftware.number.core.expression
 
 import com.phasmidsoftware.matchers._
-import com.phasmidsoftware.number.core.Constants.root3
-import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{piBy2, root2, zeroR, √}
 import com.phasmidsoftware.number.core.expression.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.expression.Expression.{ExpressionOps, matchSimpler}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational}
-import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
+import com.phasmidsoftware.number.core.numerical.Constants.root3
+import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
+import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, zeroR, √}
+import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec

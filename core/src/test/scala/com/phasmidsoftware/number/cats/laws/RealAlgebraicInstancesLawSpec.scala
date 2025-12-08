@@ -1,10 +1,9 @@
 package com.phasmidsoftware.number.cats.laws
 
-import com.phasmidsoftware.number.cats.CatsKernel._
 import com.phasmidsoftware.number.cats.{RealAlgebraicInstances => RA}
-import com.phasmidsoftware.number.core.Number.FuzzOps
-import com.phasmidsoftware.number.core.Real
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
+import com.phasmidsoftware.number.core.numerical.Real
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.Checkers

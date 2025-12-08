@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.java;
 
-import com.phasmidsoftware.number.core.BigNumber;
 import com.phasmidsoftware.number.core.inner.Rational;
+import com.phasmidsoftware.number.core.numerical.BigNumber;
 import org.junit.Test;
 import scala.util.Try;
 
