@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.numerical.Number
-import com.phasmidsoftware.number.expression.mill.{DyadicExpression, Expr, Expression, Item, Mill, Sin, Stack, TerminalExpression}
-import com.phasmidsoftware.number.expression.parse.ShuntingYardParser.InfixToken
+import com.phasmidsoftware.number.expression.mill.{Add, DyadicExpression, Expr, Expression, Item, Mill, Multiply, Sin, Stack, TerminalExpression}
+import com.phasmidsoftware.number.expression.parse.ShuntingYardParser.{InfixToken, ShuntingYard, shuntingYard}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -17,8 +17,16 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     }
   }
 
-  behavior of "ShuntingYardParser"
   private val p = ShuntingYardParser
+
+  behavior of "ShuntingYardParser"
+  it should "parse" in {
+    ShuntingYardParser.stringParser(shuntingYard, "1") shouldBe Success(ShuntingYard(List(Item("1")), List()))
+    ShuntingYardParser.stringParser(shuntingYard, "( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )") shouldBe Success(ShuntingYard(List(Item("1"), Item("2"), Item("3"), Add, Item("4"), Item("5"), Multiply, Multiply, Add), List()))
+    ShuntingYardParser.stringParser(shuntingYard, "(sin(𝛑) * -1)") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("-1"), Multiply), List()))
+  }
+
+  behavior of "Mill"
   it should "parseInfix 1" in {
     val sy = p.parseInfix("1")
     sy should matchPattern { case Success(_) => }

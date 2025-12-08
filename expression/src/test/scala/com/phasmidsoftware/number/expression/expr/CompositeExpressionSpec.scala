@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.Valuable
+import com.phasmidsoftware.number.algebra.{Valuable, WholeNumber}
 //import com.phasmidsoftware.number.expression.expr.ExpressionHelper.math
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -23,16 +23,13 @@ class CompositeExpressionSpec extends AnyFlatSpec with should.Matchers {
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
     e.simplifyExact(e).successful shouldBe false
   }
-  // TODO Issue #139
-  // TODO Issue #140
-  ignore should "simplifyExact 2" in {
-    val x1 = Valuable.one
-    val x2 = Valuable.pi
-    //    val e = math"\\sin(\\pi) * -1"
-    val e = Expression("sin(𝛑) * -1")
-    e match {
+  // NOTE Test case for Issue #142
+  it should "simplifyExact 2" in {
+    Expression("sin(𝛑) * -1") match {
       case expression: CompositeExpression =>
-        expression.simplifyExact(expression).successful shouldBe false
+        val simplified = expression.simplifyExact(expression)
+        simplified.successful shouldBe true
+        simplified.get shouldBe Literal(WholeNumber(0), Some("0")) // NOTE this should be Zero, not Literal(WholeNumber(0))
       case x =>
         fail(s"expected CompositeExpression, got $x")
     }
