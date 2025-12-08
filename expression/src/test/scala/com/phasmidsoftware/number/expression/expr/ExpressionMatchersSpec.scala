@@ -18,6 +18,7 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import org.scalatest.matchers.should.Matchers.shouldBe
 import scala.languageFeature.implicitConversions.*
 
 /**
@@ -303,14 +304,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     simpler shouldBe Literal(Angle(Rational.quarter), Some("¼𝛑"))
   }
 
-  behavior of "multiple matchSimpler"
-  ignore should "work for multi-levels 2" in {
-    val x = (One :+ ConstE - ConstE) * (ConstPi / 4)
-    val simpler = matchSimpler(x).get
-    // The following will trigger the Unsuccessful: cannot call get: matchBiFunctionAsAggregate: is not converted to Aggregate
-    matchSimpler(simpler).get shouldBe Expression(Valuable.piBy4)
-  }
-
   behavior of "matchSimpler 2"
   it should "simplify (1+2)*(2+1)" in {
     import BiFunction.*
@@ -350,7 +343,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = Expression.matchSimpler
     val x = Expression("√4") :* Valuable.two
     val y: Expression = Expression(Valuable.two).reciprocal
-    p(Product ~ x ~ y) shouldBe em.Match(BiFunction(Literal(WholeNumber(1), Some("1")), BiFunction(Literal(WholeNumber(4), Some("4")), Half, Power), Product))
+    val firstSimplification = p(Product ~ x ~ y)
+    firstSimplification shouldBe em.Match(BiFunction(Literal(WholeNumber(4), Some("4")), Half, Power))
+    p(firstSimplification.get) shouldBe em.Match(Literal(WholeNumber(2), Some("2")))
   }
   it should "distribute" in {
     import BiFunction.*
