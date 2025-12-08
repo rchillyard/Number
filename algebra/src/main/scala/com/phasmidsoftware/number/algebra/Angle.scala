@@ -90,6 +90,8 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+    case x if x.getClass == this.getClass =>
+      Some(this.asInstanceOf[T])
     case _: Real =>
       // TODO normalize before conversion
       radians.approximation(true).map(x => x.scaleByPi).asInstanceOf[Option[T]]

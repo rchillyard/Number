@@ -131,6 +131,8 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     *         if the conversion is successful, or `None` otherwise.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+    case x if x.getClass == this.getClass =>
+      Some(this.asInstanceOf[T])
     case _: RationalNumber =>
       val number = RationalNumber(Rational(x.toBigInt))
       Some(number.asInstanceOf[T])

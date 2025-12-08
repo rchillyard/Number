@@ -487,6 +487,14 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
 object Literal {
 
   /**
+    * Converts the given integer value into a `Literal` object with a `WholeNumber` representation.
+    *
+    * @param x the integer value to be converted
+    * @return a `Literal` containing the `WholeNumber` representation of the input integer
+    */
+  def apply(x: Int): Literal = Literal(WholeNumber(x))
+
+  /**
     * Creates a `Literal` instance from an `Eager` value.
     *
     * @param x the `Eager` value to be wrapped within the `Literal`.

@@ -106,7 +106,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure : ClassTag](t: T): Option[T] = base match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case x =>
       None
   }

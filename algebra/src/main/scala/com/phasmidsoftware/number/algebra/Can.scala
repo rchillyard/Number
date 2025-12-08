@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.*
+import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 
@@ -30,12 +31,21 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   /**
     * Adds the given instance of the same type to this instance, leveraging the properties
     * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
+    * CONSIDER keeping percentage if both are percentages.
+    * CONSIDER rewriting this in such a way that no exception will ever be thrown (use compiler to check, not runtime).
     *
     * @param that The instance of the same type to be added to this instance.
     * @return The result of adding this instance and the provided instance.
     */
-  def +(that: T)(using AdditiveCommutativeMonoid[T]): T =
-    acm.additive.combine(asT, that)
+  def +(that: U)(using AdditiveCommutativeMonoid[T]): T =
+    that.convert[T](this.asT) match {
+      case Some(t) => acm.additive.combine(asT, t)
+      case None => throw AlgebraException(s"Cannot add $that to $this")
+    }
+  // TODO implement + this way:
+//    def +[V <: U : Convertible[T]](that: V)(using AdditiveCommutativeMonoid[T]): T =
+//    val t = summon[Convertible[T, V]].convert(that, this.asT)
+//    acm.additive.combine(asT, t)
 
   /**
     * Computes the addition of this object and the given `Structure` object using the additive properties
@@ -259,6 +269,8 @@ trait Scalable[T <: Scalable[T]] {
 
 /**
   * Represents a type class for performing power operations on instances of type `T`.
+  *
+  * CONSIDER two paramtric types
   *
   * This trait defines the behavior for raising an instance of `T` to a power
   * specified by a `Scalar`. Implementations of this trait are responsible for

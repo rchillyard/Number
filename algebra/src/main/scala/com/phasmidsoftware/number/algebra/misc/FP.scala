@@ -339,7 +339,7 @@ object FP {
     */
   def resourceForClass(resourceName: String, clazz: Class[?] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
     case Some(u) => Success(u)
-    case None => Failure(new Exception(s"$resourceName is not a valid resource for $clazz"))
+    case None => Failure(AlgebraException(s"$resourceName is not a valid resource for $clazz"))
   }
 
   /**

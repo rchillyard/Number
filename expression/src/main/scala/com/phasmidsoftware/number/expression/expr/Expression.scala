@@ -190,15 +190,6 @@ object Expression {
     infix def plus(y: Expression): Expression =
       expression.expr.BiFunction(x, y, Sum)
 
-//    /**
-//      * Method to lazily multiply x by y.
-//      *
-//      * @param y another Expression.
-//      * @return an Expression which is the lazy product of x and y.
-//      */
-//    def +(y: Expression): Expression =
-//      x plus y
-
     /**
       * Method to lazily append the given expression to this expression using addition.
       *
@@ -564,6 +555,12 @@ object Expression {
           em.eitherOr(simplifyTrivial,
             em.eitherOr(simplifyConstant,
               simplifyComposite))))(x)
+//    case x: CompositeExpression =>
+//      "simplifyExact" !! simplifyExact(x) ||
+//          "simplifyComponents" !! simplifyComponents(x) ||
+//          "simplifyTrivial" !! simplifyTrivial(x) ||
+//          "simplifyConstant" !! simplifyConstant(x) ||
+//          "simplifyComposite" !! simplifyComposite(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x")) // TESTME
   }

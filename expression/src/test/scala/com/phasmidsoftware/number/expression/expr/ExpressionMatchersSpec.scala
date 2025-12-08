@@ -18,7 +18,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.scalatest.matchers.should.Matchers.shouldBe
 import scala.languageFeature.implicitConversions.*
 
 /**
@@ -339,13 +338,16 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   // TODO Issue #140
   ignore should "simplify root4 * 2 / 2" in {
-    import BiFunction.*
     val p = Expression.matchSimpler
     val x = Expression("√4") :* Valuable.two
     val y: Expression = Expression(Valuable.two).reciprocal
-    val firstSimplification = p(Product ~ x ~ y)
-    firstSimplification shouldBe em.Match(BiFunction(Literal(WholeNumber(4), Some("4")), Half, Power))
-    p(firstSimplification.get) shouldBe em.Match(Literal(WholeNumber(2), Some("2")))
+    val expression = Product ~ x ~ y
+    val four = Literal(4)
+    //    val firstSimplification = p(expression)
+//    firstSimplification shouldBe em.Match(BiFunction(Literal(WholeNumber(4), Some("4")), Half, Power))
+    val expression1: BiFunction = BiFunction(four, Half, Power)
+    val q = expression1.simplifyComposite
+    q(expression1) shouldBe em.Match(Literal(WholeNumber(2), Some("2")))
   }
   it should "distribute" in {
     import BiFunction.*

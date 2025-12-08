@@ -110,6 +110,8 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q wi
     * @return an `Option` containing the transformed instance of type `T` if the conversion is successful, or `None` if it is not.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+    case x if x.getClass == this.getClass =>
+      Some(this.asInstanceOf[T])
     case _: Real =>
       Some(Real(r.toDouble, None).asInstanceOf[T])
     case _: WholeNumber =>

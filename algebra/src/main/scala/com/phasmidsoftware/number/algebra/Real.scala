@@ -68,12 +68,10 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     * @return an Option wrapping the input number if the conversion is successful, otherwise None
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+    case x if x.getClass == this.getClass =>
+      Some(this.asInstanceOf[T])
     case _: RationalNumber =>
       FP.whenever(isExact)(Rational.createExact(value).toOption).asInstanceOf[Option[T]]
-    case _: Real =>
-      Some(this).asInstanceOf[Option[T]]
-//    case _: Angle =>
-//      scale(Real.one / Real.pi).map(Angle(_)).asInstanceOf[Option[T]]
     case _ =>
       None
   }

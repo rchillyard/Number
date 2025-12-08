@@ -8,9 +8,9 @@ import algebra.CommutativeMonoid
 import cats.Show
 import com.phasmidsoftware.number.algebra.Logarithm.LogarithmIsCommutativeMonoid
 import com.phasmidsoftware.number.algebra.Structure
+import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical.NumberException
-import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -60,6 +60,8 @@ abstract class Logarithm(val value: Number) extends CanMultiply[Logarithm, Logar
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+    case x if x.getClass == this.getClass =>
+      Some(this.asInstanceOf[T])
     case _: Real =>
       transformation
     case _ =>
