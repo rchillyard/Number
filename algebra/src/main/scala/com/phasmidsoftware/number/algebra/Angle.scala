@@ -8,10 +8,10 @@ import algebra.ring.AdditiveCommutativeGroup
 import cats.Show
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Angle.{angleIsCommutativeGroup, r180}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.algebra.{Radians, Structure}
 import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.NumberException
-import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
 /**
@@ -93,8 +93,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: Real =>
-      // TODO normalize before conversion
-      radians.approximation(true).map(x => x.scaleByPi).asInstanceOf[Option[T]]
+      toMaybeReal.asInstanceOf[Option[T]]
     case _ =>
       None
   }
@@ -252,6 +251,20 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation: Option[Real] = convert(Real.zero)
+
+  /**
+    * Converts the current instance to an optional scaled representation as a `Real`.
+    * TODO normalize before conversion
+    *
+    * This method approximates the `radians` value of the instance with forced scaling
+    * by π and returns the result wrapped in an `Option`. If the approximation is not
+    * possible, the method returns `None`.
+    *
+    * @return an `Option[Real]` containing the scaled representation of the current instance,
+    *         or `None` if the approximation fails.
+    */
+  def toMaybeReal: Option[Real] =
+    radians.approximation(true).map(x => x.scaleByPi)
 
 }
 
@@ -447,6 +460,23 @@ object Angle {
       // NOTE that we should be using the === operator here, but it hasn't been defined yet for for Number.
       a1.normalize.radians == a2.normalize.radians
   }
+
+  /**
+    * A given instance of the `Convertible` typeclass providing a mechanism to convert
+    * an `Angle` value into a `Real`.
+    *
+    * @note This implementation assumes that the `u.toMaybeReal` method of the `Angle`
+    *       class provides a mechanism to extract a `Real` representation of the angle
+    *       when it can be defined.
+    *
+    * @param witness a `Real` value that might assist during the conversion process
+    * @param u       an `Angle` instance to be converted into a `Real`
+    * @return the converted `Real` representation of the provided `Angle`; throws
+    *         an `AlgebraException` if the conversion fails
+    */
+  given Convertible[Real, Angle] with
+    def convert(witness: Real, u: Angle): Real =
+      FP.recover(u.toMaybeReal)(AlgebraException("cannot convert Angle $u to Real"))
 
   /**
     * Provides an implicit implementation of a commutative group for the `Angle` type, supporting

@@ -4,10 +4,10 @@ import algebra.ring.{AdditiveCommutativeGroup, Ring}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
+import com.phasmidsoftware.number.algebra.misc.FP
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber, NumberException}
-import com.phasmidsoftware.number.misc.FP
 import com.phasmidsoftware.number.parse.NumberParser
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -71,10 +71,21 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: RationalNumber =>
-      FP.whenever(isExact)(Rational.createExact(value).toOption).asInstanceOf[Option[T]]
+      toMaybeRationalNumber.asInstanceOf[Option[T]]
     case _ =>
       None
   }
+
+  /**
+    * Attempts to convert the current value to an exact rational number, if applicable.
+    *
+    * @return An `Option` containing a `RationalNumber` instance if the conversion is successful,
+    *         or `None` if the value cannot be exactly represented as a rational number.
+    */
+  def toMaybeRationalNumber: Option[RationalNumber] =
+    FP.whenever(isExact)(
+      Rational.createExact(value).toOption.map(RationalNumber(_))
+    )
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.

@@ -393,11 +393,11 @@ object RationalNumber {
 
   given Convertible[RationalNumber, Real] with
     def convert(witness: RationalNumber, u: Real): RationalNumber =
-      FP.recover(
-        FP.whenever(u.isExact)(
-          Rational.createExact(u.value).toOption.map(RationalNumber(_))
-        )
-      )(AlgebraException("cannot convert $u to RationalNumber"))
+      FP.recover(u.toMaybeRationalNumber)(AlgebraException("cannot convert $u to RationalNumber"))
+
+  given Convertible[RationalNumber, WholeNumber] with
+    def convert(witness: RationalNumber, u: WholeNumber): RationalNumber =
+      u.toRationalNumber
 
   /**
     * Provides an implicit implementation of the `Field` type class for the `RationalNumber` type.
