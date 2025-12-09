@@ -272,6 +272,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
     case a@Aggregate(_, _) =>
       // CONSIDER why do we need this -- but we do.
+      // TODO asInstanceOf
       (complementaryTermsEliminatorAggregate & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
   }
 

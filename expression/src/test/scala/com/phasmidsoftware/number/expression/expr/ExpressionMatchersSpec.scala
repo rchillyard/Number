@@ -49,11 +49,15 @@ import scala.languageFeature.implicitConversions.*
 class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   implicit object ExpressionEquality extends Equality[Expression] {
-    def areEqual(a: Expression, b: Any): Boolean = b match {
-      case v: Eager => a.compare(Literal(v)) == 0
-      case n: numerical.Number => new ExpressionOps(a).compare(Literal(n)) == 0
-      case _ => false
-    }
+    def areEqual(a: Expression, b: Any): Boolean =
+      b match {
+        case v: Eager =>
+          a.compare(Literal(v)) == 0
+        case n: numerical.Number =>
+          new ExpressionOps(a).compare(Literal(n)) == 0
+        case _ =>
+          false
+      }
   }
 
   val sb = new StringBuilder
@@ -859,8 +863,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y: Expression = ValueExpression(7).sqrt ∧ Valuable.two
     y.materialize shouldBe Eager(7)
   }
-  // TODO Issue #140
-  ignore should "evaluate E * 2" in {
+  it should "evaluate E * 2" in {
     (Literal(Valuable.e) * 2).materialize.toString shouldBe "Real(5.43656365691809,Some(AbsoluteFuzz(5.086985018510689E-14,Box)))"
   }
 

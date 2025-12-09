@@ -28,7 +28,7 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAddAndSubtract[Real, Real] with Number with Scalable[Real] {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] {
   /**
     * Converts the current instance to a Double representation.
     * CONSIDER changing to maybeDouble returning Option[Double].

@@ -23,7 +23,7 @@ import spire.math.SafeLong
   *
   * @param x a SafeLong value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] with Number with Z {
+case class WholeNumber(x: SafeLong) extends Number with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
   /**
     * Converts this instance to its corresponding integer representation.
     *

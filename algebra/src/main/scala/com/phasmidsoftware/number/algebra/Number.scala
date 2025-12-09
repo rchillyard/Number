@@ -238,6 +238,16 @@ object Number {
         throw NumberException("Number.times: logic error: cannot multiply " + x + " and " + y)
     }
 
-    def div(x: Number, y: Number): Number = times(x, multiplicative.inverse(y))
+    def div(x: Number, y: Number): Number = (x, y) match {
+      case (a: Real, b: Real) =>
+        realIsRing.div(a, b)
+      case (a: Number, b: Real) =>
+        realIsRing.inverse(b) match {
+          case Some(z) => times(a, z)
+          case None => throw AlgebraException("Number.div: logic error: cannot divide by zero")
+        }
+      case _ =>
+        throw AlgebraException("Number.div: logic error: cannot divide " + x + " by " + y)
+    }
   }
 }

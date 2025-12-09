@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.number.algebra.Real
+import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
@@ -50,6 +51,25 @@ trait Structure extends Eager {
     case algebra.Real(value, _) => Some(value)
     case algebra.RationalNumber(r, _) => Some(r.toDouble)
     case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")
+  }
+}
+
+object Structure {
+  /**
+    * Attempts to cast the provided `Structure` instance to the specified subtype `T`.
+    * Throws an `AlgebraException` if the provided instance cannot be cast to the target type.
+    *
+    * @param x the input instance of `Structure` to be cast to the desired type `T`.
+    * @tparam T the target subtype of `Structure` to which the input instance will be cast.
+    * @return the input instance cast to the type `T` if the cast is valid and successful.
+    * @throws AlgebraException if the input instance cannot be cast to the type `T`.
+    */
+  def asT[T <: Structure : ClassTag](x: Structure): T = {
+    val clazz = summon[ClassTag[T]].runtimeClass
+    if (clazz.isAssignableFrom(x.getClass))
+      x.asInstanceOf[T]
+    else
+      throw AlgebraException(s"Logic error: Can.asT failed to cast ${x.getClass} to $clazz")
   }
 }
 

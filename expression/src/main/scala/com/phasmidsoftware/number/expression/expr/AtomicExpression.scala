@@ -182,7 +182,8 @@ case class Noop(w: String) extends AtomicExpression {
   * @param r The new `Real` type that needs to be converted to the old `Real` type.
   */
 def newRealToOldReal(r: Real) =
-  valuableToMaybeField(r).get.asInstanceOf[numerical.Real] // TODO fix this
+  // TODO asInstanceOf
+  valuableToMaybeField(r).get.asInstanceOf[numerical.Real]
 
 /**
   * Represents an abstract expression for a Valuable that can optionally be associated with a name.
@@ -284,6 +285,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     case algebraic: Algebraic =>
       algebraic.solve.asField match {
         case r: numerical.Real =>
+          // TODO asInstanceOf
           Some(Eager(r).asInstanceOf[Real])
         case _ =>
           None // TESTME

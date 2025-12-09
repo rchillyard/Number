@@ -71,8 +71,8 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   it should "plus" in {
     WholeNumber.zero plus RationalNumber.one shouldBe Some(WholeNumber.one)
   }
-  it should "times" in {
-    WholeNumber.one times RationalNumber.minusOne shouldBe Some(WholeNumber.minusOne)
+  it should "scale" in {
+    WholeNumber.one scale RationalNumber.minusOne shouldBe Some(WholeNumber.minusOne)
   }
   it should "doScale" in {
   }
@@ -97,8 +97,6 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   }
   it should "render" in {
     WholeNumber(42).render shouldBe "42"
-  }
-  it should "scale" in {
   }
   it should "scaleFactor" in {
   }

@@ -25,7 +25,7 @@ import scala.reflect.ClassTag
   * @constructor Creates a new instance of `Logarithm` with the specified value.
   * @param value the numerical value representing the logarithm
   */
-abstract class Logarithm(val value: Number) extends CanMultiply[Logarithm, Logarithm] with Transformed with Ordered[Logarithm] {
+abstract class Logarithm(val value: Number) extends Transformed with CanAdd[Logarithm, Logarithm] with Ordered[Logarithm] {
 
   /**
     * Returns the base of this logarithm.
@@ -67,22 +67,6 @@ abstract class Logarithm(val value: Number) extends CanMultiply[Logarithm, Logar
     case _ =>
       None
   }
-
-  /**
-    * NOTE that adding logarithms is the equivalent of multiplying the corresponding (exponential) values.
-    *
-    * Adds the specified `Scalar` to the current `Scalar` and returns the result as an `Option[Scalar]`.
-    * This method handles addition based on the type of `Scalar` provided. If the input is an `Logarithm`,
-    * it computes the sum of the current `Logarithm` and the provided `Logarithm`.
-    *
-    * @param that the `Scalar` to be added to the current instance
-    * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
-    */
-  infix def doPlus(that: Logarithm): Option[Logarithm] =
-    if (getClass == that.getClass)
-      Some(this + that)
-    else
-      None
 
   /**
     * Determines if the current number is equal to zero.

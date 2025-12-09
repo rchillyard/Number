@@ -242,6 +242,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation(force: Boolean): Option[algebra.Real] =
+    // TODO asInstanceOf
     x.approximation(force) map (x => f.apply(x).asInstanceOf[algebra.Real])
 
   /**
@@ -1064,6 +1065,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   def approximation(force: Boolean): Option[algebra.Real] = { // TESTME
     val identity: Eager = function.maybeIdentityL.getOrElse(Valuable.zero) // NOTE should never require the default
     val vos: Seq[Option[algebra.Real]] = xs map (x => x.approximation(force))
+    // TODO asInstanceOf
     FP.sequence(vos) map (xs => xs.foldLeft[Eager](identity)(function.apply).asInstanceOf[algebra.Real])
   }
 

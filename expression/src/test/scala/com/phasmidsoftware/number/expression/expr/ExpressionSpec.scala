@@ -29,11 +29,15 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   type OldNumber = com.phasmidsoftware.number.core.numerical.Number
 
   implicit object ExpressionEquality extends Equality[Expression] {
-    def areEqual(a: Expression, b: Any): Boolean = b match {
-      case n: GeneralNumber => new ExpressionOps(a).compare(Literal(n)) == 0
-      case n: Expression => a.compare(n) == 0
-      case _ => false
-    }
+    def areEqual(a: Expression, b: Any): Boolean =
+      b match {
+        case v: Eager =>
+          a.compare(Literal(v)) == 0
+        case n: numerical.Number =>
+          new ExpressionOps(a).compare(Literal(n)) == 0
+        case _ =>
+          false
+      }
   }
 
   behavior of "evaluate"
@@ -154,12 +158,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val result: Valuable = e.materialize
     valuableToField(result) shouldEqual numerical.Real(numerical.Number(Math.PI + 1))
   }
-  // TODO Issue #140
-  ignore should "render" in {
+  it should "render" in {
     val x1 = Valuable.one
     val x2 = Valuable.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.toString shouldBe "BiFunction{Literal(WholeNumber(1),None) + Literal(Angle(WholeNumber(1)),None)}"
+    e.toString shouldBe """BiFunction{Literal(WholeNumber(1),Some(1)) + Literal(Angle(WholeNumber(1),false),Some(𝛑))}"""
     e.render shouldBe "4.1415926535897930(67)"
     e.materialize.render shouldBe "4.1415926535897930(67)"
   }
@@ -257,11 +260,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     result shouldEqual expected
   }
   // (fixed) we should be able to compare y with L2 (this tests for Issue #125)
-  // TODO Issue #140
-  ignore should "evaluate xxx 2" in {
+  it should "evaluate xxx 2" in {
     val x: Expression = ConstE.log(Two) // lg E with value close to √2
     val y: Expression = x.reciprocal.simplify
-    y === L2.simplify
+    val z = L2.simplify
+    y === z
   }
 
   behavior of "toString"
@@ -273,8 +276,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "various operations"
-  // TODO Issue #140
-  ignore should "evaluate E * 2" in {
+  it should "evaluate E * 2" in {
     val z: Valuable = (ConstE * 2).materialize
     val q = valuableToField(z).normalize
     q.toString shouldBe "5.436563656918090[51]"

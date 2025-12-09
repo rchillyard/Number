@@ -158,22 +158,6 @@ trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     mm.multiplicative.combine(asT, that)
 
   /**
-    * Multiplies this instance with another algebraic structure using the provided
-    * `CommutativeRing` context, if possible.
-    *
-    * @param that            the input `Structure` instance to be multiplied with the current instance.
-    * @param using an implicit parameter providing the context for performing
-    *                        multiplication operations on objects of type `T`.
-    * @return an `Option[T]` containing the result of the multiplication if it can be
-    *         successfully performed, or `None` otherwise.
-    */
-  infix def times(that: Structure)(using CommutativeRing[T]): Option[T] =
-    that match {
-      case t: T => Some(mm.multiplicative.combine(asT, t))
-      case u => u.convert(asT).flatMap(x => Some(mm.multiplicative.combine(asT, x)))
-    }
-
-  /**
     * Retrieves an implicit instance of `MultiplicativeMonoid[T]` from the given context.
     * CONSIDER whether this is exactly the correct type to use.
     * It needs to support all required properties and it must be a superclass of `CommutativeRing`.
@@ -332,11 +316,11 @@ trait CanNormalize[T <: Structure] {
   *
   * @tparam T the type parameter which must be a subtype of `Structure`
   */
-sealed trait Can[T <: Structure] {
+sealed trait Can[T <: Structure : ClassTag] extends Structure {
   /**
     * Casts the current instance to the type parameter `T` of the enclosing `Can` trait.
     *
     * @return the current instance as an instance of type `T`
     */
-  def asT: T = this.asInstanceOf[T]
+  def asT: T = Structure.asT(this)
 }
