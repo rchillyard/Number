@@ -217,13 +217,13 @@ object Complex {
           if (expressions.hasNext)
             sb.append(expressions.next())
           else
-            throw NumberException("C: logic error: missing expression")
+            throw CoreException("C: logic error: missing expression")
         }
         else
           sb.append(s)
       }
       if (expressions.hasNext)
-        throw NumberException(s"C: ignored: ${expressions.next()}")
+        throw CoreException(s"C: ignored: ${expressions.next()}")
       else
         Complex.parse(sb.toString) match {
           case Success(value) => value

@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.core.expression.Expression.em.ExpressionTransf
 import com.phasmidsoftware.number.core.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.numerical.Number.convertInt
-import com.phasmidsoftware.number.core.numerical.{Approximatable, ComplexPolar, Constants, Field, Number, NumberException, NumberLike, Real}
+import com.phasmidsoftware.number.core.numerical.{Approximatable, ComplexPolar, Constants, Field, Number, CoreException, NumberLike, Real}
 import com.phasmidsoftware.number.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.misc.FP.recover
 import com.phasmidsoftware.number.parse.ShuntingYardParser
@@ -112,7 +112,7 @@ trait Expression extends NumberLike with Approximatable {
     * @return the result of comparing materialized this with materialized comparand.
     */
   def compare(comparand: Expression): Int =
-    recover(for (x <- asNumber; y <- comparand.asNumber) yield x.compare(y), NumberException("compare: logic error"))
+    recover(for (x <- asNumber; y <- comparand.asNumber) yield x.compare(y), CoreException("compare: logic error"))
 
   // NOTE This can be useful for debugging: it allows you to see the value of this Expression.
   // However, it can also cause a stack overflow so use it sparingly!

@@ -235,7 +235,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "fail to evaluate log 1 x or log 0 x" in {
     val base = Expression(1)
-    a[numerical.NumberException] should be thrownBy Two.log(base).materialize
+    a[numerical.CoreException] should be thrownBy Two.log(base).materialize
   }
   // TODO Issue #140
   it should "evaluate ln E" in {

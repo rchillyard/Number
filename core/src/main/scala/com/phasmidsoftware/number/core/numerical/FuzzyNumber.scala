@@ -221,7 +221,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
       case InversePower(_) =>
         sb.append(factor.render(w))
       case _ =>
-        throw NumberException(s"factor is not matched: $factor")
+        throw CoreException(s"factor is not matched: $factor")
     }
     sb.toString
   }

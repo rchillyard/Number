@@ -8,7 +8,7 @@ import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP, MaybeNumeric, Renderable}
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber, NumberExceptionWithCause, Real}
+import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber, CoreExceptionWithCause, Real}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.{algebra, core}
@@ -218,14 +218,14 @@ object Eager {
     *
     * @param str the input string representing a numerical value.
     * @return a `Valuable` representation of the parsed `Number`.
-    * @throws NumberExceptionWithCause if parsing the string fails.
+    * @throws CoreExceptionWithCause if parsing the string fails.
     */
   def apply(str: String): Eager =
     NumberParser.parseNumber(str) match {
       case Success(number) =>
         Scalar(number)
       case Failure(exception) =>
-        throw NumberExceptionWithCause("Valuable.apply", exception)
+        throw CoreExceptionWithCause("Valuable.apply", exception)
     }
 
   /**

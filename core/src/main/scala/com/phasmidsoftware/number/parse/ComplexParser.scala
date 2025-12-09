@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.numerical.{Complex, NumberException}
+import com.phasmidsoftware.number.core.numerical.{Complex, CoreException}
 import scala.util.Try
 
 /**
@@ -14,8 +14,8 @@ class ComplexParser extends BaseNumberParser {
 
   def doParse(w: String): Try[Complex] = parseAll(complexNumber, w) match {
     case Success(c, _) => scala.util.Success(c)
-    case Failure(m, x) => scala.util.Failure(NumberException(s"ComplexParser.parse: unable to parse '$w' because $m:$x"))
-    case Error(m, x) => scala.util.Failure(NumberException(s"ComplexParser.parse: unable to parse '$w' because $m:$x"))
+    case Failure(m, x) => scala.util.Failure(CoreException(s"ComplexParser.parse: unable to parse '$w' because $m:$x"))
+    case Error(m, x) => scala.util.Failure(CoreException(s"ComplexParser.parse: unable to parse '$w' because $m:$x"))
   }
 
   private def complexNumber: Parser[Complex] = (opt(number) ~ opt(sign) ~ opt("i" ~> number)) :| "complexNumber" ^^ {

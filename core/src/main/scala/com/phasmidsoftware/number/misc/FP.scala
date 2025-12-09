@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
-import com.phasmidsoftware.number.core.numerical.NumberException
+import com.phasmidsoftware.number.core.numerical.CoreException
 import java.net.URL
 import scala.Option.when
 import scala.io.Source
@@ -235,9 +235,9 @@ object FP {
     *
     * @param s a String
     * @tparam Z the underlying type of the result.
-    * @return a function of Z => Failure[Z] based on NumberException(s)
+    * @return a function of Z => Failure[Z] based on CoreException(s)
     */
-  def fail[X, Z](s: String): X => Try[Z] = fail(NumberException(s))
+  def fail[X, Z](s: String): X => Try[Z] = fail(CoreException(s))
 
   /**
     * Method to yield a Failure.
@@ -306,7 +306,7 @@ object FP {
         val bn = implicitly[Numeric[BigInt]]
         val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
         val bos: Iterator[Option[BigInt]] = for (p <- wos) yield for (q <- p; qq <- bn.parseString(q)) yield qq
-        FP.toTry(FP.sequence(bos.toList), Failure(NumberException(s"invalid input in file: $filename")))
+        FP.toTry(FP.sequence(bos.toList), Failure(CoreException(s"invalid input in file: $filename")))
     }
 
   /**

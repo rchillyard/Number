@@ -125,6 +125,6 @@ object Approximation {
         correction = fDashDash doDivide fDash doMultiply h doDivide Number.two doAdd Number.one
       } yield h doDivide correction
     case n =>
-      Failure(com.phasmidsoftware.number.core.numerical.NumberException(s"Approximation.iterate: does not implement correction with $n functions"))
+      Failure(com.phasmidsoftware.number.core.numerical.CoreException(s"Approximation.iterate: does not implement correction with $n functions"))
   }
 }

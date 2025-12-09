@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Render.renderValue
-import com.phasmidsoftware.number.core.numerical.NumberException
+import com.phasmidsoftware.number.core.numerical.CoreException
 import com.phasmidsoftware.number.misc.FP._
 import java.lang
 import scala.util._
@@ -170,8 +170,8 @@ object Value {
   def maybeInt(value: Value): Option[Int] = {
     val xToZy0: Option[Double] => Try[Int] = {
       case Some(n) if Math.round(n) == n => if (n <= Int.MaxValue && n >= Int.MinValue) Try(n.toInt)
-      else Failure(NumberException(s"double $n cannot be represented as an Int"))
-      case Some(n) => Failure(NumberException(s"toInt: $n is not integral"))
+      else Failure(CoreException(s"double $n cannot be represented as an Int"))
+      case Some(n) => Failure(CoreException(s"toInt: $n is not integral"))
       case None => Failure(new NoSuchElementException())
     }
     import com.phasmidsoftware.number.misc.Converters._

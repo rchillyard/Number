@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical.NumberException
+import com.phasmidsoftware.number.core.numerical.CoreException
 import com.phasmidsoftware.number.misc.ContinuedFraction.Hurwitz
 import scala.annotation.tailrec
 import scala.util.Try
@@ -294,7 +294,7 @@ object ContinuedFraction {
     */
   private def eFunction(xs: List[Pair]): List[Pair] = xs match {
     case List(x, y, z) => List(x, Pair(y.b + 2, y.a), z)
-    case _ => throw NumberException("logic error")
+    case _ => throw CoreException("logic error")
   }
 }
 

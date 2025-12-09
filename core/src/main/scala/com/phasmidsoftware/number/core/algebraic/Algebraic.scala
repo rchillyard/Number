@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.{Complex, Field, Multivariate, Number, NumberException, Numerical, Real}
+import com.phasmidsoftware.number.core.numerical.{Complex, Field, Multivariate, Number, CoreException, Numerical, Real}
 import com.phasmidsoftware.number.misc.FP
 
 /**
@@ -388,7 +388,7 @@ object Algebraic {
     * @return an `Algebraic` instance representing the solution of the given equation.
     *         The solution can be linear (`Algebraic_Linear`) or quadratic (`Algebraic_Quadratic`),
     *         depending on the equation type.
-    * @throws NumberException if the equation type is unsupported for constructing an `Algebraic` instance.
+    * @throws CoreException if the equation type is unsupported for constructing an `Algebraic` instance.
     */
   def apply(equation: Equation, branch: Int): Algebraic = equation match {
     case e@LinearEquation(_) =>
@@ -396,7 +396,7 @@ object Algebraic {
     case e@Quadratic(_, _) =>
       Algebraic_Quadratic(e, branch == 0)
     case _ =>
-      throw NumberException(s"Algebraic: cannot create algebraic from equation $equation")
+      throw CoreException(s"Algebraic: cannot create algebraic from equation $equation")
   }
 
   /**
@@ -510,7 +510,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
       case s: LinearSolution =>
         Algebraic_Linear.create(s)
     }
-    FP.toTryWithThrowable(maybeAlgebraicLinear, NumberException(s"AlgebraicLinear: cannot add $this and $a")).get // TODO convert to a proper exception
+    FP.toTryWithThrowable(maybeAlgebraicLinear, CoreException(s"AlgebraicLinear: cannot add $this and $a")).get // TODO convert to a proper exception
   }
 
   /**
@@ -523,9 +523,9 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     solve add rational match {
       case s: LinearSolution => Algebraic_Linear.create(s) match {
         case Some(x) => x
-        case None => throw NumberException(s"AlgebraicLinear: cannot add $this and $rational")
+        case None => throw CoreException(s"AlgebraicLinear: cannot add $this and $rational")
       }
-      case _ => throw NumberException(s"AlgebraicLinear: cannot add $this and $rational")
+      case _ => throw CoreException(s"AlgebraicLinear: cannot add $this and $rational")
     }
 
   /**
@@ -549,15 +549,15 @@ object Algebraic_Linear {
     *
     * @param s the `Solution` instance to be processed and converted into an `Algebraic_Linear` object
     * @return the created `Algebraic_Linear` object if the input solution is valid and convertible
-    * @throws NumberException if the solution is not a `LinearSolution` or cannot be converted into an `Algebraic_Linear` object
+    * @throws CoreException if the solution is not a `LinearSolution` or cannot be converted into an `Algebraic_Linear` object
     */
   def apply(s: Solution): Algebraic_Linear = s match {
     case s: LinearSolution =>
       create(s) match {
         case Some(x) => x
-        case None => throw NumberException(s"AlgebraicLinear: cannot create algebraic from solution $s")
+        case None => throw CoreException(s"AlgebraicLinear: cannot create algebraic from solution $s")
       }
-    case _ => throw NumberException(s"AlgebraicLinear: cannot create algebraic from solution $s")
+    case _ => throw CoreException(s"AlgebraicLinear: cannot create algebraic from solution $s")
   }
 
   /**

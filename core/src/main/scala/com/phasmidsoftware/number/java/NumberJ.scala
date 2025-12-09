@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.java
 
-import com.phasmidsoftware.number.core.numerical.{Number, NumberException}
+import com.phasmidsoftware.number.core.numerical.{Number, CoreException}
 import com.phasmidsoftware.number.misc.FP.getOrThrow
 import java.math.BigInteger
 
@@ -24,7 +24,7 @@ object NumberJ {
     * @param x a Number.
     * @return a java.math.BigDecimal.
     */
-  def numberToBigDecimal(x: Number): java.math.BigDecimal = getOrThrow(x.toBigDecimal.map(_.bigDecimal), NumberException("Cannot convert $x to a BigDecimal"))
+  def numberToBigDecimal(x: Number): java.math.BigDecimal = getOrThrow(x.toBigDecimal.map(_.bigDecimal), CoreException("Cannot convert $x to a BigDecimal"))
 
   /**
     * Method to convert a Java BigInteger to a Number.
@@ -40,7 +40,7 @@ object NumberJ {
     * @param x a Number.
     * @return a java.math.BigInteger.
     */
-  def numberToBigInteger(x: Number): BigInteger = getOrThrow(x.toBigInt.map(_.bigInteger), NumberException("Cannot convert $x to a BigInteger"))
+  def numberToBigInteger(x: Number): BigInteger = getOrThrow(x.toBigInt.map(_.bigInteger), CoreException("Cannot convert $x to a BigInteger"))
 
   /**
     * Method to convert a Java Long to a Number.
@@ -58,7 +58,7 @@ object NumberJ {
     */
   def numberToLong(x: Number): java.lang.Long = x.toLong match {
     case Some(l) => l
-    case None => throw NumberException("Cannot convert $x to a Long")
+    case None => throw CoreException("Cannot convert $x to a Long")
   }
 
   /**
@@ -77,7 +77,7 @@ object NumberJ {
     */
   def numberToDouble(x: Number): java.lang.Double = x.toNominalDouble match {
     case Some(d) => d
-    case None => throw NumberException("Cannot convert $x to a Double")
+    case None => throw CoreException("Cannot convert $x to a Double")
   }
 
 

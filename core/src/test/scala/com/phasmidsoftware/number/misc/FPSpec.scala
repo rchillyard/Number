@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.inner.RationalException
-import com.phasmidsoftware.number.core.numerical.NumberException
+import com.phasmidsoftware.number.core.numerical.CoreException
 import com.phasmidsoftware.number.misc.FP._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -117,18 +117,18 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     sequence(List(failure)) should matchPattern { case Failure(_) => }
   }
 
-  it should "fail1: return a Failure with NumberException when given a String" in {
+  it should "fail1: return a Failure with CoreException when given a String" in {
     val s = "Test Error"
     val failureFunction = FP.fail[String, Double](s) // Specify the types explicitly X is String, Z is Double
     val result: Try[Double] = failureFunction("anyString") // Passing a String, but ignored
 
     result shouldBe a[Failure[_]]
-    result.failed.get shouldBe a[NumberException]
+    result.failed.get shouldBe a[CoreException]
     result.failed.get.getMessage shouldBe s
   }
 
   it should "fail2: return a Failure with the given Throwable" in {
-    val e = NumberException("Test Error")
+    val e = CoreException("Test Error")
     val result: Try[Int] = FP.fail[String, Int](e)("anything")
 
     result shouldBe a[Failure[_]]
