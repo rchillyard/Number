@@ -2,7 +2,7 @@ ThisBuild / organization := "com.phasmidsoftware"
 
 name := "Number"
 
-ThisBuild / version := "1.3.3"
+ThisBuild / version := "1.3.4"
 
 val catsVersion = "2.13.0"
 val scalaTestVersion = "3.2.19"
@@ -30,6 +30,7 @@ lazy val core = (project in file("core"))
         "com.phasmidsoftware" %% "matchers" % "1.0.11",
         "org.apache.commons" % "commons-math3" % apacheCommonsVersion,
         "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
+        // NOTE the following entry is used only by the algebra module.
         "org.typelevel" %% "spire" % "0.18.0",
         "org.typelevel" %% "cats-kernel" % catsVersion,
         "org.typelevel" %% "cats-core" % catsVersion,
@@ -46,6 +47,10 @@ lazy val core = (project in file("core"))
 lazy val algebra = (project in file("algebra"))
     .settings(
       scalaVersion := "3.7.3",
+      // NOTE: we need to use the 0.18.0 version of Spire for Scala 3.7.3
+//      libraryDependencies ++= Seq(
+//        "org.typelevel" %% "spire" % "0.18.0",
+//      )
     ).dependsOn(core)
 
 lazy val expression = (project in file("expression"))
