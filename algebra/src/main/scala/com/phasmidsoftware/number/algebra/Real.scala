@@ -28,7 +28,7 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAddAndSubtract[Real, Structure] with Number with Scalable[Real] {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAddAndSubtract[Real, Real] with Number with Scalable[Real] {
   /**
     * Converts the current instance to a Double representation.
     * CONSIDER changing to maybeDouble returning Option[Double].
@@ -374,6 +374,18 @@ object Real {
     val z: Try[numerical.Real] = NumberParser.parseNumber(w).map(x => numerical.Real(x))
     FP.getOrThrow[Real](z.map(x => Real(x)).toOption, NumberException(s"Real.apply(String): cannot parse $w"))
   }
+
+  given Convertible[Real, Real] with
+    def convert(witness: Real, u: Real): Real = u
+
+  given Convertible[Real, RationalNumber] with
+    def convert(witness: Real, u: RationalNumber): Real = Real(u.toDouble)
+
+  given Convertible[Real, WholeNumber] with
+    def convert(witness: Real, u: WholeNumber): Real = Real(u.toDouble)
+
+  given Convertible[Real, Angle] with
+    def convert(witness: Real, u: Angle): Real = Real(u.asDouble)
 
   /**
     * Constructs a new `Real` instance based on the values of an existing `Real`.

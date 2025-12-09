@@ -23,6 +23,8 @@ trait Structure extends Eager {
   /**
     * Converts the given `Structure` object to an optional instance of the same type.
     *
+    * TODO remove this method as it is no longer needed.
+    * 
     * @param t the input object of type `T` which is a subtype of `Structure`.
     * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
     */

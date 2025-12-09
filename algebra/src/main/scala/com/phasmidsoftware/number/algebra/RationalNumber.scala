@@ -5,6 +5,7 @@ import cats.Show
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 
@@ -35,7 +36,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q wi
     * @return the result of the subtraction
     */
   def -(that: RationalNumber)(using AdditiveCommutativeGroup[RationalNumber]): RationalNumber =
-    this + -that
+    AdditiveCommutativeGroup[RationalNumber].plus(this, -that)
 
   /**
     * Represents the zero value of the `RationalNumber` type within the field of rational numbers.
@@ -386,6 +387,17 @@ object RationalNumber {
     */
   val infinity: RationalNumber =
     RationalNumber(Rational.infinity)
+
+  given Convertible[RationalNumber, RationalNumber] with
+    def convert(witness: RationalNumber, u: RationalNumber): RationalNumber = u
+
+  given Convertible[RationalNumber, Real] with
+    def convert(witness: RationalNumber, u: Real): RationalNumber =
+      FP.recover(
+        FP.whenever(u.isExact)(
+          Rational.createExact(u.value).toOption.map(RationalNumber(_))
+        )
+      )(AlgebraException("cannot convert $u to RationalNumber"))
 
   /**
     * Provides an implicit implementation of the `Field` type class for the `RationalNumber` type.

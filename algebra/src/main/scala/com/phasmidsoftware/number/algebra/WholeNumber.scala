@@ -8,6 +8,7 @@ import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -357,6 +358,17 @@ object WholeNumber {
     * @return the converted `WholeNumber` instance
     */
   implicit def convIntWholeNumber(x: Int): WholeNumber = WholeNumber(x)
+
+  given Convertible[WholeNumber, WholeNumber] with
+    def convert(witness: WholeNumber, u: WholeNumber): WholeNumber = u
+
+  given Convertible[WholeNumber, Real] with
+    def convert(witness: WholeNumber, u: Real): WholeNumber =
+      FP.recover(
+        FP.whenever(u.isExact)(
+          Rational.createExact(u.value).toOption.flatMap(r => r.maybeInt).map(WholeNumber(_))
+        )
+      )(AlgebraException("cannot convert $u to WholeNumber"))
 
   /**
     * Provides an implicit implementation of a commutative group for the `WholeNumber` type, supporting

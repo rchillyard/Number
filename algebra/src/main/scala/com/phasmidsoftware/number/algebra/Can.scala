@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.*
-import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 
@@ -12,6 +11,8 @@ import scala.reflect.ClassTag
   *
   * The operations are designed to work within the context of an `AdditiveCommutativeMonoid`, ensuring
   * that the defined addition operations respect the algebraic properties of associativity, commutativity, and identity.
+  *
+  * TODO we no longer need the U type parameter.
   *
   * Type Parameters:
   * - `T`: A type extending `Structure` that supports addition operations and satisfies the properties
@@ -37,15 +38,9 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     * @param that The instance of the same type to be added to this instance.
     * @return The result of adding this instance and the provided instance.
     */
-  def +(that: U)(using AdditiveCommutativeMonoid[T]): T =
-    that.convert[T](this.asT) match {
-      case Some(t) => acm.additive.combine(asT, t)
-      case None => throw AlgebraException(s"Cannot add $that to $this")
-    }
-  // TODO implement + this way:
-//    def +[V <: U : Convertible[T]](that: V)(using AdditiveCommutativeMonoid[T]): T =
-//    val t = summon[Convertible[T, V]].convert(that, this.asT)
-//    acm.additive.combine(asT, t)
+  def +(that: U)(using AdditiveCommutativeMonoid[T], Convertible[T, U]): T =
+    val t = summon[Convertible[T, U]].convert(this.asT, that)
+    acm.additive.combine(asT, t)
 
   /**
     * Computes the addition of this object and the given `Structure` object using the additive properties
@@ -77,6 +72,7 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   * A trait that extends `CanAdd` and provides additional functionality for types
   * supporting both addition and subtraction operations. It introduces the ability
   * to negate instances of type `T` and override the unary negation operator.
+  * TODO we no longer need the U type parameter.
   *
   * Type Parameters:
   * - `T`: A type extending `Structure` that supports addition, subtraction, and negation operations

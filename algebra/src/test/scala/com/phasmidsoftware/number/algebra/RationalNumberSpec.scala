@@ -75,8 +75,8 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers with StructuralEquali
 
   // Basic arithmetic operations
   it should "perform addition correctly" in {
-    val x = RationalNumber(1)
-    val y = RationalNumber(2)
+    val x: RationalNumber = RationalNumber(1)
+    val y: RationalNumber = RationalNumber(2)
     x + y shouldBe RationalNumber(3)
   }
 
