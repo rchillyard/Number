@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.cats
 import cats.syntax.semigroup._
 import com.phasmidsoftware.number.cats.ErrorCommutativeMonoid._
 import com.phasmidsoftware.number.core.inner.{PureNumber, Value}
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, FuzzyNumber, Gaussian, Number, RelativeFuzz}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, FuzzyNumber, Gaussian, Number, RelativeFuzz}
 import com.phasmidsoftware.number.misc.Benchmark._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

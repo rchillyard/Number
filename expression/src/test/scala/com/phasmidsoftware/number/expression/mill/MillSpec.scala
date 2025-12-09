@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.expression.mill
 
-import com.phasmidsoftware.number.core.Number
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
+import com.phasmidsoftware.number.core.numerical.Number
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.mill.Mill.parseInfix
 import com.phasmidsoftware.number.expression.mill.TerminalExpression

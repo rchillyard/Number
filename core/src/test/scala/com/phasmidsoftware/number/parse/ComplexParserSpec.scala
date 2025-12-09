@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Number}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util._

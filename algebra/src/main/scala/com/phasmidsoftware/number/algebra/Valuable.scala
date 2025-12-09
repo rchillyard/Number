@@ -8,7 +8,8 @@ import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.algebra.misc.{FP, MaybeNumeric, Renderable}
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.{ExactNumber, Field, FuzzyNumber, NumberException, NumberExceptionWithCause, Real, inner}
+import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber, NumberException, NumberExceptionWithCause, Real}
+import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.{algebra, core}
 import scala.language.implicitConversions
@@ -103,7 +104,7 @@ object Valuable {
     case nat: Nat =>
       Some(intToField(nat.toInt, PureNumber))
     case com.phasmidsoftware.number.algebra.Real(x, fo) =>
-      Some(core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo)))
+      Some(numerical.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo)))
     case q: Q =>
       Some(rationalToField(q.toRational, PureNumber))
     case a@Angle(radians, _) =>
@@ -123,7 +124,7 @@ object Valuable {
     * @param v the `Valuable` instance to be converted into an `Option[Field]`
     * @return `Some(Field)` if the conversion is successful, or `None` if it fails
     */
-  def unapply(v: Valuable): Option[core.Field] =
+  def unapply(v: Valuable): Option[numerical.Field] =
     valuableToMaybeField(v)
 
   /**
@@ -160,7 +161,7 @@ object Valuable {
     case RationalNumber(r, _) =>
       rationalToField(r, PureNumber)
     case algebra.Real(x, fo) =>
-      core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
+      numerical.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
     case WholeNumber(x) =>
       Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber))
     case _ =>
@@ -243,11 +244,11 @@ object Eager {
     * @return a `Valuable` representation of the input `Field` as a `Scalar`.
     * @throws IllegalArgumentException if the provided `Field` is not of type `Real`.
     */
-  def apply(field: core.Field): Eager =
+  def apply(field: numerical.Field): Eager =
     field match {
-      case core.Real(n) =>
+      case numerical.Real(n) =>
         Scalar(n)
-      case c: core.Complex =>
+      case c: numerical.Complex =>
         Complex(c)
       case a: Algebraic =>
         throw NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")

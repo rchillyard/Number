@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
-import com.phasmidsoftware.number.core.Number.{negOne, negate, one, two}
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
-import com.phasmidsoftware.number.core.{Constants, Field, FuzzyEquality, Real}
+import com.phasmidsoftware.number.core.numerical.Number.{negOne, negate, one, two}
+import com.phasmidsoftware.number.core.numerical.{Constants, Field, FuzzyEquality, Real}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

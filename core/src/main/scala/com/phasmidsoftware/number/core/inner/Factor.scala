@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.core.inner.Factor.{composeDyadic, sPercent}
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, toIntOption}
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
-import com.phasmidsoftware.number.core.{Field, Fuzziness, Number, Real}
+import com.phasmidsoftware.number.core.numerical.{Field, Fuzziness, Number, Real}
 import com.phasmidsoftware.number.misc.FP._
 import scala.language.implicitConversions
 import scala.util._
@@ -309,7 +309,7 @@ sealed trait Scalar extends Factor {
     */
   def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] =
     (this, f) match {
-      case (a: PureNumber.type, b: PureNumber.type) =>
+      case (_: PureNumber.type, _: PureNumber.type) =>
         for {
           v <- Factor.composeDyadic(x, y)(DyadicOperationPlus)
         } yield (v, this, None)

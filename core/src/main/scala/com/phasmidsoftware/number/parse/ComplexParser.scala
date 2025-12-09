@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.core.{Complex, NumberException}
+import com.phasmidsoftware.number.core.numerical.{Complex, NumberException}
 import scala.util.Try
 
 /**

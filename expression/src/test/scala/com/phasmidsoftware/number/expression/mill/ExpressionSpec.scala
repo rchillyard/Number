@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.mill
 
-import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number.core.numerical.Number
 import com.phasmidsoftware.number.expression.mill.Expression
 import com.phasmidsoftware.number.expression.parse.ShuntingYardParser
 import org.scalactic.Equality

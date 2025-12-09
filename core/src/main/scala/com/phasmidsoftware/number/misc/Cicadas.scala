@@ -8,7 +8,7 @@ package com.phasmidsoftware.number.misc
   */
 case class Cicada(next: Int, period: Int) extends (Int => Boolean) {
 
-  import com.phasmidsoftware.number.core.Divides._
+  import com.phasmidsoftware.number.core.numerical.Divides._
 
   /**
     * Determine if year x is an emergence year

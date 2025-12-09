@@ -4,14 +4,14 @@
 
 package com.phasmidsoftware.number.core.expression
 
-import com.phasmidsoftware.number.core.Constants.gamma
-import com.phasmidsoftware.number.core.Number.one
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.algebraic._
 import com.phasmidsoftware.number.core.expression.Expression.em
 import com.phasmidsoftware.number.core.expression.Literal.someLiteral
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
+import com.phasmidsoftware.number.core.numerical.Constants.gamma
+import com.phasmidsoftware.number.core.numerical.Number.one
+import com.phasmidsoftware.number.core.numerical.{Complex, Constants, ExactNumber, Field, Number, Real}
 import java.util.Objects
 import scala.language.implicitConversions
 
@@ -793,6 +793,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     * @return a new `Transcendental` instance that encapsulates the applied function and updated expression.
     */
   def function(f: ExpressionMonoFunction): Transcendental =
+    // XXX duplicate code
     new AbstractTranscendental(s"${f.name}($name)", UniFunction(expression, f).simplify) {}
 
   /**

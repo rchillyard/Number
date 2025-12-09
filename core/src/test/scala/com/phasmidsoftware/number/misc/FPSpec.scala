@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.RationalException
+import com.phasmidsoftware.number.core.numerical.NumberException
 import com.phasmidsoftware.number.misc.FP._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.expression.parse
 
-import com.phasmidsoftware.number.core.*
+import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.expression.mill.*
 import scala.annotation.tailrec
 import scala.util.Try
@@ -24,10 +24,8 @@ object ShuntingYardParser extends BaseMillParser {
     * @param w the String to parse.
     * @return a Mill, wrapped in Try.
     */
-  def parseInfix(w: String): Try[Mill] = {
-    val triedShuntingYard = stringParser(shuntingYard, w)
-    triedShuntingYard.flatMap(_.toMill)
-  }
+  def parseInfix(w: String): Try[Mill] =
+    stringParser(shuntingYard, w).flatMap(_.toMill)
 
   /**
     * A ShuntingYard consisting of two structures: a queue of values and a stack of operators.
@@ -82,26 +80,27 @@ object ShuntingYardParser extends BaseMillParser {
       ShuntingYard(values :+ Expr(TerminalExpression(number)), operators)
 
     @tailrec
-    private def :+(operator: String): ShuntingYard = Item(operator) match {
-      case o1@Dyadic(_, _) => operators match {
-        case Nil =>
-          ShuntingYard(values, o1 +: Nil)
-        case Open :: xs =>
-          ShuntingYard(values, o1 :: Open :: xs)
-        case op +: xs =>
-          op match {
-          case o2@Dyadic(_, _) =>
-            if (implicitly[Ordering[Dyadic]].compare(o1, o2) < 0)
-              ShuntingYard(values :+ o2, xs) :+ operator
-            else
-              ShuntingYard(values, o1 +: o2 +: xs)
-          case _ =>
-            ShuntingYard(values, op +: xs)
+    private def :+(operator: String): ShuntingYard =
+      Item(operator) match {
+        case o1@Dyadic(_, _) => operators match {
+          case Nil =>
+            ShuntingYard(values, o1 +: Nil)
+          case Open :: xs =>
+            ShuntingYard(values, o1 :: Open :: xs)
+          case op +: xs =>
+            op match {
+              case o2@Dyadic(_, _) =>
+                if (implicitly[Ordering[Dyadic]].compare(o1, o2) < 0)
+                  ShuntingYard(values :+ o2, xs) :+ operator
+                else
+                  ShuntingYard(values, o1 +: o2 +: xs)
+              case o2 =>
+                ShuntingYard(values :+ o2, xs) :+ operator
+            }
         }
+        case op =>
+          ShuntingYard(values, op +: operators)
       }
-      case op =>
-        ShuntingYard(values, op +: operators)
-    }
 
     @tailrec
     private def switch: ShuntingYard = this match {

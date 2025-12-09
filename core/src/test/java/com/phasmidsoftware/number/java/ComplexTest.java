@@ -1,9 +1,9 @@
 package com.phasmidsoftware.number.java;
 
-import com.phasmidsoftware.number.core.Complex;
-import com.phasmidsoftware.number.core.ComplexCartesian;
-import com.phasmidsoftware.number.core.ComplexPolar;
-import com.phasmidsoftware.number.core.Number;
+import com.phasmidsoftware.number.core.numerical.Complex;
+import com.phasmidsoftware.number.core.numerical.ComplexCartesian;
+import com.phasmidsoftware.number.core.numerical.ComplexPolar;
+import com.phasmidsoftware.number.core.numerical.Number;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

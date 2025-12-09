@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.NumberException
 import com.phasmidsoftware.number.misc.ContinuedFraction.Hurwitz
 import scala.annotation.tailrec
 import scala.util.Try

@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.Constants
 import com.phasmidsoftware.number.core.inner.CoreContext.AnyRoot
+import com.phasmidsoftware.number.core.numerical.Constants
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 

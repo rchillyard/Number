@@ -10,7 +10,7 @@ import cats.kernel.{Eq, Order, PartialOrder}
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, GeneralNumber, Number, Real}
+import com.phasmidsoftware.number.core.numerical.{Box, Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, Gaussian, GeneralNumber, Number, Real}
 import scala.annotation.tailrec
 
 /**
@@ -47,7 +47,8 @@ trait CatsKernelInstances {
   //implicit val fuzzyNumberIsFuzzy: Fuzzy[Number] = FuzzyNumber.NumberIsFuzzy
 
   // ===== Fuzziness equality/ordering (used by Number partial order fallback) =====
-  import com.phasmidsoftware.number.core.{Fuzziness, AbsoluteFuzz => Abs, RelativeFuzz => Rel}
+
+  import com.phasmidsoftware.number.core.numerical.{Fuzziness, AbsoluteFuzz => Abs, RelativeFuzz => Rel}
 
   // Structural Eq for Fuzziness[Double]: kind/shape/magnitude
   implicit val fuzzEq: Eq[Fuzziness[Double]] = Eq.instance { (f, g) =>
@@ -73,10 +74,10 @@ trait CatsKernelInstances {
       else {
         // shape: Box < Gaussian; others equal
         val cShape = (f, g) match {
-          case (Abs(_: Double, com.phasmidsoftware.number.core.Box) | Rel(_: Double, com.phasmidsoftware.number.core.Box),
-                Abs(_: Double, com.phasmidsoftware.number.core.Gaussian) | Rel(_: Double, com.phasmidsoftware.number.core.Gaussian)) => -1
-          case (Abs(_: Double, com.phasmidsoftware.number.core.Gaussian) | Rel(_: Double, com.phasmidsoftware.number.core.Gaussian),
-                Abs(_: Double, com.phasmidsoftware.number.core.Box) | Rel(_: Double, com.phasmidsoftware.number.core.Box)) => 1
+          case (Abs(_: Double, Box) | Rel(_: Double, Box),
+          Abs(_: Double, Gaussian) | Rel(_: Double, Gaussian)) => -1
+          case (Abs(_: Double, Gaussian) | Rel(_: Double, Gaussian),
+          Abs(_: Double, Box) | Rel(_: Double, Box)) => 1
           case _ => 0
         }
         if (cShape != 0) cShape.toDouble
@@ -203,19 +204,19 @@ trait CatsKernelInstances {
 
   implicit val complexEq: Eq[Complex] = Eq.instance { (a, b) =>
     // Normalize both sides to Cartesian form, then compare components structurally (real/imag)
-    val aC: com.phasmidsoftware.number.core.Complex = a match {
+    val aC: com.phasmidsoftware.number.core.numerical.Complex = a match {
       case c: ComplexCartesian => c
-      case p: ComplexPolar     => com.phasmidsoftware.number.core.Complex.convertToCartesian(p)
+      case p: ComplexPolar => com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian(p)
     }
-    val bC: com.phasmidsoftware.number.core.Complex = b match {
+    val bC: com.phasmidsoftware.number.core.numerical.Complex = b match {
       case c: ComplexCartesian => c
-      case p: ComplexPolar     => com.phasmidsoftware.number.core.Complex.convertToCartesian(p)
+      case p: ComplexPolar => com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian(p)
     }
     val (ax, ay) = aC match {
-      case com.phasmidsoftware.number.core.BaseComplex(x, y) => (x, y)
+      case com.phasmidsoftware.number.core.numerical.BaseComplex(x, y) => (x, y)
     }
     val (bx, by) = bC match {
-      case com.phasmidsoftware.number.core.BaseComplex(x, y) => (x, y)
+      case com.phasmidsoftware.number.core.numerical.BaseComplex(x, y) => (x, y)
     }
     ax === bx && ay === by
   }

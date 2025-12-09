@@ -6,10 +6,11 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{CanPower, Eager, Context, NatLog, Q, RationalNumber, RestrictedContext, Structure, Valuable}
+import com.phasmidsoftware.number.algebra.{CanPower, Context, Eager, NatLog, Q, RationalNumber, RestrictedContext, Structure, Valuable}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
-import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Field, Number, Real, inner}
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Field, Number, Real}
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.{algebra, core, expression}
@@ -887,7 +888,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     em.matchIfDefined(product)(expression.expr.BiFunction(a, b, Product))
   }
 
-  private def evaluateAsScalar[T <: Structure](x: Expression): Option[core.Field] =
+  private def evaluateAsScalar[T <: Structure](x: Expression): Option[numerical.Field] =
     x.evaluate(RestrictedContext(PureNumber)).flatMap(valuableToMaybeField)
 }
 

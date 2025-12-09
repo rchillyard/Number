@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.AdditiveCommutativeGroup
 import com.phasmidsoftware.number.core.inner.Value
-import com.phasmidsoftware.number.core.{Box, RelativeFuzz}
+import com.phasmidsoftware.number.core.numerical.{Box, RelativeFuzz}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

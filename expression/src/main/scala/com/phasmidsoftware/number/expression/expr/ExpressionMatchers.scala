@@ -7,7 +7,8 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.core.inner.PureNumber
-import com.phasmidsoftware.number.core.{Field, Real}
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.{Field, Real}
 import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.Literal.someLiteral
 import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
@@ -142,7 +143,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       (fo, f.maybeIdentityL) match {
         case (Some(field1), Some(field2)) if field1 == field2 =>
           someLiteral(field1)
-        case (Some(core.Real(core.Number.zeroR)), Some(field2: Monotone)) if field2.isZero =>
+        case (Some(numerical.Real(numerical.Number.zeroR)), Some(field2: Monotone)) if field2.isZero =>
           someLiteral(field2)
         case _ =>
           None

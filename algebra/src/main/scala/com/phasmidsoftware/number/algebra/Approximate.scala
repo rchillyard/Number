@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.numerical.NumberException
 
 /**
   * Trait representing a structure that supports approximation.

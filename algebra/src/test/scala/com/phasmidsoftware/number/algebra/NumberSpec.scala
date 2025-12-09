@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
-import algebra.ring.AdditiveCommutativeMonoid
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -16,14 +15,13 @@ class NumberSpec extends AnyFlatSpec with Matchers {
 
   // Basic arithmetic operations
   it should "perform addition correctly" in {
-    val x = one
-    val y = two
+    val x: Real = one
+    val y: Real = two
     val z: Number = 2
     x + y shouldBe three
     y + x shouldBe three
     x doPlus z shouldBe Some(three)
     val expected2plusPi = Some(Real(5.141592653589793, Some(AbsoluteFuzz(5.02654824574367E-16, Box))))
-    import com.phasmidsoftware.number.algebra.Number.NumberIsAdditiveCommutativeMonoid
 //    summon[AdditiveCommutativeMonoid[Number]].plus(z, pi) shouldBe expected2plusPi
 //    plus(pi, z) shouldBe expected2plusPi
   }

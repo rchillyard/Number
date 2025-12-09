@@ -6,13 +6,13 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Complex, Eager, Context, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
-import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.Constants.gamma
+import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Complex, Context, Eager, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.{Constants, Field, NumberException, inner}
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.Constants.gamma
+import com.phasmidsoftware.number.core.numerical.{Constants, Field, NumberException}
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.{CompositeExpression, UniFunction}
 import java.util.Objects
@@ -182,7 +182,7 @@ case class Noop(w: String) extends AtomicExpression {
   * @param r The new `Real` type that needs to be converted to the old `Real` type.
   */
 def newRealToOldReal(r: Real) =
-  valuableToMaybeField(r).get.asInstanceOf[core.Real] // TODO fix this
+  valuableToMaybeField(r).get.asInstanceOf[numerical.Real] // TODO fix this
 
 /**
   * Represents an abstract expression for a Valuable that can optionally be associated with a name.
@@ -283,7 +283,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
       m.approximation(force)
     case algebraic: Algebraic =>
       algebraic.solve.asField match {
-        case r: core.Real =>
+        case r: numerical.Real =>
           Some(Eager(r).asInstanceOf[Real])
         case _ =>
           None // TESTME
@@ -471,7 +471,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
       //      case (Reciprocal, a: Algebraic) =>
       //            (a.invert)
       case (Reciprocal, c: Complex) =>
-        Complex(c.complex.invert.asInstanceOf[core.Complex])
+        Complex(c.complex.invert.asInstanceOf[numerical.Complex])
       case (function, q) =>
         function(q)
       case _ =>
@@ -485,6 +485,14 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
   * Companion object for the `Literal` class, providing factory methods and pattern matching support.
   */
 object Literal {
+
+  /**
+    * Converts the given integer value into a `Literal` object with a `WholeNumber` representation.
+    *
+    * @param x the integer value to be converted
+    * @return a `Literal` containing the `WholeNumber` representation of the input integer
+    */
+  def apply(x: Int): Literal = Literal(WholeNumber(x))
 
   /**
     * Creates a `Literal` instance from an `Eager` value.
@@ -528,20 +536,20 @@ object Literal {
     * @param x the number to convert into a Literal
     * @return a Literal instance representing the given number
     */
-  def apply(x: core.Number): Expression = x match {
-    case core.Number.one =>
+  def apply(x: numerical.Number): Expression = x match {
+    case numerical.Number.one =>
       One
-    case core.Number.zero =>
+    case numerical.Number.zero =>
       Zero
-    case core.Number.pi =>
+    case numerical.Number.pi =>
       ConstPi
-    case core.Number.two =>
+    case numerical.Number.two =>
       Two
-    case core.Number.negOne =>
+    case numerical.Number.negOne =>
       MinusOne
-    case core.Number.half =>
+    case numerical.Number.half =>
       Half
-    case core.Number.e =>
+    case numerical.Number.e =>
       ConstE
     case _ =>
       ValueExpression(Scalar(x))
@@ -1363,7 +1371,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
       Some(Field(base, PureNumber))
     case QuadraticSolution(base, offset, factor, branch) if Value.isZero(base) && (factor == PureNumber || branch == 0) =>
       val radicalTerm = if branch == 0 then offset else Value.negate(offset)
-      Some(core.Real(core.Number.one.make(radicalTerm, factor)))
+      Some(numerical.Real(numerical.Number.one.make(radicalTerm, factor)))
     case _ =>
       (equ, branch) match {
         case (Quadratic.goldenRatioEquation, 0) =>
@@ -1429,12 +1437,12 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */
-  def approximation: Option[core.Real] =
+  def approximation: Option[numerical.Real] =
     maybeValue match {
       case Some(value) =>
         value.approximation
       case None =>
-        solution.asNumber map (core.Real(_))
+        solution.asNumber map (numerical.Real(_))
     }
 
   /**

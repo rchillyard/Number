@@ -8,6 +8,7 @@ import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -131,16 +132,39 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     *         if the conversion is successful, or `None` otherwise.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+    case x if x.getClass == this.getClass =>
+      Some(this.asInstanceOf[T])
     case _: RationalNumber =>
-      val number = RationalNumber(Rational(x.toBigInt))
-      Some(number.asInstanceOf[T])
+      Some(toRationalNumber.asInstanceOf[T])
     case _: Real =>
-      // CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here.
-      // For now, we use the default fuzziness of None.
-      Some(Real(x.toDouble, None).asInstanceOf[T])
+      Some(toReal.asInstanceOf[T])
     case _ =>
       None
   }
+
+  /**
+    * Converts the given structure to a `Real` representation.
+    * CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here.
+    * For now, we use the default fuzziness of None.
+    *
+    * This method transforms the value `x` into an instance of the `Real` class
+    * by converting `x` to a `Double` and setting its optional parameter to `None`.
+    *
+    * @tparam T The type of the input structure, which must extend `Structure`
+    *           and have an associated `ClassTag`.
+    *
+    * @return A `Real` object constructed from the input structure.
+    */
+  def toReal[T <: Structure : ClassTag] =
+    Real(x.toDouble, None)
+
+  /**
+    * Converts the current value into a RationalNumber representation.
+    *
+    * @return A RationalNumber instance representing the current value.
+    */
+  def toRationalNumber: RationalNumber =
+    RationalNumber(Rational(x.toBigInt))
 
   /**
     * Represents the zero element of the `WholeNumber` type, adhering to the identity element defined
@@ -355,6 +379,17 @@ object WholeNumber {
     * @return the converted `WholeNumber` instance
     */
   implicit def convIntWholeNumber(x: Int): WholeNumber = WholeNumber(x)
+
+  given Convertible[WholeNumber, WholeNumber] with
+    def convert(witness: WholeNumber, u: WholeNumber): WholeNumber = u
+
+  given Convertible[WholeNumber, Real] with
+    def convert(witness: WholeNumber, u: Real): WholeNumber =
+      FP.recover(
+        FP.whenever(u.isExact)(
+          Rational.createExact(u.value).toOption.flatMap(r => r.maybeInt).map(WholeNumber(_))
+        )
+      )(AlgebraException("cannot convert $u to WholeNumber"))
 
   /**
     * Provides an implicit implementation of a commutative group for the `WholeNumber` type, supporting

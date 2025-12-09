@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.Field
+import com.phasmidsoftware.number.core.numerical.Field
 
 /**
   * Represents a trait for specifying in which evaluation-contexts a particular expression may be evaluated.

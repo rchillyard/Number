@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.algebra.misc
 
-import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
+import com.phasmidsoftware.number.core.numerical.NumberException
 import java.net.URL
 import scala.Option.when
 import scala.io.Source
@@ -339,7 +339,7 @@ object FP {
     */
   def resourceForClass(resourceName: String, clazz: Class[?] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
     case Some(u) => Success(u)
-    case None => Failure(new Exception(s"$resourceName is not a valid resource for $clazz"))
+    case None => Failure(AlgebraException(s"$resourceName is not a valid resource for $clazz"))
   }
 
   /**

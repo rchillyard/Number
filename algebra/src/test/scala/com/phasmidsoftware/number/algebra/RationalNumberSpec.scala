@@ -16,12 +16,11 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers with StructuralEquali
   import com.phasmidsoftware.number.core.inner.Rational.RationalOps
 
   it should "apply" in {
-    RationalNumber(42) shouldBe RationalNumber(Rational(42), false)
-    RationalNumber(22, 7) shouldBe RationalNumber(Rational(22, 7), false)
+    RationalNumber(42) shouldBe RationalNumber(Rational(42))
+    RationalNumber(22, 7) shouldBe RationalNumber(Rational(22, 7))
     val r = 22 :/ 7
-    RationalNumber(r) shouldBe RationalNumber(Rational(22, 7), false)
-    import com.phasmidsoftware.number.core.inner.Rational.RationalOps
-    RationalNumber(r"22/7") shouldBe RationalNumber(Rational(22, 7), false)
+    RationalNumber(r) shouldBe RationalNumber(Rational(22, 7))
+    RationalNumber(r"22/7") shouldBe RationalNumber(Rational(22, 7))
   }
   it should "===" in {
     RationalNumber(42) should ===(RationalNumber(42))
@@ -76,8 +75,8 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers with StructuralEquali
 
   // Basic arithmetic operations
   it should "perform addition correctly" in {
-    val x = RationalNumber(1)
-    val y = RationalNumber(2)
+    val x: RationalNumber = RationalNumber(1)
+    val y: RationalNumber = RationalNumber(2)
     x + y shouldBe RationalNumber(3)
   }
 

@@ -5,14 +5,14 @@
 package com.phasmidsoftware.number.core.expression
 
 import com.phasmidsoftware.matchers._
-import com.phasmidsoftware.number.core.Constants.root3
-import com.phasmidsoftware.number.core.Field.convertToNumber
-import com.phasmidsoftware.number.core.Number.{piBy2, root2, zeroR, √}
 import com.phasmidsoftware.number.core.expression.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.expression.Expression.{ExpressionOps, matchSimpler}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational}
-import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
+import com.phasmidsoftware.number.core.numerical.Constants.root3
+import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
+import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, zeroR, √}
+import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, FuzzyNumber, Number, Real}
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -40,7 +40,7 @@ import scala.languageFeature.implicitConversions._
   * - Simplification logic for trivial arithmetic and symbolic cancellations.
   * - Handling edge cases like exact evaluation, reciprocal, and multi-level symbolic transformations.
   *
-  * Several tests focus on validating simplification scenarios, specifically ensuring the cancelation of
+  * Several tests focus on validating simplification scenarios, specifically ensuring the cancellation of
   * arithmetic operations like addition/subtraction, multiplication/division, and power/exponentiation inversions.
   *
   * Helper implicits such as `ExpressionEquality` and logging mechanisms (`MatchLogger`) assist in testing and debugging the logic.
@@ -149,7 +149,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "handle Sum" in {
     import com.phasmidsoftware.number.core.expression.BiFunction._
     val p = Expression.matchSimpler
-    val x: Expression = Number.pi
     p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
     p(Sum ~ Two ~ Two) shouldBe em.Match(Literal(4))

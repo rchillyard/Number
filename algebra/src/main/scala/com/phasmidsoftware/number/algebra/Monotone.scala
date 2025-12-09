@@ -50,7 +50,7 @@ trait Monotone extends Structure with Approximate {
     */
   def approximation(force: Boolean = false): Option[Real] = this match {
     case real: Real => Some(real)
-    case _ if (force) => convert(Real.zero)
+    case _ if force => convert(Real.zero)
     case _ => None
   }
 

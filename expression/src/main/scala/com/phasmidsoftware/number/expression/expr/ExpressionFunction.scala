@@ -7,10 +7,10 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAdd, CanMultiply, CanPower, Eager, Context, ImpossibleContext, Number, Q, RationalNumber, RestrictedContext, Scalable, Scalar, Valuable, WholeNumber}
-import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAdd, CanMultiply, CanPower, Context, Eager, ImpossibleContext, Number, Q, RationalNumber, RestrictedContext, Scalable, Scalar, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Real}
+import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, Real}
+import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
 import scala.annotation.tailrec
 
@@ -475,7 +475,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
       case (Real(x@ExactNumber(_, NatLog)), Valuable.e) => // XXX not strictly necessary as this will be handled by the default case
         Some(Eager(Real(x.make(PureNumber))))
       case (Real(x@ExactNumber(_, Euler)), Valuable.e) =>
-        Some(Eager(ComplexPolar(core.Number.one, x.make(Radian).simplify)))
+        Some(Eager(ComplexPolar(numerical.Number.one, x.make(Radian).simplify)))
       case _ if a == b =>
         Some(Valuable.one)
       case _ =>
@@ -520,7 +520,7 @@ case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
     case Valuable.infinity =>
       Some(x)
     case Valuable.minusOne =>
-      Some(Eager(-ComplexPolar(core.Number.pi, core.Number.piBy2)))
+      Some(Eager(-ComplexPolar(numerical.Number.pi, numerical.Number.piBy2)))
     case _ =>
       None
   }
@@ -628,9 +628,9 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
           Real(ExactNumber(x, f)))
         Eager(real)
       )
-    case Valuable(Real(ExactNumber(v, f@core.inner.Logarithmic(_)))) =>
+    case Valuable(Real(ExactNumber(v, f@inner.Logarithmic(_)))) =>
       Some(Eager(Real(ExactNumber(Value.negate(v), f)))) // TESTME
-    case Valuable(Real(ExactNumber(v, f@core.inner.NthRoot(_)))) =>
+    case Valuable(Real(ExactNumber(v, f@inner.NthRoot(_)))) =>
       Value.inverse(v).map(x =>
         Eager(Real(ExactNumber(x, f))))
     case _ =>

@@ -7,9 +7,10 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.misc.FP.recover
-import com.phasmidsoftware.number.core.*
-import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.*
+import com.phasmidsoftware.number.core.numerical.Number.convertInt
 import com.phasmidsoftware.number.expression.expr.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.{BiFunction, CompositeExpression, UniFunction}
@@ -102,15 +103,15 @@ trait Expression extends Valuable with Approximate {
     *
     * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
     */
-  def asNumber: Option[core.Number] =
+  def asNumber: Option[numerical.Number] =
     if isExact then
       evaluateAsIs match {
-        case Some(x: core.Number) => Some(x)
+        case Some(x: numerical.Number) => Some(x)
         case _ => None
       }
     else
       materialize match {
-        case x: core.Number => Some(x)
+        case x: numerical.Number => Some(x)
         case _ => None
       }
 
@@ -188,15 +189,6 @@ object Expression {
       */
     infix def plus(y: Expression): Expression =
       expression.expr.BiFunction(x, y, Sum)
-
-//    /**
-//      * Method to lazily multiply x by y.
-//      *
-//      * @param y another Expression.
-//      * @return an Expression which is the lazy product of x and y.
-//      */
-//    def +(y: Expression): Expression =
-//      x plus y
 
     /**
       * Method to lazily append the given expression to this expression using addition.
@@ -387,8 +379,8 @@ object Expression {
     * @param x the number to be converted into an Expression
     * @return an Expression representing the input number
     */
-  implicit def convert(x: core.Number): Expression =
-    apply(Eager(core.Real(x)))
+  implicit def convert(x: numerical.Number): Expression =
+    apply(Eager(numerical.Real(x)))
 
   /**
     * The following constants are helpful in getting an expression started.
@@ -467,9 +459,9 @@ object Expression {
     */
   def convertMillExpressionToExpression(expr: mill.Expression): Expression =
     expr match {
-      case TerminalExpression(core.Number.one) =>
+      case TerminalExpression(numerical.Number.one) =>
         One
-      case TerminalExpression(core.Number.two) =>
+      case TerminalExpression(numerical.Number.two) =>
         Two
       case TerminalExpression(value) =>
         Literal(value)
@@ -563,6 +555,12 @@ object Expression {
           em.eitherOr(simplifyTrivial,
             em.eitherOr(simplifyConstant,
               simplifyComposite))))(x)
+//    case x: CompositeExpression =>
+//      "simplifyExact" !! simplifyExact(x) ||
+//          "simplifyComponents" !! simplifyComponents(x) ||
+//          "simplifyTrivial" !! simplifyTrivial(x) ||
+//          "simplifyConstant" !! simplifyConstant(x) ||
+//          "simplifyComposite" !! simplifyComposite(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x")) // TESTME
   }

@@ -10,7 +10,8 @@ import com.phasmidsoftware.number.algebra.Angle.𝛑
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.infinity
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Gaussian}
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Gaussian}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.*
 import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
@@ -51,7 +52,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
       case v: Eager => a.compare(Literal(v)) == 0
-      case n: core.Number => new ExpressionOps(a).compare(Literal(n)) == 0
+      case n: numerical.Number => new ExpressionOps(a).compare(Literal(n)) == 0
       case _ => false
     }
   }
@@ -274,8 +275,8 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   behavior of "Other stuff"
   it should "" in {
-    import Rational.RationalOps // For :/
-    import com.phasmidsoftware.number.expression.expr.Expression._ // For One, etc.
+    import Rational.RationalOps
+    import com.phasmidsoftware.number.expression.expr.Expression.* // For One, etc.
 
     val x = 1 :/ 2  // Exact rational: 1/2
     val lazyHalf = One / 2

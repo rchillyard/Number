@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.java;
 
-import com.phasmidsoftware.number.core.Number;
+import com.phasmidsoftware.number.core.numerical.Number;
 import org.junit.Test;
 
 import java.math.BigDecimal;

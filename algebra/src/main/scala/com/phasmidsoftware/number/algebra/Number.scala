@@ -1,9 +1,12 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeMonoid, MultiplicativeGroup}
-import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
+import com.phasmidsoftware.number.algebra.Real.realIsRing
+import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
+import com.phasmidsoftware.number.core.numerical.NumberException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -158,25 +161,30 @@ object Number {
     @tailrec
     def plus(x: Number, y: Number): Number = (x, y) match {
       case (a: Real, b: Real) =>
-        a + b
+        realIsRing.plus(a, b)
       case (a, b: Real) =>
         plus(y, x)
       case (a: Real, b) =>
-        FP.recover(b.convert(Real.zero).map(_ + a))(NumberException("Number.plus: logic error: cannot convert " + b + " to a Real"))
+        b.convert(Real.zero).map(bAsReal => realIsRing.plus(a, bAsReal))
+            .getOrElse(throw AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
       case (a: RationalNumber, b: RationalNumber) =>
-        a + b
+        rationalNumberIsField.plus(a, b)
       case (a, b: RationalNumber) =>
         plus(y, x)
       case (a: RationalNumber, b) =>
-        FP.recover(b.convert(RationalNumber.zero).map(a + _))(NumberException("Number.plus: logic error: cannot convert " + b + " to a RationalNumber"))
+        b.convert(RationalNumber.zero).map(bAsRational => rationalNumberIsField.plus(a, bAsRational))
+            .getOrElse(throw AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
       case (a: WholeNumber, b: WholeNumber) =>
-        a + b
+        WholeNumberIsCommutativeRing.plus(a, b)
       case (a, b: WholeNumber) =>
         plus(y, x)
       case _ =>
         throw NumberException("Number.plus: logic error: cannot add " + x + " and " + y)
     }
   }
+
+  given Convertible[Number, Number] with
+    def convert(witness: Number, u: Number): Number = u
 
   /**
     * An implicit object defining the multiplicative group structure for `Number` instances.
@@ -211,7 +219,7 @@ object Number {
     @tailrec
     def times(x: Number, y: Number): Number = (x, y) match {
       case (a: Real, b: Real) =>
-        a * b
+        realIsRing.times(a, b)
       case (a, b: Real) =>
         times(y, x)
       case (a: Real, b) =>

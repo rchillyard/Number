@@ -5,7 +5,7 @@ import com.phasmidsoftware.number.cats.CatsKernel._
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, LinearEquation, Quadratic}
 import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, Fuzziness, FuzzyNumber, Gaussian, GeneralNumber, Number, Real, RelativeFuzz}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, Fuzziness, FuzzyNumber, Gaussian, GeneralNumber, Number, Real, RelativeFuzz}
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.Checkers

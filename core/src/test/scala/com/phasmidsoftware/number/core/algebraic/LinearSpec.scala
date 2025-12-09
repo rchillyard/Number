@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.{FuzzyEquality, Real}
+import com.phasmidsoftware.number.core.numerical.{FuzzyEquality, Real}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

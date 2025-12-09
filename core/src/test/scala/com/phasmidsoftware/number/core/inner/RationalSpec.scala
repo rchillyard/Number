@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.Prime
 import com.phasmidsoftware.number.core.inner.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, half, negZeroDouble, pi_5000, third, zero}
+import com.phasmidsoftware.number.core.numerical.Prime
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
 import scala.language.postfixOps
@@ -561,7 +561,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "equal BigDecimal(10)" in {
     Rational.ten.toBigDecimal shouldBe Some(BigDecimal(10))
   }
-  it should "equal a million when raised to 6th powe (∧)r" in {
+  it should "equal a million (ten raised to 6th power)" in {
     (Rational.ten ∧ 6) shouldBe Rational(1000000)
   }
 

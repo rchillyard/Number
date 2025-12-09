@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times, toInts}
-import com.phasmidsoftware.number.core.{BigNumber, Number, NumberLike, Prime}
+import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
+import com.phasmidsoftware.number.core.numerical.{BigNumber, Number, NumberLike, Prime}
 import com.phasmidsoftware.number.misc.FP.{toTry, toTryWithRationalException}
 import com.phasmidsoftware.number.misc.{ContinuedFraction, FP}
 import com.phasmidsoftware.number.parse.RationalParser
@@ -315,7 +315,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     */
   def isDecimal: Boolean =
     isWhole || {
-      import com.phasmidsoftware.number.core.Divides.IntDivides
+      import com.phasmidsoftware.number.core.numerical.Divides.IntDivides
       (2 |> d) || (5 |> d)
     }
 
@@ -625,17 +625,6 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
           }
       }
   }
-
-  /**
-    * Method to determine if this NumberLike object can be evaluated exactly in the context of factor.
-    *
-    * CONSIDER whether this method should really be defined in NumberLike since it makes no sense here.
-    *
-    * @param context the (optional) context in which we want to evaluate this Expression.
-    *                if factor is None then, the result will depend solely on whether this is exact.
-    * @return true if this NumberLike object is exact in the context of factor, else false.
-    */
-  def isExactInContext(context: CoreContext): Boolean = true
 
   /**
     * Method to determine if this Field is actually a real Number (i.e. not complex).

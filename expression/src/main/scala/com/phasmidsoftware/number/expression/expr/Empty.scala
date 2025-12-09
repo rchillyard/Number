@@ -7,6 +7,13 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.WholeNumber
 
 /**
+  * Represents an object with no functionality or state.
+  *
+  * This is only defined here so that we no longer have a file without a corresponding class or object.
+  */
+object Empty
+
+/**
   * The `∅` object represents the identity element in mathematical operations on expressions.
   * It serves as a symbolic representation of the "empty" or neutral element in addition and multiplication operations.
   *

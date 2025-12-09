@@ -5,8 +5,9 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.number.algebra.Real
-import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.inner.Factor
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.{algebra, core}
 import scala.reflect.ClassTag
 
@@ -22,6 +23,8 @@ trait Structure extends Eager {
   /**
     * Converts the given `Structure` object to an optional instance of the same type.
     *
+    * TODO remove this method as it is no longer needed.
+    * 
     * @param t the input object of type `T` which is a subtype of `Structure`.
     * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
     */
@@ -53,9 +56,9 @@ trait Structure extends Eager {
 /**
   * This is a placeholder for a Complex number to demonstrate where it should appear in the type hierarchy (it should extend Structure).
   *
-  * @see com.phasmidsoftware.number.core.Complex
+  * @see com.phasmidsoftware.number.core.numerical.Complex
   */
-case class Complex(complex: core.Complex) extends Eager {
+case class Complex(complex: numerical.Complex) extends Eager {
   /**
     * Method to render this `Valuable` for presentation to the user.
     *

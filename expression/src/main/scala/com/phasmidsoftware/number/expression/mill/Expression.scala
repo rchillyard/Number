@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.mill
 
-import com.phasmidsoftware.number.core.{Field, Number, Real}
+import com.phasmidsoftware.number.core.numerical.{Field, Number, Real}
 
 /**
   * Trait representing a mathematical expression, which can be combined or transformed

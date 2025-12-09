@@ -12,6 +12,8 @@ import scala.reflect.ClassTag
   * The operations are designed to work within the context of an `AdditiveCommutativeMonoid`, ensuring
   * that the defined addition operations respect the algebraic properties of associativity, commutativity, and identity.
   *
+  * TODO we no longer need the U type parameter.
+  *
   * Type Parameters:
   * - `T`: A type extending `Structure` that supports addition operations and satisfies the properties
   * of an additive commutative monoid.
@@ -30,12 +32,15 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   /**
     * Adds the given instance of the same type to this instance, leveraging the properties
     * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
+    * CONSIDER keeping percentage if both are percentages.
+    * CONSIDER rewriting this in such a way that no exception will ever be thrown (use compiler to check, not runtime).
     *
     * @param that The instance of the same type to be added to this instance.
     * @return The result of adding this instance and the provided instance.
     */
-  def +(that: T)(using AdditiveCommutativeMonoid[T]): T =
-    acm.additive.combine(asT, that)
+  def +(that: U)(using AdditiveCommutativeMonoid[T], Convertible[T, U]): T =
+    val t = summon[Convertible[T, U]].convert(this.asT, that)
+    acm.additive.combine(asT, t)
 
   /**
     * Computes the addition of this object and the given `Structure` object using the additive properties
@@ -67,6 +72,7 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   * A trait that extends `CanAdd` and provides additional functionality for types
   * supporting both addition and subtraction operations. It introduces the ability
   * to negate instances of type `T` and override the unary negation operator.
+  * TODO we no longer need the U type parameter.
   *
   * Type Parameters:
   * - `T`: A type extending `Structure` that supports addition, subtraction, and negation operations
@@ -259,6 +265,8 @@ trait Scalable[T <: Scalable[T]] {
 
 /**
   * Represents a type class for performing power operations on instances of type `T`.
+  *
+  * CONSIDER two paramtric types
   *
   * This trait defines the behavior for raising an instance of `T` to a power
   * specified by a `Scalar`. Implementations of this trait are responsible for

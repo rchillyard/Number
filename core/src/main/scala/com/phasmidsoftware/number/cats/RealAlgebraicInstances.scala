@@ -1,9 +1,8 @@
 package com.phasmidsoftware.number.cats
 
-import com.phasmidsoftware.number.core.Real
-import com.phasmidsoftware.number.core.Real.createFromRealField
-import com.phasmidsoftware.number.core.Constants
-import algebra.ring.{TruncatedDivision, CommutativeRing}
+import algebra.ring.{CommutativeRing, TruncatedDivision}
+import com.phasmidsoftware.number.core.numerical.Real.createFromRealField
+import com.phasmidsoftware.number.core.numerical.{Constants, Real}
 
 
 trait RealAlgebraicInstances {
@@ -21,9 +20,7 @@ trait RealAlgebraicInstances {
         override def fromInt(n: Int): Real = Real(n)
 
         // Provide the required algebra.Order instance via existing scala Ordering
-        def order: algebra.Order[Real] = new algebra.Order[Real] {
-            def compare(x: Real, y: Real): Int = Real.RealIsOrdering.compare(x, y)
-        }
+        def order: algebra.Order[Real] = (x: Real, y: Real) => Real.RealIsOrdering.compare(x, y)
 
         // Truncated division: round the quotient towards zero
         def tquot(x: Real, y: Real): Real = {
