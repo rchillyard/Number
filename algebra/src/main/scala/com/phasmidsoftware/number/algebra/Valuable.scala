@@ -5,10 +5,10 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.number.algebra.misc.{FP, MaybeNumeric, Renderable}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP, MaybeNumeric, Renderable}
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber, NumberException, NumberExceptionWithCause, Real}
+import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber, NumberExceptionWithCause, Real}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.{algebra, core}
@@ -75,16 +75,17 @@ object Valuable {
     * TODO change the type of the input to `Eager`.
     *
     * Converts a `Valuable` instance into a `Field` representation.
-    * If the conversion fails, it recovers by throwing a `NumberException`
+    * If the conversion fails, it recovers by throwing a `AlgebraException`
     * with an appropriate error message indicating the failure.
     *
     * @param v the `Valuable` instance to be converted into a `Field`.
     *          This is expected to represent a numerical value.
+    *
     * @return the `Field` representation of the input `Valuable`.
-    *         If conversion is not possible, a `NumberException` is thrown.
+    *         If conversion is not possible, a `AlgebraException` is thrown.
     */
   def valuableToField(v: Valuable): Field =
-    FP.recover(valuableToMaybeField(v))(NumberException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field"))
+    FP.recover(valuableToMaybeField(v))(AlgebraException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field"))
 
   /**
     * Attempts to convert a given eager `Valuable` instance into an `Option[Field]`.
@@ -151,11 +152,12 @@ object Valuable {
     * Converts a `Number` into a corresponding `Field` representation.
     * The input number is matched against various cases to determine its specific type
     * (e.g., RationalNumber, Real, WholeNumber) and is subsequently converted.
-    * If the conversion is not supported for the given `Number` type, a `NumberException` is thrown.
+    * If the conversion is not supported for the given `Number` type, a `AlgebraException` is thrown.
     *
     * @param number the `Number` to be converted into a `Field`. It can represent different
     *               numerical types such as RationalNumber, algebra.Real, or WholeNumber.
-    * @throws NumberException if the input `Number` cannot be converted into a `Field`.
+    *
+    * @throws AlgebraException if the input `Number` cannot be converted into a `Field`.
     */
   private def numberToField(number: Number) = number match {
     case RationalNumber(r, _) =>
@@ -165,7 +167,7 @@ object Valuable {
     case WholeNumber(x) =>
       Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber))
     case _ =>
-      throw NumberException(s"Valuable.numberToField: Cannot convert $number to a Field")
+      throw AlgebraException(s"Valuable.numberToField: Cannot convert $number to a Field")
   }
 
   /**
@@ -251,7 +253,7 @@ object Eager {
       case c: numerical.Complex =>
         Complex(c)
       case a: Algebraic =>
-        throw NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")
+        throw AlgebraException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }
 
 }

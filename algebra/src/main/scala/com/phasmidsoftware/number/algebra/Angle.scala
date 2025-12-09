@@ -11,7 +11,6 @@ import com.phasmidsoftware.number.algebra.Angle.{angleIsCommutativeGroup, r180}
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.algebra.{Radians, Structure}
 import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.NumberException
 import scala.reflect.ClassTag
 
 /**
@@ -57,7 +56,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     case WholeNumber(x) =>
       Angle(Radian.modulate(Value.fromRational(Rational(x.toBigInt))))
     case _ =>
-      throw NumberException(s"normalize: unexpected type $radians")
+      throw AlgebraException(s"normalize: unexpected type $radians")
   }
 
   /**
@@ -380,8 +379,9 @@ object Angle {
     * @param s the input `Monotone` to be converted into an `Angle`; can represent a whole number,
     *          rational number, or real number. Passing an existing `Angle` or unsupported type
     *          results in an exception.
+    *
     * @return an `Angle` instance corresponding to the input `Monotone` value
-    * @throws NumberException if the input is already an `Angle` or is of an unsupported type
+    * @throws AlgebraException if the input is already an `Angle` or is of an unsupported type
     */
   def create(s: Monotone): Angle = s match {
     case number: WholeNumber =>
@@ -391,9 +391,9 @@ object Angle {
     case Real(x, f) =>
       Angle(Real(x, f))
     case Angle(r, _) =>
-      throw NumberException(s"Angle.create: $r is already an Angle")
+      throw AlgebraException(s"Angle.create: $r is already an Angle")
     case _ =>
-      throw NumberException(s"Angle.create: not supported for $s")
+      throw AlgebraException(s"Angle.create: not supported for $s")
   }
 
   /**

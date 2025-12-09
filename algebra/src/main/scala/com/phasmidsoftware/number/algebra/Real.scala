@@ -4,10 +4,10 @@ import algebra.ring.{AdditiveCommutativeGroup, Ring}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.FP
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber, NumberException}
+import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.parse.NumberParser
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -183,7 +183,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     case r: Real =>
       realIsRing.compare(this, r)
     case n =>
-      FP.getOrThrow(n.approximation(true).map(a => compare(a)), NumberException(s"Real.compare: logic error: $this, $that"))
+      FP.getOrThrow(n.approximation(true).map(a => compare(a)), AlgebraException(s"Real.compare: logic error: $this, $that"))
   }
 
   /**
@@ -376,14 +376,14 @@ object Real {
 
   /**
     * Parses a string representation of a number and constructs a `Real` instance.
-    * If the input string cannot be parsed into a valid number, a `NumberException` is thrown.
+    * If the input string cannot be parsed into a valid number, a `AlgebraException` is thrown.
     *
     * @param w the input string to be parsed and converted into a `Real` instance
     * @return a `Real` instance constructed from the parsed numeric value of the input string
     */
   def apply(w: String): Real = {
     val z: Try[numerical.Real] = NumberParser.parseNumber(w).map(x => numerical.Real(x))
-    FP.getOrThrow[Real](z.map(x => Real(x)).toOption, NumberException(s"Real.apply(String): cannot parse $w"))
+    FP.getOrThrow[Real](z.map(x => Real(x)).toOption, AlgebraException(s"Real.apply(String): cannot parse $w"))
   }
 
   given Convertible[Real, Real] with

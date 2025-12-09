@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.algebra
 
+import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.algebra.{Nat, Structure, Valuable}
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.numerical.NumberException
 
 /**
   * Represents a trait for specifying in which evaluation-contexts a particular expression may be evaluated.
@@ -37,7 +37,7 @@ trait Context extends CoreContext {
     * factor meets the required conditions.
     *
     * @param v the `HasValue` object to check for qualification
-    * @return `true` if the `HasValue` qualifies; otherwise, throws a `NumberException` for unsupported types
+    * @return `true` if the `HasValue` qualifies; otherwise, throws a `AlgebraException` for unsupported types
     */
   def valuableQualifies(v: Valuable): Boolean = v match {
     case nat: Nat =>
@@ -45,7 +45,7 @@ trait Context extends CoreContext {
     case structure: Structure =>
       structure.maybeFactor(this).exists(factorQualifies)
     case _ =>
-      throw NumberException(s"Context.valuableQualifies: $v")
+      throw AlgebraException(s"Context.valuableQualifies: $v")
   }
 
   /**

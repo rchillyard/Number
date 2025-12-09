@@ -4,16 +4,16 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
+import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.RationalNumber.half
+import com.phasmidsoftware.number.algebra.Valuable.valuableToField
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational, SquareRoot}
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, ExactNumber, GeneralNumber, NumberException, Real}
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, ExactNumber, Real}
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
-import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.RationalNumber.half
-import com.phasmidsoftware.number.algebra.Valuable.{valuableToField, valuableToMaybeField}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.expression.expr.Root.phi
@@ -235,7 +235,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "fail to evaluate log 1 x or log 0 x" in {
     val base = Expression(1)
-    a[NumberException] should be thrownBy Two.log(base).materialize
+    a[numerical.NumberException] should be thrownBy Two.log(base).materialize
   }
   // TODO Issue #140
   it should "evaluate ln E" in {

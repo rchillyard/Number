@@ -6,7 +6,6 @@ import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
-import com.phasmidsoftware.number.core.numerical.NumberException
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -39,7 +38,7 @@ trait Number extends Scalar with Ordered[Scalar] {
     *
     * This method matches the type of the input `Scalar` and performs a comparison based on its type. If the input is a `Number`,
     * it delegates to the `compare(Number)` method. If the input is a `Radians`, it first attempts to convert the `Radians`
-    * into a comparable value and then performs the comparison. If the conversion is not possible, it throws a `NumberException`.
+    * into a comparable value and then performs the comparison. If the conversion is not possible, it throws a `AlgebraException`.
     *
     * @param that the `Scalar` instance to compare the current instance against.
     * @return an integer value:
@@ -55,7 +54,7 @@ trait Number extends Scalar with Ordered[Scalar] {
         case Some(x) =>
           compare(x)
         case None =>
-          throw NumberException(s"Number.compare(Scalar): logic error: $this, $that")
+          throw AlgebraException(s"Number.compare(Scalar): logic error: $this, $that")
       }
   }
 
@@ -74,13 +73,13 @@ trait Number extends Scalar with Ordered[Scalar] {
     */
   def compare(that: Number): Int =
     if isExact && that.isExact then // XXX both are exact
-      FP.recover(compareExact(that))(NumberException(s"Number.compare(Number): logic error: $this, $that"))
+      FP.recover(compareExact(that))(AlgebraException(s"Number.compare(Number): logic error: $this, $that"))
     else if !isExact then { // XXX this is not exact
       val maybeInt: Option[Int] = for
         x <- approximation()
         y <- that.approximation()
       yield x.compare(y)
-      FP.recover(maybeInt)(NumberException("Number.compare: Logic error"))
+      FP.recover(maybeInt)(AlgebraException("Number.compare: Logic error"))
     }
     else // XXX this is exact and that is not exact
       -that.compare(this)
@@ -149,14 +148,14 @@ object Number {
       *
       * The method determines the type of the given `Number` instances and performs the appropriate
       * addition operation. It supports addition for `Real`, `RationalNumber`, and `WholeNumber` types.
-      * If the types are incompatible or cannot be converted to corresponding types, it throws a `NumberException`.
+      * If the types are incompatible or cannot be converted to corresponding types, it throws a `AlgebraException`.
       *
       * This method is marked as `@tailrec` to optimize recursive addition operations.
       *
       * @param x the first `Number` instance
       * @param y the second `Number` instance
       * @return a `Number` instance representing the result of the addition of `x` and `y`
-      * @throws NumberException if the types of `x` and `y` cannot be added
+      * @throws AlgebraException if the types of `x` and `y` cannot be added
       */
     @tailrec
     def plus(x: Number, y: Number): Number = (x, y) match {
@@ -179,7 +178,7 @@ object Number {
       case (a, b: WholeNumber) =>
         plus(y, x)
       case _ =>
-        throw NumberException("Number.plus: logic error: cannot add " + x + " and " + y)
+        throw AlgebraException("Number.plus: logic error: cannot add " + x + " and " + y)
     }
   }
 
@@ -214,7 +213,7 @@ object Number {
       * @param x the first `Number` to be multiplied
       * @param y the second `Number` to be multiplied
       * @return the result of multiplying `x` and `y` as a `Number`
-      * @throws NumberException if the multiplication is not possible for the given inputs
+      * @throws AlgebraException if the multiplication is not possible for the given inputs
       */
     @tailrec
     def times(x: Number, y: Number): Number = (x, y) match {
@@ -223,19 +222,19 @@ object Number {
       case (a, b: Real) =>
         times(y, x)
       case (a: Real, b) =>
-        FP.recover(b.convert(Real.zero).map(_ * a))(NumberException("Number.plus: logic error: cannot convert " + b + " to a Real"))
+        FP.recover(b.convert(Real.zero).map(_ * a))(AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
       case (a: RationalNumber, b: RationalNumber) =>
         a * b
       case (a, b: RationalNumber) =>
         times(y, x)
       case (a: RationalNumber, b) =>
-        FP.recover(b.convert(RationalNumber.zero).map(a * _))(NumberException("Number.plus: logic error: cannot convert " + b + " to a RationalNumber"))
+        FP.recover(b.convert(RationalNumber.zero).map(a * _))(AlgebraException("Number.plus: logic error: cannot convert " + b + " to a RationalNumber"))
       case (a: WholeNumber, b: WholeNumber) =>
         a * b
       case (a, b: WholeNumber) =>
         times(y, x)
       case _ =>
-        throw NumberException("Number.times: logic error: cannot multiply " + x + " and " + y)
+        throw AlgebraException("Number.times: logic error: cannot multiply " + x + " and " + y)
     }
 
     def div(x: Number, y: Number): Number = (x, y) match {

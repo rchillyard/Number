@@ -8,9 +8,9 @@ import algebra.CommutativeMonoid
 import cats.Show
 import com.phasmidsoftware.number.algebra.Logarithm.LogarithmIsCommutativeMonoid
 import com.phasmidsoftware.number.algebra.Structure
+import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
-import com.phasmidsoftware.number.core.numerical.NumberException
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -181,7 +181,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
           case Real(value, fuzz) =>
             Real(math.log(value), fuzz)
           case _ =>
-            throw NumberException(s"NatLog.transformation: $value not supported")
+            throw AlgebraException(s"NatLog.transformation: $value not supported")
         }
       Some(result.asInstanceOf[T])
     }
@@ -320,7 +320,7 @@ object Logarithm {
       case (a, b) if a.getClass == b.getClass =>
         a + b
       case _ =>
-        throw NumberException(s"Logarithm.combine: $x, $y")
+        throw AlgebraException(s"Logarithm.combine: $x, $y")
     }
   }
 }

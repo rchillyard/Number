@@ -8,8 +8,8 @@ import algebra.CommutativeGroup
 import cats.Show
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
+import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.numerical.NumberException
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -66,7 +66,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
 //        val z: Multiplicative[Scalar] = x.asInstanceOf[Multiplicative[Scalar]] * y.asInstanceOf[Scalar]
 //        copy(base = z.asInstanceOf[Number])
 //      case _ =>
-//        throw NumberException(s"InversePower.*: cannot multiply $this by $t")
+//        throw AlgebraException(s"InversePower.*: cannot multiply $this by $t")
 //    }
 //
 //  /**
@@ -76,7 +76,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
 //    * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
 //    */
 //  def /(t: InversePower): Multiplicative[InversePower] =
-//    throw NumberException(s"InversePower./: not supported for $this by $t")
+//    throw AlgebraException(s"InversePower./: not supported for $this by $t")
 
   /**
     * Compares the current `Root` instance with another `Number` to determine their exact order.
@@ -191,7 +191,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
         value.asInstanceOf[Option[InversePower]]
       // TODO need to match on types, not use isInstanceOf, etc.
       case _ =>
-        throw NumberException(s"InversePower.doScale: cannot scale $this by $that")
+        throw AlgebraException(s"InversePower.doScale: cannot scale $this by $that")
     }
 
 
@@ -203,7 +203,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
   def maybeFactor(context: Context): Option[Factor] = n match {
     case 2 => Some(SquareRoot)
     case 3 => Some(CubeRoot)
-    case _ => throw NumberException(s"InversePower.maybeFactor: no factor for $n")
+    case _ => throw AlgebraException(s"InversePower.maybeFactor: no factor for $n")
   }
 
   /**
@@ -276,7 +276,7 @@ object InversePower {
       */
     def combine(x: InversePower, y: InversePower): InversePower = (x, y) match {
       case (InversePower(n1, x1: Number), InversePower(n2, x2: Number)) =>
-        throw NumberException(s"InversePower.combine: cannot combine $x and $y")
+        throw AlgebraException(s"InversePower.combine: cannot combine $x and $y")
     }
 
     /**
@@ -289,6 +289,6 @@ object InversePower {
       * @return a new `Root` instance representing the multiplicative inverse of the input
       */
     def inverse(a: InversePower): InversePower =
-      throw NumberException(s"InversePower.inverse: cannot invert $a")
+      throw AlgebraException(s"InversePower.inverse: cannot invert $a")
   }
 }

@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.gamma
-import com.phasmidsoftware.number.core.numerical.{Constants, Field, NumberException}
+import com.phasmidsoftware.number.core.numerical.{Constants, Field}
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.{CompositeExpression, UniFunction}
 import java.util.Objects
@@ -263,7 +263,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
           // CONSIDER putting the conditional in the pattern
           Option.when(structure.maybeFactor(context).isDefined && context.valuableQualifies(structure))(value)
         case _ =>
-          throw NumberException(s"evaluate: cannot evaluate $value in $context")
+          throw ExpressionException(s"evaluate: cannot evaluate $value in $context")
       }
 
   /**
@@ -478,7 +478,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
         function(q)
       case _ =>
         // TODO change the expected result to Option[Valuable] and return None here
-        throw NumberException(s"monadicFunction: cannot apply $f to $value")
+        throw ExpressionException(s"monadicFunction: cannot apply $f to $value")
     }
   }
 }

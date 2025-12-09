@@ -1,8 +1,9 @@
 package com.phasmidsoftware.number.algebra
 
+import com.phasmidsoftware.number.algebra.misc.AlgebraException
+import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational}
+import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
-import com.phasmidsoftware.number.core.inner.{CoreContext, Factor, PureNumber, Radian, Rational}
-import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber, NumberException}
 import scala.reflect.ClassTag
 
 /**
@@ -131,11 +132,11 @@ object Scalar {
           case Some(n) =>
             InversePower(n, number)
           case _ =>
-            throw NumberException(s"Scalar.createScalar: unsupported inverse power $factor")
+            throw AlgebraException(s"Scalar.createScalar: unsupported inverse power $factor")
         }
       case _ =>
         // TODO implement other factors (%, and degrees)
-        throw NumberException(s"Scalar.createScalar: unsupported factor $factor")
+        throw AlgebraException(s"Scalar.createScalar: unsupported factor $factor")
     }
   }
 }
@@ -154,7 +155,7 @@ case object NoScalar extends Scalar {
     *         - `Some(1)` if this `Scalar` is greater than `that`
     *         - `None` if the exact comparison is not possible
     */
-  def compareExact(that: Scalar): Option[Int] = throw NumberException(s"NoScalar.compareExact: unsupported operation")
+  def compareExact(that: Scalar): Option[Int] = throw AlgebraException(s"NoScalar.compareExact: unsupported operation")
 
   /**
     * Represents the scaleFactor of a scalar value as a `Double`.
@@ -176,7 +177,7 @@ case object NoScalar extends Scalar {
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = throw NumberException(s"NoScalar.signum: unsupported operation")
+  def signum: Int = throw AlgebraException(s"NoScalar.signum: unsupported operation")
 
   /**
     * Attempts to yield a factor for the instance, if available.
@@ -211,7 +212,7 @@ case object NoScalar extends Scalar {
     * @param r the `Rational` factor by which to scale the scalar
     * @return a new `Scalar` instance representing the scaled value
     */
-  def scale(r: Rational): Scalar = throw NumberException(s"NoScalar.scale: unsupported operation")
+  def scale(r: Rational): Scalar = throw AlgebraException(s"NoScalar.scale: unsupported operation")
 
   /**
     * Method to render this `Valuable` for presentation to the user.
