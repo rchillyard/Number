@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.Fuzziness
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -37,6 +38,16 @@ case class WholeNumber(x: SafeLong) extends Number with Z with CanAddAndSubtract
     * @return a Rational representation of the current WholeNumber.
     */
   def toRational: Rational = Rational(x.toBigInt)
+
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] = None
 
   /**
     * Retrieves an `Option` containing this instance as an object of type `Z`.

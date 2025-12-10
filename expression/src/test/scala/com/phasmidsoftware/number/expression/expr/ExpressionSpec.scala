@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.RationalNumber.half
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
@@ -252,12 +253,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     result shouldEqual expected
   }
   // TODO Issue #140
-  ignore should "evaluate xxx" in {
+  it should "evaluate xxx" in {
     val x: Expression = ConstE.log(Two) // lg E with value close to √2
     val y: Expression = x.reciprocal.simplify
-    val result = y.materialize
-    val expected = Real("0.6931471805599453(13)")
-    result shouldEqual expected
+    val result: Eager = y.materialize
+    val expected: algebra.Eager = algebra.Real("0.6931471805599453(13)")
+    result should ===(expected)
   }
   // (fixed) we should be able to compare y with L2 (this tests for Issue #125)
   it should "evaluate xxx 2" in {

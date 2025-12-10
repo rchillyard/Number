@@ -10,6 +10,8 @@ import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -52,31 +54,22 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *         if scaling is not possible
     */
   def doScaleDouble(that: Double): Option[Monotone] = doScale(Real(that))
-//
-//  /**
-//    * Multiplies the specified `T` by this `T` instance.
-//    *
-//    * @param t an instance of `T` to be multiplied by this `T`
-//    * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
-//    */
-//  def *(t: InversePower): Multiplicative[InversePower] =
-//    (t, base) match {
-//      // TODO need to match on types, not use isInstanceOf, etc.
-//      case (InversePower(m, x), y) if m == n && x.isInstanceOf[Multiplicative[Scalar]] && y.isInstanceOf[Scalar] =>
-//        val z: Multiplicative[Scalar] = x.asInstanceOf[Multiplicative[Scalar]] * y.asInstanceOf[Scalar]
-//        copy(base = z.asInstanceOf[Number])
-//      case _ =>
-//        throw AlgebraException(s"InversePower.*: cannot multiply $this by $t")
-//    }
-//
-//  /**
-//    * Divides this `T` instance by the specified `T`.
-//    *
-//    * @param t an instance of `T` to be the divisor
-//    * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
-//    */
-//  def /(t: InversePower): Multiplicative[InversePower] =
-//    throw AlgebraException(s"InversePower./: not supported for $this by $t")
+
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] =
+    Eager(Valuable.valuableToField(base).power(numerical.Number(Rational(n).invert))) match {
+      case fuzzy: WithFuzziness =>
+        fuzzy.fuzz
+      case _ =>
+        None // CONSIDER should this throw an exception?
+    }
 
   /**
     * Compares the current `Root` instance with another `Number` to determine their exact order.

@@ -7,6 +7,7 @@ import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.Fuzziness
 import scala.reflect.ClassTag
 
 /**
@@ -52,6 +53,16 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q wi
     * This value is provided by the implicit `Field` instance for `RationalNumber` and is equal to a `RationalNumber` representation of one.
     */
   val one: RationalNumber = rationalNumberIsField.one
+
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] = None
 
   /**
     * Computes the optional representation of this value as a `Z` (integer-like structure).

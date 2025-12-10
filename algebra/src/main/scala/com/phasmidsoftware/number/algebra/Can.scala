@@ -47,6 +47,8 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     * of an `AdditiveCommutativeMonoid`. The operation returns an optional result where the addition
     * succeeds if a valid transformation and combination can be performed.
     *
+    * TODO eliminate this method and use with + instead.
+    *
     * @param that  the `Structure` object to be added to this object.
     * @param using an implicitly provided instance of `AdditiveCommutativeMonoid[T]` that defines the additive
     *              behavior for the type `T`.

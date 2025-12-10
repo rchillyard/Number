@@ -1,11 +1,12 @@
 package com.phasmidsoftware.number.expression.core
 
-import com.phasmidsoftware.number.algebra.Valuable
+import com.phasmidsoftware.number.algebra.misc.FuzzyEq.~=
+import com.phasmidsoftware.number.algebra.{Eager, Valuable}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Complex, Field, Number, Numerical, Real}
-import com.phasmidsoftware.number.expression.expr.{Expression, ExpressionFunction}
+import com.phasmidsoftware.number.expression.expr.Expression
 import org.scalactic.Equality
 
 trait FuzzyEquality {
@@ -98,6 +99,31 @@ trait FuzzyEquality {
         NumberLikeEquality.areEqual(alg.solve, b)
       case _ =>
         NumberEquality.areEqual(a.x, b)
+    }
+  }
+
+  /**
+    * An implicit object `EagerEquality` provides an equality mechanism for instances of the `Eager` trait.
+    * It extends the `Equality[Eager]` type class to define custom equality logic specifically for `Eager` entities.
+    *
+    * This equality mechanism leverages the `~=` method of the `Eager` trait, allowing for fuzzy equality checks
+    * between instances of `Eager`. The comparison evaluates whether two `Eager` objects are considered approximately
+    * equal based on an internally defined probability threshold, facilitating tolerance-based equality.
+    *
+    * The `areEqual` method within this object matches the provided comparison value against the `Eager` type.
+    * If the comparison value is of type `Eager`, the `~=` method is used for an approximate equality check.
+    * For any other type, `areEqual` returns `false`, enforcing type-specific equality logic.
+    *
+    * This implementation is particularly suited for use cases where entities marked as `Eager` need to perform
+    * approximate evaluations during equality comparisons, ensuring consistency with their eager evaluation nature.
+    */
+  implicit object EagerEquality extends Equality[Eager] {
+
+    def areEqual(a: Eager, b: Any): Boolean = b match {
+      case b: Eager =>
+        a.~=(b)
+      case _ =>
+        false
     }
   }
 

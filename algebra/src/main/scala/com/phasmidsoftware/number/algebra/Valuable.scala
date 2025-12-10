@@ -5,10 +5,10 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP, MaybeNumeric, Renderable}
+import com.phasmidsoftware.number.algebra.misc.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber, CoreExceptionWithCause, Real}
+import com.phasmidsoftware.number.core.numerical.{CoreExceptionWithCause, ExactNumber, Field, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.{algebra, core}
@@ -109,9 +109,9 @@ object Valuable {
     case q: Q =>
       Some(rationalToField(q.toRational, PureNumber))
     case a@Angle(radians, _) =>
-      Some(Real(numberToField(radians).x.make(inner.Radian)))
+      Some(numerical.Real(numberToField(radians).x.make(inner.Radian)))
     case l@NatLog(x) =>
-      Some(Real(numberToField(x).x.make(inner.NatLog)))
+      Some(numerical.Real(numberToField(x).x.make(inner.NatLog)))
     case _ =>
       None // XXX v should be an Expression in this case (but expressions are not known in this package).
   }
@@ -165,7 +165,7 @@ object Valuable {
     case algebra.Real(x, fo) =>
       numerical.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
     case WholeNumber(x) =>
-      Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber))
+      numerical.Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber))
     case _ =>
       throw AlgebraException(s"Valuable.numberToField: Cannot convert $number to a Field")
   }
@@ -177,7 +177,7 @@ object Valuable {
     * @param factor   the scaling `Factor` to be applied to the conversion.
     * @return a `Real` representation of the `Rational` number scaled by the given `Factor`.
     */
-  private def rationalToField(rational: Rational, factor: Factor) = Real(ExactNumber(Value.fromRational(rational), factor))
+  private def rationalToField(rational: Rational, factor: Factor) = numerical.Real(ExactNumber(Value.fromRational(rational), factor))
 
   /**
     * Converts an integer value into a `Field` representation, encapsulated as a `Real`,
@@ -187,7 +187,7 @@ object Valuable {
     * @param factor the factor to be applied in the `Real` representation.
     * @return a `Real` representing the converted integer value.
     */
-  private def intToField(x: Int, factor: Factor) = Real(ExactNumber(Value.fromInt(x), factor))
+  private def intToField(x: Int, factor: Factor) = numerical.Real(ExactNumber(Value.fromInt(x), factor))
 
 }
 
@@ -243,7 +243,8 @@ object Eager {
     *
     * @param field the input field to be converted into a `Valuable`. It is expected
     *              to be of type `com.phasmidsoftware.number.core.Real`.
-    * @return a `Valuable` representation of the input `Field` as a `Scalar`.
+    *
+    * @return      a `Valuable` representation of the input `Field` as a `Scalar`.
     * @throws IllegalArgumentException if the provided `Field` is not of type `Real`.
     */
   def apply(field: numerical.Field): Eager =
@@ -256,4 +257,32 @@ object Eager {
         throw AlgebraException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }
 
+  /**
+    * Provides an implicit `FuzzyEq` instance for the `Eager` type, enabling fuzzy equality comparisons
+    * based on various scenarios involving `Real` and `Structure` types or direct equality for other cases.
+    *
+    * For `Real` values, it delegates comparison to the implicit `FuzzyEq[Real]` instance.
+    * For `Structure` and `Real` combinations, it attempts to convert one type to the other and evaluates
+    * equality using the `FuzzyEq[Real]` instance if the conversion succeeds.
+    * For other cases, it falls back to direct equality.
+    *
+    * @return An implicit `FuzzyEq[Eager]` instance that defines the fuzzy equality logic for `Eager` values.
+    */
+  given FuzzyEq[Eager] = FuzzyEq.instance { (x, y, p) =>
+    (x, y) match {
+      case (a: Real, b: Real) =>
+        summon[FuzzyEq[Real]].eqv(a, b, p)
+      case (a: Real, b: Structure) =>
+        b.convert[Real](a) match {
+          case Some(value) => summon[FuzzyEq[Real]].eqv(a, value, p)
+          case None => false
+        }
+      case (a: Structure, b: Real) =>
+        a.convert[Real](b) match {
+          case Some(value) => summon[FuzzyEq[Real]].eqv(value, b, p)
+          case None => false
+        }
+      case _ => x == y  // XXX fallback for exact types
+    }
+  }
 }

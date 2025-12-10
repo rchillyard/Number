@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.numerical.WithFuzziness
 import scala.reflect.ClassTag
 
 /**
@@ -14,7 +15,7 @@ import scala.reflect.ClassTag
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with Approximate {
+trait Monotone extends Structure with Approximate with WithFuzziness {
 
   /**
     * Method to determine if this `Structure` object is exact.
@@ -22,7 +23,7 @@ trait Monotone extends Structure with Approximate {
     *
     * @return true if this `Structure` object is exact in the context of no factor, else false.
     */
-  def isExact: Boolean = approximation().isEmpty
+  def isExact: Boolean = fuzz.isEmpty && approximation().isEmpty
 
   /**
     * Attempts to yield a factor for the instance, if available.

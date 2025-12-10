@@ -4,7 +4,7 @@ import algebra.ring.{AdditiveCommutativeGroup, Ring}
 import cats.Show
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
@@ -29,6 +29,7 @@ import scala.util.{Failure, Success, Try}
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
 case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] {
+
   /**
     * Converts the current instance to a Double representation.
     * CONSIDER changing to maybeDouble returning Option[Double].
@@ -229,6 +230,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     * to convert them to a compatible type with this scalar and computes the
     * result if the conversion is successful.
     *
+    * CONSIDER eliminating this method.
+    *
     * @param that the `Scalar` to be added to the current scalar
     * @return an `Option[Scalar]` containing the result of the addition,
     *         or `None` if the operation cannot be performed
@@ -398,6 +401,15 @@ object Real {
   given Convertible[Real, Angle] with
     def convert(witness: Real, u: Angle): Real = Real(u.asDouble)
 
+  given FuzzyEq[Real] = FuzzyEq.instance {
+    (x, y, p) =>
+      Valuable.valuableToField(realIsRing.minus(x, y)) match {
+        case numerical.Real(x) =>
+          x.isProbablyZero(p)
+        case _ =>
+          false
+      }
+  }
   /**
     * Constructs a new `Real` instance based on the values of an existing `Real`.
     *
@@ -480,11 +492,11 @@ object Real {
       * @param y the second Real operand
       * @return the sum of the two Real instances
       */
-    def plus(x: Real, y: Real): Real = {
-      val value = x.value + y.value
-      val combination = Fuzziness.combine(x.value, y.value, relative = false, independent = true)(x.fuzz -> y.fuzz)
-      Real(value, combination)
-    }
+    def plus(x: Real, y: Real): Real =
+      Real(
+        value = x.value + y.value,
+        fuzz = Fuzziness.combine(x.value, y.value, relative = false, independent = true)(x.fuzz -> y.fuzz)
+      )
 
     /**
       * Multiplies two Real instances and returns the result.
@@ -493,10 +505,11 @@ object Real {
       * @param y the second Real instance
       * @return the product of the two Real instances
       */
-    def times(x: Real, y: Real): Real = {
-      val value = x.value * y.value
-      Real(value, Fuzziness.combine(x.value, y.value, relative = true, independent = true)(x.fuzz -> y.fuzz))
-    }
+    def times(x: Real, y: Real): Real =
+      Real(
+        value = x.value * y.value,
+        fuzz = Fuzziness.combine(x.value, y.value, relative = true, independent = true)(x.fuzz -> y.fuzz)
+      )
 
     /**
       * Computes the negation of the given fuzzy number.

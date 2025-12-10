@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+import com.phasmidsoftware.number.core.numerical.{Field, Fuzziness, WithFuzziness}
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -146,6 +147,11 @@ abstract class Logarithm(val value: Number) extends Transformed with CanAdd[Loga
   *
   * Logarithm does not support ordering or comparison.
   *
+  * An example of the use of this class is as in this definition of Euler's number:
+  * {{{
+  *   val e: Eager = NatLog(WholeNumber.one)
+  * }}}
+  *
   * @param x the value of the Logarithm.
   */
 case class NatLog(x: Number) extends Logarithm(x) {
@@ -206,6 +212,22 @@ case class NatLog(x: Number) extends Logarithm(x) {
     case _ =>
       None
   }
+
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] =
+    Eager(Valuable.valuableToField(x).exp) match {
+      case fuzzy: WithFuzziness =>
+        fuzzy.fuzz
+      case _ =>
+        None // CONSIDER should this throw an exception?
+    }
 
   /**
     * Renders this `Logarithm` instance as a string representation of value in terms of π.

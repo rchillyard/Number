@@ -165,6 +165,16 @@ case object NoScalar extends Scalar {
   def scaleFactor: Double = Double.NaN
 
   /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] = None
+
+  /**
     * Determines if the current number is equal to zero.
     *
     * @return true if the number is zero, false otherwise

@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.algebra.Angle.{angleIsCommutativeGroup, r180}
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.algebra.{Radians, Structure}
 import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
+import com.phasmidsoftware.number.core.numerical.Fuzziness
 import scala.reflect.ClassTag
 
 /**
@@ -127,6 +128,18 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
   override def isExact: Boolean = radians.isExact
+
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * TODO we should ensure that the fuzz is relative.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] = radians.fuzz
 
   /**
     * Converts the current instance to a Double representation.
