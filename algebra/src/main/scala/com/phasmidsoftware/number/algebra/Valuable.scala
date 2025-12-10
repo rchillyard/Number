@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.numerical.{CoreExceptionWithCause, ExactN
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.{algebra, core}
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success}
 
@@ -258,31 +259,43 @@ object Eager {
     }
 
   /**
-    * Provides an implicit `FuzzyEq` instance for the `Eager` type, enabling fuzzy equality comparisons
-    * based on various scenarios involving `Real` and `Structure` types or direct equality for other cases.
+    * Provides an instance of `FuzzyEq` for the `Eager` type, enabling fuzzy equality checks
+    * between two `Eager` instances.
     *
-    * For `Real` values, it delegates comparison to the implicit `FuzzyEq[Real]` instance.
-    * For `Structure` and `Real` combinations, it attempts to convert one type to the other and evaluates
-    * equality using the `FuzzyEq[Real]` instance if the conversion succeeds.
-    * For other cases, it falls back to direct equality.
+    * This implementation uses pattern matching to handle comparisons for different subtypes
+    * of `Eager`, in particular, `Real`, `Angle` for the first parameter (the only subtypes that can be fuzzy);
+    * and `Structure` for the second.
+    * If `Structure` is the first parameter, and either `Real` or `Angle` the second, then we recursively invoke eqvFunction.
+    * It invokes appropriate fuzzy equality logic based on subtype behavior, including conversions where applicable.
     *
-    * @return An implicit `FuzzyEq[Eager]` instance that defines the fuzzy equality logic for `Eager` values.
+    * @return An instance of `FuzzyEq[Eager]` that defines fuzzy equivalence logic for comparing
+    *         two `Eager` instances based on the specified probability threshold.
     */
-  given FuzzyEq[Eager] = FuzzyEq.instance { (x, y, p) =>
-    (x, y) match {
+  given FuzzyEq[Eager] = {
+    @tailrec
+    def fuzzyEqual(x: Eager, y: Eager, p: Double): Boolean = (x, y) match {
+      case (a: Exact, b: Exact) =>
+        summon[FuzzyEq[Exact]].eqv(a, b, p)
       case (a: Real, b: Real) =>
-        summon[FuzzyEq[Real]].eqv(a, b, p)
+        summon[FuzzyEq[Real]].eqv(a, b, p) // alpha
+      case (a: NumberBased, b: NumberBased) =>
+        summon[FuzzyEq[NumberBased]].eqv(a, b, p) // beta
       case (a: Real, b: Structure) =>
-        b.convert[Real](a) match {
+        b.convert[Real](a) match { // gamma
           case Some(value) => summon[FuzzyEq[Real]].eqv(a, value, p)
-          case None => false
+          case None => a == b
         }
-      case (a: Structure, b: Real) =>
-        a.convert[Real](b) match {
-          case Some(value) => summon[FuzzyEq[Real]].eqv(value, b, p)
-          case None => false
-        }
-      case _ => x == y  // XXX fallback for exact types
+      case (a: NumberBased, b: Structure) => // delta
+        val zo = for (r <- a.convert(Real.zero); q <- b.convert(Real.zero)) yield summon[FuzzyEq[Real]].eqv(r, q, p)
+        zo.getOrElse(x == y)
+      case (a: Structure, b: Real) => // epsilon
+        fuzzyEqual(b, a, p)
+      case (a: Structure, b: NumberBased) => // zeta
+        fuzzyEqual(b, a, p)
+      case _ =>
+        x == y  // XXX fallback for other types: currently that includes `Nat` and `Complex`.
     }
+
+    FuzzyEq.instance(fuzzyEqual)
   }
 }

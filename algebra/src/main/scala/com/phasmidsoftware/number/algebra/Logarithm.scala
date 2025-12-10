@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
-import com.phasmidsoftware.number.core.numerical.{Field, Fuzziness, WithFuzziness}
+import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
@@ -24,9 +24,9 @@ import scala.reflect.ClassTag
   * CONSIDER renaming this as Exp
   *
   * @constructor Creates a new instance of `Logarithm` with the specified value.
-  * @param value the numerical value representing the logarithm
+  * @param number the numerical value representing the logarithm
   */
-abstract class Logarithm(val value: Number) extends Transformed with CanAdd[Logarithm, Logarithm] with Ordered[Logarithm] {
+abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Logarithm, Logarithm] with Ordered[Logarithm] {
 
   /**
     * Returns the base of this logarithm.
@@ -48,7 +48,7 @@ abstract class Logarithm(val value: Number) extends Transformed with CanAdd[Loga
     *         - a positive value if this `Logarithm` is greater than `that`
     */
   def compare(that: Logarithm): Int =
-    value.compare(that.value)
+    number.compare(that.number)
 
   /**
     * Converts the current number to a representation of the specified type `T`, if possible.
@@ -74,7 +74,7 @@ abstract class Logarithm(val value: Number) extends Transformed with CanAdd[Loga
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = value.isZero
+  def isZero: Boolean = number.isZero
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -82,7 +82,7 @@ abstract class Logarithm(val value: Number) extends Transformed with CanAdd[Loga
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = value.compareExact(WholeNumber.zero).get
+  def signum: Int = number.compareExact(WholeNumber.zero).get
 
   /**
     * Method to determine if this Structure object is exact.
@@ -90,7 +90,7 @@ abstract class Logarithm(val value: Number) extends Transformed with CanAdd[Loga
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  override def isExact: Boolean = value.isExact
+  override def isExact: Boolean = number.isExact
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -152,10 +152,15 @@ abstract class Logarithm(val value: Number) extends Transformed with CanAdd[Loga
   *   val e: Eager = NatLog(WholeNumber.one)
   * }}}
   *
-  * @param x the value of the Logarithm.
+  * @param x the value of the Logarithm of this instance.
   */
 case class NatLog(x: Number) extends Logarithm(x) {
 
+  /**
+    * Returns the base of this logarithm, viz. `e`.
+    *
+    * @return the base of type `Number`
+    */
   val base: Number = Real(math.E)
 
   /**
@@ -179,7 +184,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
     val c = implicitly[ClassTag[T]]
     if (c.runtimeClass == classOf[Real]) {
       val result: Real =
-        value match {
+        x match {
           case WholeNumber.one | RationalNumber(Rational.one, _) =>
             Real(math.E)
           case RationalNumber(Rational.infinity, _) =>
@@ -187,7 +192,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
           case Real(value, fuzz) =>
             Real(math.log(value), fuzz)
           case _ =>
-            throw AlgebraException(s"NatLog.transformation: $value not supported")
+            throw AlgebraException(s"NatLog.transformation: $x not supported")
         }
       Some(result.asInstanceOf[T])
     }
@@ -237,8 +242,8 @@ case class NatLog(x: Number) extends Logarithm(x) {
     * @return a string representation of the `Logarithm` in terms of π
     */
   def render: String = {
-    val number = value.render
-    "e" + (if (number == "1") "" else s"^$number")
+    val numberStr = x.render
+    "e" + (if (numberStr == "1") "" else s"^$numberStr")
   }
 
   /**

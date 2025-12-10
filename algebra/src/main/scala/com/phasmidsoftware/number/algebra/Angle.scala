@@ -32,7 +32,14 @@ import scala.reflect.ClassTag
   * @param degrees whether the angle is in radians or degrees.
   *                In the latter case, the `radians` attribute is unchanged (1 is still half of a full circle).
   */
-case class Angle private[algebra](radians: Number, degrees: Boolean = false) extends Circle with Scalable[Angle] with CanAdd[Angle, Angle] with Radians with CanNormalize[Angle] {
+case class Angle private[algebra](radians: Number, degrees: Boolean = false) extends Radians with Circle with Scalable[Angle] with CanAdd[Angle, Angle] with CanNormalize[Angle] {
+
+  /**
+    * Retrieves the value of radians.
+    *
+    * @return the `Number` associated with this instance
+    */
+  def number: Number = radians
 
   /**
     * Normalizes an angle instance to its equivalent value within the standard range of radians.

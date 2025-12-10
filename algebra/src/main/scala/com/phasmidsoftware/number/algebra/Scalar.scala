@@ -141,7 +141,7 @@ object Scalar {
   }
 }
 
-case object NoScalar extends Scalar {
+case object NoScalar extends Scalar with Exact {
   /**
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
     * This method checks if both instances can be compared exactly.
@@ -163,16 +163,6 @@ case object NoScalar extends Scalar {
     * and the conversion factor to yield a `PureNumber`.
     */
   def scaleFactor: Double = Double.NaN
-
-  /**
-    * Retrieves an optional fuzziness value associated with this instance.
-    *
-    * The fuzziness value, if present, provides information about the level of uncertainty
-    * or imprecision, modeled as a `Fuzziness[Double]`.
-    *
-    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
-    */
-  def fuzz: Option[Fuzziness[Double]] = None
 
   /**
     * Determines if the current number is equal to zero.
@@ -237,7 +227,7 @@ case object NoScalar extends Scalar {
   * It extends the `Scalar` trait, inheriting its properties and behaviors for numerical operations
   * and comparison, while specifically associating the scalar with a conversion factor defined by Pi.
   */
-trait Radians extends Scalar {
+trait Radians extends Scalar with NumberBased {
 
   /**
     * Retrieves an optional factor associated with the specified context.

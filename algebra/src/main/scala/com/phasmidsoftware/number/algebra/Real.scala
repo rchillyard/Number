@@ -389,25 +389,84 @@ object Real {
     FP.getOrThrow[Real](z.map(x => Real(x)).toOption, AlgebraException(s"Real.apply(String): cannot parse $w"))
   }
 
+  /**
+    * Given instance of `Convertible` for converting a value of type `Real` into another value of type `Real`.
+    *
+    * This implementation of `Convertible` performs an identity operation, where the given input value
+    * is returned as-is without any modifications.
+    *
+    * @tparam Real the target and source type for conversion
+    */
   given Convertible[Real, Real] with
     def convert(witness: Real, u: Real): Real = u
 
+  /**
+    * Provides a given instance of the `Convertible` typeclass to enable conversion
+    * from an instance of `RationalNumber` to an instance of `Real`.
+    *
+    * This given instance defines a concrete implementation of the `convert` method
+    * that transforms a `RationalNumber` into a `Real` by utilizing the `toDouble` method
+    * of the `RationalNumber` class. The `convert` method takes a `Real` witness object 
+    * (serving as a prototype for the conversion) and a `RationalNumber` to be converted.
+    *
+    * The resulting `Real` is constructed using the numeric value of the `RationalNumber`
+    * (converted to a `Double`) and the default fuzziness of the `Real`.
+    *
+    * @define witness the `Real` witness object used as a prototype for the conversion
+    * @define u       the source `RationalNumber` instance to be converted to a `Real`
+    * @return a new `Real` instance representing the converted `RationalNumber`
+    */
   given Convertible[Real, RationalNumber] with
     def convert(witness: Real, u: RationalNumber): Real = Real(u.toDouble)
 
+  /**
+    * A given instance of the `Convertible` typeclass that provides a conversion
+    * from `WholeNumber` to `Real`.
+    *
+    * The conversion is performed by taking the `WholeNumber` value, converting it
+    * to a `Double`, and then constructing a `Real` instance using the converted value.
+    *
+    * This implementation assumes that the `Real` type represents a numerical value
+    * with support for double-precision, and the `WholeNumber` type represents an
+    * integer-like structure.
+    *
+    * @tparam T the target type (`Real`) of the conversion
+    * @tparam U the source type (`WholeNumber`) of the conversion
+    */
   given Convertible[Real, WholeNumber] with
     def convert(witness: Real, u: WholeNumber): Real = Real(u.toDouble)
 
+  /**
+    * A given instance of the `Convertible` typeclass for transforming an instance of type `Angle`
+    * into a `Real` using a conversion operation.
+    *
+    * This implementation creates a new `Real` by extracting the numerical value from the `Angle`
+    * instance and wrapping it within the `Real` type.
+    *
+    * @param witness an instance of type `Real`, representing additional context for the conversion
+    * @param u       the source `Angle` instance to be converted into a `Real`
+    * @return a new `Real` instance containing the numerical value derived from the input `Angle`
+    */
   given Convertible[Real, Angle] with
     def convert(witness: Real, u: Angle): Real = Real(u.asDouble)
 
+  /**
+    * Provides a `FuzzyEq` instance for type `Real`, enabling the comparison of two `Real` values 
+    * for approximate equality based on a given probability `p`.
+    *
+    * The `FuzzyEq` implementation determines equivalence by evaluating the difference between 
+    * two `Real` values and checking whether it is considered approximately zero under the provided 
+    * probability threshold.
+    *
+    * @return A `FuzzyEq` instance for comparing `Real` values with fuzzy equality.
+    */
   given FuzzyEq[Real] = FuzzyEq.instance {
     (x, y, p) =>
       Valuable.valuableToField(realIsRing.minus(x, y)) match {
         case numerical.Real(x) =>
           x.isProbablyZero(p)
         case _ =>
-          false
+          x == y
       }
   }
   /**

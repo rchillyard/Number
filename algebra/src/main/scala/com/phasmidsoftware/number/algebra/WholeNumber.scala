@@ -24,7 +24,7 @@ import spire.math.SafeLong
   *
   * @param x a SafeLong value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends Number with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
+case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
   /**
     * Converts this instance to its corresponding integer representation.
     *
@@ -38,16 +38,6 @@ case class WholeNumber(x: SafeLong) extends Number with Z with CanAddAndSubtract
     * @return a Rational representation of the current WholeNumber.
     */
   def toRational: Rational = Rational(x.toBigInt)
-
-  /**
-    * Retrieves an optional fuzziness value associated with this instance.
-    *
-    * The fuzziness value, if present, provides information about the level of uncertainty
-    * or imprecision, modeled as a `Fuzziness[Double]`.
-    *
-    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
-    */
-  def fuzz: Option[Fuzziness[Double]] = None
 
   /**
     * Retrieves an `Option` containing this instance as an object of type `Z`.
