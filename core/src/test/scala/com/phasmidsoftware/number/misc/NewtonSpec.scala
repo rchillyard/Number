@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.expression.Expression
+import com.phasmidsoftware.number.core.misc.{ContinuedFraction, Newton}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants
 import com.phasmidsoftware.number.core.numerical.Number.piBy2

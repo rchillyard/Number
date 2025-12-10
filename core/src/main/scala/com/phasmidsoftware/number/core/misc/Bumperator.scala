@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.misc
+package com.phasmidsoftware.number.core.misc
 
 import scala.annotation.tailrec
 

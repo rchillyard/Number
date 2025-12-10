@@ -8,11 +8,10 @@ import algebra.CommutativeGroup
 import cats.Show
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.AlgebraException
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
-import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
 /**

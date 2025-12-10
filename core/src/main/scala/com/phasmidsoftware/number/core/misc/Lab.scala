@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.misc
+package com.phasmidsoftware.number.core.misc
 
 object Lab extends App {
 

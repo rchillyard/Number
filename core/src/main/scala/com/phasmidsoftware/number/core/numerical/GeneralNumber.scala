@@ -7,9 +7,9 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.inner.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.inner.Rational.toInts
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.GeneralNumber.normalizeRoot
 import com.phasmidsoftware.number.core.numerical.Number.{negate, one, prepareWithSpecialize}
-import com.phasmidsoftware.number.misc.FP
 import scala.annotation.tailrec
 import scala.util._
 

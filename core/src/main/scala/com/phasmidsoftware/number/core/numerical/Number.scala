@@ -7,11 +7,11 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{inverse, negate}
 // TODO eliminate references to expression package
 import com.phasmidsoftware.number.core.expression.{Expression, ExpressionException}
-import com.phasmidsoftware.number.misc.FP.{optional, toTry}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.parse.RationalParser.parseComponents
 import scala.annotation.tailrec

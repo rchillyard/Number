@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.Slow
+import com.phasmidsoftware.number.core.misc._
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 

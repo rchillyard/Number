@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.misc
+package com.phasmidsoftware.number.core.misc
 
 /**
   * This case class represents an infinite sum of terms which can be derived by a function (f) which

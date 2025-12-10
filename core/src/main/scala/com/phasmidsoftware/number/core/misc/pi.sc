@@ -32,7 +32,6 @@ def calculatePi(n: Int)(implicit r: Random): Future[Double] = Future {
   result
 }
 
-import com.phasmidsoftware.number.misc.Benchmark._
 import scala.language.postfixOps
 
 implicit val r: Random = Random

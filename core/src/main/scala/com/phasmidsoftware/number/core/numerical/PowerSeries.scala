@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.misc.Factorial
+import com.phasmidsoftware.number.core.misc.Factorial
 
 /**
   * A representation of a mathematical power series which is the sum of a finite or infinite sequence terms expressed as powers of a variable.

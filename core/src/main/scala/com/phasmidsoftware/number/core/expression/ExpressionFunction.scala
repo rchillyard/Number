@@ -6,8 +6,8 @@ package com.phasmidsoftware.number.core.expression
 
 import com.phasmidsoftware.number.core.inner.CoreContext.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
-import com.phasmidsoftware.number.misc.FP
 import scala.Option.when
 
 /**

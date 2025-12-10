@@ -5,10 +5,10 @@
 package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times, toInts}
+import com.phasmidsoftware.number.core.misc.{ContinuedFraction, FP}
+import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.numerical.{BigNumber, Number, NumberLike, Prime}
-import com.phasmidsoftware.number.misc.FP.{toTry, toTryWithRationalException}
-import com.phasmidsoftware.number.misc.{ContinuedFraction, FP}
 import com.phasmidsoftware.number.parse.RationalParser
 import java.lang.Math._
 import scala.annotation.tailrec

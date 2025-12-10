@@ -1,6 +1,7 @@
-package com.phasmidsoftware.number.misc
+package com.phasmidsoftware.number.core.misc
 
-import com.phasmidsoftware.number.misc.Variance.rootSumSquares
+import com.phasmidsoftware.number.core.misc.Benchmark.Repetitions
+import com.phasmidsoftware.number.core.misc.Variance.rootSumSquares
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 
@@ -27,7 +28,6 @@ object Pi extends App {
     result
   }
 
-  import com.phasmidsoftware.number.misc.Benchmark._
   import scala.concurrent.duration.DurationInt
   import scala.language.postfixOps
 

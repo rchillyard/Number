@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.cats
 
 import cats.kernel.CommutativeMonoid
-import com.phasmidsoftware.number.misc.Variance.rootSumSquares
+import com.phasmidsoftware.number.core.misc.Variance.rootSumSquares
 
 /**
   * Lightweight wrappers representing common error metrics so that we can endow them with

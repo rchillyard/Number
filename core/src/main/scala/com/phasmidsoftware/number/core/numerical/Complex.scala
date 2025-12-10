@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
-import com.phasmidsoftware.number.misc.FP.recover
+import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.parse.ComplexParser
 import scala.util._
 

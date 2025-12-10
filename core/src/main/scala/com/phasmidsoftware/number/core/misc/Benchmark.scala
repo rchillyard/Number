@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.misc
+package com.phasmidsoftware.number.core.misc
 
 /**
   * An object providing benchmarking utilities for measuring the execution time of code snippets.

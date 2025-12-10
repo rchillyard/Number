@@ -377,6 +377,16 @@ class MySpec extends AnyFlatSpec with Matchers with StructuralEquality {
 
 For `Angle` and `RationalNumber`, equality ignores display flags (radians/degrees, percentage) and compares normalized mathematical values.
 
+Additionally, the algebra module provides both `FuzzyEq` instances for `Eager` types:
+```scala
+import com.phasmidsoftware.number.algebra.misc.FuzzyEq.~=
+
+val x: Eager = Real(scala.math.Pi)
+val y: Eager = Angle(Real(1.0))
+x == y // false
+x ~= y // true
+```
+
 ## Parse Module
 
 Number supports flexible parsing of numeric values from strings, with automatic detection of exact vs. fuzzy numbers.

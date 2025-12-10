@@ -1,6 +1,10 @@
-package com.phasmidsoftware.number.misc
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.misc.Fuzzy.parser
+package com.phasmidsoftware.number.core.misc
+
+import com.phasmidsoftware.number.core.misc.Fuzzy.parser
 import org.apache.commons.math3.distribution._
 import scala.annotation.tailrec
 import scala.language.implicitConversions

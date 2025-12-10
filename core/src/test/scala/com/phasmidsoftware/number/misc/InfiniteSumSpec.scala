@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.misc
 
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.misc.InfiniteSum
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

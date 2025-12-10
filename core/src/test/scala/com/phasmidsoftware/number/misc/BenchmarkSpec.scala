@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.misc
 
-import com.phasmidsoftware.number.misc.Pi.getPoints
+import com.phasmidsoftware.number.core.misc.Pi.getPoints
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.Random
@@ -15,7 +15,7 @@ class BenchmarkSpec extends AnyFlatSpec with should.Matchers {
 
   // NOTE this is quite likely to fail, especially in CircleCI
   it should "do 100rRepetitions" in {
-    import Benchmark._
+    import com.phasmidsoftware.number.core.misc.Benchmark._
     implicit val r: Random = Random
     val N = 1_000_000
 

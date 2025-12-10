@@ -8,8 +8,8 @@ import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic
 import com.phasmidsoftware.number.core.expression.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.core.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Constants, Field, Number, Real}
-import com.phasmidsoftware.number.misc.FP
 import java.util.Objects
 import scala.language.implicitConversions
 import scala.util.Try

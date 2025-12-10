@@ -7,13 +7,13 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.core.inner.PureNumber
+import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Field, Real}
 import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.Literal.someLiteral
 import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
 import com.phasmidsoftware.number.matchers.*
-import com.phasmidsoftware.number.misc.Bumperator
 import com.phasmidsoftware.number.{core, expression}
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}

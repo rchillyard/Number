@@ -1,7 +1,7 @@
-package com.phasmidsoftware.number.misc
+package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.misc.Fuzzy.FuzzyIsFractional
+import com.phasmidsoftware.number.core.misc.Fuzzy.FuzzyIsFractional
 
 /**
   * This abstract class is the base class for various functions used by LazyNumber algebra.

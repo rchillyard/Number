@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.misc
 
+import com.phasmidsoftware.number.core.misc.Factorial
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers.{an, convertToAnyShouldWrapper}

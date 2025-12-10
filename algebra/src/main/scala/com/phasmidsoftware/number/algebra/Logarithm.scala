@@ -8,11 +8,10 @@ import algebra.CommutativeMonoid
 import cats.Show
 import com.phasmidsoftware.number.algebra.Logarithm.LogarithmIsCommutativeMonoid
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.AlgebraException
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
-import com.phasmidsoftware.number.misc.FP
 import scala.reflect.ClassTag
 
 /**
@@ -82,7 +81,7 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = number.compareExact(WholeNumber.zero).get
+  def signum: Int = FP.recover(number.compareExact(WholeNumber.zero))(AlgebraException(s"Logarithm.signum: logic error: $this"))
 
   /**
     * Method to determine if this Structure object is exact.

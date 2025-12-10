@@ -6,8 +6,8 @@ package com.phasmidsoftware.number.core.algebraic
 
 import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.{Complex, Field, Multivariate, Number, CoreException, Numerical, Real}
-import com.phasmidsoftware.number.misc.FP
+import com.phasmidsoftware.number.core.misc.FP
+import com.phasmidsoftware.number.core.numerical.{Complex, CoreException, Field, Multivariate, Number, Numerical, Real}
 
 /**
   * The `Algebraic` class is an abstract extension of the Field trait, representing a solution of a mathematical equation,

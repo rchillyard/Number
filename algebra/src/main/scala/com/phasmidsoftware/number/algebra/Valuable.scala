@@ -283,7 +283,7 @@ object Eager {
       case (a: Real, b: Structure) =>
         b.convert[Real](a) match { // gamma
           case Some(value) => summon[FuzzyEq[Real]].eqv(a, value, p)
-          case None => a == b
+          case None => false
         }
       case (a: NumberBased, b: Structure) => // delta
         val zo = for (r <- a.convert(Real.zero); q <- b.convert(Real.zero)) yield summon[FuzzyEq[Real]].eqv(r, q, p)

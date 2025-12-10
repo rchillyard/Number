@@ -5,8 +5,8 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
+import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.core.numerical.Number.one
-import com.phasmidsoftware.number.misc.FP.recover
 import scala.language.implicitConversions
 
 /**

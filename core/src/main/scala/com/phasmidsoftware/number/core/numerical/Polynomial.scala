@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.misc.FP
+import com.phasmidsoftware.number.core.misc.FP
 
 /**
   * Represents a polynomial function with a numeric type parameter X.

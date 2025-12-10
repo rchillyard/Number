@@ -43,7 +43,7 @@ object FuzzyEq:
       * @param y The value of type `A` to compare with the current value.
       * @return `true` if the values are considered approximately equal within the default threshold, otherwise `false`.
       */
-    def ~=(y: A): Boolean = fe.eqv(x, y, 0.5)
+    infix def ~=(y: A): Boolean = fe.eqv(x, y, 0.5)
     /**
       * Compares the current value with another value using fuzzy equality logic.
       * The comparison allows for an approximate equality check with a specified probability threshold.

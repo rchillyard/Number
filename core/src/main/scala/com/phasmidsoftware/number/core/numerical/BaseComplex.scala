@@ -6,11 +6,11 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.core.numerical.BaseComplex.narrow
 import com.phasmidsoftware.number.core.numerical.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{negate, two, zero, zeroR}
-import com.phasmidsoftware.number.misc.FP.recover
 
 /**
   * Abstract base class which implements Complex.

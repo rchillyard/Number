@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.misc
 
+import com.phasmidsoftware.number.core.misc.{Bounded, Exact, Fuzzy, Gaussian}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 import scala.util.Success

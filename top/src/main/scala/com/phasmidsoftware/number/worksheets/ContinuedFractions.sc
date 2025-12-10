@@ -4,7 +4,7 @@
   */
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.misc.ConFrac
+import com.phasmidsoftware.number.core.misc.ConFrac
 
 val one = LazyList.continually(1L)
 val targetPhi = ConFrac.simple(one)
