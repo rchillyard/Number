@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.mill
 
-import com.phasmidsoftware.number.parse.{MillParser, ShuntingYardParser}
+import com.phasmidsoftware.number.core.parse.{MillParser, ShuntingYardParser}
 import scala.util.Try
 
 /**

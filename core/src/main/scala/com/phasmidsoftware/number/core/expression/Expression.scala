@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.mill.{CoreMillExpression, DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.numerical._
-import com.phasmidsoftware.number.parse.ShuntingYardParser
+import com.phasmidsoftware.number.core.parse.ShuntingYardParser
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 

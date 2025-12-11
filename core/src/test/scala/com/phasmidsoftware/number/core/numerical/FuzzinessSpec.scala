@@ -4,7 +4,7 @@ import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.numerical.Constants.sG
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{createFuzz, monadicFuzziness}
-import com.phasmidsoftware.number.parse.NumberParser
+import com.phasmidsoftware.number.core.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Left, Try}

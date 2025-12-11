@@ -12,8 +12,8 @@ import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{inverse, negate}
 // TODO eliminate references to expression package
 import com.phasmidsoftware.number.core.expression.{Expression, ExpressionException}
-import com.phasmidsoftware.number.parse.NumberParser
-import com.phasmidsoftware.number.parse.RationalParser.parseComponents
+import com.phasmidsoftware.number.core.parse.NumberParser
+import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
 import scala.annotation.tailrec
 import scala.language.{implicitConversions, postfixOps}
 import scala.util._

@@ -8,9 +8,9 @@ import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.expression.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.core.expression.Literal.someLiteral
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.matchers.MatchersExtras
 import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical.{Field, Number, Real}
-import com.phasmidsoftware.number.matchers._
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 

@@ -14,7 +14,7 @@ import com.phasmidsoftware.number.core.mill.{Expr, Stack, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, CoreException, Real}
-import com.phasmidsoftware.number.parse.ShuntingYardParser
+import com.phasmidsoftware.number.core.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec

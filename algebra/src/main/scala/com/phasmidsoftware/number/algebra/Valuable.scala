@@ -9,8 +9,8 @@ import com.phasmidsoftware.number.algebra.misc.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{CoreExceptionWithCause, ExactNumber, Field, FuzzyNumber}
+import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.{inner, numerical}
-import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.{algebra, core}
 import scala.annotation.tailrec
 import scala.language.implicitConversions

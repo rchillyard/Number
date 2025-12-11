@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.mill.{Add, CoreMill, CoreMillItem, Empty,
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.{Field, FuzzyEquality, Number, Real}
 import com.phasmidsoftware.number.core.mill.CoreMill.parseInfix
-import com.phasmidsoftware.number.parse.MillParser
+import com.phasmidsoftware.number.core.parse.MillParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.{Assertion, Succeeded}

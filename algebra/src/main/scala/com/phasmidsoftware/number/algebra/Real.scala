@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
-import com.phasmidsoftware.number.parse.NumberParser
+import com.phasmidsoftware.number.core.parse.NumberParser
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -406,7 +406,7 @@ object Real {
     *
     * This given instance defines a concrete implementation of the `convert` method
     * that transforms a `RationalNumber` into a `Real` by utilizing the `toDouble` method
-    * of the `RationalNumber` class. The `convert` method takes a `Real` witness object 
+    * of the `RationalNumber` class. The `convert` method takes a `Real` witness object
     * (serving as a prototype for the conversion) and a `RationalNumber` to be converted.
     *
     * The resulting `Real` is constructed using the numeric value of the `RationalNumber`
@@ -451,11 +451,11 @@ object Real {
     def convert(witness: Real, u: Angle): Real = Real(u.asDouble)
 
   /**
-    * Provides a `FuzzyEq` instance for type `Real`, enabling the comparison of two `Real` values 
+    * Provides a `FuzzyEq` instance for type `Real`, enabling the comparison of two `Real` values
     * for approximate equality based on a given probability `p`.
     *
-    * The `FuzzyEq` implementation determines equivalence by evaluating the difference between 
-    * two `Real` values and checking whether it is considered approximately zero under the provided 
+    * The `FuzzyEq` implementation determines equivalence by evaluating the difference between
+    * two `Real` values and checking whether it is considered approximately zero under the provided
     * probability threshold.
     *
     * @return A `FuzzyEq` instance for comparing `Real` values with fuzzy equality.
