@@ -124,8 +124,9 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     val result: Try[Double] = failureFunction("anyString") // Passing a String, but ignored
 
     result shouldBe a[Failure[_]]
-    result.failed.get shouldBe a[CoreException]
-    result.failed.get.getMessage shouldBe s
+    val value1 = result.failed.get // This is fine in a Spec file.
+    value1 shouldBe a[CoreException]
+    value1.getMessage shouldBe s
   }
 
   it should "fail2: return a Failure with the given Throwable" in {

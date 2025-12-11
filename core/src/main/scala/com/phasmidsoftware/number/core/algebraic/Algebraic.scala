@@ -510,7 +510,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
       case s: LinearSolution =>
         Algebraic_Linear.create(s)
     }
-    FP.toTryWithThrowable(maybeAlgebraicLinear, CoreException(s"AlgebraicLinear: cannot add $this and $a")).get // TODO convert to a proper exception
+    FP.recover(maybeAlgebraicLinear, CoreException(s"AlgebraicLinear: cannot add $this and $a"))
   }
 
   /**
