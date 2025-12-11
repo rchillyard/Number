@@ -255,22 +255,21 @@ case class Bounded(mu: Double, delta: Double) extends FuzzyBase(mu, delta, new U
   def newFuzzy(x: Double, delta: Double): Fuzzy = Bounded(x, delta)
 }
 
-case class General(dist: AbstractRealDistribution) extends FuzzyBase(dist.getNumericalMean, math.sqrt(dist.getNumericalVariance), dist) {
-  def combine(o: Fuzzy, f: PairFunction, df_dx: PairFunction, df_dy: PairFunction): Fuzzy = o match {
-    case _ => throw new UnsupportedOperationException("NYI")
-  }
-
-  override def toString = s"General: $dist"
-
-  def newFuzzy(x: Double, delta: Double): Fuzzy =
-    Gaussian(x, delta)
-
-  override def map2(f: DiFunc[Double])(delta2: Double): Fuzzy =
-    throw new UnsupportedOperationException("NYI")
-
-  // TODO implement me
-  def parseString(str: String): Option[Fuzzy] = ???
-}
+//case class General(dist: AbstractRealDistribution) extends FuzzyBase(dist.getNumericalMean, math.sqrt(dist.getNumericalVariance), dist) {
+//  def combine(o: Fuzzy, f: PairFunction, df_dx: PairFunction, df_dy: PairFunction): Fuzzy = o match {
+//    case _ => throw new UnsupportedOperationException("NYI")
+//  }
+//
+//  override def toString = s"General: $dist"
+//
+//  def newFuzzy(x: Double, delta: Double): Fuzzy =
+//    Gaussian(x, delta)
+//
+//  override def map2(f: DiFunc[Double])(delta2: Double): Fuzzy =
+//    throw new UnsupportedOperationException("NYI")
+//
+////  def parseString(str: String): Option[Fuzzy] = ???
+//}
 
 object Fuzzy {
 

@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.core.misc
 
+import com.phasmidsoftware.number.core.numerical.CoreException
 import scala.annotation.tailrec
 
 /**
@@ -16,6 +17,8 @@ import scala.annotation.tailrec
   * when a boat "bumps" the boat in front, both withdraw for the day but return
   * the following day with their former order reversed.
   * See [[https://en.wikipedia.org/wiki/Bumps_race Bumps race]]
+  *
+  * TODO move this into `expression` module.
   *
   * @tparam T the type of each element in the iterator
   * @param xs an input iterator providing elements to iterate over
@@ -49,7 +52,7 @@ case class Bumperator[T](xs: Iterator[T])(f: (T, T) => Boolean) extends Iterator
     */
   def next(): T = {
     // NOTE we expect to throw an exception here if maybeCurrent is None
-    val result = maybeCurrent.get
+    val result = FP.recover(maybeCurrent, CoreException("Bumperator.next: logic error: no more elements"))
     maybeCurrent = maybeFollowing
     maybeFollowing = None
     result

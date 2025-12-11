@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.inner.Rational
@@ -97,6 +101,7 @@ object LazyNumber {
 }
 
 case class LazyRational(x: Rational, f: Rational => Rational) extends LazyNumber[Rational](x, f) {
+  // XXX why is Codacy complaining about this? Ignore it.
   def construct(x: => Rational, f: Rational => Rational): LazyNumber[Rational] = LazyRational(x, f)
 
   def fromInt(x: Int): LazyRational = LazyRational(x)
