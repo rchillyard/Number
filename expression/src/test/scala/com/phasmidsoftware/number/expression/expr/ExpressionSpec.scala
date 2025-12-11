@@ -44,7 +44,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "evaluate"
   it should "evaluate 1 + -1" in {
     val x: Expression = Expression(1) :+ -1
-    x.evaluateAsIs shouldBe Some(Valuable.zero)
+    x.evaluateAsIs shouldBe Some(Eager.zero)
   }
   it should "evaluate 1 * -1" in {
     val x: Expression = Expression(1) * -1
@@ -86,38 +86,38 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "ExpressionMonoFunction"
   it should "work for Negate" in {
     val f: ExpressionMonoFunction = Negate
-    f(Valuable.zero) shouldBe Valuable.zero
-    f(Valuable.one) shouldBe Valuable.minusOne
-    f(Valuable.minusOne) shouldBe Valuable.one
-    f(f(Valuable.two)) shouldBe Valuable.two
+    f(Eager.zero) shouldBe Eager.zero
+    f(Eager.one) shouldBe Eager.minusOne
+    f(Eager.minusOne) shouldBe Eager.one
+    f(f(Eager.two)) shouldBe Eager.two
   }
   it should "work for Reciprocal" in {
     val f: ExpressionMonoFunction = Reciprocal
-    f(Valuable.zero) shouldBe Valuable.infinity
-    f(Valuable.one) shouldBe Valuable.one
-    f(Valuable.half) should ===(Valuable.two)
-    f(Valuable.two) shouldBe Valuable.half
-    //    f(Valuable.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
+    f(Eager.zero) shouldBe Eager.infinity
+    f(Eager.one) shouldBe Eager.one
+    f(Eager.half) should ===(Eager.two)
+    f(Eager.two) shouldBe Eager.half
+    //    f(Eager.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
   }
   it should "work for Exp" in {
     val f: ExpressionMonoFunction = Exp
-    f(Valuable.zero) shouldBe Valuable.one
-    f(Valuable.one) shouldBe Valuable.e
+    f(Eager.zero) shouldBe Eager.one
+    f(Eager.one) shouldBe Eager.e
   }
   it should "work for Ln" in {
     val f: ExpressionMonoFunction = Ln
-    f(Valuable.one) shouldBe Valuable.zero
-    f(Valuable.e) shouldBe Valuable.one
+    f(Eager.one) shouldBe Eager.zero
+    f(Eager.e) shouldBe Eager.one
   }
   it should "work for Sine" in {
     val f: ExpressionMonoFunction = Sine
-    f(Angle.piBy2) shouldBe Valuable.one
-    f(Angle.zero) shouldBe Valuable.zero
+    f(Angle.piBy2) shouldBe Eager.one
+    f(Angle.zero) shouldBe Eager.zero
   }
   it should "work for Cosine" in {
     val f: ExpressionMonoFunction = Cosine
-    f(Angle.piBy2) shouldBe Valuable.zero
-    f(Angle.zero) shouldBe Valuable.one
+    f(Angle.piBy2) shouldBe Eager.zero
+    f(Angle.zero) shouldBe Eager.one
   }
 
 
@@ -125,10 +125,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for Exp(1)" in {
     val x = expr.UniFunction(One, Exp)
     val result = x.evaluateAsIs
-    result shouldBe Some(Valuable.e)
+    result shouldBe Some(Eager.e)
   }
   it should "work for Reciprocal" in {
-    expr.UniFunction(Two, Reciprocal).evaluateAsIs shouldBe Some(Valuable.half)
+    expr.UniFunction(Two, Reciprocal).evaluateAsIs shouldBe Some(Eager.half)
   }
   it should "work for Ln(-1)" in {
     val x = expr.UniFunction(MinusOne, Ln)
@@ -140,28 +140,28 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for Exp(1)" in {
     val x = expr.UniFunction(One, Exp)
     val result = x.materialize
-    result shouldBe Valuable.e
+    result shouldBe Eager.e
   }
   it should "work for Reciprocal" in {
-    expr.UniFunction(Two, Reciprocal).materialize shouldBe Valuable.half
+    expr.UniFunction(Two, Reciprocal).materialize shouldBe Eager.half
   }
   it should "work for Exp(Ln(2))" in {
     val x = expr.UniFunction(expr.UniFunction(Two, Ln), Exp)
     val result = x.materialize
-    result shouldBe Valuable.two
+    result shouldBe Eager.two
   }
 
   behavior of "Expression"
   it should "simplifyAndEvaluate" in {
-    val x1 = Valuable.one
-    val x2 = Valuable.pi
+    val x1 = Eager.one
+    val x2 = Eager.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
     val result: Valuable = e.materialize
     valuableToField(result) shouldEqual numerical.Real(numerical.Number(Math.PI + 1))
   }
   it should "render" in {
-    val x1 = Valuable.one
-    val x2 = Valuable.pi
+    val x1 = Eager.one
+    val x2 = Eager.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
     e.toString shouldBe """BiFunction{Literal(WholeNumber(1),Some(1)) + Literal(Angle(WholeNumber(1),false),Some(𝛑))}"""
     e.render shouldBe "4.1415926535897930(67)"
@@ -182,7 +182,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x = Expression(1) - 2
     val simplifiedExpression = x.simplify
     val result = simplifiedExpression.materialize
-    result shouldBe Valuable.minusOne
+    result shouldBe Eager.minusOne
   }
   it should "evaluate *" in {
     val x = Expression(3) * 2
@@ -208,31 +208,31 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate sin pi/2" in {
     val x: Expression = ConstPi / 2
     val y: Expression = x.sin
-    y.materialize shouldBe Valuable.one
+    y.materialize shouldBe Eager.one
   }
   // FIXME stack overflow
   it should "evaluate atan" in {
     val zero: Expression = expr.Zero
-    zero.atan(Valuable.one).materialize shouldBe Angle.piBy2
+    zero.atan(Eager.one).materialize shouldBe Angle.piBy2
     One.atan(0).materialize shouldBe Angle.zero
-    One.atan(Valuable.root3).evaluateAsIs shouldBe Some(Angle.piBy3)
-    One.atan(One).evaluateAsIs shouldBe Some(Valuable.piBy4)
+    One.atan(Eager.root3).evaluateAsIs shouldBe Some(Angle.piBy3)
+    One.atan(One).evaluateAsIs shouldBe Some(Eager.piBy4)
   }
   it should "evaluate log 2" in {
     val base = Two
-    One.log(base).materialize shouldBe Valuable.zero
-    Two.log(base).materialize shouldBe Valuable.one
+    One.log(base).materialize shouldBe Eager.zero
+    Two.log(base).materialize shouldBe Eager.one
     //    Expression(4).log(base).materialize.asNumber shouldBe Some(Number.two)
   }
   it should "evaluate log e" in {
     val base = ConstE
-    One.log(base).materialize shouldBe Valuable.zero
-    ConstE.log(base).materialize shouldBe Valuable.one
+    One.log(base).materialize shouldBe Eager.zero
+    ConstE.log(base).materialize shouldBe Eager.one
   }
   it should "evaluate log 10" in {
     val base = Expression(10)
-    One.log(base).materialize shouldBe Valuable.zero
-    Expression(10).log(base).materialize shouldBe Valuable.one
+    One.log(base).materialize shouldBe Eager.zero
+    Expression(10).log(base).materialize shouldBe Eager.one
   }
   it should "fail to evaluate log 1 x or log 0 x" in {
     val base = Expression(1)
@@ -242,7 +242,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate ln E" in {
     val x: Expression = ConstE
     val y: Expression = x.ln
-    y.materialize shouldBe Valuable.one
+    y.materialize shouldBe Eager.one
   }
   // TODO Issue #140
   ignore should "evaluate ln 2E" in {
@@ -286,23 +286,23 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "isExact"
   // TODO Issue #140
   it should "be true for any constant Valuable" in {
-    Valuable.one.isExact shouldBe true
-    Valuable.pi.isExact shouldBe true
+    Eager.one.isExact shouldBe true
+    Eager.pi.isExact shouldBe true
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
-    (One :+ Valuable.two).isExact shouldBe true
-    (ConstPi :+ Valuable.pi).isExact shouldBe true
+    (One :+ Eager.two).isExact shouldBe true
+    (ConstPi :+ Eager.pi).isExact shouldBe true
   }
   // TODO Issue #140
   ignore should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Expression(2) * Valuable.e).isExact shouldBe false
+    (Expression(2) * Eager.e).isExact shouldBe false
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
-    val expression = Expression(1) * Valuable.e
+    val expression = Expression(1) * Eager.e
     expression.isExact shouldBe true
   }
   it should "be true for product of zero exact Numbers and a NatLog factor" in {
-    (Expression(0) * Valuable.e).isExact shouldBe true
+    (Expression(0) * Eager.e).isExact shouldBe true
   }
 
   behavior of "depth"
@@ -327,28 +327,28 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   // TODO Issue #140
   ignore should "prove Euler's identity 1" in {
     val iPi = ComplexCartesian(0, numerical.Number.pi)
-    val euler: Expression = Expression(Valuable.e) ∧ Complex(iPi)
-    euler.materialize shouldBe Valuable.minusOne
+    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+    euler.materialize shouldBe Eager.minusOne
   }
   // TODO Issue #140
   ignore should "prove Euler's identity 2" in {
     val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
-    val euler: Expression = Expression(Valuable.e) ∧ Complex(iPi)
-    euler.materialize shouldBe Valuable.minusOne
+    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+    euler.materialize shouldBe Eager.minusOne
   }
 
   behavior of "FieldExpression"
   it should "Zero be equal to zero" in {
-    val target = Literal(Valuable.zero)
+    val target = Literal(Eager.zero)
     target shouldBe Zero
-    target should matchPattern { case Literal(Valuable.zero, _) => }
-    target should matchPattern { case ValueExpression(Valuable.zero, _) => }
+    target should matchPattern { case Literal(Eager.zero, _) => }
+    target should matchPattern { case ValueExpression(Eager.zero, _) => }
   }
   it should "One be equal to one" in {
-    val target = Literal(Valuable.one)
+    val target = Literal(Eager.one)
     target shouldBe One
-    target should matchPattern { case Literal(Valuable.one, _) => }
-    target should matchPattern { case ValueExpression(Valuable.one, _) => }
+    target should matchPattern { case Literal(Eager.one, _) => }
+    target should matchPattern { case ValueExpression(Eager.one, _) => }
   }
 
   behavior of "simplifyConstant"
@@ -357,7 +357,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val em: ExpressionMatchers = Expression.em
     Expression.simplifyConstant(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
     BiFunction(Two, MinusOne, Product).simplify shouldBe Expression(-2)
-    BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Valuable.zero)
+    BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Eager.zero)
   }
 
   behavior of "simplifyExact"
@@ -378,12 +378,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "simplify function expressions" in {
     expr.UniFunction(expr.UniFunction(One, Negate), Negate).simplify shouldBe One
-    expr.UniFunction(Two, Reciprocal).simplify shouldBe Expression(Valuable.half)
-    expr.UniFunction(Valuable.pi, Sine).simplify shouldBe Expression(Valuable.zero)
+    expr.UniFunction(Two, Reciprocal).simplify shouldBe Expression(Eager.half)
+    expr.UniFunction(Eager.pi, Sine).simplify shouldBe Expression(Eager.zero)
   }
   it should "simplify biFunction expressions" in {
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).simplify shouldBe Zero
-    BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Valuable.zero)
+    BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Eager.zero)
   }
 
   // XXX appears to have fixed infinite recursion

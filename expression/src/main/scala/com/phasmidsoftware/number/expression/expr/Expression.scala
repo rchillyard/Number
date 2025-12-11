@@ -277,12 +277,12 @@ object Expression {
           case Some(q) =>
             println("Expression.sqrt: this is where we used to do a short-cut for numbers")
             // XXX this was the old code: Literal(q.sqrt)
-            x ∧ Valuable.half
+            x ∧ Eager.half
           case _ =>
-            x ∧ Valuable.half // TESTME
+            x ∧ Eager.half // TESTME
         }
       case _ =>
-        x ∧ Valuable.half // TESTME
+        x ∧ Eager.half // TESTME
     }
 
     /**
@@ -400,17 +400,17 @@ object Expression {
     * @return an `Expression` representing the input `Field`, either as a predefined constant or a wrapped literal
     */
   def apply(x: Eager): Expression = x match {
-    case Valuable.zero =>
+    case Eager.zero =>
       Zero // TESTME (applies to all except default case)
-    case Valuable.one =>
+    case Eager.one =>
       One
-    case Valuable.minusOne =>
+    case Eager.minusOne =>
       MinusOne
-    case Valuable.two =>
+    case Eager.two =>
       Two
-    case Valuable.pi =>
+    case Eager.pi =>
       ConstPi
-    case Valuable.e =>
+    case Eager.e =>
       ConstE
     case _ =>
       Literal(x)

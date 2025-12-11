@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.parsenew
 
+import com.phasmidsoftware.number.algebra.misc.Renderable
 import com.phasmidsoftware.number.algebra.{Eager, Valuable}
 import com.phasmidsoftware.number.expression.expr.{Expression, Noop}
 import fastparse.Parsed
@@ -34,7 +35,10 @@ object ExpressionParser {
       */
     inline def puremath(args: Any*): Expression =
       val parts = sc.parts
-      val string = (parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)).mkString
+      val string = (parts.zip(args).flatMap {
+        case (s, a: Renderable) => Seq(s, a.render)
+        case (s, a) => Seq(s, a.toString)
+      } ++ parts.drop(args.length)).mkString
       latexParser(string) match {
         case failure: Parsed.Failure =>
           Noop(failure.toString)

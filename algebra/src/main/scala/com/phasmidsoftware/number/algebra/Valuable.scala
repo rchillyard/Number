@@ -56,21 +56,6 @@ trait Valuable extends Renderable with Numeric {
   * enabling parsing and conversion of strings to `Valuable` representations.
   */
 object Valuable {
-  // CONSIDER moving these to Eager
-  lazy val zero: Eager = Number.zero
-  lazy val one: Eager = Number.one
-  lazy val minusOne: Eager = Number.minusOne
-  lazy val two: Eager = Scalar(2)
-  lazy val half: Eager = RationalNumber(Rational.half)
-  lazy val ten: Eager = Scalar(10)
-  lazy val pi: Eager = Angle.pi
-  lazy val piBy2: Eager = Angle.piBy2
-  lazy val piBy4: Eager = Angle.piBy4
-  lazy val e: Eager = NatLog.e
-  lazy val infinity: Eager = RationalNumber(Rational.infinity)
-  lazy val negInfinity: Eager = RationalNumber(Rational.negInfinity)
-  lazy val root2: Eager = InversePower(2, 2)
-  lazy val root3: Eager = InversePower(2, 3)
 
   /**
     * TODO change the type of the input to `Eager`.
@@ -212,6 +197,20 @@ trait Eager extends Valuable
   * strings, long integers, or specific types of mathematical fields.
   */
 object Eager {
+  lazy val zero: Eager = Number.zero
+  lazy val one: Eager = Number.one
+  lazy val minusOne: Eager = Number.minusOne
+  lazy val two: Eager = Scalar(2)
+  lazy val half: Eager = RationalNumber(Rational.half)
+  lazy val ten: Eager = Scalar(10)
+  lazy val pi: Eager = Angle.pi
+  lazy val piBy2: Eager = Angle.piBy2
+  lazy val piBy4: Eager = Angle.piBy4
+  lazy val e: Eager = NatLog.e
+  lazy val infinity: Eager = RationalNumber(Rational.infinity)
+  lazy val negInfinity: Eager = RationalNumber(Rational.negInfinity)
+  lazy val root2: Eager = InversePower(2, 2)
+  lazy val root3: Eager = InversePower(2, 3)
 
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed

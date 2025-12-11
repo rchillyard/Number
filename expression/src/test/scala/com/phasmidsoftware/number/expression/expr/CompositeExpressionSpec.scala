@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.{Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.{Eager, Valuable, WholeNumber}
 //import com.phasmidsoftware.number.expression.expr.ExpressionHelper.math
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -18,8 +18,8 @@ class CompositeExpressionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "simplifyExact 1" in {
-    val x1 = Valuable.one
-    val x2 = Valuable.pi
+    val x1 = Eager.one
+    val x2 = Eager.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
     e.simplifyExact(e).successful shouldBe false
   }
