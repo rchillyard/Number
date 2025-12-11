@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.inner.PureNumber
+import com.phasmidsoftware.number.core.mill.{Add, Swap}
 import com.phasmidsoftware.number.core.numerical.ExactNumber
-import com.phasmidsoftware.number.mill.{Add, Swap}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Failure, Success}

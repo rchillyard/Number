@@ -1,11 +1,16 @@
-package com.phasmidsoftware.number.mill
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.core.mill
 
 import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.expression.Expression.convertMillExpressionToExpression
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
+import com.phasmidsoftware.number.core.mill.{Add, CoreMill, CoreMillItem, Empty, Expr, MillException, Stack, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.{Field, FuzzyEquality, Number, Real}
-import com.phasmidsoftware.number.mill.CoreMill.parseInfix
+import com.phasmidsoftware.number.core.mill.CoreMill.parseInfix
 import com.phasmidsoftware.number.parse.MillParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.parse
 
+import com.phasmidsoftware.number.core.mill.{CoreMill, CoreMillItem, Expr, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical._
-import com.phasmidsoftware.number.mill.{CoreMill, CoreMillItem, Expr, TerminalExpression}
 import scala.util.Try
 
 /**

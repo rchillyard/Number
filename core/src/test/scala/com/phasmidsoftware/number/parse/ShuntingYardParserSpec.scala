@@ -2,8 +2,8 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.expression.Expression.convertMillExpressionToExpression
+import com.phasmidsoftware.number.core.mill.CoreMill
 import com.phasmidsoftware.number.core.numerical.{Constants, Number}
-import com.phasmidsoftware.number.mill.CoreMill
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

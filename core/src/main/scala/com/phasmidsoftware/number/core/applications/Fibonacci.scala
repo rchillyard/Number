@@ -1,4 +1,8 @@
-package com.phasmidsoftware.number.applications
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.core.applications
 
 import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.expression.{Expression, Root}

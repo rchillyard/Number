@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.mill
+package com.phasmidsoftware.number.core.mill
 
 import com.phasmidsoftware.number.core.numerical.{Field, Number, Real}
 

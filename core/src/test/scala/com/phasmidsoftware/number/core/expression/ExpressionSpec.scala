@@ -10,10 +10,10 @@ import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic
 import com.phasmidsoftware.number.core.expression.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.core.expression.Root.phi
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
+import com.phasmidsoftware.number.core.mill.{Expr, Stack, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, CoreException, Real}
-import com.phasmidsoftware.number.mill.{Expr, Stack, TerminalExpression}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter

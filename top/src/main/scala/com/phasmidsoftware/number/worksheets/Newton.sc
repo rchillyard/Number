@@ -1,5 +1,5 @@
-import com.phasmidsoftware.number.applications.Approximation
 import com.phasmidsoftware.number.core.Number.piBy2
+import com.phasmidsoftware.number.core.applications.Approximation
 import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.{Constants, Number, Real}
 

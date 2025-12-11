@@ -8,9 +8,9 @@ import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.core.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.mill.{CoreMillExpression, DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.numerical._
-import com.phasmidsoftware.number.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -369,7 +369,7 @@ object Expression {
     * @return an `Expression` instance representing the equivalent form of the input
     * @throws ExpressionException if an unknown operator is encountered during conversion
     */
-  def convertMillExpressionToExpression(expr: com.phasmidsoftware.number.mill.CoreMillExpression): Expression =
+  def convertMillExpressionToExpression(expr: CoreMillExpression): Expression =
     expr match {
       case TerminalExpression(value) => Literal(value)
       case MonadicExpression(expression, str) =>

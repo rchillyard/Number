@@ -2,8 +2,9 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.mill
+package com.phasmidsoftware.number.core.mill
 
+import com.phasmidsoftware.number.core.mill.{CoreMill, CoreMillExpression}
 import com.phasmidsoftware.number.core.numerical.Number
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import org.scalactic.Equality

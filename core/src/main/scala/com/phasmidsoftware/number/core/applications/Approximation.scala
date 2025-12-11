@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.applications
+package com.phasmidsoftware.number.core.applications
 
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.NumberIsFuzzy

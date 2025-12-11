@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.mill
+package com.phasmidsoftware.number.core.mill
 
 import com.phasmidsoftware.number.core.numerical._
 

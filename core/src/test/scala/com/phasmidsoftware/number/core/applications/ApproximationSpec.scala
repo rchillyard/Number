@@ -1,6 +1,11 @@
-package com.phasmidsoftware.number.applications
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.applications.Approximation.evaluateWithoutDerivative
+package com.phasmidsoftware.number.core.applications
+
+import com.phasmidsoftware.number.core.applications.Approximation
+import com.phasmidsoftware.number.core.applications.Approximation.evaluateWithoutDerivative
 import com.phasmidsoftware.number.core.numerical.Number.negate
 import com.phasmidsoftware.number.core.numerical.{FuzzyEquality, Number}
 import org.scalatest.PrivateMethodTester

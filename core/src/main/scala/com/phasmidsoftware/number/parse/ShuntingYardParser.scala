@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.parse
 
+import com.phasmidsoftware.number.core.mill._
 import com.phasmidsoftware.number.core.numerical._
-import com.phasmidsoftware.number.mill._
 import scala.annotation.tailrec
 import scala.util.Try
 
