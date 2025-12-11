@@ -9,8 +9,7 @@ import com.phasmidsoftware.number.core.expression.Expression.em.ExpressionTransf
 import com.phasmidsoftware.number.core.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.misc.FP.recover
-import com.phasmidsoftware.number.core.numerical.Number.convertInt
-import com.phasmidsoftware.number.core.numerical.{Approximatable, ComplexPolar, Constants, CoreException, Field, Number, NumberLike, Real}
+import com.phasmidsoftware.number.core.numerical._
 import com.phasmidsoftware.number.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.parse.ShuntingYardParser
 import scala.annotation.tailrec

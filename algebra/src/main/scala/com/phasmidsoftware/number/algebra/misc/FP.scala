@@ -301,7 +301,7 @@ object FP {
   def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
     TryUsing(FP.resource[FP.type](filename).map(Source.fromURL(_))) {
       source =>
-        val bn = implicitly[Numeric[BigInt]]
+        val bn = implicitly[math.Numeric[BigInt]]
         val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
         val bos: Iterator[Option[BigInt]] = for p <- wos yield for q <- p; qq <- bn.parseString(q) yield qq
         FP.toTry(FP.sequence(bos.toList), Failure(AlgebraException(s"invalid input in file: $filename")))
@@ -374,11 +374,11 @@ object FP {
     * @param n the exponent to which the base number is raised
     * @return the result of raising the base number to the specified exponent
     */
-  def power[X: Numeric](x: X, n: Int): X =
+  def power[X: math.Numeric](x: X, n: Int): X =
     if n == 0 then
-      implicitly[Numeric[X]].one
+      implicitly[math.Numeric[X]].one
     else
-      implicitly[Numeric[X]].times(x, power(x, n - 1))
+      implicitly[math.Numeric[X]].times(x, power(x, n - 1))
 
 }
 

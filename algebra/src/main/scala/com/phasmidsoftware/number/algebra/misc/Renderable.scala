@@ -25,7 +25,7 @@ trait Renderable {
   * Classes or objects implementing this trait should provide a definition 
   * of how the optional numeric value is derived or maintained.
   */
-trait MaybeNumeric {
+trait Numeric {
 
   /**
     * If this is exact, it returns the exact value as a `Double`.

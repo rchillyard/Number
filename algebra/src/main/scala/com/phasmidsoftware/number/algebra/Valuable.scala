@@ -25,7 +25,7 @@ import scala.util.{Failure, Success}
   * NOTE: this trait has the same name as the `Valuable` typeclass in the `com.phasmidsoftware.number` package,
   * but it is not the same thing.
   */
-trait Valuable extends Renderable with MaybeNumeric {
+trait Valuable extends Renderable with Numeric {
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
