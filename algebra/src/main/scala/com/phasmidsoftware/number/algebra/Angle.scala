@@ -62,7 +62,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     case Real(value, fuzz) =>
       Angle(Radian.modulate(Value.fromDouble(Some(value)))) // TODO take care of fuzz
     case WholeNumber(x) =>
-      Angle(Radian.modulate(Value.fromRational(Rational(x.toBigInt))))
+      Angle(Radian.modulate(Value.fromRational(Rational(x))))
     case _ =>
       throw AlgebraException(s"normalize: unexpected type $radians")
   }
@@ -360,7 +360,7 @@ object Angle {
     * @param r the input `WholeNumber` to be converted into an angle
     * @return an `Angle` instance corresponding to the given whole number
     */
-  def apply(r: WholeNumber): Angle = Angle(r.x.toBigInt)
+  def apply(r: WholeNumber): Angle = Angle(r.x)
 
   /**
     * Converts the given numeric value to an `Angle` instance represented in degrees.
@@ -544,7 +544,7 @@ object Angle {
       */
     def negate(a: Angle): Angle = a.radians match {
       case WholeNumber(x) =>
-        Angle(-x.toBigInt)
+        Angle(-x)
       case RationalNumber(r, _) =>
         Angle(RationalNumber(r.negate))
       case Real(x, f) =>

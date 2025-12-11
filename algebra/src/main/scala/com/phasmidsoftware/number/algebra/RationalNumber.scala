@@ -95,7 +95,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
     case RationalNumber(o, _) =>
       Some(r.compareTo(o))
     case WholeNumber(x) =>
-      Some(r.compare(Rational(x.toBigInt)))
+      Some(r.compare(Rational(x)))
     case _ =>
       None
   }

@@ -166,7 +166,7 @@ object Valuable {
     case algebra.Real(x, fo) =>
       numerical.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
     case WholeNumber(x) =>
-      numerical.Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber))
+      numerical.Real(ExactNumber(Value.fromRational(Rational(x)), PureNumber))
     case _ =>
       throw AlgebraException(s"Valuable.numberToField: Cannot convert $number to a Field")
   }

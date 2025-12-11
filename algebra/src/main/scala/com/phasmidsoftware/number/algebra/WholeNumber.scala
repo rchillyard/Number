@@ -10,11 +10,9 @@ import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical.Fuzziness
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.Try
-import spire.math.SafeLong
 
 /**
   * A case class representing a whole number.
@@ -22,9 +20,9 @@ import spire.math.SafeLong
   * The `WholeNumber` class models any integer in the Z domain and its associated operations,
   * enabling addition, inversion, comparison, and rendering.
   *
-  * @param x a SafeLong value representing the whole number
+  * @param x a BigInt value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
+case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
   /**
     * Converts this instance to its corresponding integer representation.
     *
@@ -37,7 +35,7 @@ case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAdd
     *
     * @return a Rational representation of the current WholeNumber.
     */
-  def toRational: Rational = Rational(x.toBigInt)
+  def toRational: Rational = Rational(x)
 
   /**
     * Retrieves an `Option` containing this instance as an object of type `Z`.
@@ -99,7 +97,7 @@ case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAdd
     *         or `None` if the operation could not be performed
     */
   infix def pow(that: WholeNumber): Option[WholeNumber] =
-    Try(WholeNumber(x.toBigInt.pow(that.toInt))).toOption
+    Try(WholeNumber(x.pow(that.toInt))).toOption
 
   /**
     * Compares this instance with another `Scalar` for exact equivalence.
@@ -116,7 +114,7 @@ case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAdd
     case WholeNumber(o) =>
       Some(x.compare(o))
     case RationalNumber(r, _) =>
-      Some(Rational(x.toBigInt).compare(r))
+      Some(Rational(x).compare(r))
     case _ =>
       None
   }
@@ -165,7 +163,7 @@ case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAdd
     * @return A RationalNumber instance representing the current value.
     */
   def toRationalNumber: RationalNumber =
-    RationalNumber(Rational(x.toBigInt))
+    RationalNumber(Rational(x))
 
   /**
     * Represents the zero element of the `WholeNumber` type, adhering to the identity element defined
@@ -200,7 +198,7 @@ case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAdd
     *
     * @return an Option containing a Rational if the conversion succeeds, or None if it does not.
     */
-  def maybeRational: Option[Rational] = Some(Rational(x.toBigInt))
+  def maybeRational: Option[Rational] = Some(Rational(x))
 
   /**
     * Scales the current instance by a given scalar.
@@ -213,9 +211,9 @@ case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAdd
   def scale(scalar: Scalar): Option[Number] =
     scalar match {
       case WholeNumber(i) =>
-        Some(WholeNumber(x.toBigInt * i.toBigInt))
+        Some(WholeNumber(x * i))
       case RationalNumber(r, _) =>
-        val product: Rational = Rational(x.toBigInt) * r
+        val product: Rational = Rational(x) * r
         Option.when(product.isWhole)(WholeNumber(product.toBigInt))
       case _ => // TODO add other cases as they become available
         None
@@ -243,7 +241,7 @@ case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAdd
     * @return an `Option[Monotone]` representing the scaled result
     */
   def scale(scale: Rational): Number =
-    scale * x.toBigInt match {
+    scale * x match {
       case r if r.isWhole => WholeNumber(r.toBigInt)
       case r => RationalNumber(r)
     }
@@ -282,14 +280,14 @@ case class WholeNumber(x: SafeLong) extends Number with Exact with Z with CanAdd
     *         - `1` if the number is positive,
     *         - `-1` if the number is negative.
     */
-  def signum: Int = x.compare(SafeLong.zero)
+  def signum: Int = x.compare(BigInt(0))
 
   /**
     * Determines if the value of the current instance is equal to zero.
     *
     * @return true if the current instance equals zero, false otherwise
     */
-  def isZero: Boolean = x == SafeLong.zero
+  def isZero: Boolean = x == BigInt(0)
 
   /**
     * Determines if the number is exact.
