@@ -42,9 +42,9 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
     x == y shouldBe false
     x.~=(y) shouldBe true
   }
-  it should "~= NumberBased/NumberBased" in {
-    val x: NumberBased = NatLog(1)
-    val y: NumberBased = NatLog(1)
+  it should "~= Functional/Functional" in {
+    val x: Functional = NatLog(1)
+    val y: Functional = NatLog(1)
     x == y shouldBe true
     x.~=(y) shouldBe true
   }
@@ -66,31 +66,31 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
     x == y shouldBe false
     x.~=(y) shouldBe true
   }
-  it should "~= Real/NumberBased (1)" in {
+  it should "~= Real/Functional (1)" in {
     val x: Eager = Real(scala.math.Pi)
     val y: Eager = Angle(Real(1.0))
     x == y shouldBe false
     x.~=(y) shouldBe true
   }
-  it should "~= Real/NumberBased (2)" in {
+  it should "~= Real/Functional (2)" in {
     val x: Eager = Real(math.E)
     val y: Eager = NatLog(1)
     x == y shouldBe false
     x.~=(y) shouldBe true
   }
-  it should "~= NumberBased/Real" in {
+  it should "~= Functional/Real" in {
     val y: Eager = Real(scala.math.Pi)
     val x: Eager = Angle(Real(1.0))
     x == y shouldBe false
     x.~=(y) shouldBe true
   }
-  it should "~= NumberBased/WholeNumber" in {
+  it should "~= Functional/WholeNumber" in {
     val x: Eager = Angle(Real(1.0 / math.Pi))
     val y: Eager = WholeNumber(1)
     x == y shouldBe false
     x.~=(y) shouldBe true
   }
-  it should "~= WholeNumber/NumberBased" in {
+  it should "~= WholeNumber/Functional" in {
     val y: Eager = Angle(Real(1.0 / math.Pi))
     val x: Eager = WholeNumber(1)
     x == y shouldBe false

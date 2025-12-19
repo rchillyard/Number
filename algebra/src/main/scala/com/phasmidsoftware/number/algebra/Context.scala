@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.number.algebra.misc.AlgebraException
 import com.phasmidsoftware.number.algebra.{Nat, Structure, Valuable}
+import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.*
 
 /**
@@ -199,7 +200,7 @@ object Context {
     * A value qualifies for this context if it qualifies for any of the three individual
     * restricted logarithmic contexts.
     */
-  val AnyLog: Context = RestrictedContext(com.phasmidsoftware.number.core.inner.NatLog) or RestrictedContext(Log2) or RestrictedContext(Log10) or RestrictedContext(Euler)
+  val AnyLog: Context = RestrictedContext(inner.NatLog) or RestrictedContext(inner.Log2) or RestrictedContext(Log10) or RestrictedContext(Euler)
   /**
     * A `Context` that qualifies factors as either square roots (`SquareRoot`) or cube roots (`CubeRoot`).
     * Combines the qualification conditions of `SquareRoot` and `CubeRoot` contexts using logical OR.

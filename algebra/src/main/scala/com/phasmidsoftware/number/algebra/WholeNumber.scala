@@ -6,9 +6,11 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import cats.Show
+import cats.kernel.Eq
+import com.phasmidsoftware.number.algebra.Eager.eqEager
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -306,8 +308,8 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
     * @return an `Option[Double]` where the value is the `Double` representation of the `WholeNumber`,
     *         or `None` if a `Double` representation cannot be provided.
     */
-  def maybeDouble: Option[Double] =
-    Some(x.toDouble)
+//  def maybeDouble: Option[Double] =
+//    Some(x.toDouble)
 
   /**
     * Renders the `WholeNumber` instance as a string representation.
@@ -331,6 +333,10 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
   * rational numbers and comply with the algebraic structure of a commutative group.
   */
 object WholeNumber {
+
+  implicit val wholeNumberEq: Eq[WholeNumber] = Eq.instance {
+    (x, y) => x.x == y.x
+  }
 
   /**
     * Represents the WholeNumber constant for the value zero (0).
@@ -389,6 +395,21 @@ object WholeNumber {
           Rational.createExact(u.value).toOption.flatMap(r => r.maybeInt).map(WholeNumber(_))
         )
       )(AlgebraException("cannot convert $u to WholeNumber"))
+
+  given DyadicOperator[WholeNumber] = new DyadicOperator[WholeNumber] {
+    def op[Z](f: (WholeNumber, WholeNumber) => Try[Z])(x: WholeNumber, y: WholeNumber): Try[Z] =
+      f(x, y)
+  }
+
+  given Eq[WholeNumber] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[WholeNumber]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[WholeNumber] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[WholeNumber]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
 
   /**
     * Provides an implicit implementation of a commutative group for the `WholeNumber` type, supporting

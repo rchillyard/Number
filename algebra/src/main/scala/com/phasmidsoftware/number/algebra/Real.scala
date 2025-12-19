@@ -2,9 +2,10 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeGroup, Ring}
 import cats.Show
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
@@ -95,8 +96,20 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] =
+  override def maybeDouble: Option[Double] =
     Option.when(isExact)(value)
+
+  /**
+    * Converts the approximate representation of this number into a `Double`.
+    *
+    * This method attempts to approximate the value of this number by invoking
+    * the `approximation` method with `force = true`. If the approximation exists,
+    * it is converted to a `Double`. If no approximation can be obtained, a
+    * `AlgebraException` is thrown to indicate a logic error.
+    *
+    * @return the approximate value as a `Double`.
+    */
+  override def toDouble: Double = value
 
   /**
     * Determines if the current number is equal to zero.
@@ -312,6 +325,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
 
   /**
     * Scales the current `Real` instance by the mathematical constant π (pi).
+    * CONSIDER make this package private again
     *
     * This method creates a new `Real` by multiplying the internal value of
     * the current instance with the constant π.
@@ -319,7 +333,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     *
     * @return a new `Real` instance with its value scaled by π
     */
-  private[algebra] lazy val scaleByPi: Real =
+  lazy val scaleByPi: Real =
     Real(value * Real.pi.value, Some(Fuzziness.doublePrecision))
 
   /**
@@ -331,6 +345,37 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     */
   def power(r: Rational): Option[Real] =
     Some(Real(math.pow(value, r.toDouble), fuzz.map(Fuzziness.scaleTransform(r.toDouble))))
+
+  /**
+    * Compares two instances of `Eager` for equality.
+    *
+    * This method is intended to check if the provided instances, `x` and `y`, 
+    * are equivalent. Currently, this functionality is not implemented 
+    * and will return a failure with an appropriate exception message.
+    *
+    * @param x the first `Eager` instance to compare
+    * @param y the second `Eager` instance to compare
+    * @return a `Try[Boolean]` where:
+    *         - `Success(true)` indicates the objects are equivalent
+    *         - `Success(false)` indicates the objects are not equivalent
+    *         - `Failure` indicates this functionality is not implemented
+    */
+  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (a: Real, b: Real) =>
+      Success(a == b)
+    case _ =>
+      super.eqv(x, y)
+  }
+
+  override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (a: Real, b: Real) =>
+      Valuable.valuableToField(realIsRing.minus(a, b)) match {
+        case numerical.Real(x) =>
+          Success(x.isProbablyZero(p))
+        case _ =>
+          Success(a == b)
+      }
+  }
 }
 
 /**
@@ -347,7 +392,7 @@ object Real {
     * Constructs a `Real` instance using the given long value and no fuzziness.
     *
     * This method converts the specified long value to a double and delegates to the
-    * corresponding `apply(value: Double, fuzziness: Option[Fuzziness[Double]])` method
+    * corresponding method `apply(value: Double, fuzziness: Option[Fuzziness[Double]])`
     * to construct the `Real` instance.
     *
     * @param value the long value to be associated with the `Real`
@@ -450,25 +495,22 @@ object Real {
   given Convertible[Real, Angle] with
     def convert(witness: Real, u: Angle): Real = Real(u.asDouble)
 
-  /**
-    * Provides a `FuzzyEq` instance for type `Real`, enabling the comparison of two `Real` values
-    * for approximate equality based on a given probability `p`.
-    *
-    * The `FuzzyEq` implementation determines equivalence by evaluating the difference between
-    * two `Real` values and checking whether it is considered approximately zero under the provided
-    * probability threshold.
-    *
-    * @return A `FuzzyEq` instance for comparing `Real` values with fuzzy equality.
-    */
+
+  given DyadicOperator[Real] = new DyadicOperator[Real] {
+    def op[Z](f: (Real, Real) => Try[Z])(x: Real, y: Real): Try[Z] =
+      f(x, y)
+  }
+
+  given Eq[Real] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Real]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
   given FuzzyEq[Real] = FuzzyEq.instance {
     (x, y, p) =>
-      Valuable.valuableToField(realIsRing.minus(x, y)) match {
-        case numerical.Real(x) =>
-          x.isProbablyZero(p)
-        case _ =>
-          x == y
-      }
+      x == y || summon[DyadicOperator[Real]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
+
   /**
     * Constructs a new `Real` instance based on the values of an existing `Real`.
     *

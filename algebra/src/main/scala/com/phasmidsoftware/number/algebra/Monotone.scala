@@ -1,10 +1,11 @@
 package com.phasmidsoftware.number.algebra
 
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.FuzzyEq
-import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.algebra.misc.{DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
+import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 
@@ -15,9 +16,11 @@ import scala.reflect.ClassTag
   *
   * Monotone does not support ordering because not all Monotones are comparable.
   *
+  * CONSIDER renaming as Functional? because there are some subtypes where dy/dx is not always positive.
+  *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with Approximate with WithFuzziness {
+trait Monotone extends Structure with WithFuzziness {
 
   /**
     * Method to determine if this `Structure` object is exact.
@@ -26,16 +29,6 @@ trait Monotone extends Structure with Approximate with WithFuzziness {
     * @return true if this `Structure` object is exact in the context of no factor, else false.
     */
   def isExact: Boolean = fuzz.isEmpty && approximation().isEmpty
-
-  /**
-    * Attempts to yield a factor for the instance, if available.
-    *
-    * A `Factor` is a representation of the underlying numerical domain, for example, `PureNumber`, `Radian`, etc.
-    *
-    * @return an `Option[Factor]` containing the factor representation of this object,
-    *         or `None` if factorization is not applicable or unavailable.
-    */
-  def maybeFactor(context: Context): Option[Factor]
 
   /**
     * Attempts to approximate the current instance to a `Real` value.
@@ -71,6 +64,106 @@ trait Monotone extends Structure with Approximate with WithFuzziness {
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
   def signum: Int
+
+  /**
+    * Returns a new instance of `Monotone` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    *
+    * @return a `Monotone` representing the negation of this instance
+    */
+  def negate: Monotone
+
+}
+
+object Monotone {
+
+  import org.slf4j.{Logger, LoggerFactory}
+  import scala.util.Try
+
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  given DyadicOperator[Monotone] = new DyadicOperator[Monotone] {
+    @tailrec
+    def op[Z](f: (Monotone, Monotone) => Try[Z])(x: Monotone, y: Monotone): Try[Z] = (x, y) match {
+      case (a: Scalar, b: Scalar) =>
+        implicitly[DyadicOperator[Scalar]].op(f)(a, b)
+      case (a: Functional, b: Functional) =>
+        implicitly[DyadicOperator[Functional]].op(f)(a, b)
+
+      // Cross-type operations:
+      case (x: Scalar, y: Functional) =>
+        tryConvertAndCompareScalar(f)(x, y)
+      case (x: Functional, y: Scalar) =>
+        op(f)(y, x)
+      case (a, b) =>
+        f(a, b)
+    }
+  }
+
+  given Eq[Monotone] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Monotone]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Monotone] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Monotone]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
+
+  //
+//  implicit val monotoneEq: Eq[Monotone] = Eq.instance {
+//    (x, y) => eqMonotone(x, y)
+//  }
+//
+//  given FuzzyEq[Monotone] = FuzzyEq.instance {
+//    (x, y, p) =>
+//      eqMonotone(x, y) || fuzzyEqStructure(x, y, p)
+//  }
+//
+//  private def eqMonotone(x: Monotone, y: Monotone): Boolean = (x, y) match {
+//    // Same-type comparisons
+//    case (x: Scalar, y: Scalar) => x === y
+//    case (x: InversePower, y: InversePower) => x === y
+//    case (x: Functional, y: Functional) => x === y
+//
+//    // Cross-type: Structure can represent both Complex and Nat
+//    case (x: Scalar, y: InversePower) =>
+//      tryConvertAndCompareMonotone(x, y)
+//    case (x: InversePower, y: Scalar) =>
+//      tryConvertAndCompareMonotone(y, x)
+//    case (x: Scalar, y: Functional) =>
+//      tryConvertAndCompareMonotone(x, y)
+//    case (x: Functional, y: Scalar) =>
+//      tryConvertAndCompareMonotone(y, x)
+//    case (x: InversePower, y: Functional) =>
+//      tryConvertAndCompareMonotone(x, y)
+//    case (x: Functional, y: InversePower) =>
+//      tryConvertAndCompareMonotone(y, x)
+//    case _ =>
+//      logger.warn(s"Unexpected Structure comparison: ${x.getClass.getSimpleName} === ${y.getClass.getSimpleName}")
+//      false
+//  }
+//
+  private def tryConvertAndCompareScalar[T <: Monotone, Z](f: (Monotone, Monotone) => Try[Z])(s: Scalar, e: T): Try[Z] = e match {
+//    case p: InversePower =>
+//      f(p.base.pow(p.n), s) // TODO do this properly
+    case n: Functional =>
+      f(s, n.number)
+    case _ =>
+      FP.fail(s"tryConvertAndCompareStructure: unexpected Monotone comparison: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
+  }
+
+//  implicit val monotoneEq: Eq[Monotone] = Eq.instance {
+//    case (x: Scalar, y: Structure) =>
+//      x === y
+//    case (x: InversePower, y: Structure) =>
+//      x === y
+//    case (x: Transformed, y: Structure) =>
+//      x === y
+//    case _ =>
+//      false
+//  }
+
 }
 
 /**
@@ -105,7 +198,7 @@ object Exact {
     * Defines a `FuzzyEq` instance for the `Exact` type.
     *
     * This implementation of fuzzy equality is strictly based on exact equality,
-    * meaning that two values of type `Exact` are considered equal if and only if 
+    * meaning that two values of type `Exact` are considered equal if and only if
     * they are precisely the same, regardless of the provided probability threshold.
     *
     * @return A `FuzzyEq[Exact]` instance where equality is determined by the default equality operator.
@@ -128,17 +221,17 @@ object Exact {
 }
 
 /**
-  * The `NumberBased` trait serves as an abstraction for entities that wrap `Number`, such as `Angle`, `NatLog`, etc.
+  * The `Functional` trait serves as an abstraction for entities that wrap `Number`, such as `Angle`, `NatLog`, etc.
   * These are the types that can potentially have fuzz.
   *
-  * Classes or traits that extend `NumberBased` encapsulate a `Number` instance, providing a consistent interface
+  * Classes or traits that extend `Functional` encapsulate a `Number` instance, providing a consistent interface
   * to access and work with numerical values. It is particularly useful in scenarios where mathematical operations
   * or transformations are required on numbers.
   */
-trait NumberBased extends Monotone {
+trait Functional extends Monotone {
 
   /**
-    * Retrieves the value associated with this `NumberBased` instance.
+    * Retrieves the value associated with this `Functional` instance.
     *
     * This method provides access to the underlying numerical representation
     * encapsulated as a `Number` type. The value can represent exact or approximate
@@ -150,33 +243,52 @@ trait NumberBased extends Monotone {
 }
 
 /**
-  * Companion object for the `NumberBased` trait. It provides a `FuzzyEq` instance
-  * to enable fuzzy equality comparisons for instances of `NumberBased` or its subclasses.
+  * Companion object for the `Functional` trait. It provides a `FuzzyEq` instance
+  * to enable fuzzy equality comparisons for instances of `Functional` or its subclasses.
   *
   * Fuzzy equality allows approximate comparisons based on a specified probability threshold.
   * This is particularly useful for entities that encapsulate numeric values and may require
   * imprecise equivalence checks.
   */
-object NumberBased {
-  /**
-    * Provides a `FuzzyEq` instance for the `NumberBased` type, enabling fuzzy equality comparisons for objects
-    * that extend the `NumberBased` trait.
-    *
-    * This instance compares two `NumberBased` objects by:
-    * - Verifying that both objects belong to the same subclass of `NumberBased`.
-    * - Comparing their underlying `number` values using the `FuzzyEq` instance for `Eager`, considering the provided probability threshold.
-    * - Falling back to standard equality check (`==`) if the objects are not comparable via the above steps.
-    *
-    * @return A `FuzzyEq[NumberBased]` instance capable of performing fuzzy equality checks on `NumberBased` objects.
-    */
-  given FuzzyEq[NumberBased] = FuzzyEq.instance {
+object Functional {
+
+  import org.slf4j.{Logger, LoggerFactory}
+  import scala.util.Try
+
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  import scala.util.Try
+
+  given DyadicOperator[Functional] = new DyadicOperator[Functional] {
+    def op[Z](f: (Functional, Functional) => Try[Z])(x: Functional, y: Functional): Try[Z] = (x, y) match {
+      case (a: Radians, b: Radians) =>
+        implicitly[DyadicOperator[Radians]].op(f)(a, b)
+      case (a: Transformed, b: Transformed) =>
+        implicitly[DyadicOperator[Transformed]].op(f)(a, b)
+
+      // Cross-type operations:
+      case (x: Radians, y: Transformed) =>
+        tryConvertAndCompareNumber(f)(x, y)
+      case (x: Transformed, y: Radians) =>
+        tryConvertAndCompareNumber(f)(y, x)
+      case (a, b) =>
+        f(a, b)
+    }
+  }
+
+  given Eq[Functional] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Functional]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Functional] = FuzzyEq.instance {
     (x, y, p) =>
-      (x, y) match {
-        case (a: NumberBased, b: NumberBased) if a.getClass == b.getClass =>
-          summon[FuzzyEq[Eager]].eqv(a.number, b.number, p)
-        case _ =>
-          x == y
-      }
+      x == y || summon[DyadicOperator[Functional]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
+
+  private def tryConvertAndCompareNumber[T <: Functional, Z](f: (Functional, Functional) => Try[Z])(s: Radians, e: T): Try[Z] = e match {
+    case _ =>
+      FP.fail(s"Functional.tryConvertAndCompareScalar: unsupported operation: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
   }
 }
 
@@ -189,7 +301,7 @@ object NumberBased {
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Transformed extends NumberBased {
+trait Transformed extends Functional {
 
   /**
     * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
@@ -199,4 +311,43 @@ trait Transformed extends NumberBased {
     * @return a transformation that maps a `Monotone` object to a `Scalar` result
     */
   def transformation[T: ClassTag]: Option[T]
+}
+
+object Transformed {
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  import scala.util.Try
+
+  given DyadicOperator[Transformed] = new DyadicOperator[Transformed] {
+    def op[Z](f: (Transformed, Transformed) => Try[Z])(x: Transformed, y: Transformed): Try[Z] = (x, y) match {
+      case (a: Logarithm, b: Logarithm) =>
+        implicitly[DyadicOperator[Logarithm]].op(f)(a, b)
+      case (a: InversePower, b: InversePower) =>
+        implicitly[DyadicOperator[InversePower]].op(f)(a, b)
+
+      // Cross-type operations:
+      case (a: Logarithm, b: InversePower) =>
+        tryConvertAndCompareTransformed(f)(a, b)
+      case (a: InversePower, b: Logarithm) =>
+        tryConvertAndCompareTransformed(f)(b, a)
+      case (a, b) =>
+        f(a, b)
+    }
+  }
+
+  given Eq[Transformed] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Transformed]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Transformed] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Transformed]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
+
+  private def tryConvertAndCompareTransformed[T <: Transformed, Z](f: (Transformed, Transformed) => Try[Z])(s: Logarithm, e: T): Try[Z] = e match {
+    case _ =>
+      FP.fail(s"Transformed.tryConvertAndCompareTransformed: unsupported operation: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
+  }
+
 }

@@ -1,15 +1,19 @@
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.algebra.misc.AlgebraException
-import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational}
+import cats.implicits.catsSyntaxEq
+import cats.kernel.Eq
+import com.phasmidsoftware.number.algebra.Monotone.getClass
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
+import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
 
 /**
   * Represents a `Scalar`, which is a `Monotone` that is linear with other scalar quantities and
   * thus has a scale factor defined.
-  * and supports various mathematical operations and properties. Scalars include both
+  * Supports various mathematical operations and properties. Scalars include both
   * exact and approximate numerical entities.
   *
   * Scalar does not support ordering because not all scalars are comparable.
@@ -62,6 +66,14 @@ trait Scalar extends Monotone {
     * @return a new `Scalar` instance representing the scaled value
     */
   def scale(r: Rational): Scalar
+
+  /**
+    * Returns a new instance of `Monotone` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    *
+    * @return a `Monotone` representing the negation of this instance
+    */
+  def negate: Monotone = scale(Rational.negOne)
 }
 
 /**
@@ -90,11 +102,51 @@ object Scalar {
       createScalar(value, factor, fuzz)
   }
 
+  import org.slf4j.{Logger, LoggerFactory}
+  import scala.util.Try
+
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  given DyadicOperator[Scalar] = new DyadicOperator[Scalar] {
+    def op[Z](f: (Scalar, Scalar) => Try[Z])(x: Scalar, y: Scalar): Try[Z] = (x, y) match {
+      case (a: Number, b: Number) =>
+        implicitly[DyadicOperator[Number]].op(f)(a, b)
+      case (a: Angle, b: Angle) =>
+        implicitly[DyadicOperator[Angle]].op(f)(a, b)
+
+      // Cross-type operations:
+      case (x: Number, y: Angle) =>
+        tryConvertAndCompareNumber(f)(x, y)
+      case (x: Angle, y: Number) =>
+        tryConvertAndCompareNumber(f)(y, x)
+      case (a, b) =>
+        f(a, b)
+    }
+  }
+
+  given Eq[Scalar] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Scalar]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Scalar] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Scalar]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
+
+  private def tryConvertAndCompareNumber[T <: Scalar, Z](f: (Scalar, Scalar) => Try[Z])(s: Number, e: T): Try[Z] = e match {
+    case _ =>
+      FP.fail(s"Scalar.tryConvertAndCompareScalar: unsupported operation: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
+  }
+
   /**
     * Creates a `Scalar` instance based on the given input parameters.
     * The method evaluates the input value and optional fuzziness to determine
     * the appropriate numerical representation (e.g., `WholeNumber`, `Real`, `RationalNumber`)
     * and associates it with the provided factor (e.g., `PureNumber`, `Radian`).
+    *
+    * CONSIDER this should return a Scalar.
+    *
     *
     * @param value  the numerical value, which can either be a right value for exact numbers
     *               (e.g., integers, floating-point values) or a left value for rational
@@ -204,7 +256,7 @@ case object NoScalar extends Scalar with Exact {
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] = None
+  override def maybeDouble: Option[Double] = None
 
   /**
     * Scales the current scalar instance by the specified rational factor.
@@ -227,7 +279,7 @@ case object NoScalar extends Scalar with Exact {
   * It extends the `Scalar` trait, inheriting its properties and behaviors for numerical operations
   * and comparison, while specifically associating the scalar with a conversion factor defined by Pi.
   */
-trait Radians extends Scalar with NumberBased {
+trait Radians extends Scalar with Functional {
 
   /**
     * Retrieves an optional factor associated with the specified context.
@@ -237,10 +289,38 @@ trait Radians extends Scalar with NumberBased {
     * @param context the evaluation context within which the factor is to be determined.
     * @return an `Option` containing the factor if it exists; `None` otherwise.
     */
-  def maybeFactor(context: Context): Option[Factor] = Some(Radian)
+  def maybeFactor(context: Context): Option[Factor] =
+    Option.when(context.factorQualifies(Radian))(Radian)
 
   /**
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.
     */
   val scaleFactor: Double = math.Pi // TODO change this to be an exact number (not a Double)
+}
+
+object Radians {
+
+  import org.slf4j.{Logger, LoggerFactory}
+  import scala.util.Try
+
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  given DyadicOperator[Radians] = new DyadicOperator[Radians] {
+    def op[Z](f: (Radians, Radians) => Try[Z])(x: Radians, y: Radians): Try[Z] = (x, y) match {
+      case (a: Angle, b: Angle) =>
+        implicitly[DyadicOperator[Angle]].op(f)(a, b)
+      case (a, b) =>
+        f(a, b)
+    }
+  }
+
+  given Eq[Radians] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Radians]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Radians] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Radians]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
 }

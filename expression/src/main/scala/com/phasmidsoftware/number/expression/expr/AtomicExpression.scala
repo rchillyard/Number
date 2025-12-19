@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Complex, Context, Eager, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Complex, Context, Eager, Monotone, Nat, NatLog, Number, RationalNumber, Real, RestrictedContext, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
@@ -1048,7 +1048,7 @@ case object EulerMascheroni extends AbstractTranscendental("𝛾", Literal(Eager
   * Each root is uniquely identified by its underlying equation and a branch index
   * that represents a specific solution when multiple solutions are possible.
   */
-trait Root extends AtomicExpression {
+trait Root extends AtomicExpression with Branched[Root] {
   /**
     * Retrieves the `Equation` associated with this `Root`.
     *
@@ -1157,6 +1157,11 @@ trait Root extends AtomicExpression {
   def approximation(force: Boolean): Option[Real] = None // TODO Implement me
 }
 
+trait Branched[T] extends Expression {
+  def branches: Int
+  def branched(index: Int): T
+}
+
 /**
   * Represents a root of a quadratic equation with a specified branch.
   * This class is a case class extending the `AbstractRoot`, which models the root of an equation
@@ -1170,6 +1175,9 @@ trait Root extends AtomicExpression {
   *               the valid range of branches supported by the equation, typically `0` or `1` for quadratic equations.
   */
 case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, branch) {
+  def branches: Int = 2
+
+  def branched(index: Int): Root = QuadraticRoot(equ, index)
 
   /**
     * Constructs a `Root` for a given quadratic equation and its specific solution branch.
@@ -1252,6 +1260,10 @@ object QuadraticRoot {
   *            Assumes the equation is linear (degree 1).
   */
 case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
+  def branches: Int = 1
+
+  def branched(index: Int): Root = this
+
   /**
     * @return 0.
     */
@@ -1383,18 +1395,28 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return an optional `Factor`.
     */
-  override def maybeFactor(context: Context): Option[Factor] = solution match {
-    case LinearSolution(_) =>
+  def maybeFactor(context: Context): Option[Factor] = solution match {
+    case LinearSolution(_) if context.factorQualifies(PureNumber) =>
       Some(PureNumber)
-    case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) =>
+    case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) && context.factorQualifies(PureNumber) =>
       Some(PureNumber)
-    case QuadraticSolution(Value.zero, _, factor, _) =>
+    case QuadraticSolution(Value.zero, _, factor, _) if context.factorQualifies(factor) =>
       Some(factor)
-    case QuadraticSolution(_, Value.zero, _, _) =>
+    case QuadraticSolution(_, Value.zero, _, _) if context.factorQualifies(PureNumber) =>
       Some(PureNumber)
     case _ =>
       None
   }
+
+  /**
+    * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
+    * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
+    * NOTE: no simplification or factor-based conversion occurs here.
+    *
+    * @return an `Option[Eager]` containing the evaluated value if evaluation is successful, or `None` otherwise.
+    */
+  override lazy val evaluateAsIs: Option[Eager] =
+    maybeFactor(AnyContext) flatMap(f => evaluate(RestrictedContext(f)))
 
   /**
     * Attempts to simplify an atomic expression, for example,
@@ -1412,19 +1434,33 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
         }
     }
 
+
+
   /**
     * Action to evaluate this `Expression` as a `Valuable`, if possible.
     * NOTE: no simplification or factor-based conversion occurs here.
     *
     * @return an optional `Valuable`.
     */
-  def evaluate(context: Context): Option[Eager] =
-    maybeValue match {
-      case x@Some(value) if context.valuableQualifies(Eager(value)) =>
-        Some(Eager(value))
-      case _ =>
-        Option.when(context == AnyContext)(Eager(algebraic))
-    }
+  def evaluate(context: Context): Option[Eager] = solution match {
+    case LinearSolution(_) if context.factorQualifies(PureNumber) =>
+      Some(solution.base)
+    case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) && context.factorQualifies(PureNumber) =>
+      Some(PureNumber)
+    case QuadraticSolution(Value.zero, _, factor, _) if context.factorQualifies(factor) =>
+      Some(factor)
+    case QuadraticSolution(_, Value.zero, _, _) if context.factorQualifies(PureNumber) =>
+      Some(PureNumber)
+    case _ =>
+      None
+  }
+
+//    maybeValue match {
+//      case x@Some(value) if context.valuableQualifies(Eager(value)) =>
+//        Some(Eager(value))
+//      case _ =>
+//        Option.when(context == AnyContext)(Eager(algebraic))
+//    }
 
   /**
     * Computes and returns an approximate numerical value for this Approximatable.

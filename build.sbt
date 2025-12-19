@@ -30,7 +30,6 @@ lazy val core = (project in file("core"))
         "com.phasmidsoftware" %% "matchers" % "1.0.11",
         "org.apache.commons" % "commons-math3" % apacheCommonsVersion,
         "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
-        // NOTE the following entry is used only by the algebra module.
         "org.typelevel" %% "spire" % "0.18.0",
         "org.typelevel" %% "cats-kernel" % catsVersion,
         "org.typelevel" %% "cats-core" % catsVersion,

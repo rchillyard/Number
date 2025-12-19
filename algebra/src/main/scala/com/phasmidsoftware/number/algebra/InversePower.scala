@@ -6,13 +6,17 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.CommutativeGroup
 import cats.Show
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.Transformed.getClass
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
+import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
   * Represents a mathematical Root object, parameterized with an integral root degree and a base number.
@@ -23,9 +27,26 @@ import scala.reflect.ClassTag
   * TODO this may be only a temporary class because we can model all roots (and more) as solutions to Algebraic equations.
   *
   * @param n    the degree of the root, specified as an integer
-  * @param base the base `Number` value on which the root operation is defined
+  * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
+case class InversePower(n: Int, number: Number) extends Transformed with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
+  /**
+    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    *
+    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
+    *
+    * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    */
+  def transformation[T: ClassTag]: Option[T] = ???
+
+  /**
+    * Returns a new instance of `Monotone` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    *
+    * @return a `Monotone` representing the negation of this instance
+    */
+  def negate: Monotone = ???
+
   def compare(that: InversePower): Int = (this.isExact, that.isExact) match {
     case (true, true) =>
       compareExact(that).getOrElse(0) // TODO fix this
@@ -63,7 +84,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]] =
-    Eager(Valuable.valuableToField(base).power(numerical.Number(Rational(n).invert))) match {
+    Eager(Valuable.valuableToField(number).power(numerical.Number(Rational(n).invert))) match {
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>
@@ -83,7 +104,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     */
   def compareExact(that: Monotone): Option[Int] = that match {
     case InversePower(m, x) if m == n => // TODO - there are other situations where the result should be Some(0) (see Factor class).
-      Some(base.compare(x))
+      Some(number.compare(x))
     case _ =>
       None
   }
@@ -108,7 +129,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = base.isZero
+  def isZero: Boolean = number.isZero
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -132,7 +153,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
     *         if it can be converted, or `None` if the conversion is not possible.
     */
-  def toRational: Option[Rational] = base match {
+  def toRational: Option[Rational] = number match {
     case z: Z =>
       z.toRational.power(Rational(n).invert).toOption
     case _ =>
@@ -146,8 +167,8 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] =
-    FP.whenever(isExact)(convert(Real.zero) map (_.value))
+//  def maybeDouble: Option[Double] =
+//    FP.whenever(isExact)(convert(Real.zero) map (_.value))
 
   /**
     * Renders this `Root` instance as a string representation of base in terms of π.
@@ -157,7 +178,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     * @return a string representation of the `Root` in terms of π
     */
   def render: String = {
-    val suffix = base.render
+    val suffix = number.render
     n match {
       case 2 => s"√$suffix"
       case 3 => s"³√$suffix"
@@ -176,7 +197,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     * @return an `Option[T]` containing the result of the scaling operation if successful, or `None` if the operation cannot be performed
     */
   infix def doScale(that: Number): Option[InversePower] =
-    (that, base) match {
+    (that, number) match {
       case (x: CanPower[Number] @unchecked, y: Z) =>
         val triedRational = y.toRational.power(Rational(n).invert).toOption
         val value: Option[Number] = triedRational.flatMap(r => x.pow(RationalNumber(r)))
@@ -193,9 +214,9 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
   def maybeFactor(context: Context): Option[Factor] = n match {
-    case 2 => Some(SquareRoot)
-    case 3 => Some(CubeRoot)
-    case _ => throw AlgebraException(s"InversePower.maybeFactor: no factor for $n")
+    case 2 if context.factorQualifies(SquareRoot) => Some(SquareRoot)
+    case 3 if context.factorQualifies(SquareRoot) => Some(CubeRoot)
+    case _ => None
   }
 
   /**
@@ -218,6 +239,32 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
   * rational numbers and comply with the algebraic structure of a commutative group.
   */
 object InversePower {
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  given DyadicOperator[InversePower] = new DyadicOperator[InversePower] {
+    def op[Z](f: (InversePower, InversePower) => Try[Z])(x: InversePower, y: InversePower): Try[Z] =
+      f(x, y)
+  }
+
+  given Eq[InversePower] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[InversePower]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[InversePower] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[InversePower]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
+
+  private def tryConvertAndCompareTransformed[T <: InversePower, Z](f: (InversePower, InversePower) => Try[Z])(s: Logarithm, e: T): Try[Z] = e match {
+    case _ =>
+      FP.fail(s"InversePower.tryConvertAndCompareTransformed: unsupported operation: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
+  }
+
+  implicit val inversePowerEq: Eq[InversePower] = Eq.instance {
+    case (x: InversePower, y: InversePower) =>
+      x.n == y.n && x.number == y.number
+  }
 
   /**
     * Represents the zero value of the `Root` class.

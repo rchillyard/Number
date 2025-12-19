@@ -1,10 +1,11 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeMonoid, MultiplicativeGroup}
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -31,7 +32,8 @@ trait Number extends Scalar with Ordered[Scalar] {
     * @return an `Option[Factor]` containing the factor if it can be determined,
     *         or `None` if no suitable factor exists within the provided `Context`.
     */
-  def maybeFactor(context: Context): Option[Factor] = Some(PureNumber)
+  def maybeFactor(context: Context): Option[Factor] =
+    Option.when(context.factorQualifies(PureNumber))(PureNumber)
 
   /**
     * Compares this `Number` instance with a `Scalar` instance.
@@ -98,6 +100,64 @@ trait Number extends Scalar with Ordered[Scalar] {
   * It includes representations of common numbers and utilities to work with the `Number` type.
   */
 object Number {
+
+  import org.slf4j.{Logger, LoggerFactory}
+  import scala.util.Try
+
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  given DyadicOperator[Number] = new DyadicOperator[Number] {
+    def op[Z](f: (Number, Number) => Try[Z])(x: Number, y: Number): Try[Z] = (x, y) match {
+      case (a: RationalNumber, b: RationalNumber) =>
+        implicitly[DyadicOperator[RationalNumber]].op(f)(a, b)
+      case (a: WholeNumber, b: WholeNumber) =>
+        implicitly[DyadicOperator[WholeNumber]].op(f)(a, b)
+      case (a: Real, b: Real) =>
+        implicitly[DyadicOperator[Real]].op(f)(a, b)
+
+      // Cross-type operations:
+      case (x: RationalNumber, y: WholeNumber) =>
+        op(f)(x, y.toRationalNumber)
+      case (x: WholeNumber, y: RationalNumber) =>
+        op(f)(y, x)
+      case (x: Real, y: R) =>
+        val zyo: Option[Try[Z]] = y.convert(Real.zero).map(r => op(f)(x, r))
+        FP.recoverWithTry(zyo)(FP.fail(s"Number.DyadicOperator: logic error $x. $y")).flatten
+      case (a, b) =>
+        f(a, b)
+    }
+  }
+
+  given Eq[Number] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Number]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Number] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Number]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
+
+  @tailrec
+  private def eqNumber(x: Number, y: Number): Boolean = (x, y) match {
+    // Same-type comparisons
+    case (x: RationalNumber, y: RationalNumber) => x == y
+    case (x: Real, y: Real) => x == y
+    case (x: WholeNumber, y: WholeNumber) => x == y
+
+    // Cross-type comparisons
+    case (x: Real, y: R) =>
+      x.fuzz.isEmpty && y.asDouble.equals(x.value) // Exact match only
+    case (x: RationalNumber, y: WholeNumber) =>
+      x.maybeInt.contains(y)
+    case (x: WholeNumber, y: RationalNumber) =>
+      eqNumber(y, x)
+
+    case _ =>
+      logger.warn(s"Unexpected Eager comparison: ${x.getClass.getSimpleName} === ${y.getClass.getSimpleName}")
+      false
+  }
+
   /**
     * Represents the value `0` as an instance of `WholeNumber`.
     * It is a predefined constant in the `Number` object.

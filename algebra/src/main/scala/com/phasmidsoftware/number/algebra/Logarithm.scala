@@ -6,12 +6,16 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.CommutativeMonoid
 import cats.Show
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Logarithm.LogarithmIsCommutativeMonoid
+import com.phasmidsoftware.number.algebra.Radians.getClass
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.Transformed.getClass
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner
-import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
+import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
 
 /**
@@ -98,8 +102,8 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     *
     * @return Some(value) where value is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] =
-    FP.whenever(isExact)(convert(Real.zero) map (_.value))
+//  def maybeDouble: Option[Double] =
+//    FP.whenever(isExact)(convert(Real.zero) map (_.value))
 
   /**
     * Computes the additive inverse of the current `Logarithm` instance.
@@ -116,7 +120,7 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     * Adds the specified `Logarithm` to the current `Logarithm` instance.
     *
     * This method combines the current Logarithm with the provided Logarithm
-    * by adding their respective value, returning a new `Logarithm` instance
+    * by adding their respective values, returning a new `Logarithm` instance
     * representing the sum.
     *
     * @param a the `Logarithm` to be added to the current `Logarithm`
@@ -200,6 +204,14 @@ case class NatLog(x: Number) extends Logarithm(x) {
   }
 
   /**
+    * Returns a new instance of `Monotone` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    *
+    * @return a `Monotone` representing the negation of this instance
+    */
+  def negate: Monotone = throw AlgebraException(s"NatLog.negate: not supported")
+
+  /**
     * Compares the current `Logarithm` instance with another `Number` to determine their exact order.
     *
     * If the provided `Number` is a `Logarithm`, this method compares their underlying radian values.
@@ -250,7 +262,8 @@ case class NatLog(x: Number) extends Logarithm(x) {
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
-  def maybeFactor(context: Context): Option[Factor] = Some(inner.NatLog)
+  def maybeFactor(context: Context): Option[Factor] =
+    Option.when(context.factorQualifies(inner.NatLog))(inner.NatLog)
 
   /**
     * Returns the multiplicative identity element of type `T` in the context
@@ -283,6 +296,25 @@ case class NatLog(x: Number) extends Logarithm(x) {
   */
 object NatLog {
 
+  import org.slf4j.{Logger, LoggerFactory}
+  import scala.util.Try
+
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  given DyadicOperator[NatLog] = new DyadicOperator[NatLog] {
+    def op[Z](f: (NatLog, NatLog) => Try[Z])(x: NatLog, y: NatLog): Try[Z] = f(x, y)
+  }
+
+  given Eq[Functional] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Functional]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Functional] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Functional]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
+
   /**
     * Represents the zero value of the `Logarithm` class.
     *
@@ -306,6 +338,30 @@ object NatLog {
   * rational numbers and comply with the algebraic structure of a commutative group.
   */
 object Logarithm {
+
+  import org.slf4j.{Logger, LoggerFactory}
+  import scala.util.Try
+
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  given DyadicOperator[Logarithm] = new DyadicOperator[Logarithm] {
+    def op[Z](f: (Logarithm, Logarithm) => Try[Z])(x: Logarithm, y: Logarithm): Try[Z] = (x, y) match {
+      case (a: NatLog, b: NatLog) =>
+        implicitly[DyadicOperator[NatLog]].op(f)(a, b)
+      case (a, b) =>
+        f(a, b)
+    }
+  }
+
+  given Eq[Logarithm] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Logarithm]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Logarithm] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Logarithm]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
 
   /**
     * Provides an implicit `Show` instance for the `Logarithm` class, enabling conversion

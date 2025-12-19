@@ -8,11 +8,12 @@ import algebra.ring.AdditiveCommutativeGroup
 import cats.Show
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Angle.{angleIsCommutativeGroup, r180}
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.algebra.{Radians, Structure}
 import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.Fuzziness
 import scala.reflect.ClassTag
+import scala.util.{Success, Try}
 
 /**
   * A case class representing an angle in radians. This class implements the `Additive` and `Radians` traits,
@@ -169,16 +170,6 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
   }
 
   /**
-    * If this `Valuable` is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
-    *
-    * @return Some(x) where x is a Double if this is exact, else None.
-    */
-  def maybeDouble: Option[Double] =
-    FP.whenever(isExact)(convert(Real.zero) map (_.value))
-
-  /**
     * Renders this `Angle` instance as a string representation of radians in terms of π.
     *
     * The method formats the radius equivalent to π, omitting the numeric coefficient if it is 1.
@@ -224,6 +215,8 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * This method handles addition based on the type of `Scalar` provided. If the input is an `Angle`,
     * it computes the sum of the current `Angle` and the provided `Angle`. If the input is a `Number`,
     * the addition is delegated to the `doPlus` implementation of the `Number`.
+    * CONSIDER eliminating this method.
+    *
     *
     * @param that the `Scalar` to be added to the current instance
     * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
@@ -285,6 +278,27 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
   def toMaybeReal: Option[Real] =
     radians.approximation(true).map(x => x.scaleByPi)
 
+  /**
+    * Compares two instances of `Eager` for equality.
+    *
+    * This method is intended to check if the provided instances, `x` and `y`,
+    * are equivalent. Currently, this functionality is not implemented
+    * and will return a failure with an appropriate exception message.
+    *
+    * @param x the first `Eager` instance to compare
+    * @param y the second `Eager` instance to compare
+    * @return a `Try[Boolean]` where:
+    *         - `Success(true)` indicates the objects are equivalent
+    *         - `Success(false)` indicates the objects are not equivalent
+    *         - `Failure` indicates this functionality is not implemented
+    */
+  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (a1: Angle, a2: Angle) =>
+      // NOTE that we should be using the === operator here, but it hasn't been defined yet for for Number.
+      Success(a1.normalize.radians == a2.normalize.radians)
+    case _ =>
+      super.eqv(x, y)
+  }
 }
 
 /**
@@ -417,6 +431,52 @@ object Angle {
   }
 
   /**
+    * Provides an implicit conversion instance for transforming an `Angle` type into another `Angle` type.
+    *
+    * This given instance conforms to the `Convertible` typeclass, offering a no-op conversion logic
+    * where the input `Angle` instance is returned as is without any transformation.
+    *
+    * @group Typeclass Instances
+    * @see Convertible
+    * @param witness a template `Angle` object, which is unused in this conversion
+    * @param u       the source `Angle` object that is to be returned as is
+    * @return the source `Angle` object `u`, effectively performing an identity conversion
+    */
+  given Convertible[Angle, Angle] with
+    def convert(witness: Angle, u: Angle): Angle = u
+
+  /**
+    * Provides a `Convertible` instance to allow transformations from `Real` to `Angle`.
+    *
+    * This implementation leverages the `convert` function to create a new `Angle` instance
+    * using a `Real` value. The conversion relies on the `asDouble` method of the `Real` type
+    * to extract its numeric representation before constructing the `Angle`.
+    *
+    * @param witness a value of type `Angle` provided as a witness or template, although not
+    *                directly used in this implementation for the conversion process
+    *
+    * @param u       the input `Real` value to be converted into an `Angle` instance
+    * @return an `Angle` instance created from the numeric representation of the `Real` value
+    */
+  given Convertible[Angle, Real] with
+    def convert(witness: Angle, u: Real): Angle = Angle(u.asDouble) // FIXME need the inverse operation
+
+
+  given DyadicOperator[Angle] = new DyadicOperator[Angle] {
+    def op[Z](f: (Angle, Angle) => Try[Z])(x: Angle, y: Angle): Try[Z] = f(x, y)
+  }
+
+  given Eq[Angle] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Angle]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Angle] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Angle]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
+
+  /**
     * Represents the additive identity for angles.
     *
     * This value denotes an angle of zero radians, serving as the identity element in
@@ -466,37 +526,6 @@ object Angle {
     * requiring a `Show` typeclass instance for displaying or logging purposes.
     */
   implicit val showAngle: Show[Angle] = Show.show(_.render)
-
-  /**
-    * Provides an implicit equality instance for comparing two `Angle` objects.
-    * NOTE carefully.
-    * We do not consider the degrees flag here because that is concerned only with cosmetics (rendering and parsing).
-    *
-    * This implicit `Eq` implementation determines equality by comparing
-    * the `radians` values of two `Angle` instances.
-    */
-  implicit val angleEq: Eq[Angle] = Eq.instance {
-    (a1, a2) =>
-      // NOTE that we should be using the === operator here, but it hasn't been defined yet for for Number.
-      a1.normalize.radians == a2.normalize.radians
-  }
-
-  /**
-    * A given instance of the `Convertible` typeclass providing a mechanism to convert
-    * an `Angle` value into a `Real`.
-    *
-    * @note This implementation assumes that the `u.toMaybeReal` method of the `Angle`
-    *       class provides a mechanism to extract a `Real` representation of the angle
-    *       when it can be defined.
-    *
-    * @param witness a `Real` value that might assist during the conversion process
-    * @param u       an `Angle` instance to be converted into a `Real`
-    * @return the converted `Real` representation of the provided `Angle`; throws
-    *         an `AlgebraException` if the conversion fails
-    */
-  given Convertible[Real, Angle] with
-    def convert(witness: Real, u: Angle): Real =
-      FP.recover(u.toMaybeReal)(AlgebraException("cannot convert Angle $u to Real"))
 
   /**
     * Provides an implicit implementation of a commutative group for the `Angle` type, supporting

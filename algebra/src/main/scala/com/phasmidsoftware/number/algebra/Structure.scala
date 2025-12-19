@@ -4,13 +4,19 @@
 
 package com.phasmidsoftware.number.algebra
 
+import cats.implicits.catsSyntaxEq
+import cats.kernel.Eq
+import com.phasmidsoftware.number.algebra.Eager.*
 import com.phasmidsoftware.number.algebra.Real
-import com.phasmidsoftware.number.algebra.misc.AlgebraException
-import com.phasmidsoftware.number.core.inner.Factor
-import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.algebra.misc.FuzzyEq.{~=, given}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import com.phasmidsoftware.number.core.numerical.*
+import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
+import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents an Algebraic Structure.
@@ -52,9 +58,51 @@ trait Structure extends Eager {
     case algebra.RationalNumber(r, _) => Some(r.toDouble)
     case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")
   }
+
+  override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (a: Structure, b: Structure) =>
+      FP.toTry(for {
+        p: Real <- a.convert(Real.one)
+        q: Real <- b.convert(Real.one)
+        r = p ~= q
+      } yield r, Failure(AlgebraException("Structure.fuzzyEqv")))
+  }
 }
 
 object Structure {
+
+  import org.slf4j.{Logger, LoggerFactory}
+  import scala.util.Try
+
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  // CONSIDER do we need this?
+  given DyadicOperator[Structure] = new DyadicOperator[Structure] {
+    def op[Z](f: (Structure, Structure) => Try[Z])(x: Structure, y: Structure): Try[Z] = (x, y) match {
+      case (a: Monotone, b: Monotone) =>
+        implicitly[DyadicOperator[Monotone]].op(f)(a, b)
+      case (a, b) =>
+        f(a, b)
+    }
+  }
+
+  given Eq[Structure] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Structure]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Structure] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Structure]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+  }
+
+//  implicit val dyadicOperatorStructure: DyadicOperator[Structure] = new DyadicOperator[Structure] {
+//    def op[Z](f: (Structure, Structure) => Try[Z])(x: Structure, y: Structure): Try[Z] = (x, y) match {
+//      case (a: Monotone, b: Monotone) => f(a, b)
+//      case _ => Try(f(x, y).get)
+//    }
+//  }
+
   /**
     * Attempts to cast the provided `Structure` instance to the specified subtype `T`.
     * Throws an `AlgebraException` if the provided instance cannot be cast to the target type.
@@ -79,6 +127,7 @@ object Structure {
   * @see com.phasmidsoftware.number.core.numerical.Complex
   */
 case class Complex(complex: numerical.Complex) extends Eager {
+
   /**
     * Method to render this `Valuable` for presentation to the user.
     *
@@ -107,8 +156,8 @@ case class Complex(complex: numerical.Complex) extends Eager {
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] =
-    complex.toRational.map(_.toDouble) // TESTME 
+//  def maybeDouble: Option[Double] =
+//    complex.toRational.map(_.toDouble) // TESTME
 
   /**
     * Optionally retrieves a factor associated with this `Valuable` if one exists (this is a Scalar).
@@ -120,4 +169,56 @@ case class Complex(complex: numerical.Complex) extends Eager {
     * @return an `Option` containing the `Factor` if available, otherwise `None`.
     */
   def maybeFactor(context: Context): Option[Factor] = complex.maybeFactor
+
+  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (Complex(a), Complex(b)) => Success(a == b)
+    case _ => Failure(AlgebraException(s"Complex.eqv: unexpected input: $x, $y"))
+  }
+
+  override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (Complex(a), Complex(b)) => Success(a.isSame(b)) // TODO we lose the value of `p` here (it defaults to 0.5)
+    case _ => Failure(AlgebraException(s"Complex.fuzzyEqv: unexpected input: $x, $y"))
+  }
+
+  /**
+    * Attempts to compute an approximate representation of the current value.
+    *
+    * This method provides an optional approximation of the value represented by
+    * the implementing class. The approximation may account for uncertainties or
+    * computational limitations. By default, this method does not force computation
+    * of the approximation unless explicitly requested.
+    *
+    * @param force a boolean flag indicating whether to force computation of
+    *              the approximation. If `true`, the method will attempt to
+    *              generate an approximation even if such computation
+    *              is resource-intensive or not strictly necessary.
+    *
+    * @return      an `Option` containing the approximate value as a `Real` if available,
+    *              or `None` if no approximation can be computed.
+    */
+  def approximation(force: Boolean): Option[Real] =
+    FP.whenever(complex.isReal) {
+      val modulus: Number = complex.modulus
+      Scalar.createScalar(modulus.nominalValue, modulus.factor, modulus.fuzz).approximation(force)
+    }
+}
+
+object Complex {
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  // CONSIDER do we need this?
+  given DyadicOperator[Complex] = new DyadicOperator[Complex] {
+    def op[Z](f: (Complex, Complex) => Try[Z])(x: Complex, y: Complex): Try[Z] = f(x, y)
+  }
+
+  given Eq[Complex] = Eq.instance {
+    (x, y) =>
+      FP.toOptionWithLog(logger.warn("Eq[Complex]", _))(x.eqv(x, y)).getOrElse(false)
+  }
+
+  given FuzzyEq[Complex] = FuzzyEq.instance {
+    (x, y, p) =>
+      x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[Complex]", _))(x.fuzzyEqv(p)(x, y)).getOrElse(false)
+  }
+
 }

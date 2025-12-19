@@ -5,9 +5,10 @@ import cats.Show
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
+import scala.util.{Success, Try}
 
 /**
   * Represents a rational number based on the `Rational` type, providing various
@@ -224,7 +225,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
     * @return an `Option[Double]`, where `Some(Double)` is returned if the rational
     *         number can be exactly represented as a `Double`, and `None` otherwise.
     */
-  def maybeDouble: Option[Double] = r.maybeDouble
+//  def maybeDouble: Option[Double] = r.maybeDouble
 
   /**
     * Checks if the value represented by this instance is zero.
@@ -269,6 +270,28 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
     */
   def unary_- : RationalNumber =
     rationalNumberIsField.negate(this)
+
+  /**
+    * Compares two instances of `Eager` for equality.
+    *
+    * This method is intended to check if the provided instances, `x` and `y`,
+    * are equivalent. Currently, this functionality is not implemented
+    * and will return a failure with an appropriate exception message.
+    *
+    * @param x the first `Eager` instance to compare
+    * @param y the second `Eager` instance to compare
+    * @return a `Try[Boolean]` where:
+    *         - `Success(true)` indicates the objects are equivalent
+    *         - `Success(false)` indicates the objects are not equivalent
+    *         - `Failure` indicates this functionality is not implemented
+    */
+  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (RationalNumber(rx, _), RationalNumber(ry, _)) =>
+      Success(rx == ry)
+    case _ =>
+      super.eqv(x, y)
+  }
+
 }
 
 /**
@@ -338,18 +361,19 @@ object RationalNumber {
   implicit val showRationalNumber: Show[RationalNumber] =
     Show.show(_.render)
 
-  /**
-    * Provides an implicit instance of the `Eq` typeclass for the `RationalNumber` class.
-    * NOTE that we do not consider the `percentage` flag when comparing two `RationalNumber`s for equality.
-    *
-    * This instance allows for equality comparison between two `RationalNumber` instances,
-    * based on the equality of their underlying `Rational` representations (`r` field of `RationalNumber`).
-    * It ensures that two `RationalNumber` instances with the same rational value are considered equal.
-    */
-  implicit val rationalNumberEq: Eq[RationalNumber] = Eq.instance {
-    (a1, a2) =>
-      // NOTE that we should be using the === operator here, but it hasn't been defined yet for for Rational.
-      a1.r == a2.r
+  given DyadicOperator[RationalNumber] = new DyadicOperator[RationalNumber] {
+    def op[Z](f: (RationalNumber, RationalNumber) => Try[Z])(x: RationalNumber, y: RationalNumber): Try[Z] =
+      f(x, y)
+  }
+
+  given Eq[RationalNumber] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[RationalNumber]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[RationalNumber] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[RationalNumber]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   /**

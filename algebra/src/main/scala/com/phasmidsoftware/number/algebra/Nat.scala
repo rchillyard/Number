@@ -1,9 +1,13 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Semiring
+import cats.kernel.Eq
+import com.phasmidsoftware.number.algebra.Eager.eqEager
 import com.phasmidsoftware.number.algebra.Nat.natIsSemiring
+import com.phasmidsoftware.number.algebra.misc.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.annotation.tailrec
+import scala.util.Try
 
 /**
   * Represents natural numbers using Peano arithmetic.
@@ -45,6 +49,26 @@ sealed trait Nat extends Eager with N {
     * @return a new natural number representing the sum of this instance and the specified natural number
     */
   def +(that: Nat): Nat
+
+  /**
+    * Attempts to compute an approximate representation of the current value.
+    *
+    * This method provides an optional approximation of the value represented by
+    * the implementing class. The approximation may account for uncertainties or
+    * computational limitations. By default, this method does not force computation
+    * of the approximation unless explicitly requested.
+    *
+    * @param force a boolean flag indicating whether to force computation of
+    *              the approximation. If `true`, the method will attempt to
+    *              generate an approximation even if such computation
+    *              is resource-intensive or not strictly necessary.
+    *
+    * @return      an `Option` containing the approximate value as a `Real` if available,
+    *              or `None` if no approximation can be computed.
+    */
+  def approximation(force: Boolean): Option[Real] =
+//    summon[Convertible[Real,Nat]].convert()
+    Some(Real(toInt))
 
   /**
     * Increments this natural number by one.
@@ -126,7 +150,7 @@ sealed trait Nat extends Eager with N {
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  lazy val maybeDouble: Option[Double] = Some(toInt)
+//  lazy val maybeDouble: Option[Double] = Some(toInt)
 }
 
 /**
@@ -202,6 +226,8 @@ case class Succ(pred: Nat) extends Nat {
   /**
     * Converts this natural number into an integer.
     *
+    * We should CONSIDER making this either a BigInt or an Option[Long] or perhaps a SafeLong.
+    *
     * @return the integer value corresponding to this natural number
     */
   lazy val toInt: Int = {
@@ -246,6 +272,21 @@ object Nat {
     }
 
     inner(NatZero)(x)
+  }
+
+  given DyadicOperator[Nat] = new DyadicOperator[Nat] {
+    def op[Z](f: (Nat, Nat) => Try[Z])(x: Nat, y: Nat): Try[Z] =
+      f(x, y)
+  }
+
+  given Eq[Nat] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Nat]].op(x.eqv)(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[Nat] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y || summon[DyadicOperator[Nat]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   /**

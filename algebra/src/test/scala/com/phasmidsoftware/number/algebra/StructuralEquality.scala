@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
+import cats.kernel.Eq
 import org.scalactic.Equality
 
 trait StructuralEquality {
@@ -38,7 +39,7 @@ trait StructuralEquality {
       */
     def areEqual(a: Structure, b: Any): Boolean = (a, b) match {
       case (x: Angle, y: Angle) =>
-        implicitly[cats.kernel.Eq[Angle]].eqv(x, y)
+        summon[Eq[Angle]].eqv(x, y)
       case _ =>
         a == b
     }
@@ -76,7 +77,7 @@ trait StructuralEquality {
 
     def areEqual(a: RationalNumber, b: Any): Boolean = b match {
       case y: RationalNumber =>
-        implicitly[cats.kernel.Eq[RationalNumber]].eqv(a, y)
+        implicitly[Eq[RationalNumber]].eqv(a, y)
       case _ =>
         a == b
     }

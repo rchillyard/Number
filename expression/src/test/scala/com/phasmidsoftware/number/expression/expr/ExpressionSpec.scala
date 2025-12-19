@@ -420,8 +420,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplified shouldBe Literal(Eager(Algebraic_Quadratic(Quadratic(1, -1), pos = true)))
   }
   // TODO Issue #140
-  ignore should "evaluate - phi" in {
-    val phi = expr.Root(Quadratic.goldenRatioEquation, 0)
+  it should "evaluate - phi" in {
+    val phi: Root = expr.Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi.negate
     val simplified = expression.simplify
     simplified.approximation().get.value === -1.61803398875

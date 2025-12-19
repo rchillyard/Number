@@ -70,6 +70,19 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   private def acm(using AdditiveCommutativeMonoid[T]): AdditiveCommutativeMonoid[T] = summon[AdditiveCommutativeMonoid[T]]
 }
 
+trait CanNegate[T <: Structure] extends Can[T] {
+  /**
+    * Computes the additive inverse (negation) of an instance of type `T`.
+    *
+    * @param AdditiveCommutativeGroup[T] an implicit instance of `AdditiveCommutativeGroup` for the type `T`,
+    *                                 providing the necessary additive group operations.
+    *
+    * @return the negated value of the current instance as an instance of type `T`.
+    */
+  def negate(using AdditiveCommutativeGroup[T]): T =
+    summon[AdditiveCommutativeGroup[T]].additive.inverse(asT)
+}
+
 /**
   * A trait that extends `CanAdd` and provides additional functionality for types
   * supporting both addition and subtraction operations. It introduces the ability
@@ -81,7 +94,7 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   * with an implicit `AdditiveCommutativeGroup[T]` evidence.
   * - `U`: A type extending `Structure` that is compatible with `T` in additive operations.
   */
-trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAdd[T, U] {
+trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAdd[T, U] with CanNegate[T] {
 
   /**
     * Subtracts the given instance of type `T` from the current instance.
@@ -95,16 +108,6 @@ trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAd
     * @return the resulting value of type `T` after subtraction
     */
   def -(that: T)(using AdditiveCommutativeGroup[T]): T
-
-  /**
-    * Negates this instance of type `CanAddAndSubtract[T]` by utilizing the additive inverse.
-    *
-    * @param using evidence of an implicit `AdditiveCommutativeGroup[T]` providing the
-    *            additive group structure for type `T`
-    * @return the additive inverse of the current instance as type `T`
-    */
-  def negate(using AdditiveCommutativeGroup[T]): T =
-    acg.additive.inverse(asT)
 
   /**
     * Negates the current WholeNumber instance, producing its additive inverse.
@@ -252,7 +255,7 @@ trait Scalable[T <: Scalable[T]] {
 /**
   * Represents a type class for performing power operations on instances of type `T`.
   *
-  * CONSIDER two paramtric types
+  * CONSIDER two parametric types
   *
   * This trait defines the behavior for raising an instance of `T` to a power
   * specified by a `Scalar`. Implementations of this trait are responsible for
@@ -315,6 +318,8 @@ trait CanNormalize[T <: Structure] {
   * It is the base trait for all other traits that extend `Can`.
   *
   * This trait facilitates type-safe casting of instances to a specific subtype of `Structure`.
+  *
+  * TODO try to redefine this so that it does not extend Structure.
   *
   * @tparam T the type parameter which must be a subtype of `Structure`
   */

@@ -34,11 +34,13 @@ trait Approximate {
     *
     * This method attempts to approximate the value of this number by invoking 
     * the `approximation` method with `force = true`. If the approximation exists, 
-    * it is converted to a `Double`. If no approximation can be obtained, a 
+    * it is converted to a `Double`. If no approximation can be obtained, an 
     * `AlgebraException` is thrown to indicate a logic error.
     *
     * @return the approximate value as a `Double`.
     */
-  def toDouble: Double =
+  def toDouble: Double = {
+    // NOTE: it is possible for this to recurse infinitely if approximation(true) returns `Some(this)`.
     FP.recover(approximation(true).map(_.toDouble))(AlgebraException("Approximate.toDouble: logic error"))
+  }
 }
