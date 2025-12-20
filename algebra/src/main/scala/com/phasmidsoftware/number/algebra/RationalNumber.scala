@@ -373,7 +373,7 @@ object RationalNumber {
 
   given FuzzyEq[RationalNumber] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[RationalNumber]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x == y  // Use == here, not ===
   }
 
   /**

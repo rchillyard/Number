@@ -167,14 +167,15 @@ object Solution {
     LinearSolution(RationalNumber(r))
 
   /**
-    * Creates an instance of `Solution` based on the given parameters. If the `offset` is zero, it returns
-    * a `LinearSolution`, otherwise it returns a `QuadraticSolution`.
+    * Constructs a `Solution` based on the provided `base` and `offset` monotone values
+    * and a specified `branch` identifier. If the `offset` is zero, a `LinearSolution`
+    * is returned; otherwise, a `QuadraticSolution` is returned.
     *
-    * @param base   the base `Value` for the solution
-    * @param offset the offset `Value` for the solution
-    * @param factor the `Factor` used in the solution computation
-    * @param branch an integer that specifies the branch for the quadratic solution
-    * @return a `Solution` instance representing either a `LinearSolution` or `QuadraticSolution`
+    * @param base   the base monotone component of the solution
+    * @param offset the offset monotone component used to determine whether the solution
+    *               is linear or quadratic
+    * @param branch an integer identifier used in cases where a quadratic solution is required
+    * @return a `Solution` instance, which is either a `LinearSolution` or a `QuadraticSolution`
     */
   def apply(base: Monotone, offset: Monotone, branch: Int): Solution =
     if (offset.isZero)
@@ -482,12 +483,15 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
       Some(QuadraticSolution(b.scale(r), o.scale(r), branch))
   }
 
-
-  override def eqv(x: Eager, y: Eager): Try[Boolean] =
-    Success(x == y)
+  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (a: QuadraticSolution, b: QuadraticSolution) =>
+      Success(a.base === b.base && a.offset === b.offset && a.branch == b.branch)
+    case _ =>
+      super.eqv(x, y)
+  }
 
   override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] =
-    Success(x == y || ((for (a <- x.approximation(); b <- y.approximation()) yield implicitly[FuzzyEq[Real]].eqv(a, b, p)) getOrElse false))
+    Success(x === y || ((for (a <- x.approximation(); b <- y.approximation()) yield implicitly[FuzzyEq[Real]].eqv(a, b, p)) getOrElse false))
 }
 
 /**

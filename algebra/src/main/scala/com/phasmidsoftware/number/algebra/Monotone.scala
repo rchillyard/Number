@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
+import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
@@ -107,7 +108,7 @@ object Monotone {
 
   given FuzzyEq[Monotone] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Monotone]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || summon[DyadicOperator[Monotone]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   //
@@ -148,7 +149,7 @@ object Monotone {
 //    case p: InversePower =>
 //      f(p.base.pow(p.n), s) // TODO do this properly
     case n: Functional =>
-      f(s, n.number)
+      f(s, n)
     case _ =>
       FP.fail(s"tryConvertAndCompareStructure: unexpected Monotone comparison: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
   }
@@ -257,8 +258,6 @@ object Functional {
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  import scala.util.Try
-
   given DyadicOperator[Functional] = new DyadicOperator[Functional] {
     def op[Z](f: (Functional, Functional) => Try[Z])(x: Functional, y: Functional): Try[Z] = (x, y) match {
       case (a: Radians, b: Radians) =>
@@ -283,7 +282,7 @@ object Functional {
 
   given FuzzyEq[Functional] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Functional]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || summon[DyadicOperator[Functional]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   private def tryConvertAndCompareNumber[T <: Functional, Z](f: (Functional, Functional) => Try[Z])(s: Radians, e: T): Try[Z] = e match {
@@ -293,7 +292,7 @@ object Functional {
 }
 
 /**
-  * Represents a `Monotone`, which is one-dimensional `Structure` that can be ordered
+  * Represents a `Monotone`, which is a one-dimensional `Structure` that can be ordered
   * and supports various mathematical operations and properties. Monotones include both
   * exact and approximate numerical entities.
   *
@@ -342,7 +341,7 @@ object Transformed {
 
   given FuzzyEq[Transformed] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Transformed]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || summon[DyadicOperator[Transformed]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   private def tryConvertAndCompareTransformed[T <: Transformed, Z](f: (Transformed, Transformed) => Try[Z])(s: Logarithm, e: T): Try[Z] = e match {

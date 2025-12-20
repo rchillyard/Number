@@ -7,14 +7,13 @@ package com.phasmidsoftware.number.algebra
 import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import cats.Show
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.Eager.eqEager
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
-import scala.util.Try
+import scala.util.{Success, Try}
 
 /**
   * A case class representing a whole number.
@@ -142,22 +141,6 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
     case _ =>
       None
   }
-
-  /**
-    * Converts the given structure to a `Real` representation.
-    * CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here.
-    * For now, we use the default fuzziness of None.
-    *
-    * This method transforms the value `x` into an instance of the `Real` class
-    * by converting `x` to a `Double` and setting its optional parameter to `None`.
-    *
-    * @tparam T The type of the input structure, which must extend `Structure`
-    *           and have an associated `ClassTag`.
-    *
-    * @return A `Real` object constructed from the input structure.
-    */
-  def toReal[T <: Structure : ClassTag] =
-    Real(x.toDouble, None)
 
   /**
     * Converts the current value into a RationalNumber representation.
@@ -325,6 +308,29 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
     */
   def unary_- : WholeNumber =
     negate
+
+  // In WholeNumber.scala
+  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (WholeNumber(a), WholeNumber(b)) =>
+      Success(a == b)
+    case _ =>
+      super.eqv(x, y)
+  }
+
+  /**
+    * Converts the given structure to a `Real` representation.
+    * CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here.
+    * For now, we use the default fuzziness of None.
+    *
+    * This method transforms the value `x` into an instance of the `Real` class
+    * by converting `x` to a `Double` and setting its optional parameter to `None`.
+    *
+    * @tparam T The type of the input structure, which must extend `Structure`
+    *           and have an associated `ClassTag`.
+    * @return A `Real` object constructed from the input structure.
+    */
+  private def toReal[T <: Structure : ClassTag] =
+    Real(x.toDouble, None)
 }
 
 /**
@@ -333,11 +339,6 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
   * rational numbers and comply with the algebraic structure of a commutative group.
   */
 object WholeNumber {
-
-  implicit val wholeNumberEq: Eq[WholeNumber] = Eq.instance {
-    (x, y) => x.x == y.x
-  }
-
   /**
     * Represents the WholeNumber constant for the value zero (0).
     *
@@ -408,7 +409,7 @@ object WholeNumber {
 
   given FuzzyEq[WholeNumber] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[WholeNumber]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x == y
   }
 
   /**

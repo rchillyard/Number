@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeGroup, Ring}
 import cats.Show
+import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
@@ -41,7 +42,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
 
   /**
     * Converts the specified value into an exact rational representation if possible,
-    * and wraps it in an Option. If the conversion fails, returns None.
+    * and wraps it in an Option. If the conversion fails, it returns None.
     *
     * @return Some instance of Q if the conversion is successful, or None if it fails.
     */
@@ -62,7 +63,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
   /**
     * Converts the given numeric value to an optional representation.
     *
-    * This method accepts a number of type T, where T is a subtype of Number,
+    * This method accepts a number of type `T`, where `T` is a subtype of Number,
     * and returns an Option containing the input number if certain conditions
     * (not detailed in this method's implementation) are met, otherwise None.
     *
@@ -163,7 +164,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     *
     * @param that the `Number` to compare against
     * @return an integer value:
-    *         - negative if the current `Number` is less than `that`
+    *         - negative if the current `Number` is lower than `that`
     *         - zero if the current `Number` is equal to `that`
     *         - positive if the current `Number` is greater than `that`
     */
@@ -508,7 +509,7 @@ object Real {
 
   given FuzzyEq[Real] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Real]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || summon[DyadicOperator[Real]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   /**

@@ -1,14 +1,17 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeMonoid, MultiplicativeGroup}
+import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
+import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
+import scala.util.Try
 
 /**
   * Represents a pure number that can be compared, approximated, and converted to other types.
@@ -69,7 +72,7 @@ trait Number extends Scalar with Ordered[Scalar] {
     *
     * @param that the `Number` instance to compare the current instance against
     * @return an integer value:
-    *         - a negative value if this `Number` is less than `that`
+    *         - a negative value if this `Number` is lower than `that`
     *         - zero if this `Number` is equal to `that`
     *         - a positive value if this `Number` is greater than `that`
     */
@@ -100,9 +103,6 @@ trait Number extends Scalar with Ordered[Scalar] {
   * It includes representations of common numbers and utilities to work with the `Number` type.
   */
 object Number {
-
-  import org.slf4j.{Logger, LoggerFactory}
-  import scala.util.Try
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -135,7 +135,7 @@ object Number {
 
   given FuzzyEq[Number] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Number]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || summon[DyadicOperator[Number]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   @tailrec

@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.AdditiveCommutativeGroup
 import cats.Show
+import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Angle.{angleIsCommutativeGroup, r180}
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
@@ -58,7 +59,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * @return a new instance of `Angle` representing the normalized value
     */
   def normalize: Angle = radians match {
-    case RationalNumber(r, false) =>
+    case RationalNumber(r, _) =>
       Angle(Radian.modulate(Value.fromRational(r)))
     case Real(value, fuzz) =>
       Angle(Radian.modulate(Value.fromDouble(Some(value)))) // TODO take care of fuzz
@@ -275,7 +276,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * @return an `Option[Real]` containing the scaled representation of the current instance,
     *         or `None` if the approximation fails.
     */
-  def toMaybeReal: Option[Real] =
+  private def toMaybeReal: Option[Real] =
     radians.approximation(true).map(x => x.scaleByPi)
 
   /**
@@ -294,8 +295,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     */
   override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
     case (a1: Angle, a2: Angle) =>
-      // NOTE that we should be using the === operator here, but it hasn't been defined yet for for Number.
-      Success(a1.normalize.radians == a2.normalize.radians)
+      Success(a1.normalize.radians === a2.normalize.radians)
     case _ =>
       super.eqv(x, y)
   }
@@ -472,8 +472,8 @@ object Angle {
   }
 
   given FuzzyEq[Angle] = FuzzyEq.instance {
-    (x, y, p) =>
-      x == y || summon[DyadicOperator[Angle]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+    case (a@Angle(x, _), b@Angle(y, _), p) =>
+      x === y || summon[DyadicOperator[Angle]].op(x.fuzzyEqv(p))(a, b).getOrElse(false)
   }
 
   /**
@@ -516,7 +516,7 @@ object Angle {
   val twoPi: Angle = Angle(RationalNumber(Rational.two))
   val negPi: Angle = Angle(RationalNumber(Rational.negOne))
   // CONSIDER using NoScalar instead
-  val nan: Angle = Angle(RationalNumber(Rational.NaN))
+  private val nan: Angle = Angle(RationalNumber(Rational.NaN))
 
   /**
     * Provides an implicit `Show` instance for the `Angle` class, enabling conversion

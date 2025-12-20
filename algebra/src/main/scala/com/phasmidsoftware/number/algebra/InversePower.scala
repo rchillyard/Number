@@ -6,10 +6,10 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.CommutativeGroup
 import cats.Show
+import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.Transformed.getClass
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical
@@ -196,7 +196,7 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
     * @param that the `Number` used to scale the current instance
     * @return an `Option[T]` containing the result of the scaling operation if successful, or `None` if the operation cannot be performed
     */
-  infix def doScale(that: Number): Option[InversePower] =
+  private infix def doScale(that: Number): Option[InversePower] =
     (that, number) match {
       case (x: CanPower[Number] @unchecked, y: Z) =>
         val triedRational = y.toRational.power(Rational(n).invert).toOption
@@ -253,7 +253,7 @@ object InversePower {
 
   given FuzzyEq[InversePower] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[InversePower]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || summon[DyadicOperator[InversePower]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   private def tryConvertAndCompareTransformed[T <: InversePower, Z](f: (InversePower, InversePower) => Try[Z])(s: Logarithm, e: T): Try[Z] = e match {

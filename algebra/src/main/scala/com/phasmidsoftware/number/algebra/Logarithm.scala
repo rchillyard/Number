@@ -6,17 +6,17 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.CommutativeMonoid
 import cats.Show
+import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Logarithm.LogarithmIsCommutativeMonoid
-import com.phasmidsoftware.number.algebra.Radians.getClass
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.Transformed.getClass
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner
-import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational}
+import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
+import scala.util.{Failure, Try}
 
 /**
   * Represents an abstract logarithmic structure.
@@ -286,6 +286,23 @@ case class NatLog(x: Number) extends Logarithm(x) {
     */
   def doScaleDouble(that: Double): Option[Monotone] =
     None // TODO implement me as appropriate
+
+  override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+    case (a: NatLog, b: Structure) =>
+      for {
+        z <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"NatLog.fuzzyEqv: logic transformation error $x $y"))
+        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $x $y"))
+        w <- z.fuzzyEqv(p)(z, q)
+      } yield w
+    case (a: Real, b: Structure) =>
+      for {
+        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $x $y"))
+        w <- a.fuzzyEqv(p)(a, q)
+      } yield w
+
+    case (a, b) =>
+      Failure(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $x $y"))
+  }
 }
 
 /**
@@ -296,23 +313,20 @@ case class NatLog(x: Number) extends Logarithm(x) {
   */
 object NatLog {
 
-  import org.slf4j.{Logger, LoggerFactory}
-  import scala.util.Try
-
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[NatLog] = new DyadicOperator[NatLog] {
     def op[Z](f: (NatLog, NatLog) => Try[Z])(x: NatLog, y: NatLog): Try[Z] = f(x, y)
   }
 
-  given Eq[Functional] = Eq.instance {
+  given Eq[NatLog] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Functional]].op(x.eqv)(x, y).getOrElse(false)
+      summon[DyadicOperator[NatLog]].op(x.eqv)(x, y).getOrElse(false)
   }
 
-  given FuzzyEq[Functional] = FuzzyEq.instance {
+  given FuzzyEq[NatLog] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Functional]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || summon[DyadicOperator[NatLog]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   /**
@@ -360,7 +374,7 @@ object Logarithm {
 
   given FuzzyEq[Logarithm] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Logarithm]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || summon[DyadicOperator[Logarithm]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   /**

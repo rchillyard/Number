@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Semiring
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.Eager.eqEager
 import com.phasmidsoftware.number.algebra.Nat.natIsSemiring
 import com.phasmidsoftware.number.algebra.misc.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
@@ -284,11 +283,11 @@ object Nat {
       summon[DyadicOperator[Nat]].op(x.eqv)(x, y).getOrElse(false)
   }
 
+  // Nat
   given FuzzyEq[Nat] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Nat]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x == y
   }
-
   /**
     * Provides an implementation of the `Semiring` type class for natural numbers (`Nat`),
     * enabling operations such as addition and multiplication following the rules of Peano arithmetic.

@@ -7,7 +7,6 @@ package com.phasmidsoftware.number.algebra
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.misc.*
-import com.phasmidsoftware.number.algebra.misc.FuzzyEq.~=
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
@@ -15,6 +14,7 @@ import com.phasmidsoftware.number.core.numerical.CoreExceptionWithCause
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.{algebra, core}
 import scala.Option.when
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
@@ -72,7 +72,8 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *         are approximately equal within the tolerance `p`, or `false` otherwise.
     *         If the comparison cannot be performed, the `Try` contains a failure with an appropriate exception.
     */
-  def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] = Failure(AlgebraException(s"Eager.fuzzyEqv: unimplemented compare $x and $y"))
+  def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] =
+    Failure(AlgebraException(s"Eager.fuzzyEqv: unimplemented compare $x and $y"))
 
   /**
     * Compares two instances of `Eager` and determines their relative ordering.
@@ -86,7 +87,8 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *         - and a positive result if `x` is greater than `y`.
     *         As the method is unimplemented, it will always return a failure with an `AlgebraException`.
     */
-  def compare(x: Eager, y: Eager): Try[Int] = Failure(AlgebraException(s"Eager.compare: unimplemented compare $x and $y"))
+  def compare(x: Eager, y: Eager): Try[Int] =
+    Failure(AlgebraException(s"Eager.compare: unimplemented compare $x and $y"))
 
   /**
     * Performs a fuzzy comparison between two `Eager` instances.
@@ -102,7 +104,8 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *         - A positive integer if `x` is greater than `y`
     *         - A `Failure(AlgebraException)` if the comparison cannot be performed
     */
-  def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int] = Failure(AlgebraException(s"Eager.fuzzyCompare: unimplemented compare $x and $y"))
+  def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int] =
+    Failure(AlgebraException(s"Eager.fuzzyCompare: unimplemented compare $x and $y"))
 
   /**
     * Computes the sum of two `Eager` values.
@@ -112,7 +115,8 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     * @return a `Try` containing the resulting `Eager` value if the operation is successful,
     *         or a `Failure` with an `AlgebraException` if the operation is not implemented
     */
-  def sum(x: Eager, y: Eager): Try[Eager] = Failure(AlgebraException(s"Eager.sum: unimplemented add $x and $y"))
+  def sum(x: Eager, y: Eager): Try[Eager] =
+    Failure(AlgebraException(s"Eager.sum: unimplemented add $x and $y"))
 }
 
 /**
@@ -186,6 +190,7 @@ object Eager {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[Eager] = new DyadicOperator[Eager] {
+    @tailrec
     def op[Z](f: (Eager, Eager) => Try[Z])(x: Eager, y: Eager): Try[Z] = (x, y) match {
       // Same-type operations:
       case (a: Structure, b: Structure) =>
@@ -198,14 +203,17 @@ object Eager {
         implicitly[DyadicOperator[Nat]].op(f)(a, b)
 
       // Cross-type operations:
-      case (x: Structure, y: Complex) =>
-        tryConvertAndOp(f)(x, y)
-      case (x: Complex, y: Structure) =>
-        tryConvertAndOp(f)(y, x)
-      case (x: Structure, y: Nat) =>
-        tryConvertAndOp(f)(x, y)
-      case (x: Nat, y: Structure) =>
-        tryConvertAndOp(f)(y, x)
+      case (a: Structure, b: Complex) =>
+        tryConvertAndOp(f)(a, b)
+      case (a: Complex, b: Structure) =>
+        op(f)(b, a)
+      case (a: Structure, b: Nat) =>
+        tryConvertAndOp(f)(a, b)
+      case (a: Nat, b: Structure) =>
+        op(f)(b, a)
+
+      case _ =>
+        f(x, y)
     }
   }
 
@@ -217,7 +225,7 @@ object Eager {
 
   given FuzzyEq[Eager] = FuzzyEq.instance {
     (x, y, p) =>
-      eqEager(x, y) || fuzzyEqEager(x, y, p)
+      x === y || summon[DyadicOperator[Eager]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
   private def tryConvertAndOp[T <: Eager, Z](f: (Eager, Eager) => Try[Z])(s: Structure, e: T): Try[Z] = e match {
@@ -227,83 +235,14 @@ object Eager {
           f(struct, s)
         case Some(other) =>
           summon[DyadicOperator[Eager]].op(f)(s, other)
+        case _ =>
+          Failure(AlgebraException(s"Unexpected tryConvertAndOp: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}"))
       }
     case n: Nat =>
       // TODO: Handle overflow - need Nat.toBigInt or safe conversion
       f(WholeNumber(n.toInt), s)
     case _ =>
       Failure(AlgebraException(s"Unexpected tryConvertAndCompare: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}"))
-  }
-
-  private def eqEager(x: Eager, y: Eager): Boolean = (x, y) match {
-    // Same-type comparisons
-    case (x: Structure, y: Structure) => x === y
-    case (x: Complex, y: Complex) => x === y
-    case (x: Nat, y: Nat) => x === y
-
-    // Cross-type: Structure can represent both Complex and Nat
-    case (x: Structure, y: Complex) =>
-      tryConvertAndCompare(x, y)
-    case (x: Complex, y: Structure) =>
-      tryConvertAndCompare(y, x)
-    case (x: Structure, y: Nat) =>
-      tryConvertAndCompare(x, y)
-    case (x: Nat, y: Structure) =>
-      tryConvertAndCompare(y, x)
-
-    // Complex vs Nat: only equal if imaginary part is zero and exact
-    case (x: Complex, y: Nat) =>
-      complexToEager(x).exists(z => eqEager(z, y))
-    case (y: Nat, x: Complex) =>
-      eqEager(x, y)
-
-    case _ =>
-      logger.warn(s"Unexpected Eager comparison: ${x.getClass.getSimpleName} === ${y.getClass.getSimpleName}")
-      false
-  }
-
-  private def fuzzyEqEager(x: Eager, y: Eager, p: Double) = (x, y) match {
-    // Same-type comparisons
-    case (x: Structure, y: Structure) =>
-      FuzzyEq[Structure].eqv(x, y, p)
-    case (x: Complex, y: Complex) =>
-      FuzzyEq[Complex].eqv(x, y, p)
-    case (x: Nat, y: Nat) => false
-
-    // Cross-type: Structure can represent both Complex and Nat
-    case (x: Structure, y: Complex) =>
-      tryConvertAndCompareFuzzy(x, y, p)
-    case (x: Complex, y: Structure) =>
-      tryConvertAndCompareFuzzy(y, x, p)
-
-    case _ =>
-      logger.warn(s"Unexpected Eager comparison: ${x.getClass.getSimpleName} === ${y.getClass.getSimpleName}")
-      false
-  }
-
-  private def tryConvertAndCompare[T <: Eager](s: Structure, e: T): Boolean = e match {
-    case c: Complex =>
-      complexToEager(c).exists {
-        case struct: Structure => s === struct  // Use Structure Eq directly
-        case other => eqEager(s, other)
-      }
-    case n: Nat =>
-      // TODO: Handle overflow - need Nat.toBigInt or safe conversion
-      Try(WholeNumber(n.toInt)).toOption.exists(x => s === x)
-    case _ =>
-      logger.warn(s"Unexpected tryConvertAndCompare: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
-      false
-  }
-
-  private def tryConvertAndCompareFuzzy[T <: Eager](s: Structure, e: T, p: Double): Boolean = e match {
-    case c: Complex =>
-      complexToEager(c).exists {
-        case struct: Structure => s ~= struct  // Use Structure Eq directly
-        case other => eqEager(s, other)
-      }
-    case _ =>
-      logger.warn(s"Unexpected tryConvertAndCompare: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
-      false
   }
 
   private def complexToEager(c: Complex): Option[Eager] =

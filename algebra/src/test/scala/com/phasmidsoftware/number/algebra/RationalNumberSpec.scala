@@ -7,7 +7,7 @@ import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class RationalNumberSpec extends AnyFlatSpec with Matchers with StructuralEquality {
+class RationalNumberSpec extends AnyFlatSpec with Matchers with AssertionHelpers {
 
   private val rf: Field[RationalNumber] = implicitly[Field[RationalNumber]]
 
@@ -22,10 +22,10 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers with StructuralEquali
     RationalNumber(r) shouldBe RationalNumber(Rational(22, 7))
     RationalNumber(r"22/7") shouldBe RationalNumber(Rational(22, 7))
   }
-  it should "===" in {
-    RationalNumber(42) should ===(RationalNumber(42))
-    RationalNumber(42 :/ 100, true) should ===(RationalNumber(42 :/ 100, true))
-    RationalNumber(42 :/ 100) should ===(RationalNumber(42 :/ 100, true))
+  it should "assertEq" in {
+    assertEq(RationalNumber(42), RationalNumber(42))
+    assertEq(RationalNumber(42 :/ 100, true), RationalNumber(42 :/ 100, true))
+    assertEq(RationalNumber(42 :/ 100), RationalNumber(42 :/ 100, true))
   }
   it should "render" in {
     RationalNumber(42).render shouldBe "42"

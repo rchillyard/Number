@@ -6,11 +6,10 @@ package com.phasmidsoftware.number.algebra
 
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.Eager.*
 import com.phasmidsoftware.number.algebra.Real
-import com.phasmidsoftware.number.algebra.misc.FuzzyEq.{~=, given}
+import com.phasmidsoftware.number.algebra.misc.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
+import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
@@ -71,9 +70,6 @@ trait Structure extends Eager {
 
 object Structure {
 
-  import org.slf4j.{Logger, LoggerFactory}
-  import scala.util.Try
-
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   // CONSIDER do we need this?
@@ -93,7 +89,7 @@ object Structure {
 
   given FuzzyEq[Structure] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Structure]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || summon[DyadicOperator[Structure]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
   }
 
 //  implicit val dyadicOperatorStructure: DyadicOperator[Structure] = new DyadicOperator[Structure] {
