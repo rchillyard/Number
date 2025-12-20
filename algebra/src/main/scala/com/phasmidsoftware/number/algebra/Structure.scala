@@ -167,8 +167,10 @@ case class Complex(complex: numerical.Complex) extends Eager {
   def maybeFactor(context: Context): Option[Factor] = complex.maybeFactor
 
   override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
-    case (Complex(a), Complex(b)) => Success(a == b)
-    case _ => Failure(AlgebraException(s"Complex.eqv: unexpected input: $x, $y"))
+    case (Complex(a), Complex(b)) =>
+      Success(a == b)
+    case _ =>
+      Failure(AlgebraException(s"Complex.eqv: unexpected input: $x, $y"))
   }
 
   override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
