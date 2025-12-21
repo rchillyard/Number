@@ -188,28 +188,31 @@ trait DyadicOps {
     * are equivalent. The result is returned as a `Try` which can indicate
     * either success (with a boolean result) or failure (if the comparison cannot be performed).
     *
-    * @param x the first `Eager` instance to compare
+    * @param that the first `Eager` instance to compare
     * @param y the second `Eager` instance to compare
     * @return a `Try[Boolean]` representing the result of the comparison:
     *         - `Success(true)` if the two instances are equivalent
     *         - `Success(false)` if the two instances are not equivalent
     *         - `Failure` if the comparison cannot be performed
     */
-  def eqv(x: Eager, y: Eager): Try[Boolean]
+  def eqv(that: Eager): Try[Boolean]
 
   /**
     * Determines if two `Eager` instances are approximately equal within a specified tolerance.
     * The tolerance is defined by the `p` parameter, where a smaller value represents stricter equality.
     *
+    * TODO make this a one-parameter method (like eqv).
+    *
+    *
     * @param p the tolerance level for the comparison, expressed as a `Double` between 0 and 1.
-    * @param x the first `Eager` instance to compare.
+    * @param that the first `Eager` instance to compare.
     * @param y the second `Eager` instance to compare.
     * @return a `Try[Boolean]` indicating the result of the fuzzy equality comparison:
     *         - `Success(true)` if the two instances are approximately equal within the tolerance,
     *         - `Success(false)` if they are not approximately equal,
     *         - or a `Failure` if the comparison cannot be performed.
     */
-  def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean]
+  def fuzzyEqv(p: Double)(that: Eager): Try[Boolean]
 
   /**
     * Compares two instances of the `Eager` type and returns the result of the comparison.

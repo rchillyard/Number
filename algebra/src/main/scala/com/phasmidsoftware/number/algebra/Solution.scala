@@ -150,6 +150,34 @@ trait Solution extends Eager {
     *         or `None` if scaling cannot be performed
     */
   def scale(r: Rational): Option[Solution]
+
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: LinearSolution, b: LinearSolution) =>
+      a.value.eqv(b.value)
+    case (a: QuadraticSolution, b: QuadraticSolution) =>
+      for {
+        baseEq <- a.base.eqv(b.base)
+        offsetEq <- a.offset.eqv(b.offset)
+      } yield baseEq && offsetEq && a.branch == b.branch
+    case _ =>
+      super.eqv(that)
+  }
+
+  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: LinearSolution, b: LinearSolution) =>
+      a.value.fuzzyEqv(p)(b.value)
+    case (a: QuadraticSolution, b: QuadraticSolution) =>
+      if (a.branch != b.branch) {
+        Success(false)
+      } else {
+        for {
+          baseEq <- a.base.fuzzyEqv(p)(b.base)
+          offsetEq <- a.offset.fuzzyEqv(p)(b.offset)
+        } yield baseEq && offsetEq
+      }
+    case _ =>
+      super.fuzzyEqv(p)(that)
+  }
 }
 
 /**
@@ -184,20 +212,19 @@ object Solution {
       QuadraticSolution(base, offset, branch)
 
   given DyadicOperator[Solution] = new DyadicOperator[Solution] {
-    def op[Z](f: (Solution, Solution) => Try[Z])(x: Solution, y: Solution): Try[Z] =
+    def op[B <: Solution, Z](f: (Solution, B) => Try[Z])(x: Solution, y: B): Try[Z] =
       f(x, y)
   }
 
   given Eq[Solution] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Solution]].op(x.eqv)(x, y).getOrElse(false)
+      summon[DyadicOperator[Solution]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
   given FuzzyEq[Solution] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Solution]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
-
 }
 
 /**
@@ -483,15 +510,12 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
       Some(QuadraticSolution(b.scale(r), o.scale(r), branch))
   }
 
-  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a: QuadraticSolution, b: QuadraticSolution) =>
       Success(a.base === b.base && a.offset === b.offset && a.branch == b.branch)
     case _ =>
-      super.eqv(x, y)
+      super.eqv(that)
   }
-
-  override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] =
-    Success(x === y || ((for (a <- x.approximation(); b <- y.approximation()) yield implicitly[FuzzyEq[Real]].eqv(a, b, p)) getOrElse false))
 }
 
 /**
@@ -524,17 +548,18 @@ object QuadraticSolution {
 
   // CONSIDER do we need this?
   given DyadicOperator[QuadraticSolution] = new DyadicOperator[QuadraticSolution] {
-    def op[Z](f: (QuadraticSolution, QuadraticSolution) => Try[Z])(x: QuadraticSolution, y: QuadraticSolution): Try[Z] = f(x, y)
+    def op[B <: QuadraticSolution, Z](f: (QuadraticSolution, B) => Try[Z])(x: QuadraticSolution, y: B): Try[Z] =
+      f(x, y)
   }
 
   given Eq[QuadraticSolution] = Eq.instance {
     (x, y) =>
-      FP.toOptionWithLog(logger.warn("Eq[QuadraticSolution]", _))(x.eqv(x, y)).getOrElse(false)
+      FP.toOptionWithLog(logger.warn("Eq[QuadraticSolution]", _))(x.eqv(y)).getOrElse(false)
   }
 
   given FuzzyEq[QuadraticSolution] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[QuadraticSolution]", _))(x.fuzzyEqv(p)(x, y)).getOrElse(false)
+      x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[QuadraticSolution]", _))(x.fuzzyEqv(p)(y)).getOrElse(false)
   }
 }
 
@@ -689,17 +714,18 @@ object LinearSolution {
 
   // CONSIDER do we need this?
   given DyadicOperator[LinearSolution] = new DyadicOperator[LinearSolution] {
-    def op[Z](f: (LinearSolution, LinearSolution) => Try[Z])(x: LinearSolution, y: LinearSolution): Try[Z] = f(x, y)
+    def op[B <: LinearSolution, Z](f: (LinearSolution, B) => Try[Z])(x: LinearSolution, y: B): Try[Z] =
+      f(x, y)
   }
 
   given Eq[LinearSolution] = Eq.instance {
     (x, y) =>
-      FP.toOptionWithLog(logger.warn("Eq[LinearSolution]", _))(x.eqv(x, y)).getOrElse(false)
+      FP.toOptionWithLog(logger.warn("Eq[LinearSolution]", _))(x.eqv(y)).getOrElse(false)
   }
 
   given FuzzyEq[LinearSolution] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[LinearSolution]", _))(x.fuzzyEqv(p)(x, y)).getOrElse(false)
+      x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[LinearSolution]", _))(x.fuzzyEqv(p)(y)).getOrElse(false)
   }
 
 }

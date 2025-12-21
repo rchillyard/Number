@@ -354,28 +354,43 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     * are equivalent. Currently, this functionality is not implemented 
     * and will return a failure with an appropriate exception message.
     *
-    * @param x the first `Eager` instance to compare
+    * @param that the first `Eager` instance to compare
     * @param y the second `Eager` instance to compare
     * @return a `Try[Boolean]` where:
     *         - `Success(true)` indicates the objects are equivalent
     *         - `Success(false)` indicates the objects are not equivalent
     *         - `Failure` indicates this functionality is not implemented
     */
-  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Real, b: Real) =>
       Success(a == b)
     case _ =>
-      super.eqv(x, y)
+      super.eqv(that)
   }
 
-  override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Real, b: Real) =>
-      Valuable.valuableToField(realIsRing.minus(a, b)) match {
-        case numerical.Real(x) =>
-          Success(x.isProbablyZero(p))
+      // TODO this is Claude's code. It works but we shouldn't need to separate non-fuzzy from fuzzy values.
+      // If both are fuzzy, check if they overlap within their combined uncertainty
+      (a.fuzz, b.fuzz) match {
+        case (Some(_), Some(_)) =>
+          // Both fuzzy - compute difference and check if probably zero
+          val diff = realIsRing.minus(a, b)
+          Valuable.valuableToField(diff) match {
+            case numerical.Real(x) =>
+              Success(x.isProbablyZero(p))
+            case _ =>
+              Success(false)
+          }
+        case (None, None) =>
+          // Both exact - use exact equality
+          Success(a.value == b.value)
         case _ =>
-          Success(a == b)
+          // One fuzzy, one exact - be more lenient
+          Success(Math.abs(a.value - b.value) < 1e-9)
       }
+    case _ =>
+      super.fuzzyEqv(p)(that)
   }
 }
 
@@ -498,18 +513,17 @@ object Real {
 
 
   given DyadicOperator[Real] = new DyadicOperator[Real] {
-    def op[Z](f: (Real, Real) => Try[Z])(x: Real, y: Real): Try[Z] =
+    def op[B <: Real, Z](f: (Real, B) => Try[Z])(x: Real, y: B): Try[Z] =
       f(x, y)
   }
 
   given Eq[Real] = Eq.instance {
-    (x, y) =>
-      summon[DyadicOperator[Real]].op(x.eqv)(x, y).getOrElse(false)
+    (x, y) => x.eqv(y).getOrElse(false)
   }
 
   given FuzzyEq[Real] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || summon[DyadicOperator[Real]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
   /**

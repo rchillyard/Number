@@ -6,7 +6,7 @@ import com.phasmidsoftware.number.algebra.Nat.natIsSemiring
 import com.phasmidsoftware.number.algebra.misc.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.annotation.tailrec
-import scala.util.Try
+import scala.util.{Success, Try}
 
 /**
   * Represents natural numbers using Peano arithmetic.
@@ -68,6 +68,13 @@ sealed trait Nat extends Eager with N {
   def approximation(force: Boolean): Option[Real] =
 //    summon[Convertible[Real,Nat]].convert()
     Some(Real(toInt))
+
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: Nat, b: Nat) =>
+      Success(a == b)  // Uses Nat's equals method
+    case _ =>
+      super.eqv(that)
+  }
 
   /**
     * Increments this natural number by one.
@@ -274,13 +281,13 @@ object Nat {
   }
 
   given DyadicOperator[Nat] = new DyadicOperator[Nat] {
-    def op[Z](f: (Nat, Nat) => Try[Z])(x: Nat, y: Nat): Try[Z] =
+    def op[B <: Nat, Z](f: (Nat, B) => Try[Z])(x: Nat, y: B): Try[Z] =
       f(x, y)
   }
 
   given Eq[Nat] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Nat]].op(x.eqv)(x, y).getOrElse(false)
+      summon[DyadicOperator[Nat]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
   // Nat

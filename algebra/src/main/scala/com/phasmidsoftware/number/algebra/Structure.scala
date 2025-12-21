@@ -58,7 +58,7 @@ trait Structure extends Eager {
     case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")
   }
 
-  override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Structure, b: Structure) =>
       FP.toTry(for {
         p: Real <- a.convert(Real.one)
@@ -74,7 +74,7 @@ object Structure {
 
   // CONSIDER do we need this?
   given DyadicOperator[Structure] = new DyadicOperator[Structure] {
-    def op[Z](f: (Structure, Structure) => Try[Z])(x: Structure, y: Structure): Try[Z] = (x, y) match {
+    def op[B <: Structure, Z](f: (Structure, B) => Try[Z])(x: Structure, y: B): Try[Z] = (x, y) match {
       case (a: Monotone, b: Monotone) =>
         implicitly[DyadicOperator[Monotone]].op(f)(a, b)
       case (a, b) =>
@@ -84,14 +84,13 @@ object Structure {
 
   given Eq[Structure] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Structure]].op(x.eqv)(x, y).getOrElse(false)
+      summon[DyadicOperator[Structure]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
   given FuzzyEq[Structure] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || summon[DyadicOperator[Structure]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
-
 //  implicit val dyadicOperatorStructure: DyadicOperator[Structure] = new DyadicOperator[Structure] {
 //    def op[Z](f: (Structure, Structure) => Try[Z])(x: Structure, y: Structure): Try[Z] = (x, y) match {
 //      case (a: Monotone, b: Monotone) => f(a, b)
@@ -166,16 +165,16 @@ case class Complex(complex: numerical.Complex) extends Eager {
     */
   def maybeFactor(context: Context): Option[Factor] = complex.maybeFactor
 
-  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (Complex(a), Complex(b)) =>
       Success(a == b)
     case _ =>
-      Failure(AlgebraException(s"Complex.eqv: unexpected input: $x, $y"))
+      Failure(AlgebraException(s"Complex.eqv: unexpected input: $this and $that"))
   }
 
-  override def fuzzyEqv(p: Double)(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (Complex(a), Complex(b)) => Success(a.isSame(b)) // TODO we lose the value of `p` here (it defaults to 0.5)
-    case _ => Failure(AlgebraException(s"Complex.fuzzyEqv: unexpected input: $x, $y"))
+    case _ => Failure(AlgebraException(s"Complex.fuzzyEqv: unexpected input: $this, $that"))
   }
 
   /**
@@ -206,17 +205,17 @@ object Complex {
 
   // CONSIDER do we need this?
   given DyadicOperator[Complex] = new DyadicOperator[Complex] {
-    def op[Z](f: (Complex, Complex) => Try[Z])(x: Complex, y: Complex): Try[Z] = f(x, y)
+    def op[B <: Complex, Z](f: (Complex, B) => Try[Z])(x: Complex, y: B): Try[Z] = f(x, y)
   }
 
   given Eq[Complex] = Eq.instance {
     (x, y) =>
-      FP.toOptionWithLog(logger.warn("Eq[Complex]", _))(x.eqv(x, y)).getOrElse(false)
+      FP.toOptionWithLog(logger.warn("Eq[Complex]", _))(x.eqv(y)).getOrElse(false)
   }
 
   given FuzzyEq[Complex] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[Complex]", _))(x.fuzzyEqv(p)(x, y)).getOrElse(false)
+      x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[Complex]", _))(x.fuzzyEqv(p)(y)).getOrElse(false)
   }
 
 }

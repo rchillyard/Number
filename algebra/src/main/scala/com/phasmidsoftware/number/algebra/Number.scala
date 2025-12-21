@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents a pure number that can be compared, approximated, and converted to other types.
@@ -89,6 +89,37 @@ trait Number extends Scalar with Ordered[Scalar] {
     else // XXX this is exact and that is not exact
       -that.compare(this)
 
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: Number, b: Number) =>
+      // Both are Numbers - compare them
+      if (a.isExact && b.isExact) {
+        Success(a.compareExact(b).contains(0))
+      } else {
+        // At least one is not exact - use approximation
+        val maybeResult = for {
+          aApprox <- a.approximation(true)
+          bApprox <- b.approximation(true)
+        } yield aApprox.value == bApprox.value
+
+        FP.toTry(maybeResult, Failure(AlgebraException(s"Number.eqv: cannot compare $this and $that")))
+      }
+    case _ =>
+      super.eqv(that)
+  }
+
+  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: Number, b: Number) =>
+      // Convert both to Real for fuzzy comparison
+      val maybeResult = for {
+        aReal <- if (a.isInstanceOf[Real]) Some(a.asInstanceOf[Real]) else a.approximation(true)
+        bReal <- if (b.isInstanceOf[Real]) Some(b.asInstanceOf[Real]) else b.approximation(true)
+      } yield aReal.fuzzyEqv(p)(bReal).getOrElse(false)
+
+      Success(maybeResult.getOrElse(false))
+    case _ =>
+      super.fuzzyEqv(p)(that)
+  }
+
   /**
     * A scale factor applied to this `Number`.
     *
@@ -107,7 +138,7 @@ object Number {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[Number] = new DyadicOperator[Number] {
-    def op[Z](f: (Number, Number) => Try[Z])(x: Number, y: Number): Try[Z] = (x, y) match {
+    def op[B <: Number, Z](f: (Number, B) => Try[Z])(x: Number, y: B): Try[Z] = (x, y) match {
       case (a: RationalNumber, b: RationalNumber) =>
         implicitly[DyadicOperator[RationalNumber]].op(f)(a, b)
       case (a: WholeNumber, b: WholeNumber) =>
@@ -117,11 +148,14 @@ object Number {
 
       // Cross-type operations:
       case (x: RationalNumber, y: WholeNumber) =>
-        op(f)(x, y.toRationalNumber)
+        op(f)(x, y.toRationalNumber.asInstanceOf[B])
       case (x: WholeNumber, y: RationalNumber) =>
-        op(f)(y, x)
+        op(f)(x.toRationalNumber, y)
       case (x: Real, y: R) =>
-        val zyo: Option[Try[Z]] = y.convert(Real.zero).map(r => op(f)(x, r))
+        val zyo: Option[Try[Z]] = y.convert(Real.zero).map(r => op(f)(x, r.asInstanceOf[B]))
+        FP.recoverWithTry(zyo)(FP.fail(s"Number.DyadicOperator: logic error $x. $y")).flatten
+      case (x: R, y: Real) =>
+        val zyo: Option[Try[Z]] = x.convert(Real.zero).map(r => op(f)(r, y))
         FP.recoverWithTry(zyo)(FP.fail(s"Number.DyadicOperator: logic error $x. $y")).flatten
       case (a, b) =>
         f(a, b)
@@ -129,13 +163,12 @@ object Number {
   }
 
   given Eq[Number] = Eq.instance {
-    (x, y) =>
-      summon[DyadicOperator[Number]].op(x.eqv)(x, y).getOrElse(false)
+    (x, y) => x.eqv(y).getOrElse(false)
   }
 
   given FuzzyEq[Number] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || summon[DyadicOperator[Number]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
   @tailrec

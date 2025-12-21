@@ -16,7 +16,7 @@ import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
-import scala.util.Try
+import scala.util.{Success, Try}
 
 /**
   * Represents a mathematical Root object, parameterized with an integral root degree and a base number.
@@ -122,6 +122,17 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case x =>
       None
+  }
+
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (InversePower(n1, x1), InversePower(n2, x2)) =>
+      if (n1 == n2) {
+        x1.eqv(x2)
+      } else {
+        Success(false)
+      }
+    case _ =>
+      super.eqv(that)
   }
 
   /**
@@ -242,29 +253,22 @@ object InversePower {
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[InversePower] = new DyadicOperator[InversePower] {
-    def op[Z](f: (InversePower, InversePower) => Try[Z])(x: InversePower, y: InversePower): Try[Z] =
+    def op[B <: InversePower, Z](f: (InversePower, B) => Try[Z])(x: InversePower, y: B): Try[Z] =
       f(x, y)
   }
 
   given Eq[InversePower] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[InversePower]].op(x.eqv)(x, y).getOrElse(false)
+      summon[DyadicOperator[InversePower]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
   given FuzzyEq[InversePower] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || summon[DyadicOperator[InversePower]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
-  private def tryConvertAndCompareTransformed[T <: InversePower, Z](f: (InversePower, InversePower) => Try[Z])(s: Logarithm, e: T): Try[Z] = e match {
-    case _ =>
-      FP.fail(s"InversePower.tryConvertAndCompareTransformed: unsupported operation: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
-  }
-
-  implicit val inversePowerEq: Eq[InversePower] = Eq.instance {
-    case (x: InversePower, y: InversePower) =>
-      x.n == y.n && x.number == y.number
-  }
+  private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Logarithm, e: B): Try[Z] =
+    FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 
   /**
     * Represents the zero value of the `Root` class.

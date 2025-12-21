@@ -2,12 +2,10 @@ package com.phasmidsoftware.number.algebra
 
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.Monotone.getClass
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
+import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
-import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
 
 /**
@@ -102,13 +100,15 @@ object Scalar {
       createScalar(value, factor, fuzz)
   }
 
+  val zero: Scalar = createScalar(Right(0), inner.PureNumber, None).asInstanceOf[Scalar]
+
   import org.slf4j.{Logger, LoggerFactory}
   import scala.util.Try
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[Scalar] = new DyadicOperator[Scalar] {
-    def op[Z](f: (Scalar, Scalar) => Try[Z])(x: Scalar, y: Scalar): Try[Z] = (x, y) match {
+    def op[B <: Scalar, Z](f: (Scalar, B) => Try[Z])(x: Scalar, y: B): Try[Z] = (x, y) match {
       case (a: Number, b: Number) =>
         implicitly[DyadicOperator[Number]].op(f)(a, b)
       case (a: Angle, b: Angle) =>
@@ -116,28 +116,25 @@ object Scalar {
 
       // Cross-type operations:
       case (x: Number, y: Angle) =>
-        tryConvertAndCompareNumber(f)(x, y)
+        tryConvertAndCompareScalar(f)(x, y.asInstanceOf[B])
       case (x: Angle, y: Number) =>
-        tryConvertAndCompareNumber(f)(y, x)
+        tryConvertAndCompareScalar(f)(y, x.asInstanceOf[B])
       case (a, b) =>
         f(a, b)
     }
   }
 
   given Eq[Scalar] = Eq.instance {
-    (x, y) =>
-      summon[DyadicOperator[Scalar]].op(x.eqv)(x, y).getOrElse(false)
+    (x, y) => x.eqv(y).getOrElse(false)
   }
 
   given FuzzyEq[Scalar] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Scalar]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
-  private def tryConvertAndCompareNumber[T <: Scalar, Z](f: (Scalar, Scalar) => Try[Z])(s: Number, e: T): Try[Z] = e match {
-    case _ =>
-      FP.fail(s"Scalar.tryConvertAndCompareScalar: unsupported operation: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
-  }
+  private def tryConvertAndCompareScalar[B <: Scalar, Z](f: (Scalar, B) => Try[Z])(s: Scalar, e: B): Try[Z] =
+    FP.fail(s"Scalar: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 
   /**
     * Creates a `Scalar` instance based on the given input parameters.
@@ -306,7 +303,7 @@ object Radians {
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[Radians] = new DyadicOperator[Radians] {
-    def op[Z](f: (Radians, Radians) => Try[Z])(x: Radians, y: Radians): Try[Z] = (x, y) match {
+    def op[B <: Radians, Z](f: (Radians, B) => Try[Z])(x: Radians, y: B): Try[Z] = (x, y) match {
       case (a: Angle, b: Angle) =>
         implicitly[DyadicOperator[Angle]].op(f)(a, b)
       case (a, b) =>
@@ -316,11 +313,11 @@ object Radians {
 
   given Eq[Radians] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Radians]].op(x.eqv)(x, y).getOrElse(false)
+      summon[DyadicOperator[Radians]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
   given FuzzyEq[Radians] = FuzzyEq.instance {
     (x, y, p) =>
-      x == y || summon[DyadicOperator[Radians]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 }

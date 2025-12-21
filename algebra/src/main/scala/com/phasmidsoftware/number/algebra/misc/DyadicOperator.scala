@@ -15,4 +15,4 @@ import scala.util.Try
   * @tparam A The type for which fuzzy equality is defined.
   */
 trait DyadicOperator[A]:
-  def op[Z](f: (A, A) => Try[Z])(x: A, y: A): Try[Z]
+  def op[B <: A, Z](f: (A, B) => Try[Z])(x: A, y: B): Try[Z]

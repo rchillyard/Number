@@ -22,6 +22,7 @@ import scala.util.{Success, Try}
   * ensuring that operations maintain a high level of numeric fidelity.
   *
   * CONSIDER adding a percentage flag to Real.
+  * CONSIDER merging the Rational class into this class (there's no compelling reason to have two separate classes).
   *
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
   * @param r The `Rational` value represented by this `RationalNumber`.
@@ -97,6 +98,8 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
       Some(r.compareTo(o))
     case WholeNumber(x) =>
       Some(r.compare(Rational(x)))
+    case Real(v, None) => // exact Real only
+      Some(r.toDouble.compare(v))
     case _ =>
       None
   }
@@ -278,18 +281,18 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
     * are equivalent. Currently, this functionality is not implemented
     * and will return a failure with an appropriate exception message.
     *
-    * @param x the first `Eager` instance to compare
+    * @param that the first `Eager` instance to compare
     * @param y the second `Eager` instance to compare
     * @return a `Try[Boolean]` where:
     *         - `Success(true)` indicates the objects are equivalent
     *         - `Success(false)` indicates the objects are not equivalent
     *         - `Failure` indicates this functionality is not implemented
     */
-  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (RationalNumber(rx, _), RationalNumber(ry, _)) =>
       Success(rx == ry)
     case _ =>
-      super.eqv(x, y)
+      super.eqv(that)
   }
 
 }
@@ -362,13 +365,12 @@ object RationalNumber {
     Show.show(_.render)
 
   given DyadicOperator[RationalNumber] = new DyadicOperator[RationalNumber] {
-    def op[Z](f: (RationalNumber, RationalNumber) => Try[Z])(x: RationalNumber, y: RationalNumber): Try[Z] =
+    def op[B <: RationalNumber, Z](f: (RationalNumber, B) => Try[Z])(x: RationalNumber, y: B): Try[Z] =
       f(x, y)
   }
 
   given Eq[RationalNumber] = Eq.instance {
-    (x, y) =>
-      summon[DyadicOperator[RationalNumber]].op(x.eqv)(x, y).getOrElse(false)
+    (x, y) => x.eqv(y).getOrElse(false)
   }
 
   given FuzzyEq[RationalNumber] = FuzzyEq.instance {

@@ -286,18 +286,18 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * are equivalent. Currently, this functionality is not implemented
     * and will return a failure with an appropriate exception message.
     *
-    * @param x the first `Eager` instance to compare
+    * @param that the first `Eager` instance to compare
     * @param y the second `Eager` instance to compare
     * @return a `Try[Boolean]` where:
     *         - `Success(true)` indicates the objects are equivalent
     *         - `Success(false)` indicates the objects are not equivalent
     *         - `Failure` indicates this functionality is not implemented
     */
-  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a1: Angle, a2: Angle) =>
       Success(a1.normalize.radians === a2.normalize.radians)
     case _ =>
-      super.eqv(x, y)
+      super.eqv(that)
   }
 }
 
@@ -463,19 +463,17 @@ object Angle {
 
 
   given DyadicOperator[Angle] = new DyadicOperator[Angle] {
-    def op[Z](f: (Angle, Angle) => Try[Z])(x: Angle, y: Angle): Try[Z] = f(x, y)
+    def op[B <: Angle, Z](f: (Angle, B) => Try[Z])(x: Angle, y: B): Try[Z] = f(x, y)
   }
 
   given Eq[Angle] = Eq.instance {
-    (x, y) =>
-      summon[DyadicOperator[Angle]].op(x.eqv)(x, y).getOrElse(false)
+    (x, y) => x.eqv(y).getOrElse(false)
   }
 
   given FuzzyEq[Angle] = FuzzyEq.instance {
-    case (a@Angle(x, _), b@Angle(y, _), p) =>
-      x === y || summon[DyadicOperator[Angle]].op(x.fuzzyEqv(p))(a, b).getOrElse(false)
+    (x, y, p) =>
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
-
   /**
     * Represents the additive identity for angles.
     *

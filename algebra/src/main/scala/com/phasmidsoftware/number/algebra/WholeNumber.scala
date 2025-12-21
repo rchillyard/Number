@@ -116,6 +116,8 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
       Some(x.compare(o))
     case RationalNumber(r, _) =>
       Some(Rational(x).compare(r))
+    case Real(v, None) => // exact Real only
+      Some(x.toDouble.compare(v))
     case _ =>
       None
   }
@@ -310,11 +312,11 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
     negate
 
   // In WholeNumber.scala
-  override def eqv(x: Eager, y: Eager): Try[Boolean] = (x, y) match {
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (WholeNumber(a), WholeNumber(b)) =>
       Success(a == b)
     case _ =>
-      super.eqv(x, y)
+      super.eqv(that)
   }
 
   /**
@@ -398,18 +400,16 @@ object WholeNumber {
       )(AlgebraException("cannot convert $u to WholeNumber"))
 
   given DyadicOperator[WholeNumber] = new DyadicOperator[WholeNumber] {
-    def op[Z](f: (WholeNumber, WholeNumber) => Try[Z])(x: WholeNumber, y: WholeNumber): Try[Z] =
+    def op[B <: WholeNumber, Z](f: (WholeNumber, B) => Try[Z])(x: WholeNumber, y: B): Try[Z] =
       f(x, y)
   }
 
   given Eq[WholeNumber] = Eq.instance {
-    (x, y) =>
-      summon[DyadicOperator[WholeNumber]].op(x.eqv)(x, y).getOrElse(false)
+    (x, y) => x.eqv(y).getOrElse(false)
   }
 
   given FuzzyEq[WholeNumber] = FuzzyEq.instance {
-    (x, y, p) =>
-      x == y
+    (x, y, p) => x == y
   }
 
   /**

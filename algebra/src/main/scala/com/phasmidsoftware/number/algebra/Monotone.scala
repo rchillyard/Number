@@ -84,8 +84,7 @@ object Monotone {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[Monotone] = new DyadicOperator[Monotone] {
-    @tailrec
-    def op[Z](f: (Monotone, Monotone) => Try[Z])(x: Monotone, y: Monotone): Try[Z] = (x, y) match {
+    def op[B <: Monotone, Z](f: (Monotone, B) => Try[Z])(x: Monotone, y: B): Try[Z] = (x, y) match {
       case (a: Scalar, b: Scalar) =>
         implicitly[DyadicOperator[Scalar]].op(f)(a, b)
       case (a: Functional, b: Functional) =>
@@ -94,8 +93,8 @@ object Monotone {
       // Cross-type operations:
       case (x: Scalar, y: Functional) =>
         tryConvertAndCompareScalar(f)(x, y)
-      case (x: Functional, y: Scalar) =>
-        op(f)(y, x)
+
+      // Default case:  
       case (a, b) =>
         f(a, b)
     }
@@ -103,12 +102,12 @@ object Monotone {
 
   given Eq[Monotone] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Monotone]].op(x.eqv)(x, y).getOrElse(false)
+      summon[DyadicOperator[Monotone]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
   given FuzzyEq[Monotone] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || summon[DyadicOperator[Monotone]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
   //
@@ -145,13 +144,11 @@ object Monotone {
 //      false
 //  }
 //
-  private def tryConvertAndCompareScalar[T <: Monotone, Z](f: (Monotone, Monotone) => Try[Z])(s: Scalar, e: T): Try[Z] = e match {
-//    case p: InversePower =>
-//      f(p.base.pow(p.n), s) // TODO do this properly
+  private def tryConvertAndCompareScalar[B <: Monotone, Z](f: (Monotone, B) => Try[Z])(s: Scalar, e: B): Try[Z] = e match {
     case n: Functional =>
-      f(s, n)
+      f(s, n.asInstanceOf[B])
     case _ =>
-      FP.fail(s"tryConvertAndCompareStructure: unexpected Monotone comparison: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
+      FP.fail(s"tryConvertAndCompareScalar: unexpected Monotone comparison: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
   }
 
 //  implicit val monotoneEq: Eq[Monotone] = Eq.instance {
@@ -259,7 +256,7 @@ object Functional {
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[Functional] = new DyadicOperator[Functional] {
-    def op[Z](f: (Functional, Functional) => Try[Z])(x: Functional, y: Functional): Try[Z] = (x, y) match {
+    def op[B <: Functional, Z](f: (Functional, B) => Try[Z])(x: Functional, y: B): Try[Z] = (x, y) match {
       case (a: Radians, b: Radians) =>
         implicitly[DyadicOperator[Radians]].op(f)(a, b)
       case (a: Transformed, b: Transformed) =>
@@ -267,9 +264,9 @@ object Functional {
 
       // Cross-type operations:
       case (x: Radians, y: Transformed) =>
-        tryConvertAndCompareNumber(f)(x, y)
+        tryConvertAndCompareFunctional(f)(x, y.asInstanceOf[B])
       case (x: Transformed, y: Radians) =>
-        tryConvertAndCompareNumber(f)(y, x)
+        tryConvertAndCompareFunctional(f)(y, x.asInstanceOf[B])
       case (a, b) =>
         f(a, b)
     }
@@ -277,18 +274,16 @@ object Functional {
 
   given Eq[Functional] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Functional]].op(x.eqv)(x, y).getOrElse(false)
+      summon[DyadicOperator[Functional]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
   given FuzzyEq[Functional] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || summon[DyadicOperator[Functional]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
-  private def tryConvertAndCompareNumber[T <: Functional, Z](f: (Functional, Functional) => Try[Z])(s: Radians, e: T): Try[Z] = e match {
-    case _ =>
-      FP.fail(s"Functional.tryConvertAndCompareScalar: unsupported operation: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
-  }
+  private def tryConvertAndCompareFunctional[B <: Functional, Z](f: (Functional, B) => Try[Z])(s: Functional, e: B): Try[Z] =
+    FP.fail(s"Functional: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 }
 
 /**
@@ -318,7 +313,7 @@ object Transformed {
   import scala.util.Try
 
   given DyadicOperator[Transformed] = new DyadicOperator[Transformed] {
-    def op[Z](f: (Transformed, Transformed) => Try[Z])(x: Transformed, y: Transformed): Try[Z] = (x, y) match {
+    def op[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(x: Transformed, y: B): Try[Z] = (x, y) match {
       case (a: Logarithm, b: Logarithm) =>
         implicitly[DyadicOperator[Logarithm]].op(f)(a, b)
       case (a: InversePower, b: InversePower) =>
@@ -326,9 +321,9 @@ object Transformed {
 
       // Cross-type operations:
       case (a: Logarithm, b: InversePower) =>
-        tryConvertAndCompareTransformed(f)(a, b)
+        tryConvertAndCompareTransformed(f)(a, b.asInstanceOf[B])
       case (a: InversePower, b: Logarithm) =>
-        tryConvertAndCompareTransformed(f)(b, a)
+        tryConvertAndCompareTransformed(f)(a, b.asInstanceOf[B])
       case (a, b) =>
         f(a, b)
     }
@@ -336,17 +331,14 @@ object Transformed {
 
   given Eq[Transformed] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Transformed]].op(x.eqv)(x, y).getOrElse(false)
+      summon[DyadicOperator[Transformed]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
   given FuzzyEq[Transformed] = FuzzyEq.instance {
     (x, y, p) =>
-      x === y || summon[DyadicOperator[Transformed]].op(x.fuzzyEqv(p))(x, y).getOrElse(false)
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
-
-  private def tryConvertAndCompareTransformed[T <: Transformed, Z](f: (Transformed, Transformed) => Try[Z])(s: Logarithm, e: T): Try[Z] = e match {
-    case _ =>
-      FP.fail(s"Transformed.tryConvertAndCompareTransformed: unsupported operation: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
-  }
-
+  
+  private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Transformed, e: B): Try[Z] =
+    FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 }
