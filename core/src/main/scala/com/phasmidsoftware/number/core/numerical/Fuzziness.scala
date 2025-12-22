@@ -518,6 +518,17 @@ object Fuzziness {
     RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)(HasValueDouble$)
 
   /**
+    * Creates an absolute fuzziness value with the given magnitude.
+    *
+    * @param magnitude The magnitude of the fuzziness to be created.
+    *                  This specifies the degree to which a value's precision is uncertain.
+    * @return An `Option` containing the created `Fuzziness[Double]`
+    *         with the specified magnitude, or `None` if the fuzziness could not be created.
+    */
+  def createAbsFuzz(magnitude: Double): Option[Fuzziness[Double]] =
+    Some(AbsoluteFuzz(magnitude, Box))
+
+  /**
     * This is the (approximate) fuzziness caused in general by trying to represent numbers in double precision.
     * Of course, many numbers can be represented exactly by double-precision. But not all.
     *

@@ -228,6 +228,8 @@ object Valuable {
       Some(numerical.Real(numberToField(radians).x.make(inner.Radian)))
     case l@NatLog(x) =>
       Some(numerical.Real(numberToField(x).x.make(inner.NatLog)))
+    case InversePower(n, x) =>
+      Some(numberToField(x).power(ExactNumber(Value.fromRational(Rational(n).invert), PureNumber)))
     case _ =>
       None // XXX v should be an Expression in this case (but expressions are not known in this package).
   }

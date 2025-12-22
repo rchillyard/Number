@@ -443,6 +443,18 @@ object Real {
   def apply(value: Double): Real = apply(value, Some(Fuzziness.doublePrecision))
 
   /**
+    * Constructs a `Real` instance using the provided value and absolute fuzziness.
+    *
+    * This method creates a `Real` object with the specified numeric value and an absolute fuzziness level
+    * that adjusts the precision of computations involving this instance.
+    *
+    * @param value the numeric value to be associated with the `Real`
+    * @param fuzz  the absolute fuzziness level to be applied to the `Real`
+    * @return a `Real` instance initialized with the specified value and fuzziness
+    */
+  def apply(value: Double, fuzz: Double): Real = new Real(value, Fuzziness.createAbsFuzz(fuzz))
+
+  /**
     * Constructs a `Real` instance using the numerical value and optional fuzziness of a given `numericalReal` instance.
     *
     * This method extracts a double-precision value and an optional fuzziness level from the input `numericalReal`,
