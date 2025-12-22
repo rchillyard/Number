@@ -1,0 +1,10 @@
+---
+engines:
+  scalameta-pro:
+    patterns:
+      - patternId: OptionGet
+        exclude_paths:
+          - "src/test/**"
+          - "**/*Test.scala"
+          - "**/*Spec.scala"
+          - "**/*Suite.scala"
