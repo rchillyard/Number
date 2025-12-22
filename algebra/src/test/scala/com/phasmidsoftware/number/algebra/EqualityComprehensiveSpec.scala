@@ -216,6 +216,13 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
     (q1 ~== q2) shouldBe true
   }
 
+  // InversePower tests
+  it should "compare InversePowers with ~=" in {
+    (InversePower(2, WholeNumber(4)) ~== InversePower(3, WholeNumber(8))) shouldBe true
+    (InversePower(2, WholeNumber(4)) ~== InversePower(2, WholeNumber(9))) shouldBe false
+    (InversePower(2, WholeNumber(4)) ~== InversePower(3, WholeNumber(4))) shouldBe false
+  }
+
   // Edge cases
   behavior of "=== and ~== edge cases"
 

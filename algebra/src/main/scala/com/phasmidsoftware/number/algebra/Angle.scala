@@ -9,9 +9,9 @@ import cats.Show
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Angle.{angleIsCommutativeGroup, r180}
+import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
-import com.phasmidsoftware.number.algebra.{Radians, Structure}
-import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.Fuzziness
 import scala.reflect.ClassTag
 import scala.util.{Success, Try}
@@ -30,23 +30,16 @@ import scala.util.{Success, Try}
   *
   * Angle does not support ordering or (general) comparison.
   *
-  * @param radians the value of the angle in radians
+  * @param number  the value of the angle in radians
   * @param degrees whether the angle is in radians or degrees.
-  *                In the latter case, the `radians` attribute is unchanged (1 is still half of a full circle).
+  *                In the latter case, the `number` attribute is unchanged (1 is still half of a full circle).
   */
-case class Angle private[algebra](radians: Number, degrees: Boolean = false) extends Radians with Circle with Scalable[Angle] with CanAdd[Angle, Angle] with CanNormalize[Angle] {
-
-  /**
-    * Retrieves the value of radians.
-    *
-    * @return the `Number` associated with this instance
-    */
-  def number: Number = radians
+case class Angle private[algebra](number: Number, degrees: Boolean = false) extends Radians with Circle with Scalable[Angle] with CanAdd[Angle, Angle] with CanNormalize[Angle] {
 
   /**
     * Normalizes an angle instance to its equivalent value within the standard range of radians.
     *
-    * This method processes the `radians` value of the current `Angle` and adjusts it
+    * This method processes the `number` value of the current `Angle` and adjusts it
     * to lie within the expected range, typically between 0 and 2π or -π to π, depending
     * on the implementation of the `Radian.modulate` logic.
     * Various specific cases are covered based on the type of the input:
@@ -58,7 +51,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     *
     * @return a new instance of `Angle` representing the normalized value
     */
-  def normalize: Angle = radians match {
+  def normalize: Angle = number match {
     case RationalNumber(r, _) =>
       Angle(Radian.modulate(Value.fromRational(r)))
     case Real(value, fuzz) =>
@@ -66,7 +59,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     case WholeNumber(x) =>
       Angle(Radian.modulate(Value.fromRational(Rational(x))))
     case _ =>
-      throw AlgebraException(s"normalize: unexpected type $radians")
+      throw AlgebraException(s"normalize: unexpected type $number")
   }
 
   /**
@@ -83,7 +76,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
   def compareExact(that: Scalar): Option[Int] = that match {
     case Angle(r, _) =>
       // TODO normalize before comparison
-      Some(radians.compare(r))
+      Some(number.compare(r))
     case _ =>
       None
   }
@@ -112,7 +105,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = radians.isZero
+  def isZero: Boolean = number.isZero
 
   /**
     * Represents the zero value of the `Angle` class.
@@ -136,7 +129,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  override def isExact: Boolean = radians.isExact
+  override def isExact: Boolean = number.isExact
 
   /**
     * Retrieves an optional fuzziness value associated with this instance.
@@ -148,24 +141,24 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     *
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
-  def fuzz: Option[Fuzziness[Double]] = radians.fuzz
+  def fuzz: Option[Fuzziness[Double]] = number.fuzz
 
   /**
     * Converts the current instance to a Double representation.
     *
     * @return the Double value corresponding to the current instance
     */
-  def asDouble: Double = scaleFactor * radians.toDouble
+  def asDouble: Double = scaleFactor * number.toDouble
 
   /**
-    * Determines if the `radians` value can be interpreted as an instance of `Q`.
-    * If `radians` matches the type `Q`, it returns an `Option` containing the value of `Q`.
+    * Determines if the `number` value can be interpreted as an instance of `Q`.
+    * If `number` matches the type `Q`, it returns an `Option` containing the value of `Q`.
     * Otherwise, it returns `None`.
     *
-    * @return an `Option[Q]` where `Some(Q)` is returned if `radians` is of type `Q`,
+    * @return an `Option[Q]` where `Some(Q)` is returned if `number` is of type `Q`,
     *         otherwise `None`.
     */
-  def maybeQ: Option[Q] = radians match {
+  def maybeQ: Option[Q] = number match {
     case q: Q => Some(q)
     case _ => None
   }
@@ -178,7 +171,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * @return a string representation of the `Angle` in terms of π
     */
   def render: String = {
-    val value = normalize.radians
+    val value = normalize.number
     if (degrees)
       value.scale(r180).render + "°"
     else {
@@ -202,7 +195,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * Adds the specified `Angle` to the current `Angle` instance.
     *
     * This method combines the current angle with the provided angle
-    * by adding their respective radians, returning a new `Angle` instance
+    * by adding their respective number, returning a new `Angle` instance
     * representing the sum.
     *
     * @param a the `Angle` to be added to the current `Angle`
@@ -238,7 +231,7 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     * @param factor the rational number representing the scale factor
     * @return the scaled instance of type `T`
     */
-  def *(factor: Rational): Angle = radians match {
+  def *(factor: Rational): Angle = number match {
     case r: RationalNumber => Angle(r * factor)
     case r: Real => Angle(r * factor)
     case w: WholeNumber => Angle(w.scale(factor))
@@ -266,20 +259,6 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
   def approximation: Option[Real] = convert(Real.zero)
 
   /**
-    * Converts the current instance to an optional scaled representation as a `Real`.
-    * TODO normalize before conversion
-    *
-    * This method approximates the `radians` value of the instance with forced scaling
-    * by π and returns the result wrapped in an `Option`. If the approximation is not
-    * possible, the method returns `None`.
-    *
-    * @return an `Option[Real]` containing the scaled representation of the current instance,
-    *         or `None` if the approximation fails.
-    */
-  private def toMaybeReal: Option[Real] =
-    radians.approximation(true).map(x => x.scaleByPi)
-
-  /**
     * Compares two instances of `Eager` for equality.
     *
     * This method is intended to check if the provided instances, `x` and `y`,
@@ -295,10 +274,24 @@ case class Angle private[algebra](radians: Number, degrees: Boolean = false) ext
     */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a1: Angle, a2: Angle) =>
-      Success(a1.normalize.radians === a2.normalize.radians)
+      Success(a1.normalize.number === a2.normalize.number)
     case _ =>
       super.eqv(that)
   }
+
+  /**
+    * Converts the current instance to an optional scaled representation as a `Real`.
+    * TODO normalize before conversion
+    *
+    * This method approximates the `radians` value of the instance with forced scaling
+    * by π and returns the result wrapped in an `Option`. If the approximation is not
+    * possible, the method returns `None`.
+    *
+    * @return an `Option[Real]` containing the scaled representation of the current instance,
+    *         or `None` if the approximation fails.
+    */
+  private def toMaybeReal: Option[Real] =
+    number.approximation(true).map(x => x.scaleByPi)
 }
 
 /**
@@ -461,15 +454,43 @@ object Angle {
   given Convertible[Angle, Real] with
     def convert(witness: Angle, u: Real): Angle = Angle(u.asDouble) // FIXME need the inverse operation
 
-
+  /**
+    * Provides a `DyadicOperator` instance for the type `Angle`.
+    *
+    * This implementation defines a binary operation (`op`) that operates on two angles 
+    * and applies a user-defined function `f` to the inputs. The resulting computation 
+    * is encapsulated in a `Try` to handle potential failures.
+    *
+    * @return A `DyadicOperator[Angle]` instance that allows performing binary operations 
+    *         on `Angle` values using a function `f`.
+    */
   given DyadicOperator[Angle] = new DyadicOperator[Angle] {
     def op[B <: Angle, Z](f: (Angle, B) => Try[Z])(x: Angle, y: B): Try[Z] = f(x, y)
   }
 
+  /**
+    * Provides an instance of equality comparison (`Eq`) for the `Angle` type.
+    *
+    * Compares two `Angle` instances for equivalence based on their internal
+    * equality logic. The method delegates to the `eqv` method of one `Angle`
+    * instance and processes the result. If the equivalence check returns
+    * `None`, the method defaults to `false`.
+    *
+    * @return an `Eq[Angle]` instance that defines equality behavior for `Angle`
+    */
   given Eq[Angle] = Eq.instance {
     (x, y) => x.eqv(y).getOrElse(false)
   }
 
+  /**
+    * Provides an instance of `FuzzyEq[Angle]` that defines fuzzy equality for angles.
+    *
+    * Fuzzy equality is determined by checking if two angles are exactly equal (`===`) 
+    * or approximately equal based on a given probability `p`.
+    *
+    * @return an instance of `FuzzyEq[Angle]` that implements fuzzy equality logic 
+    *         for comparing `Angle` values.
+    */
   given FuzzyEq[Angle] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
@@ -569,7 +590,7 @@ object Angle {
       * @param a the `Angle` instance to be inverted
       * @return a new `Angle` instance representing the additive inverse of the input
       */
-    def negate(a: Angle): Angle = a.radians match {
+    def negate(a: Angle): Angle = a.number match {
       case WholeNumber(x) =>
         Angle(-x)
       case RationalNumber(r, _) =>
@@ -577,5 +598,90 @@ object Angle {
       case Real(x, f) =>
         Angle(Real(-x, f))
     }
+  }
+}
+
+/**
+  * The `Radians` trait represents a scalar quantity expressed in radians, a unit of angular measure.
+  * It extends the `Scalar` trait, inheriting its properties and behaviors for numerical operations
+  * and comparison, while specifically associating the scalar with a conversion factor defined by Pi.
+  */
+trait Radians extends Scalar with Functional {
+
+  /**
+    * Retrieves an optional factor associated with the specified context.
+    * The factor may represent a transformation or scaling associated with a computation
+    * in a particular evaluation context.
+    *
+    * @param context the evaluation context within which the factor is to be determined.
+    * @return an `Option` containing the factor if it exists; `None` otherwise.
+    */
+  def maybeFactor(context: Context): Option[Factor] =
+    Option.when(context.factorQualifies(Radian))(Radian)
+
+  /**
+    * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.
+    */
+  val scaleFactor: Double = math.Pi // TODO change this to be an exact number (not a Double)
+}
+
+/**
+  * The `Radians` object provides utilities and type class instances for the `Radians` type.
+  * It defines operators and equality mechanisms to enable operations and comparisons for
+  * instances of `Radians` and its related subtypes.
+  */
+object Radians {
+
+  import org.slf4j.{Logger, LoggerFactory}
+  import scala.util.Try
+
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  /**
+    * Provides a `DyadicOperator` instance for the `Radians` type, enabling binary operations
+    * on operands of type `Radians` or its subtypes.
+    *
+    * This instance delegates the operation logic to the `DyadicOperator` of the `Angle` type
+    * if both operands are of type `Angle`. Otherwise, it applies the provided operation function directly
+    * to the operands.
+    *
+    * @return A `DyadicOperator[Radians]` that supports performing operations on `Radians` instances
+    *         and optionally delegates to the `Angle` operator when applicable.
+    */
+  given DyadicOperator[Radians] = new DyadicOperator[Radians] {
+    def op[B <: Radians, Z](f: (Radians, B) => Try[Z])(x: Radians, y: B): Try[Z] = (x, y) match {
+      case (a: Angle, b: Angle) =>
+        implicitly[DyadicOperator[Angle]].op(f)(a, b)
+      case (a, b) =>
+        f(a, b)
+    }
+  }
+
+  /**
+    * Provides an instance of the `Eq` type class for `Radians`, enabling equality comparison
+    * between two instances of `Radians`. The comparison is implemented using a dyadic operation,
+    * which delegates to the `DyadicOperator` for `Radians`. The equality check may involve evaluating
+    * the operands in an eager context and comparing their values.
+    *
+    * @return An instance of the `Eq` type class for `Radians`, where equality is determined
+    *         based on the dyadic operation and the result of the comparison.
+    */
+  given Eq[Radians] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Radians]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
+  }
+
+  /**
+    * Provides a given `FuzzyEq` instance for the `Radians` type.
+    *
+    * This instance defines fuzzy equality for `Radians` by checking strict equality first,
+    * and if that fails, by using the `fuzzyEqv` method with the given threshold `p`.
+    * The logic ensures reliable approximate comparisons for `Radians` values.
+    *
+    * @return A `FuzzyEq[Radians]` instance enabling approximate equality checks for `Radians`.
+    */
+  given FuzzyEq[Radians] = FuzzyEq.instance {
+    (x, y, p) =>
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 }

@@ -76,6 +76,83 @@ trait Monotone extends Structure with WithFuzziness {
 
 }
 
+/**
+  * The `Exact` trait represents an extension of the `WithFuzziness` trait, providing
+  * functionality to describe and manage fuzziness for instances requiring precise control.
+  *
+  * This trait serves as a specialized version of `WithFuzziness`, with a default implementation
+  * overriding the `fuzz` method to provide a `None` value by default, indicating no fuzziness.
+  * It is particularly useful in cases where fuzziness is not applicable or is explicitly excluded.
+  */
+trait Exact extends WithFuzziness {
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] = None
+}
+
+/**
+  * The `Functional` trait serves as an abstraction for entities that wrap `Number`, such as `Angle`, `NatLog`, etc.
+  * These are the types that can potentially have fuzz.
+  *
+  * Classes or traits that extend `Functional` encapsulate a `Number` instance, providing a consistent interface
+  * to access and work with numerical values. It is particularly useful in scenarios where mathematical operations
+  * or transformations are required on numbers.
+  */
+trait Functional extends Monotone {
+
+  /**
+    * Retrieves the value associated with this `Functional` instance.
+    *
+    * This method provides access to the underlying numerical representation
+    * encapsulated as a `Number` type. The value can represent exact or approximate
+    * numerical quantities, facilitating mathematical operations or transformations.
+    *
+    * @return the `Number` associated with this instance
+    */
+  def number: Number
+}
+
+/**
+  * Represents a `Monotone`, which is a one-dimensional `Structure` that can be ordered
+  * and supports various mathematical operations and properties. Monotones include both
+  * exact and approximate numerical entities.
+  *
+  * Monotone does not support ordering because not all Monotones are comparable.
+  *
+  * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
+  */
+trait Transformed extends Functional {
+
+  /**
+    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    *
+    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
+    *
+    * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    */
+  def transformation[T: ClassTag]: Option[T]
+}
+
+/**
+  * The `Monotone` object serves as a companion object for the `Monotone` class, providing
+  * common operations, typeclass instances, and supplementary functionality.
+  *
+  * Key responsibilities of this object include:
+  * - Defining typeclass instances for equality (`Eq`) and fuzzy equality (`FuzzyEq`) for `Monotone` types.
+  * - Implementing a `DyadicOperator` instance that provides a mechanism for combining 
+  *   two `Monotone` objects, supporting both same-type and cross-type operations.
+  * - Logging and error handling during certain cross-type comparisons.
+  *
+  * The `Monotone` class represents a hierarchy of mathematical structures, including scalars,
+  * functional values, and other specific instances, and this companion object facilitates their
+  * interoperation.
+  */
 object Monotone {
 
   import org.slf4j.{Logger, LoggerFactory}
@@ -165,26 +242,6 @@ object Monotone {
 }
 
 /**
-  * The `Exact` trait represents an extension of the `WithFuzziness` trait, providing
-  * functionality to describe and manage fuzziness for instances requiring precise control.
-  *
-  * This trait serves as a specialized version of `WithFuzziness`, with a default implementation
-  * overriding the `fuzz` method to provide a `None` value by default, indicating no fuzziness.
-  * It is particularly useful in cases where fuzziness is not applicable or is explicitly excluded.
-  */
-trait Exact extends WithFuzziness {
-  /**
-    * Retrieves an optional fuzziness value associated with this instance.
-    *
-    * The fuzziness value, if present, provides information about the level of uncertainty
-    * or imprecision, modeled as a `Fuzziness[Double]`.
-    *
-    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
-    */
-  def fuzz: Option[Fuzziness[Double]] = None
-}
-
-/**
   * Companion object for the `Exact` type, providing utility methods and typeclass instances.
   *
   * The `Exact` object contains a strictly defined `FuzzyEq` instance that enforces
@@ -216,28 +273,6 @@ object Exact {
         false
     }
   }
-}
-
-/**
-  * The `Functional` trait serves as an abstraction for entities that wrap `Number`, such as `Angle`, `NatLog`, etc.
-  * These are the types that can potentially have fuzz.
-  *
-  * Classes or traits that extend `Functional` encapsulate a `Number` instance, providing a consistent interface
-  * to access and work with numerical values. It is particularly useful in scenarios where mathematical operations
-  * or transformations are required on numbers.
-  */
-trait Functional extends Monotone {
-
-  /**
-    * Retrieves the value associated with this `Functional` instance.
-    *
-    * This method provides access to the underlying numerical representation
-    * encapsulated as a `Number` type. The value can represent exact or approximate
-    * numerical quantities, facilitating mathematical operations or transformations.
-    *
-    * @return the `Number` associated with this instance
-    */
-  def number: Number
 }
 
 /**
@@ -287,26 +322,16 @@ object Functional {
 }
 
 /**
-  * Represents a `Monotone`, which is a one-dimensional `Structure` that can be ordered
-  * and supports various mathematical operations and properties. Monotones include both
-  * exact and approximate numerical entities.
+  * The `Transformed` object provides utility methods and type class instances
+  * for working with entities of type `Transformed`. It includes implementations
+  * of type-safe equality and fuzzy equality, as well as the ability to handle
+  * dyadic operations between instances of `Transformed` or its subtypes.
   *
-  * Monotone does not support ordering because not all Monotones are comparable.
-  *
-  * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
+  * This object defines functionality for:
+  * - Performing dyadic operations using contextual `DyadicOperator` instances.
+  * - Providing type class instances for equality (`Eq`) and fuzzy equality (`FuzzyEq`).
+  * - Handling edge cases and unsupported cross-type operations between subtypes.
   */
-trait Transformed extends Functional {
-
-  /**
-    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
-    *
-    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
-    *
-    * @return a transformation that maps a `Monotone` object to a `Scalar` result
-    */
-  def transformation[T: ClassTag]: Option[T]
-}
-
 object Transformed {
   val logger: Logger = LoggerFactory.getLogger(getClass)
 

@@ -388,9 +388,36 @@ object WholeNumber {
     */
   implicit def convIntWholeNumber(x: Int): WholeNumber = WholeNumber(x)
 
+  /**
+    * Provides a `Convertible` implementation for converting instances of `WholeNumber` to `WholeNumber`.
+    *
+    * This implementation allows a `WholeNumber` instance to be converted to another `WholeNumber`
+    * without applying any transformation, effectively serving as an identity conversion.
+    *
+    * @note This implementation adheres to the contract of the `Convertible` typeclass.
+    * @param witness a `WholeNumber` instance that serves as a template or context for the conversion
+    * @param u       the source `WholeNumber` to be converted
+    * @return the same `WholeNumber` instance as passed in `u`
+    */
   given Convertible[WholeNumber, WholeNumber] with
     def convert(witness: WholeNumber, u: WholeNumber): WholeNumber = u
 
+  /**
+    * Represents a given instance of the `Convertible` typeclass to transform a `Real` into a `WholeNumber`,
+    * provided the `Real` value is exact and can be represented as a whole number.
+    *
+    * The implementation leverages `FP.recover` to handle failures gracefully and will throw an
+    * `AlgebraException` if the provided `Real` cannot be converted into a `WholeNumber`.
+    *
+    * The conversion is only possible if the `Real` value satisfies the following conditions:
+    * - It is marked as exact.
+    * - Its numerical value can be expressed as an integer.
+    *
+    * @param witness a representative instance of `WholeNumber` used optionally for the conversion process.
+    * @param u       the `Real` value to be converted into a `WholeNumber`.
+    * @throws AlgebraException if the input `Real` cannot be converted to a `WholeNumber`.
+    * @return a `WholeNumber` instance representing the converted value.
+    */
   given Convertible[WholeNumber, Real] with
     def convert(witness: WholeNumber, u: Real): WholeNumber =
       FP.recover(
@@ -399,15 +426,44 @@ object WholeNumber {
         )
       )(AlgebraException("cannot convert $u to WholeNumber"))
 
+  /**
+    * Provides an implementation of the `DyadicOperator` trait for the `WholeNumber` type.
+    *
+    * This given instance enables the application of binary operations on `WholeNumber`
+    * instances using a provided function `f`. The function encapsulates the operation logic
+    * and handles the operand types and potential failures via `Try`.
+    *
+    * @return A `DyadicOperator` instance for the `WholeNumber` type,
+    *         facilitating binary operations with safety provided by `Try`.
+    */
   given DyadicOperator[WholeNumber] = new DyadicOperator[WholeNumber] {
     def op[B <: WholeNumber, Z](f: (WholeNumber, B) => Try[Z])(x: WholeNumber, y: B): Try[Z] =
       f(x, y)
   }
 
+  /**
+    * Provides an implementation of the `Eq` type class for the `WholeNumber` type.
+    *
+    * This given instance defines equality for `WholeNumber` values. It uses the `eqv`
+    * method defined on `WholeNumber`, falling back to `false` if the equality operation
+    * is not defined.
+    *
+    * @return an `Eq` instance for comparing `WholeNumber` values for equality
+    */
   given Eq[WholeNumber] = Eq.instance {
     (x, y) => x.eqv(y).getOrElse(false)
   }
 
+  /**
+    * Provides an instance of `FuzzyEq` for the `WholeNumber` type.
+    *
+    * This instance defines the fuzzy equality behavior for `WholeNumber`
+    * values, where two `WholeNumber` instances are considered equal if
+    * they are exactly the same, regardless of the probability `p`.
+    *
+    * @return An instance of `FuzzyEq` for `WholeNumber` that implements
+    *         strict equality.
+    */
   given FuzzyEq[WholeNumber] = FuzzyEq.instance {
     (x, y, p) => x == y
   }

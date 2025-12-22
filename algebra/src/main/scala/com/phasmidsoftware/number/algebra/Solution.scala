@@ -151,6 +151,16 @@ trait Solution extends Eager {
     */
   def scale(r: Rational): Option[Solution]
 
+  /**
+    * Determines whether the current solution is equivalent to another solution.
+    * This method performs a structural comparison for specific solution types
+    * such as `LinearSolution` and `QuadraticSolution`. For other cases, it defers
+    * to the superclass implementation.
+    *
+    * @param that the `Eager` instance to compare with the current solution
+    * @return a `Try[Boolean]` indicating whether the two solutions are equivalent.
+    *         The result is wrapped in a `Try` to account for potential errors during comparison.
+    */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a: LinearSolution, b: LinearSolution) =>
       a.value.eqv(b.value)
@@ -163,6 +173,15 @@ trait Solution extends Eager {
       super.eqv(that)
   }
 
+  /**
+    * Performs a fuzzy equivalence comparison between the current solution and another solution.
+    * The comparison allows for a degree of tolerance specified by the parameter `p`.
+    *
+    * @param p    the tolerance level for the fuzzy equivalence comparison; smaller values impose stricter equality conditions
+    * @param that the other solution to compare against, which must be of type `Eager`
+    * @return a `Try[Boolean]` indicating whether the two solutions are approximately equivalent
+    *         within the specified tolerance, or an error if the comparison cannot be performed
+    */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: LinearSolution, b: LinearSolution) =>
       a.value.fuzzyEqv(p)(b.value)
@@ -369,17 +388,6 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
     FP.whenever(!isExact || !offset.isZero || force)(
       for {x <- base.convert(Real.one); y <- offset.convert(Real.one)} yield x + y
     )
-
-  /**
-    * If this is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
-    *
-    * @return Some(x) where x is a Double if this is exact, else None.
-    */
-//  def maybeDouble: Option[Double] =
-//    when(isExact && offset.isZero)(base.toDouble)
-//
 //  /**
 //    * Converts the current QuadraticSolution instance into a Field representation.
 //    *
@@ -494,7 +502,6 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
         None  // TESTME
     }
 
-
   /**
     * Scales the quadratic solution using a given rational factor.
     *
@@ -510,12 +517,26 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
       Some(QuadraticSolution(b.scale(r), o.scale(r), branch))
   }
 
+  /**
+    * Determines equivalence between the current `Eager` instance and another `Eager` instance.
+    *
+    * This method checks if the current instance and the provided instance represent equivalent 
+    * quadratic solutions. It performs a specific comparison for instances of `QuadraticSolution`, 
+    * verifying equality of their `base`, `offset`, and `branch` components. For other cases, 
+    * it delegates the equivalence check to the superclass implementation.
+    *
+    * @param that the other `Eager` instance to be compared for equivalence
+    * @return a `Try[Boolean]` indicating either the result of the equivalence comparison or an 
+    *         error if the comparison cannot be performed
+    */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a: QuadraticSolution, b: QuadraticSolution) =>
       Success(a.base === b.base && a.offset === b.offset && a.branch == b.branch)
     case _ =>
       super.eqv(that)
   }
+
+
 }
 
 /**

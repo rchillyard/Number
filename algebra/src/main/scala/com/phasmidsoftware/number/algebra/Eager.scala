@@ -44,33 +44,25 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     when(isExact)(toDouble)
 
   /**
-    * Compares two instances of `Eager` for equality.
+    * Compares this `Eager` instance with another `Eager` instance for equality.
+    * This method is unimplemented and currently returns a failure with an `AlgebraException`.
     *
-    * This method is intended to check if the provided instances, `x` and `y`,
-    * are equivalent. Currently, this functionality is not implemented
-    * and will return a failure with an appropriate exception message.
-    *
-    * @param that the first `Eager` instance to compare
-    * @param y the second `Eager` instance to compare
-    * @return a `Try[Boolean]` where:
-    *         - `Success(true)` indicates the objects are equivalent
-    *         - `Success(false)` indicates the objects are not equivalent
-    *         - `Failure` indicates this functionality is not implemented
+    * @param that the `Eager` instance to compare against
+    * @return a `Try[Boolean]` indicating whether the two instances are equal.
+    *         As the method is unimplemented, it always returns a failure containing an `AlgebraException`.
     */
   def eqv(that: Eager): Try[Boolean] =
     Failure(AlgebraException(s"Eager.eqv: unimplemented compare $this and $that"))
 
   /**
-    * Determines if two `Eager` instances are approximately equal within a specified tolerance.
-    * The tolerance is specified by the `p` parameter.
+    * Performs a fuzzy equality comparison between the current `Eager` instance and another `Eager` instance.
+    * The comparison is based on a specified tolerance level.
+    * This method is unimplemented and currently returns a failure containing an `AlgebraException`.
     *
-    * @param p the probability value as a `Double`, a value between 0 and 1. A smaller value indicates stricter equality.
-    * @param that the first `Eager` instance to compare.
-    * @param y the second `Eager` instance to compare.
-    * @return a `Try[Boolean]` that represents the result of the fuzzy equality comparison.
-    *         If the comparison is successful, the `Try` contains `true` if the two instances
-    *         are approximately equal within the tolerance `p`, or `false` otherwise.
-    *         If the comparison cannot be performed, the `Try` contains a failure with an appropriate exception.
+    * @param p    the tolerance level (as a `Double`) to be used for the fuzzy equality comparison
+    * @param that the `Eager` instance to compare against this instance
+    * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equal.
+    *         As the method is unimplemented, it always returns a failure containing an `AlgebraException`.
     */
   def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] =
     Failure(AlgebraException(s"Eager.fuzzyEqv: unimplemented compare $this and $that"))
@@ -189,6 +181,19 @@ object Eager {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
+  /**
+    * Provides an implementation of the `DyadicOperator` trait for the `Eager` type,
+    * enabling dyadic operations to be performed on `Eager` operands or their subtypes.
+    *
+    * The implementation supports both same-type and cross-type operations.
+    * It delegates processing to specialized `DyadicOperator` instances where applicable,
+    * or falls back to a more generic operation using the given function `f`.
+    *
+    * NOTE currently, this is not used because the `Eq` and `FuzzyEq` instances go directly to the instance methods of `Eager`.
+    *
+    * @return An instance of `DyadicOperator[Eager]` that defines the behavior
+    *         for performing dyadic operations on `Eager` values.
+    */
   given DyadicOperator[Eager] = new DyadicOperator[Eager] {
     @tailrec
     def op[B <: Eager, Z](f: (Eager, B) => Try[Z])(x: Eager, y: B): Try[Z] = (x, y) match {
@@ -217,10 +222,29 @@ object Eager {
     }
   }
 
-  given eagerEq: Eq[Eager] = Eq.instance {
+  /**
+    * Provides an instance of `Eq` for the `Eager` type, which defines equality comparison behavior
+    * for `Eager` values. The comparison is performed using the `eqv` method of `Eager`.
+    * If the `eqv` method returns `Some(true)`, the values are considered equal.
+    * Otherwise, they are considered not equal, defaulting to `false` if no result is specified.
+    *
+    * @return An instance of `Eq[Eager]` for equality comparison.
+    */
+  given Eq[Eager] = Eq.instance {
     (x, y) => x.eqv(y).getOrElse(false)
   }
 
+  /**
+    * Provides an instance of the `FuzzyEq` type class for the `Eager` type.
+    *
+    * This implementation determines whether two `Eager` instances are approximately
+    * equal based on one of the following conditions:
+    * 1. The two instances are strictly equal (`===`).
+    * 2. They are approximately equal according to the fuzzy equality comparison defined
+    *    by the `fuzzyEqv` method of the `Eager` type, using the specified probability `p`.
+    *
+    * @return An instance of `FuzzyEq[Eager]` that evaluates fuzzy equality between two `Eager` values.
+    */
   given FuzzyEq[Eager] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
@@ -245,45 +269,4 @@ object Eager {
 
   private def complexToEager(c: Complex): Option[Eager] =
     FP.whenever(c.complex.isReal && c.complex.isExact)(c.complex.asReal.map(Eager(_)))
-//    
-//  /**
-//    * Provides an instance of `FuzzyEq` for the `Eager` type, enabling fuzzy equality checks
-//    * between two `Eager` instances.
-//    *
-//    * This implementation uses pattern matching to handle comparisons for different subtypes
-//    * of `Eager`, in particular, `Real`, `Angle` for the first parameter (the only subtypes that can be fuzzy);
-//    * and `Structure` for the second.
-//    * If `Structure` is the first parameter, and either `Real` or `Angle` the second, then we recursively invoke eqvFunction.
-//    * It invokes appropriate fuzzy equality logic based on subtype behavior, including conversions where applicable.
-//    *
-//    * @return An instance of `FuzzyEq[Eager]` that defines fuzzy equivalence logic for comparing
-//    *         two `Eager` instances based on the specified probability threshold.
-//    */
-//  given FuzzyEq[Eager] = {
-//    @tailrec
-//    def fuzzyEqual(x: Eager, y: Eager, p: Double): Boolean = (x, y) match {
-//      case (a: Exact, b: Exact) =>
-//        summon[FuzzyEq[Exact]].eqv(a, b, p)
-//      case (a: Real, b: Real) =>
-//        summon[FuzzyEq[Real]].eqv(a, b, p) // alpha
-//      case (a: Functional, b: Functional) =>
-//        summon[FuzzyEq[Functional]].eqv(a, b, p) // beta
-//      case (a: Real, b: Structure) =>
-//        b.convert[Real](a) match { // gamma
-//          case Some(value) => summon[FuzzyEq[Real]].eqv(a, value, p)
-//          case None => false
-//        }
-//      case (a: Functional, b: Structure) => // delta
-//        val zo = for (r <- a.convert(Real.zero); q <- b.convert(Real.zero)) yield summon[FuzzyEq[Real]].eqv(r, q, p)
-//        zo.getOrElse(x == y)
-//      case (a: Structure, b: Real) => // epsilon
-//        fuzzyEqual(b, a, p)
-//      case (a: Structure, b: Functional) => // zeta
-//        fuzzyEqual(b, a, p)
-//      case _ =>
-//        x == y  // XXX fallback for other types: currently that includes `Nat` and `Complex`.
-//    }
-//
-//    FuzzyEq.instance(fuzzyEqual)
-//  }
 }

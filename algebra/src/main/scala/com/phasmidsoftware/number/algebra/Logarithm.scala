@@ -327,46 +327,6 @@ case class NatLog(x: Number) extends Logarithm(x) {
 }
 
 /**
-  * Companion object for the `NatLog` class, providing predefined constants and utility methods.
-  *
-  * The object contains common values associated with natural logarithmic operations
-  * and other relevant constants that can be used with `Logarithm` instances.
-  */
-object NatLog {
-
-  val logger: Logger = LoggerFactory.getLogger(getClass)
-
-  given DyadicOperator[NatLog] = new DyadicOperator[NatLog] {
-    def op[B <: NatLog, Z](f: (NatLog, B) => Try[Z])(x: NatLog, y: B): Try[Z] = f(x, y)
-  }
-
-  given Eq[NatLog] = Eq.instance {
-    (x, y) =>
-      summon[DyadicOperator[NatLog]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
-  }
-
-  given FuzzyEq[NatLog] = FuzzyEq.instance {
-    (x, y, p) =>
-      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
-  }
-  /**
-    * Represents the zero value of the `Logarithm` class.
-    *
-    * This is a predefined constant that corresponds to a `Logarithm` of zero value.
-    * It is used as the additive identity in operations involving Logarithms.
-    */
-  val one: Logarithm = NatLog(WholeNumber.zero)
-
-  /**
-    * Represents the natural logarithmic base `e` as a `Logarithm` instance.
-    *
-    * The value corresponds to the natural logarithm of one in terms of base `e`,
-    * often used as a mathematical constant in logarithmic and exponential calculations.
-    */
-  val e: Logarithm = NatLog(WholeNumber.one)
-}
-
-/**
   * The `Logarithm` companion object contains utility methods, predefined constants, and
   * typeclass instances for working with Logarithms. Logarithms are represented using
   * rational numbers and comply with the algebraic structure of a commutative group.
@@ -438,4 +398,45 @@ object Logarithm {
         throw AlgebraException(s"Logarithm.combine: $x, $y")
     }
   }
+}
+
+/**
+  * Companion object for the `NatLog` class, providing predefined constants and utility methods.
+  *
+  * The object contains common values associated with natural logarithmic operations
+  * and other relevant constants that can be used with `Logarithm` instances.
+  */
+object NatLog {
+
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  given DyadicOperator[NatLog] = new DyadicOperator[NatLog] {
+    def op[B <: NatLog, Z](f: (NatLog, B) => Try[Z])(x: NatLog, y: B): Try[Z] = f(x, y)
+  }
+
+  given Eq[NatLog] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[NatLog]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
+  }
+
+  given FuzzyEq[NatLog] = FuzzyEq.instance {
+    (x, y, p) =>
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
+  }
+
+  /**
+    * Represents the zero value of the `Logarithm` class.
+    *
+    * This is a predefined constant that corresponds to a `Logarithm` of zero value.
+    * It is used as the additive identity in operations involving Logarithms.
+    */
+  val one: Logarithm = NatLog(WholeNumber.zero)
+
+  /**
+    * Represents the natural logarithmic base `e` as a `Logarithm` instance.
+    *
+    * The value corresponds to the natural logarithm of one in terms of base `e`,
+    * often used as a mathematical constant in logarithmic and exponential calculations.
+    */
+  val e: Logarithm = NatLog(WholeNumber.one)
 }

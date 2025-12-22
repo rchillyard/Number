@@ -348,18 +348,11 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     Some(Real(math.pow(value, r.toDouble), fuzz.map(Fuzziness.scaleTransform(r.toDouble))))
 
   /**
-    * Compares two instances of `Eager` for equality.
+    * Determines whether this instance is equivalent to another instance of type `Eager`.
     *
-    * This method is intended to check if the provided instances, `x` and `y`, 
-    * are equivalent. Currently, this functionality is not implemented 
-    * and will return a failure with an appropriate exception message.
-    *
-    * @param that the first `Eager` instance to compare
-    * @param y the second `Eager` instance to compare
-    * @return a `Try[Boolean]` where:
-    *         - `Success(true)` indicates the objects are equivalent
-    *         - `Success(false)` indicates the objects are not equivalent
-    *         - `Failure` indicates this functionality is not implemented
+    * @param that The instance of `Eager` to compare with this instance.
+    * @return A `Try[Boolean]` indicating success with `true` if the instances are equivalent, 
+    *         success with `false` if they are not, or a failure in case of an error.
     */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Real, b: Real) =>
@@ -368,6 +361,22 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
       super.eqv(that)
   }
 
+  /**
+    * Determines if the given `that` object is approximately equal to this object within a specified precision `p`.
+    *
+    * This method performs fuzzy equivalence checks between two objects, incorporating uncertainty
+    * when the objects have associated fuzziness. The comparison logic adjusts based on whether both,
+    * one, or neither of the objects are fuzzy. For two fuzzy objects, their combined uncertainty is
+    * considered. For one fuzzy and one exact object, a more lenient comparison is applied. For two 
+    * exact objects, strict equality is used.
+    *
+    * @param p    A precision threshold used for fuzzy comparison. Represents the allowable margin of error within which 
+    *             the two objects are considered equivalent.
+    *
+    * @param that The object with which equivalence is being checked.
+    * @return A `Try[Boolean]` indicating whether this object and the given object are approximately equal 
+    *         within the specified precision threshold.
+    */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Real, b: Real) =>
       // TODO this is Claude's code. It works but we shouldn't need to separate non-fuzzy from fuzzy values.
@@ -512,15 +521,40 @@ object Real {
     def convert(witness: Real, u: Angle): Real = Real(u.asDouble)
 
 
+  /**
+    * Implicit implementation of the `DyadicOperator` trait for the `Real` type.
+    * This operator allows performing dyadic operations on instances of `Real`
+    * and its subtypes using a provided function `f` that specifies the operation.
+    *
+    * @return A `DyadicOperator[Real]` that applies the given operation `f` to two
+    *         operands of `Real` and its subtypes, encapsulating the result in a `Try`.
+    */
   given DyadicOperator[Real] = new DyadicOperator[Real] {
     def op[B <: Real, Z](f: (Real, B) => Try[Z])(x: Real, y: B): Try[Z] =
       f(x, y)
   }
 
+  /**
+    * Provides an instance of `Eq` for the `Real` type, enabling equality comparison between `Real` instances.
+    *
+    * This instance defines the equality operation for `Real` values by using their `eqv` method,
+    * which checks for equivalence. If the equivalence check returns `None`, it defaults to `false`.
+    *
+    * @return an instance of `Eq[Real]` for comparing `Real` instances
+    */
   given Eq[Real] = Eq.instance {
     (x, y) => x.eqv(y).getOrElse(false)
   }
 
+  /**
+    * Defines a given instance of the `FuzzyEq` type class for the `Real` type.
+    *
+    * This instance provides a fuzzy equality implementation for `Real` numbers.
+    * Two `Real` instances are considered fuzzily equal if they are strictly equal
+    * or if their fuzzy equality (with respect to a specified probability `p`) evaluates to true.
+    *
+    * @return A `FuzzyEq[Real]` instance enabling fuzzy equality comparisons for `Real`.
+    */
   given FuzzyEq[Real] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)

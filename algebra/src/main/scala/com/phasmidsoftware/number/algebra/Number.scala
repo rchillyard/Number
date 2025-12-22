@@ -89,6 +89,21 @@ trait Number extends Scalar with Ordered[Scalar] {
     else // XXX this is exact and that is not exact
       -that.compare(this)
 
+  /**
+    * Determines if this instance is equivalent to another `Eager` instance.
+    *
+    * Compares two instances, `this` and `that`, for equivalence. If both instances
+    * are of type `Number`, it checks for exact equality when both are exact. If
+    * one or both are not exact, it attempts an approximate comparison using their
+    * approximation values. For types other than `Number`, it delegates to the
+    * super implementation.
+    *
+    * @param that the `Eager` instance to compare with this instance
+    * @return a `Try[Boolean]` indicating:
+    *         - `Success(true)` if the instances are equivalent
+    *         - `Success(false)` if the instances are not equivalent
+    *         - `Failure` if an error occurs during the comparison process
+    */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Number, b: Number) =>
       // Both are Numbers - compare them
@@ -107,12 +122,30 @@ trait Number extends Scalar with Ordered[Scalar] {
       super.eqv(that)
   }
 
+  /**
+    * Performs a fuzzy equivalence comparison between this `Number` instance and another `Eager` instance.
+    *
+    * This method evaluates whether two instances are approximately equal within a given tolerance `p`.
+    * If both instances are of type `Number`, it converts them to `Real` for the comparison.
+    * If either of the approximations fails, or the comparison is not applicable, it delegates to the super implementation.
+    *
+    * @param p    the tolerance level for the fuzzy equality comparison. A higher value increases the permissible difference.
+    * @param that the `Eager` instance to compare this `Number` instance against.
+    * @return a `Try[Boolean]` indicating whether the two instances are approximately equal (`true`) or not (`false`).
+    *         Returns `Failure` if the comparison cannot be performed or encounters an error.
+    */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Number, b: Number) =>
       // Convert both to Real for fuzzy comparison
       val maybeResult = for {
-        aReal <- if (a.isInstanceOf[Real]) Some(a.asInstanceOf[Real]) else a.approximation(true)
-        bReal <- if (b.isInstanceOf[Real]) Some(b.asInstanceOf[Real]) else b.approximation(true)
+        aReal <- a match {
+          case real: Real => Some(real)
+          case _ => a.approximation(true)
+        }
+        bReal <- b match {
+          case real: Real => Some(real)
+          case _ => b.approximation(true)
+        }
       } yield aReal.fuzzyEqv(p)(bReal).getOrElse(false)
 
       Success(maybeResult.getOrElse(false))
@@ -137,6 +170,20 @@ object Number {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
+  /**
+    * Provides a `DyadicOperator` instance for the `Number` type. This instance
+    * defines how dyadic operations are performed on different subtypes of `Number`,
+    * such as `RationalNumber`, `WholeNumber`, and `Real`. Cross-type operations
+    * between different subtypes are also handled within this implementation.
+    *
+    * The operation `op` delegates to the respective `DyadicOperator` instances for each
+    * specific subtype, and in the case of cross-type operations, attempts to convert
+    * between the subtypes to ensure the operation can be conducted.
+    *
+    * @return A `DyadicOperator[Number]` instance that encapsulates the logic for
+    *         performing dyadic operations on numbers and their subtypes, including
+    *         cross-type compatibility.
+    */
   given DyadicOperator[Number] = new DyadicOperator[Number] {
     def op[B <: Number, Z](f: (Number, B) => Try[Z])(x: Number, y: B): Try[Z] = (x, y) match {
       case (a: RationalNumber, b: RationalNumber) =>
@@ -162,33 +209,33 @@ object Number {
     }
   }
 
+  /**
+    * Provides an instance of type `Eq` for the `Number` type.
+    *
+    * This instance defines equality for `Number` objects by delegating to the
+    * `eqv` method. If the `eqv` method successfully determines equivalence,
+    * the result is used. Otherwise, `false` is returned.
+    *
+    * @return an `Eq` instance for the `Number` type, implementing custom equality
+    *         logic based on the `eqv` method's logic.
+    */
   given Eq[Number] = Eq.instance {
     (x, y) => x.eqv(y).getOrElse(false)
   }
 
+  /**
+    * Provides a given implementation of `FuzzyEq` for the `Number` type.
+    *
+    * This implementation defines fuzzy equality for `Number` instances by checking
+    * for exact equality (`===`) or performing a fuzzy equivalence comparison with a given
+    * probability `p`. The method delegates the fuzzy equivalence logic to the `fuzzyEqv` method
+    * of the `Number` type if exact equivalence is not established.
+    *
+    * @return An instance of `FuzzyEq[Number]` that supports fuzzy equality comparison for `Number` objects.
+    */
   given FuzzyEq[Number] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
-  }
-
-  @tailrec
-  private def eqNumber(x: Number, y: Number): Boolean = (x, y) match {
-    // Same-type comparisons
-    case (x: RationalNumber, y: RationalNumber) => x == y
-    case (x: Real, y: Real) => x == y
-    case (x: WholeNumber, y: WholeNumber) => x == y
-
-    // Cross-type comparisons
-    case (x: Real, y: R) =>
-      x.fuzz.isEmpty && y.asDouble.equals(x.value) // Exact match only
-    case (x: RationalNumber, y: WholeNumber) =>
-      x.maybeInt.contains(y)
-    case (x: WholeNumber, y: RationalNumber) =>
-      eqNumber(y, x)
-
-    case _ =>
-      logger.warn(s"Unexpected Eager comparison: ${x.getClass.getSimpleName} === ${y.getClass.getSimpleName}")
-      false
   }
 
   /**

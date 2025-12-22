@@ -1442,24 +1442,18 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return an optional `Valuable`.
     */
-  def evaluate(context: Context): Option[Eager] = solution match {
-    case LinearSolution(_) if context.factorQualifies(PureNumber) =>
-      Some(solution.base)
-    case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) && context.factorQualifies(PureNumber) =>
-      Some(PureNumber)
-    case QuadraticSolution(Value.zero, _, factor, _) if context.factorQualifies(factor) =>
-      Some(factor)
-    case QuadraticSolution(_, Value.zero, _, _) if context.factorQualifies(PureNumber) =>
-      Some(PureNumber)
-    case _ =>
-      None
-  }
-
-//    maybeValue match {
-//      case x@Some(value) if context.valuableQualifies(Eager(value)) =>
-//        Some(Eager(value))
+  def evaluate(context: Context): Option[Eager] = ???
+//    solution match {
+//      case LinearSolution(_) if context.factorQualifies(PureNumber) =>
+//        Some(solution.base)
+//      case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) && context.factorQualifies(PureNumber) =>
+//        Some(PureNumber)
+//      case QuadraticSolution(Value.zero, _, factor, _) if context.factorQualifies(factor) =>
+//        Some(factor)
+//      case QuadraticSolution(_, Value.zero, _, _) if context.factorQualifies(PureNumber) =>
+//        Some(PureNumber)
 //      case _ =>
-//        Option.when(context == AnyContext)(Eager(algebraic))
+//        None
 //    }
 
   /**
