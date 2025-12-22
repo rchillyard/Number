@@ -2,7 +2,7 @@
 engines:
   scalameta-pro:
     patterns:
-      - patternId: OptionGet
+      - patternId: ScalaMeta_OptionGet
         exclude_paths:
           - "src/test/**"
           - "**/*Test.scala"
