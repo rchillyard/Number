@@ -158,7 +158,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
 
     (maybeAlgebraic orElse {
       that.asReal map (r => this.multiply(r))
-    }).get // XXX this can throw an Exception (though unlikely)
+    }).getOrElse(Real.NaN) // XXX this is unlikely
   }
 
 

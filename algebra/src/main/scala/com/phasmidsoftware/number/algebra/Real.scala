@@ -33,6 +33,13 @@ import scala.util.{Failure, Success, Try}
 case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] {
 
   /**
+    * Returns the normalized representation of the current object.
+    *
+    * @return the normalized form of this object as a Valuable instance
+    */
+  def normalize: Valuable = this
+
+  /**
     * Converts the current instance to a Double representation.
     * CONSIDER changing to maybeDouble returning Option[Double].
     *

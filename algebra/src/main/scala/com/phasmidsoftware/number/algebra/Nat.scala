@@ -25,6 +25,19 @@ import scala.util.{Success, Try}
   * But note that doing that destroys the Peano aspect of this class (keep in mind that we also have WholeNumber).
   */
 sealed trait Nat extends Eager with N {
+  /**
+    * Normalizes this `Nat` instance to its simplest equivalent form.
+    * This operation does not modify the original instance but may return 
+    * an adjusted `Valuable` representation that is equivalent to the original value but simpler.
+    *
+    * For instance, the normalization process might reduce complex expressions
+    * or structures to their minimal form where possible.
+    * In this specific implementation, it directly returns the current instance.
+    *
+    * @return the simplest `Valuable` representation of this `Nat` instance, which 
+    *         in this case is `this`.
+    */
+  def normalize: Valuable = this
 
   /**
     * Attempts to obtain a `Factor` representation in a specific `Context`.
@@ -36,7 +49,6 @@ sealed trait Nat extends Eager with N {
     *
     * @param context the evaluation context in which to determine the factor. The `Context`
     *                specifies the criteria under which the factorization is valid.
-    *
     * @return an `Option[Factor]` containing the factor if it can be determined,
     *         or `None` if no suitable factor exists within the provided `Context`.
     */

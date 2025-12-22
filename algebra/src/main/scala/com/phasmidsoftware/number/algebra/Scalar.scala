@@ -193,7 +193,25 @@ object Scalar {
   }
 }
 
+/**
+  * `NoScalar` is a singleton object representing a special case of a `Scalar` that does not
+  * conform to standard scalar operations. It serves as a placeholder or non-standard entity
+  * in the scalar hierarchy, and most of its operations are unsupported or return default values.
+  *
+  * This object extends both the `Scalar` and `Exact` traits, adhering to their respective contracts
+  * while providing specific overrides and limitations.
+  */
 case object NoScalar extends Scalar with Exact {
+  /**
+    * Normalizes this `NoScalar` instance to its simplest equivalent form.
+    *
+    * This operation ensures that the `NoScalar` object is in its most reduced or canonical representation.
+    * If no changes are required to achieve normalization, the instance itself is returned.
+    *
+    * @return the normalized `Valuable` representation of this instance
+    */
+  def normalize: Valuable = this
+
   /**
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
     * This method checks if both instances can be compared exactly.

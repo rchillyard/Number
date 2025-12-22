@@ -51,7 +51,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false) exte
     *
     * @return a new instance of `Angle` representing the normalized value
     */
-  def normalize: Angle = number match {
+  def normalize: Angle = number.normalize match {
     case RationalNumber(r, _) =>
       Angle(Radian.modulate(Value.fromRational(r)))
     case Real(value, fuzz) =>

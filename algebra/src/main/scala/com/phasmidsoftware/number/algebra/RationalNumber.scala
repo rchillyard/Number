@@ -32,6 +32,20 @@ import scala.util.{Success, Try}
   */
 case class RationalNumber(r: Rational, percentage: Boolean = false) extends Number with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Exact {
   /**
+    * Normalizes the current object to ensure it is represented in a simplified form.
+    * If the denominator (r.d) is 1, it represents the object as a WholeNumber.
+    * Otherwise, it returns the object as is.
+    *
+    * @return a simplified version of the object as a `Valuable`,
+    *         either as a `WholeNumber` or the current object.
+    */
+  def normalize: Valuable =
+    if (r.isInteger)
+      WholeNumber(r.n)
+    else
+      this
+
+  /**
     * Subtracts the given rational number from this one.
     *
     * @param that the rational number to subtract

@@ -1290,6 +1290,8 @@ This module includes:
 See the worksheets for hands-on examples of the library in action.
 
 ## Versions
+* Version 1.3.4: Completed equality and fuzzy equality tests throughout Eager classes.
+* Version 1.3.3: 
 * Version 1.3.2: Complete the migration to 5-module project.
 * Version 1.3.1: 
   * Restructured the project into two modules: core and algebra;

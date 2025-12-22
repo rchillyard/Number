@@ -33,6 +33,29 @@ import scala.util.{Success, Try}
   */
 case class InversePower(n: Int, number: Number) extends Transformed with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
   /**
+    * Normalizes this `Valuable` to its simplest equivalent form.
+    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    *
+    * For Expression types, this will attempt to simplify and materialize if the result is exact.
+    * For Eager types, this will reduce to the simplest type representation.
+    *
+    * @return the simplest `Valuable` representation of this value
+    */
+  def normalize: Valuable = n match {
+    case 1 =>
+      number.normalize
+    case _ =>
+      number.normalize match {
+        case normalized: Number if normalized == number =>
+          this
+        case x: Number =>
+          InversePower(n, x)
+        case _ =>
+          this
+      }
+  }
+
+  /**
     * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
     *
     * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.

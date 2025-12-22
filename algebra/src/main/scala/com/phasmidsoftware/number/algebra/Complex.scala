@@ -21,6 +21,16 @@ import scala.util.{Failure, Success, Try}
   * @see com.phasmidsoftware.number.core.numerical.Complex
   */
 case class Complex(complex: numerical.Complex) extends Eager {
+  /**
+    * Normalizes this `Valuable` to its simplest equivalent form.
+    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    *
+    * For Expression types, this will attempt to simplify and materialize if the result is exact.
+    * For Eager types, this will reduce to the simplest type representation.
+    *
+    * @return the simplest `Valuable` representation of this value
+    */
+  def normalize: Valuable = this // CONSIDER should this be a method on Complex?
 
   /**
     * Method to render this `Valuable` for presentation to the user.

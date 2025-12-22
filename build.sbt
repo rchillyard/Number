@@ -2,7 +2,7 @@ ThisBuild / organization := "com.phasmidsoftware"
 
 name := "Number"
 
-ThisBuild / version := "1.3.4"
+ThisBuild / version := "1.3.5"
 
 val catsVersion = "2.13.0"
 val scalaTestVersion = "3.2.19"

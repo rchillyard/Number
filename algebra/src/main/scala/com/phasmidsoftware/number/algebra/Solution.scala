@@ -267,6 +267,27 @@ object Solution {
 case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) extends Solution {
 
   /**
+    * Normalizes this `Valuable` to its simplest equivalent form.
+    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    *
+    * For Expression types, this will attempt to simplify and materialize if the result is exact.
+    * For Eager types, this will reduce to the simplest type representation.
+    *
+    * @return the simplest `Valuable` representation of this value
+    */
+  def normalize: Valuable = (base.normalize, offset.normalize) match {
+    case (x: Monotone, y: Scalar) if x.isZero =>
+      if (branch == 1) y.negate else y
+    case (x: Monotone, y: Monotone) if (y.isZero) =>
+      x
+    case (x: Monotone, y: Monotone) =>
+      QuadraticSolution(x, y, branch)
+    case _ =>
+      this
+  }
+
+
+  /**
     * Method to render this NumberLike in a presentable manner.
     * CONSIDER improve this in the event that offset itself is negative (as opposed to imaginary).
     * However, that scenario is unlikely, I believe.
@@ -461,6 +482,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
   def add(solution: Solution): Option[Solution] = {
     (isPureNumber, solution.isPureNumber) match {
       case (true, true) => copy(base = sumBases(base, solution.base))
+      case _ => None
     }
 
     solution match {
@@ -517,6 +539,8 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
   def scale(r: Rational): Option[Solution] = (base, offset) match {
     case (b: Scalar, o: Scalar) =>
       Some(QuadraticSolution(b.scale(r), o.scale(r), branch))
+    case _ =>
+      None
   }
 
   /**
@@ -595,6 +619,16 @@ object QuadraticSolution {
   * @param value the base value of the solution
   */
 case class LinearSolution(value: Monotone) extends Solution {
+  /**
+    * Normalizes the current instance of `LinearSolution` to its simplest equivalent form.
+    * The normalization process reduces the representation while maintaining the same value.
+    *
+    * This may simplify complex expressions or adjust the type to a more precise representation.
+    *
+    * @return the simplest `Valuable` representation of this value.
+    */
+  def normalize: Valuable = value.normalize
+
   /**
     * Retrieves the base value of the solution.
     *

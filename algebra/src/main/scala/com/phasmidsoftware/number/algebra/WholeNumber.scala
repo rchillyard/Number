@@ -24,6 +24,14 @@ import scala.util.{Success, Try}
   * @param x a BigInt value representing the whole number
   */
 case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
+
+  /**
+    * Normalizes the current object and returns a standardized or canonical form of it.
+    *
+    * @return A normalized instance of the current object represented as a Valuable.
+    */
+  def normalize: Valuable = this
+
   /**
     * Converts this instance to its corresponding integer representation.
     *

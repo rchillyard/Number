@@ -47,6 +47,138 @@ trait Valuable extends Renderable with Numeric {
     * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
     */
   def maybeFactor(context: Context): Option[Factor]
+
+  /**
+    * Normalizes this `Valuable` to its simplest equivalent form.
+    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    *
+    * For Expression types, this will attempt to simplify and materialize if the result is exact.
+    * For Eager types, this will reduce to the simplest type representation.
+    *
+    * @return the simplest `Valuable` representation of this value
+    */
+  def normalize: Valuable
+
+  /**
+    * Returns a simple string representation of the runtime type.
+    * Useful for debugging and logging.
+    *
+    * @return the simple class name (e.g., "WholeNumber", "RationalNumber")
+    */
+  def typeName: String = getClass.getSimpleName
+
+  /**
+    * Returns the category of this value in the Valuable type hierarchy.
+    *
+    * @return a string indicating the high-level category (e.g., "Expression", "Structure", "Nat", "Complex")
+    */
+  def category: String = this match {
+    case _: Lazy => "Lazy"
+    case _: Structure => "Structure"
+    case _: Nat => "Nat"
+    case _: Complex => "Complex"
+    case _: Eager => "Eager"
+    case _ => "Valuable"
+  }
+
+  /**
+    * Returns a descriptive string combining category and type name.
+    * Useful for debugging to understand both the hierarchy level and concrete type.
+    *
+    * @return a string in the format "Category.TypeName" (e.g., "Structure.WholeNumber")
+    */
+  def describe: String = s"$category.$typeName"
+}
+
+/**
+  * The `Lazy` trait extends the `Valuable` interface and represents an abstraction
+  * for objects that are lazy in their evaluation or resolution. This trait provides
+  * methods for simplification, materialization, and normalization of the underlying value.
+  *
+  * The key distinction of `Lazy` implementations is their support for deferred computation,
+  * whereby full resolution or evaluation may not be required unless explicitly invoked.
+  */
+trait Lazy extends Valuable {
+  def simplify: Lazy
+
+  def materialize: Eager
+
+  def isSimple: Boolean = true
+
+  def normalize: Valuable = {
+    val simplified = simplify
+    if (simplified.isExact && simplified.isSimple) {
+      simplified.materialize.normalize
+    } else {
+      simplified
+    }
+  }
+}
+
+/**
+  * Represents a trait for performing dyadic operations on instances of the `Eager` type.
+  *
+  * This trait provides methods for equality checks, fuzzy comparisons, ordering, and arithmetic operations.
+  *
+  * NOTE that compare, fuzzyCompare, and sum are not defined in this trait, have two parameters where one would be sufficient (and probably better).
+  */
+trait DyadicOps {
+  /**
+    * Compares this `Eager` instance with another `Eager` instance for equality.
+    *
+    * @param that the `Eager` instance to be compared against.
+    * @return a `Try[Boolean]` indicating whether the two `Eager` instances are equal.
+    *         A successful result contains `true` if they are equal, or `false` if not.
+    *         If the comparison cannot be performed, a failure with an appropriate exception is returned.
+    */
+  def eqv(that: Eager): Try[Boolean]
+
+  /**
+    * Determines if the current `Eager` instance is approximately equal to another `Eager` instance 
+    * within a specified tolerance.
+    *
+    * @param p    the tolerance level as a `Double`. A smaller value indicates stricter equality requirements.
+    * @param that the `Eager` instance to compare against.
+    * @return a `Try[Boolean]` indicating the result of the fuzzy equality comparison:
+    *         - `true` if the two instances are approximately equal within the tolerance `p`.
+    *         - `false` otherwise.
+    *         If the comparison cannot be performed, the `Try` contains a failure with an appropriate exception.
+    */
+  def fuzzyEqv(p: Double)(that: Eager): Try[Boolean]
+
+  /**
+    * Compares two instances of the `Eager` type and returns the result of the comparison.
+    *
+    * @param x the first `Eager` instance to compare
+    * @param y the second `Eager` instance to compare
+    * @return a `Try[Int]` containing the result of the comparison, where a negative value indicates that `x` is less than `y`, zero indicates equality, and a positive value indicates
+    *         that `x` is greater than `y`
+    */
+  def compare(x: Eager, y: Eager): Try[Int]
+
+  /**
+    * Compares two instances of `Eager` using a fuzzy comparison approach with a specified tolerance.
+    * The comparison determines their relative ordering.
+    *
+    * @param p the tolerance level as a `Double`; smaller values indicate stricter thresholds for comparison.
+    * @param x the first `Eager` instance to compare.
+    * @param y the second `Eager` instance to compare.
+    * @return a `Try[Int]` indicating the result of the comparison:
+    *         - A negative integer if `x` is less than `y`.
+    *         - Zero if `x` is approximately equal to `y` within the specified tolerance `p`.
+    *         - A positive integer if `x` is greater than `y`.
+    *         - A `Failure` containing an exception if the comparison cannot be performed.
+    */
+  def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int]
+
+  /**
+    * Computes the sum of two values wrapped in the Eager type and returns the result as a Try containing an Eager value.
+    *
+    * @param x the first operand of type Eager
+    * @param y the second operand of type Eager
+    * @return a Try containing the result of the sum operation as an Eager value if successful, or a failure if an error occurs
+    */
+  def sum(x: Eager, y: Eager): Try[Eager]
 }
 
 /**
@@ -64,6 +196,7 @@ object Valuable {
     *
     * @param v the `Valuable` instance to be converted into a `Field`.
     *          This is expected to represent a numerical value.
+    *
     * @return the `Field` representation of the input `Valuable`.
     *         If conversion is not possible, a `AlgebraException` is thrown.
     */
@@ -139,6 +272,7 @@ object Valuable {
     *
     * @param number the `Number` to be converted into a `Field`. It can represent different
     *               numerical types such as RationalNumber, algebra.Real, or WholeNumber.
+    *
     * @throws AlgebraException if the input `Number` cannot be converted into a `Field`.
     */
   private def numberToField(number: Number) = number match {
@@ -171,70 +305,4 @@ object Valuable {
     */
   private def intToField(x: Int, factor: Factor) = numerical.Real(ExactNumber(Value.fromInt(x), factor))
 
-}
-
-/**
-  * Represents a trait for performing dyadic operations on instances of the `Eager` type.
-  *
-  * This trait provides methods for equality checks, fuzzy comparisons, ordering, and arithmetic operations.
-  *
-  * NOTE that compare, fuzzyCompare, and sum are not defined in this trait, have two parameters where one would be sufficient (and probably better).
-  */
-trait DyadicOps {
-  /**
-    * Compares this `Eager` instance with another `Eager` instance for equality.
-    *
-    * @param that the `Eager` instance to be compared against.
-    * @return a `Try[Boolean]` indicating whether the two `Eager` instances are equal.
-    *         A successful result contains `true` if they are equal, or `false` if not.
-    *         If the comparison cannot be performed, a failure with an appropriate exception is returned.
-    */
-  def eqv(that: Eager): Try[Boolean]
-
-  /**
-    * Determines if the current `Eager` instance is approximately equal to another `Eager` instance 
-    * within a specified tolerance.
-    *
-    * @param p    the tolerance level as a `Double`. A smaller value indicates stricter equality requirements.
-    * @param that the `Eager` instance to compare against.
-    * @return a `Try[Boolean]` indicating the result of the fuzzy equality comparison:
-    *         - `true` if the two instances are approximately equal within the tolerance `p`.
-    *         - `false` otherwise.
-    *         If the comparison cannot be performed, the `Try` contains a failure with an appropriate exception.
-    */
-  def fuzzyEqv(p: Double)(that: Eager): Try[Boolean]
-
-  /**
-    * Compares two instances of the `Eager` type and returns the result of the comparison.
-    *
-    * @param x the first `Eager` instance to compare
-    * @param y the second `Eager` instance to compare
-    * @return a `Try[Int]` containing the result of the comparison, where a negative value indicates that `x` is less than `y`, zero indicates equality, and a positive value indicates
-    *         that `x` is greater than `y`
-    */
-  def compare(x: Eager, y: Eager): Try[Int]
-
-  /**
-    * Compares two instances of `Eager` using a fuzzy comparison approach with a specified tolerance.
-    * The comparison determines their relative ordering.
-    *
-    * @param p the tolerance level as a `Double`; smaller values indicate stricter thresholds for comparison.
-    * @param x the first `Eager` instance to compare.
-    * @param y the second `Eager` instance to compare.
-    * @return a `Try[Int]` indicating the result of the comparison:
-    *         - A negative integer if `x` is less than `y`.
-    *         - Zero if `x` is approximately equal to `y` within the specified tolerance `p`.
-    *         - A positive integer if `x` is greater than `y`.
-    *         - A `Failure` containing an exception if the comparison cannot be performed.
-    */
-  def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int]
-
-  /**
-    * Computes the sum of two values wrapped in the Eager type and returns the result as a Try containing an Eager value.
-    *
-    * @param x the first operand of type Eager
-    * @param y the second operand of type Eager
-    * @return a Try containing the result of the sum operation as an Eager value if successful, or a failure if an error occurs
-    */
-  def sum(x: Eager, y: Eager): Try[Eager]
 }

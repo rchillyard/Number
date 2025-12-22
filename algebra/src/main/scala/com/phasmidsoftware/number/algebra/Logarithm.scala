@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.algebra.Logarithm.LogarithmIsCommutativeMonoid
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner
-import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
@@ -37,6 +37,28 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     * @return the base of type `Number`
     */
   def base: Number
+
+  /**
+    * Normalizes this `Valuable` to its simplest equivalent form.
+    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    *
+    * For Expression types, this will attempt to simplify and materialize if the result is exact.
+    * For Eager types, this will reduce to the simplest type representation.
+    *
+    * @return the simplest `Valuable` representation of this value
+    */
+  def normalize: Valuable = number.normalize match {
+    case WholeNumber(0) =>
+      WholeNumber.one
+    case x if x == number =>
+      this
+    case x: Number =>
+      unit(x)
+    case x =>
+      this
+  }
+
+  def unit(x: Number): Logarithm
 
   /**
     * Compares this `Logarithm` instance with another `Logarithm` instance.
@@ -251,6 +273,17 @@ case class NatLog(x: Number) extends Logarithm(x) {
   }
 
   /**
+    * Constructs a natural logarithm (`NatLog`) from the given `Number`.
+    *
+    * This method creates a `Logarithm` instance by interpreting
+    * the input `Number` as the argument for the natural logarithm representation.
+    *
+    * @param x the `Number` value to be used in generating the `Logarithm`
+    * @return a `Logarithm` instance representing the natural logarithm of the input `Number`
+    */
+  def unit(x: Number): Logarithm = NatLog(x)
+
+  /**
     * Retrieves an optional fuzziness value associated with this instance.
     *
     * The fuzziness value, if present, provides information about the level of uncertainty
@@ -326,6 +359,165 @@ case class NatLog(x: Number) extends Logarithm(x) {
 //  }
 }
 
+case class BinaryLog(x: Number) extends Logarithm(x) {
+
+  /**
+    * Returns the base of this logarithm, viz. `e`.
+    *
+    * @return the base of type `Number`
+    */
+  val base: Real = Real(2, None)
+
+  /**
+    * Represents the additive identity element for the type `T`.
+    *
+    * The additive identity, commonly referred to as "zero," is the element in an
+    * additive algebraic structure that, when added to any element of the structure,
+    * results in the same element. For any element `value`, `value + zero` and `zero + value` should
+    * equal `value`.
+    */
+  lazy val zero: Logarithm = NatLog(WholeNumber.zero)
+
+  /**
+    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    *
+    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
+    *
+    * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    */
+  def transformation[T: ClassTag]: Option[T] = {
+    val c = implicitly[ClassTag[T]]
+    if (c.runtimeClass == classOf[Real]) {
+      val result: Real =
+        x match {
+          case WholeNumber.one | RationalNumber(Rational.one, _) =>
+            base
+          case RationalNumber(Rational.infinity, _) =>
+            Real.∞
+          case Real(value, fuzz) =>
+            Real(math.log(value), fuzz)
+          case _ =>
+            throw AlgebraException(s"NatLog.transformation: $x not supported")
+        }
+      Some(result.asInstanceOf[T])
+    }
+    else
+      None
+  }
+
+  /**
+    * Returns a new instance of `Monotone` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    *
+    * @return a `Monotone` representing the negation of this instance
+    */
+  def negate: Monotone = throw AlgebraException(s"BinaryLog.negate: not supported")
+
+  /**
+    * Compares the current `Logarithm` instance with another `Number` to determine their exact order.
+    *
+    * If the provided `Number` is a `Logarithm`, this method compares their underlying radian values.
+    * If the provided `Number` is not a `Logarithm`, the comparison cannot be performed, and `None` is returned.
+    *
+    * @param that the `Number` instance to compare with the current `Logarithm` instance
+    * @return an `Option[Int]`, where `Some(-1)` indicates that the current `Logarithm` is less than the provided `Logarithm`,
+    *         `Some(0)` indicates that both Logarithms are equal, `Some(1)` indicates that the current `Logarithm` is greater,
+    *         and `None` is returned if the comparison cannot be made
+    */
+  def compareExact(that: Number): Option[Int] = that match {
+    case BinaryLog(r) =>
+      Some(x.compare(r))
+    case _ =>
+      None
+  }
+
+  /**
+    * Constructs a natural logarithm (`NatLog`) from the given `Number`.
+    *
+    * This method creates a `Logarithm` instance by interpreting
+    * the input `Number` as the argument for the natural logarithm representation.
+    *
+    * @param x the `Number` value to be used in generating the `Logarithm`
+    * @return a `Logarithm` instance representing the natural logarithm of the input `Number`
+    */
+  def unit(x: Number): Logarithm = BinaryLog(x)
+
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] =
+    Eager(Valuable.valuableToField(x).exp) match { // FIXME we need 2^x
+      case fuzzy: WithFuzziness =>
+        fuzzy.fuzz
+      case _ =>
+        None // CONSIDER should this throw an exception?
+    }
+
+  /**
+    * Renders this `Logarithm` instance as a string representation of value in terms of π.
+    *
+    * The method formats the radius equivalent to π, omitting the numeric coefficient if it is 1.
+    *
+    * @return a string representation of the `Logarithm` in terms of π
+    */
+  def render: String = {
+    val numberStr = x.render
+    "2" + (if (numberStr == "1") "" else s"^$numberStr")
+  }
+
+  /**
+    * Computes the potential factor associated with this instance.
+    *
+    * @return an `Option` containing a `Factor` if available, otherwise `None`
+    */
+  def maybeFactor(context: Context): Option[Factor] =
+    Some(PureNumber)
+
+  /**
+    * Returns the multiplicative identity element of type `T` in the context
+    * of a structure that supports multiplication.
+    *
+    * @return the instance of type `T` that acts as the identity element for multiplication
+    */
+  def one: Logarithm = NatLog(WholeNumber.zero)
+
+  /**
+    * Scales the current instance of type `T` by the specified `Double` value.
+    *
+    * This method applies a scaling factor to the instance, returning an `Option`
+    * that contains the scaled instance if the operation is valid. If the scaling
+    * operation is not valid or feasible, `None` is returned.
+    *
+    * @param that the `Double` value to scale the instance by
+    * @return an `Option` containing the scaled instance of type `T`, or `None`
+    *         if scaling is not possible
+    */
+  def doScaleDouble(that: Double): Option[Monotone] =
+    None // TODO implement me as appropriate
+
+  //  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  //    case (a: NatLog, b: Structure) =>
+  //      for {
+  //        z <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"NatLog.fuzzyEqv: logic transformation error $this $that"))
+  //        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
+  //        w <- z.fuzzyEqv(p)(z)
+  //      } yield w
+  //    case (a: Real, b: Structure) =>
+  //      for {
+  //        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
+  //        w <- a.fuzzyEqv(p)(a)
+  //      } yield w
+  //
+  //    case (a, b) =>
+  //      Failure(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
+  //  }
+
+}
 /**
   * The `Logarithm` companion object contains utility methods, predefined constants, and
   * typeclass instances for working with Logarithms. Logarithms are represented using
