@@ -34,7 +34,6 @@ object FuzzyEq:
     *
     * @param x  The value of type `A` on which the extension methods are invoked.
     * @param fe The implicit `FuzzyEq[A]` instance that defines the equality behavior.
-    *
     * @tparam A The type for which fuzzy equality is performed.
     */
   extension [A](x: A)(using fe: FuzzyEq[A])
@@ -53,7 +52,6 @@ object FuzzyEq:
       * @param y The value of type `A` to compare with the current value.
       * @param p The probability threshold for determining approximate equality.
       *          A higher value makes the comparison stricter, while a lower value allows more flexibility.
-      *
       * @return `true` if the values are considered approximately equal within the specified threshold, otherwise `false`.
       */
     def ~=(y: A, p: Double): Boolean = fe.eqv(x, y, p)
@@ -64,7 +62,6 @@ object FuzzyEq:
       * @param y The value of type `A` to compare with the current value.
       * @param p The probability threshold for determining approximate equality. Defaults to 0.5.
       *          A higher value makes the comparison stricter, while a lower value allows more flexibility.
-      *
       * @return `true` if the values are considered approximately equal within the specified threshold, otherwise `false`.
       */
     def fuzzyEqv(y: A, p: Double = 0.5): Boolean = fe.eqv(x, y, p)
@@ -76,7 +73,6 @@ object FuzzyEq:
     *          The function takes two values of type `A` and a probability threshold of type `Double`,
     *          returning `true` if the values are considered approximately equal within the given threshold,
     *          otherwise `false`.
-    *
     * @return A `FuzzyEq[A]` instance that uses the provided function for fuzzy equality checks.
     */
   def instance[A](f: (A, A, Double) => Boolean): FuzzyEq[A] =

@@ -21,16 +21,14 @@ import scala.util.Try
   */
 trait DyadicOperator[A]:
   /**
-    * Applies a binary operation defined by the function `f` to the operands `x` and `y`. 
+    * Applies a binary operation defined by the function `f` to the operands `x` and `y`.
     * The result of the operation is returned as a `Try` to safely handle potential failures.
     *
     * @param f A function that takes two operands of types `A` and `B` and performs
     *          an operation, producing a result of type `Z` wrapped in a `Try`.
-    *
     * @param x The first operand of the operation, of type `A`.
     * @param y The second operand of the operation, of type `B`, which is constrained
     *          to be a subtype of `A`.
-    *
     * @return The result of applying the function `f` to the operands `x` and `y`,
     *         wrapped in a `Try`.
     */

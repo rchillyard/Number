@@ -108,6 +108,19 @@ object FP {
   }
 
   /**
+    * Method to extract a value from a Try[T] or throw an exception.
+    * It's essentially the same as just calling get, but without Codacy complaining.
+    *
+    * @param ty an Try[T].
+    * @tparam T the underlying type of ty.
+    * @return ty.get
+    */
+  def recover[T](ty: Try[T]): T = ty match {
+    case Success(t) => t
+    case Failure(exception) => throw exception
+  }
+
+  /**
     * This method and tryMap are (almost) twins (working for Option and Try respectively --
     * although there are a few differences other than the monad type).
     * To yield the (optional) result, we map the right-hand member of the input (lRe) with a function rToZ.

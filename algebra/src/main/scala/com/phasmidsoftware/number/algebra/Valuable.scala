@@ -64,7 +64,6 @@ object Valuable {
     *
     * @param v the `Valuable` instance to be converted into a `Field`.
     *          This is expected to represent a numerical value.
-    *
     * @return the `Field` representation of the input `Valuable`.
     *         If conversion is not possible, a `AlgebraException` is thrown.
     */
@@ -140,7 +139,6 @@ object Valuable {
     *
     * @param number the `Number` to be converted into a `Field`. It can represent different
     *               numerical types such as RationalNumber, algebra.Real, or WholeNumber.
-    *
     * @throws AlgebraException if the input `Number` cannot be converted into a `Field`.
     */
   private def numberToField(number: Number) = number match {

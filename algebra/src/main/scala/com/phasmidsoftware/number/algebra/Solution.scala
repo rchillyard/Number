@@ -221,6 +221,7 @@ object Solution {
     * @param base   the base monotone component of the solution
     * @param offset the offset monotone component used to determine whether the solution
     *               is linear or quadratic
+    *
     * @param branch an integer identifier used in cases where a quadratic solution is required
     * @return a `Solution` instance, which is either a `LinearSolution` or a `QuadraticSolution`
     */
@@ -381,6 +382,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
     *              the approximation. If `true`, the method will attempt to 
     *              generate an approximation even if such computation 
     *              is resource-intensive or not strictly necessary.
+    *
     * @return an `Option` containing the approximate value as a `Real` if available,
     *         or `None` if no approximation can be computed.
     */
@@ -520,13 +522,13 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
   /**
     * Determines equivalence between the current `Eager` instance and another `Eager` instance.
     *
-    * This method checks if the current instance and the provided instance represent equivalent 
-    * quadratic solutions. It performs a specific comparison for instances of `QuadraticSolution`, 
-    * verifying equality of their `base`, `offset`, and `branch` components. For other cases, 
+    * This method checks if the current instance and the provided instance represent equivalent
+    * quadratic solutions. It performs a specific comparison for instances of `QuadraticSolution`,
+    * verifying equality of their `base`, `offset`, and `branch` components. For other cases,
     * it delegates the equivalence check to the superclass implementation.
     *
     * @param that the other `Eager` instance to be compared for equivalence
-    * @return a `Try[Boolean]` indicating either the result of the equivalence comparison or an 
+    * @return a `Try[Boolean]` indicating either the result of the equivalence comparison or an
     *         error if the comparison cannot be performed
     */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
@@ -721,9 +723,8 @@ case class LinearSolution(value: Monotone) extends Solution {
     *              the approximation. If `true`, the method will attempt to
     *              generate an approximation even if such computation
     *              is resource-intensive or not strictly necessary.
-    *
-    * @return      an `Option` containing the approximate value as a `Real` if available,
-    *              or `None` if no approximation can be computed.
+    * @return an `Option` containing the approximate value as a `Real` if available,
+    *         or `None` if no approximation can be computed.
     */
   def approximation(force: Boolean): Option[Real] =
     Some(Real(value.toDouble))

@@ -214,7 +214,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
   /**
     * Subtracts the specified `Real` value from this `Real` value.
     *
-    * @param that     the `Real` value to subtract from this `Real` value
+    * @param that  the `Real` value to subtract from this `Real` value
     * @param using evidence parameter providing an `AdditiveCommutativeGroup` instance for `Real`
     * @return the result of subtracting `that` from this `Real` value
     */
@@ -372,7 +372,6 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     *
     * @param p    A precision threshold used for fuzzy comparison. Represents the allowable margin of error within which 
     *             the two objects are considered equivalent.
-    *
     * @param that The object with which equivalence is being checked.
     * @return A `Try[Boolean]` indicating whether this object and the given object are approximately equal 
     *         within the specified precision threshold.

@@ -198,7 +198,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
   lazy val zero: Logarithm = NatLog(WholeNumber.zero)
 
   /**
-    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value. 
+    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
     *
     * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
     *
@@ -356,6 +356,7 @@ object Logarithm {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
+
   /**
     * Provides an implicit `Show` instance for the `Logarithm` class, enabling conversion
     * of a `Logarithm` instance to a string representation using its `render` method.

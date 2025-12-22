@@ -88,6 +88,7 @@ case class Complex(complex: numerical.Complex) extends Eager {
     *              the approximation. If `true`, the method will attempt to
     *              generate an approximation even if such computation
     *              is resource-intensive or not strictly necessary.
+    *
     * @return an `Option` containing the approximate value as a `Real` if available,
     *         or `None` if no approximation can be computed.
     */

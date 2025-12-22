@@ -90,6 +90,7 @@ object Scalar {
     * @param x the `core.Number` to be converted into a `Scalar`.
     *          It can be an `ExactNumber` or a `FuzzyNumber`, each with specific
     *          properties such as value, factor, and optional fuzziness.
+    *
     * @return the resulting `Scalar` based on the input number's properties, which
     *         encapsulates its exact value, factor, and optional fuzziness.
     */
@@ -144,14 +145,16 @@ object Scalar {
     *
     * CONSIDER this should return a Scalar.
     *
-    *
     * @param value  the numerical value, which can either be a right value for exact numbers
     *               (e.g., integers, floating-point values) or a left value for rational
     *               or other representations.
+    *
     * @param factor the dimensional factor associated with the scalar, such as
     *               `PureNumber`, `Radian`, or other domain-specific factors.
+    *
     * @param fuzz   an optional fuzziness component representing the uncertainty
     *               or imprecision in the numerical value.
+    *
     * @return the resulting `Scalar` based on the input values, factor, and optional fuzziness.
     */
   def createScalar(value: inner.Value, factor: inner.Factor, fuzz: Option[Fuzziness[Double]]): Monotone = {

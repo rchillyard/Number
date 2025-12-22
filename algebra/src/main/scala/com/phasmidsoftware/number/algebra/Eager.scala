@@ -163,6 +163,7 @@ object Eager {
     *
     * @param field the input field to be converted into a `Valuable`. It is expected
     *              to be of type `com.phasmidsoftware.number.core.Real`.
+    *
     * @return a `Valuable` representation of the input `Field` as a `Scalar`.
     * @throws IllegalArgumentException if the provided `Field` is not of type `Real`.
     */

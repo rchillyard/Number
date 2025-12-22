@@ -25,7 +25,7 @@ import scala.util.{Success, Try}
   * CONSIDER merging the Rational class into this class (there's no compelling reason to have two separate classes).
   *
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
-  * @param r The `Rational` value represented by this `RationalNumber`.
+  * @param r          The `Rational` value represented by this `RationalNumber`.
   * @param percentage whether this is a percentage value or not.
   *                   Similarly to the `degrees` attribute of `Angle`,
   *                   this is a flag that is primarily cosmetic.
@@ -143,7 +143,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
     * @return an `Option[T]` containing the result of the power operation if valid, 
     *         or `None` if the operation could not be performed
     */
-  infix def pow(that: RationalNumber): Option[RationalNumber] = 
+  infix def pow(that: RationalNumber): Option[RationalNumber] =
     r.power(that.r).map(RationalNumber(_)).toOption
 
   /**
@@ -271,7 +271,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
     * and will return a failure with an appropriate exception message.
     *
     * @param that the first `Eager` instance to compare
-    * @param y the second `Eager` instance to compare
+    * @param y    the second `Eager` instance to compare
     * @return a `Try[Boolean]` where:
     *         - `Success(true)` indicates the objects are equivalent
     *         - `Success(false)` indicates the objects are not equivalent

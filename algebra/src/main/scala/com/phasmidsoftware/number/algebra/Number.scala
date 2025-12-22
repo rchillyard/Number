@@ -32,6 +32,7 @@ trait Number extends Scalar with Ordered[Scalar] {
     *
     * @param context the evaluation context in which to determine the factor. The `Context`
     *                specifies the criteria under which the factorization is valid.
+    *
     * @return an `Option[Factor]` containing the factor if it can be determined,
     *         or `None` if no suitable factor exists within the provided `Context`.
     */
@@ -257,6 +258,7 @@ object Number {
     * It is a predefined constant in the `Number` object.
     */
   val two: Number = WholeNumber.two
+
   /**
     *
     */

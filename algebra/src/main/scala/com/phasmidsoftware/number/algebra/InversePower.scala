@@ -28,7 +28,7 @@ import scala.util.{Success, Try}
   *
   * CONSIDER making this an (abstract?) class and having subclasses for square root and cube root.
   *
-  * @param n    the degree of the root, specified as an integer
+  * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
   */
 case class InversePower(n: Int, number: Number) extends Transformed with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {

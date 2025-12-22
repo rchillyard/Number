@@ -511,7 +511,10 @@ sealed trait Logarithmic extends Factor {
     case PureNumber =>
       base match {
         case "2" =>
-          b.maybeInt flatMap Rational.binaryLogs.get map Rational.apply
+          for {
+            i <- b.maybeInt
+            r <- Rational.binaryLogs.get(i)
+          } yield Rational.apply(r)
 //        case "10" =>
 //          Rational.base10Logs.get(b)
         case _ =>
@@ -900,13 +903,10 @@ abstract class NthRoot(val n: Int) extends InversePower {
   override def canRaise(f: Factor, exponent: Field): Boolean = f match {
     case PureNumber =>
       exponent match {
-        case Real(z: Number) =>
-          z.isInteger && {
-            val x = z.toInt.get
-            x > 0 && x % n == 0
-          }
+        case Real(z: Number) if z.isInteger =>
+          z.toInt.exists { x => x > 0 && x % n == 0 }
         case _ =>
-          false
+          exponent.isZero || exponent.isUnity
       }
     case _ =>
       super.canRaise(f, exponent)

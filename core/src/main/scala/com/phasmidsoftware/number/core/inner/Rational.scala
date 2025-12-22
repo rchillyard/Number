@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times, toInts}
-import com.phasmidsoftware.number.core.misc.{ContinuedFraction, FP}
+import com.phasmidsoftware.number.core.misc.ContinuedFraction
 import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.numerical.{BigNumber, Number, NumberLike, Prime}
@@ -299,7 +299,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return an `Int`.
     */
   def toInt: Int =
-    Rational.toInt(this).get
+    recover(Rational.toInt(this))
 
   /**
     * Method to determine if this Rational can be represented exactly as a decimal string.
@@ -328,7 +328,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return a `Long`.
     */
   def toLong: Long =
-    Rational.toLong(this).get
+    recover(Rational.toLong(this))
 
   /**
     * Method to convert `this` `Rational` into a `BigInt`.
@@ -339,7 +339,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return a `BigInt`.
     */
   def toBigInt: BigInt =
-    Rational.toBigInt(this).get
+    recover(Rational.toBigInt(this))
 
   /**
     * Converts this `Rational` instance to its `Float` representation.
@@ -913,7 +913,7 @@ object Rational {
     * @throws java.util.NoSuchElementException because we invoke get on an Option[Rational].
     */
   implicit def convertDouble(x: Double): Rational =
-    createExact(x).get // NOTE using get
+    recover(createExact(x))
 
   /**
     * Implicit converter from Long to Rational.
@@ -1453,7 +1453,7 @@ object Rational {
     def getCandidatePatternLengths(h: Int, t: List[Int]) = {
       val z: BigInt = t.foldLeft(BigInt(h))((b, y) => b * y)
       val pos = Prime.primeFactors(z, Some(max * max)).map(_.toIntOption)
-      FP.sequence(pos) match {
+      sequence(pos) match {
         case Some(Nil) if z == BigInt(1) =>
           Success(Seq(1))
         case Some(h :: t) =>
@@ -1475,7 +1475,7 @@ object Rational {
         getCandidatePatternLengths(h, t)
     }
 
-    FP.sequence(primeFactors map (_.reciprocalPeriod)) match {
+    sequence(primeFactors map (_.reciprocalPeriod)) match {
       case None if d < BigNumber.MAXDECIMALDIGITS => // XXX The reason for this is that we only generate 1000 characters for the rendering
         getCandidates(Seq(d.toInt - 1))
       case None =>

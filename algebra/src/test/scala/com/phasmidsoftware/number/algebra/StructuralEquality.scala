@@ -96,7 +96,7 @@ trait StructuralEquality {
     *
     * This object overrides the `areEqual` method to determine equality of two objects:
     * - If the second object is a `RationalNumber`, the equality is derived using the 
-    * `Eq` instance for `RationalNumber` from the Cats library.
+    *   `Eq` instance for `RationalNumber` from the Cats library.
     * - For all other cases, standard equality is used.
     *
     * It implements the `Equality` typeclass for the `RationalNumber` type.

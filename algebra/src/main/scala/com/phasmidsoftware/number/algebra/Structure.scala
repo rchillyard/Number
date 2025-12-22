@@ -28,7 +28,8 @@ trait Structure extends Eager {
     * Converts the given `Structure` object to an optional instance of the same type.
     *
     * TODO remove this method as it is no longer needed.
-    * 
+    *
+    *
     * @param t the input object of type `T` which is a subtype of `Structure`.
     * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
     */
@@ -41,9 +42,9 @@ trait Structure extends Eager {
     * The method determines whether the current `Structure` object can be represented as a `java.lang.Number`
     * by leveraging the `asNumber` method and further evaluating certain conditions:
     * - If the `Structure` object is an `ExactNumber` and its factor is `PureNumber`, the result
-    * is converted using `Value.asJavaNumber`.
+    *   is converted using `Value.asJavaNumber`.
     * - If the `Structure` object is a `Real` with a `wiggle` value below a specified tolerance,
-    * the result is also converted using `Value.asJavaNumber`.
+    *   the result is also converted using `Value.asJavaNumber`.
     * - In all other cases, `None` is returned.
     *
     * @return an optional `java.lang.Number` representation of this object. The result is `Some(java.lang.Number)`

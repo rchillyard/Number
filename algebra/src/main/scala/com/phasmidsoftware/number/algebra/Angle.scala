@@ -211,7 +211,6 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false) exte
     * the addition is delegated to the `doPlus` implementation of the `Number`.
     * CONSIDER eliminating this method.
     *
-    *
     * @param that the `Scalar` to be added to the current instance
     * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
     */
@@ -266,7 +265,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false) exte
     * and will return a failure with an appropriate exception message.
     *
     * @param that the first `Eager` instance to compare
-    * @param y the second `Eager` instance to compare
+    * @param y    the second `Eager` instance to compare
     * @return a `Try[Boolean]` where:
     *         - `Success(true)` indicates the objects are equivalent
     *         - `Success(false)` indicates the objects are not equivalent
@@ -310,6 +309,7 @@ object Angle {
     *              `Left(Right(x))` is treated as a rational number,
     *              `Left(Left(Some(x)))` is treated as a real number,
     *              and `Left(Left(None))` represents an invalid or undefined angle.
+    *
     * @return an `Angle` instance corresponding to the structure of the input `Value`;
     *         returns `Angle.nan` if the input represents an undefined value.
     */
@@ -384,6 +384,7 @@ object Angle {
     *
     * @param x the input `Value` to be converted to an angle in degrees; the type of value can represent
     *          various numeric structures such as whole numbers, rational numbers, or real numbers.
+    *
     * @return an `Angle` instance representing the given `Value` in degrees.
     */
   def degrees(x: Value): Angle =
@@ -406,7 +407,6 @@ object Angle {
     * @param s the input `Monotone` to be converted into an `Angle`; can represent a whole number,
     *          rational number, or real number. Passing an existing `Angle` or unsupported type
     *          results in an exception.
-    *
     * @return an `Angle` instance corresponding to the input `Monotone` value
     * @throws AlgebraException if the input is already an `Angle` or is of an unsupported type
     */
@@ -447,7 +447,6 @@ object Angle {
     *
     * @param witness a value of type `Angle` provided as a witness or template, although not
     *                directly used in this implementation for the conversion process
-    *
     * @param u       the input `Real` value to be converted into an `Angle` instance
     * @return an `Angle` instance created from the numeric representation of the `Real` value
     */
@@ -495,6 +494,7 @@ object Angle {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
+
   /**
     * Represents the additive identity for angles.
     *

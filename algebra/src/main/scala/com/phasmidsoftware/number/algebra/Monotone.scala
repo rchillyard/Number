@@ -43,6 +43,7 @@ trait Monotone extends Structure with WithFuzziness {
     *
     * @param force a boolean flag indicating whether to force the conversion to a default `Real`
     *              value when the current instance is not of type `Real`
+    *
     * @return an `Option[Real]` containing the approximated value if successful, or `None` if approximation fails
     */
   def approximation(force: Boolean = false): Option[Real] = this match {
@@ -363,7 +364,7 @@ object Transformed {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
-  
+
   private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Transformed, e: B): Try[Z] =
     FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 }

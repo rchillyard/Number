@@ -129,6 +129,7 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
     *
     * @param t the input object of type `T`, which must be a subtype of `Structure`.
     *          The input is expected to be of a type that matches the patterns in the conversion logic.
+    *
     * @tparam T the type parameter constrained to subtypes of `Structure` with a `ClassTag` evidence.
     * @return an `Option` containing a converted instance of the same type `T`
     *         if the conversion is successful, or `None` otherwise.
@@ -223,7 +224,8 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
     * Scales the current `WholeNumber` by a given Rational multiplier and returns the result
     * wrapped as an `Option[Monotone]`.
     * CONSIDER renaming as `*`
-    * 
+    *
+    *
     * @param scale the Rational multiplier to scale the current `WholeNumber`
     * @return an `Option[Monotone]` representing the scaled result
     */
@@ -329,6 +331,7 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
     *
     * @tparam T The type of the input structure, which must extend `Structure`
     *           and have an associated `ClassTag`.
+    *
     * @return A `Real` object constructed from the input structure.
     */
   private def toReal[T <: Structure : ClassTag] =

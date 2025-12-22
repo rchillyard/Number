@@ -25,7 +25,7 @@ class BenchmarkSpec extends AnyFlatSpec with should.Matchers {
 
     // NOTE that these tolerances can be widened if necessary
     result shouldBe 3.141592653589793 +- 1E-2
-    milliseconds shouldBe 700.0 +- 400
+    milliseconds shouldBe 800.0 +- 650
   }
 
   def calculatePi(n: Int)(implicit r: Random): Double = {

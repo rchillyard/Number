@@ -317,6 +317,7 @@ object FP {
     * @param filename the name of the resource file to read from
     * @param function a function that takes an array of strings (split from a line)
     *                 and returns an optional string result after processing
+    *
     * @return a `Try` containing a sequence of BigInt values if successful, or a failure if
     *         an error occurs during processing or if the file contains invalid input
     */
