@@ -11,7 +11,7 @@ trait StructuralEquality {
     * on their underlying types and properties.
     *
     * This object is used to enable tailored equality comparisons for `NumberLike` instances
-    * according to their specific types, such as `Expression`, `Solution`, `Rational`, `Field`,
+    * according to their specific types, such as `Expression`, `Algebraic`, `Rational`, `Field`,
     * or `Number`.
     *
     * Equality checks are delegated to other equivalence implementations (`FieldEquality`
@@ -19,7 +19,7 @@ trait StructuralEquality {
     *
     * Implementation Details:
     * - For an `Expression`, it uses the materialized form and delegates to `FieldEquality`.
-    * - For a `Solution`, it converts to a `Field` and compares using `FieldEquality`.
+    * - For a `Algebraic`, it converts to a `Field` and compares using `FieldEquality`.
     * - For a `Rational`, it converts to a `Number` and delegates to `NumberEquality`.
     * - For a `Field`, it directly delegates to `FieldEquality`.
     * - For a `Number`, it directly delegates to `NumberEquality`.
@@ -39,7 +39,7 @@ trait StructuralEquality {
     * on their underlying types and properties.
     *
     * This object is used to enable tailored equality comparisons for `NumberLike` instances
-    * according to their specific types, such as `Expression`, `Solution`, `Rational`, `Field`,
+    * according to their specific types, such as `Expression`, `Algebraic`, `Rational`, `Field`,
     * or `Number`.
     *
     * Equality checks are delegated to other equivalence implementations (`FieldEquality`
@@ -47,7 +47,7 @@ trait StructuralEquality {
     *
     * Implementation Details:
     * - For an `Expression`, it uses the materialized form and delegates to `FieldEquality`.
-    * - For a `Solution`, it converts to a `Field` and compares using `FieldEquality`.
+    * - For a `Algebraic`, it converts to a `Field` and compares using `FieldEquality`.
     * - For a `Rational`, it converts to a `Number` and delegates to `NumberEquality`.
     * - For a `Field`, it directly delegates to `FieldEquality`.
     * - For a `Number`, it directly delegates to `NumberEquality`.

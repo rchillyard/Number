@@ -8,12 +8,14 @@ import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.RationalNumber.half
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
-import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
+import com.phasmidsoftware.number.algebra.misc.FuzzyEq
+import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational, SquareRoot}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, ExactNumber, Real}
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.phiApprox
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, pi}
@@ -368,13 +370,33 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "simplify"
-  // TODO Issue #140
-  ignore should "simplify field expressions" in {
+
+  it should "simplify field expressions" in {
     Expression(1).simplify shouldBe Expression(1)
     ConstPi.simplify shouldBe ConstPi
     val simplify: Expression = phi.simplify
-    simplify shouldBe Expression(Eager(Algebraic.phi))
-    phi.simplify.materialize should ===(phiApprox)
+    val expected = Literal(QuadraticSolution.phi)
+    (expected, simplify) match {
+      case (Literal(x: QuadraticSolution, _), Literal(y: QuadraticSolution, _)) =>
+        x.eqv(y).get shouldBe true
+      case _ => fail(s"expected $expected, got $simplify")
+    }
+    val materialized: Eager = simplify.normalize.asInstanceOf[Eager]
+    extension (x: Eager)
+      infix def ~==(y: Eager): Boolean =
+        FuzzyEq[Eager].eqv(x, y, 0.5)
+    (materialized ~== phiApprox.asInstanceOf[Eager]) shouldBe true
+  }
+  it should "simplify constant expressions" in {
+    Expression(1).simplify shouldBe Expression(1)
+    ConstPi.simplify shouldBe ConstPi
+  }
+  it should "simplify unary expressions" in {
+    expr.UniFunction(One, Negate).simplify shouldBe MinusOne
+    expr.UniFunction(Two, Reciprocal).simplify shouldBe Half
+  }
+  it should "simplify binary expressions" in {
+    BiFunction(Two, MinusOne, Product).simplify shouldBe Expression(-2)
   }
   it should "simplify function expressions" in {
     expr.UniFunction(expr.UniFunction(One, Negate), Negate).simplify shouldBe One
@@ -404,7 +426,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #140
   ignore should "evaluate phi * phi" in {
-    val phi = expr.Root(Quadratic.goldenRatioEquation, 0)
+    val phi = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
     val simplified = expression.simplify
     simplified.approximation().get.value === 2.61803398875
@@ -412,7 +434,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #140
   ignore should "evaluate 1 / phi" in {
-    val phi = expr.Root(Quadratic.goldenRatioEquation, 0)
+    val phi = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi.reciprocal
     val simplified = expression.simplify
     println(s"simplified = $simplified")
@@ -421,12 +443,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #140
   ignore should "evaluate - phi" in {
-    val phi: Root = expr.Root(Quadratic.goldenRatioEquation, 0)
+    val phi: Root = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi.negate
     val simplified = expression.simplify
     simplified.approximation().get.value === -1.61803398875
     val expected = Algebraic_Quadratic(Quadratic(1, -1), pos = false)
-    val actual = simplified.asInstanceOf[QuadraticRoot].algebraic
+    val actual = simplified.asInstanceOf[QuadraticRoot].solution
     actual shouldBe expected
   }
 
@@ -457,7 +479,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplified shouldBe Literal(Eager(numerical.Real(ExactNumber(2, NatLog))))
   }
   it should "evaluate phi * phi" in {
-    val phi = expr.Root(Quadratic.goldenRatioEquation, 0)
+    val phi = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
     val y: em.MatchResult[Expression] = x.simplifyComposite(x)

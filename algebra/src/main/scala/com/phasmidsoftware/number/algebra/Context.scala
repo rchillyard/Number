@@ -4,8 +4,7 @@
 
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.algebra.misc.AlgebraException
-import com.phasmidsoftware.number.algebra.{Nat, Structure, Valuable}
+import com.phasmidsoftware.number.algebra.{Nat, Valuable}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.*
 
@@ -43,10 +42,8 @@ trait Context extends CoreContext {
   def valuableQualifies(v: Valuable): Boolean = v match {
     case nat: Nat =>
       true
-    case structure: Structure =>
-      structure.maybeFactor(this).exists(factorQualifies)
     case _ =>
-      throw AlgebraException(s"Context.valuableQualifies: $v")
+      v.maybeFactor(this).exists(factorQualifies)
   }
 
   /**

@@ -49,13 +49,14 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
       val lookups = Map(2 -> Rational.squareRoots, 3 -> Rational.cubeRoots)
       val normalized = number.normalize
       normalized match {
-        case w@WholeNumber(x) =>
+        case q: Q =>
           val maybeInt = for {
             lookup <- lookups.get(n)
-            y <- toIntOption(Rational(x))
+            r = q.toRational
+            y <- toIntOption(r)
             p <- lookup.get(y)
           } yield p
-          val defaultValue = if (number == normalized) this else InversePower(n, w)
+          val defaultValue = if (number == normalized) this else InversePower(n, q.asInstanceOf[Number])
           maybeInt.map(WholeNumber(_)).getOrElse(defaultValue)
       }
     case _ =>

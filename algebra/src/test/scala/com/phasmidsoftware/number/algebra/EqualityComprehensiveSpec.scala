@@ -79,7 +79,7 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
     Nat(0) === NatZero shouldBe true
   }
 
-  // Solution tests
+  // Algebraic tests
   it should "compare LinearSolutions with ===" in {
     LinearSolution(WholeNumber(5)) === LinearSolution(WholeNumber(5)) shouldBe true
     LinearSolution(WholeNumber(5)) === LinearSolution(WholeNumber(6)) shouldBe false
@@ -383,7 +383,7 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle golden ratio (phi) correctly" in {
-    QuadraticSolution.phi should ===(QuadraticSolution(RationalNumber.half, RationalNumber(5, 4), 0))
+    QuadraticSolution.phi should ===(QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 0))
     (QuadraticSolution.phi ~== QuadraticSolution.phi) shouldBe true
   }
 

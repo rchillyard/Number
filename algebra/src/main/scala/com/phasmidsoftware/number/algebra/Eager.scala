@@ -7,7 +7,6 @@ package com.phasmidsoftware.number.algebra
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.misc.*
-import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.CoreExceptionWithCause
@@ -109,6 +108,31 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     */
   def sum(x: Eager, y: Eager): Try[Eager] =
     Failure(AlgebraException(s"Eager.sum: unimplemented add $x and $y"))
+}
+
+/**
+  * Trait representing something that can branch into multiple branches.
+  *
+  * @tparam T the type of the elements contained in the branches.
+  */
+trait Branched[T] {
+  /**
+    * Returns the number of branches in `this`.
+    *
+    * `branches` corresponds to the number of possible solutions to some equation.
+    *
+    * @return the number of branches as an integer.
+    */
+  def branches: Int
+
+  /**
+    * Retrieves the branch at the specified index.
+    *
+    * @param index the index of the branch to retrieve, where the index starts from 0.
+    * @return the element of type `T` at the specified branch index.
+    *         If the index is out of range, the behavior is implementation-specific.
+    */
+  def branched(index: Int): T
 }
 
 /**
@@ -221,8 +245,8 @@ object Eager {
         implicitly[DyadicOperator[Structure]].op(f)(a, b)
       case (a: Complex, b: Complex) =>
         implicitly[DyadicOperator[Complex]].op(f)(a, b)
-      case (a: Solution, b: Solution) =>
-        implicitly[DyadicOperator[Solution]].op(f)(a, b)
+      case (a: Algebraic, b: Algebraic) =>
+        implicitly[DyadicOperator[Algebraic]].op(f)(a, b)
       case (a: Nat, b: Nat) =>
         implicitly[DyadicOperator[Nat]].op(f)(a, b)
 

@@ -20,7 +20,27 @@ import scala.util.{Failure, Success, Try}
   *
   * @see com.phasmidsoftware.number.core.numerical.Complex
   */
-case class Complex(complex: numerical.Complex) extends Eager {
+case class Complex(complex: numerical.Complex) extends Solution {
+  /**
+    * Returns the number of branches in `this`.
+    *
+    * TODO implement this properly.
+    *
+    * `branches` corresponds to the number of possible solutions to some equation.
+    *
+    * @return the number of branches as an integer.
+    */
+  def branches: Int = 1
+
+  /**
+    * Retrieves the branch at the specified index.
+    *
+    * @param index the index of the branch to retrieve, where the index starts from 0.
+    * @return the element of type `T` at the specified branch index.
+    *         If the index is out of range, the behavior is implementation-specific.
+    */
+  def branched(index: Int): Eager = ??? // TODO implement this properly.
+
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
     * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
@@ -74,6 +94,23 @@ case class Complex(complex: numerical.Complex) extends Eager {
     */
   def maybeFactor(context: Context): Option[Factor] = complex.maybeFactor
 
+  /**
+    * Returns the negation of this `Complex` number.
+    *
+    * The negation operation inverts both the real and imaginary components
+    * of the `Complex` instance. This is equivalent to rotating the complex
+    * number by 180 degrees in the complex plane.
+    *
+    * @return a new `Solution` representing the negated value of this `Complex` instance
+    */
+  def negate: Solution = Complex(complex.rotate.rotate)
+
+  def +(other: Solution): Solution = other match {
+    case Complex(c) =>
+      Complex((complex + c).asInstanceOf[numerical.Complex])
+    case _ => throw new UnsupportedOperationException(s"Complex.+(Solution): unexpected input: $this and $other")
+  }
+
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (Complex(a), Complex(b)) =>
       Success(a == b)
@@ -107,6 +144,28 @@ case class Complex(complex: numerical.Complex) extends Eager {
       val modulus: Number = complex.modulus
       Scalar.createScalar(modulus.nominalValue, modulus.factor, modulus.fuzz).approximation(force)
     }
+
+
+}
+
+/**
+  * Trait `Solution` extends the `Eager` trait and represents an eagerly evaluated solution, one of several possible solutions to an equation.
+  * It provides a mechanism to obtain the negation of the current solution.
+  *
+  * TODO once Can no longer extends Structure, let's extend CanNegate[Solution], CanAdd, etc. instead.
+  */
+trait Solution extends Eager {
+
+  def negate: Solution
+
+  /**
+    * Adds another `Solution` instance to the current instance, combining their effects or values
+    * based on the implementation of the `+` operation in the `Solution` trait.
+    *
+    * @param other the `Solution` instance to add to the current instance
+    * @return a new `Solution` instance representing the result of the addition
+    */
+  def +(other: Solution): Solution
 }
 
 object Complex {
