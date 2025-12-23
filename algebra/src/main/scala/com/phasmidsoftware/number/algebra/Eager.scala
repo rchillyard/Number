@@ -177,6 +177,24 @@ object Eager {
         throw AlgebraException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }
 
+  /**
+    * Implicitly converts an integer value into an `Eager` representation.
+    * This conversion wraps the integer as a `WholeNumber` within the `Eager` type.
+    *
+    * @param x the integer value to be converted into an `Eager` instance.
+    * @return an `Eager` instance representing the input integer as a `WholeNumber`.
+    */
+  implicit def convIntEager(x: Int): Eager = WholeNumber(x)
+
+  /**
+    * Implicitly converts a `Rational` value into an `Eager` representation.
+    * This conversion wraps the `Rational` as a `RationalNumber` within the `Eager` type.
+    *
+    * @param x the `Rational` value to be converted into an `Eager` instance.
+    * @return an `Eager` instance representing the input `Rational` as a `RationalNumber`.
+    */
+  implicit def convRationalEager(x: Rational): Eager = RationalNumber(x)
+
   import org.slf4j.{Logger, LoggerFactory}
   import scala.util.Try
 

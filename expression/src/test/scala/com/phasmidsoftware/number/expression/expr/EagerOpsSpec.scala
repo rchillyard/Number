@@ -19,45 +19,44 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
   behavior of "EagerOps addition (+)"
 
   it should "add two WholeNumbers and normalize" in {
-    val result = WholeNumber(2) + WholeNumber(3)
+    val result = WholeNumber(2) + 3
     result shouldBe WholeNumber(5)
   }
 
   it should "add two RationalNumbers and normalize to WholeNumber" in {
     // 1/2 + 1/2 = 1
-    val half1: Eager = RationalNumber(Rational(1, 2))
-    val half2 = RationalNumber(Rational(1, 2))
+    val half1: Eager = RationalNumber(1, 2)
+    val half2 = Rational(1, 2)
     val result = half1 + half2
     result shouldBe WholeNumber(1)
   }
 
   it should "add two RationalNumbers and keep as RationalNumber" in {
     // 1/3 + 1/4 = 7/12
-    val oneThird = RationalNumber(Rational(1, 3))
-    val oneFourth = RationalNumber(Rational(1, 4))
+    val oneThird = RationalNumber(1, 3)
+    val oneFourth = Rational(1, 4)
     val result = oneThird + oneFourth
 
     result shouldBe a[RationalNumber]
-    result.asInstanceOf[RationalNumber].r shouldBe Rational(7, 12)
+    result.r shouldBe Rational(7, 12)
   }
 
   it should "add WholeNumber and RationalNumber" in {
     // 2 + 1/2 = 5/2
     val two = WholeNumber(2)
-    val half = RationalNumber(Rational(1, 2))
+    val half = (Rational(1, 2))
     val result = two + half
 
     result shouldBe a[RationalNumber]
     result.asInstanceOf[RationalNumber].r shouldBe Rational(5, 2)
   }
 
-  it should "add fuzzy Reals and return Expression" in {
-    // Fuzzy + Fuzzy should stay as expression (not materialize)
+  it should "add fuzzy Reals and return Structure" in {
     val real1: Eager = Real("2.0*")
     val real2 = Real("3.0*")
     val result = real1 + real2
-
-    result shouldBe a[Structure]  // Should be an Expression/Lazy
+    result shouldBe a[Structure]
+    result.isExact shouldBe false
   }
 
   it should "add exact Real and WholeNumber" in {
@@ -71,26 +70,26 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle addition with zero" in {
-    val result = WholeNumber(5) + WholeNumber.zero
+    val result = WholeNumber(5) + 0
     result shouldBe WholeNumber(5)
   }
 
   it should "handle negative numbers" in {
-    val result = WholeNumber(5) + WholeNumber(-3)
+    val result = WholeNumber(5) + -3
     result shouldBe WholeNumber(2)
   }
 
   behavior of "EagerOps multiplication (*)"
 
   it should "multiply two WholeNumbers and normalize" in {
-    val result = WholeNumber(3) * WholeNumber(4)
+    val result = WholeNumber(3) * 4
     result shouldBe WholeNumber(12)
   }
 
   it should "multiply two RationalNumbers and normalize to WholeNumber" in {
     // 2/3 * 3/2 = 1
-    val twoThirds: Eager = RationalNumber(Rational(2, 3))
-    val threeHalves = RationalNumber(Rational(3, 2))
+    val twoThirds: Eager = RationalNumber(2, 3)
+    val threeHalves = Rational(3, 2)
     val result = twoThirds * threeHalves
 
     result shouldBe WholeNumber(1)
@@ -99,7 +98,7 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
   it should "multiply WholeNumber and RationalNumber" in {
     // 4 * 1/2 = 2
     val four = WholeNumber(4)
-    val half = RationalNumber(Rational(1, 2))
+    val half = Rational(1, 2)
     val result = four * half
 
     result shouldBe WholeNumber(2)
@@ -107,12 +106,12 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
 
   it should "multiply RationalNumbers keeping as RationalNumber" in {
     // 2/3 * 3/4 = 1/2
-    val twoThirds = RationalNumber(Rational(2, 3))
-    val threeFourths = RationalNumber(Rational(3, 4))
+    val twoThirds = RationalNumber(2, 3)
+    val threeFourths = Rational(3, 4)
     val result = twoThirds * threeFourths
 
     result shouldBe a[RationalNumber]
-    result.asInstanceOf[RationalNumber].r shouldBe Rational(1, 2)
+    result.r shouldBe Rational(1, 2)
   }
 
   it should "multiply fuzzy Reals and return Expression" in {
@@ -125,116 +124,108 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle multiplication by zero" in {
-    val result = WholeNumber(5) * WholeNumber.zero
+    val result = WholeNumber(5) * 0
     result shouldBe WholeNumber.zero
   }
 
   it should "handle multiplication by one" in {
-    val result = WholeNumber(5) * WholeNumber.one
+    val result = WholeNumber(5) * 1
     result shouldBe WholeNumber(5)
   }
 
   it should "handle negative multiplication" in {
-    val result = WholeNumber(5) * WholeNumber(-2)
+    val result = WholeNumber(5) * -2
     result shouldBe WholeNumber(-10)
   }
 
   behavior of "EagerOps subtraction (-)" // if implemented
 
   it should "subtract two WholeNumbers" in {
-    val result = WholeNumber(5) - WholeNumber(3)
+    val result = WholeNumber(5) - 3
     result shouldBe WholeNumber(2)
   }
 
   it should "subtract resulting in negative" in {
-    val result = WholeNumber(3) - WholeNumber(5)
+    val result = WholeNumber(3) - 5
     result shouldBe WholeNumber(-2)
   }
 
   it should "subtract RationalNumbers normalizing to WholeNumber" in {
     // 5/2 - 3/2 = 1
-//    val fiveHalves: Eager = RationalNumber(Rational(5, 2))
-//    val threeHalves = RationalNumber(Rational(3, 2))
-//    val result = fiveHalves - threeHalves
+    val fiveHalves: Eager = RationalNumber(5, 2)
+    val threeHalves = Rational(3, 2)
+    val result = fiveHalves - threeHalves
 
-//    result shouldBe WholeNumber(1)
-    pending
+    result shouldBe WholeNumber(1)
   }
 
   behavior of "EagerOps division (/)" // if implemented
 
   it should "divide two WholeNumbers with exact result" in {
-//    val result = WholeNumber(6) / WholeNumber(2)
-//    result shouldBe WholeNumber(3)
-    pending
+    val result = WholeNumber(6) / 2
+    result shouldBe WholeNumber(3)
   }
 
   it should "divide two WholeNumbers creating RationalNumber" in {
     // 7 / 3 = 7/3
-//    val result = WholeNumber(7) / WholeNumber(3)
-//
-//    result shouldBe a[RationalNumber]
-//    result.asInstanceOf[RationalNumber].r shouldBe Rational(7, 3)
-    pending
+    val result = WholeNumber(7) / 3
+
+    result shouldBe a[RationalNumber]
+    result.asInstanceOf[RationalNumber].r shouldBe Rational(7, 3)
   }
 
   it should "divide RationalNumbers normalizing to WholeNumber" in {
     // (6/2) / (3/2) = 2
-//    val sixHalves = RationalNumber(Rational(6, 2))
-//    val threeHalves = RationalNumber(Rational(3, 2))
-//    val result = sixHalves / threeHalves
+    val sixHalves: Eager = RationalNumber(6, 2)
+    val threeHalves = RationalNumber(3, 2)
+    val result = sixHalves / threeHalves
 
-//    result shouldBe WholeNumber(2)
-    pending
+    result shouldBe WholeNumber(2)
   }
 
   it should "handle division by one" in {
-//    val result = WholeNumber(5) / WholeNumber.one
-//    result shouldBe WholeNumber(5)
-    pending
+    val result = WholeNumber(5) / 1
+    result shouldBe WholeNumber(5)
   }
 
-  behavior of "EagerOps power (^)" // if implemented
+  behavior of "EagerOps power (∧)"
 
   it should "raise WholeNumber to power" in {
-//    val result = WholeNumber(2) ^ WholeNumber(3)
-//    result shouldBe WholeNumber(8)
-    pending
+    val result = (∅ + WholeNumber(2)) ∧ 3
+    result.normalize shouldBe WholeNumber(8)
   }
 
   it should "handle power of zero" in {
-//    val result = WholeNumber(5) ^ WholeNumber.zero
-//    result shouldBe WholeNumber.one
-    pending
+    val result = (∅ + WholeNumber(5)) ∧ 0
+    result.normalize shouldBe WholeNumber.one
   }
 
   it should "handle power of one" in {
-//    val result = WholeNumber(5) ^ WholeNumber.one
-//    result shouldBe WholeNumber(5)
-    pending
+    val result = (∅ + WholeNumber(5)) ∧ 1
+    result.normalize shouldBe WholeNumber(5)
   }
 
   behavior of "EagerOps mixed operations"
 
-  it should "chain operations and normalize correctly" in {
+  it should "structure operations on WholeNumber correctly" in {
     // (2 + 3) * 4 = 20
-    val result = (WholeNumber(2) + WholeNumber(3)) * WholeNumber(4)
+    val result = (WholeNumber(2) + 3) * 4
     result shouldBe WholeNumber(20)
   }
 
-  it should "chain operations with rationals" in {
+  it should "structure operations on RationalNumber correctly" in {
     // (1/2 + 1/2) * 3 = 3
-    val half1 = RationalNumber(Rational(1, 2))
-    val half2 = RationalNumber(Rational(1, 2))
-    val result = (half1 + half2) * WholeNumber(3)
+    val half1 = RationalNumber.half
+    val half2 = RationalNumber.half
+    val result = (half1 + half2) * 3
 
-    result shouldBe WholeNumber(3)
+    result.normalize shouldBe WholeNumber(3)
   }
 
   it should "normalize intermediate results" in {
     // (4/2) + (6/3) = 2 + 2 = 4
-    val r1: Eager = RationalNumber(Rational(4, 2))
-    val r2 = RationalNumber(Rational(6, 3))
+    val r1: Eager = RationalNumber(4, 2)
+    val r2 = RationalNumber(6, 3)
     val result = r1 + r2
 
     result shouldBe WholeNumber(4)
@@ -243,10 +234,8 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
   behavior of "EagerOps with special types"
 
   it should "work with InversePower" in {
-    // InversePower(1, WholeNumber(5)) + WholeNumber(3)
-    // = WholeNumber(5) + WholeNumber(3) = WholeNumber(8)
     val ip: Eager = InversePower(1, WholeNumber(5))
-    val result = ip + WholeNumber(3)
+    val result = ip + 3
 
     result shouldBe WholeNumber(8)
   }
@@ -255,17 +244,28 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
     // NatLog(0) + WholeNumber(2)
     // = WholeNumber(1) + WholeNumber(2) = WholeNumber(3)
     val nl = NatLog(WholeNumber.zero)
-    val result = nl + WholeNumber(2)
+    val result = nl + 2
 
     result shouldBe WholeNumber(3)
   }
 
   it should "work with Angle" in {
-    val angle = Angle(WholeNumber(0))
-    val result = angle + WholeNumber(1)
+    val angle = Angle(WholeNumber.zero)
+    val result = angle + 1
+    result shouldBe WholeNumber(1)
+  }
 
-    // Result depends on how Angle addition works
-    result shouldBe a[Valuable]
+  it should "work with Angle flipped" in {
+    val angle = Angle(WholeNumber(1))
+    val result = angle + 0
+    result shouldBe Angle(WholeNumber(1))
+  }
+
+  it should "work with Angle mixed" in {
+    val angle = Angle(RationalNumber.half)
+    val result = angle + RationalNumber.half
+    result shouldBe a[Real]
+    result.isExact shouldBe false
   }
 
   behavior of "EagerOps associativity and commutativity"
@@ -315,24 +315,24 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
     val result = tiny + tiny
 
     result shouldBe a[RationalNumber]
-    result.asInstanceOf[RationalNumber].r shouldBe Rational(1, 500000)
+    result.r shouldBe Rational(1, 500000)
   }
 
   behavior of "EagerOps type discovery after operations"
 
   it should "have correct typeName after operation" in {
-    val result = WholeNumber(2) + WholeNumber(3)
+    val result = WholeNumber(2) + 3
     result.typeName shouldBe "WholeNumber"
   }
 
   it should "have correct category after operation" in {
-    val result = WholeNumber(2) + WholeNumber(3)
+    val result = Eager(2) + 3
     result.category shouldBe "Structure"
   }
 
   it should "have correct describe after operation" in {
-    val two: Eager = WholeNumber(2)
-    val result = two + WholeNumber(3)
+    val two: Eager = 2
+    val result = two + 3
     result.describe shouldBe "Structure.WholeNumber"
   }
 
@@ -357,7 +357,7 @@ class EagerOpsIntegrationSpec extends AnyFlatSpec with Matchers {
 
   it should "create Expression -> simplify -> materialize -> normalize" in {
     // This verifies the complete pipeline works
-    val result = WholeNumber(2) + WholeNumber(3)
+    val result = WholeNumber(2) + 3
 
     // Should have gone through:
     // 1. Sum(WholeNumber(2), WholeNumber(3)) created
@@ -375,17 +375,17 @@ class EagerOpsIntegrationSpec extends AnyFlatSpec with Matchers {
     // = (2 + 2) * 2
     // = 4 * 2
     // = 8
-    val r1 = RationalNumber(Rational(4, 2))
-    val r2 = RationalNumber(Rational(6, 3))
+    val r1 = RationalNumber(4, 2)
+    val r2 = Rational(6, 3)
     val result = (r1 + r2) * WholeNumber(2)
 
     result shouldBe WholeNumber(8)
   }
 
   it should "preserve Expression for fuzzy operations" in {
-    val real1 = Real(2.0, (0.1))
-    val real2 = Real(3.0, (0.1))
-    val real3 = Real(4.0, (0.1))
+    val real1 = Real(2.0, 0.1)
+    val real2 = Real(3.0, 0.1)
+    val real3 = Real(4.0, 0.1)
 
     // Should stay as expressions (not materialize)
     val result = (real1 + real2) * real3
@@ -395,15 +395,15 @@ class EagerOpsIntegrationSpec extends AnyFlatSpec with Matchers {
 
   it should "work with all normalize tests passing" in {
     // Meta-test: operations should work with normalized values
-    val values = Seq(
+    val values: Seq[Eager] = Seq(
       WholeNumber(5),
-      RationalNumber(Rational(4, 2)),  // Will normalize to WholeNumber(2)
-      RationalNumber(Rational(3, 4))
+      RationalNumber(4, 2),  // Will normalize to WholeNumber(2)
+      (Rational(3, 4))
     )
 
     values.foreach { v =>
       val normalized: Eager = v.normalize.asInstanceOf[Eager]
-      val result = normalized + WholeNumber(1)
+      val result = normalized + 1
       result shouldBe a[Valuable]
     }
   }

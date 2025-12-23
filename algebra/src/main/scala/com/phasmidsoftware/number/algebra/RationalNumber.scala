@@ -7,6 +7,7 @@ import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.Rational
+import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.{Success, Try}
 
@@ -365,6 +366,14 @@ object RationalNumber {
     */
   implicit val showRationalNumber: Show[RationalNumber] =
     Show.show(_.render)
+
+  /**
+    * Implicitly converts a `Rational` instance into a `RationalNumber`.
+    *
+    * @param x the `Rational` value to be converted
+    * @return a `RationalNumber` instance representing the given `Rational`
+    */
+  implicit def convRationalRationalNumber(x: Rational): RationalNumber = RationalNumber(x)
 
   /**
     * A given instance of `DyadicOperator` for `RationalNumber` that provides an implementation of 

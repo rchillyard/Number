@@ -99,19 +99,40 @@ trait Valuable extends Renderable with Numeric {
   * whereby full resolution or evaluation may not be required unless explicitly invoked.
   */
 trait Lazy extends Valuable {
+  /**
+    * Simplifies the given expression or computation and returns a lazy evaluation result.
+    *
+    * @return a lazy evaluation result representing the simplified expression or computation
+    */
   def simplify: Lazy
 
+  /**
+    * Converts the current `Lazy` instance into an `Eager` instance by forcing
+    * the resolution or evaluation of its underlying value.
+    *
+    * The `materialize` method ensures that the computation of the value represented
+    * by this `Lazy` instance is completed and encapsulated within an appropriate
+    * `Eager` representation. This is particularly useful in scenarios where
+    * deferred computation needs to be explicitly resolved prior to further processing.
+    *
+    * @return the materialized `Eager` instance representing the resolved value
+    */
   def materialize: Eager
 
-  def isSimple: Boolean = true
-
+  /**
+    * Normalizes the current `Lazy` instance to its simplest `Valuable` equivalent.
+    * The method first attempts to simplify the instance using the `simplify` method.
+    * If the simplified result is exact, the method materializes it and normalizes the resulting value.
+    * Otherwise, the simplified value is returned as is.
+    *
+    * @return the simplest `Valuable` representation of this value after normalization
+    */
   def normalize: Valuable = {
     val simplified = simplify
-    if (simplified.isExact && simplified.isSimple) {
+    if (simplified.isExact)
       simplified.materialize.normalize
-    } else {
+    else
       simplified
-    }
   }
 }
 
