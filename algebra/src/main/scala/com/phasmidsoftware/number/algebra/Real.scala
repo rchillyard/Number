@@ -34,8 +34,12 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
 
   /**
     * Returns the normalized representation of the current object.
+    * CONSIDER if we have an exact `Real`, and a value that corresponds precisely to an `Int`,
+    * maybe we should return a `WholeNumber` instead.
+    * XXX would use d == d.floor
+    * XXX let's not try it for rationals as well!
     *
-    * @return the normalized form of this object as a Valuable instance
+    * @return the normalized form of this object as a `Valuable` instance
     */
   def normalize: Valuable = this
 
@@ -518,8 +522,6 @@ object Real {
     * with support for double-precision, and the `WholeNumber` type represents an
     * integer-like structure.
     *
-    * @tparam T the target type (`Real`) of the conversion
-    * @tparam U the source type (`WholeNumber`) of the conversion
     */
   given Convertible[Real, WholeNumber] with
     def convert(witness: Real, u: WholeNumber): Real = Real(u.toDouble)

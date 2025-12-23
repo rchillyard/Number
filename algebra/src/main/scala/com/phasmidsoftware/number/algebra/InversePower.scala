@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
@@ -44,6 +45,19 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
   def normalize: Valuable = n match {
     case 1 =>
       number.normalize
+    case 2 | 3 =>
+      val lookups = Map(2 -> Rational.squareRoots, 3 -> Rational.cubeRoots)
+      val normalized = number.normalize
+      normalized match {
+        case w@WholeNumber(x) =>
+          val maybeInt = for {
+            lookup <- lookups.get(n)
+            y <- toIntOption(Rational(x))
+            p <- lookup.get(y)
+          } yield p
+          val defaultValue = if (number == normalized) this else InversePower(n, w)
+          maybeInt.map(WholeNumber(_)).getOrElse(defaultValue)
+      }
     case _ =>
       number.normalize match {
         case normalized: Number if normalized == number =>
@@ -157,9 +171,13 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
-    case r: Real =>
-      number.approximation(true).flatMap(x => x.power(Rational(n).invert)).asInstanceOf[Option[T]]
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = (normalize, t) match {
+    case (x: WholeNumber, _) =>
+      x.convert(t)
+    case (x: RationalNumber, _) =>
+      x.convert(t)
+    case (x@InversePower(m, z), r: Real) =>
+      z.approximation(true).flatMap(x => x.power(Rational(m).invert)).asInstanceOf[Option[T]]
     case x =>
       None
   }
@@ -232,7 +250,7 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  override def isExact: Boolean = false // TODO there are some situations where a Root is actually exact.
+  override def isExact: Boolean = number.isExact // TODO there are some situations where a Root is actually exact.
 
   /**
     * Converts this `Number` into its corresponding `Rational` representation, if possible.

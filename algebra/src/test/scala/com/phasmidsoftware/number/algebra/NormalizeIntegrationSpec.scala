@@ -23,7 +23,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
 
     // Assuming your operation creates a RationalNumber result that then normalizes
     // Adjust this based on your actual operation implementation
-    val sum = (half1.r + half2.r)  // This gives Rational(1, 1)
+    val sum = half1.r + half2.r  // This gives Rational(1, 1)
     val result = RationalNumber(sum).normalize
 
     result shouldBe WholeNumber(1)
@@ -34,7 +34,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
     val oneThird = RationalNumber(Rational(1, 3))
     val oneFourth = RationalNumber(Rational(1, 4))
 
-    val sum = (oneThird.r + oneFourth.r)
+    val sum = oneThird.r + oneFourth.r
     val result = RationalNumber(sum).normalize
 
     result shouldBe a[RationalNumber]
@@ -60,7 +60,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
     val twoThirds = RationalNumber(Rational(2, 3))
     val threeHalves = RationalNumber(Rational(3, 2))
 
-    val product = (twoThirds.r * threeHalves.r)
+    val product = twoThirds.r * threeHalves.r
     val result = RationalNumber(product).normalize
 
     result shouldBe WholeNumber(1)
@@ -107,7 +107,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
   it should "simplify square root of perfect square" in {
     // √4 = 2
     val sqrt4 = InversePower(2, WholeNumber(4))
-    sqrt4.normalize shouldBe a[InversePower]  // Still InversePower unless you compute it
+    sqrt4.normalize shouldBe a[WholeNumber]
 
     // If InversePower computes exact roots:
     // sqrt4.normalize shouldBe WholeNumber(2)
@@ -116,7 +116,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
   it should "simplify cube root of perfect cube" in {
     // ∛8 = 2
     val cbrt8 = InversePower(3, WholeNumber(8))
-    cbrt8.normalize shouldBe a[InversePower]  // Unless you compute exact roots
+    cbrt8.normalize shouldBe a[WholeNumber]
   }
 
   behavior of "normalize with logarithm operations"
@@ -196,12 +196,10 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
     normalized.asInstanceOf[RationalNumber].percentage shouldBe true
   }
 
-  it should "lose percentage flag when reducing to WholeNumber" in {
-    // 100% = 1, and percentages don't make sense for WholeNumber
+  it should "not lose percentage flag when normalizing" in {
     val percent = RationalNumber(Rational(5, 5), percentage = true)
     val normalized = percent.normalize
 
-    normalized shouldBe WholeNumber(1)
-    normalized shouldBe a[WholeNumber]
+    normalized shouldBe a[RationalNumber]
   }
 }

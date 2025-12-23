@@ -47,6 +47,8 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false) exte
     *   - Reals are adjusted using their double value, with fuzz consideration pending implementation.
     *   - Whole numbers are directly handled using their integer representation.
     *
+    * CONSIDER we lose information regarding degrees here (perhaps fix that?)
+    *
     * An exception is thrown if the input type is not recognized.
     *
     * @return a new instance of `Angle` representing the normalized value
@@ -265,7 +267,6 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false) exte
     * and will return a failure with an appropriate exception message.
     *
     * @param that the first `Eager` instance to compare
-    * @param y    the second `Eager` instance to compare
     * @return a `Try[Boolean]` where:
     *         - `Success(true)` indicates the objects are equivalent
     *         - `Success(false)` indicates the objects are not equivalent

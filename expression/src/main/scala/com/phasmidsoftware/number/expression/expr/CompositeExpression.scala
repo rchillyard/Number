@@ -134,7 +134,7 @@ sealed trait CompositeExpression extends Expression {
     * @return a String
     */
   def render: String =
-    materialize.render
+    materialize.normalize.render
 }
 
 /**

@@ -277,6 +277,15 @@ object Valuable {
   implicit def toValuable(w: String): Valuable = Eager(w)
 
   /**
+    * Implicitly converts a `Valuable` instance into its string representation.
+    * This is achieved by invoking the `render` method of the `Valuable` object.
+    *
+    * @param v the `Valuable` instance to be converted into a `String`.
+    * @return the string representation of the provided `Valuable` object, as rendered by its `render` method.
+    */
+  implicit def toString(v: Valuable): String = v.render
+
+  /**
     * Implicit object `LoggableValuable` provides a `Loggable` implementation for the `Valuable` type.
     * This allows `Valuable` instances to be formatted as strings suitable for logging purposes.
     *

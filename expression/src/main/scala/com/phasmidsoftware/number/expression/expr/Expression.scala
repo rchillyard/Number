@@ -127,6 +127,10 @@ trait Expression extends Lazy with Approximate {
   //  val approx = simplify.approximation getOrElse Real.NaN
 }
 
+/**
+  * Provides utility methods for working with mathematical and logical expressions represented as strings.
+  * The methods are designed to process, normalize, and evaluate expressions, as well as perform operations on them.
+  */
 object ExpressionHelper {
 
   /**
@@ -142,6 +146,8 @@ object ExpressionHelper {
       Expression.parse(x).flatMap(_.evaluate(context))
     def materialize: Option[Valuable] =
       Expression.parse(x).map(_.materialize)
+    def normalize: Option[Valuable] =
+      Expression.parse(x).map(x => x.normalize)
     def render: String =
       Expression.parse(x).map(_.render).getOrElse("???")
     def plus(y: Valuable): Option[Valuable] =
@@ -216,6 +222,12 @@ object Expression {
     def unary_- : Expression =
       expression.expr.UniFunction(x, Negate)
 
+    /**
+      * Method to lazily multiply this expression by another expression.
+      *
+      * @param y another Expression to be multiplied with this expression.
+      * @return an Expression representing the lazy product of this expression and the given expression.
+      */
     infix def times(y: Expression): Expression =
       expression.expr.BiFunction(x, y, Product)
 

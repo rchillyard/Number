@@ -41,7 +41,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
     *         either as a `WholeNumber` or the current object.
     */
   def normalize: Valuable =
-    if (r.isInteger)
+    if (r.isInteger && !percentage)
       WholeNumber(r.n)
     else
       this
@@ -286,7 +286,6 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
     * and will return a failure with an appropriate exception message.
     *
     * @param that the first `Eager` instance to compare
-    * @param y    the second `Eager` instance to compare
     * @return a `Try[Boolean]` where:
     *         - `Success(true)` indicates the objects are equivalent
     *         - `Success(false)` indicates the objects are not equivalent
