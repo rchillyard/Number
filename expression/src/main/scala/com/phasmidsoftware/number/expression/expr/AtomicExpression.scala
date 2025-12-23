@@ -11,7 +11,6 @@ import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.Constants.gamma
 import com.phasmidsoftware.number.core.numerical.{Constants, Field}
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.{CompositeExpression, UniFunction}
@@ -988,7 +987,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
   * This object provides an exact representation of π and inherits capabilities
   * for evaluation, materialization, and comparison from its abstract superclass.
   */
-case object Pi extends AbstractTranscendental("\uDED1", ConstPi)
+case object Pi extends AbstractTranscendental("\uD835\uDED1", ConstPi)
 
 /**
   * Case object representing the transcendental constant `e`.
@@ -1039,7 +1038,7 @@ case object LgE extends AbstractTranscendental("log2e", Two.ln.reciprocal.simpli
   *
   * The Euler-Mascheroni constant is a transcendental entity commonly used in number theory and analysis.
   */
-case object EulerMascheroni extends AbstractTranscendental("𝛾", Literal(Eager(gamma)))
+case object EulerMascheroni extends AbstractTranscendental("𝛾", Literal(Real.𝛾))
 
 /**
   * The `Root` trait represents a mathematical root derived from a specific equation.
@@ -1157,8 +1156,34 @@ trait Root extends AtomicExpression with Branched[Root] {
   def approximation(force: Boolean): Option[Real] = None // TODO Implement me
 }
 
-trait Branched[T] extends Expression {
+/**
+  * Trait representing something that can branch into multiple sub-expressions.
+  *
+  * The `Branched` trait is a specialized type of `Expression` that allows the representation
+  * of expressions composed of multiple branches, where each branch is accessible by an index.
+  *
+  * @tparam T the type of the elements contained in the branches.
+  */
+trait Branched[T] {
+  /**
+    * Returns the number of branches in this expression.
+    *
+    * The number of branches corresponds to the count of sub-expressions
+    * within a complex expression that is represented by this instance.
+    *
+    * The behavior may vary depending on the specific implementation of the trait.
+    *
+    * @return the number of branches as an integer.
+    */
   def branches: Int
+
+  /**
+    * Retrieves the branch at the specified index.
+    *
+    * @param index the index of the branch to retrieve, where the index starts from 0.
+    * @return the element of type `T` at the specified branch index.
+    *         If the index is out of range, the behavior is implementation-specific.
+    */
   def branched(index: Int): T
 }
 
@@ -1175,8 +1200,25 @@ trait Branched[T] extends Expression {
   *               the valid range of branches supported by the equation, typically `0` or `1` for quadratic equations.
   */
 case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, branch) {
+  /**
+    * Returns the number of branches in the quadratic solution.
+    *
+    * For a quadratic equation, the number of solution branches is typically 2,
+    * corresponding to the two possible roots.
+    *
+    * @return the number of branches available for a quadratic equation.
+    */
   def branches: Int = 2
 
+  /**
+    * Constructs a `Root` for a given quadratic equation and retrieves the specific solution
+    * branch corresponding to the provided index.
+    *
+    * @param index the branch index corresponding to the desired root of the equation.
+    *              Typically, for quadratic equations, this value is 0 or 1.
+    *
+    * @return a `Root` representing the solution branch of the specified quadratic equation.
+    */
   def branched(index: Int): Root = QuadraticRoot(equ, index)
 
   /**

@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.Constants.sGamma
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import scala.reflect.ClassTag
@@ -631,6 +632,16 @@ object Real {
     * or scenarios where an infinitely large value is required or represented.
     */
   val ∞ : Real = infinity
+
+  /**
+    * Represents the Euler-Mascheroni constant, denoted as 𝛾.
+    *
+    * This value is instantiated as a `Real` and corresponds to the mathematical
+    * constant that characterizes the difference between the harmonic series and
+    * the natural logarithm. It is widely used in various branches of mathematics
+    * including number theory, analysis, and special functions.
+    */
+  val 𝛾: Real = Real(sGamma)
 
   /**
     * Provides an implicit instance of `Show` for the `Real` type.
