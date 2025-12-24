@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.number.core.numerical
 
+import com.phasmidsoftware.number.core.misc.FP
+import com.phasmidsoftware.number.core.misc.FP.readFromResource
 import com.phasmidsoftware.number.core.numerical.Divides.IntDivides
 import com.phasmidsoftware.number.core.numerical.Prime.{coprime, reciprocalPeriods}
 import com.phasmidsoftware.number.core.numerical.Primes._
-import com.phasmidsoftware.number.misc.FP
-import com.phasmidsoftware.number.misc.FP.readFromResource
 import com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time
 import java.math.BigInteger
 import scala.annotation.{tailrec, unused}

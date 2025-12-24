@@ -1,9 +1,12 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Semiring
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Nat.natIsSemiring
+import com.phasmidsoftware.number.algebra.misc.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.annotation.tailrec
+import scala.util.{Success, Try}
 
 /**
   * Represents natural numbers using Peano arithmetic.
@@ -33,6 +36,7 @@ sealed trait Nat extends Eager with N {
     *
     * @param context the evaluation context in which to determine the factor. The `Context`
     *                specifies the criteria under which the factorization is valid.
+    *
     * @return an `Option[Factor]` containing the factor if it can be determined,
     *         or `None` if no suitable factor exists within the provided `Context`.
     */
@@ -45,6 +49,32 @@ sealed trait Nat extends Eager with N {
     * @return a new natural number representing the sum of this instance and the specified natural number
     */
   def +(that: Nat): Nat
+
+  /**
+    * Attempts to compute an approximate representation of the current value.
+    *
+    * This method provides an optional approximation of the value represented by
+    * the implementing class. The approximation may account for uncertainties or
+    * computational limitations. By default, this method does not force computation
+    * of the approximation unless explicitly requested.
+    *
+    * @param force a boolean flag indicating whether to force computation of
+    *              the approximation. If `true`, the method will attempt to
+    *              generate an approximation even if such computation
+    *              is resource-intensive or not strictly necessary.
+    * @return an `Option` containing the approximate value as a `Real` if available,
+    *         or `None` if no approximation can be computed.
+    */
+  def approximation(force: Boolean): Option[Real] =
+//    summon[Convertible[Real,Nat]].convert()
+    Some(Real(toInt))
+
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: Nat, b: Nat) =>
+      Success(a == b)  // Uses Nat's equals method
+    case _ =>
+      super.eqv(that)
+  }
 
   /**
     * Increments this natural number by one.
@@ -126,7 +156,7 @@ sealed trait Nat extends Eager with N {
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  lazy val maybeDouble: Option[Double] = Some(toInt)
+//  lazy val maybeDouble: Option[Double] = Some(toInt)
 }
 
 /**
@@ -202,6 +232,8 @@ case class Succ(pred: Nat) extends Nat {
   /**
     * Converts this natural number into an integer.
     *
+    * We should CONSIDER making this either a BigInt or an Option[Long] or perhaps a SafeLong.
+    *
     * @return the integer value corresponding to this natural number
     */
   lazy val toInt: Int = {
@@ -233,6 +265,7 @@ object Nat {
     *
     * @param x A non-negative integer to be converted into a `Nat` representation.
     *          Must be greater than or equal to 0.
+    *
     * @return The `Nat` representation of the given integer. The result is `NatZero`
     *         if `x` is 0, or a `Succ` chain equivalent to `x` if `x` is greater than 0.
     */
@@ -246,6 +279,22 @@ object Nat {
     }
 
     inner(NatZero)(x)
+  }
+
+  given DyadicOperator[Nat] = new DyadicOperator[Nat] {
+    def op[B <: Nat, Z](f: (Nat, B) => Try[Z])(x: Nat, y: B): Try[Z] =
+      f(x, y)
+  }
+
+  given Eq[Nat] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[Nat]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
+  }
+
+  // Nat
+  given FuzzyEq[Nat] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y
   }
 
   /**
@@ -280,7 +329,7 @@ object Nat {
       * The addition operation is implemented iteratively with tail recursion:
       * - If both numbers are `NatZero`, the result is `NatZero`.
       * - If at least one of the numbers has a successor (`Succ`), the result
-      * is recursively incremented by adding the predecessors of the numbers.
+      *   is recursively incremented by adding the predecessors of the numbers.
       *
       * @param x the first natural number to be added
       * @param y the second natural number to be added
@@ -304,7 +353,7 @@ object Nat {
       * The multiplication operation is implemented iteratively with tail recursion:
       * - If either number is `NatZero`, the result is `NatZero`.
       * - Otherwise, the result is computed by recursively adding one number to itself
-      * based on the value of the other number.
+      *   based on the value of the other number.
       *
       * @param x the first natural number to be multiplied
       * @param y the second natural number to be multiplied

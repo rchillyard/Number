@@ -7,9 +7,9 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.inner.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.inner.Rational.toInts
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.GeneralNumber.normalizeRoot
 import com.phasmidsoftware.number.core.numerical.Number.{negate, one, prepareWithSpecialize}
-import com.phasmidsoftware.number.misc.FP
 import scala.annotation.tailrec
 import scala.util._
 
@@ -237,7 +237,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
         case _ =>
           doLog(b)
       } else
-      throw NumberException(s"log(this, b) where b <= 1")
+      throw CoreException(s"log(this, b) where b <= 1")
 
   /**
     * Method to determine the natural log of this Number.
@@ -463,7 +463,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
       case x: Complex =>
         x
       case x =>
-        throw NumberException(s"normalize problem: $x")
+        throw CoreException(s"normalize problem: $x")
     }
   }
 
@@ -707,7 +707,7 @@ object GeneralNumber {
             for (t <- x.toNominalDouble; z <- n.toNominalDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, z, x.fuzz))
         }
     }
-    FP.toTry(no, Failure(NumberException("applyFunc: logic error")))
+    FP.toTry(no, Failure(CoreException("applyFunc: logic error")))
   }
 
   /**
@@ -821,7 +821,7 @@ object GeneralNumber {
 //    case (a: ExactNumber, b: FuzzyNumber) => b doMultiply a
 //    case (a: FuzzyNumber, b) => a doMultiply b
 //    case (a: ExactNumber, b: ExactNumber) => ExactNumber.product(a, b)
-//    case _ => throw NumberException(s"GeneralNumber.times($x, $y): no match")
+//    case _ => throw CoreException(s"GeneralNumber.times($x, $y): no match")
 //  }
 
 //    x match {
@@ -896,7 +896,7 @@ object GeneralNumber {
               case Some(v) =>
                 x.make(v)
               case None =>
-                throw NumberException("power: logic error")
+                throw CoreException("power: logic error")
             }
           case Radian =>
             power(x.scale(PureNumber), r)
@@ -910,7 +910,7 @@ object GeneralNumber {
                     Number(r.toDouble)
                 }
               case _ =>
-                throw NumberException("rational power cannot be represented as two Ints")
+                throw CoreException("rational power cannot be represented as two Ints")
             }
           // TODO we should also handle some situations where r.d is not 1.
           case NthRoot(n) if r.n == n && r.d == 1 =>
@@ -930,7 +930,7 @@ object GeneralNumber {
     */
   private def root(n: Number, i: Int): Option[Number] = i match {
     case 0 =>
-      throw NumberException(s"root: logic error: cannot take ${i}th root")
+      throw CoreException(s"root: logic error: cannot take ${i}th root")
     case 1 =>
       Some(n)
     case 2 =>
@@ -1003,14 +1003,14 @@ object GeneralNumber {
     *
     * @param value the value to be normalized.
     * @param r     the root used in the normalization process.
-    * @throws NumberException if the transformation logic fails.
+    * @throws CoreException if the transformation logic fails.
     */
   private def normalizeRootOld(value: Value, r: NthRoot) = {
     Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
       case Some(q) =>
         ComplexCartesian(Number.zero, ExactNumber(q, r).scale(PureNumber))
       case None =>
-        throw NumberException("GeneralNumber.normalizeRoot: logic error")
+        throw CoreException("GeneralNumber.normalizeRoot: logic error")
     }
   }
 

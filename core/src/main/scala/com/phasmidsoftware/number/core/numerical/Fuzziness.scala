@@ -5,9 +5,9 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.MonadicOperation
+import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
-import com.phasmidsoftware.number.misc.Variance.{convolution, rootSumSquares}
 import java.text.DecimalFormat
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
 import scala.math.Numeric.DoubleIsFractional

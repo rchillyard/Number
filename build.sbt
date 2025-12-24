@@ -2,7 +2,7 @@ ThisBuild / organization := "com.phasmidsoftware"
 
 name := "Number"
 
-ThisBuild / version := "1.3.3"
+ThisBuild / version := "1.3.4"
 
 val catsVersion = "2.13.0"
 val scalaTestVersion = "3.2.19"
@@ -46,6 +46,10 @@ lazy val core = (project in file("core"))
 lazy val algebra = (project in file("algebra"))
     .settings(
       scalaVersion := "3.7.3",
+      // NOTE: we need to use the 0.18.0 version of Spire for Scala 3.7.3
+//      libraryDependencies ++= Seq(
+//        "org.typelevel" %% "spire" % "0.18.0",
+//      )
     ).dependsOn(core)
 
 lazy val expression = (project in file("expression"))

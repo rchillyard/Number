@@ -7,13 +7,13 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{inverse, negate}
 // TODO eliminate references to expression package
 import com.phasmidsoftware.number.core.expression.{Expression, ExpressionException}
-import com.phasmidsoftware.number.misc.FP.{optional, toTry}
-import com.phasmidsoftware.number.parse.NumberParser
-import com.phasmidsoftware.number.parse.RationalParser.parseComponents
+import com.phasmidsoftware.number.core.parse.NumberParser
+import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
 import scala.annotation.tailrec
 import scala.language.{implicitConversions, postfixOps}
 import scala.util._
@@ -286,7 +286,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
       case s: Algebraic =>
         s add Real(this)
       case _ =>
-        throw NumberException(s"logic error: add not supported for this addend: $x")
+        throw CoreException(s"logic error: add not supported for this addend: $x")
     }
 
   /**
@@ -334,7 +334,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     case (_, s: Algebraic) =>
       s multiply Real(this)
     case _ =>
-      throw NumberException("logic error: multiply not supported for non-Number multiplicands")
+      throw CoreException("logic error: multiply not supported for non-Number multiplicands")
   }
 
   /**
@@ -389,7 +389,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     case ComplexCartesian(x, y) =>
       ComplexPolar(doPower(x), y) // CONSIDER is this correct? // TESTME
     case _ =>
-      throw NumberException("logic error: power not supported for non-Number powers")
+      throw CoreException("logic error: power not supported for non-Number powers")
   }
 
   /**
@@ -719,12 +719,12 @@ object Number {
     *          a Number, or another acceptable form from which a Number
     *          can be created.
     * @return a Number instance created from the input x if its type matches
-    *         the expected forms. Throws a NumberException otherwise.
+    *         the expected forms. Throws a CoreException otherwise.
     */
   def apply(x: NumberLike): Number = x match {
     case r@Rational(_, _) => zero.make(r)
     case n: Number => n
-    case _ => throw NumberException(s"Cannot create a Number from $x")
+    case _ => throw CoreException(s"Cannot create a Number from $x")
   }
 
   /**
@@ -846,7 +846,7 @@ object Number {
         Number(x, PureNumber, Some(AbsoluteFuzz(implicitly[HasValue[Double]].fromDouble(p), Gaussian)))
       }
       else
-        throw NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
+        throw CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
   }
 
   /**
@@ -970,10 +970,10 @@ object Number {
       for {
         x <- parse(w) // XXX We don't strictly need this now we also have components
         components <- parseComponents(w)
-        f <- toTry(components._3, Failure(NumberException(s"no fractional part: " + w)))
+        f <- toTry(components._3, Failure(CoreException(s"no fractional part: " + w)))
         exp = components._4.getOrElse("0")
-        e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(NumberException(s"Logic error: " + exp)))
-        y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(NumberException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
+        e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(CoreException(s"Logic error: " + exp)))
+        y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
         p = y * math.pow(10, e - f.length)
       } yield x.make(Some(AbsoluteFuzz(implicitly[HasValue[Double]].fromDouble(p), Gaussian)))
   }
@@ -1069,7 +1069,7 @@ object Number {
       case Success(n) =>
         n.make(factor)
       case Failure(e) =>
-        throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
+        throw CoreExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
     }
 
   /**
@@ -1087,7 +1087,7 @@ object Number {
       case Success(n) =>
         n
       case Failure(e) =>
-        throw NumberExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
+        throw CoreExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
     }
 
   /**
@@ -1293,7 +1293,7 @@ object Number {
     */
   def parse(w: String): Try[Number] = {
     val ny: Try[Number] = numberParser.parseNumber(w) map (_.specialize)
-    ny flatMap (n => if (n.isValid) Success(n) else Failure(NumberException(s"parse: cannot parse $w as a Number")))
+    ny flatMap (n => if (n.isValid) Success(n) else Failure(CoreException(s"parse: cannot parse $w as a Number")))
   }
 
   /**
@@ -1311,7 +1311,7 @@ object Number {
       */
     def compare(x: Number, y: Number): Int = {
       if (x == Number.NaN && y == Number.NaN) 0
-      else if (x == Number.NaN || y == Number.NaN) throw NumberException("cannot compare NaN with non-NaN")
+      else if (x == Number.NaN || y == Number.NaN) throw CoreException("cannot compare NaN with non-NaN")
       else if (x.factor == NatLog && y.factor == NatLog)
         compare(x.make(PureNumber), y.make(PureNumber)) // TESTME why do we need to convert to PureNumber?
       else if (x.factor == Euler && y.factor == Euler)
@@ -1398,7 +1398,7 @@ object Number {
             prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
         }
       case (Euler, _) | (_, Euler) =>
-        throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
+        throw CoreException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
 //        n // CONSIDER will this cause problems? Should we throw an Exception instead?
       case (Logarithmic(_), Scalar(_)) =>
         scale(scale(n, NatLog), factor)
@@ -1407,7 +1407,7 @@ object Number {
       case (InversePower(_), Scalar(_)) =>
         scale(n, factor)
       case _ =>
-        throw NumberException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
+        throw CoreException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
     }
 
   // CONSIDER some of the following should probably be moved to GeneralNumber
@@ -1419,7 +1419,7 @@ object Number {
     * Imaginary numbers cannot be negated--they must first be converted to Complex form and then negated.
     *
     * @param x a Number to be negated.
-    * @return <code>-x</code> unless the negative cannot be represented, in which case a NumberException will be thrown.
+    * @return <code>-x</code> unless the negative cannot be represented, in which case a CoreException will be thrown.
     */
   @tailrec
   def negate(x: Number): Number =
@@ -1427,7 +1427,7 @@ object Number {
       case p@Scalar(_) =>
         prepare(x.transformMonadic(p)(MonadicOperationNegate))
       case NthRoot(_) if Value.signum(x.nominalValue) < 0 =>
-        throw NumberException(s"cannot negate imaginary number: $x")
+        throw CoreException(s"cannot negate imaginary number: $x")
       case _ =>
         negate(x.scale(PureNumber))
     }
@@ -1499,7 +1499,7 @@ object Number {
           }
         } else negate(sin(negate(x)))
       case None =>
-        throw NumberException(s"Number.sin: logic error")
+        throw CoreException(s"Number.sin: logic error")
     }
 
   /**
@@ -1612,9 +1612,9 @@ object Number {
         case Some(Rational(Rational.bigOne, Rational.bigThree)) =>
           Success(Rational(1, 6))
         case None =>
-          Failure(NumberException("input to atan is not rational"))
+          Failure(CoreException("input to atan is not rational"))
         case _ =>
-          Failure(NumberException("rational is not matched"))
+          Failure(CoreException("rational is not matched"))
       }
       (for (flip <- number.toNominalRational map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
         case Some(r) =>
@@ -1623,7 +1623,7 @@ object Number {
           doAtan(number.scale(PureNumber), sign)
       }
     case _ =>
-      throw NumberException("number.factor is not matched")
+      throw CoreException("number.factor is not matched")
   }
 
   /**
@@ -1711,7 +1711,7 @@ object Number {
       *
       * @param x the number to be converted to a `Long`
       * @return the `Long` representation of the given number
-      * @throws NumberException if the conversion is not possible
+      * @throws CoreException if the conversion is not possible
       */
     def toLong(x: Number): Long = x match {
       case z: GeneralNumber =>
@@ -1723,7 +1723,7 @@ object Number {
               case Some(z) =>
                 Math.round(z)
               case None =>
-                throw NumberException("toLong: this is invalid")
+                throw CoreException("toLong: this is invalid")
             }
         }
     }
@@ -1733,13 +1733,13 @@ object Number {
       *
       * @param x the `Number` instance to be converted to a `Double`
       * @return the `Double` representation of the input `Number`
-      * @throws NumberException if the `Number` instance cannot be converted to a `Double`
+      * @throws CoreException if the `Number` instance cannot be converted to a `Double`
       */
     def toDouble(x: Number): Double = x.maybeNominalDouble match {
       case Some(y) =>
         y
       case None =>
-        throw NumberException("toDouble: this is invalid")
+        throw CoreException("toDouble: this is invalid")
     }
 
     /**
@@ -1790,6 +1790,6 @@ object Number {
   }
 }
 
-case class NumberException(str: String) extends Exception(str)
+case class CoreException(str: String) extends Exception(str)
 
-case class NumberExceptionWithCause(str: String, e: Throwable) extends Exception(str, e)
+case class CoreExceptionWithCause(str: String, e: Throwable) extends Exception(str, e)

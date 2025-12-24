@@ -395,15 +395,15 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     */
   def applyExact(a: Eager, b: Eager): Option[Eager] =
     (a, b) match {
-      case (x: Scalar, Valuable.zero) if x.signum > 0 =>
+      case (x: Scalar, Eager.zero) if x.signum > 0 =>
         Some(Angle.zero)
-      case (x: Scalar, Valuable.zero) if x.signum < 0 =>
+      case (x: Scalar, Eager.zero) if x.signum < 0 =>
         Some(Angle.pi) // TESTME
-      case (Valuable.one, Valuable.one) =>
+      case (Eager.one, Eager.one) =>
         Some(Angle.piBy4)
-      case (Valuable.one, Valuable.root3) =>
+      case (Eager.one, Eager.root3) =>
         Some(Angle.piBy3)
-      case (Valuable.zero, Valuable.one) =>
+      case (Eager.zero, Eager.one) =>
         Some(Angle.piBy2)
       case (Real(ExactNumber(x, PureNumber)), Real(ExactNumber(y, PureNumber))) => // TESTME
         for
@@ -466,18 +466,18 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
     (a, b) match {
       case (_, base: Number) if base <= Number.one =>
         None // CONSIDER throwing an exception here instead
-      case (Valuable.one, _) =>
-        Some(Valuable.zero)
-      case (Real(x@ExactNumber(_, Log2)), Valuable.two) =>
+      case (Eager.one, _) =>
+        Some(Eager.zero)
+      case (Real(x@ExactNumber(_, Log2)), Eager.two) =>
         Some(Eager(Real(x.make(PureNumber))))
-      case (Real(x@ExactNumber(_, Log10)), Valuable.ten) =>
+      case (Real(x@ExactNumber(_, Log10)), Eager.ten) =>
         Some(Eager(Real(x.make(PureNumber))))
-      case (Real(x@ExactNumber(_, NatLog)), Valuable.e) => // XXX not strictly necessary as this will be handled by the default case
+      case (Real(x@ExactNumber(_, NatLog)), Eager.e) => // XXX not strictly necessary as this will be handled by the default case
         Some(Eager(Real(x.make(PureNumber))))
-      case (Real(x@ExactNumber(_, Euler)), Valuable.e) =>
+      case (Real(x@ExactNumber(_, Euler)), Eager.e) =>
         Some(Eager(ComplexPolar(numerical.Number.one, x.make(Radian).simplify)))
       case _ if a == b =>
-        Some(Valuable.one)
+        Some(Eager.one)
       case _ =>
         Some(f(a, b))
     }
@@ -511,15 +511,15 @@ case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
     *         otherwise, `None`.
     */
   def applyExact(x: Eager): Option[Eager] = x match {
-    case Valuable.e =>
-      Some(Valuable.one)
-    case Valuable.one =>
-      Some(Valuable.zero)
-    case Valuable.zero =>
-      Some(Valuable.negInfinity)
-    case Valuable.infinity =>
+    case Eager.e =>
+      Some(Eager.one)
+    case Eager.one =>
+      Some(Eager.zero)
+    case Eager.zero =>
+      Some(Eager.negInfinity)
+    case Eager.infinity =>
       Some(x)
-    case Valuable.minusOne =>
+    case Eager.minusOne =>
       Some(Eager(-ComplexPolar(numerical.Number.pi, numerical.Number.piBy2)))
     case _ =>
       None
@@ -553,12 +553,12 @@ case object Exp extends ExpressionMonoFunction("exp", lift1(x => x.exp)) {
     * @return `Some(Valuable)` if the input matches a predefined case, or `None` otherwise.
     */
   def applyExact(x: Eager): Option[Eager] = x match {
-    case Valuable.negInfinity =>
-      Some(Valuable.zero)
-    case Valuable.zero =>
-      Some(Valuable.one) // TESTME
-    case Valuable.one =>
-      Some(Valuable.e)
+    case Eager.negInfinity =>
+      Some(Eager.zero)
+    case Eager.zero =>
+      Some(Eager.one) // TESTME
+    case Eager.one =>
+      Some(Eager.e)
     case _ =>
       None
   }
@@ -710,21 +710,21 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
   * - The operation is marked as exact, ensuring the result is always precise when the inputs are exact.
   * - It inherits the commutative property from `ExpressionBiFunction`, as multiplication is commutative.
   */
-case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply y), isExact = true, Some(Valuable.one), maybeIdentityR = None) {
+case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply y), isExact = true, Some(Eager.one), maybeIdentityR = None) {
   /**
     * Evaluates two `Valuable` instances under certain trivial conditions and determines the result.
     *
-    * This method returns `Some(Valuable.zero)` if either of the input `Valuable` instances is
-    * equal to `Valuable.zero`. Otherwise, it returns `None`.
+    * This method returns `Some(Eager.zero)` if either of the input `Valuable` instances is
+    * equal to `Eager.zero`. Otherwise, it returns `None`.
     *
     * @param a the first `Valuable` instance to evaluate.
     * @param b the second `Valuable` instance to evaluate.
-    * @return an `Option[Valuable]` containing `Valuable.zero` if trivial conditions are met;
+    * @return an `Option[Valuable]` containing `Eager.zero` if trivial conditions are met;
     *         otherwise, `None`.
     */
   override def trivialEvaluation(a: Eager, b: Eager): Option[Eager] = (a, b) match {
-    case (Valuable.zero, _) | (_, Valuable.zero) =>
-      Some(Valuable.zero)
+    case (Eager.zero, _) | (_, Eager.zero) =>
+      Some(Eager.zero)
     case _ =>
       None
   }
@@ -766,7 +766,7 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
   }
 
   /**
-    * Multiplies two Valuable instances under specific conditions and returns the result as an optional Valuable.
+    * Multiplies two Valuable instances under specific conditions and returns the result as an optional Eager.
     *
     * The method checks the type and characteristics of the second operand `b` (the multiplier)
     * and applies an exact mathematical operation to the first operand `a` (the multiplicand)
@@ -782,15 +782,17 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
     */
   @tailrec
   def applyExact(a: Eager, b: Eager): Option[Eager] = (a, b) match {
-    case (Valuable.one, _) =>
+    case (Eager.one, _) =>
       Some(b)
-    case (_, Valuable.one) =>
+    case (_, Eager.one) =>
       Some(a)
-    case (Valuable.zero, _) | (_, Valuable.zero) =>
-      Some(Valuable.zero)
+    case (Eager.zero, _) | (_, Eager.zero) =>
+      Some(Eager.zero)
     case (x: CanMultiply[Number, Number] @unchecked, y: Number) =>
+      // TODO asInstanceOf
       Option.when(x.isExact && y.isExact)((x * y).asInstanceOf[Eager]).filter(_.isExact)
     case (x: Number, y: CanMultiply[Number, Number] @unchecked) =>
+      // TODO asInstanceOf
       Option.when(x.isExact && y.isExact)((y * x).asInstanceOf[Eager]).filter(_.isExact)
 //    case (x: CanScale[Structure, Number] @unchecked, y: Number) =>
 //      val maybeStructure = FP.whenever(x.isExact && y.isExact)(x.doScale(y))
@@ -816,12 +818,12 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
   * This operation raises the first operand to the power of the second operand.
   * It is not exact for all inputs and does not commute.
   *
-  * TODO check on Valuable.zero as identityL.
+  * TODO check on Eager.zero as identityL.
   *
   * Extends `ExpressionBiFunction` where the specific function is implemented
   * using the `power` method from the `Valuable` class.
   */
-case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)), isExact = false, None, Some(Valuable.one)) {
+case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)), isExact = false, None, Some(Eager.one)) {
   /**
     * Evaluates two `Valuable` instances and determines a trivial result based on predefined conditions.
     * Specifically, it checks if the first `Valuable` instance is equivalent to the constant `zero`.
@@ -831,11 +833,11 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     * @return an `Option[Valuable]`, where `Some(a)` is returned if `a` is `zero`; otherwise, `None`.
     */
   override def trivialEvaluation(a: Eager, b: Eager): Option[Eager] = (a, b) match {
-    case (Valuable.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero, _) =>
+    case (Eager.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero, _) =>
       Some(a) // TESTME
-    case (_, Valuable.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero) =>
-      Some(Valuable.one) // TESTME
-    case (_, Valuable.one | RationalNumber.one) =>
+    case (_, Eager.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero) =>
+      Some(Eager.one) // TESTME
+    case (_, Eager.one | RationalNumber.one) =>
       Some(a) // TESTME
     case (p: WholeNumber, q: Q) =>
       p.asInstanceOf[CanPower[WholeNumber]].pow(RationalNumber(q.toRational)).asInstanceOf[Option[Eager]]
@@ -879,8 +881,8 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     *         or `None` if the operation fails to meet exactness requirements.
     */
   def applyExact(a: Eager, b: Eager): Option[Eager] = (a, b) match {
-    case (Valuable.one, _) =>
-      Some(Valuable.one)
+    case (Eager.one, _) =>
+      Some(Eager.one)
     case (_, com.phasmidsoftware.number.algebra.Real.infinity | RationalNumber.infinity) =>
       Some(b)
     case (x: CanPower[Scalar] @unchecked, y: Q) if x.isExact && y.isExact =>
@@ -923,13 +925,13 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine the
     */
   def applyExact(x: Eager): Option[Eager] = x match {
     case Angle.zero =>
-      Some(if sine then Valuable.zero else Valuable.one)
+      Some(if sine then Eager.zero else Eager.one)
     case Angle.`piBy2` =>
-      Some(if sine then Valuable.one else Valuable.zero)
+      Some(if sine then Eager.one else Eager.zero)
     case Angle.pi =>
-      Some(if sine then Valuable.zero else Valuable.minusOne)
+      Some(if sine then Eager.zero else Eager.minusOne)
     case Angle.piBy2Times3 =>
-      Some(if sine then Valuable.minusOne else Valuable.zero) // TESTME
+      Some(if sine then Eager.minusOne else Eager.zero) // TESTME
     case _ =>
       None // TESTME
   }

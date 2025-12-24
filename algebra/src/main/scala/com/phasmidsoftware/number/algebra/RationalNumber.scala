@@ -5,9 +5,10 @@ import cats.Show
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
+import scala.util.{Success, Try}
 
 /**
   * Represents a rational number based on the `Rational` type, providing various
@@ -21,14 +22,15 @@ import scala.reflect.ClassTag
   * ensuring that operations maintain a high level of numeric fidelity.
   *
   * CONSIDER adding a percentage flag to Real.
+  * CONSIDER merging the Rational class into this class (there's no compelling reason to have two separate classes).
   *
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
-  * @param r The `Rational` value represented by this `RationalNumber`.
+  * @param r          The `Rational` value represented by this `RationalNumber`.
   * @param percentage whether this is a percentage value or not.
   *                   Similarly to the `degrees` attribute of `Angle`,
   *                   this is a flag that is primarily cosmetic.
   */
-case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Number {
+case class RationalNumber(r: Rational, percentage: Boolean = false) extends Number with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Exact {
   /**
     * Subtracts the given rational number from this one.
     *
@@ -95,7 +97,9 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q wi
     case RationalNumber(o, _) =>
       Some(r.compareTo(o))
     case WholeNumber(x) =>
-      Some(r.compare(Rational(x.toBigInt)))
+      Some(r.compare(Rational(x)))
+    case Real(v, None) => // exact Real only
+      Some(r.toDouble.compare(v))
     case _ =>
       None
   }
@@ -139,7 +143,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q wi
     * @return an `Option[T]` containing the result of the power operation if valid, 
     *         or `None` if the operation could not be performed
     */
-  infix def pow(that: RationalNumber): Option[RationalNumber] = 
+  infix def pow(that: RationalNumber): Option[RationalNumber] =
     r.power(that.r).map(RationalNumber(_)).toOption
 
   /**
@@ -216,17 +220,6 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q wi
   override def isExact: Boolean = true
 
   /**
-    * Retrieves an optional `Double` representation of the current rational number.
-    * This method checks if the rational number can be exactly represented as a `Double`.
-    * If it can, the value is converted to `Double` and returned wrapped in `Some`.
-    * Otherwise, `None` is returned.
-    *
-    * @return an `Option[Double]`, where `Some(Double)` is returned if the rational
-    *         number can be exactly represented as a `Double`, and `None` otherwise.
-    */
-  def maybeDouble: Option[Double] = r.maybeDouble
-
-  /**
     * Checks if the value represented by this instance is zero.
     *
     * @return true if the value is zero, false otherwise
@@ -269,6 +262,27 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Q wi
     */
   def unary_- : RationalNumber =
     rationalNumberIsField.negate(this)
+
+  /**
+    * Compares two instances of `Eager` for equality.
+    *
+    * This method is intended to check if the provided instances, `x` and `y`,
+    * are equivalent. Currently, this functionality is not implemented
+    * and will return a failure with an appropriate exception message.
+    *
+    * @param that the first `Eager` instance to compare
+    * @param y    the second `Eager` instance to compare
+    * @return a `Try[Boolean]` where:
+    *         - `Success(true)` indicates the objects are equivalent
+    *         - `Success(false)` indicates the objects are not equivalent
+    *         - `Failure` indicates this functionality is not implemented
+    */
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (RationalNumber(rx, _), RationalNumber(ry, _)) =>
+      Success(rx == ry)
+    case _ =>
+      super.eqv(that)
+  }
 }
 
 /**
@@ -339,17 +353,42 @@ object RationalNumber {
     Show.show(_.render)
 
   /**
-    * Provides an implicit instance of the `Eq` typeclass for the `RationalNumber` class.
-    * NOTE that we do not consider the `percentage` flag when comparing two `RationalNumber`s for equality.
+    * A given instance of `DyadicOperator` for `RationalNumber` that provides an implementation of 
+    * the `op` method, enabling the execution of a dyadic operation on two rational numbers. 
+    * The operation is defined by a user-supplied function `f`, which specifies how the operands 
+    * should be combined and produces a result wrapped in a `Try`.
     *
-    * This instance allows for equality comparison between two `RationalNumber` instances,
-    * based on the equality of their underlying `Rational` representations (`r` field of `RationalNumber`).
-    * It ensures that two `RationalNumber` instances with the same rational value are considered equal.
+    * @return A `Try[Z]` representing the result of the operation `f` applied to the operands,
+    *         or an exception if the operation fails.
     */
-  implicit val rationalNumberEq: Eq[RationalNumber] = Eq.instance {
-    (a1, a2) =>
-      // NOTE that we should be using the === operator here, but it hasn't been defined yet for for Rational.
-      a1.r == a2.r
+  given DyadicOperator[RationalNumber] = new DyadicOperator[RationalNumber] {
+    def op[B <: RationalNumber, Z](f: (RationalNumber, B) => Try[Z])(x: RationalNumber, y: B): Try[Z] =
+      f(x, y)
+  }
+
+  /**
+    * Provides an instance of `Eq[RationalNumber]`, enabling equality comparison
+    * between two `RationalNumber` instances.
+    *
+    * @return an `Eq[RationalNumber]` instance that defines equality by delegating to
+    *         the `eqv` method of `RationalNumber`, or returning `false` if undefined
+    */
+  given Eq[RationalNumber] = Eq.instance {
+    (x, y) => x.eqv(y).getOrElse(false)
+  }
+
+  /**
+    * Provides an instance of the `FuzzyEq` type class for `RationalNumber`.
+    *
+    * This instance defines the fuzzy equality for `RationalNumber` using
+    * the `==` operator to compare two `RationalNumber` instances based on
+    * their exact equality.
+    *
+    * @return a `FuzzyEq[RationalNumber]` instance defining the fuzzy equality for `RationalNumber`
+    */
+  given FuzzyEq[RationalNumber] = FuzzyEq.instance {
+    (x, y, p) =>
+      x == y  // Use == here, not ===
   }
 
   /**
@@ -388,13 +427,46 @@ object RationalNumber {
   val infinity: RationalNumber =
     RationalNumber(Rational.infinity)
 
+  /**
+    * Provides a given instance of the `Convertible` typeclass for `RationalNumber` to `RationalNumber`.
+    *
+    * This instance defines a no-op conversion, where a `RationalNumber` is returned as-is
+    * when converted to another `RationalNumber`. It enables compatibility with the `Convertible`
+    * typeclass interface, but does not alter or transform the provided `RationalNumber`.
+    *
+    * @param witness an optional `RationalNumber` instance provided as a template (unused in this implementation)
+    * @param u       the `RationalNumber` instance to be returned
+    * @return the input `RationalNumber` returned directly without modification
+    */
   given Convertible[RationalNumber, RationalNumber] with
     def convert(witness: RationalNumber, u: RationalNumber): RationalNumber = u
 
+  /**
+    * Provides an instance of the `Convertible` typeclass for transforming
+    * an instance of `Real` into a `RationalNumber`.
+    *
+    * This conversion attempts to recover a `RationalNumber` representation
+    * from a given `Real` object. If the `Real` instance cannot be converted
+    * into a `RationalNumber`, an `AlgebraException` is thrown describing 
+    * the failure.
+    *
+    * @param witness a `RationalNumber` template object used as a reference during the conversion
+    * @param u       the `Real` object to be converted into a `RationalNumber`
+    * @return a `RationalNumber` instance that is equivalent to the provided `Real`,
+    *         if the conversion is successful
+    */
   given Convertible[RationalNumber, Real] with
     def convert(witness: RationalNumber, u: Real): RationalNumber =
       FP.recover(u.toMaybeRationalNumber)(AlgebraException("cannot convert $u to RationalNumber"))
 
+  /**
+    * Provides a given instance of the `Convertible` type class to enable the conversion
+    * of a `WholeNumber` into a `RationalNumber`.
+    *
+    * This implementation defines the `convert` method, which delegates the conversion
+    * of a `WholeNumber` to its corresponding `RationalNumber` representation by invoking
+    * the `toRationalNumber` method on the `WholeNumber` instance.
+    */
   given Convertible[RationalNumber, WholeNumber] with
     def convert(witness: RationalNumber, u: WholeNumber): RationalNumber =
       u.toRationalNumber

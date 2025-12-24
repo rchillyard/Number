@@ -2,13 +2,15 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeGroup, Ring}
 import cats.Show
+import cats.implicits.catsSyntaxEq
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.FP
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber, NumberException}
-import com.phasmidsoftware.number.parse.NumberParser
+import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
+import com.phasmidsoftware.number.core.parse.NumberParser
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -28,7 +30,8 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with CanAddAndSubtract[Real, Real] with Number with Scalable[Real] {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] {
+
   /**
     * Converts the current instance to a Double representation.
     * CONSIDER changing to maybeDouble returning Option[Double].
@@ -39,7 +42,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
 
   /**
     * Converts the specified value into an exact rational representation if possible,
-    * and wraps it in an Option. If the conversion fails, returns None.
+    * and wraps it in an Option. If the conversion fails, it returns None.
     *
     * @return Some instance of Q if the conversion is successful, or None if it fails.
     */
@@ -60,7 +63,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
   /**
     * Converts the given numeric value to an optional representation.
     *
-    * This method accepts a number of type T, where T is a subtype of Number,
+    * This method accepts a number of type `T`, where `T` is a subtype of Number,
     * and returns an Option containing the input number if certain conditions
     * (not detailed in this method's implementation) are met, otherwise None.
     *
@@ -94,8 +97,20 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] =
+  override def maybeDouble: Option[Double] =
     Option.when(isExact)(value)
+
+  /**
+    * Converts the approximate representation of this number into a `Double`.
+    *
+    * This method attempts to approximate the value of this number by invoking
+    * the `approximation` method with `force = true`. If the approximation exists,
+    * it is converted to a `Double`. If no approximation can be obtained, a
+    * `AlgebraException` is thrown to indicate a logic error.
+    *
+    * @return the approximate value as a `Double`.
+    */
+  override def toDouble: Double = value
 
   /**
     * Determines if the current number is equal to zero.
@@ -149,7 +164,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     *
     * @param that the `Number` to compare against
     * @return an integer value:
-    *         - negative if the current `Number` is less than `that`
+    *         - negative if the current `Number` is lower than `that`
     *         - zero if the current `Number` is equal to `that`
     *         - positive if the current `Number` is greater than `that`
     */
@@ -183,7 +198,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     case r: Real =>
       realIsRing.compare(this, r)
     case n =>
-      FP.getOrThrow(n.approximation(true).map(a => compare(a)), NumberException(s"Real.compare: logic error: $this, $that"))
+      FP.getOrThrow(n.approximation(true).map(a => compare(a)), AlgebraException(s"Real.compare: logic error: $this, $that"))
   }
 
   /**
@@ -199,7 +214,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
   /**
     * Subtracts the specified `Real` value from this `Real` value.
     *
-    * @param that     the `Real` value to subtract from this `Real` value
+    * @param that  the `Real` value to subtract from this `Real` value
     * @param using evidence parameter providing an `AdditiveCommutativeGroup` instance for `Real`
     * @return the result of subtracting `that` from this `Real` value
     */
@@ -228,6 +243,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     * the `realIsRing.plus` method. For other scalar types, it attempts
     * to convert them to a compatible type with this scalar and computes the
     * result if the conversion is successful.
+    *
+    * CONSIDER eliminating this method.
     *
     * @param that the `Scalar` to be added to the current scalar
     * @return an `Option[Scalar]` containing the result of the addition,
@@ -309,6 +326,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
 
   /**
     * Scales the current `Real` instance by the mathematical constant π (pi).
+    * CONSIDER make this package private again
     *
     * This method creates a new `Real` by multiplying the internal value of
     * the current instance with the constant π.
@@ -316,7 +334,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     *
     * @return a new `Real` instance with its value scaled by π
     */
-  private[algebra] lazy val scaleByPi: Real =
+  lazy val scaleByPi: Real =
     Real(value * Real.pi.value, Some(Fuzziness.doublePrecision))
 
   /**
@@ -328,6 +346,60 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends R with C
     */
   def power(r: Rational): Option[Real] =
     Some(Real(math.pow(value, r.toDouble), fuzz.map(Fuzziness.scaleTransform(r.toDouble))))
+
+  /**
+    * Determines whether this instance is equivalent to another instance of type `Eager`.
+    *
+    * @param that The instance of `Eager` to compare with this instance.
+    * @return A `Try[Boolean]` indicating success with `true` if the instances are equivalent, 
+    *         success with `false` if they are not, or a failure in case of an error.
+    */
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: Real, b: Real) =>
+      Success(a == b)
+    case _ =>
+      super.eqv(that)
+  }
+
+  /**
+    * Determines if the given `that` object is approximately equal to this object within a specified precision `p`.
+    *
+    * This method performs fuzzy equivalence checks between two objects, incorporating uncertainty
+    * when the objects have associated fuzziness. The comparison logic adjusts based on whether both,
+    * one, or neither of the objects are fuzzy. For two fuzzy objects, their combined uncertainty is
+    * considered. For one fuzzy and one exact object, a more lenient comparison is applied. For two 
+    * exact objects, strict equality is used.
+    *
+    * @param p    A precision threshold used for fuzzy comparison. Represents the allowable margin of error within which 
+    *             the two objects are considered equivalent.
+    * @param that The object with which equivalence is being checked.
+    * @return A `Try[Boolean]` indicating whether this object and the given object are approximately equal 
+    *         within the specified precision threshold.
+    */
+  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: Real, b: Real) =>
+      // TODO this is Claude's code. It works but we shouldn't need to separate non-fuzzy from fuzzy values.
+      // If both are fuzzy, check if they overlap within their combined uncertainty
+      (a.fuzz, b.fuzz) match {
+        case (Some(_), Some(_)) =>
+          // Both fuzzy - compute difference and check if probably zero
+          val diff = realIsRing.minus(a, b)
+          Valuable.valuableToField(diff) match {
+            case numerical.Real(x) =>
+              Success(x.isProbablyZero(p))
+            case _ =>
+              Success(false)
+          }
+        case (None, None) =>
+          // Both exact - use exact equality
+          Success(a.value == b.value)
+        case _ =>
+          // One fuzzy, one exact - be more lenient
+          Success(Math.abs(a.value - b.value) < 1e-9)
+      }
+    case _ =>
+      super.fuzzyEqv(p)(that)
+  }
 }
 
 /**
@@ -344,7 +416,7 @@ object Real {
     * Constructs a `Real` instance using the given long value and no fuzziness.
     *
     * This method converts the specified long value to a double and delegates to the
-    * corresponding `apply(value: Double, fuzziness: Option[Fuzziness[Double]])` method
+    * corresponding method `apply(value: Double, fuzziness: Option[Fuzziness[Double]])`
     * to construct the `Real` instance.
     *
     * @param value the long value to be associated with the `Real`
@@ -376,27 +448,116 @@ object Real {
 
   /**
     * Parses a string representation of a number and constructs a `Real` instance.
-    * If the input string cannot be parsed into a valid number, a `NumberException` is thrown.
+    * If the input string cannot be parsed into a valid number, a `AlgebraException` is thrown.
     *
     * @param w the input string to be parsed and converted into a `Real` instance
     * @return a `Real` instance constructed from the parsed numeric value of the input string
     */
   def apply(w: String): Real = {
     val z: Try[numerical.Real] = NumberParser.parseNumber(w).map(x => numerical.Real(x))
-    FP.getOrThrow[Real](z.map(x => Real(x)).toOption, NumberException(s"Real.apply(String): cannot parse $w"))
+    FP.getOrThrow[Real](z.map(x => Real(x)).toOption, AlgebraException(s"Real.apply(String): cannot parse $w"))
   }
 
+  /**
+    * Given instance of `Convertible` for converting a value of type `Real` into another value of type `Real`.
+    *
+    * This implementation of `Convertible` performs an identity operation, where the given input value
+    * is returned as-is without any modifications.
+    *
+    * @tparam Real the target and source type for conversion
+    */
   given Convertible[Real, Real] with
     def convert(witness: Real, u: Real): Real = u
 
+  /**
+    * Provides a given instance of the `Convertible` typeclass to enable conversion
+    * from an instance of `RationalNumber` to an instance of `Real`.
+    *
+    * This given instance defines a concrete implementation of the `convert` method
+    * that transforms a `RationalNumber` into a `Real` by utilizing the `toDouble` method
+    * of the `RationalNumber` class. The `convert` method takes a `Real` witness object
+    * (serving as a prototype for the conversion) and a `RationalNumber` to be converted.
+    *
+    * The resulting `Real` is constructed using the numeric value of the `RationalNumber`
+    * (converted to a `Double`) and the default fuzziness of the `Real`.
+    *
+    * @define witness the `Real` witness object used as a prototype for the conversion
+    * @define u       the source `RationalNumber` instance to be converted to a `Real`
+    * @return a new `Real` instance representing the converted `RationalNumber`
+    */
   given Convertible[Real, RationalNumber] with
     def convert(witness: Real, u: RationalNumber): Real = Real(u.toDouble)
 
+  /**
+    * A given instance of the `Convertible` typeclass that provides a conversion
+    * from `WholeNumber` to `Real`.
+    *
+    * The conversion is performed by taking the `WholeNumber` value, converting it
+    * to a `Double`, and then constructing a `Real` instance using the converted value.
+    *
+    * This implementation assumes that the `Real` type represents a numerical value
+    * with support for double-precision, and the `WholeNumber` type represents an
+    * integer-like structure.
+    *
+    * @tparam T the target type (`Real`) of the conversion
+    * @tparam U the source type (`WholeNumber`) of the conversion
+    */
   given Convertible[Real, WholeNumber] with
     def convert(witness: Real, u: WholeNumber): Real = Real(u.toDouble)
 
+  /**
+    * A given instance of the `Convertible` typeclass for transforming an instance of type `Angle`
+    * into a `Real` using a conversion operation.
+    *
+    * This implementation creates a new `Real` by extracting the numerical value from the `Angle`
+    * instance and wrapping it within the `Real` type.
+    *
+    * @param witness an instance of type `Real`, representing additional context for the conversion
+    * @param u       the source `Angle` instance to be converted into a `Real`
+    * @return a new `Real` instance containing the numerical value derived from the input `Angle`
+    */
   given Convertible[Real, Angle] with
     def convert(witness: Real, u: Angle): Real = Real(u.asDouble)
+
+
+  /**
+    * Implicit implementation of the `DyadicOperator` trait for the `Real` type.
+    * This operator allows performing dyadic operations on instances of `Real`
+    * and its subtypes using a provided function `f` that specifies the operation.
+    *
+    * @return A `DyadicOperator[Real]` that applies the given operation `f` to two
+    *         operands of `Real` and its subtypes, encapsulating the result in a `Try`.
+    */
+  given DyadicOperator[Real] = new DyadicOperator[Real] {
+    def op[B <: Real, Z](f: (Real, B) => Try[Z])(x: Real, y: B): Try[Z] =
+      f(x, y)
+  }
+
+  /**
+    * Provides an instance of `Eq` for the `Real` type, enabling equality comparison between `Real` instances.
+    *
+    * This instance defines the equality operation for `Real` values by using their `eqv` method,
+    * which checks for equivalence. If the equivalence check returns `None`, it defaults to `false`.
+    *
+    * @return an instance of `Eq[Real]` for comparing `Real` instances
+    */
+  given Eq[Real] = Eq.instance {
+    (x, y) => x.eqv(y).getOrElse(false)
+  }
+
+  /**
+    * Defines a given instance of the `FuzzyEq` type class for the `Real` type.
+    *
+    * This instance provides a fuzzy equality implementation for `Real` numbers.
+    * Two `Real` instances are considered fuzzily equal if they are strictly equal
+    * or if their fuzzy equality (with respect to a specified probability `p`) evaluates to true.
+    *
+    * @return A `FuzzyEq[Real]` instance enabling fuzzy equality comparisons for `Real`.
+    */
+  given FuzzyEq[Real] = FuzzyEq.instance {
+    (x, y, p) =>
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
+  }
 
   /**
     * Constructs a new `Real` instance based on the values of an existing `Real`.
@@ -480,11 +641,11 @@ object Real {
       * @param y the second Real operand
       * @return the sum of the two Real instances
       */
-    def plus(x: Real, y: Real): Real = {
-      val value = x.value + y.value
-      val combination = Fuzziness.combine(x.value, y.value, relative = false, independent = true)(x.fuzz -> y.fuzz)
-      Real(value, combination)
-    }
+    def plus(x: Real, y: Real): Real =
+      Real(
+        value = x.value + y.value,
+        fuzz = Fuzziness.combine(x.value, y.value, relative = false, independent = true)(x.fuzz -> y.fuzz)
+      )
 
     /**
       * Multiplies two Real instances and returns the result.
@@ -493,10 +654,11 @@ object Real {
       * @param y the second Real instance
       * @return the product of the two Real instances
       */
-    def times(x: Real, y: Real): Real = {
-      val value = x.value * y.value
-      Real(value, Fuzziness.combine(x.value, y.value, relative = true, independent = true)(x.fuzz -> y.fuzz))
-    }
+    def times(x: Real, y: Real): Real =
+      Real(
+        value = x.value * y.value,
+        fuzz = Fuzziness.combine(x.value, y.value, relative = true, independent = true)(x.fuzz -> y.fuzz)
+      )
 
     /**
       * Computes the negation of the given fuzzy number.

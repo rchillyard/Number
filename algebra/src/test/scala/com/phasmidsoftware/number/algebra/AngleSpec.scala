@@ -6,7 +6,7 @@ import com.phasmidsoftware.number.core.numerical.{Box, RelativeFuzz}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class AngleSpec extends AnyFlatSpec with Matchers with StructuralEquality {
+class AngleSpec extends AnyFlatSpec with Matchers with AssertionHelpers {
 
   private val zero: Angle = Angle.zero
   private val pi: Angle = Angle.pi
@@ -70,8 +70,8 @@ class AngleSpec extends AnyFlatSpec with Matchers with StructuralEquality {
   private val degrees180 = Angle.degrees(Value.fromInt(180))
 
   it should "test equivalence" in {
-    degrees180 should ===(pi)
-    degrees180 should ===(Angle.𝛑)
+    assertEq(degrees180, pi)
+    assertEq(degrees180, Angle.𝛑)
   }
   it should "test creation" in {
     Angle.degrees(Value.fromInt(0)) shouldBe Angle(Number.zero, true)

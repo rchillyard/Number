@@ -10,11 +10,11 @@ import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic
 import com.phasmidsoftware.number.core.expression.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.core.expression.Root.phi
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
+import com.phasmidsoftware.number.core.mill.{Expr, Stack, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
-import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, NumberException, Real}
-import com.phasmidsoftware.number.mill.{Expr, Stack, TerminalExpression}
-import com.phasmidsoftware.number.parse.ShuntingYardParser
+import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, CoreException, Real}
+import com.phasmidsoftware.number.core.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -221,7 +221,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "fail to evaluate log 1 x or log 0 x" in {
     val base = Expression.apply(1)
-    a[NumberException] should be thrownBy Two.log(base).materialize.asNumber
+    a[CoreException] should be thrownBy Two.log(base).materialize.asNumber
   }
   it should "evaluate ln E" in {
     val x: Expression = ConstE

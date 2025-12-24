@@ -6,11 +6,11 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.core.numerical.BaseComplex.narrow
 import com.phasmidsoftware.number.core.numerical.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{negate, two, zero, zeroR}
-import com.phasmidsoftware.number.misc.FP.recover
 
 /**
   * Abstract base class which implements Complex.
@@ -185,7 +185,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case (ComplexCartesian(_, Number.zeroR), x) =>
       power(x)
     case _ =>
-      throw NumberException(s"power not supported for: $this ∧ $p")
+      throw CoreException(s"power not supported for: $this ∧ $p")
   }
 
   /**
@@ -396,7 +396,7 @@ object BaseComplex {
     case Real(x) =>
       ComplexCartesian(x, Number.zero)
     case _ =>
-      throw NumberException(s"BaseComplex: narrow: x can't be matched: $x")
+      throw CoreException(s"BaseComplex: narrow: x can't be matched: $x")
   }
 }
 
@@ -1011,7 +1011,7 @@ object ComplexPolar {
     * @param theta the angle of the ComplexPolar object, represented as a Number in radians
     * @param n     the root count, specifying the number of branches; typically an integer greater than or equal to 1
     * @return a ComplexPolar object with the specified magnitude, angle (modulated if necessary), and root count
-    * @throws NumberException if the provided angle does not match the expected format or type
+    * @throws CoreException if the provided angle does not match the expected format or type
     */
   def apply(r: Number, theta: Number, n: Int): ComplexPolar = theta match {
     case ExactNumber(x, Radian) if Value.signum(x) == 0 =>
@@ -1021,7 +1021,7 @@ object ComplexPolar {
     case Number(_, Radian) =>
       new ComplexPolar(r, theta.modulate, n)
     case _ =>
-      throw NumberException(s"no match for $theta")
+      throw CoreException(s"no match for $theta")
   }
 
   /**

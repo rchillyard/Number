@@ -6,13 +6,13 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Complex, Context, Eager, Monotone, Nat, NatLog, Number, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Complex, Context, Eager, Monotone, Nat, NatLog, Number, RationalNumber, Real, RestrictedContext, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.gamma
-import com.phasmidsoftware.number.core.numerical.{Constants, Field, NumberException}
+import com.phasmidsoftware.number.core.numerical.{Constants, Field}
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.{CompositeExpression, UniFunction}
 import java.util.Objects
@@ -21,8 +21,6 @@ import scala.language.implicitConversions
 /**
   * An Expression that is based on one simple constant value.
   */
-
-/** sealed */
 sealed trait AtomicExpression extends Expression {
 
   /**
@@ -182,7 +180,8 @@ case class Noop(w: String) extends AtomicExpression {
   * @param r The new `Real` type that needs to be converted to the old `Real` type.
   */
 def newRealToOldReal(r: Real) =
-  valuableToMaybeField(r).get.asInstanceOf[numerical.Real] // TODO fix this
+  // TODO asInstanceOf
+  valuableToMaybeField(r).get.asInstanceOf[numerical.Real]
 
 /**
   * Represents an abstract expression for a Valuable that can optionally be associated with a name.
@@ -262,7 +261,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
           // CONSIDER putting the conditional in the pattern
           Option.when(structure.maybeFactor(context).isDefined && context.valuableQualifies(structure))(value)
         case _ =>
-          throw NumberException(s"evaluate: cannot evaluate $value in $context")
+          throw ExpressionException(s"evaluate: cannot evaluate $value in $context")
       }
 
   /**
@@ -284,6 +283,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     case algebraic: Algebraic =>
       algebraic.solve.asField match {
         case r: numerical.Real =>
+          // TODO asInstanceOf
           Some(Eager(r).asInstanceOf[Real])
         case _ =>
           None // TESTME
@@ -348,10 +348,10 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
   * The `ValueExpression` companion object provides a mechanism to extract elements from a `ValueExpression` instance.
   * It defines the `unapply` method to enable pattern matching and decomposition of `ValueExpression` objects.
   *
-  * The extraction operation retrieves the underlying `Valuable` and an optional name, if available.
+  * The extraction operation retrieves the underlying `Eager` and an optional name, if available.
   * It handles two main cases:
-  * 1. For instances of `Literal`, it extracts the `Valuable` value along with `None` for the optional name.
-  * 2. For other cases, it extracts the `Valuable` value along with its associated optional name.
+  * 1. For instances of `Literal`, it extracts the `Eager` value along with `None` for the optional name.
+  * 2. For other cases, it extracts the `Eager` value along with its associated optional name.
   *
   * @see ValueExpression
   * @see Literal
@@ -361,8 +361,8 @@ object ValueExpression {
   /**
     * Creates a `ValueExpression` instance by wrapping the provided `Valuable` object.
     *
-    * @param v the `Valuable` instance to be encapsulated within a `ValueExpression`.
-    * @return a `ValueExpression` representing the provided `Valuable` object, with its rendered representation.
+    * @param v the `Eager` instance to be encapsulated within a `ValueExpression`.
+    * @return a `ValueExpression` representing the provided `Eager` object, with its rendered representation.
     */
   def apply(v: Eager): ValueExpression = Literal(v, Some(v.render))
 
@@ -425,26 +425,26 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     *         or returns a miss if no simplification is applicable.
     */
   def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic") {
-    case Literal(Valuable.zero, _) =>
+    case Literal(Eager.zero, _) =>
       em.Match(Zero)
-    case Literal(Valuable.one, _) =>
+    case Literal(Eager.one, _) =>
       em.Match(One)
-    case Literal(Valuable.minusOne, _) =>
+    case Literal(Eager.minusOne, _) =>
       em.Match(MinusOne)
-    case Literal(Valuable.two, _) =>
+    case Literal(Eager.two, _) =>
       em.Match(Two)
-    case Literal(Valuable.half, _) =>
+    case Literal(Eager.half, _) =>
       em.Match(Half)
-    case Literal(Valuable.pi, _) | Literal(Angle.pi, _) =>
+    case Literal(Eager.pi, _) | Literal(Angle.pi, _) =>
       em.Match(ConstPi)
-    case Literal(Valuable.e, _) =>
+    case Literal(Eager.e, _) =>
       em.Match(ConstE)
     case Literal(RationalNumber(r, _), _) if r.isWhole =>
       em.Match(Literal(WholeNumber(r.toBigInt)))
     // TODO reinstate this match...
-    //    case Literal(Valuable.i, _) =>
+    //    case Literal(Eager.i, _) =>
     //      em.Match(ConstI)
-    case Literal(Valuable.infinity, _) =>
+    case Literal(Eager.infinity, _) =>
       em.Match(Infinity)
     case x =>
       em.Miss("simplifyAtomic: cannot be simplified", x)
@@ -461,23 +461,18 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     */
   def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = Literal.someLiteral(doMonoFunction(f))
 
-  private def doMonoFunction(f: ExpressionMonoFunction): Eager = {
-    (f, value) match {
-      case (Negate, r: CanAddAndSubtract[?, ?]) =>
-        (-r).asInstanceOf[Eager]
-      case (Reciprocal, r: CanMultiplyAndDivide[Number] @unchecked) =>
-        import Number.NumberIsMultiplicativeGroup
-        r.reciprocal
-      //      case (Reciprocal, a: Algebraic) =>
-      //            (a.invert)
-      case (Reciprocal, c: Complex) =>
-        Complex(c.complex.invert.asInstanceOf[numerical.Complex])
-      case (function, q) =>
-        function(q)
-      case _ =>
-        // TODO change the expected result to Option[Valuable] and return None here
-        throw NumberException(s"monadicFunction: cannot apply $f to $value")
-    }
+  private def doMonoFunction(f: ExpressionMonoFunction): Eager = (f, value) match {
+    case (Negate, r: CanAddAndSubtract[?, ?]) =>
+      (-r).asInstanceOf[Eager]
+    case (Reciprocal, r: CanMultiplyAndDivide[Number] @unchecked) =>
+      import Number.NumberIsMultiplicativeGroup
+      r.reciprocal
+    //      case (Reciprocal, a: Algebraic) =>
+    //            (a.invert)
+    case (Reciprocal, c: Complex) =>
+      Complex(c.complex.invert.asInstanceOf[numerical.Complex])
+    case (function, q) =>
+      function(q)
   }
 }
 
@@ -578,7 +573,7 @@ object Literal {
   * This abstract class extends [[ValueExpression]], allowing for named representation
   * of constants in mathematical expressions, while being tied to a specific Valuable type.
   *
-  * @constructor Creates a named constant within the context of the provided Valuable.
+  * @constructor Creates a named constant within the context of the provided Eager.
   * @param x    the mathematical Valuable to which this constant belongs.
   * @param name the name associated with this constant.
   */
@@ -893,7 +888,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
 
   /**
     * Attempts to simplify an atomic expression, for example,
-    * we replace `Literal(Valuable.pi)` with `ConstPi`.
+    * we replace `Literal(Eager.pi)` with `ConstPi`.
     *
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.
@@ -971,7 +966,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
   /**
     * Computes the hash code for this instance of `AbstractTranscendental`.
     *
-    * @return an integer representing the hash code of the `expression` Valuable.
+    * @return an integer representing the hash code of the `expression` Eager.
     */
   override def hashCode(): Int = expression.hashCode()
 
@@ -1053,7 +1048,7 @@ case object EulerMascheroni extends AbstractTranscendental("𝛾", Literal(Eager
   * Each root is uniquely identified by its underlying equation and a branch index
   * that represents a specific solution when multiple solutions are possible.
   */
-trait Root extends AtomicExpression {
+trait Root extends AtomicExpression with Branched[Root] {
   /**
     * Retrieves the `Equation` associated with this `Root`.
     *
@@ -1162,6 +1157,11 @@ trait Root extends AtomicExpression {
   def approximation(force: Boolean): Option[Real] = None // TODO Implement me
 }
 
+trait Branched[T] extends Expression {
+  def branches: Int
+  def branched(index: Int): T
+}
+
 /**
   * Represents a root of a quadratic equation with a specified branch.
   * This class is a case class extending the `AbstractRoot`, which models the root of an equation
@@ -1175,6 +1175,9 @@ trait Root extends AtomicExpression {
   *               the valid range of branches supported by the equation, typically `0` or `1` for quadratic equations.
   */
 case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, branch) {
+  def branches: Int = 2
+
+  def branched(index: Int): Root = QuadraticRoot(equ, index)
 
   /**
     * Constructs a `Root` for a given quadratic equation and its specific solution branch.
@@ -1257,6 +1260,10 @@ object QuadraticRoot {
   *            Assumes the equation is linear (degree 1).
   */
 case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
+  def branches: Int = 1
+
+  def branched(index: Int): Root = this
+
   /**
     * @return 0.
     */
@@ -1388,22 +1395,32 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return an optional `Factor`.
     */
-  override def maybeFactor(context: Context): Option[Factor] = solution match {
-    case LinearSolution(_) =>
+  def maybeFactor(context: Context): Option[Factor] = solution match {
+    case LinearSolution(_) if context.factorQualifies(PureNumber) =>
       Some(PureNumber)
-    case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) =>
+    case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) && context.factorQualifies(PureNumber) =>
       Some(PureNumber)
-    case QuadraticSolution(Value.zero, _, factor, _) =>
+    case QuadraticSolution(Value.zero, _, factor, _) if context.factorQualifies(factor) =>
       Some(factor)
-    case QuadraticSolution(_, Value.zero, _, _) =>
+    case QuadraticSolution(_, Value.zero, _, _) if context.factorQualifies(PureNumber) =>
       Some(PureNumber)
     case _ =>
       None
   }
 
   /**
+    * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
+    * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
+    * NOTE: no simplification or factor-based conversion occurs here.
+    *
+    * @return an `Option[Eager]` containing the evaluated value if evaluation is successful, or `None` otherwise.
+    */
+  override lazy val evaluateAsIs: Option[Eager] =
+    maybeFactor(AnyContext) flatMap(f => evaluate(RestrictedContext(f)))
+
+  /**
     * Attempts to simplify an atomic expression, for example,
-    * we replace `Literal(Valuable.pi)` with `ConstPi`.
+    * we replace `Literal(Eager.pi)` with `ConstPi`.
     *
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.
@@ -1417,19 +1434,27 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
         }
     }
 
+
+
   /**
     * Action to evaluate this `Expression` as a `Valuable`, if possible.
     * NOTE: no simplification or factor-based conversion occurs here.
     *
     * @return an optional `Valuable`.
     */
-  def evaluate(context: Context): Option[Eager] =
-    maybeValue match {
-      case x@Some(value) if context.valuableQualifies(Eager(value)) =>
-        Some(Eager(value))
-      case _ =>
-        Option.when(context == AnyContext)(Eager(algebraic))
-    }
+  def evaluate(context: Context): Option[Eager] = ???
+//    solution match {
+//      case LinearSolution(_) if context.factorQualifies(PureNumber) =>
+//        Some(solution.base)
+//      case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) && context.factorQualifies(PureNumber) =>
+//        Some(PureNumber)
+//      case QuadraticSolution(Value.zero, _, factor, _) if context.factorQualifies(factor) =>
+//        Some(factor)
+//      case QuadraticSolution(_, Value.zero, _, _) if context.factorQualifies(PureNumber) =>
+//        Some(PureNumber)
+//      case _ =>
+//        None
+//    }
 
   /**
     * Computes and returns an approximate numerical value for this Approximatable.

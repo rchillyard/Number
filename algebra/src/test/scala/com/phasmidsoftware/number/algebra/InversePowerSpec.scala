@@ -68,8 +68,8 @@ class InversePowerSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "render" in {
-    Valuable.root2.render shouldBe "√2"
-    Valuable.root3.render shouldBe "√3"
+    Eager.root2.render shouldBe "√2"
+    Eager.root3.render shouldBe "√3"
     InversePower(3, 2).render shouldBe "³√2"
   }
 

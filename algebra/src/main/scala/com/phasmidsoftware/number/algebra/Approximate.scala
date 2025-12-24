@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.core.numerical.NumberException
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 
 /**
   * Trait representing a structure that supports approximation.
@@ -25,6 +24,7 @@ trait Approximate {
     *              the approximation. If `true`, the method will attempt to 
     *              generate an approximation even if such computation 
     *              is resource-intensive or not strictly necessary.
+    *
     * @return an `Option` containing the approximate value as a `Real` if available, 
     *         or `None` if no approximation can be computed.
     */
@@ -35,11 +35,13 @@ trait Approximate {
     *
     * This method attempts to approximate the value of this number by invoking 
     * the `approximation` method with `force = true`. If the approximation exists, 
-    * it is converted to a `Double`. If no approximation can be obtained, a 
-    * `NumberException` is thrown to indicate a logic error.
+    * it is converted to a `Double`. If no approximation can be obtained, an 
+    * `AlgebraException` is thrown to indicate a logic error.
     *
     * @return the approximate value as a `Double`.
     */
-  def toDouble: Double =
-    FP.recover(approximation(true).map(_.toDouble))(NumberException("Approximate.toDouble: logic error"))
+  def toDouble: Double = {
+    // NOTE: it is possible for this to recurse infinitely if approximation(true) returns `Some(this)`.
+    FP.recover(approximation(true).map(_.toDouble))(AlgebraException("Approximate.toDouble: logic error"))
+  }
 }

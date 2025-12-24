@@ -6,9 +6,9 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
+import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.numerical.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.numerical.Real.createFromRealField
-import com.phasmidsoftware.number.misc.FP.recover
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -312,7 +312,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Converts the true value of this Real to a Double.
-    * If the conversion is unsuccessful, it throws a NumberException.
+    * If the conversion is unsuccessful, it throws a CoreException.
     *
     * @return the Double representation of this Real, wrapped in Option.
     */
@@ -321,12 +321,12 @@ case class Real(x: Number) extends Field {
 
   /**
     * Converts the true value of this Real to a Double.
-    * If the conversion is unsuccessful, it throws a NumberException.
+    * If the conversion is unsuccessful, it throws a CoreException.
     *
     * @return the Double representation of this Real.
     */
   def toDouble: Double =
-    recover(maybeDouble, NumberException("Real.toDouble: logic error: x"))
+    recover(maybeDouble, CoreException("Real.toDouble: logic error: x"))
 
   /**
     * Compares the current object with the specified object for equality.
@@ -402,11 +402,11 @@ object Real {
     * The conversion operation determines the specific subtype of `NumberLike` and handles it accordingly.
     * If the input is a `Rational`, it delegates the processing to `apply(Rational)`.
     * If the input is a `Number`, it delegates the processing to `apply(Number)`.
-    * Throws a `NumberException` if the input `NumberLike` cannot be converted into a `Real`.
+    * Throws a `CoreException` if the input `NumberLike` cannot be converted into a `Real`.
     *
     * @param n the `NumberLike` instance to be converted to a `Real`.
     * @return a `Real` representing the converted `NumberLike` input.
-    * @throws NumberException if the input cannot be converted into a `Real`.
+    * @throws CoreException if the input cannot be converted into a `Real`.
     */
   def apply(n: NumberLike): Real = n match {
     case x: Real =>
@@ -420,7 +420,7 @@ object Real {
     case solution: Solution =>
       apply(solution.asField)
     case _ =>
-      throw NumberException(s"Real.apply: cannot convert $n to a Real")
+      throw CoreException(s"Real.apply: cannot convert $n to a Real")
   }
 
   /**
@@ -452,7 +452,7 @@ object Real {
     *
     * @param x the input Field to be converted to a Real.
     * @return a Real instance representing the input Field.
-    * @throws NumberException if the input Field is not real or cannot be converted to a Real.
+    * @throws CoreException if the input Field is not real or cannot be converted to a Real.
     */
   def createFromRealField(x: Field): Real = x match {
     case r: Real =>
@@ -462,10 +462,10 @@ object Real {
         case Some(value) =>
           Real(value)
         case None =>
-          throw NumberException(s"Real.createFromRealField: x cannot be represented as a Real: $x")
+          throw CoreException(s"Real.createFromRealField: x cannot be represented as a Real: $x")
       }
     case _ =>
-      throw NumberException(s"Real.createFromRealField: x is not real: $x")
+      throw CoreException(s"Real.createFromRealField: x is not real: $x")
   }
 
   /**

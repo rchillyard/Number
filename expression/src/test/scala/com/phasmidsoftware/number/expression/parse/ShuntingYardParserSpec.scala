@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.numerical.Number
-import com.phasmidsoftware.number.expression.mill.{Add, DyadicExpression, Expr, Expression, Item, Mill, Multiply, Sin, Stack, TerminalExpression}
+import com.phasmidsoftware.number.expression.mill.{Add, DyadicExpression, Expr, Expression, Item, Mill, Multiply, Sin, Stack, Subtract, TerminalExpression}
 import com.phasmidsoftware.number.expression.parse.ShuntingYardParser.{InfixToken, ShuntingYard, shuntingYard}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
@@ -20,10 +20,15 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   private val p = ShuntingYardParser
 
   behavior of "ShuntingYardParser"
-  it should "parse" in {
+  it should "parse the easy expressions" in {
     ShuntingYardParser.stringParser(shuntingYard, "1") shouldBe Success(ShuntingYard(List(Item("1")), List()))
     ShuntingYardParser.stringParser(shuntingYard, "( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )") shouldBe Success(ShuntingYard(List(Item("1"), Item("2"), Item("3"), Add, Item("4"), Item("5"), Multiply, Multiply, Add), List()))
     ShuntingYardParser.stringParser(shuntingYard, "(sin(𝛑) * -1)") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("-1"), Multiply), List()))
+    ShuntingYardParser.stringParser(shuntingYard, "sin(𝛑) - 1") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("1"), Subtract), List()))
+  }
+  // FIXME Issue #143
+  ignore should "parse the tricky expressions" in {
+    ShuntingYardParser.stringParser(shuntingYard, "(sin(𝛑)-1)") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("1"), Subtract), List()))
   }
 
   behavior of "Mill"
@@ -113,14 +118,14 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     val q = z map (_.value)
     q shouldBe Some(Number.one)
   }
-  ignore should "parse Infix and evaluate: sin(𝛑)-1" in {
-    val value: Option[Mill] = p.parseInfix("sin(𝛑)-1").toOption
+  it should "parse Infix and evaluate: sin(𝛑) - 1" in {
+    val value: Option[Mill] = p.parseInfix("sin(𝛑) - 1").toOption
     value.isDefined shouldBe true
-    val stack: List[Item] = List(Sin, Expr(TerminalExpression(Number.pi)), Expr(TerminalExpression(Number.negOne)))
+    val stack: List[Item] = List(Subtract, Expr(Number.one), Sin, Expr(Number.pi))
     value.get shouldBe Stack(stack)
     val z: Option[Expression] = value.flatMap(_.evaluate)
     val q = z map (_.value)
-    q shouldBe Some(Number.zero)
+    q shouldBe Some(Number.negOne)
   }
   it should "shuntingYard" in {
     p.parseInfix("( 1 + 3 ) + ( 2 * 3 )") should matchPattern { case Success(_) => }

@@ -5,8 +5,8 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
+import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.core.numerical.Number.one
-import com.phasmidsoftware.number.misc.FP.recover
 import scala.language.implicitConversions
 
 /**
@@ -245,9 +245,9 @@ object Field {
     * Because this may throw an Exception, it is much better to use asNumber, an instance method of Field.
     *
     * @param field the given field.
-    * @return a Number if field is a Number, otherwise, this will throw a NumberException.
+    * @return a Number if field is a Number, otherwise, this will throw a CoreException.
     */
-  def convertToNumber(field: Field): Number = recover(field.asNumber, NumberException(s"$field is not a Number"))
+  def convertToNumber(field: Field): Number = recover(field.asNumber, CoreException(s"$field is not a Number"))
 
   /**
     * Implicit converter from `Rational` value to a `Field` value.

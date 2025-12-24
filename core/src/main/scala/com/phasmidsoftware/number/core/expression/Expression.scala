@@ -8,11 +8,10 @@ import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.core.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.numerical.Number.convertInt
-import com.phasmidsoftware.number.core.numerical.{Approximatable, ComplexPolar, Constants, Field, Number, NumberException, NumberLike, Real}
-import com.phasmidsoftware.number.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
-import com.phasmidsoftware.number.misc.FP.recover
-import com.phasmidsoftware.number.parse.ShuntingYardParser
+import com.phasmidsoftware.number.core.mill.{CoreMillExpression, DyadicExpression, MonadicExpression, TerminalExpression}
+import com.phasmidsoftware.number.core.misc.FP.recover
+import com.phasmidsoftware.number.core.numerical._
+import com.phasmidsoftware.number.core.parse.ShuntingYardParser
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -112,7 +111,7 @@ trait Expression extends NumberLike with Approximatable {
     * @return the result of comparing materialized this with materialized comparand.
     */
   def compare(comparand: Expression): Int =
-    recover(for (x <- asNumber; y <- comparand.asNumber) yield x.compare(y), NumberException("compare: logic error"))
+    recover(for (x <- asNumber; y <- comparand.asNumber) yield x.compare(y), CoreException("compare: logic error"))
 
   // NOTE This can be useful for debugging: it allows you to see the value of this Expression.
   // However, it can also cause a stack overflow so use it sparingly!
@@ -370,7 +369,7 @@ object Expression {
     * @return an `Expression` instance representing the equivalent form of the input
     * @throws ExpressionException if an unknown operator is encountered during conversion
     */
-  def convertMillExpressionToExpression(expr: com.phasmidsoftware.number.mill.CoreMillExpression): Expression =
+  def convertMillExpressionToExpression(expr: CoreMillExpression): Expression =
     expr match {
       case TerminalExpression(value) => Literal(value)
       case MonadicExpression(expression, str) =>

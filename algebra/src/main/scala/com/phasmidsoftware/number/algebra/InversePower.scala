@@ -6,12 +6,17 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.CommutativeGroup
 import cats.Show
+import cats.implicits.catsSyntaxEq
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.numerical.NumberException
-import com.phasmidsoftware.number.misc.FP
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
+import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
+import scala.util.{Success, Try}
 
 /**
   * Represents a mathematical Root object, parameterized with an integral root degree and a base number.
@@ -21,10 +26,42 @@ import scala.reflect.ClassTag
   *
   * TODO this may be only a temporary class because we can model all roots (and more) as solutions to Algebraic equations.
   *
-  * @param n    the degree of the root, specified as an integer
-  * @param base the base `Number` value on which the root operation is defined
+  * CONSIDER making this an (abstract?) class and having subclasses for square root and cube root.
+  *
+  * @param n      the degree of the root, specified as an integer
+  * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
+case class InversePower(n: Int, number: Number) extends Transformed with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
+  /**
+    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    *
+    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
+    *
+    * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    */
+  def transformation[T: ClassTag]: Option[T] = ???
+
+  /**
+    * Returns a new instance of `Monotone` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    *
+    * @return a `Monotone` representing the negation of this instance
+    */
+  def negate: Monotone = ???
+
+  /**
+    * Compares the current `InversePower` instance with another `InversePower` to determine their order.
+    *
+    * The comparison behavior depends on whether the instances are `exact`:
+    * - If both instances are exact, it attempts an exact comparison using `compareExact`.
+    * - Otherwise, it falls back to comparing the `n` values of the two instances.
+    *
+    * @param that the `InversePower` instance to compare with the current instance
+    * @return an `Int` where:
+    *         - A negative value indicates that the current instance is less than the provided instance.
+    *         - Zero indicates equality between the instances.
+    *         - A positive value indicates that the current instance is greater than the provided instance.
+    */
   def compare(that: InversePower): Int = (this.isExact, that.isExact) match {
     case (true, true) =>
       compareExact(that).getOrElse(0) // TODO fix this
@@ -52,31 +89,22 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *         if scaling is not possible
     */
   def doScaleDouble(that: Double): Option[Monotone] = doScale(Real(that))
-//
-//  /**
-//    * Multiplies the specified `T` by this `T` instance.
-//    *
-//    * @param t an instance of `T` to be multiplied by this `T`
-//    * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
-//    */
-//  def *(t: InversePower): Multiplicative[InversePower] =
-//    (t, base) match {
-//      // TODO need to match on types, not use isInstanceOf, etc.
-//      case (InversePower(m, x), y) if m == n && x.isInstanceOf[Multiplicative[Scalar]] && y.isInstanceOf[Scalar] =>
-//        val z: Multiplicative[Scalar] = x.asInstanceOf[Multiplicative[Scalar]] * y.asInstanceOf[Scalar]
-//        copy(base = z.asInstanceOf[Number])
-//      case _ =>
-//        throw NumberException(s"InversePower.*: cannot multiply $this by $t")
-//    }
-//
-//  /**
-//    * Divides this `T` instance by the specified `T`.
-//    *
-//    * @param t an instance of `T` to be the divisor
-//    * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
-//    */
-//  def /(t: InversePower): Multiplicative[InversePower] =
-//    throw NumberException(s"InversePower./: not supported for $this by $t")
+
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] =
+    Eager(Valuable.valuableToField(number).power(numerical.Number(Rational(n).invert))) match {
+      case fuzzy: WithFuzziness =>
+        fuzzy.fuzz
+      case _ =>
+        None // CONSIDER should this throw an exception?
+    }
 
   /**
     * Compares the current `Root` instance with another `Number` to determine their exact order.
@@ -91,7 +119,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     */
   def compareExact(that: Monotone): Option[Int] = that match {
     case InversePower(m, x) if m == n => // TODO - there are other situations where the result should be Some(0) (see Factor class).
-      Some(base.compare(x))
+      Some(number.compare(x))
     case _ =>
       None
   }
@@ -107,8 +135,57 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+    case r: Real =>
+      number.approximation(true).flatMap(x => x.power(Rational(n).invert)).asInstanceOf[Option[T]]
     case x =>
       None
+  }
+
+  /**
+    * Checks for equality between the current instance of `Eager` and another `Eager` instance.
+    *
+    * This method determines equality by comparing the structure of the two instances:
+    * - If both instances are of type `InversePower`, their associated parameters (`n` and `x`) are compared.
+    *   If their `n` values match, the equality of their `x` values is evaluated recursively using their own `eqv` method.
+    * - For other cases, the method defers to the `eqv` implementation of the superclass.
+    *
+    * @param that the `Eager` instance to compare with the current instance
+    * @return a `Try[Boolean]` where:
+    *         - `Success(true)` indicates the two instances are equal.
+    *         - `Success(false)` indicates the two instances are not equal.
+    *         - A failed `Try` may be returned if an error occurs during comparison.
+    */
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (InversePower(n1, x1), InversePower(n2, x2)) =>
+      if (n1 == n2) {
+        x1.eqv(x2)
+      } else {
+        Success(false)
+      }
+    case _ =>
+      super.eqv(that)
+  }
+
+  /**
+    * Compares this instance with another `Eager` instance using a specified precision.
+    * The comparison involves converting both instances to `Real` and performing
+    * a fuzzy equivalence check with the specified precision.
+    *
+    * @param p    The precision parameter used in the fuzzy equivalence comparison.
+    * @param that The `Eager` instance to be compared against.
+    * @return A `Try[Boolean]` indicating the result of the fuzzy equivalence check.
+    *         Success with `true` if the instances are equivalent within the given precision,
+    *         `false` if they are not equivalent, or a failure if a comparison cannot be performed.
+    */
+  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+    case (a@InversePower(n1, x1), b: Structure) =>
+      for {
+        r1 <- FP.toTry(a.convert(Real.zero), FP.fail(s"InversePower.fuzzyEqv: cannot convert $a to Real"))
+        r2 <- FP.toTry(b.convert(Real.zero), FP.fail(s"InversePower.fuzzyEqv: cannot convert $b to Real"))
+        z <- r1.fuzzyEqv(p)(r2)
+      } yield z
+    case _ =>
+      FP.fail(s"InversePower.fuzzyEqv: cannot compare $this and $that")
   }
 
   /**
@@ -116,7 +193,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = base.isZero
+  def isZero: Boolean = number.isZero
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -140,22 +217,12 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
     *         if it can be converted, or `None` if the conversion is not possible.
     */
-  def toRational: Option[Rational] = base match {
+  def toRational: Option[Rational] = number match {
     case z: Z =>
       z.toRational.power(Rational(n).invert).toOption
     case _ =>
       None
   }
-
-  /**
-    * If this `Valuable` is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
-    *
-    * @return Some(x) where x is a Double if this is exact, else None.
-    */
-  def maybeDouble: Option[Double] =
-    FP.whenever(isExact)(convert(Real.zero) map (_.value))
 
   /**
     * Renders this `Root` instance as a string representation of base in terms of π.
@@ -165,7 +232,7 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     * @return a string representation of the `Root` in terms of π
     */
   def render: String = {
-    val suffix = base.render
+    val suffix = number.render
     n match {
       case 2 => s"√$suffix"
       case 3 => s"³√$suffix"
@@ -174,36 +241,14 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
   }
 
   /**
-    * Scales the current instance using the provided `Number`.
-    *
-    * The method performs a scaling operation by applying the given `Number` to the current instance,
-    * producing an optional result of type `T`. If the scaling operation cannot be defined for the given `Number`,
-    * it returns `None`.
-    *
-    * @param that the `Number` used to scale the current instance
-    * @return an `Option[T]` containing the result of the scaling operation if successful, or `None` if the operation cannot be performed
-    */
-  infix def doScale(that: Number): Option[InversePower] =
-    (that, base) match {
-      case (x: CanPower[Number] @unchecked, y: Z) =>
-        val triedRational = y.toRational.power(Rational(n).invert).toOption
-        val value: Option[Number] = triedRational.flatMap(r => x.pow(RationalNumber(r)))
-        value.asInstanceOf[Option[InversePower]]
-      // TODO need to match on types, not use isInstanceOf, etc.
-      case _ =>
-        throw NumberException(s"InversePower.doScale: cannot scale $this by $that")
-    }
-
-
-  /**
     * Computes the potential factor associated with this instance.
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
   def maybeFactor(context: Context): Option[Factor] = n match {
-    case 2 => Some(SquareRoot)
-    case 3 => Some(CubeRoot)
-    case _ => throw NumberException(s"InversePower.maybeFactor: no factor for $n")
+    case 2 if context.factorQualifies(SquareRoot) => Some(SquareRoot)
+    case 3 if context.factorQualifies(SquareRoot) => Some(CubeRoot)
+    case _ => None
   }
 
   /**
@@ -218,6 +263,27 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation: Option[Real] = convert(Real.zero)
+
+  /**
+    * Scales the current instance using the provided `Number`.
+    *
+    * The method performs a scaling operation by applying the given `Number` to the current instance,
+    * producing an optional result of type `T`. If the scaling operation cannot be defined for the given `Number`,
+    * it returns `None`.
+    *
+    * @param that the `Number` used to scale the current instance
+    * @return an `Option[T]` containing the result of the scaling operation if successful, or `None` if the operation cannot be performed
+    */
+  private infix def doScale(that: Number): Option[InversePower] =
+    (that, number) match {
+      case (x: CanPower[Number] @unchecked, y: Z) =>
+        val triedRational = y.toRational.power(Rational(n).invert).toOption
+        val value: Option[Number] = triedRational.flatMap(r => x.pow(RationalNumber(r)))
+        value.asInstanceOf[Option[InversePower]]
+      // TODO need to match on types, not use isInstanceOf, etc.
+      case _ =>
+        throw AlgebraException(s"InversePower.doScale: cannot scale $this by $that")
+    }
 }
 
 /**
@@ -226,6 +292,54 @@ case class InversePower(n: Int, base: Number) extends Monotone with CanMultiplyA
   * rational numbers and comply with the algebraic structure of a commutative group.
   */
 object InversePower {
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  /**
+    * A given instance of `DyadicOperator` for the `InversePower` type. 
+    * This instance allows the application of a binary operation on 
+    * two operands of types `InversePower` and a subtype of `InversePower`
+    * (`B <: InversePower`), producing a result wrapped in a `Try`.
+    *
+    * @return A `Try[Z]` containing the result of applying the provided 
+    *         operation `f` to the operands `x` and `y`, or an exception 
+    *         if the operation fails.
+    */
+  given DyadicOperator[InversePower] = new DyadicOperator[InversePower] {
+    def op[B <: InversePower, Z](f: (InversePower, B) => Try[Z])(x: InversePower, y: B): Try[Z] =
+      f(x, y)
+  }
+
+  /**
+    * Defines an equality `Eq` instance for the `InversePower` type, utilizing a dyadic operator 
+    * to determine equivalence between two `InversePower` instances. The equality comparison 
+    * is performed by delegating to an eagerly evaluated function `x.eqv(y)`, where `x` and `y`
+    * are `Eager` instances, and the result is optionally returned.
+    *
+    * @return An instance of `Eq[InversePower]` that provides a mechanism to compare `InversePower`
+    *         instances for equality by applying the dyadic operator and resolving the result.
+    */
+  given Eq[InversePower] = Eq.instance {
+    (x, y) =>
+      summon[DyadicOperator[InversePower]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
+  }
+
+  /**
+    * Provides a fuzzy equality instance for the `InversePower` type.
+    *
+    * This implementation allows comparing two `InversePower` instances, `x` and `y`, 
+    * based on a given probability `p`. Two instances are considered approximately equal 
+    * if they are either strictly equal (`x === y`) or satisfy the fuzzy equality predicate 
+    * when evaluated against `p`.
+    *
+    * @return A `FuzzyEq` instance specific to the `InversePower` type.
+    */
+  given FuzzyEq[InversePower] = FuzzyEq.instance {
+    (x, y, p) =>
+      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
+  }
+
+  private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Logarithm, e: B): Try[Z] =
+    FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 
   /**
     * Represents the zero value of the `Root` class.
@@ -276,7 +390,7 @@ object InversePower {
       */
     def combine(x: InversePower, y: InversePower): InversePower = (x, y) match {
       case (InversePower(n1, x1: Number), InversePower(n2, x2: Number)) =>
-        throw NumberException(s"InversePower.combine: cannot combine $x and $y")
+        throw AlgebraException(s"InversePower.combine: cannot combine $x and $y")
     }
 
     /**
@@ -289,6 +403,6 @@ object InversePower {
       * @return a new `Root` instance representing the multiplicative inverse of the input
       */
     def inverse(a: InversePower): InversePower =
-      throw NumberException(s"InversePower.inverse: cannot invert $a")
+      throw AlgebraException(s"InversePower.inverse: cannot invert $a")
   }
 }

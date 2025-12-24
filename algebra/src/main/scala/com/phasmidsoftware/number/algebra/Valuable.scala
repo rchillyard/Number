@@ -5,17 +5,16 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.number.algebra.misc.{FP, MaybeNumeric, Renderable}
-import com.phasmidsoftware.number.core.algebraic.Algebraic
+import com.phasmidsoftware.number.algebra.misc.*
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber, NumberException, NumberExceptionWithCause, Real}
+import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
-import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number.{algebra, core}
 import scala.language.implicitConversions
-import scala.util.{Failure, Success}
+import scala.util.Try
 
 /**
+  * TODO rework this doc.
   * A trait representing an object that is in some sense numerical and has a value (or possibly more than one value).
   * `Valuable` does not define an order because a sub-class may not be comparable, for example, a complex number.
   *
@@ -24,7 +23,7 @@ import scala.util.{Failure, Success}
   * NOTE: this trait has the same name as the `Valuable` typeclass in the `com.phasmidsoftware.number` package,
   * but it is not the same thing.
   */
-trait Valuable extends Renderable with MaybeNumeric {
+trait Valuable extends Renderable with Numeric {
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
@@ -55,36 +54,21 @@ trait Valuable extends Renderable with MaybeNumeric {
   * enabling parsing and conversion of strings to `Valuable` representations.
   */
 object Valuable {
-  // CONSIDER moving these to Eager
-  lazy val zero: Eager = Number.zero
-  lazy val one: Eager = Number.one
-  lazy val minusOne: Eager = Number.minusOne
-  lazy val two: Eager = Scalar(2)
-  lazy val half: Eager = RationalNumber(Rational.half)
-  lazy val ten: Eager = Scalar(10)
-  lazy val pi: Eager = Angle.pi
-  lazy val piBy2: Eager = Angle.piBy2
-  lazy val piBy4: Eager = Angle.piBy4
-  lazy val e: Eager = NatLog.e
-  lazy val infinity: Eager = RationalNumber(Rational.infinity)
-  lazy val negInfinity: Eager = RationalNumber(Rational.negInfinity)
-  lazy val root2: Eager = InversePower(2, 2)
-  lazy val root3: Eager = InversePower(2, 3)
 
   /**
     * TODO change the type of the input to `Eager`.
     *
     * Converts a `Valuable` instance into a `Field` representation.
-    * If the conversion fails, it recovers by throwing a `NumberException`
+    * If the conversion fails, it recovers by throwing a `AlgebraException`
     * with an appropriate error message indicating the failure.
     *
     * @param v the `Valuable` instance to be converted into a `Field`.
     *          This is expected to represent a numerical value.
     * @return the `Field` representation of the input `Valuable`.
-    *         If conversion is not possible, a `NumberException` is thrown.
+    *         If conversion is not possible, a `AlgebraException` is thrown.
     */
   def valuableToField(v: Valuable): Field =
-    FP.recover(valuableToMaybeField(v))(NumberException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field"))
+    FP.recover(valuableToMaybeField(v))(AlgebraException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field"))
 
   /**
     * Attempts to convert a given eager `Valuable` instance into an `Option[Field]`.
@@ -108,9 +92,9 @@ object Valuable {
     case q: Q =>
       Some(rationalToField(q.toRational, PureNumber))
     case a@Angle(radians, _) =>
-      Some(Real(numberToField(radians).x.make(inner.Radian)))
+      Some(numerical.Real(numberToField(radians).x.make(inner.Radian)))
     case l@NatLog(x) =>
-      Some(Real(numberToField(x).x.make(inner.NatLog)))
+      Some(numerical.Real(numberToField(x).x.make(inner.NatLog)))
     case _ =>
       None // XXX v should be an Expression in this case (but expressions are not known in this package).
   }
@@ -151,11 +135,11 @@ object Valuable {
     * Converts a `Number` into a corresponding `Field` representation.
     * The input number is matched against various cases to determine its specific type
     * (e.g., RationalNumber, Real, WholeNumber) and is subsequently converted.
-    * If the conversion is not supported for the given `Number` type, a `NumberException` is thrown.
+    * If the conversion is not supported for the given `Number` type, a `AlgebraException` is thrown.
     *
     * @param number the `Number` to be converted into a `Field`. It can represent different
     *               numerical types such as RationalNumber, algebra.Real, or WholeNumber.
-    * @throws NumberException if the input `Number` cannot be converted into a `Field`.
+    * @throws AlgebraException if the input `Number` cannot be converted into a `Field`.
     */
   private def numberToField(number: Number) = number match {
     case RationalNumber(r, _) =>
@@ -163,9 +147,9 @@ object Valuable {
     case algebra.Real(x, fo) =>
       numerical.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
     case WholeNumber(x) =>
-      Real(ExactNumber(Value.fromRational(Rational(x.toBigInt)), PureNumber))
+      numerical.Real(ExactNumber(Value.fromRational(Rational(x)), PureNumber))
     case _ =>
-      throw NumberException(s"Valuable.numberToField: Cannot convert $number to a Field")
+      throw AlgebraException(s"Valuable.numberToField: Cannot convert $number to a Field")
   }
 
   /**
@@ -175,7 +159,7 @@ object Valuable {
     * @param factor   the scaling `Factor` to be applied to the conversion.
     * @return a `Real` representation of the `Rational` number scaled by the given `Factor`.
     */
-  private def rationalToField(rational: Rational, factor: Factor) = Real(ExactNumber(Value.fromRational(rational), factor))
+  private def rationalToField(rational: Rational, factor: Factor) = numerical.Real(ExactNumber(Value.fromRational(rational), factor))
 
   /**
     * Converts an integer value into a `Field` representation, encapsulated as a `Real`,
@@ -185,73 +169,72 @@ object Valuable {
     * @param factor the factor to be applied in the `Real` representation.
     * @return a `Real` representing the converted integer value.
     */
-  private def intToField(x: Int, factor: Factor) = Real(ExactNumber(Value.fromInt(x), factor))
+  private def intToField(x: Int, factor: Factor) = numerical.Real(ExactNumber(Value.fromInt(x), factor))
 
 }
 
 /**
-  * Trait `Eager` extends `Valuable` and is used to represent entities that evaluate their values eagerly.
-  * That's to say, `Valuable` objects that do not extend `Expression`.
-  * At present, `Eager` is extended by `Structure, Complex`, and `Nat`.
+  * Represents a trait for performing dyadic operations on instances of the `Eager` type.
   *
-  * Unlike lazy evaluation, eager evaluation computes and stores the value immediately when the entity is created
-  * or instantiated. This behavior can be useful in scenarios where prompt computation is essential, and
-  * deferred or lazy evaluation may introduce undesired complexities or delays.
+  * This trait provides methods for equality checks, fuzzy comparisons, ordering, and arithmetic operations.
   *
-  * `Eager` does not introduce additional properties or methods but serves as a marker trait
-  * that confirms the eager nature of an extending type.
+  * NOTE that compare, fuzzyCompare, and sum are not defined in this trait, have two parameters where one would be sufficient (and probably better).
   */
-trait Eager extends Valuable
-
-/**
-  * The `Eager` object provides factory methods to create instances of `Valuable` entities
-  * that are evaluated eagerly. These entities can represent numerical values parsed from
-  * strings, long integers, or specific types of mathematical fields.
-  */
-object Eager {
+trait DyadicOps {
+  /**
+    * Compares this `Eager` instance with another `Eager` instance for equality.
+    *
+    * @param that the `Eager` instance to be compared against.
+    * @return a `Try[Boolean]` indicating whether the two `Eager` instances are equal.
+    *         A successful result contains `true` if they are equal, or `false` if not.
+    *         If the comparison cannot be performed, a failure with an appropriate exception is returned.
+    */
+  def eqv(that: Eager): Try[Boolean]
 
   /**
-    * Parses the given string into a `Valuable` representation. If the string cannot be parsed
-    * into a valid `Number`, an exception is thrown.
+    * Determines if the current `Eager` instance is approximately equal to another `Eager` instance 
+    * within a specified tolerance.
     *
-    * @param str the input string representing a numerical value.
-    * @return a `Valuable` representation of the parsed `Number`.
-    * @throws NumberExceptionWithCause if parsing the string fails.
+    * @param p    the tolerance level as a `Double`. A smaller value indicates stricter equality requirements.
+    * @param that the `Eager` instance to compare against.
+    * @return a `Try[Boolean]` indicating the result of the fuzzy equality comparison:
+    *         - `true` if the two instances are approximately equal within the tolerance `p`.
+    *         - `false` otherwise.
+    *         If the comparison cannot be performed, the `Try` contains a failure with an appropriate exception.
     */
-  def apply(str: String): Eager =
-    NumberParser.parseNumber(str) match {
-      case Success(number) =>
-        Scalar(number)
-      case Failure(exception) =>
-        throw NumberExceptionWithCause("Valuable.apply", exception)
-    }
+  def fuzzyEqv(p: Double)(that: Eager): Try[Boolean]
 
   /**
-    * Creates a `Valuable` instance representing the given long value.
+    * Compares two instances of the `Eager` type and returns the result of the comparison.
     *
-    * @param x the input value of type `Long` to be wrapped in a `Valuable` representation.
-    * @return a `Valuable` object corresponding to the input value.
+    * @param x the first `Eager` instance to compare
+    * @param y the second `Eager` instance to compare
+    * @return a `Try[Int]` containing the result of the comparison, where a negative value indicates that `x` is less than `y`, zero indicates equality, and a positive value indicates
+    *         that `x` is greater than `y`
     */
-  def apply(x: Long): Eager = WholeNumber(x)
+  def compare(x: Eager, y: Eager): Try[Int]
 
   /**
-    * Creates a `Valuable` instance based on the given `Field`.
-    * If the `Field` is a `Real` object, it converts it into a `Scalar` representation.
-    * Otherwise, it throws an `IllegalArgumentException`.
+    * Compares two instances of `Eager` using a fuzzy comparison approach with a specified tolerance.
+    * The comparison determines their relative ordering.
     *
-    * @param field the input field to be converted into a `Valuable`. It is expected
-    *              to be of type `com.phasmidsoftware.number.core.Real`.
-    * @return a `Valuable` representation of the input `Field` as a `Scalar`.
-    * @throws IllegalArgumentException if the provided `Field` is not of type `Real`.
+    * @param p the tolerance level as a `Double`; smaller values indicate stricter thresholds for comparison.
+    * @param x the first `Eager` instance to compare.
+    * @param y the second `Eager` instance to compare.
+    * @return a `Try[Int]` indicating the result of the comparison:
+    *         - A negative integer if `x` is less than `y`.
+    *         - Zero if `x` is approximately equal to `y` within the specified tolerance `p`.
+    *         - A positive integer if `x` is greater than `y`.
+    *         - A `Failure` containing an exception if the comparison cannot be performed.
     */
-  def apply(field: numerical.Field): Eager =
-    field match {
-      case numerical.Real(n) =>
-        Scalar(n)
-      case c: numerical.Complex =>
-        Complex(c)
-      case a: Algebraic =>
-        throw NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")
-    }
+  def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int]
 
+  /**
+    * Computes the sum of two values wrapped in the Eager type and returns the result as a Try containing an Eager value.
+    *
+    * @param x the first operand of type Eager
+    * @param y the second operand of type Eager
+    * @return a Try containing the result of the sum operation as an Eager value if successful, or a failure if an error occurs
+    */
+  def sum(x: Eager, y: Eager): Try[Eager]
 }

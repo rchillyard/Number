@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.core.inner.Value.{maybeRational, negateConditi
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
-import com.phasmidsoftware.number.core.numerical.{Field, NumberException, Real}
+import com.phasmidsoftware.number.core.numerical.{Field, CoreException, Real}
 import java.util.Objects
 
 /**
@@ -73,7 +73,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     *
     * @param algebraic the `Algebraic` instance to be added to this one.
     * @return a new `Algebraic` instance resulting from the addition.
-    * @throws NumberException if the provided `Algebraic` type is not supported for addition.
+    * @throws CoreException if the provided `Algebraic` type is not supported for addition.
     */
   def add(algebraic: Algebraic): Algebraic =
     this.solve add algebraic.solve match {
@@ -91,10 +91,10 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
             val vertical: Rational = b - equation.q + (a ∧ 2) / 4 + (equation.p ∧ 2)
             copy(equation = equation.shiftOrigin(horizontal)).add(vertical)
           case _ =>
-            throw NumberException(s"add($algebraic) is not supported for Algebraic_Quadratic")
+            throw CoreException(s"add($algebraic) is not supported for Algebraic_Quadratic")
         }
       case x =>
-        throw NumberException(s"add($algebraic) is not supported for solutions which are not QuadraticSolutions: $x")
+        throw CoreException(s"add($algebraic) is not supported for solutions which are not QuadraticSolutions: $x")
     }
 
   /**
@@ -115,7 +115,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     *
     * @param that the Algebraic object to be multiplied
     * @return a new Algebraic resulting from the multiplication
-    * @throws NumberException for all inputs.
+    * @throws CoreException for all inputs.
     */
   def multiply(that: Algebraic): Field = {
     val thisSolution: Solution = this.solve
@@ -218,7 +218,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
       val solution = scale(factor)
       copy(equation = solution.equation.asInstanceOf[Quadratic].shiftOrigin(addend))
     case _ =>
-      throw NumberException(s"power($k) is not supported for Algebraic_Quadratic")
+      throw CoreException(s"power($k) is not supported for Algebraic_Quadratic")
   }
 
   /**
@@ -322,7 +322,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     if (branch >= 0 && branch < 2)
       QuadraticSolution(Value.fromRational(-p / 2), Value.fromRational(discriminant / 4), SquareRoot, branch)
     else
-      throw NumberException(s"solve($branch) is not currently supported for complex roots of a Quadratic")
+      throw CoreException(s"solve($branch) is not currently supported for complex roots of a Quadratic")
 
   /**
     * Shifts the origin of the equation by transforming its `p` and `q` components
@@ -495,14 +495,14 @@ object Algebraic_Quadratic {
     *
     * @param solution The quadratic solution to be transformed into an `Algebraic_Quadratic`.
     * @return An instance of `Algebraic_Quadratic` based on the given solution.
-    * @throws NumberException if the provided solution cannot be converted to `Algebraic_Quadratic`.
+    * @throws CoreException if the provided solution cannot be converted to `Algebraic_Quadratic`.
     */
   def apply(solution: QuadraticSolution): Algebraic_Quadratic =
     (solution.factor, maybeRational(solution.base), maybeRational(solution.offset)) match {
       case (SquareRoot, Some(base), Some(offset)) =>
         Algebraic_Quadratic(Quadratic(base * -2, (base ∧ 2) - offset), solution.branch == 0)
       case _ =>
-        throw NumberException(s"apply($solution) is not supported")
+        throw CoreException(s"apply($solution) is not supported")
     }
 
   /**
@@ -518,7 +518,7 @@ object Algebraic_Quadratic {
     case PureNumber =>
       apply(QuadraticSolution(base.nominalValue, offset.nominalValue, offset.factor, branch = if (negative) 1 else 0))
     case _ =>
-      throw NumberException(s"apply($base, $offset) is not supported if the base factor is not PureNumber")
+      throw CoreException(s"apply($base, $offset) is not supported if the base factor is not PureNumber")
   }
 
 }

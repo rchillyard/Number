@@ -265,7 +265,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 
   behavior of "apply"
   it should """fail for """"" in {
-    an[NumberExceptionWithCause] should be thrownBy Number("")
+    an[CoreExceptionWithCause] should be thrownBy Number("")
   }
   it should """work for "1"""" in {
     val target = Number("1")

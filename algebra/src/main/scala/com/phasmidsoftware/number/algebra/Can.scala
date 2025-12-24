@@ -16,7 +16,7 @@ import scala.reflect.ClassTag
   *
   * Type Parameters:
   * - `T`: A type extending `Structure` that supports addition operations and satisfies the properties
-  * of an additive commutative monoid.
+  *   of an additive commutative monoid.
   * - `U`: A type extending `Structure` that is potentially compatible with `T` in certain addition operations.
   */
 trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
@@ -47,9 +47,12 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     * of an `AdditiveCommutativeMonoid`. The operation returns an optional result where the addition
     * succeeds if a valid transformation and combination can be performed.
     *
+    * TODO eliminate this method and use with + instead.
+    *
     * @param that  the `Structure` object to be added to this object.
     * @param using an implicitly provided instance of `AdditiveCommutativeMonoid[T]` that defines the additive
     *              behavior for the type `T`.
+    *
     * @return an `Option` containing the result of the addition if successful, or `None` if the operation
     *         cannot be completed.
     */
@@ -68,6 +71,18 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   private def acm(using AdditiveCommutativeMonoid[T]): AdditiveCommutativeMonoid[T] = summon[AdditiveCommutativeMonoid[T]]
 }
 
+trait CanNegate[T <: Structure] extends Can[T] {
+  /**
+    * Computes the additive inverse (negation) of an instance of type `T`.
+    *
+    * @param AdditiveCommutativeGroup[T] an implicit instance of `AdditiveCommutativeGroup` for the type `T`,
+    *                                    providing the necessary additive group operations.
+    * @return the negated value of the current instance as an instance of type `T`.
+    */
+  def negate(using AdditiveCommutativeGroup[T]): T =
+    summon[AdditiveCommutativeGroup[T]].additive.inverse(asT)
+}
+
 /**
   * A trait that extends `CanAdd` and provides additional functionality for types
   * supporting both addition and subtraction operations. It introduces the ability
@@ -76,10 +91,10 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   *
   * Type Parameters:
   * - `T`: A type extending `Structure` that supports addition, subtraction, and negation operations
-  * with an implicit `AdditiveCommutativeGroup[T]` evidence.
+  *   with an implicit `AdditiveCommutativeGroup[T]` evidence.
   * - `U`: A type extending `Structure` that is compatible with `T` in additive operations.
   */
-trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAdd[T, U] {
+trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAdd[T, U] with CanNegate[T] {
 
   /**
     * Subtracts the given instance of type `T` from the current instance.
@@ -87,22 +102,13 @@ trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAd
     * This method computes the result of subtracting the `that` instance from the current instance
     * by utilizing the properties of an additive commutative group defined for type `T`.
     *
-    * @param that     the instance of type `T` to subtract from the current instance
-    * @param using    evidence of an implicit `AdditiveCommutativeGroup[T]` that provides
-    *                 the additive commutative group structure supporting subtraction
+    * @param that  the instance of type `T` to subtract from the current instance
+    * @param using evidence of an implicit `AdditiveCommutativeGroup[T]` that provides
+    *              the additive commutative group structure supporting subtraction
+    *
     * @return the resulting value of type `T` after subtraction
     */
   def -(that: T)(using AdditiveCommutativeGroup[T]): T
-
-  /**
-    * Negates this instance of type `CanAddAndSubtract[T]` by utilizing the additive inverse.
-    *
-    * @param using evidence of an implicit `AdditiveCommutativeGroup[T]` providing the
-    *            additive group structure for type `T`
-    * @return the additive inverse of the current instance as type `T`
-    */
-  def negate(using AdditiveCommutativeGroup[T]): T =
-    acg.additive.inverse(asT)
 
   /**
     * Negates the current WholeNumber instance, producing its additive inverse.
@@ -115,8 +121,9 @@ trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAd
     * Retrieves the implicit evidence of an `AdditiveCommutativeGroup[T]` for the given type `T`.
     *
     * @param using an implicit parameter providing evidence of the `AdditiveCommutativeGroup[T]` structure
-    *            for the type `T`. This ensures that the type `T` satisfies the properties of an
-    *            additive commutative group.
+    *              for the type `T`. This ensures that the type `T` satisfies the properties of an
+    *              additive commutative group.
+    *
     * @return an instance of `AdditiveCommutativeGroup[T]` that represents the additive commutative
     *         group structure for the type `T`.
     */
@@ -158,28 +165,13 @@ trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     mm.multiplicative.combine(asT, that)
 
   /**
-    * Multiplies this instance with another algebraic structure using the provided
-    * `CommutativeRing` context, if possible.
-    *
-    * @param that            the input `Structure` instance to be multiplied with the current instance.
-    * @param using an implicit parameter providing the context for performing
-    *                        multiplication operations on objects of type `T`.
-    * @return an `Option[T]` containing the result of the multiplication if it can be
-    *         successfully performed, or `None` otherwise.
-    */
-  infix def times(that: Structure)(using CommutativeRing[T]): Option[T] =
-    that match {
-      case t: T => Some(mm.multiplicative.combine(asT, t))
-      case u => u.convert(asT).flatMap(x => Some(mm.multiplicative.combine(asT, x)))
-    }
-
-  /**
     * Retrieves an implicit instance of `MultiplicativeMonoid[T]` from the given context.
     * CONSIDER whether this is exactly the correct type to use.
     * It needs to support all required properties and it must be a superclass of `CommutativeRing`.
     *
     * @param using an implicit parameter of type `MultiplicativeMonoid[T]`, representing the context
-    *                 within which multiplicative operations are defined for type `T`.
+    *              within which multiplicative operations are defined for type `T`.
+    *
     * @return an instance of `MultiplicativeMonoid[T]`, which provides methods and properties
     *         for performing multiplicative operations on type `T` values.
     */
@@ -266,7 +258,7 @@ trait Scalable[T <: Scalable[T]] {
 /**
   * Represents a type class for performing power operations on instances of type `T`.
   *
-  * CONSIDER two paramtric types
+  * CONSIDER two parametric types
   *
   * This trait defines the behavior for raising an instance of `T` to a power
   * specified by a `Scalar`. Implementations of this trait are responsible for
@@ -330,13 +322,15 @@ trait CanNormalize[T <: Structure] {
   *
   * This trait facilitates type-safe casting of instances to a specific subtype of `Structure`.
   *
+  * TODO try to redefine this so that it does not extend Structure.
+  *
   * @tparam T the type parameter which must be a subtype of `Structure`
   */
-sealed trait Can[T <: Structure] {
+sealed trait Can[T <: Structure : ClassTag] extends Structure {
   /**
     * Casts the current instance to the type parameter `T` of the enclosing `Can` trait.
     *
     * @return the current instance as an instance of type `T`
     */
-  def asT: T = this.asInstanceOf[T]
+  def asT: T = Structure.asT(this)
 }

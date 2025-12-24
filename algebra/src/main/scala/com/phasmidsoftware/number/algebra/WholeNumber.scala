@@ -6,14 +6,14 @@ package com.phasmidsoftware.number.algebra
 
 import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import cats.Show
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
-import scala.util.Try
-import spire.math.SafeLong
+import scala.util.{Success, Try}
 
 /**
   * A case class representing a whole number.
@@ -21,9 +21,9 @@ import spire.math.SafeLong
   * The `WholeNumber` class models any integer in the Z domain and its associated operations,
   * enabling addition, inversion, comparison, and rendering.
   *
-  * @param x a SafeLong value representing the whole number
+  * @param x a BigInt value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] with Number with Z {
+case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
   /**
     * Converts this instance to its corresponding integer representation.
     *
@@ -36,7 +36,7 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     *
     * @return a Rational representation of the current WholeNumber.
     */
-  def toRational: Rational = Rational(x.toBigInt)
+  def toRational: Rational = Rational(x)
 
   /**
     * Retrieves an `Option` containing this instance as an object of type `Z`.
@@ -98,7 +98,7 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     *         or `None` if the operation could not be performed
     */
   infix def pow(that: WholeNumber): Option[WholeNumber] =
-    Try(WholeNumber(x.toBigInt.pow(that.toInt))).toOption
+    Try(WholeNumber(x.pow(that.toInt))).toOption
 
   /**
     * Compares this instance with another `Scalar` for exact equivalence.
@@ -115,7 +115,9 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     case WholeNumber(o) =>
       Some(x.compare(o))
     case RationalNumber(r, _) =>
-      Some(Rational(x.toBigInt).compare(r))
+      Some(Rational(x).compare(r))
+    case Real(v, None) => // exact Real only
+      Some(x.toDouble.compare(v))
     case _ =>
       None
   }
@@ -127,6 +129,7 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     *
     * @param t the input object of type `T`, which must be a subtype of `Structure`.
     *          The input is expected to be of a type that matches the patterns in the conversion logic.
+    *
     * @tparam T the type parameter constrained to subtypes of `Structure` with a `ClassTag` evidence.
     * @return an `Option` containing a converted instance of the same type `T`
     *         if the conversion is successful, or `None` otherwise.
@@ -143,28 +146,12 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
   }
 
   /**
-    * Converts the given structure to a `Real` representation.
-    * CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here.
-    * For now, we use the default fuzziness of None.
-    *
-    * This method transforms the value `x` into an instance of the `Real` class
-    * by converting `x` to a `Double` and setting its optional parameter to `None`.
-    *
-    * @tparam T The type of the input structure, which must extend `Structure`
-    *           and have an associated `ClassTag`.
-    *
-    * @return A `Real` object constructed from the input structure.
-    */
-  def toReal[T <: Structure : ClassTag] =
-    Real(x.toDouble, None)
-
-  /**
     * Converts the current value into a RationalNumber representation.
     *
     * @return A RationalNumber instance representing the current value.
     */
   def toRationalNumber: RationalNumber =
-    RationalNumber(Rational(x.toBigInt))
+    RationalNumber(Rational(x))
 
   /**
     * Represents the zero element of the `WholeNumber` type, adhering to the identity element defined
@@ -199,7 +186,7 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     *
     * @return an Option containing a Rational if the conversion succeeds, or None if it does not.
     */
-  def maybeRational: Option[Rational] = Some(Rational(x.toBigInt))
+  def maybeRational: Option[Rational] = Some(Rational(x))
 
   /**
     * Scales the current instance by a given scalar.
@@ -212,9 +199,9 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
   def scale(scalar: Scalar): Option[Number] =
     scalar match {
       case WholeNumber(i) =>
-        Some(WholeNumber(x.toBigInt * i.toBigInt))
+        Some(WholeNumber(x * i))
       case RationalNumber(r, _) =>
-        val product: Rational = Rational(x.toBigInt) * r
+        val product: Rational = Rational(x) * r
         Option.when(product.isWhole)(WholeNumber(product.toBigInt))
       case _ => // TODO add other cases as they become available
         None
@@ -237,12 +224,13 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     * Scales the current `WholeNumber` by a given Rational multiplier and returns the result
     * wrapped as an `Option[Monotone]`.
     * CONSIDER renaming as `*`
-    * 
+    *
+    *
     * @param scale the Rational multiplier to scale the current `WholeNumber`
     * @return an `Option[Monotone]` representing the scaled result
     */
   def scale(scale: Rational): Number =
-    scale * x.toBigInt match {
+    scale * x match {
       case r if r.isWhole => WholeNumber(r.toBigInt)
       case r => RationalNumber(r)
     }
@@ -281,14 +269,14 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     *         - `1` if the number is positive,
     *         - `-1` if the number is negative.
     */
-  def signum: Int = x.compare(SafeLong.zero)
+  def signum: Int = x.compare(BigInt(0))
 
   /**
     * Determines if the value of the current instance is equal to zero.
     *
     * @return true if the current instance equals zero, false otherwise
     */
-  def isZero: Boolean = x == SafeLong.zero
+  def isZero: Boolean = x == BigInt(0)
 
   /**
     * Determines if the number is exact.
@@ -307,8 +295,8 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     * @return an `Option[Double]` where the value is the `Double` representation of the `WholeNumber`,
     *         or `None` if a `Double` representation cannot be provided.
     */
-  def maybeDouble: Option[Double] =
-    Some(x.toDouble)
+//  def maybeDouble: Option[Double] =
+//    Some(x.toDouble)
 
   /**
     * Renders the `WholeNumber` instance as a string representation.
@@ -324,6 +312,30 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
     */
   def unary_- : WholeNumber =
     negate
+
+  // In WholeNumber.scala
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (WholeNumber(a), WholeNumber(b)) =>
+      Success(a == b)
+    case _ =>
+      super.eqv(that)
+  }
+
+  /**
+    * Converts the given structure to a `Real` representation.
+    * CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here.
+    * For now, we use the default fuzziness of None.
+    *
+    * This method transforms the value `x` into an instance of the `Real` class
+    * by converting `x` to a `Double` and setting its optional parameter to `None`.
+    *
+    * @tparam T The type of the input structure, which must extend `Structure`
+    *           and have an associated `ClassTag`.
+    *
+    * @return A `Real` object constructed from the input structure.
+    */
+  private def toReal[T <: Structure : ClassTag] =
+    Real(x.toDouble, None)
 }
 
 /**
@@ -332,7 +344,6 @@ case class WholeNumber(x: SafeLong) extends CanAddAndSubtract[WholeNumber, Whole
   * rational numbers and comply with the algebraic structure of a commutative group.
   */
 object WholeNumber {
-
   /**
     * Represents the WholeNumber constant for the value zero (0).
     *
@@ -380,9 +391,36 @@ object WholeNumber {
     */
   implicit def convIntWholeNumber(x: Int): WholeNumber = WholeNumber(x)
 
+  /**
+    * Provides a `Convertible` implementation for converting instances of `WholeNumber` to `WholeNumber`.
+    *
+    * This implementation allows a `WholeNumber` instance to be converted to another `WholeNumber`
+    * without applying any transformation, effectively serving as an identity conversion.
+    *
+    * @note This implementation adheres to the contract of the `Convertible` typeclass.
+    * @param witness a `WholeNumber` instance that serves as a template or context for the conversion
+    * @param u       the source `WholeNumber` to be converted
+    * @return the same `WholeNumber` instance as passed in `u`
+    */
   given Convertible[WholeNumber, WholeNumber] with
     def convert(witness: WholeNumber, u: WholeNumber): WholeNumber = u
 
+  /**
+    * Represents a given instance of the `Convertible` typeclass to transform a `Real` into a `WholeNumber`,
+    * provided the `Real` value is exact and can be represented as a whole number.
+    *
+    * The implementation leverages `FP.recover` to handle failures gracefully and will throw an
+    * `AlgebraException` if the provided `Real` cannot be converted into a `WholeNumber`.
+    *
+    * The conversion is only possible if the `Real` value satisfies the following conditions:
+    * - It is marked as exact.
+    * - Its numerical value can be expressed as an integer.
+    *
+    * @param witness a representative instance of `WholeNumber` used optionally for the conversion process.
+    * @param u       the `Real` value to be converted into a `WholeNumber`.
+    * @throws AlgebraException if the input `Real` cannot be converted to a `WholeNumber`.
+    * @return a `WholeNumber` instance representing the converted value.
+    */
   given Convertible[WholeNumber, Real] with
     def convert(witness: WholeNumber, u: Real): WholeNumber =
       FP.recover(
@@ -390,6 +428,48 @@ object WholeNumber {
           Rational.createExact(u.value).toOption.flatMap(r => r.maybeInt).map(WholeNumber(_))
         )
       )(AlgebraException("cannot convert $u to WholeNumber"))
+
+  /**
+    * Provides an implementation of the `DyadicOperator` trait for the `WholeNumber` type.
+    *
+    * This given instance enables the application of binary operations on `WholeNumber`
+    * instances using a provided function `f`. The function encapsulates the operation logic
+    * and handles the operand types and potential failures via `Try`.
+    *
+    * @return A `DyadicOperator` instance for the `WholeNumber` type,
+    *         facilitating binary operations with safety provided by `Try`.
+    */
+  given DyadicOperator[WholeNumber] = new DyadicOperator[WholeNumber] {
+    def op[B <: WholeNumber, Z](f: (WholeNumber, B) => Try[Z])(x: WholeNumber, y: B): Try[Z] =
+      f(x, y)
+  }
+
+  /**
+    * Provides an implementation of the `Eq` type class for the `WholeNumber` type.
+    *
+    * This given instance defines equality for `WholeNumber` values. It uses the `eqv`
+    * method defined on `WholeNumber`, falling back to `false` if the equality operation
+    * is not defined.
+    *
+    * @return an `Eq` instance for comparing `WholeNumber` values for equality
+    */
+  given Eq[WholeNumber] = Eq.instance {
+    (x, y) => x.eqv(y).getOrElse(false)
+  }
+
+  /**
+    * Provides an instance of `FuzzyEq` for the `WholeNumber` type.
+    *
+    * This instance defines the fuzzy equality behavior for `WholeNumber`
+    * values, where two `WholeNumber` instances are considered equal if
+    * they are exactly the same, regardless of the probability `p`.
+    *
+    * @return An instance of `FuzzyEq` for `WholeNumber` that implements
+    *         strict equality.
+    */
+  given FuzzyEq[WholeNumber] = FuzzyEq.instance {
+    (x, y, p) => x == y
+  }
 
   /**
     * Provides an implicit implementation of a commutative group for the `WholeNumber` type, supporting

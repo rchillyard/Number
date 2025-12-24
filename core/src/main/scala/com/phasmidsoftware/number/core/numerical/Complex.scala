@@ -6,8 +6,8 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
-import com.phasmidsoftware.number.misc.FP.recover
-import com.phasmidsoftware.number.parse.ComplexParser
+import com.phasmidsoftware.number.core.misc.FP._
+import com.phasmidsoftware.number.core.parse.ComplexParser
 import scala.util._
 
 /**
@@ -217,13 +217,13 @@ object Complex {
           if (expressions.hasNext)
             sb.append(expressions.next())
           else
-            throw NumberException("C: logic error: missing expression")
+            throw CoreException("C: logic error: missing expression")
         }
         else
           sb.append(s)
       }
       if (expressions.hasNext)
-        throw NumberException(s"C: ignored: ${expressions.next()}")
+        throw CoreException(s"C: ignored: ${expressions.next()}")
       else
         Complex.parse(sb.toString) match {
           case Success(value) => value

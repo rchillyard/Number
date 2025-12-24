@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.top
 import com.phasmidsoftware.matchers.*
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.Angle.𝛑
+import com.phasmidsoftware.number.algebra.Eager.{e, half, minusOne, negInfinity, one, pi, two, zero}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.infinity
@@ -73,10 +74,6 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   val em: ExpressionMatchers = Expression.em
   val eml: ExpressionMatchers = new ExpressionMatchers() {}
-  private val two: Eager = Valuable.two
-  private val one: Eager = Valuable.one
-  private val half: Eager = Valuable.half
-
 
   import Expression.ExpressionOps
   import Rational.RationalHelper
@@ -95,19 +92,17 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   behavior of "math and lazymath"
   it should "parse and render numbers" in {
-    val one = "1"
-    math"$one" shouldBe Valuable.one
-    math"$one".render shouldBe one
+    math"$one" shouldBe one
+    math"$one".render shouldBe "1"
     val sevenPercent = "7%"
     import com.phasmidsoftware.number.core.inner.Rational.RationalOps
     math"$sevenPercent" shouldBe RationalNumber(7:/100, true)
     math"$sevenPercent".render shouldBe sevenPercent
   }
   it should "parse and render angles" in {
-    math"""\pi""" shouldBe Valuable.pi
-    val pi = "𝛑"
-    math"$pi" shouldBe Valuable.pi
-    math"$pi".render shouldBe pi
+    math"""\pi""" shouldBe pi
+    math"$pi" shouldBe pi
+    math"$pi".render shouldBe "𝛑"
     val degrees180 = "180°"
     math"$degrees180" shouldBe Angle.degrees(180)
     math"$degrees180".render shouldBe degrees180
@@ -143,7 +138,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "cancel addition and subtraction (a)" in {
     lazymath"""\pi+3-3""" shouldBe ConstPi
-    math"""\pi+3-3""" shouldBe Valuable.pi
+    math"""\pi+3-3""" shouldBe pi
   }
   it should "use multiply instead of addition" in {
     puremath"\pi+𝛑" shouldBe BiFunction(ConstPi, ConstPi, Sum)
@@ -153,13 +148,13 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   it should "work for Negate" in {
     lazymath"-1" shouldBe MinusOne
     lazymath"-1*1" shouldBe MinusOne
-    math"-1" shouldBe Valuable.minusOne
-    math"-1*1" shouldBe Valuable.minusOne
+    math"-1" shouldBe minusOne
+    math"-1*1" shouldBe minusOne
   }
   it should "work for Negate Negate" in {
     lazymath"-(-1)" shouldBe One
     lazymath"-(-𝛑)" shouldBe ConstPi
-    math"-(-1)" shouldBe Valuable.one
+    math"-(-1)" shouldBe one
     math"-(-𝛑)" shouldBe 𝛑
   }
   it should "work for Reciprocal" in {
@@ -200,42 +195,42 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "work for Exp Zero" in {
     lazymath"\e^0" shouldBe One
-    math"\e^0" shouldBe Valuable.one
+    math"\e^0" shouldBe one
   }
   it should "work for Exp One" in {
     lazymath"\e^1" shouldBe ConstE
-    math"\e^1" shouldBe Valuable.e
+    math"\e^1" shouldBe e
   }
   it should "work for Ln Zero" in {
     // TODO make the following line work
 //    lazymath"\ln(0)" shouldBe UniFunction(Infinity, Negate)
-    math"\ln(0)" shouldBe Valuable.negInfinity
+    math"\ln(0)" shouldBe negInfinity
   }
   it should "work for Ln One" in {
     lazymath"\ln(1)" shouldBe Zero
-    math"\ln(1)" shouldBe Valuable.zero
+    math"\ln(1)" shouldBe zero
   }
   it should "work for Ln e" in {
     lazymath"\ln{\e}" shouldBe One
-    math"\ln{\e}" shouldBe Valuable.one
+    math"\ln{\e}" shouldBe one
   }
   it should "work for Sine 0, etc." in {
     lazymath"\sin(0)" shouldBe Zero
-    math"\sin(0)" shouldBe Valuable.zero
+    math"\sin(0)" shouldBe zero
     lazymath"\sin(\pi)" shouldBe Zero
-    math"\sin(\pi)" shouldBe Valuable.zero
+    math"\sin(\pi)" shouldBe zero
     lazymath"\cos(𝛑/2)" shouldBe Zero
-    math"\cos(𝛑/2)" shouldBe Valuable.zero
+    math"\cos(𝛑/2)" shouldBe zero
   }
   it should "work for Sine pi/2, etc." in {
     lazymath"\sin(𝛑/2)" shouldBe One
-    math"\sin(𝛑/2)" shouldBe Valuable.one
+    math"\sin(𝛑/2)" shouldBe one
     lazymath"\cos(0)" shouldBe One
-    math"\cos(0)" shouldBe Valuable.one
+    math"\cos(0)" shouldBe one
   }
   it should "work for Cosine pi" in {
     lazymath"\cos(𝛑)" shouldBe MinusOne
-    math"\cos(𝛑)" shouldBe Valuable.minusOne
+    math"\cos(𝛑)" shouldBe minusOne
   }
   it should "cancel multiplication and division with simplify 2" in {
     lazymath"𝛑*2/2" shouldBe ConstPi
@@ -251,24 +246,24 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "cancel 1 + -1" in {
     (lazymath"1" :+ lazymath"-1").simplify shouldBe Zero
-    math"1-1" shouldBe Valuable.zero
+    math"1-1" shouldBe zero
   }
   it should "cancel 2 * 1/2 (a)" in {
     (∅ * 2 * 1 / 2).simplify shouldBe One
     lazymath"2 * 1/2" shouldBe One
-    math"2 * 1/2" shouldBe Valuable.one
+    math"2 * 1/2" shouldBe one
   }
   it should "work for multi-levels 1" in {
-    math"(1+3-3)*2/4" shouldBe Valuable.half
+    math"(1+3-3)*2/4" shouldBe half
   }
   it should "work for multi-levels 2" in {
     math"(1+\e-\e)*(\pi/4)" shouldBe Angle.pi * Rational.quarter
   }
   it should "simplify binary expression 3" in {
-    math"√2 + -1*√2" shouldBe Valuable.zero
+    math"√2 + -1*√2" shouldBe zero
   }
   it should "simplify aggregate 4a" in {
-    math"(√3+1)*(√3-1)" shouldBe Valuable.two
+    math"(√3+1)*(√3-1)" shouldBe two
   }
   it should "simplify aggregate 4b" in {
     math"(√3 + 1)*(1 - √3)" shouldBe WholeNumber(-2)
