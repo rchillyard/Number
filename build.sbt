@@ -2,7 +2,7 @@ ThisBuild / organization := "com.phasmidsoftware"
 
 name := "Number"
 
-ThisBuild / version := "1.3.5"
+ThisBuild / version := "1.3.6"
 
 val catsVersion = "2.13.0"
 val scalaTestVersion = "3.2.19"
@@ -13,7 +13,7 @@ val flogVersion = "1.0.8"
 
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-  "ch.qos.logback" % "logback-classic" % "1.5.21" % "runtime"
+  "ch.qos.logback" % "logback-classic" % "1.5.23" % "runtime"
 )
 
 lazy val root = (project in file("."))

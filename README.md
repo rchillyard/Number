@@ -1290,6 +1290,14 @@ This module includes:
 See the worksheets for hands-on examples of the library in action.
 
 ## Versions
+* Version 1.3.6: Here's a list of all the new features since version 1.2:
+  * Multi-module architecture (algebra, parse, expressions, core, top)
+  * Clean Scala 2 → Scala 3 migration (not yet complete as the core module is still in Scala 2)
+  * Sophisticated type hierarchy with Solution, Complex, and Algebraic
+  * Comprehensive normalization system
+  * LaTeX parsing and string interpolators
+  * Convertible typeclass for compile-time safe conversions
+  * Lazy vs Eager evaluation semantics
 * Version 1.3.4: Completed equality and fuzzy equality tests throughout Eager classes.
 * Version 1.3.3: 
 * Version 1.3.2: Complete the migration to 5-module project.
