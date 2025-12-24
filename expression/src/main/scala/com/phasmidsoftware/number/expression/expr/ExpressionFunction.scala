@@ -672,7 +672,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
     * @return the right-hand `Context` of the binary function.
     */
   def rightContext(factor: Factor)(context: Context): Context =
-    context
+    RestrictedContext(factor)
 
   /**
     * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
@@ -759,7 +759,7 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
     */
   def rightContext(factor: Factor)(context: Context): Context = context match {
     case AnyScalar | AnyContext =>
-      context or RestrictedContext(PureNumber) // TESTME
+      context or RestrictedContext(PureNumber)
     case AnyLog =>
       context // TESTME
     case AnyRoot =>
@@ -771,7 +771,7 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
     case r@RestrictedContext(_) =>
       r
     case _ =>
-      ImpossibleContext // TESTME
+      ImpossibleContext
   }
 
   /**

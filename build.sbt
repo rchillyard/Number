@@ -24,6 +24,7 @@ lazy val root = (project in file("."))
 
 lazy val core = (project in file("core"))
     .settings(
+      // TODO Issue #146
       scalaVersion := "2.13.16",
       libraryDependencies ++= Seq(
         "com.phasmidsoftware" %% "flog" % flogVersion,

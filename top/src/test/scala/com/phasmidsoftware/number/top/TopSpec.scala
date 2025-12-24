@@ -136,8 +136,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     lazymath"$exp" shouldBe Expression(3)
     math"$exp" shouldBe Eager(3)
   }
-  // TODO fix this new issue
-  ignore should "cancel addition and subtraction (a)" in {
+  it should "cancel addition and subtraction (a)" in {
     lazymath"""\pi+3-3""" shouldBe ConstPi
     math"""\pi+3-3""" shouldBe pi
   }

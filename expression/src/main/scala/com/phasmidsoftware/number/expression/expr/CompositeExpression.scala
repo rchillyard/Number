@@ -544,8 +544,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return the materialized Field.
     */
   def evaluate(context: Context): Option[Eager] =
-    val vo: Option[Eager] = for (x <- a.evaluateAsIs; y <- b.evaluateAsIs; z <- f.applyExact((x, y))) yield z
-    context.qualifyingEagerValue(vo)
+    val cLeft = f.leftContext(context)
+    val eo = for {
+      x <- a.evaluate(cLeft)
+      factor <- x.maybeFactor(cLeft)
+      cRight = f.rightContext(factor)(context)
+      y <- b.evaluate(cRight)
+      z <- f.applyExact((x, y))
+    } yield z
+    context.qualifyingEagerValue(eo)
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.

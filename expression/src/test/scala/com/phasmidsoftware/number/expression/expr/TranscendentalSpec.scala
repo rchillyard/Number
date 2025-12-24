@@ -32,7 +32,8 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
 
   it should "normalize lgE to Real" in {
     val normalized = LgE.normalize
-    normalized shouldBe LgE
+    normalized shouldBe a[Real]
+    normalized.asInstanceOf[Real].toDouble shouldBe 1.4426950408889634 +- 1e-10
   }
 
   it should "normalize EulerMascheroni to itself" in {
