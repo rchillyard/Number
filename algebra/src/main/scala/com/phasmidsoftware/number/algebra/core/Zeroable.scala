@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.core
 
 /**
   * Trait `Zeroable` represents entities that are interesting in the area of zero.

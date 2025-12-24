@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.core
 
 /**
   * The typeclass `Convertible` represents a generic abstraction for transforming an instance of type `U`

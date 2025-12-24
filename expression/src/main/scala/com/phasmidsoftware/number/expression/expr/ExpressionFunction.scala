@@ -5,13 +5,13 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra
-import com.phasmidsoftware.number.algebra.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.algebra.Valuable.valuableToField
-import com.phasmidsoftware.number.algebra.core.{FP, Q}
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatZero, RationalNumber, WholeNumber}
-import com.phasmidsoftware.number.algebra.{AnyContext, CanAdd, CanMultiply, CanPower, Context, ImpossibleContext, RestrictedContext, Scalable, Valuable, eager}
+import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScalar}
+import com.phasmidsoftware.number.algebra.core.Valuable.valuableToField
+import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
+import com.phasmidsoftware.number.algebra.eager
+import com.phasmidsoftware.number.algebra.eager.{NatLog, *}
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, Real}
+import com.phasmidsoftware.number.core.numerical.{Q, Real, *}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
 import scala.annotation.tailrec

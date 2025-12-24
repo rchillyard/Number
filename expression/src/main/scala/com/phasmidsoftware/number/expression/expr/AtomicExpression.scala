@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
+import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
+import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, Nat, NatLog, Number, RationalNumber, Real, Scalar, WholeNumber}
-import com.phasmidsoftware.number.algebra.{CanAddAndSubtract, CanMultiplyAndDivide, CanNormalize, Context, Valuable}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Constants, Field}

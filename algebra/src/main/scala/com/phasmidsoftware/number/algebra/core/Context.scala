@@ -2,9 +2,9 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.core
 
-import com.phasmidsoftware.number.algebra.Valuable
+import com.phasmidsoftware.number.algebra.core.{Context, RestrictedContext, Valuable}
 import com.phasmidsoftware.number.algebra.eager.{Eager, Nat}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.*

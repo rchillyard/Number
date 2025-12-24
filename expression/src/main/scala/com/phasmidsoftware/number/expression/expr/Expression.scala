@@ -6,8 +6,8 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.core.Approximate
 import com.phasmidsoftware.number.algebra.core.FP.recover
+import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
@@ -142,7 +142,7 @@ object ExpressionHelper {
   extension (x: String)
     def evaluateAsIs: Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluateAsIs)
-    def evaluate(context: Context = com.phasmidsoftware.number.algebra.RestrictedContext(PureNumber)): Option[Valuable] =
+    def evaluate(context: Context = RestrictedContext(PureNumber)): Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluate(context))
     def materialize: Option[Valuable] =
       Expression.parse(x).map(_.materialize)

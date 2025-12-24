@@ -1,6 +1,11 @@
-package com.phasmidsoftware.number.algebra
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.algebra.core
 
 import algebra.ring.*
+import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.eager.{RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag

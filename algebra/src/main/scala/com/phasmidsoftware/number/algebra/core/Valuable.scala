@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.core
 
 import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.algebra.core.*

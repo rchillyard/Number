@@ -4,8 +4,6 @@
 
 package com.phasmidsoftware.number.algebra.core
 
-import com.phasmidsoftware.number.algebra.Valuable
-
 trait Normalizable[T] {
 
   /**

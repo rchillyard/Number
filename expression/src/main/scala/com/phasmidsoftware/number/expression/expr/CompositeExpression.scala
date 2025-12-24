@@ -4,12 +4,10 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
-import com.phasmidsoftware.number.algebra.core.{FP, Q}
+import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
+import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, QuadraticSolution, RationalNumber, Structure}
-import com.phasmidsoftware.number.algebra.{CanPower, Context, RestrictedContext, Valuable}
-import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, QuadraticSolution, RationalNumber}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import com.phasmidsoftware.number.core.numerical

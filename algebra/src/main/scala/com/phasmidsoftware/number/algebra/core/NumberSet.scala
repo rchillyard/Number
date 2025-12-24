@@ -1,3 +1,5 @@
+package com.phasmidsoftware.number.algebra.core
+
 ///*
 // * Copyright (c) 2023. Phasmid Software
 // */

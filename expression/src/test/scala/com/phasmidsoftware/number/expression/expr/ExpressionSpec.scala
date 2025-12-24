@@ -5,11 +5,11 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra
-import com.phasmidsoftware.number.algebra.{eager, *}
+import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.core.Valuable.valuableToField
+import com.phasmidsoftware.number.algebra.core.{FuzzyEq, Valuable}
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
-import com.phasmidsoftware.number.algebra.Valuable.valuableToField
-import com.phasmidsoftware.number.algebra.core.FuzzyEq
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, QuadraticSolution, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational, SquareRoot}
 import com.phasmidsoftware.number.core.numerical
