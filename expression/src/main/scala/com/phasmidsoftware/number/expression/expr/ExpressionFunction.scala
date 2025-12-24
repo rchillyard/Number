@@ -797,19 +797,17 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       Some(a)
     case (Eager.zero, _) | (_, Eager.zero) =>
       Some(Eager.zero)
-    case (x: Scalable[Eager], y: RationalNumber) =>
-      Some(x.*(y.toRational))
+    // NOTE do not try to replace RationalNumber with Q. It matches too freely.
+    case (x: Scalable[Eager] @unchecked, y: RationalNumber) =>
+      Some(x * y.toRational)
+    case (x: RationalNumber, y: Scalable[Eager] @unchecked) =>
+      Some(y * x.toRational)
     case (x: CanMultiply[Number, Number] @unchecked, y: Number) =>
       // TODO asInstanceOf
       Option.when(x.isExact && y.isExact)((x * y).asEager).filter(_.isExact)
     case (x: Number, y: CanMultiply[Number, Number] @unchecked) =>
       // TODO asInstanceOf
       Option.when(x.isExact && y.isExact)((y * x).asEager).filter(_.isExact)
-//    case (x: CanScale[Structure, Number] @unchecked, y: Number) =>
-//      val maybeStructure = FP.whenever(x.isExact && y.isExact)(x.doScale(y))
-//      maybeStructure.filter(_.isExact)
-//    case (x: Number, y: CanScale[Structure, Number] @unchecked) =>
-//      FP.whenever(x.isExact && y.isExact)(y.doScale(x)).filter(_.isExact)
     case (ValueExpression(x, _), y: Number) =>
       applyExact(x, y)
     case (ValueExpression(x, _), ValueExpression(y, _)) =>
