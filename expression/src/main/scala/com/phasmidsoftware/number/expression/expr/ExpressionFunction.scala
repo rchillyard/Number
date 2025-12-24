@@ -797,6 +797,8 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       Some(a)
     case (Eager.zero, _) | (_, Eager.zero) =>
       Some(Eager.zero)
+    case (x: Scalable[Eager], y: RationalNumber) =>
+      Some(x.*(y.toRational))
     case (x: CanMultiply[Number, Number] @unchecked, y: Number) =>
       // TODO asInstanceOf
       Option.when(x.isExact && y.isExact)((x * y).asEager).filter(_.isExact)
