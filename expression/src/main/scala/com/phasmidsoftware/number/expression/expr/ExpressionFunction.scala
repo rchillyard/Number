@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.misc.FP
@@ -693,6 +694,14 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
       val g = Angle.angleIsCommutativeGroup
       val q = g.additive.combine(x, y)
       Some(q)
+    case (x: Angle, y: Number) =>
+      import algebra.Real.realIsRing
+      val q: Option[algebra.Real] = for {
+        r <- x.convert(algebra.Real.zero)
+        z <- y.convert(algebra.Real.zero)
+      } yield r + z
+      q.asInstanceOf[Option[Eager]]
+      // TODO implement for (Number, Angle)
     case (x: CanAdd[Number, Number] @unchecked, y: Number) =>
       import Number.NumberIsAdditiveCommutativeMonoid
       Some(x + y)
