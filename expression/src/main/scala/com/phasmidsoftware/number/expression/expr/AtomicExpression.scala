@@ -445,7 +445,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
 
   private def doMonoFunction(f: ExpressionMonoFunction): Eager = (f, value) match {
     case (Negate, r: CanAddAndSubtract[?, ?]) =>
-      (-r).asInstanceOf[Eager]
+      -r
     case (Reciprocal, r: CanMultiplyAndDivide[Number] @unchecked) =>
       import Number.NumberIsMultiplicativeGroup
       r.reciprocal

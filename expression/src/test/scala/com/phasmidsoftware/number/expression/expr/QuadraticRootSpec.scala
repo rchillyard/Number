@@ -143,11 +143,16 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "materialize"
 
-  ignore should "materialize to QuadraticSolution" in {
+  it should "materialize to QuadraticSolution" in {
     val equation = QuadraticEquation(Rational(-3), Rational(2))
     val root = QuadraticRoot(equation, 0)
+    println(s"root = $root")
+    val normalized = root.normalize
+    println(s"normalized = $normalized")
     val materialized = root.materialize
+    println(s"materialized = $materialized")
     materialized shouldBe a[QuadraticSolution]
+    materialized shouldBe QuadraticSolution(Rational(3, 2), Rational(1, 2), 0)
   }
 
   it should "have correct isAtomic" in {

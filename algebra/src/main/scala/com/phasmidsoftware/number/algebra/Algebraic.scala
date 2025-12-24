@@ -60,13 +60,20 @@ sealed trait Algebraic extends Solution {
     *         depending on the conditions, or `None` if no factor is applicable
     */
   def maybeFactor(context: Context): Option[Factor] =
-    if (isPureNumber) {
-      Option.when(context.factorQualifies(PureNumber))(PureNumber)
+    (base, offset) match {
+      case (x, y) if x.isZero && y.isZero =>
+        Some(PureNumber)
+      case (x, y) if y.isZero =>
+        x.maybeFactor(context)
+      case (x, y) if x.isZero =>
+        y.maybeFactor(context)
+      case (x, y) =>
+        for {
+          bf <- x.maybeFactor(context)
+          of <- y.maybeFactor(RestrictedContext(bf))
+        } yield of
     }
-    else if (base.isZero)
-      offset.maybeFactor(context)
-    else
-      None
+
 
   /**
     * Method to determine if this NumberLike object is exact.
@@ -300,7 +307,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
     case q@QuadraticSolution(base, offset, branch) if offset.isZero || base.isZero =>
       q.normalize.render
     case QuadraticSolution(base, offset, branch) =>
-      s"Algebraic: $base + ${if (branch == 1) "- " else "+ "}"
+      s"${base.render} ${if (branch == 1) "- " else "+ "}${offset.render}"
   }
 
   override def toString: String = render
@@ -350,7 +357,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
     * @return true if the offset of the solution is zero, otherwise false.
     */
   def isPureNumber: Boolean =
-    offset.isZero
+    offset.isZero || offset.maybeFactor(RestrictedContext(PureNumber)).isDefined
 
   /**
     * Determines if the current QuadraticSolution instance represents unity (1).
@@ -486,9 +493,9 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
     */
   def add(solution: Algebraic): Option[Algebraic] = {
     (isPureNumber, solution.isPureNumber) match {
-      case (true, true) => 
+      case (true, true) =>
         copy(base = sumBases(base, solution.base))
-      case _ => 
+      case _ =>
         None
     }
 

@@ -5,9 +5,11 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.misc.{DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec
+import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
 /**
@@ -187,6 +189,8 @@ object Monotone {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
+
+  implicit def convRationalToMonotone(r: Rational): Monotone = RationalNumber(r)
 
   //
 //  implicit val monotoneEq: Eq[Monotone] = Eq.instance {

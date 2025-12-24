@@ -90,9 +90,7 @@ trait Expression extends Lazy with Approximate {
   def materialize: Eager = {
     val simplified = simplify
     val asIs = simplified.evaluateAsIs
-    lazy val approximation1 = simplified.approximation(true)
-    lazy val maybeValuable1 = approximation1
-    val maybeValuable = asIs orElse maybeValuable1
+    val maybeValuable = asIs orElse simplified.approximation(true)
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
 

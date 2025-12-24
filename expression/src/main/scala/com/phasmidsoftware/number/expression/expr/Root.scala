@@ -4,10 +4,9 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
-import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.expression.algebraic.{Equation, LinearEquation, QuadraticEquation}
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import java.util.Objects
@@ -121,7 +120,7 @@ sealed trait Root extends AtomicExpression with Branched[Root] {
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation(force: Boolean): Option[Real] = None // TODO Implement me
+  def approximation(force: Boolean): Option[Real]
 }
 
 /**
@@ -220,6 +219,20 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     */
   def evaluate(context: Context): Option[Eager] =
     Option.when[Eager](solution.isExact && solution.maybeFactor(context).isDefined)(solution)
+
+  /**
+    * Provides an approximation of this number, if applicable.
+    *
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
+    */
+  def approximation(force: Boolean): Option[Real] =
+    solution.approximation(force)
 
 //    solution match {
 //      case LinearSolution(_) if context.factorQualifies(PureNumber) =>

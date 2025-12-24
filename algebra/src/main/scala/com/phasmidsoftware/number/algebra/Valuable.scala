@@ -88,6 +88,21 @@ trait Valuable extends Renderable with Numeric {
     * @return a string in the format "Category.TypeName" (e.g., "Structure.WholeNumber")
     */
   def describe: String = s"$category.$typeName"
+
+  /**
+    * Converts this `Valuable` instance into an `Eager` type if it already is an `Eager`.
+    * If the instance is not already an `Eager`, an `IllegalStateException` is thrown.
+    *
+    * @return the current instance as an `Eager`
+    * @throws IllegalStateException if the instance is not of type `Eager`
+    */
+  def asEager: Eager = this match
+    case e: Eager => e
+    case _ => throw new IllegalStateException(s"Expected Eager value but got $this")
+
+  def asMonotone: Monotone = this match
+    case m: Monotone => m
+    case _ => throw new IllegalStateException(s"Expected Monotone value but got $this")
 }
 
 /**

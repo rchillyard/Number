@@ -381,11 +381,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
         x.eqv(y).get shouldBe true
       case _ => fail(s"expected $expected, got $simplify")
     }
-    val materialized: Eager = simplify.normalize.asInstanceOf[Eager]
     extension (x: Eager)
       infix def ~==(y: Eager): Boolean =
         FuzzyEq[Eager].eqv(x, y, 0.5)
-    (materialized ~== phiApprox.asInstanceOf[Eager]) shouldBe true
+    (simplify.normalize.asEager ~== phiApprox) shouldBe true
   }
   it should "simplify constant expressions" in {
     Expression(1).simplify shouldBe Expression(1)

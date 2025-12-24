@@ -790,10 +790,10 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       Some(Eager.zero)
     case (x: CanMultiply[Number, Number] @unchecked, y: Number) =>
       // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((x * y).asInstanceOf[Eager]).filter(_.isExact)
+      Option.when(x.isExact && y.isExact)((x * y).asEager).filter(_.isExact)
     case (x: Number, y: CanMultiply[Number, Number] @unchecked) =>
       // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((y * x).asInstanceOf[Eager]).filter(_.isExact)
+      Option.when(x.isExact && y.isExact)((y * x).asEager).filter(_.isExact)
 //    case (x: CanScale[Structure, Number] @unchecked, y: Number) =>
 //      val maybeStructure = FP.whenever(x.isExact && y.isExact)(x.doScale(y))
 //      maybeStructure.filter(_.isExact)

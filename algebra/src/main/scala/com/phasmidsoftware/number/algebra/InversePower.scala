@@ -50,14 +50,11 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
       val normalized = number.normalize
       normalized match {
         case q: Q =>
-          val maybeInt = for {
-            lookup <- lookups.get(n)
-            r = q.toRational
-            y <- toIntOption(r)
-            p <- lookup.get(y)
-          } yield p
           val defaultValue = if (number == normalized) this else InversePower(n, q.asInstanceOf[Number])
-          maybeInt.map(WholeNumber(_)).getOrElse(defaultValue)
+          val r = q.toRational
+          val rootValue = getRoot(r, lookups).map(WholeNumber(_))
+          lazy val recipRootValue = getRoot(r.invert, lookups).map(x => RationalNumber(Rational(x).invert))
+          (rootValue orElse recipRootValue) getOrElse defaultValue
       }
     case _ =>
       number.normalize match {
@@ -69,6 +66,13 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
           this
       }
   }
+
+  private def getRoot(r: Rational, lookups: Map[Int, Map[Int, Int]]): Option[Int] =
+    for {
+      lookup <- lookups.get(n)
+      y <- toIntOption(r)
+      p <- lookup.get(y)
+    } yield p
 
   /**
     * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.

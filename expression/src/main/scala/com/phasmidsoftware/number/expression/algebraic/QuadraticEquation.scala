@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
-import com.phasmidsoftware.number.algebra.RationalNumber.convRationalRationalNumber
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.RationalNumber.convRationalRationalNumber
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
@@ -65,9 +65,6 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
       }
     } else
       throw CoreException(s"solve($branch) where branch is out of range for a quadratic equation.")
-
-  private def squareRoot(r: RationalNumber): Monotone =
-    InversePower(2, r)
 
   /**
     * Shifts the origin of the equation by transforming its `p` and `q` components
@@ -163,6 +160,9 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     */
   def scale(x: Rational): QuadraticEquation =
     copy(p = x * p, q = x * x * q)
+
+  private def squareRoot(r: RationalNumber): Monotone =
+    InversePower(2, r).normalize.asMonotone
 }
 
 /**
