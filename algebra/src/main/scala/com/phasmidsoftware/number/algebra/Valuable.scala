@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.number.algebra.misc.*
+import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}

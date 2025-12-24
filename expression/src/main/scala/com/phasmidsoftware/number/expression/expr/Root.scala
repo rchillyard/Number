@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.core.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.expression.algebraic.{Equation, LinearEquation, QuadraticEquation}
 import com.phasmidsoftware.number.expression.expr.Expression.em

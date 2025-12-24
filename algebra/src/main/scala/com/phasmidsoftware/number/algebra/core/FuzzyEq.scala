@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra.misc
+package com.phasmidsoftware.number.algebra.core
 
 /**
   * Trait representing fuzzy equality for a type `A`.

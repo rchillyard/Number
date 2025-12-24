@@ -10,7 +10,7 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Logarithm.LogarithmIsCommutativeMonoid
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}

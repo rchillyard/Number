@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
-import com.phasmidsoftware.number.algebra.misc.FP
+import com.phasmidsoftware.number.algebra.core.FP
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.algebraic.LinearEquation

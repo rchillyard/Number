@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.algebra.misc.FuzzyEq.~=
+import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

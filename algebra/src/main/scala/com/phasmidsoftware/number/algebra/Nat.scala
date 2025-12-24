@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.algebra
 import algebra.ring.Semiring
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Nat.natIsSemiring
-import com.phasmidsoftware.number.algebra.misc.{DyadicOperator, FuzzyEq}
+import com.phasmidsoftware.number.algebra.core.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.annotation.tailrec
 import scala.util.{Success, Try}

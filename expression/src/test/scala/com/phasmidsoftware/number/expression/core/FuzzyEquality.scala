@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.expression.core
 
-import com.phasmidsoftware.number.algebra.misc.FuzzyEq.~=
+import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.{Eager, Valuable}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
 import com.phasmidsoftware.number.core.inner.Rational

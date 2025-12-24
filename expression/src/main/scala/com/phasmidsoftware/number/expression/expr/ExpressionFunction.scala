@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
-import com.phasmidsoftware.number.algebra.misc.FP
+import com.phasmidsoftware.number.algebra.core.FP
 import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAdd, CanMultiply, CanPower, Context, Eager, ImpossibleContext, Number, Q, RationalNumber, RestrictedContext, Scalable, Scalar, Valuable, WholeNumber}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, Real}

@@ -9,7 +9,7 @@ import cats.Show
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Structure
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.language.implicitConversions
 import scala.reflect.ClassTag

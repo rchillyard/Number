@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.algebra
 
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.misc.*
+import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.CoreExceptionWithCause

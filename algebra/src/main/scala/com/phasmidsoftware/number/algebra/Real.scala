@@ -6,7 +6,7 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sGamma

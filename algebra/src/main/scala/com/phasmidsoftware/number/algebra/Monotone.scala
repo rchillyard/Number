@@ -4,7 +4,7 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.core.{DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}

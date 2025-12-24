@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.misc.FP.recover
+import com.phasmidsoftware.number.algebra.core.FP.recover
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*

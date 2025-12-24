@@ -1,4 +1,4 @@
-package com.phasmidsoftware.number.algebra.misc
+package com.phasmidsoftware.number.algebra.core
 
 /**
   * Trait representing a renderable entity that can be presented to the user as a string.

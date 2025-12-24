@@ -203,7 +203,7 @@ classDiagram
         +signum: Int
     }
     
-    class Scalable[T] {
+    class Scalable {
         <<trait>>
         +*(scaleFactor: Rational): T
     }
@@ -475,7 +475,7 @@ For `Angle` and `RationalNumber`, equality ignores display flags (radians/degree
 
 Additionally, the algebra module provides both `FuzzyEq` instances for `Eager` types:
 ```scala
-import com.phasmidsoftware.number.algebra.misc.FuzzyEq.~=
+import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 
 val x: Eager = Real(scala.math.Pi)
 val y: Eager = Angle(Real(1.0))

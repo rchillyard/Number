@@ -6,7 +6,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.Real.realIsRing
 import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec

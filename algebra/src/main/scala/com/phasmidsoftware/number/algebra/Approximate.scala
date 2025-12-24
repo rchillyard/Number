@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.core.{AlgebraException, FP}
 
 /**
   * Trait representing a structure that supports approximation.

@@ -10,7 +10,7 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.Angle.{angleIsCommutativeGroup, r180}
 import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.Fuzziness
 import scala.reflect.ClassTag

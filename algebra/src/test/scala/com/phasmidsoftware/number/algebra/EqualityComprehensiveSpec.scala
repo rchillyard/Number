@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.misc.FuzzyEq
+import com.phasmidsoftware.number.algebra.core.FuzzyEq
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
