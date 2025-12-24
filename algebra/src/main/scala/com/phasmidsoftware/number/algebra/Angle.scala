@@ -322,7 +322,7 @@ object Angle {
     */
   def apply(value: Value): Angle = value match {
     case Right(x) =>
-      new Angle(WholeNumber(x)())()
+      new Angle(WholeNumber(x))()
     case Left(Right(x)) =>
       new Angle(RationalNumber(x))()
     case Left(Left(Some(x))) =>
@@ -528,7 +528,7 @@ object Angle {
     * `RationalNumber.one`, which corresponds to the rational representation of π
     * in the specific context of the `Angle` implementation.
     */
-  val pi: Angle = Angle(RationalNumber.one)
+  val pi: Angle = Angle(RationalNumber.one).named("𝛑").asInstanceOf[Angle]
 
   /**
     * Alias for the `pi` value, representing an angle equivalent to mathematical π radians.
@@ -545,12 +545,12 @@ object Angle {
     * a `RationalNumber` constructed with a value of 1/2. This corresponds
     * to π/2 radians in mathematical terms.
     */
-  val piBy2: Angle = Angle(RationalNumber(Rational.half))
+  val piBy2: Angle = new Angle(RationalNumber(Rational.half))(Some("½𝛑"))
   val piBy3: Angle = Angle(RationalNumber(Rational.third))
   val piBy4: Angle = Angle(RationalNumber(Rational(1, 4)))
   val piBy2Times3: Angle = Angle(RationalNumber(Rational(3, 2)))
-  val twoPi: Angle = Angle(RationalNumber(Rational.two))
-  val negPi: Angle = Angle(RationalNumber(Rational.negOne))
+  val twoPi: Angle = new Angle(RationalNumber(Rational.two))(Some("2𝛑"))
+  val negPi: Angle = new Angle(RationalNumber(Rational.negOne))(Some("-𝛑"))
   // CONSIDER using NoScalar instead
   private val nan: Angle = Angle(RationalNumber(Rational.NaN))
 

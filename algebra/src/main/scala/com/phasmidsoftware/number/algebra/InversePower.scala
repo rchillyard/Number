@@ -28,11 +28,15 @@ import scala.util.{Success, Try}
   * TODO this may be only a temporary class because we can model all roots (and more) as solutions to Algebraic equations.
   *
   * CONSIDER making this an (abstract?) class and having subclasses for square root and cube root.
+  * 
+  * TODO there are problems with multiplication (class cast exception, for example).
+  * Therefore, we should remove the `CanMultiplyAndDivide` mixin.
   *
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
+case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Scalable[InversePower] with Ordered[InversePower] {
+  
 //  require(n > 0, s"InversePower: n must be positive, but was $n")
 
   /**
@@ -59,7 +63,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
       val lookups = Map(2 -> Rational.squareRoots, 3 -> Rational.cubeRoots)
       val normalized = number.normalize
       normalized match {
-        case q: Q =>
+        case q: Q if q.isInstanceOf[Number] =>
           val defaultValue: InversePower = if (number == normalized) this else InversePower(n, q.asInstanceOf[Number])
           val r = q.toRational
           val rootValue = getRoot(r, lookups).map(WholeNumber(_))
@@ -76,13 +80,6 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
           this
       }
   }
-
-  private def getRoot(r: Rational, lookups: Map[Int, Map[Int, Int]]): Option[Int] =
-    for {
-      lookup <- lookups.get(n)
-      y <- toIntOption(r)
-      p <- lookup.get(y)
-    } yield p
 
   /**
     * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
@@ -141,6 +138,20 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *         if scaling is not possible
     */
   def doScaleDouble(that: Double): Option[Monotone] = doScale(Real(that))
+
+  /**
+    * Scales the current instance by the given factor.
+    *
+    * This method applies a scaling operation on the instance using the provided
+    * rational factor and returns the resulting scaled instance.
+    *
+    * @param factor the rational number representing the scale factor
+    * @return the scaled instance of type `T`
+    */
+  infix def *(factor: Rational): InversePower = {
+    val scaledNumber = Range(0,n).foldLeft(number)((a,_) => a.scale(factor).asInstanceOf[Number])
+    InversePower(n, scaledNumber)
+  }
 
   /**
     * Retrieves an optional fuzziness value associated with this instance.
@@ -319,6 +330,22 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation: Option[Real] = convert(Real.zero)
+
+  /**
+    * Retrieves the root value from the provided lookups map based on the given rational number.
+    *
+    * @param r       The Rational number used as a key for the lookup operation.
+    * @param lookups A nested map where the outer key is an integer and the inner map
+    *                maps integers to their associated root values.
+    * @return An Option containing the root value if found, or None if no corresponding
+    *         value exists in the lookups map.
+    */
+  private def getRoot(r: Rational, lookups: Map[Int, Map[Int, Int]]): Option[Int] =
+    for {
+      lookup <- lookups.get(n)
+      y <- toIntOption(r)
+      p <- lookup.get(y)
+    } yield p
 
   /**
     * Scales the current instance using the provided `Number`.

@@ -106,9 +106,6 @@ case class Noop(w: String) extends AtomicExpression {
     */
   def isExact: Boolean = false
 
-  def value: Valuable =
-    throw new UnsupportedOperationException("Not a Valuable: $w")
-
   /**
     * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
     *
@@ -164,18 +161,18 @@ case class Noop(w: String) extends AtomicExpression {
 
   override def toString: String = s"Noop: not an Expression: $w"
 }
-
-/**
-  * Converts a new `Real` type to an old `Real` type by first transforming
-  * it into a valuable field representation and then casting it to the core `Real`.
-  *
-  * TESTME: this is a hack.
-  *
-  * @param r The new `Real` type that needs to be converted to the old `Real` type.
-  */
-def newRealToOldReal(r: Real) =
-  // TODO asInstanceOf
-  valuableToMaybeField(r).get.asInstanceOf[numerical.Real]
+//
+///**
+//  * Converts a new `Real` type to an old `Real` type by first transforming
+//  * it into a valuable field representation and then casting it to the core `Real`.
+//  *
+//  * TESTME: this is a hack.
+//  *
+//  * @param r The new `Real` type that needs to be converted to the old `Real` type.
+//  */
+//def newRealToOldReal(r: Real) =
+//  // TODO asInstanceOf
+//  valuableToMaybeField(r).get.asInstanceOf[numerical.Real]
 
 /**
   * Represents an abstract expression for a Valuable that can optionally be associated with a name.
@@ -244,6 +241,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
   def evaluate(context: Context): Option[Eager] =
     if (context.valuableQualifies(value))
       Some(value)
+    // NOTE this seems bizarre but if we include the following fragment, many unit tests fail...
 //    else if (value.maybeName.isDefined) // NOTE: this value is a "named" constant.
 //      Some(value)
     else
@@ -454,6 +452,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     //      case (Reciprocal, a: Algebraic) =>
     //            (a.invert)
     case (Reciprocal, c: Complex) =>
+      // TODO asInstanceOf
       Complex(c.complex.invert.asInstanceOf[numerical.Complex])
     case (function, q) =>
       function(q)

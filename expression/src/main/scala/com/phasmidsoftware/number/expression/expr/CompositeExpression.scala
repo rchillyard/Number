@@ -576,6 +576,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def approximation(force: Boolean): Option[algebra.Real] = {
     val maybeValuable = for {x <- a.approximation(true); y <- b.approximation(true)} yield f(x, y)
+    // TODO asInstanceOf
     // FIXME this cast is a problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
     maybeValuable.asInstanceOf[Option[algebra.Real]]
   }
@@ -671,6 +672,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           em.Miss("BiFunction:matchRoot Power", expression.expr.BiFunction(r, p, Power))
       }
     case (q1@QuadraticRoot(e1, b1), q2@QuadraticRoot(e2, b2), f) if e1 == e2 =>
+      // TODO asInstanceOf unrelated type
       val quadratic: Quadratic = e1.asInstanceOf[Quadratic]
       f match {
         case Sum if b1 != b2 =>

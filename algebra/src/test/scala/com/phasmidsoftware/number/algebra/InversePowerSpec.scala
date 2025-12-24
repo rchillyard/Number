@@ -61,6 +61,11 @@ class InversePowerSpec extends AnyFlatSpec with should.Matchers {
     InversePower(3, 8).maybeDouble shouldBe Some(2)
   }
 
+  it should "scale" in {
+    InversePower(2, 4) * Rational.two shouldBe InversePower(2, 16)
+    InversePower(3, 8) * Rational.two shouldBe InversePower(3, 64)
+  }
+
 //  it should "$times" in {
 //    InversePower(2, 4) * WholeNumber(3) shouldBe WholeNumber(6)
 //    InversePower(2, 2) * InversePower(2, 2) shouldBe WholeNumber(2)
