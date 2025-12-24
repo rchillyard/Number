@@ -112,17 +112,6 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     */
   def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int] =
     Failure(AlgebraException(s"Eager.fuzzyCompare: unimplemented compare $x and $y"))
-
-  /**
-    * Computes the sum of two `Eager` values.
-    *
-    * @param x the first `Eager` value to be summed
-    * @param y the second `Eager` value to be summed
-    * @return a `Try` containing the resulting `Eager` value if the operation is successful,
-    *         or a `Failure` with an `AlgebraException` if the operation is not implemented
-    */
-  def sum(x: Eager, y: Eager): Try[Eager] =
-    Failure(AlgebraException(s"Eager.sum: unimplemented add $x and $y"))
 }
 
 /**

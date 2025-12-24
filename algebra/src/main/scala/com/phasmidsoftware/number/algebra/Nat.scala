@@ -153,20 +153,6 @@ sealed trait Nat extends Eager with N {
     *         of the current `Nat`, or `None` if the representation cannot be determined.
     */
   def maybeQ: Option[Q] = Some(RationalNumber(toRational))
-
-  /**
-    * Yields an approximation of this `Valuable` object, if applicable.
-    *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
-    *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of the number, or `None` if no approximation is available.
-    */
-  lazy val approximation: Option[Real] =
-    maybeDouble map Real.apply
 }
 
 /**

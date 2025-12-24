@@ -88,29 +88,95 @@ All algebraic types extend `Structure`, which provides:
 - Java interop: `asJavaNumber: Option[java.lang.Number]`
 
 #### The Type Hierarchy
+
+All objects that have a "value" in `Number` are instances of `Valuable`, which extends `Renderable` and `Numeric`.
+Valuable has two subtypes: `Eager` and `Lazy`.
+`Eager` values are evaluated and can be rendered as `String`s or converted to `Double` (or even Java Numbers).
+`Lazy` values are not evaluated (they're lazy) and represent numerical expressions.
+
 ```mermaid
 classDiagram
-    %% Algebra types
+    %% Top-level types
     class Renderable {
         <<trait>>
         +render: String
     }
     
-    class MaybeNumeric {
+    class Numeric {
         <<trait>>
         +maybeDouble: Double
     }
     
-    class Valuable {
+    class Exactitude {
         <<trait>>
         +isExact: Boolean
+    }
+    
+    class Normalizable {
+        <<trait>>
+        +normalize: T
+    }
+    
+    class TypeSafe {
+        <<trait>>
+        +typeName: String
+        +category: String
+        +describe: String
+    }
+    
+    class Valuable {
+        <<trait>>
         +maybeFactor: Option[Factor]
     }
 
-    %% All non-lazy values
+    class Lazy {
+        <<trait>>
+        +simplify: Lazy
+        +materialize: Eager
+    }
+    
+    class DyadicOps {
+        <<trait>>
+        +eqv(that: Eager): Try[Boolean]
+        +fuzzyEqv(that: Eager): Try[Boolean]
+        +compare(x: Eager, y: Eager): Try[Int]
+        +fuzzyCompare(x: Eager, y: Eager): Try[Int]
+    }
+    
+    class Approximate {
+        <<trait>>
+        +approximation: Option[Real]
+        +toDouble: Double
+    }
+    
+    class R {
+        <<trait>>
+        +asDouble: Double
+        +maybeQ: Option[Q]
+    }
+    
+    class Q {
+        <<trait>>
+        +toRational: Rational
+        +maybeZ: Option[Z]
+    }
+    
+    class Z {
+        <<trait>>
+        +toInt: Int
+    }
+
+    class N {
+        <<trait>>
+        +inc: N
+    }
+
+    %% All eager values
     class Eager {
         Concrete values (not lazy)
         <<trait>>
+        +maybeName: Option[String]
+        +named(name: String): Eager
     }
     
     %% Complex (outside Structure)
@@ -122,8 +188,7 @@ classDiagram
     %% Nat (outside Structure)
     class Nat {
         Based on Peano arithmetic
-        +inc: Nat
-        +approximation: Option[Real]
+        ++(that: Nat): Nat
     }
     
     class Structure {
@@ -132,10 +197,21 @@ classDiagram
         +asJavaNumber: Option[Number]
     }
     
-    class Approximate {
+    class Zeroable {
         <<trait>>
-        +approximation: Option[Real]
-        +toDouble: Double
+        +isZero: Boolean
+        +signum: Int
+    }
+    
+    class Scalable[T] {
+        <<trait>>
+        +*(scaleFactor: Rational): T
+    }
+    
+    class Algebraic {
+        <<trait>>
+        +convert(T): Option[T]
+        +asJavaNumber: Option[Number]
     }
     
     class Monotone {
@@ -225,15 +301,35 @@ classDiagram
     
     %% Inheritance relationships
     Renderable <|-- Valuable
-
-    MaybeNumeric <|-- Valuable
+    Numeric <|-- Valuable
+    Exactitude <|-- Valuable
+    Normalizable <|-- Valuable
+    TypeSafe <|-- Valuable
     
+    Approximate <|-- Eager
+    DyadicOps <|-- Eager
     Valuable <|-- Eager
-    Valuable <|-- Expression
+    Valuable <|-- Lazy
     
-    Eager <|-- Complex
+    R <|-- Q
+    Z <|-- N
+    Q <|-- Z
+    R <|-- Circle
+    
+    Scalable <|-- Angle
+    Scalable <|-- Algebraic
+    Scalable <|-- InversePower
+    Scalable <|-- RationalNumber
+    Scalable <|-- Real
+    Zeroable <|-- Algebraic
+    Zeroable <|-- Monotone
+    Eager <|-- Solution
+    N <|-- Nat
     Eager <|-- Nat
     Eager <|-- Structure
+    
+    Solution <|-- Complex
+    Solution <|-- Algebraic
     
     Expression <|-- CompositeExpression
     Expression <|-- AtomicExpression

@@ -23,7 +23,7 @@ import scala.reflect.ClassTag
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with WithFuzziness {
+trait Monotone extends Structure with WithFuzziness with Zeroable {
 
   /**
     * Method to determine if this `Structure` object is exact.
@@ -53,21 +53,6 @@ trait Monotone extends Structure with WithFuzziness {
     case _ if force => convert(Real.zero)
     case _ => None
   }
-
-  /**
-    * Determines if the current number is equal to zero.
-    *
-    * @return true if the number is zero, false otherwise
-    */
-  def isZero: Boolean
-
-  /**
-    * Determines the sign of the Monotone value represented by this instance.
-    * Returns an integer indicating whether the value is positive, negative, or zero.
-    *
-    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
-    */
-  def signum: Int
 
   /**
     * Returns a new instance of `Monotone` that is the negation of the current instance.

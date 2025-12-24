@@ -191,6 +191,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     */
   def scale(r: Rational): Scalar = RationalNumber(r * this.r)
 
+
   /**
     * Scales the current instance of type `T` by the specified `Double` value.
     *

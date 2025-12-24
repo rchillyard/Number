@@ -26,7 +26,7 @@ import scala.util.{Success, Try}
   *
   * CONSIDER it is inappropriate to include branch in `Algebraic`. A `Algebraic` should be a unique solution.
   */
-sealed trait Algebraic extends Solution {
+sealed trait Algebraic extends Solution with Zeroable with Scalable[Algebraic] {
   /**
     * Retrieves the base value of the solution.
     *
@@ -92,26 +92,11 @@ sealed trait Algebraic extends Solution {
   def isPureNumber: Boolean
 
   /**
-    * Determines whether the solution is zero.
-    *
-    * @return true if the solution is zero, false otherwise.
-    */
-  def isZero: Boolean
-
-  /**
     * Determines whether the solution represents unity.
     *
     * @return true if the solution represents unity, false otherwise
     */
   def isUnity: Boolean
-
-  /**
-    * Determines the sign of the solution.
-    *
-    * @return an integer representing the sign of the solution: 0 if the solution is zero,
-    *         a positive value if the solution is positive, or a negative value if the solution is negative.
-    */
-  def signum: Int
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Algebraic` as the result.
@@ -137,26 +122,6 @@ sealed trait Algebraic extends Solution {
     * @return a new `Algebraic` instance representing the negated value of the current solution
     */
   def negate: Algebraic
-
-  /**
-    * Adds the given solution to the current solution and returns an optional result.
-    * The addition may fail under certain conditions, in which case `None` is returned.
-    *
-    * @param solution the `Algebraic` to be added to the current solution
-    * @return an `Option` containing the resulting `Algebraic` if the addition is successful,
-    *         or `None` if the addition cannot be performed
-    */
-  def subtract(solution: Algebraic): Option[Algebraic] =
-    add(solution.negate)
-
-  /**
-    * Scales the current solution by multiplying its base and offset values by the specified `Rational` factor.
-    *
-    * @param r the `Rational` value used as the scaling factor
-    * @return an optional `Algebraic` instance, where `Some` contains the scaled solution if the operation is valid,
-    *         or `None` if scaling cannot be performed
-    */
-  def scale(r: Rational): Option[Algebraic]
 
   /**
     * Determines whether the current solution is equivalent to another solution.
@@ -555,11 +520,11 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
     * @param r the scaling factor as a Rational value
     * @return an Option containing the scaled quadratic solution if calculations succeed, otherwise None
     */
-  def scale(r: Rational): Option[Algebraic] = (base, offset) match {
+  def *(r: Rational): Algebraic = (base, offset) match {
     case (b: Scalar, o: Scalar) =>
-      Some(QuadraticSolution(b.scale(r), o.scale(r), branch))
+      QuadraticSolution(b.scale(r), o.scale(r), branch)
     case _ =>
-      None
+      throw AlgebraException(s"QuadraticSolution: *($r) not supported")
   }
 
   /**
@@ -770,9 +735,11 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     * @param r the rational value used as a multiplier during scaling
     * @return an optional `Algebraic` as the result of scaling, or `None` if the operation is not valid
     */
-  def scale(r: Rational): Option[Algebraic] = value match {
-    case b: Scalar => Some(LinearSolution(b.scale(r)))
-    case _ => None
+  def *(r: Rational): Algebraic = value match {
+    case b: Scalar =>
+      LinearSolution(b.scale(r))
+    case _ =>
+      throw AlgebraException(s"LinearSolution: *($r) not supported")
   }
 
   /**

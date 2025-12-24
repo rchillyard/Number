@@ -69,7 +69,14 @@ trait Z extends Q {
 /**
   * Trait `N` represents the Natural numbers, that's to say the integers from 0 to infinity.
   */
-trait N extends Z
+trait N extends Z {
+  /**
+    * Increments the current value by one and returns the resulting natural number.
+    *
+    * @return the incremented natural number of type N
+    */
+  def inc: N
+}
 
 /**
   * Trait `Circle` extends the `R` trait and represents the "circle group."

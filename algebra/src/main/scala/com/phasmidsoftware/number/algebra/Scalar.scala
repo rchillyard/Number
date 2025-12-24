@@ -59,6 +59,7 @@ trait Scalar extends Monotone {
 
   /**
     * Scales the current scalar instance by the specified rational factor.
+    * TODO eliminate this method and replace it with * (below).
     *
     * @param r the `Rational` factor by which to scale the scalar
     * @return a new `Scalar` instance representing the scaled value

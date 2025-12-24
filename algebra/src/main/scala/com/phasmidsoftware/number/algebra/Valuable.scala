@@ -23,21 +23,7 @@ import scala.util.Try
   * NOTE: this trait has the same name as the `Valuable` typeclass in the `com.phasmidsoftware.number` package,
   * but it is not the same thing.
   */
-trait Valuable extends Renderable with Numeric {
-
-  /**
-    * Determines whether this `Valuable` is exact, i.e., has no approximation.
-    *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
-    *
-    * The method returns `true` if there is no approximate representation
-    * available (i.e., `approximation` is `None`), indicating that the
-    * entity is exact. Otherwise, it returns `false`.
-    *
-    * @return a `Boolean` indicating whether the entity is exact (`true`)
-    *         or has an approximation (`false`).
-    */
-  def isExact: Boolean
+trait Valuable extends Renderable with Numeric with Exactitude with Normalizable[Valuable] with TypeSafe {
 
   /**
     * Attempts to retrieve a factor based on the provided context.
@@ -49,60 +35,26 @@ trait Valuable extends Renderable with Numeric {
   def maybeFactor(context: Context): Option[Factor]
 
   /**
-    * Normalizes this `Valuable` to its simplest equivalent form.
-    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
-    *
-    * For Expression types, this will attempt to simplify and materialize if the result is exact.
-    * For Eager types, this will reduce to the simplest type representation.
-    *
-    * @return the simplest `Valuable` representation of this value
-    */
-  def normalize: Valuable
-
-  /**
-    * Returns a simple string representation of the runtime type.
-    * Useful for debugging and logging.
-    *
-    * @return the simple class name (e.g., "WholeNumber", "RationalNumber")
-    */
-  def typeName: String = getClass.getSimpleName
-
-  /**
-    * Returns the category of this value in the Valuable type hierarchy.
-    *
-    * @return a string indicating the high-level category (e.g., "Expression", "Structure", "Nat", "Complex")
-    */
-  def category: String = this match {
-    case _: Lazy => "Lazy"
-    case _: Structure => "Structure"
-    case _: Nat => "Nat"
-    case _: Complex => "Complex"
-    case _: Eager => "Eager"
-    case _ => "Valuable"
-  }
-
-  /**
-    * Returns a descriptive string combining category and type name.
-    * Useful for debugging to understand both the hierarchy level and concrete type.
-    *
-    * @return a string in the format "Category.TypeName" (e.g., "Structure.WholeNumber")
-    */
-  def describe: String = s"$category.$typeName"
-
-  /**
-    * Converts this `Valuable` instance into an `Eager` type if it already is an `Eager`.
-    * If the instance is not already an `Eager`, an `IllegalStateException` is thrown.
+    * Casts this `Valuable` instance into an `Eager` type if it already is an `Eager`.
+    * If the instance is not already an `Eager`, an `AlgebraException` is thrown.
     *
     * @return the current instance as an `Eager`
-    * @throws IllegalStateException if the instance is not of type `Eager`
+    * @throws AlgebraException if the instance is not of type `Eager`
     */
   def asEager: Eager = this match
     case e: Eager => e
-    case _ => throw new IllegalStateException(s"Expected Eager value but got $this")
+    case _ => throw AlgebraException(s"asEager: expected Eager value but got $this")
 
+  /**
+    * Casts this `Valuable` instance into a `Monotone` type if it already is a `Monotone`.
+    * If the instance is not a `Monotone`, an `AlgebraException` is thrown.
+    *
+    * @return the current instance as a `Monotone`
+    * @throws AlgebraException if the instance is not of type `Monotone`
+    */
   def asMonotone: Monotone = this match
     case m: Monotone => m
-    case _ => throw new IllegalStateException(s"Expected Monotone value but got $this")
+    case _ => throw AlgebraException(s"asMonotone: expected Monotone value but got $this")
 }
 
 /**
@@ -207,14 +159,7 @@ trait DyadicOps {
     */
   def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int]
 
-  /**
-    * Computes the sum of two values wrapped in the Eager type and returns the result as a Try containing an Eager value.
-    *
-    * @param x the first operand of type Eager
-    * @param y the second operand of type Eager
-    * @return a Try containing the result of the sum operation as an Eager value if successful, or a failure if an error occurs
-    */
-  def sum(x: Eager, y: Eager): Try[Eager]
+//  def sum(x: Eager, y: Eager): Try[Eager]
 }
 
 /**
