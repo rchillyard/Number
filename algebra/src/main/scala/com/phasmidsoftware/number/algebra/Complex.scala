@@ -20,7 +20,15 @@ import scala.util.{Failure, Success, Try}
   *
   * @see com.phasmidsoftware.number.core.numerical.Complex
   */
-case class Complex(complex: numerical.Complex) extends Solution {
+case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = None) extends Solution {
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(maybeName = Some(name))
+
   /**
     * Returns the number of branches in `this`.
     *
@@ -57,7 +65,7 @@ case class Complex(complex: numerical.Complex) extends Solution {
     *
     * @return a String
     */
-  def render: String = complex.render
+  def render: String = maybeName getOrElse complex.render
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
@@ -103,11 +111,11 @@ case class Complex(complex: numerical.Complex) extends Solution {
     *
     * @return a new `Solution` representing the negated value of this `Complex` instance
     */
-  def negate: Solution = Complex(complex.rotate.rotate)
+  def negate: Solution = Complex(complex.rotate.rotate)()
 
   def +(other: Solution): Solution = other match {
     case Complex(c) =>
-      Complex((complex + c).asInstanceOf[numerical.Complex])
+      Complex((complex + c).asInstanceOf[numerical.Complex])()
     case _ => throw new UnsupportedOperationException(s"Complex.+(Solution): unexpected input: $this and $other")
   }
 
@@ -169,6 +177,8 @@ trait Solution extends Eager {
 }
 
 object Complex {
+  def apply(x: numerical.Complex): Complex = new Complex(x)()
+
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   // CONSIDER do we need this?

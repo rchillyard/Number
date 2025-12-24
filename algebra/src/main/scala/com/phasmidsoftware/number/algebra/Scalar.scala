@@ -3,7 +3,7 @@ package com.phasmidsoftware.number.algebra
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.misc.{AlgebraException, DyadicOperator, FP, FuzzyEq}
-import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational}
+import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import scala.reflect.ClassTag
@@ -176,7 +176,7 @@ object Scalar {
       case inner.PureNumber =>
         number
       case inner.Radian =>
-        Angle(number)
+        Angle(number)()
       case inner.NatLog =>
         NatLog(number)
       case inner.InversePower(r) =>
@@ -202,6 +202,21 @@ object Scalar {
   * while providing specific overrides and limitations.
   */
 case object NoScalar extends Scalar with Exact {
+  /**
+    * Retrieves an optional name associated with this instance.
+    *
+    * @return an `Option[String]` containing the name if present, otherwise `None`
+    */
+  def maybeName: Option[String] = None
+
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = this
+
   /**
     * Normalizes this `NoScalar` instance to its simplest equivalent form.
     *

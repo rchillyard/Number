@@ -32,7 +32,17 @@ import scala.util.{Success, Try}
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, number: Number) extends Transformed with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
+case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Ordered[InversePower] {
+//  require(n > 0, s"InversePower: n must be positive, but was $n")
+
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(maybeName = Some(name))
+
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
     * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
@@ -50,7 +60,7 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
       val normalized = number.normalize
       normalized match {
         case q: Q =>
-          val defaultValue = if (number == normalized) this else InversePower(n, q.asInstanceOf[Number])
+          val defaultValue: InversePower = if (number == normalized) this else InversePower(n, q.asInstanceOf[Number])
           val r = q.toRational
           val rootValue = getRoot(r, lookups).map(WholeNumber(_))
           lazy val recipRootValue = getRoot(r.invert, lookups).map(x => RationalNumber(Rational(x).invert))
@@ -117,7 +127,7 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
     * The `one` value serves as the neutral element for the multiplication operation, meaning
     * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
     */
-  def one: InversePower = InversePower(1, Real.one)
+  def one: InversePower = InversePower(1, Real.one)(Some("1"))
 
   /**
     * Scales the current instance of type `T` by the specified `Double` value.
@@ -277,7 +287,7 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
     *
     * @return a string representation of the `Root` in terms of π
     */
-  def render: String = {
+  def render: String = maybeName getOrElse {
     val suffix = number.render
     n match {
       case 2 => s"√$suffix"
@@ -338,6 +348,24 @@ case class InversePower(n: Int, number: Number) extends Transformed with CanMult
   * rational numbers and comply with the algebraic structure of a commutative group.
   */
 object InversePower {
+  /**
+    * Creates a new instance of InversePower using the provided parameters.
+    *
+    * @param n The integer exponent to be used in the computation.
+    * @param x The base number for the inverse power calculation.
+    * @return An instance of InversePower computed with the specified parameters.
+    */
+  def apply(n: Int, x: Number): InversePower = new InversePower(n, x)()
+
+  /**
+    * Creates an instance of `InversePower` using the given parameters.
+    *
+    * @param n The exponent value to be used in the `InversePower` instance.
+    * @param x The numeric value to be wrapped within the `WholeNumber` type and used in the `InversePower` instance.
+    * @return A new instance of `InversePower` with the specified parameters.
+    */
+  def apply(n: Int, x: Int): InversePower = InversePower(n, WholeNumber(x))
+
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
   /**
@@ -390,7 +418,7 @@ object InversePower {
   /**
     * Represents the zero value of the `Root` class.
     */
-  val zero: InversePower = InversePower(1, Real.zero)
+  val zero: InversePower = InversePower(1, Real.zero)(Some("0"))
 
   /**
     * Represents the multiplicative identity for roots.
@@ -399,8 +427,8 @@ object InversePower {
     * the group structure of roots. It is constructed using the `Root` companion object
     * initialized with the additive identity of `RationalNumber`.
     */
-  val one: InversePower = InversePower(1, WholeNumber.one)
-  val nan: InversePower = InversePower(0, RationalNumber(Rational.NaN))
+  val one: InversePower = InversePower(1, WholeNumber.one)(Some("1"))
+  val nan: InversePower = InversePower(0, RationalNumber(Rational.NaN))(Some("NaN"))
 
   /**
     * Provides an implicit `Show` instance for the `Root` class, enabling conversion

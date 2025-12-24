@@ -200,7 +200,7 @@ case class LinearEquation(r: Rational) extends Equation {
     * @return a `Field`, which is either an `Algebraic` (real-valued) or a `Complex`.
     */
   def solve(branch: Int): Solution =
-    LinearSolution(RationalNumber(-r))
+    LinearSolution(RationalNumber(-r))()
 
   /**
     * Transforms the current equation by applying the provided functions to its components.

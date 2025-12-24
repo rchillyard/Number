@@ -34,7 +34,14 @@ import scala.util.{Success, Try}
   * @param degrees whether the angle is in radians or degrees.
   *                In the latter case, the `number` attribute is unchanged (1 is still half of a full circle).
   */
-case class Angle private[algebra](number: Number, degrees: Boolean = false) extends Radians with Circle with Scalable[Angle] with CanAdd[Angle, Angle] with CanNormalize[Angle] {
+case class Angle private[algebra](number: Number, degrees: Boolean = false)(val maybeName: Option[String] = None) extends Radians with Circle with Scalable[Angle] with CanAdd[Angle, Angle] with CanNormalize[Angle] {
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(Some(name))
 
   /**
     * Normalizes an angle instance to its equivalent value within the standard range of radians.
@@ -172,7 +179,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false) exte
     *
     * @return a string representation of the `Angle` in terms of π
     */
-  def render: String = {
+  def render: String = maybeName getOrElse {
     val value = normalize.number
     if (degrees)
       value.scale(r180).render + "°"
@@ -235,7 +242,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false) exte
   def *(factor: Rational): Angle = number match {
     case r: RationalNumber => Angle(r * factor)
     case r: Real => Angle(r * factor)
-    case w: WholeNumber => Angle(w.scale(factor))
+    case w: WholeNumber => Angle(w.scale(factor))()
   }
 
   /**
@@ -300,7 +307,6 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false) exte
   * rational numbers and comply with the algebraic structure of a commutative group.
   */
 object Angle {
-  val r180 = Rational(180)
 
   /**
     * Converts a `Value` into an `Angle` instance based on its structure.
@@ -316,11 +322,11 @@ object Angle {
     */
   def apply(value: Value): Angle = value match {
     case Right(x) =>
-      new Angle(WholeNumber(x))
+      new Angle(WholeNumber(x)())()
     case Left(Right(x)) =>
-      new Angle(RationalNumber(x))
+      new Angle(RationalNumber(x))()
     case Left(Left(Some(x))) =>
-      new Angle(Real(x))
+      new Angle(Real(x))()
     case Left(Left(None)) =>
       Angle.nan
   }
@@ -371,13 +377,21 @@ object Angle {
   def apply(r: WholeNumber): Angle = Angle(r.x)
 
   /**
+    * Converts the given real into an `Angle` instance.
+    *
+    * @param r the input `WholeNumber` to be converted into an angle
+    * @return an `Angle` instance corresponding to the given whole number
+    */
+  def apply(r: Real): Angle = new Angle(r)()
+
+  /**
     * Converts the given numeric value to an `Angle` instance represented in degrees.
     *
     * @param x the numeric input value to be converted into an angle in degrees
     * @return an `Angle` instance corresponding to the given numeric value in degrees
     */
   def degrees(x: Number): Angle =
-    Angle(x.scale(r180.invert).asInstanceOf[Number], true) // TODO tidy this up!
+    Angle(x.scale(r180.invert).asInstanceOf[Number], true)()// TODO tidy this up!
 
   /**
     * Converts a `Value` into an `Angle` represented as degrees.
@@ -389,7 +403,7 @@ object Angle {
     * @return an `Angle` instance representing the given `Value` in degrees.
     */
   def degrees(x: Value): Angle =
-    Angle(Value.scaleRational(r180.invert)(x)).copy(degrees = true)
+    Angle(Value.scaleRational(r180.invert)(x)).copy(degrees = true)(None)
 
   /**
     * Converts the given integer to an `Angle` instance represented in degrees.
@@ -495,6 +509,8 @@ object Angle {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
+
+  val r180 = Rational(180)
 
   /**
     * Represents the additive identity for angles.

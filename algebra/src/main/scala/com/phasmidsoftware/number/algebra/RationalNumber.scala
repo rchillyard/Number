@@ -31,7 +31,15 @@ import scala.util.{Success, Try}
   *                   Similarly to the `degrees` attribute of `Angle`,
   *                   this is a flag that is primarily cosmetic.
   */
-case class RationalNumber(r: Rational, percentage: Boolean = false) extends Number with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Exact {
+case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends Number with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Exact {
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(Some(name))
+
   /**
     * Normalizes the current object to ensure it is represented in a simplified form.
     * If the denominator (r.d) is 1, it represents the object as a WholeNumber.
@@ -247,11 +255,12 @@ case class RationalNumber(r: Rational, percentage: Boolean = false) extends Numb
     *
     * @return the string representation of this `RationalNumber`.
     */
-  def render: String =
-    if (percentage)
-      s"${(r * 100).render}%" // CHECK that this never gives a ratio.
-    else
-      r.render
+  def render: String = maybeName getOrElse (
+      if (percentage)
+        s"${(r * 100).render}%" // CHECK that this never gives a ratio.
+      else
+        r.render
+      )
 
   /**
     * Retrieves an optional Rational value.
@@ -311,7 +320,7 @@ object RationalNumber {
     * @param r the `Rational` value to be converted
     * @return a new `RationalNumber` instance representing the given `Rational`
     */
-  def apply(r: Rational): RationalNumber = new RationalNumber(r)
+  def apply(r: Rational): RationalNumber = new RationalNumber(r)()
 
   /**
     * Creates a `RationalNumber` instance from two provided `Long` values,
@@ -321,7 +330,7 @@ object RationalNumber {
     * @param y the denominator of the rational number
     * @return a `RationalNumber` instance constructed from the given numerator and denominator
     */
-  def apply(x: Long, y: Long): RationalNumber = RationalNumber(Rational(x, y))
+  def apply(x: Long, y: Long): RationalNumber = new RationalNumber(Rational(x, y))()
 
   /**
     * Creates a rational number representation from a given integer value.
@@ -338,7 +347,7 @@ object RationalNumber {
     * @return a `RationalNumber` instance representing the percentage value of the given `Rational`
     */
   def percentage(r: Rational): RationalNumber =
-    RationalNumber(r / 100, percentage = true)
+    RationalNumber(r / 100, percentage = true)()
 
   /**
     * Parses a string representation of a rational number and converts it into an `Option[RationalNumber]`.

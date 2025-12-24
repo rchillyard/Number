@@ -31,7 +31,14 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] {
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(maybeName = Some(name))
 
   /**
     * Returns the normalized representation of the current object.
@@ -221,7 +228,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     *
     * @return a string representation of the `Real`
     */
-  lazy val render: String = new numerical.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
+  lazy val render: String =
+    maybeName getOrElse new numerical.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
 
   /**
     * Subtracts the specified `Real` value from this `Real` value.
@@ -245,7 +253,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     *         if scaling is not possible
     */
   def doScaleDouble(that: Double): Option[Monotone] =
-    Some(copy(value = value * that))
+    Some(copy(value = value * that)(None))
 
   /**
     * Performs an addition operation between the current scalar and another scalar.
@@ -315,7 +323,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
   def *(factor: Rational): Real =
-    copy(value = value * factor.toDouble)
+    copy(value = value * factor.toDouble)(None)
 
   /**
     * Scales the current scalar instance by the specified rational factor.
@@ -323,7 +331,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     * @param r the `Rational` factor by which to scale the scalar
     * @return a new `Scalar` instance representing the scaled value
     */
-  def scale(r: Rational): Scalar = copy(value = value * r.toDouble)
+  def scale(r: Rational): Scalar = copy(value = value * r.toDouble)(None)
 
   /**
     * Converts the current `Real` instance into an instance of `FuzzyNumber`.
@@ -347,7 +355,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     * @return a new `Real` instance with its value scaled by π
     */
   lazy val scaleByPi: Real =
-    Real(value * Real.pi.value, Some(Fuzziness.doublePrecision))
+    Real(value * Real.pi.value, Some(Fuzziness.doublePrecision))(None)
 
   /**
     * Computes the power of the current value raised to the provided `Rational` exponent.
@@ -357,7 +365,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Number w
     *         if the computation is successful
     */
   def power(r: Rational): Option[Real] =
-    Some(Real(math.pow(value, r.toDouble), fuzz.map(Fuzziness.scaleTransform(r.toDouble))))
+    Some(Real(math.pow(value, r.toDouble), fuzz.map(Fuzziness.scaleTransform(r.toDouble)))())
 
   /**
     * Determines whether this instance is equivalent to another instance of type `Eager`.
@@ -434,7 +442,7 @@ object Real {
     * @param value the long value to be associated with the `Real`
     * @return a `Real` instance initialized with the given value (converted to double) and default fuzziness
     */
-  def apply(value: Long): Real = apply(value.toDouble, None)
+  def apply(value: Long): Real = apply(value.toDouble, None)()
 
   /**
     * Constructs a `Real` with the given numeric value and a default fuzziness level.
@@ -445,7 +453,7 @@ object Real {
     * @param value the numeric value to be associated with the `Real`
     * @return a `Real` instance initialized with the specified value and default fuzziness
     */
-  def apply(value: Double): Real = apply(value, Some(Fuzziness.doublePrecision))
+  def apply(value: Double): Real = apply(value, Some(Fuzziness.doublePrecision))()
 
   /**
     * Constructs a `Real` instance using the provided value and absolute fuzziness.
@@ -457,7 +465,7 @@ object Real {
     * @param fuzz  the absolute fuzziness level to be applied to the `Real`
     * @return a `Real` instance initialized with the specified value and fuzziness
     */
-  def apply(value: Double, fuzz: Double): Real = new Real(value, Fuzziness.createAbsFuzz(fuzz))
+  def apply(value: Double, fuzz: Double): Real = new Real(value, Fuzziness.createAbsFuzz(fuzz))()
 
   /**
     * Constructs a `Real` instance using the numerical value and optional fuzziness of a given `numericalReal` instance.
@@ -468,7 +476,9 @@ object Real {
     * @param x the input `numericalReal` instance, providing the value and optional fuzziness for the new `Real`
     * @return a `Real` instance initialized with the value and fuzziness derived from the input `numericalReal`
     */
-  def apply(x: numerical.Real): Real = apply(x.toDouble, x.asNumber.flatMap(_.fuzz))
+  def apply(x: numerical.Real): Real = apply(x.toDouble, x.asNumber.flatMap(_.fuzz))()
+
+  def apply(x: Double, fuzz: Option[Fuzziness[Double]]): Real = new Real(x, fuzz)()
 
   /**
     * Parses a string representation of a number and constructs a `Real` instance.
@@ -591,7 +601,7 @@ object Real {
     * @return a `Real` instance initialized with the value of the input `Real`
     */
   def convertFromOldReal(real: numerical.Real): Real =
-    new Real(real.toDouble, real.asNumber.flatMap(_.fuzz))
+    new Real(real.toDouble, real.asNumber.flatMap(_.fuzz))()
 
   /**
     * Creates a `Real` instance with a value of 0 and a default fuzziness level.
@@ -622,7 +632,7 @@ object Real {
     * with no associated fuzziness. It serves to denote a value that is unbounded in the positive 
     * direction within the context of real numbers.
     */
-  val infinity: Real = Real(Double.PositiveInfinity, None)
+  val infinity: Real = Real(Double.PositiveInfinity, None)(Some("∞"))
 
   /**
     * Represents the mathematical concept of infinity within the `Real` class.
@@ -677,7 +687,7 @@ object Real {
       Real(
         value = x.value + y.value,
         fuzz = Fuzziness.combine(x.value, y.value, relative = false, independent = true)(x.fuzz -> y.fuzz)
-      )
+      )()
 
     /**
       * Multiplies two Real instances and returns the result.
@@ -690,7 +700,7 @@ object Real {
       Real(
         value = x.value * y.value,
         fuzz = Fuzziness.combine(x.value, y.value, relative = true, independent = true)(x.fuzz -> y.fuzz)
-      )
+      )()
 
     /**
       * Computes the negation of the given fuzzy number.
@@ -699,7 +709,7 @@ object Real {
       * @return the negated fuzzy number
       */
     def negate(x: Real): Real =
-      x.copy(value = -x.value)
+      x.copy(value = -x.value)(None)
 
     /**
       * Computes the multiplicative inverse of a given `Real` number.
@@ -716,7 +726,7 @@ object Real {
         None
       case v =>
         val maybeFuzz: Option[Fuzziness[Double]] = x.fuzz.flatMap(f => f.normalize(v, relative = true))
-        Some(Real(1 / v, maybeFuzz))
+        Some(Real(1 / v, maybeFuzz)())
     }
 
     /**
@@ -735,7 +745,7 @@ object Real {
       */
     def div(x: Real, y: Real): Real = {
       (realIsRing.inverse(y) map (z => realIsRing.times(x, z))
-          ).getOrElse(Real(Double.PositiveInfinity, Some(Fuzziness.createFuzz(0))))
+          ).getOrElse(Real(Double.PositiveInfinity, Some(Fuzziness.createFuzz(0)))())
     }
 
     /**
@@ -744,7 +754,7 @@ object Real {
       * @param n the integer value to be converted
       * @return a `Real` instance representing the given integer
       */
-    override def fromInt(n: Int): Real = Real(n, None)
+    override def fromInt(n: Int): Real = Real(n, None)()
 
     /**
       * Returns the additive identity element for the `Real` type.
@@ -809,7 +819,7 @@ object Real {
     *         succeeds, or `None` otherwise
     */
   private def fromFuzzyPureValue(v: Value, fo: Option[Fuzziness[Double]]): Option[Real] =
-    Value.maybeDouble(v).map(x => Real(x, fo))
+    Value.maybeDouble(v).map(x => Real(x, fo)())
 
   /**
     * Represents an immutable instance of positive infinity as a `Real`.
@@ -824,6 +834,6 @@ object Real {
     *
     * @see [[Real]]
     */
-  object Infinity extends Real(Double.PositiveInfinity, None)
+  object Infinity extends Real(Double.PositiveInfinity, None)()
 }
 

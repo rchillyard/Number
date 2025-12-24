@@ -33,6 +33,21 @@ import scala.util.{Failure, Success, Try}
 trait Eager extends Valuable with Approximate with DyadicOps {
 
   /**
+    * Retrieves an optional name associated with this instance.
+    *
+    * @return an `Option[String]` containing the name if present, otherwise `None`
+    */
+  def maybeName: Option[String]
+
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager
+
+  /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
@@ -153,8 +168,8 @@ object Eager {
   lazy val e: Eager = NatLog.e
   lazy val infinity: Eager = RationalNumber(Rational.infinity)
   lazy val negInfinity: Eager = RationalNumber(Rational.negInfinity)
-  lazy val root2: Eager = InversePower(2, 2)
-  lazy val root3: Eager = InversePower(2, 3)
+  lazy val root2: Eager = new InversePower(2, 2)(Some("√2"))
+  lazy val root3: Eager = new InversePower(2, 3)(Some("√3"))
 
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed
@@ -196,7 +211,7 @@ object Eager {
       case numerical.Real(n) =>
         Scalar(n)
       case c: numerical.Complex =>
-        Complex(c)
+        Complex(c)()
       case a: Algebraic =>
         throw AlgebraException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }

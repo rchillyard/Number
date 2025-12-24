@@ -262,7 +262,7 @@ object Number {
   /**
     *
     */
-  implicit def convIntToNumber(x: Int): Number = WholeNumber(x)
+  implicit def convIntToNumber(x: Int): Number = WholeNumber(x)()
 
   /**
     * Provides an implicit additive commutative monoid implementation for the `Number` type.

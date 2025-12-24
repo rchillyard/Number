@@ -56,7 +56,7 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "preserve asPercentage flag when not reducing to whole" in {
-    val r = RationalNumber(Rational(3, 4), percentage = true)
+    val r = new RationalNumber(Rational(3, 4), percentage = true)()
     val result = r.normalize
     result shouldBe a[RationalNumber]
     result.asInstanceOf[RationalNumber].percentage shouldBe true
@@ -158,12 +158,12 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
   behavior of "Angle.normalize"
 
   it should "return itself (angles have semantic meaning)" in {
-    val angle = Angle(WholeNumber(0), degrees = false)
+    val angle = new Angle(WholeNumber(0), degrees = false)()
     angle.normalize shouldNot be theSameInstanceAs angle
   }
 
   it should "normalize the radians parameter" in {
-    val angle = Angle(RationalNumber(Rational(6, 2)), degrees = false)
+    val angle = new Angle(RationalNumber(Rational(6, 2)), degrees = false)()
     val result: Angle = angle.normalize
     result shouldBe a[Angle]
     result.number shouldBe WholeNumber(1)

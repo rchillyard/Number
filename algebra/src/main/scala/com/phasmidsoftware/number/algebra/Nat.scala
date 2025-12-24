@@ -26,6 +26,13 @@ import scala.util.{Success, Try}
   */
 sealed trait Nat extends Eager with N {
   /**
+    * Retrieves an optional name associated with this instance.
+    *
+    * @return an `Option[String]` containing the name if present, otherwise `None`
+    */
+  def maybeName: Option[String] = None
+
+  /**
     * Normalizes this `Nat` instance to its simplest equivalent form.
     * This operation does not modify the original instance but may return 
     * an adjusted `Valuable` representation that is equivalent to the original value but simpler.
@@ -160,15 +167,6 @@ sealed trait Nat extends Eager with N {
     */
   lazy val approximation: Option[Real] =
     maybeDouble map Real.apply
-
-  /**
-    * If this `Valuable` is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a Real--only for exact numbers.
-    *
-    * @return Some(x) where x is a Double if this is exact, else None.
-    */
-//  lazy val maybeDouble: Option[Double] = Some(toInt)
 }
 
 /**
@@ -179,6 +177,14 @@ sealed trait Nat extends Eager with N {
   * the `Succ` type.
   */
 case object NatZero extends Nat {
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = this
+
   /**
     * Adds the specified natural number to this instance.
     *
@@ -204,6 +210,14 @@ case object NatZero extends Nat {
   * @param pred The predecessor of this natural number, which is also a `Nat`.
   */
 case class Succ(pred: Nat) extends Nat {
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = this
+
   /**
     * Compares this `Succ` instance for equality with another object.
     *

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.QuadraticSolution
+import com.phasmidsoftware.number.algebra.{QuadraticSolution, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import org.scalatest.flatspec.AnyFlatSpec
@@ -24,44 +24,46 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "normalize - simple integer roots"
 
-  ignore should "normalize x² - 3x + 2 (roots: 1, 2) - positive branch" in {
+  it should "normalize x² - 3x + 2 (roots: 1, 2) - positive branch" in {
     // x² - 3x + 2 = 0 → x = 2 or x = 1
     val equation = QuadraticEquation(Rational(-3), Rational(2))
     val root = QuadraticRoot(equation, 0)
     val normalized = root.normalize
     normalized shouldBe a[QuadraticSolution]
     val solution: QuadraticSolution = normalized.asInstanceOf[QuadraticSolution]
-    solution.base.toDouble shouldBe 2.0 +- 1e-10
-    solution.offset.toDouble shouldBe 1.0 +- 1e-10
+    solution.base.toDouble shouldBe 1.5 +- 1e-10
+    solution.offset.toDouble shouldBe 0.5 +- 1e-10
+    solution.branch shouldBe 0
   }
 
-  ignore should "normalize x² - 3x + 2 - negative branch" in {
+  it should "normalize x² - 3x + 2 - negative branch" in {
     val equation = QuadraticEquation(Rational(-3), Rational(2))
     val root = QuadraticRoot(equation, 1)
     val normalized = root.normalize
     normalized shouldBe a[QuadraticSolution]
     val solution = normalized.asInstanceOf[QuadraticSolution]
-    solution.base.toDouble shouldBe 1.0 +- 1e-10
-    solution.offset.toDouble shouldBe 2.0 +- 1e-10
+    solution.base.toDouble shouldBe 1.5 +- 1e-10
+    solution.offset.toDouble shouldBe 0.5 +- 1e-10
+    solution.branch shouldBe 1
   }
 
-  ignore should "normalize x² - 4 (roots: -2, 2) - positive branch" in {
+  it should "normalize x² - 4 (roots: -2, 2) - positive branch" in {
     // x² + 0x - 4 = 0 → x = ±2
     val equation = QuadraticEquation(Rational(0), Rational(-4))
     val root = QuadraticRoot(equation, 0)
     val normalized = root.normalize
-    normalized shouldBe a[QuadraticSolution]
-    val solution = normalized.asInstanceOf[QuadraticSolution]
-    solution.base.toDouble shouldBe 2.0 +- 1e-10
+    normalized shouldBe a[WholeNumber]
+    val solution = normalized.asInstanceOf[WholeNumber]
+    solution.toDouble shouldBe 2.0 +- 1e-10
   }
 
-  ignore should "normalize x² - 4 - negative branch" in {
+  it should "normalize x² - 4 - negative branch" in {
     val equation = QuadraticEquation(Rational(0), Rational(-4))
     val root = QuadraticRoot(equation, 1)
     val normalized = root.normalize
-    normalized shouldBe a[QuadraticSolution]
-    val solution = normalized.asInstanceOf[QuadraticSolution]
-    solution.offset.toDouble shouldBe -2.0 +- 1e-10
+    normalized shouldBe a[WholeNumber]
+    val solution = normalized.asInstanceOf[WholeNumber]
+    solution.toDouble shouldBe -2.0 +- 1e-10
   }
 
   behavior of "normalize - golden ratio"
@@ -146,11 +148,9 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
   it should "materialize to QuadraticSolution" in {
     val equation = QuadraticEquation(Rational(-3), Rational(2))
     val root = QuadraticRoot(equation, 0)
-    println(s"root = $root")
     val normalized = root.normalize
-    println(s"normalized = $normalized")
+    normalized shouldBe a[QuadraticSolution]
     val materialized = root.materialize
-    println(s"materialized = $materialized")
     materialized shouldBe a[QuadraticSolution]
     materialized shouldBe QuadraticSolution(Rational(3, 2), Rational(1, 2), 0)
   }

@@ -12,8 +12,8 @@ class InversePowerSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "InversePower"
 
-  val two = InversePower(1, 2)
-  val three = InversePower(1, 3)
+  val two: InversePower = InversePower(1, 2)
+  val three: InversePower = InversePower(1, 3)
 
   ignore should "compareTo" in {
     InversePower(2, 4).compareTo(two) shouldBe 0

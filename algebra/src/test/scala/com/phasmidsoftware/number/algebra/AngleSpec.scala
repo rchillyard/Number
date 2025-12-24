@@ -74,8 +74,8 @@ class AngleSpec extends AnyFlatSpec with Matchers with AssertionHelpers {
     assertEq(degrees180, Angle.𝛑)
   }
   it should "test creation" in {
-    Angle.degrees(Value.fromInt(0)) shouldBe Angle(Number.zero, true)
-    Angle.degrees(Value.fromInt(180)) shouldBe Angle(Number.one, true)
+    Angle.degrees(Value.fromInt(0)) shouldBe Angle(Number.zero, true)()
+    Angle.degrees(Value.fromInt(180)) shouldBe Angle(Number.one, true)()
   }
   it should "test render" in {
     degrees0.render shouldBe "0°"

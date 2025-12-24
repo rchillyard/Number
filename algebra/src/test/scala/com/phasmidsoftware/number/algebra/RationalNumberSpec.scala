@@ -24,8 +24,8 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers with AssertionHelpers
   }
   it should "assertEq" in {
     assertEq(RationalNumber(42), RationalNumber(42))
-    assertEq(RationalNumber(42 :/ 100, true), RationalNumber(42 :/ 100, true))
-    assertEq(RationalNumber(42 :/ 100), RationalNumber(42 :/ 100, true))
+    assertEq(new RationalNumber(42 :/ 100, true)(), new RationalNumber(42 :/ 100, true)())
+    assertEq(RationalNumber(42 :/ 100), new RationalNumber(42 :/ 100, true)())
   }
   it should "render" in {
     RationalNumber(42).render shouldBe "42"
@@ -36,17 +36,17 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers with AssertionHelpers
   }
   it should "toString" in {
     RationalNumber(42).toString shouldBe "RationalNumber(42,false)"
-    RationalNumber(42, true).toString shouldBe "RationalNumber(42,true)"
+    RationalNumber(42, true)().toString shouldBe "RationalNumber(42,true)"
   }
   it should "parse" in {
     val maybeTheAnswer: Option[Number] = RationalNumber.parse("42")
     maybeTheAnswer shouldBe Some(RationalNumber(42))
     RationalNumber.parse("84/2") shouldBe Some(RationalNumber(42))
-    RationalNumber.parse("14/2%") shouldBe Some(RationalNumber(Rational(7, 100), true))
-    RationalNumber.parse("7%") shouldBe Some(RationalNumber(Rational(7, 100), true))
+    RationalNumber.parse("14/2%") shouldBe Some(RationalNumber(Rational(7, 100), true)())
+    RationalNumber.parse("7%") shouldBe Some(RationalNumber(Rational(7, 100), true)())
   }
   it should "percentage" in {
-    RationalNumber.percentage(42) shouldBe RationalNumber(Rational(21, 50), true)
+    RationalNumber.percentage(42) shouldBe RationalNumber(Rational(21, 50), true)()
   }
 //  it should "plus RationalNumber" in {
 //    val x = RationalNumber(1)

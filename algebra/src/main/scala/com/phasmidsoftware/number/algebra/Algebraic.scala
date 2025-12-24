@@ -269,7 +269,14 @@ object Algebraic {
   *               Instances of this class are designed to interact with the `Factor` type in performing various
   *               operations such as evaluating, converting, or rendering the solution accurately in diverse contexts.
   */
-case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) extends Algebraic {
+case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val maybeName: Option[String] = None) extends Algebraic {
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(Some(name))
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -285,8 +292,6 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
       if (branch == 1) y.negate else y
     case (x: Monotone, y: Monotone) if y.isZero =>
       x
-    case (x: Monotone, y: Monotone) =>
-      QuadraticSolution(x, y, branch)
     case _ =>
       this
   }
@@ -299,7 +304,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
     *
     * @return a String
     */
-  def render: String = this match {
+  def render: String = maybeName getOrElse (this match {
     case QuadraticSolution.phi =>
       core.algebraic.Algebraic.phi.render
     case QuadraticSolution.psi =>
@@ -308,7 +313,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
       q.normalize.render
     case QuadraticSolution(base, offset, branch) =>
       s"${base.render} ${if (branch == 1) "- " else "+ "}${offset.render}"
-  }
+  })
 
   override def toString: String = render
 
@@ -321,7 +326,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
     * @return a new QuadraticSolution instance representing the conjugate of the current solution
     */
   def conjugate: QuadraticSolution =
-    copy(branch = 1 - branch)
+    copy(branch = 1 - branch)(None)
 
   /**
     * Negates the current quadratic solution by applying a negation
@@ -335,7 +340,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
     *         of the current quadratic solution
     */
   def negate: QuadraticSolution =
-    copy(offset = offset.negate).conjugate
+    copy(offset = offset.negate)(None).conjugate
 
   /**
     * Checks if the solution represented by this instance is equivalent to zero.
@@ -470,7 +475,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
       field = numerical.Real(ExactNumber(value, PureNumber))
       case m: Monotone <- Some(Eager(field))
     } yield m
-    FP.recover(zo.map(z => copy(base = z)))(AlgebraException(s"QuadraticSolution: add($addend) not supported"))
+    FP.recover(zo.map(z => copy(base = z)(None)))(AlgebraException(s"QuadraticSolution: add($addend) not supported"))
   }
 
   private def sumBases(m1: Monotone, m2: Monotone): Monotone = ???
@@ -590,6 +595,18 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int) exte
 object QuadraticSolution {
 
   /**
+    * Creates a new instance of `QuadraticSolution` using the provided base monotone,
+    * offset monotone, and branch index.
+    *
+    * @param base   the base component of the quadratic solution, represented as a `Monotone`
+    * @param offset the offset component of the quadratic solution, represented as a `Monotone`
+    * @param branch an integer specifying the branch of the solution
+    * @return a new `QuadraticSolution` instance constructed from the provided parameters
+    */
+  def apply(base: Monotone, offset: Monotone, branch: Int): QuadraticSolution =
+    new QuadraticSolution(base, offset, branch)(None)
+
+  /**
     * Represents the value `phi`, which is a solution of a quadratic equation
     * derived using `QuadraticSolution`. The solution is constructed from:
     * - The first coefficient provided by converting `1/2` into a `Value` using `Value.fromRational`.
@@ -597,14 +614,14 @@ object QuadraticSolution {
     * - The root type specified as `SquareRoot`.
     * - The root index specified as `0`, which identifies this as one of the possible roots.
     */
-  val phi = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 0)
+  val phi: QuadraticSolution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 0)(Some("𝛗"))
   /**
     * Represents a specific quadratic solution characterized by its parameters.
     *
     * @see QuadraticSolution
     * @see Value.fromRational
     */
-  val psi = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 1)
+  val psi: QuadraticSolution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 1)(Some("𝛙"))
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -633,7 +650,15 @@ object QuadraticSolution {
   *
   * @param value the base value of the solution
   */
-case class LinearSolution(value: Monotone) extends Algebraic {
+case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None) extends Algebraic {
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(Some(name))
+
   /**
     * Normalizes the current instance of `LinearSolution` to its simplest equivalent form.
     * The normalization process reduces the representation while maintaining the same value.
@@ -757,8 +782,7 @@ case class LinearSolution(value: Monotone) extends Algebraic {
     *
     * @return a string representation of the solution
     */
-  def render: String =
-    value.render
+  def render: String = maybeName.getOrElse(value.render)
 
   /**
     * Attempts to compute an approximate representation of the current value.
@@ -780,6 +804,8 @@ case class LinearSolution(value: Monotone) extends Algebraic {
 }
 
 object LinearSolution {
+
+  def apply(value: Monotone): LinearSolution = new LinearSolution(value)()
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 

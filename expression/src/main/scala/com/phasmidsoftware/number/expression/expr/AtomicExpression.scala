@@ -244,6 +244,8 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
   def evaluate(context: Context): Option[Eager] =
     if (context.valuableQualifies(value))
       Some(value)
+//    else if (value.maybeName.isDefined) // NOTE: this value is a "named" constant.
+//      Some(value)
     else
       value match {
         case nat: Nat =>

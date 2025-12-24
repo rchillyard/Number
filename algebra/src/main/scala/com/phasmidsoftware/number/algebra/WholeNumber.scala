@@ -23,7 +23,14 @@ import scala.util.{Success, Try}
   *
   * @param x a BigInt value representing the whole number
   */
-case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
+case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends Number with Exact with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(maybeName = Some(name))
 
   /**
     * Normalizes the current object and returns a standardized or canonical form of it.
@@ -311,7 +318,7 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
     *
     * @return the string representation of this `WholeNumber` instance
     */
-  def render: String = x.toString
+  def render: String = maybeName getOrElse x.toString
 
   /**
     * Negates the current `WholeNumber` instance, returning its additive inverse.
@@ -353,32 +360,41 @@ case class WholeNumber(x: BigInt) extends Number with Exact with Z with CanAddAn
   */
 object WholeNumber {
   /**
+    * Constructs a new `WholeNumber` instance from a given `BigInt` value.
+    *
+    * @param x    the `BigInt` value to be wrapped as a `WholeNumber`
+    * @param name an optional name associated with the `WholeNumber` instance; defaults to `None` if not provided
+    * @return a new instance of `WholeNumber` created using the provided `BigInt` value and optional name
+    */
+  def apply(x: BigInt): WholeNumber = new WholeNumber(x)()
+
+  /**
     * Represents the WholeNumber constant for the value zero (0).
     *
     * This is a lazily evaluated instance of `WholeNumber` initialized with the value 0.
     */
-  lazy val zero: WholeNumber = WholeNumber(0L)
+  lazy val zero: WholeNumber = WholeNumber(0L)(Some("0"))
   /**
     * Represents the whole number value `1` as an instance of `WholeNumber`.
     *
     * This is a lazy value, ensuring that the object is not instantiated until it is accessed,
     * and thereafter remains constant for the duration of the application's lifecycle.
     */
-  lazy val one: WholeNumber = WholeNumber(1L)
+  lazy val one: WholeNumber = WholeNumber(1L)(Some("1"))
   /**
     * Represents the constant whole number value of -1.
     *
     * This is a lazily computed instance of the `WholeNumber` type,
     * initialized with the value -1.
     */
-  lazy val minusOne: WholeNumber = WholeNumber(-1L)
+  lazy val minusOne: WholeNumber = WholeNumber(-1L)(Some("-1"))
   /**
     * Represents the whole number two as a lazy value of type `WholeNumber`.
     *
     * This is a predefined constant for convenient access to the numeric value 2
     * in the context of `WholeNumber` operations and conversions.
     */
-  lazy val two: WholeNumber = WholeNumber(2L)
+  lazy val two: WholeNumber = WholeNumber(2L)(Some("2"))
 
   /**
     * Provides an implicit `Show` instance for the `WholeNumber` class, enabling conversion

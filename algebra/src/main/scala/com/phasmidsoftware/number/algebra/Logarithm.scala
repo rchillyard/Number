@@ -200,7 +200,16 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
   *
   * @param x the value of the Logarithm of this instance.
   */
-case class NatLog(x: Number) extends Logarithm(x) {
+case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logarithm(x) {
+//  require(x.signum>0, s"NatLog: $x is not positive")
+
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(Some(name))
 
   /**
     * Returns the base of this logarithm, viz. `e`.
@@ -217,7 +226,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
     * results in the same element. For any element `value`, `value + zero` and `zero + value` should
     * equal `value`.
     */
-  lazy val zero: Logarithm = NatLog(WholeNumber.zero)
+  lazy val zero: Logarithm = NatLog(WholeNumber.zero)(Some("1"))
 
   /**
     * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
@@ -306,7 +315,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
     *
     * @return a string representation of the `Logarithm` in terms of π
     */
-  def render: String = {
+  def render: String = maybeName getOrElse {
     val numberStr = x.render
     "e" + (if (numberStr == "1") "" else s"^$numberStr")
   }
@@ -325,7 +334,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
     *
     * @return the instance of type `T` that acts as the identity element for multiplication
     */
-  def one: Logarithm = NatLog(WholeNumber.zero)
+  def one: Logarithm = NatLog(WholeNumber.zero)(Some("1"))
 
   /**
     * Scales the current instance of type `T` by the specified `Double` value.
@@ -359,7 +368,17 @@ case class NatLog(x: Number) extends Logarithm(x) {
 //  }
 }
 
-case class BinaryLog(x: Number) extends Logarithm(x) {
+case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Logarithm(x) {
+
+//  require(x.signum>0, s"BinaryLog: $x is not positive")
+
+  /**
+    * Assigns a specified name to the `Eager` instance and returns the updated instance.
+    *
+    * @param name the name to assign to this `Eager` instance
+    * @return the updated `Eager` instance with the specified name
+    */
+  def named(name: String): Eager = copy()(Some(name))
 
   /**
     * Returns the base of this logarithm, viz. `e`.
@@ -465,7 +484,7 @@ case class BinaryLog(x: Number) extends Logarithm(x) {
     *
     * @return a string representation of the `Logarithm` in terms of π
     */
-  def render: String = {
+  def render: String = maybeName getOrElse {
     val numberStr = x.render
     "2" + (if (numberStr == "1") "" else s"^$numberStr")
   }
@@ -517,6 +536,10 @@ case class BinaryLog(x: Number) extends Logarithm(x) {
   //      Failure(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
   //  }
 
+}
+
+object BinaryLog {
+  def apply(x: Number): BinaryLog = new BinaryLog(x)()
 }
 /**
   * The `Logarithm` companion object contains utility methods, predefined constants, and
@@ -601,6 +624,8 @@ object Logarithm {
   */
 object NatLog {
 
+  def apply(x: Number): NatLog = new NatLog(x)()
+
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[NatLog] = new DyadicOperator[NatLog] {
@@ -623,7 +648,7 @@ object NatLog {
     * This is a predefined constant that corresponds to a `Logarithm` of zero value.
     * It is used as the additive identity in operations involving Logarithms.
     */
-  val one: Logarithm = NatLog(WholeNumber.zero)
+  val one: Logarithm = NatLog(WholeNumber.zero)(Some("1"))
 
   /**
     * Represents the natural logarithmic base `e` as a `Logarithm` instance.
@@ -631,5 +656,5 @@ object NatLog {
     * The value corresponds to the natural logarithm of one in terms of base `e`,
     * often used as a mathematical constant in logarithmic and exponential calculations.
     */
-  val e: Logarithm = NatLog(WholeNumber.one)
+  val e: Logarithm = NatLog(WholeNumber.one)(Some("e"))
 }

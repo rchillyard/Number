@@ -189,7 +189,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
   behavior of "normalize with percentage flag"
 
   it should "preserve percentage flag when RationalNumber doesn't reduce to whole" in {
-    val percent = RationalNumber(Rational(3, 4), percentage = true)
+    val percent = new RationalNumber(Rational(3, 4), percentage = true)()
     val normalized = percent.normalize
 
     normalized shouldBe a[RationalNumber]
@@ -197,7 +197,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "not lose percentage flag when normalizing" in {
-    val percent = RationalNumber(Rational(5, 5), percentage = true)
+    val percent = new RationalNumber(Rational(5, 5), percentage = true)()
     val normalized = percent.normalize
 
     normalized shouldBe a[RationalNumber]
