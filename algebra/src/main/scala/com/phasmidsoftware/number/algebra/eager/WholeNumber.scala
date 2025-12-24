@@ -2,14 +2,14 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.eager
 
 import algebra.ring.{AdditiveCommutativeGroup, CommutativeRing}
 import cats.Show
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.Structure
-import com.phasmidsoftware.number.algebra.WholeNumber.WholeNumberIsCommutativeRing
-import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import WholeNumber.WholeNumberIsCommutativeRing
+import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.language.implicitConversions
 import scala.reflect.ClassTag

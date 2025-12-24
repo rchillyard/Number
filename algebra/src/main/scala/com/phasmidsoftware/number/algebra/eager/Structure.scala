@@ -2,13 +2,13 @@
  * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.eager
 
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.Real
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.eager.{Real, Structure}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.{algebra, core}
 import org.slf4j.{Logger, LoggerFactory}
@@ -51,9 +51,9 @@ trait Structure extends Eager {
     *         if the conversion is successful under the stated conditions; otherwise, `None`.
     */
   def asJavaNumber: Option[java.lang.Number] = this match {
-    case algebra.Angle(number, _) => number.convert(Real.zero).flatMap(x => x.asJavaNumber)
-    case algebra.Real(value, _) => Some(value)
-    case algebra.RationalNumber(r, _) => Some(r.toDouble)
+    case Angle(number, _) => number.convert(Real.zero).flatMap(x => x.asJavaNumber)
+    case Real(value, _) => Some(value)
+    case RationalNumber(r, _) => Some(r.toDouble)
     case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")
   }
 

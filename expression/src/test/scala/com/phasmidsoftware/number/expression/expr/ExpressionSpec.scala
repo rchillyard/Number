@@ -5,10 +5,11 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra
-import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.RationalNumber.half
+import com.phasmidsoftware.number.algebra.{eager, *}
+import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.core.FuzzyEq
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, QuadraticSolution, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational, SquareRoot}
 import com.phasmidsoftware.number.core.numerical
@@ -259,7 +260,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: Expression = ConstE.log(Two) // lg E with value close to √2
     val y: Expression = x.reciprocal.simplify
     val result: Eager = y.materialize
-    val expected: algebra.Eager = algebra.Real("0.6931471805599453(13)")
+    val expected: Eager = eager.Real("0.6931471805599453(13)")
     result should ===(expected)
   }
   // (fixed) we should be able to compare y with L2 (this tests for Issue #125)

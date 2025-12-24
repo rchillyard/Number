@@ -1,7 +1,8 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Ring
-import com.phasmidsoftware.number.algebra.Real.realIsRing
+import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
+import com.phasmidsoftware.number.algebra.eager.{Angle, RationalNumber, Real}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

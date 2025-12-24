@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.{Angle, NatLog, Real}
+import com.phasmidsoftware.number.algebra.eager.{Angle, NatLog, Real}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

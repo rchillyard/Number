@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Monotone, Nat, NatLog, Number, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
@@ -201,7 +202,7 @@ object Valuable {
       Some(complex)
     case nat: Nat =>
       Some(intToField(nat.toInt, PureNumber))
-    case com.phasmidsoftware.number.algebra.Real(x, fo) =>
+    case Real(x, fo) =>
       Some(numerical.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo)))
     case q: Q =>
       Some(rationalToField(q.toRational, PureNumber))
@@ -270,7 +271,7 @@ object Valuable {
   private def numberToField(number: Number) = number match {
     case RationalNumber(r, _) =>
       rationalToField(r, PureNumber)
-    case algebra.Real(x, fo) =>
+    case Real(x, fo) =>
       numerical.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
     case WholeNumber(x) =>
       numerical.Real(ExactNumber(Value.fromRational(Rational(x)), PureNumber))

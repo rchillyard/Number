@@ -4,7 +4,8 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.{Eager, Valuable}
+import com.phasmidsoftware.number.algebra.Valuable
+import com.phasmidsoftware.number.algebra.eager.Eager
 
 object EagerOps {
   extension (x: Eager) {

@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.algebra
 
+import com.phasmidsoftware.number.algebra.eager.{Eager, InversePower, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

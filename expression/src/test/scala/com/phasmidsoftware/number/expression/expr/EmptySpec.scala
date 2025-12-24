@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra
-import com.phasmidsoftware.number.algebra.{Angle, Eager, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

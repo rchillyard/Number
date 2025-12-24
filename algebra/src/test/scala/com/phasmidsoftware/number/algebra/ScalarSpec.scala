@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
+import com.phasmidsoftware.number.algebra.eager.{Angle, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

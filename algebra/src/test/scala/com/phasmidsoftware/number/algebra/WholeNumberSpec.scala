@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.CommutativeRing
+import com.phasmidsoftware.number.algebra.eager.{RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

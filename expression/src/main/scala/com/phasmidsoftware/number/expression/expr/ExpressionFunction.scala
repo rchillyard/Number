@@ -7,8 +7,9 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.algebra.Valuable.valuableToField
-import com.phasmidsoftware.number.algebra.core.FP
-import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAdd, CanMultiply, CanPower, Context, Eager, ImpossibleContext, Number, Q, RationalNumber, RestrictedContext, Scalable, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra.core.{FP, Q}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatZero, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.{AnyContext, CanAdd, CanMultiply, CanPower, Context, ImpossibleContext, RestrictedContext, Scalable, Valuable, eager}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, Real}
 import com.phasmidsoftware.number.core.{inner, numerical}
@@ -396,9 +397,9 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     */
   def applyExact(a: Eager, b: Eager): Option[Eager] =
     (a, b) match {
-      case (x: Scalar, Eager.zero) if x.signum > 0 =>
+      case (x: eager.Scalar, Eager.zero) if x.signum > 0 =>
         Some(Angle.zero)
-      case (x: Scalar, Eager.zero) if x.signum < 0 =>
+      case (x: eager.Scalar, Eager.zero) if x.signum < 0 =>
         Some(Angle.pi) // TESTME
       case (Eager.one, Eager.one) =>
         Some(Angle.piBy4)
@@ -465,7 +466,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
     */
   def applyExact(a: Eager, b: Eager): Option[Eager] =
     (a, b) match {
-      case (_, base: Number) if base <= Number.one =>
+      case (_, base: eager.Number) if base <= eager.Number.one =>
         None // CONSIDER throwing an exception here instead
       case (Eager.one, _) =>
         Some(Eager.zero)
@@ -655,7 +656,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
   * This object extends `ExpressionBiFunction` by defining its operation as addition (`add`)
   * with the corresponding symbol "+" and is flagged as not always exact (`isExact = false`).
   */
-case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExact = false, Some(Number.zero), maybeIdentityR = None) {
+case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExact = false, Some(eager.Number.zero), maybeIdentityR = None) {
   /**
     * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
     *
@@ -694,16 +695,16 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
       val g = Angle.angleIsCommutativeGroup
       val q = g.additive.combine(x, y)
       Some(q)
-    case (x: Angle, y: Number) =>
-      import algebra.Real.realIsRing
-      val q: Option[algebra.Real] = for {
-        r <- x.convert(algebra.Real.zero)
-        z <- y.convert(algebra.Real.zero)
+    case (x: Angle, y: eager.Number) =>
+      import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
+      val q: Option[eager.Real] = for {
+        r <- x.convert(eager.Real.zero)
+        z <- y.convert(eager.Real.zero)
       } yield r + z
       q.asInstanceOf[Option[Eager]]
       // TODO implement for (Number, Angle)
-    case (x: CanAdd[Number, Number] @unchecked, y: Number) =>
-      import Number.NumberIsAdditiveCommutativeMonoid
+    case (x: CanAdd[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
+      import com.phasmidsoftware.number.algebra.eager.Number.NumberIsAdditiveCommutativeMonoid
       Some(x + y)
     case _ =>
       None
@@ -802,17 +803,17 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       Some(x * y.toRational)
     case (x: RationalNumber, y: Scalable[Eager] @unchecked) =>
       Some(y * x.toRational)
-    case (x: CanMultiply[Number, Number] @unchecked, y: Number) =>
+    case (x: CanMultiply[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       // TODO asInstanceOf
       Option.when(x.isExact && y.isExact)((x * y).asEager).filter(_.isExact)
-    case (x: Number, y: CanMultiply[Number, Number] @unchecked) =>
+    case (x: eager.Number, y: CanMultiply[eager.Number, eager.Number] @unchecked) =>
       // TODO asInstanceOf
       Option.when(x.isExact && y.isExact)((y * x).asEager).filter(_.isExact)
-    case (ValueExpression(x, _), y: Number) =>
+    case (ValueExpression(x, _), y: eager.Number) =>
       applyExact(x, y)
     case (ValueExpression(x, _), ValueExpression(y, _)) =>
       applyExact(x, y)
-    case (x: Number, ValueExpression(y, _)) =>
+    case (x: eager.Number, ValueExpression(y, _)) =>
       applyExact(x, y)
     case (x: Scalable[Eager] @unchecked, y: Q) =>
       Some(x * y.toRational)
@@ -842,9 +843,9 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     * @return an `Option[Valuable]`, where `Some(a)` is returned if `a` is `zero`; otherwise, `None`.
     */
   override def trivialEvaluation(a: Eager, b: Eager): Option[Eager] = (a, b) match {
-    case (Eager.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero, _) =>
+    case (Eager.zero | RationalNumber.zero | NatZero, _) =>
       Some(a) // TESTME
-    case (_, Eager.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero) =>
+    case (_, Eager.zero | RationalNumber.zero | eager.NatZero) =>
       Some(Eager.one) // TESTME
     case (_, Eager.one | RationalNumber.one) =>
       Some(a) // TESTME
@@ -892,9 +893,9 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
   def applyExact(a: Eager, b: Eager): Option[Eager] = (a, b) match {
     case (Eager.one, _) =>
       Some(Eager.one)
-    case (_, com.phasmidsoftware.number.algebra.Real.infinity | RationalNumber.infinity) =>
+    case (_, eager.Real.infinity | RationalNumber.infinity) =>
       Some(b)
-    case (x: CanPower[Scalar] @unchecked, y: Q) if x.isExact && y.isExact =>
+    case (x: CanPower[eager.Scalar] @unchecked, y: Q) if x.isExact && y.isExact =>
       for {
         f <- y.maybeFactor(AnyContext) if f == PureNumber
         result <- x.pow(RationalNumber(y.toRational)) if result.isExact

@@ -2,12 +2,12 @@
  * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.eager
 
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.Real
 import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.{eager, *}
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
@@ -147,7 +147,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     * @return an `Option` containing the approximate value as a `Real` if available,
     *         or `None` if no approximation can be computed.
     */
-  def approximation(force: Boolean): Option[Real] =
+  def approximation(force: Boolean): Option[eager.Real] =
     FP.whenever(complex.isReal) {
       val modulus: Number = complex.modulus
       Scalar.createScalar(modulus.nominalValue, modulus.factor, modulus.fuzz).approximation(force)

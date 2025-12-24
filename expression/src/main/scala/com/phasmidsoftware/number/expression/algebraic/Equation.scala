@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
-import com.phasmidsoftware.number.algebra.{Branched, Solution}
+import com.phasmidsoftware.number.algebra.eager.{Branched, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.{Expression, Root}
 

@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.algebra.core
 
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, Nat, Structure}
 
 /**
   * The `TypeSafe` trait provides mechanisms for querying the runtime type and 

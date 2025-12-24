@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.AdditiveCommutativeGroup
+import com.phasmidsoftware.number.algebra.eager.{Angle, RationalNumber, Real, Scalar}
 import com.phasmidsoftware.number.core.inner.Value
 import com.phasmidsoftware.number.core.numerical.{Box, RelativeFuzz}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -74,8 +75,8 @@ class AngleSpec extends AnyFlatSpec with Matchers with AssertionHelpers {
     assertEq(degrees180, Angle.𝛑)
   }
   it should "test creation" in {
-    Angle.degrees(Value.fromInt(0)) shouldBe Angle(Number.zero, true)()
-    Angle.degrees(Value.fromInt(180)) shouldBe Angle(Number.one, true)()
+    Angle.degrees(Value.fromInt(0)) shouldBe Angle(eager.Number.zero, true)()
+    Angle.degrees(Value.fromInt(180)) shouldBe Angle(eager.Number.one, true)()
   }
   it should "test render" in {
     degrees0.render shouldBe "0°"

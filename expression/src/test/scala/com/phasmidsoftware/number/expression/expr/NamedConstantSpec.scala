@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, WholeNumber}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

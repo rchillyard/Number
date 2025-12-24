@@ -4,7 +4,8 @@
 
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.algebra.{Nat, Valuable}
+import com.phasmidsoftware.number.algebra.Valuable
+import com.phasmidsoftware.number.algebra.eager.{Eager, Nat}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.*
 

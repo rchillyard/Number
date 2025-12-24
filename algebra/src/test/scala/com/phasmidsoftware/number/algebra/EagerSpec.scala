@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.algebra
 
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Functional, NatLog, RationalNumber, Real, WholeNumber}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

@@ -1,7 +1,8 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.Field
-import com.phasmidsoftware.number.algebra.RationalNumber.rationalNumberIsField
+import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalNumberIsField
+import com.phasmidsoftware.number.algebra.eager.{Number, RationalNumber, Real}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import org.scalatest.flatspec.AnyFlatSpec

@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
+import com.phasmidsoftware.number.algebra.eager.Nat
 import org.scalactic.Prettifier
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

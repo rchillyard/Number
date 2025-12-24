@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.algebra.{Angle, Eager, RationalNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Number, RationalNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.Constants
 import com.phasmidsoftware.number.expression.expr.*
@@ -95,7 +95,7 @@ object LaTeXParser {
             }
           case "°" =>
             Eager(numStr) match {
-              case number: com.phasmidsoftware.number.algebra.Number =>
+              case number: Number =>
                 Literal(Angle.degrees(number))
               case _ =>
                 Noop(s"unable to parse LaTeX: $numStr$unitStr")

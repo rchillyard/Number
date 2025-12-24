@@ -2,15 +2,15 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.eager
 
 import algebra.CommutativeMonoid
 import cats.Show
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.Logarithm.LogarithmIsCommutativeMonoid
-import com.phasmidsoftware.number.algebra.Structure
+import Logarithm.LogarithmIsCommutativeMonoid
 import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
+import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}

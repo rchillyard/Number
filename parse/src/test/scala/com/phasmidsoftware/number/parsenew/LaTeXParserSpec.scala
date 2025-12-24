@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.algebra.{Angle, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.*
 import com.phasmidsoftware.number.parsenew.LaTeXParser

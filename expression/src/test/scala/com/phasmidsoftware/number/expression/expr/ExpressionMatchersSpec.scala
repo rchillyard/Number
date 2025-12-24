@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.*
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical

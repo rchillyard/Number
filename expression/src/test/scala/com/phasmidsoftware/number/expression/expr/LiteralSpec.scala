@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.{RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{RationalNumber, WholeNumber}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

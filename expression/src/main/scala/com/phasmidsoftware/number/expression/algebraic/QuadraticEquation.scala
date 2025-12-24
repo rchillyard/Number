@@ -5,7 +5,8 @@
 package com.phasmidsoftware.number.expression.algebraic
 
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.RationalNumber.convRationalRationalNumber
+import com.phasmidsoftware.number.algebra.eager.RationalNumber.convRationalRationalNumber
+import com.phasmidsoftware.number.algebra.eager.{InversePower, LinearSolution, Monotone, QuadraticSolution, RationalNumber, Real, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi

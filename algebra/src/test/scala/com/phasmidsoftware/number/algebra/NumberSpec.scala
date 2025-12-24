@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.algebra
 
+import com.phasmidsoftware.number.algebra.eager.{Angle, Real, Scalar}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -17,7 +18,7 @@ class NumberSpec extends AnyFlatSpec with Matchers {
   it should "perform addition correctly" in {
     val x: Real = one
     val y: Real = two
-    val z: Number = 2
+    val z: eager.Number = 2
     x + y shouldBe three
     y + x shouldBe three
     x doPlus z shouldBe Some(three)
@@ -46,7 +47,7 @@ class NumberSpec extends AnyFlatSpec with Matchers {
 
   // Comparison operations
   it should "compare numbers correctly" in {
-    val x: Number = one
+    val x: eager.Number = one
     val y = two
     x < y shouldBe true
     x > y shouldBe false

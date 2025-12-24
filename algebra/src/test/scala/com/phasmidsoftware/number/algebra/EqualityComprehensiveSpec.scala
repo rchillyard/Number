@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.algebra
 
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.core.FuzzyEq
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, LinearSolution, Nat, NatLog, NatZero, QuadraticSolution, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -227,8 +228,8 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   behavior of "=== and ~== edge cases"
 
   it should "handle zero comparisons" in {
-    (WholeNumber.zero: Number) === (RationalNumber.zero: Number) shouldBe true
-    (Real.zero: Number) === WholeNumber.zero shouldBe true
+    (WholeNumber.zero: eager.Number) === (RationalNumber.zero: eager.Number) shouldBe true
+    (Real.zero: eager.Number) === WholeNumber.zero shouldBe true
     Angle.zero === Angle(RationalNumber.zero) shouldBe true
 
     // Fuzzy zero comparisons
@@ -237,8 +238,8 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle one/unity comparisons" in {
-    (WholeNumber.one: Number) === (RationalNumber.one: Number) shouldBe true
-    (Real.one: Number) === (WholeNumber.one: Number) shouldBe true
+    (WholeNumber.one: eager.Number) === (RationalNumber.one: eager.Number) shouldBe true
+    (Real.one: eager.Number) === (WholeNumber.one: eager.Number) shouldBe true
 
     // Fuzzy unity comparisons
     (WholeNumber.one ~== RationalNumber.one) shouldBe true
@@ -247,8 +248,8 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
 
   it should "handle negative numbers" in {
     WholeNumber(-5) === WholeNumber(-5) shouldBe true
-    (WholeNumber(-5): Number) === (RationalNumber(-5, 1): Number) shouldBe true
-    (Real(-5.0, None): Number) === (WholeNumber(-5): Number) shouldBe true
+    (WholeNumber(-5): eager.Number) === (RationalNumber(-5, 1): eager.Number) shouldBe true
+    (Real(-5.0, None): eager.Number) === (WholeNumber(-5): eager.Number) shouldBe true
 
     // Fuzzy negative comparisons
     (WholeNumber(-5) ~== RationalNumber(-5, 1)) shouldBe true
@@ -276,8 +277,8 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   behavior of "symmetry of === and ~=="
 
   it should "be symmetric for ===" in {
-    val w: Number = WholeNumber(5)
-    val r: Number = RationalNumber(5, 1)
+    val w: eager.Number = WholeNumber(5)
+    val r: eager.Number = RationalNumber(5, 1)
 
     (w === r) shouldBe (r === w)
   }
@@ -302,9 +303,9 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   behavior of "transitivity of === and ~=="
 
   it should "be transitive for ===" in {
-    val w: Number = WholeNumber(5)
-    val r: Number = RationalNumber(5, 1)
-    val real: Number = Real(5.0, None)
+    val w: eager.Number = WholeNumber(5)
+    val r: eager.Number = RationalNumber(5, 1)
+    val real: eager.Number = Real(5.0, None)
 
     if ((w === r) && (r === real)) {
       (w === real) shouldBe true  // Add explicit assertion

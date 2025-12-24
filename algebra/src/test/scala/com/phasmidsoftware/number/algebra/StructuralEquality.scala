@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import cats.kernel.Eq
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, RationalNumber, Structure}
 import org.scalactic.Equality
 
 trait StructuralEquality {

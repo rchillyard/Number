@@ -5,9 +5,10 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.matchers.*
-import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.Angle.𝛑
-import com.phasmidsoftware.number.algebra.Eager.{e, half, minusOne, negInfinity, one, pi, two, zero}
+import com.phasmidsoftware.number.algebra.{eager, *}
+import com.phasmidsoftware.number.algebra.eager.Angle.𝛑
+import com.phasmidsoftware.number.algebra.eager.Eager.{e, half, minusOne, negInfinity, one, pi, two, zero}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.infinity
@@ -170,7 +171,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   it should "work for Negate Zero" in {
     val e = Zero.materialize
     lazymath"-${e.render}" shouldBe Zero
-    math"-${e.render}" shouldBe Number.zero
+    math"-${e.render}" shouldBe eager.Number.zero
   }
   it should "work for Reciprocal Zero" in {
     val e = Zero.materialize

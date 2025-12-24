@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra
 
 import algebra.ring.*
+import com.phasmidsoftware.number.algebra.eager.{RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 

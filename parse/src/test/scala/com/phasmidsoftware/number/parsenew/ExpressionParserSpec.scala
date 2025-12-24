@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.algebra.{Angle, NatLog, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, NatLog, WholeNumber}
 import com.phasmidsoftware.number.expression.expr.*
 import fastparse.Parsed
 import org.scalatest.flatspec.AnyFlatSpec

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra
 
-import com.phasmidsoftware.number.algebra.{InversePower, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{InversePower, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

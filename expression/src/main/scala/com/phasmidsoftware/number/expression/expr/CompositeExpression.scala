@@ -5,8 +5,11 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.Valuable.valuableToMaybeField
-import com.phasmidsoftware.number.algebra.core.FP
-import com.phasmidsoftware.number.algebra.{CanPower, Context, Eager, NatLog, Q, QuadraticSolution, RationalNumber, RestrictedContext, Structure, Valuable}
+import com.phasmidsoftware.number.algebra.core.{FP, Q}
+import com.phasmidsoftware.number.algebra.eager
+import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, QuadraticSolution, RationalNumber, Structure}
+import com.phasmidsoftware.number.algebra.{CanPower, Context, RestrictedContext, Valuable}
+import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, QuadraticSolution, RationalNumber}
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import com.phasmidsoftware.number.core.numerical
@@ -241,9 +244,9 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation(force: Boolean): Option[algebra.Real] =
+  def approximation(force: Boolean): Option[eager.Real] =
     // TODO asInstanceOf
-    x.approximation(force) map (x => f.apply(x).asInstanceOf[algebra.Real])
+    x.approximation(force) map (x => f.apply(x).asInstanceOf[eager.Real])
 
   /**
     * Simplifies the components of this `Expression` by transforming it using the `matchSimpler`
@@ -487,7 +490,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(expression.expr.BiFunction(a, Two, Product))
     case BiFunction(a, b, Product) if a == b =>
       em.Match(expression.expr.BiFunction(a, Two, Power))
-    case BiFunction(ConstE, ValueExpression(v: algebra.Number, _), Power) =>
+    case BiFunction(ConstE, ValueExpression(v: eager.Number, _), Power) =>
       em.Match(Literal(NatLog(v)))
     case BiFunction(r: Root, x, f) =>
       matchRoot(r, x, f)
@@ -581,11 +584,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation(force: Boolean): Option[algebra.Real] = {
+  def approximation(force: Boolean): Option[eager.Real] = {
     val maybeValuable = for {x <- a.approximation(true); y <- b.approximation(true)} yield f(x, y)
     // TODO asInstanceOf
     // FIXME this cast is a problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
-    maybeValuable.asInstanceOf[Option[algebra.Real]]
+    maybeValuable.asInstanceOf[Option[eager.Real]]
   }
 
   /**
@@ -1071,11 +1074,11 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation(force: Boolean): Option[algebra.Real] = { // TESTME
+  def approximation(force: Boolean): Option[eager.Real] = { // TESTME
     val identity: Eager = function.maybeIdentityL.getOrElse(Eager.zero) // NOTE should never require the default
-    val vos: Seq[Option[algebra.Real]] = xs map (x => x.approximation(force))
+    val vos: Seq[Option[eager.Real]] = xs map (x => x.approximation(force))
     // TODO asInstanceOf
-    FP.sequence(vos) map (xs => xs.foldLeft[Eager](identity)(function.apply).asInstanceOf[algebra.Real])
+    FP.sequence(vos) map (xs => xs.foldLeft[Eager](identity)(function.apply).asInstanceOf[eager.Real])
   }
 
   /**

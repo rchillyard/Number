@@ -1,6 +1,11 @@
-package com.phasmidsoftware.number.algebra
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.algebra.core
 
 import com.phasmidsoftware.number.algebra.core.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.eager.Real
 
 /**
   * Trait representing a structure that supports approximation.
