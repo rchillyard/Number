@@ -67,6 +67,11 @@ trait Z extends Q {
 }
 
 /**
+  * Domain C includes the set of complex numbers.
+  */
+trait C
+
+/**
   * Trait `N` represents the Natural numbers, that's to say the integers from 0 to infinity.
   */
 trait N extends Z {

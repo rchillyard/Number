@@ -6,8 +6,9 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
-import com.phasmidsoftware.number.algebra.core.{Context, FP}
+import com.phasmidsoftware.number.algebra.core.Context
 import com.phasmidsoftware.number.algebra.eager.{Eager, Real}
+import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.algebraic.LinearEquation
 import com.phasmidsoftware.number.core.expression.Expression.convertFieldToExpression

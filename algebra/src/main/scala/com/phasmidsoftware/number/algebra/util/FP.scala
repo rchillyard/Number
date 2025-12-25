@@ -2,7 +2,7 @@
  * Copyright (c) 2023-2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra.core
+package com.phasmidsoftware.number.algebra.util
 
 import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
 import java.net.URL

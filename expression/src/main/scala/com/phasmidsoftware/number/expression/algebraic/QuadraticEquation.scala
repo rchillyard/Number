@@ -133,7 +133,7 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     *
     * @return an `Int` representing the discriminant.
     */
-  def discriminant: Rational =
+  lazy val discriminant: Rational =
     p * p - 4 * q
 
   override def toString: String = s"Quadratic Equation: x∧2 ${QuadraticEquation.termSign(p)}x ${QuadraticEquation.termSign(q)} = 0"
@@ -149,19 +149,23 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     other.isInstanceOf[QuadraticEquation]
 
   /**
-    * Scales the equation by a given rational factor.
-    * We are essentially transforming the equation into a new equation with coefficients `x * p` and `x∧2 * q`.
+    * Scales the current instance by the given factor.
     *
-    * The equation is represented by coefficients `p` and `q`, and scaling is applied as:
-    * - `p` is multiplied by `x`
-    * - `q` is multiplied by `x∧2`
+    * This method applies a scaling operation on the instance using the provided
+    * rational factor and returns the resulting scaled instance.
     *
-    * @param x the scaling factor as a `Rational`.
-    * @return a new `Equation` resulting from scaling the current equation by the factor `x`.
+    * @param factor the rational number representing the scale factor
+    * @return the scaled instance of type `T`
     */
-  def scale(x: Rational): QuadraticEquation =
+  infix def *(x: Rational): Equation =
     copy(p = x * p, q = x * x * q)
 
+  /**
+    * Calculates the square root of a given rational number as a monotone function.
+    *
+    * @param r the rational number for which the square root is to be computed.
+    * @return a monotone representation of the square root of the given rational number.
+    */
   private def squareRoot(r: RationalNumber): Monotone =
     InversePower(2, r).normalize.asMonotone
 }
@@ -218,12 +222,15 @@ case class LinearEquation(r: Rational) extends Equation {
   def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): Equation = ??? // TODO implement me
 
   /**
-    * Scales the current equation by multiplying it with the given rational factor.
+    * Scales the current instance by the given factor.
     *
-    * @param x the rational factor by which the equation is to be scaled.
-    * @return a new `Equation` instance representing the scaled equation.
+    * This method applies a scaling operation on the instance using the provided
+    * rational factor and returns the resulting scaled instance.
+    *
+    * @param factor the rational number representing the scale factor
+    * @return the scaled instance of type `T`
     */
-  def scale(x: Rational): Equation = copy(r = r * x)
+  infix def *(factor: Rational): Equation = copy(r = r * factor)
 
   /**
     * Produces an inverted version of the current equation.

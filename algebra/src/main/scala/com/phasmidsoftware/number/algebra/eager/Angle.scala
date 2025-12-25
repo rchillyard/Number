@@ -8,9 +8,10 @@ import algebra.ring.AdditiveCommutativeGroup
 import cats.Show
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
-import Angle.{angleIsCommutativeGroup, r180}
-import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.eager.Angle.{angleIsCommutativeGroup, r180}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.Fuzziness
 import scala.reflect.ClassTag
@@ -218,7 +219,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * This method handles addition based on the type of `Scalar` provided. If the input is an `Angle`,
     * it computes the sum of the current `Angle` and the provided `Angle`. If the input is a `Number`,
     * the addition is delegated to the `doPlus` implementation of the `Number`.
-    * CONSIDER eliminating this method.
+    * CONSIDER eliminating this method (only used by unit tests).
     *
     * @param that the `Scalar` to be added to the current instance
     * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid

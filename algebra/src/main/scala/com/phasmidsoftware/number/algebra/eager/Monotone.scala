@@ -9,6 +9,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
@@ -27,11 +28,12 @@ import scala.reflect.ClassTag
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with WithFuzziness with Zeroable {
+trait Monotone extends Structure with WithFuzziness with Zeroable with Negatable[Monotone] {
 
   /**
     * Method to determine if this `Structure` object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
+    * CONSIDER eliminating this method from here.
     *
     * @return true if this `Structure` object is exact in the context of no factor, else false.
     */
@@ -57,14 +59,6 @@ trait Monotone extends Structure with WithFuzziness with Zeroable {
     case _ if force => convert(Real.zero)
     case _ => None
   }
-
-  /**
-    * Returns a new instance of `Monotone` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
-    *
-    * @return a `Monotone` representing the negation of this instance
-    */
-  def negate: Monotone
 
 }
 

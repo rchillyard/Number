@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.algebra.core
 
-import com.phasmidsoftware.number.algebra.core.{Context, RestrictedContext, Valuable}
 import com.phasmidsoftware.number.algebra.eager.{Eager, Nat}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.*
@@ -21,20 +20,12 @@ import com.phasmidsoftware.number.core.inner.*
 trait Context extends CoreContext {
 
   /**
-    * Determines whether the given factor is acceptable in this `Context`.
-    *
-    * @param f the factor.
-    * @return true if the factor qualifies; false otherwise.
-    */
-  def factorQualifies(f: Factor): Boolean
-
-  /**
     * Determines whether a given `HasValue` qualifies in the current `Context`.
     *
     * This method evaluates the provided `HasValue` object to check if it meets
     * the criteria defined by the `Context`. The qualification logic is based
     * on the specific type of `HasValue`. Natural numbers (`Nat`) automatically
-    * qualify, whereas scalar values (`Scalar`) qualify only if their associated 
+    * qualify, whereas scalar values (`Scalar`) qualify only if their associated
     * factor meets the required conditions.
     *
     * @param v the `HasValue` object to check for qualification
@@ -142,7 +133,6 @@ case object AnyContext extends Context {
   def factorQualifies(f: Factor): Boolean = true
 
   override def toString: String = "AnyContext"
-
 }
 
 /**
@@ -165,7 +155,6 @@ case object ImpossibleContext extends Context {
   def factorQualifies(f: Factor): Boolean = false
 
   override def toString: String = "ImpossibleContext"
-
 }
 
 /**

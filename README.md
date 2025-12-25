@@ -208,6 +208,18 @@ classDiagram
         +*(scaleFactor: Rational): T
     }
     
+    class Branched {
+        <<trait>>
+        +branch: Int
+        +branched(index: Int): T
+    }
+    
+    class Equation {    
+        <<trait>>
+        +solve(branch: Int): Solution
+        +transform
+    }
+    
     class Algebraic {
         <<trait>>
         +convert(T): Option[T]

@@ -8,6 +8,7 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.fromRational
@@ -15,7 +16,7 @@ import com.phasmidsoftware.number.core.inner.{DyadicOperationPlus, Factor, PureN
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.ExactNumber
 import org.slf4j.{Logger, LoggerFactory}
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Trait to model the behavior of a solution to an equation.
@@ -52,39 +53,6 @@ sealed trait Algebraic extends Solution with Zeroable with Scalable[Algebraic] {
   def branch: Int
 
   /**
-    * Determines the factor associated with this solution based on certain conditions.
-    * If the solution is a pure number, it returns `Some(PureNumber)`.
-    * If the base value of the solution is zero, it returns `Some(factor)`.
-    * Otherwise, it returns `None`.
-    *
-    * @return an `Option` of type `Factor`, where `Some` may contain the factor
-    *         depending on the conditions, or `None` if no factor is applicable
-    */
-  def maybeFactor(context: Context): Option[Factor] =
-    (base, offset) match {
-      case (x, y) if x.isZero && y.isZero =>
-        Some(PureNumber)
-      case (x, y) if y.isZero =>
-        x.maybeFactor(context)
-      case (x, y) if x.isZero =>
-        y.maybeFactor(context)
-      case (x, y) =>
-        for {
-          bf <- x.maybeFactor(context)
-          of <- y.maybeFactor(RestrictedContext(bf))
-        } yield of
-    }
-
-
-  /**
-    * Method to determine if this NumberLike object is exact.
-    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
-    *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
-    */
-  def isExact: Boolean = true
-
-  /**
     * Determines whether the solution is a pure number.
     * A pure number is defined as one without any associated factors or offsets.
     *
@@ -118,33 +86,58 @@ sealed trait Algebraic extends Solution with Zeroable with Scalable[Algebraic] {
   def add(solution: Algebraic): Option[Algebraic]
 
   /**
-    * Negates the current solution by applying a unary negation operation.
+    * Determines the factor associated with this solution based on certain conditions.
+    * If the solution is a pure number, it returns `Some(PureNumber)`.
+    * If the base value of the solution is zero, it returns `Some(factor)`.
+    * Otherwise, it returns `None`.
     *
-    * @return a new `Algebraic` instance representing the negated value of the current solution
+    * @return an `Option` of type `Factor`, where `Some` may contain the factor
+    *         depending on the conditions, or `None` if no factor is applicable
     */
-  def negate: Algebraic
+  def maybeFactor(context: Context): Option[Factor] =
+    (base, offset) match {
+      case (x, y) if x.isZero && y.isZero =>
+        Some(PureNumber)
+      case (x, y) if y.isZero =>
+        x.maybeFactor(context)
+      case (x, y) if x.isZero =>
+        y.maybeFactor(context)
+      case (x, y) =>
+        for {
+          bf <- x.maybeFactor(context)
+          of <- y.maybeFactor(RestrictedContext(bf))
+        } yield of
+    }
 
   /**
-    * Determines whether the current solution is equivalent to another solution.
-    * This method performs a structural comparison for specific solution types
-    * such as `LinearSolution` and `QuadraticSolution`. For other cases, it defers
-    * to the superclass implementation.
+    * Method to determine if this NumberLike object is exact.
+    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @param that the `Eager` instance to compare with the current solution
-    * @return a `Try[Boolean]` indicating whether the two solutions are equivalent.
-    *         The result is wrapped in a `Try` to account for potential errors during comparison.
+    * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
-    case (a: LinearSolution, b: LinearSolution) =>
-      a.value.eqv(b.value)
-    case (a: QuadraticSolution, b: QuadraticSolution) =>
-      for {
-        baseEq <- a.base.eqv(b.base)
-        offsetEq <- a.offset.eqv(b.offset)
-      } yield baseEq && offsetEq && a.branch == b.branch
-    case _ =>
-      super.eqv(that)
-  }
+  def isExact: Boolean = true
+//
+//  /**
+//    * Determines whether the current solution is equivalent to another solution.
+//    * This method performs a structural comparison for specific solution types
+//    * such as `LinearSolution` and `QuadraticSolution`. For other cases, it defers
+//    * to the superclass implementation.
+//    *
+//    * @param that the `Eager` instance to compare with the current solution
+//    * @return a `Try[Boolean]` indicating whether the two solutions are equivalent.
+//    *         The result is wrapped in a `Try` to account for potential errors during comparison.
+//    */
+//  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+//    case (a: LinearSolution, b: LinearSolution) =>
+//      a.value.eqv(b.value)
+//    case (a: QuadraticSolution, b: QuadraticSolution) =>
+//      for {
+//        baseEq <- a.base.eqv(b.base)
+//        offsetEq <- a.offset.eqv(b.offset)
+//      } yield baseEq && offsetEq && a.branch == b.branch
+//    case _ =>
+//      super.eqv(that)
+//  }
 
   /**
     * Performs a fuzzy equivalence comparison between the current solution and another solution.
@@ -261,7 +254,6 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
     case _ =>
       this
   }
-
 
   /**
     * Method to render this NumberLike in a presentable manner.
@@ -427,6 +419,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
 //      }
 //    }
 
+
   /**
     * Adds a `Rational` value to the current solution and returns a new `Algebraic` as the result.
     * NOTE this only affects the `base` of this `Algebraic`.
@@ -444,8 +437,18 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
     FP.recover(zo.map(z => copy(base = z)(None)))(AlgebraException(s"QuadraticSolution: add($addend) not supported"))
   }
 
-  private def sumBases(m1: Monotone, m2: Monotone): Monotone = ???
-
+  /**
+    * Adds the specified solution to this quadratic solution, producing a new solution as a result.
+    *
+    * This method supports the addition of solutions of type `Algebraic`. If the provided solution
+    * is of an unsupported type, an `AlgebraException` is thrown. When the solution is an instance
+    * of `Algebraic`, the addition is attempted using the `add` method, and any potential errors
+    * are recovered into an exception.
+    *
+    * @param other the solution to be added to this quadratic solution
+    * @return a new `Solution` representing the sum of this quadratic solution and the specified solution
+    * @throws AlgebraException if the addition with the specified solution is unsupported or leads to an error
+    */
   def +(other: Solution): Solution = other match {
     case algebraic: Algebraic =>
       FP.recover(add(algebraic))(AlgebraException(s"QuadraticSolution: +($other) not supported"))
@@ -547,7 +550,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
       super.eqv(that)
   }
 
-
+  private def sumBases(m1: Monotone, m2: Monotone): Monotone = ???
 }
 
 /**
@@ -694,6 +697,16 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     */
   def negate: Algebraic = ???
 
+  /**
+    * Adds the specified `Solution` to the current `LinearSolution` and returns a new `Solution`
+    * representing the result of the addition. The operation is only supported for instances of
+    * `LinearSolution`. If the addition is unsupported for the given `Solution`, an exception may
+    * be thrown.
+    *
+    * @param other the `Solution` to add to the current `LinearSolution`
+    * @return the resulting `Solution` of the addition if supported
+    * @throws AlgebraException if the operation is not valid for the given `Solution`
+    */
   def +(other: Solution): Solution = other match {
     case linear: LinearSolution =>
       FP.recover(add(linear))(AlgebraException(s"LinearSolution: +($other) not supported"))
@@ -750,7 +763,8 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @return a string representation of the solution
     */
-  def render: String = maybeName.getOrElse(value.render)
+  def render: String =
+    maybeName.getOrElse(value.render)
 
   /**
     * Attempts to compute an approximate representation of the current value.
@@ -764,15 +778,47 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *              the approximation. If `true`, the method will attempt to
     *              generate an approximation even if such computation
     *              is resource-intensive or not strictly necessary.
-    * @return an `Option` containing the approximate value as a `Real` if available,
-    *         or `None` if no approximation can be computed.
+    *
+    * @return      an `Option` containing the approximate value as a `Real` if available,
+    *              or `None` if no approximation can be computed.
     */
   def approximation(force: Boolean): Option[Real] =
     Some(Real(value.toDouble))
+
+  /**
+    * Determines if the current instance of `LinearSolution` is equivalent to another `Eager` instance.
+    * The equivalence check is specific to the type of the `Eager` instance.
+    *
+    * @param that the `Eager` instance to compare for equivalence
+    * @return a `Try[Boolean]` indicating the result of the equivalence check
+    *         - `Success(true)` if the instances are considered equivalent
+    *         - `Success(false)` if the instances are not equivalent
+    *         - `Failure` if the operation is not supported or if an error occurs during the comparison
+    */
+  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: LinearSolution, b: LinearSolution) =>
+      a.value.eqv(b.value)
+    case _ =>
+      Failure(AlgebraException(s"LinearSolution: eqv($that) not supported"))
+  }
 }
 
+/**
+  * The `LinearSolution` object provides utility functions for creating and manipulating instances
+  * of `LinearSolution`. It includes methods and typeclass instances for operations such as equality
+  * comparison and fuzzy equality checks.
+  *
+  * The object also initializes the logger and defines givens for specific typeclass operations
+  * such as `DyadicOperator`, `Eq`, and `FuzzyEq`, allowing more advanced handling of `LinearSolution` instances.
+  */
 object LinearSolution {
 
+  /**
+    * Constructs a new instance of `LinearSolution` using the provided `Monotone` value.
+    *
+    * @param value the `Monotone` instance used to initialize the `LinearSolution`
+    * @return a new `LinearSolution` instance corresponding to the given `Monotone`
+    */
   def apply(value: Monotone): LinearSolution = new LinearSolution(value)()
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
@@ -792,5 +838,4 @@ object LinearSolution {
     (x, y, p) =>
       x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[LinearSolution]", _))(x.fuzzyEqv(p)(y)).getOrElse(false)
   }
-
 }

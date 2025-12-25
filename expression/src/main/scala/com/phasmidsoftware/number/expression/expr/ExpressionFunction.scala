@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.algebra.core.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{NatLog, *}
+import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Q, Real, *}
 import com.phasmidsoftware.number.core.{inner, numerical}

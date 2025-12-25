@@ -8,6 +8,7 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
@@ -46,21 +47,6 @@ trait Scalar extends Monotone {
     * and the conversion factor to yield a `PureNumber`.
     */
   def scaleFactor: Double
-
-  /**
-    * Determines if the current number is equal to zero.
-    *
-    * @return true if the number is zero, false otherwise
-    */
-  def isZero: Boolean
-
-  /**
-    * Determines the sign of the scalar value represented by this instance.
-    * Returns an integer indicating whether the value is positive, negative, or zero.
-    *
-    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
-    */
-  def signum: Int
 
   /**
     * Scales the current scalar instance by the specified rational factor.

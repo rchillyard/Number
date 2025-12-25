@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra.core
+package com.phasmidsoftware.number.algebra.util
 
 /**
   * Represents an exception that occurs during algebraic computations or operations.

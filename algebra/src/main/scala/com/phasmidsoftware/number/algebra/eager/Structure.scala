@@ -7,8 +7,9 @@ package com.phasmidsoftware.number.algebra.eager
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
-import com.phasmidsoftware.number.algebra.core.{AlgebraException, DyadicOperator, FP, FuzzyEq}
-import com.phasmidsoftware.number.algebra.eager.{Real, Structure}
+import com.phasmidsoftware.number.algebra.core.{DyadicOperator, FuzzyEq}
+import com.phasmidsoftware.number.algebra.eager.Real
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.{algebra, core}
 import org.slf4j.{Logger, LoggerFactory}
@@ -67,6 +68,10 @@ trait Structure extends Eager {
   }
 }
 
+/**
+  * Companion object for the `Structure` trait, providing utility functions and type class instances 
+  * to facilitate operations on `Structure` objects.
+  */
 object Structure {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)

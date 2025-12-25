@@ -6,8 +6,9 @@ package com.phasmidsoftware.number.algebra.eager
 
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
@@ -162,9 +163,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   *
   * TODO once Can no longer extends Structure, let's extend CanNegate[Solution], CanAdd, etc. instead.
   */
-trait Solution extends Eager {
-
-  def negate: Solution
+trait Solution extends Eager with Negatable[Solution] {
 
   /**
     * Adds another `Solution` instance to the current instance, combining their effects or values
@@ -176,7 +175,19 @@ trait Solution extends Eager {
   def +(other: Solution): Solution
 }
 
+/**
+  * Companion object for the `Complex` class.
+  *
+  * Provides utility methods and typeclass instances related to `Complex`,
+  * including factory methods, equality checks, and operator support.
+  */
 object Complex {
+  /**
+    * Constructs a new instance of `Complex` from a given `numerical.Complex`.
+    *
+    * @param x the input of type `numerical.Complex` to be converted into a `Complex` instance.
+    * @return a new `Complex` instance created using the given `numerical.Complex`.
+    */
   def apply(x: numerical.Complex): Complex = new Complex(x)()
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
@@ -195,5 +206,4 @@ object Complex {
     (x, y, p) =>
       x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[Complex]", _))(x.fuzzyEqv(p)(y)).getOrElse(false)
   }
-
 }

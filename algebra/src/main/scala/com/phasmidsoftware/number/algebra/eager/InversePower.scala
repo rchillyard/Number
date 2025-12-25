@@ -9,8 +9,9 @@ import cats.Show
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
-import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.numerical
@@ -96,7 +97,8 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return a `Monotone` representing the negation of this instance
     */
-  def negate: Monotone = ???
+  def negate: Monotone =
+    throw AlgebraException(s"InversePower.negate: cannot negate $this")
 
   /**
     * Compares the current `InversePower` instance with another `InversePower` to determine their order.

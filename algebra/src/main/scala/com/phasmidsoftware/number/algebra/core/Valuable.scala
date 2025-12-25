@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.algebra.core
 import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Monotone, Nat, NatLog, Number, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}

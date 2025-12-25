@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
+import com.phasmidsoftware.number.algebra.core.Scalable
 import com.phasmidsoftware.number.algebra.eager.{Branched, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.{Expression, Root}
@@ -14,27 +15,7 @@ import com.phasmidsoftware.number.expression.expr.{Expression, Root}
   * This type of equation is typically of the form `P(x) = 0` where `P(x)` is a monic polynomial in `x` and where the
   * coefficients `Pi` (i.e., the `i`th coefficient of `P`) are `Rational` numbers.
   */
-trait Equation extends Branched[Expression] {
-
-  /**
-    * Method to compute the number of branches related to a specific computation or process.
-    * For example, a solution to a quadratic equation has two branches, one for the real part and one for the imaginary part.
-    *
-    * @return the number of branches as an integer.
-    */
-  def branches: Int
-
-  /**
-    * Evaluates the specified branch of a multivalued mathematical expression.
-    * A branch represents an independent solution or interpretation of the expression.
-    *
-    * @param branch the index of the solution branch to evaluate. Must be a valid branch index
-    *               within the range `0` to `branches - 1` where `branches` represents the total
-    *               number of available branches for this expression.
-    * @return the `Expression` corresponding to the evaluated branch.
-    */
-  def apply(branch: Int): Expression =
-    Root(this, branch)
+trait Equation extends Branched[Expression] with Scalable[Equation] {
 
   /**
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.
@@ -57,14 +38,6 @@ trait Equation extends Branched[Expression] {
     *         to the components of the current equation.
     */
   def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): Equation
-
-  /**
-    * Scales the current equation by multiplying it with the given rational factor.
-    *
-    * @param x the rational factor by which the equation is to be scaled.
-    * @return a new `Equation` instance representing the scaled equation.
-    */
-  def scale(x: Rational): Equation
 
   /**
     * Produces an inverted version of the current equation.

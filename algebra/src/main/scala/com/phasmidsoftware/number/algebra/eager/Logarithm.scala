@@ -11,6 +11,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Logarithm.LogarithmIsCommutativeMonoid
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
@@ -39,6 +40,14 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
   def base: Number
 
   /**
+    * Computes a logarithmic instance based on the input number.
+    *
+    * @param x the number to transform, of type `Number`
+    * @return a new `Logarithm` instance representing the transformed value
+    */
+  def unit(x: Number): Logarithm
+
+  /**
     * Normalizes this `Valuable` to its simplest equivalent form.
     * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
     *
@@ -57,8 +66,6 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     case x =>
       this
   }
-
-  def unit(x: Number): Logarithm
 
   /**
     * Compares this `Logarithm` instance with another `Logarithm` instance.
