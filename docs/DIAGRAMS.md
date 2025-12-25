@@ -122,6 +122,11 @@ classDiagram
         +branched(index: Int): T
     }
     
+    class WithFuzziness {
+        <<trait>>
+        +fuzz: Option[Fuzziness[Double]]
+    }
+    
     class Equation {    
         <<trait>>
         +solve(branch: Int): Solution
@@ -138,6 +143,24 @@ classDiagram
         <<trait>>
         Monotonically increasing with value
         +isZero: Boolean
+        +signum: Int
+    }
+    
+    class Functional {
+        <<trait>>
+        Monotonic entities whose behavior derives from
+         an underlying Number
+        +number: Number
+    }
+    
+    class Transformed {
+        <<trait>>
+        Functional entities whose behavior derives from
+         a transformation on the underlying Number
+        +transformation[T]: Option[T]
+    }
+    
+    class Solution {
         +signum: Int
     }
     
@@ -183,12 +206,6 @@ classDiagram
         Non-linear monotone: x^(-n)
     }
     
-    class Transformed {
-        <<trait>>
-        Non-linear monotone
-        Mathematical transformations
-    }
-    
     %% Angular measures
     class Radians {
         <<trait>>
@@ -204,12 +221,18 @@ classDiagram
     %% Transformed (other Monotones)
     class Logarithm {
         <<trait>>
-        +value: Number
         Logarithmic values
+        +base: Number
+        +unit: Logarithm
     }
     
     class NatLog {
         Natural logarithm
+        +x: Number
+    }
+    
+    class BinaryLog {
+        Binary logarithm
         +x: Number
     }
     
@@ -243,13 +266,19 @@ classDiagram
     Scalable <|-- Real
     Zeroable <|-- Algebraic
     Zeroable <|-- Monotone
+    Structure <|-- Monotone
+    Negatable <|-- Monotone
+    WithFuzziness <|-- Monotone
     Eager <|-- Solution
+    Negatable <|-- Solution
     N <|-- Nat
     Eager <|-- Nat
     Eager <|-- Structure
     
     Solution <|-- Complex
     Solution <|-- Algebraic
+    Zeroable <|-- Algebraic
+    Scalable <|-- Algebraic
     
     Expression <|-- CompositeExpression
     Expression <|-- AtomicExpression
@@ -267,20 +296,23 @@ classDiagram
     
     Approximate <|-- Monotone
     
+    %% Structure subtypes
     Structure <|-- Monotone
-    Structure <|-- Complex
     
-    %% Monotone branches
+    %% Monotone subtypes
     Monotone <|-- Scalar
-    Monotone <|-- InversePower
-    Monotone <|-- Transformed
+    Monotone <|-- Functional
     
-    %% Scalar branches
+    %% Functional subtypes
+    Functional <|-- Transformed
+    Functional <|-- Radians
+    
+    %% Scalar subtypes
     Scalar <|-- Number
     Scalar <|-- Radians
     Scalar <|-- NoScalar
     
-    %% Number branches
+    %% Number subtypes
     Number <|-- RationalNumber
     Number <|-- Real
     Number <|-- WholeNumber
@@ -293,7 +325,9 @@ classDiagram
     
     %% Transformed branches
     Transformed <|-- Logarithm
-    Logarithm <|-- NatLog
+    Transformed <|-- InversePower
+    Logarithm <|-- NatLog   
+    Logarithm <|-- BinaryLog   
     
     %% Notes about key types
     note for Angle "Extends Radians but breaks<br/>monotonicity due to<br/>circular structure"
