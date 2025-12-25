@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.{Success, Try}
@@ -24,7 +25,7 @@ import scala.util.{Success, Try}
   *
   * @param x a BigInt value representing the whole number
   */
-case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends Number with Exact with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
+case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends ExactNumber with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] {
   /**
     * Normalizes the current object and returns a standardized or canonical form of it.
     *
@@ -37,7 +38,8 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *
     * @return the integer value corresponding to this instance
     */
-  def toInt: Int = x.toInt // CHECK this or have it return BigInt!
+  def toInt: Int =
+    FP.recover(toIntOption(toRational))(AlgebraException("WholeNumber.toInt: cannot convert $this to Int"))
 
   /**
     * Converts the WholeNumber instance into a Rational equivalent.
@@ -52,13 +54,6 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     * @return an `Option[Z]` that wraps the current instance, which is always `Some(this)`.
     */
   def maybeZ: Option[Z] = Some(this)
-
-  /**
-    * Converts this `WholeNumber` instance to its `Double` representation.
-    *
-    * @return the `Double` value obtained by converting this `WholeNumber` to a `Rational` and then to a `Double`.
-    */
-  def asDouble: Double = toRational.toDouble
 
   /**
     * Converts the current instance of `WholeNumber` to an optional `Q`.
@@ -78,35 +73,6 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     */
   def -(that: WholeNumber)(using AdditiveCommutativeGroup[WholeNumber]): WholeNumber =
     WholeNumberIsCommutativeRing.minus(this, that)
-
-  /**
-    * Computes the result of raising an instance of type `T` to the power
-    * specified by the given `RationalNumber`.
-    *
-    * The method returns an `Option[T]` to represent the possibility of invalid
-    * operations or unsupported inputs where the computation cannot be performed.
-    *
-    * @param that the `RationalNumber` exponent to which the instance is raised
-    * @return an `Option[T]` containing the result of the power operation if valid,
-    *         or `None` if the operation could not be performed
-    */
-  infix def pow(that: RationalNumber): Option[WholeNumber] =
-    that.maybeInt.flatMap(pow(_)) // TODO there are cases where we can, for example, take the square root of an integer.
-
-  /**
-    * Computes the result of raising an instance of type `T` to the power
-    * specified by the given `WholeNumber`.
-    *
-    * This method performs the power operation and returns the result wrapped
-    * in an `Option[T]`. If the operation is invalid or cannot be performed,
-    * `None` is returned.
-    *
-    * @param that the `WholeNumber` exponent to which the instance is raised
-    * @return an `Option[T]` containing the result of the power operation if valid,
-    *         or `None` if the operation could not be performed
-    */
-  infix def pow(that: WholeNumber): Option[WholeNumber] =
-    Try(WholeNumber(x.pow(that.toInt))).toOption
 
   /**
     * Compares this instance with another `Scalar` for exact equivalence.
@@ -154,14 +120,6 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
   }
 
   /**
-    * Converts the current value into a RationalNumber representation.
-    *
-    * @return A RationalNumber instance representing the current value.
-    */
-  def toRationalNumber: RationalNumber =
-    RationalNumber(Rational(x))
-
-  /**
     * Represents the zero element of the `WholeNumber` type, adhering to the identity element defined
     * in the commutative ring algebraic structure for whole numbers.
     *
@@ -177,24 +135,6 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     * the group structure of WholeNumbers under multiplication.
     */
   lazy val one: WholeNumber = WholeNumber.one
-
-  /**
-    * Returns an optional integer representation of this `WholeNumber`.
-    * This method attempts to retrieve the corresponding integer value from its `maybeRational` representation,
-    * provided such a conversion is possible.
-    * If the rational representation is not a whole number or cannot be converted to an integer, `None` is returned.
-    *
-    * @return an `Option[Int]`, where `Some(intValue)` represents a valid integer conversion, or `None` if not possible.
-    */
-  def maybeInt: Option[Int] = maybeRational.flatMap(_.maybeInt)
-
-  /**
-    * Returns an optional Rational representation of the WholeNumber.
-    * This operation attempts to convert the WholeNumber into a Rational number.
-    *
-    * @return an Option containing a Rational if the conversion succeeds, or None if it does not.
-    */
-  def maybeRational: Option[Rational] = Some(Rational(x))
 
   /**
     * Scales the current instance by a given scalar.
@@ -226,48 +166,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     * @return an `Option[WholeNumber]` containing the scaled result, or `None` if the operation fails or the result is not a `WholeNumber`
     */
   def doScale(that: Number): Option[WholeNumber] =
-    scale(that).asInstanceOf[Option[WholeNumber]] // TODO check this
-
-  /**
-    * Scales the current `WholeNumber` by a given Rational multiplier and returns the result
-    * wrapped as an `Option[Monotone]`.
-    * CONSIDER renaming as `*`
-    *
-    *
-    * @param scale the Rational multiplier to scale the current `WholeNumber`
-    * @return an `Option[Monotone]` representing the scaled result
-    */
-  def scale(scale: Rational): Number =
-    scale * x match {
-      case r if r.isWhole => WholeNumber(r.toBigInt)
-      case r => RationalNumber(r)
-    }
-
-  /**
-    * Scales the current instance of type `T` using the given `Number` multiplier.
-    *
-    * This method performs a scaling operation by multiplying the current instance
-    * with the provided `Number`. The result of the scaling operation is returned
-    * as an `Option`, allowing for cases where the operation might not be valid or
-    * possible.
-    *
-    * @param that the `Number` multiplier used to scale the current instance
-    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
-    */
-  def doScale(that: WholeNumber): Option[WholeNumber] = Some(this * that)
-
-  /**
-    * Scales the current instance of type `T` by the specified `Double` value.
-    *
-    * This method applies a scaling factor to the instance, returning an `Option`
-    * that contains the scaled instance if the operation is valid. If the scaling
-    * operation is not valid or feasible, `None` is returned.
-    *
-    * @param that the `Double` value to scale the instance by
-    * @return an `Option` containing the scaled instance of type `T`, or `None`
-    *         if scaling is not possible
-    */
-  def doScaleDouble(that: Double): Option[Monotone] = None
+    scale(that).asInstanceOf[Option[WholeNumber]] // TODO check this (it's not right)
 
   /**
     * Computes the signum of this WholeNumber.
@@ -277,34 +176,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *         - `1` if the number is positive,
     *         - `-1` if the number is negative.
     */
-  def signum: Int = x.compare(BigInt(0))
-
-  /**
-    * Determines if the value of the current instance is equal to zero.
-    *
-    * @return true if the current instance equals zero, false otherwise
-    */
-  def isZero: Boolean = x == BigInt(0)
-
-  /**
-    * Determines if the number is exact.
-    *
-    * This method checks whether the current instance represents a number that is exact,
-    * as opposed to an approximation or inexact value. In the context of the `WholeNumber` class,
-    * this method always returns `true` since whole numbers are inherently exact by definition.
-    *
-    * @return true, indicating that the number is exact
-    */
-  override def isExact: Boolean = true
-
-  /**
-    * Computes an `Option[Double]` representation of this `WholeNumber`.
-    *
-    * @return an `Option[Double]` where the value is the `Double` representation of the `WholeNumber`,
-    *         or `None` if a `Double` representation cannot be provided.
-    */
-//  def maybeDouble: Option[Double] =
-//    Some(x.toDouble)
+  def signum: Int = x.signum
 
   /**
     * Renders the `WholeNumber` instance as a string representation.

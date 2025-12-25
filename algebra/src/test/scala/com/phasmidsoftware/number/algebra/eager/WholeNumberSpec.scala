@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.algebra.eager
 
 import algebra.ring.CommutativeRing
 import com.phasmidsoftware.number.algebra.eager.{RationalNumber, Real, WholeNumber}
-import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -58,9 +57,6 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   it should "approximation" in {
   }
   it should "asJavaNumber" in {
-  }
-  it should "maybeRational" in {
-    WholeNumber(42).maybeRational shouldBe Some(Rational(42))
   }
   it should "asT" in {
     WholeNumber(42).asT shouldBe WholeNumber(42)

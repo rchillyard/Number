@@ -31,15 +31,6 @@ import scala.reflect.ClassTag
 trait Monotone extends Structure with WithFuzziness with Zeroable with Negatable[Monotone] {
 
   /**
-    * Method to determine if this `Structure` object is exact.
-    * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
-    * CONSIDER eliminating this method from here.
-    *
-    * @return true if this `Structure` object is exact in the context of no factor, else false.
-    */
-  def isExact: Boolean = fuzz.isEmpty && approximation().isEmpty
-
-  /**
     * Attempts to approximate the current instance to a `Real` value.
     * If the instance is already of type `Real`, it is simply returned, wrapped inside `Some`.
     * Otherwise, depending on the value of `force`, it either attempts a conversion

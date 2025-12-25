@@ -179,22 +179,25 @@ classDiagram
         +compare(x: Number): Int
     }
     
+    class ExactNumber {
+        +rationalNumber: RationalNumber
+        +maybeInt: Option[Int]
+    }
+    
     class RationalNumber {
         +rational: Rational
         +percentage flag
         Exact rationals
-        Additional mixins: Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber]
-        +Field[RationalNumber]
-    }
-    
-    class Real {
-        Fuzzy/uncertain numbers
-        +Ring[Real] with Ordering[Real]
     }
     
     class WholeNumber {
         Integers/naturals
         +CommutativeRing[WholeNumber]
+    }
+    
+    class Real {
+        Fuzzy/uncertain numbers
+        +Ring[Real] with Ordering[Real]
     }
     
     class Infinity {
@@ -313,9 +316,10 @@ classDiagram
     Scalar <|-- NoScalar
     
     %% Number subtypes
-    Number <|-- RationalNumber
+    Number <|-- ExactNumber
     Number <|-- Real
-    Number <|-- WholeNumber
+    ExactNumber <|-- WholeNumber
+    ExactNumber <|-- RationalNumber
     
     %% Real specialization
     Real <|-- Infinity

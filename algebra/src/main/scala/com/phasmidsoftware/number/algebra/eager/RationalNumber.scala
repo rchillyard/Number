@@ -36,7 +36,7 @@ import scala.util.{Success, Try}
   *                   Similarly to the `degrees` attribute of `Angle`,
   *                   this is a flag that is primarily cosmetic.
   */
-case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends Number with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber] with Exact {
+case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends ExactNumber with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[ExactNumber] {
   /**
     * Normalizes the current object to ensure it is represented in a simplified form.
     * If the denominator (r.d) is 1, it represents the object as a WholeNumber.
@@ -45,7 +45,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     * @return a simplified version of the object as a `Valuable`,
     *         either as a `WholeNumber` or the current object.
     */
-  def normalize: Number =
+  def normalize: ExactNumber =
     if (r.isInteger && !percentage)
       WholeNumber(r.n)
     else
@@ -86,13 +86,6 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     */
   def maybeZ: Option[Z] =
     r.maybeInt.map(WholeNumber(_))
-
-  /**
-    * Converts this `RationalNumber` instance to its corresponding `Double` representation.
-    *
-    * @return the `Double` value of this `RationalNumber`
-    */
-  def asDouble: Double = r.toDouble
 
   /**
     * Returns an Option containing this instance cast as type `Q`.
@@ -153,67 +146,6 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
   def toRational: Rational = r
 
   /**
-    * Computes the result of raising an instance of type `T` to the power 
-    * specified by the given `RationalNumber`.
-    *
-    * The method returns an `Option[T]` to represent the possibility of invalid
-    * operations or unsupported inputs where the computation cannot be performed.
-    *
-    * @param that the `RationalNumber` exponent to which the instance is raised
-    * @return an `Option[T]` containing the result of the power operation if valid, 
-    *         or `None` if the operation could not be performed
-    */
-  infix def pow(that: RationalNumber): Option[RationalNumber] =
-    r.power(that.r).map(RationalNumber(_)).toOption
-
-  /**
-    * Computes the result of raising an instance of type `T` to the power 
-    * specified by the given `WholeNumber`.
-    *
-    * This method performs the power operation and returns the result wrapped 
-    * in an `Option[T]`. If the operation is invalid or cannot be performed, 
-    * `None` is returned.
-    *
-    * @param that the `WholeNumber` exponent to which the instance is raised
-    * @return an `Option[T]` containing the result of the power operation if valid, 
-    *         or `None` if the operation could not be performed
-    */
-  infix def pow(that: WholeNumber): Option[RationalNumber] = that.convert(RationalNumber.zero) flatMap pow
-
-  /**
-    * Scales the current scalar instance by the specified rational factor.
-    *
-    * @param r the `Rational` factor by which to scale the scalar
-    * @return a new `Scalar` instance representing the scaled value
-    */
-  def scale(r: Rational): Scalar = RationalNumber(r * this.r)
-
-
-  /**
-    * Scales the current instance of type `T` by the specified `Double` value.
-    *
-    * CONSIDER does this method makes sense here? Maybe it's declared in the wrong place.
-    *
-    * This method applies a scaling factor to the instance, returning an `Option`
-    * that contains the scaled instance if the operation is valid. If the scaling
-    * operation is not valid or feasible, `None` is returned.
-    *
-    * @param that the `Double` value to scale the instance by
-    * @return an `Option` containing the scaled instance of type `T`, or `None`
-    *         if scaling is not possible
-    */
-  def doScaleDouble(that: Double): Option[Monotone] = None
-
-  /**
-    * Computes the power of the rational number with the given rational exponent.
-    *
-    * @param p the rational exponent to which the rational number is to be raised
-    * @return an Option containing the resulting RationalNumber if successful, or None if the computation is not possible
-    */
-  def power(p: Rational): Option[RationalNumber] =
-    r.power(p).map(RationalNumber(_)).toOption
-
-  /**
     * Scales the current instance of `RationalNumber` by the given `Int` value.
     *
     * @param factor the integer value to scale the `RationalNumber` instance by
@@ -234,20 +166,6 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
   def signum: Int = r.signum
 
   /**
-    * Determines if the current instance of RationalNumber is represented exactly.
-    *
-    * @return true as the instance is always exact.
-    */
-  override def isExact: Boolean = true
-
-  /**
-    * Checks if the value represented by this instance is zero.
-    *
-    * @return true if the value is zero, false otherwise
-    */
-  def isZero: Boolean = r.isZero
-
-  /**
     * Renders the string representation of the current `RationalNumber` instance.
     * Delegates the rendering logic to the associated `r` instance's `render` method.
     *
@@ -259,21 +177,6 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
       else
         r.render
       )
-
-  /**
-    * Retrieves an optional Rational value.
-    *
-    * @return an Option containing a Rational, if available; otherwise, None.
-    */
-  def maybeRational: Option[Rational] = Some(r)
-
-  /**
-    * Returns an optional integer representation of this `RationalNumber`.
-    * The result depends on whether the underlying `Rational` value can be converted to an integer.
-    *
-    * @return an `Option[Int]` containing the integer value if the conversion is possible; `None` otherwise.
-    */
-  def maybeInt: Option[Int] = maybeRational.flatMap(_.maybeInt)
 
   /**
     * Computes the negation of this `RationalNumber`.

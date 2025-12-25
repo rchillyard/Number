@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalNumberIsF
 import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -179,6 +179,76 @@ trait Number extends Scalar with Ordered[Scalar] {
   lazy val scaleFactor: Double = 1.0
 }
 
+/**
+  * Represents a number that can be expressed and operated on with exact precision.
+  *
+  * The `ExactNumber` trait combines the behavior of `Number` and `Exact` to emphasize operations
+  * that require precise, symbolic, or rational representation, avoiding approximations.
+  * This interface ensures that instances are inherently exact and includes methods to determine
+  * exactness and specific properties like zero equivalence.
+  */
+trait ExactNumber extends Number with Exact with Q with CanPower[ExactNumber] {
+
+  /**
+    * Converts this ExactNumber into a RationalNumber representation.
+    *
+    * @return A RationalNumber instance representing the current value.
+    */
+  def toRationalNumber: RationalNumber = RationalNumber(toRational)
+
+  /**
+    * Attempts to retrieve an optional integer representation of the current exact number.
+    * The value is returned as an `Option[Int]` if the underlying rational number is a whole
+    * number and fits within the range of a 32-bit signed integer. Otherwise, `None` is returned.
+    *
+    * @return an optional integer representation of the number.
+    */
+  def maybeInt: Option[Int] = toRational.maybeInt
+
+  /**
+    * Determines if the current instance of RationalNumber is represented exactly.
+    *
+    * @return true as the instance is always exact.
+    */
+  def isExact: Boolean = true
+
+  /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = signum == 0
+
+  /**
+    * Converts this `WholeNumber` instance to its `Double` representation.
+    *
+    * @return the `Double` value obtained by converting this `WholeNumber` to a `Rational` and then to a `Double`.
+    */
+  def asDouble: Double = toRational.toDouble
+
+  /**
+    * Scales the current `WholeNumber` by a given Rational multiplier and returns the result
+    * wrapped as an `Option[Monotone]`.
+    * CONSIDER renaming as `*`
+    *
+    * @param scale the Rational multiplier to scale the current `WholeNumber`
+    * @return an `Option[Monotone]` representing the scaled result
+    */
+  def scale(scale: Rational): Number =
+    (toRationalNumber * scale).normalize
+
+  /**
+    * Raises the current `ExactNumber` to the power of the given `ExactNumber`.
+    * The operation leverages the underlying rational representations of both numbers
+    * and computes the result exactly if possible.
+    *
+    * @param that the exponent as an `ExactNumber` to which the current number is raised
+    * @return an `Option[ExactNumber]` containing the resulting value if the power
+    *         operation can be computed exactly, or `None` if it cannot
+    */
+  infix def pow(that: ExactNumber): Option[ExactNumber] =
+    for (r <- toRational.power(that.toRational).toOption) yield RationalNumber(r).normalize
+}
 /**
   * The `Number` object provides predefined constants and implicit conversions related to numerical operations.
   * It includes representations of common numbers and utilities to work with the `Number` type.

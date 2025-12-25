@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.algebra.core
 
 import algebra.ring.*
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.eager.{RationalNumber, Structure, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{ExactNumber, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 
@@ -268,30 +268,17 @@ trait CanPower[T] {
 
   /**
     * Computes the result of raising an instance of type `T` to the power 
-    * specified by the given `RationalNumber`.
-    *
-    * The method returns an `Option[T]` to represent the possibility of invalid
-    * operations or unsupported inputs where the computation cannot be performed.
-    *
-    * @param that the `RationalNumber` exponent to which the instance is raised
-    * @return an `Option[T]` containing the result of the power operation if valid, 
-    *         or `None` if the operation could not be performed
-    */
-  infix def pow(that: RationalNumber): Option[T]
-
-  /**
-    * Computes the result of raising an instance of type `T` to the power 
-    * specified by the given `WholeNumber`.
+    * specified by the given `ExactNumber`.
     *
     * This method performs the power operation and returns the result wrapped 
     * in an `Option[T]`. If the operation is invalid or cannot be performed, 
     * `None` is returned.
     *
-    * @param that the `WholeNumber` exponent to which the instance is raised
+    * @param that the `ExactNumber` exponent to which the instance is raised
     * @return an `Option[T]` containing the result of the power operation if valid, 
     *         or `None` if the operation could not be performed
     */
-  infix def pow(that: WholeNumber): Option[T]
+  infix def pow(that: ExactNumber): Option[T]
 }
 
 /**
