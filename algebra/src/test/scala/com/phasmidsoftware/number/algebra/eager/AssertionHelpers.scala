@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.eager
 
 import cats.kernel.Eq
 import org.scalatest.matchers.should.Matchers

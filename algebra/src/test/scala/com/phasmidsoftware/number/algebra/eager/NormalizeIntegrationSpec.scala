@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.eager
 
 import com.phasmidsoftware.number.algebra.eager.{InversePower, NatLog, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational

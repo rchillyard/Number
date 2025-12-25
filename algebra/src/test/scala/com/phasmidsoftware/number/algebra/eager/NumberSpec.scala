@@ -1,5 +1,10 @@
-package com.phasmidsoftware.number.algebra
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
+package com.phasmidsoftware.number.algebra.eager
+
+import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Real, Scalar}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec

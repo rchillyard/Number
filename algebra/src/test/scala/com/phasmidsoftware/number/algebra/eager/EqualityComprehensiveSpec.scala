@@ -1,7 +1,12 @@
-package com.phasmidsoftware.number.algebra
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.algebra.eager
 
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.core.FuzzyEq
+import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, LinearSolution, Nat, NatLog, NatZero, QuadraticSolution, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec

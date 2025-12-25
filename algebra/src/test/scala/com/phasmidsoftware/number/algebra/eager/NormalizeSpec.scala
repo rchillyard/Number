@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.algebra
+package com.phasmidsoftware.number.algebra.eager
 
 import com.phasmidsoftware.number.algebra.eager.{Angle, BinaryLog, InversePower, Logarithm, NatLog, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
@@ -172,39 +172,21 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Complex.normalize"
 
-  it should "reduce to Real when imaginary part is zero" in {
-    // This test depends on how your Complex type works
-    // Adjust based on actual Complex implementation
-    pending
-  }
+//  it should "reduce to Real when imaginary part is zero" in {
+//    // This test depends on how your Complex type works
+//    // Adjust based on actual Complex implementation
+//    pending
+//  }
+//
+//  it should "reduce further to WholeNumber if possible" in {
+//    // Complex(5, 0) -> Real(5.0) -> WholeNumber(5)
+//    pending
+//  }
+//
+//  it should "stay as Complex when imaginary part is non-zero" in {
+//    pending
+//  }
 
-  it should "reduce further to WholeNumber if possible" in {
-    // Complex(5, 0) -> Real(5.0) -> WholeNumber(5)
-    pending
-  }
-
-  it should "stay as Complex when imaginary part is non-zero" in {
-    pending
-  }
-
-  behavior of "Lazy.normalize (Expression normalization)"
-
-  it should "materialize and normalize exact simple expressions" in {
-    // Example: Sum(WholeNumber(2), WholeNumber(3)) should normalize to WholeNumber(5)
-    // This requires Expression/Lazy types to be set up
-    pending
-  }
-
-  it should "stay as expression for fuzzy values" in {
-    // Example: Sum(Real(2.0, Some(0.1)), Real(3.0, Some(0.1))) stays as expression
-    pending
-  }
-
-  it should "recursively normalize results" in {
-    // Example: Sum(RationalNumber(4,2), RationalNumber(6,2)) 
-    // -> materialize to RationalNumber(6,2) -> normalize to WholeNumber(3)
-    pending
-  }
 
   behavior of "normalize integration tests"
 
@@ -214,10 +196,8 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
     complex.normalize shouldBe WholeNumber(2)
   }
 
-  it should "work in arithmetic operations" in {
-    // This would test that operations call normalize
-    // Example: RationalNumber(1,2) + RationalNumber(1,2) should give WholeNumber(1)
-    pending
+  it should "not work in raw arithmetic operations" in {
+    RationalNumber(1, 2) + RationalNumber(1, 2) shouldBe RationalNumber.one
   }
 
   behavior of "type discovery methods"

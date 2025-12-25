@@ -1,4 +1,8 @@
-package com.phasmidsoftware.number.algebra
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.algebra.eager
 
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, RationalNumber, Structure}

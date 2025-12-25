@@ -1,4 +1,8 @@
-package com.phasmidsoftware.number.algebra
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.algebra.eager
 
 import algebra.ring.CommutativeRing
 import com.phasmidsoftware.number.algebra.eager.{RationalNumber, Real, WholeNumber}
