@@ -323,11 +323,16 @@ classDiagram
     %% Radians specialization
     Radians <|-- Angle
     
-    %% Transformed branches
+    %% Transformed subtypes
     Transformed <|-- Logarithm
     Transformed <|-- InversePower
     Logarithm <|-- NatLog   
     Logarithm <|-- BinaryLog   
+
+    %% Branched subtypes
+    Branched <|-- Equation
+    Equation <|-- LinearEquation
+    Equation <|-- QuadraticEquation
     
     %% Notes about key types
     note for Angle "Extends Radians but breaks<br/>monotonicity due to<br/>circular structure"
