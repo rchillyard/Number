@@ -29,6 +29,17 @@ import scala.util.{Failure, Success, Try}
 trait Number extends Scalar with Ordered[Scalar] {
 
   /**
+    * Normalizes this `T` to its simplest equivalent form where T is the supertype of all possible results.
+    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    *
+    * For Expression types, this will attempt to simplify and materialize if the result is exact.
+    * For Eager types, this will reduce to the simplest type representation.
+    *
+    * @return the simplest representation of this value that is a subtype of `T`.
+    */
+  def normalize: Number
+
+  /**
     * Attempts to obtain a `Factor` representation in a specific `Context`.
     *
     * A `Factor` could represent entities like `PureNumber`, `Radian`, etc., that
@@ -38,7 +49,6 @@ trait Number extends Scalar with Ordered[Scalar] {
     *
     * @param context the evaluation context in which to determine the factor. The `Context`
     *                specifies the criteria under which the factorization is valid.
-    *
     * @return an `Option[Factor]` containing the factor if it can be determined,
     *         or `None` if no suitable factor exists within the provided `Context`.
     */

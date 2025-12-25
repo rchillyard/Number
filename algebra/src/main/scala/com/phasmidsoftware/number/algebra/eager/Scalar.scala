@@ -168,7 +168,7 @@ object Scalar {
       case inner.PureNumber =>
         number
       case inner.Radian =>
-        Angle(number)()
+        Angle(number)
       case inner.NatLog =>
         NatLog(number)
       case inner.InversePower(r) =>
@@ -217,7 +217,7 @@ case object NoScalar extends Scalar with Exact {
     *
     * @return the normalized `Valuable` representation of this instance
     */
-  def normalize: Valuable = this
+  def normalize: Scalar = this
 
   /**
     * Compares this `Scalar` with another `Scalar` for exact equivalence.

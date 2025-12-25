@@ -244,6 +244,8 @@ trait Scalable[T <: Scalable[T]] {
     * This method applies a scaling operation on the instance using the provided
     * rational factor and returns the resulting scaled instance.
     *
+    * The result is not guaranteed to be normalized.
+    *
     * @param factor the rational number representing the scale factor
     * @return the scaled instance of type `T`
     */

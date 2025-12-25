@@ -38,7 +38,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *
     * @return A normalized instance of the current object represented as a Valuable.
     */
-  def normalize: Valuable = this
+  def normalize: WholeNumber = this
 
   /**
     * Converts this instance to its corresponding integer representation.

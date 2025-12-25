@@ -246,7 +246,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Valuable = (base.normalize, offset.normalize) match {
+  def normalize: Eager = (base.normalize, offset.normalize) match {
     case (x: Monotone, y: Scalar) if x.isZero =>
       if (branch == 1) y.negate else y
     case (x: Monotone, y: Monotone) if y.isZero =>
@@ -636,7 +636,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @return the simplest `Valuable` representation of this value.
     */
-  def normalize: Valuable = value.normalize
+  def normalize: Eager = value.normalize
 
   /**
     * Retrieves the base value of the solution.

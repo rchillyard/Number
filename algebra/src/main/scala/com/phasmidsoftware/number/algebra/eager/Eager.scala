@@ -50,6 +50,14 @@ trait Eager extends Valuable with Approximate with DyadicOps {
   def named(name: String): Eager
 
   /**
+    * Normalizes this `Eager` to its simplest equivalent form.
+    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    *
+    * @return the simplest representation of this value that is a subtype of `Eager`.
+    */
+  def normalize: Eager
+
+  /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.

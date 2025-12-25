@@ -58,7 +58,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Valuable = n match {
+  def normalize: Monotone = n match {
     case 1 =>
       number.normalize
     case 2 | 3 =>

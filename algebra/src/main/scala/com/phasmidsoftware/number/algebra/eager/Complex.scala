@@ -59,7 +59,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Valuable = this // CONSIDER should this be a method on Complex?
+  def normalize: Complex = this // CONSIDER should this be a method on Complex?
 
   /**
     * Method to render this `Valuable` for presentation to the user.

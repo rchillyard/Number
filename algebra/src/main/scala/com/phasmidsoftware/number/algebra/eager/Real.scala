@@ -54,7 +54,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return the normalized form of this object as a `Valuable` instance
     */
-  def normalize: Valuable = this
+  def normalize: Real = this
 
   /**
     * Converts the current instance to a Double representation.

@@ -56,15 +56,13 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Valuable = number.normalize match {
+  def normalize: Eager = number.normalize match {
     case WholeNumber(0) =>
       WholeNumber.one
     case x if x == number =>
       this
     case x: Number =>
       unit(x)
-    case x =>
-      this
   }
 
   /**

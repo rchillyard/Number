@@ -49,7 +49,7 @@ sealed trait Nat extends Eager with N {
     * @return the simplest `Valuable` representation of this `Nat` instance, which 
     *         in this case is `this`.
     */
-  def normalize: Valuable = this
+  def normalize: Nat = this
 
   /**
     * Attempts to obtain a `Factor` representation in a specific `Context`.

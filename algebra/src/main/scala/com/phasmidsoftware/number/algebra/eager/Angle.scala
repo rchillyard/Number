@@ -62,12 +62,18 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return a new instance of `Angle` representing the normalized value
     */
   def normalize: Angle = number.normalize match {
+    case WholeNumber(1) =>
+      Angle.pi // Special named instance of Angle
+    case WholeNumber(x) =>
+      Angle(Radian.modulate(Value.fromRational(Rational(x))))
+    case RationalNumber(Rational.half, _) =>
+      Angle.piBy2 // Special named instance of Angle
+    case RationalNumber(Rational.two, _) =>
+      Angle.twoPi // Special named instance of Angle
     case RationalNumber(r, _) =>
       Angle(Radian.modulate(Value.fromRational(r)))
     case Real(value, fuzz) =>
       Angle(Radian.modulate(Value.fromDouble(Some(value)))) // TODO take care of fuzz
-    case WholeNumber(x) =>
-      Angle(Radian.modulate(Value.fromRational(Rational(x))))
     case _ =>
       throw AlgebraException(s"normalize: unexpected type $number")
   }
@@ -208,11 +214,13 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * by adding their respective number, returning a new `Angle` instance
     * representing the sum.
     *
+    * CONSIDER Extract this method to an Additive trait (not to be confused with CanAdd).
+    *
     * @param a the `Angle` to be added to the current `Angle`
     * @return a new `Angle` representing the sum of the current `Angle` and the specified `Angle`
     */
   def +(a: Angle): Angle =
-    angleIsCommutativeGroup.plus(this, a)
+    angleIsCommutativeGroup.plus(this, a).normalize
 
   /**
     * Adds the specified `Scalar` to the current `Scalar` and returns the result as an `Option[Scalar]`.
@@ -241,18 +249,21 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return the scaled instance of type `T`
     */
   def *(factor: Rational): Angle = number match {
-    case r: RationalNumber => Angle(r * factor)
-    case r: Real => Angle(r * factor)
-    case w: WholeNumber => Angle(w.scale(factor))()
+    case r: RationalNumber =>
+      Angle(r * factor)
+    case r: Real =>
+      Angle(r * factor)
+    case w: WholeNumber =>
+      Angle(w.scale(factor))
   }
 
   /**
     * Scales the current scalar instance by the specified rational factor.
     *
     * @param r the `Rational` factor by which to scale the scalar
-    * @return a new `Scalar` instance representing the scaled value
+    * @return a new `Angle` instance representing the scaled value
     */
-  def scale(r: Rational): Scalar = *(r)
+  def scale(r: Rational): Angle = *(r)
 
   /**
     * Provides an approximation of this number, if applicable.
@@ -325,7 +336,7 @@ object Angle {
     case Right(x) =>
       new Angle(WholeNumber(x))()
     case Left(Right(x)) =>
-      new Angle(RationalNumber(x))()
+      new Angle(RationalNumber(x).normalize)()
     case Left(Left(Some(x))) =>
       new Angle(Real(x))()
     case Left(Left(None)) =>
@@ -367,23 +378,7 @@ object Angle {
     * @param r the input `RationalNumber` representing the rational value to be converted into an angle
     * @return an `Angle` instance corresponding to the given rational value
     */
-  def apply(r: RationalNumber): Angle = Angle(r.r)
-
-  /**
-    * Converts the given whole number into an `Angle` instance.
-    *
-    * @param r the input `WholeNumber` to be converted into an angle
-    * @return an `Angle` instance corresponding to the given whole number
-    */
-  def apply(r: WholeNumber): Angle = Angle(r.x)
-
-  /**
-    * Converts the given real into an `Angle` instance.
-    *
-    * @param r the input `WholeNumber` to be converted into an angle
-    * @return an `Angle` instance corresponding to the given whole number
-    */
-  def apply(r: Real): Angle = new Angle(r)()
+  def apply(r: Number): Angle = new Angle(r.normalize)(None)
 
   /**
     * Converts the given numeric value to an `Angle` instance represented in degrees.
@@ -520,7 +515,7 @@ object Angle {
     * the group structure of angles. It is constructed using the `Angle` companion object
     * initialized with the additive identity of `RationalNumber`.
     */
-  val zero: Angle = Angle(RationalNumber.zero)
+  val zero: Angle = Angle(WholeNumber.zero)
 
   /**
     * Represents an angle equivalent to mathematical π radians.
@@ -529,7 +524,7 @@ object Angle {
     * `RationalNumber.one`, which corresponds to the rational representation of π
     * in the specific context of the `Angle` implementation.
     */
-  val pi: Angle = Angle(RationalNumber.one).named("𝛑").asInstanceOf[Angle]
+  val pi: Angle = new Angle(WholeNumber.one)(Some("𝛑"))
 
   /**
     * Alias for the `pi` value, representing an angle equivalent to mathematical π radians.
