@@ -6,9 +6,9 @@ package com.phasmidsoftware.number.algebra.eager
 
 import algebra.ring.Semiring
 import cats.kernel.Eq
-import Nat.natIsSemiring
-import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.eager.Nat.natIsSemiring
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import scala.annotation.tailrec
 import scala.util.{Success, Try}
@@ -287,7 +287,7 @@ object Nat {
     *         if `x` is 0, or a `Succ` chain equivalent to `x` if `x` is greater than 0.
     */
   def apply(x: Int): Nat = {
-    assert(x >= 0, s"Nat.apply: x ($x) must be >= 0")
+    require(x >= 0, s"Nat.apply: x ($x) must be >= 0")
 
     @tailrec
     def inner(r: Nat)(z: Int): Nat = z match {

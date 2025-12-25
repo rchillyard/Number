@@ -6,12 +6,11 @@ package com.phasmidsoftware.number.algebra.eager
 
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
+import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.core.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.algebra.eager.Real
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
-import com.phasmidsoftware.number.core.inner
-import com.phasmidsoftware.number.{algebra, core}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
@@ -52,10 +51,10 @@ trait Structure extends Eager {
     *         if the conversion is successful under the stated conditions; otherwise, `None`.
     */
   def asJavaNumber: Option[java.lang.Number] = this match {
-    case Angle(number, _) => number.convert(Real.zero).flatMap(x => x.asJavaNumber)
-    case Real(value, _) => Some(value)
-    case RationalNumber(r, _) => Some(r.toDouble)
-    case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")
+    case Real(value, _) =>
+      Some(value)
+    case s: Structure =>
+      s.convert(Real.zero).flatMap(x => x.asJavaNumber)
   }
 
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
@@ -69,7 +68,7 @@ trait Structure extends Eager {
 }
 
 /**
-  * Companion object for the `Structure` trait, providing utility functions and type class instances 
+  * Companion object for the `Structure` trait, providing utility functions and type class instances
   * to facilitate operations on `Structure` objects.
   */
 object Structure {

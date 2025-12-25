@@ -127,7 +127,7 @@ case object AnyContext extends Context {
   /**
     * Determines whether the given factor qualifies for this `AnyContext`.
     *
-    * @param f the factor to be evaluated for qualification (ignored).
+    * @param f the factor to be evaluated for qualification (itd).
     * @return true.
     */
   def factorQualifies(f: Factor): Boolean = true
@@ -149,7 +149,7 @@ case object ImpossibleContext extends Context {
   /**
     * Determines whether the given factor qualifies for this `ImpossibleContext`.
     *
-    * @param f the factor to be evaluated for qualification (ignored).
+    * @param f the factor to be evaluated for qualification (itd).
     * @return false.
     */
   def factorQualifies(f: Factor): Boolean = false

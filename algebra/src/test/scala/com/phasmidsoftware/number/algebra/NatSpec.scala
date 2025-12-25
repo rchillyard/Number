@@ -38,7 +38,7 @@ class NatSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "fail on negative numbers" in {
-    intercept[AssertionError](Nat(-1))
+    intercept[IllegalArgumentException](Nat(-1))
   }
 
   it should "perform addition correctly" in {

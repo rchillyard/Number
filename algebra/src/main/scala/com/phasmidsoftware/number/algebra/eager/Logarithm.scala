@@ -208,7 +208,6 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
   * @param x the value of the Logarithm of this instance.
   */
 case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logarithm(x) {
-//  require(x.signum>0, s"NatLog: $x is not positive")
 
   /**
     * Assigns a specified name to the `Eager` instance and returns the updated instance.

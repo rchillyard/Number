@@ -37,8 +37,9 @@ import scala.util.{Success, Try}
   * @param number the base `Number` value on which the root operation is defined
   */
 case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Scalable[InversePower] with Ordered[InversePower] {
-  
-//  require(n > 0, s"InversePower: n must be positive, but was $n")
+
+  require(n > 0, s"InversePower: n must be positive, but was $n")
+  require(!number.isZero, s"InversePower: number must be non-zero, but was $number")
 
   /**
     * Assigns a specified name to the `Eager` instance and returns the updated instance.
@@ -127,19 +128,6 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
     */
   def one: InversePower = InversePower(1, Real.one)(Some("1"))
-
-  /**
-    * Scales the current instance of type `T` by the specified `Double` value.
-    *
-    * This method applies a scaling factor to the instance, returning an `Option`
-    * that contains the scaled instance if the operation is valid. If the scaling
-    * operation is not valid or feasible, `None` is returned.
-    *
-    * @param that the `Double` value to scale the instance by
-    * @return an `Option` containing the scaled instance of type `T`, or `None`
-    *         if scaling is not possible
-    */
-  def doScaleDouble(that: Double): Option[Monotone] = doScale(Real(that))
 
   /**
     * Scales the current instance by the given factor.
@@ -270,7 +258,14 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = compare(InversePower.zero)
+  def signum: Int =
+    if (number.signum > 0)
+      1
+    else
+      n % 2 match {
+        case 0 => 1
+        case _ => -1
+      }
 
   /**
     * Method to determine if this Structure object is exact.
@@ -445,11 +440,6 @@ object InversePower {
     FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 
   /**
-    * Represents the zero value of the `Root` class.
-    */
-  val zero: InversePower = InversePower(1, Real.zero)(Some("0"))
-
-  /**
     * Represents the multiplicative identity for roots.
     *
     * This value denotes a root of zero base, serving as the identity element in
@@ -457,7 +447,6 @@ object InversePower {
     * initialized with the additive identity of `RationalNumber`.
     */
   val one: InversePower = InversePower(1, WholeNumber.one)(Some("1"))
-  val nan: InversePower = InversePower(0, RationalNumber(Rational.NaN))(Some("NaN"))
 
   /**
     * Provides an implicit `Show` instance for the `Root` class, enabling conversion
