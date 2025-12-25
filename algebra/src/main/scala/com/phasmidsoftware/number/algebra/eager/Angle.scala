@@ -36,13 +36,6 @@ import scala.util.{Success, Try}
   *                In the latter case, the `number` attribute is unchanged (1 is still half of a full circle).
   */
 case class Angle private[algebra](number: Number, degrees: Boolean = false)(val maybeName: Option[String] = None) extends Radians with Circle with Scalable[Angle] with CanAdd[Angle, Angle] with CanNormalize[Angle] {
-  /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = copy()(Some(name))
 
   /**
     * Normalizes an angle instance to its equivalent value within the standard range of radians.

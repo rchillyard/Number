@@ -38,14 +38,6 @@ import scala.util.{Failure, Success, Try}
   */
 case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] {
   /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = copy()(maybeName = Some(name))
-
-  /**
     * Returns the normalized representation of the current object.
     * CONSIDER if we have an exact `Real`, and a value that corresponds precisely to an `Int`,
     * maybe we should return a `WholeNumber` instead.

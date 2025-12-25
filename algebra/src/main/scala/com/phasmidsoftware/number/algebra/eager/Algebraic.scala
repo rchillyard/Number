@@ -229,13 +229,6 @@ object Algebraic {
   *               operations such as evaluating, converting, or rendering the solution accurately in diverse contexts.
   */
 case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val maybeName: Option[String] = None) extends Algebraic {
-  /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = copy()(Some(name))
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -473,6 +466,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
         None
     }
 
+    // XXX match not exhaustive
     solution match {
       case q: QuadraticSolution =>
 //        if (maybeFactor(AnyContext.asInstanceOf[Context]) == q.factor) {
@@ -495,6 +489,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
 
   // TODO this needs more work and testing. For example, factors don't have to be the same.
   private def multiply(solution: Algebraic): Option[Algebraic] =
+    // XXX match not exhaustive
     solution match {
       case q: QuadraticSolution =>
 //        if (factor == q.factor) {
@@ -620,13 +615,6 @@ object QuadraticSolution {
   * @param value the base value of the solution
   */
 case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None) extends Algebraic {
-  /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = copy()(Some(name))
 
   /**
     * Normalizes the current instance of `LinearSolution` to its simplest equivalent form.

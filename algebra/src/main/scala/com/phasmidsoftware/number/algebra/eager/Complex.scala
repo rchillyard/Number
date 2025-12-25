@@ -23,14 +23,6 @@ import scala.util.{Failure, Success, Try}
   */
 case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = None) extends Solution {
   /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = copy()(maybeName = Some(name))
-
-  /**
     * Returns the number of branches in `this`.
     *
     * TODO implement this properly.

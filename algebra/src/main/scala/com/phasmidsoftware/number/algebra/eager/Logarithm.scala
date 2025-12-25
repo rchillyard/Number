@@ -208,14 +208,6 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
 case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logarithm(x) {
 
   /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = copy()(Some(name))
-
-  /**
     * Returns the base of this logarithm, viz. `e`.
     *
     * @return the base of type `Number`
@@ -373,16 +365,6 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
 }
 
 case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Logarithm(x) {
-
-//  require(x.signum>0, s"BinaryLog: $x is not positive")
-
-  /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = copy()(Some(name))
 
   /**
     * Returns the base of this logarithm, viz. `e`.

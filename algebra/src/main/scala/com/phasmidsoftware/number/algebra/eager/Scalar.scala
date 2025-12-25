@@ -202,14 +202,6 @@ case object NoScalar extends Scalar with Exact {
   def maybeName: Option[String] = None
 
   /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = this
-
-  /**
     * Normalizes this `NoScalar` instance to its simplest equivalent form.
     *
     * This operation ensures that the `NoScalar` object is in its most reduced or canonical representation.

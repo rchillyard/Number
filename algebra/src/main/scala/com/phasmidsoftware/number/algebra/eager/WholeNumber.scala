@@ -26,14 +26,6 @@ import scala.util.{Success, Try}
   */
 case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends Number with Exact with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] with CanPower[WholeNumber] {
   /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = copy()(maybeName = Some(name))
-
-  /**
     * Normalizes the current object and returns a standardized or canonical form of it.
     *
     * @return A normalized instance of the current object represented as a Valuable.

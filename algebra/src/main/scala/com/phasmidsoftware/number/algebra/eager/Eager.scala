@@ -42,14 +42,6 @@ trait Eager extends Valuable with Approximate with DyadicOps {
   def maybeName: Option[String]
 
   /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager
-
-  /**
     * Normalizes this `Eager` to its simplest equivalent form.
     * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
     *

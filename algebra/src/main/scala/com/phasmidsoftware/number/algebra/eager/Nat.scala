@@ -169,14 +169,6 @@ sealed trait Nat extends Eager with N {
   */
 case object NatZero extends Nat {
   /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = this
-
-  /**
     * Adds the specified natural number to this instance.
     *
     * @param that a natural number to be added to this
@@ -201,14 +193,6 @@ case object NatZero extends Nat {
   * @param pred The predecessor of this natural number, which is also a `Nat`.
   */
 case class Succ(pred: Nat) extends Nat {
-  /**
-    * Assigns a specified name to the `Eager` instance and returns the updated instance.
-    *
-    * @param name the name to assign to this `Eager` instance
-    * @return the updated `Eager` instance with the specified name
-    */
-  def named(name: String): Eager = this
-
   /**
     * Compares this `Succ` instance for equality with another object.
     *

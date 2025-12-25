@@ -64,6 +64,8 @@ trait Structure extends Eager {
         q: Real <- b.convert(Real.one)
         r = p ~= q
       } yield r, Failure(AlgebraException("Structure.fuzzyEqv")))
+    case _ =>
+      Failure(AlgebraException(s"Structure.fuzzyEqv: unexpected input: $this and $that"))
   }
 }
 
