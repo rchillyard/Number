@@ -68,7 +68,7 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "normalize - golden ratio"
 
-  ignore should "normalize x² - x - 1 to golden ratio (positive branch)" in {
+  it should "normalize x² - x - 1 to golden ratio (positive branch)" in {
     // x² - x - 1 = 0 → φ = (1 + √5)/2
     val equation = QuadraticEquation(Rational(-1), Rational(-1))
     val root = QuadraticRoot(equation, 0)

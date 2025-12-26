@@ -804,6 +804,8 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       Some(x * y.toRational)
     case (x: RationalNumber, y: Scalable[Eager] @unchecked) =>
       Some(y * x.toRational)
+    case (x: eager.InversePower, y: eager.Number) =>
+      FP.whenever(x.isExact && y.isExact)(x.doScale(y)).filter(_.isExact)
     case (x: CanMultiply[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       // TODO asInstanceOf
       Option.when(x.isExact && y.isExact)((x * y).asEager).filter(_.isExact)

@@ -545,6 +545,26 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
       super.eqv(that)
   }
 
+  /**
+    * Performs a fuzzy equivalence comparison between the current solution and another solution.
+    * The comparison allows for a degree of tolerance specified by the parameter `p`.
+    *
+    * @param p    the tolerance level for the fuzzy equivalence comparison; smaller values impose stricter equality conditions
+    * @param that the other solution to compare against, which must be of type `Eager`
+    * @return a `Try[Boolean]` indicating whether the two solutions are approximately equivalent
+    *         within the specified tolerance, or an error if the comparison cannot be performed
+    */
+  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] =
+    (this, that) match {
+      case (a: QuadraticSolution, b: QuadraticSolution) =>
+        for {
+          baseEqv <- a.base.fuzzyEqv(p)(b.base)
+          offsetEqv <- a.offset.fuzzyEqv(p)(b.offset)
+        } yield baseEqv && offsetEqv && a.branch == b.branch
+      case _ =>
+        super.fuzzyEqv(p)(that)
+    }
+
   private def sumBases(m1: Monotone, m2: Monotone): Monotone = ???
 }
 

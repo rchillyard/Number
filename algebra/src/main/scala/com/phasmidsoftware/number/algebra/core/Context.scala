@@ -31,9 +31,10 @@ trait Context extends CoreContext {
     * @param v the `HasValue` object to check for qualification
     * @return `true` if the `HasValue` qualifies; otherwise, throws a `AlgebraException` for unsupported types
     */
-  def valuableQualifies(v: Valuable): Boolean = v match {
-    case nat: Nat =>
+  def valuableQualifies(v: Valuable): Boolean = (this, v) match {
+    case (_, nat: Nat) =>
       true
+    case (AnyContext, _) => true
     case _ =>
       v.maybeFactor(this).exists(factorQualifies)
   }

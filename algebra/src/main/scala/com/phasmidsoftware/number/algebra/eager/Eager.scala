@@ -9,10 +9,11 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
-import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.CoreExceptionWithCause
 import com.phasmidsoftware.number.core.parse.NumberParser
+import com.phasmidsoftware.number.core.{algebraic, inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
 import scala.Option.when
 import scala.annotation.tailrec
@@ -178,8 +179,28 @@ object Eager {
         Scalar(n)
       case c: numerical.Complex =>
         Complex(c)()
-      case a: Algebraic =>
+      case a@Algebraic_Quadratic(_, com.phasmidsoftware.number.core.algebraic.Quadratic(p, q), pos) =>
+        val q: algebraic.Solution = a.solve
+        val m1: Monotone = convertToMonotone(q.base, PureNumber)
+        val m2: Monotone = convertToMonotone(q.offset, q.factor)
+        QuadraticSolution(m1, m2, q.branch)
+      case _ =>
         throw AlgebraException(s"Valuable.apply: Algebraic not yet implemented: $field")
+    }
+
+  /**
+    * Converts the given value and factor into a `Monotone` representation.
+    * Throws an `AlgebraException` if the conversion does not result in a valid `Monotone` instance.
+    *
+    * @param value  the input value of type `inner.Value` to be converted into a `Monotone`.
+    * @param factor the input factor of type `inner.Factor` used for the conversion process.
+    * @return a `Monotone` instance representing the input value and factor.
+    * @throws AlgebraException if the conversion yields an unexpected result.
+    */
+  private def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
+    Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {
+      case m: Monotone => m
+      case _ => throw AlgebraException(s"convertToMonotone: unexpected value: $value")
     }
 
   /**
@@ -244,6 +265,12 @@ object Eager {
       case _ =>
         f(x, y)
     }
+
+    private def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
+      Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {
+        case m: Monotone => m
+        case _ => throw AlgebraException(s"convertToMonotone: unexpected value: $value")
+      }
   }
 
   /**

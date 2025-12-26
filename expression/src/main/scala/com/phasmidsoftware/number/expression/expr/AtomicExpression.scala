@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, Nat, NatLog, Number, RationalNumber, Real, Scalar, WholeNumber}
+import com.phasmidsoftware.number.core.algebraic.QuadraticSolution
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Constants, Field}
@@ -242,9 +243,6 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
   def evaluate(context: Context): Option[Eager] =
     if (context.valuableQualifies(value))
       Some(value)
-    // NOTE this seems bizarre but if we include the following fragment, many unit tests fail...
-//    else if (value.maybeName.isDefined) // NOTE: this value is a "named" constant.
-//      Some(value)
     else
       value match {
         case nat: Nat =>

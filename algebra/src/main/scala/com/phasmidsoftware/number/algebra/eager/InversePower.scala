@@ -344,7 +344,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @param that the `Number` used to scale the current instance
     * @return an `Option[T]` containing the result of the scaling operation if successful, or `None` if the operation cannot be performed
     */
-  private infix def doScale(that: Number): Option[InversePower] =
+  infix def doScale(that: Number): Option[InversePower] =
     (that, number) match {
       case (x: CanPower[Number] @unchecked, y: Z) =>
         val triedRational = y.toRational.power(Rational(n).invert).toOption
