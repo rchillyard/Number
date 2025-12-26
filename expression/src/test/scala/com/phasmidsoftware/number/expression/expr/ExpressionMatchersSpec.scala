@@ -15,7 +15,7 @@ import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, √}
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
-import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, matchSimpler, zero}
+import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, matchSimpler, zero}
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -343,17 +343,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result shouldBe em.Match(Literal(root3))
   }
   // TODO Issue #140
-  ignore should "simplify root4 * 2 / 2" in {
-    val p = Expression.matchSimpler
+  it should "simplify root4 * 2 / 2 part 1" in {
     val x = Expression("√4") :* Eager.two
     val y: Expression = Expression(Eager.two).reciprocal
-    val expression = Product ~ x ~ y
-    val four = Literal(4)
-    //    val firstSimplification = p(expression)
-//    firstSimplification shouldBe em.Match(BiFunction(Literal(WholeNumber(4), Some("4")), Half, Power))
-    val expression1: BiFunction = BiFunction(four, Half, Power)
-    val q = expression1.simplifyComposite
-    q(expression1) shouldBe em.Match(Literal(WholeNumber(2), Some("2")))
+    (x :* y).simplify shouldBe Literal(WholeNumber(2))
+  }
+  it should "simplify root4 * 2 / 2 part 2" in {
+    BiFunction(Literal(4), Half, Power).materialize shouldBe WholeNumber(2)
   }
   it should "distribute" in {
     import BiFunction.*
