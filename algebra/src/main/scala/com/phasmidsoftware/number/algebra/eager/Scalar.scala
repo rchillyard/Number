@@ -8,7 +8,8 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
@@ -124,6 +125,17 @@ object Scalar {
   given FuzzyEq[Scalar] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
+  }
+
+  /**
+    * LatexRenderer for Scalar (general case).
+    *
+    * Attempts to render based on the concrete type.
+    */
+  implicit val scalarLatexRenderer: LatexRenderer[Scalar] = LatexRenderer.instance {
+    case rn: RationalNumber => rn.toLatex
+    case ip: InversePower => InversePower.inversePowerLatexRenderer.toLatex(ip)
+    case s => s.render // Fallback to render method
   }
 
   private def tryConvertAndCompareScalar[B <: Scalar, Z](f: (Scalar, B) => Try[Z])(s: Scalar, e: B): Try[Z] =

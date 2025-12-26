@@ -9,7 +9,8 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.util.FP
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
+import com.phasmidsoftware.number.algebra.util.{FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
@@ -164,60 +165,26 @@ object Monotone {
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
+  /**
+    * LatexRenderer for Monotone (general case).
+    *
+    * Attempts to render based on the concrete type.
+    */
+  implicit val monotoneLatexRenderer: LatexRenderer[Monotone] = LatexRenderer.instance {
+    case s: Scalar => s.toLatex
+    case f: Functional => f.toLatex
+    case m =>
+      throw new IllegalArgumentException(s"No LaTeX renderer for Monotone type: ${m.getClass.getName}")
+  }
+
   implicit def convRationalToMonotone(r: Rational): Monotone = RationalNumber(r)
 
-  //
-//  implicit val monotoneEq: Eq[Monotone] = Eq.instance {
-//    (x, y) => eqMonotone(x, y)
-//  }
-//
-//  given FuzzyEq[Monotone] = FuzzyEq.instance {
-//    (x, y, p) =>
-//      eqMonotone(x, y) || fuzzyEqStructure(x, y, p)
-//  }
-//
-//  private def eqMonotone(x: Monotone, y: Monotone): Boolean = (x, y) match {
-//    // Same-type comparisons
-//    case (x: Scalar, y: Scalar) => x === y
-//    case (x: InversePower, y: InversePower) => x === y
-//    case (x: Functional, y: Functional) => x === y
-//
-//    // Cross-type: Structure can represent both Complex and Nat
-//    case (x: Scalar, y: InversePower) =>
-//      tryConvertAndCompareMonotone(x, y)
-//    case (x: InversePower, y: Scalar) =>
-//      tryConvertAndCompareMonotone(y, x)
-//    case (x: Scalar, y: Functional) =>
-//      tryConvertAndCompareMonotone(x, y)
-//    case (x: Functional, y: Scalar) =>
-//      tryConvertAndCompareMonotone(y, x)
-//    case (x: InversePower, y: Functional) =>
-//      tryConvertAndCompareMonotone(x, y)
-//    case (x: Functional, y: InversePower) =>
-//      tryConvertAndCompareMonotone(y, x)
-//    case _ =>
-//      logger.warn(s"Unexpected Structure comparison: ${x.getClass.getSimpleName} === ${y.getClass.getSimpleName}")
-//      false
-//  }
-//
   private def tryConvertAndCompareScalar[B <: Monotone, Z](f: (Monotone, B) => Try[Z])(s: Scalar, e: B): Try[Z] = e match {
     case n: Functional =>
       f(s, n.asInstanceOf[B])
     case _ =>
       FP.fail(s"tryConvertAndCompareScalar: unexpected Monotone comparison: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
   }
-
-//  implicit val monotoneEq: Eq[Monotone] = Eq.instance {
-//    case (x: Scalar, y: Structure) =>
-//      x === y
-//    case (x: InversePower, y: Structure) =>
-//      x === y
-//    case (x: Transformed, y: Structure) =>
-//      x === y
-//    case _ =>
-//      false
-//  }
-
 }
 
 /**
@@ -294,6 +261,13 @@ object Functional {
   given FuzzyEq[Functional] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
+  }
+
+  // In Functional companion object
+  implicit val latexRenderer: LatexRenderer[Functional] = LatexRenderer.instance {
+    case ip: InversePower => ip.toLatex
+    case log: Logarithm => log.toLatex  // You'll need to implement this
+    case f => f.render  // Or throw exception
   }
 
   private def tryConvertAndCompareFunctional[B <: Functional, Z](f: (Functional, B) => Try[Z])(s: Functional, e: B): Try[Z] =

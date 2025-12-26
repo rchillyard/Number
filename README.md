@@ -293,7 +293,15 @@ For example, the proton-electron mass ratio:
     1836.15267343~11
 
 ### Rendering
+There are three types of rendering available: _render_, _toLatex_ and _toString_.
+The latter method is primarily for debugging purposes and so tends to mirror the actual structure of an object.
 The _render_ method is defined in the trait _Renderable_.
+Its purpose is to render a _Valuable_ object in as natural and appropriate a form as possible.
+The latex renderer is defined in the trait _LatexRenderable_.
+Its purpose is to render a _Valuable_ object in a form suitable for use in a LaTeX document,
+that's to say as a mathematical expression.
+For this to work, you will need to import com.phasmidsoftware.number.algebra.util.LatexRenderer._
+
 The rest of this section pertains to the `core` module.
 including _Field_, _Number_, _Rational_, Complex, etc.
 For the prettiest output, you should use _render_ rather than _toString_ (which is basically for debugging).

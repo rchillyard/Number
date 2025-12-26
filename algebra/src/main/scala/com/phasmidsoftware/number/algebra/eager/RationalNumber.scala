@@ -10,7 +10,8 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalNumberIsField
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.{LatexRendererOps, frac}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -402,6 +403,33 @@ object RationalNumber {
   given Convertible[RationalNumber, WholeNumber] with
     def convert(witness: RationalNumber, u: WholeNumber): RationalNumber =
       u.toRationalNumber
+
+  /**
+    * LatexRenderer for Rational numbers.
+    *
+    * Renders as:
+    * - Integer if denominator is 1
+    * - Fraction otherwise using \frac{numerator}{denominator}
+    * - Handles negative values appropriately
+    */
+  implicit val rationalLatexRenderer: LatexRenderer[Rational] = LatexRenderer.instance { r =>
+    if (r.d == 1) {
+      r.n.toString
+    } else {
+      val num = r.n.toString
+      val den = r.d.toString
+      frac(num, den)
+    }
+  }
+
+  /**
+    * LatexRenderer for RationalNumber.
+    *
+    * Delegates to the Rational renderer.
+    */
+  implicit val rationalNumberLatexRenderer: LatexRenderer[RationalNumber] = LatexRenderer.instance { rn =>
+    rn.r.toLatex
+  }
 
   /**
     * Provides an implicit implementation of the `Field` type class for the `RationalNumber` type.

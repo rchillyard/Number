@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
 import com.phasmidsoftware.number.core.misc.FP._
+import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian
 import com.phasmidsoftware.number.core.parse.ComplexParser
 import scala.util._
 
@@ -82,6 +83,11 @@ trait Complex extends Multivariate {
     * @return a Complex with the same argument as this but a different magnitude.
     */
   def numberProduct(n: Number): Complex
+
+  def asCartesian: ComplexCartesian = this match {
+    case complex: ComplexCartesian => complex
+    case complex: ComplexPolar => convertToCartesian(complex).asInstanceOf[ComplexCartesian]
+  }
 }
 
 /**

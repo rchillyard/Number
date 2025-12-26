@@ -8,7 +8,8 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.CoreExceptionWithCause
@@ -187,6 +188,19 @@ object Eager {
       case _ =>
         throw AlgebraException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }
+
+  /**
+    * LatexRenderer for Eager (general case).
+    *
+    * Attempts to render based on the concrete type.
+    */
+  implicit val eagerLatexRenderer: LatexRenderer[Eager] = LatexRenderer.instance {
+    case s: Solution => s.toLatex
+    case s: Structure => s.toLatex
+    case n: Nat => n.render
+    case m =>
+      throw new IllegalArgumentException(s"No LaTeX renderer for Eager type: ${m.getClass.getName}")
+  }
 
   /**
     * Converts the given value and factor into a `Monotone` representation.

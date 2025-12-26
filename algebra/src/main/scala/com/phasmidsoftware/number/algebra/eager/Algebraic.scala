@@ -8,7 +8,9 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalLatexRenderer
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.fromRational
@@ -209,6 +211,17 @@ object Algebraic {
   given FuzzyEq[Algebraic] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
+  }
+
+  /**
+    * LatexRenderer for Algebraic (general case).
+    *
+    * Attempts to render based on the concrete type.
+    */
+  implicit val algebraicLatexRenderer: LatexRenderer[Algebraic] = LatexRenderer.instance {
+    case q: QuadraticSolution => q.toLatex
+    case l: LinearSolution => l.toLatex
+    case a => a.render // Fallback to render method
   }
 }
 
@@ -602,6 +615,44 @@ object QuadraticSolution {
     (x, y, p) =>
       x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[QuadraticSolution]", _))(x.fuzzyEqv(p)(y)).getOrElse(false)
   }
+
+  /**
+    * LatexRenderer for QuadraticSolution.
+    *
+    * Renders as:
+    * - Named constants (φ, ψ) use their LaTeX symbols
+    * - Real roots: base ± offset
+    * - Complex roots: base ± i·offset
+    * - Normalizes when appropriate (zero offset or zero base)
+    */
+  implicit val quadraticSolutionLatexRenderer: LatexRenderer[QuadraticSolution] = LatexRenderer.instance {
+    case QuadraticSolution.phi =>
+      "\\varphi"  // or "\\phi" depending on style preference
+
+    case QuadraticSolution.psi =>
+      "\\psi"
+
+    case QuadraticSolution(base, offset, branch, false) if offset.isZero =>
+      base.toLatex
+
+    case q@QuadraticSolution(base, offset, branch, false) if base.isZero =>
+      val coeff = q.branched(branch)
+      if (coeff == Rational(1)) {
+        offset.toLatex
+      } else if (coeff == Rational(-1)) {
+        s"-${offset.toLatex}"
+      } else {
+        s"${coeff.toLatex} \\cdot ${offset.toLatex}"
+      }
+
+    case QuadraticSolution(base, offset, branch, false) =>
+      val signStr = LatexRenderer.sign(branch == 0)
+      s"${base.toLatex} $signStr ${offset.toLatex}"
+
+    case QuadraticSolution(base, offset, branch, true) =>
+      val signStr = LatexRenderer.sign(branch == 0)
+      s"${base.toLatex} $signStr i ${offset.toLatex}"
+  }
 }
 
 /**
@@ -842,5 +893,14 @@ object LinearSolution {
   given FuzzyEq[LinearSolution] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[LinearSolution]", _))(x.fuzzyEqv(p)(y)).getOrElse(false)
+  }
+
+  /**
+    * LatexRenderer for LinearSolution.
+    *
+    * Simply renders the value.
+    */
+  implicit val linearSolutionLatexRenderer: LatexRenderer[LinearSolution] = LatexRenderer.instance { ls =>
+    ls.value.toLatex
   }
 }

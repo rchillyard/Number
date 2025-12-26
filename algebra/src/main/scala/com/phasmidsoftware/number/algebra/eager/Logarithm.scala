@@ -11,7 +11,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Logarithm.LogarithmIsCommutativeMonoid
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
@@ -156,6 +156,17 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
   def +(a: Logarithm): Logarithm =
     LogarithmIsCommutativeMonoid.combine(this, a)
 
+  /**
+    * Renders the base of this logarithm as a string representation for presentation,
+    * including the prefix "^" as appropriate.
+    *
+    * @return the rendered string representation of the base
+    */
+  def renderNumber: String =
+    if (number.normalize == WholeNumber.one)
+      ""
+    else
+      s"^${number.normalize.render}"
 
   /**
     * Provides an approximation of this number, if applicable.
@@ -371,7 +382,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     *
     * @return the base of type `Number`
     */
-  val base: Real = Real(2, None)
+  val base: Number = WholeNumber.two
 
   /**
     * Represents the additive identity element for the type `T`.
@@ -396,7 +407,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
       val result: Real =
         x match {
           case WholeNumber.one | RationalNumber(Rational.one, _) =>
-            base
+            FP.recover(base.convert(Real.zero))(AlgebraException(": BinaryLog.transformation: base.convert(Real.zero) failed"))
           case RationalNumber(Rational.infinity, _) =>
             Real.∞
           case Real(value, fuzz) =>
@@ -525,7 +536,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
 }
 
 object BinaryLog {
-  def apply(x: Number): BinaryLog = new BinaryLog(x)()
+  def apply(x: Number): Logarithm = new BinaryLog(x)()
 }
 /**
   * The `Logarithm` companion object contains utility methods, predefined constants, and
@@ -566,6 +577,12 @@ object Logarithm {
     * requiring a `Show` typeclass instance for displaying or logging purposes.
     */
   implicit val showLogarithm: Show[Logarithm] = Show.show(_.render)
+
+  // In Logarithm companion object
+  implicit val latexRenderer: LatexRenderer[Logarithm] = LatexRenderer.instance {
+    case log: NatLog => s"\\mathrm{e}${log.renderNumber}"
+    case log => s"${log.base.render}${log.renderNumber}"
+  }
 
   /**
     * Provides an implicit implementation of a commutative group for the `Logarithm` type, supporting

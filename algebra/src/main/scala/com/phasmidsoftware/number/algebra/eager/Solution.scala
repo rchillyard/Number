@@ -8,7 +8,8 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
@@ -221,6 +222,21 @@ trait Solution extends Eager with Negatable[Solution] with Branched[Rational] {
 
 }
 
+object Solution {
+
+  /**
+    * LatexRenderer for Solution (general case).
+    *
+    * Attempts to render based on the concrete type.
+    */
+  implicit val solutionLatexRenderer: LatexRenderer[Solution] = LatexRenderer.instance {
+    case c: Complex => c.toLatex
+    case a: Algebraic => a.toLatex
+    case s => s.render // Fallback to render method
+  }
+
+}
+
 /**
   * Companion object for the `Complex` class.
   *
@@ -251,5 +267,44 @@ object Complex {
   given FuzzyEq[Complex] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || FP.toOptionWithLog(logger.warn("FuzzyEq[Complex]", _))(x.fuzzyEqv(p)(y)).getOrElse(false)
+  }
+
+  /**
+    * LatexRenderer for Complex numbers.
+    *
+    * Renders as a + bi where:
+    * - a is the real part
+    * - b is the imaginary part
+    * - Special cases for 0, purely real, purely imaginary handled
+    */
+  implicit val complexLatexRenderer: LatexRenderer[Complex] = LatexRenderer.instance { c =>
+    val complex = c.complex.asCartesian
+    val real = complex.real
+    val imag = complex.imag
+
+    // Helper to check if a number is effectively zero
+    def isZero(n: com.phasmidsoftware.number.core.numerical.Number): Boolean =
+      n.isZero
+
+    // Helper to check if a number is effectively one
+    def isOne(n: com.phasmidsoftware.number.core.numerical.Number): Boolean =
+      n.isUnity
+
+    // Helper to check if a number is effectively negative one
+    def isNegOne(n: com.phasmidsoftware.number.core.numerical.Number): Boolean =
+      n == Number.negOne
+
+    // TODO do it with latex
+    (isZero(real), isZero(imag)) match {
+      case (true, true) => "0"
+      case (true, false) =>
+        if (isOne(imag)) "i"
+        else if (isNegOne(imag)) "-i"
+        else s"i$imag"
+      case (false, true) =>
+        real.render
+      case (false, false) =>
+        s"$real + i${imag.render}"
+    }
   }
 }

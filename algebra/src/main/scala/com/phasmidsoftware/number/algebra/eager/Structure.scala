@@ -10,7 +10,8 @@ import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.core.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.algebra.eager.Real
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
@@ -96,12 +97,17 @@ object Structure {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
-//  implicit val dyadicOperatorStructure: DyadicOperator[Structure] = new DyadicOperator[Structure] {
-//    def op[Z](f: (Structure, Structure) => Try[Z])(x: Structure, y: Structure): Try[Z] = (x, y) match {
-//      case (a: Monotone, b: Monotone) => f(a, b)
-//      case _ => Try(f(x, y).get)
-//    }
-//  }
+
+
+  /**
+    * LatexRenderer for Eager (general case).
+    *
+    * Attempts to render based on the concrete type.
+    */
+  implicit val structureLatexRenderer: LatexRenderer[Structure] = LatexRenderer.instance {
+    case m: Monotone => m.toLatex
+    case m => throw new IllegalArgumentException(s"No LaTeX renderer for Structure type: ${m.getClass.getName}")
+  }
 
   /**
     * Attempts to cast the provided `Structure` instance to the specified subtype `T`.

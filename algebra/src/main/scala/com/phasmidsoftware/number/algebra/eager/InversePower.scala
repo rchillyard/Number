@@ -11,7 +11,8 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.{LatexRendererOps, nthRoot}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.numerical
@@ -373,12 +374,14 @@ object InversePower {
 
   /**
     * Creates an instance of `InversePower` using the given parameters.
+    * TODO why is this showing it's recursive?
     *
     * @param n The exponent value to be used in the `InversePower` instance.
     * @param x The numeric value to be wrapped within the `WholeNumber` type and used in the `InversePower` instance.
     * @return A new instance of `InversePower` with the specified parameters.
     */
-  def apply(n: Int, x: Int): InversePower = InversePower(n, WholeNumber(x))
+  def apply(n: Int, x: Int): InversePower =
+    InversePower(n, WholeNumber(x))
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -424,6 +427,23 @@ object InversePower {
   given FuzzyEq[InversePower] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
+  }
+
+  /**
+    * LatexRenderer for InversePower.
+    *
+    * Renders as:
+    * - \sqrt{base} for power 2
+    * - \sqrt[n]{base} for other powers
+    */
+  implicit val inversePowerLatexRenderer: LatexRenderer[InversePower] = LatexRenderer.instance { ip =>
+    val baseLatex = ip.number.asMonotone.toLatex
+
+    if (ip.n == 2) {
+      LatexRenderer.sqrt(baseLatex)
+    } else {
+      nthRoot(ip.n, baseLatex)
+    }
   }
 
   private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Logarithm, e: B): Try[Z] =
