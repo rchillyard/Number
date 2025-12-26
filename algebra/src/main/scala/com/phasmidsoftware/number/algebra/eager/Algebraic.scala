@@ -291,7 +291,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
     *         of the current quadratic solution
     */
   def negate: QuadraticSolution =
-    copy(offset = offset.negate)(None).conjugate
+    copy(base = base.negate)(None).conjugate
 
   /**
     * Checks if the solution represented by this instance is equivalent to zero.

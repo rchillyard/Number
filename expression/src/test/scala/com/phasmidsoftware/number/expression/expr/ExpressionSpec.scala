@@ -8,15 +8,12 @@ import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.core.{FuzzyEq, Valuable}
-import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
 import com.phasmidsoftware.number.algebra.eager.*
-import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
+import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational, SquareRoot}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, ExactNumber, Real}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
-import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.phiApprox
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, pi}
@@ -449,13 +446,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   // TODO Issue #140
   it should "evaluate - phi" in {
     val phi: Root = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
-//    val expression: Expression = phi.negate
-//    val simplified = expression.simplify
-//    simplified.approximation().get.value === -1.61803398875
-//    val expected = Algebraic_Quadratic(Quadratic(1, -1), pos = false)
-//    val actual = simplified.asInstanceOf[QuadraticRoot].solution
-//    actual shouldBe expected
-    pending
+    val expression: Expression = phi.negate
+    val simplified = expression.simplify
+    simplified.approximation().get.value === -1.61803398875
+    simplified.materialize shouldBe QuadraticEquation(1, -1).solve(1)
   }
 
   behavior of "Sum"
