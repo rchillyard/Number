@@ -730,13 +730,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //    em.factorsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this
   }
   // TODO Issue #140
-  ignore should "match expression Product" in {
-    val root3 = Expression(3).sqrt
-    em.factorsMatch(Product, ConstPi, MinusOne) shouldBe true
-    em.factorsMatch(Product, MinusOne, ConstPi) shouldBe true
-    em.factorsMatch(Product, root3, Literal(root2)) shouldBe true
-    em.factorsMatch(Product, Literal(root2), MinusOne) shouldBe false
-    em.factorsMatch(Product, MinusOne, Literal(root2)) shouldBe false
+  it should "match expression Product" in {
+//    val root3 = Expression(3).sqrt
+//    em.factorsMatch(Product, ConstPi, MinusOne) shouldBe true
+//    em.factorsMatch(Product, MinusOne, ConstPi) shouldBe true
+//    em.factorsMatch(Product, root3, Literal(root2)) shouldBe true
+//    em.factorsMatch(Product, Literal(root2), MinusOne) shouldBe false
+//    em.factorsMatch(Product, MinusOne, Literal(root2)) shouldBe false
+    pending
   }
   // TODO Issue #140
   ignore should "match expression Power" in {
@@ -1511,16 +1512,17 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchAndCollectTwoDyadicLevels"
   // TODO Issue #140
-  ignore should "work for √3 * √3" in {
-    import BiFunction.*
-    val p = Expression.matchSimpler
-    val e1: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
-    val e2: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
-    val e: DyadicTriple = Product ~ e1 ~ e2
-    val triple: DyadicTriple = e
-    val result = p(triple)
-    result.successful shouldBe true
-    result.get shouldBe Expression(3)
+  it should "work for √3 * √3" in {
+//    import BiFunction.*
+//    val p = Expression.matchSimpler
+//    val e1: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
+//    val e2: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
+//    val e: DyadicTriple = Product ~ e1 ~ e2
+//    val triple: DyadicTriple = e
+//    val result = p(triple)
+//    result.successful shouldBe true
+//    result.get shouldBe Expression(3)
+    pending
   }
   it should "work for √3 :+ -√3" in {
     val p = Expression.matchSimpler
@@ -1533,20 +1535,21 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   // Issue #128 (fixed)
   // TODO Issue #140
-  ignore should "work for (π :+ 1) * (π - 1)" in {
+  it should "work for (π :+ 1) * (π - 1)" in {
     val p = Expression.matchSimpler
     val e1 = BiFunction(ConstPi, One, Sum)
     val e2 = BiFunction(Literal(Eager.pi), MinusOne, Sum)
     val result = p(Product ~ e1 ~ e2)
-    result.successful shouldBe true
-    result shouldBe em.Match(Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power))))
+//    result.successful shouldBe true
+//    result shouldBe em.Match(Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power))))
     val e = result.get
     val actual = p(e)
-    actual.successful shouldBe true
+//    actual.successful shouldBe true
     // NOTE it's not trivially easy to arrange for this and it's not really that necessary, either. So let's be happy!
     val idealExpectedExpression = BiFunction(ConstPi ∧ 2, MinusOne, Sum)
     val interimExpectedExpression = Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power)))
-    actual.get shouldBe interimExpectedExpression
+//    actual.get shouldBe interimExpectedExpression
+    pending
   }
 
   behavior of "complementaryTermsEliminatorBiFunction"

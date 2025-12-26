@@ -54,12 +54,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     x.evaluateAsIs shouldBe Some(WholeNumber(-1))
   }
   // FIXME this has to do with imaginary numbers
-  ignore should "evaluate i * 2" in {
+  it should "evaluate i * 2" in {
     val x: Expression = ConstI * 2
     val result: Option[Valuable] = x.evaluateAsIs
-    result.isDefined shouldBe true
+//    result.isDefined shouldBe true
     val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
-    result.get shouldBe expected
+//    result.get shouldBe expected
+    pending
   }
 
   behavior of "parse"
@@ -203,9 +204,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     x.materialize shouldEqual Eager(36)
   }
   // TODO Issue #140
-  ignore should "evaluate sqrt 36" in {
+  it should "evaluate sqrt 36" in {
     val x: Expression = Expression(36).sqrt
-    x.materialize shouldEqual ±(6)
+//    x.materialize shouldEqual ±(6)
+    pending
   }
   // TODO Issue #140
   it should "evaluate sin pi/2" in {
@@ -328,16 +330,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "Euler"
   // TODO Issue #140
-  ignore should "prove Euler's identity 1" in {
+  it should "prove Euler's identity 1" in {
     val iPi = ComplexCartesian(0, numerical.Number.pi)
     val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-    euler.materialize shouldBe Eager.minusOne
+//    euler.materialize shouldBe Eager.minusOne
+    pending
   }
   // TODO Issue #140
-  ignore should "prove Euler's identity 2" in {
+  it should "prove Euler's identity 2" in {
     val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
     val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-    euler.materialize shouldBe Eager.minusOne
+//    euler.materialize shouldBe Eager.minusOne
+    pending
   }
 
   behavior of "FieldExpression"
@@ -443,14 +447,15 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplified.approximation().get.value === 0.61803398875
   }
   // TODO Issue #140
-  ignore should "evaluate - phi" in {
+  it should "evaluate - phi" in {
     val phi: Root = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
-    val expression: Expression = phi.negate
-    val simplified = expression.simplify
-    simplified.approximation().get.value === -1.61803398875
-    val expected = Algebraic_Quadratic(Quadratic(1, -1), pos = false)
-    val actual = simplified.asInstanceOf[QuadraticRoot].solution
-    actual shouldBe expected
+//    val expression: Expression = phi.negate
+//    val simplified = expression.simplify
+//    simplified.approximation().get.value === -1.61803398875
+//    val expected = Algebraic_Quadratic(Quadratic(1, -1), pos = false)
+//    val actual = simplified.asInstanceOf[QuadraticRoot].solution
+//    actual shouldBe expected
+    pending
   }
 
   behavior of "Sum"
