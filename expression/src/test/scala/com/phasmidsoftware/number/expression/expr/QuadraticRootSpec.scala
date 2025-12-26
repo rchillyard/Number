@@ -76,14 +76,15 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
     normalized shouldBe QuadraticSolution.phi
   }
 
-  ignore should "normalize x² - x - 1 (negative branch)" in {
+  it should "normalize x² - x - 1 (negative branch)" in {
     val equation = QuadraticEquation(Rational(-1), Rational(-1))
     val root = QuadraticRoot(equation, 1)
     val normalized = root.normalize
     normalized shouldBe a[QuadraticSolution]
     val solution = normalized.asInstanceOf[QuadraticSolution]
     // Negative root: (1 - √5)/2 ≈ -0.618
-    solution.offset.toDouble shouldBe -0.618 +- 0.001
+    val double = solution.toDouble
+    double shouldBe -0.618 +- 0.001
   }
 
   behavior of "normalize - irrational roots"
@@ -152,7 +153,7 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
     normalized shouldBe a[QuadraticSolution]
     val materialized = root.materialize
     materialized shouldBe a[QuadraticSolution]
-    materialized shouldBe QuadraticSolution(Rational(3, 2), Rational(1, 2), 0)
+    materialized shouldBe QuadraticSolution(Rational(3, 2), Rational(1, 2), 0, false)
   }
 
   it should "have correct isAtomic" in {

@@ -183,7 +183,7 @@ object Eager {
         val q: algebraic.Solution = a.solve
         val m1: Monotone = convertToMonotone(q.base, PureNumber)
         val m2: Monotone = convertToMonotone(q.offset, q.factor)
-        QuadraticSolution(m1, m2, q.branch)
+        QuadraticSolution(m1, m2, q.branch, false)
       case _ =>
         throw AlgebraException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }

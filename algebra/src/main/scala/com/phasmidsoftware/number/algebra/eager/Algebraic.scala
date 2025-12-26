@@ -194,7 +194,7 @@ object Algebraic {
     if (offset.isZero)
       LinearSolution(base)
     else
-      QuadraticSolution(base, offset, branch)
+      QuadraticSolution(base, offset, branch, false)
 
   given DyadicOperator[Algebraic] = new DyadicOperator[Algebraic] {
     def op[B <: Algebraic, Z](f: (Algebraic, B) => Try[Z])(x: Algebraic, y: B): Try[Z] =
@@ -228,7 +228,13 @@ object Algebraic {
   *               Instances of this class are designed to interact with the `Factor` type in performing various
   *               operations such as evaluating, converting, or rendering the solution accurately in diverse contexts.
   */
-case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val maybeName: Option[String] = None) extends Algebraic {
+case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imaginary: Boolean = false)(val maybeName: Option[String] = None) extends Algebraic {
+  /**
+    * Returns the number of branches in `this`.
+    *
+    * @return 2.
+    */
+  def branches: Int = 2
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -241,7 +247,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
     */
   def normalize: Eager = (base.normalize, offset.normalize) match {
     case (x: Monotone, y: Scalar) if x.isZero =>
-      if (branch == 1) y.negate else y
+      y.scale(branched(branch))
     case (x: Monotone, y: Monotone) if y.isZero =>
       x
     case _ =>
@@ -260,10 +266,13 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
       core.algebraic.Algebraic.phi.render
     case QuadraticSolution.psi =>
       core.algebraic.Algebraic.psi.render
-    case q@QuadraticSolution(base, offset, branch) if offset.isZero || base.isZero =>
+    case q@QuadraticSolution(base, offset, branch, false) if offset.isZero || base.isZero =>
       q.normalize.render
-    case QuadraticSolution(base, offset, branch) =>
+    case QuadraticSolution(base, offset, branch, false) =>
+      // NOTE that here we use a different method to figure the coefficient of the offset.
       s"${base.render} ${if (branch == 1) "- " else "+ "}${offset.render}"
+    case _ =>
+      s"Complex quadratic solution: ${base.render} ${if (branch == 1) "- " else "+ "}${offset.render}"
   })
 
   override def toString: String = render
@@ -370,48 +379,12 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
     */
   def approximation(force: Boolean): Option[Real] =
     FP.whenever(!isExact || !offset.isZero || force)(
-      for {x <- base.convert(Real.one); y <- offset.convert(Real.one)} yield x + y
+      for {
+        x <- base.convert(Real.one)
+        y <- offset.convert(Real.one)
+        z <- y.scale(branched(branch)).convert(Real.one)
+      } yield x + z
     )
-//  /**
-//    * Converts the current QuadraticSolution instance into a Field representation.
-//    *
-//    * TODO refactor this code using radicalTerm
-//    *
-//    * The method computes a Field value based on the `base`, `offset`, and `factor`.
-//    * If the `offset` component is zero, the result is the `base` number as a Field.
-//    * Otherwise, it incorporates the `offset` and possibly an imaginary component
-//    * to produce either a ComplexCartesian number or a regular Field representation,
-//    * depending on the properties of the given solution.
-//    *
-//    * @return a Field representation of the current QuadraticSolution instance
-//    */
-//  def asField: Field =
-//    if ((offset.isZero))
-//      ExactNumber(base, PureNumber)
-//    else {
-//      val offsetNumber: ExactNumber = ExactNumber(offset, factor)
-//
-//      def offsetToNumber = {
-//        val maybeValue = factor.convert(offset, PureNumber) map (v => ExactNumber(v, PureNumber))
-//        val maybeApproximation = offsetNumber.asNumber
-//        FP.toTry(maybeValue orElse maybeApproximation, Failure(new Exception("QuadraticSolution.asField: factor.convert failed")))
-//      }
-//
-//      if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
-//        val imaginaryPart = {
-//          if (branch == 0) // TESTME
-//            ExactNumber(Value.negate(offset), factor)
-//          else
-//            offsetToNumber.get // TODO convert to a proper exception
-//        } // CONSIDER handling this unlikely but possible exception properly
-//        ComplexCartesian(ExactNumber(base, PureNumber), imaginaryPart)
-//      }
-//      else {
-//        val variablePart = offsetToNumber.get // CONSIDER handling this unlikely but possible exception properly
-//        ExactNumber(base, PureNumber) + (if (branch == 1) variablePart.makeNegative else variablePart)
-//      }
-//    }
-
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Algebraic` as the result.
@@ -521,7 +494,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int)(val 
     */
   def *(r: Rational): Algebraic = (base, offset) match {
     case (b: Scalar, o: Scalar) =>
-      QuadraticSolution(b.scale(r), o.scale(r), branch)
+      QuadraticSolution(b.scale(r), o.scale(r), branch, imaginary)
     case _ =>
       throw AlgebraException(s"QuadraticSolution: *($r) not supported")
   }
@@ -587,8 +560,13 @@ object QuadraticSolution {
     * @param branch an integer specifying the branch of the solution
     * @return a new `QuadraticSolution` instance constructed from the provided parameters
     */
-  def apply(base: Monotone, offset: Monotone, branch: Int): QuadraticSolution =
-    new QuadraticSolution(base, offset, branch)(None)
+  def apply(base: Monotone, offset: Monotone, branch: Int, imaginary: Boolean): QuadraticSolution =
+    (base.normalize, offset.normalize) match {
+      case (b: Scalar, o: Scalar) =>
+        new QuadraticSolution(b, o, branch, imaginary)(None)
+      case _ =>
+        new QuadraticSolution(base, offset, branch, imaginary)(None)
+    }
 
   /**
     * Represents the value `phi`, which is a solution of a quadratic equation
@@ -598,14 +576,14 @@ object QuadraticSolution {
     * - The root type specified as `SquareRoot`.
     * - The root index specified as `0`, which identifies this as one of the possible roots.
     */
-  val phi: QuadraticSolution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 0)(Some("𝛗"))
+  val phi: QuadraticSolution = new QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 0)(Some("𝛗"))
   /**
     * Represents a specific quadratic solution characterized by its parameters.
     *
     * @see QuadraticSolution
     * @see Value.fromRational
     */
-  val psi: QuadraticSolution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 1)(Some("𝛙"))
+  val psi: QuadraticSolution = new QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 1)(Some("𝛙"))
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -635,6 +613,25 @@ object QuadraticSolution {
   * @param value the base value of the solution
   */
 case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None) extends Algebraic {
+  /**
+    * Returns the number of branches in `this`.
+    *
+    * @return 1.
+    */
+  def branches: Int = 1
+
+  /**
+    * Computes and returns the conjugate of the current `Solution` instance.
+    *
+    * The conjugate represents a value or transformation that is mathematically
+    * paired oppositely with the current instance based on the structure and
+    * properties of the `Solution` implementation.
+    *
+    * Normally, the `branch` of the conjugate, added to the current `branch` should equal `branches`.
+    *
+    * @return a new `Solution` instance representing the conjugate of the current instance
+    */
+  def conjugate: Solution = this // CONSIDER throwing an exception instead.
 
   /**
     * Normalizes the current instance of `LinearSolution` to its simplest equivalent form.

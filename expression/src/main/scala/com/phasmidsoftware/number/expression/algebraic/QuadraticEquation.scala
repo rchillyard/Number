@@ -4,13 +4,12 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
-import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.convRationalRationalNumber
-import com.phasmidsoftware.number.algebra.eager.{InversePower, LinearSolution, Monotone, QuadraticSolution, RationalNumber, Real, Solution}
+import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
-import com.phasmidsoftware.number.core.numerical.{CoreException, Field}
+import com.phasmidsoftware.number.core.numerical.Field
 import com.phasmidsoftware.number.expression.expr.{Expression, Literal}
 
 /**
@@ -56,16 +55,16 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     * @return an `Option[Algebraic]`, where `Some(solution)` contains the solution for the specified branch,
     *         or `None` if no solution exists for the given branch.
     */
-  def solve(branch: Int): Solution =
-    if (branch >= 0 && branch < 2) {
-      discriminant match {
-        case x if x >= Rational.zero =>
-          QuadraticSolution(RationalNumber(-p / 2), squareRoot(discriminant / 4), branch)
-        case x =>
-          throw CoreException(s"solve($branch) is not currently supported for complex roots of a quadratic equation")
-      }
-    } else
-      throw CoreException(s"solve($branch) where branch is out of range for a quadratic equation.")
+  def solve(branch: Int): Solution = {
+    require(branch == 0 || branch == 1, "Quadratic has only 2 roots")
+
+    if (discriminant >= Rational.zero)
+      // Real roots
+      QuadraticSolution(RationalNumber(-p / 2), squareRoot(discriminant / 4), branch, false)
+    else
+      // Complex roots
+      QuadraticSolution(RationalNumber(-p / 2), squareRoot(-discriminant / 4), branch, true)
+  }
 
   /**
     * Shifts the origin of the equation by transforming its `p` and `q` components
@@ -154,7 +153,7 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     * This method applies a scaling operation on the instance using the provided
     * rational factor and returns the resulting scaled instance.
     *
-    * @param factor the rational number representing the scale factor
+    * @param x the rational number representing the scale factor
     * @return the scaled instance of type `T`
     */
   infix def *(x: Rational): Equation =

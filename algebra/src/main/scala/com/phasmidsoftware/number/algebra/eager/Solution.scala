@@ -9,7 +9,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
-import com.phasmidsoftware.number.core.inner.Factor
+import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.{algebra, core}
@@ -25,22 +25,15 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   /**
     * Returns the number of branches in `this`.
     *
-    * TODO implement this properly.
+    * CONSIDER implement this more generally.
+    * For the roots of quadratic equations, the number of branches is 2, since there are two possible solutions.
+    * But for nth roots, we would need to support more branches.
     *
     * `branches` corresponds to the number of possible solutions to some equation.
     *
     * @return the number of branches as an integer.
     */
-  def branches: Int = 1
-
-  /**
-    * Retrieves the branch at the specified index.
-    *
-    * @param index the index of the branch to retrieve, where the index starts from 0.
-    * @return the element of type `T` at the specified branch index.
-    *         If the index is out of range, the behavior is implementation-specific.
-    */
-  def branched(index: Int): Eager = ??? // TODO implement this properly.
+  def branches: Int = 2
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -52,6 +45,19 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     * @return the simplest `Valuable` representation of this value
     */
   def normalize: Complex = this // CONSIDER should this be a method on Complex?
+
+  /**
+    * Computes and returns the conjugate of the current `Solution` instance.
+    *
+    * The conjugate represents a value or transformation that is mathematically
+    * paired oppositely with the current instance based on the structure and
+    * properties of the `Solution` implementation.
+    *
+    * Normally, the `branch` of the conjugate, added to the current `branch` should equal `branches`.
+    *
+    * @return a new `Solution` instance representing the conjugate of the current instance
+    */
+  def conjugate: Solution = copy(complex = complex.conjugate)(None)
 
   /**
     * Method to render this `Valuable` for presentation to the user.
@@ -150,21 +156,69 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
 }
 
 /**
-  * Trait `Solution` extends the `Eager` trait and represents an eagerly evaluated solution, one of several possible solutions to an equation.
-  * It provides a mechanism to obtain the negation of the current solution.
-  *
-  * TODO once Can no longer extends Structure, let's extend CanNegate[Solution], CanAdd, etc. instead.
+  * Represents a `Solution` that is `Eager`, negatable, and branched with monotonic properties.
+  * This trait combines the characteristics of eagerly evaluated values, negatable structures,
+  * and entities with multiple branches (or solutions) represented by `Monotone`.
   */
-trait Solution extends Eager with Negatable[Solution] {
+trait Solution extends Eager with Negatable[Solution] with Branched[Rational] {
+
+  /**
+    * Computes and returns the conjugate of the current `Solution` instance.
+    *
+    * The conjugate represents a value or transformation that is mathematically
+    * paired oppositely with the current instance based on the structure and
+    * properties of the `Solution` implementation.
+    *
+    * Normally, the `branch` of the conjugate, added to the current `branch` should equal `branches`.
+    *
+    * @return a new `Solution` instance representing the conjugate of the current instance
+    */
+  def conjugate: Solution
 
   /**
     * Adds another `Solution` instance to the current instance, combining their effects or values
     * based on the implementation of the `+` operation in the `Solution` trait.
     *
+    * CONSIDER this should be defined in `CanAdd[Solution]` rather than `Solution`.
+    * Maybe we could achieve that by defining `Can` as a subtype of `Eager`, rather than of `Structure`.
+    *
     * @param other the `Solution` instance to add to the current instance
     * @return a new `Solution` instance representing the result of the addition
     */
   def +(other: Solution): Solution
+
+  /**
+    * Computes a rational value based on a given index, `k`, and the number of branches
+    * in a cyclic structure.
+    * This method is applicable only to quadratic solutions.
+    * If we ever are able to handle cubic, etc., solutions, we will need to define a more general method.
+    *
+    * @param k an integer representing the index in the cyclic sequence, where `k` must
+    *          be a non-negative number within the bounds of the branches.
+    *
+    * @return a `Rational` value corresponding to the quadratic offset coefficient
+    *         derived from the provided index and the cyclic properties of the structure.
+    */
+  def branched(k: Int): Rational = quadraticOffsetCoefficient(k, branches)
+
+  /**
+    * Computes the quadratic offset coefficient for a given index within a cyclic structure.
+    *
+    * The method maps the index `k` within the range {0, 1, ..., n-1} to an odd position
+    * in a `2n`-cycle and calculates a corresponding rational coefficient.
+    *
+    * @param k the index to map, where `k` is an integer in the range {0, 1, ..., n-1}
+    * @param n the total number of branches in the cycle, representing the size of the range
+    * @return the quadratic offset coefficient as a `Rational` value
+    */
+  private def quadraticOffsetCoefficient(k: Int, n: Int): Rational = if (k == 0) 1 else -1
+  // NOTE that I wanted to use something like below but that doesn't actually give the right answers.
+//  {
+// Map k ∈ {0, 1, ..., n-1} to odd positions in 2n cycle
+//    val position = 2 * k + 1  // gives {1, 3, 5, ..., 2n-1}
+//    Rational(position, 2 * n) - 1 // gives {-1/2, +1/2, ...}
+//  }
+
 }
 
 /**

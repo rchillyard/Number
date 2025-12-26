@@ -171,11 +171,11 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     * @return an optional `Factor`.
     */
   def maybeFactor(context: Context): Option[Factor] = solution match {
-    case QuadraticSolution(base, offset, branch) if offset.isZero =>
+    case QuadraticSolution(base, offset, branch, false) if offset.isZero =>
       base.maybeFactor(context)
-    case QuadraticSolution(base, offset, branch) if base.isZero =>
+    case QuadraticSolution(base, offset, branch, false) if base.isZero =>
       offset.maybeFactor(context)
-    case QuadraticSolution(base, offset, branch) =>
+    case QuadraticSolution(base, offset, branch, false) =>
       for {
         baseFactor <- base.maybeFactor(context)
         combinedFactor <- offset.maybeFactor(RestrictedContext(baseFactor))
@@ -183,7 +183,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     case LinearSolution(value) =>
       value.maybeFactor(context)
     case _ =>
-      None
+      None // TODO implement complex solutions
   }
 
   /**
@@ -494,7 +494,7 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
 object QuadraticRoot {
   def apply(solution: QuadraticSolution): QuadraticRoot = {
     solution match {
-      case QuadraticSolution(base: Q, offset: Q, branch) =>
+      case QuadraticSolution(base: Q, offset: Q, branch, false) =>
         QuadraticRoot(QuadraticEquation(base.toRational * -2, (base.toRational ∧ 2) - offset.toRational), branch)
       case _ =>
         throw AlgebraException(s"apply($solution) is not supported")

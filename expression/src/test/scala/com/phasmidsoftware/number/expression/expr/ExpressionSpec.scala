@@ -443,7 +443,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     println(s"simplified = $simplified")
     simplified.approximation().get.value === 0.61803398875
   }
-  // TODO Issue #140
   it should "evaluate - phi" in {
     val phi: Root = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi.negate
@@ -453,7 +452,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "Sum"
-  // TODO Issue #140
   it should "add pi to -pi" in {
     val x1 = ConstPi
     val x2 = ConstPi * MinusOne
