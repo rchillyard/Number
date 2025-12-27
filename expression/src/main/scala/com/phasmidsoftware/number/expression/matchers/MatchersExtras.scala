@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.expression.matchers
 
 import com.phasmidsoftware.matchers.Matchers.TildeOps
 import com.phasmidsoftware.matchers.{MatcherException, Matchers, ~}
-import scala.languageFeature.implicitConversions
 
 /**
   * This trait extends a set of Matchers which operate in a parallel fashion to the Parsers of the Scala

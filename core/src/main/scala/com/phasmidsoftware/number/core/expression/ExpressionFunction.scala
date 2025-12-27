@@ -87,7 +87,7 @@ object ExpressionMonoFunction {
     * @return an `Option` containing a tuple of the function `Number => Number` and the name `String` of the `ExpressionMonoFunction`, or `None` if the input is null.
     */
   def unapply(arg: ExpressionMonoFunction): Option[(String, Field => Field)] =
-    Some(arg.name, arg.f) // TESTME
+    Some((arg.name, arg.f)) // TESTME
 }
 
 /**
@@ -271,7 +271,7 @@ object ExpressionBiFunction {
     */
   def unapply(f: ExpressionBiFunction): Option[((Field, Field) => Field, String, Option[Field], Option[Field])] = f match {
     case e: ExpressionBiFunction =>
-      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
+      Some((e.f, e.name, e.maybeIdentityL, e.maybeIdentityR))
     case _ =>
       None // TESTME
   }

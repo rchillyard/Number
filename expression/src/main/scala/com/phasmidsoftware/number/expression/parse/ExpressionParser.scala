@@ -63,10 +63,10 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
       scala.util.Failure(ExpressionParserException(m))
   }
 
-
   /**
     * Transforms the value inside the provided `Try[Expression]` instance using the given function.
-    *
+    * CONSIDER this is unused.
+    * 
     * @param t a `Try[Expression]` containing either a successful value of type `Expression` or a failure
     * @param f a function that takes a value of type `Expression` and returns a transformed value of type `Expression`
     * @return a `Try[Expression]` containing the transformed value if `t` is successful, or the original failure if `t` is a failure
@@ -316,7 +316,8 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
 
   /**
     * Creates a new line followed by a specified level of indentation.
-    *
+    * CONSIDER unused.
+    * 
     * @param i the number of indentation levels to add after the new line,
     *          where each level corresponds to two spaces
     */

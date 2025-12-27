@@ -4,18 +4,11 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.core.Context
 import com.phasmidsoftware.number.algebra.eager.{Eager, Real}
-import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
-import com.phasmidsoftware.number.core.algebraic.LinearEquation
-import com.phasmidsoftware.number.core.expression.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Constants, Field}
-import com.phasmidsoftware.number.expression.algebraic.Equation
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.{CompositeExpression, UniFunction}
 import java.util.Objects

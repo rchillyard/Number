@@ -13,7 +13,6 @@ import com.phasmidsoftware.number.core.numerical.Constants.gamma
 import com.phasmidsoftware.number.core.numerical.Number.one
 import com.phasmidsoftware.number.core.numerical.{Complex, Constants, ExactNumber, Field, Number, Real}
 import java.util.Objects
-import scala.language.implicitConversions
 
 /**
   * An Expression that is based on one simple constant value.
@@ -406,7 +405,7 @@ object Literal {
     * @return an Option containing the extracted Field, or None if extraction is not possible.
     */
   def unapply(arg: Literal): Option[(Field, Option[String])] =
-    Some(arg.value, arg.maybeName)
+    Some((arg.value, arg.maybeName))
 
   /**
     * Creates a Literal instance using an integer value.

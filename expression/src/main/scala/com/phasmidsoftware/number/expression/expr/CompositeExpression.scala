@@ -886,6 +886,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Atomic)", this) // TESTME
     }
 
+  // TODO this is never called!
   private def matchProduct: em.MatchResult[Expression] = {
     val z: Option[Field] = for {
       x <- evaluateAsScalar(a)
@@ -1091,6 +1092,8 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * Combines a given `Expression`, an optional `Field`, and a `Context` into a new tuple containing an updated
     * optional field and context. The combination logic evaluates the expression within the given context, applying
     * transformations to the field and context when applicable.
+    * 
+    * CONSIDER this is never called
     *
     * @param x       the expression to be evaluated and combined with the field and context.
     * @param fo      an optional field representing a potential starting value or state that may be updated

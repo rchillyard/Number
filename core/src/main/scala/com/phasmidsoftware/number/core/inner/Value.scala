@@ -308,6 +308,7 @@ object Value {
     case ((x, true), _) => x
     case ((x, _), false) => x
     case (x, false) => x.toString() + "*"
+    // Needs a wildcard case
   }
 
   /**
@@ -320,6 +321,7 @@ object Value {
     * @param v the value.
     * @return `Some(List[Int](x))` or `Some(List[Rational](null,x))` or `Some(List[Double](null,null,x))` or `None`.
     */
+  @annotation.nowarn("msg=infer-any")
   def unapplySeq(v: Value): Option[List[Any]] = {
     val result = v match {
       case Right(x) => Some(List(x))

@@ -409,7 +409,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     }
 
   // TODO this needs more work and testing. For example, factors don't have to be the same.
-  private def multiply(solution: Solution): Option[Solution] =
+  def multiply(solution: Solution): Option[Solution] =
     solution match {
       case q: QuadraticSolution =>
         if (factor == q.factor) {

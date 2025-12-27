@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
-import algebra.ring.MultiplicativeGroup
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*

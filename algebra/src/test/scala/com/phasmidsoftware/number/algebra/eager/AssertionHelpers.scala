@@ -10,11 +10,11 @@ import org.scalatest.matchers.should.Matchers
 trait AssertionHelpers extends Matchers {
 
   def assertEq[T: Eq](x: T, y: T): Unit = {
-    Eq[T].eqv(x, y) shouldBe true
+    Eq[T].eqv(x, y) shouldBe true : Unit
   }
 
   def assertNotEq[T: Eq](x: T, y: T): Unit = {
-    Eq[T].eqv(x, y) shouldBe false
+    Eq[T].eqv(x, y) shouldBe false : Unit
   }
 
 }

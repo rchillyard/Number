@@ -16,6 +16,50 @@ ThisBuild / libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.5.23" % "runtime"
 )
 
+// ============================================================================
+// COMPILER OPTIONS - Moderate settings focused on catching + operator issues
+// ============================================================================
+
+// Common options for all Scala versions
+val commonScalacOptions = Seq(
+  "-encoding", "UTF-8",
+  "-unchecked",
+  "-deprecation",
+  "-feature"
+)
+
+// Scala 2.13-specific options
+val scala2Options = Seq(
+//  "-Xlint:_",                      // Enable all linting
+//  "-Ywarn-value-discard",          // Warn when non-Unit values are discarded
+//  "-Ywarn-unused:imports",         // Warn on unused imports
+//  "-Xfatal-warnings"               // Turn warnings into errors
+)
+
+// Scala 3-specific options - FOCUSED on catching string concatenation
+val scala3Options = Seq(
+  // CORE: These three are the minimum to catch the + operator issue
+//  "-Xfatal-warnings",              // Turn warnings into errors
+  "-Wvalue-discard",               // Error on discarded non-Unit values
+  "-Wnonunit-statement",           // Error when non-Unit expressions used as statements
+
+  // HELPFUL: Good practices that don't add much burden
+  "-explain",                      // Detailed error explanations
+  "-Wunused:imports",              // Catch unused imports
+  "-Wunused:privates",             // Catch unused private members
+  "-Wunused:locals"                // Catch unused local definitions
+)
+
+// Shared test settings for Scala 3 modules
+// Removes -Wnonunit-statement for tests because ScalaTest assertions return Assertion, not Unit
+val scala3TestSettings = Seq(
+  Test / scalacOptions := scalacOptions.value.filterNot(_ == "-Wnonunit-statement")
+)
+
+// ============================================================================
+// MODULE DEFINITIONS
+// ============================================================================
+
 lazy val root = (project in file("."))
     .aggregate(core, algebra, expression, parse, top)
     .settings(
@@ -24,8 +68,9 @@ lazy val root = (project in file("."))
 
 lazy val core = (project in file("core"))
     .settings(
-      // TODO Issue #146
       scalaVersion := "2.13.16",
+      scalacOptions ++= commonScalacOptions ++ scala2Options,
+
       libraryDependencies ++= Seq(
         "com.phasmidsoftware" %% "flog" % flogVersion,
         "com.phasmidsoftware" %% "matchers" % "1.0.11",
@@ -47,43 +92,59 @@ lazy val core = (project in file("core"))
 lazy val algebra = (project in file("algebra"))
     .settings(
       scalaVersion := "3.7.3",
-      // NOTE: we need to use the 0.18.0 version of Spire for Scala 3.7.3
-//      libraryDependencies ++= Seq(
-//        "org.typelevel" %% "spire" % "0.18.0",
-//      )
-    ).dependsOn(core)
+      scalacOptions ++= commonScalacOptions ++ scala3Options
+    )
+    .settings(scala3TestSettings)
+    .dependsOn(core)
 
 lazy val expression = (project in file("expression"))
     .settings(
       scalaVersion := "3.7.3",
-    ).dependsOn(core, algebra)
+      scalacOptions ++= commonScalacOptions ++ scala3Options
+    )
+    .settings(scala3TestSettings)
+    .dependsOn(core, algebra)
 
 lazy val parse = (project in file("parse"))
     .settings(
       scalaVersion := "3.7.3",
+      scalacOptions ++= commonScalacOptions ++ scala3Options,
+
       libraryDependencies ++= Seq(
         "com.lihaoyi" %% "fastparse" % "3.1.1"
       )
-    ).dependsOn(core, algebra, expression)
+    )
+    .settings(scala3TestSettings)
+    .dependsOn(core, algebra, expression)
 
 lazy val top = (project in file("top"))
     .settings(
       scalaVersion := "3.7.3",
-    ).dependsOn(core, algebra, expression, parse)
+      scalacOptions ++= commonScalacOptions ++ scala3Options
+    )
+    .settings(scala3TestSettings)
+    .dependsOn(core, algebra, expression, parse)
 
-scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation")
+// ============================================================================
+// GLOBAL SETTINGS
+// ============================================================================
 
 Test / parallelExecution := false
 
-// NOTE: if you reinstate these directories, you will need to manage the large crimes file (see code).
-//Test / unmanagedSourceDirectories += baseDirectory.value / "src/it/scala"
-//Test / unmanagedResourceDirectories += baseDirectory.value / "src/it/resources"
-
-//resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
-
-//scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-source:future-migration", "-rewrite", "-Vprint:typer")
-
-//Compile / excludeFilter := {
-//  val default = (Compile / excludeFilter).value
-//  default || new SimpleFileFilter(_.getPath.contains("com/phasmidsoftware/number3/cats"))
-//}
+// ============================================================================
+// USAGE NOTES
+// ============================================================================
+// This moderate configuration focuses on catching the rogue + operator issue
+// without being overly strict about other things.
+//
+// The critical options for catching string concatenation are:
+// 1. -Xfatal-warnings: Makes all warnings into compilation errors (currently disabled)
+// 2. -Wvalue-discard: Catches when values are silently discarded
+// 3. -Wnonunit-statement: Catches non-Unit expressions used as statements
+//
+// The -Wnonunit-statement option is filtered out for test code (scala3TestSettings)
+// because ScalaTest's assertions return Assertion, not Unit, and having multiple
+// assertions in a test would trigger warnings.
+//
+// To re-enable fatal warnings, uncomment the -Xfatal-warnings line in scala3Options.
+// ============================================================================

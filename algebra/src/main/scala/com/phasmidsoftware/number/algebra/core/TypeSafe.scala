@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.algebra.core
 
-import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, Nat, Structure}
 
 /**

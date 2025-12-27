@@ -446,8 +446,8 @@ object InversePower {
     }
   }
 
-  private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Logarithm, e: B): Try[Z] =
-    FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
+//  private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Logarithm, e: B): Try[Z] =
+//    FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 
   /**
     * Represents the multiplicative identity for roots.

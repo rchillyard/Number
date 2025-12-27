@@ -44,7 +44,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
 
   it should "normalize WholeNumber + RationalNumber correctly" in {
     // 2 + 1/2 = 5/2 (stays as RationalNumber)
-    val two = WholeNumber(2)
+//    val two = WholeNumber(2)
     val half = RationalNumber(Rational(1, 2))
 
     val sum = Rational.two + half.r
@@ -52,7 +52,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
 
     result shouldBe a[RationalNumber]
     result.asInstanceOf[RationalNumber].r shouldBe Rational(5, 2)
-  }
+  } : Unit
 
   behavior of "normalize in multiplication operations"
 

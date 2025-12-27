@@ -10,7 +10,6 @@ import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, t
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
 import com.phasmidsoftware.number.core.misc.FP._
 import com.phasmidsoftware.number.core.numerical.{Field, Fuzziness, Number, Real}
-import scala.language.implicitConversions
 import scala.util._
 
 /**
@@ -520,6 +519,8 @@ sealed trait Logarithmic extends Factor {
         case _ =>
           None // Not yet implemented
       }
+      case _ =>
+      None // TESTME
   }
 
   /**
@@ -1684,7 +1685,7 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
 }
 
 /**
-  * The `Composite` object represents a composite factor which cannot be reduced to a unique factor. 
+  * The `Composite` object represents a composite factor which cannot be reduced to a unique factor.
   * It is used essentially as a placeholder for `Eager` values such as `Algebraic`s.
   */
 case object Composite extends Factor {

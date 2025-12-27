@@ -136,7 +136,7 @@ object Monotone {
   import org.slf4j.{Logger, LoggerFactory}
   import scala.util.Try
 
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
+//  private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   given DyadicOperator[Monotone] = new DyadicOperator[Monotone] {
     def op[B <: Monotone, Z](f: (Monotone, B) => Try[Z])(x: Monotone, y: B): Try[Z] = (x, y) match {

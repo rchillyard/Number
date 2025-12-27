@@ -240,8 +240,6 @@ object Eager {
   import org.slf4j.{Logger, LoggerFactory}
   import scala.util.Try
 
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
-
   /**
     * Provides an implementation of the `DyadicOperator` trait for the `Eager` type,
     * enabling dyadic operations to be performed on `Eager` operands or their subtypes.
@@ -282,11 +280,11 @@ object Eager {
         f(x, y)
     }
 
-    private def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
-      Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {
-        case m: Monotone => m
-        case _ => throw AlgebraException(s"convertToMonotone: unexpected value: $value")
-      }
+//    def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
+//      Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {
+//        case m: Monotone => m
+//        case _ => throw AlgebraException(s"convertToMonotone: unexpected value: $value")
+//      }
   }
 
   /**

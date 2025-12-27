@@ -5,7 +5,6 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}

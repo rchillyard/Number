@@ -220,7 +220,6 @@ object Algebraic {
   implicit val algebraicLatexRenderer: LatexRenderer[Algebraic] = LatexRenderer.instance {
     case q: QuadraticSolution => q.toLatex
     case l: LinearSolution => l.toLatex
-    case a => a.render // Fallback to render method
   }
 }
 
@@ -463,7 +462,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
 //          } yield Algebraic(x, branch = a.branch)
 //        }
 //        else
-        None  // TESTME
+//        None  // TESTME
 //    }
 //  }
 
@@ -502,7 +501,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
 //          } yield Algebraic(x, branch = a.branch)
 //        }
 //        else
-        None  // TESTME
+//        None  // TESTME
 //    }
 
   /**

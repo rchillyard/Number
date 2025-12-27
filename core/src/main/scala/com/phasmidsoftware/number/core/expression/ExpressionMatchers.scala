@@ -154,6 +154,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           case Some(y) => fx.canRaise(fy, y)
           case _ => false
         }
+      case _ => 
+        false // TESTME
     }).contains(true)
 
   /**
@@ -265,8 +267,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           x => Math.abs(x)
         case Product =>
           x => if (x < 1) 1 / x else x
-        case Power =>
-          throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
+        case _ =>
+          throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: $f function not supported")
       }
       val sortFunction: Expression => Double =
         x => invertFunction(x.approximation.flatMap(_.maybeDouble) getOrElse Double.NaN)

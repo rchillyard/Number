@@ -291,7 +291,7 @@ trait ExactNumber extends Number with Exact with Q with CanPower[ExactNumber] {
   */
 object Number {
 
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
+//  private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   /**
     * Provides a `DyadicOperator` instance for the `Number` type. This instance

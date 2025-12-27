@@ -484,7 +484,7 @@ object Algebraic_Quadratic {
     *         its quadratic representation, and a boolean indicating a specific property.
     */
   def unapply(equation: Algebraic_Quadratic): Option[(Option[String], Quadratic, Boolean)] =
-    Some(equation.maybeName, equation.equation, equation.pos)
+    Some((equation.maybeName, equation.equation, equation.pos))
 
   /**
     * Constructs an `Algebraic_Quadratic` from a given `QuadraticSolution`.

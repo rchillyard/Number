@@ -74,9 +74,7 @@ trait Structure extends Eager {
   * to facilitate operations on `Structure` objects.
   */
 object Structure {
-
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
-
+  
   // CONSIDER do we need this?
   given DyadicOperator[Structure] = new DyadicOperator[Structure] {
     def op[B <: Structure, Z](f: (Structure, B) => Try[Z])(x: Structure, y: B): Try[Z] = (x, y) match {

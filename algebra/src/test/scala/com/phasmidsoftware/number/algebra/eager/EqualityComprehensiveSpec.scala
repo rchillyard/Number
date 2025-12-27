@@ -305,7 +305,7 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
     val real: eager.Number = Real(5.0, None)
 
     if ((w === r) && (r === real)) {
-      (w === real) shouldBe true  // Add explicit assertion
+      (w === real) shouldBe true : Unit // Add explicit assertion
     }
   }
 
@@ -315,7 +315,7 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
     val real = Real(5.0, None)
 
     if ((w ~== r) && (r ~== real)) {
-      (w ~== real) shouldBe true
+      (w ~== real) shouldBe true : Unit
     }
   }
 

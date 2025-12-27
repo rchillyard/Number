@@ -385,6 +385,8 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     * Matches the given `Valuable` instance and attempts to simplify its representation
     * into an `Expression`. This involves wrapping the `Valuable` in a `Literal` and
     * applying atomic simplification transformations.
+    * 
+    * CONSIDER this is never invoked
     *
     * @param eager the `Valuable` to match and simplify.
     * @return a `MatchResult` containing the resulting `Expression`.
