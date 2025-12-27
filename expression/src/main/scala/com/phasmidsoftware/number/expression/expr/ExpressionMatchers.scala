@@ -122,8 +122,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Match(w)
     case f ~ x ~ y =>
       complementaryFields(f, x, y) match {
-        case Some(z) => Match(z)
-        case None => Miss("matchComplementaryExpressions: no match", f ~ x ~ y)
+        case Some(z) =>
+          Match(z)
+        case None =>
+          Miss("matchComplementaryExpressions: no match", f ~ x ~ y)
       }
   }
 

@@ -15,7 +15,7 @@ import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, √}
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
-import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, matchSimpler, zero}
+import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, matchSimpler, zero}
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -740,13 +740,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     pending
   }
   // TODO Issue #140
-  ignore should "match expression Power" in {
+  it should "match expression Power" in {
     val root3 = Expression(3).sqrt
     //        em.factorsMatch(Power, ConstPi, MinusOne) shouldBe true
-    em.factorsMatch(Power, MinusOne, ConstPi) shouldBe true
-    em.factorsMatch(Power, root3, Two) shouldBe true
-    em.factorsMatch(Power, Literal(root2), MinusOne) shouldBe false
-    em.factorsMatch(Power, MinusOne, Literal(root2)) shouldBe false
+//    em.factorsMatch(Power, MinusOne, ConstPi) shouldBe true
+//    em.factorsMatch(Power, root3, Two) shouldBe true
+//    em.factorsMatch(Power, Literal(root2), MinusOne) shouldBe false
+//    em.factorsMatch(Power, MinusOne, Literal(root2)) shouldBe false
+    pending
   }
 
   behavior of "simplify aggregate, etc."
@@ -773,19 +774,24 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result: Valuable = x.simplify.materialize
     result should matchPattern { case Eager.one => }
   }
-  // This appears to be fixed Issue #87
-  // TODO Issue #140
-  ignore should "simplify aggregate 1a" in {
-    val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
-    val result = target.simplify.materialize
-    result shouldBe Angle.zero
-    //    val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
-    //    result match {n
-    //      case em.Match(x: Field) =>
-    //        convertToNumber(x) shouldBe expected
-    //      case _ => fail("expected a Field")
-    //    }
+  it should "evaluate to Angle.zero" in {
   }
+  // TODO Issue #140
+  it should "simplify aggregate 1a" in {
+    // NOTE: this does not create a Aggregate but instead creates a BiFunction and succeeds.
+    val biFunction: Expression = BiFunction(ConstPi, -ConstPi, Sum)
+    val literalAngleZero: Expression = biFunction.simplify
+    literalAngleZero shouldBe Literal(Angle.zero)
+    literalAngleZero.materialize shouldBe Angle.zero
+
+    // XXX: this part of the test is not working yet (it appears to be unique to Aggregate).
+    // It must be in the complementary terms evaluator.
+    val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
+    val simplify = target.simplify
+//    simplify.materialize shouldBe Angle.zero
+    pending
+  }
+
   // TODO Issue #140
   ignore should "simplify aggregate 2a" in {
     val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
