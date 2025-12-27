@@ -138,6 +138,8 @@ object Eager {
   lazy val negInfinity: Eager = RationalNumber(Rational.negInfinity)
   lazy val root2: Eager = new InversePower(2, 2)(Some("√2"))
   lazy val root3: Eager = new InversePower(2, 3)(Some("√3"))
+  lazy val phi: Eager = QuadraticSolution.phi
+  lazy val psi: Eager = QuadraticSolution.psi
 
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed

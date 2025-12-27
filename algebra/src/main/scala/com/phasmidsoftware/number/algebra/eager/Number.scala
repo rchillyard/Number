@@ -40,6 +40,42 @@ trait Number extends Scalar with Ordered[Scalar] {
   def normalize: Number
 
   /**
+    * Multiplies the current number with another number using the defined multiplicative group.
+    *
+    * @param other The number to be multiplied with the current number.
+    * @return The result of the multiplication as a number.
+    */
+  def *(other: Number): Number =
+    summon[MultiplicativeGroup[Number]].multiplicative.combine(this, other)
+
+  /**
+    * Adds this `Number` instance to another `Number` instance and returns the result.
+    *
+    * CONSIDER: there is an alternative way of adding Numbers and that is to summon an commutative addend. Which should we be using?
+    * This method allows for appropriate conversions whereas the other method does not.
+    *
+    * The addition is performed based on the types of the two `Number` instances:
+    * - If both are `WholeNumber`, their values are added directly.
+    * - If one is a `RationalNumber` and the other is an `ExactNumber`, the `ExactNumber` is converted to match the type of the `RationalNumber` before addition.
+    * - If one is a `Real`, an attempt is made to convert the other number to match the type of the `Real` before addition.
+    * - For unsupported or invalid type combinations, an `AlgebraException` is thrown.
+    *
+    * @param other the `Number` instance to add to this instance
+    * @return a `Number` instance representing the sum of this instance and the provided `other` instance
+    * @throws AlgebraException if the addition cannot be performed due to unsupported or invalid type combinations
+    */
+  def +(other: Number): Number = (this, other) match {
+    case (a: WholeNumber, b: WholeNumber) =>
+      a + b
+    case (a: RationalNumber, b: ExactNumber) =>
+      b.convert(a).map(a + _).getOrElse(throw AlgebraException(s"Number.+: logic error: RationalNumber: $this + $other"))
+    case (a: Real, b) =>
+      b.convert(a).map(a + _).getOrElse(throw AlgebraException(s"Number.+: logic error: Real: $this + $other"))
+    case _ =>
+      throw AlgebraException(s"Number.+: logic error: $this + $other")
+  }
+
+  /**
     * Attempts to obtain a `Factor` representation in a specific `Context`.
     *
     * A `Factor` could represent entities like `PureNumber`, `Radian`, etc., that

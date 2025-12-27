@@ -1684,6 +1684,134 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
 }
 
 /**
+  * The `Composite` object represents a composite factor which cannot be reduced to a unique factor. 
+  * It is used essentially as a placeholder for `Eager` values such as `Algebraic`s.
+  */
+case object Composite extends Factor {
+  /**
+    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    * CONSIDER redefining this as a Number (which could be exact or fuzzy).
+    */
+  val value: Double = 0
+
+  /**
+    * Determines whether the current scalar can be exactly converted to a PureNumber.
+    *
+    * @return true if the scalar represents an exact value; false otherwise.
+    */
+  def isExact: Boolean = false
+
+  /**
+    * Determines whether the current factor can be multiplied by the given factor.
+    * CONSIDER do we need this method now that we have multiply(x, y, this)?
+    *
+    * @param f the factor to be checked for compatibility with multiplication.
+    * @return true if the factors can be multiplied; false otherwise.
+    */
+  def canMultiply(f: Factor): Boolean = false
+
+  /**
+    * Modulates the given value according to the context or rules defined by this factor.
+    *
+    * @param v the value to be modulated
+    * @return the modulated value
+    */
+  def modulate(v: Value): Value = v
+
+  /**
+    * Determines if the current factor operates additively.
+    *
+    * CONSIDER rewriting in terms of canAdd
+    *
+    * @return true if the factor is additive; false otherwise.
+    */
+  def isAdditive: Boolean = false
+
+  /**
+    * Determines if the current factor satisfies certain conditions within the given context.
+    *
+    * @param context the context in which the factor is evaluated.
+    * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+    */
+  def isA(context: CoreContext): Boolean = false
+
+  /**
+    * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
+    * If the factors are incompatible, then None will be returned.
+    *
+    * NOTE: only Scalar<->Scalar, NthRoot<->NthRoot or Logarithmic<->Logarithmic conversions can be effected.
+    *
+    * @param v the value to be converted.
+    * @param f the factor of the result.
+    * @return an optional Value which, given factor f, represents the same quantity as v given this.
+    */
+  def convert(v: Value, f: Factor): Option[Value] = None
+
+  /**
+    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    *
+    * @return true if this `Factor` can be rendered exactly; false otherwise.
+    */
+  def canShow(value: Value): Boolean = false
+
+  /**
+    * Method to render a Value (which has already been converted to a String) in the context of this Factor.
+    *
+    * @param v a String representing the Value.
+    * @return a String.
+    */
+  def render(v: String): String = s"Composite: $v"
+
+  /**
+    * Computes the negation of the given value `x` within the context of this factor.
+    *
+    * @param x the value to negate
+    * @return an optional `ProtoNumber` representing the negated value, or `None` if the operation is not valid
+    */
+  def negate(x: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+
+  /**
+    * Computes the multiplicative inverse of the given value if it exists.
+    *
+    * @param x the value to be inverted
+    * @return an optional `ProtoNumber` representing the inverse of `x`,
+    *         or `None` if the inverse cannot be computed
+    */
+  def invert(x: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+
+  /**
+    * Attempts to add two values together (each based on `this Factor`) and computes an appropriate factor for the result.
+    *
+    * @param x        the first value
+    * @param y        the addend
+    * @param f        the factor associated with y
+    * @param negative true if the y value has negative sense (this is relevant for some factors such as SquareRoot).
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+
+  /**
+    * Multiplies two values together and computes an appropriate factor for the result.
+    *
+    * @param x the first value
+    * @param y the multiplicand
+    * @param f the factor associated with y
+    * @return an optional tuple containing the resultant value and its factor
+    */
+  def multiply(x: Value, y: Value, f: Factor): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+
+  /**
+    * Raises the value `x` to the power of the value `y`.
+    *
+    * @param x the base value to be raised
+    * @param y the exponent value (from a PureNumber)
+    * @return an optional result of type `ProtoNumber`,
+    *         representing the computed value if the operation is valid, or `None` otherwise
+    */
+  def doRaiseByPureNumber(x: Value, y: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+}
+
+/**
   * An object that provides a mechanism to map input strings to specific factors such as Radian, NatLog, or PureNumber.
   * It acts as a factory for creating instances of the `Factor` sealed trait.
   *

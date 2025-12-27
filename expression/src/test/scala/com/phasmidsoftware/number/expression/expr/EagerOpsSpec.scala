@@ -379,7 +379,7 @@ class EagerOpsIntegrationSpec extends AnyFlatSpec with Matchers {
     // = 8
     val r1 = RationalNumber(4, 2)
     val r2 = Rational(6, 3)
-    val result = (r1 + r2) * WholeNumber(2)
+    val result = ((r1 + r2) * WholeNumber(2)).normalize
 
     result shouldBe WholeNumber(8)
   }

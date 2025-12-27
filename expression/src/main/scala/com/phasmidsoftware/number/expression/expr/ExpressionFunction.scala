@@ -704,6 +704,8 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
       } yield r + z
       q.asInstanceOf[Option[Eager]]
       // TODO implement for (Number, Angle)
+    case (x: Algebraic, y: Algebraic) =>
+      x.add(y)
     case (x: CanAdd[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       import com.phasmidsoftware.number.algebra.eager.Number.NumberIsAdditiveCommutativeMonoid
       Some(x + y)

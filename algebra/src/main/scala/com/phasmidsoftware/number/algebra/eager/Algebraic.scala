@@ -14,7 +14,7 @@ import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRende
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.fromRational
-import com.phasmidsoftware.number.core.inner.{DyadicOperationPlus, Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{Composite, DyadicOperationPlus, Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.ExactNumber
 import org.slf4j.{Logger, LoggerFactory}
@@ -85,13 +85,15 @@ sealed trait Algebraic extends Solution with Zeroable with Scalable[Algebraic] {
     * @return an `Option` containing the resulting `Algebraic` if the addition is successful,
     *         or `None` if the addition cannot be performed
     */
-  def add(solution: Algebraic): Option[Algebraic]
+  def add(solution: Algebraic): Option[Eager]
 
   /**
     * Determines the factor associated with this solution based on certain conditions.
     * If the solution is a pure number, it returns `Some(PureNumber)`.
     * If the base value of the solution is zero, it returns `Some(factor)`.
     * Otherwise, it returns `None`.
+    *
+    * CONSIDER invoke `normalize` and then apply `maybeFactor` to the result.
     *
     * @return an `Option` of type `Factor`, where `Some` may contain the factor
     *         depending on the conditions, or `None` if no factor is applicable
@@ -105,10 +107,7 @@ sealed trait Algebraic extends Solution with Zeroable with Scalable[Algebraic] {
       case (x, y) if x.isZero =>
         y.maybeFactor(context)
       case (x, y) =>
-        for {
-          bf <- x.maybeFactor(context)
-          of <- y.maybeFactor(RestrictedContext(bf))
-        } yield of
+        Some(Composite)
     }
 
   /**
@@ -361,18 +360,6 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
   def signum: Int = toDouble.sign.toInt // CHECK
 
   import scala.language.implicitConversions
-//
-//  /**
-//    * Converts a given `Number` into a `Field`.
-//    *
-//    * TODO change this method to be non-implicit. Implicit conversions are evil.
-//    * Don't forget to remove the implicitConversions flag from other sources.
-//    *
-//    * @param x the `Number` to be converted into a `Field`.
-//    * @return a `Field` representation of the provided `Number`.
-//    */
-//  implicit def convertFromNumber(x: Number): Field =
-//    Real(x)
 
   /**
     * Attempts to compute an approximate representation of the current value.
@@ -428,7 +415,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
     * @return a new `Solution` representing the sum of this quadratic solution and the specified solution
     * @throws AlgebraException if the addition with the specified solution is unsupported or leads to an error
     */
-  def +(other: Solution): Solution = other match {
+  def +(other: Solution): Eager = other match {
     case algebraic: Algebraic =>
       FP.recover(add(algebraic))(AlgebraException(s"QuadraticSolution: +($other) not supported"))
     case _ =>
@@ -444,17 +431,24 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
     * @param solution the solution to be added to the current solution
     * @return an Option containing the resulting solution after the addition if the conditions are met, or None otherwise
     */
-  def add(solution: Algebraic): Option[Algebraic] = {
-    (isPureNumber, solution.isPureNumber) match {
-      case (true, true) =>
-        copy(base = sumBases(base, solution.base))
-      case _ =>
-        None
-    }
-
-    // XXX match not exhaustive
-    solution match {
-      case q: QuadraticSolution =>
+  def add(solution: Algebraic): Option[Eager] = (this, solution) match {
+    case (x@QuadraticSolution(bx: Number, ox, nx, ix), y@QuadraticSolution(by: Number, oy, ny, iy)) if ox === oy && nx != ny && ix === iy =>
+      Some((bx + by).normalize)
+    // TODO add more cases (see commented code below)
+    case _ =>
+      None
+  }
+//  def add(solution: Algebraic): Option[Algebraic] = {
+//    (isPureNumber, solution.isPureNumber) match {
+//      case (true, true) =>
+//        copy(base = sumBases(base, solution.base))
+//      case _ =>
+//        None
+//    }
+//
+//    // XXX match not exhaustive
+//    solution match {
+//      case q: QuadraticSolution =>
 //        if (maybeFactor(AnyContext.asInstanceOf[Context]) == q.factor) {
 //          // CONSIDER should we be using z here?
 //          val (a, b, z) = (branch, q.branch) match {
@@ -470,14 +464,30 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
 //        }
 //        else
         None  // TESTME
-    }
-  }
+//    }
+//  }
 
-  // TODO this needs more work and testing. For example, factors don't have to be the same.
-  private def multiply(solution: Algebraic): Option[Algebraic] =
+  // TODO this needs more work and testing.
+  def multiply(solution: Algebraic): Option[Eager] = (this, solution) match {
+    case (x@QuadraticSolution(bx: Number, ox@InversePower(2, px), nx, false), y@QuadraticSolution(by: Number, oy@InversePower(2, py), ny, false)) if px == py =>
+      val rx = RationalNumber(x.branched(nx))
+      val ry = RationalNumber(y.branched(ny))
+      val b1: Number = bx * by
+      val b2: Number = bx * ry
+      val b3: Number = by * rx
+      val bb = b2 + b3
+      val o = if (bb.isZero) Number.zero else InversePower(2, bb * bb)
+      val pr = px * rx * ry
+      val b = b1 + pr
+      val q: Eager = QuadraticSolution(b, o, 0, false).normalize
+      Some(q)
+    // TODO add more cases (see commented code below)
+    case _ =>
+      None
+  }
     // XXX match not exhaustive
-    solution match {
-      case q: QuadraticSolution =>
+//    solution match {
+//      case q: QuadraticSolution =>
 //        if (factor == q.factor) {
 //          // CONSIDER should we be using z here?
 //          val (a, b, z) = (branch, q.branch) match {
@@ -493,7 +503,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
 //        }
 //        else
         None  // TESTME
-    }
+//    }
 
   /**
     * Scales the quadratic solution using a given rational factor.
@@ -763,7 +773,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     * @return the resulting `Solution` of the addition if supported
     * @throws AlgebraException if the operation is not valid for the given `Solution`
     */
-  def +(other: Solution): Solution = other match {
+  def +(other: Solution): Eager = other match {
     case linear: LinearSolution =>
       FP.recover(add(linear))(AlgebraException(s"LinearSolution: +($other) not supported"))
     case _ =>
@@ -780,7 +790,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     * @return an optional solution representing the sum of the current solution
     *         and the given solution, or None if the operation is not valid
     */
-  def add(solution: Algebraic): Option[Algebraic] = ???
+  def add(solution: Algebraic): Option[Eager] = ???
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Algebraic` as the result.

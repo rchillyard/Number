@@ -250,6 +250,18 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
     result.asInstanceOf[QuadraticSolution].base shouldBe WholeNumber(2)
   }
 
+  behavior of "QuadraticSolution.add(Solution)"
+
+  it should "add phi to psi" in {
+    QuadraticSolution.phi.add(QuadraticSolution.psi) shouldBe Some(WholeNumber.one)
+  }
+
+  behavior of "QuadraticSolution.multiply(Solution)"
+
+  it should "multiply phi by psi" in {
+    QuadraticSolution.phi.multiply(QuadraticSolution.psi) shouldBe Some(WholeNumber.minusOne)
+  }
+
   behavior of "QuadraticSolution.*(Rational)"
 
   it should "scale both base and offset when both are scalars" in {

@@ -113,7 +113,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     */
   def negate: Solution = Complex(complex.rotate.rotate)()
 
-  def +(other: Solution): Solution = other match {
+  def +(other: Solution): Eager = other match {
     case Complex(c) =>
       Complex((complex + c).asInstanceOf[numerical.Complex])()
     case _ => throw new UnsupportedOperationException(s"Complex.+(Solution): unexpected input: $this and $other")
@@ -186,7 +186,7 @@ trait Solution extends Eager with Negatable[Solution] with Branched[Rational] {
     * @param other the `Solution` instance to add to the current instance
     * @return a new `Solution` instance representing the result of the addition
     */
-  def +(other: Solution): Solution
+  def +(other: Solution): Eager
 
   /**
     * Computes a rational value based on a given index, `k`, and the number of branches

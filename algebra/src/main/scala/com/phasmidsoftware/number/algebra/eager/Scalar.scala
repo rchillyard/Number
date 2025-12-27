@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
+import algebra.ring.MultiplicativeGroup
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
@@ -26,7 +27,6 @@ import scala.reflect.ClassTag
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Scalar` object.
   */
 trait Scalar extends Monotone {
-
   /**
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
     * This method checks if both instances can be compared exactly.

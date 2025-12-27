@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, QuadraticSolution, RationalNumber, Structure}
 import com.phasmidsoftware.number.algebra.util.FP
@@ -549,8 +549,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     val cLeft = f.leftContext(context)
     val eo = for {
       x <- a.evaluate(cLeft)
-      factor <- x.maybeFactor(cLeft)
-      cRight = f.rightContext(factor)(context)
+      cRight <- x.maybeFactor(cLeft).map(q => f.rightContext(q)(context)) // XXX Don't split this up.
       y <- b.evaluate(cRight)
       z <- f.applyExact((x, y))
     } yield z
