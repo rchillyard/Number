@@ -30,7 +30,7 @@ import scala.util.{Failure, Success, Try}
   *
   * CONSIDER it is inappropriate to include branch in `Algebraic`. A `Algebraic` should be a unique solution.
   */
-sealed trait Algebraic extends Solution with Zeroable with Scalable[Algebraic] {
+sealed trait Algebraic extends Solution with Zeroable with Unitary with Scalable[Algebraic] {
   /**
     * Retrieves the base value of the solution.
     *
@@ -61,13 +61,6 @@ sealed trait Algebraic extends Solution with Zeroable with Scalable[Algebraic] {
     * @return true if the solution is a pure number, false otherwise
     */
   def isPureNumber: Boolean
-
-  /**
-    * Determines whether the solution represents unity.
-    *
-    * @return true if the solution represents unity, false otherwise
-    */
-  def isUnity: Boolean
 
   /**
     * Adds a `Rational` value to the current solution and returns a new `Algebraic` as the result.
@@ -382,7 +375,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
         x <- base.convert(Real.one)
         y <- offset.convert(Real.one)
         z <- y.scale(branched(branch)).convert(Real.one)
-      } yield x + z
+      } yield (x + z).normalize
     )
 
   /**

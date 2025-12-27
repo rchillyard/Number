@@ -182,11 +182,11 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   def render: String = maybeName getOrElse {
     val value = normalize.number
     if (degrees)
-      value.scale(r180).render + "°"
+      value.scale(r180).render + "°" // CONSIDER switching to interpolation
     else {
       val prefix = value.render
       val suffix = "𝛑"
-      (if prefix == "1" then "" else prefix) + suffix
+      (if prefix == "1" then "" else prefix) + suffix // CONSIDER switching to interpolation
     }
   }
 

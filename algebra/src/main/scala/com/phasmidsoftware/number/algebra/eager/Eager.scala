@@ -44,10 +44,12 @@ trait Eager extends Valuable with Approximate with DyadicOps {
   def maybeName: Option[String]
 
   /**
-    * Normalizes this `Eager` to its simplest equivalent form.
-    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    * Normalizes the current instance of `Eager`.
+    * This operation ensures that the instance is in its standard or canonical form.
+    * Be very wary of changing the way normalization works!
+    * One place that we don't routinely normalize (maybe we should) is in the Eq and FuzzyEq comparisons.
     *
-    * @return the simplest representation of this value that is a subtype of `Eager`.
+    * @return the normalized instance of `Eager` as `Self`
     */
   def normalize: Eager
 
@@ -237,7 +239,6 @@ object Eager {
     */
   implicit def convRationalEager(x: Rational): Eager = RationalNumber(x)
 
-  import org.slf4j.{Logger, LoggerFactory}
   import scala.util.Try
 
   /**

@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.algebra.core
 
 import algebra.ring.*
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.eager.{ExactNumber, RationalNumber, Structure, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{ExactNumber, Structure}
 import com.phasmidsoftware.number.core.inner.Rational
 import scala.reflect.ClassTag
 
@@ -204,7 +204,7 @@ trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] 
     * @return the reciprocal of the given value `t`, computed within the rules of the provided `MultiplicativeGroup[T]`
     */
   def reciprocal(using MultiplicativeGroup[T]): T =
-    mg.reciprocal(asT)
+    mg.reciprocal(asT) // NOTE not normalized
 
   /**
     * Divides the current instance by the given value `that` within the context of a `MultiplicativeGroup[T]`.
@@ -213,7 +213,7 @@ trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] 
     * @return the result of the division, computed as per the rules defined by the `MultiplicativeGroup[T]`
     */
   def /(that: T)(using MultiplicativeGroup[T]): T =
-    mg.div(asT, that)
+    mg.div(asT, that) // NOTE not normalized
 
   /**
     * Returns the implicit `MultiplicativeGroup[T]` for the type `T`.

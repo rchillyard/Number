@@ -774,8 +774,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result: Valuable = x.simplify.materialize
     result should matchPattern { case Eager.one => }
   }
-  it should "evaluate to Angle.zero" in {
-  }
   // TODO Issue #140
   it should "simplify aggregate 1a" in {
     // NOTE: this does not create a Aggregate but instead creates a BiFunction and succeeds.
@@ -1566,6 +1564,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z.successful shouldBe true
     z.get shouldBe zero
   }
+
+  it should "evaluate to Angle.zero" in {
+    val maybeExpression = ExpressionMatchers.complementaryExpressions(Sum, ConstPi, -ConstPi)
+    maybeExpression shouldBe Some(Literal(Angle.zero))
+  }
+
 }
 
 case class SBLogger(override val logLevel: LogLevel, sb: StringBuilder) extends MatchLogger(logLevel, { w => sb.append(s"$w\n"); () })

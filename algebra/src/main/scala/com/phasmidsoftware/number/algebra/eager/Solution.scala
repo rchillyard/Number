@@ -121,7 +121,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
 
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (Complex(a), Complex(b)) =>
-      Success(a == b)
+      Success(a.normalize == b.normalize)
     case _ =>
       Failure(AlgebraException(s"Complex.eqv: unexpected input: $this and $that"))
   }

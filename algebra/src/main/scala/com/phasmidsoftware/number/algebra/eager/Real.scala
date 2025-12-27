@@ -65,6 +65,13 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
   def maybeQ: Option[Q] = Rational.createExact(value).toOption.map(RationalNumber(_))
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = isExact && value == 1.0
+
+  /**
     * Determines whether this `Valuable` is exact, i.e., has no fuzz.
     *
     * The method returns `true` if there is no approximate representation
@@ -324,6 +331,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
 
   /**
     * Scales the current scalar instance by the specified rational factor.
+    * NOTE no normalization is performed or required.
     *
     * @param r the `Rational` factor by which to scale the scalar
     * @return a new `Scalar` instance representing the scaled value
@@ -366,6 +374,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
 
   /**
     * Determines whether this instance is equivalent to another instance of type `Eager`.
+    * NOTE: no normalization is performed or required.
+    *
     *
     * @param that The instance of `Eager` to compare with this instance.
     * @return A `Try[Boolean]` indicating success with `true` if the instances are equivalent, 

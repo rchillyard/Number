@@ -142,23 +142,17 @@ object ExpressionMonoFunction {
 }
 
 /**
-  * Represents a bi-functional operation on two `Valuable` arguments that returns a `Valuable` result.
-  * Provides additional metadata such as the function's name, whether the function is exact,
-  * and optional identity elements.
+  * Represents a binary function used in expression evaluation. This abstraction encapsulates
+  * the logic for applying a binary operation to two `Eager` objects while supporting features such as 
+  * exactness, commutativity, and optional identity elements.
   *
-  * CONSIDER changing `isExact` to a predicate based on two `Valuable` objects.
-  *
-  * @param f              the binary evaluation function to be applied to two `Valuable` arguments.
-  * @param name           the name of the function, used for debugging and descriptive purposes.
-  * @param isExact        a boolean indicating if the function is exact in all its computations.
-  *                       Even if false, there may be special cases that are exact.
-  * @param maybeIdentityL the optional left identity element for the function.
-  *                       That's to say, `identityL f y` can be replaced by `y`.
-  *                       If `None`, then the function has no identity value.
-  * @param maybeIdentityR an optional right identity element for the function, if applicable.
-  *                       That's to say, `x f identityR` can be replaced by `x`.
-  *                       If `None`, then the function is commutative and the only identity
-  *                       required is given by `identityL`.
+  * @param name           the unique name identifying the binary function.
+  * @param f              the underlying binary function to be applied to the `Eager` inputs.
+  * @param isExact        a flag indicating whether the function is strictly exact (producing precise results).
+  * @param maybeIdentityL an optional identity element for the left-hand operand; if defined, evaluation recognizes
+  *                       and simplifies the operation when this value is encountered.
+  * @param maybeIdentityR an optional identity element for the right-hand operand; if defined, evaluation recognizes
+  *                       and simplifies the operation when this value is encountered.
   */
 sealed abstract class ExpressionBiFunction(
                                               val name: String,
@@ -197,7 +191,7 @@ sealed abstract class ExpressionBiFunction(
     * @return the result of f(x).
     */
   def apply(a: Eager, b: Eager): Eager =
-    f(a, b)
+    f(a, b).normalize
 
   /**
     * Alternative apply method which satisfies the type declaration.
@@ -207,7 +201,7 @@ sealed abstract class ExpressionBiFunction(
     * @return a `Eager` that is the result of applying the binary function to the input tuple.
     */
   def apply(ff: (Eager, Eager)): Eager =
-    f.tupled(ff)
+    f.tupled(ff).normalize
 
   /**
     * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
@@ -482,7 +476,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
       case _ if a == b =>
         Some(Eager.one)
       case _ =>
-        Some(f(a, b))
+        Some(f(a, b).normalize)
     }
 }
 
@@ -694,21 +688,21 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
       for (p <- x.evaluateAsIs; q <- y.evaluateAsIs; r <- applyExact(p, q)) yield r
     case (x: Angle, y: Angle) =>
       val g = Angle.angleIsCommutativeGroup
-      val q = g.additive.combine(x, y)
+      val q = g.additive.combine(x, y).normalize
       Some(q)
     case (x: Angle, y: eager.Number) =>
       import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
       val q: Option[eager.Real] = for {
         r <- x.convert(eager.Real.zero)
         z <- y.convert(eager.Real.zero)
-      } yield r + z
+      } yield (r + z).normalize
       q.asInstanceOf[Option[Eager]]
       // TODO implement for (Number, Angle)
     case (x: Algebraic, y: Algebraic) =>
       x.add(y)
     case (x: CanAdd[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       import com.phasmidsoftware.number.algebra.eager.Number.NumberIsAdditiveCommutativeMonoid
-      Some(x + y)
+      Some((x + y).normalize)
     case _ =>
       None
   }

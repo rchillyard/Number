@@ -37,7 +37,7 @@ import scala.util.{Success, Try}
   *                   Similarly to the `degrees` attribute of `Angle`,
   *                   this is a flag that is primarily cosmetic.
   */
-case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends ExactNumber with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[ExactNumber] {
+case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends ExactNumber with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[ExactNumber] with CanPower[ExactNumber] {
   /**
     * Normalizes the current object to ensure it is represented in a simplified form.
     * If the denominator (r.d) is 1, it represents the object as a WholeNumber.
@@ -54,6 +54,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
 
   /**
     * Subtracts the given rational number from this one.
+    * NOTE that this result is not normalized.
     *
     * @param that the rational number to subtract
     * @return the result of the subtraction
@@ -152,8 +153,8 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     * @param factor the integer value to scale the `RationalNumber` instance by
     * @return an `Option[RationalNumber]` representing the scaled result; returns `None` if the operation cannot be performed
     */
-  def *(factor: Rational): RationalNumber =
-    RationalNumber(r * factor)
+  def *(factor: Rational): ExactNumber =
+    RationalNumber(r * factor).normalize
 
   /**
     * Computes the sign of the current `RationalNumber`.
@@ -202,7 +203,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     *         - `Success(false)` indicates the objects are not equivalent
     *         - `Failure` indicates this functionality is not implemented
     */
-  override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+  override def eqv(that: Eager): Try[Boolean] = (this.normalize, that.normalize) match {
     case (RationalNumber(rx, _), RationalNumber(ry, _)) =>
       Success(rx == ry)
     case _ =>

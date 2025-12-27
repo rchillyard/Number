@@ -26,3 +26,20 @@ trait Zeroable {
     */
   def signum: Int
 }
+
+/**
+  * A trait representing the concept of unity, providing an abstraction
+  * for objects that can be tested for unity.
+  *
+  * Implementing classes or objects must define the behavior of the `isUnity` method.
+  */
+trait Unitary {
+
+  /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean
+
+}

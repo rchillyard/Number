@@ -110,10 +110,10 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
     // 2/3 * 3/4 = 1/2
     val twoThirds = RationalNumber(2, 3)
     val threeFourths = Rational(3, 4)
-    val result = twoThirds * threeFourths
+    val result: ExactNumber = twoThirds * threeFourths
 
     result shouldBe a[RationalNumber]
-    result.r shouldBe Rational(1, 2)
+    result.asInstanceOf[RationalNumber].r shouldBe Rational(1, 2)
   }
 
   it should "multiply fuzzy Reals and return Expression" in {

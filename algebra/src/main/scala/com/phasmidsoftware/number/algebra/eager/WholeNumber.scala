@@ -34,6 +34,19 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
   def normalize: WholeNumber = this
 
   /**
+    * Scales the current instance by the given factor.
+    *
+    * This method applies a scaling operation on the instance using the provided
+    * rational factor and returns the resulting scaled instance.
+    *
+    * The result is not guaranteed to be normalized.
+    *
+    * @param factor the rational number representing the scale factor
+    * @return the scaled instance of type `T`
+    */
+  infix def *(factor: Rational): ExactNumber = RationalNumber(toRational * factor).normalize
+
+  /**
     * Converts this instance to its corresponding integer representation.
     *
     * @return the integer value corresponding to this instance
@@ -193,7 +206,20 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
   def unary_- : WholeNumber =
     negate
 
-  // In WholeNumber.scala
+  /**
+    * Determines if the current `WholeNumber` instance is equivalent to another `Eager` instance.
+    * NOTE no normalization is performed or required here.
+    *
+    * This method compares the current instance with the provided `that` instance. If both instances
+    * are `WholeNumber` and their values are the same, it returns `Success(true)`. Otherwise, it
+    * delegates to the `super` implementation of `eqv`.
+    *
+    * @param that the `Eager` instance to compare against
+    * @return a `Try[Boolean]` yielding:
+    *         - `Success(true)` if the instances are `WholeNumber` with equivalent values,
+    *         - `Success(false)` if they are not equivalent,
+    *         - `Failure` if any error occurs during comparison
+    */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (WholeNumber(a), WholeNumber(b)) =>
       Success(a == b)

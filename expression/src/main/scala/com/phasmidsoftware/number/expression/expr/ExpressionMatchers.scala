@@ -6,15 +6,14 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
-import com.phasmidsoftware.number.algebra.eager.{Eager, Monotone}
+import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Unitary, Valuable}
+import com.phasmidsoftware.number.algebra.eager.Monotone
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.matchers.MatchersExtras
 import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{Field, Real}
+import com.phasmidsoftware.number.core.numerical.Field
 import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction, matchSimpler}
-import com.phasmidsoftware.number.expression.expr.Literal.someLiteral
 import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
 import com.phasmidsoftware.number.{core, expression}
 import scala.language.implicitConversions
@@ -121,7 +120,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     case Power ~ BiFunction(w, x, Power) ~ z if x :* z == One =>
       Match(w)
     case f ~ x ~ y =>
-      complementaryFields(f, x, y) match {
+      ExpressionMatchers.complementaryExpressions(f, x, y) match {
         case Some(z) =>
           Match(z)
         case None =>
@@ -140,20 +139,6 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @param y The second expression to evaluate.
     * @return True if the expressions are complementary, according to the binary function, false otherwise.
     */
-  private def complementaryFields(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
-    if x.maybeFactor(AnyContext) == y.maybeFactor(AnyContext) then { // TODO logic here is same as for value in BiFunction
-      val fo: Option[Eager] = f.evaluateAsIs(x, y)
-      // CONSIDER if `fo` is a defined `Valuable`, then why wouldn't we just return it (wrapped in `Literal`)?
-      (fo, f.maybeIdentityL) match {
-        case (Some(field1), Some(field2)) if field1 == field2 =>
-          someLiteral(field1)
-        case (Some(numerical.Real(numerical.Number.zeroR)), Some(field2: Monotone)) if field2.isZero =>
-          someLiteral(field2)
-        case _ =>
-          None
-      }
-    }
-    else None
 
   /**
     * Method to create an ExpressionMatcher.
@@ -410,4 +395,38 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     case (Reciprocal, Reciprocal) => true
     case _ => false // TESTME
   }
+}
+
+/**
+  * The `ExpressionMatchers` object provides utilities for evaluating relationships between
+  * two `Expression` objects using a given `ExpressionBiFunction`. It enables analysis
+  * of complementary expressions under specific mathematical or logical contexts.
+  *
+  * These methods are here so that they're not part of the `ExpressionMatchers` API.
+  */
+object ExpressionMatchers {
+  /**
+    * Evaluates whether two `Expression` instances, when combined using the provided
+    * `ExpressionBiFunction`, yield the appropriate identity value (although, in practice, we shortcut that logic a little).
+    *
+    * This method is designed to identify cases where the resulting `Expression` meets
+    * particular characteristics, such as being a zero-valued `Monotone` or a unit-valued `Unitary`.
+    *
+    * @param f The binary function (`ExpressionBiFunction`) applied to evaluate the relationship
+    *          between the two `Expression` instances.
+    *
+    * @param x The first `Expression` operand used in the evaluation.
+    * @param y The second `Expression` operand used in the evaluation.
+    * @return An `Option[Expression]` containing the complementary result if the specified
+    *         conditions are met, or `None` if no such complement is identified.
+    */
+  def complementaryExpressions(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
+    (f, f.applyExact(x, y)) match {
+      case (Sum, Some(z: Monotone)) if z.isZero =>
+        Some(z)
+      case (Product, Some(z: Unitary)) if z.isUnity =>
+        Some(z)
+      case _ =>
+        None
+    }
 }

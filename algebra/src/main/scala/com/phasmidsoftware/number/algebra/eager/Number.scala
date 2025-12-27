@@ -14,7 +14,6 @@ import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
-import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -26,7 +25,7 @@ import scala.util.{Failure, Success, Try}
   *
   * CONSIDER why does it not extend Ordered[Number]?
   */
-trait Number extends Scalar with Ordered[Scalar] {
+trait Number extends Scalar with Unitary with Ordered[Scalar] {
 
   /**
     * Normalizes this `T` to its simplest equivalent form where T is the supertype of all possible results.
@@ -66,11 +65,11 @@ trait Number extends Scalar with Ordered[Scalar] {
     */
   def +(other: Number): Number = (this, other) match {
     case (a: WholeNumber, b: WholeNumber) =>
-      a + b
+      (a + b).normalize
     case (a: RationalNumber, b: ExactNumber) =>
-      b.convert(a).map(a + _).getOrElse(throw AlgebraException(s"Number.+: logic error: RationalNumber: $this + $other"))
+      b.convert(a).map(x => (a + x).normalize).getOrElse(throw AlgebraException(s"Number.+: logic error: RationalNumber: $this + $other"))
     case (a: Real, b) =>
-      b.convert(a).map(a + _).getOrElse(throw AlgebraException(s"Number.+: logic error: Real: $this + $other"))
+      b.convert(a).map(x => (a + x).normalize).getOrElse(throw AlgebraException(s"Number.+: logic error: Real: $this + $other"))
     case _ =>
       throw AlgebraException(s"Number.+: logic error: $this + $other")
   }
@@ -161,7 +160,7 @@ trait Number extends Scalar with Ordered[Scalar] {
     case (a: Number, b: Number) =>
       // Both are Numbers - compare them
       if (a.isExact && b.isExact) {
-        Success(a.compareExact(b).contains(0))
+        Success(a.compareExact(b).contains(0)) // TODO check if we should normalize a and b first.
       } else {
         // At least one is not exact - use approximation
         val maybeResult = for {
@@ -223,7 +222,7 @@ trait Number extends Scalar with Ordered[Scalar] {
   * This interface ensures that instances are inherently exact and includes methods to determine
   * exactness and specific properties like zero equivalence.
   */
-trait ExactNumber extends Number with Exact with Q with CanPower[ExactNumber] {
+trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] with CanPower[ExactNumber] {
 
   /**
     * Converts this ExactNumber into a RationalNumber representation.
@@ -249,6 +248,13 @@ trait ExactNumber extends Number with Exact with Q with CanPower[ExactNumber] {
   def isExact: Boolean = true
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = maybeInt.contains(1)
+
+  /**
     * Determines if the current number is equal to zero.
     *
     * @return true if the number is zero, false otherwise
@@ -271,7 +277,7 @@ trait ExactNumber extends Number with Exact with Q with CanPower[ExactNumber] {
     * @return an `Option[Monotone]` representing the scaled result
     */
   def scale(scale: Rational): Number =
-    (toRationalNumber * scale).normalize
+    toRationalNumber * scale
 
   /**
     * Raises the current `ExactNumber` to the power of the given `ExactNumber`.
