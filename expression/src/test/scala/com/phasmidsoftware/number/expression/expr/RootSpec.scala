@@ -307,7 +307,7 @@ class RootSpec extends AnyFlatSpec with Matchers {
 
   behavior of "QuadraticRoot.negate"
 
-  ignore should "negate a root" in {
+  it should "negate a root" in {
     val root = Root.rootTwo
     val negated = root.negate
 
@@ -566,7 +566,7 @@ class RootSpec extends AnyFlatSpec with Matchers {
     evaluated shouldBe defined
   }
 
-  ignore should "evaluate phi" in {
+  it should "evaluate phi" in {
     val phi = Root.phi
     val evaluated = phi.evaluateAsIs
 

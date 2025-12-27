@@ -152,7 +152,11 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     * The solution is computed by invoking the `solve` method of the `equation` with the provided branch index.
     * The resulting solution is exact and adheres to the constraints described in the `Algebraic` trait.
     */
-  lazy val solution: Solution = equ.solve(branch)
+  lazy val solution: Solution = equ match {
+    case QuadraticEquation.goldenRatioEquation if branch == 0 => QuadraticSolution.phi
+    case QuadraticEquation.goldenRatioEquation if branch == 1 => QuadraticSolution.psi
+    case _ => equ.solve(branch)
+  }
 
   /**
     * Represents an optional value for the current `AbstractRoot` instance, resulting from a numerical
@@ -194,7 +198,8 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     * @return an `Option[Eager]` containing the evaluated value if evaluation is successful, or `None` otherwise.
     */
   override lazy val evaluateAsIs: Option[Eager] =
-    maybeFactor(AnyContext) flatMap (f => evaluate(RestrictedContext(f)))
+    evaluate(AnyContext)
+//    maybeFactor(AnyContext) flatMap (f => evaluate(RestrictedContext(f)))
 
   /**
     * Attempts to simplify an atomic expression, for example,
@@ -385,7 +390,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     * Matches the given `Valuable` instance and attempts to simplify its representation
     * into an `Expression`. This involves wrapping the `Valuable` in a `Literal` and
     * applying atomic simplification transformations.
-    * 
+    *
     * CONSIDER this is never invoked
     *
     * @param eager the `Valuable` to match and simplify.

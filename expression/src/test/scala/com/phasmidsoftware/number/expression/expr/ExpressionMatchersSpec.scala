@@ -790,7 +790,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     pending
   }
 
-  // TODO Issue #140
+  // TODO This is a duplicate and so should be removed
   ignore should "simplify aggregate 2a" in {
     val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
     val simplify = target.simplify
@@ -903,7 +903,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
     result shouldBe Aggregate(Product, Seq(4, One))
   }
-  // FIXME infinite loop
+  // FIXME this is a problem only with Aggregate, I believe. Similar to other failing tests.
   ignore should "work for Aggregate product 2" in {
     val target: CompositeExpression = Aggregate.total(Two * ConstPi, MinusOne * ConstPi)
     //val result: Expression = em.simplifyTerms(target)
@@ -1052,14 +1052,17 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ Two ~ Two) shouldBe em.Match(Expression(4))
     p(BiFunction(Two, 3, Product)) shouldBe em.Match(Expression(6))
   }
-  // TODO Issue #140
-  ignore should "handle Power" in {
+  it should "handle Power 1" in {
     import BiFunction.*
     val p = Expression.matchSimpler
     p(Power ~ Two ~ Zero) shouldBe em.Match(One)
     p(Power ~ Two ~ One) shouldBe em.Match(Two)
     p(Power ~ One ~ Two) shouldBe em.Match(One)
     p(Power ~ Two ~ Two) shouldBe em.Match(Expression(4))
+  }
+  ignore should "handle Power 2" in {
+    import BiFunction.*
+    val p = Expression.matchSimpler
     (Power ~ Literal(Eager.root2) ~ Two).simplify shouldBe Two
   }
   it should "cancel multiplication and division" in {

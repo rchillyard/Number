@@ -4,7 +4,8 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.eager.{QuadraticSolution, WholeNumber}
+import com.phasmidsoftware.number.algebra.core.Valuable
+import com.phasmidsoftware.number.algebra.eager.{Eager, InversePower, QuadraticSolution, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import org.scalatest.flatspec.AnyFlatSpec
@@ -89,49 +90,48 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "normalize - irrational roots"
 
-  ignore should "normalize x² - 2 (roots: ±√2)" in {
+  it should "normalize x² - 2 (roots: ±√2)" in {
     // x² + 0x - 2 = 0 → x = ±√2
     val equation = QuadraticEquation(Rational(0), Rational(-2))
     val root = QuadraticRoot(equation, 0)
-    val normalized = root.normalize
-    normalized shouldBe a[QuadraticSolution]
-    val solution = normalized.asInstanceOf[QuadraticSolution]
-    solution.base.toDouble shouldBe Math.sqrt(2.0) +- 1e-10
+    val normalized: Valuable = root.normalize
+    normalized shouldBe a[InversePower]
+    normalized shouldBe Eager.root2
   }
 
-  ignore should "normalize x² + x - 1 (irrational roots)" in {
-    // x² + x - 1 = 0 → x = (-1 ± √5)/2
+  it should "normalize x² + x - 1 (irrational roots)" in {
+    // x² + x - 1 = 0 → x = (-1 ± √5)/2 (1/𝛗 and -𝛗)
     val equation = QuadraticEquation(Rational(1), Rational(-1))
     val root = QuadraticRoot(equation, 0)
+    val solution = root.solution
     val normalized = root.normalize
     normalized shouldBe a[QuadraticSolution]
-    val solution = normalized.asInstanceOf[QuadraticSolution]
+    val z = normalized.asInstanceOf[QuadraticSolution]
     // Positive root: (-1 + √5)/2 ≈ 0.618
-    solution.base.toDouble shouldBe 0.618 +- 0.001
+    z.toDouble shouldBe 0.618 +- 0.001
   }
 
   behavior of "normalize - rational roots"
 
-  ignore should "normalize 2x² - 5x + 2 converted to monic form" in {
+  it should "normalize 2x² - 5x + 2 converted to monic form" in {
     // Divide by 2: x² - (5/2)x + 1 = 0 → roots: 2 and 1/2
     val equation = QuadraticEquation(Rational(-5, 2), Rational(1))
     val root = QuadraticRoot(equation, 0)
     val normalized = root.normalize
     normalized shouldBe a[QuadraticSolution]
     val solution = normalized.asInstanceOf[QuadraticSolution]
-    solution.base.toDouble shouldBe 2.0 +- 1e-10
+    solution.toDouble shouldBe 2.0 +- 1e-10
   }
 
   behavior of "normalize - double root"
 
-  ignore should "normalize x² - 4x + 4 (double root: 2)" in {
+  it should "normalize x² - 4x + 4 (double root: 2)" in {
     // x² - 4x + 4 = (x-2)² → x = 2 (multiplicity 2)
     val equation = QuadraticEquation(Rational(-4), Rational(4))
     val root = QuadraticRoot(equation, 0)
     val normalized = root.normalize
-    normalized shouldBe a[QuadraticSolution]
-    val solution = normalized.asInstanceOf[QuadraticSolution]
-    solution.base.toDouble shouldBe 2.0 +- 1e-10
+    normalized shouldBe a[WholeNumber]
+    normalized shouldBe WholeNumber.two
 //    solution.multiplicity shouldBe 2
   }
 

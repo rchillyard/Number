@@ -295,9 +295,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (One :+ Eager.two).isExact shouldBe true
     (ConstPi :+ Eager.pi).isExact shouldBe true
   }
-  // TODO Issue #140
-  ignore should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
-    (Expression(2) * Eager.e).isExact shouldBe false
+  it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
+    (Expression(2) * Eager.e).materialize.isExact shouldBe false
+    (Expression(1) * Eager.e).materialize.isExact shouldBe true
+    (Expression(2) * Eager.one).materialize.isExact shouldBe true
   }
   it should "be true for product of one exact Numbers and a NatLog factor" in {
     val expression = Expression(1) * Eager.e

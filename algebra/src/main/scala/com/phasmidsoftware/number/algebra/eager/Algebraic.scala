@@ -252,8 +252,10 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
   def normalize: Eager = (base.normalize, offset.normalize) match {
     case (x: Monotone, y: Scalar) if x.isZero =>
       y.scale(branched(branch))
-    case (x: Monotone, y: Monotone) if y.isZero =>
+    case (x, y: Monotone) if y.isZero =>
       x
+    case (x: Monotone, y) if x.isZero =>
+      y
     case _ =>
       this
   }

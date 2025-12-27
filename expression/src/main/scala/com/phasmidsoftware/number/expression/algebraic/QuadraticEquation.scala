@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
-import com.phasmidsoftware.number.algebra.eager.RationalNumber.convRationalRationalNumber
 import com.phasmidsoftware.number.algebra.eager.*
+import com.phasmidsoftware.number.algebra.eager.RationalNumber.convRationalRationalNumber
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
@@ -58,7 +58,10 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
   def solve(branch: Int): Solution = {
     require(branch == 0 || branch == 1, "Quadratic has only 2 roots")
 
-    if (discriminant >= Rational.zero)
+    if (discriminant == Rational.zero)
+      // Repeated roots
+      QuadraticSolution(RationalNumber(-p / 2), RationalNumber.zero, branch, false)
+    else if (discriminant >= Rational.zero)
       // Real roots
       QuadraticSolution(RationalNumber(-p / 2), squareRoot(discriminant / 4), branch, false)
     else
