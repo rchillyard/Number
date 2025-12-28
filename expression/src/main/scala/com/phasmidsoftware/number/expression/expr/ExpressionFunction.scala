@@ -96,6 +96,16 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
   def paramContext(context: Context): Context
 
   /**
+    * THIS IS NOT BEING USED YET (it doesn't quite do what we want).
+    *
+    * @param a
+    * @param context
+    * @return
+    */
+  def evaluate(a: Expression)(context: Context): Option[Eager] =
+    context.qualifyingEagerValue(a.evaluate(paramContext(context)).map(f))
+
+  /**
     * Attempts to evaluate the given `Valuable` exactly using this `ExpressionMonoFunction`.
     * If the operation can be performed exactly, it returns the resulting `Valuable` wrapped
     * in an `Option`. If the operation cannot be performed exactly, it returns `None`.
@@ -263,18 +273,29 @@ sealed abstract class ExpressionBiFunction(
     * @param context the evaluation context providing the necessary environment for resolving expressions.
     * @return an `Option[Valuable]` containing the result of the evaluation if successful, or `None` if evaluation fails.
     */
-  def evaluate(x: Expression, y: Expression)(context: Context): Option[Eager] = (x.evaluateAsIs, y.evaluateAsIs) match {
-    case (Some(a), _) if maybeIdentityL contains a =>
-      y.evaluate(context)
-    case (_, Some(b)) if maybeIdentityR contains b =>
-      x.evaluate(context)
-    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
-      trivialEvaluation(a, b)
-    case _ =>
-      val xy = doEvaluate(x, y)(context)
-      lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
-      context.qualifyingEagerValue(xy orElse yx)
+  def evaluate(a: Expression, b: Expression)(context: Context): Option[Eager] = {
+    val cLeft = leftContext(context)
+    val eo = for {
+      x <- a.evaluate(cLeft)
+      cRight <- x.maybeFactor(cLeft).map(q => rightContext(q)(context)) // XXX Don't split this up.
+      y <- b.evaluate(cRight)
+      z <- applyExact((x, y))
+    } yield z
+    context.qualifyingEagerValue(eo)
   }
+
+//    (x.evaluateAsIs, y.evaluateAsIs) match {
+//    case (Some(a), _) if maybeIdentityL contains a =>
+//      y.evaluate(context)
+//    case (_, Some(b)) if maybeIdentityR contains b =>
+//      x.evaluate(context)
+//    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
+//      trivialEvaluation(a, b)
+//    case _ =>
+//      val xy = doEvaluate(x, y)(context)
+//      lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
+//      context.qualifyingEagerValue(xy orElse yx)
+//  }
 
   /**
     * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results

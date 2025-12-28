@@ -230,6 +230,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return the materialized Field.
     */
   def evaluate(context: Context): Option[Eager] =
+//    f.evaluate(x)(context)
     context.qualifyingEagerValue(x.evaluateAsIs flatMap f.applyExact)
 
   /**
@@ -546,14 +547,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return the materialized Field.
     */
   def evaluate(context: Context): Option[Eager] =
-    val cLeft = f.leftContext(context)
-    val eo = for {
-      x <- a.evaluate(cLeft)
-      cRight <- x.maybeFactor(cLeft).map(q => f.rightContext(q)(context)) // XXX Don't split this up.
-      y <- b.evaluate(cRight)
-      z <- f.applyExact((x, y))
-    } yield z
-    context.qualifyingEagerValue(eo)
+    f.evaluate(a, b)(context)
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
