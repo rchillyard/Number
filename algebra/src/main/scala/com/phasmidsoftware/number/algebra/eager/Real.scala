@@ -36,7 +36,24 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] with CanPower[Number] {
+  /**
+    * Computes the result of raising an instance of type `T` to the power 
+    * specified by the given `ExactNumber`.
+    *
+    * This method performs the power operation and returns the result wrapped 
+    * in an `Option[T]`. If the operation is invalid or cannot be performed, 
+    * `None` is returned.
+    *
+    * @param that the `ExactNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid, 
+    *         or `None` if the operation could not be performed
+    */
+  infix def pow(that: ExactNumber): Option[Number] = {
+    // TODO The following line needs significant checking
+    Some(Real(math.pow(value, that.asDouble), fuzz.map(x => x.transform(y => y * that.asDouble)(value))))
+  }
+
   /**
     * Returns the normalized representation of the current object.
     * CONSIDER if we have an exact `Real`, and a value that corresponds precisely to an `Int`,

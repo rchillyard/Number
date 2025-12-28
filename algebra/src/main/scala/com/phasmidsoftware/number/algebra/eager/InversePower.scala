@@ -37,10 +37,29 @@ import scala.util.{Success, Try}
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Scalable[InversePower] with Ordered[InversePower] {
+case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Scalable[InversePower] with CanPower[Number] with Ordered[InversePower] {
 
   require(n > 0, s"InversePower: n must be positive, but was $n")
   require(!number.isZero, s"InversePower: number must be non-zero, but was $number")
+
+  /**
+    * Computes the result of raising an instance of type `T` to the power
+    * specified by the given `ExactNumber`.
+    *
+    * This method performs the power operation and returns the result wrapped
+    * in an `Option[T]`. If the operation is invalid or cannot be performed,
+    * `None` is returned.
+    *
+    * @param that the `ExactNumber` exponent to which the instance is raised
+    * @return an `Option[T]` containing the result of the power operation if valid,
+    *         or `None` if the operation could not be performed
+    */
+  infix def pow(that: ExactNumber): Option[Number] = number match {
+    case x: CanPower[Number] @unchecked =>
+      x.pow(that * Rational(n).invert)
+    case _ =>
+      None
+  }
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.

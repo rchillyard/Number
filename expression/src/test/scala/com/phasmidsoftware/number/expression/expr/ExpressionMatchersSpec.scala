@@ -1060,7 +1060,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ One ~ Two) shouldBe em.Match(One)
     p(Power ~ Two ~ Two) shouldBe em.Match(Expression(4))
   }
-  ignore should "handle Power 2" in {
+  it should "handle Power 2" in {
     import BiFunction.*
     val p = Expression.matchSimpler
     (Power ~ Literal(Eager.root2) ~ Two).simplify shouldBe Two
