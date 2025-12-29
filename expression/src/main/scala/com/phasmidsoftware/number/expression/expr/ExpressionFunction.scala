@@ -96,14 +96,19 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
   def paramContext(context: Context): Context
 
   /**
-    * THIS IS NOT BEING USED YET (it doesn't quite do what we want).
+    * Evaluates the given `Expression` in the specified `Context` and attempts to derive an `Eager` result.
+    * This method relies on the `Expression` being evaluated as-is and applies this function's
+    * exact logic if applicable.
+    * 
+    * CONSIDER the alternative version (commented out) which seems like it should be correct but isn't.
     *
-    * @param a
-    * @param context
-    * @return
+    * @param a       the `Expression` to be evaluated.
+    * @param context the `Context` within which the evaluation is performed.
+    * @return an `Option[Eager]` containing the result of the evaluation if successful, or `None` otherwise.
     */
   def evaluate(a: Expression)(context: Context): Option[Eager] =
-    context.qualifyingEagerValue(a.evaluate(paramContext(context)).map(f))
+    context.qualifyingEagerValue(a.evaluateAsIs flatMap applyExact)
+//    context.qualifyingEagerValue(a.evaluate(paramContext(context)).map(f))
 
   /**
     * Attempts to evaluate the given `Valuable` exactly using this `ExpressionMonoFunction`.

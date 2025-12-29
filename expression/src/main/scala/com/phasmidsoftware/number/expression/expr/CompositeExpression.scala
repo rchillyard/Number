@@ -230,8 +230,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return the materialized Field.
     */
   def evaluate(context: Context): Option[Eager] =
-//    f.evaluate(x)(context)
-    context.qualifyingEagerValue(x.evaluateAsIs flatMap f.applyExact)
+    f.evaluate(x)(context)
 
   /**
     * Provides an approximation of this number, if applicable.
