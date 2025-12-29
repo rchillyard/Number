@@ -314,7 +314,7 @@ object FP {
     *         an error occurs during processing or if the file contains invalid input
     */
   def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
-    TryUsing(FP.resource(filename) map (Source.fromURL(_))) {
+    TryUsing(FP.resourceForClass(filename) map (Source.fromURL(_))) {
       source =>
         val bn = implicitly[Numeric[BigInt]]
         val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))

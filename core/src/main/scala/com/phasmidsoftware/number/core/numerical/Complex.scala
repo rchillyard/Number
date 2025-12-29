@@ -221,12 +221,12 @@ object Complex {
         val s = strings.next()
         if (s.isEmpty) {
           if (expressions.hasNext)
-            sb.append(expressions.next())
+            sb.append(expressions.next()): Unit
           else
             throw CoreException("C: logic error: missing expression")
         }
         else
-          sb.append(s)
+          sb.append(s): Unit
       }
       if (expressions.hasNext)
         throw CoreException(s"C: ignored: ${expressions.next()}")

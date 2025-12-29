@@ -518,8 +518,8 @@ sealed trait Logarithmic extends Factor {
 //          Rational.base10Logs.get(b)
         case _ =>
           None // Not yet implemented
-      }
-      case _ =>
+      } 
+    case _ =>
       None // TESTME
   }
 
@@ -765,13 +765,13 @@ sealed trait InversePower extends Factor {
       for {
         a <- Value.maybeRational(x)
         b <- Value.maybeRational(y)
-      } yield (Value.fromRational(a * b), AnyRoot(r), None)
+      } yield (Value.fromRational(a * b), AnyRoot(Rational(r)), None)
     else
       for {
         a <- Value.maybeRational(x)
         b <- Value.maybeRational(y)
         z = (a ∧ s) * (b ∧ r) if b.signum > 0 && a.signum > 0
-      } yield (Value.fromRational(z), AnyRoot(r * s), None)
+      } yield (Value.fromRational(z), AnyRoot(Rational(r) * s), None)
 
   /**
     * Raises the value `x` to the power of the value `y`.
@@ -787,7 +787,7 @@ sealed trait InversePower extends Factor {
         q: Rational <- Value.maybeRational(y)
         z = q / r
         i <- z.maybeInt
-      } yield (x, AnyRoot(i), None)
+      } yield (x, AnyRoot(Rational(i)), None)
   }
 
   /**
@@ -868,7 +868,7 @@ abstract class NthRoot(val n: Int) extends InversePower {
     *
     * @return the integer value of the root degree.
     */
-  def inversePower: Rational = n
+  def inversePower: Rational = Rational(n)
 
   /**
     * Converts a given Value `v` from one Factor `this` to another Factor `f`, if possible.

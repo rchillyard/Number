@@ -9,7 +9,7 @@ val scalaTestVersion = "3.2.19"
 val scalaParserCombinatorsVersion = "2.4.0"
 val nScalaTimeVersion = "2.32.0"
 val apacheCommonsVersion = "3.6.1"
-val flogVersion = "1.0.8"
+val flogVersion = "1.0.11"
 
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
@@ -68,12 +68,12 @@ lazy val root = (project in file("."))
 
 lazy val core = (project in file("core"))
     .settings(
-      scalaVersion := "2.13.16",
-      scalacOptions ++= commonScalacOptions ++ scala2Options,
+      scalaVersion := "3.7.3",
+      scalacOptions ++= commonScalacOptions ++ scala3Options,
 
       libraryDependencies ++= Seq(
         "com.phasmidsoftware" %% "flog" % flogVersion,
-        "com.phasmidsoftware" %% "matchers" % "1.0.11",
+        "com.phasmidsoftware" %% "matchers" % "1.0.12",
         "org.apache.commons" % "commons-math3" % apacheCommonsVersion,
         "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
         "org.typelevel" %% "spire" % "0.18.0",

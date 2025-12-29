@@ -144,7 +144,8 @@ object Value {
     */
   def maybeRational(value: Value): Option[Rational] = {
     import com.phasmidsoftware.number.core.misc.Converters._
-    val ry = tryMap(value)(tryF(Rational.apply), x => tryMap(x)(identityTry, fail("no Double=>Rational conversion")))
+    // Value is Either[Either[Option[Double], Rational], Int]
+    val ry = tryMap[Either[Option[Double], Rational], Int, Rational](value)(tryF(Rational.apply(_: Int)), x => tryMap(x)(identityTry, fail("no Double=>Rational conversion")))
     ry.toOption
   }
 

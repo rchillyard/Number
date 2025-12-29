@@ -855,7 +855,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *
     * @return an `AutoMatcher` for `Expression` that applies the simplification logic defined in `simplifyAggregate`.
     */
-  def simplifyComposite: em.AutoMatcher[Expression] = {
+  def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher("simplifyComposite") {
     case t: Aggregate =>
       em.simplifyAggregate(t)
     case x: Expression => // TESTME

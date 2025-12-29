@@ -471,7 +471,7 @@ object Expression {
     * @return an `ExpressionTransformer` that performs the transformation or simplification of
     *         the input `Expression`, depending on its type and structure.
     */
-  def matchSimpler: ExpressionTransformer = {
+  def matchSimpler: ExpressionTransformer = em.Matcher("matchSimpler") {
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
     case x: CompositeExpression =>
