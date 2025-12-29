@@ -5,7 +5,8 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, Nat, NatLog, Number, RationalNumber, Real, Scalar, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NatLog, Number, RationalNumber, Real, Scalar, WholeNumber}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Constants, Field}
@@ -277,14 +278,14 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     * @return a String
     */
   def render: String = maybeName getOrElse value.render // TESTME
-//
-//  /**
-//    * Generate a String for debugging purposes.
-//    *
-//    * @return a String representation of this Literal.
-//    */
-//  override def toString: String =
-//    maybeName getOrElse value.toString
+
+  /**
+    * Generate a String for debugging purposes.
+    *
+    * @return a String representation of this Literal.
+    */
+  override def toString: String =
+    s"Literal: ${maybeName getOrElse value.toString}"
 
   /**
     * Compares this `ValueExpression` with another object for equality.
@@ -443,6 +444,8 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
   private def doMonoFunction(f: ExpressionMonoFunction): Eager = (f, value) match {
     case (Negate, r: CanAddAndSubtract[?, ?]) =>
       -r
+    case (Reciprocal, r: InversePower) =>
+      FP.recover(r.pow(WholeNumber.minusOne))(AlgebraException(s"Cannot $r"))
     case (Reciprocal, r: CanMultiplyAndDivide[Number] @unchecked) =>
       import Number.NumberIsMultiplicativeGroup
       r.reciprocal

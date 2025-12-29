@@ -19,8 +19,6 @@ import com.phasmidsoftware.number.{algebra, core, expression}
 import java.util.Objects
 import scala.language.implicitConversions
 
-type OldNumber = Number
-
 /**
   * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
   * with simplification.
@@ -36,7 +34,7 @@ sealed trait CompositeExpression extends Expression {
 
   /**
     * Method to determine if this `NumberLike` object is exact.
-    * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
+    * For instance, `numerical.Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
     *
     * @return true if this `NumberLike` object is exact in the context of No factor, else false.
     */
@@ -135,8 +133,20 @@ sealed trait CompositeExpression extends Expression {
     *
     * @return a String
     */
-  def render: String =
-    materialize.normalize.render
+  def render: String = matchSimpler(this) match {
+    case em.Match(e) =>
+      e.render
+    case em.Miss(msg, _) =>
+      renderAsExpression
+  }
+
+  /**
+    * Renders this `CompositeExpression` as a string representation of the expression itself,
+    * typically in a structured or human-readable mathematical format.
+    *
+    * @return a string representation of the `CompositeExpression` as an expression.
+    */
+  def renderAsExpression: String
 }
 
 /**
@@ -208,6 +218,15 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     *         or has an approximation (`false`).
     */
   def isExact: Boolean = x.isExact
+
+  /**
+    * Renders the `UniFunction` as a string representation of an expression.
+    * The format typically involves applying the function to its argument and
+    * rendering it in a human-readable form.
+    *
+    * @return a string representing the `UniFunction` as an expression
+    */
+  def renderAsExpression: String = s"$f(${x.render})"
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
@@ -400,6 +419,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         or has an approximation (`false`).
     */
   def isExact: Boolean = a.isExact && b.isExact
+
+  /**
+    * Renders the `CompositeExpression` as a string representation of the expression itself,
+    * typically in a structured or human-readable mathematical format.
+    *
+    * @return a string representation of the `CompositeExpression` as an expression.
+    */
+  def renderAsExpression: String =
+    s"(${a.render} $f ${b.render})"
 
   /**
     * Simplifies the components of a `BiFunction` expression by applying a matcher that reduces its
@@ -940,6 +968,15 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *         or has an approximation (`false`).
     */
   def isExact: Boolean = xs.forall(_.isExact)
+
+  /**
+    * Renders the `CompositeExpression` as a string representation of the expression itself,
+    * typically in a structured or human-readable mathematical format.
+    *
+    * @return a string representation of the `CompositeExpression` as an expression.
+    */
+  def renderAsExpression: String =
+    s"{$function ${xs.map(_.render).mkString(" ")}}"
 
 //  def simplifyExact: em.AutoMatcher[Expression] =
 //    em.fail("Aggregate: simplifyExact") // TODO implement me properly
