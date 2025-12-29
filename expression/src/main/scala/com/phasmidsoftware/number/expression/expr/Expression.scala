@@ -5,9 +5,9 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
@@ -373,16 +373,6 @@ object Expression {
     * @return a `Valuable` instance parsed from the provided string.
     */
   implicit def fromString(w: String): Expression = apply(w)
-
-  /**
-    * Implicitly materializes an `Expression` into its eager evaluation form.
-    * This conversion allows deferred `Expressions` to be immediately evaluated
-    * and converted into a concrete form for further use or computation.
-    *
-    * @param x the `Expression` instance to be materialized.
-    * @return an eager evaluation of the input `Expression`.
-    */
-  implicit def materialize(x: Expression): Eager = x.materialize
 
   /**
     * Converts a given number into an Expression by wrapping it as a Real.

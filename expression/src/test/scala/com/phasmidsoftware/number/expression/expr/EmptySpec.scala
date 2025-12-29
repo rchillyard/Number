@@ -4,8 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -47,10 +46,11 @@ class EmptySpec extends AnyFlatSpec with should.Matchers {
     val expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) :+ One
     expression.materialize shouldBe Eager(5)
   }
+  // NOTE we no longer support implicit materialization of expressions.
   it should "use implicit materialization" in {
     import Expression.*
-    val expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) :+ One
-    val eager: Eager = expression
+    val expression: Expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) :+ One
+    val eager: Eager = expression.materialize
     eager shouldBe Eager(5)
   }
 }

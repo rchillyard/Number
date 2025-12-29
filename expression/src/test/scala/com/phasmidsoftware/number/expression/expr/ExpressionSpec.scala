@@ -390,7 +390,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
         FuzzyEq[Eager].eqv(x, y, 0.5)
 
     val eager = simplify.normalize.asEager
-    (eager ~== phi) shouldBe true
+    (eager ~== Eager.phi) shouldBe true
   }
   it should "simplify constant expressions" in {
     Expression(1).simplify shouldBe Expression(1)

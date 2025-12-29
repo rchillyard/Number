@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -49,9 +49,10 @@ class NamedConstantSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "scale correctly" in {
-    val pi = ConstPi
-    val scaled: Eager = pi.*(WholeNumber(2))
-    scaled shouldBe a[Angle]
-    scaled.asInstanceOf[Angle].toDouble shouldBe 2 * Math.PI +- 1e-10
+    import Expression.ExpressionOps
+    val scaled: Expression = ConstPi :* Expression(Eager.two)
+    val value: Eager = scaled.materialize
+    value shouldBe a[Angle]
+    value.asInstanceOf[Angle].toDouble shouldBe 2 * Math.PI +- 1e-10
   }
 }

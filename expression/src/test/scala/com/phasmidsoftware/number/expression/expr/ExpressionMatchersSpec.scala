@@ -1569,8 +1569,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   it should "evaluate to Angle.zero" in {
-    val maybeExpression = ExpressionMatchers.complementaryExpressions(Sum, ConstPi, -ConstPi)
-    maybeExpression shouldBe Some(Literal(Angle.zero))
+    val maybeExpression: Option[Expression] = ExpressionMatchers.complementaryExpressions(Sum, ConstPi, -ConstPi)
+    val someLiteral = Some(Literal(Angle.zero))
+    maybeExpression shouldBe someLiteral
   }
 
 }

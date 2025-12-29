@@ -276,7 +276,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
     val x = 1 :/ 2  // Exact rational: 1/2
     val lazyHalf = One / 2
-    val half: Eager = lazyHalf
+    val half: Eager = lazyHalf.materialize
     half shouldBe RationalNumber(x)
   }
 }

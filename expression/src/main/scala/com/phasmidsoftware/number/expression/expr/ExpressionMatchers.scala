@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Unitary, Valuable}
+import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
 import com.phasmidsoftware.number.algebra.eager.Monotone
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.matchers.MatchersExtras
@@ -421,12 +421,12 @@ object ExpressionMatchers {
     *         conditions are met, or `None` if no such complement is identified.
     */
   def complementaryExpressions(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
-    (f, f.applyExact(x, y)) match {
-      case (Sum, Some(z: Monotone)) if z.isZero =>
-        Some(z)
-      case (Product, Some(z: Unitary)) if z.isUnity =>
-        Some(z)
-      case _ =>
+    f.evaluate(x, y)(AnyContext) match {
+      case Some(z) if f.maybeIdentityL.contains(z) =>
+        Some(Literal(z))
+      case Some(z: Monotone) if z.isZero && f == Sum =>
+        Some(Literal(z))
+      case x =>
         None
     }
 }
