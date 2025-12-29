@@ -632,14 +632,14 @@ object Real {
     *
     * @return a `Real` representing the value zero with default fuzziness
     */
-  val zero: Real = apply(0)
+  val zero: Real = new Real(0, None)(Some("0"))
 
   /**
     * Returns a `Real` representing the value one with double precision fuzziness.
     *
     * @return a `Real` instance initialized with the numeric value 1 and a default level of fuzziness.
     */
-  val one: Real = apply(1)
+  val one: Real = new Real(1, None)(Some("1"))
 
   /**
     * Returns a `Real` representing the mathematical constant π (pi)

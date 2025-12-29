@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
-import com.phasmidsoftware.number.algebra.eager.{Monotone, Number}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Monotone, Number}
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical
@@ -275,8 +275,13 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Try(xs.sortBy(sortFunction)) match {
         case Success(sorted) =>
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-          if list.length < xs.length then
-            // CONSIDER write=ing instead `MatchCheck(CompositeExpression(f, list))` But be careful!
+          if list.isEmpty
+          then
+            // NOTE if the first term of xs is an angle, then the result will be an angle.
+            if (xs.headOption.getOrElse(Zero).materialize.isInstanceOf[Angle]) Match(Literal(Angle.zero)) else Match(Zero)
+          else if list.length < xs.length
+          then
+            // CONSIDER writing instead `MatchCheck(CompositeExpression(f, list))` But be careful!
             MatchCheck(Aggregate(f, list))(a)
           else
             Miss(s"complementaryTermsEliminatorAggregate: $a", a)

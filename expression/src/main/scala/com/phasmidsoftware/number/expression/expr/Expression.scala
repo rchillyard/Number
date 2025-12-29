@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import cats.syntax.all.catsSyntaxEq
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
@@ -525,16 +526,15 @@ object Expression {
     Expression.isIdentity(f)
 
   /**
-    * Determines if a given `Expression` is an identity element for a specified binary function.
+    * Determines whether the provided expression `z` is an identity element
+    * for the given binary function `f`.
     *
-    * @param f the binary function for which the identity property is being checked. This includes metadata like
-    *          optional identity elements, which are leveraged for comparison.
-    * @param z the `Expression` to be tested as a potential identity element for the binary function `f`.
-    * @return true if the evaluated result of `z` matches the optional left identity element of the binary function `f`,
-    *         otherwise false.
+    * @param f the binary function for which the identity property is to be checked.
+    * @param z the expression to be evaluated as a potential identity element for the function `f`.
+    * @return true if the expression `z` is an identity element for the binary function `f`, false otherwise.
     */
   def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
-    f.maybeIdentityL == z.evaluateAsIs // CONSIDER comparing with maybeIdentityR if this is not true
+    (for (a <- z.evaluateAsIs; b <- f.maybeIdentityL) yield (a === b)).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true
 
   /**
     * Matches and simplifies expressions based on their type.

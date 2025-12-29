@@ -285,6 +285,8 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *         - `Failure` indicates this functionality is not implemented
     */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
+    case (Angle.zero, x: Number) if x.isZero =>
+      Success(true) // XXX special case for zero angle
     case (a1: Angle, a2: Angle) =>
       Success(a1.normalize.number === a2.normalize.number)
     case _ =>

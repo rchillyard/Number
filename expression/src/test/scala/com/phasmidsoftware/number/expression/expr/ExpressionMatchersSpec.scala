@@ -830,22 +830,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     // It must be in the complementary terms evaluator.
     val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
     val simplify = target.simplify
-//    simplify.materialize shouldBe Angle.zero
-    pending
+    simplify shouldBe Literal(Angle.zero)
   }
 
-  // TODO This is a duplicate and so should be removed
-  ignore should "simplify aggregate 2a" in {
+  it should "simplify aggregate 2a" in {
     val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
     val simplify = target.simplify
     val result: Valuable = simplify.materialize
     result shouldBe Angle.zero
-    //val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
-    //    result match {
-    //      case em.Match(x: Field) =>
-    //        convertToNumber(x).isZero shouldBe true
-    //      case _ => fail("expected a Field")
-    //    }
   }
   // TODO Issue #140
   it should "simplify aggregate 2b" in {
@@ -946,15 +938,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 //    Expression.simplifyTrivial
     val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
     result shouldBe Aggregate(Product, Seq(4, One))
-  }
-  // FIXME this is a problem only with Aggregate, I believe. Similar to other failing tests.
-  ignore should "work for Aggregate product 2" in {
-    val target: CompositeExpression = Aggregate.total(Two * ConstPi, MinusOne * ConstPi)
-    //val result: Expression = em.simplifyTerms(target)
-    val result: Expression = target.simplify
-    //The expectation below is confused
-    //result shouldBe Aggregate(Product, Seq(ConstPi))
-    result shouldBe ConstPi
   }
 
   behavior of "biFunctionAggregator"
@@ -1331,13 +1314,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe Expression(3)
   }
   // TODO Issue #140
-  ignore should "simplify 2 root(3) all squared" in {
-    import BiFunction.*
-    val p = Expression.matchSimpler
+  it should "simplify 2 root(3) all squared" in {
     val x = Expression(3).sqrt
-    val a = BiFunction(Two, x, Product)
-    val z = p(Power ~ a ~ Two)
-    z shouldBe em.Match(Expression(12))
+    val a: Expression = BiFunction(Two, x, Product)
+    val z: Expression = a ∧ Literal(2)
+    val simplified = z.simplify
+    simplified shouldBe Expression(12)
   }
 
   behavior of "value with logging"

@@ -519,6 +519,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(expression.expr.BiFunction(a, Two, Power))
     case BiFunction(ConstE, ValueExpression(v: eager.Number, _), Power) =>
       em.Match(Literal(NatLog(v)))
+    case BiFunction(expression.expr.BiFunction(a, b, Product), p, Power) =>
+      em.Match(expression.expr.BiFunction(a ∧ p, b ∧ p, Product))
     case BiFunction(r: Root, x, f) =>
       matchRoot(r, x, f)
     case BiFunction(x, r: Root, f) if f.commutes =>
