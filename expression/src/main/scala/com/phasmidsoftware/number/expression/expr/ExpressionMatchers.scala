@@ -275,16 +275,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Try(xs.sortBy(sortFunction)) match {
         case Success(sorted) =>
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-          if list.isEmpty
-          then
-            // NOTE if the first term of xs is an angle, then the result will be an angle.
-            if (xs.headOption.getOrElse(Zero).materialize.isInstanceOf[Angle]) Match(Literal(Angle.zero)) else Match(Zero)
-          else if list.length < xs.length
-          then
-            // CONSIDER writing instead `MatchCheck(CompositeExpression(f, list))` But be careful!
-            MatchCheck(Aggregate(f, list))(a)
-          else
-            Miss(s"complementaryTermsEliminatorAggregate: $a", a)
+          matchOrMiss(f, list)(a)
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
@@ -351,19 +342,6 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   }
 
   /**
-    * Determines if the given bi-function is complementary for the specified expressions.
-    *
-    * @param f the bi-function to evaluate
-    * @param x the first expression to be checked
-    * @param y the second expression to be checked
-    * @return true if the bi-function is complementary for the given expressions, false otherwise
-    */
-  private def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
-    val identityCheck: Expression => Boolean = isIdentityFunction(f)
-    (matchComplementaryExpressions(f ~ x ~ y) & filter(identityCheck)).successful
-  }
-
-  /**
     * Determines whether the provided pair of `ExpressionMonoFunction` values are complementary
     * monadic functions such as exponential and logarithmic.
     *
@@ -377,6 +355,47 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     case (Negate, Negate) => true
     case (Reciprocal, Reciprocal) => true
     case _ => false // TESTME
+  }
+
+  /**
+    * Return a `Match` if the size of the list was reduced, otherwise return a `Miss`.
+    * If the list is empty, a match on an appropriate identity is returned.
+    * If the list is shorter than the original, a `Match` on a new `Aggregate` is returned.
+    * If the list is the same length as the original, a `Miss` is returned.
+    *
+    * @param f    A function combining two expressions into a composite expression.
+    * @param list The list of the remaining (non-complementary) expressions to be processed.
+    * @param a    THe original aggregate instance used for additional computation and context.
+    * @return A `MatchResult` which can either be a match or a miss
+    *         depending on the contents of the given `list`.
+    */
+  private def matchOrMiss(f: ExpressionBiFunction, list: List[Expression])(a: Aggregate): MatchResult[Expression] =
+    if list.isEmpty
+    then
+      // NOTE if the first term of xs is an angle, then the result will be an angle.
+      // CONSIDER using convert here.
+      if (a.xs.headOption.getOrElse(Zero).materialize.isInstanceOf[Angle])
+        Match(Literal(Angle.zero))
+      else
+        Match(Zero)
+    else if list.length < a.xs.length
+    // CONSIDER writing instead `MatchCheck(CompositeExpression(f, list))` But be careful!
+    then
+      MatchCheck(Aggregate(f, list))(a)
+    else
+      Miss(s"complementaryTermsEliminatorAggregate: $a", a)
+
+  /**
+    * Determines if the given bi-function is complementary for the specified expressions.
+    *
+    * @param f the bi-function to evaluate
+    * @param x the first expression to be checked
+    * @param y the second expression to be checked
+    * @return true if the bi-function is complementary for the given expressions, false otherwise
+    */
+  private def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
+    val identityCheck: Expression => Boolean = isIdentityFunction(f)
+    (matchComplementaryExpressions(f ~ x ~ y) & filter(identityCheck)).successful
   }
 }
 
