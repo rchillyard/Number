@@ -45,7 +45,7 @@ val scala3Options = Seq(
   "-Wvalue-discard",               // Error on discarded non-Unit values
   "-Wnonunit-statement",           // Error when non-Unit expressions used as statements
 
-  "-source:3.4-migration", "-rewrite", // Rewrites, here we do 3.4-migration to catch string concatenation
+//  "-source:3.6-migration", "-rewrite", // Rewrites, here we do 3.6-migration.
 
   // HELPFUL: Good practices that don't add much burden
   "-explain",                      // Detailed error explanations
