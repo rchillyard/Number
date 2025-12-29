@@ -6,11 +6,11 @@ package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times, toInts}
 import com.phasmidsoftware.number.core.misc.ContinuedFraction
-import com.phasmidsoftware.number.core.misc.FP._
+import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.numerical.{BigNumber, Number, NumberLike, Prime}
 import com.phasmidsoftware.number.core.parse.RationalParser
-import java.lang.Math._
+import java.lang.Math.*
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -906,13 +906,13 @@ object Rational {
   val NaN = new Rational(0, 0)
 
   /**
-    * Implicit converter from Double to Rational.
+    * converter from Double to Rational.
     *
     * @param x the value.
     * @return a Rational equal to or approximately equal to x.
     * @throws java.util.NoSuchElementException because we invoke get on an Option[Rational].
     */
-  implicit def convertDouble(x: Double): Rational =
+  def convertDouble(x: Double): Rational =
     recover(createExact(x))
 
   /**

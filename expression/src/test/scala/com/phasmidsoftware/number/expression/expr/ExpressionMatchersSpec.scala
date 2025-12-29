@@ -15,6 +15,7 @@ import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, √}
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
+import com.phasmidsoftware.number.expression.expr.Expression
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, matchSimpler, zero}
 import org.scalactic.Equality

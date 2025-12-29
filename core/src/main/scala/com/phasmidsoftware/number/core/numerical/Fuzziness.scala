@@ -271,8 +271,10 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     * @param t the nominal value of the fuzzy number.
     * @return an optional RelativeFuzz[T]
     */
-  def relative(t: T): Option[RelativeFuzz[T]] =
-    Try(RelativeFuzz(tv.toDouble(tv.normalize(tv.div(magnitude, t))), shape)(tv)).toOption
+  def relative(t: T): Option[RelativeFuzz[T]] = {
+    val value = RelativeFuzz(tv.toDouble(tv.normalize(tv.div(magnitude, t))), shape)
+    Try(value).toOption
+  }
 
   /**
     * Transform this Fuzziness[T] according to func.
@@ -515,7 +517,7 @@ object Fuzziness {
     * @return the approximate precision for a floating point operation, expressed in terms of RelativeFuzz.
     */
   def createFuzz(relativePrecision: Int): Fuzziness[Double] =
-    RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)(HasValueDouble$)
+    RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)
 
   /**
     * Creates an absolute fuzziness value with the given magnitude.

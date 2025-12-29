@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.Slow
-import com.phasmidsoftware.number.core.misc._
+import com.phasmidsoftware.number.core.misc.*
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
 
@@ -14,7 +14,7 @@ import org.scalatest.matchers.should
   */
 class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
 
-  import Fuzzy._
+  import Fuzzy.*
 
   private val fuzz1 = LazyFuzzy(1)
   private val fuzz2 = LazyFuzzy(1, Product(2))
@@ -65,7 +65,7 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   it should "be 3 when added to one by explicit function" in {
     //val lr = fuzz2 map Named("add Rat.1",{ x => x + Fuzzy.one })
-    val lr = fuzz2 map Named("add Rat.1", { x: Fuzzy => Fuzzy.sum(x, Fuzzy.one) })  //fixed
+    val lr = fuzz2 map Named("add Rat.1", { (x: Fuzzy) => Fuzzy.sum(x, Fuzzy.one) })  //fixed
     lr.get shouldBe (Fuzzy.one * 3)
   }
 

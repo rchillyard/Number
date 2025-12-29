@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.misc.ContinuedFraction.Hurwitz
 import com.phasmidsoftware.number.core.numerical.CoreException
 import scala.annotation.tailrec
 import scala.util.Try
@@ -368,7 +367,7 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     }
 
     // NOTE: coefficients always returns a lazy list of at least one pair.
-    val h #:: z = coefficients
+    val h #:: z = coefficients: @unchecked
     Rational(h.b) #:: inner(1, h.b, 0, 1, z)
   }
 
@@ -421,7 +420,7 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
       case p #:: tail => p.a / (p.b + inner(tail))
     }
 
-    val h #:: z = coefficients
+    val h #:: z = coefficients: @unchecked
     inner(z) + h.b
   }
 
@@ -559,8 +558,8 @@ object ConFrac {
   /**
     * CONSIDER most if not all of the following definitions should be in the Spec file (they are duplicated in ContinuousFraction).
     */
-  private val lFib: LazyList[Long] =
-    1L #:: lFib.scanLeft(1L)(_ + _)
+//  private val lFib: LazyList[Long] =
+//    1L #:: lFib.scanLeft(1L)(_ + _)
 
   /**
     * A LazyList of Long values representing an infinite sequence where each value is `1L`.

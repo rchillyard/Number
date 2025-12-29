@@ -7,9 +7,9 @@ package com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.CoreContext.AnyRoot
 import com.phasmidsoftware.number.core.numerical.Constants
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should
 
-class ContextSpec extends AnyFlatSpec {
+class ContextSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Context"
   it should "or" in {

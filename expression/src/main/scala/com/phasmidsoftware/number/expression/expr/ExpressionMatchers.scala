@@ -256,7 +256,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         expression with reduced complementary terms or returns a miss description
     *         if no reduction takes place.
     */
-  def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = {
+  def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[expression.expr.Aggregate, Expression]("complementaryTermsEliminatorAggregate") {
     case a@Aggregate(f, xs) =>
       val invertFunction: Double => Double = f match {
         case Sum =>
@@ -290,7 +290,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         are successfully combined, or `Miss` if no literals are found or they cannot
     *         be combined.
     */
-  def literalsCombiner: Matcher[Aggregate, Expression] = {
+  def literalsCombiner: Matcher[Aggregate, Expression] = Matcher[expression.expr.Aggregate, Expression]("literalsCombiner") {
     case g@Aggregate(f, xs) =>
       // XXX first, we partition `xs` according to which terms can be exactly combined because they are all pure numbers (the "literals").
       // The other terms may also be literal constants but not evaluatable in the `PureNumber` context.
@@ -329,7 +329,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         - If the terms are not complementary, it returns a `Miss` with a message
     *           indicating this and the input term.
     */
-  def complementaryTermsEliminatorBiFunction: Matcher[BiFunction, Expression] = {
+  def complementaryTermsEliminatorBiFunction: Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
     case BiFunction(a, b, f) if isComplementary(f, a, b) =>
       f.maybeIdentityL match {
         case Some(field) =>

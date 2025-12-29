@@ -16,6 +16,7 @@ import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Gaussian}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.*
+import com.phasmidsoftware.number.expression.expr.Expression
 import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter

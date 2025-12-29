@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.{fromRational, maybeRational}
-import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ExactNumber, Field, Number, NumberLike, Real}
 import scala.Option.when
@@ -444,7 +444,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     for {
       b <- maybeRational(base)
       x = fromRational(b * r)
-      (v, g, None) <- factor.multiply(offset, fromRational(r), PureNumber)
+      case (v, g, _) <- factor.multiply(offset, fromRational(r), PureNumber)
     } yield QuadraticSolution(x, v, g, branch)
 
 }

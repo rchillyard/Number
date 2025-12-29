@@ -455,6 +455,8 @@ object Expression {
     * and applying the appropriate transformations based on the expression type. 
     * Supports terminal, monadic, and dyadic expressions with specific operators.
     *
+    * CONSIDER make this private.
+    *
     * @param expr The `mill.Expression` to be converted.
     * @return The corresponding `Expression` after applying the transformations.
     * @throws ExpressionException if an unknown operator is encountered.
@@ -526,17 +528,6 @@ object Expression {
     Expression.isIdentity(f)
 
   /**
-    * Determines whether the provided expression `z` is an identity element
-    * for the given binary function `f`.
-    *
-    * @param f the binary function for which the identity property is to be checked.
-    * @param z the expression to be evaluated as a potential identity element for the function `f`.
-    * @return true if the expression `z` is an identity element for the binary function `f`, false otherwise.
-    */
-  def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
-    (for (a <- z.evaluateAsIs; b <- f.maybeIdentityL) yield (a === b)).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true
-
-  /**
     * Matches and simplifies expressions based on their type.
     * For `AtomicExpression` instances, it applies `simplifyAtomic` specific to the atomic expression.
     * For `CompositeExpression`, it uses a compound matcher that attempts simplifications
@@ -547,7 +538,7 @@ object Expression {
     * @return an `ExpressionTransformer` that matches and applies the appropriate
     *         simplifications or transformations to the provided expression.
     */
-  def matchSimpler: ExpressionTransformer = {
+  def matchSimpler: ExpressionTransformer = em.Matcher[Expression, Expression]("matchSimpler") {
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
     case x: CompositeExpression =>
@@ -556,12 +547,6 @@ object Expression {
           em.eitherOr(simplifyTrivial,
             em.eitherOr(simplifyConstant,
               simplifyComposite))))(x)
-//    case x: CompositeExpression =>
-//      "simplifyExact" !! simplifyExact(x) ||
-//          "simplifyComponents" !! simplifyComponents(x) ||
-//          "simplifyTrivial" !! simplifyTrivial(x) ||
-//          "simplifyConstant" !! simplifyConstant(x) ||
-//          "simplifyComposite" !! simplifyComposite(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x")) // TESTME
   }
@@ -632,6 +617,17 @@ object Expression {
     case x =>
       em.Miss("simplifyConstant: not a Composite expression type", x)
   }
+
+  /**
+    * Determines whether the provided expression `z` is an identity element
+    * for the given binary function `f`.
+    *
+    * @param f the binary function for which the identity property is to be checked.
+    * @param z the expression to be evaluated as a potential identity element for the function `f`.
+    * @return true if the expression `z` is an identity element for the binary function `f`, false otherwise.
+    */
+  private def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
+    (for (a <- z.evaluateAsIs; b <- f.maybeIdentityL) yield a === b).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true
 
   /**
     * Attempts to simplify `CompositeExpression` instances by applying a defined transformation logic.

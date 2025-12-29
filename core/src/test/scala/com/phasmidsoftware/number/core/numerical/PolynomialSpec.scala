@@ -7,9 +7,9 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.RationalFractional
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should
 
-class PolynomialSpec extends AnyFlatSpec {
+class PolynomialSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Polynomial"
   val p2: RationalPolynomial = RationalPolynomial(1, 1, 1)

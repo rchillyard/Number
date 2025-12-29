@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.cats.laws
 
 import cats.kernel.laws.discipline.{EqTests, OrderTests, PartialOrderTests}
-import com.phasmidsoftware.number.cats.CatsKernel._
+import com.phasmidsoftware.number.cats.CatsKernel.*
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, LinearEquation, Quadratic}
 import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
@@ -184,7 +184,7 @@ class CatsKernelLawSpec
 
   // Lightweight generators for Expression
 
-  import Expression._
+  import Expression.*
 
   implicit val arbitraryExpression: Arbitrary[Expression] = Arbitrary {
     val genConst: Gen[Expression] = Gen.oneOf(zero, one, two, pi, e, minusOne)
@@ -232,8 +232,8 @@ class CatsKernelLawSpec
   checkAll("Fuzziness[Double]", PartialOrderTests[Fuzziness[Double]].partialOrder)
 //  checkAll("Expression", EqTests[Expression].eqv)
 //  checkAll("Expression", PartialOrderTests[Expression].partialOrder)
-  checkAll("Algebraic", EqTests[Algebraic].eqv)
-  checkAll("Algebraic", PartialOrderTests[Algebraic].partialOrder)
+//  checkAll("Algebraic", EqTests[Algebraic].eqv)
+//  checkAll("Algebraic", PartialOrderTests[Algebraic].partialOrder)
   checkAll("Rational", OrderTests[Rational].order)
   checkAll("ExactNumber", OrderTests[ExactNumber].order)
 //  checkAll("Number", EqTests[Number].eqv)

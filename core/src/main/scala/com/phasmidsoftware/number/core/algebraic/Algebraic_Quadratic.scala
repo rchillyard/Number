@@ -4,12 +4,12 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.{maybeRational, negateConditional}
-import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
-import com.phasmidsoftware.number.core.numerical.{Field, CoreException, Real}
+import com.phasmidsoftware.number.core.numerical.{CoreException, Field, Real}
 import java.util.Objects
 
 /**
@@ -150,7 +150,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     val maybeAlgebraic: Option[Algebraic] = for {
       x <- maybeCrossTerms
       y <- maybeProductBases
-      (v, PureNumber, None) <- maybeProductOffsets
+      case (v, PureNumber, None) <- maybeProductOffsets // CHECK this is correct
       a <- doComposeValueDyadic(x, y)(plusFunctions)
       b <- doComposeValueDyadic(v, a)(plusFunctions)
       r <- Value.maybeRational(b)

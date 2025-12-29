@@ -146,7 +146,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "convert Avagadro's number" in {
     val target = Rational("6.02214076E23")
-    target shouldBe createExact(6.02214076E23).get +- 1E9
+    target shouldBe createExact(6.02214076E23).get // +- 1E9
   }
   it should "convert a very small number" in {
     val verySmall = createExact(-4.076956044934884E-134)
@@ -170,7 +170,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "convert 3.1416 the same as \"3.1416\"" in {
     val target = createExact(3.1416).get
-    target shouldBe Rational("3.1416") +- 1E-10
+    target shouldBe Rational("3.1416") // +- 1E-10
   }
   it should "pick up a float" in {
     val target = createExact(1.5f).get
@@ -649,7 +649,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     r.toString shouldBe "7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000"
   }
   it should "work for various prime denominators" in {
-    import Rational._
+    import Rational.*
 
     (3 :/ 4 toString) shouldBe "3/4"
     (4 :/ 5 toString) shouldBe "4/5"
@@ -693,7 +693,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     r.render shouldBe "0.5772156649015328606065120900824024310421593359399"
   }
   it should "work for various prime denominators" in {
-    import Rational._
+    import Rational.*
 
     (3 :/ 4 render) shouldBe "¾"
     (4 :/ 5 render) shouldBe "⅘"
@@ -704,7 +704,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     (7918 :/ 7919 render) shouldBe "7918/7919"
   }
   it should "work for various composite denominators" in {
-    import Rational._
+    import Rational.*
 
     (2 :/ 7 render) shouldBe "0.<285714>"
     (1 :/ 14 render) shouldBe "0.0<714285>"

@@ -7,9 +7,9 @@ package com.phasmidsoftware.number.core.misc
 import com.phasmidsoftware.number.core.misc.Factorial
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers.be
-import org.scalatest.matchers.should.Matchers.{an, convertToAnyShouldWrapper}
+import org.scalatest.matchers.should
 
-class FactorialSpec extends AnyFlatSpec {
+class FactorialSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Factorial"
 

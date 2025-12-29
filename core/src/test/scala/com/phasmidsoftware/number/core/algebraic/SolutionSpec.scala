@@ -7,9 +7,9 @@ package com.phasmidsoftware.number.core.algebraic
 import com.phasmidsoftware.number.core.expression.Root
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should
 
-class SolutionSpec extends AnyFlatSpec {
+class SolutionSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Solution"
   val phi: Solution = Root.phi.solution

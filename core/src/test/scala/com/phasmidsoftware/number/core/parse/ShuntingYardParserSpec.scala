@@ -79,12 +79,12 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parse Infix and evaluate:  9" in {
     val value: Try[CoreMill] = p.parseInfix("3 ∧ 2")
     value should matchPattern { case Success(_) => }
-    value map (_.evaluate shouldBe 9)
+    value map (_.evaluate shouldBe Some(9))
   }
   it should "parse Infix and evaluate:  0.5" in {
     val value: Try[CoreMill] = p.parseInfix("2 ∧ -1")
     value should matchPattern { case Success(_) => }
-    value map (_.evaluate shouldBe 0.5)
+    value map (_.evaluate shouldBe Some(0.5))
   }
   it should "parse Infix and evaluate: sqrt(3)" in {
     val value: Option[CoreMill] = p.parseInfix("3 ∧ ( 2 ∧ -1 )").toOption
