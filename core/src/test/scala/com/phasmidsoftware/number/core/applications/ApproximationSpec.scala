@@ -117,7 +117,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val x = Number(0.1)
     val py = evaluateWithoutDerivative(newtonsPolynomial)(x) // x∧3 + 6x∧2 + 10x - 1
     val qy = evaluateWithoutDerivative(newtonsDerivative)(x) // 3x∧2 + 12x + 10
-    val ry = for (p <- py; q <- qy) yield p doDivide q
+    val ry = for (p <- py; q <- qy) yield p `doDivide` q
     val cy: Try[Number] = Approximation invokePrivate z(qy.get, x, negate(ry.get), Seq(newtonsPolynomial, newtonsDerivative, newtonsSecondDerivative))
     cy.isSuccess shouldBe true
     cy.get.toNominalDouble.isDefined shouldBe true
@@ -129,7 +129,7 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val x = Number.half
     val py = evaluateWithoutDerivative(cosineFunction)(x) // cos(x) - x
     val qy = evaluateWithoutDerivative(cosineDerivative)(x) // -sin(x) - 1
-    val ry = for (p <- py; q <- qy) yield p doDivide q
+    val ry = for (p <- py; q <- qy) yield p `doDivide` q
     val cy: Try[Number] = Approximation invokePrivate z(qy.get, x, negate(ry.get), Seq(cosineFunction, cosineDerivative, cosineSecondDerivative))
     cy.isSuccess shouldBe true
     cy.get.toNominalDouble.isDefined shouldBe true

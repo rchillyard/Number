@@ -851,7 +851,7 @@ object Rational {
       if (r1.d > epsilon.maxDenom || math.abs(r1.toDouble - x) < epsilon.x)
         r1
       else {
-        val mediant: Rational = r1 mediant r2
+        val mediant: Rational = r1 `mediant` r2
         if (mediant.toDouble > x) inner(r1, mediant)
         else inner(mediant, r2)
       }
@@ -1547,7 +1547,7 @@ object Rational {
     w.substring(i).grouped(n).toSeq match {
       case Nil =>
         Some(i)
-      case h :: t if t.forall(x => h startsWith x) =>
+      case h :: t if t.forall(x => h `startsWith` x) =>
         Some(i)
       case _ =>
         None

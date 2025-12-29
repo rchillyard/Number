@@ -114,7 +114,7 @@ case class TaylorSeries(point: Number, startFunction: SeriesFunction, derivative
   // CONSIDER we could use scanLeft and just multiply by the index (wouldn't need factorial, then)
   lazy val terms: LazyList[Number] = coefficients.zipWithIndex.map {
     case (c, i) =>
-      c doMultiple Rational(Factorial(i)).invert
+      c `doMultiple` Rational(Factorial(i)).invert
   }
 
   /**

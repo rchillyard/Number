@@ -470,30 +470,30 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "power"
   it should "power 1" in {
-    Rational.one power 0 shouldBe Rational.one
-    Rational.two power 0 shouldBe Rational.one
+    Rational.one `power` 0 shouldBe Rational.one
+    Rational.two `power` 0 shouldBe Rational.one
     val r: Rational = 1L
-    r power 0 shouldBe Rational.one
+    r `power` 0 shouldBe Rational.one
   }
   it should "power 2" in {
-    Rational.one power 1 shouldBe Rational.one
-    Rational.two power 1 shouldBe Rational.two
+    Rational.one `power` 1 shouldBe Rational.one
+    Rational.two `power` 1 shouldBe Rational.two
     val r: Rational = BigInt(1)
-    r power 1 shouldBe Rational.one
+    r `power` 1 shouldBe Rational.one
   }
   it should "power 3" in {
     val r = Rational(4)
     val p = r"3/2"
-    val xy = r power p
+    val xy = r `power` p
     xy.isSuccess shouldBe true
     val x = xy.get
     x shouldBe Rational(8, 1)
-    x power p.invert shouldBe Success(r)
+    x `power` p.invert shouldBe Success(r)
   }
   it should "power 4" in {
     val r = Rational.one
     val p = r"3/2"
-    val xo = r power p
+    val xo = r `power` p
     xo.isSuccess shouldBe true
     val x = xo.get
     x shouldBe Rational.one
@@ -501,7 +501,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "fail with bad power" in {
     val r = Rational(3)
     val p = r"3/2"
-    val x = r power p
+    val x = r `power` p
     x.isSuccess shouldBe false
   }
 
@@ -947,13 +947,13 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
 
   behavior of "mediant"
   it should "work" in {
-    Rational.zero mediant Rational.one shouldBe Rational.half
-    Rational.one mediant Rational.zero shouldBe Rational.half
-    Rational.zero mediant Rational.half shouldBe Rational(1, 3)
-    Rational.half mediant Rational.zero shouldBe Rational(1, 3)
-    Rational(1, 3) mediant Rational(3, 2) shouldBe Rational(4, 5)
-    Rational(0, 1) mediant Rational.infinity shouldBe Rational.NaN
-    Rational.infinity mediant Rational.zero shouldBe Rational.NaN
+    Rational.zero `mediant` Rational.one shouldBe Rational.half
+    Rational.one `mediant` Rational.zero shouldBe Rational.half
+    Rational.zero `mediant` Rational.half shouldBe Rational(1, 3)
+    Rational.half `mediant` Rational.zero shouldBe Rational(1, 3)
+    Rational(1, 3) `mediant` Rational(3, 2) shouldBe Rational(4, 5)
+    Rational(0, 1) `mediant` Rational.infinity shouldBe Rational.NaN
+    Rational.infinity `mediant` Rational.zero shouldBe Rational.NaN
   }
 
   behavior of "approximate"

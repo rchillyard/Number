@@ -26,7 +26,7 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   private val fuzzSquare = Named[Fuzzy]("square", squ)
   //noinspection ScalaUnusedSymbol
-  private val fuzz4 = fuzz2 map fuzzSquare
+  private val fuzz4 = fuzz2 `map` fuzzSquare
   private val fuzzy = Exact(1)
   //noinspection ScalaUnusedSymbol
   private val p = fuzzy * fuzzy
@@ -65,7 +65,7 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   it should "be 3 when added to one by explicit function" in {
     //val lr = fuzz2 map Named("add Rat.1",{ x => x + Fuzzy.one })
-    val lr = fuzz2 map Named("add Rat.1", { (x: Fuzzy) => Fuzzy.sum(x, Fuzzy.one) })  //fixed
+    val lr = fuzz2 `map` Named("add Rat.1", { (x: Fuzzy) => Fuzzy.sum(x, Fuzzy.one) })  //fixed
     lr.get shouldBe (Fuzzy.one * 3)
   }
 

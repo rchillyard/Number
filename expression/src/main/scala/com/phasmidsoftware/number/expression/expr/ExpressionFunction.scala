@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{NatLog, *}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.numerical.{Q, Real, *}
+import com.phasmidsoftware.number.core.numerical.{Real, *}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
 import scala.annotation.tailrec
@@ -388,7 +388,7 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
   def leftContext(context: Context): Context =
-    RestrictedContext(PureNumber) or AnyRoot
+    RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
     * Retrieves the right-hand evaluation context associated with this function.
@@ -397,7 +397,7 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
   def rightContext(factor: Factor)(context: Context): Context =
-    RestrictedContext(PureNumber) or AnyRoot
+    RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
     * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
@@ -459,7 +459,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
     * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
   def leftContext(context: Context): Context =
-    RestrictedContext(PureNumber) or AnyRoot
+    RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
     * Retrieves the right-hand evaluation context associated with this function.
@@ -520,7 +520,7 @@ case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
     * @return a new `Context` object, which is a restricted version of the provided `context`.
     */
   def paramContext(context: Context): Context =
-    AnyScalar or AnyLog // CONSIDER should we be allowing Log2 and Log10?  // TESTME
+    AnyScalar `or` AnyLog // CONSIDER should we be allowing Log2 and Log10?  // TESTME
 
   /**
     * Applies an exact mapping transformation on the given `Valuable`.
@@ -666,7 +666,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
     *         and the `AnyLog` condition using the logical "or" operation.
     */
   def paramContext(context: Context): Context =
-    RestrictedContext(PureNumber) or AnyLog // TESTME
+    RestrictedContext(PureNumber) `or` AnyLog // TESTME
 }
 
 /**
@@ -741,7 +741,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
   * - The operation is marked as exact, ensuring the result is always precise when the inputs are exact.
   * - It inherits the commutative property from `ExpressionBiFunction`, as multiplication is commutative.
   */
-case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply y), isExact = true, Some(Eager.one), maybeIdentityR = None) {
+case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multiply` y), isExact = true, Some(Eager.one), maybeIdentityR = None) {
   /**
     * Evaluates two `Valuable` instances under certain trivial conditions and determines the result.
     *
@@ -781,15 +781,15 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
     */
   def rightContext(factor: Factor)(context: Context): Context = context match {
     case AnyScalar | AnyContext =>
-      context or RestrictedContext(PureNumber)
+      context `or` RestrictedContext(PureNumber)
     case AnyLog =>
       context // TESTME
     case AnyRoot =>
-      context or RestrictedContext(PureNumber) // TESTME
+      context `or` RestrictedContext(PureNumber) // TESTME
     case r@RestrictedContext(SquareRoot) =>
-      r or RestrictedContext(PureNumber)
+      r `or` RestrictedContext(PureNumber)
     case r@RestrictedContext(Radian) =>
-      r or RestrictedContext(PureNumber)
+      r `or` RestrictedContext(PureNumber)
     case r@RestrictedContext(_) =>
       r
     case _ =>

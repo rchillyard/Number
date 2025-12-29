@@ -7,7 +7,6 @@ package com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.matchers.should.Matchers.shouldBe
 
 /**
   * Test suite for QuadraticSolution class.

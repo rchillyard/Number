@@ -76,7 +76,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @throws CoreException if the provided `Algebraic` type is not supported for addition.
     */
   def add(algebraic: Algebraic): Algebraic =
-    this.solve add algebraic.solve match {
+    this.solve `add` algebraic.solve match {
       case Some(s: QuadraticSolution) =>
         Algebraic_Quadratic(s)
       case Some(s: LinearSolution) =>
@@ -84,7 +84,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
       case None =>
         algebraic match {
           case Algebraic_Quadratic(_, `equation`, b) =>
-            if (b == pos) this multiply Rational.two
+            if (b == pos) this `multiply` Rational.two
             else Algebraic.zero
           case Algebraic_Quadratic(_, Quadratic(a, b), _) =>
             val horizontal: Rational = (equation.p - a) / Rational.two
@@ -107,7 +107,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     case a: Algebraic =>
       multiply(a)
     case _ =>
-      value multiply x
+      value `multiply` x
   }
 
   /**
@@ -281,7 +281,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @return a new Algebraic resulting from the addition
     */
   def add(rational: Rational): Algebraic =
-    copy(equation = equation shiftOrigin rational)
+    copy(equation = equation `shiftOrigin` rational)
 }
 
 /**

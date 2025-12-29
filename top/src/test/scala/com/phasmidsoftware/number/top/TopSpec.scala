@@ -5,24 +5,22 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.matchers.*
-import com.phasmidsoftware.number.algebra.{eager, *}
 import com.phasmidsoftware.number.algebra.eager.Angle.𝛑
 import com.phasmidsoftware.number.algebra.eager.Eager.{e, half, minusOne, negInfinity, one, pi, two, zero}
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.*
+import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Gaussian}
 import com.phasmidsoftware.number.expression.expr
-import com.phasmidsoftware.number.expression.expr.*
-import com.phasmidsoftware.number.expression.expr.Expression
+import com.phasmidsoftware.number.expression.expr.{Expression, *}
 import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import scala.languageFeature.implicitConversions.*
 
 /**
   * The `TopSpec` class represents a set of specifications for testing mathematical expressions,

@@ -241,7 +241,7 @@ object ContinuedFraction {
   /**
     * ContinuedFaction representing e.
     */
-  val E: ContinuedFraction = Pair(2) +: ContinuedFraction.createInfinite(Pair.list(List(1, 2, 1)), eFunction _)
+  val E: ContinuedFraction = Pair(2) +: ContinuedFraction.createInfinite(Pair.list(List(1, 2, 1)), eFunction)
 
   /**
     * ContinuedFaction representing pi.

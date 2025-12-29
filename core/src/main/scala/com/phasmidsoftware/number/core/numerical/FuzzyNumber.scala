@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.{Ellipsis, withinWiggleRoom}
 import com.phasmidsoftware.number.core.numerical.Number.prepareWithSpecialize
 import scala.collection.mutable
@@ -332,7 +332,7 @@ object FuzzyNumber {
           case (_, n: FuzzyNumber) =>
             composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
           case (_, _) =>
-            p doAdd q
+            p `doAdd` q
         }
     }
 
@@ -377,7 +377,7 @@ object FuzzyNumber {
           case (_, n: FuzzyNumber) =>
             composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
           case (_, _) =>
-            p doMultiply q
+            p `doMultiply` q
         }
     }
 

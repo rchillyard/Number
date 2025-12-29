@@ -82,7 +82,7 @@ case class Real(x: Number) extends Field {
     */
   def isSame(f: Numerical): Boolean = f match {
     case Real(n: ExactNumber) => n.isSame(x)
-    case Real(y) => (x doSubtract y).isZero
+    case Real(y) => (x `doSubtract` y).isZero
     case c: Complex => c.isSame(this)
     case n: Number => isSame(Real(n))
     case s: Algebraic => s.isSame(this)
@@ -159,11 +159,11 @@ case class Real(x: Number) extends Field {
     */
   def power(p: Field): Field = p match {
     case Real(m) if m.isRational =>
-      asComplex power m
+      asComplex `power` m
     case Real(m) =>
       x.power(Real(m))
     case c: Complex =>
-      asComplex power c
+      asComplex `power` c
   }
 
   /**
@@ -436,10 +436,10 @@ object Real {
     * @return a `Real` value representing the arctangent of the arguments, or `NaN` if the inputs are not valid numbers.
     */
   def atan(x: Field, y: Field): Real =
-    (for (a <- x.asNumber; b <- y.asNumber) yield Real(a atan b)).getOrElse(Real(Number.NaN))
+    (for (a <- x.asNumber; b <- y.asNumber) yield Real(a `atan` b)).getOrElse(Real(Number.NaN))
 
   def log(x: Field, y: Field): Real =
-    (for (a <- x.asNumber; b <- y.asNumber) yield Real(a log b)).getOrElse(Real(Number.NaN))
+    (for (a <- x.asNumber; b <- y.asNumber) yield Real(a `log` b)).getOrElse(Real(Number.NaN))
 
 //  val atanFunction: (Field, Field) => Real = atan
 
@@ -495,7 +495,7 @@ object Real {
       * @return a Real whose value is x + y.
       */
     def +(y: Real): Real =
-      createFromRealField(Real(x) add y)
+      createFromRealField(Real(x) `add` y)
 
     /**
       * Multiply x by y (a Real) and yield a Real.
@@ -504,7 +504,7 @@ object Real {
       * @return a Real whose value is x * y.
       */
     def *(y: Real): Real =
-      createFromRealField(Real(x) multiply y)
+      createFromRealField(Real(x) `multiply` y)
 
     /**
       * Divide x by y (a Real) and yield a Real.
@@ -557,7 +557,7 @@ object Real {
       * @return The result of adding x and y as a Real number.
       */
     def plus(x: Real, y: Real): Real =
-      createFromRealField(x add y)
+      createFromRealField(x `add` y)
 
     /**
       * Subtracts the second real number from the first real number.
@@ -577,7 +577,7 @@ object Real {
       * @return the product of x and y as a Real
       */
     def times(x: Real, y: Real): Real =
-      createFromRealField(x multiply y)
+      createFromRealField(x `multiply` y)
 
     /**
       * Computes the negation of the given Real number.

@@ -18,7 +18,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import scala.languageFeature.implicitConversions.*
 
 /**
   * Test suite for `ExpressionMatchers` and related functionality, extending `AnyFlatSpec` with ScalaTest matchers functionalities.
@@ -238,7 +237,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "show that lazy evaluation sometimes works even when you don't use it (a)" in {
     val seven = Number(7)
     val x: Number = seven.sqrt
-    val y = x doPower two
+    val y = x `doPower` two
     y.isExact shouldBe true
     y shouldBe seven
   }
@@ -645,8 +644,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   // Was Issue #88 but that was fixed a while ago.
   it should "simplify aggregate 4b" in {
     val root3 = Expression(3).sqrt
-    val root3PlusOne = root3 plus Expression.one
-    val root3MinusOne = root3 plus Expression(Constants.minusOne)
+    val root3PlusOne = root3 `plus` Expression.one
+    val root3MinusOne = root3 `plus` Expression(Constants.minusOne)
     val expression = root3PlusOne * root3MinusOne
     val result = expression.simplify
     //val result = em.simplifier(expression)
@@ -1004,14 +1003,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   //  }
   it should "simplify 1 + 2 - 2" in {
     val p = Expression.matchSimpler
-    val x = One plus Two - Two
+    val x = One `plus` Two - Two
     val r = p(x)
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe One
   }
   it should "properly simplify 1 + 2 - 2 + 0" in {
     val p = Expression.matchSimpler
-    val x = One plus Two - Two + Zero
+    val x = One `plus` Two - Two + Zero
     val r = p(x)
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe One
@@ -1043,7 +1042,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "properly simplify 1 + root3 - root3 + 0" in {
     val z: Expression = Expression(3).sqrt
-    val x = z plus -z + Zero
+    val x = z `plus` -z + Zero
     val r = One + x
     val simplified = r.simplify
     simplified shouldBe One

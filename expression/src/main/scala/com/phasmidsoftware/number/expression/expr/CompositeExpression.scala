@@ -277,7 +277,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
   def simplifyComponents: em.AutoMatcher[Expression] =
     em.Matcher("UniFunction: simplifyComponents") {
       case UniFunction(x, _) =>
-        val matcher = matchSimpler map (z => copy(x = z))
+        val matcher = matchSimpler `map` (z => copy(x = z))
         matcher(x)
     }
 

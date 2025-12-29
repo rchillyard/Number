@@ -1,16 +1,13 @@
 package com.phasmidsoftware.number.cats.laws
 
+import algebra.laws.RingLaws
+import com.phasmidsoftware.number.cats.CatsKernel.*
+import com.phasmidsoftware.number.cats.RationalAlgebraicInstances as RI
+import com.phasmidsoftware.number.core.inner.Rational
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.Checkers
 import org.typelevel.discipline.scalatest.FunSuiteDiscipline
-
-import algebra.laws.RingLaws
-import cats.kernel.Eq
-
-import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.cats.{RationalAlgebraicInstances => RI}
-import com.phasmidsoftware.number.cats.CatsKernel._
 
 /**
   * Discipline-based algebra-laws testing for Rational.

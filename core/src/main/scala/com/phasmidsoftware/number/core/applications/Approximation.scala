@@ -91,7 +91,7 @@ object Approximation {
     require(functions.size > 1, "solve: insufficient functions provided")
 
     val tester: Number => Try[Boolean] = converged(functions(0), functions(1))(probability)(_, target)
-    val iterator: Number => Try[Number] = iterate(functions: _*)
+    val iterator: Number => Try[Number] = iterate(functions *)
 
     @tailrec
     def inner(xy: Try[Number]): Try[Number] = xy match {
@@ -122,8 +122,8 @@ object Approximation {
     case 3 => // Halley's method
       for {
         fDashDash <- evaluateWithoutDerivative(fs(2))(x)
-        correction = fDashDash doDivide fDash doMultiply h doDivide Number.two doAdd Number.one
-      } yield h doDivide correction
+        correction = fDashDash `doDivide` fDash `doMultiply` h `doDivide` Number.two `doAdd` Number.one
+      } yield h `doDivide` correction
     case n =>
       Failure(com.phasmidsoftware.number.core.numerical.CoreException(s"Approximation.iterate: does not implement correction with $n functions"))
   }

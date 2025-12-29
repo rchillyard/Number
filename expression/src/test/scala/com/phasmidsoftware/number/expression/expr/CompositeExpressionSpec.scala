@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.core.Valuable
 import com.phasmidsoftware.number.algebra.eager.{Eager, WholeNumber}
 //import com.phasmidsoftware.number.expression.expr.ExpressionHelper.math
 import org.scalatest.flatspec.AnyFlatSpec

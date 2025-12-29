@@ -48,7 +48,6 @@ class EmptySpec extends AnyFlatSpec with should.Matchers {
   }
   // NOTE we no longer support implicit materialization of expressions.
   it should "use implicit materialization" in {
-    import Expression.*
     val expression: Expression = ∅ + 6 :* Literal(RationalNumber(2, 3)) :+ One
     val eager: Eager = expression.materialize
     eager shouldBe Eager(5)

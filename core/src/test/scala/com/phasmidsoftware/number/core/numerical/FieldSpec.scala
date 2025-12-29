@@ -19,7 +19,7 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "add" in {
     val one = Number.one
-    val result = one add Constants.i
+    val result = one `add` Constants.i
     result shouldBe ComplexCartesian(1, 1)
   }
   it should "take the natural log of i" in {

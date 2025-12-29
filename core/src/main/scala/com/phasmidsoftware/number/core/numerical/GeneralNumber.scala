@@ -4,14 +4,14 @@
 
 package com.phasmidsoftware.number.core.numerical
 
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Operations.doTransformValueMonadic
 import com.phasmidsoftware.number.core.inner.Rational.toInts
-import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.GeneralNumber.normalizeRoot
 import com.phasmidsoftware.number.core.numerical.Number.{negate, one, prepareWithSpecialize}
 import scala.annotation.tailrec
-import scala.util._
+import scala.util.*
 
 /**
   * This class is designed to model a Numerical value of various possible different types and of various possible factors.
@@ -212,7 +212,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return the cosine.
     */
   def cos: Number =
-    Number.negate(negate(scale(Radian)) doAdd Number(Rational.half, Radian).makeNegative).sin
+    Number.negate(negate(scale(Radian)) `doAdd` Number(Rational.half, Radian).makeNegative).sin
 
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
@@ -631,7 +631,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     */
   override def equals(other: Any): Boolean = other match {
     case that: GeneralNumber =>
-      (that canEqual this) &&
+      (that `canEqual` this) &&
           nominalValue == that.nominalValue &&
           factor == that.factor &&
           fuzz == that.fuzz
@@ -669,7 +669,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @param b the base of the logarithm; must be a positive number not equal to 1
     */
   private def doLog(b: Number) =
-    (Number.log(this) divide Number.log(b)).asNumber.getOrElse(Number.NaN)
+    (Number.log(this) `divide` Number.log(b)).asNumber.getOrElse(Number.NaN)
 
   /**
     * An optional Int that corresponds to the nominalValue of this Number (but ignoring the factor).
@@ -773,7 +773,7 @@ object GeneralNumber {
         case Number.one =>
           x
         case n@FuzzyNumber(_, _, _) =>
-          n doMultiply x
+          n `doMultiply` x
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)
           (p.factor, q.factor) match {
@@ -987,7 +987,7 @@ object GeneralNumber {
     case (a: GeneralNumber, b: GeneralNumber) =>
       y match {
         case n@FuzzyNumber(_, _, _) =>
-          n doAdd x
+          n `doAdd` x
         case _ =>
           val (p, q) = a.alignTypes(b)
           prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))

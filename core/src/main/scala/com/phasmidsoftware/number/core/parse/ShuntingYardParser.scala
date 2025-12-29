@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.core.parse
 
-import com.phasmidsoftware.number.core.mill._
-import com.phasmidsoftware.number.core.numerical._
+import com.phasmidsoftware.number.core.mill.*
+import com.phasmidsoftware.number.core.numerical.*
 import scala.annotation.tailrec
 import scala.util.Try
 
@@ -68,7 +68,7 @@ object ShuntingYardParser extends BaseMillParser {
       * @return a Try[Mill].
       */
     def toMill: Try[CoreMill] = switch match {
-      case ShuntingYard(values, Nil) => Try(CoreMill(values: _*))
+      case ShuntingYard(values, Nil) => Try(CoreMill(values *))
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 

@@ -168,7 +168,7 @@ object CoreContext {
     * Defined by combining `RestrictedContext(PureNumber)` and `RestrictedContext(Radian)`
     * using the `or` method, which permits qualification within either of these contexts.
     */
-  val AnyScalar: CoreContext = RestrictedContext(PureNumber) or RestrictedContext(Radian)
+  val AnyScalar: CoreContext = RestrictedContext(PureNumber) `or` RestrictedContext(Radian)
   /**
     * A combined `Context` that represents any type of logarithmic base.
     *
@@ -180,10 +180,10 @@ object CoreContext {
     * A value qualifies for this context if it qualifies for any of the three individual
     * restricted logarithmic contexts.
     */
-  val AnyLog: CoreContext = RestrictedContext(NatLog) or RestrictedContext(Log2) or RestrictedContext(Log10) or RestrictedContext(Euler)
+  val AnyLog: CoreContext = RestrictedContext(NatLog) `or` RestrictedContext(Log2) `or` RestrictedContext(Log10) `or` RestrictedContext(Euler)
   /**
     * A `Context` that qualifies factors as either square roots (`SquareRoot`) or cube roots (`CubeRoot`).
     * Combines the qualification conditions of `SquareRoot` and `CubeRoot` contexts using logical OR.
     */
-  val AnyRoot: CoreContext = RestrictedContext(SquareRoot) or RestrictedContext(CubeRoot)
+  val AnyRoot: CoreContext = RestrictedContext(SquareRoot) `or` RestrictedContext(CubeRoot)
 }

@@ -17,7 +17,7 @@ class ContextSpec extends AnyFlatSpec with should.Matchers {
     val natLogContext = RestrictedContext(factor)
     natLogContext.factorQualifies(factor) shouldBe true
     ImpossibleContext.factorQualifies(factor) shouldBe false
-    val contextOr = natLogContext or ImpossibleContext
+    val contextOr = natLogContext `or` ImpossibleContext
     contextOr.factorQualifies(factor) shouldBe true
   }
   it should "and" in {
@@ -25,7 +25,7 @@ class ContextSpec extends AnyFlatSpec with should.Matchers {
     val natLogContext = RestrictedContext(factor)
     natLogContext.factorQualifies(factor) shouldBe true
     ImpossibleContext.factorQualifies(factor) shouldBe false
-    val contextOr = natLogContext and ImpossibleContext
+    val contextOr = natLogContext `and` ImpossibleContext
     contextOr.factorQualifies(factor) shouldBe false
   }
   it should "qualifyingField" in {

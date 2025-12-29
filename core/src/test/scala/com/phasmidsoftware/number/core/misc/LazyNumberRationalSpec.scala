@@ -17,7 +17,7 @@ class LazyNumberRationalSpec extends flatspec.AnyFlatSpec with should.Matchers {
   val rat1: LazyRational = LazyRational(1)
   val rat2: LazyRational = LazyRational(Rational(2))
   val square: Named[Rational] = Named[Rational]("square", { x => x * x })
-  val rat4: LazyNumber[Rational] = rat2 map square
+  val rat4: LazyNumber[Rational] = rat2 `map` square
 
   "rat1" should "be 1" in {
     rat1.get shouldBe Rational.one
@@ -52,7 +52,7 @@ class LazyNumberRationalSpec extends flatspec.AnyFlatSpec with should.Matchers {
   }
 
   it should "be 3 when added to one by explicit function" in {
-    val lr = rat2 map Named("add Rat.1", { x => x + Rational.one })
+    val lr = rat2 `map` Named("add Rat.1", { x => x + Rational.one })
     lr.get shouldBe (Rational.one * 3)
   }
 

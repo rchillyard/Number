@@ -60,17 +60,17 @@ abstract class LazyNumber[X: Fractional](x: => X, f: X => X) extends Valuable[X]
   def /(that: LazyNumber[X]): LazyNumber[X] = div(this, that)
 
   // Methods for Numeric[LazyNumber]
-  def minus(x: LazyNumber[X], y: LazyNumber[X]): LazyNumber[X] = x.plus(x, y map fNegate)
+  def minus(x: LazyNumber[X], y: LazyNumber[X]): LazyNumber[X] = x.plus(x, y `map` fNegate)
 
-  def negate(x: LazyNumber[X]): LazyNumber[X] = x map fNegate
+  def negate(x: LazyNumber[X]): LazyNumber[X] = x `map` fNegate
 
-  def plus(x: LazyNumber[X], y: LazyNumber[X]): LazyNumber[X] = x map fAdd(y)
+  def plus(x: LazyNumber[X], y: LazyNumber[X]): LazyNumber[X] = x `map` fAdd(y)
 
-  def times(x: LazyNumber[X], y: LazyNumber[X]): LazyNumber[X] = x map fMult(y)
+  def times(x: LazyNumber[X], y: LazyNumber[X]): LazyNumber[X] = x `map` fMult(y)
 
-  def div(x: LazyNumber[X], y: LazyNumber[X]): LazyNumber[X] = x map fDiv(y)
+  def div(x: LazyNumber[X], y: LazyNumber[X]): LazyNumber[X] = x `map` fDiv(y)
 
-  def invert(x: LazyNumber[X]): LazyNumber[X] = x map fNegate
+  def invert(x: LazyNumber[X]): LazyNumber[X] = x `map` fNegate
 
   def toDouble(x: LazyNumber[X]): Double = z.toDouble(x.get)
 

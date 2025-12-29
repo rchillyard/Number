@@ -133,7 +133,6 @@ trait Transformed extends Functional {
   */
 object Monotone {
 
-  import org.slf4j.{Logger, LoggerFactory}
   import scala.util.Try
 
 //  private val logger: Logger = LoggerFactory.getLogger(getClass)

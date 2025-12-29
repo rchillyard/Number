@@ -6,12 +6,9 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.Context
 import com.phasmidsoftware.number.algebra.eager.{Eager, Real}
-import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.{Constants, Field}
+import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.{CompositeExpression, UniFunction}
-import java.util.Objects
 import scala.language.implicitConversions
 
 /**

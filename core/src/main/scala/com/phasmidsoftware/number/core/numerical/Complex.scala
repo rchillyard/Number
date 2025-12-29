@@ -6,10 +6,10 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
-import com.phasmidsoftware.number.core.misc.FP._
+import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian
 import com.phasmidsoftware.number.core.parse.ComplexParser
-import scala.util._
+import scala.util.*
 
 /**
   * Trait which defines the behavior of a type of Field called a Complex.
@@ -137,9 +137,9 @@ object Complex {
       // CONSIDER can we improve upon this? Basically, we should only need MonadicOperationAtan.
       // CONSIDER we should not be relying on expression package here.
       // TODO eliminate use of materialize (see doAdd in ComplexCartesian)
-      val ro: Option[Number] = for (p <- ((Literal(c.x) * Real(c.x)) plus (Literal(c.y) * Real(c.y))).materialize.asNumber; z = p.sqrt) yield z
+      val ro: Option[Number] = for (p <- ((Literal(c.x) * Real(c.x)) `plus` (Literal(c.y) * Real(c.y))).materialize.asNumber; z = p.sqrt) yield z
       val z: Number = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
-      ComplexPolar(z, c.x atan c.y, 1)
+      ComplexPolar(z, c.x `atan` c.y, 1)
   }
 
   /**
@@ -149,7 +149,7 @@ object Complex {
     * @return the equivalent ComplexCartesian.
     */
   def convertToCartesian(c: ComplexPolar): BaseComplex =
-    apply(Real(c.r doMultiply c.theta.cos), Real(c.r doMultiply c.theta.sin), ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
+    apply(Real(c.r `doMultiply` c.theta.cos), Real(c.r `doMultiply` c.theta.sin), ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
 
   /**
     * Method to construct a Complex from two fields, a (Number,Number)=>BaseComplex function, and an exception.

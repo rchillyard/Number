@@ -30,7 +30,7 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
 
     // 1) Traditional: add fuzzy Numbers directly (measure time)
     val (accumulated: Number, tSeqMs) = 1.times {
-      terms.tail.foldLeft(terms.head)(_ doAdd _)
+      terms.tail.foldLeft(terms.head)(_ `doAdd` _)
     }
 
     val actualNominal = accumulated.toNominalDouble.getOrElse(Double.NaN)
@@ -85,7 +85,7 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
 
     // 1) Traditional: multiply fuzzy Numbers directly (measure time)
     val (accumulated: Number, tSeqMs) = 1.times {
-      terms.tail.foldLeft(terms.head)(_ doMultiply _)
+      terms.tail.foldLeft(terms.head)(_ `doMultiply` _)
     }
 
     val actualNominal = accumulated.toNominalDouble.getOrElse(Double.NaN)

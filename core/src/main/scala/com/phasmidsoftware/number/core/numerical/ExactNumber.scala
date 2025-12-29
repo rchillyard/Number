@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import java.util.Objects
 
 /**
@@ -319,7 +319,7 @@ object ExactNumber {
   def log(x: ExactNumber, b: ExactNumber): Option[Number] =
     (for {
       i <- -10 to 10
-      z <- Option.when((b power i) == x)(i)
+      z <- Option.when((b `power` i) == x)(i)
     } yield z).headOption.map(Number(_)) // TODO we can improve on this, I think
 
 }

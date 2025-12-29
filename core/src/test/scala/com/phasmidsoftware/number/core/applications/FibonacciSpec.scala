@@ -5,10 +5,10 @@
 package com.phasmidsoftware.number.core.applications
 
 import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.expression._
+import com.phasmidsoftware.number.core.expression.*
 import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.core.numerical.Number.{one, root5, two}
-import com.phasmidsoftware.number.core.numerical._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -31,7 +31,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     actual shouldBe "2.6180339887498950(55)"
   }
   it should "render phi+1 as an Expression" in {
-    val target: Expression = Root.phi plus One
+    val target: Expression = Root.phi `plus` One
     target.simplify.toString shouldBe "BiFunction{\uD835\uDED7 + 1}"
     val simplified = target.simplify
     println(simplified)
@@ -73,7 +73,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
       case BiFunction(x, y, _) =>
         val t1 = x / Constants.root5
         val t2 = y / Constants.root5
-        val q = t1 plus t2
+        val q = t1 `plus` t2
       // TODO restore the following
       //       q shouldBe Constants.one (really?  Doesn't seem like it)
 //        q.materialize should ===(Constants.one)

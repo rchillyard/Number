@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.mill.{CoreMill, CoreMillItem, Expr, TerminalExpression}
-import com.phasmidsoftware.number.core.numerical._
+import com.phasmidsoftware.number.core.numerical.*
 import scala.util.Try
 
 /**
@@ -87,7 +87,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     *
     * @return a Parser[Mill].
     */
-  def mill: Parser[CoreMill] = repSepSp(term) :| "mill" ^^ (items => CoreMill(items.flatMap(_.toItems): _*))
+  def mill: Parser[CoreMill] = repSepSp(term) :| "mill" ^^ (items => CoreMill(items.flatMap(_.toItems) *))
 
   /**
     * A term is either of the form:

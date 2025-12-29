@@ -14,8 +14,10 @@ trait RealAlgebraicInstances {
         // Delegate the basic operations of the loop to realField
         def zero: Real = Constants.zero
         def one: Real = Constants.one
-        def plus(x: Real, y: Real): Real = createFromRealField(x add y)
-        def times(x: Real, y: Real): Real = createFromRealField(x multiply y)
+
+      def plus(x: Real, y: Real): Real = createFromRealField(x `add` y)
+
+      def times(x: Real, y: Real): Real = createFromRealField(x `multiply` y)
         def negate(x: Real): Real = createFromRealField(-x)
         override def fromInt(n: Int): Real = Real(n)
 
@@ -24,7 +26,7 @@ trait RealAlgebraicInstances {
 
         // Truncated division: round the quotient towards zero
         def tquot(x: Real, y: Real): Real = {
-            val qReal: Real = createFromRealField(x divide y)
+          val qReal: Real = createFromRealField(x `divide` y)
             val qd: Double = qReal.toDouble
             // Round towards zero: positive numbers floor, negative numbers ceil
             val qt: Double = if (qd >= 0.0) math.floor(qd) else math.ceil(qd)
@@ -49,8 +51,10 @@ trait RealAlgebraicInstances {
     implicit val realCommutativeRing: CommutativeRing[Real] = new CommutativeRing[Real] {
         def zero: Real = Constants.zero
         def one: Real = Constants.one
-        def plus(x: Real, y: Real): Real = createFromRealField(x add y)
-        def times(x: Real, y: Real): Real = createFromRealField(x multiply y)
+
+      def plus(x: Real, y: Real): Real = createFromRealField(x `add` y)
+
+      def times(x: Real, y: Real): Real = createFromRealField(x `multiply` y)
         def negate(x: Real): Real = createFromRealField(-x)
         override def fromInt(n: Int): Real = Real(n)
     }

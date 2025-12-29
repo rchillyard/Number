@@ -5,9 +5,9 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.algebraic.Algebraic
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
-import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.misc.FP._
+import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{inverse, negate}
 // TODO eliminate references to expression package
@@ -16,7 +16,7 @@ import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
 import scala.annotation.tailrec
 import scala.language.{implicitConversions, postfixOps}
-import scala.util._
+import scala.util.*
 
 /**
   * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
@@ -278,13 +278,13 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def add(x: Field): Field =
     x match {
       case Real(n) if n.isImaginary =>
-        ComplexCartesian.fromImaginary(n) doAdd Complex(this)
+        ComplexCartesian.fromImaginary(n) `doAdd` Complex(this)
       case Real(n) =>
         Real(doAdd(n))
       case c@BaseComplex(_, _) => // TESTME
         c.add(this.asComplex)
       case s: Algebraic =>
-        s add Real(this)
+        s `add` Real(this)
       case _ =>
         throw CoreException(s"logic error: add not supported for this addend: $x")
     }
@@ -332,7 +332,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     case (_, c@BaseComplex(_, _)) =>
       c.multiply(this.asComplex)
     case (_, s: Algebraic) =>
-      s multiply Real(this)
+      s `multiply` Real(this)
     case _ =>
       throw CoreException("logic error: multiply not supported for non-Number multiplicands")
   }
@@ -364,7 +364,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     case Number.negOne =>
       inverse(this)
     case Number.two =>
-      this doMultiply this
+      this `doMultiply` this
     case _ =>
       doPower(p)
   }
@@ -375,7 +375,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * @return the result of squaring this number
     */
-  def square: Number = this doMultiply this
+  def square: Number = this `doMultiply` this
 
   /**
     * Raise this Number to the power p.
@@ -453,10 +453,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
           case Rational(Rational.bigOne, Rational.bigSix) =>
             inverse(Number.root3)
           case _ =>
-            sin doDivide cos
+            sin `doDivide` cos
         }
       case _ =>
-        sin doDivide cos
+        sin `doDivide` cos
     }
 
   /**
@@ -865,7 +865,7 @@ object Number {
       * @return a Number whose value is x + y.
       */
     def +(y: Number): Number =
-      Number(x) doAdd y
+      Number(x) `doAdd` y
 
     /**
       * Multiply x by y (a Number) and yield a Number.
@@ -874,7 +874,7 @@ object Number {
       * @return a Number whose value is x * y.
       */
     def *(y: Number): Number =
-      Number(x) doMultiply y
+      Number(x) `doMultiply` y
 
     /**
       * Divide x by y (a Number) and yield a Number.
@@ -883,7 +883,7 @@ object Number {
       * @return a Number whose value is x / y.
       */
     def /(y: Number): Number =
-      convertToNumber(Number(x) multiply y.invert)
+      convertToNumber(Number(x) `multiply` y.invert)
 
     /**
       * Divide x by y (an Int) and yield a Number.
@@ -1491,9 +1491,9 @@ object Number {
             case Some(4) | Some(8) =>
               rootThreeQuarters // pi/3 and 2pi/3
             case Some(1) | Some(11) =>
-              rootSix doSubtract root2 doDivide 4 // pi/12 and 11pi/12 would be nice for this to be an Expression
+              rootSix `doSubtract` root2 `doDivide` 4 // pi/12 and 11pi/12 would be nice for this to be an Expression
             case Some(5) | Some(7) =>
-              rootSix doAdd root2 doDivide 4 // 5pi/12 and 7pi/12 ditto // TESTME
+              rootSix `doAdd` root2 `doDivide` 4 // 5pi/12 and 7pi/12 ditto // TESTME
             case _ =>
               prepareWithSpecialize(z.transformMonadic(PureNumber)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
           }
@@ -1512,7 +1512,7 @@ object Number {
     * @return the arctangent of the angle, in radians
     */
   def atan(x: Number, y: Number): Number =
-    doAtan(y doDivide x, x.signum)
+    doAtan(y `doDivide` x, x.signum)
 
   /**
     * Yield the natural log of x.
@@ -1535,7 +1535,7 @@ object Number {
     case SquareRoot if x.signum < 0 =>
       ComplexPolar(x.make(PureNumber).makeNegative, piBy2, 2).ln
     case NthRoot(r) if x.signum > 0 =>
-      Real(log(x.make(PureNumber)) divide Real(r))
+      Real(log(x.make(PureNumber)) `divide` Real(r))
     case _ =>
       log(x.scale(PureNumber))
   }

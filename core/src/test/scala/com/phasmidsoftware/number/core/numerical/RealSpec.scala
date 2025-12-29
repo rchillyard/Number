@@ -50,19 +50,19 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Constants.e.toString shouldBe "\uD835\uDF00"
   }
   it should "work for E∧2" in {
-    val target = Constants.e power Real(2)
+    val target = Constants.e `power` Real(2)
     target.toString shouldBe "\uD835\uDF00\u00B2"
   }
   it should "work for E∧3" in {
-    val target = Constants.e power 3
+    val target = Constants.e `power` 3
     target.toString shouldBe "\uD835\uDF00\u00B3"
   }
   it should "work for E∧4" in {
-    val target = Constants.e power 4
+    val target = Constants.e `power` 4
     target.toString shouldBe "\uD835\uDF00\u2074"
   }
   it should "work for E∧10" in {
-    val target = Constants.e power 10
+    val target = Constants.e `power` 10
     target.toString shouldBe "\uD835\uDF00∧10"
   }
 
@@ -108,17 +108,17 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "add 1 and 2" in {
     val x = Constants.one
     val y = Constants.two
-    (x add y) shouldBe Real(3)
+    (x `add` y) shouldBe Real(3)
   }
   it should "add 1 to pi" in {
     val x1 = Constants.one
     val x2 = Constants.pi
-    (x1 add x2).toString shouldBe "4.1415926535897930(41)"
+    (x1 `add` x2).toString shouldBe "4.1415926535897930(41)"
   }
   it should "add 1 to e" in {
     val x1 = Constants.one
     val x2 = Constants.e
-    (x1 add x2) should ===(Real(3.7182818284590450))
+    (x1 `add` x2) should ===(Real(3.7182818284590450))
   }
 
   behavior of "minus"
@@ -131,14 +131,14 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "subtract 1 from 2" in {
     val x = Real(2)
     val y = one
-    (x add -y) shouldBe Constants.one
+    (x `add` -y) shouldBe Constants.one
   }
 
   behavior of "multiply"
   it should "multiply 1 and 2" in {
     val x = Constants.one
     val y = Constants.two
-    (x multiply y) shouldBe Real(2)
+    (x `multiply` y) shouldBe Real(2)
   }
 
   behavior of "invert"
@@ -151,7 +151,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "divide 1 by 2" in {
     val x = Constants.one
     val y = Constants.two
-    (x divide y) shouldBe Real(Number(Rational.half))
+    (x `divide` y) shouldBe Real(Number(Rational.half))
   }
 
   behavior of "power"
@@ -161,7 +161,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for squaring SquareRoot" in {
     val target = Real(Number.root2)
-    target.power(2) isSame Real(Number.two)
+    target.power(2) `isSame` Real(Number.two)
   }
 
   behavior of "sqrt"
@@ -221,12 +221,12 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.cos.isZero shouldBe true
   }
   it should "work for Pi/3" in {
-    val target = Number.pi doDivide 3
+    val target = Number.pi `doDivide` 3
     target.cos shouldBe Number(Rational(1, 2), PureNumber)
   }
   it should "work for Pi/6" in {
-    val target = Number.pi doDivide 6
-    target.cos should ===(Number(3).sqrt doDivide 2)
+    val target = Number.pi `doDivide` 6
+    target.cos should ===(Number(3).sqrt `doDivide` 2)
   }
 
   behavior of "tan"
@@ -243,11 +243,11 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.tan.isInfinite shouldBe true
   }
   it should "work for Pi/3" in {
-    val target = Number.pi doDivide 3
+    val target = Number.pi `doDivide` 3
     target.tan shouldEqual Number(3).sqrt
   }
   it should "work for Pi/6" in {
-    val target = Number.pi doDivide 6
+    val target = Number.pi `doDivide` 6
     target.tan should ===(Number(3).sqrt.getInverse)
   }
 
@@ -258,7 +258,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "be pi/4 for 1/1" in {
     val target = Number.one
-    target.atan(Number.one) === (Number.pi doDivide 4)
+    target.atan(Number.one) === (Number.pi `doDivide` 4)
   }
   it should "be 0Pi for 0/-1" in {
     val target = Number.negate(Number.one)
@@ -278,7 +278,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val adjacent = Number.negate(Number.one)
     val opposite = Number.one
     val actual: Number = adjacent.atan(opposite)
-    val expected: Number = (Number.pi doMultiply 3) doDivide 4
+    val expected: Number = (Number.pi `doMultiply` 3) `doDivide` 4
     // TODO revert this so that it reads actual ... expected
     //  XXX  actual should ===(expected)
     actual shouldBe expected
@@ -457,7 +457,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 
   behavior of "multiply"
   it should "work for pure numbers" in {
-    Real(Number.root2) multiply Real(Number.root2) shouldBe Constants.two
-    Constants.two multiply Constants.two shouldBe Real(4)
+    Real(Number.root2) `multiply` Real(Number.root2) shouldBe Constants.two
+    Constants.two `multiply` Constants.two shouldBe Real(4)
   }
 }

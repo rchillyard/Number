@@ -5,8 +5,8 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.expression.Literal
-import com.phasmidsoftware.number.core.inner._
-import com.phasmidsoftware.number.core.misc.FP._
+import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.BaseComplex.narrow
 import com.phasmidsoftware.number.core.numerical.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
@@ -62,15 +62,15 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     */
   def isSame(x: Numerical): Boolean = (this, x) match {
     case (z, Real(n)) =>
-      z isSame n.asComplex
+      z `isSame` n.asComplex
     case (c1@ComplexCartesian(_, _), c2@ComplexPolar(_, _, _)) =>
       c2.isSame(c1)
     case (c1@ComplexPolar(_, _, _), c2@ComplexCartesian(_, _)) =>
       c1.isSame(convertToPolar(c2))
     case (c1, c2: Complex) =>
-      (c1 subtract c2).isZero
+      (c1 `subtract` c2).isZero
     case (z, x: Number) =>
-      z isSame Real(x)
+      z `isSame` Real(x)
   }
 
   /**
@@ -100,7 +100,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     */
   def sum(addend: Complex): Complex = this match {
     case ComplexCartesian(_, _) => doAdd(addend)
-    case ComplexPolar(_, _, _) => narrow(this, polar = false) doAdd addend
+    case ComplexPolar(_, _, _) => narrow(this, polar = false) `doAdd` addend
   }
 
   /**
@@ -111,7 +111,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return the quotient.
     */
   def divide(x: Field): Field =
-    this multiply x.invert
+    this `multiply` x.invert
 
   /**
     * Multiply this Complex by x and return the result.
@@ -134,11 +134,11 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case (ComplexPolar(_, _, _), ComplexPolar(_, _, _)) =>
       doMultiply(multiplicand)
     case (ComplexPolar(_, _, _), ComplexCartesian(_, _)) =>
-      narrow(this, polar = false) doMultiply multiplicand
+      narrow(this, polar = false) `doMultiply` multiplicand
     case (ComplexCartesian(_, _), ComplexCartesian(_, _)) =>
       doMultiply(multiplicand)
     case (ComplexCartesian(_, _), ComplexPolar(_, _, _)) =>
-      narrow(this, polar = true) doMultiply multiplicand
+      narrow(this, polar = true) `doMultiply` multiplicand
   }
 
   /**
@@ -214,13 +214,13 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       case ComplexCartesian(x, y) if y.isProbablyZero() =>
         Some(x)
       case ComplexCartesian(x, y) if x.isProbablyZero() =>
-        Some((y doMultiply y).makeNegative.make(SquareRoot))
+        Some((y `doMultiply` y).makeNegative.make(SquareRoot))
       case ComplexPolar(r, theta, _) if theta.isProbablyZero() =>
         Some(r)
       // CONSIDER allowing approximately pi
       case ComplexPolar(r, theta, _) if theta == Number.pi =>
         Some(r.makeNegative)
-      case p@ComplexPolar(_, theta, _) if (theta doMultiply 2).abs == Number.pi =>
+      case p@ComplexPolar(_, theta, _) if (theta `doMultiply` 2).abs == Number.pi =>
         convertToCartesian(p).asNumber
       case _ =>
         None
@@ -358,7 +358,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = recover(
     for {
       z <- n.toNominalRational
-      r = re power n
+      r = re `power` n
       branches <- (z.invert * w).maybeInt
     } yield ComplexPolar(r, im.doMultiple(z), branches),
     ComplexException("logic error: power")
@@ -476,7 +476,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     if (n.isImaginary)
       doMultiply(ComplexCartesian.fromImaginary(n))
     else
-      make(x doMultiply n, y doMultiply n)
+      make(x `doMultiply` n, y `doMultiply` n)
 
   /**
     * Add two Cartesian Complex numbers.
@@ -487,8 +487,8 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     */
   def doMultiply(complex: Complex): Complex = complex match {
     case ComplexCartesian(a, b) =>
-      val real: Number = (a doMultiply x) doAdd (b doMultiply y doMultiply Number.negOne)
-      val imag: Number = (a doMultiply y) doAdd (b doMultiply x)
+      val real: Number = (a `doMultiply` x) `doAdd` (b `doMultiply` y `doMultiply` Number.negOne)
+      val imag: Number = (a `doMultiply` y) `doAdd` (b `doMultiply` x)
       ComplexCartesian(real, imag)
     case ComplexPolar(_, _, _) =>
       throw ComplexException("logic error: ComplexCartesian.doAdd")
@@ -574,7 +574,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return a `ComplexCartesian` instance representing the square of the original complex number.
     */
   def square: ComplexCartesian =
-    ComplexCartesian(x.doPower(Number.two) doSubtract y.doPower(Number.two), x doMultiply y doMultiply Number.two)
+    ComplexCartesian(x.doPower(Number.two) `doSubtract` y.doPower(Number.two), x `doMultiply` y `doMultiply` Number.two)
 
   /**
     * Yields the inverse of this Complex.
@@ -582,7 +582,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return the result of invoking power(-1).
     */
   def invert: Complex =
-    conjugate.asInstanceOf[ComplexCartesian] scale modulusSquared.getInverse
+    conjugate.asInstanceOf[ComplexCartesian] `scale` modulusSquared.getInverse
 
   /**
     * Calculates the square of the modulus of the complex number represented by this instance.
@@ -591,7 +591,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return the squared modulus of the complex number.
     */
   def modulusSquared: Number =
-    imag.doPower(two) doAdd real.doPower(two)
+    imag.doPower(two) `doAdd` real.doPower(two)
 
   /**
     * Method to scale this Cartesian Complex number by a factor.
@@ -605,7 +605,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     case Number.i =>
       make(negate(imag), real)
     case _ =>
-      make(real doMultiply x, imag doMultiply x)
+      make(real `doMultiply` x, imag `doMultiply` x)
   }
 
   /**
@@ -749,7 +749,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the squared modulus as a Number.
     */
-  def modulusSquared: Number = r power two
+  def modulusSquared: Number = r `power` two
 
   /**
     * Computes the square of this ComplexPolar instance by doubling its argument (angle).
@@ -757,7 +757,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return a new Field representing the squared value of the ComplexPolar instance.
     */
-  def square: Field = copy(r = r power 2, theta = theta doMultiple 2)
+  def square: Field = copy(r = r `power` 2, theta = theta `doMultiple` 2)
 
   /**
     * Yields the inverse of this Complex.
@@ -780,7 +780,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return the value of this, rotated by phi.
     */
   def rotate(phi: Number): ComplexPolar =
-    ComplexPolar(real, imag doAdd phi)
+    ComplexPolar(real, imag `doAdd` phi)
 
   /**
     * Computes the natural logarithm of this Field.
@@ -808,7 +808,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   def numberProduct(n: Number): Complex = {
     // TODO this first option currently works only for i, not for multiples of i.
     if (n.isImaginary) convertToCartesian(this).rotate
-    else make(r doMultiply n, theta)
+    else make(r `doMultiply` n, theta)
   }
 
   /**
@@ -905,7 +905,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     */
   def doMultiply(complex: Complex): Complex = complex match {
     case ComplexPolar(a, b, _) =>
-      make(r doMultiply a, theta doAdd b)
+      make(r `doMultiply` a, theta `doAdd` b)
     case _ =>
       throw ComplexException("logic error: ComplexPolar.doMultiply")
   }

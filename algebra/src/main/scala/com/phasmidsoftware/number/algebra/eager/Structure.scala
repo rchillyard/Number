@@ -12,7 +12,6 @@ import com.phasmidsoftware.number.algebra.core.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.algebra.eager.Real
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
-import org.slf4j.{Logger, LoggerFactory}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
 

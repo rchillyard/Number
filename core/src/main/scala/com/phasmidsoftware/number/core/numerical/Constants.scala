@@ -93,7 +93,7 @@ object Constants {
     *
     * This value is a constant and belongs to the `Constants` class.
     */
-  lazy val piBy2Times3: Field = Number.piBy2 add pi
+  lazy val piBy2Times3: Field = Number.piBy2 `add` pi
   /**
     * Represents the value of π/4 (quarter of π) as a `Real` object.
     *
