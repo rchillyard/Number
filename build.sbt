@@ -28,6 +28,8 @@ val commonScalacOptions = Seq(
   "-feature"
 )
 
+// TODO eliminate the Scala 2 options as there is no longer any Scala 2 code.
+
 // Scala 2.13-specific options
 val scala2Options = Seq(
 //  "-Xlint:_",                      // Enable all linting
@@ -73,7 +75,7 @@ lazy val core = (project in file("core"))
 
       libraryDependencies ++= Seq(
         "com.phasmidsoftware" %% "flog" % flogVersion,
-        "com.phasmidsoftware" %% "matchers" % "1.0.12",
+        "com.phasmidsoftware" %% "matchers" % "1.0.13",
         "org.apache.commons" % "commons-math3" % apacheCommonsVersion,
         "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
         "org.typelevel" %% "spire" % "0.18.0",
@@ -85,7 +87,7 @@ lazy val core = (project in file("core"))
         "org.typelevel" %% "cats-laws" % catsVersion % "test",
         "org.typelevel" %% "algebra-laws" % catsVersion % "test",
         "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-        "ch.qos.logback" % "logback-classic" % "1.5.21" % "runtime"
+        "ch.qos.logback" % "logback-classic" % "1.5.23" % "runtime"
       )
     )
 
