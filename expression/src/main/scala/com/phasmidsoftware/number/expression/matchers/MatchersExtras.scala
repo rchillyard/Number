@@ -15,6 +15,22 @@ import com.phasmidsoftware.matchers.{MatcherException, Matchers, ~}
   */
 trait MatchersExtras extends Matchers {
 
+
+  /**
+    * Creates a `MatchResult` by applying a given function `f` to an input value of type `T`, 
+    * and matching the result if the function yields a defined `Option`.
+    * Matches and processes a given input using a function that returns an Option.
+    * TODO promote this into `Matchers` (where `matchOptionFunc` is already defined but could be based on this method).
+    *
+    * @param f a function that transforms an input of type `T` into an `Option[R]`.
+    * @param t the input value of type `T` to be transformed and matched.
+    * @tparam T the input type.
+    * @tparam R the result type contained in the `Option`.
+    * @return a `MatchResult[R]` constructed from the result of the function if the `Option` is defined.
+    */
+  def matchOptionFunc2[T, R](f: T => Option[R])(t: T): MatchResult[R] =
+    matchIfDefined(f(t))(t)
+
   /**
     * Method to create a Matcher which operates on an instance of a case class (or other Product) P but which invokes m (which takes a 2-tuple).
     *

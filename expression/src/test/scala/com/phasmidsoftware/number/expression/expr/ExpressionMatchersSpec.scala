@@ -14,6 +14,7 @@ import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, √}
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number.expression.expr
+import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, matchSimpler, zero}
 import org.scalactic.Equality
@@ -322,7 +323,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z: Expression = Expression(3).sqrt
     val x = z :* z.reciprocal * Eager(3)
     val simplified = x.simplify
-    simplified.evaluateAsIs shouldBe Some(Eager(3))
+    val asIs = simplified.evaluateAsIs
+    asIs shouldBe Some(Eager(3))
   }
   it should "simplify e * 2 / 2" in {
     import BiFunction.*
@@ -386,12 +388,54 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   behavior of "simplifyAggregate"
-  it should "simplifyAggregate" in {
+  it should "asAggregate" in {
+    val root3: Expression = Expression(3).sqrt
+    val x: BiFunction = (root3 :* root3.reciprocal * Eager(3)).asInstanceOf[BiFunction]
+    asAggregate(x).get shouldBe Aggregate(Product, Seq(root3, root3.reciprocal, Eager(3)))
+  }
+
+  it should "simplifyAggregate 1" in {
     val p = em.simplifyAggregate
     val x: Aggregate = Aggregate.total(One, 3, -3)
     val result: em.MatchResult[Expression] = p(x)
     result shouldBe em.Match(One)
   }
+  it should "simplifyAggregate 2" in {
+    val root3 = Expression(3).sqrt
+    val p = em.simplifyAggregate
+    val x: Aggregate = Aggregate.total(One, root3, -root3)
+    val result: em.MatchResult[Expression] = p(x)
+    result shouldBe em.Match(One)
+  }
+  it should "simplifyAggregate 3" in {
+    val root3 = Expression(3).sqrt
+    val p = em.simplifyAggregate
+    val x: Aggregate = Aggregate(Product, Seq(One, root3, root3.reciprocal))
+    x.simplify shouldBe One
+    val result: em.MatchResult[Expression] = p(x)
+    result shouldBe em.Match(One)
+    println(s"simplifyAggregate 3: x=$x; simplified=${x.simplify}; result=$result")
+  }
+  it should "simplifyAggregate 4" in {
+    val root3 = Expression(3).sqrt
+    val p = em.simplifyAggregate
+    val x: Aggregate = Aggregate(Product, Seq(root3, One, root3.reciprocal))
+    val result: em.MatchResult[Expression] = p(x)
+    result shouldBe em.Match(One)
+    println(s"simplifyAggregate 4: x=${x.render}; simplified=${x.simplify.render}; result=$result")
+  }
+  it should "simplifyAggregate 5" in {
+    val root3: Expression = Expression(3).sqrt
+    val x: BiFunction = (root3 :* root3.reciprocal * Eager(3)).asInstanceOf[BiFunction]
+    val x1: Aggregate = asAggregate(x).get
+    val x2: Aggregate = Aggregate(Product, Seq(root3, root3.reciprocal, Eager(3)))
+    println(s"x1=$x1\nx2=$x2")
+    val simplified = x1.simplify
+    println(s"simplifyAggregate 5:\n  x1=${x1.render};\n  x1 simplified=${x1.simplify.render};\n  x2 simplified=${x2.simplify.render}")
+    val asIs = simplified.evaluateAsIs
+    asIs shouldBe Some(Eager(3))
+  }
+
 
   behavior of "simplify"
   it should "cancel addition and subtraction (a)" in {
@@ -1104,6 +1148,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     em.matchComplementaryExpressions(Product ~ expr.UniFunction(Two, Reciprocal) ~ BiFunction(Two, One, Product)) shouldBe em.Match(One)
     em.matchComplementaryExpressions(Product ~ BiFunction(One, Two, Product) ~ expr.UniFunction(Two, Reciprocal)) shouldBe em.Match(One)
     em.matchComplementaryExpressions(Product ~ expr.UniFunction(Two, Reciprocal) ~ BiFunction(One, Two, Product)) shouldBe em.Match(One)
+    val root3 = Expression(3).sqrt
+    em.matchComplementaryExpressions(Product ~ expr.UniFunction(root3, Reciprocal) ~ root3) shouldBe em.Match(One)
   }
 
   behavior of "matchSimplifyDyadicTermsTwoLevels"
@@ -1506,15 +1552,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Sum ~ Two ~ BiFunction(MinusOne, Two, Product)) shouldBe em.Match(Zero)
   }
   // TODO Issue #140
-  ignore should "simplify root3 * 2 / 2" in {
+  it should "simplify root3 * 2 / 2" in {
     import BiFunction.*
     val p = Expression.matchSimpler
-    //    val root3: Number = √(3)
-    val root3: Expression = Expression(3).sqrt
+    val root3: Expression = Expression(3).sqrt.simplify
     val x: Expression = root3Expression * Eager.two
     val y: Expression = Expression(Eager.two).reciprocal
-    val result = p(Product ~ x ~ y)
-    result shouldBe em.Match(root3)
+    (x * y).materialize shouldBe Eager.root3  // this does all simplification
+    val result = p(Product ~ x ~ y) // This just does one level of simplification.
+    result shouldBe em.Match(Literal(Eager.root3))
   }
 
   behavior of "matchAndCollectTwoDyadicLevels"
@@ -1573,7 +1619,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val someLiteral = Some(Literal(Angle.zero))
     maybeExpression shouldBe someLiteral
   }
-
 }
 
 case class SBLogger(override val logLevel: LogLevel, sb: StringBuilder) extends MatchLogger(logLevel, { w => sb.append(s"$w\n"); () })

@@ -7,14 +7,15 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
-import com.phasmidsoftware.number.algebra.eager.Monotone
+import com.phasmidsoftware.number.algebra.eager.{Monotone, Number}
 import com.phasmidsoftware.number.core.inner.PureNumber
-import com.phasmidsoftware.number.core.matchers.MatchersExtras
 import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Field
+import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
 import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
+import com.phasmidsoftware.number.expression.matchers.MatchersExtras
 import com.phasmidsoftware.number.{core, expression}
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -129,18 +130,6 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   }
 
   /**
-    * Determines if two expressions are complementary based on a given binary function.
-    * TODO find other method that does something similar
-    * TODO move this method into Expression
-    * CONSIDER this method makes no sense to me!
-    *
-    * @param f The binary function to evaluate the expressions.
-    * @param x The first expression to evaluate.
-    * @param y The second expression to evaluate.
-    * @return True if the expressions are complementary, according to the binary function, false otherwise.
-    */
-
-  /**
     * Method to create an ExpressionMatcher.
     *
     * @param f a function Expression => MatchResult[R]
@@ -219,25 +208,14 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         transform it into an Aggregate if conditions are satisfied. If the input
     *         does not meet the required conditions, it returns a Miss.
     */
-  def matchBiFunctionAsAggregate: Matcher[BiFunction, expression.expr.Aggregate] = Matcher[BiFunction, expression.expr.Aggregate]("matchBiFunctionAsAggregate") {
-    case BiFunction(BiFunction(w, x, Sum), BiFunction(y, z, Sum), Product) =>
-      Match(expression.expr.Aggregate(Sum, Seq((w :* y).simplify, (w :* z).simplify, (x :* y).simplify, (x :* z).simplify)))
-    case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
-      Match(expression.expr.Aggregate(f, Seq(w, x, y, z)))
-    case BiFunction(BiFunction(w, x, Power), y, Power) =>
-      Match(expression.expr.Aggregate(Power, Seq(w, x :* y)))
-    case BiFunction(BiFunction(w, x, f), y, h) if f == h =>
-      Match(expression.expr.Aggregate(f, Seq(w, x, y)))
-    case BiFunction(x, BiFunction(y, z, f), h) if f == h =>
-      Match(expression.expr.Aggregate(f, Seq(x, y, z)))
-    case x =>
-      Miss("matchBiFunctionAsAggregate: is not converted to Aggregate:", x)
-  }
+  def matchBiFunctionAsAggregate: Matcher[BiFunction, expression.expr.Aggregate] = Matcher[BiFunction, expression.expr.Aggregate]("matchBiFunctionAsAggregate")(
+    biFunction =>
+      matchOptionFunc2(asAggregate)(biFunction))
 
   /**
     * Simplifies a `Aggregate` expression by combining its terms in a more compact form.
     * This method handles several cases:
-    * - If the `Aggregate` is empty, it produces a zero constant.
+    * - If the `Aggregate` is empty, it produces the appropriate identity.
     * - If the `Aggregate` contains a single element, it simplifies that element.
     * - If all elements in the `Aggregate` can be interpreted as numbers, it combines them iteratively
     * and simplifies the resulting expression.
@@ -422,9 +400,11 @@ object ExpressionMatchers {
     */
   def complementaryExpressions(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
     f.evaluate(x, y)(AnyContext) match {
-      case Some(z) if f.maybeIdentityL.contains(z) =>
-        Some(Literal(z))
       case Some(z: Monotone) if z.isZero && f == Sum =>
+        Some(Literal(z))
+      case Some(z: Number) if z.isUnity && f == Product =>
+        Some(Literal(z))
+      case Some(z) if f.maybeIdentityL.contains(z) => // CONSIDER this case doesn't add anything
         Some(Literal(z))
       case x =>
         None

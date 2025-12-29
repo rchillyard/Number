@@ -271,10 +271,8 @@ sealed abstract class ExpressionBiFunction(
     * Evaluates two expressions `x` and `y` in a given context and determines the resulting `Valuable` based on specific identity and evaluation rules.
     * Trivial identities are recognized and evaluated appropriately.
     *
-    * TODO why not use `applyExact` when possible?
-    *
-    * @param x       the first expression to be evaluated.
-    * @param y       the second expression to be evaluated.
+    * @param a       the first expression to be evaluated.
+    * @param b       the second expression to be evaluated.
     * @param context the evaluation context providing the necessary environment for resolving expressions.
     * @return an `Option[Valuable]` containing the result of the evaluation if successful, or `None` if evaluation fails.
     */
@@ -920,6 +918,8 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
       Some(Eager.one)
     case (_, eager.Real.infinity | RationalNumber.infinity) =>
       Some(b)
+    case (x: eager.InversePower, y: eager.ExactNumber) =>
+      x.pow(y).asInstanceOf[Option[Eager]]
     case (x: CanPower[eager.Scalar] @unchecked, y: Q) if x.isExact && y.isExact =>
       for {
         f <- y.maybeFactor(AnyContext) if f == PureNumber

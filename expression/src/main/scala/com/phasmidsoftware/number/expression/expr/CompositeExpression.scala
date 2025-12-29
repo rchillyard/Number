@@ -944,6 +944,36 @@ object BiFunction {
     new expression.expr.BiFunction(tuple._1._2, tuple._2, tuple._1._1)
   }
 
+
+  /**
+    * Analyzes the current instance and tries to interpret it as an aggregate expression.
+    * An aggregate expression is a specific pattern of nested operations (e.g., sums, products, powers)
+    * that can be represented in a more general form.
+    *
+    * The method matches different cases where the current instance can be reduced to an
+    * aggregate representation. If such a representation exists, it returns it wrapped
+    * in an `Option`. If the instance does not match any of the aggregate patterns,
+    * it returns `None`.
+    *
+    * @return An `Option` containing the aggregate representation, or `None` if the instance
+    *         cannot be interpreted as an aggregate.
+    */
+  def asAggregate(b: BiFunction): Option[Aggregate] = b match {
+    case BiFunction(BiFunction(w, x, Sum), BiFunction(y, z, Sum), Product) =>
+      Some(expression.expr.Aggregate(Sum, Seq((w :* y).simplify, (w :* z).simplify, (x :* y).simplify, (x :* z).simplify)))
+    case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
+      Some(expression.expr.Aggregate(f, Seq(w, x, y, z)))
+    case BiFunction(BiFunction(w, x, Power), y, Power) =>
+      Some(expression.expr.Aggregate(Power, Seq(w, x :* y)))
+    case BiFunction(BiFunction(w, x, f), y, h) if f == h =>
+      Some(expression.expr.Aggregate(f, Seq(w, x, y)))
+    case BiFunction(x, BiFunction(y, z, f), h) if f == h =>
+      Some(expression.expr.Aggregate(f, Seq(x, y, z)))
+    case x =>
+      None
+  }
+
+
   implicit def convertFromDyadicTriple(dt: DyadicTriple): expression.expr.BiFunction = apply(dt)
 }
 
