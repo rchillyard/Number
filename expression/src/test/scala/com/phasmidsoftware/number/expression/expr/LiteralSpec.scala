@@ -30,8 +30,7 @@ class LiteralSpec extends AnyFlatSpec with should.Matchers {
 
   it should "render correctly" in {
     Literal(WholeNumber(5)).render shouldBe "5"
-//    Literal(RationalNumber(3, 2)).render shouldBe "3/2"
-    pending
+    Literal(RationalNumber(3, 2)).render shouldBe "1.5"
   }
 
   it should "materialize to Some of its number" in {

@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, √}
+import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, root3, √}
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
@@ -773,25 +773,18 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //    em.factorsMatch(Sum, Literal(root2), Literal(root2) * MinusOne) shouldBe false // TODO fix this
     //    em.factorsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this
   }
-  // TODO Issue #140
   it should "match expression Product" in {
-//    val root3 = Expression(3).sqrt
-//    em.factorsMatch(Product, ConstPi, MinusOne) shouldBe true
-//    em.factorsMatch(Product, MinusOne, ConstPi) shouldBe true
-//    em.factorsMatch(Product, root3, Literal(root2)) shouldBe true
-//    em.factorsMatch(Product, Literal(root2), MinusOne) shouldBe false
-//    em.factorsMatch(Product, MinusOne, Literal(root2)) shouldBe false
-    pending
+    em.factorsMatch(Product, ConstPi, MinusOne) shouldBe true
+    em.factorsMatch(Product, MinusOne, ConstPi) shouldBe true
+    em.factorsMatch(Product, Literal(root2), MinusOne) shouldBe false
+    em.factorsMatch(Product, MinusOne, Literal(root2)) shouldBe false
+    em.factorsMatch(Product, Literal(root3), Literal(root2)) shouldBe true
   }
-  // TODO Issue #140
   it should "match expression Power" in {
-    val root3 = Expression(3).sqrt
-    //        em.factorsMatch(Power, ConstPi, MinusOne) shouldBe true
-//    em.factorsMatch(Power, MinusOne, ConstPi) shouldBe true
-//    em.factorsMatch(Power, root3, Two) shouldBe true
-//    em.factorsMatch(Power, Literal(root2), MinusOne) shouldBe false
-//    em.factorsMatch(Power, MinusOne, Literal(root2)) shouldBe false
-    pending
+    em.factorsMatch(Power, ConstPi, MinusOne) shouldBe false
+    em.factorsMatch(Power, MinusOne, ConstPi) shouldBe true
+    em.factorsMatch(Power, Literal(root2), MinusOne) shouldBe false
+    em.factorsMatch(Power, MinusOne, Literal(root2)) shouldBe false
   }
 
   behavior of "simplify aggregate, etc."
@@ -1548,16 +1541,18 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "matchAndCollectTwoDyadicLevels"
   // TODO Issue #140
   it should "work for √3 * √3" in {
-//    import BiFunction.*
-//    val p = Expression.matchSimpler
-//    val e1: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
-//    val e2: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
-//    val e: DyadicTriple = Product ~ e1 ~ e2
-//    val triple: DyadicTriple = e
-//    val result = p(triple)
-//    result.successful shouldBe true
-//    result.get shouldBe Expression(3)
-    pending
+    import BiFunction.*
+    val p = Expression.matchSimpler
+    val e1: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
+    val e2: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
+    val e: DyadicTriple = Product ~ e1 ~ e2
+    val triple: DyadicTriple = e
+    val result = p(triple)
+    result.successful shouldBe true
+    val expected = BiFunction(3, BiFunction(Rational.half, Rational.two, Product), Power)
+    val actual = result.get
+    actual shouldBe expected
+//    pending
   }
   it should "work for √3 :+ -√3" in {
     val p = Expression.matchSimpler

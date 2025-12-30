@@ -581,8 +581,8 @@ class RootSpec extends AnyFlatSpec with Matchers {
     val phiSquared = phi.power(Rational(2))
 
     // φ² = φ + 1 (special property of golden ratio)
-//    phiSquared shouldBe a[Expression]
-    pending
+    phiSquared shouldBe a[Expression]
+//    pending
   }
 
 
@@ -596,12 +596,12 @@ class RootSpec extends AnyFlatSpec with Matchers {
 
   it should "negate and square rootTwo" in {
     val rootTwo = Root.rootTwo
-//    val negated = rootTwo.negate
-//    val squared = rootTwo.power(Rational(2))
-
-//    negated shouldBe a[Expression]
-//    squared shouldBe a[Expression]
-    pending
+    val negated = rootTwo.negate
+    val squared = rootTwo.power(Rational(2))
+//
+    negated shouldBe a[Expression]
+    squared shouldBe a[Expression]
+//    pending
   }
 
   it should "evaluate phi + psi" in {

@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import cats.implicits.catsSyntaxEq
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NatLog, Number, RationalNumber, Real, Scalar, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
@@ -298,7 +299,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
   override def equals(other: Any): Boolean = other match {
     case that: ValueExpression =>
       that.canEqual(this) &&
-          value == that.value
+          value === that.value
     case _ =>
       false
   }

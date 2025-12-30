@@ -156,8 +156,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         fx.canMultiply(fy)
       case Power =>
         y.evaluateAsIs match {
-          case Some(Valuable(z: Field)) => fx.canRaise(fy, z)
-          case _ => false
+          case Some(Valuable(z: Field)) =>
+            fx.canRaise(fy, z)
+          case _ =>
+            false
         }
       case _ =>
         false
