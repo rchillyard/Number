@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.WholeNumber
+import com.phasmidsoftware.number.algebra.eager.WholeNumber
 
 /**
   * Represents an object with no functionality or state.

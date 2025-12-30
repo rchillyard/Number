@@ -7,10 +7,10 @@ package com.phasmidsoftware.number.core.mill
 import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.expression.Expression.convertMillExpressionToExpression
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
+import com.phasmidsoftware.number.core.mill.CoreMill.parseInfix
 import com.phasmidsoftware.number.core.mill.{Add, CoreMill, CoreMillItem, Empty, Expr, MillException, Stack, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.{Field, FuzzyEquality, Number, Real}
-import com.phasmidsoftware.number.core.mill.CoreMill.parseInfix
 import com.phasmidsoftware.number.core.parse.MillParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -64,7 +64,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target shouldBe Stack(items)
   }
   it should "accept list of Items: 42, 37, +" in {
-    val target = CoreMill.apply(List("42", "37", "+").map(CoreMillItem(_)): _*)
+    val target = CoreMill.apply(List("42", "37", "+").map(CoreMillItem(_)) *)
     val items: List[CoreMillItem] = List(Add, Expr(Number(37)), Expr(Number(42)))
     target shouldBe Stack(items)
   }

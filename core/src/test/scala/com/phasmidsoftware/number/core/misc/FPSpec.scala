@@ -6,12 +6,12 @@ package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.inner.RationalException
 import com.phasmidsoftware.number.core.misc.FP
-import com.phasmidsoftware.number.core.misc.FP._
+import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.CoreException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.tagobjects.Slow
-import scala.util._
+import scala.util.*
 
 class FPSpec extends AnyFlatSpec with should.Matchers {
 
@@ -61,7 +61,7 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   it should "doMap: call tryMapLeft and return its result when given Left(L)" in {
     val r2Z: Int => String = _.toString
     val l2Zy: String => Try[String] = s => Failure(new RuntimeException(s"Handled: $s"))
-    doMap(Left("Error"))(r2Z, l2Zy) shouldBe a[Failure[_]]
+    doMap(Left("Error"))(r2Z, l2Zy) shouldBe a[Failure[?]]
     doMap(Left("Error"))(r2Z, l2Zy).failed.get.getMessage shouldBe "Handled: Error"
   }
 
@@ -123,7 +123,7 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     val failureFunction = FP.fail[String, Double](s) // Specify the types explicitly X is String, Z is Double
     val result: Try[Double] = failureFunction("anyString") // Passing a String, but ignored
 
-    result shouldBe a[Failure[_]]
+    result shouldBe a[Failure[?]]
     val value1 = result.failed.get // This is fine in a Spec file.
     value1 shouldBe a[CoreException]
     value1.getMessage shouldBe s
@@ -133,7 +133,7 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     val e = CoreException("Test Error")
     val result: Try[Int] = FP.fail[String, Int](e)("anything")
 
-    result shouldBe a[Failure[_]]
+    result shouldBe a[Failure[?]]
     result.failed.get shouldBe e
     result.failed.get.getMessage shouldBe "Test Error"
   }

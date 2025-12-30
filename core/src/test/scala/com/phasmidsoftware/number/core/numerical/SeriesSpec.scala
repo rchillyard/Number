@@ -79,7 +79,7 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     val z: Fuzziness[Double] = actual.get.fuzz.get
     val wiggle = z.wiggle(0.0001)
     println(s"wiggle = $wiggle")
-    val difference = actual.get doSubtract expected
+    val difference = actual.get `doSubtract` expected
     println(s"difference = $difference")
     val fuzz: Fuzziness[Double] = difference.fuzz.get
     println(s"fuzz = $fuzz")

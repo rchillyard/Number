@@ -102,7 +102,7 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
   def evaluateToTolerance(epsilon: Double): Try[X] = {
     val triedX: Try[X] = Try(terms.takeWhile(x => math.abs(implicitly[Numeric[X]].toDouble(x)) > epsilon).sum)
     val result: Try[Fuzz[Double]] = triedX map {
-      case f: Fuzz[Double] => // NOTE: unchecked (Double is eliminated by erasure).
+      case f: Fuzz[Double] @unchecked =>
         f.fuzz match {
           case Some(z) =>
             f.addFuzz(z.uncertainty(epsilon / convergenceRate))
@@ -185,7 +185,7 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     val isValid: X => Boolean = x => x == xn.zero || absDouble(x) > epsilon
     val triedX = Try(terms.takeWhile(isValid).sum(xn))
     val result: Try[Fuzz[Double]] = triedX map {
-      case f: Fuzz[Double] => // NOTE: unchecked (Double is eliminated by erasure).
+      case f: Fuzz[Double] @unchecked =>
         f.fuzz match {
           case Some(z) =>
             f.addFuzz(z.uncertainty(epsilon / convergenceRate))

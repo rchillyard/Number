@@ -3,7 +3,8 @@
   */
 
 import com.phasmidsoftware.number.core.expression.{Expression, One}
-import com.phasmidsoftware.number.core.{Constants, Number}
+import com.phasmidsoftware.number.core.numerical.Number
+import com.phasmidsoftware.number.core.numerical.Constants
 
 val root3 = Expression(3).sqrt
 

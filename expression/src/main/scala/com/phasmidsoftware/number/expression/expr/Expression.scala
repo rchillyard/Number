@@ -4,9 +4,11 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import cats.syntax.all.catsSyntaxEq
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.misc.FP.recover
+import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
@@ -26,7 +28,7 @@ import scala.language.implicitConversions
   * NOTE there are only two subtypes of Expression: AtomicExpression and CompositeExpression
   * We do not use "sealed" because this module would grow much too large.
   */
-trait Expression extends Valuable with Approximate {
+trait Expression extends Lazy with Approximate {
 
   /**
     * Method to determine if this Expression cannot be simplified on account of it being atomic.
@@ -90,9 +92,7 @@ trait Expression extends Valuable with Approximate {
   def materialize: Eager = {
     val simplified = simplify
     val asIs = simplified.evaluateAsIs
-    lazy val approximation1 = simplified.approximation(true)
-    lazy val maybeValuable1 = approximation1
-    val maybeValuable = asIs orElse maybeValuable1
+    val maybeValuable = asIs orElse simplified.approximation(true)
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
 
@@ -127,6 +127,10 @@ trait Expression extends Valuable with Approximate {
   //  val approx = simplify.approximation getOrElse Real.NaN
 }
 
+/**
+  * Provides utility methods for working with mathematical and logical expressions represented as strings.
+  * The methods are designed to process, normalize, and evaluate expressions, as well as perform operations on them.
+  */
 object ExpressionHelper {
 
   /**
@@ -138,10 +142,12 @@ object ExpressionHelper {
   extension (x: String)
     def evaluateAsIs: Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluateAsIs)
-    def evaluate(context: Context = com.phasmidsoftware.number.algebra.RestrictedContext(PureNumber)): Option[Valuable] =
+    def evaluate(context: Context = RestrictedContext(PureNumber)): Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluate(context))
     def materialize: Option[Valuable] =
       Expression.parse(x).map(_.materialize)
+    def normalize: Option[Valuable] =
+      Expression.parse(x).map(x => x.normalize)
     def render: String =
       Expression.parse(x).map(_.render).getOrElse("???")
     def plus(y: Valuable): Option[Valuable] =
@@ -216,6 +222,12 @@ object Expression {
     def unary_- : Expression =
       expression.expr.UniFunction(x, Negate)
 
+    /**
+      * Method to lazily multiply this expression by another expression.
+      *
+      * @param y another Expression to be multiplied with this expression.
+      * @return an Expression representing the lazy product of this expression and the given expression.
+      */
     infix def times(y: Expression): Expression =
       expression.expr.BiFunction(x, y, Product)
 
@@ -364,16 +376,6 @@ object Expression {
   implicit def fromString(w: String): Expression = apply(w)
 
   /**
-    * Implicitly materializes an `Expression` into its eager evaluation form.
-    * This conversion allows deferred `Expressions` to be immediately evaluated
-    * and converted into a concrete form for further use or computation.
-    *
-    * @param x the `Expression` instance to be materialized.
-    * @return an eager evaluation of the input `Expression`.
-    */
-  implicit def materialize(x: Expression): Eager = x.materialize
-
-  /**
     * Converts a given number into an Expression by wrapping it as a Real.
     *
     * @param x the number to be converted into an Expression
@@ -453,6 +455,8 @@ object Expression {
     * and applying the appropriate transformations based on the expression type. 
     * Supports terminal, monadic, and dyadic expressions with specific operators.
     *
+    * CONSIDER make this private.
+    *
     * @param expr The `mill.Expression` to be converted.
     * @return The corresponding `Expression` after applying the transformations.
     * @throws ExpressionException if an unknown operator is encountered.
@@ -524,18 +528,6 @@ object Expression {
     Expression.isIdentity(f)
 
   /**
-    * Determines if a given `Expression` is an identity element for a specified binary function.
-    *
-    * @param f the binary function for which the identity property is being checked. This includes metadata like
-    *          optional identity elements, which are leveraged for comparison.
-    * @param z the `Expression` to be tested as a potential identity element for the binary function `f`.
-    * @return true if the evaluated result of `z` matches the optional left identity element of the binary function `f`,
-    *         otherwise false.
-    */
-  def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
-    f.maybeIdentityL == z.evaluateAsIs // CONSIDER comparing with maybeIdentityR if this is not true
-
-  /**
     * Matches and simplifies expressions based on their type.
     * For `AtomicExpression` instances, it applies `simplifyAtomic` specific to the atomic expression.
     * For `CompositeExpression`, it uses a compound matcher that attempts simplifications
@@ -546,7 +538,7 @@ object Expression {
     * @return an `ExpressionTransformer` that matches and applies the appropriate
     *         simplifications or transformations to the provided expression.
     */
-  def matchSimpler: ExpressionTransformer = {
+  def matchSimpler: ExpressionTransformer = em.Matcher[Expression, Expression]("matchSimpler") {
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
     case x: CompositeExpression =>
@@ -555,12 +547,6 @@ object Expression {
           em.eitherOr(simplifyTrivial,
             em.eitherOr(simplifyConstant,
               simplifyComposite))))(x)
-//    case x: CompositeExpression =>
-//      "simplifyExact" !! simplifyExact(x) ||
-//          "simplifyComponents" !! simplifyComponents(x) ||
-//          "simplifyTrivial" !! simplifyTrivial(x) ||
-//          "simplifyConstant" !! simplifyConstant(x) ||
-//          "simplifyComposite" !! simplifyComposite(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x")) // TESTME
   }
@@ -622,7 +608,7 @@ object Expression {
     */
   def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
     case UniFunction(Two, Ln) =>
-      em.Match(L2) flatMap matchSimpler
+      em.Match(L2) `flatMap` matchSimpler
     case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
       if n == 2 && theta.isZero =>
       em.Match(Literal(r.power(2)))
@@ -631,6 +617,17 @@ object Expression {
     case x =>
       em.Miss("simplifyConstant: not a Composite expression type", x)
   }
+
+  /**
+    * Determines whether the provided expression `z` is an identity element
+    * for the given binary function `f`.
+    *
+    * @param f the binary function for which the identity property is to be checked.
+    * @param z the expression to be evaluated as a potential identity element for the function `f`.
+    * @return true if the expression `z` is an identity element for the binary function `f`, false otherwise.
+    */
+  private def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
+    (for (a <- z.evaluateAsIs; b <- f.maybeIdentityL) yield a === b).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true
 
   /**
     * Attempts to simplify `CompositeExpression` instances by applying a defined transformation logic.

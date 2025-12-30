@@ -7,10 +7,10 @@ package com.phasmidsoftware.number.core.expression
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.core.expression.Expression.{em, matchSimpler}
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.mill.{CoreMillExpression, DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.core.misc.FP.recover
-import com.phasmidsoftware.number.core.numerical._
+import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.core.parse.ShuntingYardParser
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -164,7 +164,7 @@ object Expression {
       * @return an Expression which is the lazy product of x and y.
       */
     def +(y: Expression): Expression =
-      x plus y
+      x `plus` y
 
     /**
       * Method to lazily subtract the Field y from x.
@@ -304,7 +304,7 @@ object Expression {
       * @return the result of the comparison.
       */
     def compare(comparand: Expression): Int =
-      x compare comparand
+      x `compare` comparand
   }
 
   /**
@@ -471,7 +471,7 @@ object Expression {
     * @return an `ExpressionTransformer` that performs the transformation or simplification of
     *         the input `Expression`, depending on its type and structure.
     */
-  def matchSimpler: ExpressionTransformer = {
+  def matchSimpler: ExpressionTransformer = em.Matcher("matchSimpler") {
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
     case x: CompositeExpression =>
@@ -524,7 +524,7 @@ object Expression {
     */
   def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
     case UniFunction(Two, Ln) =>
-      em.Match(L2) flatMap matchSimpler
+      em.Match(L2) `flatMap` matchSimpler
     case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
       if n == 2 && theta.isZero =>
       em.Match(Literal(r.power(2)))

@@ -7,9 +7,9 @@ package com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.CoreContext.AnyRoot
 import com.phasmidsoftware.number.core.numerical.Constants
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should
 
-class ContextSpec extends AnyFlatSpec {
+class ContextSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Context"
   it should "or" in {
@@ -17,7 +17,7 @@ class ContextSpec extends AnyFlatSpec {
     val natLogContext = RestrictedContext(factor)
     natLogContext.factorQualifies(factor) shouldBe true
     ImpossibleContext.factorQualifies(factor) shouldBe false
-    val contextOr = natLogContext or ImpossibleContext
+    val contextOr = natLogContext `or` ImpossibleContext
     contextOr.factorQualifies(factor) shouldBe true
   }
   it should "and" in {
@@ -25,7 +25,7 @@ class ContextSpec extends AnyFlatSpec {
     val natLogContext = RestrictedContext(factor)
     natLogContext.factorQualifies(factor) shouldBe true
     ImpossibleContext.factorQualifies(factor) shouldBe false
-    val contextOr = natLogContext and ImpossibleContext
+    val contextOr = natLogContext `and` ImpossibleContext
     contextOr.factorQualifies(factor) shouldBe false
   }
   it should "qualifyingField" in {

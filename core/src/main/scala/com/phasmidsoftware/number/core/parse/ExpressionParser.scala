@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.parse
 
 import scala.util.Try
-import scala.util.parsing.combinator._
+import scala.util.parsing.combinator.*
 
 /**
   * @author scalaprof
@@ -116,8 +116,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
 
   def parentheses: Parser[Parentheses] = "(" ~> expr <~ ")" ^^ (x => Parentheses(x))
 
-  private def new_line(i: Int) = "\n" + ("  " * i)
-
+  private def new_line(i: Int) = "\n" + "  ".repeat(i)
 }
 
 case class ParseException(s: String) extends Exception(s"Parse exception: $s")

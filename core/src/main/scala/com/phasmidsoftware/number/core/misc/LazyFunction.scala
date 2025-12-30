@@ -26,11 +26,11 @@ abstract class LazyFunction[X: Numeric] extends (X => X) {
   override def compose[A](g: A => X): A => X = composeX(g.asInstanceOf[X => X]).asInstanceOf[A => X]
 }
 
-abstract class KnownDifferentiableFunction[X](name: String, g: X => X, ds: X => Double*) extends DifferentiableFunction[X](g, ds: _*) {
+abstract class KnownDifferentiableFunction[X](name: String, g: X => X, ds: X => Double*) extends DifferentiableFunction[X](g, ds *) {
   override def toString: String = name
 }
 
-abstract class DifferentiableFunction[X](g: X => X, ds: X => Double*) extends DiFuncBase[X](g, ds: _*) with (X => X) {
+abstract class DifferentiableFunction[X](g: X => X, ds: X => Double*) extends DiFuncBase[X](g, ds *) with (X => X) {
   def apply(x: X): X = g(x)
 }
 

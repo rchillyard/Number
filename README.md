@@ -88,202 +88,15 @@ All algebraic types extend `Structure`, which provides:
 - Java interop: `asJavaNumber: Option[java.lang.Number]`
 
 #### The Type Hierarchy
-```mermaid
-classDiagram
-    %% Algebra types
-    class Renderable {
-        <<trait>>
-        +render: String
-    }
-    
-    class MaybeNumeric {
-        <<trait>>
-        +maybeDouble: Double
-    }
-    
-    class Valuable {
-        <<trait>>
-        +isExact: Boolean
-        +maybeFactor: Option[Factor]
-    }
 
-    %% All non-lazy values
-    class Eager {
-        Concrete values (not lazy)
-        <<trait>>
-    }
-    
-    %% Complex (outside Structure)
-    class Complex {
-        Wraps core.Complex
-        NO Order (not totally ordered)
-    }
-    
-    %% Nat (outside Structure)
-    class Nat {
-        Based on Peano arithmetic
-        +inc: Nat
-        +approximation: Option[Real]
-    }
-    
-    class Structure {
-        <<trait>>
-        +convert(T): Option[T]
-        +asJavaNumber: Option[Number]
-    }
-    
-    class Approximate {
-        <<trait>>
-        +approximation: Option[Real]
-        +toDouble: Double
-    }
-    
-    class Monotone {
-        <<trait>>
-        Monotonically increasing with value
-        +isZero: Boolean
-        +signum: Int
-    }
-    
-    class Scalar {
-        <<trait>>
-        Linear relationship to value
-        Dimensionless quantity
-        +compareExact(x: Scalar): Option[Int]
-        +scaleFactor: Double
-        +scale(r: Rational): Scalar
-    }
-    
-    class Number {
-        <<trait>>
-        Main numeric type
-        +compare(x: Number): Int
-    }
-    
-    class RationalNumber {
-        +rational: Rational
-        +percentage flag
-        Exact rationals
-        Additional mixins: Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[RationalNumber] with CanPower[RationalNumber]
-        +Field[RationalNumber]
-    }
-    
-    class Real {
-        Fuzzy/uncertain numbers
-        +Ring[Real] with Ordering[Real]
-    }
-    
-    class WholeNumber {
-        Integers/naturals
-        +CommutativeRing[WholeNumber]
-    }
-    
-    class Infinity {
-        Special Real case
-    }
-    
-    class InversePower {
-        <<trait>>
-        Non-linear monotone: x^(-n)
-    }
-    
-    class Transformed {
-        <<trait>>
-        Non-linear monotone
-        Mathematical transformations
-    }
-    
-    %% Angular measures
-    class Radians {
-        <<trait>>
-        Angular measurements
-    }
-    
-    class Angle {
-        +radians/degrees flag
-        +AdditiveCommutativeGroup
-        NO Order (circular)
-    }
-    
-    %% Transformed (other Monotones)
-    class Logarithm {
-        <<trait>>
-        +value: Number
-        Logarithmic values
-    }
-    
-    class NatLog {
-        Natural logarithm
-        +x: Number
-    }
-    
-    %% Sentinel
-    class NoScalar {
-        <<object>>
-        Empty/sentinel value
-    }
-    
-    %% Inheritance relationships
-    Renderable <|-- Valuable
+All objects that have a "value" in `Number` are instances of `Valuable`, which extends `Renderable` and `Numeric`.
+Valuable has two subtypes: `Eager` and `Lazy`.
+`Eager` values are evaluated and can be rendered as `String`s or converted to `Double` (or even Java Numbers).
+`Lazy` values are not evaluated (they're lazy) and represent numerical expressions.
 
-    MaybeNumeric <|-- Valuable
-    
-    Valuable <|-- Eager
-    Valuable <|-- Expression
-    
-    Eager <|-- Complex
-    Eager <|-- Nat
-    Eager <|-- Structure
-    
-    Expression <|-- CompositeExpression
-    Expression <|-- AtomicExpression
-    
-    CompositeExpression <|-- UniFunction
-    CompositeExpression <|-- BiFUnction
-    CompositeExpression <|-- Aggregate
-    
-    AtomicExpression <|--ValueExpression
-    AtomicExpression <|--Transcendental
-    AtomicExpression <|--Root
-    
-    ValueExpression <|-- Literal
-    ValueExpression <|-- NamedConstant
-    
-    Approximate <|-- Monotone
-    
-    Structure <|-- Monotone
-    Structure <|-- Complex
-    
-    %% Monotone branches
-    Monotone <|-- Scalar
-    Monotone <|-- InversePower
-    Monotone <|-- Transformed
-    
-    %% Scalar branches
-    Scalar <|-- Number
-    Scalar <|-- Radians
-    Scalar <|-- NoScalar
-    
-    %% Number branches
-    Number <|-- RationalNumber
-    Number <|-- Real
-    Number <|-- WholeNumber
-    
-    %% Real specialization
-    Real <|-- Infinity
-    
-    %% Radians specialization
-    Radians <|-- Angle
-    
-    %% Transformed branches
-    Transformed <|-- Logarithm
-    Logarithm <|-- NatLog
-    
-    %% Notes about key types
-    note for Angle "Extends Radians but breaks<br/>monotonicity due to<br/>circular structure"
-    
-    note for Monotone "Implements traits:<br/>- Eager<br/>- Valuable<br/>- Renderable<br/>- MaybeNumeric<br/>- Approximate"
-```
+## Mermaid Diagrams
+
+See [docs/DIAGRAMS.md](docs/DIAGRAMS.md) for all project diagrams.
 
 ### Monotone vs Non-Monotone Types
 
@@ -379,7 +192,7 @@ For `Angle` and `RationalNumber`, equality ignores display flags (radians/degree
 
 Additionally, the algebra module provides both `FuzzyEq` instances for `Eager` types:
 ```scala
-import com.phasmidsoftware.number.algebra.misc.FuzzyEq.~=
+import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 
 val x: Eager = Real(scala.math.Pi)
 val y: Eager = Angle(Real(1.0))
@@ -480,7 +293,15 @@ For example, the proton-electron mass ratio:
     1836.15267343~11
 
 ### Rendering
+There are three types of rendering available: _render_, _toLatex_ and _toString_.
+The latter method is primarily for debugging purposes and so tends to mirror the actual structure of an object.
 The _render_ method is defined in the trait _Renderable_.
+Its purpose is to render a _Valuable_ object in as natural and appropriate a form as possible.
+The latex renderer is defined in the trait _LatexRenderable_.
+Its purpose is to render a _Valuable_ object in a form suitable for use in a LaTeX document,
+that's to say as a mathematical expression.
+For this to work, you will need to import com.phasmidsoftware.number.algebra.util.LatexRenderer._
+
 The rest of this section pertains to the `core` module.
 including _Field_, _Number_, _Rational_, Complex, etc.
 For the prettiest output, you should use _render_ rather than _toString_ (which is basically for debugging).
@@ -978,38 +799,6 @@ Continued fractions can be used to generate "convergents" which are rational num
 approximate a value.
 For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, etc.
 
-### Type Hierarchy
-
-**Note** that the type hierarchy is very likely to change in version 1.3
-* _NumberLike_ (trait)
-    * _Numerical_ (trait: most numeric quantities)
-        * _Field_ (trait: something like the mathematical concept of a field)
-            * _Real_ (case class: a "real" number based on one _Number_)
-            * _Multivariate_ (trait: perhaps should be called "Algebraic")
-                * _Complex_ (trait: a complex number)
-                    * _BaseComplex_ (abstract class)
-                        * _ComplexCartesian_ (case class: Cartesian form of complex number)
-                        * _ComplexPolar_ (case class: polar form of complex number)
-                * _Algebraic_ (trait: an algebraic number)
-        * _Number_ (trait: a quantity representing a number)
-            * _GeneralNumber_ (abstract class)
-                * _ExactNumber_ (case class: an exact number defined by a _Value_ and a _Factor_)
-                * _FuzzyNumber_ (case class: an exact number defined by a _Value_, a _Factor_, and an optional _Fuzziness_)
-    * _Rational_ (case class: rational numbers)
-    * _Solution_ (trait: a solution to an _Algebraic_ quantity--think of this is defining a named tuple that represents the components of the solution)
-        * _LinearSolution_ (case class: a linear solution)
-        * _QuadraticSolution_ (case class: a quadratic solution)
-    * _Expression_ (trait: lazy numeric quantities: see below)
-* _Series_ (trait)
-    * _AbstractSeries_
-        * _FiniteSeries_
-    * _AbstractInfiniteSeries_
-        * _InfiniteSeries_
-* _PowerSeries_ (trait)
-    * _LazyPowerSeries_
-    * _FinitePowerSeries_
-    * _TaylorSeries_
-
 ### Expressions
 The lazy mechanism (see above) is based on _Expressions_.
 In the following, by "exact," we mean a quantity that is exact (like $\pi$ or $√2$),
@@ -1289,97 +1078,4 @@ This module includes:
 
 See the worksheets for hands-on examples of the library in action.
 
-## Versions
-* Version 1.3.2: Complete the migration to 5-module project.
-* Version 1.3.1: 
-  * Restructured the project into two modules: core and algebra;
-  * Introduced the algebra package which will replace all of the Number classes (see Future Upgrades below).
-* Version 1.2.12: No changes.
-* Version 1.2.11: Mostly the introduction of classes based on cats.
-* Version 1.2.10: Another housekeeping release.
-* Version 1.2.9: Mostly minor details that missed the previous version.
-* Version 1.2.8: Major restructuring: renamed old _Root_ as _NthRoot_ and introduced new _Root_ which effectively replaced _ReducedQuadraticRoot_.
-* Version 1.2.7: Introduced dyadic _Log_ functions and, in general, renamed (natural) _log_ method as _ln_, allowing for new dyadic _log_ method.
-  * Also, fixed various bugs and restructured the Expression classes.
-* Version 1.2.6: Added Transcendental Numbers.
-* Version 1.2.5: Fixed badges in this README file; also added social card.
-* Version 1.2.4: Restored functioning of CircleCI as well as some very minor changes to Rational (and fewer ignored tests).
-* Version 1.2.3: Introduced Series, PowerSeries, and TaylorSeries.
-* Version 1.2.2: Changed the name of RQR into Quadratic and introduced Algebraic.
-* Version 1.2.1: Improved RQR classes.
-* Version 1.2.0: Another massive refactoring.
-  - In particular:
-  - ExpressionMatchers has undergone a complete re-write.
-  - Solution has been added as a Field type (with RQR as a subtype of Solution).
-  - NthRoot classes have been refactored (now based on InversePower).
-  -
-* Version 1.1.1: Massive refactoring: fixed many issues. Most significantly, expressions are evaluated in the context of a Factor.
-* Version 1.1.0: Significant refactoring:
-  - Number is no longer a subtype of Field. Code should use the wrapper Real(number) to form a Field.
-  - Some of the worksheets were broken and have been fixed.
-* Version 1.0.17: Minor changes.
-* Version 1.0.16: Added C-interpolator for Complex objects; various other fixes, including radian values now range from -$\pi$ to $\pi$.
-* Version 1.0.15: Significant improvements to the rendering of rational numbers.
-* Version 1.0.14: ComplexPolar now keeps track of branches; introduced Real type. Java API.
-* Version 1.0.13: Mostly cleanup together with some fixes related to NthRoot factors and rendering of fuzziness.
-* Version 1.0.12: Mostly cleanup together with some fixes related to the new factors.
-* Version 1.0.11: Changes to the factors: renamed Pi as Radian, E as NatLog, and added Log2, Log10, Root2, and Root3.
-* Version 1.0.10: Many improvements and fixes:
-  - added Constants,
-  - implicit converter from Expression to Number,
-  - refactored structure of classes,
-  - totally reworked the expression matchers.
-* Version 1.0.9: Added complex numbers; improved simplifications somewhat; use version 1.0.4 of Matchers (now in main).
-* Version 1.0.8: This includes better simplification and, in particular, evaluates (√3 + 1)(√3 - 1) as exactly 2.
-* Version 1.0.7: added Matchers.
-* Version 1.0.6: added Mill (RPN evaluator).
-* Version 1.0.5: reimplement the e factor.
-* Version 1.0.4 Made improvements to Rational, removed BigInt from Value,
-  and effected many refactorings.
-* Version 1.0.3 implements lazy evaluation.
-* Version 1.0.2 Included fixing the bug mentioned in 1.0.1 (actually a Rational bug), as well as adding the :/ operator
-  and many other fixes/features.
-* Version 1.0.1 Fixed many issues with minor inconsistencies.  Most important, perhaps, was the implementation of _compare_, along with _signum_ and _isZero_. Each of these has, significantly, a signature with a confidence value (the default value is 0.5).
-* Initial version is 1.0.0
-
-### Future Upgrades
-
-#### Active Migrations
-
-The Number project is undergoing a significant restructuring:
-
-**Completed (v1.3.x)**:
-- ✅ Multi-module architecture (`algebra`, `parse`, `expression`, `core`, `top`)
-- ✅ Algebra module with Cats typeclass integration
-- ✅ Structure hierarchy for algebraic types
-
-**In Progress**:
-- 🔄 Migrating Expression types to the `expression` module
-- 🔄 Replacing core.Number and core.Field with algebra types
-
-**Planned**:
-- Additional algebraic structures (Matrix, Vector, Polynomial)
-- Complete migration guide
-- Enhanced pattern matching and simplification
-- Extended Cats typeclass coverage
-
-We intend to restructure the hierarchy of numeric types entirely.
-The traits and classes should strictly follow the mathematical concepts of field, ring, etc.
-To begin, the hierarchy should look like this:
-
-* _Expression_ (trait that is the root of all lazy values with the key method being _evaluate(Context)_: _Option\[Field]_
-  * _AtomicExpression_ (as now but with _ReducedQuadraticRoot_ being completely replaced by _Algebraic_)
-    * _Algebraic_ (quadratic, linear, equations, etc.) (as now, but with _solve_ changed to _evaluate_)
-  * _BiFunction_ (as now)
-  * _Function_ (renamed as MonoFunction, perhaps?) (as now)
-  * _Aggregate_ (more or less as now but with _PowerSeries_ included--such that the length of the components may or may not be known)
-    * _PowerSeries_ (as now, but extending _Aggregate_, and with an additional method _apply(X)_)
-  * _Transcendental_ (as now but extends _Expression_)
-* _Field_ (as now, but with _Solution_ and _Series_ included)
-  * _Real_ (as now a single _Number_)
-  * _Multivariate_ (similar to _Multivalued_ in that there are multiple solutions or branches--these are the solutions to _Algebraic_s)
-    * _Complex_ (as now with two _Number_ fields--real and imaginary--conceivably, we might merge _Complex_ and _Solution_ and insist that the imaginary aspect of a _Number_ is represented in the _Number_ itself)
-    * _Solution_ (with real roots)
-  * _Series_
-
-
+For version histor and migration notes, see the [HISTORY](docs/HISTORY.md).

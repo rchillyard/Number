@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.{Ellipsis, withinWiggleRoom}
 import com.phasmidsoftware.number.core.numerical.Number.prepareWithSpecialize
 import scala.collection.mutable
@@ -332,7 +332,7 @@ object FuzzyNumber {
           case (_, n: FuzzyNumber) =>
             composeDyadic(n, p, q.factor, DyadicOperationPlus, independent = true, None)
           case (_, _) =>
-            p doAdd q
+            p `doAdd` q
         }
     }
 
@@ -377,7 +377,7 @@ object FuzzyNumber {
           case (_, n: FuzzyNumber) =>
             composeDyadic(n, p, q.factor, DyadicOperationTimes, independent = x != y, None)
           case (_, _) =>
-            p doMultiply q
+            p `doMultiply` q
         }
     }
 
@@ -404,8 +404,12 @@ object FuzzyNumber {
     * @param fo          An optional initial fuzziness to combine with.
     * @param fAdditional Additional fuzziness to be applied.
     */
-  private def addFuzz(number: Number, v: Value, fo: Option[Fuzziness[Double]], fAdditional: Fuzziness[Double]) = {
-    val combinedFuzz = for (f <- fo.orElse(Some(AbsoluteFuzz(0.0, Box))); p <- number.toNominalDouble; g <- Fuzziness.combine(p, 0, f.style, independent = false)((fo, fAdditional.normalize(p, f.style)))) yield g
+  private def addFuzz(number: Number, v: Value, fo: Option[Fuzziness[Double]], fAdditional: Fuzziness[Double]): FuzzyNumber = {
+    val combinedFuzz: Option[Fuzziness[Double]] = for (
+      f: Fuzziness[Double] <- fo.orElse(Some(AbsoluteFuzz(0.0, Box)));
+      p <- number.toNominalDouble;
+      g: Fuzziness[Double] <- Fuzziness.combine(p, 0.0, f.style, independent = false)((fo, fAdditional.normalize(p, f.style)))
+    ) yield g
     FuzzyNumber(v, number.factor, combinedFuzz)
   }
 

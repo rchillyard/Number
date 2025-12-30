@@ -173,6 +173,7 @@ case class Stack(stack: List[Item]) extends Mill {
   private def evaluateMonadic(f: Monadic): (Option[Expression], Mill) = evaluateInternal match {
     case (Some(e), m) =>
       val expression = calculateMonadic(f, e)
+      // TODO asInstanceOf
       m.push(Expr(expression)).asInstanceOf[Stack].evaluateInternal
     case (None, _) =>
       throw MillException(s"evaluateMonadic: $this is empty")
@@ -229,6 +230,7 @@ case class Stack(stack: List[Item]) extends Mill {
     evaluateInternal match {
       case (Some(e), m) =>
         val expression = calculateDyadic(f, x, e)
+        // TODO asInstanceOf
         m.push(Expr(expression)).asInstanceOf[Stack].evaluateInternal
       case (None, _) =>
         throw MillException(s"evaluate2: logic error: $this did not evaluate to an expression")

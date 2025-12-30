@@ -4,12 +4,12 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.{maybeRational, negateConditional}
-import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
-import com.phasmidsoftware.number.core.numerical.{Field, CoreException, Real}
+import com.phasmidsoftware.number.core.numerical.{CoreException, Field, Real}
 import java.util.Objects
 
 /**
@@ -76,7 +76,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @throws CoreException if the provided `Algebraic` type is not supported for addition.
     */
   def add(algebraic: Algebraic): Algebraic =
-    this.solve add algebraic.solve match {
+    this.solve `add` algebraic.solve match {
       case Some(s: QuadraticSolution) =>
         Algebraic_Quadratic(s)
       case Some(s: LinearSolution) =>
@@ -84,7 +84,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
       case None =>
         algebraic match {
           case Algebraic_Quadratic(_, `equation`, b) =>
-            if (b == pos) this multiply Rational.two
+            if (b == pos) this `multiply` Rational.two
             else Algebraic.zero
           case Algebraic_Quadratic(_, Quadratic(a, b), _) =>
             val horizontal: Rational = (equation.p - a) / Rational.two
@@ -107,7 +107,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     case a: Algebraic =>
       multiply(a)
     case _ =>
-      value multiply x
+      value `multiply` x
   }
 
   /**
@@ -150,7 +150,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     val maybeAlgebraic: Option[Algebraic] = for {
       x <- maybeCrossTerms
       y <- maybeProductBases
-      (v, PureNumber, None) <- maybeProductOffsets
+      case (v, PureNumber, None) <- maybeProductOffsets // CHECK this is correct
       a <- doComposeValueDyadic(x, y)(plusFunctions)
       b <- doComposeValueDyadic(v, a)(plusFunctions)
       r <- Value.maybeRational(b)
@@ -158,7 +158,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
 
     (maybeAlgebraic orElse {
       that.asReal map (r => this.multiply(r))
-    }).get // XXX this can throw an Exception (though unlikely)
+    }).getOrElse(Real.NaN) // XXX this is unlikely
   }
 
 
@@ -281,7 +281,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @return a new Algebraic resulting from the addition
     */
   def add(rational: Rational): Algebraic =
-    copy(equation = equation shiftOrigin rational)
+    copy(equation = equation `shiftOrigin` rational)
 }
 
 /**
@@ -484,7 +484,7 @@ object Algebraic_Quadratic {
     *         its quadratic representation, and a boolean indicating a specific property.
     */
   def unapply(equation: Algebraic_Quadratic): Option[(Option[String], Quadratic, Boolean)] =
-    Some(equation.maybeName, equation.equation, equation.pos)
+    Some((equation.maybeName, equation.equation, equation.pos))
 
   /**
     * Constructs an `Algebraic_Quadratic` from a given `QuadraticSolution`.

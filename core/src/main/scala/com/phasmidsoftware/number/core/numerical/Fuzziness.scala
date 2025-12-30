@@ -271,8 +271,10 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     * @param t the nominal value of the fuzzy number.
     * @return an optional RelativeFuzz[T]
     */
-  def relative(t: T): Option[RelativeFuzz[T]] =
-    Try(RelativeFuzz(tv.toDouble(tv.normalize(tv.div(magnitude, t))), shape)(tv)).toOption
+  def relative(t: T): Option[RelativeFuzz[T]] = {
+    val value = RelativeFuzz(tv.toDouble(tv.normalize(tv.div(magnitude, t))), shape)
+    Try(value).toOption
+  }
 
   /**
     * Transform this Fuzziness[T] according to func.
@@ -515,7 +517,18 @@ object Fuzziness {
     * @return the approximate precision for a floating point operation, expressed in terms of RelativeFuzz.
     */
   def createFuzz(relativePrecision: Int): Fuzziness[Double] =
-    RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)(HasValueDouble$)
+    RelativeFuzz[Double](DoublePrecisionTolerance * (1 << relativePrecision), Box)
+
+  /**
+    * Creates an absolute fuzziness value with the given magnitude.
+    *
+    * @param magnitude The magnitude of the fuzziness to be created.
+    *                  This specifies the degree to which a value's precision is uncertain.
+    * @return An `Option` containing the created `Fuzziness[Double]`
+    *         with the specified magnitude, or `None` if the fuzziness could not be created.
+    */
+  def createAbsFuzz(magnitude: Double): Option[Fuzziness[Double]] =
+    Some(AbsoluteFuzz(magnitude, Box))
 
   /**
     * This is the (approximate) fuzziness caused in general by trying to represent numbers in double precision.

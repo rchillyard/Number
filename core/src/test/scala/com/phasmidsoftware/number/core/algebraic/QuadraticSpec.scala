@@ -39,7 +39,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     solution.base shouldBe Value.fromRational(Rational.half)
     solution.branch shouldBe 0
     solution.factor shouldBe SquareRoot
-    import Rational._
+    import Rational.*
     solution.offset shouldBe Value.fromRational(r"5/4")
   }
   it should "value 2" in {
@@ -110,7 +110,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   it should "invert" in {
     val actual = phi.invert
     // XXX 1/phi = phi - 1 (see https://en.wikipedia.org/wiki/Golden_ratio)
-    val expected = phi add Real(-1)
+    val expected = phi `add` Real(-1)
     actual.isSame(expected) shouldBe true
   }
   it should "scale phi and psi with negative number" in {
@@ -124,34 +124,34 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     actual shouldBe expected
   }
   it should "add phi and psi" in {
-    val actual: Algebraic = phi add psi
+    val actual: Algebraic = phi `add` psi
     actual.solve.asField match {
       case Real(x) => x shouldBe one
     }
   }
   it should "add 1" in {
     println(s"phi = $phi")
-    val actual = phi add Real(one)
+    val actual = phi `add` Real(one)
     println(s"phi add Real(one) = $actual")
     actual.normalize should ===(phiReal + Real(1))
     actual.normalize.isSame(phiReal + Real(1)) shouldBe true
   }
   it should "add -1" in {
     println(s"phi = $phi")
-    val actual = phi add Real(negOne)
+    val actual = phi `add` Real(negOne)
     println(s"phi add Real(one) = $actual")
     actual.normalize should ===(phiReal + Real(-1))
     actual.normalize.isSame(phiReal + Real(-1)) shouldBe true
   }
   it should "add 2" in {
     println(s"phi = $phi")
-    val actual = phi add Real(two)
+    val actual = phi `add` Real(two)
     println(s"phi add Real(one) = $actual")
     actual.normalize should ===(phiReal + Real(2))
     actual.normalize.isSame(phiReal + Real(2)) shouldBe true
   }
   it should "multiply" in {
-    val twoPhi = phi multiply Rational.two
+    val twoPhi = phi `multiply` Rational.two
     twoPhi.asReal.get should ===(Real(3.236067977499790))
   }
   it should "zero" in {
@@ -221,7 +221,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   it should "apply(ExactNumber,ExactNumber) to get phi" in {
     val maybeAlgebraic = for {
       base <- Constants.half.asNumber
-      offset <- (Constants.root5 divide Real(2)).asNumber
+      offset <- (Constants.root5 `divide` Real(2)).asNumber
     } yield Algebraic_Quadratic.apply(base, offset, negative = false)
     maybeAlgebraic.isDefined shouldBe true
     maybeAlgebraic.get shouldBe phi

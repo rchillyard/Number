@@ -4,12 +4,15 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.algebra.Valuable.valuableToField
-import com.phasmidsoftware.number.algebra.misc.FP
-import com.phasmidsoftware.number.algebra.{Angle, AnyContext, CanAdd, CanMultiply, CanPower, Context, Eager, ImpossibleContext, Number, Q, RationalNumber, RestrictedContext, Scalable, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number.algebra
+import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScalar}
+import com.phasmidsoftware.number.algebra.core.Valuable.valuableToField
+import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
+import com.phasmidsoftware.number.algebra.eager
+import com.phasmidsoftware.number.algebra.eager.{NatLog, *}
+import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, Real}
+import com.phasmidsoftware.number.core.numerical.{Real, *}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
 import scala.annotation.tailrec
@@ -93,6 +96,21 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
   def paramContext(context: Context): Context
 
   /**
+    * Evaluates the given `Expression` in the specified `Context` and attempts to derive an `Eager` result.
+    * This method relies on the `Expression` being evaluated as-is and applies this function's
+    * exact logic if applicable.
+    * 
+    * CONSIDER the alternative version (commented out) which seems like it should be correct but isn't.
+    *
+    * @param a       the `Expression` to be evaluated.
+    * @param context the `Context` within which the evaluation is performed.
+    * @return an `Option[Eager]` containing the result of the evaluation if successful, or `None` otherwise.
+    */
+  def evaluate(a: Expression)(context: Context): Option[Eager] =
+    context.qualifyingEagerValue(a.evaluateAsIs flatMap applyExact)
+//    context.qualifyingEagerValue(a.evaluate(paramContext(context)).map(f))
+
+  /**
     * Attempts to evaluate the given `Valuable` exactly using this `ExpressionMonoFunction`.
     * If the operation can be performed exactly, it returns the resulting `Valuable` wrapped
     * in an `Option`. If the operation cannot be performed exactly, it returns `None`.
@@ -139,23 +157,17 @@ object ExpressionMonoFunction {
 }
 
 /**
-  * Represents a bi-functional operation on two `Valuable` arguments that returns a `Valuable` result.
-  * Provides additional metadata such as the function's name, whether the function is exact,
-  * and optional identity elements.
+  * Represents a binary function used in expression evaluation. This abstraction encapsulates
+  * the logic for applying a binary operation to two `Eager` objects while supporting features such as 
+  * exactness, commutativity, and optional identity elements.
   *
-  * CONSIDER changing `isExact` to a predicate based on two `Valuable` objects.
-  *
-  * @param f              the binary evaluation function to be applied to two `Valuable` arguments.
-  * @param name           the name of the function, used for debugging and descriptive purposes.
-  * @param isExact        a boolean indicating if the function is exact in all its computations.
-  *                       Even if false, there may be special cases that are exact.
-  * @param maybeIdentityL the optional left identity element for the function.
-  *                       That's to say, `identityL f y` can be replaced by `y`.
-  *                       If `None`, then the function has no identity value.
-  * @param maybeIdentityR an optional right identity element for the function, if applicable.
-  *                       That's to say, `x f identityR` can be replaced by `x`.
-  *                       If `None`, then the function is commutative and the only identity
-  *                       required is given by `identityL`.
+  * @param name           the unique name identifying the binary function.
+  * @param f              the underlying binary function to be applied to the `Eager` inputs.
+  * @param isExact        a flag indicating whether the function is strictly exact (producing precise results).
+  * @param maybeIdentityL an optional identity element for the left-hand operand; if defined, evaluation recognizes
+  *                       and simplifies the operation when this value is encountered.
+  * @param maybeIdentityR an optional identity element for the right-hand operand; if defined, evaluation recognizes
+  *                       and simplifies the operation when this value is encountered.
   */
 sealed abstract class ExpressionBiFunction(
                                               val name: String,
@@ -194,7 +206,7 @@ sealed abstract class ExpressionBiFunction(
     * @return the result of f(x).
     */
   def apply(a: Eager, b: Eager): Eager =
-    f(a, b)
+    f(a, b).normalize
 
   /**
     * Alternative apply method which satisfies the type declaration.
@@ -204,7 +216,7 @@ sealed abstract class ExpressionBiFunction(
     * @return a `Eager` that is the result of applying the binary function to the input tuple.
     */
   def apply(ff: (Eager, Eager)): Eager =
-    f.tupled(ff)
+    f.tupled(ff).normalize
 
   /**
     * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
@@ -259,25 +271,34 @@ sealed abstract class ExpressionBiFunction(
     * Evaluates two expressions `x` and `y` in a given context and determines the resulting `Valuable` based on specific identity and evaluation rules.
     * Trivial identities are recognized and evaluated appropriately.
     *
-    * TODO why not use `applyExact` when possible?
-    *
-    * @param x       the first expression to be evaluated.
-    * @param y       the second expression to be evaluated.
+    * @param a       the first expression to be evaluated.
+    * @param b       the second expression to be evaluated.
     * @param context the evaluation context providing the necessary environment for resolving expressions.
     * @return an `Option[Valuable]` containing the result of the evaluation if successful, or `None` if evaluation fails.
     */
-  def evaluate(x: Expression, y: Expression)(context: Context): Option[Eager] = (x.evaluateAsIs, y.evaluateAsIs) match {
-    case (Some(a), _) if maybeIdentityL contains a =>
-      y.evaluate(context)
-    case (_, Some(b)) if maybeIdentityR contains b =>
-      x.evaluate(context)
-    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
-      trivialEvaluation(a, b)
-    case _ =>
-      val xy = doEvaluate(x, y)(context)
-      lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
-      context.qualifyingEagerValue(xy orElse yx)
+  def evaluate(a: Expression, b: Expression)(context: Context): Option[Eager] = {
+    val cLeft = leftContext(context)
+    val eo = for {
+      x <- a.evaluate(cLeft)
+      cRight <- x.maybeFactor(cLeft).map(q => rightContext(q)(context)) // XXX Don't split this up.
+      y <- b.evaluate(cRight)
+      z <- applyExact((x, y))
+    } yield z
+    context.qualifyingEagerValue(eo)
   }
+
+//    (x.evaluateAsIs, y.evaluateAsIs) match {
+//    case (Some(a), _) if maybeIdentityL contains a =>
+//      y.evaluate(context)
+//    case (_, Some(b)) if maybeIdentityR contains b =>
+//      x.evaluate(context)
+//    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
+//      trivialEvaluation(a, b)
+//    case _ =>
+//      val xy = doEvaluate(x, y)(context)
+//      lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
+//      context.qualifyingEagerValue(xy orElse yx)
+//  }
 
   /**
     * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
@@ -367,7 +388,7 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
   def leftContext(context: Context): Context =
-    RestrictedContext(PureNumber) or AnyRoot
+    RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
     * Retrieves the right-hand evaluation context associated with this function.
@@ -376,7 +397,7 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
   def rightContext(factor: Factor)(context: Context): Context =
-    RestrictedContext(PureNumber) or AnyRoot
+    RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
     * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
@@ -395,9 +416,9 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     */
   def applyExact(a: Eager, b: Eager): Option[Eager] =
     (a, b) match {
-      case (x: Scalar, Eager.zero) if x.signum > 0 =>
+      case (x: eager.Scalar, Eager.zero) if x.signum > 0 =>
         Some(Angle.zero)
-      case (x: Scalar, Eager.zero) if x.signum < 0 =>
+      case (x: eager.Scalar, Eager.zero) if x.signum < 0 =>
         Some(Angle.pi) // TESTME
       case (Eager.one, Eager.one) =>
         Some(Angle.piBy4)
@@ -438,7 +459,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
     * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
   def leftContext(context: Context): Context =
-    RestrictedContext(PureNumber) or AnyRoot
+    RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
     * Retrieves the right-hand evaluation context associated with this function.
@@ -464,7 +485,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
     */
   def applyExact(a: Eager, b: Eager): Option[Eager] =
     (a, b) match {
-      case (_, base: Number) if base <= Number.one =>
+      case (_, base: eager.Number) if base <= eager.Number.one =>
         None // CONSIDER throwing an exception here instead
       case (Eager.one, _) =>
         Some(Eager.zero)
@@ -479,7 +500,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
       case _ if a == b =>
         Some(Eager.one)
       case _ =>
-        Some(f(a, b))
+        Some(f(a, b).normalize)
     }
 }
 
@@ -499,7 +520,7 @@ case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
     * @return a new `Context` object, which is a restricted version of the provided `context`.
     */
   def paramContext(context: Context): Context =
-    AnyScalar or AnyLog // CONSIDER should we be allowing Log2 and Log10?  // TESTME
+    AnyScalar `or` AnyLog // CONSIDER should we be allowing Log2 and Log10?  // TESTME
 
   /**
     * Applies an exact mapping transformation on the given `Valuable`.
@@ -645,7 +666,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
     *         and the `AnyLog` condition using the logical "or" operation.
     */
   def paramContext(context: Context): Context =
-    RestrictedContext(PureNumber) or AnyLog // TESTME
+    RestrictedContext(PureNumber) `or` AnyLog // TESTME
 }
 
 /**
@@ -654,7 +675,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
   * This object extends `ExpressionBiFunction` by defining its operation as addition (`add`)
   * with the corresponding symbol "+" and is flagged as not always exact (`isExact = false`).
   */
-case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExact = false, Some(Number.zero), maybeIdentityR = None) {
+case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExact = false, Some(eager.Number.zero), maybeIdentityR = None) {
   /**
     * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
     *
@@ -671,7 +692,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
     * @return the right-hand `Context` of the binary function.
     */
   def rightContext(factor: Factor)(context: Context): Context =
-    context
+    RestrictedContext(factor)
 
   /**
     * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
@@ -691,11 +712,21 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
       for (p <- x.evaluateAsIs; q <- y.evaluateAsIs; r <- applyExact(p, q)) yield r
     case (x: Angle, y: Angle) =>
       val g = Angle.angleIsCommutativeGroup
-      val q = g.additive.combine(x, y)
+      val q = g.additive.combine(x, y).normalize
       Some(q)
-    case (x: CanAdd[Number, Number] @unchecked, y: Number) =>
-      import Number.NumberIsAdditiveCommutativeMonoid
-      Some(x + y)
+    case (x: Angle, y: eager.Number) =>
+      import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
+      val q: Option[eager.Real] = for {
+        r <- x.convert(eager.Real.zero)
+        z <- y.convert(eager.Real.zero)
+      } yield (r + z).normalize
+      q.asInstanceOf[Option[Eager]]
+      // TODO implement for (Number, Angle)
+    case (x: Algebraic, y: Algebraic) =>
+      x.add(y)
+    case (x: CanAdd[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
+      import com.phasmidsoftware.number.algebra.eager.Number.NumberIsAdditiveCommutativeMonoid
+      Some((x + y).normalize)
     case _ =>
       None
   }
@@ -710,7 +741,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
   * - The operation is marked as exact, ensuring the result is always precise when the inputs are exact.
   * - It inherits the commutative property from `ExpressionBiFunction`, as multiplication is commutative.
   */
-case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply y), isExact = true, Some(Eager.one), maybeIdentityR = None) {
+case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multiply` y), isExact = true, Some(Eager.one), maybeIdentityR = None) {
   /**
     * Evaluates two `Valuable` instances under certain trivial conditions and determines the result.
     *
@@ -750,19 +781,19 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
     */
   def rightContext(factor: Factor)(context: Context): Context = context match {
     case AnyScalar | AnyContext =>
-      context or RestrictedContext(PureNumber) // TESTME
+      context `or` RestrictedContext(PureNumber)
     case AnyLog =>
       context // TESTME
     case AnyRoot =>
-      context or RestrictedContext(PureNumber) // TESTME
+      context `or` RestrictedContext(PureNumber) // TESTME
     case r@RestrictedContext(SquareRoot) =>
-      r or RestrictedContext(PureNumber)
+      r `or` RestrictedContext(PureNumber)
     case r@RestrictedContext(Radian) =>
-      r or RestrictedContext(PureNumber)
+      r `or` RestrictedContext(PureNumber)
     case r@RestrictedContext(_) =>
       r
     case _ =>
-      ImpossibleContext // TESTME
+      ImpossibleContext
   }
 
   /**
@@ -788,22 +819,24 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       Some(a)
     case (Eager.zero, _) | (_, Eager.zero) =>
       Some(Eager.zero)
-    case (x: CanMultiply[Number, Number] @unchecked, y: Number) =>
+    // NOTE do not try to replace RationalNumber with Q. It matches too freely.
+    case (x: Scalable[Eager] @unchecked, y: RationalNumber) =>
+      Some(x * y.toRational)
+    case (x: RationalNumber, y: Scalable[Eager] @unchecked) =>
+      Some(y * x.toRational)
+    case (x: eager.InversePower, y: eager.Number) =>
+      FP.whenever(x.isExact && y.isExact)(x.doScale(y)).filter(_.isExact)
+    case (x: CanMultiply[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((x * y).asInstanceOf[Eager]).filter(_.isExact)
-    case (x: Number, y: CanMultiply[Number, Number] @unchecked) =>
+      Option.when(x.isExact && y.isExact)((x * y).asEager).filter(_.isExact)
+    case (x: eager.Number, y: CanMultiply[eager.Number, eager.Number] @unchecked) =>
       // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((y * x).asInstanceOf[Eager]).filter(_.isExact)
-//    case (x: CanScale[Structure, Number] @unchecked, y: Number) =>
-//      val maybeStructure = FP.whenever(x.isExact && y.isExact)(x.doScale(y))
-//      maybeStructure.filter(_.isExact)
-//    case (x: Number, y: CanScale[Structure, Number] @unchecked) =>
-//      FP.whenever(x.isExact && y.isExact)(y.doScale(x)).filter(_.isExact)
-    case (ValueExpression(x, _), y: Number) =>
+      Option.when(x.isExact && y.isExact)((y * x).asEager).filter(_.isExact)
+    case (ValueExpression(x, _), y: eager.Number) =>
       applyExact(x, y)
     case (ValueExpression(x, _), ValueExpression(y, _)) =>
       applyExact(x, y)
-    case (x: Number, ValueExpression(y, _)) =>
+    case (x: eager.Number, ValueExpression(y, _)) =>
       applyExact(x, y)
     case (x: Scalable[Eager] @unchecked, y: Q) =>
       Some(x * y.toRational)
@@ -833,9 +866,9 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     * @return an `Option[Valuable]`, where `Some(a)` is returned if `a` is `zero`; otherwise, `None`.
     */
   override def trivialEvaluation(a: Eager, b: Eager): Option[Eager] = (a, b) match {
-    case (Eager.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero, _) =>
+    case (Eager.zero | RationalNumber.zero | NatZero, _) =>
       Some(a) // TESTME
-    case (_, Eager.zero | RationalNumber.zero | com.phasmidsoftware.number.algebra.NatZero) =>
+    case (_, Eager.zero | RationalNumber.zero | eager.NatZero) =>
       Some(Eager.one) // TESTME
     case (_, Eager.one | RationalNumber.one) =>
       Some(a) // TESTME
@@ -883,9 +916,11 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
   def applyExact(a: Eager, b: Eager): Option[Eager] = (a, b) match {
     case (Eager.one, _) =>
       Some(Eager.one)
-    case (_, com.phasmidsoftware.number.algebra.Real.infinity | RationalNumber.infinity) =>
+    case (_, eager.Real.infinity | RationalNumber.infinity) =>
       Some(b)
-    case (x: CanPower[Scalar] @unchecked, y: Q) if x.isExact && y.isExact =>
+    case (x: eager.InversePower, y: eager.ExactNumber) =>
+      x.pow(y).asInstanceOf[Option[Eager]]
+    case (x: CanPower[eager.Scalar] @unchecked, y: Q) if x.isExact && y.isExact =>
       for {
         f <- y.maybeFactor(AnyContext) if f == PureNumber
         result <- x.pow(RationalNumber(y.toRational)) if result.isExact

@@ -1,0 +1,272 @@
+<!--
+  ~ Copyright (c) 2025. Phasmid Software
+  -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Library LaTeX Renderer Test</title>
+
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+
+        .test-case {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .latex-code {
+            background: #ecf0f1;
+            padding: 8px 12px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .rendered {
+            font-size: 24px;
+            padding: 15px;
+            text-align: center;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+
+        .description {
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .section-intro {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1>📐 Number Library LaTeX Renderer Test</h1>
+
+<div class="section-intro">
+    <p>This page demonstrates the LaTeX rendering capabilities of your Number library using KaTeX.
+        Copy the LaTeX output from your Scala code and paste it into the test cases below to see how it renders.</p>
+</div>
+
+<h2>Rational Numbers</h2>
+
+<div class="test-case">
+    <div class="description">Integer (denominator = 1)</div>
+    <div class="latex-code">5</div>
+    <div class="rendered" id="rational1"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Simple fraction</div>
+    <div class="latex-code">\frac{1}{2}</div>
+    <div class="rendered" id="rational2"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Negative fraction</div>
+    <div class="latex-code">\frac{-3}{4}</div>
+    <div class="rendered" id="rational3"></div>
+</div>
+
+<h2>Roots and Powers</h2>
+
+<div class="test-case">
+    <div class="description">Square root</div>
+    <div class="latex-code">\sqrt{2}</div>
+    <div class="rendered" id="root1"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Square root of fraction</div>
+    <div class="latex-code">\sqrt{\frac{5}{4}}</div>
+    <div class="rendered" id="root2"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Cube root</div>
+    <div class="latex-code">\sqrt[3]{8}</div>
+    <div class="rendered" id="root3"></div>
+</div>
+
+<h2>Quadratic Solutions - Real Roots</h2>
+
+<div class="test-case">
+    <div class="description">Golden ratio (φ)</div>
+    <div class="latex-code">\varphi</div>
+    <div class="rendered" id="phi"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Conjugate of golden ratio (ψ)</div>
+    <div class="latex-code">\psi</div>
+    <div class="rendered" id="psi"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Positive branch (branch 0)</div>
+    <div class="latex-code">\frac{1}{2} + \sqrt{2}</div>
+    <div class="rendered" id="quad1"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Negative branch (branch 1)</div>
+    <div class="latex-code">\frac{1}{2} - \sqrt{2}</div>
+    <div class="rendered" id="quad2"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Integer base with irrational offset</div>
+    <div class="latex-code">3 + \sqrt{5}</div>
+    <div class="rendered" id="quad3"></div>
+</div>
+
+<h2>Quadratic Solutions - Complex Roots</h2>
+
+<div class="test-case">
+    <div class="description">Complex root (positive imaginary)</div>
+    <div class="latex-code">\frac{1}{2} + i \sqrt{\frac{3}{4}}</div>
+    <div class="rendered" id="complex1"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Complex root (negative imaginary)</div>
+    <div class="latex-code">\frac{1}{2} - i \sqrt{\frac{3}{4}}</div>
+    <div class="rendered" id="complex2"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Pure imaginary</div>
+    <div class="latex-code">0 + i \sqrt{3}</div>
+    <div class="rendered" id="complex3"></div>
+</div>
+
+<h2>Edge Cases</h2>
+
+<div class="test-case">
+    <div class="description">Zero</div>
+    <div class="latex-code">0</div>
+    <div class="rendered" id="edge1"></div>
+</div>
+
+<div class="test-case">
+    <div class="description">Negative number with root</div>
+    <div class="latex-code">-2 + \sqrt{3}</div>
+    <div class="rendered" id="edge2"></div>
+</div>
+
+<h2>🧪 Custom Test Area</h2>
+
+<div class="section-intro">
+    <p>Use the text area below to test your own LaTeX expressions from your Scala code:</p>
+</div>
+
+<div style="margin: 20px 0;">
+    <textarea id="customLatex"
+              style="width: 100%; height: 80px; padding: 10px; font-family: 'Courier New', monospace; font-size: 14px; border: 2px solid #3498db; border-radius: 4px;"
+              placeholder="Paste your LaTeX code here...">\frac{1}{2} + \sqrt{\frac{5}{4}}</textarea>
+    <button onclick="renderCustom()"
+            style="margin-top: 10px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+        Render
+    </button>
+</div>
+
+<div class="test-case">
+    <div class="description">Your custom expression:</div>
+    <div class="rendered" id="customResult"></div>
+</div>
+
+<script>
+    // Render all test cases
+    window.addEventListener('load', function() {
+        // Rational numbers
+        katex.render(String.raw`5`, document.getElementById('rational1'));
+        katex.render(String.raw`\frac{1}{2}`, document.getElementById('rational2'));
+        katex.render(String.raw`\frac{-3}{4}`, document.getElementById('rational3'));
+
+        // Roots
+        katex.render(String.raw`\sqrt{2}`, document.getElementById('root1'));
+        katex.render(String.raw`\sqrt{\frac{5}{4}}`, document.getElementById('root2'));
+        katex.render(String.raw`\sqrt[3]{8}`, document.getElementById('root3'));
+
+        // Golden ratio
+        katex.render(String.raw`\varphi`, document.getElementById('phi'));
+        katex.render(String.raw`\psi`, document.getElementById('psi'));
+
+        // Quadratic solutions - real
+        katex.render(String.raw`\frac{1}{2} + \sqrt{2}`, document.getElementById('quad1'));
+        katex.render(String.raw`\frac{1}{2} - \sqrt{2}`, document.getElementById('quad2'));
+        katex.render(String.raw`3 + \sqrt{5}`, document.getElementById('quad3'));
+
+        // Quadratic solutions - complex
+        katex.render(String.raw`\frac{1}{2} + i \sqrt{\frac{3}{4}}`, document.getElementById('complex1'));
+        katex.render(String.raw`\frac{1}{2} - i \sqrt{\frac{3}{4}}`, document.getElementById('complex2'));
+        katex.render(String.raw`0 + i \sqrt{3}`, document.getElementById('complex3'));
+
+        // Edge cases
+        katex.render(String.raw`0`, document.getElementById('edge1'));
+        katex.render(String.raw`-2 + \sqrt{3}`, document.getElementById('edge2'));
+
+        // Initial custom render
+        renderCustom();
+    });
+
+    function renderCustom() {
+        const latex = document.getElementById('customLatex').value;
+        const resultDiv = document.getElementById('customResult');
+
+        try {
+            katex.render(latex, resultDiv);
+        } catch (e) {
+            resultDiv.innerHTML = '<span style="color: red;">Error: ' + e.message + '</span>';
+        }
+    }
+
+    // Allow Enter key in textarea to render
+    document.getElementById('customLatex').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            renderCustom();
+        }
+    });
+</script>
+</body>
+</html>

@@ -4,16 +4,15 @@
 
 package com.phasmidsoftware.number.core.expression
 
+import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
-import com.phasmidsoftware.number.core.algebraic._
 import com.phasmidsoftware.number.core.expression.Expression.em
 import com.phasmidsoftware.number.core.expression.Literal.someLiteral
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.Constants.gamma
 import com.phasmidsoftware.number.core.numerical.Number.one
 import com.phasmidsoftware.number.core.numerical.{Complex, Constants, ExactNumber, Field, Number, Real}
 import java.util.Objects
-import scala.language.implicitConversions
 
 /**
   * An Expression that is based on one simple constant value.
@@ -406,7 +405,7 @@ object Literal {
     * @return an Option containing the extracted Field, or None if extraction is not possible.
     */
   def unapply(arg: Literal): Option[(Field, Option[String])] =
-    Some(arg.value, arg.maybeName)
+    Some((arg.value, arg.maybeName))
 
   /**
     * Creates a Literal instance using an integer value.
@@ -1042,7 +1041,7 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     */
   def add(other: Root): Option[Root] = other match {
     case q: QuadraticRoot =>
-      Some(QuadraticRoot(algebraic add q.algebraic))
+      Some(QuadraticRoot(algebraic `add` q.algebraic))
     case _ =>
       None
   }
@@ -1141,7 +1140,7 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
     */
   def add(other: Root): Option[Root] = other match {
     case l: LinearRoot =>
-      val result = algebraic add l.algebraic
+      val result = algebraic `add` l.algebraic
       Some(LinearRoot(result.equation))
     case _ =>
       None
@@ -1246,7 +1245,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
       case r: AbstractRoot =>
-        em.matchIfDefined(r.maybeValue)(r) flatMap matchAndSimplify
+        em.matchIfDefined(r.maybeValue)(r) `flatMap` matchAndSimplify
     }
 
   /**
@@ -1418,7 +1417,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     * @return a `MatchResult` containing the resulting `Expression`.
     */
   private def matchAndSimplify(field: Field): em.MatchResult[Expression] =
-    em.Match(Literal(field)) flatMap simplifyAtomic
+    em.Match(Literal(field)) `flatMap` simplifyAtomic
 }
 
 /**

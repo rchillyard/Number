@@ -21,7 +21,7 @@ object Lab extends App {
 
   def radius(x: Double, y: Double): Double = math.sqrt(x * x + y * y)
 
-  val f = (radius _).tupled
+  val f = (radius).tupled
   val qs: List[Double] = zs map f
 
   // TODO filter our list of doubles such that we retain only those with value less than 1

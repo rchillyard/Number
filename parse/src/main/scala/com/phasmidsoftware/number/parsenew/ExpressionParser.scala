@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.algebra.misc.Renderable
-import com.phasmidsoftware.number.algebra.{Eager, Valuable}
+import com.phasmidsoftware.number.algebra.core.Renderable
+import com.phasmidsoftware.number.algebra.eager.Eager
 import com.phasmidsoftware.number.expression.expr.{Expression, Noop}
 import fastparse.Parsed
 import scala.util.Try

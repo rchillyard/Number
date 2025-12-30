@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number.core.expression
 
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.CoreContext.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
 import scala.Option.when
@@ -87,7 +87,7 @@ object ExpressionMonoFunction {
     * @return an `Option` containing a tuple of the function `Number => Number` and the name `String` of the `ExpressionMonoFunction`, or `None` if the input is null.
     */
   def unapply(arg: ExpressionMonoFunction): Option[(String, Field => Field)] =
-    Some(arg.name, arg.f) // TESTME
+    Some((arg.name, arg.f)) // TESTME
 }
 
 /**
@@ -271,7 +271,7 @@ object ExpressionBiFunction {
     */
   def unapply(f: ExpressionBiFunction): Option[((Field, Field) => Field, String, Option[Field], Option[Field])] = f match {
     case e: ExpressionBiFunction =>
-      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
+      Some((e.f, e.name, e.maybeIdentityL, e.maybeIdentityR))
     case _ =>
       None // TESTME
   }
@@ -301,7 +301,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
     * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
   def leftContext(context: CoreContext): CoreContext =
-    RestrictedContext(PureNumber) or AnyRoot
+    RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
     * Retrieves the right-hand evaluation context associated with this function.
@@ -310,7 +310,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
   def rightContext(factor: Factor)(context: CoreContext): CoreContext =
-    RestrictedContext(PureNumber) or AnyRoot
+    RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
     * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
@@ -372,7 +372,7 @@ case object Log extends ExpressionBiFunction("log", Real.log, false, None, None)
     * @return a `RestrictedContext(PureNumber)` object that represents the constrained left-hand evaluation context.
     */
   def leftContext(context: CoreContext): CoreContext =
-    RestrictedContext(PureNumber) or AnyRoot
+    RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
     * Retrieves the right-hand evaluation context associated with this function.
@@ -433,7 +433,7 @@ case object Ln extends ExpressionMonoFunction("ln", x => x.ln) {
     * @return a new `Context` object, which is a restricted version of the provided `context`.
     */
   def paramContext(context: CoreContext): CoreContext =
-    AnyScalar or AnyLog // CONSIDER should we be allowing Log2 and Log10?  // TESTME
+    AnyScalar `or` AnyLog // CONSIDER should we be allowing Log2 and Log10?  // TESTME
 
   /**
     * Applies an exact mapping transformation on the given `Field`.
@@ -576,7 +576,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", x => x.invert) {
     *         and the `AnyLog` condition using the logical "or" operation.
     */
   def paramContext(context: CoreContext): CoreContext =
-    RestrictedContext(PureNumber) or AnyLog // TESTME
+    RestrictedContext(PureNumber) `or` AnyLog // TESTME
 }
 
 /**
@@ -585,7 +585,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", x => x.invert) {
   * This object extends `ExpressionBiFunction` by defining its operation as addition (`add`)
   * with the corresponding symbol "+" and is flagged as not always exact (`isExact = false`).
   */
-case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = false, Some(Constants.zero), maybeIdentityR = None) {
+case object Sum extends ExpressionBiFunction("+", (x, y) => x `add` y, isExact = false, Some(Constants.zero), maybeIdentityR = None) {
   /**
     * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
     *
@@ -618,7 +618,7 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
     *         or `None` if the operation fails to meet exactness requirements.
     */
   def applyExact(a: Field, b: Field): Option[Field] =
-    Some(a add b)
+    Some(a `add` b)
 }
 
 /**
@@ -630,7 +630,7 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
   * - The operation is marked as exact, ensuring the result is always precise when the inputs are exact.
   * - It inherits the commutative property from `ExpressionBiFunction`, as multiplication is commutative.
   */
-case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, isExact = true, Some(Constants.one), maybeIdentityR = None) {
+case object Product extends ExpressionBiFunction("*", (x, y) => x `multiply` y, isExact = true, Some(Constants.one), maybeIdentityR = None) {
   /**
     * Evaluates two `Field` instances under certain trivial conditions and determines the result.
     *
@@ -670,15 +670,15 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     */
   def rightContext(factor: Factor)(context: CoreContext): CoreContext = context match {
     case AnyScalar | AnyContext =>
-      context or RestrictedContext(PureNumber) // TESTME
+      context `or` RestrictedContext(PureNumber) // TESTME
     case AnyLog =>
       context // TESTME
     case AnyRoot =>
-      context or RestrictedContext(PureNumber) // TESTME
+      context `or` RestrictedContext(PureNumber) // TESTME
     case r@RestrictedContext(SquareRoot) =>
-      r or RestrictedContext(PureNumber)
+      r `or` RestrictedContext(PureNumber)
     case r@RestrictedContext(Radian) =>
-      r or RestrictedContext(PureNumber)
+      r `or` RestrictedContext(PureNumber)
     case r@RestrictedContext(_) =>
       r
     case _ =>
@@ -701,7 +701,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     *         or `None` if the conditions for exact multiplication are not met.
     */
   def applyExact(a: Field, b: Field): Option[Field] =
-    Option.when(a.isExact && b.isExact)(a multiply b) filter (_.isExact)
+    Option.when(a.isExact && b.isExact)(a `multiply` b) filter (_.isExact)
 }
 
 /**

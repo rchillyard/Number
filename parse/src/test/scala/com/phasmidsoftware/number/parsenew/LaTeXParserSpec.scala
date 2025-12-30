@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parsenew
 
-import com.phasmidsoftware.number.algebra.{Angle, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.*
 import com.phasmidsoftware.number.parsenew.LaTeXParser
@@ -66,7 +66,7 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "degrees and percentages"
   it should "parse percentages and degrees" in {
-    p("50%") shouldBe Parsed.Success(Literal(RationalNumber(Rational.half,true), Some("50%")), 3)
+    p("50%") shouldBe Parsed.Success(Literal(RationalNumber(Rational.half,true)(), Some("50%")), 3)
     p("90°") shouldBe Parsed.Success(Literal(Angle.degrees(90), Some("90°")), 3) 
   }
 }

@@ -4,7 +4,8 @@
 
 package com.phasmidsoftware.number.core.expression
 
-import com.phasmidsoftware.matchers._
+import com.phasmidsoftware.matchers.{LogDebug, LogLevel, MatchLogger}
+import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.expression.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.core.expression.Expression.{ExpressionOps, matchSimpler}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
@@ -17,7 +18,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import scala.languageFeature.implicitConversions._
 
 /**
   * Test suite for `ExpressionMatchers` and related functionality, extending `AnyFlatSpec` with ScalaTest matchers functionalities.
@@ -120,10 +120,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchSimpler"
 
-  import Matchers._
+  import com.phasmidsoftware.matchers.Matchers.TildeOps
 
   it should "matchSimpler 1" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val x: Expression = Number.pi
     p(Sum ~ x ~ Zero) shouldBe em.Match(x)
@@ -135,7 +135,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ x ~ One) shouldBe em.Match(x)
   }
   it should "simplifyTrivial 1" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.simplifyTrivial
     val x: Expression = Number.pi
     p(Sum ~ x ~ Zero) shouldBe em.Match(x)
@@ -147,7 +147,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ x ~ One) shouldBe em.Match(x)
   }
   it should "handle Sum" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
@@ -156,7 +156,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Sum ~ One ~ Literal(root2)) should matchPattern { case em.Miss(_, _) => }
   }
   it should "handle Product" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     p(Product ~ One ~ Zero) shouldBe em.Match(Zero)
     p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
@@ -166,7 +166,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ Two ~ Literal(3)) shouldBe em.Match(Literal(6))
   }
   it should "handle Power" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     p(Power ~ Two ~ Zero) shouldBe em.Match(One)
     p(Power ~ Two ~ One) shouldBe em.Match(Two)
@@ -174,7 +174,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ Two ~ Two) shouldBe em.Match(Literal(4))
   }
   it should "cancel -1 and - 1" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     sb.append("cancel -1 and - 1:\n")
     val x: Expression = Expression.one
@@ -183,7 +183,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result should matchPattern { case em.Match(Zero) => }
   }
   it should "cancel multiplication and division" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val x = Literal(Number.pi) * 2
     val y = One / 2
@@ -237,7 +237,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "show that lazy evaluation sometimes works even when you don't use it (a)" in {
     val seven = Number(7)
     val x: Number = seven.sqrt
-    val y = x doPower two
+    val y = x `doPower` two
     y.isExact shouldBe true
     y shouldBe seven
   }
@@ -293,7 +293,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchSimpler 2"
   it should "simplify (1+2)*(2+1)" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val a = BiFunction(One, Two, Sum)
     val b = BiFunction(Two, One, Sum)
@@ -307,7 +307,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     simplified.evaluateAsIs shouldBe Some(Real(3))
   }
   it should "simplify e * 2 / 2" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val e: Field = Constants.e
     val x: Expression = Literal(e, Some("e")) * Constants.two
@@ -316,7 +316,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z shouldBe em.Match(Expression(e))
   }
   it should "simplify root3 * 2 / 2" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val root3: Number = √(3)
     val x: Expression = Literal(root3) * Constants.two
@@ -325,7 +325,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result shouldBe em.Match(Literal(root3))
   }
   it should "simplify root4 * 2 / 2" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val root4: Number = √(4)
     val x = Literal(root4) * Constants.two
@@ -333,7 +333,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ x ~ y) shouldBe em.Match(Literal(root4))
   }
   it should "distribute" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val a = BiFunction(One, Two, Sum)
     val b = BiFunction(Two, One, Sum)
@@ -341,7 +341,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z shouldBe em.Match(Expression(9))
   }
   it should "distributeProductSum a" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val a = BiFunction(One, Two, Sum)
     val b = BiFunction(Two, One, Sum)
@@ -358,7 +358,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z.evaluateAsIs shouldBe Some(Real(r"21/2"))
   }
   it should "distributeProductPower on root(3) * root(3)" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val x = Expression(3).sqrt
     val q = p(Product ~ x ~ x)
@@ -644,8 +644,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   // Was Issue #88 but that was fixed a while ago.
   it should "simplify aggregate 4b" in {
     val root3 = Expression(3).sqrt
-    val root3PlusOne = root3 plus Expression.one
-    val root3MinusOne = root3 plus Expression(Constants.minusOne)
+    val root3PlusOne = root3 `plus` Expression.one
+    val root3MinusOne = root3 `plus` Expression(Constants.minusOne)
     val expression = root3PlusOne * root3MinusOne
     val result = expression.simplify
     //val result = em.simplifier(expression)
@@ -823,7 +823,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchDyadicTrivial"
   it should "handle Sum" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
@@ -831,7 +831,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Sum ~ One ~ Two) shouldBe em.Match(Literal(Constants.three))
   }
   it should "handle Product" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     p(Product ~ One ~ Zero) shouldBe em.Match(Zero)
     p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
@@ -841,7 +841,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(BiFunction(Two, 3, Product)) shouldBe em.Match(Expression(6))
   }
   it should "handle Power" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     p(Power ~ Two ~ Zero) shouldBe em.Match(One)
     p(Power ~ Two ~ One) shouldBe em.Match(Two)
@@ -850,7 +850,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Power ~ Literal(root2) ~ Two) shouldBe em.Match(Two)
   }
   it should "cancel multiplication and division" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val x = Literal(Number.pi) * 2
     val y = One / 2
@@ -893,14 +893,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "matchSimplifyDyadicTermsTwoLevels"
 
   it should "match 1" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     // CONSIDER these shouldn't be handled by matchSimplifyDyadicTermsTwoLevels since they are handled by matchComplementary
     p(Sum ~ One ~ UniFunction(One, Negate)) shouldBe em.Match(Zero)
     p(Sum ~ UniFunction(One, Negate) ~ One) shouldBe em.Match(Zero)
   }
   it should "match 2" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     p(Sum ~ One ~ UniFunction(ConstPi, Cosine)) shouldBe em.Match(Zero)
     p(Sum ~ UniFunction(ConstPi, Cosine) ~ One) shouldBe em.Match(Zero)
@@ -1003,14 +1003,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   //  }
   it should "simplify 1 + 2 - 2" in {
     val p = Expression.matchSimpler
-    val x = One plus Two - Two
+    val x = One `plus` Two - Two
     val r = p(x)
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe One
   }
   it should "properly simplify 1 + 2 - 2 + 0" in {
     val p = Expression.matchSimpler
-    val x = One plus Two - Two + Zero
+    val x = One `plus` Two - Two + Zero
     val r = p(x)
     r should matchPattern { case em.Match(_) => }
     r.get shouldBe One
@@ -1042,7 +1042,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "properly simplify 1 + root3 - root3 + 0" in {
     val z: Expression = Expression(3).sqrt
-    val x = z plus -z + Zero
+    val x = z `plus` -z + Zero
     val r = One + x
     val simplified = r.simplify
     simplified shouldBe One
@@ -1056,7 +1056,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     simplified shouldBe One
   }
   it should "properly simplify (1 * root3) * (3 / root3)" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val root3 = Expression(3).sqrt
     val x: Expression = One * root3
@@ -1066,7 +1066,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.get shouldBe Expression(3)
   }
   it should "simplify 2 root(3) all squared" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val x = Expression(3).sqrt
     val a = BiFunction(Two, x, Product)
@@ -1120,7 +1120,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "biFunctionTransformer (2)"
 
-  import com.phasmidsoftware.number.core.expression.BiFunction._
+  import com.phasmidsoftware.number.core.expression.BiFunction.*
 
   private val p = Expression.matchSimpler
   it should "simplify 1 + 1" in {
@@ -1182,28 +1182,28 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "evaluateMonadicDuple"
 
   it should "simplify E" in {
-    import UniFunction._
+    import UniFunction.*
     val p = Expression.matchSimpler
     val r = p(Exp ~ One)
     r.successful shouldBe true
     r.get shouldBe ConstE
   }
   it should "simplify ln(E)" in {
-    import UniFunction._
+    import UniFunction.*
     val p = Expression.matchSimpler
     val r = p(Ln ~ ConstE)
     r.successful shouldBe true
     r.get shouldBe One
   }
   it should "simplify ln(1)" in {
-    import UniFunction._
+    import UniFunction.*
     val p = Expression.matchSimpler
     val r = p(Ln ~ One)
     r.successful shouldBe true
     r.get shouldBe Zero
   }
   it should "simplify ln(-1)" in {
-    import UniFunction._
+    import UniFunction.*
     val p = Expression.matchSimpler
     val r = p(Ln ~ MinusOne)
     r.successful shouldBe true
@@ -1225,7 +1225,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "two levels"
   it should "get 0 from -√3 + √3" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val root3: Number = √(3)
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Product)
@@ -1235,7 +1235,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.get shouldBe Zero
   }
   it should "get 0 from √3 + -√3" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Product)
     val e: DyadicTriple = Sum ~ Literal(root3) ~ e1
@@ -1245,7 +1245,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   // test for Issue #126 (fixed)
   it should "get 1 from 1/√3 * √3" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val root3: Number = √(3)
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Power)
@@ -1255,7 +1255,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.get shouldBe One
   }
   it should "simplify -1 * √3 as negate(√3)" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val e: DyadicTriple = Product ~ MinusOne ~ Literal(Number.root3)
     val result = p(e)
@@ -1263,7 +1263,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.get shouldBe UniFunction(Number.root3, Negate)
   }
   it should "simplify √3 * -1 as negate(√3)" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val e: DyadicTriple = Product ~ Literal(Number.root3) ~ MinusOne
     val result = p(e)
@@ -1271,7 +1271,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.get shouldBe UniFunction(Number.root3, Negate)
   }
   it should "simplify various" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     p(Sum ~ BiFunction(Two, MinusOne, Product) ~ Two) shouldBe em.Match(Zero)
     p(Sum ~ Two ~ BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Zero)
@@ -1279,7 +1279,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Sum ~ Two ~ BiFunction(MinusOne, Two, Product)) shouldBe em.Match(Zero)
   }
   it should "simplify root3 * 2 / 2" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val root3: Number = √(3)
     val x: Expression = Literal(root3) * Constants.two
@@ -1290,7 +1290,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchAndCollectTwoDyadicLevels"
   it should "work for √3 * √3" in {
-    import com.phasmidsoftware.number.core.expression.BiFunction._
+    import com.phasmidsoftware.number.core.expression.BiFunction.*
     val p = Expression.matchSimpler
     val e1: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)
     val e2: BiFunction = BiFunction(Expression(3), Expression(Rational.half), Power)

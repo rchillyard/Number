@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.core.algebraic
 import com.phasmidsoftware.number.core.algebraic.Quadratic.goldenRatioEquation
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
 import com.phasmidsoftware.number.core.misc.FP
-import com.phasmidsoftware.number.core.numerical._
+import com.phasmidsoftware.number.core.numerical.*
 
 /**
   * The `Algebraic` class is an abstract extension of the Field trait, representing a solution of a mathematical equation,
@@ -94,7 +94,7 @@ trait Algebraic extends Multivariate {
     * @return the sum.
     */
   def add(x: Field): Field =
-    value add x
+    value `add` x
 //    (for {
 //      y <- x.asNumber
 //      r <- y.toNominalRational
@@ -166,7 +166,7 @@ trait Algebraic extends Multivariate {
     * @return the quotient.
     */
   def divide(x: Field): Field =
-    value divide x
+    value `divide` x
 
   /**
     * Raises this Field to the power of the specified number.
@@ -175,7 +175,7 @@ trait Algebraic extends Multivariate {
     * @return the result of raising this Field to the power p.
     */
   def power(p: Number): Field =
-    value power p
+    value `power` p
 
   /**
     * Raise this Field to the power p.
@@ -184,7 +184,7 @@ trait Algebraic extends Multivariate {
     * @return this Field raised to power p.
     */
   def power(p: Field): Field =
-    value power p
+    value `power` p
 
   /**
     * Computes the sine of this Field.
@@ -217,7 +217,7 @@ trait Algebraic extends Multivariate {
     * @return the arctangent of the specified Real number, represented as a Field.
     */
   def atan(y: Real): Field =
-    value atan y
+    value `atan` y
 
   /**
     * Computes the natural logarithm (log base e) of this Field.
@@ -242,7 +242,7 @@ trait Algebraic extends Multivariate {
     * @return true if they are most probably the same, otherwise false.
     */
   def isSame(x: Numerical): Boolean =
-    value isSame x
+    value `isSame` x
 
   /**
     * Method to determine if this Field has infinite magnitude.
@@ -505,7 +505,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @return a new Algebraic resulting from the addition
     */
   def add(a: Algebraic): Algebraic = {
-    val maybeSolution = solve add a.solve
+    val maybeSolution = solve `add` a.solve
     val maybeAlgebraicLinear = maybeSolution.flatMap {
       case s: LinearSolution =>
         Algebraic_Linear.create(s)
@@ -520,7 +520,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @return a new Algebraic resulting from the addition
     */
   def add(rational: Rational): Algebraic =
-    solve add rational match {
+    solve `add` rational match {
       case s: LinearSolution => Algebraic_Linear.create(s) match {
         case Some(x) => x
         case None => throw CoreException(s"AlgebraicLinear: cannot add $this and $rational")

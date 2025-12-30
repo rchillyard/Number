@@ -314,7 +314,7 @@ object FP {
     *         an error occurs during processing or if the file contains invalid input
     */
   def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
-    TryUsing(FP.resource(filename) map (Source.fromURL(_))) {
+    TryUsing(FP.resourceForClass(filename) map (Source.fromURL(_))) {
       source =>
         val bn = implicitly[Numeric[BigInt]]
         val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
@@ -351,7 +351,7 @@ object FP {
     * @param clazz        the class, relative to which, the resource can be found (defaults to the caller's class).
     * @return a Try[URL]
     */
-  def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
+  def resourceForClass(resourceName: String, clazz: Class[?] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
     case Some(u) => Success(u)
     case None => Failure(new Exception(s"$resourceName is not a valid resource for $clazz"))
   }

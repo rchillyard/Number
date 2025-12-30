@@ -14,7 +14,7 @@ case class InfiniteSum[X: Numeric](x0: X, f: (Long, X) => X) extends (Int => X) 
 
   private def getNext(i: Long, x: X): (Long, X) = (i + 1, f(i, x))
 
-  private val g = (getNext _).tupled
+  private val g = (getNext).tupled
 
   /**
     * A lazy val representing the LazyList[X] which is all the terms of the infinite sum.

@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.cats
 
 import com.phasmidsoftware.number.core.inner.Rational
-import algebra.ring.{TruncatedDivision => AlgebraTruncatedDivision}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
