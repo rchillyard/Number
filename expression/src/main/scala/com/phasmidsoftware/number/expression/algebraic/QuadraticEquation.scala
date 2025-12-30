@@ -4,12 +4,15 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
+import com.phasmidsoftware.number.algebra.core.Valuable
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.convRationalRationalNumber
-import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
-import com.phasmidsoftware.number.core.numerical.Field
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ExactNumber, Field, Number}
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.squareRoot
 import com.phasmidsoftware.number.expression.expr.{Expression, Literal}
 
 /**
@@ -56,7 +59,7 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     *         or `None` if no solution exists for the given branch.
     */
   def solve(branch: Int): Solution = {
-    require(branch == 0 || branch == 1, "Quadratic has only 2 roots")
+    require(branch == 0 || branch == 1, s"QuadraticEquation: branch $branch out of range: a quadratic has only 2 roots")
 
     if (discriminant == Rational.zero)
       // Repeated roots
@@ -65,8 +68,8 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
       // Real roots
       QuadraticSolution(RationalNumber(-p / 2), squareRoot(discriminant / 4), branch, false)
     else
-      // Complex roots
-      QuadraticSolution(RationalNumber(-p / 2), squareRoot(-discriminant / 4), branch, true)
+      // Complex roots {
+      Complex(QuadraticEquation.solveAsComplex(branch, branches, -p / 2, squareRoot(-discriminant / 4), this))
   }
 
   /**
@@ -161,15 +164,6 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     */
   infix def *(x: Rational): Equation =
     copy(p = x * p, q = x * x * q)
-
-  /**
-    * Calculates the square root of a given rational number as a monotone function.
-    *
-    * @param r the rational number for which the square root is to be computed.
-    * @return a monotone representation of the square root of the given rational number.
-    */
-  private def squareRoot(r: RationalNumber): Monotone =
-    InversePower(2, r).normalize.asMonotone
 }
 
 /**
@@ -298,6 +292,50 @@ object QuadraticEquation {
     * The equation is a notable instance of a quadratic, useful in various mathematical contexts.
     */
   val rootTwoEquation: QuadraticEquation = squareRootEquation(Rational.two)
+
+  /**
+    * Solves a quadratic equation to find its complex roots in Cartesian form.
+    * The method calculates the complex roots based on the given branch of the
+    * solution, the total number of branches, the real component (base) of
+    * the equation, and the square root value of a provided rational number.
+    *
+    * @param branch          the specific branch of the solution to compute (e.g., 0, 1, etc.).
+    * @param branches        the total number of branches in the solution space.
+    * @param realCoefficient the rational number representing the real component of the equation.
+    * @param imagCoefficient the coefficient of the imaginary part of the complex solution (this will be a positive square root).
+    * @param equation        the quadratic equation for which to compute the complex roots (used only for error reporting).
+    * @return a `ComplexCartesian` object representing the complex root in Cartesian form.
+    */
+  def solveAsComplex(branch: Int, branches: Int, realCoefficient: Rational, imagCoefficient: Monotone, equation: QuadraticEquation): ComplexCartesian = {
+    val realPart = Valuable.valuableToMaybeField(RationalNumber(realCoefficient)).flatMap(x => x.asNumber)
+    imagCoefficient match {
+      case scalar: Scalar =>
+        val x = scalar.scale(Solution.quadraticOffsetCoefficient(branch, branches))
+        val imaginaryPart = Valuable.valuableToMaybeField(x).flatMap(x => x.asNumber)
+        FP.recover(
+          for (x <- realPart; y <- imaginaryPart) yield ComplexCartesian(x, y))(
+          AlgebraException(s"Quadratic equation has bad complex roots: $equation")
+        )
+      case i@InversePower(2, RationalNumber(r, _)) =>
+        val imag: Number = ExactNumber(Value.fromRational(r), SquareRoot)
+        FP.recover(
+          for (x <- realPart) yield ComplexCartesian(x, imag))(
+          AlgebraException(s"Quadratic equation has bad complex roots: $equation")
+        )
+
+      case x =>
+        throw AlgebraException(s"QuadraticEquation: cannot create complex roots: imaginary coefficient is not a scalar: $x")
+    }
+  }
+
+  /**
+    * Calculates the square root of a given rational number as a monotone function.
+    *
+    * @param r the rational number for which the square root is to be computed.
+    * @return a monotone representation of the square root of the given rational number.
+    */
+  def squareRoot(r: RationalNumber): Monotone =
+    InversePower(2, r).normalize.asMonotone
 
   /**
     * Formats the sign and absolute value of a given Field instance as a String.

@@ -200,7 +200,11 @@ trait Solution extends Eager with Negatable[Solution] with Branched[Rational] {
     * @return a `Rational` value corresponding to the quadratic offset coefficient
     *         derived from the provided index and the cyclic properties of the structure.
     */
-  def branched(k: Int): Rational = quadraticOffsetCoefficient(k, branches)
+  def branched(k: Int): Rational = Solution.quadraticOffsetCoefficient(k, branches)
+
+}
+
+object Solution {
 
   /**
     * Computes the quadratic offset coefficient for a given index within a cyclic structure.
@@ -212,17 +216,13 @@ trait Solution extends Eager with Negatable[Solution] with Branched[Rational] {
     * @param n the total number of branches in the cycle, representing the size of the range
     * @return the quadratic offset coefficient as a `Rational` value
     */
-  private def quadraticOffsetCoefficient(k: Int, n: Int): Rational = if (k == 0) 1 else -1
+  def quadraticOffsetCoefficient(k: Int, n: Int): Rational = if (k == 0) 1 else -1
   // NOTE that I wanted to use something like below but that doesn't actually give the right answers.
 //  {
 // Map k ∈ {0, 1, ..., n-1} to odd positions in 2n cycle
 //    val position = 2 * k + 1  // gives {1, 3, 5, ..., 2n-1}
 //    Rational(position, 2 * n) - 1 // gives {-1/2, +1/2, ...}
 //  }
-
-}
-
-object Solution {
 
   /**
     * LatexRenderer for Solution (general case).

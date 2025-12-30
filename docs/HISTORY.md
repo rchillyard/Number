@@ -1,6 +1,7 @@
 # Migration and Version History
 
 ## Versions
+* Version 1.3.7: Issue resolution: better integration between Root/Algebraic/Complex
 * Version 1.3.6: Solutions to quadratic equations can now be Complex; add LaTeX rendering for Eager values.
 * Version 1.3.5: Here's a list of all the new features since version 1.2:
   * Multi-module architecture (algebra, parse, expressions, core, top)

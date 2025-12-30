@@ -641,7 +641,7 @@ object QuadraticSolution {
       base.toLatex
 
     case q@QuadraticSolution(base, offset, branch, false) if base.isZero =>
-      val coeff = q.branched(branch)
+      val coeff: Rational = q.branched(branch)
       if (coeff == Rational(1)) {
         offset.toLatex
       } else if (coeff == Rational(-1)) {
