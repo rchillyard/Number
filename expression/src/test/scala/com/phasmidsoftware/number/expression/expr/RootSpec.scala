@@ -342,10 +342,11 @@ class RootSpec extends AnyFlatSpec with Matchers {
 
   behavior of "QuadraticRoot.add"
 
+  // Issue #147
   it should "add two quadratic roots with compatible solutions" in {
     val root1 = Root.rootTwo
     val root2 = Root.rootTwo
-//    val sum = root1.add(root2)
+//    val sum = root1.add(root2) // This throws an exception.
 
     // √2 + √2 might yield a new root
 //    sum match {
@@ -582,7 +583,6 @@ class RootSpec extends AnyFlatSpec with Matchers {
 
     // φ² = φ + 1 (special property of golden ratio)
     phiSquared shouldBe a[Expression]
-//    pending
   }
 
 
@@ -601,7 +601,6 @@ class RootSpec extends AnyFlatSpec with Matchers {
 //
     negated shouldBe a[Expression]
     squared shouldBe a[Expression]
-//    pending
   }
 
   it should "evaluate phi + psi" in {

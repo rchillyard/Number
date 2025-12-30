@@ -1552,7 +1552,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val expected = BiFunction(3, BiFunction(Rational.half, Rational.two, Product), Power)
     val actual = result.get
     actual shouldBe expected
-//    pending
   }
   it should "work for √3 :+ -√3" in {
     val p = Expression.matchSimpler
@@ -1563,8 +1562,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.successful shouldBe true
     result.get shouldBe Zero
   }
-  // Issue #128 (fixed)
-  // TODO Issue #140
+  // Formerly Issue #128 (fixed)
+  // TODO Issue #148
   it should "work for (π :+ 1) * (π - 1)" in {
     val p = Expression.matchSimpler
     val e1 = BiFunction(ConstPi, One, Sum)

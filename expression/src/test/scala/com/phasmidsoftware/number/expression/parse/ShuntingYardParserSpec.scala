@@ -26,7 +26,7 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     ShuntingYardParser.stringParser(shuntingYard, "(sin(𝛑) * -1)") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("-1"), Multiply), List()))
     ShuntingYardParser.stringParser(shuntingYard, "sin(𝛑) - 1") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("1"), Subtract), List()))
   }
-  // FIXME Issue #143
+  // TODO Issue #143
   it should "parse the tricky expressions" in {
 //    ShuntingYardParser.stringParser(shuntingYard, "(sin(𝛑)-1)") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("1"), Subtract), List()))
     pending

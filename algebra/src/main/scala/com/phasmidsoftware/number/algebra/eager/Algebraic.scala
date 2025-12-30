@@ -429,6 +429,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
     case (x@QuadraticSolution(bx: Number, ox, nx, ix), y@QuadraticSolution(by: Number, oy, ny, iy)) if ox === oy && nx != ny && ix === iy =>
       Some((bx + by).normalize)
     // TODO add more cases (see commented code below)
+      // Issue #147
     case _ =>
       None
   }

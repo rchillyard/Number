@@ -50,7 +50,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x: Expression = Expression(1) * -1
     x.evaluateAsIs shouldBe Some(WholeNumber(-1))
   }
-  // FIXME this has to do with imaginary numbers
+  // TODO #Issue 149 this has to do with imaginary numbers
   it should "evaluate i * 2" in {
     val x: Expression = ConstI * 2
     val result: Option[Valuable] = x.evaluateAsIs
@@ -200,7 +200,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x = Expression(6) ∧ 2
     x.materialize shouldEqual Eager(36)
   }
-  // TODO Issue #140
+  // TODO Issue #150
   it should "evaluate sqrt 36" in {
     val x: Expression = Expression(36).sqrt
 //    x.materialize shouldEqual ±(6)
@@ -327,14 +327,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "Euler"
-  // TODO Issue #140
+  // TODO Issue #151
   it should "prove Euler's identity 1" in {
     val iPi = ComplexCartesian(0, numerical.Number.pi)
     val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
 //    euler.materialize shouldBe Eager.minusOne
     pending
   }
-  // TODO Issue #140
+  // TODO Issue #151
   it should "prove Euler's identity 2" in {
     val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
     val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
