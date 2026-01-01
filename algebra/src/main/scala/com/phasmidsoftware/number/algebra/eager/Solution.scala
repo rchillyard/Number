@@ -37,6 +37,73 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def branches: Int = 2
 
   /**
+    * @return true.
+    */
+  def isComplex: Boolean = complex.isComplex
+
+  /**
+    * Method to determine the modulus of this Complex number.
+    *
+    * @return the modulus of this Complex.
+    */
+  def modulus: Number = complex.modulus
+
+  /**
+    * Method to determine the argument (angle) of this Complex number.
+    *
+    * @return a Number (in radians).
+    */
+  def argument: Number = complex.argument
+
+  /**
+    * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).
+    *
+    * @return the value of this * i.
+    */
+  def rotate: Complex = Complex(complex.rotate)
+
+  /**
+    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    *
+    * TODO it's more complicated than this!
+    * CONSIDER having a Complex sub-type of Factor.
+    *
+    * @return an optional `Factor`.
+    */
+  def maybeFactor: Option[Factor] = complex.maybeFactor
+
+  /**
+    * Method to add this Complex to another Complex.
+    *
+    * @param other the other Complex.
+    * @return the sum of the Complexes.
+    */
+  def doAdd(other: Complex): Complex = Complex(complex.doAdd(other.complex))
+
+  /**
+    * Method to multiply this Complex by another Complex.
+    *
+    * @param other the other Complex.
+    * @return the product of the Complexes.
+    */
+  def doMultiply(other: Complex): Complex = Complex(complex.doMultiply(other.complex))
+
+  /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = complex.isZero
+
+  /**
+    * Determines the sign of the Monotone value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = complex.signum
+
+  /**
     * Normalizes this `Valuable` to its simplest equivalent form.
     * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
     *
@@ -46,6 +113,18 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     * @return the simplest `Valuable` representation of this value
     */
   def normalize: Complex = this // CONSIDER should this be a method on Complex?
+
+  /**
+    * Scales the current Complex instance by a given Rational value.
+    *
+    * This method multiplies the internal representation of the Complex number
+    * by the specified Rational value, returning a new Solution instance that represents
+    * the resulting scaled value.
+    *
+    * @param r the Rational value by which to scale the Complex number
+    * @return a Complex instance representing the scaled value
+    */
+  def scale(r: Rational): Solution = Complex(complex.numberProduct(ExactNumber(r)))
 
   /**
     * Computes and returns the conjugate of the current `Solution` instance.
@@ -82,16 +161,6 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def isExact: Boolean = complex.isExact
 
   /**
-    * If this `Valuable` is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
-    *
-    * @return Some(x) where x is a Double if this is exact, else None.
-    */
-//  def maybeDouble: Option[Double] =
-//    complex.toRational.map(_.toDouble) // TESTME
-
-  /**
     * Optionally retrieves a factor associated with this `Valuable` if one exists (this is a Scalar).
     *
     * Factors are components or divisors related to the numerical value represented 
@@ -101,6 +170,16 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     * @return an `Option` containing the `Factor` if available, otherwise `None`.
     */
   def maybeFactor(context: Context): Option[Factor] = complex.maybeFactor
+
+  /**
+    * If this `Solution` can be represented as a `Monotone`, return it wrapped in `Some`, otherwise return `None`.
+    *
+    * @return an `Option[Monotone]`.
+    */
+  def toMonotone: Option[Monotone] =
+    if (complex.isReal) complex.asReal map (x => Eager(x).asMonotone)
+    else if (complex.isImaginary) throw AlgebraException("imaginary to Monotone not yet implemented")
+    else None
 
   /**
     * Returns the negation of this `Complex` number.
@@ -113,7 +192,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     */
   def negate: Solution = Complex(complex.rotate.rotate)()
 
-  def +(other: Solution): Eager = other match {
+  def +(other: Solution): Solution = other match {
     case Complex(c) =>
       Complex((complex + c).asInstanceOf[numerical.Complex])()
     case _ => throw new UnsupportedOperationException(s"Complex.+(Solution): unexpected input: $this and $other")
@@ -177,6 +256,13 @@ trait Solution extends Eager with Negatable[Solution] with Branched[Rational] {
   def conjugate: Solution
 
   /**
+    * If this `Solution` can be represented as a `Monotone`, return it wrapped in `Some`, otherwise return `None`.
+    *
+    * @return an `Option[Monotone]`.
+    */
+  def toMonotone: Option[Monotone]
+
+  /**
     * Adds another `Solution` instance to the current instance, combining their effects or values
     * based on the implementation of the `+` operation in the `Solution` trait.
     *
@@ -186,7 +272,20 @@ trait Solution extends Eager with Negatable[Solution] with Branched[Rational] {
     * @param other the `Solution` instance to add to the current instance
     * @return a new `Solution` instance representing the result of the addition
     */
-  def +(other: Solution): Eager
+  def +(other: Solution): Solution
+
+  /**
+    * Scales the current `Solution` instance by a given `Rational` factor.
+    * CONSIDER this could be merged with `*`.
+    *
+    * The scaling operation adjusts the `Solution` based on the value of the provided
+    * `Rational` parameter, resulting in a new `Solution` instance that reflects
+    * the modification.
+    *
+    * @param r the `Rational` value by which to scale the current `Solution`
+    * @return a new `Solution` instance representing the result of the scaling operation
+    */
+  def scale(r: Rational): Solution
 
   /**
     * Computes a rational value based on a given index, `k`, and the number of branches

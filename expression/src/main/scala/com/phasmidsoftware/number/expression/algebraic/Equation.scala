@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.algebraic
 
 import com.phasmidsoftware.number.algebra.core.{Branched, Scalable}
-import com.phasmidsoftware.number.algebra.eager.Solution
+import com.phasmidsoftware.number.algebra.eager.{Eager, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.Expression
 
@@ -26,6 +26,18 @@ trait Equation extends Branched[Expression] with Scalable[Equation] {
     * @return a `Field`, which is either a `Algebraic` (real-valued) or a `Complex`.
     */
   def solve(branch: Int): Solution
+
+  /**
+    * Evaluates this equation where the variable (`x`) is provided by `s`, the `Solution`.
+    *
+    * If `s` is a solution of this equation, then the expected value is zero.
+    *
+    * @param s the solution to be evaluated; encapsulates the details of the computation
+    *          and the associated branch-specific information.
+    *
+    * @return an eagerly computed result derived from the evaluation of the provided solution.
+    */
+  def evaluate(s: Solution): Eager
 
   /**
     * Transforms the current equation by applying the provided functions to its components.

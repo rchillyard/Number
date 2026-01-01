@@ -267,8 +267,7 @@ classDiagram
     Scalable <|-- InversePower
     Scalable <|-- RationalNumber
     Scalable <|-- Real
-    Zeroable <|-- Algebraic
-    Zeroable <|-- Monotone
+    Zeroable <|-- Eager
     Structure <|-- Monotone
     Negatable <|-- Monotone
     WithFuzziness <|-- Monotone

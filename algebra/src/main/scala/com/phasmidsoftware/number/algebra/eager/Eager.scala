@@ -34,7 +34,7 @@ import scala.util.{Failure, Success, Try}
   * `Eager` does not introduce additional properties or methods but serves as a marker trait
   * that confirms the eager nature of an extending type.
   */
-trait Eager extends Valuable with Approximate with DyadicOps {
+trait Eager extends Valuable with Zeroable with Approximate with DyadicOps {
 
   /**
     * Retrieves an optional name associated with this instance.

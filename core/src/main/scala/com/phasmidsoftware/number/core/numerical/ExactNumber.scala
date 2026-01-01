@@ -305,6 +305,9 @@ object ExactNumber {
   def apply(x: Int): ExactNumber =
     apply(x, PureNumber)
 
+  def apply(x: Rational): ExactNumber =
+    apply(Value.fromRational(x), PureNumber)
+
   /**
     * Calculates the logarithm of a given `ExactNumber` `x` with base `b`.
     * The method searches for an integer value `i` in the range -10 to 10 such that

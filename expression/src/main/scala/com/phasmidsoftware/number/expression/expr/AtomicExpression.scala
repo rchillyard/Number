@@ -109,6 +109,21 @@ case class Noop(w: String) extends AtomicExpression {
   def isExact: Boolean = false
 
   /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = false
+
+  /**
+    * Determines the sign of the Monotone value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = 0
+
+  /**
     * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
     *
     * @return an optional `Factor`.
@@ -196,6 +211,21 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     * @return an optional `Factor`.
     */
   def maybeFactor(context: Context): Option[Factor] = value.maybeFactor(context)
+
+  /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = value.isZero
+
+  /**
+    * Determines the sign of the Monotone value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = value.signum
 
   /**
     * Method to determine if this Structure object is exact.

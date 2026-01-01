@@ -33,15 +33,6 @@ sealed trait CompositeExpression extends Expression {
   def isAtomic: Boolean = false
 
   /**
-    * Method to determine if this `NumberLike` object is exact.
-    * For instance, `numerical.Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
-    *
-    * @return true if this `NumberLike` object is exact in the context of No factor, else false.
-    */
-//  def isExact: Boolean =
-//    evaluateAsIs.exists(_.isExact)
-
-  /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
@@ -49,6 +40,21 @@ sealed trait CompositeExpression extends Expression {
     * @return Some(x) where x is a Double if this is exact, else None.
     */
   def maybeDouble: Option[Double] = FP.whenever(isExact)(evaluate(RestrictedContext(PureNumber)).flatMap(_.maybeDouble))
+
+  /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = evaluateAsIs.exists(x => x.isZero)
+
+  /**
+    * Determines the sign of the Monotone value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = evaluateAsIs.map(_.signum).getOrElse(0)
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.

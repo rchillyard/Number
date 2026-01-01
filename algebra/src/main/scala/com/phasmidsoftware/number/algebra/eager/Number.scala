@@ -66,6 +66,8 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
   def +(other: Number): Number = (this, other) match {
     case (a: WholeNumber, b: WholeNumber) =>
       (a + b).normalize
+    case (a: WholeNumber, b: Q) =>
+      RationalNumber(a.toRational + b.toRational)
     case (a: RationalNumber, b: ExactNumber) =>
       b.convert(a).map(x => (a + x).normalize).getOrElse(throw AlgebraException(s"Number.+: logic error: RationalNumber: $this + $other"))
     case (a: Real, b) =>

@@ -26,6 +26,8 @@ import scala.util.*
   *
   * CONSIDER eliminate extending Field
   *
+  * CONSIDER rename as CoreNumber (temporarily)
+  *
   * TODO remove references to Expression
   *
   * Every number has three properties:

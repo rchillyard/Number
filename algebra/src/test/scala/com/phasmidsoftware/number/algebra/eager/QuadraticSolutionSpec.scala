@@ -253,7 +253,7 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   behavior of "QuadraticSolution.add(Solution)"
 
   it should "add phi to psi" in {
-    QuadraticSolution.phi.add(QuadraticSolution.psi) shouldBe Some(WholeNumber.one)
+    QuadraticSolution.phi.add(QuadraticSolution.psi).flatMap(x => x.toMonotone) shouldBe Some(WholeNumber.one)
   }
 
   behavior of "QuadraticSolution.multiply(Solution)"

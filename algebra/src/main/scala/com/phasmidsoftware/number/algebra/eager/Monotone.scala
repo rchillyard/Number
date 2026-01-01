@@ -29,7 +29,7 @@ import scala.reflect.ClassTag
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with WithFuzziness with Zeroable with Negatable[Monotone] {
+trait Monotone extends Structure with WithFuzziness with Negatable[Monotone] {
 
   /**
     * Attempts to approximate the current instance to a `Real` value.

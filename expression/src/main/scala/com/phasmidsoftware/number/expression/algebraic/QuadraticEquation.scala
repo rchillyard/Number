@@ -11,8 +11,7 @@ import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ExactNumber, Field, Number}
-import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.squareRoot
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ExactNumber, Field}
 import com.phasmidsoftware.number.expression.expr.{Expression, Literal}
 
 /**
@@ -66,10 +65,58 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
       QuadraticSolution(RationalNumber(-p / 2), RationalNumber.zero, branch, false)
     else if (discriminant >= Rational.zero)
       // Real roots
-      QuadraticSolution(RationalNumber(-p / 2), squareRoot(discriminant / 4), branch, false)
+      QuadraticSolution(RationalNumber(-p / 2), QuadraticSolution.squareRoot(discriminant / 4), branch, false)
     else
       // Complex roots {
-      Complex(QuadraticEquation.solveAsComplex(branch, branches, -p / 2, squareRoot(-discriminant / 4), this))
+      Complex(QuadraticEquation.solveAsComplex(branch, branches, -p / 2, QuadraticSolution.squareRoot(-discriminant / 4), this))
+  }
+
+  /**
+    * Evaluates the provided solution to compute the corresponding eager result.
+    * The solution must conform to specific constraints based on its classification
+    * (e.g., being a `QuadraticSolution` and `Algebraic`). The computation involves
+    * operations such as multiplication, scaling, addition, and normalization,
+    * with specific handling of quadratic and algebraic results.
+    *
+    * @param solution the solution to be evaluated. Must be an instance of `Solution`.
+    *                 If the solution is not a `QuadraticSolution` or does not meet
+    *                 the required conditions for evaluation, an `AlgebraException`
+    *                 will be thrown.
+    *
+    * @return the resultant eager value of the evaluation. The result could be a
+    *         solution in the form of a `QuadraticSolution`, a numerical result as
+    *         an `Eager`, or a derived `RationalNumber`, depending on the computation path.
+    *
+    * @throws AlgebraException if the provided solution cannot be evaluated due to
+    * missing conditions, non-conformance to required types, or other incompatible
+    * states during evaluation.
+    */
+  def evaluate(solution: Solution): Eager = solution match {
+    case s: (QuadraticSolution & Algebraic) =>
+      (s.multiply(s), s.scale(p)) match {
+        case (Some(z: Algebraic), r: Algebraic) =>
+          r.add(z).map(_.normalize) match {
+            case Some(solution: QuadraticSolution) =>
+              solution.add(q)
+            case Some(eager: Number) =>
+              eager + RationalNumber(q)
+            case x =>
+              throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution: because of $x")
+          }
+        case (Some(z: Number), r: Algebraic) =>
+          r.add(z).map(_.normalize) match {
+            case Some(solution: QuadraticSolution) =>
+              solution.add(q)
+            case Some(eager: Number) =>
+              eager + RationalNumber(q)
+            case x =>
+              throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution: because of $x")
+          }
+        case _ =>
+          throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution")
+      }
+    case _ =>
+      throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution because it is not a QuadraticSolution")
   }
 
   /**
@@ -167,7 +214,7 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
 }
 
 /**
-  * Represents a linear equation of the form `x + r = r` where `r` is a rational number.
+  * Represents a linear equation of the form `x + r = 0` where `r` is a rational number.
   * The slope of the line representing the equation is one, therefore the intercepts are:
   * `x = -r` when `y = 0` (the solution/root); and
   * `y = r` when `x = 0`.
@@ -204,14 +251,34 @@ case class LinearEquation(r: Rational) extends Equation {
     LinearSolution(RationalNumber(-r))()
 
   /**
+    * Evaluates the provided `Solution` within the context of this `LinearEquation`.
+    *
+    * If the `Solution` is an instance of `LinearSolution` with a numerical value, the method
+    * evaluates it by adding a predefined offset `r`. If the `Solution` does not match the
+    * expected type or structure, an `AlgebraException` is thrown.
+    *
+    * @param s the `Solution` to be evaluated. It is expected to be an instance of `LinearSolution` containing
+    *          a numerical value.
+    *
+    * @return the result of the evaluation as an instance of `Eager`. The exact nature of the result depends
+    *         on the structure of the provided `Solution`.
+    *
+    * @throws AlgebraException if the `Solution` cannot be evaluated within the constraints of this `LinearEquation`.
+    */
+  def evaluate(s: Solution): Eager = s match {
+    case LinearSolution(x: Number) =>
+      x + r
+    case _ =>
+      throw AlgebraException(s"LinearEquation: cannot evaluate $s")
+  }
+
+  /**
     * Transforms the current equation by applying the provided functions to its components.
     *
     * @param fP a function that takes two `Rational` parameters and produces a `Rational` result.
     *           It is applied to the first component of the equation.
-    *
     * @param fQ a function that takes two `Rational` parameters and produces a `Rational` result.
     *           It is applied to the second component of the equation.
-    *
     * @return a new `Equation` instance that is the result of applying the specified transformations
     *         to the components of the current equation.
     */
@@ -317,7 +384,7 @@ object QuadraticEquation {
           AlgebraException(s"Quadratic equation has bad complex roots: $equation")
         )
       case i@InversePower(2, RationalNumber(r, _)) =>
-        val imag: Number = ExactNumber(Value.fromRational(r), SquareRoot)
+        val imag: numerical.Number = ExactNumber(Value.fromRational(r), SquareRoot)
         FP.recover(
           for (x <- realPart) yield ComplexCartesian(x, imag))(
           AlgebraException(s"Quadratic equation has bad complex roots: $equation")
@@ -327,15 +394,6 @@ object QuadraticEquation {
         throw AlgebraException(s"QuadraticEquation: cannot create complex roots: imaginary coefficient is not a scalar: $x")
     }
   }
-
-  /**
-    * Calculates the square root of a given rational number as a monotone function.
-    *
-    * @param r the rational number for which the square root is to be computed.
-    * @return a monotone representation of the square root of the given rational number.
-    */
-  def squareRoot(r: RationalNumber): Monotone =
-    InversePower(2, r).normalize.asMonotone
 
   /**
     * Formats the sign and absolute value of a given Field instance as a String.

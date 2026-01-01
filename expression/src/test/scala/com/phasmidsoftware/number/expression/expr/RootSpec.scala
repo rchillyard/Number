@@ -607,7 +607,8 @@ class RootSpec extends AnyFlatSpec with Matchers {
     val expression: Expression = phi :+ psi
     val evaluated = expression.evaluate(AnyContext)
 //    expression.simplify shouldBe One // TODO implement root cancellation in simplify
-    expression.materialize shouldBe Eager.one
+val materialized = expression.materialize
+    materialized.eqv(Eager.one).get shouldBe true
   }
 
 }

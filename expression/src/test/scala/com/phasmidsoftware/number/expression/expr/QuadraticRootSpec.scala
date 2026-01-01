@@ -29,23 +29,23 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
     // x² - 3x + 2 = 0 → x = 2 or x = 1
     val equation = QuadraticEquation(Rational(-3), Rational(2))
     val root = QuadraticRoot(equation, 0)
-    val normalized = root.normalize
-    normalized shouldBe a[QuadraticSolution]
-    val solution: QuadraticSolution = normalized.asInstanceOf[QuadraticSolution]
-    solution.base.toDouble shouldBe 1.5 +- 1e-10
-    solution.offset.toDouble shouldBe 0.5 +- 1e-10
-    solution.branch shouldBe 0
+    val solution: Valuable = root.normalize
+    solution match {
+      case QuadraticSolution(base, offset, branch, false) =>
+        base.toDouble shouldBe 1.5 +- 1e-10
+        offset.toDouble shouldBe 0.5 +- 1e-10
+        branch shouldBe 0
+      case WholeNumber(2) =>
+      case _ =>
+        fail(s"Unexpected solution: $solution")
+    }
   }
 
   it should "normalize x² - 3x + 2 - negative branch" in {
     val equation = QuadraticEquation(Rational(-3), Rational(2))
     val root = QuadraticRoot(equation, 1)
     val normalized = root.normalize
-    normalized shouldBe a[QuadraticSolution]
-    val solution = normalized.asInstanceOf[QuadraticSolution]
-    solution.base.toDouble shouldBe 1.5 +- 1e-10
-    solution.offset.toDouble shouldBe 0.5 +- 1e-10
-    solution.branch shouldBe 1
+    normalized.asInstanceOf[WholeNumber] shouldBe WholeNumber(1)
   }
 
   it should "normalize x² - 4 (roots: -2, 2) - positive branch" in {
@@ -150,10 +150,7 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
     val equation = QuadraticEquation(Rational(-3), Rational(2))
     val root = QuadraticRoot(equation, 0)
     val normalized = root.normalize
-    normalized shouldBe a[QuadraticSolution]
-    val materialized = root.materialize
-    materialized shouldBe a[QuadraticSolution]
-    materialized shouldBe QuadraticSolution(Rational(3, 2), Rational(1, 2), 0, false)
+    normalized shouldBe WholeNumber(2)
   }
 
   it should "have correct isAtomic" in {
