@@ -120,7 +120,7 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  override def isExact: Boolean = number.isExact
+  def isExact: Boolean = number.isExact
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.

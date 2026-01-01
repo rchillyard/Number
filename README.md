@@ -16,7 +16,7 @@ This project provides exact and fuzzy numeric computation with lazy evaluation i
 * **Exact arithmetic wherever possible** - including π, e, and √2
 * **Tracked error bounds** - inexact numbers carry their uncertainty
 * **Lazy evaluation** - expressions optimize away precision loss
-* **Multiple numeric domains** - angles, logarithms, roots, and more
+* **Multiple numeric domains** - angles, logarithms, roots, complex, and more
 * **Cats integration** - leverages typelevel algebra for abstract algebra
 
 ## Project Structure
@@ -30,6 +30,7 @@ Number is organized into multiple modules:
 * **`top`** - Top level example code
 
 **Migration Note**: The `algebra` module is gradually replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
+**Migration Note**: For version history and more detail regarding migration, see the [HISTORY](docs/HISTORY.md).
 
 ## Quick Start
 
@@ -1078,4 +1079,4 @@ This module includes:
 
 See the worksheets for hands-on examples of the library in action.
 
-For version histor and migration notes, see the [HISTORY](docs/HISTORY.md).
+For version history and migration notes, see the [HISTORY](docs/HISTORY.md).

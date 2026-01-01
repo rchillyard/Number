@@ -98,7 +98,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return a `Boolean` indicating whether the entity is exact (`true`)
     *         or has an approximation (`false`).
     */
-  override def isExact: Boolean = fuzz.isEmpty
+  def isExact: Boolean = fuzz.isEmpty
 
   /**
     * Converts the given numeric value to an optional representation.

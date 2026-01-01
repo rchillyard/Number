@@ -283,7 +283,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  override def isExact: Boolean = number.isExact // TODO there are some situations where a Root is actually exact.
+  def isExact: Boolean = number.isExact // TODO there are some situations where a Root is actually exact.
 
   /**
     * Converts this `Number` into its corresponding `Rational` representation, if possible.

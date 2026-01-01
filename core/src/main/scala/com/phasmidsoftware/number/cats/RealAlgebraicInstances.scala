@@ -11,9 +11,9 @@ trait RealAlgebraicInstances {
     type TruncatedDivisionCRing[A] = TruncatedDivision.forCommutativeRing[A]
 
     implicit val realTruncatedDivisionCRing: TruncatedDivisionCRing[Real] = new TruncatedDivisionCRing[Real] {
-        // Delegate the basic operations of the loop to realField
-        def zero: Real = Constants.zero
-        def one: Real = Constants.one
+      // Delegate the basic operations of the loop to realField 
+      def zero: Real = Constants.zero
+      def one: Real = Constants.one
 
       def plus(x: Real, y: Real): Real = createFromRealField(x `add` y)
 
@@ -49,8 +49,8 @@ trait RealAlgebraicInstances {
     
     // Provide CommutativeRing[Real] without depending on Field
     implicit val realCommutativeRing: CommutativeRing[Real] = new CommutativeRing[Real] {
-        def zero: Real = Constants.zero
-        def one: Real = Constants.one
+      def zero: Real = Constants.zero
+      def one: Real = Constants.one
 
       def plus(x: Real, y: Real): Real = createFromRealField(x `add` y)
 

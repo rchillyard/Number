@@ -14,7 +14,7 @@ import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Field, Number, Real}
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
-import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
+import com.phasmidsoftware.number.expression.expr.Expression.{em, given_LatexRenderer_Expression, matchSimpler}
 import com.phasmidsoftware.number.{algebra, core, expression}
 import java.util.Objects
 import scala.language.implicitConversions
@@ -392,6 +392,16 @@ object UniFunction {
   }
 
   implicit def convertFromMonadicDuple(md: MonadicDuple): expression.expr.UniFunction = apply(md)
+
+  import com.phasmidsoftware.number.algebra.util.LatexRenderer
+
+  /**
+    * LatexRenderer for UniFunction expressions.
+    *
+    */
+  implicit val uniFunctionLatexRenderer: LatexRenderer[UniFunction] = LatexRenderer.instance { uni =>
+    s"$uni.f(${uni.x.render})"
+  }
 }
 
 /**
@@ -954,7 +964,6 @@ object BiFunction {
     new expression.expr.BiFunction(tuple._1._2, tuple._2, tuple._1._1)
   }
 
-
   /**
     * Analyzes the current instance and tries to interpret it as an aggregate expression.
     * An aggregate expression is a specific pattern of nested operations (e.g., sums, products, powers)
@@ -983,8 +992,18 @@ object BiFunction {
       None
   }
 
-
   implicit def convertFromDyadicTriple(dt: DyadicTriple): expression.expr.BiFunction = apply(dt)
+
+  import com.phasmidsoftware.number.algebra.util.LatexRenderer
+
+  /**
+    * LatexRenderer for BiFunction expressions.
+    *
+    */
+  implicit val biFunctionLatexRenderer: LatexRenderer[BiFunction] = LatexRenderer.instance { bi =>
+    val latexRenderer = implicitly[LatexRenderer[Expression]]
+    s"{${latexRenderer.toLatex(bi.a)} ${bi.f} ${latexRenderer.toLatex(bi.b)}}"
+  }
 }
 
 /**

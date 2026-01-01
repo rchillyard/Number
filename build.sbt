@@ -28,16 +28,6 @@ val commonScalacOptions = Seq(
   "-feature"
 )
 
-// TODO eliminate the Scala 2 options as there is no longer any Scala 2 code.
-
-// Scala 2.13-specific options
-val scala2Options = Seq(
-//  "-Xlint:_",                      // Enable all linting
-//  "-Ywarn-value-discard",          // Warn when non-Unit values are discarded
-//  "-Ywarn-unused:imports",         // Warn on unused imports
-//  "-Xfatal-warnings"               // Turn warnings into errors
-)
-
 // Scala 3-specific options - FOCUSED on catching string concatenation
 val scala3Options = Seq(
   // CORE: These three are the minimum to catch the + operator issue
@@ -124,7 +114,10 @@ lazy val parse = (project in file("parse"))
 lazy val top = (project in file("top"))
     .settings(
       scalaVersion := "3.7.3",
-      scalacOptions ++= commonScalacOptions ++ scala3Options
+      scalacOptions ++= commonScalacOptions ++ scala3Options,
+      scalacOptions ++= Seq(
+        "-Wconf:msg=any2stringadd:e"  // Make any2stringadd usage an ERROR
+      )
     )
     .settings(scala3TestSettings)
     .dependsOn(core, algebra, expression, parse)

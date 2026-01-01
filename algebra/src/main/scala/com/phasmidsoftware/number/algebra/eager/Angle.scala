@@ -138,7 +138,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  override def isExact: Boolean = number.isExact
+  def isExact: Boolean = number.isExact
 
   /**
     * Retrieves an optional fuzziness value associated with this instance.

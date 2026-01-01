@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import cats.implicits.catsSyntaxEq
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NatLog, Number, RationalNumber, Real, Scalar, WholeNumber}
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Constants, Field}
@@ -233,7 +233,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  override def isExact: Boolean = value.isExact
+  def isExact: Boolean = value.isExact
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -406,6 +406,14 @@ object ValueExpression {
       Some((x, None))
     case _ =>
       Some((f.value, f.maybeName))
+  }
+
+  /**
+    * LatexRenderer for ValueExpression expressions.
+    *
+    */
+  implicit val valueExpressionLatexRenderer: LatexRenderer[ValueExpression] = LatexRenderer.instance { ve =>
+    ve.maybeName.getOrElse(implicitly[LatexRenderer[Eager]].toLatex(ve.value))
   }
 }
 

@@ -1,27 +1,30 @@
-/**
+import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
+import com.phasmidsoftware.number.algebra.eager.Eager.half
+import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
+import com.phasmidsoftware.number.core.expression.Root.{phi, psi}
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation/**
   * This worksheet illustrates the use of Algebraic fields
   */
 
-import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
-import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, QuadraticSolution}
-import com.phasmidsoftware.number.core.{Constants, Real}
 
 // phi, the Golden Ratio
 phi.render
 
-val phiPlus1 = phi add 1
+val phiPlus1 = phi + 1
+
+val phiSquared = (phi * phi).simplify
 
 // an approximation to phi
-val phiApprox = phi.solve.asField
+val phiApprox = phi.approximation
 
 // psi, the conjugate of Phi
 val conjugate = psi.render
 
 // an approximation to psi
-val psiSolution = psi.solve.asField
+val psiSolution = psi.approximation
 
 // the sum of phi and psi should be 1
-val sum = (phi add psi).asNumber
+val sum = (phi add psi)
 
 // the product of phi and psi should be -1
 val product = phi * psi
@@ -32,20 +35,14 @@ val goldenRationEquation = phi.equation
 // The value of the product should be -r from the equation
 val productString = product.render
 
-// phi∧2 should be the same thing as phi + 1
-val phiSquared = phi.square
-
-val phiSquareApprox = phiSquared.solve.asField
+val phiSquareApprox = phiSquared.approximation
 
 // We define the Algebraic for the golden ratio from two numbers
-val maybeAlgebraic = for {
-  base <- Constants.half.asNumber
-  offset <- (Constants.root5 divide Real(2)).asNumber
-  name <- Algebraic_Quadratic.apply(base, offset, negative = false).maybeName
-} yield name
-maybeAlgebraic.get
-
-// We can also define an Algebraic from a Solution.
-val solution = phi.solve.asInstanceOf[QuadraticSolution]
-val algebraic: Algebraic_Quadratic = Algebraic_Quadratic(solution)
-algebraic.maybeName.get
+val myPhi: Solution = QuadraticEquation.goldenRatioEquation.solve(0)
+myPhi.render
+myPhi match {
+  case q: QuadraticSolution =>
+    q.render
+  case _ =>
+    "not a QuadraticSolution"
+}

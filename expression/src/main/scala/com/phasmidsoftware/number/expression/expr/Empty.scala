@@ -56,4 +56,6 @@ object ∅ {
   def -(operand: Expression): Expression = UniFunction(operand, Negate)
 
   def -(operand: Int): Expression = UniFunction(Literal(WholeNumber(operand)), Negate)
+
+  override def toString: String = "∅"
 }

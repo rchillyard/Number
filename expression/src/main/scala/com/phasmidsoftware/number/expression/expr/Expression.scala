@@ -9,6 +9,8 @@ import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP.recover
+import com.phasmidsoftware.number.algebra.util.LatexRenderer
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
@@ -197,6 +199,13 @@ object Expression {
       expression.expr.BiFunction(x, y, Sum)
 
     /**
+      * Method to add this Expression and another Expression, resulting in an Expression.
+      *
+      * @param y the other Expression.
+      * @return the sum of this and y.
+      */
+    def +(y: Expression): Expression = plus(y)
+    /**
       * Method to lazily append the given expression to this expression using addition.
       *
       * @param y an Expression to be added to this expression.
@@ -381,7 +390,7 @@ object Expression {
     * @param x the number to be converted into an Expression
     * @return an Expression representing the input number
     */
-  implicit def convert(x: numerical.Number): Expression =
+  implicit def convertNumber(x: numerical.Number): Expression =
     apply(Eager(numerical.Real(x)))
 
   /**
@@ -642,6 +651,23 @@ object Expression {
       c.simplifyComposite(c)
     case x =>
       em.Miss("simplifyComposite: not a Composite expression type", x)
+  }
+
+  /**
+    * LatexRenderer for Expression - delegates to specific implementations.
+    */
+  given LatexRenderer[Expression] = LatexRenderer.instance {
+    case lit: ValueExpression => summon[LatexRenderer[ValueExpression]].toLatex(lit)
+    case comp: CompositeExpression if comp.evaluateAsIs.isDefined => comp.evaluateAsIs match {
+      case Some(e) => summon[LatexRenderer[Eager]].toLatex(e)
+      case _ => comp match {
+        case uni: UniFunction => summon[LatexRenderer[UniFunction]].toLatex(uni)
+        case bi: BiFunction => summon[LatexRenderer[BiFunction]].toLatex(bi)
+        // TODO add Aggregate
+      }
+    }
+    // Add any other Expression subtypes
+    case other => other.render
   }
 }
 
