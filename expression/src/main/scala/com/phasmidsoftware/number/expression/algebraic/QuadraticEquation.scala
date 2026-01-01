@@ -115,6 +115,8 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
         case _ =>
           throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution")
       }
+    case Complex(c) =>
+      Eager(c.square + p * c + q)
     case _ =>
       throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution because it is not a QuadraticSolution")
   }
