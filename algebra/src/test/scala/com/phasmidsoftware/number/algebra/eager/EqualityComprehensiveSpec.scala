@@ -92,9 +92,9 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "compare QuadraticSolutions with ===" in {
-    val q1 = QuadraticSolution(RationalNumber.half, RationalNumber(5, 4), 0, false)
-    val q2 = QuadraticSolution(RationalNumber.half, RationalNumber(5, 4), 0, false)
-    val q3 = QuadraticSolution(RationalNumber.half, RationalNumber(5, 4), 1, false)
+    val q1 = QuadraticSolution(RationalNumber.half, RationalNumber(5, 4), 1, false)
+    val q2 = QuadraticSolution(RationalNumber.half, RationalNumber(5, 4), 1, false)
+    val q3 = QuadraticSolution(RationalNumber.half, RationalNumber(5, 4), -1, false)
 
     q1 === q2 shouldBe true
     q1 === q3 shouldBe false // different branch
@@ -208,8 +208,8 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   // QuadraticSolution fuzzy tests
   it should "compare QuadraticSolutions with ~==" in {
 
-    val q1 = QuadraticSolution(Real(0.5), Real(1.25), 0, false)
-    val q2 = QuadraticSolution(Real(0.5), Real(1.25), 0, false)
+    val q1 = QuadraticSolution(Real(0.5), Real(1.25), 1, false)
+    val q2 = QuadraticSolution(Real(0.5), Real(1.25), 1, false)
 
     (q1 ~== q2) shouldBe true
   }
@@ -381,7 +381,7 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle golden ratio (phi) correctly" in {
-    QuadraticSolution.phi should ===(QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 0, false))
+    QuadraticSolution.phi should ===(QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 1, false))
     (QuadraticSolution.phi ~== QuadraticSolution.phi) shouldBe true
   }
 

@@ -58,14 +58,14 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     *         or `None` if no solution exists for the given branch.
     */
   def solve(branch: Int): Solution = {
-    require(branch == 0 || branch == 1, s"QuadraticEquation: branch $branch out of range: a quadratic has only 2 roots")
+    require(branch == 0 || branch == 1, s"QuadraticEquation: coefficient $branch out of range: a quadratic has only 2 roots")
 
     if (discriminant == Rational.zero)
       // Repeated roots
-      QuadraticSolution(RationalNumber(-p / 2), RationalNumber.zero, branch, false)
+      QuadraticSolution(RationalNumber(-p / 2), RationalNumber.zero, Solution.quadraticOffsetCoefficient(branch, 2), false)
     else if (discriminant >= Rational.zero)
       // Real roots
-      QuadraticSolution(RationalNumber(-p / 2), QuadraticSolution.squareRoot(discriminant / 4), branch, false)
+      QuadraticSolution(RationalNumber(-p / 2), QuadraticSolution.squareRoot(discriminant / 4), Solution.quadraticOffsetCoefficient(branch, 2), false)
     else
       // Complex roots {
       Complex(QuadraticEquation.solveAsComplex(branch, branches, -p / 2, QuadraticSolution.squareRoot(-discriminant / 4), this))

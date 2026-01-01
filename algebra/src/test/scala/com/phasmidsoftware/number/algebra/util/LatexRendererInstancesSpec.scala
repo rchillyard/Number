@@ -101,24 +101,24 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "render solution with zero offset as just base" in {
-    val solution = QuadraticSolution(RationalNumber(Rational(5)), RationalNumber.zero, 0, false)
+    val solution = QuadraticSolution(RationalNumber(Rational(5)), RationalNumber.zero, 1, false)
     solution.toLatex shouldBe "5"
   }
 
   it should "render solution with zero base as just offset" in {
-    val solution = QuadraticSolution(RationalNumber.zero, RationalNumber(Rational(3)), 0, false)
+    val solution = QuadraticSolution(RationalNumber.zero, RationalNumber(Rational(3)), 1, false)
     solution.toLatex shouldBe "3"
   }
 
   it should "render solution with zero base and negative branch" in {
-    val solution = QuadraticSolution(RationalNumber.zero, RationalNumber(Rational(3)), 1, false)
+    val solution = QuadraticSolution(RationalNumber.zero, RationalNumber(Rational(3)), -1, false)
     solution.toLatex shouldBe "-3"
   }
 
   it should "render real solution with positive branch (branch 0)" in {
     val base = RationalNumber(Rational(1, 2))
     val offset = InversePower(2, RationalNumber(Rational(2)))
-    val solution = QuadraticSolution(base, offset, 0, imaginary = false)
+    val solution = QuadraticSolution(base, offset, 1, imaginary = false)
 
     solution.toLatex shouldBe "\\frac{1}{2} + \\sqrt{2}"
   }
@@ -126,7 +126,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   it should "render real solution with negative branch (branch 1)" in {
     val base = RationalNumber(Rational(1, 2))
     val offset = InversePower(2, RationalNumber(Rational(2)))
-    val solution = QuadraticSolution(base, offset, 1, imaginary = false)
+    val solution = QuadraticSolution(base, offset, -1, imaginary = false)
 
     solution.toLatex shouldBe "\\frac{1}{2} - \\sqrt{2}"
   }
@@ -134,7 +134,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   it should "render complex solution with positive branch" in {
     val base = RationalNumber(Rational(1, 2))
     val offset = InversePower(2, RationalNumber(Rational(3, 4)))
-    val solution = QuadraticSolution(base, offset, 0, imaginary = true)
+    val solution = QuadraticSolution(base, offset, 1, imaginary = true)
 
     solution.toLatex shouldBe "\\frac{1}{2} + i \\sqrt{\\frac{3}{4}}"
   }
@@ -142,7 +142,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   it should "render complex solution with negative branch" in {
     val base = RationalNumber(Rational(1, 2))
     val offset = InversePower(2, RationalNumber(Rational(3, 4)))
-    val solution = QuadraticSolution(base, offset, 1, imaginary = true)
+    val solution = QuadraticSolution(base, offset, -1, imaginary = true)
 
     solution.toLatex shouldBe "\\frac{1}{2} - i \\sqrt{\\frac{3}{4}}"
   }
@@ -150,7 +150,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   it should "render solution with integer base and irrational offset" in {
     val base = RationalNumber(Rational(3))
     val offset = InversePower(2, RationalNumber(Rational(5)))
-    val solution = QuadraticSolution(base, offset, 0, false)
+    val solution = QuadraticSolution(base, offset, 1, false)
 
     solution.toLatex shouldBe "3 + \\sqrt{5}"
   }
@@ -158,7 +158,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   it should "render negative base correctly" in {
     val base = RationalNumber(Rational(-2))
     val offset = InversePower(2, RationalNumber(Rational(3)))
-    val solution = QuadraticSolution(base, offset, 0, false)
+    val solution = QuadraticSolution(base, offset, 1, false)
 
     solution.toLatex shouldBe "-2 + \\sqrt{3}"
   }
@@ -187,7 +187,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
     val solution: Algebraic = QuadraticSolution(
       RationalNumber.half,
       InversePower(2, RationalNumber(Rational(5, 4))),
-      0, false
+      1, false
     )
     solution.toLatex shouldBe "\\varphi"
   }
@@ -205,7 +205,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle negative zero-like cases" in {
-    val solution = QuadraticSolution(RationalNumber.zero, RationalNumber.zero, 0, false)
+    val solution = QuadraticSolution(RationalNumber.zero, RationalNumber.zero, 1, false)
     solution.toLatex shouldBe "0"
   }
 
@@ -242,7 +242,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
     val solution = QuadraticSolution(
       RationalNumber.half,
       InversePower(2, RationalNumber(Rational(2))),
-      0, false
+      1, false
     )
 
     // LaTeX should be different from render (unless render already produces LaTeX)

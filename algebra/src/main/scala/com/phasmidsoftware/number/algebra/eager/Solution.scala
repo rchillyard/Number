@@ -300,7 +300,7 @@ object Solution {
     * @param n the total number of branches in the cycle, representing the size of the range
     * @return the quadratic offset coefficient as a `Rational` value
     */
-  def quadraticOffsetCoefficient(k: Int, n: Int): Rational = if (k == 0) 1 else -1
+  def quadraticOffsetCoefficient(k: Int, n: Int): Int = if (k == 0) 1 else -1
   // NOTE that I wanted to use something like below but that doesn't actually give the right answers.
 //  {
 // Map k ∈ {0, 1, ..., n-1} to odd positions in 2n cycle

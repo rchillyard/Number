@@ -430,7 +430,7 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     equation.evaluate(root0).isZero shouldBe true
   }
 
-  ignore should "handle equation with both coefficients negative" in {
+  it should "handle equation with both coefficients negative" in {
     val equation = QuadraticEquation(Rational(-4), Rational(-3))
     val root0 = equation.solve(0)
     val root1 = equation.solve(1)

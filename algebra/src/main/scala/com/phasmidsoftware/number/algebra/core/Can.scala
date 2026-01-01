@@ -250,6 +250,14 @@ trait Scalable[T <: Scalable[T]] {
     * @return the scaled instance of type `T`
     */
   infix def *(factor: Rational): T
+
+  /**
+    * Multiplies the current instance by the specified integer factor.
+    *
+    * @param factor the integer value to multiply with the current instance
+    * @return a new instance of type `T` representing the result of the multiplication
+    */
+  infix def *(factor: Int): T = *(Rational(factor))
 }
 
 /**

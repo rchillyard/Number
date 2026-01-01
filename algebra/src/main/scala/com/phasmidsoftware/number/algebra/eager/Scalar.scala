@@ -58,6 +58,14 @@ trait Scalar extends Monotone {
   def scale(r: Rational): Scalar
 
   /**
+    * Scales the current scalar instance by a factor derived from the specified integer.
+    *
+    * @param x the integer factor by which to scale the scalar
+    * @return a new `Scalar` instance representing the scaled value
+    */
+  def scale(x: Int): Scalar = scale(Rational(x))
+
+  /**
     * Returns a new instance of `Monotone` that is the negation of the current instance.
     * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
     *

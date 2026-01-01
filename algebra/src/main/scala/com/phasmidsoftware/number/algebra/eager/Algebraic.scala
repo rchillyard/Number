@@ -9,7 +9,6 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalLatexRenderer
-import com.phasmidsoftware.number.algebra.eager.Solution.quadraticOffsetCoefficient
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core
@@ -25,11 +24,9 @@ import scala.util.{Failure, Success, Try}
   * Trait to model the behavior of a solution to an equation.
   * All such solutions are exact.
   * Typically, however, such solutions cannot be represented exactly as pure numbers.
-  * The four parameters of a Algebraic are: base, offset, branch, and factor.
+  * The four parameters of a Algebraic are: base, offset, coefficient, and factor.
   * Solutions are subject to various operations such as addition, scaling, and number conversions.
   * Extends the `NumberLike` trait, inheriting behavior common to number-like entities.
-  *
-  * CONSIDER it is inappropriate to include branch in `Algebraic`. A `Algebraic` should be a unique solution.
   */
 sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
   /**
@@ -47,13 +44,11 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
   def offset: Monotone
 
   /**
-    * Branch number runs from `0` to `n-1` where `n` is the number of branches (or roots).
-    * For a polynomial of degree `n`, there will, in general be `n` branches or roots.
-    * Branch 0 is always the branch with the smallest positive offset.
+    * This is the coefficient of the offset (square root term) the the solution of a quadratic equation.
     *
-    * @return the branch number.
+    * @return the coefficient.
     */
-  def branch: Int
+  def coefficient: Int
 
   /**
     * Determines whether the solution is a pure number.
@@ -129,7 +124,7 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
 //      for {
 //        baseEq <- a.base.eqv(b.base)
 //        offsetEq <- a.offset.eqv(b.offset)
-//      } yield baseEq && offsetEq && a.branch == b.branch
+//      } yield baseEq && offsetEq && a.coefficient == b.coefficient
 //    case _ =>
 //      super.eqv(that)
 //  }
@@ -147,7 +142,7 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
     case (a: LinearSolution, b: LinearSolution) =>
       a.value.fuzzyEqv(p)(b.value)
     case (a: QuadraticSolution, b: QuadraticSolution) =>
-      if (a.branch != b.branch) {
+      if (a.coefficient != b.coefficient) {
         Success(false)
       } else {
         for {
@@ -176,20 +171,21 @@ object Algebraic {
 
   /**
     * Constructs a `Algebraic` based on the provided `base` and `offset` monotone values
-    * and a specified `branch` identifier. If the `offset` is zero, a `LinearSolution`
+    * and a specified `coefficient` for the offset. If the `offset` is zero, a `LinearSolution`
     * is returned; otherwise, a `QuadraticSolution` is returned.
     *
     * @param base   the base monotone component of the solution
     * @param offset the offset monotone component used to determine whether the solution
     *               is linear or quadratic
-    * @param branch an integer identifier used in cases where a quadratic solution is required
+    *
+    * @param coefficient an integer used in cases where a quadratic solution is required
     * @return a `Algebraic` instance, which is either a `LinearSolution` or a `QuadraticSolution`
     */
-  def apply(base: Monotone, offset: Monotone, branch: Int): Algebraic =
+  def apply(base: Monotone, offset: Monotone, coefficient: Int): Algebraic =
     if (offset.isZero)
       LinearSolution(base)
     else
-      QuadraticSolution(base, offset, branch, false)
+      QuadraticSolution(base, offset, coefficient, false)
 
   given DyadicOperator[Algebraic] = new DyadicOperator[Algebraic] {
     def op[B <: Algebraic, Z](f: (Algebraic, B) => Try[Z])(x: Algebraic, y: B): Try[Z] =
@@ -233,13 +229,7 @@ object Algebraic {
   *               Instances of this class are designed to interact with the `Factor` type in performing various
   *               operations such as evaluating, converting, or rendering the solution accurately in diverse contexts.
   */
-case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imaginary: Boolean = false)(val maybeName: Option[String] = None) extends Algebraic {
-  /**
-    * Returns the number of branches in `this`.
-    *
-    * @return 2.
-    */
-  def branches: Int = 2
+case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int, imaginary: Boolean = false)(val maybeName: Option[String] = None) extends Algebraic {
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -252,9 +242,9 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
     */
   def normalize: Eager = (base.normalize, offset.normalize) match {
     case (x: eager.Number, y: eager.Number) =>
-      x + y.scale(quadraticOffsetCoefficient(branch, 2)).asInstanceOf[eager.Number]
+      x + y.scale(coefficient).asInstanceOf[eager.Number]
     case (x: Monotone, y: Scalar) if x.isZero =>
-      y.scale(quadraticOffsetCoefficient(branch, 2))
+      y.scale(coefficient)
     case (x, y: Monotone) if y.isZero =>
       x
     case (x: Monotone, y) if x.isZero =>
@@ -287,13 +277,14 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
       core.algebraic.Algebraic.phi.render
     case QuadraticSolution.psi =>
       core.algebraic.Algebraic.psi.render
-    case q@QuadraticSolution(base, offset, branch, false) if offset.isZero || base.isZero =>
+    case q@QuadraticSolution(base, offset, coefficient, false) if offset.isZero || base.isZero =>
       q.normalize.render
-    case QuadraticSolution(base, offset, branch, false) =>
-      // NOTE that here we use a different method to figure the coefficient of the offset.
-      s"${base.render} ${if (branch == 1) "- " else "+ "}${offset.render}"
+    case QuadraticSolution(base, offset, coefficient, false) =>
+      val offStr = if (offset.isZero || coefficient == 0) "" else s"${offset.render}"
+      s"${base.render} ${if (coefficient == 1) "+ " else "- "}$offStr"
     case _ =>
-      s"Complex quadratic solution: ${base.render} ${if (branch == 1) "- " else "+ "}${offset.render}"
+      // TODO this is not correct in the cases where coefficient is not 1 or -1
+      s"Complex quadratic solution: ${base.render} ${if (coefficient == -1) "- " else "+ "}${offset.render}"
   })
 
   override def toString: String = render
@@ -301,13 +292,13 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
   /**
     * Computes the conjugate of the current quadratic solution.
     *
-    * The conjugate is calculated by inverting the branch of the solution,
+    * The conjugate is calculated by inverting the coefficient of the solution,
     * effectively toggling between the two branches of the quadratic equation.
     *
     * @return a new QuadraticSolution instance representing the conjugate of the current solution
     */
   def conjugate: QuadraticSolution =
-    copy(branch = 1 - branch)(None)
+    copy(coefficient = -coefficient)(None)
 
   /**
     * Negates the current quadratic solution by applying a negation
@@ -343,7 +334,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
     * @return true if the offset of the solution is zero, otherwise false.
     */
   def isPureNumber: Boolean =
-    offset.isZero || offset.maybeFactor(RestrictedContext(PureNumber)).isDefined
+    coefficient == 0 || offset.isZero || offset.maybeFactor(RestrictedContext(PureNumber)).isDefined
 
   /**
     * Determines if the current QuadraticSolution instance represents unity (1).
@@ -391,7 +382,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
       for {
         x <- base.convert(Real.one)
         y <- offset.convert(Real.one)
-        z <- y.scale(quadraticOffsetCoefficient(branch, 2)).convert(Real.one)
+        z <- y.scale(coefficient).convert(Real.one)
       } yield (x + z).normalize
     )
 
@@ -442,21 +433,21 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
     */
   def add(solution: Eager): Option[Algebraic] = (this, solution) match {
     // NOTE special case where we add two different branches of the same pair of solutions (Not sure we really need this special case).
-    case (x@QuadraticSolution(bx: eager.Number, ox, nx, ix), y@QuadraticSolution(by: eager.Number, oy, ny, iy)) if ox === oy && nx != ny && ix == iy =>
-      Some(QuadraticSolution((bx + by).asMonotone, Eager.zero.asMonotone, 0, ix)(None))
+    case (x@QuadraticSolution(bx: eager.Number, ox, cx, ix), y@QuadraticSolution(by: eager.Number, oy, cy, iy)) if ox === oy && ix == iy =>
+      Some(QuadraticSolution((bx + by).asMonotone, Eager.zero.asMonotone, cx + cy, ix)(None))
     case (x@QuadraticSolution(bx: eager.Number, ox: Scalar, nx, ix), y@QuadraticSolution(by: eager.Number, oy: Scalar, ny, iy)) if ix == iy =>
       val basePart: Eager = bx + by
-      val qx = ox.scale(quadraticOffsetCoefficient(nx, 2))
-      val qy = oy.scale(quadraticOffsetCoefficient(ny, 2))
+      val qx = ox.scale(nx)
+      val qy = oy.scale(ny)
       (qx, qy) match {
         case (q: RationalNumber, r: RationalNumber) if q.isZero && r.isZero =>
-          Some(QuadraticSolution(basePart.asMonotone, (q + r).asMonotone, 0, ix)(None))
+          Some(QuadraticSolution(basePart.asMonotone, (q + r).asMonotone, 1, ix)(None))
         case _ =>
           None
       }
     case (x@QuadraticSolution(bx: eager.Number, ox: InversePower, nx, ix), y@QuadraticSolution(by: eager.Number, oy: InversePower, ny, iy)) if ox == oy && ix == iy =>
       val basePart: Eager = bx + by
-      val offsetPart: Eager = ox.*(quadraticOffsetCoefficient(nx, 2) + quadraticOffsetCoefficient(ny, 2))
+      val offsetPart: Eager = ox.*(nx + ny)
       Some(QuadraticSolution(basePart.asMonotone, offsetPart.asMonotone, 0, ix)(None))
     case (x@QuadraticSolution(bx: eager.Number, ox: Scalable[eager.Number] @unchecked, nx, ix), y: eager.Number) =>
       Some(QuadraticSolution((bx + y).asMonotone, ox, nx, ix)(None))
@@ -506,21 +497,20 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
   def multiply(solution: Algebraic): Option[Eager] = (this, solution) match {
     // XXX Special case where both ox terms are InversePowers
     case (x@QuadraticSolution(bx: eager.Number, ox@InversePower(2, px), nx, false), y@QuadraticSolution(by: eager.Number, oy@InversePower(2, py), ny, false)) if px == py =>
-      val rx = RationalNumber(quadraticOffsetCoefficient(nx, 2))
-      val ry = RationalNumber(quadraticOffsetCoefficient(ny, 2))
+      val rx = RationalNumber(nx)
+      val ry = RationalNumber(ny)
       val bb = bx * ry + by * rx
       // TODO cast
       val o: Monotone = if (bb.isZero) eager.Number.zero.asInstanceOf[Monotone] else InversePower(2, bb * bb * px)
       val pr = px * rx * ry
-      val brunch = if (bb.isUnity) 0 else 1
-      Some(QuadraticSolution(bx * by + pr, o, brunch, false).normalize)
+      Some(QuadraticSolution(bx * by + pr, o, bb.signum, false).normalize)
     case (x@QuadraticSolution(bx: eager.Number, ox: eager.Number, nx, false), y@QuadraticSolution(by: eager.Number, oy: eager.Number, ny, false)) =>
-      val rx = RationalNumber(quadraticOffsetCoefficient(nx, 2))
-      val ry = RationalNumber(quadraticOffsetCoefficient(ny, 2))
+      val rx = RationalNumber(nx)
+      val ry = RationalNumber(ny)
       val t1: eager.Number = bx * by
       val t2: eager.Number = bx * ry * oy + by * rx * ox
       val t3: eager.Number = rx * ry * ox * oy
-      Some(QuadraticSolution((t1 + t2 + t3).asMonotone, eager.Number.zero.asMonotone, 0, false).normalize)
+      Some(QuadraticSolution((t1 + t2 + t3).asMonotone, eager.Number.zero.asMonotone, 1, false).normalize)
     // TODO add more cases (see commented code below)
     case _ =>
       None
@@ -557,10 +547,10 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
     */
   def *(r: Rational): Algebraic = (base, offset) match {
     case (b: Scalar, o: Scalar) =>
-      QuadraticSolution(b.scale(r), o.scale(r), branch, imaginary)
+      QuadraticSolution(b.scale(r), o.scale(r), coefficient, imaginary)
     case (b: Scalar, o@InversePower(2, x)) =>
       val number = RationalNumber(r)
-      val br: Int = if (number.signum < 0) (1 - branch) else branch
+      val br: Int = if (number.signum < 0) (1 - coefficient) else coefficient
       val offsetValue: Monotone = if (number.isZero) WholeNumber.zero else InversePower(2, x * number * number)
       val value = QuadraticSolution(b.scale(r), offsetValue, br, imaginary)
       value
@@ -582,7 +572,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
     *
     * This method checks if the current instance and the provided instance represent equivalent
     * quadratic solutions. It performs a specific comparison for instances of `QuadraticSolution`,
-    * verifying equality of their `base`, `offset`, and `branch` components. For other cases,
+    * verifying equality of their `base`, `offset`, and `coefficient` components. For other cases,
     * it delegates the equivalence check to the superclass implementation.
     *
     * @param that the other `Eager` instance to be compared for equivalence
@@ -591,7 +581,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
     */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a: QuadraticSolution, b: QuadraticSolution) =>
-      Success(a.base === b.base && a.offset === b.offset && a.branch == b.branch)
+      Success(a.base === b.base && a.offset === b.offset && a.coefficient == b.coefficient)
     case (a: QuadraticSolution, b: eager.ExactNumber) =>
       Success(a.base === b && a.offset.isZero)
     case (a: QuadraticSolution, b: eager.InversePower) =>
@@ -616,7 +606,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, branch: Int, imag
         for {
           baseEqv <- a.base.fuzzyEqv(p)(b.base)
           offsetEqv <- a.offset.fuzzyEqv(p)(b.offset)
-        } yield baseEqv && offsetEqv && a.branch == b.branch
+        } yield baseEqv && offsetEqv && a.coefficient == b.coefficient
       case _ =>
         super.fuzzyEqv(p)(that)
     }
@@ -636,19 +626,19 @@ object QuadraticSolution {
 
   /**
     * Creates a new instance of `QuadraticSolution` using the provided base monotone,
-    * offset monotone, and branch index.
+    * offset monotone, and coefficient index.
     *
     * @param base   the base component of the quadratic solution, represented as a `Monotone`
     * @param offset the offset component of the quadratic solution, represented as a `Monotone`
-    * @param branch an integer specifying the branch of the solution
+    * @param coefficient an integer specifying the coefficient of the solution
     * @return a new `QuadraticSolution` instance constructed from the provided parameters
     */
-  def apply(base: Monotone, offset: Monotone, branch: Int, imaginary: Boolean): QuadraticSolution =
+  def apply(base: Monotone, offset: Monotone, coefficient: Int, imaginary: Boolean): QuadraticSolution =
     (base.normalize, offset.normalize) match {
       case (b: Scalar, o: Scalar) =>
-        new QuadraticSolution(b, o, branch, imaginary)(None)
+        new QuadraticSolution(b, o, coefficient, imaginary)(None)
       case _ =>
-        new QuadraticSolution(base, offset, branch, imaginary)(None)
+        new QuadraticSolution(base, offset, coefficient, imaginary)(None)
     }
 
   /**
@@ -659,14 +649,14 @@ object QuadraticSolution {
     * - The root type specified as `SquareRoot`.
     * - The root index specified as `0`, which identifies this as one of the possible roots.
     */
-  val phi: QuadraticSolution = new QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 0)(Some("𝛗"))
+  val phi: QuadraticSolution = new QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 1)(Some("𝛗"))
   /**
     * Represents a specific quadratic solution characterized by its parameters.
     *
     * @see QuadraticSolution
     * @see Value.fromRational
     */
-  val psi: QuadraticSolution = new QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), 1)(Some("𝛙"))
+  val psi: QuadraticSolution = new QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(5, 4)), -1)(Some("𝛙"))
 
   /**
     * Calculates the square root of a given rational number as a monotone function.
@@ -711,25 +701,24 @@ object QuadraticSolution {
     case QuadraticSolution.psi =>
       "\\psi"
 
-    case QuadraticSolution(base, offset, branch, false) if offset.isZero =>
+    case QuadraticSolution(base, offset, _, false) if offset.isZero =>
       base.toLatex
 
-    case q@QuadraticSolution(base, offset, branch, false) if base.isZero =>
-      val coeff: Rational = quadraticOffsetCoefficient(branch, 2)
-      if (coeff == Rational(1)) {
+    case q@QuadraticSolution(base, offset, coefficient, false) if base.isZero =>
+      if (coefficient == (1)) {
         offset.toLatex
-      } else if (coeff == Rational(-1)) {
+      } else if (coefficient == (-1)) {
         s"-${offset.toLatex}"
       } else {
-        s"${coeff.toLatex} \\cdot ${offset.toLatex}"
+        s"${Rational(coefficient).toLatex} \\cdot ${offset.toLatex}"
       }
 
-    case QuadraticSolution(base, offset, branch, false) =>
-      val signStr = LatexRenderer.sign(branch == 0)
+    case QuadraticSolution(base, offset, coefficient, false) =>
+      val signStr = LatexRenderer.sign(coefficient == 1)
       s"${base.toLatex} $signStr ${offset.toLatex}"
 
-    case QuadraticSolution(base, offset, branch, true) =>
-      val signStr = LatexRenderer.sign(branch == 0)
+    case QuadraticSolution(base, offset, coefficient, true) =>
+      val signStr = LatexRenderer.sign(coefficient == 1)
       s"${base.toLatex} $signStr i ${offset.toLatex}"
   }
 
@@ -758,7 +747,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     * paired oppositely with the current instance based on the structure and
     * properties of the `Solution` implementation.
     *
-    * Normally, the `branch` of the conjugate, added to the current `branch` should equal `branches`.
+    * Normally, the `coefficient` of the conjugate, added to the current `coefficient` should equal `branches`.
     *
     * @return a new `Solution` instance representing the conjugate of the current instance
     */
@@ -809,7 +798,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @return true if the offset is negative, false otherwise
     */
-  def branch: Int = 0
+  def coefficient: Int = 0
 
   /**
     * Scales the current `Solution` instance by a given `Rational` factor.
