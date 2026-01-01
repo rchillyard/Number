@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
+import com.phasmidsoftware.number.algebra.eager.Solution.quadraticOffsetCoefficient
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -221,7 +222,7 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   behavior of "QuadraticSolution.branched"
   it should "compute correct coefficient for branch 0" in {
     val solution = QuadraticSolution(RationalNumber.zero, RationalNumber.one, 0, false)
-    val coefficient = solution.branched(0)
+    val coefficient = quadraticOffsetCoefficient(0, 2)
 
     // Branch 0 should give +1 (positive root)
     coefficient shouldBe Rational(1)
@@ -229,7 +230,7 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
 
   it should "compute correct coefficient for branch 1" in {
     val solution = QuadraticSolution(RationalNumber.zero, RationalNumber.one, 1, false)
-    val coefficient = solution.branched(1)
+    val coefficient = quadraticOffsetCoefficient(1, 2)
 
     // Branch 1 should give -1 (negative root)
     coefficient shouldBe Rational(-1)

@@ -240,7 +240,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   * This trait combines the characteristics of eagerly evaluated values, negatable structures,
   * and entities with multiple branches (or solutions) represented by `Monotone`.
   */
-trait Solution extends Eager with Negatable[Solution] with Branched[Rational] {
+trait Solution extends Eager with Negatable[Solution] {
 
   /**
     * Computes and returns the conjugate of the current `Solution` instance.
@@ -286,21 +286,6 @@ trait Solution extends Eager with Negatable[Solution] with Branched[Rational] {
     * @return a new `Solution` instance representing the result of the scaling operation
     */
   def scale(r: Rational): Solution
-
-  /**
-    * Computes a rational value based on a given index, `k`, and the number of branches
-    * in a cyclic structure.
-    * This method is applicable only to quadratic solutions.
-    * If we ever are able to handle cubic, etc., solutions, we will need to define a more general method.
-    *
-    * @param k an integer representing the index in the cyclic sequence, where `k` must
-    *          be a non-negative number within the bounds of the branches.
-    *
-    * @return a `Rational` value corresponding to the quadratic offset coefficient
-    *         derived from the provided index and the cyclic properties of the structure.
-    */
-  def branched(k: Int): Rational = Solution.quadraticOffsetCoefficient(k, branches)
-
 }
 
 object Solution {

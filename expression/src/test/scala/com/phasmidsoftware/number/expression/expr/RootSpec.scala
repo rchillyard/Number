@@ -143,7 +143,6 @@ class RootSpec extends AnyFlatSpec with Matchers {
     val solution = phi.solution
 
     solution shouldBe a[QuadraticSolution]
-    solution.branches shouldBe 2
   }
 
   it should "compute correct solution for x² - 4 = 0, branch 0" in {
