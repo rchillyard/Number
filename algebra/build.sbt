@@ -1,0 +1,2 @@
+name := "number-algebra"
+

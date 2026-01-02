@@ -1,0 +1,7 @@
+---
+engines:
+  scalameta-pro:
+    exclude_paths:
+      - "src/test/**"
+      - "**/*Test.scala"
+      - "**/*Spec.scala"

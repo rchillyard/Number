@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
+
+package com.phasmidsoftware.number.core.inner
+
+import com.phasmidsoftware.number.core.inner.CoreContext.AnyRoot
+import com.phasmidsoftware.number.core.numerical.Constants
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
+
+class ContextSpec extends AnyFlatSpec with should.Matchers {
+
+  behavior of "Context"
+  it should "or" in {
+    val factor = NatLog
+    val natLogContext = RestrictedContext(factor)
+    natLogContext.factorQualifies(factor) shouldBe true
+    ImpossibleContext.factorQualifies(factor) shouldBe false
+    val contextOr = natLogContext `or` ImpossibleContext
+    contextOr.factorQualifies(factor) shouldBe true
+  }
+  it should "and" in {
+    val factor = NatLog
+    val natLogContext = RestrictedContext(factor)
+    natLogContext.factorQualifies(factor) shouldBe true
+    ImpossibleContext.factorQualifies(factor) shouldBe false
+    val contextOr = natLogContext `and` ImpossibleContext
+    contextOr.factorQualifies(factor) shouldBe false
+  }
+  it should "qualifyingField" in {
+    RestrictedContext(NatLog).qualifyingField(Some(Constants.e)) shouldBe Some(Constants.e)
+  }
+  it should "fieldQualifies" in {
+    RestrictedContext(NatLog).fieldQualifies(Constants.e) shouldBe true
+  }
+  it should "not" in {
+    val notLogContext = RestrictedContext(NatLog).not
+    notLogContext.factorQualifies(NatLog) shouldBe false
+    notLogContext.factorQualifies(PureNumber) shouldBe true
+  }
+  it should "AnyRoot" in {
+    AnyRoot.factorQualifies(NatLog) shouldBe false
+    AnyRoot.factorQualifies(SquareRoot) shouldBe true
+    AnyRoot.factorQualifies(SquareRoot) shouldBe true
+    AnyRoot.factorQualifies(PureNumber) shouldBe false
+  }
+  it should "AnyLog" in {
+
+  }
+  it should "AnyScalar" in {
+
+  }
+}
