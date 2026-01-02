@@ -27,7 +27,9 @@ import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
   // Method 4: Explicit type annotation
   val expr8: Expression = 1 + 2 // lazy 3
 
-  // All of these create Expression trees
+  // Example of why we use lazy values
+  val expr9: Eager = math"(√3+1)*(√3-1)" // eager 2
+
   println(expr0.toLatex)
   println(expr1.toLatex)
   println(expr2.toLatex)
@@ -37,3 +39,4 @@ import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
   println(expr6.toLatex)
   println(expr7.toLatex)
   println(expr8.toLatex)
+  println(expr9.toLatex)

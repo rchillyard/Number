@@ -2,8 +2,9 @@ ThisBuild / organization := "com.phasmidsoftware"
 
 name := "Number"
 
-ThisBuild / version := "1.4.0"
+ThisBuild / version := "1.4.2"
 
+val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
 val scalaTestVersion = "3.2.19"
 val scalaParserCombinatorsVersion = "2.4.0"
@@ -56,13 +57,14 @@ val scala3TestSettings = Seq(
 
 lazy val root = (project in file("."))
     .aggregate(core, algebra, expression, parse, top)
+    .dependsOn(top)
     .settings(
-      name := "number"
+      name := "number",
+      scalaVersion := scalaVersionNumber
     )
-
 lazy val core = (project in file("core"))
     .settings(
-      scalaVersion := "3.7.3",
+      scalaVersion := scalaVersionNumber,
       scalacOptions ++= commonScalacOptions ++ scala3Options,
 
       libraryDependencies ++= Seq(
@@ -85,7 +87,7 @@ lazy val core = (project in file("core"))
 
 lazy val algebra = (project in file("algebra"))
     .settings(
-      scalaVersion := "3.7.3",
+      scalaVersion := scalaVersionNumber,
       scalacOptions ++= commonScalacOptions ++ scala3Options
     )
     .settings(scala3TestSettings)
@@ -93,7 +95,7 @@ lazy val algebra = (project in file("algebra"))
 
 lazy val expression = (project in file("expression"))
     .settings(
-      scalaVersion := "3.7.3",
+      scalaVersion := scalaVersionNumber,
       scalacOptions ++= commonScalacOptions ++ scala3Options
     )
     .settings(scala3TestSettings)
@@ -101,7 +103,7 @@ lazy val expression = (project in file("expression"))
 
 lazy val parse = (project in file("parse"))
     .settings(
-      scalaVersion := "3.7.3",
+      scalaVersion := scalaVersionNumber,
       scalacOptions ++= commonScalacOptions ++ scala3Options,
 
       libraryDependencies ++= Seq(
@@ -113,7 +115,7 @@ lazy val parse = (project in file("parse"))
 
 lazy val top = (project in file("top"))
     .settings(
-      scalaVersion := "3.7.3",
+      scalaVersion := scalaVersionNumber,
       scalacOptions ++= commonScalacOptions ++ scala3Options,
       scalacOptions ++= Seq(
         "-Wconf:msg=any2stringadd:e"  // Make any2stringadd usage an ERROR
