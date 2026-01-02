@@ -2,7 +2,7 @@
   ~ Copyright (c) 2021. Phasmid Software
   -->
 
-<configuration debug="true">
+<configuration>
     <property name="HOME_LOG" value="logs/Number.log"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -37,11 +37,11 @@
         <appender-ref ref="FILE-ROLLING"/>
     </appender>
 
-    <root level="info">
+    <root level="WARN">
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <root level="INFO">
+    <root level="WARN">
         <appender-ref ref="FILE-ROLLING"/>
     </root>
 

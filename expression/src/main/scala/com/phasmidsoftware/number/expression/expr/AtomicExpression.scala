@@ -316,7 +316,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     * @return a String representation of this Literal.
     */
   override def toString: String =
-    s"Literal: ${maybeName getOrElse value.toString}"
+    s"<${maybeName getOrElse value.toString}>"
 
   /**
     * Compares this `ValueExpression` with another object for equality.
