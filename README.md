@@ -34,34 +34,35 @@ Number is organized into multiple modules:
 
 ## Quick Start
 
-### Using the Algebra Module (Recommended)
+### Using the Top Module (Recommended)
 ```scala
-import com.phasmidsoftware.number.algebra._
-import cats.syntax.eq._
 
-// Exact rational arithmetic
-val half = RationalNumber(r"1/2")
+import com.phasmidsoftware.number.algebra.eager.Eager
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 
-// Angles with automatic normalization
-val angle1 = Angle(Number(1.5), radians = true)
-val angle2 = Angle(Number(1.5), radians = false)
-angle1 === angle2  // true - normalized values are equal
+@main def exampleMainProgram(): Unit =
+import expr.*
 
-// Percentages
-val fifty = RationalNumber(r"1/2", isPercentage = true)
-fifty.render  // "50%"
+// Method 1: Start with identity operator
+val expr0 = ∅ + 1 + 2 * 3
+val expr1 = ∅ * 1 * 2 * 3
+
+// Method 2: String interpolators
+val expr2 = math"1 + 2 * 3" // resulting type is Eager
+val expr3 = lazymath"$expr1∧2 + 3 * $expr1 - 5" // resulting type is a simplified Expression
+val expr4 = puremath"1 + 2 * 3" // resulting type is Expression
+
+// Method 3: Predefined constants
+val expr5 = one + 2 * 3
+val expr6 = π / 2
+
+// Method 4: Explicit type annotation
+val expr7: Expression = 1 + 2
+
 ```
-
-### Using the Core Module (Legacy)
-```scala
-import Rational.RationalOps // For :/
-import com.phasmidsoftware.number.expression.expr.Expression._ // For One, etc.
-
-val x = 1 :/ 2  // Exact rational: 1/2
-val lazyHalf = One / 2
-val half: Eager = lazyHalf
-half shouldBe RationalNumber(x)
-```
+The key import here is `import expr.*` such that as many `Expression` methods and constants are available as possible,
+including the various interpolators.
+For more examples, see the `GettingStarted.sc` worksheet in the `top` module.
 
 #### Sources
 Wikipedia has been my constant reference for basic mathematical relationships.
