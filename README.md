@@ -79,9 +79,31 @@ You can also find the 7th printing free online:
 
 [1]: https://archive.org/details/handbookofmathem00abra
 
+### Overall type hierarchy
+
+All objects that have a "value" in `Number` are instances of `Valuable`, which in turn extends `Renderable`, `Numeric`,
+, `Exactitude`, `Normalizable`, and `TypeSafe`.
+
+Valuable has two subtypes: `Eager` and `Lazy`.
+`Eager` values are evaluated and can be rendered as `String`s or converted to `Double` (or even Java Numbers).
+`Lazy` values are not evaluated (they're lazy) and represent numerical expressions.
+
+The purpose of the lazy values is that often, composing a value with another value might not be renderabl
+exactly.
+In such a case, eager arithmetic would be forced to evaluate the expression as a fuzzy value.
+
+Yet, sometimes, that loss of precision is premature. For example, in the expression 
+$$(\sqrt{3} + 1)(\sqrt{3}-1)$$
+the value should be exactly 2.
+
 ## Algebra Module
 
-The `algebra` module provides a type hierarchy based on mathematical structures, with full integration of Cats typeclasses.
+The `algebra` module provides a type hierarchy rooted at `Eager` and based on mathematical structures, with full integration of Cats typeclasses.
+`Eager` is extended by `Solution`, `Nat`, and `Structure`.
+
+The `Nat` type represents the natural numbers (non-negative integers), based on Peano arithmetic.
+The `Solution` type represents the set of solutions to an equation.
+`Solution` is extended by `Algebraic` (for non-complex solutions) and `Complex` (for complex solutions).
 
 ### Structure Hierarchy
 
@@ -89,12 +111,6 @@ All algebraic types extend `Structure`, which provides:
 - Type-safe conversions: `convert[T <: Structure](t: T): Option[T]`
 - Java interop: `asJavaNumber: Option[java.lang.Number]`
 
-#### The Type Hierarchy
-
-All objects that have a "value" in `Number` are instances of `Valuable`, which extends `Renderable` and `Numeric`.
-Valuable has two subtypes: `Eager` and `Lazy`.
-`Eager` values are evaluated and can be rendered as `String`s or converted to `Double` (or even Java Numbers).
-`Lazy` values are not evaluated (they're lazy) and represent numerical expressions.
 
 ## Mermaid Diagrams
 
@@ -115,7 +131,12 @@ See [docs/DIAGRAMS.md](docs/DIAGRAMS.md) for all project diagrams.
 
 ### Core Types
 
-#### Number
+Some types from the legacy code (`core` module) but are still used, in particular, `Rational`, `Factor`, `Fuzziness`, and `Complex`.
+The `Number` class in the legacy code (not to be confused with the class of the same name in the `algebra` module) represents a number by
+specifying its value (as a `Value`), its factor (as a `Factor`), and optional fuzziness (as a `Fuzziness`).
+For much more detail on these types, see below.
+
+#### Number (algebra module)
 
 The main numeric hierarchy supports exact and fuzzy arithmetic:
 ```scala
@@ -128,8 +149,9 @@ val percent = RationalNumber(r"1/2", isPercentage = true)
 percent.render  // "50%"
 
 // Real - fuzzy/uncertain numbers  
-val pi = Real(3.14159, wiggle = 0.00001)
+val piApprox = Real("3.14159*")
 ```
+For details of the parsing of fuzzy numbers like for `piApprox` (above), please see **Core Module Parsing** below.
 
 #### Angle
 
@@ -149,12 +171,17 @@ Angles normalize to the range [-1, 1) where a full circle = 2.
 
 **Important**: `Angle` has no `Order` instance because circular ordering is meaningless. It only supports `Eq` for equality testing.
 
-#### Logarithms
+#### Logarithm 
 
-Transformed values like logarithms maintain their structure:
+Transformed values, including `Logarithm`, store a value which is then rendered as a pure number via a transforming function.
+However, this makes the terminology slightly confusing.
+For example, the value stored in a `Logarithm` _is_ the logarithm.
+Thus,
+
 ```scala
-val natLog = NatLog(Number(2))  // represents ln(2)
+val natLog = NatLog(Number(2))  // represents e^2
 ```
+...because 2 is the natural logarithm of e^2.
 
 ### Cats Typeclasses
 
@@ -912,7 +939,7 @@ val eager: Eager = expression // yields 5
 ```
 
 The best way to define expressions (or the eager values) is to use the LaTeX-like syntax which you can invoke
-using one of the following interpolators (defined in `com.phasmidsoftware.number.parsenew.ExpressionParser`):
+using one of the following interpolators (defined in `com.phasmidsoftware.number.parse.ExpressionParser`):
 
 * **`puremath`** - Parses an infix expression resulting in an `Expression` but without any simplification.
 * **`lazymath`** - Equivalent to `puremath` but with simplification.
@@ -935,7 +962,7 @@ val twoPi: Eager = math"""2\pi"""
 You just need to import the interpolators as follows:
 
 ```scala
-import com.phasmidsoftware.number.parsenew.ExpressionParser.*
+import com.phasmidsoftware.number.parse.ExpressionParser.*
 ```
 
 Another way to define expressions is to use the empty expression symbol `∅`.

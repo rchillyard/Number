@@ -254,6 +254,7 @@ classDiagram
     
     Approximate <|-- Eager
     DyadicOps <|-- Eager
+    Zeroable <|-- Eager
     Valuable <|-- Eager
     Valuable <|-- Lazy
     
@@ -276,10 +277,12 @@ classDiagram
     N <|-- Nat
     Eager <|-- Nat
     Eager <|-- Structure
+    Nat <|-- NatZero
+    Nat <|-- Succ
     
     Solution <|-- Complex
     Solution <|-- Algebraic
-    Zeroable <|-- Algebraic
+    Unitary <|-- Algebraic
     Scalable <|-- Algebraic
     
     Expression <|-- CompositeExpression
