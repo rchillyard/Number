@@ -507,6 +507,9 @@ object QuadraticRoot {
         throw AlgebraException(s"apply($solution) is not supported")
     }
   }
+
+  val phi = QuadraticRoot(QuadraticEquation.goldenRatioEquation, 0)
+  val psi = QuadraticRoot(QuadraticEquation.goldenRatioEquation, 1)
 }
 
 /**

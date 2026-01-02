@@ -5,18 +5,19 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.matchers.*
+import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.Angle.𝛑
 import com.phasmidsoftware.number.algebra.eager.Eager.{e, half, minusOne, negInfinity, one, pi, two, zero}
-import com.phasmidsoftware.number.algebra.eager.*
-import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Gaussian}
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.goldenRatioEquation
 import com.phasmidsoftware.number.expression.expr
-import com.phasmidsoftware.number.expression.expr.{Expression, *}
 import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
+import com.phasmidsoftware.number.expression.expr.{Expression, *}
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -243,6 +244,11 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     lazymath"√7 ∧ 2" shouldBe Literal(WholeNumber(7), Some("7"))
     math"√7 ∧ 2" shouldBe Eager(7)
     math"\sqrt{7 ∧ 2}" shouldBe Eager(7)
+  }
+  it should "simplify phi∧2" in {
+    puremath"\phi ∧ 2" shouldBe BiFunction(QuadraticRoot(goldenRatioEquation, 0), Two, Power)
+    lazymath"\phi ∧ 2" shouldBe BiFunction(Literal(QuadraticSolution.phi), One, Sum)
+    math"\phi ∧ 2" === Real("2.618033988749895*")
   }
   it should "cancel 1 + -1" in {
     (lazymath"1" :+ lazymath"-1").simplify shouldBe Zero

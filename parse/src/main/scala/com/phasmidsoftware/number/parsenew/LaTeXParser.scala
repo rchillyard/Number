@@ -118,6 +118,8 @@ object LaTeXParser {
   private def mathSymbol[X: P]: P[MathExpr] = P(
     ("""\pi""" | """\mathrm{\pi}""" | "\uD835\uDED1" | "π").!.map(_ => ConstPi) |
         ("""\e""" | """\mathrm{e}""").!.map(_ => ConstE) |
+        ("""\phi""" | """\mathrm{\phi}""" | "𝛗").!.map(_ => QuadraticRoot.phi) | 
+        ("""\psi""" | """\mathrm{\psi}""" | "𝛙").!.map(_ => QuadraticRoot.psi) |
         "\uD835\uDEFE".!.map(_ => Literal(Eager(Constants.gamma))) |
         "½".!.map(_ => Half) |
         "∞".!.map(_ => Infinity)

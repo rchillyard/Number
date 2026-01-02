@@ -8,12 +8,12 @@ import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.expression.expr.*
 import com.phasmidsoftware.number.top.expr.*
 
-// Now this works beautifully:
+// Create some expressions:
 val x = one                           // Expression
-val y = 42                            // converts to Expression automatically
+val y: Expression = 42                // converts to Expression automatically
 val z = x + y                         // Expression (Sum)
-val w = x * 2 + y * 3                // Expression (complex tree)
-val result = (x + 1) / (y - 2)       // Expression
+val w = x * 2 + y * 3                 // Expression (complex tree)
+val result = (x + 1) / (y - 2)        // Expression
 
 // Evaluation when possible
 val maybeEager = result.evaluateAsIs
@@ -32,7 +32,7 @@ import com.phasmidsoftware.number.expression.expr.Root.{phi, psi}
 
 phi + 1
 
-phi * phi
+(phi * phi).toLatex // should appear as 𝛗 + 1
 
-phi + psi
+(phi + psi).toLatex
 

@@ -7,12 +7,14 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, QuadraticSolution, RationalNumber, Structure}
+import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
+import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Field, Number, Real}
+import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, given_LatexRenderer_Expression, matchSimpler}
 import com.phasmidsoftware.number.{algebra, core, expression}
@@ -453,6 +455,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def simplifyComponents: em.AutoMatcher[Expression] =
     em.Matcher("BiFunction: simplifyComponents") {
+      // TODO restore this case.
 //      case b@BiFunction(r1@QuadraticRoot(_, _), r2@QuadraticRoot(_, _), f) if r1.maybeValue.isEmpty && r2.maybeValue.isEmpty =>
 //        val so: Option[Solution] = f match {
 //          case Sum => r1.solution add r2.solution
@@ -800,6 +803,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(One)
       case (_, MinusOne) =>
         em.Match(expression.expr.UniFunction(a, Reciprocal))
+      case (r@Literal(phi, _), ValueExpression(w: WholeNumber, _)) if w - 1 >= 0 =>
+        em.Match(expression.expr.BiFunction(r + 1, w - 1, Power))
+      case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch), Literal(w: WholeNumber, _)) if p.isUnity && w - 1 >= 0 =>
+        em.Match(expression.expr.BiFunction(r + q, w - 1, Power))
       case (BiFunction(x, y, Power), z) =>
         em.Match(expression.expr.BiFunction(x, y :* z, Power))
       case (ConstE, BiFunction(ConstI, ConstPi, Product)) | (ConstE, BiFunction(ConstPi, ConstI, Product)) =>

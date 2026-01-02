@@ -9,8 +9,8 @@ import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP.recover
-import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
@@ -660,10 +660,11 @@ object Expression {
     case lit: ValueExpression => summon[LatexRenderer[ValueExpression]].toLatex(lit)
     case comp: CompositeExpression if comp.evaluateAsIs.isDefined => comp.evaluateAsIs match {
       case Some(e) => summon[LatexRenderer[Eager]].toLatex(e)
-      case _ => comp match {
+      case _ => comp.simplify match {
         case uni: UniFunction => summon[LatexRenderer[UniFunction]].toLatex(uni)
         case bi: BiFunction => summon[LatexRenderer[BiFunction]].toLatex(bi)
         // TODO add Aggregate
+        case a: Aggregate => throw AlgebraException(s"LatexRenderer[Expression] for not yet implemented for Aggregate: $a")
       }
     }
     // Add any other Expression subtypes
