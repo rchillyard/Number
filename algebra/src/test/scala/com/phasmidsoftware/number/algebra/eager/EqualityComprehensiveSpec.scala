@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, Lin
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scala.annotation.unused
 
 class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
 
@@ -323,9 +324,8 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   it should "note that ~== may not be transitive for fuzzy values" in {
     import com.phasmidsoftware.number.core.numerical.Fuzziness
 
-    val a = Real(1.0, Some(Fuzziness.doublePrecision))
-    val b = Real(1.0 + 1e-15, Some(Fuzziness.doublePrecision))
-    val c = Real(1.0 + 2e-15, Some(Fuzziness.doublePrecision))
+    @unused
+    val (a, b, c) = (Real(1.0, Some(Fuzziness.doublePrecision)), Real(1.0 + 1e-15, Some(Fuzziness.doublePrecision)), Real(1.0 + 2e-15, Some(Fuzziness.doublePrecision)))
 
     // a ~== b and b ~== c might be true, but a ~== c might be false
     // This is a known property of fuzzy equality and not a bug

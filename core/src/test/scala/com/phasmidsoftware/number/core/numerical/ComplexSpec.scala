@@ -265,7 +265,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val expected = opposite * 1.0 / adjacent
     // CONSIDER what's going on here? When might it be pos inf?
     if (expected != Double.PositiveInfinity)
-      result shouldBe expected +- 1E-6
+      result shouldBe expected +- 1E-6: Unit
   }
 
   it should "convertToCartesian" in {

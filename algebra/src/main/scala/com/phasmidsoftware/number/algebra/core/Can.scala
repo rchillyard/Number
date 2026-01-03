@@ -122,18 +122,6 @@ trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAd
     * @return The additive inverse of the current WholeNumber.
     */
   def unary_- : T
-
-  /**
-    * Retrieves the implicit evidence of an `AdditiveCommutativeGroup[T]` for the given type `T`.
-    *
-    * @param using an implicit parameter providing evidence of the `AdditiveCommutativeGroup[T]` structure
-    *              for the type `T`. This ensures that the type `T` satisfies the properties of an
-    *              additive commutative group.
-    *
-    * @return an instance of `AdditiveCommutativeGroup[T]` that represents the additive commutative
-    *         group structure for the type `T`.
-    */
-  private def acg(using AdditiveCommutativeGroup[T]): AdditiveCommutativeGroup[T] = summon[AdditiveCommutativeGroup[T]]
 }
 
 /**

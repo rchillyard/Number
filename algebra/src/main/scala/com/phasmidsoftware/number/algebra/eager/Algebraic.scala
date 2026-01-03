@@ -14,9 +14,9 @@ import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRende
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.fromRational
-import com.phasmidsoftware.number.core.inner.{Composite, DyadicOperationPlus, Factor, PureNumber, Rational, SquareRoot, Value}
+import com.phasmidsoftware.number.core.inner.{Composite, DyadicOperationPlus, Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ExactNumber, Number}
+import com.phasmidsoftware.number.core.numerical.ExactNumber
 import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Success, Try}
 
@@ -878,7 +878,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *         and the given solution, or None if the operation is not valid
     */
   def add(addend: Eager): Option[Algebraic] = (value, addend) match {
-    case (v: CanAdd[eager.Number, eager.Number], y@LinearSolution(x: eager.Number)) =>
+    case (v: CanAdd[eager.Number, eager.Number] @unchecked, y@LinearSolution(x: eager.Number)) =>
       Some(LinearSolution(v + x))
     case (v: CanAdd[eager.Number, eager.Number], y: eager.Number) =>
       Some(LinearSolution(v + y))

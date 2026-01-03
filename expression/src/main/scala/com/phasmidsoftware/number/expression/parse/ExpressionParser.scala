@@ -313,16 +313,6 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
     */
   def parentheses: Parser[Parentheses] =
     "(" ~> expr <~ ")" ^^ (x => Parentheses(x))
-
-  /**
-    * Creates a new line followed by a specified level of indentation.
-    * CONSIDER unused.
-    * 
-    * @param i the number of indentation levels to add after the new line,
-    *          where each level corresponds to two spaces
-    */
-  private def new_line(i: Int) =
-    "\n" + "  ".repeat(i)
 }
 
 trait Expression {
