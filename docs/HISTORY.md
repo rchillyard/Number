@@ -1,6 +1,7 @@
 # Migration and Version History
 
 ## Versions
+* Version 1.4.4: Resolved some publishing issues.
 * Version 1.4.0: This represents a prototype of the forthcoming 2.0.0 release.
 * Version 1.3.7: Issue resolution: better integration between Root/Algebraic/Complex
 * Version 1.3.6: Solutions to quadratic equations can now be Complex; add LaTeX rendering for Eager values.
