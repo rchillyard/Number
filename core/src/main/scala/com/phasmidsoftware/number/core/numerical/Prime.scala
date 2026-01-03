@@ -154,22 +154,6 @@ case class Prime(n: BigInt) {
   def toBigInt: BigInt = n
 
   /**
-    * Get the value of this prime at a Double.
-    *
-    * @return n.toDouble
-    */
-  @unused
-  def toDouble: Double = n.toDouble
-
-  /**
-    * Optionally get the value of this prime as a Long.
-    *
-    * @return Some(n) if it fits as a Long, otherwise None.
-    */
-  @unused
-  def toLongOption: Option[Long] = if (n.abs < Long.MaxValue) Some(n.toLong) else None
-
-  /**
     * Optionally get the value of this prime as an Int.
     *
     * @return Some(n) if it fits as an Int, otherwise None.
@@ -240,6 +224,7 @@ case class Prime(n: BigInt) {
     * Validate whether this number really is prime.
     *
     * NOTE: This is a very expensive operation as it essentially performs an E-sieve on the given prime.
+    * NOTE: this method definitely is used.
     *
     * @return true if this number is prime.
     */
@@ -376,7 +361,6 @@ object Prime {
     * @return the number of primes that are less than x.
     */
   def primeCountingFunction(x: BigInt): Int = LazyList.from(1).map(BigInt(_)).takeWhile(_ < x).count(_.isProbablePrime(30))
-
 
   /**
     * Method to determine how many prime numbers there are which are less than x.
@@ -604,6 +588,14 @@ object Prime {
   private lazy val carmichaelFile: Seq[BigInt] =
     readFromResource("/carmichael.txt", wa => wa.lastOption).getOrElse(Nil)
 
+  /**
+    * Determines if Carmichael's theorem applies to the given number `n`.
+    * Carmichael's theorem states that a composite number `n` is a Carmichael number
+    * if it satisfies certain mathematical conditions related to its prime factors.
+    *
+    * @param n The number being tested, represented as a `BigInt`.
+    * @return A boolean value indicating whether Carmichael's theorem applies to the input number `n`.
+    */
   private def carmichaelTheoremApplies(n: BigInt) = {
     val factors: Map[Prime, Int] = primeFactorMultiplicity(n)
     val tests: Iterable[Boolean] = for ((p, r) <- factors) yield r == 1 && (n - 1) % (p.n - 1) == 0
@@ -625,6 +617,12 @@ object Prime {
     inner(Nil, n)
   }
 
+  /**
+    * Generates a sequence of random values based on the given prime number.
+    *
+    * @param p A prime number used as the upper bound for generating random values.
+    * @return A sequence of random `BigInt` values derived from the provided prime number.
+    */
   private def getRandomValues(p: BigInt): Seq[BigInt] = {
     val pMinus1 = p - 1
     val n = 20
@@ -640,7 +638,9 @@ object Prime {
 }
 
 /**
-  * Object containing utility methods and constants for working with prime numbers.
+  * Object providing utility methods related to prime numbers, including generating primes, 
+  * checking primality, applying mathematical functions, and working with predefined sets 
+  * of prime numbers and special cases such as Carmichael numbers.
   */
 object Primes {
 
@@ -662,12 +662,6 @@ object Primes {
   def bigInts(x: BigInt): LazyList[BigInt] = x #:: bigInts(x + 1)
 
   /**
-    * The measure of certainty that we use.
-    * Probability of a false positive prime is 2.pow(-100).
-    */
-  private val CERTAINTY = 100
-
-  /**
     * Method to generate a random prime of size bits bits.
     *
     * @param bits the size of the resulting Prime in bits.
@@ -676,11 +670,14 @@ object Primes {
   def randomPrime(bits: Int): Prime = Prime(new BigInteger(bits, CERTAINTY, random))
 
   /**
-    * Method to yield a list of probable primes as long as they satisfy the predicate f.
+    * Filters and returns a finite list of prime numbers based on a given predicate.
+    * Throws a `PrimeException` if the filter does not yield a finite list of primes.
     *
-    * @param f the predicate to be applied to each candidate prime.
-    * @return a List[Prime] where each element satisfies the predicate f.
-    * @throws PrimeException if f does not yield finite list.
+    * @param f the predicate function applied to candidate primes. 
+    *          Only primes for which this function returns `true` will be included in the result.
+    *
+    * @return a finite list of primes that satisfy the given predicate.
+    * @throws PrimeException if the predicate results in an infinite list of primes.
     */
   def probablePrimes(f: Prime => Boolean): List[Prime] = {
     val result = probablePrimesLazy(f)
@@ -689,10 +686,10 @@ object Primes {
   }
 
   /**
-    * Method to implement Eratosthenes Sieve.
+    * Generates a list of prime numbers less than or equal to a given upper bound using the Sieve of Eratosthenes algorithm.
     *
-    * @param m the largest number that we could get back as a prime.
-    * @return a list of Prime numbers.
+    * @param m the upper bound (inclusive) for the prime numbers to be generated.
+    * @return a list of prime numbers represented as `Prime` objects, where each prime is less than or equal to the given upper bound.
     */
   def eSieve(m: Int): List[Prime] = {
     val isComposite = new Array[Boolean](m + 1)
@@ -742,6 +739,12 @@ object Primes {
   private val prime101 = 547
 
   /**
+    * The measure of certainty that we use.
+    * Probability of a false positive prime is 2.pow(-100).
+    */
+  private val CERTAINTY = 100
+
+  /**
     * Random source.
     * NOTE: this is not a secure (unpredictable) random source but it's good enough for our purposes.
     */
@@ -767,18 +770,6 @@ object Primes {
   * It's not idiomatic Scala but I will clean it up as we go forward.
   */
 object MillerRabin {
-  private def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
-    val (d, s) = decompose(n)
-    // CONSIDER avoid this mutable variable.
-    var a_to_power: BigInt = a.modPow(d, n)
-    // CONSIDER re-write so that we don't have to use return.
-    if (a_to_power == 1) return true
-    else for (_ <- 1 to s) {
-      if (a_to_power == n - 1) return true
-      else a_to_power = (a_to_power * a_to_power) % n
-    }
-    a_to_power == n - 1
-  }
 
   /**
     * Method (originally called miller_rabin) from "literateprograms" with slight improvements for elegance.
@@ -802,9 +793,27 @@ object MillerRabin {
 
     (1 to iterations).forall { _ =>
       val a = nextRandomA()
-      miller_rabin_pass(a, n)
+      millerRabinPass(a, n)
     }
   }
+
+  /**
+    * Executes a Miller-Rabin primality test or generates a probable prime number based on the specified action.
+    * If the action is "test", it determines whether the provided number is a prime.
+    * If the action is "genprime", it generates a probable prime number with the specified bit length.
+    *
+    * @param action A string specifying the operation to perform. 
+    *               Valid values are "test" for performing a primality test or "genprime" for prime number generation.
+    *
+    * @param number A string representation of the number to test or the bit length for prime generation.
+    *               For the "test" action, this should be the number to be tested for primality.
+    *               For the "genprime" action, this should specify the number of bits for the generated prime.
+    *
+    * @return A string result.
+    *         If the action is "test", returns "PRIME" if the number is a probable prime or "COMPOSITE" otherwise.
+    *         If the action is "genprime", returns the generated probable prime as a string.
+    *         If the action is invalid, returns a message indicating the invalid action.
+    */
   def millerRabinTester(action: String, number: String): String =
     if (action == "test")
       if (isProbablePrime(new BigInt(new BigInteger(number)))) "PRIME"
@@ -823,6 +832,38 @@ object MillerRabin {
     }
     else s"invalid action: $action"
 
+  /**
+    * Performs a single iteration of the Miller-Rabin primality test for a given base `a` and number `n`.
+    * This test checks whether the number `n` is likely to be a prime.
+    *
+    * @param a The base used for the primality test. Must be a positive `BigInt`.
+    * @param n The candidate number being tested for primality. Must be a positive `BigInt`.
+    * @return `true` if the test passes, indicating `n` is likely a prime; 
+    *         `false` if it fails, indicating `n` is composite.
+    */
+  private def millerRabinPass(a: BigInt, n: BigInt): Boolean = {
+    val (d, s) = decompose(n)
+    val initialPower = a.modPow(d, n)
+
+    @tailrec
+    def check(aToPower: BigInt, count: Int): Boolean = {
+      if (aToPower == n - 1) true
+      else if (count >= s) false
+      else check((aToPower * aToPower) % n, count + 1)
+    }
+
+    if (initialPower == 1) true
+    else check(initialPower, 1)
+  }
+
+  /**
+    * Decomposes the given number into the form (d, s) such that n - 1 = d * 2^s, 
+    * where d is an odd number and s is a non-negative integer.
+    *
+    * @param n The input number to be decomposed. Must be a positive `BigInt`.
+    * @return A tuple `(d, s)` where `d` is an odd number and `s` is the largest 
+    *         exponent such that `n - 1 = d * 2^s`.
+    */
   private def decompose(n: BigInt) = {
     var d: BigInt = n - 1
     var s: Int = 0
