@@ -29,7 +29,10 @@ Number is organized into multiple modules:
 * **`core`** - Legacy numeric types (Number, Field, Rational, Complex, Factor, Fuzz, ****etc.)
 * **`top`** - Top level example code
 
-**Migration Note**: The `algebra` module is gradually replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
+#### Current Version
+The current version is 1.4.4.
+
+**Migration Note**: The `algebra` module is replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
 **Migration Note**: For version history and more detail regarding migration, see the [HISTORY](docs/HISTORY.md).
 
 ## Quick Start
@@ -640,7 +643,7 @@ def isMember(x: NumberLike): Boolean
 which will yield the most exclusive set that x belongs to.
 
 ### Lazy Evaluation
-Version 1.0.3 supports lazy evaluation via a trait called _Expression_.
+`Number` lazy evaluation via a trait called _Expression_.
 The advantage of lazy evaluation is not so much performance.
 That's going to be neither here nor there.
 But it is in avoiding precision loss in some circumstances.
@@ -1033,10 +1036,6 @@ without using the _Number_ (or _Expression_) classes.
 
 There are four domains of values, each identified by a domain or factor (see _Factors_ below).
 These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
-
-#### Current Version
-The current version is 1.3.2. Here's a summary of what's new since 1.2.11:
-* Now a five-module Scala project; The entire `algebra` and `top` modules are new.
 
 #### Operators
 The most important operators are those defined in _Expression.ExpressionOps_. 
