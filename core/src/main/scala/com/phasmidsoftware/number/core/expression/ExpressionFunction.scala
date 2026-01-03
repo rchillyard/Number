@@ -272,8 +272,6 @@ object ExpressionBiFunction {
   def unapply(f: ExpressionBiFunction): Option[((Field, Field) => Field, String, Option[Field], Option[Field])] = f match {
     case e: ExpressionBiFunction =>
       Some((e.f, e.name, e.maybeIdentityL, e.maybeIdentityR))
-    case _ =>
-      None // TESTME
   }
 }
 

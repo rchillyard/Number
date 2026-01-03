@@ -82,6 +82,7 @@ lazy val core = (project in file("core"))
         "ch.qos.logback" % "logback-classic" % "1.5.23" % "runtime"
       )
     )
+    .settings(scala3TestSettings)
 
 lazy val algebra = (project in file("algebra"))
     .settings(

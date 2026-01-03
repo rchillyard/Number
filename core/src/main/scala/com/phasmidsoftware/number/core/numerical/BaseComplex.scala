@@ -71,6 +71,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       (c1 `subtract` c2).isZero
     case (z, x: Number) =>
       z `isSame` Real(x)
+    case _ =>
+      false
   }
 
   /**
@@ -139,6 +141,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       doMultiply(multiplicand)
     case (ComplexCartesian(_, _), ComplexPolar(_, _, _)) =>
       narrow(this, polar = true) `doMultiply` multiplicand
+    case _ =>
+      throw ComplexException(s"BaseComplex: product: $this, $multiplicand")
   }
 
   /**
@@ -326,6 +330,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
           "-"
       }
       s"${sign}i${x.abs.render}"
+    case _ =>
+      throw ComplexException(s"showImaginary: polar = $polar, branch = $branch, n = $n")
   }
 
   /**

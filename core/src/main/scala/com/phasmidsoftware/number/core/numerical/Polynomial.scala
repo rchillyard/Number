@@ -71,7 +71,7 @@ trait Polynomial[X] extends (X => X) {
     */
   def derivative: Polynomial[X] = {
     val xs = coefficients.zipWithIndex map { case (x, i) => numeric.times(x, numeric.fromInt(i)) }
-    unit(this.degree - 1, xs.drop(1))(numeric)
+    unit(this.degree - 1, xs.drop(1))(using numeric)
   }
 
   /**
@@ -125,7 +125,7 @@ case class NumberPolynomial(degree: Int, coefficients: Seq[Number])(implicit ev:
     * @return a new Polynomial instance of type X constructed with the specified degree and coefficients
     */
   def unit(degree: Int, coefficients: Seq[Number])(implicit xn: Numeric[Number]): Polynomial[Number] =
-    copy(degree = degree, coefficients = coefficients)(xn)
+    copy(degree = degree, coefficients = coefficients)(using xn)
 
   /**
     * Retrieves the implicit Numeric instance associated with the polynomial.
@@ -139,7 +139,7 @@ case class NumberPolynomial(degree: Int, coefficients: Seq[Number])(implicit ev:
 
 object NumberPolynomial {
   def apply(coefficients: Number*)(implicit ev: Numeric[Number]): NumberPolynomial =
-    new NumberPolynomial(coefficients.size - 1, coefficients)(ev)
+    new NumberPolynomial(coefficients.size - 1, coefficients)(using ev)
 }
 
 /**
@@ -160,7 +160,7 @@ case class RationalPolynomial(degree: Int, coefficients: Seq[Rational])(implicit
     * @return a new Polynomial instance of type X constructed with the specified degree and coefficients
     */
   def unit(degree: Int, coefficients: Seq[Rational])(implicit xn: Numeric[Rational]): Polynomial[Rational] =
-    copy(degree = degree, coefficients = coefficients)(xn)
+    copy(degree = degree, coefficients = coefficients)(using xn)
 
   /**
     * Retrieves the implicit Numeric instance associated with the polynomial.
@@ -174,5 +174,5 @@ case class RationalPolynomial(degree: Int, coefficients: Seq[Rational])(implicit
 
 object RationalPolynomial {
   def apply(coefficients: Rational*)(implicit ev: Numeric[Rational]): RationalPolynomial =
-    new RationalPolynomial(coefficients.size - 1, coefficients)(ev)
+    new RationalPolynomial(coefficients.size - 1, coefficients)(using ev)
 }

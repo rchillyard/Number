@@ -66,8 +66,6 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
         normalized <- fuzz.normalize(x, relative = false)
       } yield normalized
       FuzzyNumber(value, factor, relativeFuzz)
-    case x =>
-      x
   }
 
   /**
@@ -334,6 +332,8 @@ object FuzzyNumber {
           case (_, _) =>
             p `doAdd` q
         }
+      case (number, number1) =>
+        throw CoreException(s"cannot add $number and $number1")
     }
 
   /**
@@ -379,6 +379,8 @@ object FuzzyNumber {
           case (_, _) =>
             p `doMultiply` q
         }
+      case (_, _) =>
+        throw CoreException(s"cannot multiply $x and $y")
     }
 
   /**
@@ -392,8 +394,6 @@ object FuzzyNumber {
     (n.nominalValue, n.fuzz) match {
       case (v, fo) =>
         addFuzz(n, v, fo, f)
-      case _ =>
-        n
     }
 
   /**
