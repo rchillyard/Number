@@ -10,15 +10,14 @@ import com.phasmidsoftware.number.algebra.core.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.core.{FuzzyEq, Valuable}
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
-import com.phasmidsoftware.number.core.inner.{NatLog, Rational, SquareRoot}
+import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, ExactNumber, Real}
+import com.phasmidsoftware.number.core.numerical.{ComplexPolar, ExactNumber, Real}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number.expression.expr.Root.phi
-import com.phasmidsoftware.number.expression.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -52,16 +51,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO #Issue 149 this has to do with imaginary numbers
   it should "evaluate i * 2" in {
-    val x: Expression = ConstI * 2
-    val result: Option[Valuable] = x.evaluateAsIs
+//    val x: Expression = ConstI * 2
+//    val result: Option[Valuable] = x.evaluateAsIs
 //    result.isDefined shouldBe true
-    val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
+//    val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
 //    result.get shouldBe expected
     pending
   }
 
   behavior of "parse"
-  private val syp: ShuntingYardParser.type = ShuntingYardParser
+//  private val syp: ShuntingYardParser.type = ShuntingYardParser
   //  it should "parse 1" in {
   //    syp.parseInfix("1") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
   //    syp.parseInfix("(1)") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
@@ -202,7 +201,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #150
   it should "evaluate sqrt 36" in {
-    val x: Expression = Expression(36).sqrt
+//    val x: Expression = Expression(36).sqrt
 //    x.materialize shouldEqual ±(6)
     pending
   }
@@ -329,15 +328,15 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "Euler"
   // TODO Issue #151
   it should "prove Euler's identity 1" in {
-    val iPi = ComplexCartesian(0, numerical.Number.pi)
-    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+//    val iPi = ComplexCartesian(0, numerical.Number.pi)
+//    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
 //    euler.materialize shouldBe Eager.minusOne
     pending
   }
   // TODO Issue #151
   it should "prove Euler's identity 2" in {
-    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
-    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+//    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
+//    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
 //    euler.materialize shouldBe Eager.minusOne
     pending
   }

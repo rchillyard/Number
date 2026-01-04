@@ -159,7 +159,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "handle Sum" in {
     import BiFunction.*
     val p = Expression.matchSimpler
-    val x: Expression = Eager.pi
     p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
     p(Sum ~ Two ~ Two) shouldBe em.Match(ValueExpression(4))
@@ -542,7 +541,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   behavior of "simplify rather than matchSimpler"
   it should "matchSimpler 1" in {
     import BiFunction.*
-    val p = Expression.matchSimpler
     val x: Expression = Eager.pi
     (Sum ~ x ~ Zero).simplify shouldBe x
     (Sum ~ Zero ~ x).simplify shouldBe x
@@ -554,7 +552,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "simplifyTrivial 1" in {
     import BiFunction.*
-    val p = Expression.simplifyTrivial
     val x: Expression = Eager.pi
     (Sum ~ x ~ Zero).simplify shouldBe x
     (Sum ~ Zero ~ x).simplify shouldBe x
@@ -566,8 +563,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "handle Sum" in {
     import BiFunction.*
-    val p = Expression.matchSimpler
-    val x: Expression = Eager.pi
     (Sum ~ Two ~ Zero).simplify shouldBe Two
     (Sum ~ Zero ~ Two).simplify shouldBe Two
     (Sum ~ Two ~ Two).simplify shouldBe ValueExpression(4)
@@ -576,7 +571,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "handle Product" in {
     import BiFunction.*
-    val p = Expression.matchSimpler
     (Product ~ One ~ Zero).simplify shouldBe Zero
     (Product ~ Zero ~ One).simplify shouldBe Zero
     (Product ~ Two ~ One).simplify shouldBe Two
@@ -586,7 +580,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "handle Power" in {
     import BiFunction.*
-    val p = Expression.matchSimpler
     (Power ~ Two ~ Zero).simplify shouldBe One
     (Power ~ Two ~ One).simplify shouldBe Two
     (Power ~ One ~ Two).simplify shouldBe One
@@ -594,15 +587,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "cancel -1 and - 1" in {
     import BiFunction.*
-    val p = Expression.matchSimpler
     sb.append("cancel -1 and - 1:\n")
     val x: Expression = Expression.one
     val y = Expression.minusOne
-    val result = (Sum ~ y ~ x).simplify shouldBe Zero
+    (Sum ~ y ~ x).simplify shouldBe Zero
   }
   it should "cancel multiplication and division" in {
     import BiFunction.*
-    val p = Expression.matchSimpler
+    //    val p = Expression.matchSimpler
     val x = Literal(Eager.pi) :* 2
     val y = One / 2
     val result = (Product ~ x ~ y).simplify
@@ -1082,7 +1074,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "handle Power 2" in {
     import BiFunction.*
-    val p = Expression.matchSimpler
+//    val p = Expression.matchSimpler
     (Power ~ Literal(Eager.root2) ~ Two).simplify shouldBe Two
   }
   it should "cancel multiplication and division" in {
@@ -1168,7 +1160,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   it should "simplify (√3 :+ 1)(√3 - 1) as 2 exactly" in {
-    val em = eml // Ln this unit test
+    //    val em = eml // Ln this unit test
     // Expect matches:
     // matchTwoDyadicTripleLevels: Match: *~+~{3 ^ (2 ^ -1)}~1~+~{3 ^ (2 ^ -1)}~(1 * -1)
     // matchTwoDyadicTripleLevels: Match: *~^~3~(2 ^ -1)~^~3~(2 ^ -1)
@@ -1530,7 +1522,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify root3 * 2 / 2" in {
     import BiFunction.*
     val p = Expression.matchSimpler
-    val root3: Expression = Expression(3).sqrt.simplify
+    //    val root3: Expression = Expression(3).sqrt.simplify
     val x: Expression = root3Expression * Eager.two
     val y: Expression = Expression(Eager.two).reciprocal
     (x * y).materialize shouldBe Eager.root3  // this does all simplification
@@ -1572,11 +1564,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 //    result.successful shouldBe true
 //    result shouldBe em.Match(Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power))))
     val e = result.get
-    val actual = p(e)
+//    val actual = p(e)
 //    actual.successful shouldBe true
     // NOTE it's not trivially easy to arrange for this and it's not really that necessary, either. So let's be happy!
-    val idealExpectedExpression = BiFunction(ConstPi ∧ 2, MinusOne, Sum)
-    val interimExpectedExpression = Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power)))
+//    val idealExpectedExpression = BiFunction(ConstPi ∧ 2, MinusOne, Sum)
+//    val interimExpectedExpression = Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power)))
 //    actual.get shouldBe interimExpectedExpression
     pending
   }

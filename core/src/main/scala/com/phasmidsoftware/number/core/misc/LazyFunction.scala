@@ -92,7 +92,7 @@ case class Product[X: Numeric](y: X) extends Known[X](s"times $y") {
 
 case class ExpDifferentiable[X]()(ev: FuzzyIsFractional) extends KnownDifferentiableFunction[X](
   s"exp",
-  Exp[X]()(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]]),
+  Exp[X]()(using implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]]),
   x => math.exp(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]].toDouble(x))
 )
 

@@ -21,15 +21,14 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   def squ(x: Fuzzy): Fuzzy = x match {
     case f: FuzzyBase => f * x
-    case _ => throw new Exception("Logic error")
   }
 
   private val fuzzSquare = Named[Fuzzy]("square", squ)
   //noinspection ScalaUnusedSymbol
   private val fuzz4 = fuzz2 `map` fuzzSquare
-  private val fuzzy = Exact(1)
+//  private val fuzzy = Exact(1)
   //noinspection ScalaUnusedSymbol
-  private val p = fuzzy * fuzzy
+//  private val p = fuzzy * fuzzy
 
   "fuzz1" should "be 1" in {
     fuzz1.get shouldBe Fuzzy.one
@@ -78,7 +77,7 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
   // Fails on CircleCI
   it should "work" taggedAs Slow in {
     val p = fuzz1.map(ExpDifferentiable[Fuzzy]()(Fuzzy.FuzzyNumeric))
-    val z = p.get
+//    val z = p.get
 //    z should be(2.718281828459045)
     p.get shouldBe Exact(2.7182818284590455)
   }

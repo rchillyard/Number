@@ -178,7 +178,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     lazymath"\rec{${e.render}}" shouldBe Infinity
   }
   it should "work for Reciprocal One" in {
-    val x = expr.UniFunction(One, Reciprocal)
+//    val x = expr.UniFunction(One, Reciprocal)
     lazymath"1/1" shouldBe One
   }
   it should "work for Reciprocal Two" in {
