@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.*
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.expression.algebraic.{Equation, LinearEquation, QuadraticEquation}
 import com.phasmidsoftware.number.expression.expr.Expression.em
@@ -105,9 +105,8 @@ sealed trait Root extends AtomicExpression with Branched[Root] {
     *
     * @param plus a boolean value that determines which square root (positive or negative root) to compute:
     *             if true, compute the positive root; if false, compute the negative root.
-    *
     * @return an `Expression` representing the computed square root of the current `Expression`.
-    * @throws ExpressionException if the square root computation is not supported for the current `Expression`.
+    * @note Throws ExpressionException if the square root computation is not supported for the current `Expression`.
     */
   def squareRoot(plus: Boolean): Expression
 
@@ -320,9 +319,8 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @param plus a boolean value that determines which square root (positive or negative root) to compute:
     *             if true, compute the positive root; if false, compute the negative root.
-    *
     * @return an `Expression` representing the computed square root of the current `Expression`.
-    * @throws ExpressionException if the square root computation is not supported for the current `Expression`.
+    * @note Throws ExpressionException if the square root computation is not supported for the current `Expression`.
     */
   def squareRoot(plus: Boolean): Expression = equation match {
     case QuadraticEquation(p, q) =>
@@ -491,7 +489,7 @@ object QuadraticRoot {
       case QuadraticSolution(base: Q, offset: Q, branch, false) =>
         QuadraticRoot(QuadraticEquation(base.toRational * -2, (base.toRational ∧ 2) - offset.toRational), branch)
       case _ =>
-        throw AlgebraException(s"apply($solution) is not supported")
+        throw ExpressionException(s"apply($solution) is not supported")
     }
   }
 

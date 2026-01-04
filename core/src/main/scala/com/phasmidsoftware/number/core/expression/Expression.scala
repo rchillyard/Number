@@ -367,7 +367,7 @@ object Expression {
     *
     * @param expr the `com.phasmidsoftware.number.mill.Expression` to be converted
     * @return an `Expression` instance representing the equivalent form of the input
-    * @throws ExpressionException if an unknown operator is encountered during conversion
+    * @note Throws ExpressionException if an unknown operator is encountered during conversion
     */
   def convertMillExpressionToExpression(expr: CoreMillExpression): Expression =
     expr match {

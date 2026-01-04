@@ -384,10 +384,10 @@ object RationalNumber {
     * into a `RationalNumber`, an `AlgebraException` is thrown describing 
     * the failure.
     *
-    * @param witness a `RationalNumber` template object used as a reference during the conversion
-    * @param u       the `Real` object to be converted into a `RationalNumber`
     * @return a `RationalNumber` instance that is equivalent to the provided `Real`,
     *         if the conversion is successful
+    *
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion fails.
     */
   given Convertible[RationalNumber, Real] with
     def convert(witness: RationalNumber, u: Real): RationalNumber =

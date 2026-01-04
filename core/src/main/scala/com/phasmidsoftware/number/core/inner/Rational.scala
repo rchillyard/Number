@@ -409,7 +409,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * If the Rational number represents infinity, an exception is thrown.
     *
     * @return A BigDecimal representing the Rational number.
-    * @throws RationalException if the Rational number is infinity.
+    * @note Throws RationalException if the Rational number is infinity.
     */
   def forceToBigDecimal: BigDecimal =
     if (!isInfinity)
@@ -841,7 +841,7 @@ object Rational {
     * @param x       the value to approximate (should be between 0 and 1).
     * @param epsilon (implicit) the tolerance.
     * @return a Rational such that the difference between the result and x is less than epsilon.
-    * @throws java.lang.IllegalArgumentException if x is not between 0 and 1.
+    * @note Throws java.lang.IllegalArgumentException if x is not between 0 and 1.
     */
   def approximate(x: Double)(implicit epsilon: Tolerance): Rational = {
     require(x >= 0 && x <= 1, "Call convertDouble instead of approximate")
@@ -910,7 +910,7 @@ object Rational {
     *
     * @param x the value.
     * @return a Rational equal to or approximately equal to x.
-    * @throws java.util.NoSuchElementException because we invoke get on an Option[Rational].
+    * @note Throws java.util.NoSuchElementException because we invoke get on an Option[Rational].
     */
   def convertDouble(x: Double): Rational =
     recover(createExact(x))
@@ -1182,7 +1182,7 @@ object Rational {
     *
     * @param x the BigDecimal to convert.
     * @return a Rational which is equal to x.
-    * @throws RationalException if x cannot be represented as a Rational.
+    * @note Throws RationalException if x cannot be represented as a Rational.
     */
   def apply(x: BigDecimal): Rational =
     if (x.scale >= 0) {
@@ -1208,7 +1208,7 @@ object Rational {
     *
     * @param w the String value.
     * @return a Rational corresponding to the value given by w.
-    * @throws RationalParserException if w is malformed.
+    * @note Throws RationalParserException if w is malformed.
     */
   def apply(w: String): Rational =
     toTry(VulgarFraction(w), Failure(new NoSuchElementException)).orElse(parse(w)) match {
@@ -1301,7 +1301,7 @@ object Rational {
     * @param top    the expected numerator of the ratio
     * @param bottom the expected denominator of the ratio
     * @return true if the Rational number has the correct ratio, false otherwise
-    * @throws RationalException if the ratio is incorrect
+    * @note Throws RationalException if the ratio is incorrect
     */// CONSIDER making this private or moving back into RationalSpec
   def hasCorrectRatio(r: Rational, top: BigInt, bottom: BigInt): Boolean = {
     val _a = r * bottom

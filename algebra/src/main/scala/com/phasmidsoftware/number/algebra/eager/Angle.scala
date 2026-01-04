@@ -50,8 +50,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * CONSIDER we lose information regarding degrees here (perhaps fix that?)
     *
-    * An exception is thrown if the input type is not recognized.
-    *
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input type is not recognized.
     * @return a new instance of `Angle` representing the normalized value
     */
   def normalize: Angle = number.normalize match {
@@ -414,7 +413,7 @@ object Angle {
     *          rational number, or real number. Passing an existing `Angle` or unsupported type
     *          results in an exception.
     * @return an `Angle` instance corresponding to the input `Monotone` value
-    * @throws AlgebraException if the input is already an `Angle` or is of an unsupported type
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is already an `Angle` or is of an unsupported type
     */
   def create(s: Monotone): Angle = s match {
     case number: WholeNumber =>

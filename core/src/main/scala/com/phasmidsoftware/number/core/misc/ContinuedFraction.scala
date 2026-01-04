@@ -65,7 +65,7 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     * NOTE: this is never currently used.
     *
     * @return the coefficients in reverse order
-    * @throws ConFracException if cf is infinite.
+    * @note Throws ConFracException if cf is infinite.
     */
   def reverseCoefficients: LazyList[Pair] =
     if (!infinite)
@@ -517,7 +517,7 @@ object ConFrac {
     * @param cf        a ConFrac.
     * @param r         a Rational.
     * @return a newly constructed ConFrac.
-    * @throws ConFracException if the predicate never fails (typically implies that cf is too short for the required precision).
+    * @note Throws ConFracException if the predicate never fails (typically implies that cf is too short for the required precision).
     */
   private def innerTakeWhile(predicate: Rational => Boolean, cf: ConFrac, r: Rational): ConFrac =
     cf.tailOption match {

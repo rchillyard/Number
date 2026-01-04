@@ -50,6 +50,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     * Converts this instance to its corresponding integer representation.
     *
     * @return the integer value corresponding to this instance
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion is not possible.
     */
   def toInt: Int =
     FP.recover(toIntOption(toRational))(AlgebraException("WholeNumber.toInt: cannot convert $this to Int"))
@@ -331,9 +332,7 @@ object WholeNumber {
     * - It is marked as exact.
     * - Its numerical value can be expressed as an integer.
     *
-    * @param witness a representative instance of `WholeNumber` used optionally for the conversion process.
-    * @param u       the `Real` value to be converted into a `WholeNumber`.
-    * @throws AlgebraException if the input `Real` cannot be converted to a `WholeNumber`.
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input `Real` cannot be converted to a `WholeNumber`.
     * @return a `WholeNumber` instance representing the converted value.
     */
   given Convertible[WholeNumber, Real] with

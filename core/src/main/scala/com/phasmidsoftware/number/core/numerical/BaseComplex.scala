@@ -686,8 +686,9 @@ object ComplexCartesian {
     *
     * @param number the imaginary part represented as a Number instance. It must meet specific
     *               criteria (e.g., be associated with SquareRoot and have a negative value).
+    *
     * @return a Complex number in Cartesian form with a real part of zero and the provided imaginary part.
-    * @throws ComplexException if the given number does not satisfy the required logic.
+    * @note Throws ComplexException if the given number does not satisfy the required logic.
     */
   def fromImaginary(number: Number): Complex = number match {
     case Number(v, SquareRoot) if Value.signum(v) < 0 =>
@@ -907,7 +908,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @param complex the other Complex to multiply with.
     * @return the product as a Complex.
-    * @throws ComplexException if the given Complex is not a ComplexPolar instance.
+    * @note Throws ComplexException if the given Complex is not a ComplexPolar instance.
     */
   def doMultiply(complex: Complex): Complex = complex match {
     case ComplexPolar(a, b, _) =>
@@ -1017,7 +1018,7 @@ object ComplexPolar {
     * @param theta the angle of the ComplexPolar object, represented as a Number in radians
     * @param n     the root count, specifying the number of branches; typically an integer greater than or equal to 1
     * @return a ComplexPolar object with the specified magnitude, angle (modulated if necessary), and root count
-    * @throws CoreException if the provided angle does not match the expected format or type
+    * @note Throws CoreException if the provided angle does not match the expected format or type
     */
   def apply(r: Number, theta: Number, n: Int): ComplexPolar = theta match {
     case ExactNumber(x, Radian) if Value.signum(x) == 0 =>

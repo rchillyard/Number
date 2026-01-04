@@ -473,7 +473,7 @@ object Prime {
     *
     * @param p a positive BigInt.
     * @return a Prime whose value may or may not be a Prime number.
-    * @throws PrimeException if n is not positive.
+    * @note Throws PrimeException if n is not positive.
     */
   def apply(p: BigInt): Prime = if (p > 0) new Prime(p) else throw PrimeException(s"prime must be positive ($p)")
 
@@ -675,9 +675,8 @@ object Primes {
     *
     * @param f the predicate function applied to candidate primes. 
     *          Only primes for which this function returns `true` will be included in the result.
-    *
     * @return a finite list of primes that satisfy the given predicate.
-    * @throws PrimeException if the predicate results in an infinite list of primes.
+    * @note Throws PrimeException if the predicate results in an infinite list of primes.
     */
   def probablePrimes(f: Prime => Boolean): List[Prime] = {
     val result = probablePrimesLazy(f)

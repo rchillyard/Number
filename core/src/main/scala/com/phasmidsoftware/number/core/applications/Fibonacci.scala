@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.expression.{Expression, Root}
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.inner.Value.maybeRational
-import com.phasmidsoftware.number.core.numerical._
+import com.phasmidsoftware.number.core.numerical.*
 
 /**
   * Provides utilities and methods for working with the Fibonacci sequence, leveraging
@@ -42,7 +42,7 @@ object Fibonacci {
     *
     * @param n the index of the Fibonacci sequence (must be a non-negative integer).
     * @return the nth Fibonacci number as a BigInt.
-    * @throws java.lang.IllegalArgumentException if the result cannot be computed as an exact BigInt.
+    * @note Throws java.lang.IllegalArgumentException if the result cannot be computed as an exact BigInt.
     */
   def fib(n: Int): BigInt = {
     val expression = fibExpression(n)

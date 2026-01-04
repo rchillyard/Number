@@ -211,7 +211,7 @@ object LaTeXParser {
     * - "rec": Represents the reciprocal function.
     * - "neg": Represents the negation function.
     *
-    * @throws LaTeXParserException if the function name is not recognized.
+    * @note Throws LaTeXParserException if the function name is not recognized.
     */
   private val tupleToFunctionExpression: ((String, MathExpr)) => MathExpr = {
     case ("sin", arg) =>

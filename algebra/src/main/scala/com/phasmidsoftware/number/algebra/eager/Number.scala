@@ -61,7 +61,7 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     *
     * @param other the `Number` instance to add to this instance
     * @return a `Number` instance representing the sum of this instance and the provided `other` instance
-    * @throws AlgebraException if the addition cannot be performed due to unsupported or invalid type combinations
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the addition cannot be performed due to unsupported or invalid type combinations
     */
   def +(other: Number): Number = (this, other) match {
     case (a: WholeNumber, b: WholeNumber) =>
@@ -97,13 +97,15 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     *
     * This method matches the type of the input `Scalar` and performs a comparison based on its type. If the input is a `Number`,
     * it delegates to the `compare(Number)` method. If the input is a `Radians`, it first attempts to convert the `Radians`
-    * into a comparable value and then performs the comparison. If the conversion is not possible, it throws a `AlgebraException`.
+    * into a comparable value and then performs the comparison.
     *
     * @param that the `Scalar` instance to compare the current instance against.
     * @return an integer value:
     *         - a negative value if the current instance is less than `that`.
     *         - zero if the current instance is equal to `that`.
     *         - a positive value if the current instance is greater than `that`.
+    *
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion to a comparable value is not possible
     */
   def compare(that: Scalar): Int = that match {
     case number: Number =>
@@ -129,6 +131,8 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     *         - a negative value if this `Number` is lower than `that`
     *         - zero if this `Number` is equal to `that`
     *         - a positive value if this `Number` is greater than `that`
+    *
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the comparison cannot be performed due to invalid approximation logic
     */
   def compare(that: Number): Int =
     if isExact && that.isExact then // XXX both are exact
@@ -427,7 +431,7 @@ object Number {
       * @param x the first `Number` instance
       * @param y the second `Number` instance
       * @return a `Number` instance representing the result of the addition of `x` and `y`
-      * @throws AlgebraException if the types of `x` and `y` cannot be added
+      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the types of `x` and `y` cannot be added
       */
     @tailrec
     def plus(x: Number, y: Number): Number = (x, y) match {
@@ -436,15 +440,15 @@ object Number {
       case (a, b: Real) =>
         plus(y, x)
       case (a: Real, b) =>
-        b.convert(Real.zero).map(bAsReal => realIsRing.plus(a, bAsReal))
-            .getOrElse(throw AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
+        FP.recover(b.convert(Real.zero).map(bAsReal => realIsRing.plus(a, bAsReal)))
+            (throw AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
       case (a: RationalNumber, b: RationalNumber) =>
         rationalNumberIsField.plus(a, b)
       case (a, b: RationalNumber) =>
         plus(y, x)
       case (a: RationalNumber, b) =>
-        b.convert(RationalNumber.zero).map(bAsRational => rationalNumberIsField.plus(a, bAsRational))
-            .getOrElse(throw AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
+        FP.recover(b.convert(RationalNumber.zero).map(bAsRational => rationalNumberIsField.plus(a, bAsRational)))
+            (throw AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
       case (a: WholeNumber, b: WholeNumber) =>
         WholeNumberIsCommutativeRing.plus(a, b)
       case (a, b: WholeNumber) =>
@@ -485,7 +489,7 @@ object Number {
       * @param x the first `Number` to be multiplied
       * @param y the second `Number` to be multiplied
       * @return the result of multiplying `x` and `y` as a `Number`
-      * @throws AlgebraException if the multiplication is not possible for the given inputs
+      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the multiplication is not possible for the given inputs
       */
     @tailrec
     def times(x: Number, y: Number): Number = (x, y) match {
@@ -509,6 +513,17 @@ object Number {
         throw AlgebraException("Number.times: logic error: cannot multiply " + x + " and " + y)
     }
 
+    /**
+      * Divides one `Number` by another and returns the resulting `Number`.
+      *
+      * This method performs safe division for different types of `Number` instances, such as `Real`. 
+      * If the divisor is zero or an unsupported type is encountered, an exception is thrown.
+      *
+      * @param x the numerator as a `Number`
+      * @param y the denominator as a `Number`
+      * @return the result of dividing `x` by `y` as a `Number`
+      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if division by zero occurs or if the operation cannot be performed
+      */
     def div(x: Number, y: Number): Number = (x, y) match {
       case (a: Real, b: Real) =>
         realIsRing.div(a, b)

@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.core.inner.Rational.pi_5000
 class RationalFuncSpec extends flatspec.AnyFlatSpec with should.Matchers with PrivateMethodTester {
 
   behavior of "renderApproximate"
-  // TODO the following works but is very slow.
+  // NOTE the following works but is very slow.
   it should "work with one parameter (pi)" taggedAs Slow in {
     pi_5000.renderApproximate(2) shouldBe " 3"
     pi_5000.renderApproximate(3) shouldBe "3.1"
@@ -24,7 +24,7 @@ class RationalFuncSpec extends flatspec.AnyFlatSpec with should.Matchers with Pr
     pi_5000.renderApproximate(9) shouldBe "3.1415927"
     pi_5000.renderApproximate(10) shouldBe "3.14159265"
   }
-  // TODO the following works but is very slow.
+  // NOTE the following works but is very slow.
   it should "work with two parameters (pi)" taggedAs Slow in {
     pi_5000.renderApproximate(2, Some(0)) shouldBe " 3"
     pi_5000.renderApproximate(3, Some(1)) shouldBe "3.1"

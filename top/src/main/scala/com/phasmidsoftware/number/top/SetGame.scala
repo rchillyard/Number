@@ -21,24 +21,6 @@ import scala.util.Random
 class SetGame(random: Random = new Random) {
 
   /**
-    * Generates a complete deck of cards for the game of Set.
-    * The deck contains all possible combinations of the four attributes:
-    * number, shape, color, and shading. Each attribute has three possible
-    * values, resulting in a total of 81 distinct cards in the deck.
-    *
-    * Combines every value from the `Number`, `Shape`, `Color`, and `Shading` enumerations
-    * to create individual `Card` objects with all unique configurations.
-    *
-    * @return A sequence of 81 unique `Card` objects representing the full deck.
-    */
-  val allCards: Seq[Card] = for {
-    number <- Number.values
-    shape <- Shape.values
-    color <- Color.values
-    shading <- Shading.values
-  } yield Card(number, shape, color, shading)
-
-  /**
     * Deals a random selection of 12 cards from the full deck.
     * The method shuffles the complete sequence of cards and selects
     * the first 12 cards in the newly randomized order.
@@ -46,7 +28,7 @@ class SetGame(random: Random = new Random) {
     *
     * @return A sequence of 12 randomly selected `Card` objects.
     */
-  def dozen: Seq[Card] = random.shuffle(allCards).take(12)
+  def dozen: Seq[Card] = random.shuffle(fullDeck).take(12)
 
   /**
     * Identifies all possible valid sets from a given sequence of cards.
@@ -66,12 +48,23 @@ class SetGame(random: Random = new Random) {
       j <- Range(i + 1, cards.size)
       k <- Range(j + 1, cards.size)
     } yield Set(Seq(cards(i), cards(j), cards(k)))).filter(_.isSet)
+
+  /**
+    * Generates a full deck of 81 unique cards for the game of Set.
+    */
+  val fullDeck: Seq[Card] = for {
+    number <- Number.values.toSeq
+    shape <- Shape.values.toSeq
+    color <- Color.values.toSeq
+    shading <- Shading.values.toSeq
+  } yield Card(number, shape, color, shading)
 }
 
 @main
 def main(args: String *): Unit = {
   val game = new SetGame
-  println(s"There are ${game.allCards.size} card in all: ${game.allCards.mkString(", ")}")
+  val allCards = game.fullDeck
+  println(s"There are ${allCards.size} card in all: ${allCards.mkString(", ")}")
   val sets = game.sets(game.dozen)
   println(s"There are ${sets.size} possible sets: ${sets.mkString(", ")}")
 }

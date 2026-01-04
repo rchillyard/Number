@@ -41,7 +41,7 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
     * If the instance is not already an `Eager`, an `AlgebraException` is thrown.
     *
     * @return the current instance as an `Eager`
-    * @throws AlgebraException if the instance is not of type `Eager`
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Eager`
     */
   def asEager: Eager = this match
     case e: Eager => e
@@ -52,7 +52,7 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
     * If the instance is not a `Monotone`, an `AlgebraException` is thrown.
     *
     * @return the current instance as a `Monotone`
-    * @throws AlgebraException if the instance is not of type `Monotone`
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Monotone`
     */
   def asMonotone: Monotone = this match
     case m: Monotone => m
@@ -179,9 +179,9 @@ object Valuable {
     *
     * @param v the `Valuable` instance to be converted into a `Field`.
     *          This is expected to represent a numerical value.
-    *
     * @return the `Field` representation of the input `Valuable`.
-    *         If conversion is not possible, a `AlgebraException` is thrown.
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]]
+    *       If conversion is not possible.
     */
   def valuableToField(v: Valuable): Field =
     FP.recover(valuableToMaybeField(v))(AlgebraException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field"))
@@ -266,8 +266,7 @@ object Valuable {
     *
     * @param number the `Number` to be converted into a `Field`. It can represent different
     *               numerical types such as RationalNumber, algebra.Real, or WholeNumber.
-    *
-    * @throws AlgebraException if the input `Number` cannot be converted into a `Field`.
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input `Number` cannot be converted into a `Field`.
     */
   private def numberToField(number: Number) = number match {
     case RationalNumber(r, _) =>

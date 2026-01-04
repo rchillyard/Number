@@ -89,7 +89,7 @@ trait Eager extends Valuable with Zeroable with Approximate with DyadicOps {
 
   /**
     * Compares two instances of `Eager` and determines their relative ordering.
-    * This method is not yet implemented and will raise an `AlgebraException` if called.
+    * This method is not yet implemented and will raise an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called.
     *
     * @param x the first `Eager` instance to compare
     * @param y the second `Eager` instance to compare
@@ -149,7 +149,7 @@ object Eager {
     *
     * @param str the input string representing a numerical value.
     * @return a `Valuable` representation of the parsed `Number`.
-    * @throws CoreExceptionWithCause if parsing the string fails.
+    * @note Throws CoreExceptionWithCause if parsing the string fails.
     */
   def apply(str: String): Eager =
     NumberParser.parseNumber(str) match {
@@ -174,9 +174,8 @@ object Eager {
     *
     * @param field the input field to be converted into a `Valuable`. It is expected
     *              to be of type `com.phasmidsoftware.number.core.Real`.
-    *
     * @return a `Valuable` representation of the input `Field` as a `Scalar`.
-    * @throws IllegalArgumentException if the provided `Field` is not of type `Real`.
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the provided `Field` is not of type `Real`.
     */
   def apply(field: numerical.Field): Eager =
     field match {
@@ -213,7 +212,7 @@ object Eager {
     * @param value  the input value of type `inner.Value` to be converted into a `Monotone`.
     * @param factor the input factor of type `inner.Factor` used for the conversion process.
     * @return a `Monotone` instance representing the input value and factor.
-    * @throws AlgebraException if the conversion yields an unexpected result.
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion yields an unexpected result.
     */
   private def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
     Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {

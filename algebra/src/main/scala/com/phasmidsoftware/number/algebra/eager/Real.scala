@@ -233,6 +233,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *         - a negative value if this `Number` is less than `that`
     *         - zero if this `Number` is equal to `that`
     *         - a positive value if this `Number` is greater than `that`
+    *
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the comparison logic is invalid.
     */
   override def compare(that: Number): Int = that match {
     case r: Real =>

@@ -1189,7 +1189,7 @@ object Aggregate {
     * @param function the binary function used to compose the `Aggregate`.
     * @param xs       a sequence of `Expression` objects to be aggregated.
     * @return an `Aggregate` instance composed of the binary function and the sequence of expressions.
-    * @throws java.lang.IllegalArgumentException if the sequence of expressions is empty.
+    * @note Throws java.lang.IllegalArgumentException if the sequence of expressions is empty.
     */
   def create(function: ExpressionBiFunction, xs: Seq[Expression]): expression.expr.Aggregate =
     if xs.nonEmpty then

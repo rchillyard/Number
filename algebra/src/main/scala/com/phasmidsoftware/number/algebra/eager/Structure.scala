@@ -56,6 +56,22 @@ trait Structure extends Eager {
       s.convert(Real.zero).flatMap(x => x.asJavaNumber)
   }
 
+  /**
+    * Performs a fuzzy equality comparison between the current `Structure` instance and another `Eager` instance.
+    * The comparison is based on a specified tolerance level.
+    *
+    * If both instances are of type `Structure`, this method attempts to convert them to `Real`
+    * and performs a fuzzy equality check with the specified tolerance. If the conversion or comparison fails,
+    * a failure with an appropriate `AlgebraException` is returned.
+    *
+    * If either of the instances is not of type `Structure`, a failure with an `AlgebraException` is returned.
+    *
+    * @param p    the tolerance level (as a `Double`) to be used for the fuzzy equality comparison.
+    * @param that the `Eager` instance to compare against the current instance.
+    * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equal within the specified tolerance.
+    *         Returns a `Success(true)` or `Success(false)` if the comparison completes successfully,
+    *         or a `Failure(AlgebraException)` if an error occurs.
+    */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Structure, b: Structure) =>
       FP.toTry(for {
@@ -73,8 +89,21 @@ trait Structure extends Eager {
   * to facilitate operations on `Structure` objects.
   */
 object Structure {
-  
-  // CONSIDER do we need this?
+
+  /**
+    * Provides an implicit instance of `DyadicOperator` for the `Structure` type, defining
+    * the behavior for binary operations involving two `Structure` instances or a `Structure`
+    * and its subtype. The operation is performed in a type-safe manner and returns the result
+    * wrapped in a `Try` to handle potential errors.
+    *
+    * The behavior considers specific cases:
+    * - If both operands are of type `Monotone`, the corresponding `DyadicOperator[Monotone]`
+    *   instance is invoked.
+    * - For all other cases, the provided binary operation is applied directly to the operands.
+    *
+    * @return An implicit instance of `DyadicOperator[Structure]`, which includes the `op` method 
+    *         used to define binary operations on `Structure` and its subtypes.
+    */// CONSIDER do we need this?
   given DyadicOperator[Structure] = new DyadicOperator[Structure] {
     def op[B <: Structure, Z](f: (Structure, B) => Try[Z])(x: Structure, y: B): Try[Z] = (x, y) match {
       case (a: Monotone, b: Monotone) =>
@@ -94,7 +123,6 @@ object Structure {
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
-
   /**
     * LatexRenderer for Eager (general case).
     *
@@ -112,7 +140,7 @@ object Structure {
     * @param x the input instance of `Structure` to be cast to the desired type `T`.
     * @tparam T the target subtype of `Structure` to which the input instance will be cast.
     * @return the input instance cast to the type `T` if the cast is valid and successful.
-    * @throws AlgebraException if the input instance cannot be cast to the type `T`.
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input instance cannot be cast to the type `T`.
     */
   def asT[T <: Structure : ClassTag](x: Structure): T = {
     val clazz = summon[ClassTag[T]].runtimeClass

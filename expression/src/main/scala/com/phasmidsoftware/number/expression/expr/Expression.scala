@@ -9,7 +9,7 @@ import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP.recover
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
@@ -467,7 +467,7 @@ object Expression {
     *
     * @param expr The `mill.Expression` to be converted.
     * @return The corresponding `Expression` after applying the transformations.
-    * @throws ExpressionException if an unknown operator is encountered.
+    * @note Throws ExpressionException if an unknown operator is encountered.
     */
   def convertMillExpressionToExpression(expr: mill.Expression): Expression =
     expr match {
@@ -663,7 +663,7 @@ object Expression {
         case uni: UniFunction => summon[LatexRenderer[UniFunction]].toLatex(uni)
         case bi: BiFunction => summon[LatexRenderer[BiFunction]].toLatex(bi)
         // TODO add Aggregate
-        case a: Aggregate => throw AlgebraException(s"LatexRenderer[Expression] for not yet implemented for Aggregate: $a")
+        case a: Aggregate => throw ExpressionException(s"LatexRenderer[Expression] for not yet implemented for Aggregate: $a")
       }
     }
     // Add any other Expression subtypes

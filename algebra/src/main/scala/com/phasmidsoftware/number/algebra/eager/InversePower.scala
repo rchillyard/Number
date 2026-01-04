@@ -107,6 +107,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
     *
     * @return a `Monotone` representing the negation of this instance
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the negation operation is not defined for the current instance
     */
   def negate: Monotone =
     throw AlgebraException(s"InversePower.negate: cannot negate $this")
@@ -504,10 +505,12 @@ object InversePower {
 
     /**
       * Combines two `Root` instances by adding their respective base.
+      * TODO implement this method for InversePower (or eliminate it).
       *
       * @param x the first `Root` to combine
       * @param y the second `Root` to combine
       * @return a new `Root` representing the sum of the base of the two provided `Root` instances
+      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the provided `Root` instances are not of the same type.
       */
     def combine(x: InversePower, y: InversePower): InversePower = (x, y) match {
       case (InversePower(n1, x1: Number), InversePower(n2, x2: Number)) =>
@@ -516,12 +519,14 @@ object InversePower {
 
     /**
       * Computes the additive inverse of the given `Root`.
+      * TODO eliminate this method.
       *
       * This method inverts the input root, returning a `Root` instance
       * that represents its multiplicative inverse, relative to `Root.one`.
       *
       * @param a the `Root` instance to be inverted
       * @return a new `Root` instance representing the multiplicative inverse of the input
+      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the provided `Root` instance is not invertible.
       */
     def inverse(a: InversePower): InversePower =
       throw AlgebraException(s"InversePower.inverse: cannot invert $a")
