@@ -105,8 +105,9 @@ sealed trait Root extends AtomicExpression with Branched[Root] {
     *
     * @param plus a boolean value that determines which square root (positive or negative root) to compute:
     *             if true, compute the positive root; if false, compute the negative root.
+    *
     * @return an `Expression` representing the computed square root of the current `Expression`.
-    * @note Throws ExpressionException if the square root computation is not supported for the current `Expression`.
+    * @note Throws com.phasmidsoftware.number.expression.expr.ExpressionException if the square root computation is not supported for the current `Expression`.
     */
   def squareRoot(plus: Boolean): Expression
 
@@ -319,8 +320,9 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @param plus a boolean value that determines which square root (positive or negative root) to compute:
     *             if true, compute the positive root; if false, compute the negative root.
+    *
     * @return an `Expression` representing the computed square root of the current `Expression`.
-    * @note Throws ExpressionException if the square root computation is not supported for the current `Expression`.
+    * @note Throws com.phasmidsoftware.number.expression.expr.ExpressionException if the square root computation is not supported for the current `Expression`.
     */
   def squareRoot(plus: Boolean): Expression = equation match {
     case QuadraticEquation(p, q) =>

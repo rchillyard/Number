@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.parsenew
+package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Number, RationalNumber}
 import com.phasmidsoftware.number.core.inner.Rational

@@ -1,6 +1,6 @@
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.4.5"
+ThisBuild / version := "1.4.6"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -54,11 +54,26 @@ val scala3TestSettings = Seq(
 // ============================================================================
 
 lazy val root = (project in file("."))
+    .enablePlugins(ScalaUnidocPlugin)
     .aggregate(core, algebra, expression, parse, top)
     .dependsOn(top)
     .settings(
       name := "number",
-      scalaVersion := scalaVersionNumber
+      scalaVersion := scalaVersionNumber,
+      publish / skip := true,  // Don't publish the root aggregator
+
+      // Unidoc settings - create unified scaladoc for all modules
+      ScalaUnidoc / unidoc / unidocProjectFilter :=
+          inProjects(core, algebra, expression, parse, top),
+
+      // Scaladoc options for the unified documentation
+      ScalaUnidoc / unidoc / scalacOptions ++= Seq(
+        "-groups",
+        "-doc-title", "Number - Scala Mathematical Library",
+        "-doc-version", version.value,
+        "-sourcepath", (LocalRootProject / baseDirectory).value.getAbsolutePath,
+        "-doc-root-content", (LocalRootProject / baseDirectory).value + "/rootdoc.txt"
+      )
     )
 lazy val core = (project in file("core"))
     .settings(

@@ -78,7 +78,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   import Expression.ExpressionOps
   import Rational.RationalHelper
-  import com.phasmidsoftware.number.parsenew.ExpressionParser.*
+  import com.phasmidsoftware.number.parse.ExpressionParser.*
 
   behavior of "Noop"
   it should "return Noop" in {

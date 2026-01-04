@@ -1,0 +1,45 @@
+= Number: A Scala Mathematical Library =
+
+Number is a comprehensive Scala 3 library providing exact and fuzzy arithmetic with sophisticated type hierarchies and lazy evaluation.
+
+== Modules ==
+
+The library is organized into five modules:
+
+ - [[com.phasmidsoftware.number.core `core`]]: Core type hierarchy including `Number`, `Eager`, `Structure`, and basic arithmetic operations
+ - [[com.phasmidsoftware.number.algebra `algebra`]]: Algebraic types including `WholeNumber`, `RationalNumber`, `Real`, `Angle`, `Complex`
+ - [[com.phasmidsoftware.number.expression `expression`]]: Expression types for lazy evaluation and symbolic computation
+ - [[com.phasmidsoftware.number.parse `parse`]]: LaTeX expression parsing using FastParse
+ - [[com.phasmidsoftware.number.top `top`]]: Top-level convenience APIs and string interpolators
+
+== Key Concepts ==
+
+=== Exact vs Fuzzy Arithmetic ===
+The library supports both exact computations (for rational and algebraic numbers) and probabilistic fuzzy numbers with uncertainty propagation.
+
+=== Normalization vs Materialization ===
+ - `normalize`: Symbolic simplification to canonical form, may change type to most appropriate representation
+ - `materialize`: Numeric evaluation to approximate values
+
+=== Equality ===
+ - `===`: Exact equality (using Cats Eq typeclass)
+ - `~=`: Fuzzy equality based on probabilistic overlap of uncertainty distributions
+
+== Getting Started ==
+
+{{{
+import com.phasmidsoftware.number._
+
+// Using string interpolators for LaTeX expressions
+val expr = math"2 + 3 * x"
+
+// Exact arithmetic with rationals
+val rational = Rational(22, 7)
+
+// Fuzzy arithmetic with uncertainty
+val fuzzy = Number.create(3.14159, 0.00001)
+}}}
+
+== Integration ==
+
+The library integrates with the Cats ecosystem for typeclass-based abstractions and uses FastParse for parsing LaTeX mathematical expressions with KaTeX rendering support.

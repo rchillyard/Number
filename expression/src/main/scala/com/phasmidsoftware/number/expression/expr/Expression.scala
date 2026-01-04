@@ -467,7 +467,7 @@ object Expression {
     *
     * @param expr The `mill.Expression` to be converted.
     * @return The corresponding `Expression` after applying the transformations.
-    * @note Throws ExpressionException if an unknown operator is encountered.
+    * @note Throws com.phasmidsoftware.number.expression.expr.ExpressionException if an unknown operator is encountered.
     */
   def convertMillExpressionToExpression(expr: mill.Expression): Expression =
     expr match {

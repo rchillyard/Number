@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.parsenew
+package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.algebra.eager.{NatLog, WholeNumber}
 import com.phasmidsoftware.number.expression.expr.*
@@ -14,7 +14,7 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "ExpressionParser"
 
-  import com.phasmidsoftware.number.parsenew.ExpressionParser.*
+  import com.phasmidsoftware.number.parse.ExpressionParser.*
 
   it should "puremath number expressions" in {
     puremath"-1" shouldBe UniFunction(One, Negate)
