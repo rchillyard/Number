@@ -24,6 +24,8 @@
     <option name="workingDirectory" value="$PROJECT_DIR$" />
     <option name="classBuf">
       <list>
+        <option value="com.phasmidsoftware.number.parse.ExpressionParserSpec" />
+        <option value="com.phasmidsoftware.number.parse.LaTeXParserSpec" />
         <option value="com.phasmidsoftware.number.cats.CatsKernelSpec" />
         <option value="com.phasmidsoftware.number.cats.ComplexAlgebraicInstancesSpec" />
         <option value="com.phasmidsoftware.number.cats.ErrorCommutativeMonoidSpec" />
