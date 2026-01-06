@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.{Ellipsis, withinWiggleRoom}
 import com.phasmidsoftware.number.core.numerical.Number.prepareWithSpecialize
+
 import scala.collection.mutable
 
 /**
@@ -66,8 +67,6 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
         normalized <- fuzz.normalize(x, relative = false)
       } yield normalized
       FuzzyNumber(value, factor, relativeFuzz)
-    case x =>
-      x
   }
 
   /**
@@ -334,6 +333,8 @@ object FuzzyNumber {
           case (_, _) =>
             p `doAdd` q
         }
+      case _ =>
+        throw CoreException(s"FuzzyNumber: logic error: cannot add $x and $y")
     }
 
   /**
@@ -379,6 +380,8 @@ object FuzzyNumber {
           case (_, _) =>
             p `doMultiply` q
         }
+      case (_, _) =>
+        throw CoreException(s"FuzzyNumber: logic error: cannot multiply $x by $y")
     }
 
   /**
@@ -392,8 +395,6 @@ object FuzzyNumber {
     (n.nominalValue, n.fuzz) match {
       case (v, fo) =>
         addFuzz(n, v, fo, f)
-      case _ =>
-        n
     }
 
   /**

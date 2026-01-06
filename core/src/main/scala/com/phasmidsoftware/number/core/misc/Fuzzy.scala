@@ -5,10 +5,11 @@
 package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.misc.Fuzzy.parser
-import org.apache.commons.math3.distribution._
+import org.apache.commons.math3.distribution.*
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
-import scala.util._
+import scala.util.*
 
 /**
   * The Fuzzy trait defines a quantity for which there is doubt about its actual value.
@@ -86,10 +87,11 @@ sealed trait Fuzzy {
     x match {
       case f: FuzzyBase =>
         (f - y).prob(0, epsilon) match {
-          case Success(p) => if (p > threshold) 0 else x.get.compare(y.get)
-          case Failure(z) => System.err.println(s"exception thrown in prob method: $z"); 0
+          case Success(p) =>
+            if (p > threshold) 0 else x.get.compare(y.get)
+          case Failure(z) =>
+            System.err.println(s"exception thrown in prob method: $z"); 0
         }
-      case _ => throw new Exception("Logic error: compare")
     }
   }
 }
@@ -143,7 +145,6 @@ abstract class FuzzyBase(nominal: Double, delta: Double, distribution: AbstractR
   //Members declared in scala.math.Fractional
   def div(x: Fuzzy, y: Fuzzy): Fuzzy = x match {
     case f: FuzzyBase => f / y
-    case _ => throw new Exception("Logic error")
   }
 
   // Type definition for Fuzzy

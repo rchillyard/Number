@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.CoreContext.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
+
 import scala.Option.when
 
 /**
@@ -272,8 +273,6 @@ object ExpressionBiFunction {
   def unapply(f: ExpressionBiFunction): Option[((Field, Field) => Field, String, Option[Field], Option[Field])] = f match {
     case e: ExpressionBiFunction =>
       Some((e.f, e.name, e.maybeIdentityL, e.maybeIdentityR))
-    case _ =>
-      None // TESTME
   }
 }
 

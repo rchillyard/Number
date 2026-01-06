@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.inner.Rational.toInts
 import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.GeneralNumber.normalizeRoot
 import com.phasmidsoftware.number.core.numerical.Number.{negate, one, prepareWithSpecialize}
+
 import scala.annotation.tailrec
 import scala.util.*
 
@@ -807,6 +808,7 @@ object GeneralNumber {
                 case None =>
                   times(p.scale(PureNumber), q.scale(PureNumber))
               }
+            // TODO this case can never be reached: fix it.
             case (NthRoot(_), NthRoot(_)) =>
               doTimes(p, q.scale(p.factor), p.factor)
             case _ =>
@@ -992,26 +994,8 @@ object GeneralNumber {
           val (p, q) = a.alignTypes(b)
           prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
       }
-  }
-
-  /**
-    * NOTE this makes absolutely no sense to me. It is invoked very rarely.
-    *
-    * Normalizes a given value and root by transforming the value monadically and constructing
-    * a ComplexCartesian representation.
-    * If the transformation fails, an exception is thrown.
-    *
-    * @param value the value to be normalized.
-    * @param r     the root used in the normalization process.
-    * @throws CoreException if the transformation logic fails.
-    */
-  private def normalizeRootOld(value: Value, r: NthRoot) = {
-    Operations.doTransformValueMonadic(value)(MonadicOperationNegate.functions) match {
-      case Some(q) =>
-        ComplexCartesian(Number.zero, ExactNumber(q, r).scale(PureNumber))
-      case None =>
-        throw CoreException("GeneralNumber.normalizeRoot: logic error")
-    }
+    case _ =>
+      throw CoreException(s"plusAligned: logic error: cannot add $x and $y")
   }
 
   private def normalizeRoot(x: Number): Field = {

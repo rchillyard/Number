@@ -152,7 +152,7 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
           i <- 0 until n
           term <- term(i)
         } yield term
-        Some(nTerms.sum(xn))
+        Some(nTerms.sum(using xn))
     }
   }
 }
@@ -183,7 +183,7 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     def absDouble(x: X) = math.abs(xn.toDouble(x))
 
     val isValid: X => Boolean = x => x == xn.zero || absDouble(x) > epsilon
-    val triedX = Try(terms.takeWhile(isValid).sum(xn))
+    val triedX = Try(terms.takeWhile(isValid).sum(using xn))
     val result: Try[Fuzz[Double]] = triedX map {
       case f: Fuzz[Double] @unchecked =>
         f.fuzz match {
@@ -232,7 +232,7 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
           i <- 0 until n
           term <- term(i)
         } yield term
-        Some(nTerms.sum(xn))
+        Some(nTerms.sum(using xn))
     }
   }
 

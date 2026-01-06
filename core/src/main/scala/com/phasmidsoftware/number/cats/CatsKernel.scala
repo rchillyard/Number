@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{Box, Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, Gaussian, GeneralNumber, Number, Real}
+
 import scala.annotation.tailrec
 
 /**
@@ -48,7 +49,7 @@ trait CatsKernelInstances {
 
   // ===== Fuzziness equality/ordering (used by Number partial order fallback) =====
 
-  import com.phasmidsoftware.number.core.numerical.{Fuzziness, AbsoluteFuzz => Abs, RelativeFuzz => Rel}
+  import com.phasmidsoftware.number.core.numerical.{Fuzziness, AbsoluteFuzz as Abs, RelativeFuzz as Rel}
 
   // Structural Eq for Fuzziness[Double]: kind/shape/magnitude
   implicit val fuzzEq: Eq[Fuzziness[Double]] = Eq.instance { (f, g) =>
@@ -237,7 +238,6 @@ trait CatsKernelInstances {
     case (a: Algebraic, b: Real) => a.value.asReal.exists(ra => ra === b)
     case (a: Real, b: Algebraic) => b.value.asReal.exists(rb => a === rb)
     case (a: Algebraic, b: Complex) => a.value.asComplex === b
-    case (a: Complex, b: Algebraic) => a === b.value.asComplex
     case (a: Complex, b: Algebraic) => a === b.value.asComplex
     case _ => false
   }

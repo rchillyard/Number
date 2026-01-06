@@ -8,9 +8,10 @@ import com.phasmidsoftware.number.core.inner.Factor.{composeDyadic, sPercent}
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, toIntOption}
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
-import com.phasmidsoftware.number.core.misc.FP._
-import com.phasmidsoftware.number.core.numerical.{Field, Fuzziness, Number, Real}
-import scala.util._
+import com.phasmidsoftware.number.core.misc.FP.*
+import com.phasmidsoftware.number.core.numerical.{CoreException, Field, Fuzziness, Number, Real}
+
+import scala.util.*
 
 /**
   * Represents a factor type used for evaluations, conversions, and rendering in a specific context.
@@ -676,6 +677,7 @@ sealed trait InversePower extends Factor {
             case (Rational.two, 2) => PureNumber
             case (Rational.three, 3) => PureNumber
             case (_, 1) => AnyRoot(r) // NOTE: actually, this is impossible
+            case _ => throw CoreException("simplifyRoot: unimplemented case: $r, $divisor")
           }
         clean(Some((Value.fromRational(x), factor, p._3)))
       case None =>
@@ -788,6 +790,8 @@ sealed trait InversePower extends Factor {
         z = q / r
         i <- z.maybeInt
       } yield (x, AnyRoot(Rational(i)), None)
+    case _ =>
+      throw CoreException(s"doRaiseByPureNumber: unexpected factor: $this")
   }
 
   /**

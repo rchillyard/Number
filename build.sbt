@@ -1,6 +1,6 @@
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.4.4"
+ThisBuild / version := "1.4.5"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -31,16 +31,17 @@ val commonScalacOptions = Seq(
 val scala3Options = Seq(
   // CORE: These three are the minimum to catch the + operator issue
 //  "-Xfatal-warnings",              // Turn warnings into errors
-  "-Wvalue-discard",               // Error on discarded non-Unit values
-  "-Wnonunit-statement",           // Error when non-Unit expressions used as statements
+  "-Wvalue-discard", // Error on discarded non-Unit values
+  "-Wnonunit-statement", // Error when non-Unit expressions used as statements
 
-//  "-source:3.6-migration", "-rewrite", // Rewrites, here we do 3.6-migration.
+//  "-source:3.7-migration", "-rewrite", // Rewrites, here we do 3.7-migration.
 
   // HELPFUL: Good practices that don't add much burden
-  "-explain",                      // Detailed error explanations
-  "-Wunused:imports",              // Catch unused imports
-  "-Wunused:privates",             // Catch unused private members
-  "-Wunused:locals"                // Catch unused local definitions
+  "-explain", // Detailed error explanations
+  "-Wunused:imports", // Catch unused imports
+  "-Wunused:privates", // Catch unused private members
+  "-Wunused:locals", // Catch unused local definitions
+  "-Wconf:msg=Couldn't resolve a member:s" // Try to suppress linker warnings when generating docs
 )
 
 // Shared test settings for Scala 3 modules

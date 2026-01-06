@@ -71,6 +71,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       (c1 `subtract` c2).isZero
     case (z, x: Number) =>
       z `isSame` Real(x)
+    case _ =>
+      false
   }
 
   /**
@@ -139,6 +141,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       doMultiply(multiplicand)
     case (ComplexCartesian(_, _), ComplexPolar(_, _, _)) =>
       narrow(this, polar = true) `doMultiply` multiplicand
+    case _ =>
+      throw CoreException(">>> complex product: unexpected case")
   }
 
   /**
@@ -326,6 +330,17 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
           "-"
       }
       s"${sign}i${x.abs.render}"
+    case (x, _, _) =>
+      // TODO test this wildcard case--does it ever get invoked?
+      val sign = (imag, polar) match {
+        case (Number.zero, true) =>
+          ""
+        case (_, true) if imag.isPositive =>
+          ""
+        case _ if imag.isPositive =>
+          "+"
+      }
+      s"${sign}i${imag.abs.render}(${x.render})"
   }
 
   /**

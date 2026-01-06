@@ -72,7 +72,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   val em: ExpressionMatchers = Expression.em
   val eml: ExpressionMatchers = new ExpressionMatchers() {}
-  val ems: ExpressionMatchers = new ExpressionMatchers()(sbLogger) {}
+  val ems: ExpressionMatchers = new ExpressionMatchers()(using sbLogger) {}
   private val two: Number = 2
   private val one: Number = Number.one
   private val half: Number = convertToNumber(Number.two.invert)

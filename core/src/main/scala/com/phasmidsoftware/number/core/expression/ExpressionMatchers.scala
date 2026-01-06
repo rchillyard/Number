@@ -7,10 +7,11 @@ package com.phasmidsoftware.number.core.expression
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.expression.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.core.expression.Literal.someLiteral
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.matchers.MatchersExtras
 import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical.{Field, Number, Real}
+
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
@@ -31,7 +32,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
   self =>
 
-  import com.phasmidsoftware.matchers.Matchers._
+  import com.phasmidsoftware.matchers.Matchers.*
 
   /**
     * Abstract class `ExpressionMatcher`, which extends `Matcher` where the input type is always `Expression`.
@@ -243,8 +244,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
     case a@Aggregate(_, _) =>
       (complementaryTermsEliminatorAggregate & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
-    case x =>
-      Miss(s"simplifyAggregate: no match for $x", x)
   }
 
   /**
@@ -287,8 +286,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
-    case x =>
-      Miss(s"simplifyAggregate: not an Aggregate", x)
   }
 
   /**

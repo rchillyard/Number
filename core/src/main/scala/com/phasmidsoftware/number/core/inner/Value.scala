@@ -6,10 +6,11 @@ package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Render.renderValue
-import com.phasmidsoftware.number.core.misc.FP._
+import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.CoreException
+
 import java.lang
-import scala.util._
+import scala.util.*
 
 /**
   * This object provides methods related to the type Value.
@@ -143,7 +144,7 @@ object Value {
     * CONSIDER using query
     */
   def maybeRational(value: Value): Option[Rational] = {
-    import com.phasmidsoftware.number.core.misc.Converters._
+    import com.phasmidsoftware.number.core.misc.Converters.*
     // Value is Either[Either[Option[Double], Rational], Int]
     val ry = tryMap[Either[Option[Double], Rational], Int, Rational](value)(tryF(Rational.apply(_: Int)), x => tryMap(x)(identityTry, fail("no Double=>Rational conversion")))
     ry.toOption
@@ -175,7 +176,7 @@ object Value {
       case Some(n) => Failure(CoreException(s"toInt: $n is not integral"))
       case None => Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.core.misc.Converters._
+    import com.phasmidsoftware.number.core.misc.Converters.*
     val xToZy1: Either[Option[Double], Rational] => Try[Int] = y => tryMap(y)(tryF(y => y.toInt), xToZy0)
     tryMap(value)(identityTry, xToZy1).toOption
   }
@@ -308,8 +309,7 @@ object Value {
     case (("1", true), _) if skipOne => ""
     case ((x, true), _) => x
     case ((x, _), false) => x
-    case (x, false) => x.toString() + "*"
-    // Needs a wildcard case
+    case (x, _) => x.toString() + "*"
   }
 
   /**

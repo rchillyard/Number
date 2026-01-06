@@ -108,8 +108,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
   }
 
   def factor: Parser[Factor] = (number | parentheses | failure("factor")) ^^ {
-    case f: Factor => f
-    case f => BadFactor(f)
+    (f: Factor) => f
   }
 
   def number: Parser[Factor] = floatingPointNumber ^^ (x => FloatingPoint(x))

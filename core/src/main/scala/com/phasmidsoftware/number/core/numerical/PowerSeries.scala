@@ -157,6 +157,7 @@ object TaylorSeries {
       case `cosine` => negSine
       case `negSine` => negCosine
       case `negCosine` => sine
+      case _ => throw new CoreException(s"getDerivative: unknown function $function")
     }
 
     // XXX this is an appropriate value of convergence fo the sine Taylor series.

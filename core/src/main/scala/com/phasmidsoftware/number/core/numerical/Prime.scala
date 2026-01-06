@@ -8,12 +8,13 @@ import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.misc.FP.readFromResource
 import com.phasmidsoftware.number.core.numerical.Divides.IntDivides
 import com.phasmidsoftware.number.core.numerical.Prime.{coprime, reciprocalPeriods}
-import com.phasmidsoftware.number.core.numerical.Primes._
+import com.phasmidsoftware.number.core.numerical.Primes.*
 import com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time
+
 import java.math.BigInteger
 import scala.annotation.{tailrec, unused}
 import scala.collection.SortedSet
-import scala.util.{Failure, Random, Try}
+import scala.util.{Failure, Try}
 
 /**
   * Class to represent a (possible) prime number.
@@ -300,7 +301,7 @@ object Prime {
 
   implicit val ordering: Ordering[Prime] = Ordering.by(_.n)
 
-  import Divides._
+  import Divides.*
 
   /**
     * Method to determine if two BigInts are coprime, i.e. relatively prime.
@@ -691,25 +692,23 @@ object Primes {
   /**
     * Method to implement Eratosthenes Sieve.
     *
-    * NOTE: this method uses an (mutable) Array and a mutable variable.
-    *
     * @param m the largest number that we could get back as a prime.
     * @return a list of Prime numbers.
     */
   def eSieve(m: Int): List[Prime] = {
-    val sieve = new Array[Boolean](m + 1)
-    // XXX mutable variable and while loop follow...
-    var p = 2
-    while (p < m) {
-      for (i <- 2 to m / p) {
-        val j = i * p
-        if (!sieve(j)) sieve(j) = true
-      }
-      p += 1
-      while (p <= m && sieve(p)) p += 1
-    }
-    val result: List[(Boolean, Int)] = sieve.to(List).zipWithIndex.drop(2).filterNot(_._1)
-    for (x <- result) yield Prime(x._2)
+    val isComposite = new Array[Boolean](m + 1)
+    val limit = math.sqrt(m).toInt
+
+    for {
+      p <- 2 to limit
+      if !isComposite(p)
+      multiple <- (p * p) to m by p
+    } isComposite(multiple) = true
+
+    isComposite.indices.drop(2)
+      .filterNot(isComposite)
+      .map(n => Prime(n))
+      .toList
   }
 
   /**
@@ -769,17 +768,17 @@ object Primes {
   * It's not idiomatic Scala but I will clean it up as we go forward.
   */
 object MillerRabin {
-  private def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
+  private def millerRabinPass(a: BigInt, n: BigInt): Boolean = {
     val (d, s) = decompose(n)
-    // CONSIDER avoid this mutable variable.
-    var a_to_power: BigInt = a.modPow(d, n)
-    // CONSIDER re-write so that we don't have to use return.
-    if (a_to_power == 1) return true
-    else for (_ <- 1 to s) {
-      if (a_to_power == n - 1) return true
-      else a_to_power = (a_to_power * a_to_power) % n
-    }
-    a_to_power == n - 1
+    val x = a.modPow(d, n)
+
+    @tailrec
+    def check(currentX: BigInt, count: Int): Boolean =
+      if (currentX == n - 1) true
+      else if (count >= s) false
+      else check((currentX * currentX) % n, count + 1)
+
+    if (x == 1) true else check(x, 1)
   }
 
   /**
@@ -792,21 +791,21 @@ object MillerRabin {
     * @return true if n is a probable prime with certainty approximately 2.pow(-40)
     */
   def isProbablePrime(n: BigInt): Boolean = {
-    val k = 20
-    for (_ <- 1 to k) {
-      // CONSIDER a less predictable Random source.
-      val rand = new Random()
-      // CONSIDER avoid mutable variables and while loops
-      var a: BigInt = 0
-      while (a == 0) {
-        a = BigInt("" + (rand.nextDouble() * n.doubleValue).toInt)
-      }
-      // CONSIDER avoid return
-      if (!miller_rabin_pass(a, n)) return false
-    }
-    true
-  }
+    val iterations = 20
+    val random = new scala.util.Random()
 
+    @tailrec
+    def nextRandomA(): BigInt = {
+      // Generate a random candidate in the range [1, n-1]
+      val candidate = BigInt(n.bitLength, random) % n
+      if (candidate > 0) candidate else nextRandomA()
+    }
+
+    (1 to iterations).forall { _ =>
+      val a = nextRandomA()
+      millerRabinPass(a, n)
+    }
+  }
   def millerRabinTester(action: String, number: String): String =
     if (action == "test")
       if (isProbablePrime(new BigInt(new BigInteger(number)))) "PRIME"
