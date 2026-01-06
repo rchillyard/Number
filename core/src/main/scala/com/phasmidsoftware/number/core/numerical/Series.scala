@@ -95,9 +95,11 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
     *
     * @param epsilon The threshold value for determining the cutoff in the series evaluation.
     *                Terms with an absolute value less than this will not be included.
+    *
     * @return A `Try` containing the result of the series evaluation if successful, or an exception
     *         if the computation fails.
-    * @throws java.lang.ClassCastException if `X` is not `Fuzz[Double]`.
+    *
+    * @note Throws java.lang.ClassCastException if `X` is not `Fuzz[Double]`.
     */
   def evaluateToTolerance(epsilon: Double): Try[X] = {
     val triedX: Try[X] = Try(terms.takeWhile(x => math.abs(implicitly[Numeric[X]].toDouble(x)) > epsilon).sum)
@@ -175,9 +177,11 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     *
     * @param epsilon The threshold value for determining the cutoff in the series evaluation.
     *                Terms with an absolute value less than this will not be included.
+    *
     * @return A `Try` containing the result of the series evaluation if successful, or an exception
     *         if the computation fails.
-    * @throws java.lang.ClassCastException if `X` is not `Fuzz[Double]`.
+    *
+    * @note Throws java.lang.ClassCastException if `X` is not `Fuzz[Double]`.
     */
   def evaluateToTolerance(epsilon: Double): Try[X] = {
     def absDouble(x: X) = math.abs(xn.toDouble(x))

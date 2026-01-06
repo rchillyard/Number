@@ -15,7 +15,7 @@ import scala.util.Success
 class FuzzSpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   def checkDouble(actual: Double, expected: Double): Unit = {
-    assert(math.abs(actual - expected) < 1E7)
+    assert(math.abs(actual - expected) < 1E7): Unit
   }
 
   "Gaussian" should "sum with self" in {

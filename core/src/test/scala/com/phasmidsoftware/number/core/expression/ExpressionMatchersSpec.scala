@@ -928,7 +928,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   it should "simplify (√3 + 1)(√3 - 1) as 2 exactly" in {
-    val em = eml // Ln this unit test
+    //    val em = eml // Ln this unit test
     // Expect matches:
     // matchTwoDyadicTripleLevels: Match: *~+~{3 ^ (2 ^ -1)}~1~+~{3 ^ (2 ^ -1)}~(1 * -1)
     // matchTwoDyadicTripleLevels: Match: *~^~3~(2 ^ -1)~^~3~(2 ^ -1)
@@ -1321,7 +1321,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val actual = p(e)
     actual.successful shouldBe true
     // NOTE it's not trivially easy to arrange for this and it's not really that necessary, either. So let's be happy!
-    val idealExpectedExpression = BiFunction(ConstPi ∧ 2, MinusOne, Sum)
+//    val idealExpectedExpression = BiFunction(ConstPi ∧ 2, MinusOne, Sum)
     val interimExpectedExpression = Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power)))
     actual.get shouldBe interimExpectedExpression
   }

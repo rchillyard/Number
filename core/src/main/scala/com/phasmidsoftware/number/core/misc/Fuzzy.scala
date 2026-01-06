@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.misc.Fuzzy.parser
 import org.apache.commons.math3.distribution.*
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.*
@@ -87,10 +86,8 @@ sealed trait Fuzzy {
     x match {
       case f: FuzzyBase =>
         (f - y).prob(0, epsilon) match {
-          case Success(p) =>
-            if (p > threshold) 0 else x.get.compare(y.get)
-          case Failure(z) =>
-            System.err.println(s"exception thrown in prob method: $z"); 0
+          case Success(p) => if (p > threshold) 0 else x.get.compare(y.get)
+          case Failure(z) => System.err.println(s"exception thrown in prob method: $z"); 0
         }
     }
   }

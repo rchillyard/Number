@@ -26,11 +26,14 @@ object Factorial {
     *
     * @param r The accumulated result of the factorial computation at the current recursion step.
     *          Initially, this should be set to 1.
+ *
     * @param n The current number for which the factorial is being computed. This value is decremented
     *          with each recursive step until it reaches 0.
-    * @return The factorial of the input `n` as a `BigInt`.
-    *         If `n` is 0, returns the accumulated result `r`.
-    * @throws IllegalArgumentException if `n` is a negative value.
+    *
+    * @return  The factorial of the input `n` as a `BigInt`.
+    *          If `n` is 0, returns the accumulated result `r`.
+    *
+    * @note Throws IllegalArgumentException if `n` is a negative value.
     */
   @tailrec private def inner(r: BigInt, n: Int): BigInt = n match {
     case 0 =>

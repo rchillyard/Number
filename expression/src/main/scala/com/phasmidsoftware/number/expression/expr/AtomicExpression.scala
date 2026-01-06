@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import cats.implicits.catsSyntaxEq
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NatLog, Number, RationalNumber, Real, Scalar, WholeNumber}
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.{FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Constants, Field}
@@ -484,7 +484,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     case (Negate, r: CanAddAndSubtract[?, ?]) =>
       -r
     case (Reciprocal, r: InversePower) =>
-      FP.recover(r.pow(WholeNumber.minusOne))(AlgebraException(s"Cannot $r"))
+      FP.recover(r.pow(WholeNumber.minusOne))(ExpressionException(s"Cannot $r"))
     case (Reciprocal, r: CanMultiplyAndDivide[Number] @unchecked) =>
       import Number.NumberIsMultiplicativeGroup
       r.reciprocal

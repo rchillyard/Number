@@ -63,7 +63,7 @@ object RationalJ {
     *
     * @param x a java.lang.Double.
     * @return a Rational.
-    * @throws java.util.NoSuchElementException because we use get on an Option. NOTE.
+    * @note Throws java.util.NoSuchElementException because we use get on an Option. NOTE.
     */
   def doubleToRational(x: java.lang.Double): Rational = Rational.createExact(x).get // NOTE using get
 

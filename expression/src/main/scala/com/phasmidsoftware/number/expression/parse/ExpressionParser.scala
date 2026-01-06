@@ -64,16 +64,6 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
   }
 
   /**
-    * Transforms the value inside the provided `Try[Expression]` instance using the given function.
-    * CONSIDER this is unused.
-    * 
-    * @param t a `Try[Expression]` containing either a successful value of type `Expression` or a failure
-    * @param f a function that takes a value of type `Expression` and returns a transformed value of type `Expression`
-    * @return a `Try[Expression]` containing the transformed value if `t` is successful, or the original failure if `t` is a failure
-    */
-  private def lift(t: Try[Expression])(f: Expression => Expression): Try[Expression] = t map f
-
-  /**
     * Combines the results of two `Try` instances using a provided binary function.
     * If both `Try` instances are successful, their values are passed to the function, and the result is wrapped in a `Success`.
     * If either `Try` is a `Failure`, the resulting `Try` will also be a `Failure`.
@@ -313,16 +303,6 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
     */
   def parentheses: Parser[Parentheses] =
     "(" ~> expr <~ ")" ^^ (x => Parentheses(x))
-
-  /**
-    * Creates a new line followed by a specified level of indentation.
-    * CONSIDER unused.
-    * 
-    * @param i the number of indentation levels to add after the new line,
-    *          where each level corresponds to two spaces
-    */
-  private def new_line(i: Int) =
-    "\n" + "  ".repeat(i)
 }
 
 trait Expression {

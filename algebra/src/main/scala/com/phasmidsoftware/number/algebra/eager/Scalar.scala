@@ -159,14 +159,12 @@ object Scalar {
     * @param value  the numerical value, which can either be a right value for exact numbers
     *               (e.g., integers, floating-point values) or a left value for rational
     *               or other representations.
-    *
     * @param factor the dimensional factor associated with the scalar, such as
     *               `PureNumber`, `Radian`, or other domain-specific factors.
-    *
     * @param fuzz   an optional fuzziness component representing the uncertainty
     *               or imprecision in the numerical value.
-    *
     * @return the resulting `Scalar` based on the input values, factor, and optional fuzziness.
+    *         @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called with unsupported factors.
     */
   def createScalar(value: inner.Value, factor: inner.Factor, fuzz: Option[Fuzziness[Double]]): Monotone = {
     val number: Number = (value, fuzz) match {
@@ -242,6 +240,9 @@ case object NoScalar extends Scalar with Exact {
     *         - `Some(0)` if this `Scalar` is equal to `that`
     *         - `Some(1)` if this `Scalar` is greater than `that`
     *         - `None` if the exact comparison is not possible
+    *         -
+    *
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called
     */
   def compareExact(that: Scalar): Option[Int] = throw AlgebraException(s"NoScalar.compareExact: unsupported operation")
 
@@ -264,6 +265,7 @@ case object NoScalar extends Scalar with Exact {
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    *         @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called
     */
   def signum: Int = throw AlgebraException(s"NoScalar.signum: unsupported operation")
 
@@ -299,6 +301,7 @@ case object NoScalar extends Scalar with Exact {
     *
     * @param r the `Rational` factor by which to scale the scalar
     * @return a new `Scalar` instance representing the scaled value
+    *         @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called
     */
   def scale(r: Rational): Scalar = throw AlgebraException(s"NoScalar.scale: unsupported operation")
 

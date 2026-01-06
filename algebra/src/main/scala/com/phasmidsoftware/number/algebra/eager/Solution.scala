@@ -173,8 +173,11 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
 
   /**
     * If this `Solution` can be represented as a `Monotone`, return it wrapped in `Some`, otherwise return `None`.
+    * TODO implement imaginary cases.
+    *
     *
     * @return an `Option[Monotone]`.
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the complex number is imaginary.
     */
   def toMonotone: Option[Monotone] =
     if (complex.isReal) complex.asReal map (x => Eager(x).asMonotone)

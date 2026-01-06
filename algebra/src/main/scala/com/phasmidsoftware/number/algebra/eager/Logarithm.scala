@@ -111,6 +111,7 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the value is not a Number.
     */
   def signum: Int = FP.recover(number.compareExact(WholeNumber.zero))(AlgebraException(s"Logarithm.signum: logic error: $this"))
 
@@ -188,7 +189,16 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
       super.eqv(that)
   }
 
-  // In Logarithm class
+  /**
+    * Compares the current `Logarithm` instance with another `Eager` instance using a fuzzy equivalence strategy.
+    * This method considers two values to be "fuzzy equivalent" if their difference falls within a specified precision margin.
+    * The method handles cases where the `Eager` instance belongs to different subtypes such as `NatLog` or `Structure`,
+    * applying transformations and delegating to subtype-specific implementations as needed.
+    *
+    * @param p    the precision margin within which the two instances are considered equal, of type `Double`
+    * @param that the `Eager` instance to compare with the current instance
+    * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equivalent
+    */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: NatLog, b: NatLog) =>
       a.x.fuzzyEqv(p)(b.x)
@@ -241,6 +251,7 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
     *
     * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
   def transformation[T: ClassTag]: Option[T] = {
     val c = implicitly[ClassTag[T]]
@@ -267,6 +278,7 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
     *
     * @return a `Monotone` representing the negation of this instance
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
   def negate: Monotone = throw AlgebraException(s"NatLog.negate: not supported")
 
@@ -400,6 +412,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
     *
     * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
   def transformation[T: ClassTag]: Option[T] = {
     val c = implicitly[ClassTag[T]]
@@ -424,6 +437,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
   /**
     * Returns a new instance of `Monotone` that is the negation of the current instance.
     * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    * TODO sort this out.
     *
     * @return a `Monotone` representing the negation of this instance
     */
@@ -609,6 +623,7 @@ object Logarithm {
       * @param x the first `Logarithm` to combine
       * @param y the second `Logarithm` to combine
       * @return a new `Logarithm` representing the sum of the value of the two provided `Logarithm` instances
+      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input types are not compatible.
       */
     def combine(x: Logarithm, y: Logarithm): Logarithm = (x, y) match {
       case (a, b) if a.getClass == b.getClass =>

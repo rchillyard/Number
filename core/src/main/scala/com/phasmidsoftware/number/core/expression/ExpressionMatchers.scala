@@ -230,7 +230,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * NOTE: not deprecated because it's used in simplifyComposite
     *
     * @return A `ExpressionTransformer` that matches and simplifies `Aggregate` expressions efficiently.
-    * @throws java.util.NoSuchElementException due to invocation of get on Option (very unlikely).
+    * @note Throws java.util.NoSuchElementException due to invocation of get on Option (very unlikely).
     */
   def simplifyAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("simplifyAggregate") {
     case Aggregate(Sum, Nil) =>

@@ -247,7 +247,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
     // LaTeX should be different from render (unless render already produces LaTeX)
     val latex = solution.toLatex
-    val display = solution.render
+//    val display = solution.render
 
     // They serve different purposes
     latex should include("\\")  // LaTeX commands

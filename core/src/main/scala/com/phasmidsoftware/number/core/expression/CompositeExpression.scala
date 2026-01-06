@@ -10,7 +10,6 @@ import com.phasmidsoftware.number.core.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Constants, Field, Number, Real}
-
 import java.util.Objects
 import scala.language.implicitConversions
 import scala.util.Try
@@ -738,13 +737,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
             (y.x.toNominalRational, f) match {
               case (Some(x), Power) =>
                 em.Match(r.power(x))
-              case (_, _) =>
-                em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Rational)", this) // TESTME
+              case _ =>
+              em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Rational)", this) // TESTME
             }
           case Some(y: Algebraic_Quadratic) if f.commutes =>
             modifyAlgebraicQuadratic(y, x, f)
           case _ =>
-            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Real)", this) // TESTME
+          em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Real)", this) // TESTME
         }
       case _ =>
         em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Atomic)", this) // TESTME
@@ -774,7 +773,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
                 // XXX in this case, we revert this `Algebraic_Quadratic` (viz., a Field) to a `Root` (viz., an `Expression`)
                 val root = Root(a.equation, a.branch).power(r)
                 em.Match(root)
-              case (_, _) =>
+              case _ =>
                 em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Rational)", this) // TESTME
             }
           case _ =>
@@ -1014,7 +1013,7 @@ object Aggregate {
     * @param function the binary function used to compose the `Aggregate`.
     * @param xs       a sequence of `Expression` objects to be aggregated.
     * @return an `Aggregate` instance composed of the binary function and the sequence of expressions.
-    * @throws java.lang.IllegalArgumentException if the sequence of expressions is empty.
+    * @note Throws java.lang.IllegalArgumentException if the sequence of expressions is empty.
     */
   def create(function: ExpressionBiFunction, xs: Seq[Expression]): Aggregate =
     if (xs.nonEmpty)

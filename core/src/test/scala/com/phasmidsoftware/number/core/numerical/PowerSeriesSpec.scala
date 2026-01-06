@@ -27,7 +27,6 @@ class PowerSeriesSpec extends AnyFlatSpec with should.Matchers {
   it should "approximate sine about x = 0" in {
     val point = Number.zeroR
     val taylorSeries: TaylorSeries = TaylorSeries.createSine(point)
-    val coefficients: Seq[Number] = taylorSeries.coefficients.take(5)
     val piOver100: Number = Number.pi.divide(Real(100)).asReal.get.x
     val sinePiOver100: Series[Number] = taylorSeries.apply(piOver100)
     println(sinePiOver100.render(10))

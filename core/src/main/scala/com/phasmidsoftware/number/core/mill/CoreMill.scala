@@ -99,7 +99,7 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     * Method to evaluate this Mill.
     *
     * @return an Option[Expression]: Some(x) assuming this Mill is not empty and that there are no irregularities.
-    * @throws MillException logic error when the Mill is not fully consumed or the optional expression is None.
+    * @note Throws MillException logic error when the Mill is not fully consumed or the optional expression is None.
     */
   def evaluate: Option[CoreMillExpression] = evaluateInternal match {
     case (xo, Empty) => xo
@@ -116,7 +116,7 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     * Typically, the mill returned will be empty when a fully-formed (legal) stack is fully evaluated.
     *
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
-    * @throws MillException this Mill is empty or some other logic error occurred.
+    * @note Throws MillException this Mill is empty or some other logic error occurred.
     */
   def evaluateInternal: (Option[CoreMillExpression], CoreMill) = pop match {
     case (Some(Expr(e)), Empty) => (Some(e), Empty)
@@ -133,7 +133,8 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     *         if x is Monadic, then we evaluate this Mill and apply x to it;
     *         if x is an expression, then we return it, wrapped in Some, along with this;
     *         otherwise, we throw an exception.
-    * @throws MillException x is not supported.
+    *
+    * @note Throws MillException x is not supported.
     */
   private def evaluate1(x: CoreMillItem): (Option[CoreMillExpression], CoreMill) =
     x match {
@@ -152,7 +153,8 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     * @param f the monadic operator to apply to this Mill.
     * @return a tuple of optional expression and a Mill which is the same as this Mill but with the top
     *         item replaced by the f(top).
-    * @throws MillException this Mill is empty.
+    *
+    * @note Throws MillException this Mill is empty.
     */
   private def evaluateMonadic(f: Monadic): (Option[CoreMillExpression], CoreMill) = evaluateInternal match {
     case (Some(e), m) =>
@@ -169,7 +171,8 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     * @param f the dyadic operator to apply to this Mill.
     * @return a tuple of optional expression and a Mill which is the same as this Mill but with the top two items
     *         replaced by the f(top, next).
-    * @throws MillException malformed stack.
+    *
+    * @note Throws MillException malformed stack.
     */
   private def evaluateDyadic(f: Dyadic): (Option[CoreMillExpression], CoreMill) = {
     def inner(e: CoreMillExpression, m: CoreMill) = m match {
@@ -200,7 +203,8 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     * @return this Mill is evaluated and, assuming a valid result, calculateDyadic is invoked on f, x, and the resulting expression
     *         is pushed to this and the resulting Mill is (recursively) evaluated;
     *         if the result of evaluating this is not valid, we throw an exception.
-    * @throws MillException this did not evaluate to an expression.
+    *
+    * @note Throws MillException this did not evaluate to an expression.
     */
   private def evaluate2(f: Dyadic, x: CoreMillExpression): (Option[CoreMillExpression], CoreMill) =
     evaluateInternal match {
@@ -217,7 +221,7 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     * @param f the monadic operator.
     * @param x the expression to be operated on.
     * @return an Expression which is f(x).
-    * @throws MillException operator f is not supported.
+    * @note Throws MillException operator f is not supported.
     */
   private def calculateMonadic(f: Monadic, x: CoreMillExpression) = f match {
     case Chs => x * TerminalExpression(-1)

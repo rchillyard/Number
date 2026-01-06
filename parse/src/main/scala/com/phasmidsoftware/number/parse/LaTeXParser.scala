@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.parsenew
+package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Number, RationalNumber}
 import com.phasmidsoftware.number.core.inner.Rational
@@ -211,7 +211,7 @@ object LaTeXParser {
     * - "rec": Represents the reciprocal function.
     * - "neg": Represents the negation function.
     *
-    * @throws LaTeXParserException if the function name is not recognized.
+    * @note Throws LaTeXParserException if the function name is not recognized.
     */
   private val tupleToFunctionExpression: ((String, MathExpr)) => MathExpr = {
     case ("sin", arg) =>

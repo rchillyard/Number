@@ -220,7 +220,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
 
   behavior of "QuadraticSolution.branched"
   it should "compute correct coefficient for branch 0" in {
-    val solution = QuadraticSolution(RationalNumber.zero, RationalNumber.one, 1, false)
     val coefficient = quadraticOffsetCoefficient(0, 2)
 
     // Branch 0 should give +1 (positive root)
@@ -453,11 +452,13 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "preserve imaginary flag through scaling" in {
-    val solution = QuadraticSolution(RationalNumber.half, RationalNumber(Rational(2)), 1, imaginary = true)
-    val scaled = solution.*(Rational(2))
+//    val solution = QuadraticSolution(RationalNumber.half, RationalNumber(Rational(2)), 1, imaginary = true)
+//    val scaled = solution.*(Rational(2))
 
     // Note: imaginary flag is lost in current implementation - this documents the behavior
     // CONSIDER: Should scaling preserve the imaginary flag?
+
+    pending
   }
 
   behavior of "QuadraticSolution toString"

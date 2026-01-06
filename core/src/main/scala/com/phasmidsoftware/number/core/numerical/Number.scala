@@ -1713,7 +1713,7 @@ object Number {
       *
       * @param x the number to be converted to a `Long`
       * @return the `Long` representation of the given number
-      * @throws CoreException if the conversion is not possible
+      * @note Throws CoreException if the conversion is not possible
       */
     def toLong(x: Number): Long = x match {
       case z: GeneralNumber =>
@@ -1735,7 +1735,7 @@ object Number {
       *
       * @param x the `Number` instance to be converted to a `Double`
       * @return the `Double` representation of the input `Number`
-      * @throws CoreException if the `Number` instance cannot be converted to a `Double`
+      * @note Throws CoreException if the `Number` instance cannot be converted to a `Double`
       */
     def toDouble(x: Number): Double = x.maybeNominalDouble match {
       case Some(y) =>

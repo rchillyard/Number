@@ -373,7 +373,6 @@ trait Algebraic extends Multivariate {
   * enabling consistent operations and representations within algebraic computations.
   */
 object Algebraic {
-
   /**
     * Constructs an `Algebraic` instance from the given `Equation` and branch index.
     * The method selects the appropriate algebraic representation based on the type of equation provided.
@@ -382,13 +381,16 @@ object Algebraic {
     *                 For linear equations, an `Algebraic_Linear` instance is created.
     *                 For quadratic equations, an `Algebraic_Quadratic` instance is created.
     *                 If the equation does not match these cases, an exception is thrown.
+    *
     * @param branch   the branch index that determines the solution to use for quadratic equations.
     *                 Typically, `0` corresponds to the positive root, and `1` corresponds to the negative root
     *                 of a quadratic equation.
+    *
     * @return an `Algebraic` instance representing the solution of the given equation.
     *         The solution can be linear (`Algebraic_Linear`) or quadratic (`Algebraic_Quadratic`),
     *         depending on the equation type.
-    * @throws CoreException if the equation type is unsupported for constructing an `Algebraic` instance.
+    *
+    * @note Throws [[com.phasmidsoftware.number.core.numerical.CoreException]] if the equation type is unsupported for constructing an `Algebraic` instance.
     */
   def apply(equation: Equation, branch: Int): Algebraic = equation match {
     case e@LinearEquation(_) =>
@@ -549,7 +551,7 @@ object Algebraic_Linear {
     *
     * @param s the `Solution` instance to be processed and converted into an `Algebraic_Linear` object
     * @return the created `Algebraic_Linear` object if the input solution is valid and convertible
-    * @throws CoreException if the solution is not a `LinearSolution` or cannot be converted into an `Algebraic_Linear` object
+    * @note Throws CoreException if the solution is not a `LinearSolution` or cannot be converted into an `Algebraic_Linear` object
     */
   def apply(s: Solution): Algebraic_Linear = s match {
     case s: LinearSolution =>

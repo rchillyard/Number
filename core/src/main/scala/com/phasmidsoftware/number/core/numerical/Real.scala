@@ -406,7 +406,7 @@ object Real {
     *
     * @param n the `NumberLike` instance to be converted to a `Real`.
     * @return a `Real` representing the converted `NumberLike` input.
-    * @throws CoreException if the input cannot be converted into a `Real`.
+    * @note Throws CoreException if the input cannot be converted into a `Real`.
     */
   def apply(n: NumberLike): Real = n match {
     case x: Real =>
@@ -452,7 +452,7 @@ object Real {
     *
     * @param x the input Field to be converted to a Real.
     * @return a Real instance representing the input Field.
-    * @throws CoreException if the input Field is not real or cannot be converted to a Real.
+    * @note Throws CoreException if the input Field is not real or cannot be converted to a Real.
     */
   def createFromRealField(x: Field): Real = x match {
     case r: Real =>

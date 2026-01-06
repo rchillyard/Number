@@ -7,12 +7,12 @@ package com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.algebra.core.Valuable
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.convRationalRationalNumber
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ExactNumber, Field}
-import com.phasmidsoftware.number.expression.expr.{Expression, Literal}
+import com.phasmidsoftware.number.expression.expr.{Expression, ExpressionException, Literal}
 
 /**
   * Represents a (monic) equation of the form `x² + p*x + q = 0`, where `p` and `q` are rational coefficients.
@@ -82,12 +82,10 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     *                 If the solution is not a `QuadraticSolution` or does not meet
     *                 the required conditions for evaluation, an `AlgebraException`
     *                 will be thrown.
-    *
     * @return the resultant eager value of the evaluation. The result could be a
     *         solution in the form of a `QuadraticSolution`, a numerical result as
     *         an `Eager`, or a derived `RationalNumber`, depending on the computation path.
-    *
-    * @throws AlgebraException if the provided solution cannot be evaluated due to
+    * @note Throws AlgebraException if the provided solution cannot be evaluated due to
     * missing conditions, non-conformance to required types, or other incompatible
     * states during evaluation.
     */
@@ -101,7 +99,7 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
             case Some(eager: Number) =>
               eager + RationalNumber(q)
             case x =>
-              throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution: because of $x")
+              throw ExpressionException(s"QuadraticEquation: cannot evaluate $solution: because of $x")
           }
         case (Some(z: Number), r: Algebraic) =>
           r.add(z).map(_.normalize) match {
@@ -110,15 +108,15 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
             case Some(eager: Number) =>
               eager + RationalNumber(q)
             case x =>
-              throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution: because of $x")
+              throw ExpressionException(s"QuadraticEquation: cannot evaluate $solution: because of $x")
           }
         case _ =>
-          throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution")
+          throw ExpressionException(s"QuadraticEquation: cannot evaluate $solution")
       }
     case Complex(c) =>
       Eager(c.square + p * c + q)
     case _ =>
-      throw AlgebraException(s"QuadraticEquation: cannot evaluate $solution because it is not a QuadraticSolution")
+      throw ExpressionException(s"QuadraticEquation: cannot evaluate $solution because it is not a QuadraticSolution")
   }
 
   /**
@@ -261,17 +259,15 @@ case class LinearEquation(r: Rational) extends Equation {
     *
     * @param s the `Solution` to be evaluated. It is expected to be an instance of `LinearSolution` containing
     *          a numerical value.
-    *
     * @return the result of the evaluation as an instance of `Eager`. The exact nature of the result depends
     *         on the structure of the provided `Solution`.
-    *
-    * @throws AlgebraException if the `Solution` cannot be evaluated within the constraints of this `LinearEquation`.
+    * @note Throws AlgebraException if the `Solution` cannot be evaluated within the constraints of this `LinearEquation`.
     */
   def evaluate(s: Solution): Eager = s match {
     case LinearSolution(x: Number) =>
       x + r
     case _ =>
-      throw AlgebraException(s"LinearEquation: cannot evaluate $s")
+      throw ExpressionException(s"LinearEquation: cannot evaluate $s")
   }
 
   /**
@@ -383,17 +379,17 @@ object QuadraticEquation {
         val imaginaryPart = Valuable.valuableToMaybeField(x).flatMap(x => x.asNumber)
         FP.recover(
           for (x <- realPart; y <- imaginaryPart) yield ComplexCartesian(x, y))(
-          AlgebraException(s"Quadratic equation has bad complex roots: $equation")
+          ExpressionException(s"Quadratic equation has bad complex roots: $equation")
         )
       case i@InversePower(2, RationalNumber(r, _)) =>
         val imag: numerical.Number = ExactNumber(Value.fromRational(r), SquareRoot)
         FP.recover(
           for (x <- realPart) yield ComplexCartesian(x, imag))(
-          AlgebraException(s"Quadratic equation has bad complex roots: $equation")
+          ExpressionException(s"Quadratic equation has bad complex roots: $equation")
         )
 
       case x =>
-        throw AlgebraException(s"QuadraticEquation: cannot create complex roots: imaginary coefficient is not a scalar: $x")
+        throw ExpressionException(s"QuadraticEquation: cannot create complex roots: imaginary coefficient is not a scalar: $x")
     }
   }
 
@@ -406,7 +402,6 @@ object QuadraticEquation {
     * @param x   the Field instance to be formatted.
     * @param add a Boolean flag indicating whether to prepend a sign ("+ " or "- ") to the result;
     *            defaults to true.
-    *
     * @return a formatted String representation of the Field's sign and absolute value.
     */
   private def termSign(x: Field, add: Boolean = true): String = (if (add) if (x.signum < 0) "- " else "+ " else "") + x.abs.render

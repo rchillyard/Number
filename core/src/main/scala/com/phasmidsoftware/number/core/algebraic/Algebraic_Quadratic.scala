@@ -73,7 +73,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     *
     * @param algebraic the `Algebraic` instance to be added to this one.
     * @return a new `Algebraic` instance resulting from the addition.
-    * @throws CoreException if the provided `Algebraic` type is not supported for addition.
+    * @note Throws CoreException if the provided `Algebraic` type is not supported for addition.
     */
   def add(algebraic: Algebraic): Algebraic =
     this.solve `add` algebraic.solve match {
@@ -115,7 +115,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     *
     * @param that the Algebraic object to be multiplied
     * @return a new Algebraic resulting from the multiplication
-    * @throws CoreException for all inputs.
+    * @note Throws CoreException for all inputs.
     */
   def multiply(that: Algebraic): Field = {
     val thisSolution: Solution = this.solve
@@ -495,7 +495,7 @@ object Algebraic_Quadratic {
     *
     * @param solution The quadratic solution to be transformed into an `Algebraic_Quadratic`.
     * @return An instance of `Algebraic_Quadratic` based on the given solution.
-    * @throws CoreException if the provided solution cannot be converted to `Algebraic_Quadratic`.
+    * @note Throws CoreException if the provided solution cannot be converted to `Algebraic_Quadratic`.
     */
   def apply(solution: QuadraticSolution): Algebraic_Quadratic =
     (solution.factor, maybeRational(solution.base), maybeRational(solution.offset)) match {

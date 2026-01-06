@@ -27,7 +27,7 @@ object expr:
   export ExpressionPrelude.given
 
   // LaTeX parsing
-  export com.phasmidsoftware.number.parsenew.ExpressionParser._
+  export com.phasmidsoftware.number.parse.ExpressionParser._
 
   // Empty operator and related utilities
   export com.phasmidsoftware.number.expression.expr.Empty._

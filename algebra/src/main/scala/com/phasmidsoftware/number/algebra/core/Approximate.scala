@@ -44,6 +44,7 @@ trait Approximate {
     * `AlgebraException` is thrown to indicate a logic error.
     *
     * @return the approximate value as a `Double`.
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if no approximation can be obtained.
     */
   def toDouble: Double = {
     // NOTE: it is possible for this to recurse infinitely if approximation(true) returns `Some(this)`.

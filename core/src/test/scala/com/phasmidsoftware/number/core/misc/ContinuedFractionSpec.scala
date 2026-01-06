@@ -6,9 +6,9 @@ package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.misc.*
 import com.phasmidsoftware.number.core.misc.ConFrac.LongLazyListFrom
 import com.phasmidsoftware.number.core.misc.ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
-import com.phasmidsoftware.number.core.misc._
 import com.phasmidsoftware.number.core.numerical.Fuzziness.showPercentage
 import com.phasmidsoftware.number.core.numerical.Number
 import org.scalatest.flatspec
@@ -249,7 +249,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
       // NOTE: we need a fairly large power because phi converges so slowly.
       val maybeDouble = ConFrac.phi.toDouble(epsilon, Hurwitz)
       maybeDouble match {
-        case Some(x) => math.abs(x - goldenRatio) should be < epsilon
+        case Some(x) => math.abs(x - goldenRatio) should be < epsilon: Unit
         case None => fail("unable to get Double from phi")
       }
     }
@@ -419,7 +419,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
       // NOTE: we need a fairly large power because phi converges so slowly.
       val maybeDouble = ContinuedFraction.phi.toDouble(epsilon)
       maybeDouble match {
-        case Some(x) => math.abs(x - goldenRatio) should be < epsilon
+        case Some(x) => math.abs(x - goldenRatio) should be < epsilon: Unit
         case None => fail("unable to get Double from phi")
       }
     }

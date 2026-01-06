@@ -2,12 +2,12 @@
  * Copyright (c) 2025. Phasmid Software
  */
 
-package com.phasmidsoftware.number.parsenew
+package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.algebra.eager.{Angle, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.*
-import com.phasmidsoftware.number.parsenew.LaTeXParser
+import com.phasmidsoftware.number.parse.LaTeXParser
 import fastparse.Parsed
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

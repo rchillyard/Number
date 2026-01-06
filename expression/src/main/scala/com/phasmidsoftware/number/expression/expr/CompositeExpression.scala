@@ -5,7 +5,6 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
 import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, QuadraticSolution, RationalNumber, Structure, WholeNumber}
@@ -13,7 +12,7 @@ import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Field, Number, Real}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real}
 import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, given_LatexRenderer_Expression, matchSimpler}
@@ -144,7 +143,7 @@ sealed trait CompositeExpression extends Expression {
   def render: String = matchSimpler(this) match {
     case em.Match(e) =>
       e.render
-    case em.Miss(msg, _) =>
+    case _ =>
       renderAsExpression
   }
 
@@ -933,23 +932,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case _ =>
         em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Atomic)", this) // TESTME
     }
-
-  // TODO this is never called!
-  private def matchProduct: em.MatchResult[Expression] = {
-    val z: Option[Field] = for {
-      x <- evaluateAsScalar(a)
-      y <- evaluateAsScalar(b)
-    } yield x * y
-    // TODO sort this out!
-    val product: Option[Expression] = z match {
-      case Some(field) => Some(Literal(Eager(field)))
-      case _ => None
-    }
-    em.matchIfDefined(product)(expression.expr.BiFunction(a, b, Product))
-  }
-
-  private def evaluateAsScalar[T <: Structure](x: Expression): Option[numerical.Field] =
-    x.evaluate(RestrictedContext(PureNumber)).flatMap(valuableToMaybeField)
 }
 
 object BiFunction {
@@ -1183,32 +1165,6 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     */
   override def toString: String =
     xs.mkString(s"Aggregate{${function.toString},", ",", "}")
-
-  /**
-    * Combines a given `Expression`, an optional `Field`, and a `Context` into a new tuple containing an updated
-    * optional field and context. The combination logic evaluates the expression within the given context, applying
-    * transformations to the field and context when applicable.
-    * 
-    * CONSIDER this is never called
-    *
-    * @param x       the expression to be evaluated and combined with the field and context.
-    * @param fo      an optional field representing a potential starting value or state that may be updated
-    *                during the combination process.
-    * @param context the current context used for evaluating the expression and determining the resulting
-    *                updated context.
-    * @return a tuple consisting of an updated optional field and the resulting context after processing the
-    *         given expression with the provided field and context.
-    */
-  private def combineFieldsAndContexts(x: Expression, fo: Option[Eager], context: Context): (Option[Eager], Context) =
-    (for a <- fo; b <- x.evaluate(context) yield {
-      val field = function(a, b)
-      field -> (for factor <- field.maybeFactor(context) yield function.rightContext(factor)(context))
-    }) match {
-      case Some((f, Some(qq))) =>
-        Some(f) -> qq
-      case _ =>
-        None -> Context.AnyScalar
-    }
 }
 
 /**
@@ -1233,7 +1189,7 @@ object Aggregate {
     * @param function the binary function used to compose the `Aggregate`.
     * @param xs       a sequence of `Expression` objects to be aggregated.
     * @return an `Aggregate` instance composed of the binary function and the sequence of expressions.
-    * @throws java.lang.IllegalArgumentException if the sequence of expressions is empty.
+    * @note Throws java.lang.IllegalArgumentException if the sequence of expressions is empty.
     */
   def create(function: ExpressionBiFunction, xs: Seq[Expression]): expression.expr.Aggregate =
     if xs.nonEmpty then

@@ -10,7 +10,6 @@ import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, t
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.{CoreException, Field, Fuzziness, Number, Real}
-
 import scala.util.*
 
 /**

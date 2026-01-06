@@ -257,6 +257,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     * If this `Solution` can be represented as a `Monotone`, return it wrapped in `Some`, otherwise return `None`.
     *
     * @return an `Option[Monotone]`.
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion is not supported.
     */
   def toMonotone: Option[Monotone] = (base, offset) match {
     case (b, o) if o.isZero => Some(b)
@@ -392,6 +393,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     *
     * @param addend the `Rational` value to be added to the current solution
     * @return a new `Algebraic` instance representing the sum of the current solution and the given `addend`
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the addition with the specified solution is unsupported or leads to an error
     */
   def add(addend: Rational): Algebraic = {
     val zo: Option[Monotone] = for {
@@ -413,7 +415,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     *
     * @param other the solution to be added to this quadratic solution
     * @return a new `Solution` representing the sum of this quadratic solution and the specified solution
-    * @throws AlgebraException if the addition with the specified solution is unsupported or leads to an error
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the addition with the specified solution is unsupported or leads to an error
     */
   def +(other: Solution): Solution = other match {
     case algebraic: Algebraic =>
@@ -544,6 +546,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     *
     * @param r the scaling factor as a Rational value
     * @return an Option containing the scaled quadratic solution if calculations succeed, otherwise None
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the scaling operation is not supported.
     */
   def *(r: Rational): Algebraic = (base, offset) match {
     case (b: Scalar, o: Scalar) =>
@@ -810,6 +813,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @param r the `Rational` value by which to scale the current `Solution`
     * @return a new `Solution` instance representing the result of the scaling operation
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the scaling operation is not supported for the current `Solution` implementation.
     */
   def scale(r: Rational): Solution = value match {
     case scalar: Scalar =>
@@ -858,7 +862,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @param other the `Solution` to add to the current `LinearSolution`
     * @return the resulting `Solution` of the addition if supported
-    * @throws AlgebraException if the operation is not valid for the given `Solution`
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the operation is not valid for the given `Solution`
     */
   def +(other: Solution): Solution = other match {
     case linear: LinearSolution =>
@@ -878,7 +882,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *         and the given solution, or None if the operation is not valid
     */
   def add(addend: Eager): Option[Algebraic] = (value, addend) match {
-    case (v: CanAdd[eager.Number, eager.Number], y@LinearSolution(x: eager.Number)) =>
+    case (v: CanAdd[eager.Number, eager.Number] @unchecked, y@LinearSolution(x: eager.Number)) =>
       Some(LinearSolution(v + x))
     case (v: CanAdd[eager.Number, eager.Number], y: eager.Number) =>
       Some(LinearSolution(v + y))
@@ -908,6 +912,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @param r the rational value used as a multiplier during scaling
     * @return an optional `Algebraic` as the result of scaling, or `None` if the operation is not valid
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the operation is not valid for the given `Solution`
     */
   def *(r: Rational): Algebraic = value match {
     case b: Scalar =>

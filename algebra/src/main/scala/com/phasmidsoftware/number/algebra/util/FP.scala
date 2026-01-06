@@ -104,6 +104,7 @@ object FP {
     * @param x  a Throwable to be thrown if to is None.
     * @tparam T the underlying type of to.
     * @return t if to is Some(t); otherwise x will be thrown.
+    * @note Throws java.lang.Throwable x
     */
   def recover[T](to: Option[T])(x: => Throwable): T = to match {
     case Some(t) => t
@@ -251,6 +252,8 @@ object FP {
     * @param s The error message to be included in the exception.
     * @return A Try instance containing a failure with an AlgebraException
     *         initialized with the provided error message.
+    *
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]]
     */
   def fail[Z](s: String): Try[Z] =
     fail(AlgebraException(s))
@@ -300,12 +303,14 @@ object FP {
 
   /**
     * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
+    * TODO merge with recover.
+    *
     *
     * @param xo an optional value of X (called by name).
     * @param t  a throwable.
     * @tparam X the underlying type of xo and the type of the result.
     * @return the value of xo or throws t.
-    * @throws java.lang.Throwable t
+    * @note Throws java.lang.Throwable t
     */
   def getOrThrow[X](xo: => Option[X], t: => Throwable): X =
     xo.getOrElse(throw t)

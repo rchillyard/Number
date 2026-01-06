@@ -45,7 +45,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * Factory method to throw an exception.
      *
      * @param ignoredX a double.
-     * @throws BigNumberException because BigNumber is an EXACT representation whereas double is not.
+     * @note Throws BigNumberException because BigNumber is an EXACT representation whereas double is not.
      */
     @SuppressWarnings("UnusedReturnValue")
     public static BigNumber value(final double ignoredX) {
