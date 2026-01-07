@@ -808,9 +808,6 @@ object GeneralNumber {
                 case None =>
                   times(p.scale(PureNumber), q.scale(PureNumber))
               }
-            // TODO this case can never be reached: fix it.
-            case (NthRoot(_), NthRoot(_)) =>
-              doTimes(p, q.scale(p.factor), p.factor)
             case _ =>
               times(p.scale(PureNumber), q.scale(PureNumber))
           }
