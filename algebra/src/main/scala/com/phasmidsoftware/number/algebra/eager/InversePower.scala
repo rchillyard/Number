@@ -18,6 +18,7 @@ import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.reflect.ClassTag
 import scala.util.{Success, Try}
 
@@ -163,7 +164,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]] =
-    Eager(Valuable.valuableToField(number).power(numerical.Number(Rational(n).invert))) match {
+    Eager(Eager.eagerToField(number).power(numerical.Number(Rational(n).invert))) match {
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>

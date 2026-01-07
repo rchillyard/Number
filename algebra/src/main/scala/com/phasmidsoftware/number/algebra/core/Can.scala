@@ -7,7 +7,9 @@ package com.phasmidsoftware.number.algebra.core
 import algebra.ring.*
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.eager.{ExactNumber, Structure}
+import com.phasmidsoftware.number.algebra.util.AlgebraException
 import com.phasmidsoftware.number.core.inner.Rational
+
 import scala.reflect.ClassTag
 
 /**
@@ -18,7 +20,7 @@ import scala.reflect.ClassTag
   * The operations are designed to work within the context of an `AdditiveCommutativeMonoid`, ensuring
   * that the defined addition operations respect the algebraic properties of associativity, commutativity, and identity.
   *
-  * TODO we no longer need the U type parameter.
+  * CONSIDER could we do without the U type parameter.
   *
   * Type Parameters:
   * - `T`: A type extending `Structure` that supports addition operations and satisfies the properties
@@ -53,12 +55,9 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     * of an `AdditiveCommutativeMonoid`. The operation returns an optional result where the addition
     * succeeds if a valid transformation and combination can be performed.
     *
-    * TODO eliminate this method and use with + instead.
+    * CONSIDER eliminate this method and use with + instead.
     *
     * @param that  the `Structure` object to be added to this object.
-    * @param using an implicitly provided instance of `AdditiveCommutativeMonoid[T]` that defines the additive
-    *              behavior for the type `T`.
-    *
     * @return an `Option` containing the result of the addition if successful, or `None` if the operation
     *         cannot be completed.
     */
@@ -263,15 +262,15 @@ trait Scalable[T <: Scalable[T]] {
 trait CanPower[T] {
 
   /**
-    * Computes the result of raising an instance of type `T` to the power 
+    * Computes the result of raising an instance of type `T` to the power
     * specified by the given `ExactNumber`.
     *
-    * This method performs the power operation and returns the result wrapped 
-    * in an `Option[T]`. If the operation is invalid or cannot be performed, 
+    * This method performs the power operation and returns the result wrapped
+    * in an `Option[T]`. If the operation is invalid or cannot be performed,
     * `None` is returned.
     *
     * @param that the `ExactNumber` exponent to which the instance is raised
-    * @return an `Option[T]` containing the result of the power operation if valid, 
+    * @return an `Option[T]` containing the result of the power operation if valid,
     *         or `None` if the operation could not be performed
     */
   infix def pow(that: ExactNumber): Option[T]
@@ -301,16 +300,27 @@ trait CanNormalize[T <: Structure] {
   * It is the base trait for all other traits that extend `Can`.
   *
   * This trait facilitates type-safe casting of instances to a specific subtype of `Structure`.
-  *
-  * TODO try to redefine this so that it does not extend Structure.
+  * The trait no longer extends Structure, removing the circular dependency while maintaining type safety
+  * through ClassTag-based runtime verification.
   *
   * @tparam T the type parameter which must be a subtype of `Structure`
   */
-sealed trait Can[T <: Structure : ClassTag] extends Structure {
+sealed trait Can[T <: Structure : ClassTag] {
   /**
     * Casts the current instance to the type parameter `T` of the enclosing `Can` trait.
     *
+    * This method performs a type-safe cast using the ClassTag to verify at runtime that
+    * the cast is valid. If the current instance cannot be cast to type T, an AlgebraException
+    * is thrown.
+    *
     * @return the current instance as an instance of type `T`
+    * @throws AlgebraException if the cast is invalid
     */
-  def asT: T = Structure.asT(this)
+  def asT: T = {
+    val clazz = summon[ClassTag[T]].runtimeClass
+    if (clazz.isAssignableFrom(this.getClass))
+      this.asInstanceOf[T]
+    else
+      throw AlgebraException(s"Logic error: Can.asT failed to cast ${this.getClass} to $clazz")
+  }
 }

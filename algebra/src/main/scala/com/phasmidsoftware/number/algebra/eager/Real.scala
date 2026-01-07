@@ -17,6 +17,7 @@ import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sGamma
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.parse.NumberParser
+
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -430,7 +431,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
         case (Some(_), Some(_)) =>
           // Both fuzzy - compute difference and check if probably zero
           val diff = realIsRing.minus(a, b)
-          Valuable.valuableToField(diff) match {
+          Eager.eagerToField(diff) match {
             case numerical.Real(x) =>
               Success(x.isProbablyZero(p))
             case _ =>

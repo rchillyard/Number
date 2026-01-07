@@ -37,7 +37,7 @@ trait FuzzyEquality {
 
     def areEqual(a: OldNumberLike, b: Any): Boolean = a match {
       case e: Expression =>
-        FieldEquality.areEqual(Valuable.valuableToField(e.materialize), b)
+        FieldEquality.areEqual(Eager.eagerToField(e.materialize), b)
       case s: Solution =>
         FieldEquality.areEqual(s.asField, b)
       case r: Rational =>

@@ -30,7 +30,7 @@ Number is organized into multiple modules:
 * **`top`** - Top level example code
 
 #### Current Version
-The current version is 1.4.4.
+The current version is 1.5.0.
 
 **Migration Note**: The `algebra` module is replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
 **Migration Note**: For version history and more detail regarding migration, see the [HISTORY](docs/HISTORY.md).

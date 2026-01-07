@@ -7,11 +7,12 @@ package com.phasmidsoftware.number.algebra.core
 import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Monotone, Nat, NatLog, Number, RationalNumber, Real, WholeNumber}
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.AlgebraException
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
+
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -169,22 +170,6 @@ trait DyadicOps {
   * enabling parsing and conversion of strings to `Valuable` representations.
   */
 object Valuable {
-
-  /**
-    * TODO change the type of the input to `Eager`.
-    *
-    * Converts a `Valuable` instance into a `Field` representation.
-    * If the conversion fails, it recovers by throwing a `AlgebraException`
-    * with an appropriate error message indicating the failure.
-    *
-    * @param v the `Valuable` instance to be converted into a `Field`.
-    *          This is expected to represent a numerical value.
-    * @return the `Field` representation of the input `Valuable`.
-    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]]
-    *       If conversion is not possible.
-    */
-  def valuableToField(v: Valuable): Field =
-    FP.recover(valuableToMaybeField(v))(AlgebraException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field"))
 
   /**
     * Attempts to convert a given eager `Valuable` instance into an `Option[Field]`.

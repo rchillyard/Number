@@ -16,6 +16,7 @@ import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.reflect.ClassTag
 import scala.util.Try
 
@@ -320,7 +321,7 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]] =
-    Eager(Valuable.valuableToField(x).exp) match {
+    Eager(Eager.eagerToField(x).exp) match {
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>
@@ -481,7 +482,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]] =
-    Eager(Valuable.valuableToField(x).exp) match { // FIXME we need 2^x
+    Eager(Eager.eagerToField(x).exp) match { // FIXME we need 2^x
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>
@@ -560,6 +561,7 @@ object BinaryLog {
 object Logarithm {
 
   import org.slf4j.{Logger, LoggerFactory}
+
   import scala.util.Try
 
   val logger: Logger = LoggerFactory.getLogger(getClass)

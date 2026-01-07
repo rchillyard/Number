@@ -8,14 +8,16 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
-import com.phasmidsoftware.number.core.numerical.CoreExceptionWithCause
+import com.phasmidsoftware.number.core.numerical.{CoreExceptionWithCause, Field}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.{algebraic, inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
+
 import scala.Option.when
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -193,6 +195,23 @@ object Eager {
     }
 
   /**
+    * Converts an `Eager` instance into a `Field` representation.
+    * If the conversion fails, it recovers by throwing a `AlgebraException`
+    * with an appropriate error message indicating the failure.
+    *
+    * CONSIDER making this an instance method of `Eager`.
+    *
+    * @param eager the `Eager` instance to be converted into a `Field`.
+    *              This is expected to represent a numerical value.
+    *
+    * @return the `Field` representation of the input `Valuable`.
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]]
+    *       If conversion is not possible.
+    */
+  def eagerToField(eager: Eager): Field =
+    FP.recover(valuableToMaybeField(eager))(AlgebraException(s"Valuable:eagerToField: Cannot convert $eager to a Field"))
+
+  /**
     * LatexRenderer for Eager (general case).
     *
     * Attempts to render based on the concrete type.
@@ -204,21 +223,6 @@ object Eager {
     case m =>
       throw new IllegalArgumentException(s"No LaTeX renderer for Eager type: ${m.getClass.getName}")
   }
-
-  /**
-    * Converts the given value and factor into a `Monotone` representation.
-    * Throws an `AlgebraException` if the conversion does not result in a valid `Monotone` instance.
-    *
-    * @param value  the input value of type `inner.Value` to be converted into a `Monotone`.
-    * @param factor the input factor of type `inner.Factor` used for the conversion process.
-    * @return a `Monotone` instance representing the input value and factor.
-    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion yields an unexpected result.
-    */
-  private def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
-    Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {
-      case m: Monotone => m
-      case _ => throw AlgebraException(s"convertToMonotone: unexpected value: $value")
-    }
 
   /**
     * Implicitly converts an integer value into an `Eager` representation.
@@ -279,12 +283,6 @@ object Eager {
       case _ =>
         f(x, y)
     }
-
-//    def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
-//      Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {
-//        case m: Monotone => m
-//        case _ => throw AlgebraException(s"convertToMonotone: unexpected value: $value")
-//      }
   }
 
   /**
@@ -314,6 +312,21 @@ object Eager {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
+
+  /**
+    * Converts the given value and factor into a `Monotone` representation.
+    * Throws an `AlgebraException` if the conversion does not result in a valid `Monotone` instance.
+    *
+    * @param value  the input value of type `inner.Value` to be converted into a `Monotone`.
+    * @param factor the input factor of type `inner.Factor` used for the conversion process.
+    * @return a `Monotone` instance representing the input value and factor.
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion yields an unexpected result.
+    */
+  private def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
+    Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {
+      case m: Monotone => m
+      case _ => throw AlgebraException(s"convertToMonotone: unexpected value: $value")
+    }
 
   private def tryConvertAndOp[T <: Eager, Z](f: (Eager, T) => Try[Z])(s: Structure, e: T): Try[Z] = e match {
     case c: Complex =>

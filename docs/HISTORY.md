@@ -1,6 +1,8 @@
 # Migration and Version History
 
 ## Versions
+* Version 1.5.0: Working on resolving TODO issues.
+* Version 1.4.5/6: Mostly warnings and documentation issues.
 * Version 1.4.4: Resolved some publishing issues.
 * Version 1.4.0: This represents a prototype of the forthcoming 2.0.0 release.
 * Version 1.3.7: Issue resolution: better integration between Root/Algebraic/Complex

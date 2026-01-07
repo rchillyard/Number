@@ -6,15 +6,16 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.algebra.core.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{NatLog, *}
+import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
+import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, *}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Real, *}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
+
 import scala.annotation.tailrec
 
 /**
@@ -67,11 +68,11 @@ object ExpressionFunction {
     *         `Valuable` after applying the underlying `Field => Field` transformation.
     */
   def lift1(f: Field => Field): Eager => Eager = {
-    v => Eager(f(valuableToField(v)))
+    v => Eager(f(eagerToField(v)))
   }
 
   def lift2(f: (Field, Field) => Field): (Eager, Eager) => Eager = {
-    (v1, v2) => Eager(f(valuableToField(v1), valuableToField(v2)))
+    (v1, v2) => Eager(f(eagerToField(v1), eagerToField(v2)))
   }
 }
 
