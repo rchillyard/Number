@@ -78,6 +78,7 @@
         <option value="com.phasmidsoftware.number.algebra.eager.WholeNumberSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.DimensionSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.TRationalSpec" />
+        <option value="com.phasmidsoftware.number.dimensions.core.UnitsSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.AggregateSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.ComplexSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.ConstantsSpec" />
