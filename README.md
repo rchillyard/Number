@@ -30,7 +30,7 @@ Number is organized into multiple modules:
 * **`top`** - Top level example code
 
 #### Current Version
-The current version is 1.5.0.
+The current version is 1.5.1.
 
 **Migration Note**: The `algebra` module is replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
 **Migration Note**: For version history and more detail regarding migration, see the [HISTORY](docs/HISTORY.md).
@@ -231,6 +231,21 @@ val y: Eager = Angle(Real(1.0))
 x == y // false
 x ~= y // true
 ```
+## Dimensions Module
+
+Number supports dimensional quantities and units. For example 
+```scala
+type Energy = BaseDim[One, Two, TRat[-2, 1], Zero, Zero, Zero, Zero]
+
+case object Joule extends Unit[Energy] {
+  def toSI: Double = 1.0
+
+  def symbol: String = "J"
+}
+```
+
+...where we define `Energy` as having dimensions of mass, length squared, and time to the power of -2.
+In turn, `Joule` is a unit of energy (it's the SI unit so that the toSI method returns 1.0).
 
 ## Parse Module
 

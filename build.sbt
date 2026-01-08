@@ -148,7 +148,7 @@ lazy val dimensions = (project in file("dimensions"))
     )
   )
   .settings(scala3TestSettings)
-  .dependsOn(core)
+  .dependsOn(algebra, core)
 
 // ============================================================================
 // GLOBAL SETTINGS
