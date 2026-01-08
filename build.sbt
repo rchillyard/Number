@@ -1,6 +1,6 @@
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.5.0"
+ThisBuild / version := "1.5.1"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -138,6 +138,17 @@ lazy val top = (project in file("top"))
     )
     .settings(scala3TestSettings)
     .dependsOn(core, algebra, expression, parse)
+
+lazy val dimensions = (project in file("dimensions"))
+  .settings(
+    scalaVersion := scalaVersionNumber,
+    scalacOptions ++= commonScalacOptions ++ scala3Options,
+    scalacOptions ++= Seq(
+      "-Wconf:msg=any2stringadd:e"  // Make any2stringadd usage an ERROR
+    )
+  )
+  .settings(scala3TestSettings)
+  .dependsOn(core)
 
 // ============================================================================
 // GLOBAL SETTINGS

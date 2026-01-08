@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.core.{FuzzyEq, Valuable}
+import com.phasmidsoftware.number.algebra.core.FuzzyEq
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
