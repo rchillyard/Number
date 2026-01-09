@@ -62,6 +62,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.TranscendentalSpec" />
         <option value="com.phasmidsoftware.number.problems.PotHolesSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.DimensionSpec" />
+        <option value="com.phasmidsoftware.number.dimensions.core.PowerUnitSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.TRationalSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.UnitsSpec" />
         <option value="com.phasmidsoftware.number.algebra.util.LatexRendererInstancesSpec" />

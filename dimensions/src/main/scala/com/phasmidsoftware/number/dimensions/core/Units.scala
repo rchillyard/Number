@@ -375,23 +375,7 @@ val MilePerHour: Unit[Velocity] = MetersPerSecond.scaled(Rational(1397, 3125), "
   * they can be created on-the-fly for any combination.
   */
 object CompositeUnits:
-  // Velocity
-  val MetersPerSecond: Unit[Velocity] = Meter / Second
-  val KilometersPerHour: Unit[Velocity] = Kilometer / Hour
-  val MilesPerHour: Unit[Velocity] = Mile / Hour
-
-  // Acceleration
-  val MetersPerSecondSquared: Unit[Acceleration] = Meter / (Second * Second)
-
-  // Force
-  val Newtons: Unit[Force] = Kilogram * Meter / (Second * Second)
-
-  // Energy
-  val Joules: Unit[Energy] = Kilogram * (Meter / Second) * (Meter / Second)
 
   // Area
-  val SquareMeters: Unit[Area] = Meter * Meter
-  val SquareKilometers: Unit[Area] = Kilometer * Kilometer
-
-  // Volume
-  val CubicMeters: Unit[Volume] = Meter * Meter * Meter
+  val Hectometer: Unit[Length] = Meter.scaled(Rational(100))
+  val Hectare: Unit[Area] = Hectometer * Hectometer

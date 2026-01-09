@@ -44,31 +44,31 @@ type LuminousIntensity = BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, One]
 
 // Other common dimensions as type aliases
 /** Area: Distance times Distance */
-type Area = BaseDim[Zero, Two, Zero, Zero, Zero, Zero, Zero]
+type Area = MulDim[Length, Length]
 /** Volume: Area times Distance */
-type Volume = BaseDim[Zero, TRat[3, 1], Zero, Zero, Zero, Zero, Zero]
+type Volume = MulDim[Area, Length]
 /** SquareRoot of Length: SquareRoot(Distance) */
 type SqrtLength = BaseDim[Zero, Half, Zero, Zero, Zero, Zero, Zero]
-/** Velocity: Distance over Time */
-type Velocity = BaseDim[Zero, One, MinusOne, Zero, Zero, Zero, Zero]
+/** Velocity: Length over Time */
+type Velocity = DivDim[Length, Time]
 /** Acceleration: Velocity over Time */
-type Acceleration = BaseDim[Zero, One, TRat[-2, 1], Zero, Zero, Zero, Zero]
+type Acceleration = DivDim[Velocity, Time]
 /** Force: Acceleration times Mass */
-type Force = BaseDim[One, One, TRat[-2, 1], Zero, Zero, Zero, Zero]
+type Force = MulDim[Acceleration, Mass]
 /** Energy: Force times Length */
-type Energy = BaseDim[One, Two, TRat[-2, 1], Zero, Zero, Zero, Zero]
-/** Power: Energy over Time */
-type Power = BaseDim[One, Two, TRat[-3, 1], Zero, Zero, Zero, Zero]
+type Energy = MulDim[Force, Length]
 /** Pressure (Stress): Force over Area */
-type Pressure = BaseDim[One, TRat[-1, 1], TRat[-2, 1], Zero, Zero, Zero, Zero]
-/** Frequency: Dimensionless over Time */
-type Frequency = BaseDim[Zero, Zero, MinusOne, Zero, Zero, Zero, Zero]
+type Pressure = DivDim[Force, Area]
+/** Power: Energy over Time */
+type Power = DivDim[Energy, Time]
 /** Charge: Current times Time */
-type Charge = BaseDim[Zero, Zero, One, One, Zero, Zero, Zero]
+type Charge = MulDim[Current, Time]
 /** Voltage: Power over Current */
-type Voltage = BaseDim[One, Two, TRat[-3, 1], MinusOne, Zero, Zero, Zero]
+type Voltage = DivDim[Power, Current]
 /** Resistance: Voltage over Current */
-type Resistance = BaseDim[One, Two, TRat[-3, 1], TRat[-2, 1], Zero, Zero, Zero]
+type Resistance = DivDim[Voltage, Current]
+/** Frequency: Dimensionless over Time */
+type Frequency = DivDim[Dimensionless, Time]
 
 /**
   * Multiply two dimensions by adding their corresponding exponents.
