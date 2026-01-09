@@ -223,7 +223,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val base = Two
     One.log(base).materialize shouldBe Eager.zero
     Two.log(base).materialize shouldBe Eager.one
-    //    Expression(4).log(base).materialize.asNumber shouldBe Some(Number.two)
+    //    Expression(4).log(base).materialize.asCoreNumber shouldBe Some(Number.two)
   }
   it should "evaluate log e" in {
     val base = ConstE

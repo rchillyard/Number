@@ -40,6 +40,8 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
   /**
     * Casts this `Valuable` instance into an `Eager` type if it already is an `Eager`.
     * If the instance is not already an `Eager`, an `AlgebraException` is thrown.
+    * CONSIDER returning Option[Eager] instead.
+    *
     *
     * @return the current instance as an `Eager`
     * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Eager`
@@ -51,6 +53,7 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
   /**
     * Casts this `Valuable` instance into a `Monotone` type if it already is a `Monotone`.
     * If the instance is not a `Monotone`, an `AlgebraException` is thrown.
+    * CONSIDER returning Option[Monotone] instead.
     *
     * @return the current instance as a `Monotone`
     * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Monotone`
@@ -58,6 +61,17 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
   def asMonotone: Monotone = this match
     case m: Monotone => m
     case _ => throw AlgebraException(s"asMonotone: expected Monotone value but got $this")
+
+  /**
+    * Attempts to cast this instance to a `Number`.
+    * If the instance is of type `Number`, it is wrapped in an `Option` and returned.
+    * Otherwise, returns `None`.
+    *
+    * @return an `Option` containing the instance as a `Number` if applicable, or `None` if not.
+    */
+  def asNumber: Option[Number] = this match
+    case n: Number => Some(n)
+    case _ => None
 }
 
 /**

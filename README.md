@@ -233,7 +233,17 @@ x ~= y // true
 ```
 ## Dimensions Module
 
-Number supports dimensional quantities and units. For example 
+Number includes support for dimensional quantities.
+Compared with the concepts in JSR-385 (Indriya, etc.), our approach has:
+
+* Type-level dimension arithmetic (compile-time verification versus JSR-385's runtime checking)
+* Exact arithmetic in the various unit conversions
+* More sophisticated type safety with BaseDim and TRational
+* Compile-time dimension verification
+
+Although there are many pre-defined `Dimension` and Units available, it is extremely easy
+to build new ones:
+
 ```scala
 type Energy = BaseDim[One, Two, TRat[-2, 1], Zero, Zero, Zero, Zero]
 
@@ -246,6 +256,75 @@ case object Joule extends Unit[Energy] {
 
 ...where we define `Energy` as having dimensions of mass, length squared, and time to the power of -2.
 In turn, `Joule` is a unit of energy (it's the SI unit so that the toSI method returns 1.0).
+
+## Comparison with JSR-385
+
+JSR-385 ("Units of Measurement API") is Java's standardized approach to quantities and units. While both systems share
+similar goals, this library takes a fundamentally different approach:
+
+### Type Safety
+
+**JSR-385**: Uses runtime dimension checking with parameterized types
+
+```java
+Quantity<Length> distance = Quantities.getQuantity(5, Units.METRE);
+Quantity<Speed> speed = distance.divide(time).asType(Speed.class); // runtime cast
+```
+
+**This library**: Uses compile-time type-level dimension arithmetic
+
+```scala
+val distance: PhysicalUnit[Length] = Meter * 5
+val speed: PhysicalUnit[Velocity] = distance / time // type computed at compile time
+```
+
+### Dimension Tracking
+
+**JSR-385**: Dimensions checked at runtime through the `Dimension` interface
+
+**This library**: Dimensions represented as type-level rationals (`BaseDim[M, L, T, I, Θ, N, J]`) where each exponent is
+computed at compile time using match types
+
+### Compositional Design
+
+**JSR-385**: Predefined units must be explicitly registered
+
+**This library**: Units can be composed on-the-fly
+
+```scala
+val pressure = Newton / Meter.squared // creates Pressure dimension automatically
+val myCustomUnit = Kilogram * Meter.cubed / Second.squared // any combination works
+```
+
+### Mathematical Precision
+
+**JSR-385**: Typically uses floating-point arithmetic
+
+**This library**: Built on exact arithmetic (`RationalNumber`, `AlgebraicNumber`) with optional fuzzy arithmetic for
+uncertainty propagation
+
+### Advantages of This Library
+
+- **Stronger type safety**: Dimension errors caught at compile time, not runtime
+- **Mathematical rigor**: Exact arithmetic eliminates floating-point errors
+- **Composability**: Define complex units through simple operations
+- **Pedagogical value**: Type-level dimension arithmetic makes the mathematics explicit
+- **Scala 3 features**: Leverages match types, singleton types, and type-level computation
+
+### Advantages of JSR-385
+
+- **Standardization**: Industry-standard Java API
+- **Ecosystem**: Large library of predefined units and quantity types
+- **Adoption**: Supported across the Java ecosystem
+- **Maturity**: Well-tested in production environments
+
+### When to Use Each
+
+Use **JSR-385** if you need Java interoperability or want a mature, standardized library with extensive unit
+definitions.
+
+Use **this library** if you want compile-time type safety, exact arithmetic, and are working in a Scala 3 environment
+where mathematical precision and type-level guarantees are priorities.
 
 ## Parse Module
 

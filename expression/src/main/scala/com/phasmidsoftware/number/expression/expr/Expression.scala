@@ -20,6 +20,7 @@ import com.phasmidsoftware.number.expression.expr.{BiFunction, CompositeExpressi
 import com.phasmidsoftware.number.expression.mill
 import com.phasmidsoftware.number.expression.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.{core, expression}
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -104,7 +105,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
     */
-  def asNumber: Option[numerical.Number] =
+  def asCoreNumber: Option[numerical.Number] =
     if isExact then
       evaluateAsIs match {
         case Some(x: numerical.Number) => Some(x)
@@ -293,7 +294,7 @@ object Expression {
       */
     def sqrt: Expression = x match {
       case z: AtomicExpression =>
-        z.evaluateAsIs flatMap (_.asNumber) match {
+        z.evaluateAsIs flatMap (_.asCoreNumber) match {
           case Some(q) =>
             println("Expression.sqrt: this is where we used to do a short-cut for numbers")
             // XXX this was the old code: Literal(q.sqrt)
