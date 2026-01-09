@@ -66,12 +66,17 @@ case class PowerUnit[D <: Dimension](
     FP.recover(base.toSI.pow(RationalNumber(power)))(DimensionsException("PowerUnit.toSI: cannot convert to RationalNumber:"))
 
   def symbol: String =
-    if power == Rational(2) then s"${base.symbol}²"
-    else if power == Rational(3) then s"${base.symbol}³"
-    else if power == Rational(-1) then s"${base.symbol}⁻¹"
-    else if power == Rational(-2) then s"${base.symbol}⁻²"
-    else if power == Rational(-3) then s"${base.symbol}⁻³"
-    else s"${base.symbol}^${power}"
+    val baseSymbol = base match {
+      case _: ProductUnit[?] | _: QuotientUnit[?] => s"(${base.symbol})"
+      case _ => base.symbol
+    }
+
+    if power == Rational(2) then s"${baseSymbol}²"
+    else if power == Rational(3) then s"${baseSymbol}³"
+    else if power == Rational(-1) then s"${baseSymbol}⁻¹"
+    else if power == Rational(-2) then s"${baseSymbol}⁻²"
+    else if power == Rational(-3) then s"${baseSymbol}⁻³"
+    else s"${baseSymbol}^${power}"
 
 /**
   * Represents a unit of measurement that is scaled relative to some base unit.
