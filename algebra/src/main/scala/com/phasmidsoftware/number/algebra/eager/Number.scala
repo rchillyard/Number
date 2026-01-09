@@ -14,6 +14,7 @@ import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -46,6 +47,24 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     */
   def *(other: Number): Number =
     summon[MultiplicativeGroup[Number]].multiplicative.combine(this, other)
+
+  /**
+    * Divides this `Number` by another `Number`.
+    *
+    * The division is performed based on the type of the input `Number`:
+    * - If the input is an `ExactNumber`, it computes the reciprocal of the input, converts it to a `RationalNumber`,
+    *   multiplies it with `this` `Number`, and normalizes the result.
+    * - For unsupported types, an `AlgebraException` is thrown.
+    *
+    * @param other the `Number` by which this `Number` is to be divided
+    * @return the result of division as a `Number`
+    * @throws com.phasmidsoftware.number.algebra.util.AlgebraException if the division is unsupported for the provided `other` type
+    */
+  def /(other: Number): Number = other match {
+    case number: ExactNumber =>
+      (this * number.toRationalNumber.reciprocal).normalize
+    case _ => throw AlgebraException(s"Number./: logic error: $this / $other is not yet supported")
+  }
 
   /**
     * Adds this `Number` instance to another `Number` instance and returns the result.

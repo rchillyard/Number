@@ -59,3 +59,23 @@ type MulTRat[R1 <: TRational, R2 <: TRational] <: TRational = (R1, R2) match {
 type DivTRat[R1 <: TRational, R2 <: TRational] <: TRational = (R1, R2) match {
   case (TRat[n1, d1], TRat[n2, d2]) => Normalize[TRat[n1 * d2, d1 * n2]]
 }
+//
+///**
+//  * Runtime witness for a type-level rational
+//  */
+//trait TRatValue[R <: TRational]:
+//  def numerator: Int
+//
+//  def denominator: Int
+//
+//  def asRational: Rational = Rational(numerator, denominator)
+//
+//given TRatValue[TRat[0, 1]] with
+//  def numerator = 0
+//
+//  def denominator = 1
+//
+//given [N <: Int, D <: Int](using ValueOf[N], ValueOf[D]): TRatValue[TRat[N, D]] with
+//  def numerator = valueOf[N]
+//
+//  def denominator = valueOf[D]
