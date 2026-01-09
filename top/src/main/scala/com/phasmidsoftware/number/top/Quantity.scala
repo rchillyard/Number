@@ -1,7 +1,8 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.algebra.core.{Lazy, Renderable, Valuable}
-import com.phasmidsoftware.number.algebra.eager.{ExactNumber, Number, RationalNumber, Real}
+import com.phasmidsoftware.number.algebra.eager.*
+import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
 
@@ -26,6 +27,18 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
     *         by the unit's symbol, separated by a space
     */
   def render: String = s"${value.render} ${unit.symbol}"
+
+  def renderLaTeX: String = {
+    val valueLatex = value match {
+      case n: Eager =>
+        summon[LatexRenderer[Eager]].toLatex(n)
+      case v: Lazy =>
+        v.materialize match {
+          case n: Eager => summon[LatexRenderer[Eager]].toLatex(n)
+        }
+    }
+    s"$valueLatex\\,${unit.renderLaTeX}" // \, is a thin space in LaTeX
+  }
 
   // Convert to a different unit of the same dimension
   def in(targetUnit: PhysicalUnit[D]): Option[Quantity[D]] =

@@ -163,6 +163,46 @@ extension [D1 <: Dimension](u1: Unit[D1])
     ScaledUnit[D1](u1, scale, name)
 
 /**
+  * Extension method to render units in LaTeX format
+  */
+extension [D <: Dimension](unit: Unit[D])
+  def renderLaTeX: String = unit match {
+    case u: SIUnit[D] => s"\\text{${u.symbol}}"
+
+    case u: ProductUnit[D] =>
+      s"${u.left.renderLaTeX}\\cdot${u.right.renderLaTeX}"
+
+    case u: QuotientUnit[D] =>
+      s"\\frac{${u.numerator.renderLaTeX}}{${u.denominator.renderLaTeX}}"
+
+    case u: PowerUnit[D] =>
+      val baseLatex = u.base match {
+        case _: ProductUnit[?] | _: QuotientUnit[?] =>
+          s"\\left(${u.base.renderLaTeX}\\right)"
+        case _ =>
+          u.base.renderLaTeX
+      }
+
+      val exponent = u.power match {
+        case r if r == Rational(2) => "{2}"
+        case r if r == Rational(3) => "{3}"
+        case r if r == Rational(-1) => "{-1}"
+        case r if r == Rational(-2) => "{-2}"
+        case r if r == Rational(-3) => "{-3}"
+        case r if r == Rational(1, 2) => "{\\frac{1}{2}}"
+        case r if r.isWhole => s"{${r.n}}"
+        case r => s"{\\frac{${r.n}}{${r.d}}}"
+      }
+
+      s"$baseLatex^$exponent"
+
+    case u: ScaledUnit[D] =>
+      s"\\text{${u.symbol}}"
+
+    case _ =>
+      s"\\text{${unit.symbol}}" // fallback for any other unit types
+  }
+/**
   * Special dimension for angles (dimensionless but semantically distinct)
   */
 type Angle = BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, Zero]
