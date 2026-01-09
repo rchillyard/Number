@@ -32,18 +32,43 @@ type Half = TRat[1, 2]
 type Two = TRat[2, 1]
 type MinusOne = TRat[-1, 1]
 
-// Common dimensions as type aliases
+// Fundamental dimensions as type aliases
 type Dimensionless = BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, Zero]
-type Length = BaseDim[Zero, One, Zero, Zero, Zero, Zero, Zero]
-type SqrtLength = BaseDim[Zero, Half, Zero, Zero, Zero, Zero, Zero]
-type Area = BaseDim[Zero, Two, Zero, Zero, Zero, Zero, Zero]
-type Volume = BaseDim[Zero, TRat[3, 1], Zero, Zero, Zero, Zero, Zero]
 type Mass = BaseDim[One, Zero, Zero, Zero, Zero, Zero, Zero]
+type Length = BaseDim[Zero, One, Zero, Zero, Zero, Zero, Zero]
 type Time = BaseDim[Zero, Zero, One, Zero, Zero, Zero, Zero]
+type Current = BaseDim[Zero, Zero, Zero, One, Zero, Zero, Zero]
+type Temperature = BaseDim[Zero, Zero, Zero, Zero, One, Zero, Zero]
+type Amount = BaseDim[Zero, Zero, Zero, Zero, Zero, One, Zero]
+type LuminousIntensity = BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, One]
+
+// Other common dimensions as type aliases
+/** Area: Distance times Distance */
+type Area = BaseDim[Zero, Two, Zero, Zero, Zero, Zero, Zero]
+/** Volume: Area times Distance */
+type Volume = BaseDim[Zero, TRat[3, 1], Zero, Zero, Zero, Zero, Zero]
+/** SquareRoot of Length: SquareRoot(Distance) */
+type SqrtLength = BaseDim[Zero, Half, Zero, Zero, Zero, Zero, Zero]
+/** Velocity: Distance over Time */
 type Velocity = BaseDim[Zero, One, MinusOne, Zero, Zero, Zero, Zero]
+/** Acceleration: Velocity over Time */
 type Acceleration = BaseDim[Zero, One, TRat[-2, 1], Zero, Zero, Zero, Zero]
+/** Force: Acceleration times Mass */
 type Force = BaseDim[One, One, TRat[-2, 1], Zero, Zero, Zero, Zero]
+/** Energy: Force times Length */
 type Energy = BaseDim[One, Two, TRat[-2, 1], Zero, Zero, Zero, Zero]
+/** Power: Energy over Time */
+type Power = BaseDim[One, Two, TRat[-3, 1], Zero, Zero, Zero, Zero]
+/** Pressure (Stress): Force over Area */
+type Pressure = BaseDim[One, TRat[-1, 1], TRat[-2, 1], Zero, Zero, Zero, Zero]
+/** Frequency: Dimensionless over Time */
+type Frequency = BaseDim[Zero, Zero, MinusOne, Zero, Zero, Zero, Zero]
+/** Charge: Current times Time */
+type Charge = BaseDim[Zero, Zero, One, One, Zero, Zero, Zero]
+/** Voltage: Power over Current */
+type Voltage = BaseDim[One, Two, TRat[-3, 1], MinusOne, Zero, Zero, Zero]
+/** Resistance: Voltage over Current */
+type Resistance = BaseDim[One, Two, TRat[-3, 1], TRat[-2, 1], Zero, Zero, Zero]
 
 /**
   * Multiply two dimensions by adding their corresponding exponents.

@@ -60,11 +60,8 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     * @return the result of division as a `Number`
     * @throws com.phasmidsoftware.number.algebra.util.AlgebraException if the division is unsupported for the provided `other` type
     */
-  def /(other: Number): Number = other match {
-    case number: ExactNumber =>
-      (this * number.toRationalNumber.reciprocal).normalize
-    case _ => throw AlgebraException(s"Number./: logic error: $this / $other is not yet supported")
-  }
+  def /(other: ExactNumber): Number =
+    (this * other.toRationalNumber.reciprocal).normalize
 
   /**
     * Adds this `Number` instance to another `Number` instance and returns the result.

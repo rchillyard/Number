@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.dimensions.core
 
 import com.phasmidsoftware.number.algebra.eager.*
+import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.Rational
 
 /**
@@ -30,8 +31,8 @@ case class ProductUnit[D <: Dimension](
                                       ) extends Unit[D]:
 
   def toSI: ExactNumber = left.toSI * right.toSI match {
-    case r: RationalNumber => r
-    case _ => throw DimensionsException(s"cannot convert $left * $right to a RationalNumber")
+    case r: ExactNumber => r
+    case x => throw DimensionsException(s"cannot convert $left * $right to a RationalNumber")
   }
 
   def symbol: String = s"${left.symbol}·${right.symbol}"
@@ -46,12 +47,45 @@ case class QuotientUnit[D <: Dimension](
                                        ) extends Unit[D]:
 
   def toSI: ExactNumber = numerator.toSI / denominator.toSI match {
-    case r: RationalNumber => r
-    case _ => throw DimensionsException(s"cannot convert $numerator / $denominator to a RationalNumber")
+    case r: ExactNumber => r
+    case x => throw DimensionsException(s"cannot convert $numerator / $denominator to a RationalNumber: got $x")
   }
 
   def symbol: String = s"${numerator.symbol}/${denominator.symbol}"
 
+/**
+  * A unit raised to an integer power.
+  * The resulting dimension is the base dimension raised to that power.
+  */
+case class PowerUnit[D <: Dimension](
+                                      base: Unit[?],
+                                      power: Rational
+                                    ) extends Unit[D]:
+
+  def toSI: ExactNumber =
+    FP.recover(base.toSI.pow(RationalNumber(power)))(DimensionsException("PowerUnit.toSI: cannot convert to RationalNumber:"))
+
+  def symbol: String =
+    if power == Rational(2) then s"${base.symbol}²"
+    else if power == Rational(3) then s"${base.symbol}³"
+    else if power == Rational(-1) then s"${base.symbol}⁻¹"
+    else if power == Rational(-2) then s"${base.symbol}⁻²"
+    else if power == Rational(-3) then s"${base.symbol}⁻³"
+    else s"${base.symbol}^${power}"
+
+/**
+  * Represents a unit of measurement that is scaled relative to some base unit.
+  *
+  * This class defines a scaled version of a base unit, using a specified scale factor
+  * and name for the scaled unit. It extends the `Unit` trait, tying the scaled unit
+  * to a specific physical dimension and providing the scale factor relative to the
+  * SI base unit.
+  *
+  * @tparam D The physical dimension associated with this unit.
+  * @param base  The base unit this scaled unit derives from.
+  * @param scale The scale factor relative to the base unit.
+  * @param name  The name or symbol of the scaled unit.
+  */
 case class ScaledUnit[D <: Dimension](
                                        base: Unit[?],
                                        scale: Rational,
@@ -86,13 +120,41 @@ extension [D1 <: Dimension](u1: Unit[D1])
     QuotientUnit[DivDim[D1, D2]](u1, u2)
 
   /**
+    * Squares the current unit.
+    * Example: Meter.squared gives a unit with dimension [L²] (area)
+    */
+  def squared: Unit[PowDim[D1, Two]] =
+    PowerUnit[PowDim[D1, Two]](u1, Rational(2))
+
+  /**
+    * Cubes the current unit.
+    * Example: Meter.cubed gives a unit with dimension [L³] (volume)
+    */
+  def cubed: Unit[PowDim[D1, TRat[3, 1]]] =
+    PowerUnit[PowDim[D1, TRat[3, 1]]](u1, Rational(3))
+
+  /**
+    * Takes the square root of the current unit.
+    * Example: SquareMeter.sqrt gives a unit with dimension [L] (length)
+    */
+  def sqrt: Unit[PowDim[D1, Half]] =
+    PowerUnit[PowDim[D1, Half]](u1, Rational(1, 2))
+
+  /**
+    * Inverts the current unit (raises to power -1).
+    * Example: Second.invert gives a unit with dimension [T⁻¹] (frequency)
+    */
+  def invert: Unit[PowDim[D1, MinusOne]] =
+    PowerUnit[PowDim[D1, MinusOne]](u1, Rational(-1))
+
+  /**
     * Scales the unit by the given rational factor and assigns an optional name to the resulting unit.
     *
     * @param scale The rational factor by which the unit is scaled.
     * @param name  An optional name for the scaled unit, default is an empty string.
     * @return A scaled unit of type `Unit[D1]`.
     */
-  def scaled(scale: Rational, name: String = ""): Unit[D1] = 
+  def scaled(scale: Rational, name: String = ""): Unit[D1] =
     ScaledUnit[D1](u1, scale, name)
 
 /**
@@ -143,25 +205,45 @@ case object Candela extends SIUnit[BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, O
 // Common Derived SI Units
 // ============================================================================
 
-/** Square meter - unit of area */
-case object SquareMeter extends SIUnit[Area] {
-  def symbol: String = "m²"
-}
+/**
+  * Represents the unit of area in square meters, derived by squaring the base unit of length (Meter).
+  * SquareMeter is a unit of the dimension [L²] (area) in the International System of Units (SI).
+  */
+val SquareMeter: Unit[Area] = Meter.squared
 
-/** Cubic meter - unit of volume */
-case object CubicMeter extends SIUnit[Volume] {
-  def symbol: String = "m³"
-}
+/**
+  * Represents the SI-derived unit of volume (`m³`), corresponding to a cubic meter.
+  * This unit is created by cubing the `Meter` unit of length, resulting in a dimension
+  * with the exponent 3 applied to the length dimension, i.e., [L³].
+  */
+val CubicMeter: Unit[Volume] = Meter.cubed
 
-/** Meter per second - unit of velocity */
-case object MeterPerSecond extends SIUnit[Velocity] {
-  def symbol: String = "m/s"
-}
+/**
+  * Represents the unit of velocity in meters per second (m/s).
+  * Combines the SI base unit of length (Meter) and time (Second) to create a derived unit
+  * with a dimensional representation of [L¹T⁻¹].
+  *
+  * @see Meter for the SI unit of length
+  * @see Second for the SI unit of time
+  * @see / for unit division and creation of composite units
+  */
+val MetersPerSecond: Unit[Velocity] = Meter / Second
 
-/** Meter per second squared - unit of acceleration */
-case object MeterPerSecondSquared extends SIUnit[Acceleration] {
-  def symbol: String = "m/s²"
-}
+/**
+  * Represents the unit of acceleration, defined as meters per second squared (m/s²),
+  * using the SI base units for length (Meter) and time (Second).
+  *
+  * Combines the `Meter` unit with the squared inverse of the `Second` unit
+  * using the composite unit operation `/`.
+  *
+  * The dimension of `Acceleration` can be expressed as [L¹T⁻²], where:
+  * - L corresponds to Length (meter)
+  * - T corresponds to Time (second)
+  *
+  * Example: When an object's velocity changes with time, its rate of change
+  * is expressed in this unit as acceleration.
+  */
+val MetersPerSecondSquared: Unit[Acceleration] = Meter / Second.squared
 
 /** Newton - unit of force (kg⋅m/s²) */
 case object Newton extends SIUnit[Force] {
@@ -173,43 +255,25 @@ case object Joule extends SIUnit[Energy] {
   def symbol: String = "J"
 }
 
-/** Watt - unit of power (J/s) */
-type Power = BaseDim[One, Two, TRat[-3, 1], Zero, Zero, Zero, Zero]
-
 case object Watt extends SIUnit[Power] {
   def symbol: String = "W"
 }
-
-/** Pascal - unit of pressure (N/m²) */
-type Pressure = BaseDim[One, TRat[-1, 1], TRat[-2, 1], Zero, Zero, Zero, Zero]
 
 case object Pascal extends SIUnit[Pressure] {
   def symbol: String = "Pa"
 }
 
-/** Hertz - unit of frequency (1/s) */
-type Frequency = BaseDim[Zero, Zero, MinusOne, Zero, Zero, Zero, Zero]
-
 case object Hertz extends SIUnit[Frequency] {
   def symbol: String = "Hz"
 }
-
-/** Coulomb - unit of electric charge (A⋅s) */
-type Charge = BaseDim[Zero, Zero, One, One, Zero, Zero, Zero]
 
 case object Coulomb extends SIUnit[Charge] {
   def symbol: String = "C"
 }
 
-/** Volt - unit of electric potential (W/A) */
-type Voltage = BaseDim[One, Two, TRat[-3, 1], MinusOne, Zero, Zero, Zero]
-
 case object Volt extends SIUnit[Voltage] {
   def symbol: String = "V"
 }
-
-/** Ohm - unit of resistance (V/A) */
-type Resistance = BaseDim[One, Two, TRat[-3, 1], TRat[-2, 1], Zero, Zero, Zero]
 
 case object Ohm extends SIUnit[Resistance] {
   def symbol: String = "Ω"
@@ -290,10 +354,12 @@ case object Radian extends SIUnit[Angle] {
 val Liter: Unit[Volume] = CubicMeter.scaled(Rational(1, 1000), "L")
 
 /** Kilometer per hour - unit of velocity */
-val KilometerPerHour: Unit[Velocity] = MeterPerSecond.scaled(Rational(5, 18), "km/h")
+val KilometerPerHour: Unit[Velocity] = MetersPerSecond.scaled(Rational(5, 18), "km/h")
 
 /** Mile per hour - unit of velocity */
-val MilePerHour: Unit[Velocity] = MeterPerSecond.scaled(Rational(1397, 3125), "mph")
+val MilePerHour: Unit[Velocity] = MetersPerSecond.scaled(Rational(1397, 3125), "mph")
+
+// CONSIDER we no longer need these, right?
 
 /**
   * Commonly used composite units defined for convenience.

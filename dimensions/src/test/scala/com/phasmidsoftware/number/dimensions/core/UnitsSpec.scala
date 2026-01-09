@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.dimensions.core
 
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -137,5 +138,37 @@ class UnitsSpec extends AnyFlatSpec with should.Matchers {
 
   it should "verify Angle is dimensionless" in {
     summon[Angle =:= Dimensionless]
+  }
+
+  behavior of "ProductUnit"
+
+  it should "form energy" in {
+    val energy = ProductUnit[Energy](Newton, Meter)
+    energy.toSI shouldBe WholeNumber.one
+    energy.symbol shouldBe "N·m"
+  }
+
+  behavior of "QuotientUnit"
+
+  it should "form velocity" in {
+    val velocity = QuotientUnit[Energy](Meter, Second)
+    velocity.toSI shouldBe WholeNumber.one
+    velocity.symbol shouldBe "m/s"
+  }
+
+  behavior of "PowerUnit"
+
+  it should "form area" in {
+    val area = PowerUnit[Area](Meter, Rational.two)
+    area.toSI shouldBe WholeNumber.one
+    area.symbol shouldBe "m²"
+  }
+
+  behavior of "ScaledUnit"
+
+  it should "form inch" in {
+    val inch = ScaledUnit[Length](Meter, Rational(254, 10000), "in")
+    inch.toSI.toDouble shouldBe 0.0254
+    inch.symbol shouldBe "in"
   }
 }
