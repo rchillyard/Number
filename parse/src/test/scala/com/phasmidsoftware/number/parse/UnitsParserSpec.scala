@@ -13,8 +13,8 @@ class UnitsParserSpec extends AnyFlatSpec with Matchers {
   it should "parse simple base units" in {
     UnitsParser.parse("m") match {
       case Right(unit) =>
-        unit.symbol shouldBe "m"
         unit shouldBe Meter
+        unit.symbol shouldBe "m"
       case Left(err) => fail(s"Parse failed: $err")
     }
   }
@@ -165,8 +165,8 @@ class UnitsParserSpec extends AnyFlatSpec with Matchers {
   it should "parse complex composite units" in {
     UnitsParser.parse("kg·m/s²") match {
       case Right(unit) =>
-        unit.symbol shouldBe "kg·m/s²"
-        unit shouldBe a[QuotientUnit[?]]
+        unit.symbol shouldBe "N"
+        unit shouldBe a[Newton$]
       case Left(err) => fail(s"Parse failed: $err")
     }
   }
@@ -261,9 +261,20 @@ class UnitsParserSpec extends AnyFlatSpec with Matchers {
       case Right(unit) =>
         unit.symbol shouldBe "km/h"
         unit.toSI shouldBe RationalNumber(Rational(5, 18))
-        unit shouldBe a[QuotientUnit[?]]
+        unit shouldBe a[ScaledUnit[?]]
       // Optionally check it has the right components
       case Left(err) => fail(s"Parse failed: $err")
     }
   }
+
+  it should "parse unknown velocity correctly" in {
+    UnitsParser.parse("ch/h") match {
+      case Right(unit) =>
+        unit.symbol shouldBe "ch/h"
+        unit.toSI shouldBe RationalNumber(Rational(1397, 250_000))
+        unit shouldBe a[QuotientUnit[?]]
+      case Left(err) => fail(s"Parse failed: $err")
+    }
+  }
+
 }

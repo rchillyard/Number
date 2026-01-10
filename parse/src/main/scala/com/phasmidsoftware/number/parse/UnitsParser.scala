@@ -13,53 +13,6 @@ import fastparse.NoWhitespace.*
   */
 object UnitsParser {
 
-  // Registry of known unit symbols
-  private val unitRegistry: Map[String, Unit[?]] = Map(
-    // Base SI units
-    "m" -> Meter,
-    "kg" -> Kilogram,
-    "s" -> Second,
-    "A" -> Ampere,
-    "K" -> Kelvin,
-    "mol" -> Mole,
-    "cd" -> Candela,
-
-    // Derived SI units
-    "N" -> Newton,
-    "J" -> Joule,
-    "W" -> Watt,
-    "Pa" -> Pascal,
-    "Hz" -> Hertz,
-    "C" -> Coulomb,
-    "V" -> Volt,
-    "Ω" -> Ohm,
-
-    // Common non-SI length
-    "km" -> Kilometer,
-    "cm" -> Centimeter,
-    "mm" -> Millimeter,
-    "in" -> Inch,
-    "ft" -> Foot,
-    "yd" -> Yard,
-    "mi" -> Mile,
-
-    // Mass
-    "g" -> Gram,
-    "lb" -> Pound,
-    "oz" -> Ounce,
-
-    // Time
-    "min" -> Minute,
-    "h" -> Hour,
-    "d" -> Day,
-
-    // Angular
-    "rad" -> Radian,
-
-    // Volume
-    "L" -> Liter
-  )
-
   // Parser for a known unit symbol
   def knownUnitParser(using P[Any]): P[Unit[?]] = {
     val sortedSymbols = unitRegistry.keys.toSeq.sortBy(-_.length)

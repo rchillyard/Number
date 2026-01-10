@@ -48,6 +48,7 @@ class PowerUnitSpec extends AnyFlatSpec with Matchers {
     val perMinute = Minute.invert
     perMinute.symbol shouldBe "min⁻¹"
     perMinute.toSI shouldBe RationalNumber(1, 60)
+    perMinute.compositeSymbol shouldBe "(60·s)^-1"
   }
 
   it should "handle squared composite units" in {

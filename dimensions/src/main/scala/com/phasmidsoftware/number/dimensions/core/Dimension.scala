@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.dimensions.core
 
+import com.phasmidsoftware.number.core.inner.Rational
+
 /**
   * Trait representing physical dimensions using SI base units.
   */
@@ -116,4 +118,82 @@ type PowDim[D <: Dimension, E <: TRational] <: Dimension = D match {
     MulTRat[n, E],
     MulTRat[j, E]
   ]
+}
+
+// In Dimension.scala - add runtime witness
+
+trait DimensionWitness {
+  def toCompositeSymbol: String
+}
+
+case class BaseDimWitness(
+                           m: Rational, // Mass
+                           l: Rational, // Length  
+                           t: Rational, // Time
+                           i: Rational, // Current
+                           θ: Rational, // Temperature
+                           n: Rational, // Amount
+                           j: Rational // Luminosity
+                         ) extends DimensionWitness {
+
+  def toCompositeSymbol: String = {
+    val baseUnits = Seq(
+      ("kg", m),
+      ("m", l),
+      ("s", t),
+      ("A", i),
+      ("K", θ),
+      ("mol", n),
+      ("cd", j)
+    ).filter(_._2 != Rational.zero)
+
+    if (baseUnits.isEmpty) return "1" // Dimensionless
+
+    val (positive, negative) = baseUnits.partition(_._2 > Rational.zero)
+
+    val posStr = positive.map { case (sym, exp) => formatUnit(sym, exp) }.mkString("·")
+    val negStr = negative.map { case (sym, exp) => formatUnit(sym, -exp) }.mkString("·")
+
+    (posStr, negStr) match {
+      case (pos, "") => pos
+      case ("", neg) => s"1/$neg"
+      case (pos, neg) => s"$pos/$neg"
+    }
+  }
+
+  private def formatUnit(sym: String, exp: Rational): String = {
+    exp match {
+      case r if r == Rational.one => sym
+      case r if r == Rational(2) => s"$sym²"
+      case r if r == Rational(3) => s"$sym³"
+      case r if r.d == 1 => s"$sym^${r.n}"
+      case r => s"$sym^(${r.n}/${r.d})"
+    }
+  }
+}
+
+object DimensionWitness {
+  // Helper to create witnesses for common dimensions
+  val dimensionless = BaseDimWitness(0, 0, 0, 0, 0, 0, 0)
+  val mass = BaseDimWitness(1, 0, 0, 0, 0, 0, 0)
+  val length = BaseDimWitness(0, 1, 0, 0, 0, 0, 0)
+  val time = BaseDimWitness(0, 0, 1, 0, 0, 0, 0)
+  val current = BaseDimWitness(0, 0, 0, 1, 0, 0, 0)
+  val temperature = BaseDimWitness(0, 0, 0, 0, 1, 0, 0)
+  val amount = BaseDimWitness(0, 0, 0, 0, 0, 1, 0)
+  val luminosity = BaseDimWitness(0, 0, 0, 0, 0, 0, 1)
+
+  // Derived dimensions
+  val area = BaseDimWitness(0, 2, 0, 0, 0, 0, 0)
+  val volume = BaseDimWitness(0, 3, 0, 0, 0, 0, 0)
+  val velocity = BaseDimWitness(0, 1, -1, 0, 0, 0, 0)
+  val acceleration = BaseDimWitness(0, 1, -2, 0, 0, 0, 0)
+  val force = BaseDimWitness(1, 1, -2, 0, 0, 0, 0)
+  val energy = BaseDimWitness(1, 2, -2, 0, 0, 0, 0)
+  val power = BaseDimWitness(1, 2, -3, 0, 0, 0, 0)
+  val pressure = BaseDimWitness(1, -1, -2, 0, 0, 0, 0)
+  val charge = BaseDimWitness(0, 0, 1, 1, 0, 0, 0)
+  val voltage = BaseDimWitness(1, 2, -3, -1, 0, 0, 0)
+  val resistance = BaseDimWitness(1, 2, -3, -2, 0, 0, 0)
+  val frequency = BaseDimWitness(0, 0, -1, 0, 0, 0, 0)
 }
