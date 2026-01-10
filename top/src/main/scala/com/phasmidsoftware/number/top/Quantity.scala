@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.top
 import com.phasmidsoftware.number.algebra.core.{Lazy, Renderable, Valuable}
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
+import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
 
@@ -30,6 +31,8 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
 
   def renderLaTeX: String = {
     val valueLatex = value match {
+      case n: RationalNumber =>
+        summon[LatexRenderer[Eager]].toLatex(n)
       case n: Eager =>
         summon[LatexRenderer[Eager]].toLatex(n)
       case v: Lazy =>
@@ -59,6 +62,16 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
     } yield Quantity(v1 / v2, unit / other.unit)
 }
 
+/**
+  * Provides factory methods for creating instances of the `Quantity` class.
+  *
+  * Quantities represent measurable values associated with physical units
+  * and are parameterized by their dimension type `D`, which defines the
+  * specific physical property of the quantity (e.g., length, time, etc.).
+  *
+  * The companion object offers multiple overloaded `apply` methods for
+  * constructing quantities using different types of numerical input.
+  */
 object Quantity {
   /**
     * Constructs a new `Quantity` instance with the specified value and unit.

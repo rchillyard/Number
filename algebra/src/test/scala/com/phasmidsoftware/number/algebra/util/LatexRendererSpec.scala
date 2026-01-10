@@ -49,8 +49,8 @@ class LatexRendererSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "create fractions" in {
-    LatexRenderer.frac("1", "2") shouldBe "\\frac{1}{2}"
-    LatexRenderer.frac("a", "b") shouldBe "\\frac{a}{b}"
+    LatexRenderer.frac("1", "2") shouldBe "\\tfrac{1}{2}"
+    LatexRenderer.frac("a", "b") shouldBe "\\tfrac{a}{b}"
   }
 
   it should "create square roots" in {

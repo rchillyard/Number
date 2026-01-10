@@ -16,7 +16,7 @@ class QuantityLaTeXSpec extends AnyFlatSpec with Matchers {
 
   it should "render rational number with unit" in {
     val distance = Quantity(RationalNumber(22, 7), Meter)
-    distance.renderLaTeX shouldBe "\\frac{22}{7}\\,\\text{m}"
+    distance.renderLaTeX shouldBe "3.\\overline{142857}\\,\\text{m}"
   }
 
   it should "render quotient units as fractions" in {
@@ -51,7 +51,7 @@ class QuantityLaTeXSpec extends AnyFlatSpec with Matchers {
 
   it should "render acceleration with nested power" in {
     val accel = Quantity(RationalNumber(98, 10), Meter / Second.squared)
-    accel.renderLaTeX shouldBe "\\frac{49}{5}\\,\\frac{\\text{m}}{\\text{s}^{2}}"
+    accel.renderLaTeX shouldBe "9.8\\,\\frac{\\text{m}}{\\text{s}^{2}}"
   }
 
   it should "render compound units with parentheses when needed" in {
@@ -95,7 +95,7 @@ class QuantityLaTeXSpec extends AnyFlatSpec with Matchers {
 
   it should "render fractional values with units" in {
     val distance = Quantity(RationalNumber(1, 2), Mile)
-    distance.renderLaTeX shouldBe "\\frac{1}{2}\\,\\text{mi}"
+    distance.renderLaTeX shouldBe "½\\,\\text{mi}"
   }
 
   it should "handle zero values" in {

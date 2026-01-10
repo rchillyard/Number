@@ -162,6 +162,16 @@ extension [D1 <: Dimension](u1: Unit[D1])
   def scaled(scale: Rational, name: String = ""): Unit[D1] =
     ScaledUnit[D1](u1, scale, name)
 
+  /**
+    * Scales a unit by a given integer factor and assigns a name to the resulting unit.
+    *
+    * @param scale The integer factor by which the unit is scaled.
+    * @param name  The name assigned to the scaled unit.
+    * @return A scaled unit of type `Unit[D1]`.
+    */
+  def scaled(scale: Int, name: String): Unit[D1] =
+    scaled(Rational(scale), name)
+
 /**
   * Extension method to render units in LaTeX format
   */
@@ -404,8 +414,6 @@ val KilometerPerHour: Unit[Velocity] = MetersPerSecond.scaled(Rational(5, 18), "
 /** Mile per hour - unit of velocity */
 val MilePerHour: Unit[Velocity] = MetersPerSecond.scaled(Rational(1397, 3125), "mph")
 
-// CONSIDER we no longer need these, right?
-
 /**
   * Commonly used composite units defined for convenience.
   * Users can also create their own composite units using the * and / operators.
@@ -413,9 +421,22 @@ val MilePerHour: Unit[Velocity] = MetersPerSecond.scaled(Rational(1397, 3125), "
   * Note: These are provided as alternatives to the predefined units like
   * MeterPerSecond, Newton, etc. The advantage of composite units is that
   * they can be created on-the-fly for any combination.
+  *
+  * For definitions of Imperial Units, see [[https://www.legislation.gov.uk/uksi/1995/1804/schedule/made]]
   */
 object CompositeUnits:
+
+  // Length
+  val Chain: Unit[Length] = Yard.scaled(22, "chain")
+  val LightSecond: Unit[Length] = Meter.scaled(299792458, "ls")
+
+  // Velocity
+  val C: Unit[Velocity] = LightSecond / Second
 
   // Area
   val Hectometer: Unit[Length] = Meter.scaled(Rational(100))
   val Hectare: Unit[Area] = Hectometer * Hectometer
+
+  // Volume
+  val Milliliter: Unit[Volume] = Liter.scaled(Rational(1000).invert)
+  val GallonImp: Unit[Volume] = Liter.scaled(Rational(454609, 10000))

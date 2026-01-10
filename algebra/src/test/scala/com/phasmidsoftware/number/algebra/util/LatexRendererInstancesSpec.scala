@@ -27,25 +27,25 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "render proper fractions" in {
-    Rational(1, 2).toLatex shouldBe "\\frac{1}{2}"
-    Rational(3, 4).toLatex shouldBe "\\frac{3}{4}"
-    Rational(22, 7).toLatex shouldBe "\\frac{22}{7}"
+    Rational(1, 2).toLatex shouldBe "½"
+    Rational(3, 4).toLatex shouldBe "¾"
+    Rational(22, 7).toLatex shouldBe "3.\\overline{142857}"
   }
 
   it should "render negative fractions" in {
-    Rational(-1, 2).toLatex shouldBe "\\frac{-1}{2}"
-    Rational(1, -2).toLatex shouldBe "\\frac{-1}{2}" // Rational normalizes sign to numerator
+    Rational(-1, 2).toLatex shouldBe "-0.5"
+    Rational(1, -2).toLatex shouldBe "-0.5" // Rational normalizes sign to numerator
   }
 
   behavior of "RationalNumber LatexRenderer"
 
   it should "delegate to Rational renderer" in {
-    RationalNumber(Rational(1, 2)).toLatex shouldBe "\\frac{1}{2}"
+    RationalNumber(Rational(1, 2)).toLatex shouldBe "½"
     RationalNumber(Rational(7)).toLatex shouldBe "7"
   }
 
   it should "render half correctly" in {
-    RationalNumber.half.toLatex shouldBe "\\frac{1}{2}"
+    RationalNumber.half.toLatex shouldBe "½"
   }
 
   it should "render zero correctly" in {
@@ -54,6 +54,12 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render one correctly" in {
     RationalNumber.one.toLatex shouldBe "1"
+  }
+
+  it should "render speed of light in furlongs per fortnight" in {
+    import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+    val r: Rational = r"2518256647200000/1397"
+    r.toLatex shouldBe "\\frac{2518256647200000}{1397}"
   }
 
   behavior of "Logarithm LatexRenderer"
@@ -72,7 +78,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render square roots of fractions" in {
     val sqrtHalf = InversePower(2, RationalNumber(Rational(1, 2)))
-    sqrtHalf.toLatex shouldBe "\\sqrt{\\frac{1}{2}}"
+    sqrtHalf.toLatex shouldBe "\\sqrt{½}"
   }
 
   it should "render cube roots" in {
@@ -87,7 +93,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render nested roots properly" in {
     val innerSqrt = InversePower(2, RationalNumber(Rational(5, 4)))
-    innerSqrt.toLatex shouldBe "\\sqrt{\\frac{5}{4}}"
+    innerSqrt.toLatex shouldBe "\\sqrt{1.25}"
   }
 
   behavior of "QuadraticSolution LatexRenderer"
@@ -120,7 +126,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
     val offset = InversePower(2, RationalNumber(Rational(2)))
     val solution = QuadraticSolution(base, offset, 1, imaginary = false)
 
-    solution.toLatex shouldBe "\\frac{1}{2} + \\sqrt{2}"
+    solution.toLatex shouldBe "½ + \\sqrt{2}"
   }
 
   it should "render real solution with negative branch (branch 1)" in {
@@ -128,7 +134,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
     val offset = InversePower(2, RationalNumber(Rational(2)))
     val solution = QuadraticSolution(base, offset, -1, imaginary = false)
 
-    solution.toLatex shouldBe "\\frac{1}{2} - \\sqrt{2}"
+    solution.toLatex shouldBe "½ - \\sqrt{2}"
   }
 
   it should "render complex solution with positive branch" in {
@@ -136,7 +142,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
     val offset = InversePower(2, RationalNumber(Rational(3, 4)))
     val solution = QuadraticSolution(base, offset, 1, imaginary = true)
 
-    solution.toLatex shouldBe "\\frac{1}{2} + i \\sqrt{\\frac{3}{4}}"
+    solution.toLatex shouldBe "½ + i \\sqrt{¾}"
   }
 
   it should "render complex solution with negative branch" in {
@@ -144,7 +150,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
     val offset = InversePower(2, RationalNumber(Rational(3, 4)))
     val solution = QuadraticSolution(base, offset, -1, imaginary = true)
 
-    solution.toLatex shouldBe "\\frac{1}{2} - i \\sqrt{\\frac{3}{4}}"
+    solution.toLatex shouldBe "½ - i \\sqrt{¾}"
   }
 
   it should "render solution with integer base and irrational offset" in {
@@ -172,7 +178,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render fractional linear solution" in {
     val solution = LinearSolution(RationalNumber(Rational(3, 4)))
-    solution.toLatex shouldBe "\\frac{3}{4}"
+    solution.toLatex shouldBe "¾"
   }
 
   it should "render linear solution with irrational value" in {
@@ -201,7 +207,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "handle very large rationals" in {
     Rational(1000000, 1).toLatex shouldBe "1000000"
-    Rational(999999, 1000000).toLatex shouldBe "\\frac{999999}{1000000}"
+    Rational(999999, 1000000).toLatex shouldBe "0.999999"
   }
 
   it should "handle negative zero-like cases" in {

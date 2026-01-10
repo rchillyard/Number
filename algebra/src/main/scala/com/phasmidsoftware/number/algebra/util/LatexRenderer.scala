@@ -56,7 +56,8 @@ object LatexRenderer {
     * }}}
     */
   implicit class LatexRendererOps[A](val value: A) extends AnyVal {
-    def toLatex(implicit renderer: LatexRenderer[A]): String = renderer.toLatex(value)
+    def toLatex(implicit renderer: LatexRenderer[A]): String =
+      renderer.toLatex(value)
   }
 
   /**
@@ -79,7 +80,10 @@ object LatexRenderer {
     * @return LaTeX fraction notation
     */
   def frac(numerator: String, denominator: String): String =
-    s"\\frac{$numerator}{$denominator}"
+    if (numerator.length <= 2 && denominator.length <= 2)
+      s"\\tfrac{$numerator}{$denominator}"
+    else
+      s"\\frac{$numerator}{$denominator}"
 
   /**
     * Helper method to create a square root.

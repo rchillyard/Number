@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core.numerical.{BigNumber, Number, NumberLike, Prime}
 import com.phasmidsoftware.number.core.parse.RationalParser
+
 import java.lang.Math.*
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -1389,6 +1390,14 @@ object Rational {
       n <- narrow(x.n.toLong, Long.MinValue, Long.MaxValue)
       d <- narrow(x.d.toLong, Long.MinValue, Long.MaxValue)
     } yield (n.toLong, d.toLong)).toOption
+
+  // NOTE this corresponds to the renderExact method's output but allows
+  // a LaTeX renderer to recognize the situation.
+  val repeatingDecimals = """^-?(\d+\.\d*)<(\d+)>$""".r
+
+  // NOTE this corresponds the output form where the best that can be done is
+  // to render the rational in rational form.
+  val rationalForm = """^(-?\d+)/(\d+)$""".r
 
   /**
     * Generate the String representation of n/d where d is a Prime number (at least, very probably).
