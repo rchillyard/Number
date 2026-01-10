@@ -1,21 +1,14 @@
 package com.phasmidsoftware.number.parse
 
+import com.phasmidsoftware.number.algebra.eager.RationalNumber
+import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
-import fastparse.Parsed
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class UnitsParserSpec extends AnyFlatSpec with Matchers {
 
   behavior of "UnitsParser"
-
-  it should "parse just 'm' directly" in {
-    val result = fastparse.parse("m", p => UnitsParser.knownUnitParser(using p))
-    result match {
-      case Parsed.Success(u, _) => u shouldBe Meter
-      case f: Parsed.Failure => fail(s"Failed: ${f.trace().longMsg}")
-    }
-  }
 
   it should "parse simple base units" in {
     UnitsParser.parse("m") match {
@@ -44,51 +37,86 @@ class UnitsParserSpec extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "parse m cubed step by step" in {
+    // First, does the parser see the ³?
+    val input = "m³"
+    println(s"Parsing: $input")
+
+    val result = UnitsParser.parse(input)
+    println(s"Result: $result")
+
+    result match {
+      case Right(unit) =>
+        println(s"Unit type: ${unit.getClass.getName}")
+        println(s"Unit symbol: ${unit.symbol}")
+        unit match {
+          case p: PowerUnit[?] =>
+            println(s"Power: ${p.power}")
+            println(s"Base: ${p.base}")
+          case _ =>
+            println(s"Not a PowerUnit, it's: ${unit}")
+        }
+      case Left(err) => println(s"Error: $err")
+    }
+  }
+
   it should "parse squared units with superscript" in {
     UnitsParser.parse("m²") match {
       case Right(unit) =>
         unit.symbol shouldBe "m²"
+        unit shouldBe a[PowerUnit[?]]
       case Left(err) => fail(s"Parse failed: $err")
     }
   }
+  it should "check character encoding" in {
+    val testChar = "³"
+    val parserChar = "³"
+    println(s"Test char bytes: ${testChar.getBytes.mkString(",")}")
+    println(s"Parser char bytes: ${parserChar.getBytes.mkString(",")}")
+    testChar shouldBe parserChar
+  }
 
-  ignore should "parse cubed units with caret notation" in {
-    UnitsParser.parse("m^3") match {
+  it should "parse cubed units with superscript" in {
+    UnitsParser.parse("m³") match {
       case Right(unit) =>
-        unit.symbol shouldBe "m³" // NOT "m^3"
+        unit.symbol shouldBe "m³"
         unit shouldBe a[PowerUnit[?]]
       case Left(err) => fail(s"Parse failed: $err")
     }
   }
 
-  ignore should "parse cubed units with superscript" in {
-    UnitsParser.parse("m³") match {
-      case Right(unit) =>
-        unit.symbol shouldBe "m³"
-      case Left(err) => fail(s"Parse failed: $err")
-    }
-  }
-
-  ignore should "parse inverted units with superscript" in {
+  it should "parse inverted units with superscript" in {
     UnitsParser.parse("s⁻¹") match {
       case Right(unit) =>
         unit.symbol shouldBe "s⁻¹"
+        unit shouldBe a[PowerUnit[?]]
       case Left(err) => fail(s"Parse failed: $err")
     }
   }
 
-  ignore should "parse squared units with caret notation" in {
+  it should "parse squared units with caret notation" in {
     UnitsParser.parse("m^2") match {
       case Right(unit) =>
         unit.symbol shouldBe "m²"
+        unit shouldBe a[PowerUnit[?]]
       case Left(err) => fail(s"Parse failed: $err")
     }
   }
 
-  ignore should "parse negative exponent with caret" in {
+  it should "parse cubed units with caret notation" in {
+    UnitsParser.parse("m^3") match {
+      case Right(unit) =>
+        unit.symbol shouldBe "m³"
+        unit shouldBe a[PowerUnit[?]]
+      case Left(err) => fail(s"Parse failed: $err")
+    }
+  }
+
+  it should "parse negative exponent with caret" in {
     UnitsParser.parse("s^-1") match {
       case Right(unit) =>
         unit.symbol shouldBe "s⁻¹"
+        unit shouldBe a[PowerUnit[?]]
       case Left(err) => fail(s"Parse failed: $err")
     }
   }
@@ -213,7 +241,7 @@ class UnitsParserSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  ignore should "fail on invalid syntax" in {
+  it should "fail on invalid syntax" in {
     UnitsParser.parse("m//s") match {
       case Right(_) => fail("Should not have parsed invalid syntax")
       case Left(err) => err.length should be > 0
@@ -228,11 +256,13 @@ class UnitsParserSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  ignore should "parse velocity correctly" in {
+  it should "parse velocity correctly" in {
     UnitsParser.parse("km/h") match {
       case Right(unit) =>
         unit.symbol shouldBe "km/h"
-        unit shouldBe KilometerPerHour
+        unit.toSI shouldBe RationalNumber(Rational(5, 18))
+        unit shouldBe a[QuotientUnit[?]]
+      // Optionally check it has the right components
       case Left(err) => fail(s"Parse failed: $err")
     }
   }

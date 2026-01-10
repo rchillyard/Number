@@ -4,6 +4,13 @@ import com.phasmidsoftware.number.dimensions.core.*
 import fastparse.*
 import fastparse.NoWhitespace.*
 
+/**
+  * Object responsible for parsing unit expressions into their corresponding
+  * `Unit` representations. This supports basic SI units, common derivations,
+  * unit powers, products, and divisions.
+  *
+  * TODO rewrite this (and even maybe the LatexParser) using Scala Parser Combinators.
+  */
 object UnitsParser {
 
   // Registry of known unit symbols
@@ -55,24 +62,26 @@ object UnitsParser {
 
   // Parser for a known unit symbol
   def knownUnitParser(using P[Any]): P[Unit[?]] = {
-    P(CharsWhile(c => c.isLetter).!).flatMap { sym =>
-      unitRegistry.get(sym) match {
-        case Some(unit) => Pass(unit)
-        case None => Fail
-      }
+    val sortedSymbols = unitRegistry.keys.toSeq.sortBy(-_.length)
+
+    // Try each symbol explicitly (longest first)
+    sortedSymbols.foldLeft[P[Unit[?]]](P(Fail)) { (acc, sym) =>
+      acc | P(sym).map(_ => unitRegistry(sym))
     }
   }
 
-  // Parser for superscript exponents
   def superscriptParser(using P[Any]): P[Int] = {
     P(
-      P("²").map(_ => 2) /
-        P("³").map(_ => 3) /
-        P("⁻¹").map(_ => -1) /
-        P("⁻²").map(_ => -2) /
-        P("⁻³").map(_ => -3) /
-        P("^" ~ ("-".? ~ CharsWhileIn("0-9")).!.map(_.toInt))
-    )
+      ("²" | "³" | "⁻¹" | "⁻²" | "⁻³").! |
+        ("^" ~ ("-".? ~ CharsWhileIn("0-9", 1)).!)
+    ).map {
+      case "²" => 2
+      case "³" => 3
+      case "⁻¹" => -1
+      case "⁻²" => -2
+      case "⁻³" => -3
+      case s => s.toInt
+    }
   }
 
   // Parser for a unit with optional power
@@ -98,7 +107,7 @@ object UnitsParser {
 
   // Parser for complete unit expression (with division)
   def unitsParser(using P[Any]): P[Unit[?]] = {
-    P(unitProductParser ~ ("/" ~ unitProductParser).?).map {
+    P(unitProductParser ~ ("/" ~ unitProductParser).? ~ End).map {
       case (num, None) => num
       case (num, Some(den)) => num / den
     }
