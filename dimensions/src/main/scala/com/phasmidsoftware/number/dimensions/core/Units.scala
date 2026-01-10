@@ -722,35 +722,41 @@ val MilePerHour: Unit[Velocity] = MetersPerSecond.scaled(Rational(1397, 3125), "
 
 // Registry of known unit symbols
 val unitRegistry: Map[String, Unit[?]] = buildRegistry(
-  Dimensionless, Radian,
+  // Base SI units
   Meter, Kilogram, Second, Ampere, Kelvin, Mole, Candela,
-  SquareMeter, CubicMeter, MetersPerSecond, MetersPerSecondSquared,
+  // Named derived SI units
   Newton, Joule, Watt, Pascal, Hertz, Coulomb, Volt, Ohm,
+  // Scaled units
   Kilometer, Centimeter, Millimeter, Inch, Foot, Yard, Mile,
   Gram, Pound, Ounce,
   Minute, Hour, Day,
+  Radian, // Keep - named unit with "rad" symbol
+  // Dimensionless,  // Optional - has empty symbol so won't match anyway
   Liter, KilometerPerHour, MilePerHour,
-  CompositeUnits.Chain, CompositeUnits.LightSecond,
-  CompositeUnits.Hectometer, CompositeUnits.Hectare,
-  CompositeUnits.Milliliter, CompositeUnits.GallonImp
+  // Named composite units
+  CompositeUnits.Chain, CompositeUnits.LightSecond, CompositeUnits.C,
+  CompositeUnits.Hectometer, CompositeUnits.Hectare, CompositeUnits.Milliliter, CompositeUnits.GallonImp
 )
-
 /**
   * Build a registry mapping unit symbols (both regular and composite) to unit instances.
   */
-private def buildRegistry(units: Unit[?]*): Map[String, Unit[?]] =
+def buildRegistry(units: Unit[?]*): Map[String, Unit[?]] = {
   units.flatMap { u =>
     val entries = scala.collection.mutable.ListBuffer((u.symbol, u))
 
-    // Add composite symbol if different from symbol and not dimensionless
-    val comp = u.compositeSymbol
-    if (comp != u.symbol && comp != "1") {
-      entries += ((comp, u))
+    // Only add composite symbol for SIUnits (named derived units like Newton)
+    u match {
+      case _: SIUnit[?] =>
+        val comp = u.compositeSymbol
+        if (comp != u.symbol && comp != "1") {
+          entries += ((comp, u))
+        }
+      case _ => // Don't register composite symbols for ProductUnit, QuotientUnit, etc.
     }
 
     entries.toSeq
   }.toMap
-
+}
 
 // ============================================================================
 // LaTeX Rendering

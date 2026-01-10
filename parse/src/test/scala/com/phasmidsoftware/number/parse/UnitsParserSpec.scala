@@ -237,14 +237,14 @@ class UnitsParserSpec extends AnyFlatSpec with Matchers {
   it should "fail on unrecognized unit" in {
     UnitsParser.parse("xyz") match {
       case Right(_) => fail("Should not have parsed unrecognized unit")
-      case Left(err) => err should include("Expected")
+      case Left(err) => err should include("xyz")
     }
   }
 
   it should "fail on invalid syntax" in {
     UnitsParser.parse("m//s") match {
       case Right(_) => fail("Should not have parsed invalid syntax")
-      case Left(err) => err.length should be > 0
+      case Left(err) => err should not be empty
     }
   }
 

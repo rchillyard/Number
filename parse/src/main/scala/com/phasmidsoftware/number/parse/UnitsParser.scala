@@ -13,6 +13,8 @@ import fastparse.NoWhitespace.*
   */
 object UnitsParser {
 
+  type PhysicalUnit[D <: Dimension] = com.phasmidsoftware.number.dimensions.core.Unit[D]
+
   /**
     * Parses the given input string into a unit of measurement or returns an error message.
     *
@@ -24,12 +26,44 @@ object UnitsParser {
     * @return an `Either` where `Right` contains the parsed unit or `Left` contains the error message
     */
   def parse(input: String): Either[String, Unit[?]] =
-    fastparse.parse(input, p => unitsParser(using p)) match {
-      case Parsed.Success(u, _) =>
-        Right(u)
-      case f: Parsed.Failure =>
-        Left(f.trace().longMsg)
+    fastparse.parse(input, p => {
+      given P[Any] = p
+
+      unitsParser ~ End
+    }) match {
+      case Parsed.Success(u, _) => Right(u)
+      case f: Parsed.Failure => Left(f.msg) // Add .trace()
     }
+
+  /**
+    * Parses a complete unit expression involving division.
+    *
+    * This method constructs a parser that recognizes and processes unit expressions
+    * combining products of units (e.g., "m·s" or "kg*m") with optional division operators ("/").
+    * It supports parsing both simple unit terms and more complex unit expressions
+    * with a numerator and an optional denominator. The resulting unit reflects the
+    * relationship described by the parsed expression.
+    *
+    * @param P an implicit parameter providing the parsing context
+    * @return a parser that produces a unit of measurement, taking into account the division
+    *         of two unit expressions if applicable
+    */
+  //  def unitsParser(using P[Any]): P[Unit[?]] = {
+  //    P(unitProductParser ~ ("/" ~ unitProductParser).?).map {
+  //      case (num, None) => num
+  //      case (num, Some(den)) => num / den
+  //    }
+
+  def unitsParser(using P[Any]): P[Unit[?]] = {
+    P(unitProductParser ~ ("/" ~ unitProductParser).?).map { parsed =>
+      val result = parsed match {
+        case (num, None) => num
+        case (num, Some(den)) => num / den
+      }
+      println(s"DEBUG unitsParser: parsed=$parsed, result=$result")
+      result
+    }
+  }
 
   /**
     * Parses known unit symbols from input, prioritizing longer symbols to ensure
@@ -88,18 +122,21 @@ object UnitsParser {
     * @return a parser that produces a unit raised to the specified power or throws an exception for invalid powers
     */
   private def unitPowerParser(using P[Any]): P[Unit[?]] = {
-    P(knownUnitParser ~ superscriptParser.?).map {
-      case (u, None) => u
-      case (u, Some(2)) => u.squared
-      case (u, Some(3)) => u.cubed
-      case (u, Some(-1)) => u.invert
-      case (u, Some(-2)) => u.squared.invert
-      case (u, Some(-3)) => u.cubed.invert
-      case (u, Some(exp)) =>
-        throw UnitsParserException(s"Unsupported exponent: $exp (only 2, 3, -1, -2, -3 supported)")
+    P(knownUnitParser ~ superscriptParser.?).map { parsed =>
+      val result = parsed match {
+        case (u, None) => u
+        case (u, Some(2)) => u.squared
+        case (u, Some(3)) => u.cubed
+        case (u, Some(-1)) => u.invert
+        case (u, Some(-2)) => u.squared.invert
+        case (u, Some(-3)) => u.cubed.invert
+        case (u, Some(exp)) =>
+          throw UnitsParserException(s"Unsupported exponent: $exp")
+      }
+      println(s"DEBUG unitPowerParser: parsed=$parsed, result=$result")
+      result
     }
   }
-
   /**
     * Parses a product of units, where units are combined using multiplication.
     *
@@ -113,29 +150,19 @@ object UnitsParser {
     * @return a parser that produces a composite unit representing the product of
     *         all parsed units and their powers
     */
-  private def unitProductParser(using P[Any]): P[Unit[?]] = {
-    P(unitPowerParser ~ (("·" | "*") ~ unitPowerParser).rep).map {
-      case (first, rest) => rest.foldLeft(first)(_ * _)
-    }
-  }
+  //  private def unitProductParser(using P[Any]): P[Unit[?]] = {
+  //    P(unitPowerParser ~ (("·" | "*") ~ unitPowerParser).rep).map {
+  //      case (first, rest) => rest.foldLeft(first)(_ * _)
+  //    }
+  //  }
 
-  /**
-    * Parses a complete unit expression involving division.
-    *
-    * This method constructs a parser that recognizes and processes unit expressions
-    * combining products of units (e.g., "m·s" or "kg*m") with optional division operators ("/").
-    * It supports parsing both simple unit terms and more complex unit expressions
-    * with a numerator and an optional denominator. The resulting unit reflects the
-    * relationship described by the parsed expression.
-    *
-    * @param P an implicit parameter providing the parsing context
-    * @return a parser that produces a unit of measurement, taking into account the division
-    *         of two unit expressions if applicable
-    */
-  private def unitsParser(using P[Any]): P[Unit[?]] = {
-    P(unitProductParser ~ ("/" ~ unitProductParser).? ~ End).map {
-      case (num, None) => num
-      case (num, Some(den)) => num / den
+  private def unitProductParser(using P[Any]): P[Unit[?]] = {
+    P(unitPowerParser ~ (("·" | "*") ~ unitPowerParser).rep).map { parsed =>
+      val result = parsed match {
+        case (first, rest) => rest.foldLeft(first)(_ * _)
+      }
+      println(s"DEBUG unitProductParser: parsed=$parsed, result=$result")
+      result
     }
   }
 }
