@@ -38,6 +38,7 @@
         <option value="com.phasmidsoftware.number.cats.laws.RealAlgebraicInstancesLawSpec" />
         <option value="com.phasmidsoftware.number.top.QuantityLaTeXSpec" />
         <option value="com.phasmidsoftware.number.top.QuantitySpec" />
+        <option value="com.phasmidsoftware.number.top.QuantityWorksheetSpec" />
         <option value="com.phasmidsoftware.number.top.TopSpec" />
         <option value="com.phasmidsoftware.number.expression.algebraic.QuadraticEquationSpec" />
         <option value="com.phasmidsoftware.number.expression.mill.ExpressionSpec" />

@@ -1,4 +1,4 @@
-// This is the Units worksheet
+// This is the Quantity worksheet
 
 import com.phasmidsoftware.number.algebra.eager.RationalNumber
 import com.phasmidsoftware.number.core.inner.Rational
