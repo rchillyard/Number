@@ -103,8 +103,6 @@ object LaTeXParser {
           case "" =>
             Eager(numStr)
         }
-
-
     }
 
   /**

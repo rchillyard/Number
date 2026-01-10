@@ -1,6 +1,6 @@
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.5.2"
+ThisBuild / version := "1.5.3"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -126,7 +126,7 @@ lazy val parse = (project in file("parse"))
       )
     )
     .settings(scala3TestSettings)
-    .dependsOn(core, algebra, expression)
+    .dependsOn(core, algebra, expression, dimensions)
 
 lazy val top = (project in file("top"))
     .settings(

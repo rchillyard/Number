@@ -16,6 +16,11 @@ trait Unit[D <: Dimension] {
   def symbol: String
 }
 
+/**
+  * Represents a unit of measurement that is part of the International System of Units (SI).
+  *
+  * @tparam D the dimension type associated with this unit, which must extend `Dimension`
+  */
 trait SIUnit[D <: Dimension] extends Unit[D] {
   /** The scale factor relative to the SI base unit */
   def toSI: ExactNumber = WholeNumber.one
@@ -71,12 +76,12 @@ case class PowerUnit[D <: Dimension](
       case _ => base.symbol
     }
 
-    if power == Rational(2) then s"${baseSymbol}²"
-    else if power == Rational(3) then s"${baseSymbol}³"
-    else if power == Rational(-1) then s"${baseSymbol}⁻¹"
-    else if power == Rational(-2) then s"${baseSymbol}⁻²"
-    else if power == Rational(-3) then s"${baseSymbol}⁻³"
-    else s"${baseSymbol}^${power}"
+    if power == Rational(2) then s"$baseSymbol²"
+    else if power == Rational(3) then s"$baseSymbol³"
+    else if power == Rational(-1) then s"$baseSymbol⁻¹"
+    else if power == Rational(-2) then s"$baseSymbol⁻²"
+    else if power == Rational(-3) then s"$baseSymbol⁻³"
+    else s"$baseSymbol^$power"
 
 /**
   * Represents a unit of measurement that is scaled relative to some base unit.
