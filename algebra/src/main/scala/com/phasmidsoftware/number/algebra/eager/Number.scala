@@ -237,12 +237,10 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
 }
 
 /**
-  * Represents a number that can be expressed and operated on with exact precision.
+  * Represents a number that can be expressed and operated on with exactitude.
   *
-  * The `ExactNumber` trait combines the behavior of `Number` and `Exact` to emphasize operations
-  * that require precise, symbolic, or rational representation, avoiding approximations.
-  * This interface ensures that instances are inherently exact and includes methods to determine
-  * exactness and specific properties like zero equivalence.
+  * Subtypes of ExactNumber include WholeNumber and RationalNumber.
+  * Although some instances of Real are exact, the type in general cannot be assumed to represent an exact value.
   */
 trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] with CanPower[ExactNumber] {
 
