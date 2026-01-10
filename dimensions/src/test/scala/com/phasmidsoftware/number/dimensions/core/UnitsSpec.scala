@@ -199,8 +199,7 @@ class UnitsSpec extends AnyFlatSpec with should.Matchers {
   behavior of "unitRegistry"
 
   it should "build the unitRegistry correctly" in {
-    println(s"unitRegistry = ${unitRegistry}")
-    unitRegistry.size shouldBe 75
+    unitRegistry.size shouldBe 76
     unitRegistry.foreach(
       (s, u) => (u.compositeSymbol == s || u.symbol == s) shouldBe true
     )

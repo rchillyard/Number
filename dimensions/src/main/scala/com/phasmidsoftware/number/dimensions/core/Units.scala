@@ -341,9 +341,18 @@ extension [D <: Dimension](unit: Unit[D])
   def renderLaTeX: String = toLatex(unit)
 
 /**
-  * Special dimension for angles (dimensionless but semantically distinct)
+  * Represents the dimensionless unit in the International System of Units (SI).
+  *
+  * This is a special unit that denotes quantities without any associated physical dimension.
+  * Examples of dimensionless quantities include pure numbers, ratios, angles measured in radians, etc.
+  *
+  * Extends `SIUnit` and provides a specific implementation for dimensionless quantities.
   */
-type Angle = BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, Zero]
+case object Dimensionless extends SIUnit[Dimensionless] {
+  def symbol: String = ""
+
+  def dimensionWitness: DimensionWitness = DimensionWitness.dimensionless
+}
 
 // ============================================================================
 // SI Base Units
@@ -688,7 +697,7 @@ val Day: Unit[Time] = Hour.scaled(Rational(24), "d")
 // ============================================================================
 
 /** Radian - SI unit of angle (dimensionless) */
-case object Radian extends SIUnit[Angle] {
+case object Radian extends SIUnit[com.phasmidsoftware.number.dimensions.core.Angle] {
   def symbol: String = "rad"
 
   def dimensionWitness: DimensionWitness = DimensionWitness.dimensionless
@@ -713,13 +722,13 @@ val MilePerHour: Unit[Velocity] = MetersPerSecond.scaled(Rational(1397, 3125), "
 
 // Registry of known unit symbols
 val unitRegistry: Map[String, Unit[?]] = buildRegistry(
+  Dimensionless, Radian,
   Meter, Kilogram, Second, Ampere, Kelvin, Mole, Candela,
   SquareMeter, CubicMeter, MetersPerSecond, MetersPerSecondSquared,
   Newton, Joule, Watt, Pascal, Hertz, Coulomb, Volt, Ohm,
   Kilometer, Centimeter, Millimeter, Inch, Foot, Yard, Mile,
   Gram, Pound, Ounce,
   Minute, Hour, Day,
-  Radian,
   Liter, KilometerPerHour, MilePerHour,
   CompositeUnits.Chain, CompositeUnits.LightSecond,
   CompositeUnits.Hectometer, CompositeUnits.Hectare,

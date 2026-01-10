@@ -34,15 +34,93 @@ type Half = TRat[1, 2]
 type Two = TRat[2, 1]
 type MinusOne = TRat[-1, 1]
 
-// Fundamental dimensions as type aliases
+/**
+  * Represents a dimensionless quantity, defined as a special case of the `BaseDim` type
+  * where all seven SI base unit exponents (Mass, Length, Time, Electric current, 
+  * Thermodynamic temperature, Amount of substance, and Luminous intensity) are zero.
+  */
 type Dimensionless = BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, Zero]
+/**
+  * Represents the physical dimension of mass in the SI base unit system.
+  * It is defined as a specialization of `BaseDim` with the exponent `1` for 
+  * mass (kilograms) and `0` for all other base units.
+  */
 type Mass = BaseDim[One, Zero, Zero, Zero, Zero, Zero, Zero]
+/**
+  * Represents the dimension of length in terms of the seven SI base units.
+  *
+  * This type is expressed using the `BaseDim` seven-tuple type of rational exponents,
+  * where the tuple is specified as:
+  * - M: Zero (mass)
+  * - L: One (length)
+  * - T: Zero (time)
+  * - I: Zero (electric current)
+  * - Θ: Zero (thermodynamic temperature)
+  * - N: Zero (amount of substance)
+  * - J: Zero (luminous intensity)
+  *
+  * The `Length` type specifically corresponds to a dimensional quantity with a unit
+  * of meters in the SI system.
+  */
 type Length = BaseDim[Zero, One, Zero, Zero, Zero, Zero, Zero]
+/**
+  * Alias for a dimension representing time in the SI unit system.
+  *
+  * Time is one of the seven base physical quantities in the International System of Units (SI).
+  * It is represented as a `BaseDim` with a numerator of `1` for the time (T) component and `0` for all other components.
+  */
 type Time = BaseDim[Zero, Zero, One, Zero, Zero, Zero, Zero]
+/**
+  * Represents the dimension of electric current in terms of the seven SI base units.
+  *
+  * This type alias defines the dimensional exponents for electric current, where only
+  * the exponent for the electric current (I) is non-zero (set to `One`), and the exponents
+  * for all other base units (M, L, T, Θ, N, J) are zero (`Zero`).
+  *
+  * - M: 0 (Mass)
+  * - L: 0 (Length)
+  * - T: 0 (Time)
+  * - I: 1 (Electric current)
+  * - Θ: 0 (Thermodynamic temperature)
+  * - N: 0 (Amount of substance)
+  * - J: 0 (Luminous intensity)
+  */
 type Current = BaseDim[Zero, Zero, Zero, One, Zero, Zero, Zero]
+/**
+  * Type alias representing the dimension of thermodynamic temperature in the SI base unit system.
+  *
+  * This type is a specialization of `BaseDim` with the following exponents:
+  * - M (Mass): 0
+  * - L (Length): 0
+  * - T (Time): 0
+  * - I (Electric current): 0
+  * - Θ (Thermodynamic temperature): 1
+  * - N (Amount of substance): 0
+  * - J (Luminous intensity): 0
+  *
+  * It corresponds to the SI base unit of temperature, measured in kelvins (K).
+  */
 type Temperature = BaseDim[Zero, Zero, Zero, Zero, One, Zero, Zero]
+/**
+  * Represents the dimension for the amount of substance in the SI base units.
+  *
+  * Defined as a specialization of `BaseDim` where the sixth component (N: Amount of substance) 
+  * is one, and all other components are zero. This corresponds to the mole (the SI unit for 
+  * the amount of substance).
+  */
 type Amount = BaseDim[Zero, Zero, Zero, Zero, Zero, One, Zero]
+/**
+  * Represents the SI base dimension of luminous intensity, measured in candelas.
+  *
+  * This type is defined as a specialization of the `BaseDim` type with the luminous
+  * intensity component (`J`) set to one, and all other base dimensions set to zero.
+  */
 type LuminousIntensity = BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, One]
+
+/**
+  * Special dimension for angles (dimensionless but semantically distinct)
+  */
+type Angle = BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, Zero]
 
 // Other common dimensions as type aliases
 /** Area: Distance times Distance */
