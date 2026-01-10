@@ -233,29 +233,26 @@ x ~= y // true
 ```
 ## Dimensions Module
 
-Number includes support for dimensional quantities.
-Compared with the concepts in JSR-385 (Indriya, etc.), our approach has:
+Number includes support for dimensional quantities and units.
 
-* Type-level dimension arithmetic (compile-time verification versus JSR-385's runtime checking)
-* Exact arithmetic in the various unit conversions
-* More sophisticated type safety with BaseDim and TRational
-* Compile-time dimension verification
-
-Although there are many pre-defined `Dimension` and Units available, it is extremely easy
+Although there are many pre-defined `Dimension` and `Units` available, it is extremely easy
 to build new ones:
 
 ```scala
-type Energy = BaseDim[One, Two, TRat[-2, 1], Zero, Zero, Zero, Zero]
+val Fortnight: Unit[Time] = Day.scaled(14, "ftn")
+val Furlong: Unit[Length] = Chain.scaled(10, "fur")
+val Firkin: Unit[Mass] = Pound.scaled(90, "fir")
+val FurlongPerFortnight: Unit[Velocity] = Furlong / Fortnight
 
-case object Joule extends Unit[Energy] {
-  def toSI: Double = 1.0
-
-  def symbol: String = "J"
+Quantity(1, C).in(FurlongPerFortnight) match {
+  case Some(q@Quantity[Velocity] (RationalNumber (x, false), units) ) =>
+    println (q.renderLaTeX) // the value cannot be rendered exactly using decimal notation.
+    println (x.toDouble) // should be approximately 1.8026E12 according to Wikipedia
+  case _ =>
+    println("No speed of light found.")
 }
-```
 
-...where we define `Energy` as having dimensions of mass, length squared, and time to the power of -2.
-In turn, `Joule` is a unit of energy (it's the SI unit so that the toSI method returns 1.0).
+```
 
 ## Comparison with JSR-385
 
