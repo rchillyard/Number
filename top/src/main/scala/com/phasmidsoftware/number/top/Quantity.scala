@@ -3,9 +3,9 @@ package com.phasmidsoftware.number.top
 import com.phasmidsoftware.number.algebra.core.{Lazy, Renderable, Valuable}
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
-import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
+import com.phasmidsoftware.number.parse.{ParseError, UnitsParser}
 
 type PhysicalUnit[D <: Dimension] = com.phasmidsoftware.number.dimensions.core.Unit[D]
 
@@ -69,7 +69,7 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
   *
   * Quantities represent measurable values associated with physical units
   * and are parameterized by their dimension type `D`, which defines the
-  * specific physical property of the quantity (e.g., length, time, etc.).
+  * specific physical property of the quantity (e.G., length, time, etc.).
   *
   * The companion object offers multiple overloaded `apply` methods for
   * constructing quantities using different types of numerical input.
@@ -131,6 +131,47 @@ object Quantity {
     */
   def apply[D <: Dimension](value: Lazy, unit: PhysicalUnit[D]): Quantity[D] =
     new Quantity[D](value.simplify, unit)
+
+  /**
+    * Parses a numerical value and a unit into a `Quantity` instance.
+    *
+    * This method takes a `Valuable` numerical value and a `String` representing a unit.
+    * It first attempts to parse the unit string and, if successful, constructs a `Quantity`
+    * using the provided value and the parsed unit. If parsing the unit fails,
+    * it returns a `Left` containing the `ParseError`.
+    * NOTE this method is a flexible means of constructing a `Quantity`, 
+    * but it suffers from the lack of type safety.
+    *
+    * @param value the numerical value of type `Valuable` to be combined with the unit.
+    * @param unit  a `String` representing the physical unit to be parsed and used with the value.
+    * @return an `Either` containing a `ParseError` if the unit string failed parsing,
+    *         or a `Quantity[?]` instance representing the parsed numerical value and unit.
+    */
+  def parse(value: Valuable, unit: String): Either[ParseError, Quantity[?]] =
+    UnitsParser.parse(unit) match {
+      case Left(s) => Left(s)
+      case Right(u) => Right(Quantity(value, u))
+    }
+
+  /**
+    * Parses a string representation of a quantity into a `Quantity` instance.
+    *
+    * This method interprets the input string, which should include a numerical
+    * value and an optional physical unit, and attempts to construct a measurable
+    * quantity. If parsing fails, it returns a `Failure` containing a `UnitsParserException`.
+    *
+    * NOTE this method is the most flexible means of constructing a `Quantity`, 
+    * but it suffers from the lack of type safety.
+    *
+    * @param quantity the string representation of the quantity to be parsed. It
+    *                 is expected to include a numerical value followed optionally
+    *                 by a unit.
+    *
+    * @return a `Try` containing the parsed `Quantity[?]` if the input is successfully
+    *         parsed, or a `Failure` with a `UnitsParserException` if an error occurs.
+    */
+  def parse(quantity: String): Either[ParseError, Quantity[?]] =
+    QuantityParser.parse(quantity)
 
   /**
     * Render a quantity in LaTeX format.

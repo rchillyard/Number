@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.algebra.core.Valuable
 import com.phasmidsoftware.number.dimensions.core.*
-import com.phasmidsoftware.number.parse.{LaTeXParser, LaTeXParserException, UnitsParser}
+import com.phasmidsoftware.number.parse.*
 import fastparse.*
 import fastparse.NoWhitespace.*
 
@@ -42,10 +42,10 @@ object QuantityParser {
   }
 
   // Parse function
-  def parse(input: String): Either[String, Quantity[?]] = {
+  def parse(input: String): Either[ParseError, Quantity[?]] = {
     fastparse.parse(input, p => quantityParser(using p)) match {
       case Parsed.Success(q, _) => Right(q)
-      case f: Parsed.Failure => Left(f.trace().longMsg) // Add .trace()
+      case f: Parsed.Failure => Left(UnitError(f.msg))
     }
   }
 }

@@ -8,8 +8,17 @@ import com.phasmidsoftware.number.algebra.core.Renderable
 import com.phasmidsoftware.number.algebra.eager.Eager
 import com.phasmidsoftware.number.expression.expr.{Expression, Noop}
 import fastparse.Parsed
+
 import scala.util.Try
 
+/**
+  * The `ExpressionParser` object provides utilities for parsing and processing LaTeX-like 
+  * mathematical expressions, leveraging string interpolation. These utilities enable creation, 
+  * simplification, and evaluation of mathematical expressions represented as `Expression`
+  * objects.
+  *
+  * TODO instead of throwing exceptions we should return a `ParseError` object.
+  */
 object ExpressionParser {
 
   val latexParser: String => Parsed[Expression] = LaTeXParser.parse

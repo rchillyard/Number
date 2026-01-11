@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.top
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.dimensions.core.*
 import com.phasmidsoftware.number.parse.UnitsParser
+import org.scalactic.Prettifier.default
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -198,14 +199,14 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
   it should "fail on invalid unit syntax" in {
     QuantityParser.parse("5 m//s") match {
       case Right(_) => fail("Should not have parsed invalid syntax")
-      case Left(err) => err.length should be > 0
+      case Left(com.phasmidsoftware.number.parse.UnitError(err)) => err.length should be > 0
     }
   }
 
   it should "fail on invalid number format" in {
     QuantityParser.parse("abc m") match {
       case Right(_) => fail("Should not have parsed invalid number")
-      case Left(err) => err.length should be > 0
+      case Left(com.phasmidsoftware.number.parse.UnitError(err)) => err.length should be > 0
     }
   }
 

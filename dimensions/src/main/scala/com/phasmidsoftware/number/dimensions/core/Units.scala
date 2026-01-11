@@ -562,6 +562,24 @@ case object Watt extends SIUnit[Power] {
   def dimensionWitness: DimensionWitness = DimensionWitness.power
 }
 
+case object Weber extends SIUnit[MagneticFlux] {
+  def symbol: String = "Wb"
+
+  def dimensionWitness: DimensionWitness = DimensionWitness.magneticFlux
+}
+
+case object Henry extends SIUnit[Inductance] {
+  def symbol: String = "H"
+
+  def dimensionWitness: DimensionWitness = DimensionWitness.inductance
+}
+
+case object Tesla extends SIUnit[MagneticFluxDensity] {
+  def symbol: String = "T"
+
+  def dimensionWitness: DimensionWitness = DimensionWitness.magneticFluxDensity
+}
+
 /**
   * Represents the Pascal unit of pressure in the International System of Units (SI).
   *

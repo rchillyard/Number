@@ -37,6 +37,7 @@
         <option value="com.phasmidsoftware.number.cats.laws.ErrorCommutativeMonoidLawSpec" />
         <option value="com.phasmidsoftware.number.cats.laws.RationalAlgebraicInstancesLawSpec" />
         <option value="com.phasmidsoftware.number.cats.laws.RealAlgebraicInstancesLawSpec" />
+          <option value="com.phasmidsoftware.number.top.ConstantsSpec"/>
         <option value="com.phasmidsoftware.number.top.QuantityLaTeXSpec" />
           <option value="com.phasmidsoftware.number.top.QuantityParserSpec"/>
         <option value="com.phasmidsoftware.number.top.QuantitySpec" />
@@ -67,6 +68,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.TranscendentalSpec" />
         <option value="com.phasmidsoftware.number.problems.PotHolesSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.DimensionSpec" />
+          <option value="com.phasmidsoftware.number.dimensions.core.DimensionWitnessSpec"/>
         <option value="com.phasmidsoftware.number.dimensions.core.PowerUnitSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.TRationalSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.UnitsSpec" />

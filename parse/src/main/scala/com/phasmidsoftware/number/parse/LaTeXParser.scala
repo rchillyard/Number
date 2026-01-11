@@ -371,4 +371,13 @@ object LaTeXParser {
   }
 }
 
+/**
+  * This exception is thrown when an error occurs while parsing LaTeX input.
+  *
+  * The `LaTeXParserException` class encapsulates detailed error information,
+  * including a descriptive message explaining the nature of the parsing failure.
+  * TODO instead of throwing exceptions we should return a `ParseError` object.
+  *
+  * @param message Descriptive message providing details about the exception.
+  */
 case class LaTeXParserException(message: String) extends RuntimeException(message)

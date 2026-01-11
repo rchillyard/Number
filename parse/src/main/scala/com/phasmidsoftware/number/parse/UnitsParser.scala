@@ -24,15 +24,16 @@ object UnitsParser {
     *
     * @param input the input string to parse, representing a unit expression
     * @return an `Either` where `Right` contains the parsed unit or `Left` contains the error message
+    *         NOTE that because of the way the parse method works, we can't easily distinguish between parse errors and unit errors.
     */
-  def parse(input: String): Either[String, Unit[?]] =
+  def parse(input: String): Either[ParseError, Unit[?]] =
     fastparse.parse(input, p => {
       given P[Any] = p
 
       unitsParser ~ End
     }) match {
       case Parsed.Success(u, _) => Right(u)
-      case f: Parsed.Failure => Left(f.msg) // Add .trace()
+      case f: Parsed.Failure => Left(UnitError(f.msg))
     }
 
   /**

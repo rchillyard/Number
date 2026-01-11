@@ -36,13 +36,13 @@ type MinusOne = TRat[-1, 1]
 
 /**
   * Represents a dimensionless quantity, defined as a special case of the `BaseDim` type
-  * where all seven SI base unit exponents (Mass, Length, Time, Electric current, 
+  * where all seven SI base unit exponents (Mass, Length, Time, Electric current,
   * Thermodynamic temperature, Amount of substance, and Luminous intensity) are zero.
   */
 type Dimensionless = BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, Zero]
 /**
   * Represents the physical dimension of mass in the SI base unit system.
-  * It is defined as a specialization of `BaseDim` with the exponent `1` for 
+  * It is defined as a specialization of `BaseDim` with the exponent `1` for
   * mass (kilograms) and `0` for all other base units.
   */
 type Mass = BaseDim[One, Zero, Zero, Zero, Zero, Zero, Zero]
@@ -104,8 +104,8 @@ type Temperature = BaseDim[Zero, Zero, Zero, Zero, One, Zero, Zero]
 /**
   * Represents the dimension for the amount of substance in the SI base units.
   *
-  * Defined as a specialization of `BaseDim` where the sixth component (N: Amount of substance) 
-  * is one, and all other components are zero. This corresponds to the mole (the SI unit for 
+  * Defined as a specialization of `BaseDim` where the sixth component (N: Amount of substance)
+  * is one, and all other components are zero. This corresponds to the mole (the SI unit for
   * the amount of substance).
   */
 type Amount = BaseDim[Zero, Zero, Zero, Zero, Zero, One, Zero]
@@ -149,6 +149,14 @@ type Voltage = DivDim[Power, Current]
 type Resistance = DivDim[Voltage, Current]
 /** Frequency: Dimensionless over Time */
 type Frequency = DivDim[Dimensionless, Time]
+
+type MagneticFlux = MulDim[Voltage, Time]
+
+type MagneticFluxDensity = DivDim[MagneticFlux, Area]
+
+type Inductance = DivDim[MagneticFlux, Current]
+
+type Permeability = DivDim[Inductance, Length]
 
 /**
   * Multiply two dimensions by adding their corresponding exponents.
@@ -206,13 +214,43 @@ trait DimensionWitness {
 
 case class BaseDimWitness(
                            m: Rational, // Mass
-                           l: Rational, // Length  
+                           l: Rational, // Length
                            t: Rational, // Time
                            i: Rational, // Current
                            θ: Rational, // Temperature
                            n: Rational, // Amount
                            j: Rational // Luminosity
                          ) extends DimensionWitness {
+
+  def *(other: BaseDimWitness): BaseDimWitness = BaseDimWitness(
+    m + other.m,
+    l + other.l,
+    t + other.t,
+    i + other.i,
+    θ + other.θ,
+    n + other.n,
+    j + other.j
+  )
+
+  def /(other: BaseDimWitness): BaseDimWitness = BaseDimWitness(
+    m - other.m,
+    l - other.l,
+    t - other.t,
+    i - other.i,
+    θ - other.θ,
+    n - other.n,
+    j - other.j
+  )
+
+  def pow(exp: Rational): BaseDimWitness = BaseDimWitness(
+    m * exp,
+    l * exp,
+    t * exp,
+    i * exp,
+    θ * exp,
+    n * exp,
+    j * exp
+  )
 
   def toCompositeSymbol: String = {
     val baseUnits = Seq(
@@ -251,7 +289,7 @@ case class BaseDimWitness(
 }
 
 object DimensionWitness {
-  // Helper to create witnesses for common dimensions
+  // Helper to create witnesses for base dimensions
   val dimensionless = BaseDimWitness(0, 0, 0, 0, 0, 0, 0)
   val mass = BaseDimWitness(1, 0, 0, 0, 0, 0, 0)
   val length = BaseDimWitness(0, 1, 0, 0, 0, 0, 0)
@@ -262,16 +300,20 @@ object DimensionWitness {
   val luminosity = BaseDimWitness(0, 0, 0, 0, 0, 0, 1)
 
   // Derived dimensions
-  val area = BaseDimWitness(0, 2, 0, 0, 0, 0, 0)
-  val volume = BaseDimWitness(0, 3, 0, 0, 0, 0, 0)
-  val velocity = BaseDimWitness(0, 1, -1, 0, 0, 0, 0)
-  val acceleration = BaseDimWitness(0, 1, -2, 0, 0, 0, 0)
-  val force = BaseDimWitness(1, 1, -2, 0, 0, 0, 0)
-  val energy = BaseDimWitness(1, 2, -2, 0, 0, 0, 0)
-  val power = BaseDimWitness(1, 2, -3, 0, 0, 0, 0)
-  val pressure = BaseDimWitness(1, -1, -2, 0, 0, 0, 0)
-  val charge = BaseDimWitness(0, 0, 1, 1, 0, 0, 0)
-  val voltage = BaseDimWitness(1, 2, -3, -1, 0, 0, 0)
-  val resistance = BaseDimWitness(1, 2, -3, -2, 0, 0, 0)
-  val frequency = BaseDimWitness(0, 0, -1, 0, 0, 0, 0)
+  val area: BaseDimWitness = length * length
+  val volume: BaseDimWitness = area * length
+  val velocity: BaseDimWitness = length / time
+  val acceleration: BaseDimWitness = velocity / time
+  val force: BaseDimWitness = acceleration * mass
+  val energy: BaseDimWitness = force * length
+  val power: BaseDimWitness = energy / time
+  val pressure: BaseDimWitness = force / area
+  val charge: BaseDimWitness = current * time
+  val voltage: BaseDimWitness = power / current
+  val resistance: BaseDimWitness = voltage / current
+  val magneticFlux: BaseDimWitness = voltage * time
+  val magneticFluxDensity: BaseDimWitness = magneticFlux / area
+  val frequency: BaseDimWitness = dimensionless / time
+  val inductance: BaseDimWitness = magneticFlux / area
+  val permeability: BaseDimWitness = inductance / length
 }
