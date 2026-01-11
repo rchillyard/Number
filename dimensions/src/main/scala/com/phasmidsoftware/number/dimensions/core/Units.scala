@@ -62,6 +62,35 @@ trait Unit[D <: Dimension] {
     * @return the dimension witness of this unit, representing its fundamental dimensional structure.
     */
   def dimensionWitness: DimensionWitness
+
+  /**
+    * Compares this unit of measurement to another object for equality.
+    *
+    * Equality is determined based on the dimension witness and the conversion factor to
+    * Standard International (SI) base units. The unit's symbolic representation is not
+    * considered during comparison.
+    *
+    * @param obj the object to compare with this unit
+    * @return true if the specified object is a unit and has the same dimension witness
+    *         and SI conversion factor as this unit; false otherwise
+    */
+  override def equals(obj: Any): Boolean = obj match {
+    case that: Unit[?] =>
+      this.dimensionWitness == that.dimensionWitness &&
+        this.toSI == that.toSI
+    case _ => false
+  }
+
+  /**
+    * Computes the hash code for this unit of measurement.
+    *
+    * The hash code is derived from the dimension witness and the conversion factor to
+    * Standard International (SI) base units, ensuring consistency with the `equals` method.
+    *
+    * @return an integer representing the hash code of this unit, based on its dimension witness and SI conversion factor.
+    */
+  override def hashCode(): Int =
+    (dimensionWitness, toSI).hashCode()
 }
 
 /**
@@ -641,6 +670,22 @@ case object Volt extends SIUnit[Voltage] {
 }
 
 /**
+  * Represents the SI unit of capacitance, the Farad (F).
+  *
+  * The Farad is the derived unit of electric capacitance in the International System of Units (SI).
+  * It is defined as the capacitance of a capacitor in which a charge of one coulomb produces a
+  * potential difference of one volt.
+  *
+  * This object provides a symbol for the unit and a dimension witness indicating the
+  * dimensional analysis of capacitance.
+  */
+case object Farad extends SIUnit[Capacitance] {
+  def symbol: String = "F"
+
+  def dimensionWitness: DimensionWitness = DimensionWitness.capacitance
+}
+
+/**
   * Represents the ohm (Ω), the SI unit of electrical resistance.
   *
   * The ohm is defined as the resistance between two points of a conductor
@@ -850,3 +895,20 @@ object CompositeUnits:
   // Volume
   val Milliliter: Unit[Volume] = Liter.scaled(Rational(1000).invert, "ml")
   val GallonImp: Unit[Volume] = Liter.scaled(Rational(454609, 10000), "gal")
+
+  // Gravitation
+  val Kepler: Unit[DivDim[DivDim[Volume, Mass], PowDim[Time, Two]]] = CubicMeter / Kilogram / Second.squared
+
+  // For Planck's constant
+  val JouleSecond: Unit[EnergyTime] = Joule * Second
+
+  // For Boltzmann's constant
+  val JoulePerKelvin: Unit[EnergyPerTemperature] = Joule / Kelvin
+
+  // For Electromagnetism
+  val HenryPerMeter: Unit[Permeability] = Henry / Meter
+  val FaradPerMeter: Unit[Permittivity] = Farad / Meter
+
+  // For Thermodynamics
+  val blackBoxRadiationUnits: Unit[DivDim[Power, MulDim[Area, PowDim[PowDim[Temperature, Two], Two]]]] = Watt / (Meter.squared * Kelvin.squared.squared)
+  val gasConstantUnits: Unit[DivDim[Energy, MulDim[Amount, Temperature]]] = Joule / (Mole * Kelvin)

@@ -39,6 +39,19 @@ import scala.util.{Failure, Success, Try}
 trait Eager extends Valuable with Zeroable with Approximate with DyadicOps {
 
   /**
+    * Converts the current `Lazy` instance into an `Eager` instance by forcing
+    * the resolution or evaluation of its underlying value.
+    *
+    * The `materialize` method ensures that the computation of the value represented
+    * by this `Lazy` instance is completed and encapsulated within an appropriate
+    * `Eager` representation. This is particularly useful in scenarios where
+    * deferred computation needs to be explicitly resolved prior to further processing.
+    *
+    * @return the materialized `Eager` instance representing the resolved value
+    */
+  def materialize: Eager = this
+
+  /**
     * Retrieves an optional name associated with this instance.
     *
     * @return an `Option[String]` containing the name if present, otherwise `None`
@@ -160,6 +173,14 @@ object Eager {
       case Failure(exception) =>
         throw CoreExceptionWithCause("Valuable.apply", exception)
     }
+
+  /**
+    * Creates an `Eager` instance representing the given double value.
+    *
+    * @param x the input value of type `Double` to be wrapped in an `Eager` representation.
+    * @return an `Eager` instance corresponding to the input value.
+    */
+  def apply(x: Double): Eager = Real(x)
 
   /**
     * Creates a `Valuable` instance representing the given long value.

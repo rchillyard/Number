@@ -157,8 +157,20 @@ object UnitsParser {
   //    }
   //  }
 
+  /**
+    * Parses a unit expression, optionally wrapped in parentheses.
+    */
+  private def unitTermParser(using P[Any]): P[Unit[?]] = {
+    P(
+      ("(" ~ unitProductParser ~ ")") | unitPowerParser
+    )
+  }
+
+  /**
+    * Parses a product of units, where units are combined using multiplication.
+    */
   private def unitProductParser(using P[Any]): P[Unit[?]] = {
-    P(unitPowerParser ~ (("·" | "*") ~ unitPowerParser).rep).map { parsed =>
+    P(unitTermParser ~ (("·" | "*") ~ unitTermParser).rep).map { parsed =>
       val result = parsed match {
         case (first, rest) => rest.foldLeft(first)(_ * _)
       }

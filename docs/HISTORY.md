@@ -1,6 +1,9 @@
 # Migration and Version History
 
 ## Versions
+
+* Version 1.5.3: Parsing of units, quantities, together with physical constants.
+* Version 1.5.2: Introduced Quantity.
 * Version 1.5.1: Introduced Dimension and Units (in a new module called dimensions). There is as yet no integration with Numbers.
 * Version 1.5.0: Working on resolving TODO issues.
 * Version 1.4.5/6: Mostly warnings and documentation issues.

@@ -159,6 +159,27 @@ type Inductance = DivDim[MagneticFlux, Current]
 type Permeability = DivDim[Inductance, Length]
 
 /**
+  * Represents a type alias `Kepler`, which is a derived dimensional analysis
+  * type. This type is defined as the ratio of a volume-to-mass dimension
+  * (`DivDim[Volume, Mass]`) to a time-squared dimension (`PowDim[Time, Two]`).
+  *
+  * NOTE the name `Kepler` is not in any way an official name.
+  * It's simply a handle that is used here to refer to the units of the Gravitation Constant.
+  *
+  * The `Kepler` type can be used to represent relationships or constants in
+  * physical formulas involving these specific combinations of dimensions.
+  */
+type Kepler = DivDim[DivDim[Volume, Mass], PowDim[Time, Two]]
+
+type Capacitance = DivDim[Charge, Voltage]
+
+type Permittivity = DivDim[Capacitance, Length]
+
+type EnergyTime = MulDim[Energy, Time] // For Planck's constant
+
+type EnergyPerTemperature = DivDim[Energy, Temperature] // For Boltzmann
+
+/**
   * Multiply two dimensions by adding their corresponding exponents.
   */
 type MulDim[D1 <: Dimension, D2 <: Dimension] <: Dimension = (D1, D2) match {
@@ -311,6 +332,7 @@ object DimensionWitness {
   val charge: BaseDimWitness = current * time
   val voltage: BaseDimWitness = power / current
   val resistance: BaseDimWitness = voltage / current
+  val capacitance: BaseDimWitness = charge / voltage
   val magneticFlux: BaseDimWitness = voltage * time
   val magneticFluxDensity: BaseDimWitness = magneticFlux / area
   val frequency: BaseDimWitness = dimensionless / time

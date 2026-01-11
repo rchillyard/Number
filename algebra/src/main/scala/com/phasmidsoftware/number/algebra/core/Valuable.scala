@@ -38,17 +38,17 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
   def maybeFactor(context: Context): Option[Factor]
 
   /**
-    * Casts this `Valuable` instance into an `Eager` type if it already is an `Eager`.
-    * If the instance is not already an `Eager`, an `AlgebraException` is thrown.
-    * CONSIDER returning Option[Eager] instead.
+    * Converts the current `Lazy` instance into an `Eager` instance by forcing
+    * the resolution or evaluation of its underlying value.
     *
+    * The `materialize` method ensures that the computation of the value represented
+    * by this `Lazy` instance is completed and encapsulated within an appropriate
+    * `Eager` representation. This is particularly useful in scenarios where
+    * deferred computation needs to be explicitly resolved prior to further processing.
     *
-    * @return the current instance as an `Eager`
-    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Eager`
+    * @return the materialized `Eager` instance representing the resolved value
     */
-  def asEager: Eager = this match
-    case e: Eager => e
-    case _ => throw AlgebraException(s"asEager: expected Eager value but got $this")
+  def materialize: Eager
 
   /**
     * Casts this `Valuable` instance into a `Monotone` type if it already is a `Monotone`.
@@ -89,19 +89,6 @@ trait Lazy extends Valuable {
     * @return a lazy evaluation result representing the simplified expression or computation
     */
   def simplify: Lazy
-
-  /**
-    * Converts the current `Lazy` instance into an `Eager` instance by forcing
-    * the resolution or evaluation of its underlying value.
-    *
-    * The `materialize` method ensures that the computation of the value represented
-    * by this `Lazy` instance is completed and encapsulated within an appropriate
-    * `Eager` representation. This is particularly useful in scenarios where
-    * deferred computation needs to be explicitly resolved prior to further processing.
-    *
-    * @return the materialized `Eager` instance representing the resolved value
-    */
-  def materialize: Eager
 
   /**
     * Normalizes the current `Lazy` instance to its simplest `Valuable` equivalent.

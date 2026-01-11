@@ -829,10 +829,10 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
       FP.whenever(x.isExact && y.isExact)(x.doScale(y)).filter(_.isExact)
     case (x: CanMultiply[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((x * y).asEager).filter(_.isExact)
+      Option.when(x.isExact && y.isExact)((x * y).materialize).filter(_.isExact)
     case (x: eager.Number, y: CanMultiply[eager.Number, eager.Number] @unchecked) =>
       // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((y * x).asEager).filter(_.isExact)
+      Option.when(x.isExact && y.isExact)((y * x).materialize).filter(_.isExact)
     case (ValueExpression(x, _), y: eager.Number) =>
       applyExact(x, y)
     case (ValueExpression(x, _), ValueExpression(y, _)) =>

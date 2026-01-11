@@ -17,6 +17,7 @@ This project provides exact and fuzzy numeric computation with lazy evaluation i
 * **Tracked error bounds** - inexact numbers carry their uncertainty
 * **Lazy evaluation** - expressions optimize away precision loss
 * **Multiple numeric domains** - angles, logarithms, roots, complex, and more
+* **Quantities** which are based on (eager or lazy) numeric values together with their respective units.
 * **Cats integration** - leverages typelevel algebra for abstract algebra
 
 ## Project Structure
@@ -24,6 +25,7 @@ This project provides exact and fuzzy numeric computation with lazy evaluation i
 Number is organized into multiple modules:
 
 * **`algebra`** - Algebraic structures based on Cats typeclasses
+* **`dimensions`** - Typesafe dimensional quantities and units
 * **`parse`** - Parsing facilities for (lazy) expressions and (eager) algebraic structures
 * **`expression`** - Lazy expression evaluation (being migrated to algebra)
 * **`core`** - Legacy numeric types (Number, Field, Rational, Complex, Factor, Fuzz, ****etc.)
@@ -254,12 +256,12 @@ Quantity(1, C).in(FurlongPerFortnight) match {
 
 ```
 
-## Comparison with JSR-385
+### Comparison with JSR-385
 
 JSR-385 ("Units of Measurement API") is Java's standardized approach to quantities and units. While both systems share
 similar goals, this library takes a fundamentally different approach:
 
-### Type Safety
+#### Type Safety
 
 **JSR-385**: Uses runtime dimension checking with parameterized types
 
@@ -293,14 +295,14 @@ val pressure = Newton / Meter.squared // creates Pressure dimension automaticall
 val myCustomUnit = Kilogram * Meter.cubed / Second.squared // any combination works
 ```
 
-### Mathematical Precision
+#### Mathematical Precision
 
 **JSR-385**: Typically uses floating-point arithmetic
 
 **This library**: Built on exact arithmetic (`RationalNumber`, `AlgebraicNumber`) with optional fuzzy arithmetic for
 uncertainty propagation
 
-### Advantages of This Library
+#### Advantages of This Library
 
 - **Stronger type safety**: Dimension errors caught at compile time, not runtime
 - **Mathematical rigor**: Exact arithmetic eliminates floating-point errors
@@ -308,14 +310,14 @@ uncertainty propagation
 - **Pedagogical value**: Type-level dimension arithmetic makes the mathematics explicit
 - **Scala 3 features**: Leverages match types, singleton types, and type-level computation
 
-### Advantages of JSR-385
+#### Advantages of JSR-385
 
 - **Standardization**: Industry-standard Java API
 - **Ecosystem**: Large library of predefined units and quantity types
 - **Adoption**: Supported across the Java ecosystem
 - **Maturity**: Well-tested in production environments
 
-### When to Use Each
+#### When to Use Each
 
 Use **JSR-385** if you need Java interoperability or want a mature, standardized library with extensive unit
 definitions.
@@ -1170,7 +1172,10 @@ Here are the current API specifications:
 
 ## Top Module
 
-The `top` module contains high-level example code and practical demonstrations of the Number library.
+The `top` module is where `Quantity` is defined for representing a `Valuable`/`PhysicalUnit` pair.
+Additionally, various physical constants are defined for convenience.
+
+It also contains high-level example code and practical demonstrations of the Number library.
 Perhaps most importantly, it houses the worksheets (listed below) and also Specification (unit tests) for high-level constructs.
 
 ### Contents

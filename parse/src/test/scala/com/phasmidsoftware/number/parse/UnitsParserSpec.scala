@@ -279,4 +279,13 @@ class UnitsParserSpec extends AnyFlatSpec with Matchers {
     }
   }
 
+  behavior of "CompositeUnits"
+
+  it should "parse the Gravitation constant units" in {
+    val perhapsKepler = UnitsParser.parse("m³/(kg·s²)")
+    println(s"perhapsKepler = $perhapsKepler")
+    perhapsKepler.isRight shouldBe true
+  }
+
+
 }

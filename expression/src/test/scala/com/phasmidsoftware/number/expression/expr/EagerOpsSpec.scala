@@ -404,7 +404,7 @@ class EagerOpsIntegrationSpec extends AnyFlatSpec with Matchers {
     )
 
     values.foreach { v =>
-      val normalized: Eager = v.normalize.asEager
+      val normalized: Eager = v.normalize.materialize
       val result = normalized + 1
       result shouldBe a[Valuable]
     }
