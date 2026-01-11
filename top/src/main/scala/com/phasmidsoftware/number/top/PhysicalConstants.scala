@@ -1,9 +1,17 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.dimensions.core.CompositeUnits.{JouleSecond, Kepler}
 import com.phasmidsoftware.number.dimensions.core.*
+import com.phasmidsoftware.number.dimensions.core.CompositeUnits.{JouleSecond, Kepler}
 
+/**
+  * The `PhysicalConstants` object serves as a collection of fundamental physical constants,
+  * including both exact (defined by the SI system) and measured values (with uncertainties).
+  * Each constant is encapsulated as a `Quantity` with its respective dimension and unit.
+  *
+  * These constants are essential for a wide range of scientific and engineering calculations
+  * in disciplines such as electromagnetism, thermodynamics, quantum mechanics, and relativity.
+  */
 object PhysicalConstants {
 
   // ============================================================================
@@ -32,7 +40,7 @@ object PhysicalConstants {
     * This constant is expressed as a `Quantity` with the dimension of energy multiplied by time (`EnergyTime`).
     * It is utilized in calculations involving energy, frequency, and photon behavior.
     */
-  lazy val h: Quantity[EnergyTime] = Quantity("6.6260701500E-34", JouleSecond)
+  lazy val h: Quantity[EnergyTime] = Quantity("6.6260701500E-34", JouleSecond) // NOTE trailing "00" is to force exactitude
 
   /** Reduced Planck constant: ℏ = h/(2π) (exact, derived from h) */
   // Note: This involves π, so it's not expressible as exact rational
@@ -48,7 +56,7 @@ object PhysicalConstants {
     * The elementary charge is a fundamental parameter in physics and is integral
     * to the study of electromagnetism, quantum mechanics, and other physical theories.
     */
-  lazy val e = Quantity("1.60217663400E-19", Coulomb)
+  lazy val e = Quantity("1.60217663400E-19", Coulomb) // NOTE trailing "00" is to force exactitude
 
   /**
     * The Boltzmann constant, denoted as `k`, is a physical constant connecting the average kinetic energy
@@ -56,7 +64,7 @@ object PhysicalConstants {
     *
     * @note The constant is represented as a `Quantity` with the unit of energy per temperature (Joule/Kelvin).
     */
-  lazy val k: Quantity[EnergyPerTemperature] = Quantity("1.38064900E-23", Joule / Kelvin)
+  lazy val k: Quantity[EnergyPerTemperature] = Quantity("1.38064900E-23", Joule / Kelvin) // NOTE trailing "00" is to force exactitude
 
   /**
     * Represents the Avogadro constant (N_A), which is the proportionality factor that
@@ -71,7 +79,7 @@ object PhysicalConstants {
     * @see Dimensionless
     * @see Mole
     */
-  lazy val N_A: Quantity[DivDim[Dimensionless, Amount]] = Quantity("6.0221407600E23", Dimensionless / Mole)
+  lazy val N_A: Quantity[DivDim[Dimensionless, Amount]] = Quantity("6.0221407600E23", Dimensionless / Mole) // NOTE trailing "00" is to force exactitude
 
   // ============================================================================
   // MEASURED Constants (with uncertainty)

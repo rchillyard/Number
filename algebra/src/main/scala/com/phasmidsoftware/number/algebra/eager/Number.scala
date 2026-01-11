@@ -46,7 +46,7 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     * @return The result of the multiplication as a number.
     */
   def *(other: Number): Number =
-    summon[MultiplicativeGroup[Number]].multiplicative.combine(this, other)
+    summon[MultiplicativeGroup[Number]].multiplicative.combine(this, other).normalize
 
   /**
     * Divides this `Number` by another `Number`.
@@ -60,8 +60,15 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     * @return the result of division as a `Number`
     * @throws com.phasmidsoftware.number.algebra.util.AlgebraException if the division is unsupported for the provided `other` type
     */
-  def /(other: ExactNumber): Number =
-    (this * other.toRationalNumber.reciprocal).normalize
+  def /(other: Number): Number = other match {
+    case c: CanMultiplyAndDivide[Number] =>
+      (this * c.reciprocal).normalize
+    case e: ExactNumber =>
+      (this * e.toRationalNumber.reciprocal).normalize
+    case _ =>
+      throw AlgebraException(s"Number./: logic error: $this / $other")
+  }
+
 
   /**
     * Adds this `Number` instance to another `Number` instance and returns the result.
@@ -545,6 +552,11 @@ object Number {
         realIsRing.inverse(b) match {
           case Some(z) => times(a, z)
           case None => throw AlgebraException("Number.div: logic error: cannot divide by zero")
+        }
+      case (a: Number, b: ExactNumber) =>
+        a.scale(b.toRational.invert) match {
+          case number: Number => number
+          case x => throw AlgebraException(s"Number.div: logic error: result of division is not a Number: $x")
         }
       case _ =>
         throw AlgebraException("Number.div: logic error: cannot divide " + x + " by " + y)

@@ -58,10 +58,9 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
     for {
       v1 <- value.asNumber
       v2 <- other.value.asNumber
-    } yield v2 match {
-      case e: ExactNumber => Quantity(v1 / e, unit / other.unit)
-      case _ => return None // TODO sort this
-    }
+    } yield Quantity(v1 / v2, unit / other.unit)
+
+  //  def +[D <: Dimension](other: Quantity[D]): Option[Quantity[D]] =
 }
 
 /**

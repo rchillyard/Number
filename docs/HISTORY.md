@@ -2,6 +2,7 @@
 
 ## Versions
 
+* Version 1.5.4: Composition of Quantities
 * Version 1.5.3: Parsing of units, quantities, together with physical constants.
 * Version 1.5.2: Introduced Quantity.
 * Version 1.5.1: Introduced Dimension and Units (in a new module called dimensions). There is as yet no integration with Numbers.
