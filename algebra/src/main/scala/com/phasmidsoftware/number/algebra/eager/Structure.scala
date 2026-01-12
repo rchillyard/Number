@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.algebra.core.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.algebra.eager.Real
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
+
 import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
 
@@ -78,7 +79,7 @@ trait Structure extends Eager {
         p: Real <- a.convert(Real.one)
         q: Real <- b.convert(Real.one)
         r = p ~= q
-      } yield r, Failure(AlgebraException("Structure.fuzzyEqv")))
+      } yield r)(Failure(AlgebraException("Structure.fuzzyEqv")))
     case _ =>
       Failure(AlgebraException(s"Structure.fuzzyEqv: unexpected input: $this and $that"))
   }

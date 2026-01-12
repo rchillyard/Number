@@ -133,6 +133,20 @@ trait Eager extends Valuable with Zeroable with Approximate with DyadicOps {
     */
   def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int] =
     Failure(AlgebraException(s"Eager.fuzzyCompare: unimplemented compare $x and $y"))
+
+  // TODO these should be implemented using the DyadicOperator mechanism.
+  // See, for example, eqv in Structure.scala.
+  def sum(x: Eager, y: Eager): Try[Eager] =
+    Failure(AlgebraException(s"Eager.sum: unimplemented for $x and $y"))
+
+  def product(x: Eager, y: Eager): Try[Eager] =
+    Failure(AlgebraException(s"Eager.product: unimplemented for $x and $y"))
+
+  def quotient(x: Eager, y: Eager): Try[Eager] =
+    Failure(AlgebraException(s"Eager.quotient: unimplemented for $x and $y"))
+
+  def subtract(x: Eager, y: Eager): Try[Eager] =
+    Failure(AlgebraException(s"Eager.subtract: unimplemented for $x and $y"))
 }
 
 /**

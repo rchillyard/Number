@@ -48,6 +48,16 @@ trait Expression extends Lazy with Approximate {
   def evaluate(context: Context): Option[Eager]
 
   /**
+    * Method to determine if this `Expression` can be evaluated as is.
+    * If so, then `materialize` will not lose any precision because no approximation will be required.
+    * NOTE that, it is conceivable that simplifying `this` `Expression` first might result in an eager value
+    * even though this method would return false.
+    *
+    * @return true if evaluateAsIs is defined.
+    */
+  def isEager: Boolean = evaluateAsIs.isDefined
+
+  /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
     * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
     * NOTE: no simplification or factor-based conversion occurs here.
@@ -84,6 +94,9 @@ trait Expression extends Lazy with Approximate {
   /**
     * Materializes this `Expression` into an `Eager` object by simplifying it, evaluating as-is,
     * optionally approximating it, and recovering with a defined exception in case of failure.
+    *
+    * This method should be the final step when dealing with an `Expression`.
+    * Do not materialize early because that defeats the entire purpose of lazy evaluation.
     *
     * The method first simplifies the expression, attempts to evaluate it directly,
     * and then tries an approximation if necessary. Ultimately, it ensures the resulting
@@ -658,7 +671,7 @@ object Expression {
     */
   given LatexRenderer[Expression] = LatexRenderer.instance {
     case lit: ValueExpression => summon[LatexRenderer[ValueExpression]].toLatex(lit)
-    case comp: CompositeExpression if comp.evaluateAsIs.isDefined => comp.evaluateAsIs match {
+    case comp: CompositeExpression if comp.isEager => comp.evaluateAsIs match {
       case Some(e) => summon[LatexRenderer[Eager]].toLatex(e)
       case _ => comp.simplify match {
         case uni: UniFunction => summon[LatexRenderer[UniFunction]].toLatex(uni)

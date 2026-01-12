@@ -29,15 +29,6 @@ import scala.util.Try
 trait Valuable extends Renderable with Numeric with Exactitude with Normalizable[Valuable] with TypeSafe {
 
   /**
-    * Attempts to retrieve a factor based on the provided context.
-    * This method evaluates whether there is an applicable factor within the given context.
-    *
-    * @param context the context in which the factor is evaluated.
-    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
-    */
-  def maybeFactor(context: Context): Option[Factor]
-
-  /**
     * Converts the current `Lazy` instance into an `Eager` instance by forcing
     * the resolution or evaluation of its underlying value.
     *
@@ -49,6 +40,15 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
     * @return the materialized `Eager` instance representing the resolved value
     */
   def materialize: Eager
+
+  /**
+    * Attempts to retrieve a factor based on the provided context.
+    * This method evaluates whether there is an applicable factor within the given context.
+    *
+    * @param context the context in which the factor is evaluated.
+    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
+    */
+  def maybeFactor(context: Context): Option[Factor]
 
   /**
     * Casts this `Valuable` instance into a `Monotone` type if it already is a `Monotone`.
@@ -83,6 +83,7 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
   * whereby full resolution or evaluation may not be required unless explicitly invoked.
   */
 trait Lazy extends Valuable {
+
   /**
     * Simplifies the given expression or computation and returns a lazy evaluation result.
     *
@@ -163,7 +164,14 @@ trait DyadicOps {
     */
   def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int]
 
-//  def sum(x: Eager, y: Eager): Try[Eager]
+  // TODO implement these basic methods the "proper" way (like we do with eqv, FuzzyEqv)
+  def sum(x: Eager, y: Eager): Try[Eager]
+
+  def product(x: Eager, y: Eager): Try[Eager]
+
+  def quotient(x: Eager, y: Eager): Try[Eager]
+
+  def subtract(x: Eager, y: Eager): Try[Eager]
 }
 
 /**

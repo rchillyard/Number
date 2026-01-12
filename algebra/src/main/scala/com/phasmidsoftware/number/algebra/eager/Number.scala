@@ -197,7 +197,7 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
           bApprox <- b.approximation(true)
         } yield aApprox.value == bApprox.value
 
-        FP.toTry(maybeResult, Failure(AlgebraException(s"Number.eqv: cannot compare $this and $that")))
+        FP.toTry(maybeResult)(Failure(AlgebraException(s"Number.eqv: cannot compare $this and $that")))
       }
     case _ =>
       super.eqv(that)
