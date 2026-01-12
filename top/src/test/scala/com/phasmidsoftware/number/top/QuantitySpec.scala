@@ -68,6 +68,30 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "add quantities 1" in {
+    val a = Quantity(30, Meter)
+    val b = Quantity(100, Meter)
+    val maybeSum = a + b
+    maybeSum.isDefined shouldBe true
+    maybeSum.get shouldBe Quantity(130, Meter)
+  }
+
+  it should "add quantities 2" in {
+    val a = Quantity(30, Meter)
+    val b = Quantity(100, Foot)
+    val maybeSum = a + b
+    maybeSum.isDefined shouldBe true
+    maybeSum.get shouldBe Quantity(RationalNumber(1512, 25), Meter)
+  }
+
+  it should "add quantities 3" in {
+    val a = Quantity(30, Meter)
+    val b = Quantity(100, Foot)
+    val maybeSum = b + a
+    maybeSum.isDefined shouldBe true
+    maybeSum.get shouldBe Quantity(RationalNumber(25200, 127), Foot)
+  }
+
   it should "compute force from mass and acceleration" in {
     val mass = Quantity(2, Kilogram)
     val acceleration = Quantity(10, Meter / Second.squared)

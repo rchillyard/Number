@@ -60,7 +60,31 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
       v2 <- other.value.asNumber
     } yield Quantity(v1 / v2, unit / other.unit)
 
-  //  def +[D <: Dimension](other: Quantity[D]): Option[Quantity[D]] =
+  /**
+    * Adds this quantity to another quantity of the same dimension.
+    * If the units of both quantities are compatible, the resulting quantity is computed
+    * by converting the `other` quantity into the same unit as `this` quantity (if necessary)
+    * and summing their values.
+    *
+    * @param other the quantity to be added, which must have the same dimension as this quantity.
+    * @return an `Option` containing the resulting quantity if the units are compatible,
+    *         or `None` if the units are incompatible.
+    */
+  def +(other: Quantity[D]): Option[Quantity[D]] =
+    if (this.unit == other.unit)
+      (this.value.materialize, other.value.materialize) match {
+        case (e: Number, f: Number) =>
+          Some(Quantity(e + f, unit))
+        case _ =>
+          None
+      }
+    else
+      other.in(this.unit) match {
+        case Some(q) =>
+          this + q
+        case None =>
+          None
+      }
 }
 
 /**
