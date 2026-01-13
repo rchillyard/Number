@@ -134,19 +134,72 @@ trait Eager extends Valuable with Zeroable with Approximate with DyadicOps {
   def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int] =
     Failure(AlgebraException(s"Eager.fuzzyCompare: unimplemented compare $x and $y"))
 
-  // TODO these should be implemented using the DyadicOperator mechanism.
-  // See, for example, eqv in Structure.scala.
-  def sum(x: Eager, y: Eager): Try[Eager] =
-    Failure(AlgebraException(s"Eager.sum: unimplemented for $x and $y"))
+  /**
+    * Adds the current `Eager` instance to another `Eager` instance using the `DyadicOperator` mechanism.
+    * The addition operation is implemented by delegating to the `addEagers` function for specific behavior,
+    * ensuring proper handling of various subtypes of `Eager`.
+    *
+    * @param y the `Eager` instance to be added to this `Eager` instance
+    * @return a `Try[Eager]` containing the result of the addition if successful, or a failure if the operation fails
+    */
+  def add(y: Eager): Try[Eager] =
+    summon[DyadicOperator[Eager]].op[Eager, Eager](addEagers)(this, y)
 
-  def product(x: Eager, y: Eager): Try[Eager] =
-    Failure(AlgebraException(s"Eager.product: unimplemented for $x and $y"))
+  /**
+    * Multiplies the current `Eager` instance with another `Eager` instance.
+    * The multiplication operation is carried out using the `DyadicOperator` mechanism,
+    * which delegates to the `multiplyEagers` function for specific behavior.
+    * This ensures proper handling of various subtypes of `Eager`.
+    *
+    * @param y the `Eager` instance to multiply with this `Eager` instance
+    * @return a `Try[Eager]` containing the result of the multiplication if successful,
+    *         or a failure if the operation cannot be performed
+    */
+  def multiply(y: Eager): Try[Eager] =
+    summon[DyadicOperator[Eager]].op[Eager, Eager](multiplyEagers)(this, y)
 
-  def quotient(x: Eager, y: Eager): Try[Eager] =
-    Failure(AlgebraException(s"Eager.quotient: unimplemented for $x and $y"))
+  /**
+    * Subtracts the given `Eager` instance `y` from the current `Eager` instance.
+    * This operation is performed using the `DyadicOperator` mechanism, which delegates
+    * to the `subtractEagers` function to handle the specific subtraction behavior.
+    *
+    * @param y the `Eager` instance to be subtracted from this `Eager` instance
+    * @return a `Try[Eager]` containing the result of the subtraction if successful,
+    *         or a failure if the operation fails
+    */
+  def subtract(y: Eager): Try[Eager] =
+    summon[DyadicOperator[Eager]].op[Eager, Eager](subtractEagers)(this, y)
 
-  def subtract(x: Eager, y: Eager): Try[Eager] =
-    Failure(AlgebraException(s"Eager.subtract: unimplemented for $x and $y"))
+  /**
+    * Performs division of the current `Eager` instance by another `Eager` instance.
+    * This operation is implemented using the `DyadicOperator` mechanism, delegating
+    * the actual division logic to the `divideEagers` function.
+    *
+    * @param y the `Eager` instance to divide the current instance by
+    * @return a `Try[Eager]` containing the result of the division if successful,
+    *         or a failure if the operation cannot be performed
+    */
+  def divide(y: Eager): Try[Eager] =
+    summon[DyadicOperator[Eager]].op[Eager, Eager](divideEagers)(this, y)
+
+  private def addEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
+    case (a: Monotone, b: Monotone) => a.add(b)
+    case (a: Solution, b: Solution) => Success(a + b)
+    case _ => Failure(AlgebraException(s"Cannot add $x and $y"))
+
+  private def multiplyEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
+    case (a: Monotone, b: Monotone) => a.multiply(b)
+    case (a: Solution, b: Rational) => Success(a.scale(b))
+    case (a: Rational, b: Solution) => Success(b.scale(a))
+    case _ => Failure(AlgebraException(s"Cannot multiply $x and $y"))
+
+  private def subtractEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
+    case (a: Monotone, b: Monotone) => a.subtract(b)
+    case _ => Failure(AlgebraException(s"Cannot subtract $y from $x"))
+
+  private def divideEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
+    case (a: Monotone, b: Monotone) => a.divide(b)
+    case _ => Failure(AlgebraException(s"Cannot divide $x by $y"))
 }
 
 /**

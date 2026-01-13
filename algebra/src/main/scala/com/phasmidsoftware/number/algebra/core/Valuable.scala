@@ -163,15 +163,6 @@ trait DyadicOps {
     *         - A `Failure` containing an exception if the comparison cannot be performed.
     */
   def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int]
-
-  // TODO implement these basic methods the "proper" way (like we do with eqv, FuzzyEqv)
-  def sum(x: Eager, y: Eager): Try[Eager]
-
-  def product(x: Eager, y: Eager): Try[Eager]
-
-  def quotient(x: Eager, y: Eager): Try[Eager]
-
-  def subtract(x: Eager, y: Eager): Try[Eager]
 }
 
 /**

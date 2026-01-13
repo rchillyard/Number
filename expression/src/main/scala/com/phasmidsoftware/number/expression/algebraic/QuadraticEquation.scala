@@ -94,19 +94,19 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
       (s.multiply(s), s.scale(p)) match {
         case (Some(z: Algebraic), r: Algebraic) =>
           r.add(z).map(_.normalize) match {
-            case Some(solution: QuadraticSolution) =>
+            case scala.util.Success(solution: QuadraticSolution) =>
               solution.add(q)
-            case Some(eager: Number) =>
-              eager + RationalNumber(q)
-            case x =>
+            case scala.util.Success(eager: Eager) =>
+              eager.add(RationalNumber(q)).getOrElse(throw ExpressionException(s"QuadraticEquation: cannot evaluate $solution"))
+            case scala.util.Failure(x) =>
               throw ExpressionException(s"QuadraticEquation: cannot evaluate $solution: because of $x")
           }
         case (Some(z: Number), r: Algebraic) =>
           r.add(z).map(_.normalize) match {
-            case Some(solution: QuadraticSolution) =>
+            case scala.util.Success(solution: QuadraticSolution) =>
               solution.add(q)
-            case Some(eager: Number) =>
-              eager + RationalNumber(q)
+            case scala.util.Success(eager: Eager) =>
+              eager.add(RationalNumber(q)).getOrElse(throw ExpressionException(s"QuadraticEquation: $solution"))
             case x =>
               throw ExpressionException(s"QuadraticEquation: cannot evaluate $solution: because of $x")
           }

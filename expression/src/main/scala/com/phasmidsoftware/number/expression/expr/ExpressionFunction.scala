@@ -716,7 +716,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
       val q = g.additive.combine(x, y).normalize
       Some(q)
     case (x: Angle, y: eager.Number) =>
-      import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
+
       val q: Option[eager.Real] = for {
         r <- x.convert(eager.Real.zero)
         z <- y.convert(eager.Real.zero)
@@ -724,7 +724,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
       q.asInstanceOf[Option[Eager]]
       // TODO implement for (Number, Angle)
     case (x: Algebraic, y: Algebraic) =>
-      x.add(y)
+      x.add(y).toOption
     case (x: CanAdd[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       import com.phasmidsoftware.number.algebra.eager.Number.NumberIsAdditiveCommutativeMonoid
       Some((x + y).normalize)

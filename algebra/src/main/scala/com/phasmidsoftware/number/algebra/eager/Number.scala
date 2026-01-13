@@ -69,7 +69,6 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
       throw AlgebraException(s"Number./: logic error: $this / $other")
   }
 
-
   /**
     * Adds this `Number` instance to another `Number` instance and returns the result.
     *
@@ -98,6 +97,63 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     case _ =>
       throw AlgebraException(s"Number.+: logic error: $this + $other")
   }
+
+  /**
+    * Subtracts another `Number` from this `Number` instance and returns the result.
+    *
+    * The subtraction is performed based on the types of the two `Number` instances:
+    * - If both are `WholeNumber`, their values are subtracted directly.
+    * - If one is a `RationalNumber` and the other is an `ExactNumber`, the `ExactNumber` is converted to match the type of the `RationalNumber` before subtraction.
+    * - If one is a `Real`, an attempt is made to convert the other number to match the type of the `Real` before subtraction.
+    * - For unsupported or invalid type combinations, an `AlgebraException` is thrown.
+    *
+    * @param other the `Number` instance to subtract from this instance
+    * @return a `Number` instance representing the difference of this instance and the provided `other` instance
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the subtraction cannot be performed due to unsupported or invalid type combinations
+    */
+  def -(other: Number): Number = (this, other) match {
+    case (a: WholeNumber, b: WholeNumber) =>
+      (a - b).normalize
+    case (a: Q, b: Q) =>
+      RationalNumber(a.toRational - b.toRational)
+    case (a: Real, b) =>
+      b.convert(a).map((x: Real) => (a - x).normalize).getOrElse(throw AlgebraException(s"Number.-: logic error: Real: $this - $other"))
+    case _ =>
+      throw AlgebraException(s"Number.-: logic error: $this - $other")
+  }
+
+  /**
+    * Adds the given number to the current instance and returns the result.
+    *
+    * @param other the number to be added to the current instance
+    * @return a `Try` containing the result of the addition if successful, or a failure if an exception occurs
+    */
+  def add(other: Number): Try[Number] = Try(this + other)
+
+  /**
+    * Multiplies this number by the given number and returns the result wrapped in a Try.
+    *
+    * @param other the number to multiply with this number
+    * @return a Try containing the product of this number and the given number, 
+    *         or a Failure if an error occurs during multiplication
+    */
+  def multiply(other: Number): Try[Number] = Try(this * other)
+
+  /**
+    * Subtracts the given number from the current number and returns the result.
+    *
+    * @param other the number to be subtracted from the current number
+    * @return a `Try` containing the result of the subtraction as a `Number`, or a failure if an error occurs
+    */
+  def subtract(other: Number): Try[Number] = Try(this - other)
+
+  /**
+    * Divides the current number by the given number.
+    *
+    * @param other The number to divide the current number by.
+    * @return A `Try[Number]` containing the result of the division if successful, or a failure if an exception occurs (e.g., division by zero).
+    */
+  def divide(other: Number): Try[Number] = Try(this / other)
 
   /**
     * Attempts to obtain a `Factor` representation in a specific `Context`.

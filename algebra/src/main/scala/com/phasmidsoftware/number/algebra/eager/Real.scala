@@ -312,12 +312,12 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
   def unary_- : Real = realIsRing.negate(this)
 
   /**
-    * Subtracts the specified `T` from this `T` instance.
+    * Adds the specified `Real` to this `Real` instance.
     *
-    * @param t an instance of `T` to be subtracted from this `T`
-    * @return a new `Additive[T]` representing the result of the subtraction of the given `T` from this `T`
+    * @param t an instance of `Real` to be added to this `Real`
+    * @return a new `Real` representing the sum of this `Real` and the given `Real`
     */
-  def -(t: Real): Real = realIsRing.plus(this, -t)
+  def +(t: Real): Real = realIsRing.plus(this, t)
 
   /**
     * Multiplies the specified `T` by this `T` instance.
@@ -357,6 +357,40 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return a new `Scalar` instance representing the scaled value
     */
   def scale(r: Rational): Scalar = copy(value = value * r.toDouble)(None)
+
+  /**
+    * Adds the current `Real` instance to the specified `other` `Real` instance and returns the result.
+    * The addition process is wrapped in a `Try` to safely handle potential failures.
+    *
+    * @param other the `Real` instance to be added to the current instance
+    * @return a `Try[Real]` containing the result of the addition, or a failure in case of an error
+    */
+  def add(other: Real): Try[Real] = Try(this + other)
+
+  /**
+    * Multiplies this Real number with another Real number and returns the result wrapped in a Try.
+    *
+    * @param other the Real number to be multiplied with this Real number
+    * @return a Try containing the result of the multiplication, or a failure if an error occurs
+    */
+  def multiply(other: Real): Try[Real] = Try(this * other)
+
+  /**
+    * Subtracts the specified `other` value from the current value.
+    *
+    * @param other the value to be subtracted from the current instance
+    * @return a `Try` containing the result of the subtraction if successful,
+    *         or a failure if an error occurs during the operation
+    */
+  def subtract(other: Real): Try[Real] = Try(this - other)
+
+  /**
+    * Divides the current `Real` value by another `Real` value.
+    *
+    * @param other the `Real` value to divide the current value by
+    * @return a `Try` containing the result of the division as a `Real`, or a failure if the division is invalid (e.g., division by zero)
+    */
+  def divide(other: Real): Try[Real] = Try(this / other)
 
   /**
     * Converts the current `Real` instance into an instance of `FuzzyNumber`.

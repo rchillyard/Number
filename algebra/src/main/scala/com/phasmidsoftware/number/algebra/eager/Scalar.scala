@@ -13,7 +13,9 @@ import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRende
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
+
 import scala.reflect.ClassTag
+import scala.util.{Failure, Try}
 
 /**
   * Represents a `Scalar`, which is a `Monotone` that is linear with other scalar quantities and
@@ -72,6 +74,99 @@ trait Scalar extends Monotone {
     * @return a `Monotone` representing the negation of this instance
     */
   def negate: Monotone = scale(Rational.negOne)
+
+  /**
+    * Adds the specified `Scalar` instance to this `Scalar` and returns the result.
+    * The addition operation is performed for compatible scalar types. 
+    * If the types are incompatible or the operation fails, a `Failure` is returned.
+    *
+    * @param y the `Scalar` instance to add to this instance
+    * @return a `Try[Scalar]` containing the resulting `Scalar` if the addition 
+    *         is successful, or a `Failure` if the operation cannot be performed
+    */
+  def add[B <: Scalar](y: B): Try[Scalar] =
+    summon[DyadicOperator[Scalar]].op[B, Scalar](addScalars)(this, y)
+
+  /**
+    * Multiplies this `Scalar` instance by another `Scalar` of type `B`.
+    * The operation uses a dyadic operator to compute the product of the two scalars.
+    * The result is wrapped in a `Try` to handle any potential failures during the operation.
+    *
+    * @param y the `Scalar` instance to multiply with this instance. Must be a subtype of `Scalar`.
+    * @return a `Try[Scalar]` representing the product of the multiplication, or a failure if the operation is not possible.
+    */
+  def multiply[B <: Scalar](y: B): Try[Scalar] =
+    summon[DyadicOperator[Scalar]].op[B, Scalar](multiplyScalars)(this, y)
+
+  /**
+    * Subtracts the given scalar from this scalar and returns the result wrapped in a `Try`.
+    * The operation is performed using the dyadic operator logic powered by `DyadicOperator`,
+    * with the subtraction behavior provided by `subtractScalars`.
+    *
+    * @param y The scalar value to subtract, which must be a subtype of `Scalar`.
+    * @return A `Try[Scalar]` containing the result of the subtraction if successful,
+    *         or a failure if the operation cannot be completed (e.g., type mismatch or invalid operation).
+    */
+  def subtract[B <: Scalar](y: B): Try[Scalar] =
+    summon[DyadicOperator[Scalar]].op[B, Scalar](subtractScalars)(this, y)
+
+  /**
+    * Divides this `Scalar` instance by another `Scalar` instance of type `B`.
+    * The result of the division is wrapped in a `Try` to safely handle potential failures.
+    *
+    * @param y The `Scalar` instance to divide by. Must be a subtype of `Scalar`.
+    * @return A `Try` containing the result of the division as a `Scalar`, 
+    *         or a failure if the division cannot be performed.
+    */
+  def divide[B <: Scalar](y: B): Try[Scalar] =
+    summon[DyadicOperator[Scalar]].op[B, Scalar](divideScalars)(this, y)
+
+  private def addScalars[B <: Scalar](x: Scalar, y: B): Try[Scalar] = (x, y) match
+    case (a: Number, b: Number) => a.add(b)
+    case (a: Angle, b: Angle) => a.add(b)
+
+    // Cross-type operations - convert Angle to dimensionless Number
+    case (n: Number, a: Angle) =>
+      FP.toTry(a.convert(Real.zero))(Failure(AlgebraException(s"unable to convert $a to Real"))).flatMap(n.add)
+    case (a: Angle, n: Number) =>
+      FP.toTry(a.convert(Real.zero))(Failure(AlgebraException(s"unable to convert $a to Real"))).flatMap(_.add(n))
+
+    case _ =>
+      Failure(Exception(s"Cannot add $x and $y"))
+
+  private def multiplyScalars[B <: Scalar](x: Scalar, y: B): Try[Scalar] = (x, y) match
+    case (a: Number, b: Number) => a.multiply(b)
+    case (a: Angle, b: Angle) => a.multiply(b) // TODO remove this as it only returns a Failure
+
+    // Cross-type operations - dimensionless scaling
+    case (n: Number, a: Angle) => a.multiply(n) // TODO remove this as it only returns a Failure
+    case (a: Angle, n: Number) => a.multiply(n) // TODO remove this as it only returns a Failure
+
+    case _ =>
+      Failure(Exception(s"Cannot multiply $x and $y"))
+
+  private def subtractScalars[B <: Scalar](x: Scalar, y: B): Try[Scalar] = (x, y) match
+    case (a: Number, b: Number) => a.subtract(b)
+    case (a: Angle, b: Angle) => a.subtract(b)
+
+    // Cross-type operations
+    case (n: Number, a: Angle) =>
+      FP.toTry(a.convert(Real.zero))(Failure(AlgebraException(s"unable to convert $a to Real"))).flatMap(an => n.subtract(an))
+    case (a: Angle, n: Number) =>
+      FP.toTry(a.convert(Real.zero))(Failure(AlgebraException(s"unable to convert $a to Real"))).flatMap(_.subtract(n))
+
+    case _ =>
+      Failure(Exception(s"Cannot subtract $y from $x"))
+
+  private def divideScalars[B <: Scalar](x: Scalar, y: B): Try[Scalar] = (x, y) match
+    case (a: Number, b: Number) => a.divide(b)
+    case (a: Angle, b: Angle) => a.divide(b) // Angle / Angle => Number (dimensionless)
+    case (a: Angle, n: Number) => a.divide(n) // Angle / Number => Angle (scaling)
+    case (n: Number, a: Angle) =>
+      FP.toTry(a.convert(Real.zero))(Failure(AlgebraException(s"unable to convert $a to Real"))).flatMap(an => n.divide(an))
+
+    case _ =>
+      Failure(Exception(s"Cannot divide $x by $y"))
 }
 
 /**
@@ -104,6 +199,7 @@ object Scalar {
   val zero: Scalar = createScalar(Right(0), inner.PureNumber, None).asInstanceOf[Scalar]
 
   import org.slf4j.{Logger, LoggerFactory}
+
   import scala.util.Try
 
   val logger: Logger = LoggerFactory.getLogger(getClass)

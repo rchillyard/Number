@@ -4,11 +4,9 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
-import cats.implicits.catsSyntaxEq
-import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
+import com.phasmidsoftware.number.algebra.core.DyadicOperator
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
-import com.phasmidsoftware.number.algebra.core.{DyadicOperator, FuzzyEq}
 import com.phasmidsoftware.number.algebra.eager.Real
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
@@ -112,16 +110,6 @@ object Structure {
       case (a, b) =>
         f(a, b)
     }
-  }
-
-  given Eq[Structure] = Eq.instance {
-    (x, y) =>
-      summon[DyadicOperator[Structure]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
-  }
-
-  given FuzzyEq[Structure] = FuzzyEq.instance {
-    (x, y, p) =>
-      x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
   /**
