@@ -146,44 +146,24 @@ class PhysicalConstantsSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "PhysicalConstants - Relationships"
 
-  it should "satisfy R = k·Nₐ (approximately, given parsing)" in {
-    val k = PhysicalConstants.k
-    val Na = PhysicalConstants.N_A
-    val R = PhysicalConstants.R
-
-    // This test verifies the relationship holds approximately
-    // Exact verification would require symbolic computation
-    //    val kValue = k.value.materialize.approximation().get
-    //    val NaValue = Na.value.maybeDouble.get
-    //    val RValue = R.value.maybeDouble.get
-    //
-    //    val computed = kValue * NaValue
-    //    computed should be (RValue +- RValue * 1e-10)
-  }
-
-  ignore should "satisfy ε₀μ₀c² = 1 (approximately)" in {
+  it should "satisfy ε₀μ₀c² = 1 (approximately)" in {
     val eps0 = PhysicalConstants.epsilon_0
     val mu0 = PhysicalConstants.mu_0
     val c = PhysicalConstants.c
 
-    val eps0Val = eps0.value.maybeDouble.get
-    val mu0Val = mu0.value.maybeDouble.get
-    val cVal = c.value.maybeDouble.get
-
-    val product = eps0Val * mu0Val * cVal * cVal
-    product should be(1.0 +- 1e-9)
+    val q: Quantity[MulDim[MulDim[Permittivity, Permeability], MulDim[Velocity, Velocity]]] = eps0 * mu0 * c.squared
+    q.unit.dimensionWitness shouldBe DimensionWitness.dimensionless
+    q.value.materialize.~=(WholeNumber(1)) shouldBe true
   }
 
-  ignore should "have proton-to-electron mass ratio" in {
+  it should "have proton-to-electron mass ratio" in {
     val mp = PhysicalConstants.m_p
     val me = PhysicalConstants.m_e
+    val expectedRatio = Eager("1836.15267343(11)")
 
-    val mpVal = mp.value.maybeDouble.get
-    val meVal = me.value.maybeDouble.get
-
-    val ratio = mpVal / meVal
-    // Known ratio is approximately 1836.15
-    ratio should be(1836.15 +- 0.01)
+    val q: Quantity[Dimensionless] = mp / me
+    q.unit.dimensionWitness shouldBe DimensionWitness.dimensionless
+    q.value.materialize.~=(expectedRatio) shouldBe true
   }
 
   behavior of "PhysicalConstants - Unit Dimensions"
@@ -228,13 +208,35 @@ class PhysicalConstantsSpec extends AnyFlatSpec with should.Matchers {
   it should "have conventional μ₀ = 4π × 10⁻⁷ H/m (approximately)" in {
     val mu0 = PhysicalConstantsConventional.mu_0
 
+    val value = mu0.value.materialize
+    value shouldBe Angle(RationalNumber(Rational.exponent(-7) * 4))
     // Should be close to 4π × 10⁻⁷ ≈ 1.25663706144e-6
-    val value = mu0.value.maybeDouble.get
-    value should be(1.25663706144e-6 +- 1e-15)
+    value.approximation(true).get.toDouble shouldBe 1.25663706144e-6 +- 1E-12
   }
 
   it should "have conventional μ₀ as exact value (not fuzzy)" in {
     val mu0 = PhysicalConstantsConventional.mu_0
     mu0.value.isExact shouldBe true
+  }
+
+  // Temporary issue: Scalar: unsupported cross-type operation: WholeNumber op Angle
+  ignore should "satisfy ε₀μ₀c² = 1 (exactly)" in {
+    val eps0 = PhysicalConstantsConventional.epsilon_0
+    val mu0 = PhysicalConstantsConventional.mu_0
+    val c = PhysicalConstants.c
+
+    val q: Quantity[MulDim[MulDim[Permittivity, Permeability], MulDim[Velocity, Velocity]]] = eps0 * mu0 * c.squared
+    q.unit.dimensionWitness shouldBe DimensionWitness.dimensionless
+    q.value.materialize shouldBe WholeNumber(1)
+  }
+
+  behavior of "Expression evaluation"
+  it should "get product of these two values" in {
+    val e1 = Quantity("8.8541878128(13)E-12")
+    // TODO the following line should work, but it doesn't (it's partly related to the way we render Real numbers)
+    //    e1.render shouldBe "8.8541878128*E-12"
+    val e2 = Quantity("1.25663706212(19)E-6")
+    val e3 = e1 * e2
+    println(e3)
   }
 }

@@ -42,6 +42,29 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
   def materialize: Eager
 
   /**
+    * Obtains the product of this `Valuable` instance and another `Valuable` instance.
+    * The behavior of the method is determined by whether the instances are of type `Lazy` or `Eager`.
+    * If the provided instances do not conform to the expected types, an `AlgebraException` is thrown.
+    * CONSIDER supporting `sum` also.
+    *
+    * @param other the other `Valuable` instance to compute the product with
+    * @return a `Valuable` instance representing the product of this and the other instance
+    * @note throws AlgebraException if the computation involves unsupported `Valuable` types
+    */
+  def product(other: Valuable): Valuable = (this, other) match {
+    case (a: Lazy, b: Lazy) =>
+      a.multiply(b)
+    case (a: Lazy, b: Eager) =>
+      a.multiply(a.unit(b))
+    case (b: Eager, a: Lazy) =>
+      a.multiply(a.unit(b))
+    case (a: Eager, b: Eager) =>
+      a.multiply(b).get // NOTE this should never fail. Famous last words!
+    case _ => // NOTE this can never happen since the only two subtypes of Valuable are Eager and Lazy.
+      throw AlgebraException(s"product: expected Lazy/Eager values but got $this and $other")
+  }
+
+  /**
     * Attempts to retrieve a factor based on the provided context.
     * This method evaluates whether there is an applicable factor within the given context.
     *
@@ -106,7 +129,29 @@ trait Lazy extends Valuable {
     else
       simplified
   }
+
+  /**
+    * Multiplies this `Lazy` instance with another `Lazy` instance, producing
+    * a new `Lazy` result that represents the product of the two inputs.
+    *
+    * CONSIDER we should probably orivude an `add` method as well.
+    *
+    * @param other the `Lazy` instance to multiply with this instance
+    * @return a new `Lazy` instance representing the product of the two inputs
+    */
+  def multiply(other: Lazy): Lazy
+
+  /**
+    * Transforms an instance of the `Eager` type into a `Lazy` instance, allowing for deferred
+    * computation or evaluation.
+    * NOTE that this method ignores `this`.
+    *
+    * @param x an instance of `Eager` that is to be converted into a `Lazy` representation
+    * @return a `Lazy` instance representing the deferred computation or evaluation of the input
+    */
+  def unit(x: Eager): Lazy
 }
+
 
 /**
   * Represents a trait for performing dyadic operations on instances of the `Eager` type.

@@ -1,10 +1,12 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.algebra.core.{Lazy, Renderable, Valuable}
+import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
+import com.phasmidsoftware.number.expression.expr.Expression
 import com.phasmidsoftware.number.parse.{ParseError, UnitsParser}
 
 type PhysicalUnit[D <: Dimension] = com.phasmidsoftware.number.dimensions.core.Unit[D]
@@ -36,29 +38,61 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
   def renderLaTeX: String = Quantity.toLatex(this)
 
   /**
-    * Convert to a different unit of the same dimension
+    * Converts this `Quantity` to an equivalent `Quantity` that has a different unit and returns the result as an `Option` of the converted quantity.
+    * The conversion is based on the scale factors of the source and target units relative to the Standard International (SI) base units.
+    * If the conversion is successful, a new `Quantity` instance is created with the converted value and target unit.
+    *
+    * @param targetUnit the physical unit to which this quantity should be converted.
+    *                   The dimension of the target unit must correspond to the dimension of this quantity.
+    *
+    * @return an `Option` containing the converted `Quantity` if the operation is valid,
+    *         or `None` if the conversion cannot be performed due to the absence of a valid numerical value.
     */
   def in(targetUnit: PhysicalUnit[D]): Option[Quantity[D]] =
     val scaleFactor = unit.toSI / targetUnit.toSI
     value.asNumber.map(n => Quantity((n * scaleFactor).normalize, targetUnit))
 
   /**
-    * Multiply two quantities
+    * Multiplies this quantity with another quantity, resulting in a new quantity
+    * whose dimension is the product of the dimensions of the two quantities.
+    *
+    * @param other the quantity to multiply with this quantity. The dimension of the
+    *              other quantity must be of type `D2`, a subtype of `Dimension`.
+    *
+    * @return a new quantity representing the product of this quantity and the other quantity.
+    *         The resulting quantity has a dimension defined as `MulDim[D, D2]`.
     */
-  def *[D2 <: Dimension](other: Quantity[D2]): Option[Quantity[MulDim[D, D2]]] =
-    for {
-      v1 <- value.asNumber
-      v2 <- other.value.asNumber
-    } yield Quantity(v1 * v2, unit * other.unit)
+  def *[D2 <: Dimension](other: Quantity[D2]): Quantity[MulDim[D, D2]] =
+    Quantity(value.product(other.value), unit * other.unit)
 
   /**
-    * Divide two quantities
+    * Divides this quantity by another quantity, resulting in a new quantity whose dimension
+    * is the quotient of the dimensions of the two quantities.
+    *
+    * @param other the quantity to divide by. The dimension of the other quantity must be
+    *              of type `D2`, a subtype of `Dimension`.
+    *
+    * @return a new quantity representing the quotient of this quantity and the other quantity.
+    *         The resulting quantity has a dimension defined as `DivDim[D, D2]`.
     */
-  def /[D2 <: Dimension](other: Quantity[D2]): Option[Quantity[DivDim[D, D2]]] =
-    for {
-      v1 <- value.asNumber
-      v2 <- other.value.asNumber
-    } yield Quantity(v1 / v2, unit / other.unit)
+  def /[D2 <: Dimension](other: Quantity[D2]): Quantity[DivDim[D, D2]] =
+    Quantity(Expression(value) / Expression(other.value), unit / other.unit)
+
+  /**
+    * Computes the squared value of the quantity by multiplying it with itself.
+    *
+    * @return an `Option` containing the squared quantity if the operation is valid, or `None` if the operation cannot be performed.
+    */
+  def squared: Quantity[MulDim[D, D]] = this * this
+
+  /**
+    * Computes the multiplicative inverse of this quantity, resulting in a quantity
+    * that represents one divided by the value of this quantity.
+    *
+    * @return an `Option` containing the inverted quantity if the operation is valid,
+    *         or `None` if the operation cannot be performed.
+    */
+  def inverted: Quantity[DivDim[Dimensionless, D]] = Quantity.unity / this
 
   /**
     * Adds this quantity to another quantity of the same dimension.
@@ -142,6 +176,28 @@ object Quantity {
     apply(Real(value), unit)
 
   /**
+    * Constructs a `Quantity[Dimensionless]` instance using the provided `Valuable` value.
+    *
+    * This method associates the given `Valuable` numerical value with the `Dimensionless` unit,
+    * creating a quantity that represents a dimensionless measurement.
+    *
+    * @param value the numerical value of type `Valuable` to be associated with the `Dimensionless` unit
+    * @return a `Quantity[Dimensionless]` instance representing the specified value
+    */
+  def apply(value: Valuable): Quantity[Dimensionless] = Quantity(value, Dimensionless)
+
+  /**
+    * Constructs a `Quantity[Dimensionless]` instance using the provided `Rational` value.
+    *
+    * This method associates the given `Rational` numerical value with the `Dimensionless` unit,
+    * creating a quantity that represents a dimensionless measurement.
+    *
+    * @param value the numerical value of type `Rational` to be associated with the `Dimensionless` unit
+    * @return a `Quantity[Dimensionless]` instance representing the specified value
+    */
+  def apply(value: Rational): Quantity[Dimensionless] = Quantity(value, Dimensionless)
+
+  /**
     * Creates a `Quantity` instance with the specified numerical value and physical unit.
     *
     * This method takes a lazy numerical value, which can be simplified, and a unit
@@ -154,6 +210,26 @@ object Quantity {
     */
   def apply[D <: Dimension](value: Lazy, unit: PhysicalUnit[D]): Quantity[D] =
     new Quantity[D](value.simplify, unit)
+
+  /**
+    * Constructs a `Quantity[Dimensionless]` instance with the given integer value.
+    *
+    * This method takes an integer value and associates it with the `Dimensionless` unit,
+    * creating a quantity that represents a dimensionless measurement.
+    *
+    * @param value the integer value to be associated with the `Dimensionless` unit
+    * @return a `Quantity[Dimensionless]` instance representing the specified value
+    */
+  def apply(value: Int): Quantity[Dimensionless] = Quantity(value, Dimensionless)
+
+  /**
+    * Represents the dimensionless unit quantity with a value of 1.
+    *
+    * This predefined quantity is associated with the `Dimensionless` unit
+    * and is constructed with an integer value of 1. It can be used as a
+    * constant for operations requiring a base unit in dimensional analysis.
+    */
+  val unity: Quantity[Dimensionless] = apply(1)
 
   /**
     * Parses a numerical value and a unit into a `Quantity` instance.
@@ -216,3 +292,15 @@ object Quantity {
     s"$valueLatex\\,${com.phasmidsoftware.number.dimensions.core.toLatex(quantity.unit)}"
   }
 }
+
+/**
+  * Represents an exception specific to quantity-related errors.
+  *
+  * The `QuantityException` is used to signal issues or invalid operations
+  * related to quantities within the application. It extends the base `Exception`
+  * class and includes a customizable error message to provide additional context
+  * about the exception's cause.
+  *
+  * @param message Detailed message describing the nature of the quantity-related error.
+  */
+case class QuantityException(message: String) extends Exception(message)

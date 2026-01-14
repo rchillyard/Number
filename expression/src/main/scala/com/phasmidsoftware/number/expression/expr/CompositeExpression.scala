@@ -17,6 +17,7 @@ import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, given_LatexRenderer_Expression, matchSimpler}
 import com.phasmidsoftware.number.{algebra, core, expression}
+
 import java.util.Objects
 import scala.language.implicitConversions
 
@@ -784,6 +785,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(expression.expr.BiFunction(a, Two, Power))
       case (BiFunction(w, x, Power), BiFunction(y, z, Power)) if w == y =>
         em.Match(expression.expr.BiFunction(w, x plus z, Power))
+      // CONSIDER the following case should be copied for Sum (not just Product)
+      case (a, b) if !a.isExact && !b.isExact => // if both a and b are inexact, we might as well combine them here
+        em.matchIfSuccess(a.materialize.multiply(b.materialize).map(Literal(_)))((a, b))
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplification for Product", this)
     }

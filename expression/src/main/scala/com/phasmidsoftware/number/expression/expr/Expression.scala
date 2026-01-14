@@ -58,6 +58,32 @@ trait Expression extends Lazy with Approximate {
   def isEager: Boolean = evaluateAsIs.isDefined
 
   /**
+    * Multiplies this `Expression` with another `Lazy` instance.
+    * If the other instance is of type `Expression`, a product operation is performed, and the result is simplified.
+    * If the other instance is not of type `Expression`, an `ExpressionException` is thrown.
+    *
+    * @param other the `Lazy` instance to multiply with this `Expression`
+    * @return a new `Lazy` instance representing the product of this `Expression` and the supplied `Lazy` instance
+    * @throws ExpressionException if the provided `other` is not of type `Expression`
+    */
+  def multiply(other: Lazy): Lazy = other match {
+    case x: Expression =>
+      expression.expr.BiFunction(this, x, Product).simplify
+    case _ =>
+      throw ExpressionException(s"multiply: logic error on $other")
+  }
+
+  /**
+    * Transforms an instance of the `Eager` type into a `Lazy` instance, allowing for deferred
+    * computation or evaluation.
+    * NOTE that this method ignores `this`.
+    *
+    * @param x an instance of `Eager` that is to be converted into a `Lazy` representation
+    * @return a `Lazy` instance representing the deferred computation or evaluation of the input
+    */
+  def unit(x: Eager): Lazy = Literal(x)
+
+  /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
     * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
     * NOTE: no simplification or factor-based conversion occurs here.
@@ -152,7 +178,6 @@ object ExpressionHelper {
     * Adds utility methods for evaluating and materializing expressions from a String.
     * These methods allow parsing and processing of a string as a mathematical or logical expression.
     *
-    * @param x the input string that represents the expression to be evaluated or materialized.
     */
   extension (x: String)
     def evaluateAsIs: Option[Valuable] =
@@ -381,6 +406,8 @@ object Expression {
     /**
       * Eagerly compare this expression with y.
       *
+      * FIXME this is recursive!
+      *
       * @param comparand the number to be compared.
       * @return the result of the comparison.
       */
@@ -483,7 +510,7 @@ object Expression {
     * @return The corresponding `Expression` after applying the transformations.
     * @note Throws com.phasmidsoftware.number.expression.expr.ExpressionException if an unknown operator is encountered.
     */
-  def convertMillExpressionToExpression(expr: mill.Expression): Expression =
+  private def convertMillExpressionToExpression(expr: mill.Expression): Expression =
     expr match {
       case TerminalExpression(numerical.Number.one) =>
         One

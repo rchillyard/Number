@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number.top
 
+import com.phasmidsoftware.number.algebra.eager.Angle
+import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
 import com.phasmidsoftware.number.dimensions.core.CompositeUnits.{JouleSecond, Kepler}
@@ -43,8 +45,7 @@ object PhysicalConstants {
   lazy val h: Quantity[EnergyTime] = Quantity("6.6260701500E-34", JouleSecond) // NOTE trailing "00" is to force exactitude
 
   /** Reduced Planck constant: ℏ = h/(2π) (exact, derived from h) */
-  // Note: This involves π, so it's not expressible as exact rational
-  // You'd need: h / (2π) ≈ 1.054571817... × 10⁻³⁴ J·s
+  lazy val HBar: Quantity[EnergyTime] = h / Quantity(Angle.twoPi)
 
   /**
     * Represents the elementary charge, a physical constant that quantifies the charge
@@ -79,7 +80,8 @@ object PhysicalConstants {
     * @see Dimensionless
     * @see Mole
     */
-  lazy val N_A: Quantity[DivDim[Dimensionless, Amount]] = Quantity("6.0221407600E23", Dimensionless / Mole) // NOTE trailing "00" is to force exactitude
+  lazy val N_A: Quantity[DivDim[Dimensionless, Amount]] =
+    Quantity("6.0221407600E23", Dimensionless / Mole) // NOTE trailing "00" is to force exactitude
 
   // ============================================================================
   // MEASURED Constants (with uncertainty)
@@ -89,53 +91,60 @@ object PhysicalConstants {
     * Relative uncertainty: 2.2 × 10⁻⁵
     * One of the least precisely known constants!
     */
-  lazy val G: Quantity[DivDim[DivDim[Volume, Mass], PowDim[Time, Two]]] = Quantity("6.67430(15)E-11", Kepler)
+  lazy val G: Quantity[DivDim[DivDim[Volume, Mass], PowDim[Time, Two]]] =
+    Quantity("6.67430(15)E-11", Kepler)
 
   /** Fine structure constant: α = 7.2973525693(11) × 10⁻³ (dimensionless)
     * Relative uncertainty: 1.5 × 10⁻¹⁰
     */
-  lazy val alpha = Quantity("7.2973525693(11)e-3", Dimensionless)
+  lazy val alpha =
+    Quantity("7.2973525693(11)e-3", Dimensionless)
 
   /** Rydberg constant: R∞ = 10973731.568160(21) m⁻¹
     * Relative uncertainty: 1.9 × 10⁻¹²
     */
-  lazy val R_inf: Quantity[PowDim[Length, MinusOne]] = Quantity("10973731.568160(21)", Meter.invert)
+  lazy val R_inf: Quantity[PowDim[Length, MinusOne]] =
+    Quantity("10973731.568160(21)", Meter.invert)
 
   /** Electron mass: mₑ = 9.1093837015(28) × 10⁻³¹ kg
     * Relative uncertainty: 3.0 × 10⁻¹⁰
     */
-  lazy val m_e = Quantity("9.1093837015(28)e-31", Kilogram)
+  lazy val m_e =
+    Quantity("9.1093837015(28)e-31", Kilogram)
 
   /** Proton mass: mₚ = 1.67262192369(51) × 10⁻²⁷ kg
     * Relative uncertainty: 3.1 × 10⁻¹⁰
     */
-  lazy val m_p = Quantity("1.67262192369(51)E-27", Kilogram)
+  lazy val m_p =
+    Quantity("1.67262192369(51)E-27", Kilogram)
 
   /** Vacuum permittivity: ε₀ = 8.8541878128(13) × 10⁻¹² F/m
     * Derived from: ε₀ = 1/(μ₀c²)
     * Relative uncertainty: 1.5 × 10⁻¹⁰
     */
-  lazy val epsilon_0: Quantity[Permittivity] = Quantity("8.8541878128(13)E-12", Farad / Meter)
+  lazy val epsilon_0: Quantity[Permittivity] =
+    Quantity("8.8541878128(13)E-12", Farad / Meter)
 
   /** Vacuum permeability: μ₀ = 1.25663706212(19) × 10⁻⁶ H/m
     * Previously exact (4π × 10⁻⁷), now measured
     * Relative uncertainty: 1.5 × 10⁻¹⁰
     */
-  lazy val mu_0: Quantity[Permeability] = Quantity("1.25663706212(19)E-6", Henry / Meter)
+  lazy val mu_0: Quantity[Permeability] =
+    Quantity("1.25663706212(19)E-6", Henry / Meter)
 
   /** Stefan-Boltzmann constant: σ = 5.670374419... × 10⁻⁸ W/(m²·K⁴)
     * Derived from: σ = (2π⁵k⁴)/(15h³c²)
     * Exact in SI 2019 (derived from exact constants)
     * NOTE at present our library does not allow us to express π⁵ as an exact number.
     */
-  lazy val sigma = Quantity("5.670374419184429453970996731889230876059E-8", Watt / (Meter.squared * Kelvin.squared.squared))
+  lazy val sigma =
+    Quantity("5.670374419184429453970996731889230876059E-8", Watt / (Meter.squared * Kelvin.squared.squared))
 
-  /** Gas constant: R = 8.31446261815324 J/(mol·K)
+  /** Gas constant: R = k·Nₐ
     * Derived from: R = k·Nₐ
     * Exact (product of exact constants)
-    * TODO do this by multiplication
     */
-  lazy val R = Quantity("8.31446261815324", Joule / (Mole * Kelvin))
+  lazy val R: Quantity[DivDim[EnergyPerTemperature, Amount]] = k * N_A
 }
 
 object PhysicalConstantsConventional {
@@ -154,10 +163,12 @@ object PhysicalConstantsConventional {
     */
   lazy val mu_0 = Quantity(Angle(4).scale(Rational(10000000).invert), Henry / Meter)
 
+  println(s"mu_0 = $mu_0")
+
   /** Conventional value of ε₀ (pre-2019): derived exactly from μ₀ and c
     *
     * ε₀ = 1/(μ₀c²) = 1/(4π × 10⁻⁷ × (299792458)²)
     * ≈ 8.8541878176... × 10⁻¹² F/m (exact with exact μ₀)
     */
-  lazy val epsilon_0 = ??? // TODO calculate this later
+  lazy val epsilon_0: Quantity[DivDim[Dimensionless, MulDim[MulDim[Velocity, Velocity], DivDim[Inductance, Length]]]] = (PhysicalConstants.c.squared * mu_0).inverted
 }

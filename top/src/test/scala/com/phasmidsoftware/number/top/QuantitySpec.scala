@@ -43,11 +43,9 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
   it should "multiply quantities correctly" in {
     val length = Quantity(5, Meter)
     val width = Quantity(3, Meter)
-    val area = length * width
-
-    area shouldBe defined
-    area.get.value shouldBe WholeNumber(15)
-    area.get.unit match {
+    val q = length * width
+    q.value.materialize shouldBe WholeNumber(15)
+    q.unit match {
       case p: ProductUnit[?] =>
         p.left.symbol shouldBe "m"
         p.right.symbol shouldBe "m"
@@ -58,10 +56,8 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
     val distance = Quantity(100, Meter)
     val time = Quantity(10, Second)
     val velocity = distance / time
-
-    velocity shouldBe defined
-    velocity.get.value shouldBe WholeNumber(10)
-    velocity.get.unit match {
+    velocity.value.materialize shouldBe WholeNumber(10)
+    velocity.unit match {
       case q: QuotientUnit[?] =>
         q.numerator.symbol shouldBe "m"
         q.denominator.symbol shouldBe "s"
@@ -96,9 +92,7 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
     val mass = Quantity(2, Kilogram)
     val acceleration = Quantity(10, Meter / Second.squared)
     val force = mass * acceleration
-
-    force shouldBe defined
-    force.get.value shouldBe WholeNumber(20)
+    force.value.materialize shouldBe WholeNumber(20)
     // Force has dimension [M¹L¹T⁻²]
   }
 
@@ -121,8 +115,7 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
     val distance = Quantity(5, Meter)
     val energy = force * distance
 
-    energy shouldBe defined
-    energy.get.value shouldBe WholeNumber(50)
+    energy.value.materialize shouldBe WholeNumber(50)
     // Energy should have dimension [M¹L²T⁻²]
   }
 
@@ -130,9 +123,7 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
     val length1 = Quantity(10, Meter)
     val length2 = Quantity(5, Meter)
     val ratio = length1 / length2
-
-    ratio shouldBe defined
-    ratio.get.value shouldBe WholeNumber(2)
+    ratio.value.materialize shouldBe WholeNumber(2)
     // Result should be dimensionless [L¹/L¹ = L⁰]
   }
 
@@ -143,12 +134,9 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
 
     // momentum = mass * velocity
     val momentum = mass * velocity
-    momentum shouldBe defined
-
     // force = momentum / time = mass * velocity / time = mass * acceleration
-    val force = momentum.flatMap(_ / time)
-    force shouldBe defined
-    force.get.value shouldBe WholeNumber(25)
+    val force = momentum / time
+    force.value.materialize shouldBe WholeNumber(25)
   }
 
   it should "handle squared units" in {
@@ -184,8 +172,7 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
     val nonNumeric: Valuable = Noop("not a number")
 
     val quantity = Quantity(nonNumeric, Meter)
-    val result = quantity * Quantity(WholeNumber(2), Second)
+    quantity * Quantity(WholeNumber(2), Second)
 
-    result shouldBe None
   }
 }

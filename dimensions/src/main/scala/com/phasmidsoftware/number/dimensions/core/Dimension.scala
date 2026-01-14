@@ -183,6 +183,10 @@ type EnergyPerTemperature = DivDim[Energy, Temperature] // For Boltzmann
   * Multiply two dimensions by adding their corresponding exponents.
   */
 type MulDim[D1 <: Dimension, D2 <: Dimension] <: Dimension = (D1, D2) match {
+  case (BaseDim[m1, l1, t1, i1, θ1, n1, j1], Dimensionless) =>
+  D1
+  case (Dimensionless, BaseDim[m1, l1, t1, i1, θ1, n1, j1]) =>
+  D2
   case (BaseDim[m1, l1, t1, i1, θ1, n1, j1], BaseDim[m2, l2, t2, i2, θ2, n2, j2]) =>
   BaseDim[
     AddTRat[m1, m2],
@@ -199,6 +203,8 @@ type MulDim[D1 <: Dimension, D2 <: Dimension] <: Dimension = (D1, D2) match {
   * Divide two dimensions by subtracting their corresponding exponents.
   */
 type DivDim[D1 <: Dimension, D2 <: Dimension] <: Dimension = (D1, D2) match {
+  case (BaseDim[m1, l1, t1, i1, θ1, n1, j1], Dimensionless) =>
+  D1
   case (BaseDim[m1, l1, t1, i1, θ1, n1, j1], BaseDim[m2, l2, t2, i2, θ2, n2, j2]) =>
   BaseDim[
     SubTRat[m1, m2],
@@ -336,6 +342,6 @@ object DimensionWitness {
   val magneticFlux: BaseDimWitness = voltage * time
   val magneticFluxDensity: BaseDimWitness = magneticFlux / area
   val frequency: BaseDimWitness = dimensionless / time
-  val inductance: BaseDimWitness = magneticFlux / area
+  val inductance: BaseDimWitness = magneticFlux / current
   val permeability: BaseDimWitness = inductance / length
 }

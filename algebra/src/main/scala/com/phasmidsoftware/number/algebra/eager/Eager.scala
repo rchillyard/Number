@@ -188,18 +188,26 @@ trait Eager extends Valuable with Zeroable with Approximate with DyadicOps {
     case _ => Failure(AlgebraException(s"Cannot add $x and $y"))
 
   private def multiplyEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) => a.multiply(b)
-    case (a: Solution, b: Rational) => Success(a.scale(b))
-    case (a: Rational, b: Solution) => Success(b.scale(a))
-    case _ => Failure(AlgebraException(s"Cannot multiply $x and $y"))
+    case (a: Monotone, b: Monotone) =>
+      a.multiply(b)
+    case (a: Solution, b: Rational) =>
+      Success(a.scale(b))
+    case (a: Rational, b: Solution) =>
+      Success(b.scale(a))
+    case _ =>
+      Failure(AlgebraException(s"Cannot multiply $x and $y"))
 
   private def subtractEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) => a.subtract(b)
-    case _ => Failure(AlgebraException(s"Cannot subtract $y from $x"))
+    case (a: Monotone, b: Monotone) =>
+      a.subtract(b)
+    case _ =>
+      Failure(AlgebraException(s"Cannot subtract $y from $x"))
 
   private def divideEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) => a.divide(b)
-    case _ => Failure(AlgebraException(s"Cannot divide $x by $y"))
+    case (a: Monotone, b: Monotone) =>
+      a.divide(b)
+    case _ =>
+      Failure(AlgebraException(s"Cannot divide $x by $y"))
 }
 
 /**

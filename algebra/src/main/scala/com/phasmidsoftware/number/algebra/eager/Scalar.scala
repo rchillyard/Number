@@ -77,11 +77,11 @@ trait Scalar extends Monotone {
 
   /**
     * Adds the specified `Scalar` instance to this `Scalar` and returns the result.
-    * The addition operation is performed for compatible scalar types. 
+    * The addition operation is performed for compatible scalar types.
     * If the types are incompatible or the operation fails, a `Failure` is returned.
     *
     * @param y the `Scalar` instance to add to this instance
-    * @return a `Try[Scalar]` containing the resulting `Scalar` if the addition 
+    * @return a `Try[Scalar]` containing the resulting `Scalar` if the addition
     *         is successful, or a `Failure` if the operation cannot be performed
     */
   def add[B <: Scalar](y: B): Try[Scalar] =
@@ -115,7 +115,7 @@ trait Scalar extends Monotone {
     * The result of the division is wrapped in a `Try` to safely handle potential failures.
     *
     * @param y The `Scalar` instance to divide by. Must be a subtype of `Scalar`.
-    * @return A `Try` containing the result of the division as a `Scalar`, 
+    * @return A `Try` containing the result of the division as a `Scalar`,
     *         or a failure if the division cannot be performed.
     */
   def divide[B <: Scalar](y: B): Try[Scalar] =
@@ -135,12 +135,16 @@ trait Scalar extends Monotone {
       Failure(Exception(s"Cannot add $x and $y"))
 
   private def multiplyScalars[B <: Scalar](x: Scalar, y: B): Try[Scalar] = (x, y) match
-    case (a: Number, b: Number) => a.multiply(b)
-    case (a: Angle, b: Angle) => a.multiply(b) // TODO remove this as it only returns a Failure
+    case (a: Number, b: Number) =>
+      a.multiply(b)
+    case (a: Angle, b: Angle) =>
+      a.multiply(b) // TODO remove this as it only returns a Failure
 
     // Cross-type operations - dimensionless scaling
-    case (n: Number, a: Angle) => a.multiply(n) // TODO remove this as it only returns a Failure
-    case (a: Angle, n: Number) => a.multiply(n) // TODO remove this as it only returns a Failure
+    case (n: Number, a: Angle) =>
+      a.multiply(n) // TODO remove this as it only returns a Failure
+    case (a: Angle, n: Number) =>
+      a.multiply(n) // TODO remove this as it only returns a Failure
 
     case _ =>
       Failure(Exception(s"Cannot multiply $x and $y"))
