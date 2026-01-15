@@ -557,7 +557,8 @@ object Angle {
   val piBy4: Angle = Angle(RationalNumber(Rational(1, 4)))
   val piBy2Times3: Angle = Angle(RationalNumber(Rational(3, 2)))
   val twoPi: Angle = new Angle(RationalNumber(Rational.two))(Some("2𝛑"))
-  val negPi: Angle = new Angle(RationalNumber(Rational.negOne))(Some("-𝛑"))
+  val negPi: Angle = new Angle(WholeNumber.minusOne)(Some("-𝛑"))
+  val negPiBy2: Angle = new Angle(RationalNumber(Rational.half).negate)(Some("-½𝛑"))
   // CONSIDER using NoScalar instead
   private val nan: Angle = Angle(RationalNumber(Rational.NaN))
 

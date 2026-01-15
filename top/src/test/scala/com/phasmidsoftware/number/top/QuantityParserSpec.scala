@@ -16,8 +16,8 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Meter
         quantity.value match {
-          case w: WholeNumber => w.toInt shouldBe 5
-          case _ => fail("Expected WholeNumber")
+          case com.phasmidsoftware.number.expression.expr.Literal(w: WholeNumber, _) => w.toInt shouldBe 5
+          case x => fail(s"Expected WholeNumber but got $x")
         }
       case Left(err) => fail(s"Parse failed: $err")
     }
@@ -28,7 +28,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Meter
         quantity.value match {
-          case r: Number => r.toDouble shouldBe 3.14 +- 0.001
+          case com.phasmidsoftware.number.expression.expr.Literal(r: Number, _) => r.toDouble shouldBe 3.14 +- 0.001
           case _ => fail("Expected Real")
         }
       case Left(err) => fail(s"Parse failed: $err")
@@ -40,7 +40,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Meter
         quantity.value match {
-          case RationalNumber(r, false) =>
+          case com.phasmidsoftware.number.expression.expr.Literal(RationalNumber(r, false), _) =>
             r.n shouldBe 22
             r.d shouldBe 7
           case _ => fail("Expected RationalNumber")
@@ -135,7 +135,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Dimensionless
         quantity.value match {
-          case w: WholeNumber => w.toInt shouldBe 42
+          case com.phasmidsoftware.number.expression.expr.Literal(w: WholeNumber, _) => w.toInt shouldBe 42
           case _ => fail("Expected WholeNumber")
         }
       case Left(err) => fail(s"Parse failed: $err")
@@ -147,7 +147,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Kelvin
         quantity.value match {
-          case r: ExactNumber => r.toDouble shouldBe -273.15 +- 0.001
+          case com.phasmidsoftware.number.expression.expr.Literal(r: ExactNumber, _) => r.toDouble shouldBe -273.15 +- 0.001
           case _ => fail("Expected Real")
         }
       case Left(err) => fail(s"Parse failed: $err")

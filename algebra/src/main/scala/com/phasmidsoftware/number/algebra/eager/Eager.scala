@@ -246,7 +246,7 @@ object Eager {
       case Success(number) =>
         Scalar(number)
       case Failure(exception) =>
-        throw CoreExceptionWithCause("Valuable.apply", exception)
+        throw CoreExceptionWithCause("Eager.apply", exception)
     }
 
   /**

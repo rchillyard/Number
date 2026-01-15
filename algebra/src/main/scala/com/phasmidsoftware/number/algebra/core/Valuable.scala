@@ -47,6 +47,8 @@ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable
     * If the provided instances do not conform to the expected types, an `AlgebraException` is thrown.
     * CONSIDER supporting `sum` also.
     *
+    * CONSIDER using lazify
+    *
     * @param other the other `Valuable` instance to compute the product with
     * @return a `Valuable` instance representing the product of this and the other instance
     * @note throws AlgebraException if the computation involves unsupported `Valuable` types
@@ -258,15 +260,6 @@ object Valuable {
     */
   def unapply(v: Valuable): Option[numerical.Field] =
     valuableToMaybeField(v)
-
-  /**
-    * Converts a given string into a `Valuable` representation.
-    * This method allows implicit conversion from `String` to `Valuable`.
-    *
-    * @param w the input string to be converted into a `Valuable`.
-    * @return a `Valuable` instance parsed from the provided string.
-    */
-  implicit def toValuable(w: String): Valuable = Eager(w)
 
   /**
     * Implicitly converts a `Valuable` instance into its string representation.

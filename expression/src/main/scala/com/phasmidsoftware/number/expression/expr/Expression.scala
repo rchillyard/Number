@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import cats.syntax.all.catsSyntaxEq
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
@@ -219,7 +218,25 @@ object Expression {
   //
   //  val flog = Flog[ExpressionMatchers]
 
+  import cats.Eq
+  import cats.syntax.eq.*
 
+  // TODO see ExpressionEq class which does handle all cases. But neither seems to be used in practice.
+  given Eq[Expression] = (x: Expression, y: Expression) => (x, y) match {
+    // Both are atomic - use default equality
+    // TODO there are other case where we should return true, for example where one expression is a Literal and the other is a more specific NamedExpression
+    case (a: AtomicExpression, b: AtomicExpression) =>
+      a == b
+
+    // Both are composite - compare structure
+    // TODO a BiFunction(a, b, Sum) is should be equal to a BiFunction(b, a, Sum) but this won't do it.
+    // ditto for Aggregate
+    case (a: CompositeExpression, b: CompositeExpression) =>
+      a == b
+
+    // Different types - not equal
+    case _ => false
+  }
   /**
     * Implicit class to allow various operations to be performed on an Expression.
     *
@@ -500,8 +517,8 @@ object Expression {
     mill.Expression.parseToExpression(x).map(convertMillExpressionToExpression)
 
   /**
-    * Converts a `mill.Expression` into an `Expression` by interpreting the structure 
-    * and applying the appropriate transformations based on the expression type. 
+    * Converts a `mill.Expression` into an `Expression` by interpreting the structure
+    * and applying the appropriate transformations based on the expression type.
     * Supports terminal, monadic, and dyadic expressions with specific operators.
     *
     * CONSIDER make this private.

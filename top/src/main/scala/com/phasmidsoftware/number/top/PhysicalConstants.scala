@@ -1,10 +1,10 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.algebra.eager.Angle
-import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
 import com.phasmidsoftware.number.dimensions.core.CompositeUnits.{JouleSecond, Kepler}
+import com.phasmidsoftware.number.expression.expr.∅
 
 /**
   * The `PhysicalConstants` object serves as a collection of fundamental physical constants,
@@ -161,14 +161,13 @@ object PhysicalConstantsConventional {
     * Use this if you need exact rational arithmetic or are working with
     * pre-2019 calculations.
     */
-  lazy val mu_0 = Quantity(Angle(4).scale(Rational(10000000).invert), Henry / Meter)
-
-  println(s"mu_0 = $mu_0")
+  lazy val mu_0 = Quantity(∅ * Angle(4) * Rational(10000000).invert, Henry / Meter)
 
   /** Conventional value of ε₀ (pre-2019): derived exactly from μ₀ and c
     *
     * ε₀ = 1/(μ₀c²) = 1/(4π × 10⁻⁷ × (299792458)²)
     * ≈ 8.8541878176... × 10⁻¹² F/m (exact with exact μ₀)
     */
-  lazy val epsilon_0: Quantity[DivDim[Dimensionless, MulDim[MulDim[Velocity, Velocity], DivDim[Inductance, Length]]]] = (PhysicalConstants.c.squared * mu_0).inverted
+  lazy val epsilon_0: Quantity[DivDim[Dimensionless, MulDim[MulDim[Velocity, Velocity], DivDim[Inductance, Length]]]] =
+    (PhysicalConstants.c.squared * mu_0).inverted
 }

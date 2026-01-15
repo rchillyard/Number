@@ -962,14 +962,18 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine the
   def applyExact(x: Eager): Option[Eager] = x match {
     case Angle.zero =>
       Some(if sine then Eager.zero else Eager.one)
-    case Angle.`piBy2` =>
+    case Angle.piBy2 =>
       Some(if sine then Eager.one else Eager.zero)
     case Angle.pi =>
       Some(if sine then Eager.zero else Eager.minusOne)
+    case Angle.negPi =>
+      Some(if sine then Eager.zero else Eager.minusOne)
     case Angle.piBy2Times3 =>
-      Some(if sine then Eager.minusOne else Eager.zero) // TESTME
+      Some(if sine then Eager.minusOne else Eager.zero)
+    case Angle.negPiBy2 =>
+      Some(if sine then Eager.minusOne else Eager.zero)
     case _ =>
-      None // TESTME
+      None
   }
 }
 

@@ -7,11 +7,12 @@ package com.phasmidsoftware.number.expression.expr
 import cats.implicits.catsSyntaxEq
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NatLog, Number, RationalNumber, Real, Scalar, WholeNumber}
-import com.phasmidsoftware.number.algebra.util.{FP, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Constants, Field}
 import com.phasmidsoftware.number.expression.expr.Expression.em
+
 import scala.language.implicitConversions
 
 /**
@@ -478,23 +479,35 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = Literal.someLiteral(doMonoFunction(f))
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] =
+    doMonoFunction(f).map(Literal(_))
 
-  private def doMonoFunction(f: ExpressionMonoFunction): Eager = (f, value) match {
+  /**
+    * Applies a given `ExpressionMonoFunction` to the current value and attempts to produce an `Eager` result.
+    * The evaluation depends on matching the function and the value against specific cases.
+    *
+    * @param f the `ExpressionMonoFunction` to be applied. This function determines the behavior
+    *          of the evaluation and how the current value will be transformed into a potential result.
+    * @return an `Option` containing the resulting `Eager` if the function and value evaluation succeed,
+    *         or `None` if the evaluation is not applicable or fails.
+    */
+  private def doMonoFunction(f: ExpressionMonoFunction): Option[Eager] = (f, value) match {
     case (Negate, r: CanAddAndSubtract[?, ?]) =>
-      -r
+      Some(-r)
     case (Reciprocal, r: InversePower) =>
-      FP.recover(r.pow(WholeNumber.minusOne))(ExpressionException(s"Cannot $r"))
+      r.pow(WholeNumber.minusOne)
     case (Reciprocal, r: CanMultiplyAndDivide[Number] @unchecked) =>
       import Number.NumberIsMultiplicativeGroup
-      r.reciprocal
+      Some(r.reciprocal)
     //      case (Reciprocal, a: Algebraic) =>
     //            (a.invert)
     case (Reciprocal, c: Complex) =>
       // TODO asInstanceOf
-      Complex(c.complex.invert.asInstanceOf[numerical.Complex])
-    case (function, q) =>
-      function(q)
+      Some(Complex(c.complex.invert.asInstanceOf[numerical.Complex]))
+    case (function, q) if q.isExact =>
+      function.applyExact(q)
+    case _ =>
+      None
   }
 }
 

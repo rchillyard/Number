@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
 import com.phasmidsoftware.number.expression.expr.Expression
 import com.phasmidsoftware.number.parse.{ParseError, UnitsParser}
+import com.phasmidsoftware.number.top.Quantity.lazify
 
 type PhysicalUnit[D <: Dimension] = com.phasmidsoftware.number.dimensions.core.Unit[D]
 
@@ -76,7 +77,7 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
     *         The resulting quantity has a dimension defined as `DivDim[D, D2]`.
     */
   def /[D2 <: Dimension](other: Quantity[D2]): Quantity[DivDim[D, D2]] =
-    Quantity(Expression(value) / Expression(other.value), unit / other.unit)
+    Quantity(lazify(value) / lazify(other.value), unit / other.unit)
 
   /**
     * Computes the squared value of the quantity by multiplying it with itself.
@@ -176,6 +177,19 @@ object Quantity {
     apply(Real(value), unit)
 
   /**
+    * Constructs a `Quantity` instance with the specified value and physical unit.
+    *
+    * This method interprets the provided value as a string and associates it
+    * with the given physical unit to create a measurable quantity.
+    *
+    * @param value the string representation of the quantity's numerical value
+    * @param unit  the physical unit associated with the quantity
+    * @return a `Quantity` instance representing the specified value and unit
+    */
+  def apply[D <: Dimension](value: String, unit: PhysicalUnit[D]): Quantity[D] =
+    apply(Eager(value), unit)
+
+  /**
     * Constructs a `Quantity[Dimensionless]` instance using the provided `Valuable` value.
     *
     * This method associates the given `Valuable` numerical value with the `Dimensionless` unit,
@@ -209,7 +223,7 @@ object Quantity {
     * @return a `Quantity` instance combining the specified value and unit
     */
   def apply[D <: Dimension](value: Lazy, unit: PhysicalUnit[D]): Quantity[D] =
-    new Quantity[D](value.simplify, unit)
+    new Quantity[D](value, unit)
 
   /**
     * Constructs a `Quantity[Dimensionless]` instance with the given integer value.
@@ -223,6 +237,20 @@ object Quantity {
   def apply(value: Int): Quantity[Dimensionless] = Quantity(value, Dimensionless)
 
   /**
+    * Constructs a `Quantity[Dimensionless]` instance from a string representation of a value.
+    *
+    * This method parses the input string to extract its numerical value and
+    * associates it with the `Dimensionless` unit to create a measurable quantity.
+    *
+    * @param value the string representation of the numerical value to be parsed and associated
+    *              with the `Dimensionless` unit
+    *
+    * @return a `Quantity[Dimensionless]` instance representing the numerical value as a
+    *         dimensionless quantity
+    */
+  def apply(value: String): Quantity[Dimensionless] =
+    Quantity(QuantityParser.doParseNumber(value), Dimensionless)
+  /**
     * Represents the dimensionless unit quantity with a value of 1.
     *
     * This predefined quantity is associated with the `Dimensionless` unit
@@ -230,6 +258,20 @@ object Quantity {
     * constant for operations requiring a base unit in dimensional analysis.
     */
   val unity: Quantity[Dimensionless] = apply(1)
+
+  /**
+    * Converts a `Valuable` into an `Expression` while preserving lazy evaluation where applicable.
+    *
+    * If the input is of type `Eager`, it is wrapped into an `Expression`.
+    * If the input is already an `Expression`, it is returned as is.
+    *
+    * @param valuable the input value of type `Valuable` to be transformed into an `Expression`
+    * @return an `Expression` representing the given `Valuable`
+    */
+  def lazify(valuable: Valuable): Expression = valuable match {
+    case e: Eager => Expression(e)
+    case e: Expression => e
+  }
 
   /**
     * Parses a numerical value and a unit into a `Quantity` instance.

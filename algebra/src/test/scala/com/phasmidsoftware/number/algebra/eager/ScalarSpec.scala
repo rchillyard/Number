@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.algebra.eager
 
 import com.phasmidsoftware.number.algebra.core.Valuable
-import com.phasmidsoftware.number.algebra.eager.{Angle, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Real, WholeNumber}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -15,13 +15,13 @@ class ScalarSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Scalar"
 
   it should "parse string" in {
-    val x1: Valuable = "5"
+    val x1: Valuable = Eager("5")
     x1 shouldBe WholeNumber(5)
-    val x2: Valuable = "5.01"
+    val x2: Valuable = Eager("5.01")
     x2 shouldBe RationalNumber(501, 100)
-    val x3: Valuable = "5.012"
+    val x3: Valuable = Eager("5.012")
     x3 shouldBe Real(5.012, Some(AbsoluteFuzz(5.0E-4, Box)))
-    val x4: Valuable = "0.5𝛑"
+    val x4: Valuable = Eager("0.5𝛑")
     x4 shouldBe Angle(RationalNumber(1, 2))
   }
 

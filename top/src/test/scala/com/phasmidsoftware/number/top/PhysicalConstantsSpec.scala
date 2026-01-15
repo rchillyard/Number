@@ -219,20 +219,21 @@ class PhysicalConstantsSpec extends AnyFlatSpec with should.Matchers {
     mu0.value.isExact shouldBe true
   }
 
-  // Temporary issue: Scalar: unsupported cross-type operation: WholeNumber op Angle
-  ignore should "satisfy ε₀μ₀c² = 1 (exactly)" in {
+  it should "satisfy ε₀μ₀c² = 1 (exactly)" in {
     val eps0 = PhysicalConstantsConventional.epsilon_0
     val mu0 = PhysicalConstantsConventional.mu_0
     val c = PhysicalConstants.c
 
-    val q: Quantity[MulDim[MulDim[Permittivity, Permeability], MulDim[Velocity, Velocity]]] = eps0 * mu0 * c.squared
+    val q = eps0 * mu0 * c.squared
     q.unit.dimensionWitness shouldBe DimensionWitness.dimensionless
-    q.value.materialize shouldBe WholeNumber(1)
+    //    q.value.materialize shouldBe WholeNumber(1)
+    pending // Issue unnumbered but related to simplifying Aggregate
   }
 
   behavior of "Expression evaluation"
   it should "get product of these two values" in {
     val e1 = Quantity("8.8541878128(13)E-12")
+    //    val e1 = Quantity("8.8541878128 \\times 10^{-12}")
     // TODO the following line should work, but it doesn't (it's partly related to the way we render Real numbers)
     //    e1.render shouldBe "8.8541878128*E-12"
     val e2 = Quantity("1.25663706212(19)E-6")

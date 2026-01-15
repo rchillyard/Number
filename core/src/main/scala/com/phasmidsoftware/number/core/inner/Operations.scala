@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.number.core.inner
 
+import com.phasmidsoftware.number.core.inner.Modulo
 import com.phasmidsoftware.number.core.misc.FP
-import com.phasmidsoftware.number.core.misc.FP._
-import scala.annotation.tailrec
-import scala.math.Ordered.orderingToOrdered
-import scala.util._
+import com.phasmidsoftware.number.core.misc.FP.*
+
+import scala.util.*
 
 /**
   * Represents an operation in a system. This trait serves as a base for different
@@ -494,9 +494,9 @@ case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) exten
     * - Another modulation function for numeric inputs matching the provided integer bounds.
     */
   val functions: MonadicFunctions = (
-      tryF(z => modulate(z, min, max)),
-      tryF(z => modulate(z, Rational(min), Rational(max))),
-      tryF(z => modulate(z, min, max))
+    tryF(z => modulate(z, min, max, circular)),
+    tryF(z => modulate(z, Rational(min), Rational(max), circular)),
+    tryF(z => modulate(z, min, max, circular))
   )
 
   /**
@@ -510,30 +510,18 @@ case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) exten
   val fuzz: Int = 0
 
   /**
-    * Modulates the given numeric input to ensure it falls within the specified range defined by the minimum
-    * and maximum bounds. If the input exceeds the bounds, it wraps around to fit within the range.
+    * Modulates a value into a specified range [min, max] using modular arithmetic.
+    * The result ensures the value falls within the inclusive range.
+    * Optionally supports circular ranges where `min` wraps to `max`.
     *
-    * @param z   the input value to be modulated
-    * @param min the minimum bound of the range
-    * @param max the maximum bound of the range
-    * @return the modulated value constrained within the specified range
+    * @param value    the value to modulate
+    * @param min      the minimum of the range (inclusive)
+    * @param max      the maximum of the range (inclusive)
+    * @param circular if true, makes the range circular such that `min` wraps to `max`
+    * @return the modulated value within the range [min, max]
     */
-  private def modulate[X: Numeric](z: X, min: X, max: X): X = {
-    import scala.math.Numeric.Implicits.infixNumericOps
-
-    @tailrec
-    def inner(result: X): X =
-      if (result < min)
-        inner(result + max - min)
-      else if (result > max)
-        inner(result + min - max)
-      else if (circular && result == min)
-        max
-      else
-        result
-
-    inner(z)
-  }
+  def modulate[X](value: X, min: X, max: X, circular: Boolean)(using Modulo[X]): X =
+    Modulo.normalize(value, min, max, circular)
 }
 
 /**
@@ -930,7 +918,7 @@ object Operations {
     def tryInt(x: Int): Try[Value] =
       tryConvert(x, "Int")(v => Value.maybeInt(v), fInt, Value.fromInt)
 
-    import com.phasmidsoftware.number.core.misc.Converters._
+    import com.phasmidsoftware.number.core.misc.Converters.*
     val xToZy1: Either[Option[Double], Rational] => Try[Value] = y => tryMap(y)(tryRational, tryDouble)
 
     tryMap(value)(tryInt, xToZy1).toOption
@@ -951,7 +939,7 @@ object Operations {
       case None =>
         Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.core.misc.Converters._
+    import com.phasmidsoftware.number.core.misc.Converters.*
     val xToZy1: Either[Option[Double], Rational] => Try[Value] = e => tryMap(e)(x => for (r <- fRational(x)) yield Value.fromRational(r), xToZy0)
     tryMap(value)(x => for (i <- fInt(x)) yield Value.fromInt(i), xToZy1).toOption
   }
@@ -974,7 +962,7 @@ object Operations {
       case None =>
         Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.core.misc.Converters._
+    import com.phasmidsoftware.number.core.misc.Converters.*
     val xToZy1: Either[Option[Double], Rational] => Try[T] = y => tryMap(y)(x => fRational(x), xToZy0)
     tryMap(v)(x => fInt(x), xToZy1).toOption
   }

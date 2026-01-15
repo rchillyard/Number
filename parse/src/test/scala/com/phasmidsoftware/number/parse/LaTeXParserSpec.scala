@@ -69,4 +69,11 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
     p("50%") shouldBe Parsed.Success(Literal(RationalNumber(Rational.half,true)(), Some("50%")), 3)
     p("90°") shouldBe Parsed.Success(Literal(Angle.degrees(90), Some("90°")), 3) 
   }
+
+  // NOTE that the latex parse cannot understand uncertainty.
+  behavior of "exponents"
+  // TODO why is this failing?
+  ignore should "parse 8.8541878128 \\times 10^{-12}" in {
+    p("8.8541878128 \\times 10^{-12}").isSuccess shouldBe true
+  }
 }
