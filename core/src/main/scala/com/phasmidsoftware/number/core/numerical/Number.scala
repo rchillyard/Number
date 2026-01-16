@@ -14,6 +14,7 @@ import com.phasmidsoftware.number.core.numerical.Number.{inverse, negate}
 import com.phasmidsoftware.number.core.expression.{Expression, ExpressionException}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
+
 import scala.annotation.tailrec
 import scala.language.{implicitConversions, postfixOps}
 import scala.util.*
@@ -1480,7 +1481,7 @@ object Number {
     */
   def sin(x: Number): Number =
     // TODO much of the logic here is a repeat of what's in transformMonadic.
-    x.scale(Radian).transformMonadic(Radian)(MonadicOperationModulate(-1, 1, circular = true)) match {
+    x.scale(Radian).transformMonadic(Radian)(MonadicOperationModulate(-1, 1, inclusive = true, true)) match {
       case Some(z) =>
         if (z.signum >= 0) {
           lazy val oneOverRoot2 = Number(Rational.half, SquareRoot)
@@ -1579,9 +1580,9 @@ object Number {
     * @return either x or a number equivalent to x with value in defined range.
     */
   def modulate(x: Number): Number = x.factor match {
-    case Radian | Euler =>
+    case Radian | Euler => // CONSIDER why Euler?
       // CONSIDER using f.modulate(...)
-      prepare(x.transformMonadic(x.factor)(MonadicOperationModulate(-1, 1, circular = false)))
+      prepare(x.transformMonadic(x.factor)(MonadicOperationModulate(-1, 1, inclusive = true, x.factor == Radian)))
     case _ =>
       x
   }

@@ -477,11 +477,21 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 }
 
 /**
-  * MonadicOperation to yield the modulus a Number.
+  * This class represents a monadic operation that modulates a numeric input into a specified range
+  * using modular arithmetic. It allows defining a flexible boundary behavior, which can either model
+  * standard numeric ranges or angular (circular) ranges, with the ability to make the range inclusive.
   *
-  * CONSIDER this description is not very helpful. Is it really the modulus?
+  * @param min                     the lower bound of the modulation range
+  * @param max                     the upper bound of the modulation range
+  * @param inclusive               if true, both min and max are valid; if false, max is excluded, unless boundaryBehavior specifies otherwise.
+  * @param angularBoundaryBehavior when true, treats the boundary as circular (e.g., for angles),
+  *                                otherwise treats it as standard numeric behavior
   */
-case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) extends MonadicOperation {
+case class MonadicOperationModulate(min: Int, max: Int, inclusive: Boolean, angularBoundaryBehavior: Boolean) extends MonadicOperation {
+
+  private val intBoundaryBehavior = if (angularBoundaryBehavior) BoundaryBehavior.angle[Int] else BoundaryBehavior.number[Int]
+  private val ratBoundaryBehavior = if (angularBoundaryBehavior) BoundaryBehavior.angle[Rational] else BoundaryBehavior.number[Rational]
+  private val dblBoundaryBehavior = if (angularBoundaryBehavior) BoundaryBehavior.angle[Double] else BoundaryBehavior.number[Double]
 
   /**
     * Defines a set of functions for modulating a numeric input to a specified range,
@@ -494,9 +504,9 @@ case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) exten
     * - Another modulation function for numeric inputs matching the provided integer bounds.
     */
   val functions: MonadicFunctions = (
-    tryF(z => modulate(z, min, max, circular)),
-    tryF(z => modulate(z, Rational(min), Rational(max), circular)),
-    tryF(z => modulate(z, min, max, circular))
+    tryF(z => modulate(z, min, max, inclusive, intBoundaryBehavior)),
+    tryF(z => modulate(z, Rational(min), Rational(max), inclusive, ratBoundaryBehavior)),
+    tryF(z => modulate(z, min, max, inclusive, dblBoundaryBehavior))
   )
 
   /**
@@ -515,13 +525,13 @@ case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) exten
     * Optionally supports circular ranges where `min` wraps to `max`.
     *
     * @param value    the value to modulate
-    * @param min      the minimum of the range (inclusive)
-    * @param max      the maximum of the range (inclusive)
-    * @param circular if true, makes the range circular such that `min` wraps to `max`
+    * @param min      the minimum of the range (always inclusive)
+    * @param max      the maximum of the range (inclusive according to `inclusive` parameter)
+    * @param inclusive if true, both min and max are valid; if false, max is excluded, unless boundaryBehavior specifies otherwise.
     * @return the modulated value within the range [min, max]
     */
-  def modulate[X](value: X, min: X, max: X, circular: Boolean)(using Modulo[X]): X =
-    Modulo.normalize(value, min, max, circular)
+  def modulate[X](value: X, min: X, max: X, inclusive: Boolean, boundaryBehavior: BoundaryBehavior[X])(using Modulo[X]): X =
+    Modulo.normalize(value, min, max, inclusive, boundaryBehavior)
 }
 
 /**

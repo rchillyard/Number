@@ -59,6 +59,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsIntegrationSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EmptySpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.ExpressionEqSpec"/>
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionMatchersSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.LiteralSpec" />
@@ -142,7 +143,9 @@
         <option value="com.phasmidsoftware.number.core.misc.VarianceSpec" />
         <option value="com.phasmidsoftware.number.core.inner.ContextSpec" />
         <option value="com.phasmidsoftware.number.core.inner.FactorSpec" />
+          <option value="com.phasmidsoftware.number.core.inner.ModuloSpec"/>
         <option value="com.phasmidsoftware.number.core.inner.OperationsSpec" />
+          <option value="com.phasmidsoftware.number.core.inner.RationalFloorSpec"/>
         <option value="com.phasmidsoftware.number.core.inner.RationalSpec" />
         <option value="com.phasmidsoftware.number.core.inner.ValueSpec" />
       </list>

@@ -85,7 +85,7 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "modulate" in {
     PureNumber.modulate(Value.fromInt(1)) shouldBe Value.fromInt(1)
-    Radian.modulate(Value.fromInt(-1)) shouldBe Value.fromInt(-1)
+    Radian.modulate(Value.fromInt(-1)) shouldBe Value.fromInt(1)
     Radian.modulate(Value.fromInt(0)) shouldBe Value.fromInt(0)
     Radian.modulate(Value.fromInt(1)) shouldBe Value.fromInt(1)
     Radian.modulate(Value.fromInt(2)) shouldBe Value.fromInt(0)
