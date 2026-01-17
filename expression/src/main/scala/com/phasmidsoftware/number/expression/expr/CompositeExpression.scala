@@ -1030,9 +1030,6 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   def renderAsExpression: String =
     s"{$function ${xs.map(_.render).mkString(" ")}}"
 
-//  def simplifyExact: em.AutoMatcher[Expression] =
-//    em.fail("Aggregate: simplifyExact") // TODO implement me properly
-
   /**
     * Simplifies the components of this `CompositeExpression` using a matching mechanism to identify
     * and transform sub-expressions into simpler forms if possible.

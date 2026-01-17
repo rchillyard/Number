@@ -226,8 +226,7 @@ class PhysicalConstantsSpec extends AnyFlatSpec with should.Matchers {
 
     val q = eps0 * mu0 * c.squared
     q.unit.dimensionWitness shouldBe DimensionWitness.dimensionless
-    //    q.value.materialize shouldBe WholeNumber(1)
-    pending // Issue unnumbered but related to simplifying Aggregate
+    q.value.materialize shouldBe WholeNumber(1)
   }
 
   behavior of "Expression evaluation"

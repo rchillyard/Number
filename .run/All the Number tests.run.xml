@@ -37,9 +37,9 @@
         <option value="com.phasmidsoftware.number.cats.laws.ErrorCommutativeMonoidLawSpec" />
         <option value="com.phasmidsoftware.number.cats.laws.RationalAlgebraicInstancesLawSpec" />
         <option value="com.phasmidsoftware.number.cats.laws.RealAlgebraicInstancesLawSpec" />
-          <option value="com.phasmidsoftware.number.top.PhysicalConstantsSpec"/>
+        <option value="com.phasmidsoftware.number.top.PhysicalConstantsSpec" />
         <option value="com.phasmidsoftware.number.top.QuantityLaTeXSpec" />
-          <option value="com.phasmidsoftware.number.top.QuantityParserSpec"/>
+        <option value="com.phasmidsoftware.number.top.QuantityParserSpec" />
         <option value="com.phasmidsoftware.number.top.QuantitySpec" />
         <option value="com.phasmidsoftware.number.top.QuantityWorksheetSpec" />
         <option value="com.phasmidsoftware.number.top.TopSpec" />
@@ -55,11 +55,12 @@
         <option value="com.phasmidsoftware.number.expression.parse.RationalParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.ShuntingYardParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.SignificantSpaceParsersSpec" />
+        <option value="com.phasmidsoftware.number.expression.expr.AggregateSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.CompositeExpressionSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsIntegrationSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EmptySpec" />
-          <option value="com.phasmidsoftware.number.expression.expr.ExpressionEqSpec"/>
+        <option value="com.phasmidsoftware.number.expression.expr.ExpressionEqSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionMatchersSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.LiteralSpec" />
@@ -69,7 +70,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.TranscendentalSpec" />
         <option value="com.phasmidsoftware.number.problems.PotHolesSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.DimensionSpec" />
-          <option value="com.phasmidsoftware.number.dimensions.core.DimensionWitnessSpec"/>
+        <option value="com.phasmidsoftware.number.dimensions.core.DimensionWitnessSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.PowerUnitSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.TRationalSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.UnitsSpec" />
@@ -143,9 +144,9 @@
         <option value="com.phasmidsoftware.number.core.misc.VarianceSpec" />
         <option value="com.phasmidsoftware.number.core.inner.ContextSpec" />
         <option value="com.phasmidsoftware.number.core.inner.FactorSpec" />
-          <option value="com.phasmidsoftware.number.core.inner.ModuloSpec"/>
+        <option value="com.phasmidsoftware.number.core.inner.ModuloSpec" />
         <option value="com.phasmidsoftware.number.core.inner.OperationsSpec" />
-          <option value="com.phasmidsoftware.number.core.inner.RationalFloorSpec"/>
+        <option value="com.phasmidsoftware.number.core.inner.RationalFloorSpec" />
         <option value="com.phasmidsoftware.number.core.inner.RationalSpec" />
         <option value="com.phasmidsoftware.number.core.inner.ValueSpec" />
       </list>
