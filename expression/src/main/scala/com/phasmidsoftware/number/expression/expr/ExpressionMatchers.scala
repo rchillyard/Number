@@ -296,30 +296,12 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   private def angleEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("angleEliminatorAggregate") {
     case a@Aggregate(Product, xs) =>
-      val hasAngles = xs.exists {
-        case Literal(_: Angle, _) => true
-        case _ => false
-      }
-      val hasReciprocalAngles = xs.exists {
-        case UniFunction(Literal(_: Angle, _), Reciprocal) => true
-        case _ => false
-      }
-      if (hasAngles && hasReciprocalAngles) {
-        val angles: Seq[Expression] = xs.collect { case Literal(Angle(n, _), _) => Seq(Literal(n), ConstPi) }.flatten
-        val others = xs.filterNot {
-          case Literal(_: Angle, _) => true
-          case _ => false
-        }
-        val reciprocalAngles = others.collect { case UniFunction(Literal(Angle(n, _), _), Reciprocal) => Seq(Literal(n).reciprocal, ConstPi.reciprocal) }.flatten
-        val nonAngles = others.filterNot {
-          case UniFunction(Literal(_: Angle, _), Reciprocal) => true
-          case _ => false
-        }
-        Match(Aggregate(Product, angles ++ reciprocalAngles ++ nonAngles))
-      }
+      if (Aggregate.hasAngles(xs) && Aggregate.hasReciprocalAngles(xs))
+        Match(Aggregate(Product, Aggregate.getAnglesEtc(xs)))
       else
         Miss("angleEliminatorAggregate: no angles", a)
-    case a => Miss("angleEliminatorAggregate: not a Product Aggregate", a)
+    case a =>
+      Miss("angleEliminatorAggregate: not a Product Aggregate", a)
   }
 
   /**

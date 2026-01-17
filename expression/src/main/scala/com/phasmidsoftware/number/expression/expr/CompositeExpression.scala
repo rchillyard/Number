@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
-import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, QuadraticSolution, RationalNumber, Structure, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
@@ -1217,5 +1217,63 @@ object Aggregate {
     */
   def product(xs: Expression*): expression.expr.Aggregate =
     create(Product, xs)
+
+  /**
+    * Processes a sequence of expressions and separates them into angles, reciprocal angles,
+    * and other non-angle expressions. The method applies specific transformations to recognize
+    * angles and reciprocal angles, and combines the results into a single sequence.
+    *
+    * @param xs the sequence of expressions (`Seq[Expression]`) to be analyzed and processed.
+    *           The expressions may include angles, reciprocal angles, or other types.
+    *
+    * @return a sequence of processed expressions, including angles, reciprocal angles,
+    *         and other non-angle expressions.
+    */
+  def getAnglesEtc(xs: Seq[Expression]): Seq[Expression] = {
+    val angles: Seq[Expression] = xs.collect { case Literal(Angle(n, _), _) => Seq(Literal(n), ConstPi) }.flatten
+    val others = xs.filterNot {
+      case Literal(_: Angle, _) => true
+      case _ => false
+    }
+    val reciprocalAngles = others.collect { case UniFunction(Literal(Angle(n, _), _), Reciprocal) => Seq(Literal(n).reciprocal, ConstPi.reciprocal) }.flatten
+    val nonAngles = others.filterNot {
+      case UniFunction(Literal(_: Angle, _), Reciprocal) => true
+      case _ => false
+    }
+    angles ++ reciprocalAngles ++ nonAngles
+  }
+
+  /**
+    * Determines whether the given sequence of expressions contains at least one
+    * expression that represents a reciprocal angle.
+    *
+    * @param xs the sequence of `Expression` objects to analyze.
+    *           Each `Expression` may represent an angle, a reciprocal angle,
+    *           or another type of mathematical expression.
+    *
+    * @return `true` if the sequence contains a reciprocal angle, otherwise `false`.
+    */
+  def hasReciprocalAngles(xs: Seq[Expression]): Boolean =
+    xs.exists {
+      case UniFunction(Literal(_: Angle, _), Reciprocal) => true
+      case _ => false
+    }
+
+  /**
+    * Determines whether the given sequence of expressions contains at least one
+    * expression that represents an angle.
+    *
+    * @param xs the sequence of `Expression` objects to analyze. Each `Expression`
+    *           may represent an angle or another type of mathematical expression.
+    *
+    * @return `true` if the sequence contains at least one expression that represents an angle,
+    *         otherwise `false`.
+    */
+  def hasAngles(xs: Seq[Expression]): Boolean =
+    xs.exists {
+      case Literal(_: Angle, _) => true
+      case _ => false
+    }
+
 }
 
