@@ -87,21 +87,21 @@ class ExpressionEqSpec extends AnyFlatSpec with Matchers {
     Eq[Expression].eqv(e1, e3) shouldBe false
   }
 
-  ignore should "recognize equal Aggregate expressions with commutative operations" in {
+  it should "recognize equal Aggregate expressions with commutative operations" in {
     val a = Literal(WholeNumber(1))
     val b = Literal(WholeNumber(2))
     val c = Literal(WholeNumber(3))
-    val e1 = Aggregate(Sum, Seq(a, b, c))
-    val e2 = Aggregate(Sum, Seq(c, a, b))
+    val e1 = Aggregate(Sum, Seq(a, b, c)).simplify
+    val e2 = Aggregate(Sum, Seq(c, a, b)).simplify
     Eq[Expression].eqv(e1, e2) shouldBe true
   }
 
-  ignore should "recognize equal Aggregate product expressions regardless of order" in {
+  it should "recognize equal Aggregate product expressions regardless of order" in {
     val a = Literal(WholeNumber(2))
     val b = Literal(WholeNumber(3))
     val c = Literal(WholeNumber(5))
-    val e1 = Aggregate(Product, Seq(a, b, c))
-    val e2 = Aggregate(Product, Seq(b, c, a))
+    val e1 = Aggregate(Product, Seq(a, b, c)).simplify
+    val e2 = Aggregate(Product, Seq(b, c, a)).simplify
     Eq[Expression].eqv(e1, e2) shouldBe true
   }
 
@@ -151,4 +151,27 @@ class ExpressionEqSpec extends AnyFlatSpec with Matchers {
 
     Eq[Expression].eqv(e1, e2) shouldBe true
   }
+
+  behavior of "MathematicalEq"
+
+  it should "recognize equal Aggregate expressions with commutative operations" in {
+    import MathematicalEqSyntax.*
+    val a = Literal(WholeNumber(1))
+    val b = Literal(WholeNumber(2))
+    val c = Literal(WholeNumber(3))
+    val e1: Expression = Aggregate(Sum, Seq(a, b, c))
+    val e2: Expression = Aggregate(Sum, Seq(c, a, b))
+    e1.mathEq(e2) shouldBe true
+  }
+
+  it should "recognize equal Aggregate product expressions regardless of order" in {
+    import MathematicalEqSyntax.*
+    val a = Literal(WholeNumber(2))
+    val b = Literal(WholeNumber(3))
+    val c = Literal(WholeNumber(5))
+    val e1: Expression = Aggregate(Product, Seq(a, b, c))
+    val e2: Expression = Aggregate(Product, Seq(b, c, a))
+    e1.mathEq(e2) shouldBe true
+  }
+
 }

@@ -278,7 +278,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Try(xs.sortBy(sortFunction)) match {
         case Success(sorted) =>
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-          if (list.length < xs.length)
+          if (list != xs)
             // CONSIDER write=ing instead `Match(CompositeExpression(f, list))` But be careful!
             Match(Aggregate(f, list))
           else

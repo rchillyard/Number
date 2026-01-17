@@ -17,6 +17,7 @@ import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction
 import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
 import com.phasmidsoftware.number.expression.matchers.MatchersExtras
 import com.phasmidsoftware.number.{core, expression}
+
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
@@ -380,7 +381,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         Match(Literal(Angle.zero))
       else
         Match(Zero)
-    else if list.length < a.xs.length
+    else if list != a.xs
     // CONSIDER writing instead `MatchCheck(CompositeExpression(f, list))` But be careful!
     then
       MatchCheck(Aggregate(f, list))(a)
