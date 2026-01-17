@@ -14,9 +14,11 @@ import com.phasmidsoftware.number.algebra.util.{FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
   * Represents a `Monotone`, which is one-dimensional `Structure` that can be ordered
@@ -51,6 +53,70 @@ trait Monotone extends Structure with WithFuzziness with Negatable[Monotone] {
     case _ if force => convert(Real.zero)
     case _ => None
   }
+
+  /**
+    * Adds the specified `Monotone` instance to the current instance, producing a new `Monotone`.
+    *
+    * @param y The `Monotone` instance to be added.
+    * @return A `Try` wrapping the resulting `Monotone` instance, or a failure if the operation cannot be completed.
+    */
+  def add(y: Monotone): Try[Monotone] =
+    summon[DyadicOperator[Monotone]].op[Monotone, Monotone](addMonotones)(this, y)
+
+  /**
+    * Multiplies the current `Monotone` instance by the specified `Monotone` operand.
+    * The result of the operation is wrapped in a `Try`, allowing for safe handling of failures.
+    *
+    * @param y the `Monotone` operand with which the current instance is multiplied
+    * @return a `Try[Monotone]` containing the result of the multiplication if successful,
+    *         or a failure if the operation is not valid or cannot be performed
+    */
+  def multiply(y: Monotone): Try[Monotone] =
+    summon[DyadicOperator[Monotone]].op[Monotone, Monotone](multiplyMonotones)(this, y)
+
+  /**
+    * Subtracts the given `Monotone` instance (`y`) from the current instance.
+    * The operation is performed using a dyadic operator that ensures type safety
+    * and handles any failures during the subtraction via a `Try`.
+    *
+    * @param y the `Monotone` instance to be subtracted from the current instance
+    * @return a `Try[Monotone]` containing the result of the subtraction if successful,
+    *         or a failure if the subtraction operation cannot be performed
+    */
+  def subtract(y: Monotone): Try[Monotone] =
+    summon[DyadicOperator[Monotone]].op[Monotone, Monotone](subtractMonotones)(this, y)
+
+  /**
+    * Divides the current `Monotone` instance by another `Monotone` instance.
+    * The operation is performed using the `DyadicOperator` defined for `Monotone`.
+    * The result is wrapped in a `Try` to handle potential failures during the operation.
+    *
+    * @param y the `Monotone` instance to divide the current instance by
+    * @return a `Try[Monotone]` containing the result of the division if successful,
+    *         or a failure if the operation cannot be performed
+    */
+  def divide(y: Monotone): Try[Monotone] =
+    summon[DyadicOperator[Monotone]].op[Monotone, Monotone](divideMonotones)(this, y)
+
+  private def addMonotones(x: Monotone, y: Monotone): Try[Monotone] = (x, y) match
+    case (a: Scalar, b: Scalar) => a.add(b)
+    case (a: Functional, b: Functional) => FP.fail(s"Cannot add Functional types: $a and $b")
+    case _ => FP.fail(s"Cannot add $x and $y")
+
+  private def multiplyMonotones(x: Monotone, y: Monotone): Try[Monotone] = (x, y) match
+    case (a: Scalar, b: Scalar) => a.multiply(b)
+    case (a: Functional, b: Functional) => FP.fail(s"Cannot multiply Functional types: $a and $b")
+    case _ => FP.fail(s"Cannot multiply $x and $y")
+
+  private def subtractMonotones(x: Monotone, y: Monotone): Try[Monotone] = (x, y) match
+    case (a: Scalar, b: Scalar) => a.subtract(b)
+    case (a: Functional, b: Functional) => FP.fail(s"Cannot subtract Functional types: $a and $b")
+    case _ => FP.fail(s"Cannot subtract $y from $x")
+
+  private def divideMonotones(x: Monotone, y: Monotone): Try[Monotone] = (x, y) match
+    case (a: Scalar, b: Scalar) => a.divide(b)
+    case (a: Functional, b: Functional) => FP.fail(s"Cannot divide Functional types: $a and $b")
+    case _ => FP.fail(s"Cannot divide $x by $y")
 
 }
 
@@ -231,6 +297,7 @@ object Exact {
 object Functional {
 
   import org.slf4j.{Logger, LoggerFactory}
+
   import scala.util.Try
 
   val logger: Logger = LoggerFactory.getLogger(getClass)

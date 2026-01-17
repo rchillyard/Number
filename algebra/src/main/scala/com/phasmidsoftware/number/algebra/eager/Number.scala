@@ -14,6 +14,7 @@ import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -45,7 +46,28 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     * @return The result of the multiplication as a number.
     */
   def *(other: Number): Number =
-    summon[MultiplicativeGroup[Number]].multiplicative.combine(this, other)
+    summon[MultiplicativeGroup[Number]].multiplicative.combine(this, other).normalize
+
+  /**
+    * Divides this `Number` by another `Number`.
+    *
+    * The division is performed based on the type of the input `Number`:
+    * - If the input is an `ExactNumber`, it computes the reciprocal of the input, converts it to a `RationalNumber`,
+    *   multiplies it with `this` `Number`, and normalizes the result.
+    * - For unsupported types, an `AlgebraException` is thrown.
+    *
+    * @param other the `Number` by which this `Number` is to be divided
+    * @return the result of division as a `Number`
+    * @throws com.phasmidsoftware.number.algebra.util.AlgebraException if the division is unsupported for the provided `other` type
+    */
+  def /(other: Number): Number = other match {
+    case c: CanMultiplyAndDivide[Number] =>
+      (this * c.reciprocal).normalize
+    case e: ExactNumber =>
+      (this * e.toRationalNumber.reciprocal).normalize
+    case _ =>
+      throw AlgebraException(s"Number./: logic error: $this / $other")
+  }
 
   /**
     * Adds this `Number` instance to another `Number` instance and returns the result.
@@ -75,6 +97,63 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     case _ =>
       throw AlgebraException(s"Number.+: logic error: $this + $other")
   }
+
+  /**
+    * Subtracts another `Number` from this `Number` instance and returns the result.
+    *
+    * The subtraction is performed based on the types of the two `Number` instances:
+    * - If both are `WholeNumber`, their values are subtracted directly.
+    * - If one is a `RationalNumber` and the other is an `ExactNumber`, the `ExactNumber` is converted to match the type of the `RationalNumber` before subtraction.
+    * - If one is a `Real`, an attempt is made to convert the other number to match the type of the `Real` before subtraction.
+    * - For unsupported or invalid type combinations, an `AlgebraException` is thrown.
+    *
+    * @param other the `Number` instance to subtract from this instance
+    * @return a `Number` instance representing the difference of this instance and the provided `other` instance
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the subtraction cannot be performed due to unsupported or invalid type combinations
+    */
+  def -(other: Number): Number = (this, other) match {
+    case (a: WholeNumber, b: WholeNumber) =>
+      (a - b).normalize
+    case (a: Q, b: Q) =>
+      RationalNumber(a.toRational - b.toRational)
+    case (a: Real, b) =>
+      b.convert(a).map((x: Real) => (a - x).normalize).getOrElse(throw AlgebraException(s"Number.-: logic error: Real: $this - $other"))
+    case _ =>
+      throw AlgebraException(s"Number.-: logic error: $this - $other")
+  }
+
+  /**
+    * Adds the given number to the current instance and returns the result.
+    *
+    * @param other the number to be added to the current instance
+    * @return a `Try` containing the result of the addition if successful, or a failure if an exception occurs
+    */
+  def add(other: Number): Try[Number] = Try(this + other)
+
+  /**
+    * Multiplies this number by the given number and returns the result wrapped in a Try.
+    *
+    * @param other the number to multiply with this number
+    * @return a Try containing the product of this number and the given number, 
+    *         or a Failure if an error occurs during multiplication
+    */
+  def multiply(other: Number): Try[Number] = Try(this * other)
+
+  /**
+    * Subtracts the given number from the current number and returns the result.
+    *
+    * @param other the number to be subtracted from the current number
+    * @return a `Try` containing the result of the subtraction as a `Number`, or a failure if an error occurs
+    */
+  def subtract(other: Number): Try[Number] = Try(this - other)
+
+  /**
+    * Divides the current number by the given number.
+    *
+    * @param other The number to divide the current number by.
+    * @return A `Try[Number]` containing the result of the division if successful, or a failure if an exception occurs (e.g., division by zero).
+    */
+  def divide(other: Number): Try[Number] = Try(this / other)
 
   /**
     * Attempts to obtain a `Factor` representation in a specific `Context`.
@@ -174,7 +253,7 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
           bApprox <- b.approximation(true)
         } yield aApprox.value == bApprox.value
 
-        FP.toTry(maybeResult, Failure(AlgebraException(s"Number.eqv: cannot compare $this and $that")))
+        FP.toTry(maybeResult)(Failure(AlgebraException(s"Number.eqv: cannot compare $this and $that")))
       }
     case _ =>
       super.eqv(that)
@@ -221,12 +300,10 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
 }
 
 /**
-  * Represents a number that can be expressed and operated on with exact precision.
+  * Represents a number that can be expressed and operated on with exactitude.
   *
-  * The `ExactNumber` trait combines the behavior of `Number` and `Exact` to emphasize operations
-  * that require precise, symbolic, or rational representation, avoiding approximations.
-  * This interface ensures that instances are inherently exact and includes methods to determine
-  * exactness and specific properties like zero equivalence.
+  * Subtypes of ExactNumber include WholeNumber and RationalNumber.
+  * Although some instances of Real are exact, the type in general cannot be assumed to represent an exact value.
   */
 trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] with CanPower[ExactNumber] {
 
@@ -531,6 +608,11 @@ object Number {
         realIsRing.inverse(b) match {
           case Some(z) => times(a, z)
           case None => throw AlgebraException("Number.div: logic error: cannot divide by zero")
+        }
+      case (a: Number, b: ExactNumber) =>
+        a.scale(b.toRational.invert) match {
+          case number: Number => number
+          case x => throw AlgebraException(s"Number.div: logic error: result of division is not a Number: $x")
         }
       case _ =>
         throw AlgebraException("Number.div: logic error: cannot divide " + x + " by " + y)

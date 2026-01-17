@@ -8,11 +8,37 @@ import com.phasmidsoftware.number.algebra.core.Renderable
 import com.phasmidsoftware.number.algebra.eager.Eager
 import com.phasmidsoftware.number.expression.expr.{Expression, Noop}
 import fastparse.Parsed
+
 import scala.util.Try
 
+/**
+  * The `ExpressionParser` object provides utilities for parsing and processing LaTeX-like 
+  * mathematical expressions, leveraging string interpolation. These utilities enable creation, 
+  * simplification, and evaluation of mathematical expressions represented as `Expression`
+  * objects.
+  *
+  * TODO instead of throwing exceptions we should return a `ParseError` object.
+  */
 object ExpressionParser {
 
-  val latexParser: String => Parsed[Expression] = LaTeXParser.parse
+  /**
+    * Parses a LaTeX-like mathematical expression from the provided string and returns an `Expression` object.
+    *
+    * @param string the input string containing the LaTeX-like expression to be parsed.
+    * @return an `Expression` object parsed from the input string. If parsing fails, it returns a `Noop` with error details.
+    *         Throws a `LaTeXParserException` if the input string is not fully parsed.
+    */
+  def parse(string: String): Expression =
+    latexParser(string) match {
+      case failure: Parsed.Failure =>
+        Noop(failure.toString)
+      case Parsed.Success(value, index) if index == string.length =>
+        value
+      case Parsed.Success(_, index) =>
+        throw LaTeXParserException(s"ExpressionParser: expected to parse all of $string, but only parsed $index of them")
+    }
+
+  private val latexParser: String => Parsed[Expression] = LaTeXParser.parse
 
   /**
     * Extension method `lazymath` for `StringContext`.
@@ -39,14 +65,7 @@ object ExpressionParser {
         case (s, a: Renderable) => Seq(s, a.render)
         case (s, a) => Seq(s, a.toString)
       } ++ parts.drop(args.length)).mkString
-      latexParser(string) match {
-        case failure: Parsed.Failure =>
-          Noop(failure.toString)
-        case Parsed.Success(value, index) if index == string.length =>
-          value
-        case Parsed.Success(_, index) =>
-          throw LaTeXParserException(s"ExpressionParser: expected to parse all of $string, but only parsed $index of them")
-      }
+      parse(string)
     inline def lazymath(args: Any*): Expression =
       puremath(args *).simplify
     /**

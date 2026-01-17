@@ -13,6 +13,7 @@ import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalNumberIsF
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.{LatexRendererOps, frac}
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
+
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.{Success, Try}
@@ -414,12 +415,17 @@ object RationalNumber {
     * - Handles negative values appropriately
     */
   implicit val rationalLatexRenderer: LatexRenderer[Rational] = LatexRenderer.instance { r =>
-    if (r.d == 1) {
-      r.n.toString
-    } else {
-      val num = r.n.toString
-      val den = r.d.toString
-      frac(num, den)
+    r.renderExact match {
+      case Rational.repeatingDecimals(x, null) =>
+        x
+      case Rational.repeatingDecimals(x, repeating) =>
+        s"$x\\overline{$repeating}"
+      case Rational.rationalForm(_, _) if r.isExactDouble =>
+        r.toDouble.toString // XXX It's very doubtful that this case will match
+      case Rational.rationalForm(n, d) =>
+        frac(n, d)
+      case x =>
+        x
     }
   }
 
@@ -428,8 +434,9 @@ object RationalNumber {
     *
     * Delegates to the Rational renderer.
     */
-  implicit val rationalNumberLatexRenderer: LatexRenderer[RationalNumber] = LatexRenderer.instance { rn =>
-    rn.r.toLatex
+  implicit val rationalNumberLatexRenderer: LatexRenderer[RationalNumber] = LatexRenderer.instance {
+    case RationalNumber(r, false) => r.toLatex
+    case RationalNumber(r, _) => s"${r.value}\\%"
   }
 
   /**

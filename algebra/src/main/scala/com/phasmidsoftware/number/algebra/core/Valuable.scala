@@ -7,11 +7,12 @@ package com.phasmidsoftware.number.algebra.core
 import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Monotone, Nat, NatLog, Number, RationalNumber, Real, WholeNumber}
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.AlgebraException
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
+
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -28,54 +29,6 @@ import scala.util.Try
 trait Valuable extends Renderable with Numeric with Exactitude with Normalizable[Valuable] with TypeSafe {
 
   /**
-    * Attempts to retrieve a factor based on the provided context.
-    * This method evaluates whether there is an applicable factor within the given context.
-    *
-    * @param context the context in which the factor is evaluated.
-    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
-    */
-  def maybeFactor(context: Context): Option[Factor]
-
-  /**
-    * Casts this `Valuable` instance into an `Eager` type if it already is an `Eager`.
-    * If the instance is not already an `Eager`, an `AlgebraException` is thrown.
-    *
-    * @return the current instance as an `Eager`
-    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Eager`
-    */
-  def asEager: Eager = this match
-    case e: Eager => e
-    case _ => throw AlgebraException(s"asEager: expected Eager value but got $this")
-
-  /**
-    * Casts this `Valuable` instance into a `Monotone` type if it already is a `Monotone`.
-    * If the instance is not a `Monotone`, an `AlgebraException` is thrown.
-    *
-    * @return the current instance as a `Monotone`
-    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Monotone`
-    */
-  def asMonotone: Monotone = this match
-    case m: Monotone => m
-    case _ => throw AlgebraException(s"asMonotone: expected Monotone value but got $this")
-}
-
-/**
-  * The `Lazy` trait extends the `Valuable` interface and represents an abstraction
-  * for objects that are lazy in their evaluation or resolution. This trait provides
-  * methods for simplification, materialization, and normalization of the underlying value.
-  *
-  * The key distinction of `Lazy` implementations is their support for deferred computation,
-  * whereby full resolution or evaluation may not be required unless explicitly invoked.
-  */
-trait Lazy extends Valuable {
-  /**
-    * Simplifies the given expression or computation and returns a lazy evaluation result.
-    *
-    * @return a lazy evaluation result representing the simplified expression or computation
-    */
-  def simplify: Lazy
-
-  /**
     * Converts the current `Lazy` instance into an `Eager` instance by forcing
     * the resolution or evaluation of its underlying value.
     *
@@ -87,6 +40,81 @@ trait Lazy extends Valuable {
     * @return the materialized `Eager` instance representing the resolved value
     */
   def materialize: Eager
+
+  /**
+    * Obtains the product of this `Valuable` instance and another `Valuable` instance.
+    * The behavior of the method is determined by whether the instances are of type `Lazy` or `Eager`.
+    * If the provided instances do not conform to the expected types, an `AlgebraException` is thrown.
+    * CONSIDER supporting `sum` also.
+    *
+    * CONSIDER using lazify
+    *
+    * @param other the other `Valuable` instance to compute the product with
+    * @return a `Valuable` instance representing the product of this and the other instance
+    * @note throws AlgebraException if the computation involves unsupported `Valuable` types
+    */
+  def product(other: Valuable): Valuable = (this, other) match {
+    case (a: Lazy, b: Lazy) =>
+      a.multiply(b)
+    case (a: Lazy, b: Eager) =>
+      a.multiply(a.unit(b))
+    case (b: Eager, a: Lazy) =>
+      a.multiply(a.unit(b))
+    case (a: Eager, b: Eager) =>
+      a.multiply(b).get // NOTE this should never fail. Famous last words!
+    case _ => // NOTE this can never happen since the only two subtypes of Valuable are Eager and Lazy.
+      throw AlgebraException(s"product: expected Lazy/Eager values but got $this and $other")
+  }
+
+  /**
+    * Attempts to retrieve a factor based on the provided context.
+    * This method evaluates whether there is an applicable factor within the given context.
+    *
+    * @param context the context in which the factor is evaluated.
+    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
+    */
+  def maybeFactor(context: Context): Option[Factor]
+
+  /**
+    * Casts this `Valuable` instance into a `Monotone` type if it already is a `Monotone`.
+    * If the instance is not a `Monotone`, an `AlgebraException` is thrown.
+    * CONSIDER returning Option[Monotone] instead.
+    *
+    * @return the current instance as a `Monotone`
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Monotone`
+    */
+  def asMonotone: Monotone = this match
+    case m: Monotone => m
+    case _ => throw AlgebraException(s"asMonotone: expected Monotone value but got $this")
+
+  /**
+    * Attempts to cast this instance to a `Number`.
+    * If the instance is of type `Number`, it is wrapped in an `Option` and returned.
+    * Otherwise, returns `None`.
+    *
+    * @return an `Option` containing the instance as a `Number` if applicable, or `None` if not.
+    */
+  def asNumber: Option[Number] = this match
+    case n: Number => Some(n)
+    case _ => None
+}
+
+/**
+  * The `Lazy` trait extends the `Valuable` interface and represents an abstraction
+  * for objects that are lazy in their evaluation or resolution. This trait provides
+  * methods for simplification, materialization, and normalization of the underlying value.
+  *
+  * The key distinction of `Lazy` implementations is their support for deferred computation,
+  * whereby full resolution or evaluation may not be required unless explicitly invoked.
+  */
+trait Lazy extends Valuable {
+
+  /**
+    * Simplifies the given expression or computation and returns a lazy evaluation result.
+    *
+    * @return a lazy evaluation result representing the simplified expression or computation
+    */
+  def simplify: Lazy
 
   /**
     * Normalizes the current `Lazy` instance to its simplest `Valuable` equivalent.
@@ -103,7 +131,29 @@ trait Lazy extends Valuable {
     else
       simplified
   }
+
+  /**
+    * Multiplies this `Lazy` instance with another `Lazy` instance, producing
+    * a new `Lazy` result that represents the product of the two inputs.
+    *
+    * CONSIDER we should probably orivude an `add` method as well.
+    *
+    * @param other the `Lazy` instance to multiply with this instance
+    * @return a new `Lazy` instance representing the product of the two inputs
+    */
+  def multiply(other: Lazy): Lazy
+
+  /**
+    * Transforms an instance of the `Eager` type into a `Lazy` instance, allowing for deferred
+    * computation or evaluation.
+    * NOTE that this method ignores `this`.
+    *
+    * @param x an instance of `Eager` that is to be converted into a `Lazy` representation
+    * @return a `Lazy` instance representing the deferred computation or evaluation of the input
+    */
+  def unit(x: Eager): Lazy
 }
+
 
 /**
   * Represents a trait for performing dyadic operations on instances of the `Eager` type.
@@ -160,8 +210,6 @@ trait DyadicOps {
     *         - A `Failure` containing an exception if the comparison cannot be performed.
     */
   def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int]
-
-//  def sum(x: Eager, y: Eager): Try[Eager]
 }
 
 /**
@@ -169,22 +217,6 @@ trait DyadicOps {
   * enabling parsing and conversion of strings to `Valuable` representations.
   */
 object Valuable {
-
-  /**
-    * TODO change the type of the input to `Eager`.
-    *
-    * Converts a `Valuable` instance into a `Field` representation.
-    * If the conversion fails, it recovers by throwing a `AlgebraException`
-    * with an appropriate error message indicating the failure.
-    *
-    * @param v the `Valuable` instance to be converted into a `Field`.
-    *          This is expected to represent a numerical value.
-    * @return the `Field` representation of the input `Valuable`.
-    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]]
-    *       If conversion is not possible.
-    */
-  def valuableToField(v: Valuable): Field =
-    FP.recover(valuableToMaybeField(v))(AlgebraException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field"))
 
   /**
     * Attempts to convert a given eager `Valuable` instance into an `Option[Field]`.
@@ -228,15 +260,6 @@ object Valuable {
     */
   def unapply(v: Valuable): Option[numerical.Field] =
     valuableToMaybeField(v)
-
-  /**
-    * Converts a given string into a `Valuable` representation.
-    * This method allows implicit conversion from `String` to `Valuable`.
-    *
-    * @param w the input string to be converted into a `Valuable`.
-    * @return a `Valuable` instance parsed from the provided string.
-    */
-  implicit def toValuable(w: String): Valuable = Eager(w)
 
   /**
     * Implicitly converts a `Valuable` instance into its string representation.

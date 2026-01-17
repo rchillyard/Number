@@ -17,6 +17,7 @@ import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction
 import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
 import com.phasmidsoftware.number.expression.matchers.MatchersExtras
 import com.phasmidsoftware.number.{core, expression}
+
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
@@ -240,9 +241,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Match(x) // XXX we should not need to simplify x since simplifyComponents should already have done that
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
     case a@Aggregate(_, _) =>
-      // CONSIDER why do we need this -- but we do.
       // TODO asInstanceOf
-      (complementaryTermsEliminatorAggregate & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
+      ((angleEliminatorAggregate | complementaryTermsEliminatorAggregate) & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
   }
 
   /**
@@ -254,11 +254,13 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * The method assumes that the provided aggregate function `f` typically involves
     * operations where complementary terms can be identified (e.g., summation).
     *
+    * TODO refactor and move what we can into Aggregate.
+    *
     * @return A `Matcher[Aggregate, Expression]` that either matches an aggregate
     *         expression with reduced complementary terms or returns a miss description
     *         if no reduction takes place.
     */
-  def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[expression.expr.Aggregate, Expression]("complementaryTermsEliminatorAggregate") {
+  def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("complementaryTermsEliminatorAggregate") {
     case a@Aggregate(f, xs) =>
       val invertFunction: Double => Double = f match {
         case Sum =>
@@ -271,7 +273,6 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       val sortFunction: Expression => Double =
         x => invertFunction(x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN)
 
-      // NOTE we should handle the very rare cases where the final get fails
       // NOTE this ordering is really only appropriate when f is Sum.
       // TODO find a better way to find complementary elements.
       Try(xs.sortBy(sortFunction)) match {
@@ -281,6 +282,26 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
+  }
+
+  /**
+    * A Matcher that processes an `Aggregate` with the `Product` function, identifying specific
+    * expressions containing angles and their reciprocals. If both angles and reciprocal angles
+    * are found, these expressions are restructured and returned as a new `Aggregate` with
+    * modified components. If no appropriate angles or reciprocals are found, or the input is
+    * not a `Product` aggregate, the Matcher will fail.
+    *
+    * @return A `Matcher[Aggregate, Expression]` that matches aggregates with angle and reciprocal
+    *         angle expressions, restructuring them accordingly. Returns a `Miss` otherwise.
+    */
+  private def angleEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("angleEliminatorAggregate") {
+    case a@Aggregate(Product, xs) =>
+      if (Aggregate.hasAngles(xs) && Aggregate.hasReciprocalAngles(xs))
+        Match(Aggregate(Product, Aggregate.getAnglesEtc(xs)))
+      else
+        Miss("angleEliminatorAggregate: no angles", a)
+    case a =>
+      Miss("angleEliminatorAggregate: not a Product Aggregate", a)
   }
 
   /**
@@ -347,6 +368,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * Determines whether the provided pair of `ExpressionMonoFunction` values are complementary
     * monadic functions such as exponential and logarithmic.
     *
+    * TODO move this into ExpressionMonoFunction.
+    *
     * @param f The first `ExpressionMonoFunction` value to compare.
     * @param g The second `ExpressionMonoFunction` value to compare.
     * @return True if the functions are complementary, otherwise false.
@@ -365,6 +388,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * If the list is shorter than the original, a `Match` on a new `Aggregate` is returned.
     * If the list is the same length as the original, a `Miss` is returned.
     *
+    * TODO refactor and move what we can into ExpressionBiFunction
+    *
     * @param f    A function combining two expressions into a composite expression.
     * @param list The list of the remaining (non-complementary) expressions to be processed.
     * @param a    THe original aggregate instance used for additional computation and context.
@@ -380,7 +405,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         Match(Literal(Angle.zero))
       else
         Match(Zero)
-    else if list.length < a.xs.length
+    else if list != a.xs
     // CONSIDER writing instead `MatchCheck(CompositeExpression(f, list))` But be careful!
     then
       MatchCheck(Aggregate(f, list))(a)
@@ -389,6 +414,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
 
   /**
     * Determines if the given bi-function is complementary for the specified expressions.
+    *
+    * TODO move this into ExpressionBiFunction.
     *
     * @param f the bi-function to evaluate
     * @param x the first expression to be checked
@@ -416,9 +443,10 @@ object ExpressionMatchers {
     * This method is designed to identify cases where the resulting `Expression` meets
     * particular characteristics, such as being a zero-valued `Monotone` or a unit-valued `Unitary`.
     *
+    * TODO Move this into ExpressionBiFunction.
+    *
     * @param f The binary function (`ExpressionBiFunction`) applied to evaluate the relationship
     *          between the two `Expression` instances.
-    *
     * @param x The first `Expression` operand used in the evaluation.
     * @param y The second `Expression` operand used in the evaluation.
     * @return An `Option[Expression]` containing the complementary result if the specified

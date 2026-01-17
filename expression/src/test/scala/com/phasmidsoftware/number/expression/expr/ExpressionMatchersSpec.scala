@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import cats.kernel.Eq
 import com.phasmidsoftware.matchers.*
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.Valuable
@@ -51,16 +52,30 @@ import org.scalatest.matchers.should
   */
 class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
+  /**
+    * An implicit object providing equality comparison for `Expression` instances.
+    *
+    * The `ExpressionEquality` object defines custom equality semantics between `Expression` instances
+    * and other types based on the following rules:
+    *
+    * - When comparing two `Expression` instances, their equality is determined using the `Eq` typeclass.
+    * - When comparing an `Expression` to an `Eager` instance, the `Eager` instance is first converted
+    *   into a `Literal` expression, and then compared using the `Eq` typeclass.
+    * - Any other type comparison with an `Expression` is deemed unequal.
+    *
+    * This object is implicitly used wherever an `Equality[Expression]` implementation is required.
+    *
+    * TODO make this generally available so that it doesn't have to be copied.
+    */
   implicit object ExpressionEquality extends Equality[Expression] {
-    def areEqual(a: Expression, b: Any): Boolean =
-      b match {
-        case v: Eager =>
-          a.compare(Literal(v)) == 0
-        case n: numerical.Number =>
-          new ExpressionOps(a).compare(Literal(n)) == 0
-        case _ =>
-          false
-      }
+    def areEqual(a: Expression, b: Any): Boolean = b match {
+      case e: Expression =>
+        Eq[Expression].eqv(a, e)
+      case e: Eager =>
+        Eq[Expression].eqv(a, Literal(e))
+      case _ =>
+        false
+    }
   }
 
   val sb = new StringBuilder

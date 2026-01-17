@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.number.core.inner
 
+import com.phasmidsoftware.number.core.inner.Modulo
 import com.phasmidsoftware.number.core.misc.FP
-import com.phasmidsoftware.number.core.misc.FP._
-import scala.annotation.tailrec
-import scala.math.Ordered.orderingToOrdered
-import scala.util._
+import com.phasmidsoftware.number.core.misc.FP.*
+
+import scala.util.*
 
 /**
   * Represents an operation in a system. This trait serves as a base for different
@@ -477,11 +477,21 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
 }
 
 /**
-  * MonadicOperation to yield the modulus a Number.
+  * This class represents a monadic operation that modulates a numeric input into a specified range
+  * using modular arithmetic. It allows defining a flexible boundary behavior, which can either model
+  * standard numeric ranges or angular (circular) ranges, with the ability to make the range inclusive.
   *
-  * CONSIDER this description is not very helpful. Is it really the modulus?
+  * @param min                     the lower bound of the modulation range
+  * @param max                     the upper bound of the modulation range
+  * @param inclusive               if true, both min and max are valid; if false, max is excluded, unless boundaryBehavior specifies otherwise.
+  * @param angularBoundaryBehavior when true, treats the boundary as circular (e.g., for angles),
+  *                                otherwise treats it as standard numeric behavior
   */
-case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) extends MonadicOperation {
+case class MonadicOperationModulate(min: Int, max: Int, inclusive: Boolean, angularBoundaryBehavior: Boolean) extends MonadicOperation {
+
+  private val intBoundaryBehavior = if (angularBoundaryBehavior) BoundaryBehavior.angle[Int] else BoundaryBehavior.number[Int]
+  private val ratBoundaryBehavior = if (angularBoundaryBehavior) BoundaryBehavior.angle[Rational] else BoundaryBehavior.number[Rational]
+  private val dblBoundaryBehavior = if (angularBoundaryBehavior) BoundaryBehavior.angle[Double] else BoundaryBehavior.number[Double]
 
   /**
     * Defines a set of functions for modulating a numeric input to a specified range,
@@ -494,9 +504,9 @@ case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) exten
     * - Another modulation function for numeric inputs matching the provided integer bounds.
     */
   val functions: MonadicFunctions = (
-      tryF(z => modulate(z, min, max)),
-      tryF(z => modulate(z, Rational(min), Rational(max))),
-      tryF(z => modulate(z, min, max))
+    tryF(z => modulate(z, min, max, inclusive, intBoundaryBehavior)),
+    tryF(z => modulate(z, Rational(min), Rational(max), inclusive, ratBoundaryBehavior)),
+    tryF(z => modulate(z, min, max, inclusive, dblBoundaryBehavior))
   )
 
   /**
@@ -510,30 +520,18 @@ case class MonadicOperationModulate(min: Int, max: Int, circular: Boolean) exten
   val fuzz: Int = 0
 
   /**
-    * Modulates the given numeric input to ensure it falls within the specified range defined by the minimum
-    * and maximum bounds. If the input exceeds the bounds, it wraps around to fit within the range.
+    * Modulates a value into a specified range [min, max] using modular arithmetic.
+    * The result ensures the value falls within the inclusive range.
+    * Optionally supports circular ranges where `min` wraps to `max`.
     *
-    * @param z   the input value to be modulated
-    * @param min the minimum bound of the range
-    * @param max the maximum bound of the range
-    * @return the modulated value constrained within the specified range
+    * @param value    the value to modulate
+    * @param min      the minimum of the range (always inclusive)
+    * @param max      the maximum of the range (inclusive according to `inclusive` parameter)
+    * @param inclusive if true, both min and max are valid; if false, max is excluded, unless boundaryBehavior specifies otherwise.
+    * @return the modulated value within the range [min, max]
     */
-  private def modulate[X: Numeric](z: X, min: X, max: X): X = {
-    import scala.math.Numeric.Implicits.infixNumericOps
-
-    @tailrec
-    def inner(result: X): X =
-      if (result < min)
-        inner(result + max - min)
-      else if (result > max)
-        inner(result + min - max)
-      else if (circular && result == min)
-        max
-      else
-        result
-
-    inner(z)
-  }
+  def modulate[X](value: X, min: X, max: X, inclusive: Boolean, boundaryBehavior: BoundaryBehavior[X])(using Modulo[X]): X =
+    Modulo.normalize(value, min, max, inclusive, boundaryBehavior)
 }
 
 /**
@@ -930,7 +928,7 @@ object Operations {
     def tryInt(x: Int): Try[Value] =
       tryConvert(x, "Int")(v => Value.maybeInt(v), fInt, Value.fromInt)
 
-    import com.phasmidsoftware.number.core.misc.Converters._
+    import com.phasmidsoftware.number.core.misc.Converters.*
     val xToZy1: Either[Option[Double], Rational] => Try[Value] = y => tryMap(y)(tryRational, tryDouble)
 
     tryMap(value)(tryInt, xToZy1).toOption
@@ -951,7 +949,7 @@ object Operations {
       case None =>
         Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.core.misc.Converters._
+    import com.phasmidsoftware.number.core.misc.Converters.*
     val xToZy1: Either[Option[Double], Rational] => Try[Value] = e => tryMap(e)(x => for (r <- fRational(x)) yield Value.fromRational(r), xToZy0)
     tryMap(value)(x => for (i <- fInt(x)) yield Value.fromInt(i), xToZy1).toOption
   }
@@ -974,7 +972,7 @@ object Operations {
       case None =>
         Failure(new NoSuchElementException())
     }
-    import com.phasmidsoftware.number.core.misc.Converters._
+    import com.phasmidsoftware.number.core.misc.Converters.*
     val xToZy1: Either[Option[Double], Rational] => Try[T] = y => tryMap(y)(x => fRational(x), xToZy0)
     tryMap(v)(x => fInt(x), xToZy1).toOption
   }

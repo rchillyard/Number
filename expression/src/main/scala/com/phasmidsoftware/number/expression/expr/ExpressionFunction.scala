@@ -6,15 +6,16 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.algebra.core.Valuable.valuableToField
 import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{NatLog, *}
+import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
+import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, *}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Real, *}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
+
 import scala.annotation.tailrec
 
 /**
@@ -67,11 +68,11 @@ object ExpressionFunction {
     *         `Valuable` after applying the underlying `Field => Field` transformation.
     */
   def lift1(f: Field => Field): Eager => Eager = {
-    v => Eager(f(valuableToField(v)))
+    v => Eager(f(eagerToField(v)))
   }
 
   def lift2(f: (Field, Field) => Field): (Eager, Eager) => Eager = {
-    (v1, v2) => Eager(f(valuableToField(v1), valuableToField(v2)))
+    (v1, v2) => Eager(f(eagerToField(v1), eagerToField(v2)))
   }
 }
 
@@ -715,7 +716,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
       val q = g.additive.combine(x, y).normalize
       Some(q)
     case (x: Angle, y: eager.Number) =>
-      import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
+
       val q: Option[eager.Real] = for {
         r <- x.convert(eager.Real.zero)
         z <- y.convert(eager.Real.zero)
@@ -723,7 +724,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
       q.asInstanceOf[Option[Eager]]
       // TODO implement for (Number, Angle)
     case (x: Algebraic, y: Algebraic) =>
-      x.add(y)
+      x.add(y).toOption
     case (x: CanAdd[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       import com.phasmidsoftware.number.algebra.eager.Number.NumberIsAdditiveCommutativeMonoid
       Some((x + y).normalize)
@@ -828,10 +829,10 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
       FP.whenever(x.isExact && y.isExact)(x.doScale(y)).filter(_.isExact)
     case (x: CanMultiply[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((x * y).asEager).filter(_.isExact)
+      Option.when(x.isExact && y.isExact)((x * y).materialize).filter(_.isExact)
     case (x: eager.Number, y: CanMultiply[eager.Number, eager.Number] @unchecked) =>
       // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((y * x).asEager).filter(_.isExact)
+      Option.when(x.isExact && y.isExact)((y * x).materialize).filter(_.isExact)
     case (ValueExpression(x, _), y: eager.Number) =>
       applyExact(x, y)
     case (ValueExpression(x, _), ValueExpression(y, _)) =>
@@ -961,14 +962,18 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine the
   def applyExact(x: Eager): Option[Eager] = x match {
     case Angle.zero =>
       Some(if sine then Eager.zero else Eager.one)
-    case Angle.`piBy2` =>
+    case Angle.piBy2 =>
       Some(if sine then Eager.one else Eager.zero)
     case Angle.pi =>
       Some(if sine then Eager.zero else Eager.minusOne)
+    case Angle.negPi =>
+      Some(if sine then Eager.zero else Eager.minusOne)
     case Angle.piBy2Times3 =>
-      Some(if sine then Eager.minusOne else Eager.zero) // TESTME
+      Some(if sine then Eager.minusOne else Eager.zero)
+    case Angle.negPiBy2 =>
+      Some(if sine then Eager.minusOne else Eager.zero)
     case _ =>
-      None // TESTME
+      None
   }
 }
 

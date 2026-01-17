@@ -14,8 +14,9 @@ import com.phasmidsoftware.number.algebra.eager.Angle.{angleIsCommutativeGroup, 
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.Fuzziness
+
 import scala.reflect.ClassTag
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
   * A case class representing an angle in radians. This class implements the `Additive` and `Radians` traits,
@@ -248,6 +249,22 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     case w: WholeNumber =>
       Angle(w.scale(factor))
   }
+
+  /**
+    * Adds the given Angle to this Angle and returns the result wrapped in a Try.
+    *
+    * @param other The Angle to be added to this Angle.
+    * @return A Try containing the resulting Angle if the operation is successful, or an exception if an error occurs.
+    */
+  def add(other: Angle): Try[Angle] = Try(this + other)
+
+  def multiply(n: Number): Try[Angle] = Failure(AlgebraException("Angle.multiply: not supported"))
+
+  def subtract(other: Angle): Try[Angle] = Failure(AlgebraException("Angle.subtract: not supported"))
+
+  def divide(other: Angle): Try[Number] = Failure(AlgebraException("Angle.divide: not supported"))
+
+  def divide(n: Number): Try[Angle] = Failure(AlgebraException("Angle.divide: not supported"))
 
   /**
     * Scales the current scalar instance by the specified rational factor.
@@ -540,7 +557,8 @@ object Angle {
   val piBy4: Angle = Angle(RationalNumber(Rational(1, 4)))
   val piBy2Times3: Angle = Angle(RationalNumber(Rational(3, 2)))
   val twoPi: Angle = new Angle(RationalNumber(Rational.two))(Some("2𝛑"))
-  val negPi: Angle = new Angle(RationalNumber(Rational.negOne))(Some("-𝛑"))
+  val negPi: Angle = new Angle(WholeNumber.minusOne)(Some("-𝛑"))
+  val negPiBy2: Angle = new Angle(RationalNumber(Rational.half).negate)(Some("-½𝛑"))
   // CONSIDER using NoScalar instead
   private val nan: Angle = Angle(RationalNumber(Rational.NaN))
 
@@ -640,6 +658,7 @@ trait Radians extends Scalar with Functional {
 object Radians {
 
   import org.slf4j.{Logger, LoggerFactory}
+
   import scala.util.Try
 
   val logger: Logger = LoggerFactory.getLogger(getClass)

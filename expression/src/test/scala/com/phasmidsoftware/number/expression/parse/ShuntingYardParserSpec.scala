@@ -48,6 +48,9 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     xo should matchPattern { case Some(_) => }
     xo.get.value shouldBe Number(3)
   }
+
+  import scala.language.implicitConversions
+
   it should "parseInfix ( 1 + 2 ) * 3" in {
     val sy = p.parseInfix("( 1 + 2 ) * 3")
     sy should matchPattern { case Success(_) => }
@@ -56,7 +59,6 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     xo.get shouldBe DyadicExpression(DyadicExpression(1, 2, "+"), 3, "*")
   }
 
-  import scala.language.implicitConversions
   // From https://www.hpmuseum.org/rpn.htm
   it should "parseInfix ( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ∧ 9" in {
     val sy = p.parseInfix("( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ∧ 9")

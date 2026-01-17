@@ -17,6 +17,7 @@ This project provides exact and fuzzy numeric computation with lazy evaluation i
 * **Tracked error bounds** - inexact numbers carry their uncertainty
 * **Lazy evaluation** - expressions optimize away precision loss
 * **Multiple numeric domains** - angles, logarithms, roots, complex, and more
+* **Quantities** which are based on (eager or lazy) numeric values together with their respective units.
 * **Cats integration** - leverages typelevel algebra for abstract algebra
 
 ## Project Structure
@@ -24,13 +25,14 @@ This project provides exact and fuzzy numeric computation with lazy evaluation i
 Number is organized into multiple modules:
 
 * **`algebra`** - Algebraic structures based on Cats typeclasses
+* **`dimensions`** - Typesafe dimensional quantities and units
 * **`parse`** - Parsing facilities for (lazy) expressions and (eager) algebraic structures
 * **`expression`** - Lazy expression evaluation (being migrated to algebra)
 * **`core`** - Legacy numeric types (Number, Field, Rational, Complex, Factor, Fuzz, ****etc.)
 * **`top`** - Top level example code
 
 #### Current Version
-The current version is 1.4.4.
+The current version is 1.5.1.
 
 **Migration Note**: The `algebra` module is replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
 **Migration Note**: For version history and more detail regarding migration, see the [HISTORY](docs/HISTORY.md).
@@ -231,6 +233,97 @@ val y: Eager = Angle(Real(1.0))
 x == y // false
 x ~= y // true
 ```
+## Dimensions Module
+
+Number includes support for dimensional quantities and units.
+
+Although there are many pre-defined `Dimension` and `Units` available, it is extremely easy
+to build new ones:
+
+```scala
+val Fortnight: Unit[Time] = Day.scaled(14, "ftn")
+val Furlong: Unit[Length] = Chain.scaled(10, "fur")
+val Firkin: Unit[Mass] = Pound.scaled(90, "fir")
+val FurlongPerFortnight: Unit[Velocity] = Furlong / Fortnight
+
+Quantity(1, C).in(FurlongPerFortnight) match {
+  case Some(q@Quantity[Velocity] (RationalNumber (x, false), units) ) =>
+    println (q.renderLaTeX) // the value cannot be rendered exactly using decimal notation.
+    println (x.toDouble) // should be approximately 1.8026E12 according to Wikipedia
+  case _ =>
+    println("No speed of light found.")
+}
+
+```
+
+### Comparison with JSR-385
+
+JSR-385 ("Units of Measurement API") is Java's standardized approach to quantities and units. While both systems share
+similar goals, this library takes a fundamentally different approach:
+
+#### Type Safety
+
+**JSR-385**: Uses runtime dimension checking with parameterized types
+
+```java
+Quantity<Length> distance = Quantities.getQuantity(5, Units.METRE);
+Quantity<Speed> speed = distance.divide(time).asType(Speed.class); // runtime cast
+```
+
+**This library**: Uses compile-time type-level dimension arithmetic
+
+```scala
+val distance: PhysicalUnit[Length] = Meter * 5
+val speed: PhysicalUnit[Velocity] = distance / time // type computed at compile time
+```
+
+### Dimension Tracking
+
+**JSR-385**: Dimensions checked at runtime through the `Dimension` interface
+
+**This library**: Dimensions represented as type-level rationals (`BaseDim[M, L, T, I, Θ, N, J]`) where each exponent is
+computed at compile time using match types
+
+### Compositional Design
+
+**JSR-385**: Predefined units must be explicitly registered
+
+**This library**: Units can be composed on-the-fly
+
+```scala
+val pressure = Newton / Meter.squared // creates Pressure dimension automatically
+val myCustomUnit = Kilogram * Meter.cubed / Second.squared // any combination works
+```
+
+#### Mathematical Precision
+
+**JSR-385**: Typically uses floating-point arithmetic
+
+**This library**: Built on exact arithmetic (`RationalNumber`, `AlgebraicNumber`) with optional fuzzy arithmetic for
+uncertainty propagation
+
+#### Advantages of This Library
+
+- **Stronger type safety**: Dimension errors caught at compile time, not runtime
+- **Mathematical rigor**: Exact arithmetic eliminates floating-point errors
+- **Composability**: Define complex units through simple operations
+- **Pedagogical value**: Type-level dimension arithmetic makes the mathematics explicit
+- **Scala 3 features**: Leverages match types, singleton types, and type-level computation
+
+#### Advantages of JSR-385
+
+- **Standardization**: Industry-standard Java API
+- **Ecosystem**: Large library of predefined units and quantity types
+- **Adoption**: Supported across the Java ecosystem
+- **Maturity**: Well-tested in production environments
+
+#### When to Use Each
+
+Use **JSR-385** if you need Java interoperability or want a mature, standardized library with extensive unit
+definitions.
+
+Use **this library** if you want compile-time type safety, exact arithmetic, and are working in a Scala 3 environment
+where mathematical precision and type-level guarantees are priorities.
 
 ## Parse Module
 
@@ -1079,7 +1172,10 @@ Here are the current API specifications:
 
 ## Top Module
 
-The `top` module contains high-level example code and practical demonstrations of the Number library.
+The `top` module is where `Quantity` is defined for representing a `Valuable`/`PhysicalUnit` pair.
+Additionally, various physical constants are defined for convenience.
+
+It also contains high-level example code and practical demonstrations of the Number library.
 Perhaps most importantly, it houses the worksheets (listed below) and also Specification (unit tests) for high-level constructs.
 
 ### Contents

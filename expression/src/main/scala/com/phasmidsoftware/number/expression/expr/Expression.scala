@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import cats.syntax.all.catsSyntaxEq
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
@@ -20,6 +19,7 @@ import com.phasmidsoftware.number.expression.expr.{BiFunction, CompositeExpressi
 import com.phasmidsoftware.number.expression.mill
 import com.phasmidsoftware.number.expression.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.{core, expression}
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -45,6 +45,42 @@ trait Expression extends Lazy with Approximate {
     * @return an optional `Field`.
     */
   def evaluate(context: Context): Option[Eager]
+
+  /**
+    * Method to determine if this `Expression` can be evaluated as is.
+    * If so, then `materialize` will not lose any precision because no approximation will be required.
+    * NOTE that, it is conceivable that simplifying `this` `Expression` first might result in an eager value
+    * even though this method would return false.
+    *
+    * @return true if evaluateAsIs is defined.
+    */
+  def isEager: Boolean = evaluateAsIs.isDefined
+
+  /**
+    * Multiplies this `Expression` with another `Lazy` instance.
+    * If the other instance is of type `Expression`, a product operation is performed, and the result is simplified.
+    * If the other instance is not of type `Expression`, an `ExpressionException` is thrown.
+    *
+    * @param other the `Lazy` instance to multiply with this `Expression`
+    * @return a new `Lazy` instance representing the product of this `Expression` and the supplied `Lazy` instance
+    * @throws ExpressionException if the provided `other` is not of type `Expression`
+    */
+  def multiply(other: Lazy): Lazy = other match {
+    case x: Expression =>
+      expression.expr.BiFunction(this, x, Product).simplify
+    case _ =>
+      throw ExpressionException(s"multiply: logic error on $other")
+  }
+
+  /**
+    * Transforms an instance of the `Eager` type into a `Lazy` instance, allowing for deferred
+    * computation or evaluation.
+    * NOTE that this method ignores `this`.
+    *
+    * @param x an instance of `Eager` that is to be converted into a `Lazy` representation
+    * @return a `Lazy` instance representing the deferred computation or evaluation of the input
+    */
+  def unit(x: Eager): Lazy = Literal(x)
 
   /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
@@ -84,6 +120,9 @@ trait Expression extends Lazy with Approximate {
     * Materializes this `Expression` into an `Eager` object by simplifying it, evaluating as-is,
     * optionally approximating it, and recovering with a defined exception in case of failure.
     *
+    * This method should be the final step when dealing with an `Expression`.
+    * Do not materialize early because that defeats the entire purpose of lazy evaluation.
+    *
     * The method first simplifies the expression, attempts to evaluate it directly,
     * and then tries an approximation if necessary. Ultimately, it ensures the resulting
     * materialized object is an instance of `Eager`.
@@ -104,7 +143,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
     */
-  def asNumber: Option[numerical.Number] =
+  def asCoreNumber: Option[numerical.Number] =
     if isExact then
       evaluateAsIs match {
         case Some(x: numerical.Number) => Some(x)
@@ -138,7 +177,6 @@ object ExpressionHelper {
     * Adds utility methods for evaluating and materializing expressions from a String.
     * These methods allow parsing and processing of a string as a mathematical or logical expression.
     *
-    * @param x the input string that represents the expression to be evaluated or materialized.
     */
   extension (x: String)
     def evaluateAsIs: Option[Valuable] =
@@ -180,7 +218,25 @@ object Expression {
   //
   //  val flog = Flog[ExpressionMatchers]
 
+  import cats.Eq
+  import cats.syntax.eq.*
 
+  // TODO see ExpressionEq class which does handle all cases. But neither seems to be used in practice.
+  given Eq[Expression] = (x: Expression, y: Expression) => (x, y) match {
+    // Both are atomic - use default equality
+    // TODO there are other case where we should return true, for example where one expression is a Literal and the other is a more specific NamedExpression
+    case (a: AtomicExpression, b: AtomicExpression) =>
+      a == b
+
+    // Both are composite - compare structure
+    // TODO a BiFunction(a, b, Sum) is should be equal to a BiFunction(b, a, Sum) but this won't do it.
+    // ditto for Aggregate
+    case (a: CompositeExpression, b: CompositeExpression) =>
+      a == b
+
+    // Different types - not equal
+    case _ => false
+  }
   /**
     * Implicit class to allow various operations to be performed on an Expression.
     *
@@ -293,7 +349,7 @@ object Expression {
       */
     def sqrt: Expression = x match {
       case z: AtomicExpression =>
-        z.evaluateAsIs flatMap (_.asNumber) match {
+        z.evaluateAsIs flatMap (_.asCoreNumber) match {
           case Some(q) =>
             println("Expression.sqrt: this is where we used to do a short-cut for numbers")
             // XXX this was the old code: Literal(q.sqrt)
@@ -366,6 +422,8 @@ object Expression {
 
     /**
       * Eagerly compare this expression with y.
+      *
+      * FIXME this is recursive!
       *
       * @param comparand the number to be compared.
       * @return the result of the comparison.
@@ -459,8 +517,8 @@ object Expression {
     mill.Expression.parseToExpression(x).map(convertMillExpressionToExpression)
 
   /**
-    * Converts a `mill.Expression` into an `Expression` by interpreting the structure 
-    * and applying the appropriate transformations based on the expression type. 
+    * Converts a `mill.Expression` into an `Expression` by interpreting the structure
+    * and applying the appropriate transformations based on the expression type.
     * Supports terminal, monadic, and dyadic expressions with specific operators.
     *
     * CONSIDER make this private.
@@ -469,7 +527,7 @@ object Expression {
     * @return The corresponding `Expression` after applying the transformations.
     * @note Throws com.phasmidsoftware.number.expression.expr.ExpressionException if an unknown operator is encountered.
     */
-  def convertMillExpressionToExpression(expr: mill.Expression): Expression =
+  private def convertMillExpressionToExpression(expr: mill.Expression): Expression =
     expr match {
       case TerminalExpression(numerical.Number.one) =>
         One
@@ -657,7 +715,7 @@ object Expression {
     */
   given LatexRenderer[Expression] = LatexRenderer.instance {
     case lit: ValueExpression => summon[LatexRenderer[ValueExpression]].toLatex(lit)
-    case comp: CompositeExpression if comp.evaluateAsIs.isDefined => comp.evaluateAsIs match {
+    case comp: CompositeExpression if comp.isEager => comp.evaluateAsIs match {
       case Some(e) => summon[LatexRenderer[Eager]].toLatex(e)
       case _ => comp.simplify match {
         case uni: UniFunction => summon[LatexRenderer[UniFunction]].toLatex(uni)

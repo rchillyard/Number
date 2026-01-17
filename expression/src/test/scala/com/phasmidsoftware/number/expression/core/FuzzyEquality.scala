@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.expression.core
 
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
-import com.phasmidsoftware.number.algebra.core.Valuable
 import com.phasmidsoftware.number.algebra.eager.Eager
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
@@ -37,7 +36,7 @@ trait FuzzyEquality {
 
     def areEqual(a: OldNumberLike, b: Any): Boolean = a match {
       case e: Expression =>
-        FieldEquality.areEqual(Valuable.valuableToField(e.materialize), b)
+        FieldEquality.areEqual(Eager.eagerToField(e.materialize), b)
       case s: Solution =>
         FieldEquality.areEqual(s.asField, b)
       case r: Rational =>

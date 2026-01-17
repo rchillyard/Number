@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.algebra.eager.Eager
 
 object EagerOps {
   extension (x: Eager) {
+    // CONSIDER different options here for example if x + y can be evaluated exactly, then return x + y, otherwise return Sum(x, y).
     def +(y: Eager): Valuable = Sum(x, y).normalize
     def -(y: Eager): Valuable = BiFunction(Literal(x), -Literal(y), Sum).normalize
     def *(y: Eager): Valuable = Product(x, y).normalize

@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.algebra.util
 
 import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
+
 import java.net.URL
 import scala.Option.when
 import scala.io.Source
@@ -223,7 +224,7 @@ object FP {
     * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(RationalException(default))`.
     */
   def toTryWithRationalException[X](xo: Option[X], default: => String): Try[X] =
-    toTryWithThrowable(xo, RationalException(default))
+    toTryWithThrowable(xo)(RationalException(default))
 
   /**
     * Method to convert an `Option` into a `Try` where the default is an exception, i.e., a `Throwable`.
@@ -233,7 +234,7 @@ object FP {
     * @tparam X the underlying type of both input and output.
     * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(default)`.
     */
-  def toTryWithThrowable[X](xo: Option[X], default: => Throwable): Try[X] =
+  def toTryWithThrowable[X](xo: Option[X])(default: => Throwable): Try[X] =
     xo.toRight(default).toTry // toTry(xo, Failure(default))
 
   /**
@@ -332,7 +333,7 @@ object FP {
         val bn = implicitly[math.Numeric[BigInt]]
         val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
         val bos: Iterator[Option[BigInt]] = for p <- wos yield for q <- p; qq <- bn.parseString(q) yield qq
-        FP.toTry(FP.sequence(bos.toList), Failure(AlgebraException(s"invalid input in file: $filename")))
+        FP.toTry(FP.sequence(bos.toList))(Failure(AlgebraException(s"invalid input in file: $filename")))
     }
 
   /**
@@ -379,7 +380,7 @@ object FP {
     * @tparam X the underlying type of both input and output.
     * @return if `xo` is `Some(x)` then `Success(x)` else `default`.
     */
-  def toTry[X](xo: Option[X], default: => Try[X]): Try[X] =
+  def toTry[X](xo: Option[X])(default: => Try[X]): Try[X] =
     xo map (Success(_)) getOrElse default
 
   /**

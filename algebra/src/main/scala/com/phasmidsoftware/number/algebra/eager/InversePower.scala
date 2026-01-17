@@ -18,6 +18,7 @@ import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.reflect.ClassTag
 import scala.util.{Success, Try}
 
@@ -163,7 +164,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]] =
-    Eager(Valuable.valuableToField(number).power(numerical.Number(Rational(n).invert))) match {
+    Eager(Eager.eagerToField(number).power(numerical.Number(Rational(n).invert))) match {
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>
@@ -248,8 +249,8 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a@InversePower(n1, x1), b: Structure) =>
       for {
-        r1 <- FP.toTry(a.convert(Real.zero), FP.fail(s"InversePower.fuzzyEqv: cannot convert $a to Real"))
-        r2 <- FP.toTry(b.convert(Real.zero), FP.fail(s"InversePower.fuzzyEqv: cannot convert $b to Real"))
+        r1 <- FP.toTry(a.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $a to Real"))
+        r2 <- FP.toTry(b.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $b to Real"))
         z <- r1.fuzzyEqv(p)(r2)
       } yield z
     case _ =>

@@ -6,9 +6,9 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.core.Valuable.valuableToField
-import com.phasmidsoftware.number.algebra.core.{FuzzyEq, Valuable}
+import com.phasmidsoftware.number.algebra.core.FuzzyEq
 import com.phasmidsoftware.number.algebra.eager.*
+import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
 import com.phasmidsoftware.number.core.numerical
@@ -156,8 +156,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x1 = Eager.one
     val x2 = Eager.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    val result: Valuable = e.materialize
-    valuableToField(result) shouldEqual numerical.Real(numerical.Number(Math.PI + 1))
+    val result: Eager = e.materialize
+    eagerToField(result) shouldEqual numerical.Real(numerical.Number(Math.PI + 1))
   }
   it should "render" in {
     val x1 = Eager.one
@@ -223,7 +223,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val base = Two
     One.log(base).materialize shouldBe Eager.zero
     Two.log(base).materialize shouldBe Eager.one
-    //    Expression(4).log(base).materialize.asNumber shouldBe Some(Number.two)
+    //    Expression(4).log(base).materialize.asCoreNumber shouldBe Some(Number.two)
   }
   it should "evaluate log e" in {
     val base = ConstE
@@ -279,8 +279,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    val z: Valuable = (ConstE * 2).materialize
-    val q = valuableToField(z).normalize
+    val z: Eager = (ConstE * 2).materialize
+    val q = eagerToField(z).normalize
     q.toString shouldBe "5.436563656918090[51]"
   }
 
@@ -388,7 +388,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
       infix def ~==(y: Eager): Boolean =
         FuzzyEq[Eager].eqv(x, y, 0.5)
 
-    val eager = simplify.normalize.asEager
+    val eager = simplify.normalize.materialize
     (eager ~== Eager.phi) shouldBe true
   }
   it should "simplify constant expressions" in {

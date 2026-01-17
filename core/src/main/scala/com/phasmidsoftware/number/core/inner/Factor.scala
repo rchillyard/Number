@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, t
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.{CoreException, Field, Fuzziness, Number, Real}
+
 import scala.util.*
 
 /**
@@ -1176,7 +1177,7 @@ case object Radian extends Scalar {
     *         or the original value if the operation fails.
     */
   def modulate(value: Value): Value =
-    (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-1, 1, circular = false).functions)} yield v) getOrElse value
+    (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-1, 1, inclusive = false, true).functions)} yield v) getOrElse value
 
   /**
     * Determines whether `this` factor can be raised by the given factor `f`.
@@ -1259,7 +1260,7 @@ case object Degree extends Scalar {
     * @return the modulated `Value`. If the transformation fails, the original `Value` is returned.
     */
   def modulate(value: Value): Value =
-    (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-180, 180, circular = false).functions)} yield v) getOrElse value
+    (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-180, 180, inclusive = false, true).functions)} yield v) getOrElse value
 
   /**
     * Determines whether `this` factor can be raised by the given factor `f`.
