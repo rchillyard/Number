@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.Constants.gamma
 import com.phasmidsoftware.number.core.numerical.Number.one
 import com.phasmidsoftware.number.core.numerical.{Complex, Constants, ExactNumber, Field, Number, Real}
+
 import java.util.Objects
 
 /**
@@ -957,7 +958,7 @@ trait Root extends AtomicExpression {
     * @return an `Option[Root]` containing the resulting `Root` if the addition
     *         is successful, or `None` if the addition is not valid.
     */
-  def add(other: Root): Option[Root]
+  infix def add(other: Root): Option[Root]
 
   /**
     * Retrieves an optional value of type `Field` associated with this `Root`.
@@ -1039,7 +1040,7 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     *              This represents the operand added to this `Root`.
     * @return a new `Root` which is the sum of this `Root` and the provided `other` `Root`.
     */
-  def add(other: Root): Option[Root] = other match {
+  infix def add(other: Root): Option[Root] = other match {
     case q: QuadraticRoot =>
       Some(QuadraticRoot(algebraic `add` q.algebraic))
     case _ =>
@@ -1138,7 +1139,7 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
     * @return an `Option[Root]` containing the resulting `Root` if the addition
     *         is successful, or `None` if the addition is not valid.
     */
-  def add(other: Root): Option[Root] = other match {
+  infix def add(other: Root): Option[Root] = other match {
     case l: LinearRoot =>
       val result = algebraic `add` l.algebraic
       Some(LinearRoot(result.equation))

@@ -371,4 +371,24 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     C"0-ipi" should matchPattern { case ComplexPolar(Number.zero, Number.minusPi, 1) => }
 
   }
+
+  behavior of "worksheet"
+  it should "work" in {
+
+    import com.phasmidsoftware.number.core.numerical.Complex.ComplexHelper
+    import com.phasmidsoftware.number.core.numerical.Number.√
+
+    C"1".render shouldBe "1"
+    C"1i0".render shouldBe "1"
+    C"1+i0".render shouldBe "1"
+    C"1-i1".render shouldBe "(1-i1)"
+    C"1i0pi".render shouldBe "1"
+    C"1i0.5pi".render shouldBe "1e∧i½𝛑"
+    C"1i0.5𝛑".render shouldBe "1e∧i½𝛑"
+
+    (C"1+i0" + C"1-i1").render shouldBe "(2-i1)"
+
+    // The following will be represented as "±√5", that's to say +- square root(5).
+    √(5).asComplex.render shouldBe "±√5"
+  }
 }

@@ -3,7 +3,7 @@
   */
 
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box, Number}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Number}
 
 def inverseSquare(x: Int): Rational = Rational.one / (x * x)
 
@@ -28,3 +28,6 @@ calculatePiByBaselMethod(1E-3)
 
 // This time, we get pi between 3.13969 and 3.14157 which is, again, a little off.
 calculatePiByBaselMethod(1E-6)
+
+// Don't try this at home! It's very slow
+calculatePiByBaselMethod(1E-7)

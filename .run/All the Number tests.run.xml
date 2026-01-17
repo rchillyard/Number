@@ -43,6 +43,7 @@
         <option value="com.phasmidsoftware.number.top.QuantitySpec" />
         <option value="com.phasmidsoftware.number.top.QuantityWorksheetSpec" />
         <option value="com.phasmidsoftware.number.top.TopSpec" />
+          <option value="com.phasmidsoftware.number.expression.algebraic.AlgebraicSpec"/>
         <option value="com.phasmidsoftware.number.expression.algebraic.QuadraticEquationSpec" />
         <option value="com.phasmidsoftware.number.expression.mill.ExpressionSpec" />
         <option value="com.phasmidsoftware.number.expression.mill.MillSpec" />
@@ -128,6 +129,7 @@
         <option value="com.phasmidsoftware.number.core.parse.SignificantSpaceParsersSpec" />
         <option value="com.phasmidsoftware.number.core.mill.ExpressionSpec" />
         <option value="com.phasmidsoftware.number.core.mill.MillSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.BaselSpec"/>
         <option value="com.phasmidsoftware.number.core.misc.BenchmarkSpec" />
         <option value="com.phasmidsoftware.number.core.misc.BumperatorSpec" />
         <option value="com.phasmidsoftware.number.core.misc.ContinuedFractionSpec" />
