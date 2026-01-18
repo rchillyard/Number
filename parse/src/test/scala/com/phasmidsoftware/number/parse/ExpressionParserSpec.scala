@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.algebra.eager.{NatLog, WholeNumber}
 import com.phasmidsoftware.number.expression.expr.*
-import fastparse.Parsed
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -47,33 +46,33 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
   }
   // NOTE don't worry about highlighting issues here. The code is good.
   it should "puremath pi" in {
-    puremath"""\pi""" shouldBe ConstPi
-    puremath"""2\pi""" shouldBe BiFunction(Two, ConstPi, Product)
-    puremath"""2*\pi""" shouldBe BiFunction(Two, ConstPi, Product)
-    puremath"""\pi^2""" shouldBe BiFunction(ConstPi, Two, Power)
+    puremath"""\pi""" shouldBe Pi
+    puremath"""2\pi""" shouldBe BiFunction(Two, Pi, Product)
+    puremath"""2*\pi""" shouldBe BiFunction(Two, Pi, Product)
+    puremath"""\pi^2""" shouldBe BiFunction(Pi, Two, Power)
   }
   it should "lazymath pi" in {
-    lazymath"""\pi""" shouldBe ConstPi
-    lazymath"""2\pi""" shouldBe BiFunction(Two, ConstPi, Product)
-    lazymath"""2*\pi""" shouldBe BiFunction(Two, ConstPi, Product)
-    lazymath"""\pi^2""" shouldBe BiFunction(ConstPi, Two, Power)
+    lazymath"""\pi""" shouldBe Pi
+    lazymath"""2\pi""" shouldBe BiFunction(Two, Pi, Product)
+    lazymath"""2*\pi""" shouldBe BiFunction(Two, Pi, Product)
+    lazymath"""\pi^2""" shouldBe BiFunction(Pi, Two, Power)
   }
   it should "puremath e" in {
-    puremath"""\e""" shouldBe ConstE
-    puremath"""\mathrm{e}""" shouldBe ConstE
-    puremath"""\e^2""" shouldBe BiFunction(ConstE, Two, Power)
+    puremath"""\e""" shouldBe E
+    puremath"""\mathrm{e}""" shouldBe E
+    puremath"""\e^2""" shouldBe BiFunction(E, Two, Power)
   }
   it should "lazymath e" in {
-    lazymath"""\e""" shouldBe ConstE
-    lazymath"""\mathrm{e}""" shouldBe ConstE
+    lazymath"""\e""" shouldBe E
+    lazymath"""\mathrm{e}""" shouldBe E
     lazymath"""\e^2""" shouldBe Literal(NatLog(WholeNumber(2)), Some("e^2"))
   }
   it should "puremath functions" in {
-    puremath"""\sin(\pi)""" shouldBe UniFunction(ConstPi, Sine)
-    puremath"""\cos(\pi)""" shouldBe UniFunction(ConstPi, Cosine)
-    puremath"""\tan(\pi)""" shouldBe BiFunction(UniFunction(ConstPi, Sine), UniFunction(UniFunction(ConstPi, Cosine), Reciprocal), Product)
-    puremath"""\ln(\e)""" shouldBe UniFunction(ConstE, Ln)
-    puremath"""\sin(\pi * -1)""" shouldBe UniFunction(BiFunction(ConstPi, UniFunction(One, Negate), Product), Sine)
+    puremath"""\sin(\pi)""" shouldBe UniFunction(Pi, Sine)
+    puremath"""\cos(\pi)""" shouldBe UniFunction(Pi, Cosine)
+    puremath"""\tan(\pi)""" shouldBe BiFunction(UniFunction(Pi, Sine), UniFunction(UniFunction(Pi, Cosine), Reciprocal), Product)
+    puremath"""\ln(\e)""" shouldBe UniFunction(E, Ln)
+    puremath"""\sin(\pi * -1)""" shouldBe UniFunction(BiFunction(Pi, UniFunction(One, Negate), Product), Sine)
   }
   it should "lazymath functions" in {
     lazymath"""\sqrt{2}""" shouldBe BiFunction(Two, Half, Power)
@@ -87,14 +86,14 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "puremath symbols" in {
     puremath"½" shouldBe Half
-    puremath"2𝛑" shouldBe BiFunction(Two, ConstPi, Product)
-    puremath"2*π" shouldBe BiFunction(Two, ConstPi, Product)
+    puremath"2𝛑" shouldBe BiFunction(Two, Pi, Product)
+    puremath"2*π" shouldBe BiFunction(Two, Pi, Product)
     puremath"∞" shouldBe Infinity
   }
   it should "lazymath symbols" in {
     lazymath"½" shouldBe Half
-    lazymath"2𝛑" shouldBe BiFunction(Two, ConstPi, Product)
-    lazymath"2*π" shouldBe BiFunction(Two, ConstPi, Product)
+    lazymath"2𝛑" shouldBe BiFunction(Two, Pi, Product)
+    lazymath"2*π" shouldBe BiFunction(Two, Pi, Product)
     lazymath"∞" shouldBe Infinity
   }
 

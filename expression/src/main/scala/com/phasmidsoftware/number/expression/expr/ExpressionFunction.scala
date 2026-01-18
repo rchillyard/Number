@@ -446,6 +446,8 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
   * It extends the `ExpressionBiFunction`, enabling evaluation of logarithmic expressions
   * with specific constraints and rules for exactness.
   *
+  * Thus the value is `log` to the base `b` of `a`, where `a` and `b` are the expressions in the `BiFunction`.
+  *
   * This class supports restricted evaluation contexts and provides mechanisms
   * for exact computation or fallback to default behavior when exact evaluation is not possible.
   */

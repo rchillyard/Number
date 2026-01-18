@@ -35,25 +35,25 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
     p("3^2+4*5") shouldBe Parsed.Success(BiFunction(BiFunction(Literal(WholeNumber(3), Some("3")), Literal(WholeNumber(2), Some("2")), Power), BiFunction(Literal(WholeNumber(4), Some("4")), Literal(WholeNumber(5), Some("5")), Product), Sum), 7)
   }
   it should "apply pi" in {
-    p("""\pi""") shouldBe Parsed.Success(ConstPi, 3)
-    p("""2\pi""") shouldBe Parsed.Success(BiFunction(Two, ConstPi, Product), 4)
-    p("""2*\pi""") shouldBe Parsed.Success(BiFunction(Two, ConstPi, Product), 5)
-    p("""\pi^2""") shouldBe Parsed.Success(BiFunction(ConstPi, Two, Power), 5)
-    p("""\pi+3-3""") shouldBe Parsed.Success(BiFunction(BiFunction(ConstPi, Literal(WholeNumber(3), Some("3")), Sum), UniFunction(Literal(WholeNumber(3), Some("3")), Negate), Sum), 7)
+    p("""\pi""") shouldBe Parsed.Success(Pi, 3)
+    p("""2\pi""") shouldBe Parsed.Success(BiFunction(Two, Pi, Product), 4)
+    p("""2*\pi""") shouldBe Parsed.Success(BiFunction(Two, Pi, Product), 5)
+    p("""\pi^2""") shouldBe Parsed.Success(BiFunction(Pi, Two, Power), 5)
+    p("""\pi+3-3""") shouldBe Parsed.Success(BiFunction(BiFunction(Pi, Literal(WholeNumber(3), Some("3")), Sum), UniFunction(Literal(WholeNumber(3), Some("3")), Negate), Sum), 7)
   }
   it should "apply e" in {
-    p("""\e""") shouldBe Parsed.Success(ConstE, 2)
-    p("""\mathrm{e}""") shouldBe Parsed.Success(ConstE, 10)
-    p("""\e^2""") shouldBe Parsed.Success(BiFunction(ConstE, Two, Power), 4)
+    p("""\e""") shouldBe Parsed.Success(E, 2)
+    p("""\mathrm{e}""") shouldBe Parsed.Success(E, 10)
+    p("""\e^2""") shouldBe Parsed.Success(BiFunction(E, Two, Power), 4)
   }
   it should "apply functions" in {
     p("""\sqrt{2}""") shouldBe Parsed.Success(BiFunction(Two, Half, Power), 8)
     p("√2") shouldBe Parsed.Success(BiFunction(Two, Half, Power), 2)
-    p("""\sin(\pi)""") shouldBe Parsed.Success(UniFunction(ConstPi, Sine), 9)
-    p("""\cos(\pi)""") shouldBe Parsed.Success(UniFunction(ConstPi, Cosine), 9)
-    p("""\tan(\pi)""") shouldBe Parsed.Success(BiFunction(UniFunction(ConstPi, Sine), UniFunction(UniFunction(ConstPi, Cosine), Reciprocal), Product), 9)
-    p("""\ln(\e)""") shouldBe Parsed.Success(UniFunction(ConstE, Ln), 7)
-    p("""\sin(\pi) * -1""") shouldBe Parsed.Success(BiFunction(UniFunction(ConstPi, Sine), UniFunction(One, Negate), Product), 14)
+    p("""\sin(\pi)""") shouldBe Parsed.Success(UniFunction(Pi, Sine), 9)
+    p("""\cos(\pi)""") shouldBe Parsed.Success(UniFunction(Pi, Cosine), 9)
+    p("""\tan(\pi)""") shouldBe Parsed.Success(BiFunction(UniFunction(Pi, Sine), UniFunction(UniFunction(Pi, Cosine), Reciprocal), Product), 9)
+    p("""\ln(\e)""") shouldBe Parsed.Success(UniFunction(E, Ln), 7)
+    p("""\sin(\pi) * -1""") shouldBe Parsed.Success(BiFunction(UniFunction(Pi, Sine), UniFunction(One, Negate), Product), 14)
     p("""\exp(2)""") shouldBe Parsed.Success(UniFunction(Two, Exp), 7)
   }
 

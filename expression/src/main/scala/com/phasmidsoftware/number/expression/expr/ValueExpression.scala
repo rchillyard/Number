@@ -138,11 +138,12 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
 
   /**
     * Generate a String for debugging purposes.
+    * The name is enclosed in square brackets to distinguish such values from the other Literals.
     *
     * @return a String representation of this Literal.
     */
   override def toString: String =
-    s"<${maybeName getOrElse value.toString}>"
+    s"[${maybeName getOrElse value.toString}]"
 
   /**
     * Compares this `ValueExpression` with another object for equality.
@@ -259,8 +260,8 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     * - `Valuable.minusOne` maps to `MinusOne`
     * - `Valuable.two` maps to `Two`
     * - `Valuable.half` maps to `Half`
-    * - `Valuable.pi` maps to `ConstPi`
-    * - `Valuable.e` maps to `ConstE`
+    * - `Valuable.pi` maps to `Pi`
+    * - `Valuable.e` maps to `E`
     * - `Constants.i` maps to `ConstI`
     * - `Valuable.infinity` maps to `Infinity`
     *
@@ -281,9 +282,13 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     case Literal(Eager.half, _) =>
       em.Match(Half)
     case Literal(Eager.pi, _) | Literal(Angle.pi, _) =>
-      em.Match(ConstPi)
+      em.Match(Pi)
     case Literal(Eager.e, _) =>
-      em.Match(ConstE)
+      em.Match(E)
+    //    case Literal(QuadraticSolution.phi, _) =>
+    //      em.Match(QuadraticRoot.phi)
+    //    case Literal(QuadraticSolution.psi, _) =>
+    //      em.Match(QuadraticRoot.psi)
     case Literal(RationalNumber(r, _), _) if r.isWhole =>
       em.Match(Literal(WholeNumber(r.toBigInt)))
     // TODO reinstate this match...
@@ -399,7 +404,7 @@ object Literal {
     case numerical.Number.zero =>
       Zero
     case numerical.Number.pi =>
-      ConstPi
+      Pi
     case numerical.Number.two =>
       Two
     case numerical.Number.negOne =>
@@ -407,7 +412,7 @@ object Literal {
     case numerical.Number.half =>
       Half
     case numerical.Number.e =>
-      ConstE
+      E
     case _ =>
       ValueExpression(Scalar(x))
   }
@@ -432,6 +437,17 @@ object Literal {
   * @param name the name associated with this constant.
   */
 sealed abstract class NamedConstant(x: Eager, name: String) extends ValueExpression(x, Some(name)) {
+  /**
+    * Returns a string representation of this constant. If the constant has a name,
+    * the name is returned enclosed in angular brackets. Otherwise, the string
+    * representation of the associated `Valuable` is used.
+    *
+    * @return A string representing this constant, using its name if available, or
+    *         the value's string representation if the name is absent.
+    */
+  override def toString: String =
+    s"<${maybeName getOrElse x.toString}>"
+
   def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("simplifyAtomic")(
       _ =>
@@ -539,7 +555,7 @@ case object One extends ScalarConstant(WholeNumber.one, "1") {
     case Reciprocal =>
       Some(this)
     case Exp =>
-      Some(ConstE)
+      Some(E)
     case Ln =>
       Some(Zero)
     case _ =>
@@ -605,9 +621,9 @@ case object Two extends ScalarConstant(WholeNumber.two, "2") {
 }
 
 /**
-  * ConstPi represents the mathematical constant π (pi) exactly.
+  * Pi represents the mathematical constant π (pi) exactly.
   */
-case object ConstPi extends ScalarConstant(Angle.pi, "π") {
+case object Pi extends ScalarConstant(Angle.pi, "𝛑") {
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
@@ -632,7 +648,7 @@ case object ConstPi extends ScalarConstant(Angle.pi, "π") {
   * The constant e.
   * Yes, this is an exact number.
   */
-case object ConstE extends NamedConstant(NatLog.e, "e") {
+case object E extends NamedConstant(NatLog.e, "e") {
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.

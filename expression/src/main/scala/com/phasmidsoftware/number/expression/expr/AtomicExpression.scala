@@ -37,7 +37,7 @@ trait AtomicExpression extends Expression {
 
   /**
     * Attempts to simplify an atomic expression, for example,
-    * we replace `Literal(Valuable.pi)` with `ConstPi`.
+    * we replace `Literal(Valuable.pi)` with `Pi`.
     *
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.

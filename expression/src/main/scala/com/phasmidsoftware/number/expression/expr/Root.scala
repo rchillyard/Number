@@ -204,7 +204,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
 
   /**
     * Attempts to simplify an atomic expression, for example,
-    * we replace `Literal(Eager.pi)` with `ConstPi`.
+    * we replace `Literal(Eager.pi)` with `Pi`.
     *
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.

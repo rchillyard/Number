@@ -10,7 +10,7 @@ import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real}
 import com.phasmidsoftware.number.expression.algebraic
@@ -127,14 +127,14 @@ sealed trait CompositeExpression extends Expression {
   }
 
   /**
-    * Attempts to simplify this `CompositeExpression` by applying matching mechanisms on its components.
+    * Attempts to simplify this `CompositeExpression` by applying pattern-based rewrites.
     * It delegates the simplification logic to the defined matchers that aim to reduce the expression
     * into its simpler or optimized form, if possible.
     *
     * @return an `em.AutoMatcher[Expression]` encapsulating the logic to simplify the `CompositeExpression`.
     *         The result contains either the simplified `Expression` or indicates no further simplifications were possible.
     */
-  def simplifyComposite: em.AutoMatcher[Expression]
+  def simplifyStructural: em.AutoMatcher[Expression]
 
   /**
     * Method to render this Structure in a presentable manner.
@@ -297,10 +297,10 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     *         as no trivial simplifications are possible.
     */
   def simplifyTrivial: em.AutoMatcher[Expression] =
-    em.Matcher("UniFunction: simplifyTrivial") {
+    em.Matcher("UniFunction: simplifyIdentities") {
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
       case UniFunction(UniFunction(x, Ln), Reciprocal) =>
-        em.Match(expression.expr.BiFunction(ConstE, x, Log))
+        em.Match(expression.expr.BiFunction(E, x, Log))
       case UniFunction(BiFunction(x, b, Log), Reciprocal) =>
         em.Match(expression.expr.BiFunction(b, x, Log))
       // XXX we check for certain exact literal function results
@@ -311,7 +311,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
       case UniFunction(r: Root, Negate) =>
         em.Match(r.negate)
       case expr =>
-        em.Miss("UniFunction: simplifyTrivial: no trivial simplifications", expr)
+        em.Miss("UniFunction: simplifyIdentities: no trivial simplifications", expr)
     }
 
   /**
@@ -323,12 +323,12 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return An `em.AutoMatcher[Expression]` that will either match the simplified expression or
     *         indicate a miss if no simplification can be applied.
     */
-  def simplifyComposite: em.AutoMatcher[Expression] =
-    em.Matcher("simplifyComposite") {
+  def simplifyStructural: em.AutoMatcher[Expression] =
+    em.Matcher("simplifyStructural") {
       case UniFunction(UniFunction(x, f), g) if em.complementaryMonadic(f, g) =>
         em.Match(x)
       case x: Expression =>
-        em.Miss[Expression, Expression]("UniFunction.simplifyComposite: not complementary", x)
+        em.Miss[Expression, Expression]("UniFunction.simplifyStructural: not complementary", x)
     }
 
   /**
@@ -499,7 +499,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         if simplification was possible, or a "miss" if no trivial simplification could be applied.
     */
   def simplifyTrivial: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("BiFunction: simplifyTrivial") {
+    em.Matcher[Expression, Expression]("BiFunction: simplifyIdentities") {
       case BiFunction(a, b, f) if matchingIdentity(a, f, left = true).contains(true) =>
         em.Match(b)
       case BiFunction(a, b, f) if matchingIdentity(b, f, left = false).contains(true) =>
@@ -514,7 +514,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         matchBiFunctionLog(a, b)
       // TODO Handle tha Atan cases
       case _ =>
-        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications", this)
+        em.Miss[Expression, Expression]("BiFunction: simplifyIdentities: no trivial simplifications", this)
     }
 
   /**
@@ -522,7 +522,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * to identify opportunities for simplification. Specifically:
     * - Converts the `BiFunction` into an `Aggregate` for consistent simplification processing.
     * - Attempts to simplify complementary terms within the `BiFunction`.
-    * - Applies additional simplification logic as defined by `Expression.simplifyComposite` and `matchSimpler`.
+    * - Applies additional simplification logic as defined by `Expression.simplifyStructural` and `matchSimpler`.
     *
     * TODO try to shorten this method.
     *
@@ -531,17 +531,27 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `em.AutoMatcher[Expression]` that encapsulates the logic for simplifying the `BiFunction`.
     *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
-  def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
+  def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyStructural") {
     case BiFunction(a, b, Sum) if a == b =>
       em.Match(expression.expr.BiFunction(a, Two, Product))
+    case BiFunction(a, UniFunction(b, Negate), Sum) if a == b && a.maybeFactor(AnyContext).contains(Radian) =>
+      em.Match(Literal(Angle.zero))
+    case BiFunction(a, Literal(b, _), Sum) if (a.materialize.add(b)).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
+      em.Match(Literal(Angle.zero))
     case BiFunction(a, b, Product) if a == b =>
       em.Match(expression.expr.BiFunction(a, Two, Power))
-    case BiFunction(ConstE, ValueExpression(v: eager.Number, _), Power) =>
+    case BiFunction(_, b, Power) if b.materialize.isZero =>
+      em.Match(One)
+    case BiFunction(_, Infinity, Power) =>
+      em.Match(Infinity)
+    case BiFunction(E, ValueExpression(v: eager.Number, _), Power) =>
       em.Match(Literal(NatLog(v)))
     case BiFunction(expression.expr.BiFunction(a, b, Product), p, Power) =>
       em.Match(expression.expr.BiFunction(a ∧ p, b ∧ p, Product))
     case BiFunction(expression.expr.BiFunction(a, b, Power), p, Power) =>
       em.Match(expression.expr.BiFunction(a, b * p, Power))
+    case BiFunction(x, expression.expr.BiFunction(y, z, Log), Power) if x == y =>
+      em.Match(z)
     case BiFunction(r: Root, x, f) =>
       matchRoot(r, x, f)
     case BiFunction(x, r: Root, f) if f.commutes =>
@@ -549,7 +559,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         case Some(y: QuadraticSolution) =>
           modifyAlgebraicQuadratic(y, x, f)
         case _ =>
-          em.Miss[Expression, Expression](s"BiFunction: simplifyComposite: no trivial simplification for Root,  and $f", this) // TESTME
+          em.Miss[Expression, Expression](s"BiFunction: simplifyStructural: no trivial simplification for Root,  and $f", this) // TESTME
       }
     case BiFunction(l: Literal, q: QuadraticRoot, Sum) =>
       matchLiteral(l, q, Sum)
@@ -571,14 +581,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     // NOTE this case is definitely required
     case x@BiFunction(_, _, _) =>
       // TODO this frequently results in a Miss which is interpreted as a failure.
-      //  A Miss in simplifyComposite should be treated as the termination of the simplify process.
+      //  A Miss in simplifyStructural should be treated as the termination of the simplify process.
       // NOTE the reason we see this as a Miss so often, is that it is always
       // the last match to be attempted.
       ((em.complementaryTermsEliminatorBiFunction |
           em.matchBiFunctionAsAggregate & em.literalsCombiner) &
           em.alt(matchSimpler))(x)
     case x => // NOTE we cannot reach this case.
-      em.Miss("simplifyComposite", x) // TESTME
+      em.Miss("simplifyStructural", x) // TESTME
   }
 
   /**
@@ -612,8 +622,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return a String showing a, f, and b in parentheses (or in braces if not exact).
     */
-  override def toString: String =
-    s"BiFunction{$a $f $b}"
+  override def toString: String = f match {
+    case Log => s"log_$a($b)"
+    case Power => s"($a ^ $b)"
+    case Sum => s"($a + $b)"
+    case Product => s"($a * $b)"
+    case Atan => s"atan($a,$b)"
+  }
 
   /**
     * Provides an approximation of this number, if applicable.
@@ -688,7 +703,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         case Product if b1 != b2 =>
           em.Match(e1.conjugateProduct)
         case _ =>
-          em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
+          em.Miss[Expression, Expression](s"BiFunction: simplifyIdentities: no trivial simplification for Algebraics and $f", this) // TESTME
       }
 //    case (a, b, Product) =>
 //      val qqq: Option[Valuable] = Product.applyExact(a, b)
@@ -756,8 +771,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     (a, b) match {
       case (a, b) if a == b =>
         em.Match(expression.expr.BiFunction(a, Two, Product))
+      case (a, b) if a.plus(b) == Zero =>
+        em.Match(Zero) // TESTME there are other ways of simplifying this.
       case _ =>
-        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplification for Sum", this)
+        em.Miss[Expression, Expression]("BiFunction: simplifyIdentities: no trivial simplification for Sum", this)
     }
 
   /**
@@ -789,7 +806,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (a, b) if !a.isExact && !b.isExact => // if both a and b are inexact, we might as well combine them here
         em.matchIfSuccess(a.materialize.multiply(b.materialize).map(Literal(_)))((a, b))
       case _ =>
-        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplification for Product", this)
+        em.Miss[Expression, Expression]("BiFunction: simplifyIdentities: no trivial simplification for Product", this)
     }
 
   /**
@@ -813,16 +830,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(expression.expr.BiFunction(r + q, w - 1, Power))
       case (BiFunction(x, y, Power), z) =>
         em.Match(expression.expr.BiFunction(x, y :* z, Power))
-      case (ConstE, BiFunction(ConstI, ConstPi, Product)) | (ConstE, BiFunction(ConstPi, ConstI, Product)) =>
+      case (E, BiFunction(ConstI, Pi, Product)) | (E, BiFunction(Pi, ConstI, Product)) =>
         em.Match(MinusOne)
-      case (ConstE, Literal(ComplexCartesian(Number.zero, Number.pi), _)) =>
+      case (E, Literal(ComplexCartesian(Number.zero, Number.pi), _)) =>
         em.Match(MinusOne) // NOTE Euler's identity
-      case (ConstE, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
+      case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
         em.Match(MinusOne) // NOTE Also Euler's identity
       case (x, BiFunction(y, z, Log)) if x == z =>
         em.Match(y)
       case _ =>
-        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications for Power", this)
+        em.Miss[Expression, Expression]("BiFunction: simplifyIdentities: no trivial simplifications for Power", this)
     }
 
   /**
@@ -841,10 +858,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(Zero)
       case (a, b) if a == b =>
         em.Match(One)
-      case (a, ConstE) =>
+      case (a, E) =>
         em.Match(expression.expr.UniFunction(a, Ln))
       case _ =>
-        em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplifications for Log", this)
+        em.Miss[Expression, Expression]("BiFunction: simplifyIdentities: no trivial simplifications for Log", this)
     }
 
   /**
@@ -893,15 +910,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
               case (Some(x), Power) =>
                 em.MatchCheck(r.power(x))(x)
               case (_, _) =>
-                em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Rational)", this) // TESTME
+                em.Miss[Expression, Expression](s"BiFunction: simplifyIdentities: no trivial simplification for $r $f $x (not Rational)", this) // TESTME
             }
           case Some(y: QuadraticSolution) if f.commutes =>
             modifyAlgebraicQuadratic(y, x, f)
           case _ =>
-            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Real)", this) // TESTME
+            em.Miss[Expression, Expression](s"BiFunction: simplifyIdentities: no trivial simplification for $r $f $x (not Real)", this) // TESTME
         }
       case _ =>
-        em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Atomic)", this) // TESTME
+        em.Miss[Expression, Expression](s"BiFunction: simplifyIdentities: no trivial simplification for $r $f $x (not Atomic)", this) // TESTME
     }
 
   /**
@@ -929,13 +946,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 //                val root = Root(a.equ, a.branch).power(r)
 //                em.Match(root)
               case (_, _) =>
-                em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Rational)", this) // TESTME
+                em.Miss[Expression, Expression](s"BiFunction: simplifyIdentities: no trivial simplification for $a $f $x (not Rational)", this) // TESTME
             }
           case _ =>
-            em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Real)", this) // TESTME
+            em.Miss[Expression, Expression](s"BiFunction: simplifyIdentities: no trivial simplification for $a $f $x (not Real)", this) // TESTME
         }
       case _ =>
-        em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Atomic)", this) // TESTME
+        em.Miss[Expression, Expression](s"BiFunction: simplifyIdentities: no trivial simplification for $a $f $x (not Atomic)", this) // TESTME
     }
 }
 
@@ -1059,7 +1076,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *         simplifications of trivial aggregates.
     */
   def simplifyTrivial: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("BiFunction: simplifyTrivial") {
+    em.Matcher[Expression, Expression]("BiFunction: simplifyIdentities") {
       // Remove identity values
       case a@Aggregate(f, xs) =>
         val nonIdentity = xs filterNot (x => f.maybeIdentityL.contains(x))
@@ -1073,11 +1090,11 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *
     * @return an `AutoMatcher` for `Expression` that applies the simplification logic defined in `simplifyAggregate`.
     */
-  def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
+  def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyStructural") {
     case t: expression.expr.Aggregate =>
       em.simplifyAggregate(t)
     case x: Expression => // TESTME
-      em.Miss[Expression, Expression]("Aggregate.simplifyComposite: not aggregate", x)
+      em.Miss[Expression, Expression]("Aggregate.simplifyStructural: not aggregate", x)
   }
 
   /**
@@ -1231,12 +1248,12 @@ object Aggregate {
     *         and other non-angle expressions.
     */
   def getAnglesEtc(xs: Seq[Expression]): Seq[Expression] = {
-    val angles: Seq[Expression] = xs.collect { case Literal(Angle(n, _), _) => Seq(Literal(n), ConstPi) }.flatten
+    val angles: Seq[Expression] = xs.collect { case Literal(Angle(n, _), _) => Seq(Literal(n), Pi) }.flatten
     val others = xs.filterNot {
       case Literal(_: Angle, _) => true
       case _ => false
     }
-    val reciprocalAngles = others.collect { case UniFunction(Literal(Angle(n, _), _), Reciprocal) => Seq(Literal(n).reciprocal, ConstPi.reciprocal) }.flatten
+    val reciprocalAngles = others.collect { case UniFunction(Literal(Angle(n, _), _), Reciprocal) => Seq(Literal(n).reciprocal, Pi.reciprocal) }.flatten
     val nonAngles = others.filterNot {
       case UniFunction(Literal(_: Angle, _), Reciprocal) => true
       case _ => false

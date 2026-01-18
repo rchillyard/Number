@@ -111,7 +111,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"$degrees180".render shouldBe degrees180
   }
   it should "cancel multiplication and division with simplify 1" in {
-    lazymath"2𝛑*1/2" shouldBe ConstPi
+    lazymath"2𝛑*1/2" shouldBe Pi
     math"2𝛑*1/2" shouldBe 𝛑
   }
   it should "show that lazy evaluation sometimes works even when you don't use it (a2)" in {
@@ -142,13 +142,13 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"$exp" shouldBe Eager(3)
   }
   it should "cancel addition and subtraction (a)" in {
-    lazymath"""\pi+3-3""" shouldBe ConstPi
+    lazymath"""\pi+3-3""" shouldBe Pi
     math"""\pi+3-3""" shouldBe pi
   }
   it should "use multiply instead of addition" in {
-    puremath"\pi+𝛑" shouldBe BiFunction(ConstPi, ConstPi, Sum)
+    puremath"\pi+𝛑" shouldBe BiFunction(Pi, Pi, Sum)
     lazymath"\pi+𝛑" shouldBe Literal(Angle(WholeNumber(0)), Some("0𝛑"))
-    math"\pi+𝛑" shouldBe Angle.zero
+    math"\pi+𝛑" shouldBe Angle(2)
   }
   it should "work for Negate" in {
     lazymath"-1" shouldBe MinusOne
@@ -158,7 +158,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "work for Negate Negate" in {
     lazymath"-(-1)" shouldBe One
-    lazymath"-(-𝛑)" shouldBe ConstPi
+    lazymath"-(-𝛑)" shouldBe Pi
     math"-(-1)" shouldBe one
     math"-(-𝛑)" shouldBe 𝛑
   }
@@ -169,7 +169,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"\rec(2)" shouldBe half
   }
   it should "work for Reciprocal Reciprocal" in {
-    lazymath"\rec{\rec{𝛑}}" shouldBe ConstPi
+    lazymath"\rec{\rec{𝛑}}" shouldBe Pi
     math"\rec{\rec{𝛑}}" shouldBe 𝛑
   }
   it should "work for Negate Zero" in {
@@ -199,11 +199,14 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     x shouldBe Zero
   }
   it should "work for Exp Zero" in {
+    val exp = puremath"\e^0"
+    exp shouldBe BiFunction(E, Zero, Power)
+    exp.simplify shouldBe One
     lazymath"\e^0" shouldBe One
     math"\e^0" shouldBe one
   }
   it should "work for Exp One" in {
-    lazymath"\e^1" shouldBe ConstE
+    lazymath"\e^1" shouldBe E
     math"\e^1" shouldBe e
   }
   it should "work for Ln Zero" in {
@@ -238,9 +241,9 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"\cos(𝛑)" shouldBe minusOne
   }
   it should "cancel multiplication and division with simplify 2" in {
-    lazymath"𝛑*2/2" shouldBe ConstPi
+    lazymath"𝛑*2/2" shouldBe Pi
     math"𝛑*2/2" shouldBe 𝛑
-    lazymath"𝛑/2*2" shouldBe ConstPi
+    lazymath"𝛑/2*2" shouldBe Pi
     math"𝛑/2*2" shouldBe 𝛑
   }
   it should "simplify sqrt(7)∧2" in {

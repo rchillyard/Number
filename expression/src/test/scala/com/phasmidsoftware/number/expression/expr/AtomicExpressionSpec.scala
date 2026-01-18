@@ -223,7 +223,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers {
   it should "support monadic functions" in {
     One.monadicFunction(Negate) shouldBe Some(MinusOne)
     One.monadicFunction(Reciprocal) shouldBe Some(One)
-    One.monadicFunction(Exp) shouldBe Some(ConstE)
+    One.monadicFunction(Exp) shouldBe Some(E)
     One.monadicFunction(Ln) shouldBe Some(Zero)
   }
 
@@ -312,64 +312,64 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   // ============================================================================
-  // ValueExpression Tests - ConstPi
+  // ValueExpression Tests - Pi
   // ============================================================================
 
-  behavior of "ConstPi"
+  behavior of "Pi"
 
   it should "be atomic and exact" in {
-    ConstPi.isAtomic shouldBe true
-    ConstPi.isExact shouldBe true
+    Pi.isAtomic shouldBe true
+    Pi.isExact shouldBe true
   }
 
   it should "have value pi" in {
-    ConstPi.value shouldBe Angle.pi
-    ConstPi.isZero shouldBe false
-    ConstPi.signum shouldBe 1
+    Pi.value shouldBe Angle.pi
+    Pi.isZero shouldBe false
+    Pi.signum shouldBe 1
   }
 
-  it should "render as π" in {
-    ConstPi.render shouldBe "π"
+  it should "render as 𝛑" in {
+    Pi.render shouldBe "𝛑"
   }
 
   it should "support trigonometric monadic functions" in {
-    ConstPi.monadicFunction(Sine) shouldBe Some(Zero)
-    ConstPi.monadicFunction(Cosine) shouldBe Some(MinusOne)
+    Pi.monadicFunction(Sine) shouldBe Some(Zero)
+    Pi.monadicFunction(Cosine) shouldBe Some(MinusOne)
   }
 
   it should "return None for non-trigonometric functions" in {
-    ConstPi.monadicFunction(Ln) shouldBe None
-    ConstPi.monadicFunction(Exp) shouldBe None
+    Pi.monadicFunction(Ln) shouldBe None
+    Pi.monadicFunction(Exp) shouldBe None
   }
 
   // ============================================================================
-  // ValueExpression Tests - ConstE
+  // ValueExpression Tests - E
   // ============================================================================
 
-  behavior of "ConstE"
+  behavior of "E"
 
   it should "be atomic and exact" in {
-    ConstE.isAtomic shouldBe true
-    ConstE.isExact shouldBe true
+    E.isAtomic shouldBe true
+    E.isExact shouldBe true
   }
 
   it should "have value e" in {
-    ConstE.value shouldBe NatLog.e
-    ConstE.isZero shouldBe false
-    ConstE.signum shouldBe 1
+    E.value shouldBe NatLog.e
+    E.isZero shouldBe false
+    E.signum shouldBe 1
   }
 
   it should "render as e" in {
-    ConstE.render shouldBe "e"
+    E.render shouldBe "e"
   }
 
   it should "support natural logarithm" in {
-    ConstE.monadicFunction(Ln) shouldBe Some(One)
+    E.monadicFunction(Ln) shouldBe Some(One)
   }
 
   it should "return None for other functions" in {
-    ConstE.monadicFunction(Exp) shouldBe None
-    ConstE.monadicFunction(Sine) shouldBe None
+    E.monadicFunction(Exp) shouldBe None
+    E.monadicFunction(Sine) shouldBe None
   }
 
   // ============================================================================
@@ -418,72 +418,72 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   // ============================================================================
-  // Transcendental Tests - Pi
+  // Transcendental Tests - PiTranscendental
   // ============================================================================
 
-  behavior of "Pi (Transcendental)"
+  behavior of "PiTranscendental (Transcendental)"
 
   it should "be atomic" in {
-    Pi.isAtomic shouldBe true
+    PiTranscendental.isAtomic shouldBe true
   }
 
   it should "have proper name" in {
-    Pi.name shouldBe "\uD835\uDED1"
+    PiTranscendental.name shouldBe "\uD835\uDED1"
   }
 
-  it should "have ConstPi as expression" in {
-    Pi.expression shouldBe ConstPi
+  it should "have Pi as expression" in {
+    PiTranscendental.expression shouldBe Pi
   }
 
   it should "be exact" in {
-    Pi.isExact shouldBe true
+    PiTranscendental.isExact shouldBe true
   }
 
   it should "evaluate to pi value" in {
-    Pi.evaluate(pureNumberContext) shouldBe None
+    PiTranscendental.evaluate(pureNumberContext) shouldBe None
   }
 
   it should "support function application" in {
-    val sinPi: AbstractTranscendental = Pi.function(Sine).asInstanceOf[AbstractTranscendental]
+    val sinPi: AbstractTranscendental = PiTranscendental.function(Sine).asInstanceOf[AbstractTranscendental]
     sinPi should not be null
     sinPi.name should include("sin")
   }
 
   it should "have consistent equality" in {
-    val pi1 = Pi
-    val pi2 = Pi
+    val pi1 = PiTranscendental
+    val pi2 = PiTranscendental
     pi1 shouldBe pi2
     pi1.hashCode shouldBe pi2.hashCode
   }
 
   // ============================================================================
-  // Transcendental Tests - E
+  // Transcendental Tests - ETranscendental
   // ============================================================================
 
-  behavior of "E (Transcendental)"
+  behavior of "ETranscendental (Transcendental)"
 
   it should "be atomic" in {
-    E.isAtomic shouldBe true
+    ETranscendental.isAtomic shouldBe true
   }
 
   it should "have proper name" in {
-    E.name shouldBe "\uD835\uDF00"
+    ETranscendental.name shouldBe "\uD835\uDF00"
   }
 
-  it should "have ConstE as expression" in {
-    E.expression shouldBe ConstE
+  it should "have E as expression" in {
+    ETranscendental.expression shouldBe E
   }
 
   it should "be exact" in {
-    E.isExact shouldBe true
+    ETranscendental.isExact shouldBe true
   }
 
   it should "evaluate to e value" in {
-    E.evaluate(pureNumberContext) shouldBe None
+    ETranscendental.evaluate(pureNumberContext) shouldBe None
   }
 
   it should "support function application" in {
-    val lnE = E.function(Ln)
+    val lnE = ETranscendental.function(Ln)
     lnE should not be null
     lnE.asInstanceOf[AbstractTranscendental].name should include("ln")
   }
@@ -750,13 +750,13 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers {
   it should "distinguish between different constant types" in {
     Zero should not be One
     One should not be Two
-    ConstPi should not be ConstE
+    Pi should not be E
     Root.phi should not be Root.psi
   }
 
   it should "maintain type hierarchy" in {
     Zero shouldBe a[ValueExpression]
-    ConstPi shouldBe a[ScalarConstant]
+    Pi shouldBe a[ScalarConstant]
     Root.phi shouldBe a[QuadraticRoot]
     Root.phi shouldBe a[Root]
     Root.phi shouldBe an[AtomicExpression]

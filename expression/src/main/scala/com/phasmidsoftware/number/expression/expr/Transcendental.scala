@@ -8,7 +8,8 @@ import com.phasmidsoftware.number.algebra.core.Context
 import com.phasmidsoftware.number.algebra.eager.{Eager, Real}
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.expression.expr.Expression.em
-import com.phasmidsoftware.number.expression.expr.{CompositeExpression, UniFunction}
+import com.phasmidsoftware.number.expression.expr.UniFunction
+
 import scala.language.implicitConversions
 
 /**
@@ -65,20 +66,14 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
 
   /**
     * Attempts to simplify an atomic expression, for example,
-    * we replace `Literal(Eager.pi)` with `ConstPi`.
+    * we replace `Literal(Eager.pi)` with `Pi`.
     *
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.
     */
   def simplifyAtomic: em.AutoMatcher[Expression] =
-    expression match {
-      case atomicExpression: AtomicExpression =>
-        atomicExpression.simplifyAtomic
-      case compositeExpression: CompositeExpression =>
-        compositeExpression.simplifyComposite
-      case _ =>
-        throw ExpressionException("AbstractTranscendental.simplifyAtomic: impossible case (all Expressions are either Atomic or Composite)")
-    }
+    em.Matcher[Expression, Expression]("simplifyAtomic")(x =>
+      em.Miss[Expression, Expression]("AbstractTranscendental.simplifyAtomic: ", x))
 
   /**
     * Applies a given `ExpressionMonoFunction` to create a new instance of `Transcendental`.
@@ -159,13 +154,16 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
 }
 
 /**
-  * Pi is a case object representing the mathematical constant π (pi).
-  * It extends the AbstractTranscendental class, with a symbolic name "π" and ConstPi as its exact value.
+  * PiTranscendental is a case object representing the mathematical constant π (pi).
+  * It extends the AbstractTranscendental class, with a symbolic name "π" and Pi as its exact value.
   *
   * This object provides an exact representation of π and inherits capabilities
   * for evaluation, materialization, and comparison from its abstract superclass.
+  *
+  * @deprecated use Pi instead.
   */
-case object Pi extends AbstractTranscendental("\uD835\uDED1", ConstPi)
+@deprecated
+case object PiTranscendental extends AbstractTranscendental("\uD835\uDED1", Pi)
 
 /**
   * Case object representing the transcendental constant `e`.
@@ -175,14 +173,15 @@ case object Pi extends AbstractTranscendental("\uD835\uDED1", ConstPi)
   * of mathematics, particularly in calculus and exponential growth behavior.
   *
   * The `name` parameter is set to "xD835DF00", which represents a unique identifier for
-  * this transcendental, and its `expression` is given by the constant `ConstE`.
+  * this transcendental, and its `expression` is given by the constant `E`.
   *
   * The `E` object inherits all methods and properties from `AbstractTranscendental`, allowing
   * it to be treated as an atomic and exact mathematical expression with various evaluative
   * and comparison capabilities. It also ensures consistency in rendering and context-based
   * operations.
   */
-case object E extends AbstractTranscendental("\uD835\uDF00", ConstE)
+@deprecated("use E instead.", "0.1.0")
+case object ETranscendental extends AbstractTranscendental("\uD835\uDF00", E)
 
 /**
   * Represents the natural logarithm of 2 as a transcendental constant.

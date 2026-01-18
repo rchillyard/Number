@@ -164,8 +164,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x1 = Eager.one
     val x2 = Eager.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.toString shouldBe """BiFunction{<1> + <𝛑>}"""
-    e.render shouldBe "(1 + π)"
+    e.toString shouldBe """([1] + [𝛑])"""
+    e.render shouldBe "(1 + 𝛑)"
     e.materialize.render shouldBe "4.1415926535897930(67)"
   }
   it should "evaluate 3 5 + 7 2 – *" in {
@@ -208,7 +208,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #140
   it should "evaluate sin pi/2" in {
-    val x: Expression = ConstPi / 2
+    val x: Expression = Pi / 2
     val y: Expression = x.sin
     y.materialize shouldBe Eager.one
   }
@@ -227,9 +227,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     //    Expression(4).log(base).materialize.asCoreNumber shouldBe Some(Number.two)
   }
   it should "evaluate log e" in {
-    val base = ConstE
+    val base = E
     One.log(base).materialize shouldBe Eager.zero
-    ConstE.log(base).materialize shouldBe Eager.one
+    E.log(base).materialize shouldBe Eager.one
   }
   it should "evaluate log 10" in {
     val base = Expression(10)
@@ -242,13 +242,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #140
   it should "evaluate ln E" in {
-    val x: Expression = ConstE
+    val x: Expression = E
     val y: Expression = x.ln
     y.materialize shouldBe Eager.one
   }
   // TODO Issue #140
   it should "evaluate ln 2E" in {
-    val x: Expression = ConstE * 2
+    val x: Expression = E * 2
     val y: Expression = x.ln
     val result = y.materialize
     val expected = Real("1.693147180559945(13)")
@@ -256,7 +256,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #140
   it should "evaluate xxx" in {
-    val x: Expression = ConstE.log(Two) // lg E with value close to √2
+    val x: Expression = E.log(Two) // lg E with value close to √2
     val y: Expression = x.reciprocal.simplify
     val result: Eager = y.materialize
     val expected: Eager = eager.Real("0.6931471805599453(13)")
@@ -264,7 +264,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // (fixed) we should be able to compare y with L2 (this tests for Issue #125)
   it should "evaluate xxx 2" in {
-    val x: Expression = ConstE.log(Two) // lg E with value close to √2
+    val x: Expression = E.log(Two) // lg E with value close to √2
     val y: Expression = x.reciprocal.simplify
     val z = L2.simplify
     y === z
@@ -280,7 +280,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    val z: Eager = (ConstE * 2).materialize
+    val z: Eager = (E * 2).materialize
     val q = eagerToField(z).normalize
     q.toString shouldBe "5.436563656918090[51]"
   }
@@ -293,7 +293,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
     (One :+ Eager.two).isExact shouldBe true
-    (ConstPi :+ Eager.pi).isExact shouldBe true
+    (Pi :+ Eager.pi).isExact shouldBe true
   }
   it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
     (Expression(2) * Eager.e).materialize.isExact shouldBe false
@@ -321,8 +321,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     expr.UniFunction(1, Sine).depth shouldBe 2
   }
   it should "be more than 1 for other expression" in {
-    (ConstE * 2).depth shouldBe 2
-    (ConstE * 2 / 2).depth shouldBe 3
+    (E * 2).depth shouldBe 2
+    (E * 2 / 2).depth shouldBe 3
     (Expression(7).sqrt ∧ 2).depth shouldBe 3
   }
 
@@ -377,7 +377,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   // XXX oops! This was working before the latest change
   it should "simplify field expressions" in {
     Expression(1).simplify shouldBe Expression(1)
-    ConstPi.simplify shouldBe ConstPi
+    Pi.simplify shouldBe Pi
     val simplify: Expression = phi.simplify
     val expected = Literal(QuadraticSolution.phi)
     (expected, simplify) match {
@@ -394,7 +394,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "simplify constant expressions" in {
     Expression(1).simplify shouldBe Expression(1)
-    ConstPi.simplify shouldBe ConstPi
+    Pi.simplify shouldBe Pi
   }
   it should "simplify unary expressions" in {
     expr.UniFunction(One, Negate).simplify shouldBe MinusOne
@@ -420,13 +420,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     Aggregate.empty(Sum).simplify shouldBe Zero
   }
   it should "aggregate 2" in {
-    val target = (One * ConstPi * Two * MinusOne).simplify
+    val target = (One * Pi * Two * MinusOne).simplify
     // CONSIDER is this correct? It doesn't seem right.
     val expected = Literal(Angle(WholeNumber(-2)), Some("0𝛑"))
     target shouldBe expected
   }
   it should "evaluate e * e" in {
-    val expression: Expression = ConstE * ConstE
+    val expression: Expression = E * E
     expression.simplify shouldBe Literal(Eager(numerical.Real(ExactNumber(2, NatLog))))
   }
   // TODO Issue #140
@@ -454,26 +454,26 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "Sum"
   it should "add pi to -pi" in {
-    val x1 = ConstPi
-    val x2 = ConstPi * MinusOne
+    val x1 = Pi
+    val x2 = Pi * MinusOne
     val e: Expression = x1 :+ x2
     val simplify = e.simplify
     simplify.materialize shouldBe Angle.zero
   }
 
-  behavior of "simplifyComposite"
+  behavior of "simplifyStructural"
   it should "evaluate 1/2 * 2" in {
     import Expression.ExpressionOps
     val expression: Expression = Literal(half) * 2
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
+    val y: em.MatchResult[Expression] = x.simplifyStructural(x)
     y shouldBe em.Match(One)
   }
   it should "evaluate e * e" in {
-    val expression: Expression = ConstE * ConstE
+    val expression: Expression = E * E
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
-    y shouldBe em.Match(BiFunction(ConstE, ValueExpression(2), Power))
+    val y: em.MatchResult[Expression] = x.simplifyStructural(x)
+    y shouldBe em.Match(BiFunction(E, ValueExpression(2), Power))
     val simplified = y.get.simplify
     simplified shouldBe Literal(Eager(numerical.Real(ExactNumber(2, NatLog))))
   }
@@ -481,7 +481,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val phi = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
+    val y: em.MatchResult[Expression] = x.simplifyStructural(x)
     y shouldBe em.Match(BiFunction(phi, ValueExpression(2), Power))
   }
 
