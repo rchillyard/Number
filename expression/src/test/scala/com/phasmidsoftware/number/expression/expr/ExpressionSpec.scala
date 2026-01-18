@@ -7,12 +7,13 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.FuzzyEq
+import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, ExactNumber, Real}
+import com.phasmidsoftware.number.core.numerical.{ComplexPolar, ExactNumber}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.expr
@@ -489,5 +490,36 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     // NOTE than when you explicitly specify "math," you don't need to add a type annotation of Expression
     val expression = Expression("√(4)")
     expression shouldBe BiFunction(ValueExpression(4), RationalNumber(Rational.half), Power)
+  }
+
+  behavior of "worksheet"
+  it should "work" in {
+
+    val six = ∅ + 1 + 2 + 3
+    six.materialize.render shouldBe "6"
+
+    val fortyTwo = ∅ * 6 * 7
+    fortyTwo.materialize.render shouldBe "42"
+
+    val root3 = Expression(3).sqrt
+
+    val root3PlusOne: Expression = root3 + Expression.one
+    val root3MinusOne = root3 + Expression(-1)
+
+    // Note the use of an implicit converter from Expression to Number.
+    val x: Eager = root3PlusOne.materialize
+    val y: Eager = root3MinusOne.materialize
+
+    (x ~= Real(2.732050807568877)) shouldBe true
+    (y ~= Real(0.732050807568877)) shouldBe true
+
+    // Two should be exactly 2
+    val two: Eager = (root3PlusOne * root3MinusOne).materialize
+    two shouldBe WholeNumber.two
+
+    val half: Expression = One / 2
+    // This should be rendered as ½
+    half.materialize shouldBe RationalNumber.half
+
   }
 }

@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.mill.{CoreMillExpression, DyadicExpressio
 import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.core.parse.ShuntingYardParser
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -154,7 +155,7 @@ object Expression {
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
       */
-    def plus(y: Expression): Expression =
+    infix def plus(y: Expression): Expression =
       BiFunction(x, y, Sum)
 
     /**
@@ -163,7 +164,7 @@ object Expression {
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
       */
-    def +(y: Expression): Expression =
+    infix def +(y: Expression): Expression =
       x `plus` y
 
     /**
@@ -172,7 +173,7 @@ object Expression {
       * @param y a Field.
       * @return an Expression which is the lazy product of x and y.
       */
-    def -(y: Expression): Expression =
+    infix def -(y: Expression): Expression =
       BiFunction(x, -y, Sum)
 
     /**
@@ -189,7 +190,7 @@ object Expression {
       * @param y a Number.
       * @return an Expression which is the lazy product of x and y.
       */
-    def *(y: Expression): Expression =
+    infix def *(y: Expression): Expression =
       BiFunction(x, y, Product)
 
     /**
@@ -208,7 +209,7 @@ object Expression {
       * @param y a Number.
       * @return an Expression which is the lazy quotient of x / y.
       */
-    def /(y: Expression): Expression =
+    infix def /(y: Expression): Expression =
       *(y.reciprocal)
 
     /**
@@ -218,7 +219,7 @@ object Expression {
       * @param y the power to which x should be raised (an Expression).
       * @return an Expression representing x to the power of y.
       */
-    def ∧(y: Expression): Expression =
+    infix def ∧(y: Expression): Expression =
       BiFunction(x, y, Power)
 
     /**
