@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
+import com.phasmidsoftware.number.algebra.eager.QuadraticSolution.{phi, psi}
 import com.phasmidsoftware.number.algebra.eager.Solution.quadraticOffsetCoefficient
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
@@ -69,8 +70,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "create phi constant correctly" in {
-    val phi = QuadraticSolution.phi
-
     phi.base shouldBe RationalNumber.half
     phi.offset shouldBe InversePower(2, RationalNumber(Rational(5, 4)))
     phi.coefficient shouldBe 1
@@ -79,8 +78,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "create psi constant correctly" in {
-    val psi = QuadraticSolution.psi
-
     psi.base shouldBe RationalNumber.half
     psi.offset shouldBe InversePower(2, RationalNumber(Rational(5, 4)))
     psi.coefficient shouldBe -1
@@ -244,13 +241,25 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   behavior of "QuadraticSolution.add(Solution)"
 
   it should "add phi to psi" in {
-    QuadraticSolution.phi.add(QuadraticSolution.psi).toOption.flatMap(x => x.toMonotone) shouldBe Some(WholeNumber.one)
+    phi.add(psi).toOption.flatMap(x => x.toMonotone) shouldBe Some(WholeNumber.one)
   }
 
   behavior of "QuadraticSolution.multiply(Solution)"
 
   it should "multiply phi by psi" in {
-    QuadraticSolution.phi.multiply(QuadraticSolution.psi) shouldBe Some(WholeNumber.minusOne)
+    phi.multiply(psi) shouldBe Some(WholeNumber.minusOne)
+  }
+  it should "* phi by psi" in {
+    phi.*(psi) shouldBe WholeNumber.minusOne
+  }
+  it should "multiply phi by phi" in {
+    phi.*(phi) shouldBe phi.add(WholeNumber.one).get
+  }
+  it should "square phi" in {
+    phi.*(phi) shouldBe phi.add(WholeNumber.one).get
+  }
+  it should "square psi" in {
+    psi.*(psi) shouldBe psi.add(WholeNumber.one).get
   }
 
   behavior of "QuadraticSolution.*(Rational)"
@@ -338,11 +347,11 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   behavior of "QuadraticSolution.render"
 
   it should "render phi with its name" in {
-    QuadraticSolution.phi.render shouldBe "𝛗"
+    phi.render shouldBe "𝛗"
   }
 
   it should "render psi with its name" in {
-    QuadraticSolution.psi.render shouldBe "𝛙"
+    psi.render shouldBe "𝛙"
   }
 
   it should "render normalized form when offset is zero" in {
@@ -464,7 +473,7 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   behavior of "QuadraticSolution toString"
 
   it should "delegate to render" in {
-    val solution = QuadraticSolution.phi
+    val solution = phi
     solution.toString shouldBe solution.render
   }
 }
