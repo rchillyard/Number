@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.expression.algebraic.{Equation, LinearEquation, QuadraticEquation}
 import com.phasmidsoftware.number.expression.expr.Expression.em
+
 import java.util.Objects
 import scala.language.implicitConversions
 
@@ -21,7 +22,7 @@ import scala.language.implicitConversions
   * Each root is uniquely identified by its underlying equation and a branch index
   * that represents a specific solution when multiple solutions are possible.
   */
-sealed trait Root extends AtomicExpression with Branched[Root] {
+sealed trait Root extends AtomicExpression with Branched[Root] with Zeroable {
   /**
     * Retrieves the `Equation` associated with this `Root`.
     *
@@ -376,7 +377,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return the result of squaring the current `Expression`, evaluated according to the type of the equation.
     */
-  private def squared: Expression = equation match {
+  def squared: Expression = equation match {
     case QuadraticEquation(p, q) =>
       import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
       this :* Literal(-p) :+ Literal(-q)
@@ -477,6 +478,21 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     case _ =>
       s"QuadraticRoot($equ, $branch)"
   }
+
+  /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = solution.isZero
+
+  /**
+    * Determines the sign of the Monotone value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = solution.signum
 }
 
 /**
@@ -559,6 +575,21 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
     case _ =>
       None
   }
+
+  /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = solution.isZero
+
+  /**
+    * Determines the sign of the Monotone value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = solution.signum
 }
 
 /**

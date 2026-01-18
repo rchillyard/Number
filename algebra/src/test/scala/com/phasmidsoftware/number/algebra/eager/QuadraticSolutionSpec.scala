@@ -253,13 +253,13 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
     phi.*(psi) shouldBe WholeNumber.minusOne
   }
   it should "multiply phi by phi" in {
-    phi.*(phi) shouldBe phi.add(WholeNumber.one).get
+    phi.*(phi) shouldBe phi.add(1)
   }
   it should "square phi" in {
-    phi.*(phi) shouldBe phi.add(WholeNumber.one).get
+    phi.*(phi) shouldBe phi.add(1)
   }
   it should "square psi" in {
-    psi.*(psi) shouldBe psi.add(WholeNumber.one).get
+    psi.*(psi) shouldBe psi.add(1)
   }
 
   behavior of "QuadraticSolution.*(Rational)"
@@ -268,10 +268,8 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
     val base = RationalNumber(Rational(1, 2))
     val offset = RationalNumber(Rational(3, 2))
     val solution = QuadraticSolution(base, offset, 1, false)
-    val scale = Rational(2)
-
+    val scale = Rational.two
     val result = solution * scale
-
     result shouldBe a[QuadraticSolution]
     val scaled = result.asInstanceOf[QuadraticSolution]
     scaled.base shouldBe WholeNumber.one
@@ -282,7 +280,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   it should "preserve branch when scaling" in {
     val solution = QuadraticSolution(RationalNumber(Rational(1)), RationalNumber(Rational(2)), -1, false)
     val scaled = solution * Rational(3)
-
     scaled.asInstanceOf[QuadraticSolution].coefficient shouldBe -1
   }
 
@@ -290,35 +287,30 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
 
   it should "be equal to itself" in {
     val solution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
-
     solution.eqv(solution).get shouldBe true
   }
 
   it should "be equal to another solution with same base, offset, and branch" in {
     val solution1 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
     val solution2 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
-
     solution1.eqv(solution2).get shouldBe true
   }
 
   it should "not be equal if branches differ" in {
     val solution1 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
     val solution2 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), -1, false)
-
     solution1.eqv(solution2).get shouldBe false
   }
 
   it should "not be equal if bases differ" in {
     val solution1 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
     val solution2 = QuadraticSolution(RationalNumber.one, InversePower(2, RationalNumber(2)), 1, false)
-
     solution1.eqv(solution2).get shouldBe false
   }
 
   it should "not be equal if offsets differ" in {
     val solution1 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
     val solution2 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(3)), 1, false)
-
     solution1.eqv(solution2).get shouldBe false
   }
 
@@ -326,21 +318,18 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
 
   it should "be fuzzy equal to itself" in {
     val solution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
-
     solution.fuzzyEqv(0.01)(solution).get shouldBe true
   }
 
   it should "be fuzzy equal to similar solution" in {
     val solution1 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
     val solution2 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
-
     solution1.fuzzyEqv(0.01)(solution2).get shouldBe true
   }
 
   it should "not be fuzzy equal if branches differ" in {
     val solution1 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
     val solution2 = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), -1, false)
-
     solution1.fuzzyEqv(0.01)(solution2).get shouldBe false
   }
 
@@ -357,7 +346,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   it should "render normalized form when offset is zero" in {
     val solution = QuadraticSolution(RationalNumber(Rational(5)), RationalNumber.zero, 1, false)
     val rendered = solution.render
-
     // Should normalize to just the base
     rendered shouldBe "5"
   }
@@ -367,7 +355,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
     val offset = InversePower(2, RationalNumber(2))
     val solution = QuadraticSolution(base, offset, 1, false)
     val rendered = solution.render
-
     rendered should include("+")
   }
 
@@ -376,14 +363,12 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
     val offset = InversePower(2, RationalNumber(2))
     val solution = QuadraticSolution(base, offset, -1, false)
     val rendered = solution.render
-
     rendered should include("-")
   }
 
   it should "render complex solutions with appropriate prefix" in {
     val solution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, imaginary = true)
     val rendered = solution.render
-
     rendered should startWith("Complex quadratic solution:")
   }
 
@@ -391,7 +376,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
 
   it should "handle zero base and zero offset" in {
     val solution = QuadraticSolution(RationalNumber.zero, RationalNumber.zero, 1, false)
-
     solution.isZero shouldBe true
     solution.isPureNumber shouldBe true
     solution.isUnity shouldBe false
@@ -399,7 +383,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
 
   it should "handle unity base with zero offset" in {
     val solution = QuadraticSolution(RationalNumber.one, RationalNumber.zero, 1, false)
-
     solution.isZero shouldBe false
     solution.isPureNumber shouldBe true
     solution.isUnity shouldBe true
@@ -409,7 +392,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
     val base = WholeNumber(10000)
     val offset = InversePower(2, WholeNumber(10000))
     val solution = QuadraticSolution(base, offset, 1, false)
-
     solution.base shouldBe base
     solution.offset shouldBe WholeNumber(100)
   }
@@ -418,7 +400,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
     val base = RationalNumber(Rational(-3, 2))
     val offset = InversePower(2, RationalNumber(2))
     val solution = QuadraticSolution(base, offset, 1, false)
-
     solution.base shouldBe base
     solution.signum should be < 0
   }
@@ -428,7 +409,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   it should "provide approximation for non-exact solutions" in {
     val solution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
     val approx = solution.approximation(force = true)
-
     approx shouldBe defined
     approx.get shouldBe a[Real]
   }
@@ -448,7 +428,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   it should "distinguish between real and imaginary solutions in rendering" in {
     val realSolution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, false)
     val imaginarySolution: QuadraticSolution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, imaginary = true)
-
     realSolution.render should not startWith "Complex"
     imaginarySolution.render should startWith("Complex")
   }
@@ -456,18 +435,12 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   it should "preserve imaginary flag through conjugate" in {
     val solution = QuadraticSolution(RationalNumber.half, InversePower(2, RationalNumber(2)), 1, imaginary = true)
     val conjugate = solution.conjugate
-
     conjugate.imaginary shouldBe true
   }
 
   it should "preserve imaginary flag through scaling" in {
-//    val solution = QuadraticSolution(RationalNumber.half, RationalNumber(Rational(2)), 1, imaginary = true)
-//    val scaled = solution.*(Rational(2))
-
-    // Note: imaginary flag is lost in current implementation - this documents the behavior
-    // CONSIDER: Should scaling preserve the imaginary flag?
-
-    pending
+    val solution: QuadraticSolution = QuadraticSolution(RationalNumber.half, RationalNumber(Rational(2)), 1, imaginary = true)
+    solution.*(Rational(2)).asInstanceOf[QuadraticSolution].imaginary shouldBe true
   }
 
   behavior of "QuadraticSolution toString"
