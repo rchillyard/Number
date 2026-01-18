@@ -492,7 +492,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     expression shouldBe BiFunction(ValueExpression(4), RationalNumber(Rational.half), Power)
   }
 
-  behavior of "worksheet"
+  behavior of "Expression worksheet"
   it should "work" in {
 
     val six = ∅ + 1 + 2 + 3

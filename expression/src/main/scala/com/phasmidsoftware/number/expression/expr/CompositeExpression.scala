@@ -806,7 +806,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(One)
       case (_, MinusOne) =>
         em.Match(expression.expr.UniFunction(a, Reciprocal))
-      case (r@Literal(phi, _), ValueExpression(w: WholeNumber, _)) if w - 1 >= 0 =>
+      // TODO CHECK if this is correct: we should be checking more generally
+      case (r@Literal(QuadraticSolution.phi, _), ValueExpression(w: WholeNumber, _)) if w - 1 >= 0 =>
         em.Match(expression.expr.BiFunction(r + 1, w - 1, Power))
       case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch), Literal(w: WholeNumber, _)) if p.isUnity && w - 1 >= 0 =>
         em.Match(expression.expr.BiFunction(r + q, w - 1, Power))
