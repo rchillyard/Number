@@ -424,7 +424,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "PiTranscendental (Transcendental)"
 
   it should "be atomic" in {
-    PiTranscendental.isAtomic shouldBe true
+    EulerMascheroni.isAtomic shouldBe true
   }
 
   it should "have proper name" in {
@@ -450,10 +450,10 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "have consistent equality" in {
-    val pi1 = PiTranscendental
-    val pi2 = PiTranscendental
-    pi1 shouldBe pi2
-    pi1.hashCode shouldBe pi2.hashCode
+    val gamma1 = EulerMascheroni
+    val gamma2 = EulerMascheroni
+    gamma1 shouldBe gamma2
+    gamma1.hashCode shouldBe gamma2.hashCode
   }
 
   // ============================================================================

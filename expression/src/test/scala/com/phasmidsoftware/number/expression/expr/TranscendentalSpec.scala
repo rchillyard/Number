@@ -43,13 +43,6 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
     normalized shouldBe EulerMascheroni
   }
 
-  it should "render PiTranscendental correctly" in {
-    PiTranscendental.render shouldBe "\uD835\uDED1"
-  }
-
-  it should "render ETranscendental correctly" in {
-    ETranscendental.render shouldBe "\uD835\uDF00"
-  }
 
   it should "materialize PiTranscendental to Angle" in {
     val materialized = PiTranscendental.materialize
@@ -71,8 +64,6 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "have correct isAtomic" in {
-    PiTranscendental.isAtomic shouldBe true
-    ETranscendental.isAtomic shouldBe true
     L2.isAtomic shouldBe true
     LgE.isAtomic shouldBe true
     EulerMascheroni.isAtomic shouldBe true

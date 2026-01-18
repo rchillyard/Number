@@ -1,3 +1,7 @@
+// This is the Foucault worksheet.
+// It demonstrates how to use the ExpressionParser to parse an expression and then evaluate it.
+// It also demonstrates how to use the FuzzyEq type class to perform fuzzy equality comparisons.
+
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.eager.Eager
 import com.phasmidsoftware.number.expression.expr.{Expression, Pi}
@@ -8,6 +12,7 @@ val t: Expression = Eager("16.5*")
 val expression = g * ((t / Pi / 2) ∧ 2)
 
 // NOTE the length should be 67.65(25)
+// TODO But it's not exactly correct.
 // Do we have a way to force the fuzziness to be Gaussian? I think we do.
 val length: Eager = expression.materialize
 length.render
