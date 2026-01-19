@@ -143,7 +143,8 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     * @return a String representation of this Literal.
     */
   override def toString: String =
-    s"[${maybeName getOrElse value.toString}]"
+    val string = "$[{x.toString}]"
+    s"${maybeName getOrElse string}"
 
   /**
     * Compares this `ValueExpression` with another object for equality.
@@ -445,8 +446,10 @@ sealed abstract class NamedConstant(x: Eager, name: String) extends ValueExpress
     * @return A string representing this constant, using its name if available, or
     *         the value's string representation if the name is absent.
     */
-  override def toString: String =
-    s"<${maybeName getOrElse x.toString}>"
+  override def toString: String = {
+    val string = "$<{x.toString}>"
+    s"${maybeName getOrElse string}"
+  }
 
   def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("simplifyAtomic")(

@@ -1,9 +1,14 @@
-import com.phasmidsoftware.number.core.Constants._
-import com.phasmidsoftware.number.core.Number.NumberOps
+// Introduction.sc
+// This is an introduction to the core module of the Number library.
+// Much of the code referenced here has been superseded by the other modules.
+
 import com.phasmidsoftware.number.core.expression.{Exp, L2, Transcendental}
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.{Constants, InfiniteSeries, Number}
-import scala.util.Success
+import com.phasmidsoftware.number.core.numerical.Constants.*
+import com.phasmidsoftware.number.core.numerical.Number.NumberOps
+import com.phasmidsoftware.number.core.numerical.{Constants, ExactNumber, InfiniteSeries, Number, Real}
+
+import scala.util.*
 
 /**
   * This should output the following: List(0, 1, 𝛑, 𝜀, 𝛗, √2, ∞)
@@ -31,9 +36,11 @@ println(stringsBasel)
 val xy = basel.evaluateToTolerance(0.000001)
 xy match {
   case Success(x) =>
-    val pi = (6 * x).sqrt
+    val pi = (ExactNumber(6).doMultiply(x))
     val piString = pi.render
     println(piString)
+  case Failure(exception) =>
+    println(s"error: $exception")
 }
 
 /**
@@ -48,6 +55,7 @@ println(x.render)
 val y = L2
 println(y.render)
 val z: Transcendental = y.function(Exp)
+println(z.render)
 z.evaluateAsIs match {
   case Some(a) => println(a.render)
   case None =>
