@@ -271,7 +271,8 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
 
   /**
     * This method takes a value of T on which to base a relative fuzz value.
-    * NOTE: if t is zero, we will return None, which corresponds to an Exact number.
+    * NOTE: if t is zero, we will return None, which means the conversion to relative form failed.
+    * The caller should keep the original absolute fuzz rather than treating this as an exact number.
     *
     * @param t the nominal value of the fuzzy number.
     * @return an optional RelativeFuzz[T]
@@ -578,9 +579,9 @@ object Fuzziness {
   private def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) =>
-        if (relative) a.relative(t) else Some(f)
+        if (relative) a.relative(t).orElse(Some(f)) else Some(f)
       case r@RelativeFuzz(_, _) =>
-        if (relative) Some(f) else r.absolute(t)
+        if (relative) Some(f) else r.absolute(t).orElse(Some(f))
     }
 
   /**
@@ -606,8 +607,8 @@ object Fuzziness {
     val operationFuzz = createFuzz(op.fuzz)
     // Combine the functionFuzz with the operationFuzz
     combine(t, t, relative = true, independent = true)((functionFuzz, Some(operationFuzz)))
+    //      ^  ^ <-- Use 'x' (output value) for both, since both errors are now relative to the output
   }
-
 }
 
 /**
