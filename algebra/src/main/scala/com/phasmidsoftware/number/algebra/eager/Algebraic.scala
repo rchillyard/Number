@@ -18,6 +18,8 @@ import com.phasmidsoftware.number.core.inner.{Composite, DyadicOperationPlus, Fa
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.ExactNumber
 import org.slf4j.{Logger, LoggerFactory}
+
+import scala.math.Fractional.Implicits.infixFractionalOps
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -27,6 +29,8 @@ import scala.util.{Failure, Success, Try}
   * The four parameters of a Algebraic are: base, offset, coefficient, and factor.
   * Solutions are subject to various operations such as addition, scaling, and number conversions.
   * Extends the `NumberLike` trait, inheriting behavior common to number-like entities.
+  *
+  * CONSIDER why is there so much dependence on the core module here? We shouldn't need that at all!
   */
 sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
   /**
@@ -487,9 +491,10 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
 //    }
 //  }
 
-  // TODO this needs more work and testing.
-  def multiply(solution: Algebraic): Option[Eager] = (this, solution) match {
-    // XXX Special case where both ox terms are InversePowers
+  def square: Eager = this * this
+
+  def *(other: QuadraticSolution): Eager = (this, other) match {
+    // XXX Special case where both ox terms are SquareRoots
     case (x@QuadraticSolution(bx: eager.Number, ox@InversePower(2, px), nx, false), y@QuadraticSolution(by: eager.Number, oy@InversePower(2, py), ny, false)) if px == py =>
       val rx = RationalNumber(nx)
       val ry = RationalNumber(ny)
@@ -497,14 +502,25 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       // TODO cast
       val o: Monotone = if (bb.isZero) eager.Number.zero.asInstanceOf[Monotone] else InversePower(2, bb * bb * px)
       val pr = px * rx * ry
-      Some(QuadraticSolution(bx * by + pr, o, bb.signum, false).normalize)
+      QuadraticSolution(bx * by + pr, o, bb.signum, false).normalize
     case (x@QuadraticSolution(bx: eager.Number, ox: eager.Number, nx, false), y@QuadraticSolution(by: eager.Number, oy: eager.Number, ny, false)) =>
       val rx = RationalNumber(nx)
       val ry = RationalNumber(ny)
       val t1: eager.Number = bx * by
       val t2: eager.Number = bx * ry * oy + by * rx * ox
       val t3: eager.Number = rx * ry * ox * oy
-      Some(QuadraticSolution((t1 + t2 + t3).asMonotone, eager.Number.zero.asMonotone, 1, false).normalize)
+      QuadraticSolution((t1 + t2 + t3).asMonotone, eager.Number.zero.asMonotone, 1, false).normalize
+    case _ =>
+      throw AlgebraException(s"QuadraticSolution: $this*$other not supported")
+  }
+
+  // TODO this needs more work and testing.
+  def multiply(solution: Algebraic): Option[Eager] = (this, solution) match {
+    // XXX Special case where both ox terms are SquareRoots
+    case (x@QuadraticSolution(_, ox@InversePower(2, px), _, _), y@QuadraticSolution(_, oy@InversePower(2, py), _, _)) if px == py =>
+      Some(x * y)
+    case (x: QuadraticSolution, y: QuadraticSolution) =>
+      Some(x * y)
     // TODO add more cases (see commented code below)
     case _ =>
       None

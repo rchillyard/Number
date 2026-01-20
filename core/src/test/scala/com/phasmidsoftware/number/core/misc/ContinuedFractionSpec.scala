@@ -526,4 +526,32 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     checkValue(0.00000001)
     checkValue(0.000000001)
   }
+
+  behavior of "Worksheet"
+  it should "" in {
+
+    import com.phasmidsoftware.number.core.inner.Rational
+    import com.phasmidsoftware.number.core.misc.ConFrac
+
+    val ones = LazyList.continually(1L)
+    val targetPhi = ConFrac.simple(ones)
+    targetPhi.render(5) shouldBe "1 + 1/{1 + 1/{1 + 1/{1 + 1/{1 + 1/{...}}}}}"
+    val epsilon = 1E-6
+
+    def imprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
+
+    val cf = targetPhi.takeWhile(imprecise)
+    cf.toRational.toDouble shouldBe 1.618034447821682 +- epsilon
+
+    targetPhi.renderConvergents(10)
+    val conv = targetPhi.convergents.take(10).toList
+    conv map (r => r.toDouble)
+
+    val piSimple = ConFrac.PiSimple
+    piSimple.renderConvergents(10) shouldBe "3, 22/7, 333/106, 355/113, 103993/33102, 104348/33215, 208341/66317, 312689/99532, 833719/265381, 1146408/364913, ..."
+
+    val ramanujan2 = ConFrac.simple(LazyList.from(1) map (_.toLong) take 50)
+    ramanujan2.renderConvergents(10) shouldBe "1, 3/2, 10/7, 43/30, 225/157, 1393/972, 9976/6961, 81201/56660, 740785/516901, 7489051/5225670, ..."
+    ramanujan2.toRational shouldBe r"67958941000772916209065578406971589252705672441401340713037951251/47420026812410519916144115136972448359481892150574924818293966650"
+  }
 }

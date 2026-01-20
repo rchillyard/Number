@@ -57,6 +57,8 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   def normalize: Angle = number.normalize match {
     case WholeNumber(1) =>
       Angle.pi // Special named instance of Angle
+    case WholeNumber(-1) =>
+      Angle.negPi // Special named instance of Angle
     case WholeNumber(x) =>
       Angle(Radian.modulate(Value.fromRational(Rational(x))))
     case RationalNumber(Rational.half, _) =>

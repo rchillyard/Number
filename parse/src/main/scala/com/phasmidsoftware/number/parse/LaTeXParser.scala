@@ -108,14 +108,14 @@ object LaTeXParser {
   /**
     * Parses specific mathematical symbols represented as strings into their corresponding mathematical constants.
     * This method recognizes the symbols for π (pi) and e, both in plain and LaTeX-style representations,
-    * and maps them to their respective case objects `ConstPi` and `ConstE`.
+    * and maps them to their respective case objects `Pi` and `E`.
     *
     * @return a parser that matches strings representing mathematical constants and maps them
-    *         to their corresponding `MathExpr` representations (`ConstPi` or `ConstE`).
+    *         to their corresponding `MathExpr` representations (`Pi` or `E`).
     */
   private def mathSymbol[X: P]: P[MathExpr] = P(
-    ("""\pi""" | """\mathrm{\pi}""" | "\uD835\uDED1" | "π").!.map(_ => ConstPi) |
-        ("""\e""" | """\mathrm{e}""").!.map(_ => ConstE) |
+    ("""\pi""" | """\mathrm{\pi}""" | "\uD835\uDED1" | "π").!.map(_ => Pi) |
+      ("""\e""" | """\mathrm{e}""").!.map(_ => E) |
         ("""\phi""" | """\mathrm{\phi}""" | "𝛗").!.map(_ => QuadraticRoot.phi) | 
         ("""\psi""" | """\mathrm{\psi}""" | "𝛙").!.map(_ => QuadraticRoot.psi) |
         "\uD835\uDEFE".!.map(_ => Literal(Eager(Constants.gamma))) |

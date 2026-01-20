@@ -2,11 +2,12 @@ package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.CoreException
+
 import scala.annotation.tailrec
 import scala.util.Try
 
 /**
-  * This Class defines a Continued Fraction. See https://en.wikipedia.org/wiki/Continued_fraction.
+  * This Class defines a Continued Fraction. See [[https://en.wikipedia.org/wiki/Continued_fraction]].
   *
   * Continued fractions are an interesting way of defining irrational (or rational) numbers.
   * There are two distinct types:
@@ -98,6 +99,8 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     * @return an optional Double approximation to the value of the infinite series.
     */
   def toDouble(epsilon: Double): Option[Double] = cf.toDouble(epsilon, markov)
+
+  override def toString: String = s"${cf.render(5)}"
 }
 
 /**
@@ -466,6 +469,16 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     */
   def toDouble(epsilon: Double, markov: Double): Option[Double] =
     toRational(epsilon)(markov).map(_.toDouble)
+
+  def render(depth: Int): String = (depth, tailOption) match {
+    case (0, _) | (_, None) => s"..."
+    case (n, Some(x)) => s"$b + ${x.render(n - 1)}"
+  }
+
+  def renderConvergents(length: Int): String = convergents.take(length).toList.mkString("", ", ", ", ...")
+
+  override def toString: String = render(5)
+
 }
 
 /**
@@ -664,7 +677,9 @@ object ConFrac {
   * @param a the a coefficient to apply to c.
   * @param c the ConFrac.
   */
-case class CF(a: Long, c: ConFrac)
+case class CF(a: Long, c: ConFrac) {
+  def render(depth: Int): String = s"$a/{${c.render(depth)}}"
+}
 
 /**
   * A pair of coefficients.

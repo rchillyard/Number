@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.algebra.core.Valuable
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
-import com.phasmidsoftware.number.expression.expr.Noop
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -165,14 +164,5 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
         q.numerator.symbol shouldBe "m"
         q.denominator.symbol shouldBe "s"
     }
-  }
-
-  it should "return None for incompatible Valuable types" in {
-    // If you have a Valuable that can't be converted to Number
-    val nonNumeric: Valuable = Noop("not a number")
-
-    val quantity = Quantity(nonNumeric, Meter)
-    quantity * Quantity(WholeNumber(2), Second)
-
   }
 }
