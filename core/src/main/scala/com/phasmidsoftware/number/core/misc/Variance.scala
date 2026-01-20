@@ -71,6 +71,9 @@ object Variance extends App {
     * Computes a transformation on two Double values by calculating the square root of
     * the sum of the square of the first value and twice the product of the two input values.
     *
+    * This is an approximation of the full formula which is:
+    * `σ²(XY)/(XY)² = σ²(X)/X² + σ²(Y)/Y² + σ²(X)σ²(Y)/(X²Y²)`
+    *
     * @param x the first Double value
     * @param y the second Double value
     * @return a Double representing the computed result of the transformation

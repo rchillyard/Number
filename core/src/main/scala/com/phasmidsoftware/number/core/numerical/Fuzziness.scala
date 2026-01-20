@@ -185,8 +185,18 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * @return the (optional) Fuzziness as a Relative or Absolute Fuzziness, according to relative.
     */
   def normalize(t: T, relative: Boolean): Option[Fuzziness[T]] =
-    if (relative) Some(this) else absolute(t)
-
+    if (relative)
+      Some(this)
+    else
+      absolute(t) match {
+        case Some(AbsoluteFuzz(mag, _)) if {
+          val magDouble = implicitly[HasValue[T]].toDouble(mag)
+          !magDouble.isInfinite && !magDouble.isNaN
+        } =>
+          absolute(t)
+        case _ =>
+          Some(this)
+      }
   /**
     * Perform a convolution on this Fuzziness[T] with the given addend.
     * This operation is suitable for multiplication of Numbers.
@@ -303,7 +313,15 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     * @return the (optional) Fuzziness as a Relative or Absolute Fuzziness, according to relative.
     */
   def normalize(t: T, relativeStyle: Boolean): Option[Fuzziness[T]] =
-    if (relativeStyle) relative(t) else Some(this)
+    if (relativeStyle)
+      relative(t) match {
+        case Some(RelativeFuzz(tol, _)) if !tol.isInfinite && !tol.isNaN =>
+          relative(t)
+        case _ =>
+          Some(this) // Fallback to original absolute fuzz
+      }
+    else
+      Some(this)
 
   /**
     * Perform a convolution on this Fuzziness[T] with the given addend.
@@ -472,7 +490,7 @@ object Fuzziness {
     * @tparam T the underlying type of the Fuzziness.
     * @return an Option of Fuzziness[T].
     */
-  def combine[T](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] = {
+  def combine[T: HasValue](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] = {
     val f1o = doNormalize(fuzz._1, t1, relative)
     val f2o = doNormalize(fuzz._2, t2, relative)
     (f1o, f2o) match {
@@ -555,7 +573,7 @@ object Fuzziness {
     * @tparam T the underlying type of the Fuzziness.
     * @return the optional Fuzziness value which is equivalent (or identical) to fuzz, according to the value of relative.
     */
-  private def doNormalize[T](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
+  private def doNormalize[T: HasValue](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
     fuzz.flatMap(f => doNormalize(t, relative, f))
 
   def zipStrings(v: String, t: String): String = {
@@ -579,9 +597,9 @@ object Fuzziness {
   private def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) =>
-        if (relative) a.relative(t).orElse(Some(f)) else Some(f)
+        if (relative) a.relative(t) else Some(f)
       case r@RelativeFuzz(_, _) =>
-        if (relative) Some(f) else r.absolute(t).orElse(Some(f))
+        if (relative) Some(f) else r.absolute(t)
     }
 
   /**
