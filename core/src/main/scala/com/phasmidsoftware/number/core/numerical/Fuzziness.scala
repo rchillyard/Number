@@ -10,7 +10,6 @@ import com.phasmidsoftware.number.core.numerical.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
 
-import java.text.DecimalFormat
 import scala.math.Numeric.DoubleIsFractional
 import scala.util.Try
 
@@ -229,20 +228,17 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * @return a String which ends with the '%' character.
     */
   def asPercentage: String = {
-    val df = new DecimalFormat("#.0#")
-    df.setMaximumFractionDigits(100)
-    val result = df.format(tolerance * 100)
-    val point = result.indexOf(".")
-    val decimals = result.substring(point + 1, result.length)
-    if (point + 1 > result.length)
-      throw new ArithmeticException(s"RelativeFuzz: asPercentage: formatting error with result=$result")
-    else {
-      val endIndex = decimals.indexWhere(p => p != '0') + 2
-      if (endIndex > decimals.length)
-        throw new ArithmeticException(s"RelativeFuzz: asPercentage: formatting error with decimals=$decimals and endIndex=$endIndex")
-      val decString = decimals.substring(0, endIndex)
-      result.substring(0, point + 1) + decString + "%"
-    }
+    val percentage = tolerance * 100
+
+    if (percentage == 0.0) return "0.0%"
+
+    val absPercentage = math.abs(percentage)
+
+    // Calculate decimals to show ~2 significant figures
+    val decimals = if (absPercentage >= 1) 1
+    else math.max(1, -math.floor(math.log10(absPercentage)).toInt + 1)
+
+    BigDecimal(percentage).setScale(decimals, BigDecimal.RoundingMode.HALF_UP).toString + "%"
   }
 
   /**
