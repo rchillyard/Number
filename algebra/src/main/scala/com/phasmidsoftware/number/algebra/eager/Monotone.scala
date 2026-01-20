@@ -148,7 +148,7 @@ trait Exact extends WithFuzziness {
   * to access and work with numerical values. It is particularly useful in scenarios where mathematical operations
   * or transformations are required on numbers.
   */
-trait Functional extends Monotone {
+trait Functional extends Monotone with MaybeFuzzy {
 
   /**
     * Retrieves the value associated with this `Functional` instance.
@@ -160,6 +160,30 @@ trait Functional extends Monotone {
     * @return the `Number` associated with this instance
     */
   def number: Number
+
+  /**
+    * This yields the scale function for this Functional.
+    *
+    * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
+    */
+  val scaleFunction: Double => Double
+
+  /**
+    * Retrieves an optional fuzziness value for a given number.
+    *
+    * @return An Option containing the fuzziness representation of the number, or None if not available.
+    */
+  def maybeFuzz: Option[Fuzziness[Double]] = number.fuzz
+
+  /**
+    * Retrieves the nominal (non-fuzzy) value associated with the entity.
+    *
+    * This value represents the precise or primary measurement or parameter of the entity,
+    * without considering any associated fuzziness or uncertainty.
+    *
+    * @return The nominal value as a `Double`.
+    */
+  def nominalValue: Double = scaleFunction(number.toDouble)
 }
 
 /**

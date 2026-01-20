@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
-import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sGamma
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
@@ -37,7 +37,7 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] with CanPower[Number] {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] with CanPower[Number] with MaybeFuzzy {
   /**
     * Computes the result of raising an instance of type `T` to the power 
     * specified by the given `ExactNumber`.
@@ -75,6 +75,16 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
   def asDouble: Double = value
 
   /**
+    * Retrieves the nominal (non-fuzzy) value associated with the entity.
+    *
+    * This value represents the precise or primary measurement or parameter of the entity,
+    * without considering any associated fuzziness or uncertainty.
+    *
+    * @return The nominal value as a `Double`.
+    */
+  def nominalValue: Double = value
+
+  /**
     * Converts the specified value into an exact rational representation if possible,
     * and wraps it in an Option. If the conversion fails, it returns None.
     *
@@ -100,6 +110,19 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *         or has an approximation (`false`).
     */
   def isExact: Boolean = fuzz.isEmpty
+
+  /**
+    * Represents an optional fuzziness value associated with the implementing entity.
+    *
+    * This method provides a way to retrieve the fuzziness information if it exists.
+    * The fuzziness is represented as an `Option[Fuzziness[Double]]`:
+    * - `Some(Fuzziness[Double])`: Indicates the presence of fuzziness.
+    * - `None`: Indicates the absence of fuzziness.
+    *
+    * @return An `Option` containing a `Fuzziness[Double]` if fuzziness is present,
+    *         or `None` if it is not.
+    */
+  def maybeFuzz: Option[Fuzziness[Double]] = fuzz
 
   /**
     * Converts the given numeric value to an optional representation.
@@ -253,7 +276,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return a string representation of the `Real`
     */
   lazy val render: String =
-    maybeName getOrElse new numerical.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
+    maybeName getOrElse toFuzzyNumber(PureNumber).render
 
   /**
     * Subtracts the specified `Real` value from this `Real` value.
@@ -481,6 +504,19 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     case _ =>
       super.fuzzyEqv(p)(that)
   }
+
+  /**
+    * Converts the current value into a FuzzyNumber instance.
+    *
+    * This lazy value constructs a FuzzyNumber using the given `value`,
+    * with `Value.fromDouble` to handle conversion, and applies a level
+    * of fuzziness determined by `fuzz`. It sets the type of the number
+    * to `PureNumber`.
+    *
+    * @return A FuzzyNumber representation of the current value.
+    */
+  private def toFuzzyNumber(factor: Factor): FuzzyNumber =
+    new FuzzyNumber(Value.fromDouble(Some(value)), factor, fuzz)
 }
 
 /**

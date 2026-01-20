@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Angle.{angleIsCommutativeGroup, r180}
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.Fuzziness
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness}
 
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
@@ -36,7 +36,7 @@ import scala.util.{Failure, Success, Try}
   * @param degrees whether the angle is in radians or degrees.
   *                In the latter case, the `number` attribute is unchanged (1 is still half of a full circle).
   */
-case class Angle private[algebra](number: Number, degrees: Boolean = false)(val maybeName: Option[String] = None) extends Radians with Circle with Scalable[Angle] with CanAdd[Angle, Angle] with CanNormalize[Angle] {
+case class Angle private[algebra](number: Number, degrees: Boolean = false)(val maybeName: Option[String] = None) extends Radians with Circle with Scalable[Angle] with CanAdd[Angle, Angle] with CanNormalize[Angle] with MaybeFuzzy {
 
   /**
     * Normalizes an angle instance to its equivalent value within the standard range of radians.
@@ -145,17 +145,19 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   /**
     * Retrieves an optional fuzziness value associated with this instance.
     *
-    * TODO we should ensure that the fuzz is relative.
-    *
     * The fuzziness value, if present, provides information about the level of uncertainty
     * or imprecision, modeled as a `Fuzziness[Double]`.
     *
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
-  def fuzz: Option[Fuzziness[Double]] = number.fuzz
+  def fuzz: Option[Fuzziness[Double]] = number.fuzz match {
+    case Some(fuzz: AbsoluteFuzz[Double]) => fuzz.relative(asDouble)
+    case x => x
+  }
 
   /**
     * Converts the current instance to a Double representation.
+    * CONSIDER may be able to eliminate this method and use nominalValue instead.
     *
     * @return the Double value corresponding to the current instance
     */
@@ -650,6 +652,13 @@ trait Radians extends Scalar with Functional {
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.
     */
   val scaleFactor: Double = math.Pi // TODO change this to be an exact number (not a Double)
+
+  /**
+    * This yields the scale function for this Functional.
+    *
+    * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
+    */
+  val scaleFunction: Double => Double = _ * scaleFactor
 }
 
 /**

@@ -695,7 +695,7 @@ class CompositeExpressionSpec2 extends AnyFlatSpec with Matchers {
   }
 
   it should "preserve symbolic terms in sum" in {
-    val sum = Aggregate.total(Pi, EulerMascheroni, ETranscendental)
+    val sum = Aggregate.total(Pi, EulerMascheroni, E)
     val simplified = sum.simplify
     // Should remain as aggregate or simplified aggregate
     simplified shouldBe an[Aggregate]

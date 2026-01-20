@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression._
+import com.phasmidsoftware.number.core.expression.*
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -21,7 +21,7 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
   it should "evaluate l2" in {
     L2.evaluateAsIs shouldBe None
     L2.asNumber should matchPattern { case Some(FuzzyNumber(_, _, _)) => }
-    L2.asNumber map (_.render) shouldBe Some("0.6931471805599453±0.00000000000020%")
+    L2.asNumber map (_.render) shouldBe Some("0.6931471805599453±.00000000000020%")
   }
   // Test for (fixed) Issue #124
   it should "evaluate lg2e" in {

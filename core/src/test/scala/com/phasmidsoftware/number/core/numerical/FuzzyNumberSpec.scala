@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.numerical.Number.{negate, twoPi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
@@ -481,8 +482,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "implement asComparedWith" in {
     val n: Number = Number(r"22/7")
-    showPercentage(n.asComparedWith(Number.pi)) shouldBe "0.020%"
-    showPercentage(Number.pi.asComparedWith(n)) shouldBe "0.020%"
+    showPercentage(n.asComparedWith(Number.pi)) shouldBe ".020%"
+    showPercentage(Number.pi.asComparedWith(n)) shouldBe ".020%"
   }
 
   behavior of "foucault"

@@ -306,10 +306,14 @@ object Value {
     * @return a `String` representing the `Value`, formatted according to the given parameters.
     */
   def valueToString(v: Value, skipOne: Boolean, exact: Boolean = true): String = (renderValue(v, exact), exact) match {
-    case (("1", true), _) if skipOne => ""
-    case ((x, true), _) => x
-    case ((x, _), false) => x
-    case (x, _) => x.toString() + "*"
+    case (("1", true), _) if skipOne =>
+      ""
+    case ((x, true), _) =>
+      x
+    case ((x, _), false) =>
+      x
+    case (x, _) =>
+      x.toString() + "*"
   }
 
   /**
