@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.numerical.Number.{negate, twoPi}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {

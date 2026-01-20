@@ -4,11 +4,12 @@
 
 import com.phasmidsoftware.flog.{Flog, Loggable, Loggables}
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
-import com.phasmidsoftware.number.core.{Field, GeneralNumber, Number}
+import com.phasmidsoftware.number.core.numerical.{Field, GeneralNumber, Number}
 
 val flog: Flog = Flog[GeneralNumber]
 
-import flog._
+import flog.*
+
 import scala.util.Try
 
 implicit object LoggableRational extends Loggable[Rational] {

@@ -44,6 +44,13 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   require(!number.isZero, s"InversePower: number must be non-zero, but was $number")
 
   /**
+    * This yields the scale function for this Functional.
+    *
+    * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
+    */
+  val scaleFunction: Double => Double = math.pow(_, 1.0 / n)
+
+  /**
     * Computes the result of raising an instance of type `T` to the power
     * specified by the given `ExactNumber`.
     *

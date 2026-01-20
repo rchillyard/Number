@@ -1,11 +1,12 @@
-import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
-import com.phasmidsoftware.number.algebra.eager.Eager.half
-import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
-import com.phasmidsoftware.number.core.expression.Root.{phi, psi}
-import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation/**
+/**
   * This worksheet illustrates the use of Algebraic fields
   */
 
+import com.phasmidsoftware.number.algebra.eager.Eager.half
+import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
+import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
+import com.phasmidsoftware.number.core.expression.Root.{phi, psi}
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 
 // phi, the Golden Ratio
 phi.render
@@ -24,7 +25,7 @@ val conjugate = psi.render
 val psiSolution = psi.approximation
 
 // the sum of phi and psi should be 1
-val sum = (phi add psi)
+val sum = phi add psi
 
 // the product of phi and psi should be -1
 val product = phi * psi

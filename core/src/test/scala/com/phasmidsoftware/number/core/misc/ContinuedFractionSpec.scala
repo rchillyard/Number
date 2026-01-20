@@ -91,19 +91,19 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     showPercentage(Number(c3).asComparedWith(Number.pi)) shouldBe "0.0000042%"
     val c4 = rs(4)
     c4 shouldBe r"103993/33102"
-    showPercentage(Number(c4).asComparedWith(Number.pi)) shouldBe "0.0000000091%"
+    showPercentage(Number(c4).asComparedWith(Number.pi)) shouldBe "9.2E-9%"
     val c5 = rs(5)
     c5 shouldBe r"104348/33215"
-    showPercentage(Number(c5).asComparedWith(Number.pi)) shouldBe "0.0000000052%"
+    showPercentage(Number(c5).asComparedWith(Number.pi)) shouldBe "5.3E-9%"
     val c6 = rs(6)
     c6 shouldBe r"208341/66317"
-    showPercentage(Number(c6).asComparedWith(Number.pi)) shouldBe "0.0000000019%"
+    showPercentage(Number(c6).asComparedWith(Number.pi)) shouldBe "1.9E-9%"
     val c7 = rs(7)
     c7 shouldBe r"312689/99532"
-    showPercentage(Number(c7).asComparedWith(Number.pi)) shouldBe "0.00000000046%"
+    showPercentage(Number(c7).asComparedWith(Number.pi)) shouldBe "4.6E-10%"
     val c8 = rs(8)
     c8.toRationalString shouldBe "833719/265381"
-    showPercentage(Number(c8).asComparedWith(Number.pi)) shouldBe "0.00000000013%"
+    showPercentage(Number(c8).asComparedWith(Number.pi)) shouldBe "1.4E-10%"
   }
 
   it should "get convergents for e" in {
@@ -525,5 +525,33 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     checkValue(0.0000001)
     checkValue(0.00000001)
     checkValue(0.000000001)
+  }
+
+  behavior of "Worksheet"
+  it should "" in {
+
+    import com.phasmidsoftware.number.core.inner.Rational
+    import com.phasmidsoftware.number.core.misc.ConFrac
+
+    val ones = LazyList.continually(1L)
+    val targetPhi = ConFrac.simple(ones)
+    targetPhi.render(5) shouldBe "1 + 1/{1 + 1/{1 + 1/{1 + 1/{1 + 1/{...}}}}}"
+    val epsilon = 1E-6
+
+    def imprecise(r: Rational): Boolean = 1.0 / r.d.toDouble / r.d.toDouble / math.sqrt(5) > epsilon
+
+    val cf = targetPhi.takeWhile(imprecise)
+    cf.toRational.toDouble shouldBe 1.618034447821682 +- epsilon
+
+    targetPhi.renderConvergents(10)
+    val conv = targetPhi.convergents.take(10).toList
+    conv map (r => r.toDouble)
+
+    val piSimple = ConFrac.PiSimple
+    piSimple.renderConvergents(10) shouldBe "3, 22/7, 333/106, 355/113, 103993/33102, 104348/33215, 208341/66317, 312689/99532, 833719/265381, 1146408/364913, ..."
+
+    val ramanujan2 = ConFrac.simple(LazyList.from(1) map (_.toLong) take 50)
+    ramanujan2.renderConvergents(10) shouldBe "1, 3/2, 10/7, 43/30, 225/157, 1393/972, 9976/6961, 81201/56660, 740785/516901, 7489051/5225670, ..."
+    ramanujan2.toRational shouldBe r"67958941000772916209065578406971589252705672441401340713037951251/47420026812410519916144115136972448359481892150574924818293966650"
   }
 }

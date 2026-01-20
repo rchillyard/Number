@@ -23,6 +23,9 @@ import scala.util.Try
 /**
   * Represents an abstract logarithmic structure.
   *
+  * For example, for a `Monotone` whose value is `e` (2.718...), the value
+  * of `number` is log(e) = 1.
+  *
   * The `Logarithm` class defines properties and operations related to logarithmic
   * values. This class serves as a base class for implementing logarithmic computations,
   * adhering to specific mathematical principles such as addition, scaling, and rendering.
@@ -47,6 +50,13 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     * @return a new `Logarithm` instance representing the transformed value
     */
   def unit(x: Number): Logarithm
+
+  /**
+    * This yields the scale function for this Functional.
+    *
+    * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
+    */
+  val scaleFunction: Double => Double = x => math.pow(base.toDouble, x)
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -264,7 +274,7 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
           case RationalNumber(Rational.infinity, _) =>
             Real.∞
           case Real(value, fuzz) =>
-            Real(math.log(value), fuzz)
+            Real(math.log(value), fuzz) // TODO check this.
           case _ =>
             throw AlgebraException(s"NatLog.transformation: $x not supported")
         }
@@ -427,7 +437,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
           case Real(value, fuzz) =>
             Real(math.log(value), fuzz)
           case _ =>
-            throw AlgebraException(s"NatLog.transformation: $x not supported")
+            throw AlgebraException(s"BinaryLog.transformation: $x not supported")
         }
       Some(result.asInstanceOf[T])
     }
@@ -661,6 +671,8 @@ object NatLog {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
+
+  given Show[NatLog] = Show.show(_.render)
 
   /**
     * Represents the zero value of the `Logarithm` class.

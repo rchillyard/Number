@@ -8,8 +8,8 @@ import com.phasmidsoftware.number.core.inner.MonadicOperation
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.toDecimalPower
 import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
-import java.text.DecimalFormat
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
+
 import scala.math.Numeric.DoubleIsFractional
 import scala.util.Try
 
@@ -185,8 +185,18 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * @return the (optional) Fuzziness as a Relative or Absolute Fuzziness, according to relative.
     */
   def normalize(t: T, relative: Boolean): Option[Fuzziness[T]] =
-    if (relative) Some(this) else absolute(t)
-
+    if (relative)
+      Some(this)
+    else
+      absolute(t) match {
+        case Some(AbsoluteFuzz(mag, _)) if {
+          val magDouble = implicitly[HasValue[T]].toDouble(mag)
+          !magDouble.isInfinite && !magDouble.isNaN
+        } =>
+          absolute(t)
+        case _ =>
+          Some(this)
+      }
   /**
     * Perform a convolution on this Fuzziness[T] with the given addend.
     * This operation is suitable for multiplication of Numbers.
@@ -228,12 +238,17 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * @return a String which ends with the '%' character.
     */
   def asPercentage: String = {
-    val df = new DecimalFormat("#.#")
-    df.setMaximumFractionDigits(100)
-    val result = df.format(tolerance * 100)
-    val point = result.indexOf(".")
-    val decimals = result.substring(point + 1, result.length)
-    result.substring(0, point + 1) + decimals.substring(0, decimals.indexWhere(p => p != '0') + 2) + "%"
+    val percentage = tolerance * 100
+
+    if (percentage == 0.0) return "0.0%"
+
+    val absPercentage = math.abs(percentage)
+
+    // Calculate decimals to show ~2 significant figures
+    val decimals = if (absPercentage >= 1) 1
+    else math.max(1, -math.floor(math.log10(absPercentage)).toInt + 1)
+
+    BigDecimal(percentage).setScale(decimals, BigDecimal.RoundingMode.HALF_UP).toString + "%"
   }
 
   /**
@@ -266,7 +281,8 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
 
   /**
     * This method takes a value of T on which to base a relative fuzz value.
-    * NOTE: if t is zero, we will return None, which corresponds to an Exact number.
+    * NOTE: if t is zero, we will return None, which means the conversion to relative form failed.
+    * The caller should keep the original absolute fuzz rather than treating this as an exact number.
     *
     * @param t the nominal value of the fuzzy number.
     * @return an optional RelativeFuzz[T]
@@ -297,7 +313,15 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     * @return the (optional) Fuzziness as a Relative or Absolute Fuzziness, according to relative.
     */
   def normalize(t: T, relativeStyle: Boolean): Option[Fuzziness[T]] =
-    if (relativeStyle) relative(t) else Some(this)
+    if (relativeStyle)
+      relative(t) match {
+        case Some(RelativeFuzz(tol, _)) if !tol.isInfinite && !tol.isNaN =>
+          relative(t)
+        case _ =>
+          Some(this) // Fallback to original absolute fuzz
+      }
+    else
+      Some(this)
 
   /**
     * Perform a convolution on this Fuzziness[T] with the given addend.
@@ -466,7 +490,7 @@ object Fuzziness {
     * @tparam T the underlying type of the Fuzziness.
     * @return an Option of Fuzziness[T].
     */
-  def combine[T](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] = {
+  def combine[T: HasValue](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] = {
     val f1o = doNormalize(fuzz._1, t1, relative)
     val f2o = doNormalize(fuzz._2, t2, relative)
     (f1o, f2o) match {
@@ -549,7 +573,7 @@ object Fuzziness {
     * @tparam T the underlying type of the Fuzziness.
     * @return the optional Fuzziness value which is equivalent (or identical) to fuzz, according to the value of relative.
     */
-  private def doNormalize[T](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
+  private def doNormalize[T: HasValue](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
     fuzz.flatMap(f => doNormalize(t, relative, f))
 
   def zipStrings(v: String, t: String): String = {
@@ -601,8 +625,8 @@ object Fuzziness {
     val operationFuzz = createFuzz(op.fuzz)
     // Combine the functionFuzz with the operationFuzz
     combine(t, t, relative = true, independent = true)((functionFuzz, Some(operationFuzz)))
+    //      ^  ^ <-- Use 'x' (output value) for both, since both errors are now relative to the output
   }
-
 }
 
 /**

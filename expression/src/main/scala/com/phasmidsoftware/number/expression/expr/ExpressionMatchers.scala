@@ -225,7 +225,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * - If the `Aggregate` cannot be simplified further, the original structure is retained.
     *
     * NOTE: Need to fix #87
-    * NOTE: not deprecated because it's used in simplifyComposite
+    * NOTE: not deprecated because it's used in simplifyStructural
     *
     * @return A `ExpressionTransformer` that matches and simplifies `Aggregate` expressions efficiently.
     * @note Throws java.util.NoSuchElementException due to invocation of get on Option (very unlikely).
@@ -353,6 +353,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *           indicating this and the input term.
     */
   def complementaryTermsEliminatorBiFunction: Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
+    case BiFunction(a, b, f) if isComplementary(f, a, b) && a.maybeFactor(AnyContext).contains(Angle) =>
+      Match(Literal(Angle.zero))
     case BiFunction(a, b, f) if isComplementary(f, a, b) =>
       f.maybeIdentityL match {
         case Some(field) =>
