@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, Quadratic
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
+import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real}
 import com.phasmidsoftware.number.expression.algebraic
@@ -20,6 +21,7 @@ import com.phasmidsoftware.number.{algebra, core, expression}
 
 import java.util.Objects
 import scala.language.implicitConversions
+import scala.util.Try
 
 /**
   * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
@@ -1095,6 +1097,40 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
       em.simplifyAggregate(t)
     case x: Expression => // TESTME
       em.Miss[Expression, Expression]("Aggregate.simplifyStructural: not aggregate", x)
+  }
+
+  /**
+    * Eliminates complementary terms from the current aggregate based on a specified predicate.
+    *
+    * The method identifies pairs of expressions within the aggregate that satisfy the provided
+    * `complementaryPredicate` function and removes them, returning the remaining expressions.
+    *
+    * @param complementaryPredicate a function that determines whether two expressions within the
+    *                               context of a provided aggregate function are complementary.
+    *                               The predicate takes three arguments:
+    *                                - The aggregate function (`ExpressionBiFunction`: e.g., Sum or Product).
+    *                                - The first expression to evaluate (`Expression`).
+    *                                - The second expression to evaluate (`Expression`).
+    *                                  It returns a `Boolean` indicating if the expressions are complementary.
+    * @return a `Try[List[Expression]]` containing the list of expressions after removing complementary pairs
+    *         identified by the predicate. If an error occurs (e.g., unsupported operation), a `Failure` is returned.
+    */
+  def eliminateComplementaryTerms(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean): Try[List[Expression]] = {
+    val invertFunction: Double => Double = function match {
+      case Sum =>
+        x => Math.abs(x)
+      case Product =>
+        x => if x < 1 then 1 / x else x
+      case _ =>
+        throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
+    }
+
+    // NOTE this ordering is really only appropriate when f is Sum.
+    // TODO find a better way to find complementary elements.
+    val sortFunction: Expression => Double =
+      x => invertFunction(x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN)
+
+    Try(xs.sortBy(sortFunction)) map (sorted => Bumperator[Expression](sorted) { (x, y) => complementaryPredicate(function, x, y) }.toList)
   }
 
   /**

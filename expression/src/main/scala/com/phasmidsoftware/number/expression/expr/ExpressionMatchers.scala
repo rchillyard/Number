@@ -9,7 +9,6 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
 import com.phasmidsoftware.number.algebra.eager.{Angle, Monotone, Number}
 import com.phasmidsoftware.number.core.inner.PureNumber
-import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Field
 import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
@@ -19,7 +18,7 @@ import com.phasmidsoftware.number.expression.matchers.MatchersExtras
 import com.phasmidsoftware.number.{core, expression}
 
 import scala.language.implicitConversions
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 /**
   * Matchers whose input is generally an Expression.
@@ -267,30 +266,12 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("complementaryTermsEliminatorAggregate") {
     a =>
-      val esy: Try[List[Expression]] = eliminateComplementaryTerms(isComplementary)(a)
-      esy match {
+      a.eliminateComplementaryTerms(isComplementary) match {
         case Success(list) =>
           matchOrMiss(a.function, list)(a)
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
-  }
-
-  def eliminateComplementaryTerms(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean)(a: Aggregate): Try[List[Expression]] = {
-    val invertFunction: Double => Double = a.function match {
-      case Sum =>
-        x => Math.abs(x)
-      case Product =>
-        x => if x < 1 then 1 / x else x
-      case _ =>
-        throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
-    }
-    val sortFunction: Expression => Double =
-      x => invertFunction(x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN)
-
-    // NOTE this ordering is really only appropriate when f is Sum.
-    // TODO find a better way to find complementary elements.
-    Try(a.xs.sortBy(sortFunction)) map (sorted => Bumperator[Expression](sorted) { (x, y) => complementaryPredicate(a.function, x, y) }.toList)
   }
 
   /**
