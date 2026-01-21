@@ -266,27 +266,31 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         if no reduction takes place.
     */
   def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("complementaryTermsEliminatorAggregate") {
-    case a@Aggregate(f, xs) =>
-      val invertFunction: Double => Double = f match {
-        case Sum =>
-          x => Math.abs(x)
-        case Product =>
-          x => if x < 1 then 1 / x else x
-        case _ =>
-          throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
-      }
-      val sortFunction: Expression => Double =
-        x => invertFunction(x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN)
-
-      // NOTE this ordering is really only appropriate when f is Sum.
-      // TODO find a better way to find complementary elements.
-      Try(xs.sortBy(sortFunction)) match {
-        case Success(sorted) =>
-          val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-          matchOrMiss(f, list)(a)
+    a =>
+      val esy: Try[List[Expression]] = eliminateComplementaryTerms(isComplementary)(a)
+      esy match {
+        case Success(list) =>
+          matchOrMiss(a.function, list)(a)
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
+  }
+
+  def eliminateComplementaryTerms(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean)(a: Aggregate): Try[List[Expression]] = {
+    val invertFunction: Double => Double = a.function match {
+      case Sum =>
+        x => Math.abs(x)
+      case Product =>
+        x => if x < 1 then 1 / x else x
+      case _ =>
+        throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
+    }
+    val sortFunction: Expression => Double =
+      x => invertFunction(x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN)
+
+    // NOTE this ordering is really only appropriate when f is Sum.
+    // TODO find a better way to find complementary elements.
+    Try(a.xs.sortBy(sortFunction)) map (sorted => Bumperator[Expression](sorted) { (x, y) => complementaryPredicate(a.function, x, y) }.toList)
   }
 
   /**
@@ -357,10 +361,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         - If the terms are not complementary, it returns a `Miss` with a message
     *           indicating this and the input term.
     */
-  def complementaryTermsEliminatorBiFunction: Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
-    case BiFunction(a, b, f) if isComplementary(f, a, b) && a.maybeFactor(AnyContext).contains(Angle) =>
+  def complementaryTermsEliminatorBiFunction(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean): Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
+    case BiFunction(a, b, f) if complementaryPredicate(f, a, b) && a.maybeFactor(AnyContext).contains(Angle) =>
       Match(Literal(Angle.zero))
-    case BiFunction(a, b, f) if isComplementary(f, a, b) =>
+    case BiFunction(a, b, f) if complementaryPredicate(f, a, b) =>
       f.maybeIdentityL match {
         case Some(field) =>
           Match(Literal(field))
@@ -429,7 +433,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @param y the second expression to be checked
     * @return true if the bi-function is complementary for the given expressions, false otherwise
     */
-  private def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
+  def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
     val identityCheck: Expression => Boolean = isIdentityFunction(f)
     (matchComplementaryExpressions(f ~ x ~ y) & filter(identityCheck)).successful
   }

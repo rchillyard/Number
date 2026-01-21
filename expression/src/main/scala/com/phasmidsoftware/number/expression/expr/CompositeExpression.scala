@@ -584,7 +584,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       //  A Miss in simplifyStructural should be treated as the termination of the simplify process.
       // NOTE the reason we see this as a Miss so often, is that it is always
       // the last match to be attempted.
-      ((em.complementaryTermsEliminatorBiFunction |
+      ((em.complementaryTermsEliminatorBiFunction(em.isComplementary) |
           em.matchBiFunctionAsAggregate & em.literalsCombiner) &
           em.alt(matchSimpler))(x)
     case x => // NOTE we cannot reach this case.
@@ -1292,6 +1292,5 @@ object Aggregate {
       case Literal(_: Angle, _) => true
       case _ => false
     }
-
 }
 

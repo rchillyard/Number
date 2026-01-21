@@ -1592,7 +1592,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "match 1 and -1 in addition" in {
     val x: Expression = 1
     val y: Expression = -1
-    val z: em.MatchResult[Expression] = em.complementaryTermsEliminatorBiFunction(BiFunction(x, y, Sum))
+    val z: em.MatchResult[Expression] = em.complementaryTermsEliminatorBiFunction(em.isComplementary)(BiFunction(x, y, Sum))
     z.successful shouldBe true
     z.get shouldBe zero
   }
