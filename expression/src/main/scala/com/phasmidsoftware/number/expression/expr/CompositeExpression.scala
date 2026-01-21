@@ -21,7 +21,7 @@ import com.phasmidsoftware.number.{algebra, core, expression}
 
 import java.util.Objects
 import scala.language.implicitConversions
-import scala.util.Try
+import scala.util.*
 
 /**
   * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
@@ -718,6 +718,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         z <- b.evaluate(RestrictedContext(PureNumber))
         y <- f.applyExact(w, z)
       } yield y
+      if (qqq.isEmpty) println(s"BiFunction: matchLiteral: failed to match $a and $b with $f")
       em.matchIfDefined(qqq)(this)
     case _ =>
       em.Miss[Expression, Expression](s"BiFunction: matchLiteral: ", expression.expr.BiFunction(l, x, f)) // TESTME
@@ -1158,6 +1159,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
       (ao, x) =>
         for (a <- ao; b <- x.evaluateAsIs; c <- function.applyExact(a, b)) yield c
     }
+    if (vo.isEmpty) println(s"BiFunction.evaluate: no identity found for $xs")
     context.qualifyingEagerValue(vo)
   }
 

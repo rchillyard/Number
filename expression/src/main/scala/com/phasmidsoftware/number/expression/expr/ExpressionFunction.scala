@@ -107,8 +107,11 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
     * @param context the `Context` within which the evaluation is performed.
     * @return an `Option[Eager]` containing the result of the evaluation if successful, or `None` otherwise.
     */
-  def evaluate(a: Expression)(context: Context): Option[Eager] =
-    context.qualifyingEagerValue(a.evaluateAsIs flatMap applyExact)
+  def evaluate(a: Expression)(context: Context): Option[Eager] = {
+    val maybeEager1 = a.evaluateAsIs flatMap applyExact
+    if (maybeEager1.isEmpty) println(s"ExpressionMonoFunction: $this failed to evaluate $a")
+    context.qualifyingEagerValue(maybeEager1)
+  }
 //    context.qualifyingEagerValue(a.evaluate(paramContext(context)).map(f))
 
   /**
@@ -128,8 +131,11 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
     * @return the result of f(x).
     */
   def apply(x: Eager): Eager =
-    if (x.isExact)
-      applyExact(x).getOrElse(f(x))
+    if (x.isExact) {
+      val maybeEager = applyExact(x)
+      if (maybeEager.isEmpty) println(s"ExpressionMonoFunction: $this failed to evaluate $x")
+      maybeEager.getOrElse(f(x))
+    }
     else
       f(x)
 
@@ -285,23 +291,38 @@ sealed abstract class ExpressionBiFunction(
       y <- b.evaluate(cRight)
       z <- applyExact((x, y))
     } yield z
+    if (eo.isEmpty)
+      println(s"ExpressionBiFunction: $this failed to evaluate ${a.toString}, ${b.toString}  in context $context")
     context.qualifyingEagerValue(eo)
   }
-//
-//  /**
-//    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
-//    * through an exact binary operation, and returns the output if all operations are successful.
-//    *
-//    * This method performs a sequential evaluation where:
-//    * 1. The `x` expression is evaluated in the left-hand context to produce an intermediate result.
-//    * 2. The intermediate result is used to derive a right-hand context, in which the `y` expression is evaluated.
-//    * 3. If both expressions are successfully evaluated, their results are combined using a strict binary operation.
-//    *
-//    * @param x the first expression to be evaluated in the left-hand context.
-//    * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
-//    * @return an `Option[Valuable]` containing the result of the exact binary operation on the evaluated results
-//    *         of `x` and `y`, or `None` if any step in the process fails.
-//    */
+
+  //    (x.evaluateAsIs, y.evaluateAsIs) match {
+  //    case (Some(a), _) if maybeIdentityL contains a =>
+  //      y.evaluate(context)
+  //    case (_, Some(b)) if maybeIdentityR contains b =>
+  //      x.evaluate(context)
+  //    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
+  //      trivialEvaluation(a, b)
+  //    case _ =>
+  //      val xy = doEvaluate(x, y)(context)
+  //      lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
+  //      context.qualifyingEagerValue(xy orElse yx)
+  //  }
+
+  /**
+    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
+    * through an exact binary operation, and returns the output if all operations are successful.
+    *
+    * This method performs a sequential evaluation where:
+    * 1. The `x` expression is evaluated in the left-hand context to produce an intermediate result.
+    * 2. The intermediate result is used to derive a right-hand context, in which the `y` expression is evaluated.
+    * 3. If both expressions are successfully evaluated, their results are combined using a strict binary operation.
+    *
+    * @param x the first expression to be evaluated in the left-hand context.
+    * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
+    * @return an `Option[Valuable]` containing the result of the exact binary operation on the evaluated results
+    *         of `x` and `y`, or `None` if any step in the process fails.
+    */
 //  def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Eager] =
 //    for
 //      a <- x.evaluate(leftContext(context))
@@ -309,6 +330,28 @@ sealed abstract class ExpressionBiFunction(
 //      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
 //      z <- applyExact(a, b)
 //    yield z
+  //
+  //  /**
+  //    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
+  //    * through an exact binary operation, and returns the output if all operations are successful.
+  //    *
+  //    * This method performs a sequential evaluation where:
+  //    * 1. The `x` expression is evaluated in the left-hand context to produce an intermediate result.
+  //    * 2. The intermediate result is used to derive a right-hand context, in which the `y` expression is evaluated.
+  //    * 3. If both expressions are successfully evaluated, their results are combined using a strict binary operation.
+  //    *
+  //    * @param x the first expression to be evaluated in the left-hand context.
+  //    * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
+  //    * @return an `Option[Valuable]` containing the result of the exact binary operation on the evaluated results
+  //    *         of `x` and `y`, or `None` if any step in the process fails.
+  //    */
+  //  def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Eager] =
+  //    for
+  //      a <- x.evaluate(leftContext(context))
+  //      f <- a.maybeFactor(AnyContext)
+  //      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
+  //      z <- applyExact(a, b)
+  //    yield z
 
   /**
     * Evaluates two expressions as-is (without any simplification or conversion) and applies the function `f`
@@ -831,7 +874,7 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
     case (x: Scalable[Eager] @unchecked, y: Q) =>
       Some(x * y.toRational)
     case _ =>
-//      println(s"Product:applyExact: a = $a, b = $b resulted in None")
+      println(s"Product:applyExact: a = $a, b = $b resulted in None")
       None
   }
 }
@@ -906,15 +949,21 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
   def applyExact(a: Eager, b: Eager): Option[Eager] = (a, b) match {
     case (Eager.one, _) =>
       Some(Eager.one)
-    case (_, eager.Real.infinity | RationalNumber.infinity) =>
-      Some(b)
+    // TODO restore this when we have a better understanding of the behavior of the power function.
+    //    case (_, eager.Real.infinity | RationalNumber.infinity) =>
+    //      Some(b)
     case (x: eager.InversePower, y: eager.ExactNumber) =>
       x.pow(y).asInstanceOf[Option[Eager]]
     case (x: CanPower[eager.Structure] @unchecked, y: Q) if x.isExact && y.isExact =>
+      val z = x.pow(RationalNumber(y.toRational))
+      println(s"Power:applyExact: a = $a, b = $b resulted in $z")
       for {
         f <- y.maybeFactor(AnyContext) if f == PureNumber
-        result <- x.pow(RationalNumber(y.toRational)) if result.isExact
+        result <- x.pow(RationalNumber(y.toRational))
+        _ = println(s"result=$result") //if result.isExact
       } yield result
+    case (x: eager.Number, RationalNumber(y, _)) if y.invert.isWhole =>
+      Some(eager.InversePower(y.invert.toInt, x))
     case _ =>
       None // TESTME
   }

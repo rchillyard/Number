@@ -143,12 +143,12 @@ trait Expression extends Lazy with Approximate {
     * A lazily evaluated optional approximation of this `Expression`.
     *
     * This field holds the result of simplifying the `Expression`
-    * with the `approximation` flag set to `true`. If the approximation 
-    * is possible, it will store the approximated `Real` value; otherwise, 
+    * with the `approximation` flag set to `true`. If the approximation
+    * is possible, it will store the approximated `Real` value; otherwise,
     * it will remain `None`.
     *
-    * This approximation is computed based on the context of 
-    * the `simplify` method, which determines how the expression 
+    * This approximation is computed based on the context of
+    * the `simplify` method, which determines how the expression
     * should be approximated.
     */
   lazy val approximation: Option[eager.Real] = simplify.approximation(true)

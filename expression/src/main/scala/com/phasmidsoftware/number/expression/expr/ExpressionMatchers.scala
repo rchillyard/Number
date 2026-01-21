@@ -455,4 +455,8 @@ object ExpressionMatchers {
       case x =>
         None
     }
+
+  def getApproximateDouble(x: Expression): Double =
+    x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN
+
 }
