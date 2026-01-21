@@ -287,41 +287,28 @@ sealed abstract class ExpressionBiFunction(
     } yield z
     context.qualifyingEagerValue(eo)
   }
-
-//    (x.evaluateAsIs, y.evaluateAsIs) match {
-//    case (Some(a), _) if maybeIdentityL contains a =>
-//      y.evaluate(context)
-//    case (_, Some(b)) if maybeIdentityR contains b =>
-//      x.evaluate(context)
-//    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
-//      trivialEvaluation(a, b)
-//    case _ =>
-//      val xy = doEvaluate(x, y)(context)
-//      lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
-//      context.qualifyingEagerValue(xy orElse yx)
-//  }
-
-  /**
-    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
-    * through an exact binary operation, and returns the output if all operations are successful.
-    *
-    * This method performs a sequential evaluation where:
-    * 1. The `x` expression is evaluated in the left-hand context to produce an intermediate result.
-    * 2. The intermediate result is used to derive a right-hand context, in which the `y` expression is evaluated.
-    * 3. If both expressions are successfully evaluated, their results are combined using a strict binary operation.
-    *
-    * @param x the first expression to be evaluated in the left-hand context.
-    * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
-    * @return an `Option[Valuable]` containing the result of the exact binary operation on the evaluated results
-    *         of `x` and `y`, or `None` if any step in the process fails.
-    */
-  def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Eager] =
-    for
-      a <- x.evaluate(leftContext(context))
-      f <- a.maybeFactor(AnyContext)
-      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
-      z <- applyExact(a, b)
-    yield z
+//
+//  /**
+//    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
+//    * through an exact binary operation, and returns the output if all operations are successful.
+//    *
+//    * This method performs a sequential evaluation where:
+//    * 1. The `x` expression is evaluated in the left-hand context to produce an intermediate result.
+//    * 2. The intermediate result is used to derive a right-hand context, in which the `y` expression is evaluated.
+//    * 3. If both expressions are successfully evaluated, their results are combined using a strict binary operation.
+//    *
+//    * @param x the first expression to be evaluated in the left-hand context.
+//    * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
+//    * @return an `Option[Valuable]` containing the result of the exact binary operation on the evaluated results
+//    *         of `x` and `y`, or `None` if any step in the process fails.
+//    */
+//  def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Eager] =
+//    for
+//      a <- x.evaluate(leftContext(context))
+//      f <- a.maybeFactor(AnyContext)
+//      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
+//      z <- applyExact(a, b)
+//    yield z
 
   /**
     * Evaluates two expressions as-is (without any simplification or conversion) and applies the function `f`

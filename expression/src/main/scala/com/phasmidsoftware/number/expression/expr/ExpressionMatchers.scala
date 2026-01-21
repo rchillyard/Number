@@ -143,6 +143,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * Determines whether the factors of the given expressions match
     * according to the specified binary function.
     * NOTE there's another factorsMatch method in Expression
+    * NOTE this method appears to be used only by ExpressionMatchersSpec
     *
     * @param f The binary function that determines the operation type (e.g., Sum, Product, Power).
     * @param x The first expression to compare.
@@ -180,11 +181,15 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return an ExpressionMatcher[Field].
     */
   def value: ExpressionMatcher[Valuable] = {
-    case Literal(v, _) => Match(v) // TESTME
-    case ValueExpression(v, _) => Match(v)
+    case Literal(v, _) =>
+      Match(v) // TESTME
+    case ValueExpression(v, _) =>
+      Match(v)
     //    case x@core.Number(_, _) => Match(Real(x)) // TESTME
-    case x: ValueExpression => matchIfDefined(x.evaluateAsIs)(x)
-    case x => Miss("value", x)
+    case x: ValueExpression =>
+      matchIfDefined(x.evaluateAsIs)(x)
+    case x =>
+      Miss("value", x)
   }
 
   /**
