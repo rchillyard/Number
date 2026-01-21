@@ -414,6 +414,14 @@ object InversePower {
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
   /**
+    * Provides a `Show` instance for the `InversePower` type, enabling the conversion
+    * of an `InversePower` instance into a human-readable `String` representation.
+    *
+    * @return A `Show` instance for the `InversePower` type.
+    */
+  given Show[InversePower] = Show.show(_.render)
+
+  /**
     * A given instance of `DyadicOperator` for the `InversePower` type. 
     * This instance allows the application of a binary operation on 
     * two operands of types `InversePower` and a subtype of `InversePower`

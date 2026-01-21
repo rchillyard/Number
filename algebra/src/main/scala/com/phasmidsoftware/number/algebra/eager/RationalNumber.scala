@@ -38,7 +38,7 @@ import scala.util.{Success, Try}
   *                   Similarly to the `degrees` attribute of `Angle`,
   *                   this is a flag that is primarily cosmetic.
   */
-case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends ExactNumber with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[ExactNumber] with CanPower[ExactNumber] {
+case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends ExactNumber with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[ExactNumber] {
   /**
     * Normalizes the current object to ensure it is represented in a simplified form.
     * If the denominator (r.d) is 1, it represents the object as a WholeNumber.

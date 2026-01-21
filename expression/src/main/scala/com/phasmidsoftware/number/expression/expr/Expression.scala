@@ -4,9 +4,11 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import cats.Show
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
@@ -127,14 +129,29 @@ trait Expression extends Lazy with Approximate {
     * and then tries an approximation if necessary. Ultimately, it ensures the resulting
     * materialized object is an instance of `Eager`.
     *
+    * The Eager result will be normalized if appropriate.
+    *
     * @return an `Eager` representation of this `Expression` achieved through evaluation and/or approximation.
     */
   def materialize: Eager = {
-    val simplified = simplify
-    val asIs = simplified.evaluateAsIs
-    val maybeValuable = asIs orElse simplified.approximation(true)
+    val asIs = simplify.evaluateAsIs
+    val maybeValuable = asIs.map(normalizeIfAppropriate) orElse approximation
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
+
+  /**
+    * A lazily evaluated optional approximation of this `Expression`.
+    *
+    * This field holds the result of simplifying the `Expression`
+    * with the `approximation` flag set to `true`. If the approximation 
+    * is possible, it will store the approximated `Real` value; otherwise, 
+    * it will remain `None`.
+    *
+    * This approximation is computed based on the context of 
+    * the `simplify` method, which determines how the expression 
+    * should be approximated.
+    */
+  lazy val approximation: Option[eager.Real] = simplify.approximation(true)
 
   /**
     * Method to determine if the materialized value of this `Expression` is defined and corresponds to a `Number`.
@@ -161,6 +178,22 @@ trait Expression extends Lazy with Approximate {
     * @return the depth (an atomic expression has a depth of 1).
     */
   def depth: Int
+
+  /**
+    * Normalizes the given `Eager` instance if it is not of type `Angle`.
+    * If the input is already an instance of `Angle`, it is returned as is.
+    * For other types of `Eager`, the `normalize` method is invoked to
+    * obtain the normalized result.
+    * The reason we don't normalize Angles is that we don't want to turn 2𝛑 into zero.
+    *
+    * @param e the `Eager` instance to potentially normalize
+    * @return the input instance if it is of type `Angle`, otherwise the normalized version of the input
+    */
+  private def normalizeIfAppropriate(e: Eager) = e match {
+    case x: Angle => x
+    case x =>
+      x.normalize
+  }
 
   // NOTE This can be useful for debugging: it allows you to see the value of this Expression.
   // However, it can also cause a stack overflow so use it sparingly!
@@ -220,6 +253,15 @@ object Expression {
 
   import cats.Eq
   import cats.syntax.eq.*
+
+  /**
+    * Provides a given instance of the `Show` type class for the `Expression` type.
+    * This enables rendering of an `Expression` instance to a `String` representation
+    * using the `render` method of the `Expression`.
+    *
+    * @return A `Show` instance for the `Expression` type.
+    */
+  given Show[Expression] = Show.show(_.materialize.render)
 
   // TODO see ExpressionEq class which does handle all cases. But neither seems to be used in practice.
   given Eq[Expression] = (x: Expression, y: Expression) => (x, y) match {

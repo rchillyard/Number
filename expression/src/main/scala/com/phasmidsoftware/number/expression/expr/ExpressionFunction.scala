@@ -923,7 +923,7 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
       Some(b)
     case (x: eager.InversePower, y: eager.ExactNumber) =>
       x.pow(y).asInstanceOf[Option[Eager]]
-    case (x: CanPower[eager.Scalar] @unchecked, y: Q) if x.isExact && y.isExact =>
+    case (x: CanPower[eager.Structure] @unchecked, y: Q) if x.isExact && y.isExact =>
       for {
         f <- y.maybeFactor(AnyContext) if f == PureNumber
         result <- x.pow(RationalNumber(y.toRational)) if result.isExact
