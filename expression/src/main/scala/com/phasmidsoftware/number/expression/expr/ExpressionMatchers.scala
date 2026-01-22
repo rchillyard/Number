@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Field
 import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
-import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction, matchSimpler}
+import com.phasmidsoftware.number.expression.expr.Expression.{em, isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
 import com.phasmidsoftware.number.expression.matchers.MatchersExtras
 import com.phasmidsoftware.number.{core, expression}
@@ -428,6 +428,20 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   * These methods are here so that they're not part of the `ExpressionMatchers` API.
   */
 object ExpressionMatchers {
+
+  /**
+    * Simplifies a sequence of `Expression` instances by applying a grouping function
+    * and a matching strategy to produce a simplified result.
+    *
+    * @param xs      The sequence of `Expression` instances to simplify.
+    * @param grouper A function that groups and transforms a sequence of `Expression`
+    *                instances into a single `Expression`.
+    *
+    * @return A `MatchResult[Expression]` containing the result of the simplification process.
+    */
+  def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] =
+    (em.sequence(matchSimpler) & em.lift(grouper))(xs)
+
   /**
     * Evaluates whether two `Expression` instances, when combined using the provided
     * `ExpressionBiFunction`, yield the appropriate identity value (although, in practice, we shortcut that logic a little).

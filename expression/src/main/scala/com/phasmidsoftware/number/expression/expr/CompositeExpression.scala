@@ -17,6 +17,7 @@ import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar
 import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, given_LatexRenderer_Expression, matchSimpler}
+import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
 import com.phasmidsoftware.number.{algebra, core, expression}
 
 import java.util.Objects
@@ -457,28 +458,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   def simplifyComponents: em.AutoMatcher[Expression] =
     em.Matcher("BiFunction: simplifyComponents") {
-      // TODO restore this case.
-//      case b@BiFunction(r1@QuadraticRoot(_, _), r2@QuadraticRoot(_, _), f) if r1.maybeValue.isEmpty && r2.maybeValue.isEmpty =>
-//        val so: Option[Solution] = f match {
-//          case Sum => r1.solution add r2.solution
-//          //          case Product => r1.solution multiply r2.solution
-//          case _ => None
-//        }
-//        val eo: Option[Expression] = so map (s => Literal(Eager(Algebraic(s))))
-//        em.matchIfDefined(eo)(b)
-
-      // NOTE I'm confused by my own logic here. I don't know why we need this.
       case BiFunction(x, y, f) =>
-        val matcher: em.Matcher[Seq[Expression], expression.expr.BiFunction] =
-          em.sequence(matchSimpler) & em.lift { xs => val Seq(newX, newY) = xs; expression.expr.BiFunction(newX, newY, f) }
-        // NOTE this is a Match when one or more of the components are simplified.
-        val result = matcher.apply(List[Expression](x, y))
-        result match {
-          case z@em.Match(r) =>
-            z
-          case z =>
-            z
-        }
+        componentsSimplifier(Seq[Expression](x, y), { xs => val Seq(newX, newY) = xs; BiFunction(newX, newY, f) })
     }
 
   /**
@@ -1061,9 +1042,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   def simplifyComponents: em.AutoMatcher[Expression] =
     em.Matcher("Aggregate: simplifyComponents") {
       case Aggregate(f, xs) =>
-        val matcher: em.Matcher[Seq[Expression], Expression] =
-          em.sequence(matchSimpler) & em.lift { ys => expression.expr.Aggregate(f, ys) }
-        matcher(xs)
+        componentsSimplifier(xs, ys => expression.expr.Aggregate(f, ys))
     }
 
   /**
