@@ -333,7 +333,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z = p(Product ~ a ~ b)
     z shouldBe em.Match(Literal(WholeNumber(9)))
   }
-  it should "properly simplify 1 * (root3 / root3 * 3)" in {
+  it should "properly simplify 1 * (√3 / √3 * 3)" in {
     val z: Expression = Expression(3).sqrt
     val x = z :* z.reciprocal * Eager(3)
     val simplified = x.simplify

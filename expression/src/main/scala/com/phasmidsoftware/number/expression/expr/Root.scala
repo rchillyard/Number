@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.squareRootEquation
 import com.phasmidsoftware.number.expression.algebraic.{Equation, LinearEquation, QuadraticEquation}
 import com.phasmidsoftware.number.expression.expr.Expression.em
 
@@ -660,9 +661,27 @@ object Root {
     * The `branch` parameter set to 1 in this instance corresponds to the negative root (i.e., `-√2`).
     */
   val negRootTwo = QuadraticRoot(QuadraticEquation.rootTwoEquation, 1)
+
+  val rootThree = QuadraticRoot(QuadraticEquation.rootThreeEquation, 0)
+
   /**
     * Represents the value one-half as a linear root, constructed from a linear equation
     * with a negated half-rational coefficient.
     */
   val half = LinearRoot(LinearEquation(Rational.half.negate))
+
+  /**
+    * Computes the square root of a given rational number and selects a specific branch
+    * of the solution.
+    *
+    * @param r      the `Rational` number for which the square root is to be calculated.
+    *               The input represents a rational value that serves as the operand.
+    *
+    * @param branch an integer representing the branch index to compute. The branch identifies
+    *               a specific solution when there are multiple possible square root results.
+    *               0 gives the positive root, 1 gives the negative root.
+    *
+    * @return a `QuadraticRoot` instance representing the square root computation and branch selection.
+    */
+  def squareRoot(r: Rational, branch: Int) = QuadraticRoot(squareRootEquation(r), branch)
 }

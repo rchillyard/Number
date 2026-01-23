@@ -653,8 +653,8 @@ object Expression {
       em.eitherOr(simplifyComponents,
         em.eitherOr(simplifyStructural,
           em.eitherOr(simplifyIdentities,
-            em.eitherOr(simplifyExact, // TODO combine these last two as simplifyEager
-              simplifyConstant))))(x)
+            em.eitherOr(simplifyExact,
+              simplifyByEvaluation))))(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x")) // TESTME
   }
@@ -685,13 +685,23 @@ object Expression {
     * @return an `em.AutoMatcher[Expression]` that matches and simplifies exact cases for composite expressions
     *         or signals when simplification is not applicable to non-composite expressions.
     */
-  def simplifyExact: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyExact") {
-    case c: CompositeExpression =>
-      c.simplifyExact(c)
-    case x =>
-      em.Miss("simplifyExact: not a Composite expression type", x) // TESTME
-  }
+  def simplifyExact: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("simplifyExact") {
+      // Special cases that need exact evaluation
+      case UniFunction(Two, Ln) =>
+        em.Match(L2) `flatMap` matchSimpler
 
+      case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
+        if n == 2 && theta.isZero =>
+        em.Match(Literal(r.power(2)))
+
+      // Delegate to composite types for their specific exact simplifications
+      case c: CompositeExpression =>
+        c.simplifyExact(c)
+
+      case x =>
+        em.Miss("simplifyExact: cannot simplify exactly", x)
+    }
   /**
     * Attempts to simplify trivial cases within a `CompositeExpression`.
     * This method patterns matches on `CompositeExpression` instances and applies trivial simplifications
@@ -707,24 +717,28 @@ object Expression {
   }
 
   /**
-    * Attempts to simplify an `Expression` by focusing on constant folding within composite expressions.
-    * For composite expressions, this method applies constant-specific simplification logic.
-    * It does not handle other types of simplifications or unsupported expression types.
+    * Attempts to simplify an expression by evaluating it if possible.
+    * If the expression is a composite expression and can be evaluated,
+    * the method returns a simplified version of the evaluated result.
+    * If the expression cannot be evaluated or is already an atomic expression,
+    * the simplification operation is skipped.
+    * This is the last resort for simplification, and is typically used when no other simplification is possible.
     *
-    * @return an `em.AutoMatcher[Expression]` that matches and simplifies composite expressions
-    *         where constants can be evaluated or reduced, returning the simplified `Expression`.
+    * @return An instance of `em.AutoMatcher[Expression]` that performs
+    *         matching and optionally simplifies an expression by evaluating it.
     */
-  def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
-    case UniFunction(Two, Ln) =>
-      em.Match(L2) `flatMap` matchSimpler
-    case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
-      if n == 2 && theta.isZero =>
-      em.Match(Literal(r.power(2)))
-    case c: CompositeExpression =>
-      c.simplifyConstant(c)
-    case x =>
-      em.Miss("simplifyConstant: not a Composite expression type", x)
-  }
+  def simplifyByEvaluation: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("simplifyByEvaluation") {
+      case c: CompositeExpression =>
+        c.evaluateAsIs match {
+          case Some(f) =>
+            em.MatchCheck(Expression(f))(c).map(_.simplify)
+          case _ =>
+            em.Miss("simplifyByEvaluation: cannot evaluate", c)
+        }
+      case a: AtomicExpression =>
+        em.Miss("simplifyByEvaluation: atomic expression already simplified", a)
+    }
 
   /**
     * Determines whether the provided expression `z` is an identity element

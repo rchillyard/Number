@@ -358,9 +358,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "simplifyConstant"
   // TODO Issue #140
+  // TODO move this into behavior of "simplifyExact"
   it should "simplify biFunction expressions" in {
     val em: ExpressionMatchers = Expression.em
-    Expression.simplifyConstant(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
+    Expression.simplifyExact(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
     BiFunction(Two, MinusOne, Product).simplify shouldBe Expression(-2)
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Eager.zero)
   }

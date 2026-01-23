@@ -104,6 +104,8 @@ sealed trait CompositeExpression extends Expression {
     * A trivial simplification is one that depends on fortuitous expressions, not necessarily constants,
     * that can therefore be combined in some way.
     *
+    * CONSIDER rename as simplifyIdentities
+    *
     * @return an `em.AutoMatcher[Expression]` encapsulating the logic to simplify trivial forms
     *         within the `CompositeExpression`. The result contains either the simplified `Expression`
     *         or indicates that no trivial simplifications were possible.
@@ -141,6 +143,7 @@ sealed trait CompositeExpression extends Expression {
 
   /**
     * Method to render this Structure in a presentable manner.
+    * CONSIDER why don't we just render `simplified`` as an expression?
     *
     * @return a String
     */
@@ -452,7 +455,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 
   /**
     * Simplifies the components of a `BiFunction` expression by applying a matcher that reduces its
-    * constituent expressions (`x` and `y`) to their simpler forms.
+    * constituent expressions (`x` and `y`), individually, to their simpler forms.
     *
     * @return An `AutoMatcher` for the `Expression` type that matches and simplifies `BiFunction` expressions.
     */
@@ -553,10 +556,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     // NOTE these first two cases are kind of strange! CONSIDER removing them.
     case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
       // NOTE: duplicate code
-      val xSq = Expression.simplifyConstant(expression.expr.BiFunction(a, Two, Power)).getOrElse(expression.expr.BiFunction(a, Two, Power)) // x²
+      val xSq = Expression.simplifyExact(expression.expr.BiFunction(a, Two, Power)).getOrElse(expression.expr.BiFunction(a, Two, Power)) // x²
       em.Match(expression.expr.UniFunction(xSq, Negate))
     case BiFunction(UniFunction(a, Negate), b, Product) if a == b => // TESTME
-      val xSq = Expression.simplifyConstant(expression.expr.BiFunction(a, Two, Power)).getOrElse(expression.expr.BiFunction(a, Two, Power))
+      val xSq = Expression.simplifyExact(expression.expr.BiFunction(a, Two, Power)).getOrElse(expression.expr.BiFunction(a, Two, Power))
       em.Match(expression.expr.UniFunction(xSq, Negate))
     // CONSIDER carefully reinstating this. But for now, it adds failed tests!
     //    case BiFunction(a, b, Product) =>
