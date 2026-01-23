@@ -438,8 +438,8 @@ class CompositeExpressionSpec2 extends AnyFlatSpec with Matchers {
     // Should be phi^4
     val bf = simplified.asInstanceOf[BiFunction]
     bf.f shouldBe Power
-    bf.a shouldBe Literal(Eager.phi) + 1 // NOTE we do not currently simplify this as Root.phi + 1 because that causes a stack overflow.
-    bf.b shouldBe Two
+    bf.a shouldBe Root.phi + 1 // NOTE we do not currently simplify this as Root.phi + 1 because that causes a stack overflow.
+    bf.b shouldBe Literal(2)
   }
 
   it should "evaluate constant power completely" in {

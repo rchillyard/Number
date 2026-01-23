@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.squareRootEquation
 import com.phasmidsoftware.number.expression.algebraic.{Equation, LinearEquation, QuadraticEquation}
-import com.phasmidsoftware.number.expression.expr.Expression.em
+import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
 
 import java.util.Objects
 import scala.language.implicitConversions
@@ -210,13 +210,38 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.
     */
-  def simplifyAtomic: em.AutoMatcher[Expression] =
+  override def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
-      case r: AbstractRoot =>
-        em.Match(Literal(r.solution))
-      case x =>
-        em.Miss(s"Cannot simplify $x", x)
+      case QuadraticRoot(QuadraticEquation(p, q), _) if p.isZero =>
+        // This is a simple square root: x² + q = 0, i.e., x = √(-q)
+        // Only evaluate if the root is exact
+        this.evaluateAsIs match {
+          case Some(x: Exact) =>
+            em.Match(Literal(x)) `flatMap` matchSimpler
+          case _ =>
+            em.Miss("Root.simplifyAtomic: square root is not exact", this)
+        }
+
+      case _ =>
+        // Keep algebraic constants (like φ) symbolic
+        em.Miss("Root.simplifyAtomic: not a simple square root", this)
     }
+  //  def simplifyByEvaluation: em.AutoMatcher[Expression] =
+  //    em.Matcher[Expression, Expression]("Root.simplifyByEvaluation") {
+  //      case _: QuadraticRoot =>
+  //        // Try to evaluate the quadratic root
+  //        this.evaluateAsIs match {
+  //          case Some(x: Exact) =>
+  //            // Root evaluates to exact value, replace with it
+  //            em.Match(Literal(x)) `flatMap` matchSimpler
+  //          case _ =>
+  //            // Root is fuzzy/irrational or can't evaluate, keep symbolic
+  //            em.Miss("Root.simplifyByEvaluation: quadratic root is not exact", this)
+  //        }
+  //
+  //      case _ =>
+  //        em.Miss("Root.simplifyByEvaluation: not a quadratic root", this)
+  //    }
 
   /**
     * Action to evaluate this `Expression` as a `Valuable`, if possible.

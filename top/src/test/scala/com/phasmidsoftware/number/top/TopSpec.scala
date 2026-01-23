@@ -254,7 +254,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "simplify phi∧2" in {
     puremath"\phi ∧ 2" shouldBe BiFunction(QuadraticRoot(goldenRatioEquation, 0), Two, Power)
-    lazymath"\phi ∧ 2" shouldBe BiFunction(Literal(QuadraticSolution.phi), One, Sum)
+    lazymath"\phi ∧ 2" shouldBe BiFunction(QuadraticRoot(goldenRatioEquation, 0), One, Sum)
     math"\phi ∧ 2" === Real("2.618033988749895*")
   }
   it should "cancel 1 + -1" in {

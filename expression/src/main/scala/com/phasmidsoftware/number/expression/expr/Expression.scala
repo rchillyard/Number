@@ -135,7 +135,10 @@ trait Expression extends Lazy with Approximate {
     */
   def materialize: Eager = {
     val asIs = simplify.evaluateAsIs
-    val maybeValuable = asIs.map(normalizeIfAppropriate) orElse approximation
+    val maybeValuable = asIs.map(normalizeIfAppropriate) orElse {
+      //      println(s"materialize: no direct evaluation possible for $this")
+      approximation
+    }
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
 
@@ -393,7 +396,7 @@ object Expression {
       case z: AtomicExpression =>
         z.evaluateAsIs flatMap (_.asCoreNumber) match {
           case Some(q) =>
-            println("Expression.sqrt: this is where we used to do a short-cut for numbers")
+            //            println("Expression.sqrt: this is where we used to do a short-cut for numbers")
             // XXX this was the old code: Literal(q.sqrt)
             x ∧ Eager.half
           case _ =>
@@ -711,7 +714,7 @@ object Expression {
     */
   def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyIdentities") {
     case c: CompositeExpression =>
-      c.simplifyTrivial(c)
+      c.simplifyIdentities(c)
     case x =>
       em.Miss("simplifyIdentities: not a Composite expression type", x) // TESTME
   }

@@ -109,7 +109,7 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
     */
   def evaluate(a: Expression)(context: Context): Option[Eager] = {
     val maybeEager1 = a.evaluateAsIs flatMap applyExact
-    if (maybeEager1.isEmpty) println(s"ExpressionMonoFunction: $this failed to evaluate $a")
+    //    if (maybeEager1.isEmpty) println(s"ExpressionMonoFunction: $this failed to evaluate $a")
     context.qualifyingEagerValue(maybeEager1)
   }
 //    context.qualifyingEagerValue(a.evaluate(paramContext(context)).map(f))
@@ -133,7 +133,7 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
   def apply(x: Eager): Eager =
     if (x.isExact) {
       val maybeEager = applyExact(x)
-      if (maybeEager.isEmpty) println(s"ExpressionMonoFunction: $this failed to evaluate $x")
+      //      if (maybeEager.isEmpty) println(s"ExpressionMonoFunction: $this failed to evaluate $x")
       maybeEager.getOrElse(f(x))
     }
     else
@@ -291,8 +291,8 @@ sealed abstract class ExpressionBiFunction(
       y <- b.evaluate(cRight)
       z <- applyExact((x, y))
     } yield z
-    if (eo.isEmpty)
-      println(s"ExpressionBiFunction: $this failed to evaluate ${a.toString}, ${b.toString}  in context $context")
+    //    if (eo.isEmpty)
+    //      println(s"ExpressionBiFunction: $this failed to evaluate ${a.toString}, ${b.toString}  in context $context")
     context.qualifyingEagerValue(eo)
   }
 
@@ -874,7 +874,7 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
     case (x: Scalable[Eager] @unchecked, y: Q) =>
       Some(x * y.toRational)
     case _ =>
-      println(s"Product:applyExact: a = $a, b = $b resulted in None")
+      //      println(s"Product:applyExact: a = $a, b = $b resulted in None")
       None
   }
 }
@@ -956,11 +956,11 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
       x.pow(y).asInstanceOf[Option[Eager]]
     case (x: CanPower[eager.Structure] @unchecked, y: Q) if x.isExact && y.isExact =>
       val z = x.pow(RationalNumber(y.toRational))
-      println(s"Power:applyExact: a = $a, b = $b resulted in $z")
+      //      println(s"Power:applyExact: a = $a, b = $b resulted in $z")
       for {
         f <- y.maybeFactor(AnyContext) if f == PureNumber
         result <- x.pow(RationalNumber(y.toRational))
-        _ = println(s"result=$result") //if result.isExact
+        //        _ = println(s"result=$result") //if result.isExact
       } yield result
     case (x: eager.Number, RationalNumber(y, _)) if y.invert.isWhole =>
       Some(eager.InversePower(y.invert.toInt, x))
