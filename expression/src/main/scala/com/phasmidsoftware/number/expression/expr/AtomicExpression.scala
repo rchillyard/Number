@@ -87,7 +87,7 @@ object AtomicExpression {
       Some(x) // NOTE we lose the name here. // TESTME
     case r: Root =>
       r.evaluateAsIs // TESTME
-    case _ => // TESTME
+    case _ =>
       None
   }
 }

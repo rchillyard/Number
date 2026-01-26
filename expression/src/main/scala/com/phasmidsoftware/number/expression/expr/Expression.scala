@@ -5,11 +5,10 @@
 package com.phasmidsoftware.number.expression.expr
 
 import cats.Show
-import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.matchers.{LogDebug, LogInfo, LogOff, MatchLogger}
+import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
@@ -57,7 +56,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return true if evaluateAsIs is defined.
     */
-  def isEager: Boolean = evaluateAsIs.isDefined
+  lazy val isEager: Boolean = evaluateAsIs.isDefined
 
   /**
     * Multiplies this `Expression` with another `Lazy` instance.
@@ -70,7 +69,7 @@ trait Expression extends Lazy with Approximate {
     */
   def multiply(other: Lazy): Lazy = other match {
     case x: Expression =>
-      expression.expr.BiFunction(this, x, Product).simplify
+      BiFunction(this, x, Product).simplify
     case _ =>
       throw ExpressionException(s"multiply: logic error on $other")
   }
@@ -134,7 +133,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return an `Eager` representation of this `Expression` achieved through evaluation and/or approximation.
     */
-  def materialize: Eager = {
+  lazy val materialize: Eager = {
     val asIs = simplify.evaluateAsIs
     val maybeValuable = asIs.map(normalizeIfAppropriate) orElse approximation
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
@@ -161,7 +160,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
     */
-  def asCoreNumber: Option[numerical.Number] =
+  lazy val asCoreNumber: Option[numerical.Number] =
     if isExact then
       evaluateAsIs match {
         case Some(x: numerical.Number) => Some(x)
@@ -294,7 +293,7 @@ object Expression {
       * @return an Expression which is the lazy product of x and y.
       */
     infix def plus(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Sum)
+      BiFunction(x, y, Sum)
 
     /**
       * Method to add this Expression and another Expression, resulting in an Expression.
@@ -319,7 +318,7 @@ object Expression {
       * @return an Expression which is the lazy product of x and y.
       */
     def -(y: Expression): Expression =
-      expression.expr.BiFunction(x, -y, Sum)
+      BiFunction(x, -y, Sum)
 
     /**
       * Method to lazily change the sign of this expression.
@@ -327,7 +326,7 @@ object Expression {
       * @return an Expression which is this negated.
       */
     def unary_- : Expression =
-      expression.expr.UniFunction(x, Negate)
+      UniFunction(x, Negate)
 
     /**
       * Method to lazily multiply this expression by another expression.
@@ -336,7 +335,7 @@ object Expression {
       * @return an Expression representing the lazy product of this expression and the given expression.
       */
     infix def times(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Product)
+      BiFunction(x, y, Product)
 
     /**
       * Method to lazily multiply x by y.
@@ -345,7 +344,7 @@ object Expression {
       * @return an Expression which is the lazy product of x and y.
       */
     def *(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Product)
+      BiFunction(x, y, Product)
 
     /**
       * Method to lazily perform an operation on x and y.
@@ -364,7 +363,7 @@ object Expression {
       * @return an Expression representing the reciprocal of x.
       */
     def reciprocal: Expression =
-      expression.expr.UniFunction(x, Reciprocal)
+      UniFunction(x, Reciprocal)
 
     /**
       * Method to lazily divide x by y.
@@ -383,7 +382,7 @@ object Expression {
       * @return an Expression representing x to the power of y.
       */
     def ∧(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Power)
+      BiFunction(x, y, Power)
 
     /**
       * Method to lazily get the square root of x.
@@ -397,7 +396,7 @@ object Expression {
             // XXX this was the old code: Literal(q.sqrt)
             x ∧ Eager.half
           case _ =>
-            x ∧ Eager.half // TESTME
+            x ∧ Eager.half
         }
       case _ =>
         x ∧ Eager.half // TESTME
@@ -409,7 +408,7 @@ object Expression {
       * @return an Expression representing the sin(x).
       */
     def sin: Expression =
-      expression.expr.UniFunction(x, Sine)
+      UniFunction(x, Sine)
 
     /**
       * Method to lazily get the cosine of x.
@@ -417,7 +416,7 @@ object Expression {
       * @return an Expression representing the cos(x).
       */
     def cos: Expression =
-      expression.expr.UniFunction(x, Cosine)
+      UniFunction(x, Cosine)
 
     /**
       * Method to lazily get the tangent of x.
@@ -435,7 +434,7 @@ object Expression {
       * @return an Expression representing the log of x.
       */
     def ln: Expression =
-      expression.expr.UniFunction(x, Ln)
+      UniFunction(x, Ln)
 
     /**
       * Method to lazily get the value of `e` raised to the power of x.
@@ -443,7 +442,7 @@ object Expression {
       * @return an Expression representing `e` raised to the power of x.
       */
     def exp: Expression =
-      expression.expr.UniFunction(x, Exp)
+      UniFunction(x, Exp)
 
     /**
       * Method to lazily get the value of `atan2(x, y)`, i.e., if the result is `z`, then `tan(z) = y/x`.
@@ -451,7 +450,7 @@ object Expression {
       * @return an Expression representing `atan2(x, y)`.
       */
     def atan(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Atan)
+      BiFunction(x, y, Atan)
 
     /**
       * Computes the logarithm of a given expression to the specified base.
@@ -460,7 +459,7 @@ object Expression {
       * @return an Expression representing the logarithm of this expression to the base `b`.
       */
     def log(b: Expression): Expression =
-      expression.expr.BiFunction(x, b, Log)
+      BiFunction(x, b, Log)
 
     /**
       * Eagerly compare this expression with y.
@@ -511,7 +510,7 @@ object Expression {
     */
   def apply(x: Eager): Expression = x match {
     case Eager.zero =>
-      Zero // TESTME (applies to all except default case)
+      Zero
     case Eager.one =>
       One
     case Eager.minusOne =>
@@ -541,11 +540,11 @@ object Expression {
     case -1 =>
       minusOne
     case 0 =>
-      zero // TESTME
+      zero
     case 1 =>
       one
     case 2 =>
-      two // TESTME
+      two
     case _ =>
       ValueExpression(x)
   }
@@ -715,7 +714,7 @@ object Expression {
     case c: CompositeExpression =>
       c.simplifyIdentities(c)
     case x =>
-      em.Miss("simplifyIdentities: not a Composite expression type", x) // TESTME
+      em.Miss("simplifyIdentities: not a Composite expression type", x)
   }
 
   /**

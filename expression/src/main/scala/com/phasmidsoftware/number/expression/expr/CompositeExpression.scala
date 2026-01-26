@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, ExactNumber, NatLog, QuadraticSolution, RationalNumber, Structure, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
@@ -44,14 +44,15 @@ sealed trait CompositeExpression extends Expression {
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] = FP.whenever(isExact)(evaluate(RestrictedContext(PureNumber)).flatMap(_.maybeDouble))
+  lazy val maybeDouble: Option[Double] =
+    FP.whenever(isExact)(evaluate(RestrictedContext(PureNumber)).flatMap(_.maybeDouble))
 
   /**
     * Determines if the current number is equal to zero.
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = evaluateAsIs.exists(x => x.isZero)
+  lazy val isZero: Boolean = evaluateAsIs.exists(x => x.isZero)
 
   /**
     * Determines the sign of the Monotone value represented by this instance.
@@ -59,7 +60,7 @@ sealed trait CompositeExpression extends Expression {
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = evaluateAsIs.map(_.signum).getOrElse(0)
+  lazy val signum: Int = evaluateAsIs.map(_.signum).getOrElse(0)
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
@@ -86,7 +87,7 @@ sealed trait CompositeExpression extends Expression {
     *         exact expressions. The result contains the simplified `Expression` if successful,
     *         or indicates no simplification was possible.
     */
-  def simplifyExact: em.AutoMatcher[Expression] =
+  lazy val simplifyExact: em.AutoMatcher[Expression] =
     em.Matcher("BiFunction: simplifyExact") {
       (expr: Expression) =>
         expr.evaluateAsIs match {
@@ -118,7 +119,7 @@ sealed trait CompositeExpression extends Expression {
     *         evaluated into constants, and simplifies them by replacing with a `Literal`. If simplification
     *         is not possible, it returns a miss state with the original `Expression`.
     */
-  def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
+  lazy val simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
     expr =>
       expr.evaluateAsIs match {
         case Some(f) =>
@@ -144,7 +145,7 @@ sealed trait CompositeExpression extends Expression {
     *
     * @return a String
     */
-  def render: String = matchSimpler(this) match {
+  lazy val render: String = matchSimpler(this) match {
     case em.Match(e) =>
       e.render
     case _ =>
@@ -179,26 +180,25 @@ object CompositeExpression {
   def apply(f: ExpressionBiFunction, xs: Seq[Expression]): Expression =
     xs.toList match {
       case Nil =>
-        throw new IllegalArgumentException("Empty Sequence") // TESTME
+        throw new IllegalArgumentException("Empty Sequence")
       case h :: Nil =>
-        h // TESTME
+        h
       case h :: j :: Nil =>
         expression.expr.BiFunction(h, j, Sum)
       case _ =>
-        expression.expr.Aggregate(Sum, xs) // TESTME
+        expression.expr.Aggregate(Sum, xs)
     }
 
   /**
     * Creates a `Aggregate` instance from the given sequence of `Field` inputs.
     * Each `Field` is converted to a `Literal` expression and combined into a `Aggregate`.
-    * TESTME
     *
     * @param f  the `ExpressionBiFunction` to be used to combine all the given elements.
     * @param xs The sequence of `Field` instances used to create the `Aggregate`.
     * @return An `Aggregate` instance containing the converted `Literal` expressions.
     */
   def create(f: ExpressionBiFunction, xs: Eager*): Expression =
-    apply(f, xs map (x => Literal(x, Some(x.render)))) // TESTME
+    apply(f, xs map (x => Literal(x, Some(x.render))))
 }
 
 /**
@@ -228,7 +228,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return a `Boolean` indicating whether the entity is exact (`true`)
     *         or has an approximation (`false`).
     */
-  def isExact: Boolean = x.isExact
+  lazy val isExact: Boolean = x.isExact
 
   /**
     * Renders the `UniFunction` as a string representation of an expression.
@@ -237,21 +237,21 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     *
     * @return a string representing the `UniFunction` as an expression
     */
-  def renderAsExpression: String = s"$f(${x.render})"
+  lazy val renderAsExpression: String = s"$f(${x.render})"
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
     *
     * @return a sequence of `Expression` objects representing the individual terms of this `CompositeExpression`.
     */
-  def terms: Seq[Expression] = Seq(x) // TESTME
+  lazy val terms: Seq[Expression] = Seq(x) // TESTME
 
   /**
     * Method to determine the depth of this Expression.
     *
     * @return the 1 + depth of x.
     */
-  def depth: Int =
+  lazy val depth: Int =
     1 + x.depth
 
   /**
@@ -285,7 +285,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return an `em.AutoMatcher[Expression]` representing the transformation of the components
     *         of this `Expression` using the `matchSimpler` logic.
     */
-  def simplifyComponents: em.AutoMatcher[Expression] =
+  lazy val simplifyComponents: em.AutoMatcher[Expression] =
 //    em.Matcher("UniFunction: simplifyComponents") {
 //      case UniFunction(x, _) =>
 //        val matcher = matchSimpler `map` (z => copy(x = z))
@@ -304,7 +304,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return an `em.AutoMatcher[Expression]` that always fails with a miss case,
     *         as no trivial simplifications are possible.
     */
-  def simplifyIdentities: em.AutoMatcher[Expression] =
+  lazy val simplifyIdentities: em.AutoMatcher[Expression] =
     em.Matcher("UniFunction: simplifyIdentities") {
       case uni@UniFunction(e, f) =>
         // TODO sort this out.
@@ -339,7 +339,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return An `em.AutoMatcher[Expression]` that will either match the simplified expression or
     *         indicate a miss if no simplification can be applied.
     */
-  def simplifyStructural: em.AutoMatcher[Expression] =
+  lazy val simplifyStructural: em.AutoMatcher[Expression] =
     em.Matcher("simplifyStructural") {
       case UniFunction(UniFunction(x, f), g) if em.complementaryMonadic(f, g) =>
         em.Match(x)
@@ -469,7 +469,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return An `AutoMatcher` for the `Expression` type that matches and simplifies `BiFunction` expressions.
     */
-  def simplifyComponents: em.AutoMatcher[Expression] =
+  lazy val simplifyComponents: em.AutoMatcher[Expression] =
     em.Matcher("BiFunction: simplifyComponents") {
       case BiFunction(x, y, f) =>
         componentsSimplifier(Seq[Expression](x, y), { xs => val Seq(newX, newY) = xs; BiFunction(newX, newY, f) })
@@ -494,7 +494,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `em.AutoMatcher[Expression]` instance encapsulating the simplified `Expression`
     *         if simplification was possible, or a "miss" if no trivial simplification could be applied.
     */
-  def simplifyIdentities: em.AutoMatcher[Expression] =
+  lazy val simplifyIdentities: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("BiFunction: simplifyIdentities") {
       case BiFunction(a, b, f) if matchingIdentity(a, f, left = true).contains(true) =>
         em.Match(b)
@@ -527,7 +527,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `em.AutoMatcher[Expression]` that encapsulates the logic for simplifying the `BiFunction`.
     *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
-  def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyStructural") {
+  lazy val simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyStructural") {
     case BiFunction(a, b, Sum) if a == b =>
       em.Match(expression.expr.BiFunction(a, Two, Product))
     case BiFunction(BiFunction(w, x, Power), BiFunction(y, z, Power), Product) =>
@@ -617,7 +617,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return a sequence of `Expression` objects representing the individual terms of this `CompositeExpression`.
     */
   def terms: Seq[Expression] =
-    Seq(a, b) // TESTME
+    Seq(a, b)
 
   /**
     * Render this BiFunction for debugging purposes.
@@ -652,12 +652,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
 
   /**
     * Regular hashCode method.
-    * TESTME
     *
     * @return an Int depending on f, a, and b.
     */
   override def hashCode(): Int =
-    java.util.Objects.hash(f, a, b) // TESTME
+    java.util.Objects.hash(f, a, b)
 
   /**
     * An equals method which considers two BiFunctions, which are non-identical but symmetric, to be equal.
@@ -934,7 +933,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           case Some(y: QuadraticSolution) if f.commutes =>
             modifyAlgebraicQuadratic(y, x, f)
           case _ =>
-            em.Miss[Expression, Expression](s"BiFunction: modifyQuadratic: no trivial simplification for $r $f $x (not Real)", this) // TESTME
+            em.Miss[Expression, Expression](s"BiFunction: modifyQuadratic: no trivial simplification for $r $f $x (not Real)", this)
         }
       case _ =>
         em.Miss[Expression, Expression](s"BiFunction: modifyQuadratic: no trivial simplification for $r $f $x (not Atomic)", this) // TESTME
@@ -968,10 +967,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
                 em.Miss[Expression, Expression](s"BiFunction: modifyAlgebraicQuadratic: no trivial simplification for $a $f $x (not Rational)", this) // TESTME
             }
           case _ =>
-            em.Miss[Expression, Expression](s"BiFunction: modifyAlgebraicQuadratic: no trivial simplification for $a $f $x (not Real)", this) // TESTME
+            em.Miss[Expression, Expression](s"BiFunction: modifyAlgebraicQuadratic: no trivial simplification for $a $f $x (not Real)", this)
         }
       case _ =>
-        em.Miss[Expression, Expression](s"BiFunction: modifyAlgebraicQuadratic: no trivial simplification for $a $f $x (not Atomic)", this) // TESTME
+        em.Miss[Expression, Expression](s"BiFunction: modifyAlgebraicQuadratic: no trivial simplification for $a $f $x (not Atomic)", this)
     }
 }
 
@@ -1057,7 +1056,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return a `Boolean` indicating whether the entity is exact (`true`)
     *         or has an approximation (`false`).
     */
-  def isExact: Boolean = xs.forall(_.isExact)
+  lazy val isExact: Boolean = xs.forall(_.isExact)
 
   /**
     * Renders the `CompositeExpression` as a string representation of the expression itself,
@@ -1075,7 +1074,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return the result of the simplification attempt encapsulated in a `MatchResult`, which either contains
     *         a simplified `Expression` or indicates that no simplification was possible.
     */
-  def simplifyComponents: em.AutoMatcher[Expression] =
+  lazy val simplifyComponents: em.AutoMatcher[Expression] =
     em.Matcher("Aggregate: simplifyComponents") {
       case Aggregate(f, xs) =>
         componentsSimplifier(xs, ys => expression.expr.Aggregate(f, ys))
@@ -1093,7 +1092,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return an `AutoMatcher` for `Expression` capable of identifying and performing
     *         simplifications of trivial aggregates.
     */
-  def simplifyIdentities: em.AutoMatcher[Expression] =
+  lazy val simplifyIdentities: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("Aggregate: simplifyIdentities") {
       // Remove identity values
       case a@Aggregate(f, xs) =>
@@ -1108,7 +1107,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *
     * @return an `AutoMatcher` for `Expression` that applies the simplification logic defined in `simplifyAggregate`.
     */
-  def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyStructural") {
+  lazy val simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyStructural") {
     case t: expression.expr.Aggregate =>
       em.simplifyAggregate(t)
     case x: Expression => // TESTME
@@ -1120,6 +1119,8 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *
     * The method identifies pairs of expressions within the aggregate that satisfy the provided
     * `complementaryPredicate` function and removes them, returning the remaining expressions.
+    *
+    * CONSIDER This is currently called only once so it could be converted to a lazy def by fixing the parameter.
     *
     * @param complementaryPredicate a function that determines whether two expressions within the
     *                               context of a provided aggregate function are complementary.
@@ -1189,13 +1190,12 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
 
   /**
     * Adds a sequence of expressions to the current aggregate.
-    * TESTME
     *
     * @param ys the sequence of expressions to be added
     * @return a new Aggregate instance with the updated list of expressions
     */
   def addAll(ys: Seq[Expression]): expression.expr.Aggregate =
-    copy(xs = xs ++ ys) // TESTME
+    copy(xs = xs ++ ys)
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
@@ -1223,7 +1223,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation(force: Boolean): Option[eager.Real] = { // TESTME
+  def approximation(force: Boolean): Option[eager.Real] = {
     val identity: Eager = function.maybeIdentityL.getOrElse(Eager.zero) // NOTE should never require the default
     val vos: Seq[Option[eager.Real]] = xs map (x => x.approximation(force))
     // TODO asInstanceOf
@@ -1267,7 +1267,7 @@ object Aggregate {
     if xs.nonEmpty then
       new expression.expr.Aggregate(function, xs)
     else
-      throw new IllegalArgumentException("total requires at least one argument (use empty if necessary)") // TESTME
+      throw new IllegalArgumentException("total requires at least one argument (use empty if necessary)")
 
   /**
     * Constructs an `Aggregate` expression that applies the `Sum` operation

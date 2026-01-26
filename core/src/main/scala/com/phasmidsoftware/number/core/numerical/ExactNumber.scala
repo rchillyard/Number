@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
+
 import java.util.Objects
 
 /**
@@ -297,7 +298,6 @@ object ExactNumber {
 
   /**
     * Creates an instance of `ExactNumber` with the value `x` and a default factor of `PureNumber`.
-    * TESTME
     *
     * @param x an integer representing the value of the `ExactNumber`.
     * @return an instance of `ExactNumber` with the specified value and the `PureNumber` factor.

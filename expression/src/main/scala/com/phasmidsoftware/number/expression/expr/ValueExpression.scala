@@ -134,7 +134,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse value.render // TESTME
+  def render: String = maybeName getOrElse value.render
 
   /**
     * Generate a String for debugging purposes.
@@ -527,9 +527,9 @@ case object Half extends ScalarConstant(RationalNumber.half, "\u00BD") {
     */
   def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Negate =>
-      Literal.someLiteral(-RationalNumber.half) // TESTME
+      Literal.someLiteral(-RationalNumber.half)
     case Reciprocal =>
-      Some(Two) // TESTME
+      Some(Two)
     case _ =>
       None // TESTME
   }
@@ -590,9 +590,9 @@ case object MinusOne extends ScalarConstant(-WholeNumber.one, "-1") {
     case Negate =>
       Some(One)
     case Reciprocal =>
-      Some(this) // TESTME
+      Some(this)
     case _ =>
-      None // TESTME
+      None
   }
 }
 
@@ -674,7 +674,7 @@ case object E extends NamedConstant(NatLog.e, "e") {
   * The constant i (viz., the square root of 2)
   * Yes, this is an exact number.
   */
-case object ConstI extends NamedConstant(Eager(Constants.i), "i") { // TESTME
+case object ConstI extends NamedConstant(Eager(Constants.i), "i") {
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
@@ -710,7 +710,7 @@ case object Infinity extends NamedConstant(Eager(Rational.infinity), "∞") {
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match { // TESTME
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Reciprocal =>
       Some(Zero)
     case Exp =>

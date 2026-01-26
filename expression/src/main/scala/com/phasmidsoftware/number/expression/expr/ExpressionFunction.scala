@@ -429,7 +429,6 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     *
     * TODO there are many cases which are unimplemented and will fail.
     * For example, other angles based pi/3.
-    * TESTME
     *
     * @param a the first operand, a `Valuable` instance.
     * @param b the second operand, a `Valuable` instance.
@@ -499,8 +498,6 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
     * and returns an optional result.
     * The evaluation succeeds only if the operation satisfies specific conditions
     * (e.g., exact representations or mathematical constraints).
-    *
-    * TESTME
     *
     * @param a the Valuable whose log we required, a `Valuable` instance.
     * @param b the base, a `Valuable` instance.
@@ -601,7 +598,7 @@ case object Exp extends ExpressionMonoFunction("exp", lift1(x => x.exp)) {
     case Eager.negInfinity =>
       Some(Eager.zero)
     case Eager.zero =>
-      Some(Eager.one) // TESTME
+      Some(Eager.one)
     case Eager.one =>
       Some(Eager.e)
     case _ =>
@@ -952,7 +949,7 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     case (x: eager.Number, RationalNumber(y, _)) if y.invert.isWhole =>
       Some(eager.InversePower(y.invert.toInt, x))
     case _ =>
-      None // TESTME
+      None
   }
 }
 

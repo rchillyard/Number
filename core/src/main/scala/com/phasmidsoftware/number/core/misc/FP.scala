@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
 import com.phasmidsoftware.number.core.numerical.CoreException
+
 import java.net.URL
 import scala.Option.when
 import scala.io.Source
@@ -143,7 +144,6 @@ object FP {
     * The result of this is then pattern-matched:
     * In the Some(z) case, we return the Success(z).
     * In the None case, we return the result of tryMapLeft applied to the lRe with the function l2Zy.
-    * TESTME (unused)
     *
     * NOTE: in practice, this does not seem to be used, but it should remain here.
     *

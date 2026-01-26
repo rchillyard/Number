@@ -95,29 +95,29 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def matchComplementaryExpressions: Matcher[DyadicTriple, Expression] = Matcher("matchComplementaryExpressions") {
     case Sum ~ x ~ UniFunction(y, Negate) if x == y =>
-      Match(Zero) // TESTME
+      Match(Zero)
     case Sum ~ UniFunction(x, Negate) ~ y if x == y =>
-      Match(Zero) // TESTME
+      Match(Zero)
     case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if x == y =>
-      Match(w) // TESTME
+      Match(w)
     case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == z =>
-      Match(y) // TESTME
+      Match(y)
     case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if w == y =>
-      Match(x) // TESTME
+      Match(x)
     case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == y =>
-      Match(z) // TESTME
+      Match(z)
     case Product ~ x ~ UniFunction(y, Reciprocal) if x == y =>
       Match(One)
     case Product ~ UniFunction(x, Reciprocal) ~ y if x == y =>
-      Match(One) // TESTME
+      Match(One)
     case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if x == y =>
-      Match(w) // TESTME
+      Match(w)
     case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w =>
-      Match(z) // TESTME
+      Match(z)
     case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if w == y =>
-      Match(x) // TESTME
+      Match(x)
     case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z =>
-      Match(w) // TESTME
+      Match(w)
     case Power ~ BiFunction(w, x, Power) ~ z if x :* z == One =>
       Match(w)
     case f ~ x ~ y =>
@@ -181,10 +181,9 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def value: ExpressionMatcher[Valuable] = {
     case Literal(v, _) =>
-      Match(v) // TESTME
+      Match(v)
     case ValueExpression(v, _) =>
       Match(v)
-    //    case x@core.Number(_, _) => Match(Real(x)) // TESTME
     case x: ValueExpression =>
       matchIfDefined(x.evaluateAsIs)(x)
     case x =>
@@ -235,9 +234,9 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return A `ExpressionTransformer` that matches and simplifies `Aggregate` expressions efficiently.
     * @note Throws java.util.NoSuchElementException due to invocation of get on Option (very unlikely).
     */
-  def simplifyAggregate: Matcher[expression.expr.Aggregate, Expression] = Matcher[expression.expr.Aggregate, Expression]("simplifyAggregate") {
+  def simplifyAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("simplifyAggregate") {
     case Aggregate(Sum, Nil) =>
-      Match(Zero) // TESTME
+      Match(Zero)
     case Aggregate(Product, Nil) =>
       Match(One) // TESTME
     case Aggregate(Power, Nil) =>
@@ -373,10 +372,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def complementaryMonadic(f: ExpressionMonoFunction, g: ExpressionMonoFunction): Boolean = (f, g) match {
     case (Exp, Ln) => true
-    case (Ln, Exp) => true // TESTME
+    case (Ln, Exp) => true
     case (Negate, Negate) => true
     case (Reciprocal, Reciprocal) => true
-    case _ => false // TESTME
+    case _ => false
   }
 
   /**

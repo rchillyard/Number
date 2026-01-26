@@ -388,8 +388,6 @@ case object Log extends ExpressionBiFunction("log", Real.log, false, None, None)
     * The evaluation succeeds only if the operation satisfies specific conditions
     * (e.g., exact representations or mathematical constraints).
     *
-    * TESTME
-    *
     * @param a the field whose log we required, a `Field` instance.
     * @param b the base, a `Field` instance.
     * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
@@ -767,7 +765,7 @@ case object Power extends ExpressionBiFunction("∧", (x, y) => x.power(y), isEx
       val result: Number = x.doPower(y)
       when(result.isExact)(Real(result))
     case _ =>
-      None // TESTME
+      None
   }
 }
 

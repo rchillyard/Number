@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.inner.Value.{maybeRational, negateConditi
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
 import com.phasmidsoftware.number.core.numerical.{CoreException, Field, Real}
+
 import java.util.Objects
 
 /**
@@ -59,7 +60,6 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
 
   /**
     * Scales the current `Algebraic_Quadratic` instance by a given `Rational` value.
-    * TESTME
     *
     * @param x the scaling factor represented as a `Rational`.
     * @return a new `Algebraic_Quadratic` instance with scaled values of `p` and `q`.
@@ -160,7 +160,6 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
       that.asReal map (r => this.multiply(r))
     }).getOrElse(Real.NaN) // XXX this is unlikely
   }
-
 
   /**
     * Multiplies the current `Algebraic` instance by a specified `Rational` value, resulting in a new transformed `Algebraic`.
