@@ -466,18 +466,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplify.materialize shouldBe Angle.zero
   }
 
-  behavior of "doSimplifyStructural"
+  behavior of "structuralMatcher"
   it should "evaluate 1/2 * 2" in {
     import Expression.ExpressionOps
     val expression: Expression = Literal(half) * 2
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-    val y: em.MatchResult[Expression] = x.doSimplifyStructural(x)
+    val y: em.MatchResult[Expression] = x.structuralMatcher(x)
     y shouldBe em.Match(One)
   }
   it should "evaluate e * e" in {
     val expression: Expression = E * E
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-    val y: em.MatchResult[Expression] = x.doSimplifyStructural(x)
+    val y: em.MatchResult[Expression] = x.structuralMatcher(x)
     y shouldBe em.Match(BiFunction(E, ValueExpression(2), Power))
     val simplified = y.get.simplify
     simplified shouldBe Literal(Eager(numerical.Real(ExactNumber(2, NatLog))))
@@ -486,7 +486,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val phi = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-    val y: em.MatchResult[Expression] = x.doSimplifyStructural(x)
+    val y: em.MatchResult[Expression] = x.structuralMatcher(x)
     y shouldBe em.Match(BiFunction(phi, ValueExpression(2), Power))
   }
 

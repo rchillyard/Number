@@ -229,7 +229,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * - If the `Aggregate` cannot be simplified further, the original structure is retained.
     *
     * NOTE: Need to fix #87
-    * NOTE: not deprecated because it's used in doSimplifyStructural
+    * NOTE: not deprecated because it's used in structuralMatcher
     *
     * @return A `ExpressionTransformer` that matches and simplifies `Aggregate` expressions efficiently.
     * @note Throws java.util.NoSuchElementException due to invocation of get on Option (very unlikely).

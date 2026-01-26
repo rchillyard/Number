@@ -37,7 +37,7 @@ import org.scalatest.matchers.should
   *
   * The operations are tested against specific matching rules for common scenarios in symbolic math expressions,
   * ensuring the correctness of `ExpressionMatchers`, custom defined `ExpressionMatchers.ExpressionMatcher` implementations,
-  * and simplification functionalities such as `matchSimpler` and `simplifyIdentities`.
+  * and simplification functionalities such as `matchSimpler` and `identitiesMatcher`.
   *
   * Behavior-driven tests are grouped by functionality to validate the logic and expected outcomes for:
   * - Matching values via custom expression matchers.
@@ -159,7 +159,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ Zero ~ x) shouldBe em.Match(Zero)
     p(Power ~ x ~ One) shouldBe em.Match(x)
   }
-  it should "simplifyIdentities 1" in {
+  it should "identitiesMatcher 1" in {
     import BiFunction.*
     val p = Expression.simplifyIdentities
     val x: Expression = Eager.pi
@@ -569,7 +569,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     (Product ~ Zero ~ x).simplify shouldBe Zero
     (Power ~ x ~ One).simplify shouldBe x
   }
-  it should "simplifyIdentities 1" in {
+  it should "identitiesMatcher 1" in {
     import BiFunction.*
     val x: Expression = Eager.pi
     (Sum ~ x ~ Zero).simplify shouldBe x
@@ -939,7 +939,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work for Aggregate product 1" in {
     val target: CompositeExpression = Aggregate.product(Two * Two, MinusOne * MinusOne)
     //val result: Expression = em.simplifyTerms(target)
-    //    Expression.simplifyIdentities
+    //    Expression.identitiesMatcher
     val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
     result shouldBe Aggregate(Product, Seq(4, One))
   }

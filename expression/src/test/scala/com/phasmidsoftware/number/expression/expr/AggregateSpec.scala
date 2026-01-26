@@ -36,7 +36,7 @@ class AggregateSpec extends AnyFlatSpec with should.Matchers {
   val em: ExpressionMatchers = Expression.em
   it should "simplifyOperands {2 * -1}+{2 + 1}+{-1 * 5}+2" in {
     val target = Aggregate.total(Two * MinusOne, Two + One, MinusOne * 5, WholeNumber.two)
-    target.doSimplifyOperands(target) shouldBe em.Match(Aggregate.total(-2, 3, -5, 2))
+    target.operandsMatcher(target) shouldBe em.Match(Aggregate.total(-2, 3, -5, 2))
     target.simplifyConstant(target) shouldBe em.Match(Literal(-2))
   }
   it should "simplify {2 * -1}+{2 + 1}+{-1 * 5}+2" in {

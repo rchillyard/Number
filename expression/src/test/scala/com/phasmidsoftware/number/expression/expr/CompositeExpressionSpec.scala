@@ -54,11 +54,11 @@ class CompositeExpressionSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "simplifyIdentities" in {
+  it should "identitiesMatcher" in {
 
   }
 
-  it should "doSimplifyStructural" in {
+  it should "structuralMatcher" in {
 
   }
 
