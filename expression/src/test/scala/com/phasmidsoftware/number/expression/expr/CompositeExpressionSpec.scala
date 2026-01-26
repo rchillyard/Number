@@ -42,7 +42,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with should.Matchers {
     m.get should matchPattern { case `expected` => }
   }
 
-  it should "simplifyComponents" in {
+  it should "simplifyOperands" in {
 
   }
 

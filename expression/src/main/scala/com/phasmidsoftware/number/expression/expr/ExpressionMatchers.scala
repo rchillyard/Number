@@ -242,7 +242,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     case Aggregate(Power, Nil) =>
       Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
     case Aggregate(_, x :: Nil) =>
-      Match(x) // XXX we should not need to simplify x since simplifyComponents should already have done that
+      Match(x) // XXX we should not need to simplify x since simplifyOperands should already have done that
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
     case a@Aggregate(_, _) =>
       // TODO asInstanceOf
@@ -443,7 +443,6 @@ object ExpressionMatchers {
     * @return A `MatchResult[Expression]` containing the result of the simplification process.
     */
   def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] = {
-    // Fully simplify each component
     if (xs.map(_.simplify) == xs)
       em.Miss("components unchanged", grouper(xs))
     else

@@ -926,6 +926,12 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 ### Expressions
 The lazy mechanism (see above) is based on _Expressions_.
+Expressions are simplified (essentially, normalization) before being materialized.
+The simplification mechanism is based on the _ExpressionMatchers_ package and is described
+in the following document:
+
+- **[Expression Simplification Pipeline](docs/SimplificationPipeline.md)** - Detailed guide to the multi-phase simplification system
+
 In the following, by "exact," we mean a quantity that is exact (like $\pi$ or $√2$),
 even though it might not be possible to represent it exactly using
 base-10 (or base-2) notation.

@@ -877,8 +877,8 @@ class CompositeExpressionSpec2 extends AnyFlatSpec with Matchers {
     println(s"Starting with: $root3")
 
     // Try each phase manually
-    val afterComponents = root3.simplifyComponents(root3)
-    println(s"After simplifyComponents: $afterComponents")
+    val afterComponents = root3.doSimplifyOperands(root3)
+    println(s"After simplifyOperands: $afterComponents")
 
     val afterStructural = root3.simplifyStructural(root3)
     println(s"After simplifyStructural: $afterStructural")

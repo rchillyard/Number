@@ -76,7 +76,7 @@ sealed trait CompositeExpression extends Expression {
     * @return the result of the simplification attempt encapsulated in a `MatchResult`, which either contains
     *         a simplified `Expression` or indicates that no simplification was possible.
     */
-  def simplifyComponents: em.AutoMatcher[Expression]
+  def doSimplifyOperands: em.AutoMatcher[Expression]
 
   /**
     * Simplifies the exact form of a `CompositeExpression` by identifying and transforming
@@ -285,14 +285,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return an `em.AutoMatcher[Expression]` representing the transformation of the components
     *         of this `Expression` using the `matchSimpler` logic.
     */
-  lazy val simplifyComponents: em.AutoMatcher[Expression] =
-    //    em.Matcher("UniFunction: simplifyComponents") {
-    //      case UniFunction(x, _) =>
-    //        val matcher = matchSimpler `map` (z => copy(x = z))
-    //        matcher(x)
-    //    }
-
-    em.Matcher("UniFunction: simplifyComponents") {
+  lazy val doSimplifyOperands: em.AutoMatcher[Expression] =
+    em.Matcher("UniFunction: simplifyOperands") {
       case UniFunction(x, f) =>
         componentsSimplifier(Seq[Expression](x), { xs => val Seq(newX) = xs; UniFunction(newX, f) })
     }
@@ -470,8 +464,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return An `AutoMatcher` for the `Expression` type that matches and simplifies `BiFunction` expressions.
     */
-  lazy val simplifyComponents: em.AutoMatcher[Expression] =
-    em.Matcher("BiFunction: simplifyComponents") {
+  lazy val doSimplifyOperands: em.AutoMatcher[Expression] =
+    em.Matcher("BiFunction: simplifyOperands") {
       case BiFunction(x, y, f) =>
         componentsSimplifier(Seq[Expression](x, y), { xs => val Seq(newX, newY) = xs; BiFunction(newX, newY, f) })
     }
@@ -1077,8 +1071,8 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return the result of the simplification attempt encapsulated in a `MatchResult`, which either contains
     *         a simplified `Expression` or indicates that no simplification was possible.
     */
-  lazy val simplifyComponents: em.AutoMatcher[Expression] =
-    em.Matcher("Aggregate: simplifyComponents") {
+  lazy val doSimplifyOperands: em.AutoMatcher[Expression] =
+    em.Matcher("Aggregate: simplifyOperands") {
       case Aggregate(f, xs) =>
         componentsSimplifier(xs, ys => expression.expr.Aggregate(f, ys))
     }

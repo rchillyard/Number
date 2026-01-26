@@ -914,33 +914,33 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work for BiFunction 1" in {
     val target: CompositeExpression = BiFunction(Two * Two, MinusOne * MinusOne, Sum)
     //val result: Expression = em.simplifyTerms(target)
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
 
     result shouldBe BiFunction(4, One, Sum)
   }
   it should "work for BiFunction 2" in {
     val target: CompositeExpression = BiFunction(Two, MinusOne, Sum)
     //val result: Expression = em.simplifyTerms(target)
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
     result shouldBe target
   }
   it should "work for UniFunction" in {
     val target: CompositeExpression = expr.UniFunction(Two * Two, Negate)
     //val result: Expression = em.simplifyTerms(target)
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
     result shouldBe expr.UniFunction(4, Negate)
   }
   it should "work for Aggregate total" in {
     val target: CompositeExpression = Aggregate.total(Two * Two, MinusOne * MinusOne)
     //val result: Expression = em.simplifyTerms(target)
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
     result shouldBe Aggregate(Sum, Seq(4, One))
   }
   it should "work for Aggregate product 1" in {
     val target: CompositeExpression = Aggregate.product(Two * Two, MinusOne * MinusOne)
     //val result: Expression = em.simplifyTerms(target)
     //    Expression.simplifyIdentities
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
     result shouldBe Aggregate(Product, Seq(4, One))
   }
 
