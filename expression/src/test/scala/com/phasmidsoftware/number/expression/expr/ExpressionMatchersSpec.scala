@@ -8,9 +8,9 @@ import cats.kernel.Eq
 import com.phasmidsoftware.matchers.*
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.Valuable
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
-import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{MonadicOperationExp, Operations, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, root3, √}
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
@@ -337,6 +337,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z: Expression = Expression(3).sqrt
     val x = z :* z.reciprocal * Eager(3)
     val simplified = x.simplify
+    println(s"simplified: $simplified")
     val asIs = simplified.evaluateAsIs
     asIs shouldBe Some(Eager(3))
   }
@@ -441,7 +442,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplifyAggregate 5" in {
     val root3: Expression = Expression(3).sqrt
     val x: BiFunction = (root3 :* root3.reciprocal * Eager(3)).asInstanceOf[BiFunction]
-    val x1: Aggregate = asAggregate(x).get
+    val x1: Expression = asAggregate(x).get
     val x2: Aggregate = Aggregate(Product, Seq(root3, root3.reciprocal, Eager(3)))
     println(s"x1=$x1\nx2=$x2")
     val simplified = x1.simplify
@@ -500,7 +501,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     x shouldBe Literal(half)
   }
   it should "work for Exp Infinity" in {
-    val x = expr.UniFunction(Expression(infinity), Exp).simplify
+    val expression = Expression(infinity)
+    println(s"expression: $expression")
+    val x = expr.UniFunction(expression, Exp).simplify
+    println(s"exp(∞) simplified to: $x (class: ${x.getClass.getSimpleName})")
     x shouldBe Infinity
   }
   it should "work for Exp neg Infinity" in {
@@ -1166,12 +1170,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify √3 * -1 as -√3" in {
     val root3 = Expression(3).sqrt
     val expression = BiFunction(root3, MinusOne, Product)
-    expression.simplify shouldBe expr.UniFunction(root3, Negate)
+    val simplify = expression.simplify
+    simplify shouldBe expr.UniFunction(Literal(InversePower(2,3)), Negate)
   }
   it should "simplify √3 * 1 as √3" in {
     val root3 = Expression(3).sqrt
     val expression = BiFunction(root3, One, Product)
-    expression.simplify shouldBe root3
+    expression.simplify shouldBe Literal(InversePower(2,3))
   }
 
   it should "simplify (√3 :+ 1)(√3 - 1) as 2 exactly" in {
@@ -1269,8 +1274,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val yo = Expression.parse("( ( 3 ∧ ( 2 ∧ -1 ) ) * -1 )")
     val zo = for (x <- xo; y <- yo)
       yield Expression.matchSimpler(x * y) // 1st round
-          .flatMap(Expression.matchSimpler) // 2nd round
-    zo should matchPattern { case Some(_) => }
+//          .flatMap(Expression.matchSimpler) // 2nd round
+    zo.map(mr => mr.map(_.simplify)) should matchPattern { case Some(_) => }
     zo.get shouldBe em.Match(Expression(-3))
   }
 
@@ -1426,7 +1431,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     r.evaluateAsIs shouldBe Some(Eager(1 :/ 2))
   }
   it should "fail to simplify 2 ∧ 1/2" in {
-    val r = p(Power ~ Two ~ Expression(Rational.half))
+    val x = Two
+    val half = Expression(Rational.half)
+    val r = p(Power ~ x ~ half)
     r.successful shouldBe true
   }
 

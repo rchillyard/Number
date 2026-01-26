@@ -210,7 +210,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.
     */
-  override def simplifyAtomic: em.AutoMatcher[Expression] =
+  def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
       case QuadraticRoot(QuadraticEquation(p, q), _) if p.isZero =>
         // This is a simple square root: x² + q = 0, i.e., x = √(-q)
@@ -308,7 +308,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     case Rational.half =>
       squareRoot(branch == 0)
     case x if x >= 2 =>
-      import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
+      import Expression.ExpressionOps
       squared :* power(x - 2)
     case _ =>
       throw ExpressionException(s"power: unable to compute power of $this to $r")

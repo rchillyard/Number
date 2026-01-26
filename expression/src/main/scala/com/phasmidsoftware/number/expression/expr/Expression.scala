@@ -5,10 +5,11 @@
 package com.phasmidsoftware.number.expression.expr
 
 import cats.Show
-import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.flog.Loggable
+import com.phasmidsoftware.matchers.{LogDebug, LogInfo, LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
@@ -135,10 +136,7 @@ trait Expression extends Lazy with Approximate {
     */
   def materialize: Eager = {
     val asIs = simplify.evaluateAsIs
-    val maybeValuable = asIs.map(normalizeIfAppropriate) orElse {
-      //      println(s"materialize: no direct evaluation possible for $this")
-      approximation
-    }
+    val maybeValuable = asIs.map(normalizeIfAppropriate) orElse approximation
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
 
@@ -396,7 +394,6 @@ object Expression {
       case z: AtomicExpression =>
         z.evaluateAsIs flatMap (_.asCoreNumber) match {
           case Some(q) =>
-            //            println("Expression.sqrt: this is where we used to do a short-cut for numbers")
             // XXX this was the old code: Literal(q.sqrt)
             x ∧ Eager.half
           case _ =>
@@ -525,6 +522,8 @@ object Expression {
       Pi
     case Eager.e =>
       E
+    case Eager.infinity =>
+      Infinity
     case _ =>
       Literal(x)
   }
@@ -732,6 +731,11 @@ object Expression {
     */
   def simplifyByEvaluation: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("simplifyByEvaluation") {
+      case BiFunction(ValueExpression(x: eager.Number, _), ValueExpression(q: Q, _), Power) if q.toRational.invert.isWhole =>
+        val root = q.toRational.invert.toInt
+        em.Match(Literal(InversePower(root,x))) `flatMap` matchSimpler
+//      case BiFunction(ValueExpression(q: Q, _), ValueExpression(RationalNumber.half, _), Power) =>
+//        em.Match(Root.squareRoot(q.toRational, 0)) // NOTE we arbitrarily choose the positive root
       case c: CompositeExpression =>
         c.evaluateAsIs match {
           case Some(f) =>

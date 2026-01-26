@@ -191,7 +191,6 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "return None for reciprocal" in {
-    println(Zero.monadicFunction(Reciprocal))
     Zero.monadicFunction(Reciprocal) shouldBe Some(Infinity)
   }
 

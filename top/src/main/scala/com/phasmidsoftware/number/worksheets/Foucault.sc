@@ -3,8 +3,10 @@
 // It also demonstrates how to use the FuzzyEq type class to perform fuzzy equality comparisons.
 
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
-import com.phasmidsoftware.number.algebra.eager.Eager
-import com.phasmidsoftware.number.expression.expr.{Expression, Pi}
+import com.phasmidsoftware.number.algebra.core.RestrictedContext
+import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber}
+import com.phasmidsoftware.number.core.inner.PureNumber
+import com.phasmidsoftware.number.expression.expr.{BiFunction, Expression, Literal, Pi, Power}
 import com.phasmidsoftware.number.parse.ExpressionParser.lazymath
 
 val g: Expression = Eager("9.81*")
@@ -16,3 +18,5 @@ val expression = g * ((t / Pi / 2) ∧ 2)
 // Do we have a way to force the fuzziness to be Gaussian? I think we do.
 val length: Eager = expression.materialize
 length.render
+
+BiFunction(Literal(3), Literal(RationalNumber(1,2)), Power).evaluate(RestrictedContext(PureNumber))

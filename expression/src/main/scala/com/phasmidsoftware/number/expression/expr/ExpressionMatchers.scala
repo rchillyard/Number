@@ -215,9 +215,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         transform it into an Aggregate if conditions are satisfied. If the input
     *         does not meet the required conditions, it returns a Miss.
     */
-  def matchBiFunctionAsAggregate: Matcher[BiFunction, expression.expr.Aggregate] = Matcher[BiFunction, expression.expr.Aggregate]("matchBiFunctionAsAggregate")(
-    biFunction =>
-      matchOptionFunc2(asAggregate)(biFunction))
+  def matchBiFunctionAsAggregate: Matcher[BiFunction, Expression] =
+    Matcher[BiFunction, Expression]("matchBiFunctionAsAggregate")(
+      biFunction =>
+        matchOptionFunc2(asAggregate)(biFunction))
 
   /**
     * Simplifies a `Aggregate` expression by combining its terms in a more compact form.
@@ -303,7 +304,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         are successfully combined, or `Miss` if no literals are found or they cannot
     *         be combined.
     */
-  def literalsCombiner: Matcher[Aggregate, Expression] = Matcher[expression.expr.Aggregate, Expression]("literalsCombiner") {
+  def literalsCombiner: Matcher[Expression, Expression] = Matcher[Expression, Expression]("literalsCombiner") {
     case g@Aggregate(f, xs) =>
       // XXX first, we partition `xs` according to which terms can be exactly combined because they are all pure numbers (the "literals").
       // The other terms may also be literal constants but not evaluatable in the `PureNumber` context.
@@ -326,6 +327,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
               Miss(s"literalsCombiner: cannot combine literals", Aggregate(f, others))
           }
       }
+    case a: AtomicExpression =>
+      Match(a)
+    case e =>
+      Miss(s"literalsCombiner: unexpected partition result: $e", e)
   }
 
   /**
@@ -439,9 +444,13 @@ object ExpressionMatchers {
     *
     * @return A `MatchResult[Expression]` containing the result of the simplification process.
     */
-  def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] =
-    (em.sequence(matchSimpler) & em.lift(grouper))(xs)
-
+  def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] = {
+    // Fully simplify each component
+    if (xs.map(_.simplify) == xs)
+      em.Miss("components unchanged", grouper(xs))
+    else
+      em.Match(grouper(xs.map(_.simplify)))
+  }
   /**
     * Evaluates whether two `Expression` instances, when combined using the provided
     * `ExpressionBiFunction`, yield the appropriate identity value (although, in practice, we shortcut that logic a little).

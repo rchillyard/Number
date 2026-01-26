@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.top
 
 import cats.implicits.toShow
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, WholeNumber}
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.*
 import com.phasmidsoftware.number.parse.ExpressionParser.puremath
 import org.scalatest.flatspec.AnyFlatSpec
@@ -12,9 +13,8 @@ class FunctionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Functional.sc"
 
   // FIXME Issue #163
-  ignore should "get root2 right" in {
-    val root2 = puremath"\sqrt{2}"
-    root2.materialize shouldBe Eager.root2
+  it should "get root2 right" in {
+    puremath"\sqrt{2}".materialize shouldBe Eager.root2
   }
 
   // FIXME Issue #163

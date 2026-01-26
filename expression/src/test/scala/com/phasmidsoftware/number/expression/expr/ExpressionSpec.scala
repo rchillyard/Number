@@ -447,7 +447,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val phi = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi.reciprocal
     val simplified = expression.simplify
-    println(s"simplified = $simplified")
     simplified.approximation().get.value === 0.61803398875
   }
   it should "evaluate - phi" in {
@@ -517,7 +516,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: Eager = root3MinusOne.materialize
 
     (x ~= Real(2.732050807568877)) shouldBe true
-    (y ~= Real(0.732050807568877)) shouldBe true
+    (y ~= Real(0.7320508075688772)) shouldBe true
 
     // Two should be exactly 2
     val two: Eager = (root3PlusOne * root3MinusOne).materialize

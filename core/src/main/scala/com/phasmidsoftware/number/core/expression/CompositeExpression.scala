@@ -354,12 +354,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         val eo: Option[Expression] = so map (Algebraic(_))
         em.matchIfDefined(eo)(b)
 
-
-      // NOTE I'm confused by own logic here. I don't know why we need this.
       case BiFunction(x, y, f) =>
         val matcher: em.Matcher[Seq[Expression], BiFunction] =
           em.sequence(matchSimpler) & em.lift { xs => val Seq(newX, newY) = xs; BiFunction(newX, newY, f) }
-        // NOTE this is almost always a Miss.
         matcher.apply(List[Expression](x, y))
     }
 
