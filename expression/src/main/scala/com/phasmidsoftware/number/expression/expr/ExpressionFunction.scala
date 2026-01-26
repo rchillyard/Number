@@ -64,6 +64,7 @@ object ExpressionFunction {
     *
     * @param f a function that maps a `Field` to a transformed `Field`, which will be
     *          used to derive the resulting `Valuable` from the input.
+    *
     * @return a function that takes a `Valuable` as input and returns a transformed
     *         `Valuable` after applying the underlying `Field => Field` transformation.
     */
@@ -100,7 +101,7 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
     * Evaluates the given `Expression` in the specified `Context` and attempts to derive an `Eager` result.
     * This method relies on the `Expression` being evaluated as-is and applies this function's
     * exact logic if applicable.
-    * 
+    *
     * CONSIDER the alternative version (commented out) which seems like it should be correct but isn't.
     *
     * @param a       the `Expression` to be evaluated.
@@ -166,15 +167,16 @@ object ExpressionMonoFunction {
   * @param isExact        a flag indicating whether the function is strictly exact (producing precise results).
   * @param maybeIdentityL an optional identity element for the left-hand operand; if defined, evaluation recognizes
   *                       and simplifies the operation when this value is encountered.
+  *
   * @param maybeIdentityR an optional identity element for the right-hand operand; if defined, evaluation recognizes
   *                       and simplifies the operation when this value is encountered.
   */
 sealed abstract class ExpressionBiFunction(
-                                              val name: String,
-                                              val f: (Eager, Eager) => Eager,
-                                              val isExact: Boolean,
-                                              val maybeIdentityL: Option[Eager],
-                                              val maybeIdentityR: Option[Eager]
+                                            val name: String,
+                                            val f: (Eager, Eager) => Eager,
+                                            val isExact: Boolean,
+                                            val maybeIdentityL: Option[Eager],
+                                            val maybeIdentityR: Option[Eager]
                                           ) extends ExpressionFunction[(Eager, Eager)] {
 
   //  val flog = Flog[ExpressionBiFunction]
@@ -314,13 +316,13 @@ sealed abstract class ExpressionBiFunction(
     * @return an `Option[Valuable]` containing the result of the exact binary operation on the evaluated results
     *         of `x` and `y`, or `None` if any step in the process fails.
     */
-//  def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Eager] =
-//    for
-//      a <- x.evaluate(leftContext(context))
-//      f <- a.maybeFactor(AnyContext)
-//      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
-//      z <- applyExact(a, b)
-//    yield z
+  //  def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Eager] =
+  //    for
+  //      a <- x.evaluate(leftContext(context))
+  //      f <- a.maybeFactor(AnyContext)
+  //      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
+  //      z <- applyExact(a, b)
+  //    yield z
   //
   //  /**
   //    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
@@ -631,6 +633,7 @@ case object Negate extends ExpressionMonoFunction("-", lift1(x => -x)) {
     *
     * @param x the input Valuable to which the exact operation is applied.
     *          Only Valuables matching predefined patterns are processed; others return `None`.
+    *
     * @return an `Option[Valuable]` containing the negated `Valuable` if the input matches the expected pattern,
     *         otherwise `None`.
     */
@@ -742,7 +745,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
         z <- y.convert(eager.Real.zero)
       } yield (r + z).normalize
       q.asInstanceOf[Option[Eager]]
-      // TODO implement for (Number, Angle)
+    // TODO implement for (Number, Angle)
     case (x: Algebraic, y: Algebraic) =>
       x.add(y).toOption
     case (x: CanAdd[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
@@ -829,6 +832,7 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
     * @param a the first operand, a Valuable instance serving as the multiplicand.
     * @param b the second operand, a Valuable instance serving as the multiplier. This operand is evaluated
     *          to determine the applicability of exact computations.
+    *
     * @return an `Option[Valuable]` containing the resulting Valuable if the operation is valid and applicable,
     *         or `None` if the conditions for exact multiplication are not met.
     */

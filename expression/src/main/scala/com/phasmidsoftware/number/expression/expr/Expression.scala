@@ -106,10 +106,10 @@ trait Expression extends Lazy with Approximate {
     @tailrec
     def inner(x: Expression): Expression = matchSimpler(x) match {
       case em.Miss(msg, e: Expression) =>
-//        println(s"simplification of $x terminated by: $msg")
+        //        println(s"simplification of $x terminated by: $msg")
         e
       case em.Match(e: Expression) =>
-//        println(s"simplification of $x: $e")
+        //        println(s"simplification of $x: $e")
         inner(e)
       case m =>
         throw ExpressionException(s"simplify.inner($x): logic error on $m")
@@ -279,6 +279,7 @@ object Expression {
     // Different types - not equal
     case _ => false
   }
+
   /**
     * Implicit class to allow various operations to be performed on an Expression.
     *
@@ -302,6 +303,7 @@ object Expression {
       * @return the sum of this and y.
       */
     def +(y: Expression): Expression = plus(y)
+
     /**
       * Method to lazily append the given expression to this expression using addition.
       *
@@ -703,6 +705,7 @@ object Expression {
       case x =>
         em.Miss("simplifyExact: cannot simplify exactly", x)
     }
+
   /**
     * Attempts to simplify trivial cases within a `CompositeExpression`.
     * This method patterns matches on `CompositeExpression` instances and applies trivial simplifications
@@ -732,9 +735,9 @@ object Expression {
     em.Matcher[Expression, Expression]("simplifyByEvaluation") {
       case BiFunction(ValueExpression(x: eager.Number, _), ValueExpression(q: Q, _), Power) if q.toRational.invert.isWhole =>
         val root = q.toRational.invert.toInt
-        em.Match(Literal(InversePower(root,x))) `flatMap` matchSimpler
-//      case BiFunction(ValueExpression(q: Q, _), ValueExpression(RationalNumber.half, _), Power) =>
-//        em.Match(Root.squareRoot(q.toRational, 0)) // NOTE we arbitrarily choose the positive root
+        em.Match(Literal(InversePower(root, x))) `flatMap` matchSimpler
+      //      case BiFunction(ValueExpression(q: Q, _), ValueExpression(RationalNumber.half, _), Power) =>
+      //        em.Match(Root.squareRoot(q.toRational, 0)) // NOTE we arbitrarily choose the positive root
       case c: CompositeExpression =>
         c.evaluateAsIs match {
           case Some(f) =>

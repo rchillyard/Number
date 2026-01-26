@@ -225,7 +225,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * - If the `Aggregate` is empty, it produces the appropriate identity.
     * - If the `Aggregate` contains a single element, it simplifies that element.
     * - If all elements in the `Aggregate` can be interpreted as numbers, it combines them iteratively
-    * and simplifies the resulting expression.
+    *   and simplifies the resulting expression.
     * - If the `Aggregate` cannot be simplified further, the original structure is retained.
     *
     * NOTE: Need to fix #87
@@ -340,11 +340,11 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *
     * @return A `Matcher[BiFunction, Expression]` where:
     *         - If the terms of the `BiFunction` are complementary and have an identity, it
-    *           returns a `Match` containing the identity as a `Literal`.
+    *         returns a `Match` containing the identity as a `Literal`.
     *         - If the terms are complementary but lack an identity, it returns a `Miss`
-    *           with a corresponding message and the original `BiFunction`.
+    *         with a corresponding message and the original `BiFunction`.
     *         - If the terms are not complementary, it returns a `Miss` with a message
-    *           indicating this and the input term.
+    *         indicating this and the input term.
     */
   def complementaryTermsEliminatorBiFunction(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean): Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
     case BiFunction(a, b, f) if complementaryPredicate(f, a, b) && a.maybeFactor(AnyContext).contains(Angle) =>
@@ -440,7 +440,6 @@ object ExpressionMatchers {
     * @param xs      The sequence of `Expression` instances to simplify.
     * @param grouper A function that groups and transforms a sequence of `Expression`
     *                instances into a single `Expression`.
-    *
     * @return A `MatchResult[Expression]` containing the result of the simplification process.
     */
   def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] = {
@@ -450,6 +449,7 @@ object ExpressionMatchers {
     else
       em.Match(grouper(xs.map(_.simplify)))
   }
+
   /**
     * Evaluates whether two `Expression` instances, when combined using the provided
     * `ExpressionBiFunction`, yield the appropriate identity value (although, in practice, we shortcut that logic a little).
@@ -461,6 +461,7 @@ object ExpressionMatchers {
     *
     * @param f The binary function (`ExpressionBiFunction`) applied to evaluate the relationship
     *          between the two `Expression` instances.
+    *
     * @param x The first `Expression` operand used in the evaluation.
     * @param y The second `Expression` operand used in the evaluation.
     * @return An `Option[Expression]` containing the complementary result if the specified

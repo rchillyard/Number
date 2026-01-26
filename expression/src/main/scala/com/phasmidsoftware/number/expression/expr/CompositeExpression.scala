@@ -286,16 +286,16 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     *         of this `Expression` using the `matchSimpler` logic.
     */
   lazy val simplifyComponents: em.AutoMatcher[Expression] =
-//    em.Matcher("UniFunction: simplifyComponents") {
-//      case UniFunction(x, _) =>
-//        val matcher = matchSimpler `map` (z => copy(x = z))
-//        matcher(x)
-//    }
+    //    em.Matcher("UniFunction: simplifyComponents") {
+    //      case UniFunction(x, _) =>
+    //        val matcher = matchSimpler `map` (z => copy(x = z))
+    //        matcher(x)
+    //    }
 
-  em.Matcher("UniFunction: simplifyComponents") {
-    case UniFunction(x, f) =>
-      componentsSimplifier(Seq[Expression](x), { xs => val Seq(newX) = xs; UniFunction(newX, f) })
-  }
+    em.Matcher("UniFunction: simplifyComponents") {
+      case UniFunction(x, f) =>
+        componentsSimplifier(Seq[Expression](x), { xs => val Seq(newX) = xs; UniFunction(newX, f) })
+    }
 
   /**
     * Attempts to apply trivial simplifications to this `Expression`.
@@ -311,23 +311,23 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
         if (e.isInstanceOf[ValueExpression]) {
           val ve = e.asInstanceOf[ValueExpression]
         }
-          uni match {
-            // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
-            case UniFunction(UniFunction(x, Ln), Reciprocal) =>
-              em.Match(expression.expr.BiFunction(E, x, Log))
-            case UniFunction(BiFunction(x, b, Log), Reciprocal) =>
-              em.Match(expression.expr.BiFunction(b, x, Log))
-            // XXX we check for certain exact literal function results
-            case UniFunction(e: ValueExpression, f) if e.monadicFunction(f).isDefined =>
-              val result = e.monadicFunction(f)
-              em.matchIfDefined(result)(e)
-            case UniFunction(r: Root, Reciprocal) =>
-              em.Match(r.reciprocal)
-            case UniFunction(r: Root, Negate) =>
-              em.Match(r.negate)
-            case expr =>
-              em.Miss("UniFunction: simplifyIdentities: no trivial simplifications", expr)
-          }
+        uni match {
+          // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
+          case UniFunction(UniFunction(x, Ln), Reciprocal) =>
+            em.Match(expression.expr.BiFunction(E, x, Log))
+          case UniFunction(BiFunction(x, b, Log), Reciprocal) =>
+            em.Match(expression.expr.BiFunction(b, x, Log))
+          // XXX we check for certain exact literal function results
+          case UniFunction(e: ValueExpression, f) if e.monadicFunction(f).isDefined =>
+            val result = e.monadicFunction(f)
+            em.matchIfDefined(result)(e)
+          case UniFunction(r: Root, Reciprocal) =>
+            em.Match(r.reciprocal)
+          case UniFunction(r: Root, Negate) =>
+            em.Match(r.negate)
+          case expr =>
+            em.Miss("UniFunction: simplifyIdentities: no trivial simplifications", expr)
+        }
     }
 
   /**
@@ -360,8 +360,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
   override def equals(other: Any): Boolean = other match {
     case that: expression.expr.UniFunction =>
       that.canEqual(this) &&
-          x == that.x &&
-          f == that.f
+        x == that.x &&
+        f == that.f
     case _ =>
       false
   }
@@ -402,6 +402,7 @@ object UniFunction {
     * @param md the MonadicDuple from which the UniFunction will be initialized.
     *           The left side of the MonadicDuple is expected to provide a tuple,
     *           and the right side will be combined with this tuple to construct the UniFunction.
+    *
     * @return a new UniFunction initialized with the components derived from the given MonadicDuple.
     */
   def apply(md: MonadicDuple): expression.expr.UniFunction = {
@@ -587,8 +588,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       // NOTE the reason we see this as a Miss so often, is that it is always
       // the last match to be attempted.
       ((em.complementaryTermsEliminatorBiFunction(em.isComplementary) |
-          em.matchBiFunctionAsAggregate & em.literalsCombiner) &
-          em.alt(matchSimpler))(x)
+        em.matchBiFunctionAsAggregate & em.literalsCombiner) &
+        em.alt(matchSimpler))(x)
     case x => // NOTE we cannot reach this case.
       em.Miss("simplifyStructural", x) // TESTME
   }
@@ -695,8 +696,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         or failure (Miss with additional debug information)
     */
   private def matchLiteral(l: Expression, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] = (l, x, f) match {
-//    case (Literal(a@QuadraticSolution(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
-//      em.Match(Literal(a add q.algebraic))
+    //    case (Literal(a@QuadraticSolution(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
+    //      em.Match(Literal(a add q.algebraic))
     case (Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
       f match {
         case Sum if b1 != b2 =>
@@ -706,9 +707,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         case _ =>
           em.Miss[Expression, Expression](s"BiFunction: matchLiteral: no trivial simplification for Algebraics and $f", this) // TESTME
       }
-//    case (a, b, Product) =>
-//      val qqq: Option[Valuable] = Product.applyExact(a, b)
-//      em.matchIfDefined(qqq)(this).map(q => expression.expr.ValueExpression(q))
+    //    case (a, b, Product) =>
+    //      val qqq: Option[Valuable] = Product.applyExact(a, b)
+    //      em.matchIfDefined(qqq)(this).map(q => expression.expr.ValueExpression(q))
     case (Literal(a: CanPower[Structure] @unchecked, _), Literal(b: RationalNumber, _), Power) =>
       em.matchIfDefined(a.pow(b).map(x => Literal(x)))(this)
     case (a, b, Power) =>
@@ -753,8 +754,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case (q1@QuadraticRoot(_, _), q2@QuadraticRoot(_, _), Sum) =>
       val maybeRoot = q1 add q2
       em.matchIfDefined(maybeRoot)(expression.expr.BiFunction(q1, q2, f))
-//    case (q@QuadraticRoot(_, _), Literal(a@Algebraic_Quadratic(_, _, _), _), Sum) =>
-//      em.Match(Literal(a + q.solution))
+    //    case (q@QuadraticRoot(_, _), Literal(a@Algebraic_Quadratic(_, _, _), _), Sum) =>
+    //      em.Match(Literal(a + q.solution))
     case _ =>
       modifyQuadratic(r, x, f)
   }
@@ -846,8 +847,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (Two, Literal(RationalNumber(r, _), _)) if r == Rational.half =>
         em.Match(Root.squareRoot(Rational(2), 0))
       // TODO this is a temporary suppression
-//      case (ValueExpression(x: ExactNumber,_), ValueExpression(RationalNumber(r: Rational, _), _)) if r==Rational.half =>
-//        em.Match(Root.squareRoot(x.toRational,0)) // NOTE we arbitrarily choose the positive branch here.
+      //      case (ValueExpression(x: ExactNumber,_), ValueExpression(RationalNumber(r: Rational, _), _)) if r==Rational.half =>
+      //        em.Match(Root.squareRoot(x.toRational,0)) // NOTE we arbitrarily choose the positive branch here.
       case (E, BiFunction(ConstI, Pi, Product)) | (E, BiFunction(Pi, ConstI, Product)) =>
         em.Match(MinusOne)
       case (E, Literal(ComplexCartesian(Number.zero, Number.pi), _)) =>
@@ -893,6 +894,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @param left a boolean determining whether to check the left operand's identity (`true`) or
     *             the right operand's identity (`false`). If the right identity is not present,
     *             the method will fall back to the left identity.
+    *
     * @return an `Option[Boolean]` indicating whether the `Expression` matches the identity:
     *         - `Some(true)` if the match is successful.
     *         - `Some(false)` if the match fails or if the `Expression` is not atomic.
@@ -957,12 +959,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
             (y.x.toNominalRational, f) match {
               case (Some(z), Sum) =>
                 em.Match(Literal(a.add(z)))
-//              case (Some(z), Product) =>
-//                em.Match(Literal(a.scale(z)))
-//              case (Some(r), Power) =>
-//                 XXX in this case, we revert this `Algebraic_Quadratic` (viz., a Field) to a `Root` (viz., an `Expression`)
-//                val root = Root(a.equ, a.branch).power(r)
-//                em.Match(root)
+              //              case (Some(z), Product) =>
+              //                em.Match(Literal(a.scale(z)))
+              //              case (Some(r), Power) =>
+              //                 XXX in this case, we revert this `Algebraic_Quadratic` (viz., a Field) to a `Root` (viz., an `Expression`)
+              //                val root = Root(a.equ, a.branch).power(r)
+              //                em.Match(root)
               case (_, _) =>
                 em.Miss[Expression, Expression](s"BiFunction: modifyAlgebraicQuadratic: no trivial simplification for $a $f $x (not Rational)", this) // TESTME
             }
@@ -986,6 +988,7 @@ object BiFunction {
     * @param dt the DyadicTriple from which the BiFunction will be initialized.
     *           The left side of the DyadicTriple is expected to provide a tuple,
     *           and the right side will be combined with this tuple to construct the BiFunction.
+    *
     * @return a new BiFunction initialized with the components derived from the given DyadicTriple.
     */
   def apply(dt: DyadicTriple): expression.expr.BiFunction = {
@@ -1009,7 +1012,7 @@ object BiFunction {
   def asAggregate(b: BiFunction): Option[Expression] = b match {
     case BiFunction(BiFunction(w, x, Sum), BiFunction(y, z, Sum), Product) =>
       Some(expression.expr.Aggregate(Sum, Seq(w :* y, w :* z, x :* y, x :* z)).simplify)
-      // TODO add simplify to the following matches like the one above.
+    // TODO add simplify to the following matches like the one above.
     case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
       Some(expression.expr.Aggregate(f, Seq(w, x, y, z)))
     case BiFunction(BiFunction(w, x, Power), y, Power) =>
@@ -1087,7 +1090,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * This method uses pattern matching to identify and transform instances of `Aggregate`:
     * - Removes identity elements for the aggregate function.
     * - Groups identical terms and replaces them with a new aggregate expression
-    * using the next higher mathematical function.
+    *   using the next higher mathematical function.
     *
     * @return an `AutoMatcher` for `Expression` capable of identifying and performing
     *         simplifications of trivial aggregates.
@@ -1125,10 +1128,11 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @param complementaryPredicate a function that determines whether two expressions within the
     *                               context of a provided aggregate function are complementary.
     *                               The predicate takes three arguments:
-    *                                - The aggregate function (`ExpressionBiFunction`: e.g., Sum or Product).
-    *                                - The first expression to evaluate (`Expression`).
-    *                                - The second expression to evaluate (`Expression`).
-    *                                  It returns a `Boolean` indicating if the expressions are complementary.
+    *                               - The aggregate function (`ExpressionBiFunction`: e.g., Sum or Product).
+    *                               - The first expression to evaluate (`Expression`).
+    *                               - The second expression to evaluate (`Expression`).
+    *                               It returns a `Boolean` indicating if the expressions are complementary.
+    *
     * @return a `Try[List[Expression]]` containing the list of expressions after removing complementary pairs
     *         identified by the predicate. If an error occurs (e.g., unsupported operation), a `Failure` is returned.
     */
@@ -1168,6 +1172,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *
     * @param context the context in which the evaluation should take place. This defines the constraints
     *                and qualifications for the terms involved in the evaluation process.
+    *
     * @return an `Option[Field]` representing the result of the evaluation. Returns `None`
     *         if the evaluation cannot produce a valid field or if an invalid context is encountered.
     */
@@ -1296,7 +1301,6 @@ object Aggregate {
     *
     * @param xs the sequence of expressions (`Seq[Expression]`) to be analyzed and processed.
     *           The expressions may include angles, reciprocal angles, or other types.
-    *
     * @return a sequence of processed expressions, including angles, reciprocal angles,
     *         and other non-angle expressions.
     */
@@ -1321,7 +1325,6 @@ object Aggregate {
     * @param xs the sequence of `Expression` objects to analyze.
     *           Each `Expression` may represent an angle, a reciprocal angle,
     *           or another type of mathematical expression.
-    *
     * @return `true` if the sequence contains a reciprocal angle, otherwise `false`.
     */
   def hasReciprocalAngles(xs: Seq[Expression]): Boolean =
@@ -1336,7 +1339,6 @@ object Aggregate {
     *
     * @param xs the sequence of `Expression` objects to analyze. Each `Expression`
     *           may represent an angle or another type of mathematical expression.
-    *
     * @return `true` if the sequence contains at least one expression that represents an angle,
     *         otherwise `false`.
     */

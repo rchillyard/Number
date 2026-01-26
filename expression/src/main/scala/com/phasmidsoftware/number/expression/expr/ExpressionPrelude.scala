@@ -20,6 +20,7 @@ object ExpressionPrelude:
   given Conversion[Int, Expression] = i => Literal(WholeNumber(i))
 
   given Conversion[Rational, Expression] = i => Literal(RationalNumber(i))
+
   given Conversion[Double, Expression] = d => Literal(Real(d))
 
   given Conversion[String, Expression] = s => Expression(s)

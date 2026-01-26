@@ -53,7 +53,6 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     *
     * @param branch the branch index for which the solution is being sought.
     *               The branch index identifies specific solutions for equations that may have multiple solutions.
-    *
     * @return an `Option[Algebraic]`, where `Some(solution)` contains the solution for the specified branch,
     *         or `None` if no solution exists for the given branch.
     */
@@ -82,12 +81,14 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
     *                 If the solution is not a `QuadraticSolution` or does not meet
     *                 the required conditions for evaluation, an `AlgebraException`
     *                 will be thrown.
+    *
     * @return the resultant eager value of the evaluation. The result could be a
     *         solution in the form of a `QuadraticSolution`, a numerical result as
     *         an `Eager`, or a derived `RationalNumber`, depending on the computation path.
+    *
     * @note Throws AlgebraException if the provided solution cannot be evaluated due to
-    * missing conditions, non-conformance to required types, or other incompatible
-    * states during evaluation.
+    *       missing conditions, non-conformance to required types, or other incompatible
+    *       states during evaluation.
     */
   def evaluate(solution: Solution): Eager = solution match {
     case s: (QuadraticSolution & Algebraic) =>
@@ -244,7 +245,6 @@ case class LinearEquation(r: Rational) extends Equation {
     *
     * @param branch the branch index for which the solution is being sought.
     *               The branch index identifies specific solutions for equations that may have multiple solutions.
-    *
     * @return a `Field`, which is either an `Algebraic` (real-valued) or a `Complex`.
     */
   def solve(branch: Int): Solution =
@@ -259,8 +259,10 @@ case class LinearEquation(r: Rational) extends Equation {
     *
     * @param s the `Solution` to be evaluated. It is expected to be an instance of `LinearSolution` containing
     *          a numerical value.
+    *
     * @return the result of the evaluation as an instance of `Eager`. The exact nature of the result depends
     *         on the structure of the provided `Solution`.
+    *
     * @note Throws AlgebraException if the `Solution` cannot be evaluated within the constraints of this `LinearEquation`.
     */
   def evaluate(s: Solution): Eager = s match {
@@ -275,8 +277,10 @@ case class LinearEquation(r: Rational) extends Equation {
     *
     * @param fP a function that takes two `Rational` parameters and produces a `Rational` result.
     *           It is applied to the first component of the equation.
+    *
     * @param fQ a function that takes two `Rational` parameters and produces a `Rational` result.
     *           It is applied to the second component of the equation.
+    *
     * @return a new `Equation` instance that is the result of applying the specified transformations
     *         to the components of the current equation.
     */
@@ -412,6 +416,7 @@ object QuadraticEquation {
     * @param x   the Field instance to be formatted.
     * @param add a Boolean flag indicating whether to prepend a sign ("+ " or "- ") to the result;
     *            defaults to true.
+    *
     * @return a formatted String representation of the Field's sign and absolute value.
     */
   private def termSign(x: Field, add: Boolean = true): String = (if (add) if (x.signum < 0) "- " else "+ " else "") + x.abs.render

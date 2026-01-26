@@ -23,18 +23,18 @@ object Empty
   * Functions:
   *
   * - Addition (`+`):
-  * Performs addition with an expression or integer. For expressions, it returns the operand itself, acting as the addition identity.
-  * For integers, it creates a `Literal` representation of the integer and returns that.
+  *   Performs addition with an expression or integer. For expressions, it returns the operand itself, acting as the addition identity.
+  *   For integers, it creates a `Literal` representation of the integer and returns that.
   *
   * - Multiplication (`*`):
-  * Performs multiplication with an expression or integer. For expressions, it returns the operand itself, acting as the multiplication identity.
-  * For integers, it creates a `Literal` representation of the integer and returns that.
+  *   Performs multiplication with an expression or integer. For expressions, it returns the operand itself, acting as the multiplication identity.
+  *   For integers, it creates a `Literal` representation of the integer and returns that.
   *
   * - Division (`/`):
-  * Represents the division operation. For expressions or integers, it creates a transformed expression wrapped in the `Reciprocal` operation.
+  *   Represents the division operation. For expressions or integers, it creates a transformed expression wrapped in the `Reciprocal` operation.
   *
   * - Subtraction (`-`):
-  * Represents subtraction or negation. For expressions or integers, it creates a transformed expression wrapped in the `Negate` operation.
+  *   Represents subtraction or negation. For expressions or integers, it creates a transformed expression wrapped in the `Negate` operation.
   */
 object ∅ {
   // Addition identity

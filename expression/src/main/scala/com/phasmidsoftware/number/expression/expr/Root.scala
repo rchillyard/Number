@@ -65,7 +65,6 @@ sealed trait Root extends AtomicExpression with Branched[Root] with Zeroable {
     * @param other the `Root` to be added to the current `Root`.
     *              This parameter represents another mathematical root to
     *              combine with the current `Root`.
-    *
     * @return an `Option[Root]` containing the resulting `Root` if the addition
     *         is successful, or `None` if the addition is not valid.
     */
@@ -76,7 +75,6 @@ sealed trait Root extends AtomicExpression with Branched[Root] with Zeroable {
     *
     * @param r the `Rational` exponent to which the current `Root` is raised.
     *          It represents the power operation to apply to the `Root`.
-    *
     * @return an `Expression` representing the result of the operation,
     *         where the current `Root` is raised to the specified `Rational` power.
     */
@@ -107,7 +105,6 @@ sealed trait Root extends AtomicExpression with Branched[Root] with Zeroable {
     *
     * @param plus a boolean value that determines which square root (positive or negative root) to compute:
     *             if true, compute the positive root; if false, compute the negative root.
-    *
     * @return an `Expression` representing the computed square root of the current `Expression`.
     * @note Throws com.phasmidsoftware.number.expression.expr.ExpressionException if the square root computation is not supported for the current `Expression`.
     */
@@ -201,7 +198,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     */
   override lazy val evaluateAsIs: Option[Eager] =
     evaluate(AnyContext)
-//    maybeFactor(AnyContext) flatMap (f => evaluate(RestrictedContext(f)))
+  //    maybeFactor(AnyContext) flatMap (f => evaluate(RestrictedContext(f)))
 
   /**
     * Attempts to simplify an atomic expression, for example,
@@ -268,18 +265,18 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   def approximation(force: Boolean): Option[Real] =
     solution.approximation(force)
 
-//    solution match {
-//      case LinearSolution(_) if context.factorQualifies(PureNumber) =>
-//        Some(solution.base)
-//      case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) && context.factorQualifies(PureNumber) =>
-//        Some(PureNumber)
-//      case QuadraticSolution(Value.zero, _, factor, _) if context.factorQualifies(factor) =>
-//        Some(factor)
-//      case QuadraticSolution(_, Value.zero, _, _) if context.factorQualifies(PureNumber) =>
-//        Some(PureNumber)
-//      case _ =>
-//        None
-//    }
+  //    solution match {
+  //      case LinearSolution(_) if context.factorQualifies(PureNumber) =>
+  //        Some(solution.base)
+  //      case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) && context.factorQualifies(PureNumber) =>
+  //        Some(PureNumber)
+  //      case QuadraticSolution(Value.zero, _, factor, _) if context.factorQualifies(factor) =>
+  //        Some(factor)
+  //      case QuadraticSolution(_, Value.zero, _, _) if context.factorQualifies(PureNumber) =>
+  //        Some(PureNumber)
+  //      case _ =>
+  //        None
+  //    }
 
   /**
     * Method to render this Structure in a presentable manner.
@@ -295,7 +292,6 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *          If the exponent is negative, the method computes the reciprocal of the positive power.
     *          If the exponent is zero, the result is the identity `One`.
     *          Otherwise, the computation involves recursive calls to this method.
-    *
     * @return an `Expression` representing the result of raising the current `Expression` to the power of `r`.
     */
   def power(r: Rational): Expression = r match {
@@ -347,7 +343,6 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @param plus a boolean value that determines which square root (positive or negative root) to compute:
     *             if true, compute the positive root; if false, compute the negative root.
-    *
     * @return an `Expression` representing the computed square root of the current `Expression`.
     * @note Throws com.phasmidsoftware.number.expression.expr.ExpressionException if the square root computation is not supported for the current `Expression`.
     */
@@ -372,8 +367,8 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     other match {
       case that: AbstractRoot =>
         that.canEqual(this) &&
-            equ == that.equation &&
-            branch == that.branch
+          equ == that.equation &&
+          branch == that.branch
       case _ =>
         false
     }
@@ -407,8 +402,8 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     case QuadraticEquation(p, q) =>
       import com.phasmidsoftware.number.expression.expr.Expression.ExpressionOps
       this :* Literal(-p) :+ Literal(-q)
-//    case LinearEquation(r) =>
-//      this :* Literal(-r)
+    //    case LinearEquation(r) =>
+    //      this :* Literal(-r)
     case _ =>
       this :* this
   }
@@ -443,6 +438,7 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     *
     * @param index the branch index corresponding to the desired root of the equation.
     *              Typically, for quadratic equations, this value is 0 or 1.
+    *
     * @return a `Root` representing the solution branch of the specified quadratic equation.
     */
   def branched(index: Int): Root = QuadraticRoot(equ, index)
@@ -452,10 +448,8 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     *
     * @param equ    the quadratic equation for which the root is to be constructed. It must be
     *               an instance of the `Equation` trait.
-    *
     * @param branch the branch index corresponding to the desired root of the equation.
     *               Typically, for quadratic equations, this value is 0 or 1.
-    *
     * @return a `Root` representing the solution branch of the specified quadratic equation.
     */
   def pure(equ: Equation, branch: Int): Root = QuadraticRoot(equ, branch)
@@ -465,7 +459,6 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     *
     * @param other the `Root` to be added to the current `Root`.
     *              This represents the operand added to this `Root`.
-    *
     * @return a new `Root` which is the sum of this `Root` and the provided `other` `Root`.
     */
   infix def add(other: Root): Option[Root] = other match {
@@ -568,10 +561,8 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
     *
     * @param equ    the equation from which the root is derived. The equation represents a
     *               mathematical relationship, typically a monic polynomial.
-    *
     * @param branch the branch index associated with this root. It specifies a particular
     *               solution for the equation if multiple solutions exist.
-    *
     * @return a new `Root` instance corresponding to the provided equation and branch.
     */
   def pure(equ: Equation, branch: Int): Root = LinearRoot(equ)
@@ -592,7 +583,6 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
     * @param other the `Root` to be added to the current `Root`.
     *              This parameter represents another mathematical root to
     *              combine with the current `Root`.
-    *
     * @return an `Option[Root]` containing the resulting `Root` if the addition
     *         is successful, or `None` if the addition is not valid.
     */
@@ -630,10 +620,8 @@ object Root {
     *
     * @param equation the `Equation` instance to process, which represents a mathematical relationship.
     *                 It may include multiple solutions or branches (e.g., quadratic or linear equations).
-    *
     * @param branch   an integer representing the branch index to compute. The branch identifies
     *                 a specific solution for equations with multiple branches.
-    *
     * @return a `Root` instance that corresponds to the given `Equation` and branch index.
     *         The returned `Root` is specialized for `Quadratic` or `LinearEquation` types.
     */
@@ -701,11 +689,9 @@ object Root {
     *
     * @param r      the `Rational` number for which the square root is to be calculated.
     *               The input represents a rational value that serves as the operand.
-    *
     * @param branch an integer representing the branch index to compute. The branch identifies
     *               a specific solution when there are multiple possible square root results.
     *               0 gives the positive root, 1 gives the negative root.
-    *
     * @return a `QuadraticRoot` instance representing the square root computation and branch selection.
     */
   def squareRoot(r: Rational, branch: Int) = QuadraticRoot(squareRootEquation(r), branch)

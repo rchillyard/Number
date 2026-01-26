@@ -57,7 +57,7 @@ trait AtomicExpression extends Expression {
   * Notes:
   * - For `Complex`, the method directly returns the `Complex` instance as a `Valuable`.
   * - For `ValueExpression` and `Literal`, the value of the Valuable is returned, but the name
-  * might be discarded during extraction.
+  *   might be discarded during extraction.
   * - For `Valuable`, the method directly returns the Valuable.
   * - For `ReducedQuadraticRoot`, the method attempts to evaluate it "as-is."
   * - For `Noop`, the method returns `None`.
@@ -75,6 +75,7 @@ object AtomicExpression {
     * @param arg the `AtomicExpression` instance from which the `Valuable` is to be extracted.
     *            This can be one of the subtypes such as `Complex`, `ValueExpression`, `Literal`,
     *            `Valuable`, `Noop`, or `ReducedQuadraticRoot`.
+    *
     * @return an `Option` containing the extracted `Valuable` if one can be determined based on the
     *         type of `arg`. Returns `None` if no `Valuable` can be extracted, e.g., in the case of `Noop`.
     */
