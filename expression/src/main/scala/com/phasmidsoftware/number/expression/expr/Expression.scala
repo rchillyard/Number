@@ -643,7 +643,7 @@ object Expression {
     * For `AtomicExpression` instances, it applies `simplifyAtomic` specific to the atomic expression.
     * For `CompositeExpression`, it uses a compound matcher that attempts simplifications
     * in the following order: `simplifyOperands`, `simplifyIdentities`,
-    * `simplifyConstant`, and `simplifyStructural`.
+    * `simplifyConstant`, and `doSimplifyStructural`.
     * For unsupported expression types, it returns an error message.
     *
     * @return an `ExpressionTransformer` that matches and applies the appropriate
@@ -761,17 +761,17 @@ object Expression {
 
   /**
     * Attempts to simplify `CompositeExpression` instances by applying pattern-based rewrites that change expression structure.
-    * This matcher targets expressions of type `CompositeExpression` and invokes the `simplifyStructural` method
+    * This matcher targets expressions of type `CompositeExpression` and invokes the `doSimplifyStructural` method
     * to generate a simplified form of the expression based on its internal structure.
     *
     * @return an `AutoMatcher` for `Expression` that matches and simplifies composite expressions,
     *         or returns the input expression unchanged if no simplifications are applicable.
     */
-  private def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyStructural") {
+  private def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("doSimplifyStructural") {
     case c: CompositeExpression =>
-      c.simplifyStructural(c)
+      c.doSimplifyStructural(c)
     case x =>
-      em.Miss("simplifyStructural: not a Composite expression type", x)
+      em.Miss("doSimplifyStructural: not a Composite expression type", x)
   }
 
   /**

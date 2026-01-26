@@ -880,8 +880,8 @@ class CompositeExpressionSpec2 extends AnyFlatSpec with Matchers {
     val afterComponents = root3.doSimplifyOperands(root3)
     println(s"After simplifyOperands: $afterComponents")
 
-    val afterStructural = root3.simplifyStructural(root3)
-    println(s"After simplifyStructural: $afterStructural")
+    val afterStructural = root3.doSimplifyStructural(root3)
+    println(s"After doSimplifyStructural: $afterStructural")
 
     val afterIdentities = root3.simplifyIdentities(root3)
     println(s"After simplifyIdentities: $afterIdentities")
