@@ -496,13 +496,13 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case BiFunction(a, b, f) if matchingIdentity(b, f, left = false).contains(true) =>
         em.Match(a)
       case BiFunction(a, b, Sum) =>
-        matchBiFunctionSum(a, b)
+        matchBiFunctionIdentitiesSum(a, b)
       case BiFunction(a, b, Product) =>
-        matchBiFunctionProduct(a, b)
+        matchBiFunctionIdentitiesProduct(a, b)
       case BiFunction(a, b, Power) =>
-        matchBiFunctionPower(a, b)
+        matchBiFunctionIdentitiesPower(a, b)
       case BiFunction(a, b, Log) =>
-        matchBiFunctionLog(a, b)
+        matchBiFunctionIdentitiesLog(a, b)
       case BiFunction(q1@QuadraticRoot(e1, b1), q2@QuadraticRoot(e2, b2), f) if e1 == e2 =>
         // TODO asInstanceOf unrelated type
         val quadratic: Quadratic = e1.asInstanceOf[Quadratic]
@@ -541,16 +541,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(BiFunction(w, x plus z, Power))
       else
         em.Miss("bases not equal", this)
-    case BiFunction(a, UniFunction(b, Negate), Sum) if a == b && a.maybeFactor(AnyContext).contains(Radian) =>
-      em.Match(Literal(Angle.zero))
+//    case BiFunction(a, UniFunction(b, Negate), Sum) if a == b && a.maybeFactor(AnyContext).contains(Radian) =>
+//      em.Match(Literal(Angle.zero))
     case BiFunction(a, Literal(b, _), Sum) if (a.materialize.add(b)).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
       em.Match(Literal(Angle.zero))
     case BiFunction(a, b, Product) if a == b =>
       em.Match(BiFunction(a, Two, Power))
-    case BiFunction(_, b, Power) if b.materialize.isZero =>
-      em.Match(One)
-    case BiFunction(_, Infinity, Power) =>
-      em.Match(Infinity)
+//    case BiFunction(_, b, Power) if b.materialize.isZero =>
+//      em.Match(One)
+//    case BiFunction(_, Infinity, Power) =>
+//      em.Match(Infinity)
     case BiFunction(BiFunction(a, b, Product), p, Power) =>
       em.Match(BiFunction(a ∧ p, b ∧ p, Product))
     case BiFunction(BiFunction(a, b, Power), p, Power) =>
@@ -758,10 +758,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return a MatchResult containing the simplified BiFunction if the expressions are equal,
     *         or a Miss if the conditions for simplification are not met
     */
-  private def matchBiFunctionSum(a: Expression, b: Expression): em.MatchResult[Expression] =
+  private def matchBiFunctionIdentitiesSum(a: Expression, b: Expression): em.MatchResult[Expression] =
     (a, b) match {
-      case (a, b) if a == b =>
-        em.Match(BiFunction(a, Two, Product))
       case (a, b) if a.plus(b) == Zero =>
         em.Match(Zero) // TESTME there are other ways of simplifying this.
       case _ =>
@@ -777,7 +775,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return a match result containing the simplified expression if a trivial simplification pattern is found,
     *         otherwise a miss result with an explanation
     */
-  private def matchBiFunctionProduct(a: Expression, b: Expression): em.MatchResult[Expression] =
+  private def matchBiFunctionIdentitiesProduct(a: Expression, b: Expression): em.MatchResult[Expression] =
     (a, b) match {
       case (Zero, _) | (_, Zero) =>
         em.Match(Zero)
@@ -789,8 +787,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(expression.expr.UniFunction(a, Negate))
       case (MinusOne, b) =>
         em.Match(expression.expr.UniFunction(b, Negate))
-      case (a, b) if a == b =>
-        em.Match(BiFunction(a, Two, Power))
       // CONSIDER the following case should be copied for Sum (not just Product)
       case (a, b) if !a.isExact && !b.isExact => // if both a and b are inexact, we might as well combine them here
         em.matchIfSuccess(a.materialize.multiply(b.materialize).map(Literal(_)))((a, b))
@@ -806,12 +802,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return A MatchResult containing the simplified expression if a matching rule is found,
     *         or a Miss result if no rules apply.
     */
-  private def matchBiFunctionPower(a: Expression, b: Expression): em.MatchResult[Expression] =
+  private def matchBiFunctionIdentitiesPower(a: Expression, b: Expression): em.MatchResult[Expression] =
     (a, b) match {
       case (_, Zero) =>
         em.Match(One)
       case (_, MinusOne) =>
         em.Match(expression.expr.UniFunction(a, Reciprocal))
+      case (_, Infinity) =>
+        em.Match(Infinity)
       case (E, ValueExpression(v: eager.Number, _)) =>
         em.Match(Literal(NatLog(v)))
       case (x, BiFunction(y, z, Log)) if x == y =>
@@ -864,7 +862,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `em.MatchResult[Expression]`, representing either a successfully matched and
     *         simplified expression or a failure with a descriptive message
     */
-  private def matchBiFunctionLog(a: Expression, b: Expression): em.MatchResult[Expression] =
+  private def matchBiFunctionIdentitiesLog(a: Expression, b: Expression): em.MatchResult[Expression] =
     (a, b) match {
       case (One, _) =>
         em.Match(Zero)
