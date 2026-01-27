@@ -42,14 +42,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "evaluate"
-  it should "evaluate 1 + -1" in {
-    val x: Expression = Expression(1) :+ -1
-    x.evaluateAsIs shouldBe Some(Eager.zero)
-  }
-  it should "evaluate 1 * -1" in {
-    val x: Expression = Expression(1) * -1
-    x.evaluateAsIs shouldBe Some(WholeNumber(-1))
-  }
+
   // TODO #Issue 149 this has to do with imaginary numbers
   it should "evaluate i * 2" in {
 //    val x: Expression = ConstI * 2

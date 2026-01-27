@@ -22,6 +22,7 @@ import org.scalatest.matchers.should.Matchers
 class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   private val pureNumberContext = RestrictedContext(PureNumber)
+  private val pi: Expression = Real("3.14*")
 
   // ============================================================================
   // UniFunction Tests - Basic Properties
@@ -30,35 +31,35 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   behavior of "UniFunction - Basic Properties"
 
   it should "not be atomic" in {
-    val uni = UniFunction(One, Negate)
-    uni.isAtomic shouldBe false
+    val target = UniFunction(One, Negate)
+    target.isAtomic shouldBe false
   }
 
   it should "have correct depth" in {
-    val uni1 = UniFunction(One, Negate)
-    uni1.depth shouldBe 2 // 1 + depth(One)
+    val target = UniFunction(One, Negate)
+    target.depth shouldBe 2 // 1 + depth(One)
 
     val nested = UniFunction(UniFunction(One, Negate), Reciprocal)
     nested.depth shouldBe 3 // 1 + depth(UniFunction)
   }
 
   it should "preserve exactness from operand" in {
-    val exact = UniFunction(One, Negate)
-    exact.isExact shouldBe true
+    val target = UniFunction(One, Negate)
+    target.isExact shouldBe true
 
-    val fuzzy = UniFunction(Literal(Real(3.14, Some(AbsoluteFuzz(0.01, Box)))), Negate)
+    val fuzzy = UniFunction(pi, Negate)
     fuzzy.isExact shouldBe false
   }
 
   it should "provide terms correctly" in {
-    val uni = UniFunction(Two, Negate)
-    uni.terms shouldBe Seq(Two)
+    val target = UniFunction(Two, Negate)
+    target.terms shouldBe Seq(Two)
   }
 
   it should "render correctly" in {
-    val uni = UniFunction(Pi, Sine)
-    uni.renderAsExpression should include("sin")
-    uni.renderAsExpression should include("𝛑")
+    val target = UniFunction(Pi, Sine)
+    target.renderAsExpression should include("sin")
+    target.renderAsExpression should include("𝛑")
   }
 
   // ============================================================================
@@ -68,23 +69,23 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   behavior of "UniFunction - Evaluation"
 
   it should "evaluate Negate correctly" in {
-    val negOne = UniFunction(One, Negate)
-    negOne.evaluate(pureNumberContext) shouldBe Some(WholeNumber(-1))
+    val target = UniFunction(One, Negate)
+    target.evaluate(pureNumberContext) shouldBe Some(WholeNumber(-1))
   }
 
   it should "evaluate Reciprocal correctly" in {
-    val recTwo = UniFunction(Two, Reciprocal)
-    recTwo.evaluate(pureNumberContext) shouldBe Some(RationalNumber.half)
+    val target = UniFunction(Two, Reciprocal)
+    target.evaluate(pureNumberContext) shouldBe Some(RationalNumber.half)
   }
 
   it should "evaluate nested functions correctly" in {
-    val doubleNeg = UniFunction(UniFunction(One, Negate), Negate)
-    doubleNeg.evaluate(pureNumberContext) shouldBe Some(WholeNumber.one)
+    val target = UniFunction(UniFunction(One, Negate), Negate)
+    target.evaluate(pureNumberContext) shouldBe Some(WholeNumber.one)
   }
 
-  it should "evaluate Exp and Ln as inverses" in {
-    val eulerMascheroni = UniFunction(UniFunction(EulerMascheroni, Exp), Ln)
-    eulerMascheroni.materialize shouldBe Eager(Constants.gamma)
+  it should "materialize Exp and Ln as inverses" in {
+    val target = UniFunction(UniFunction(EulerMascheroni, Exp), Ln)
+    target.materialize shouldBe Eager(Constants.gamma)
   }
 
   // ============================================================================
@@ -94,63 +95,58 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   behavior of "UniFunction - Simplification"
 
   it should "simplify complementary functions" in {
-    val expLn = UniFunction(UniFunction(Two, Ln), Exp)
-    val simplified = expLn.simplify
-    simplified shouldBe Two
+    val target = UniFunction(UniFunction(Two, Ln), Exp)
+    target.simplify shouldBe Two
   }
 
   it should "simplify ln(exp(x)) to x" in {
-    val lnExp = UniFunction(UniFunction(Two, Exp), Ln)
-    val simplified = lnExp.simplify
-    simplified shouldBe Two
+    val target = UniFunction(UniFunction(Two, Exp), Ln)
+    target.simplify shouldBe Two
   }
 
   it should "simplify reciprocal of reciprocal" in {
-    val recRec = UniFunction(UniFunction(Two, Reciprocal), Reciprocal)
-    val simplified = recRec.simplify
-    simplified shouldBe Two
+    val target = UniFunction(UniFunction(Two, Reciprocal), Reciprocal)
+    target.simplify shouldBe Two
   }
 
   it should "simplify negate of negate" in {
-    val negNeg = UniFunction(UniFunction(Two, Negate), Negate)
-    val simplified = negNeg.simplify
-    simplified shouldBe Two
+    val target = UniFunction(UniFunction(Two, Negate), Negate)
+    target.simplify shouldBe Two
   }
 
   it should "simplify ValueExpression monadic functions" in {
-    val sinPi = UniFunction(Pi, Sine)
-    sinPi.simplify shouldBe Zero
+    val target = UniFunction(Pi, Sine)
+    target.simplify shouldBe Zero
   }
 
   it should "simplify cos(π) to -1" in {
-    val cosPi = UniFunction(Pi, Cosine)
-    cosPi.simplify shouldBe MinusOne
+    val target = UniFunction(Pi, Cosine)
+    target.simplify shouldBe MinusOne
   }
 
   it should "simplify ln(e) to 1" in {
-    val lnE = UniFunction(E, Ln)
-    lnE.simplify shouldBe One
+    val target = UniFunction(E, Ln)
+    target.simplify shouldBe One
   }
 
   it should "simplify exp(0) to 1" in {
-    val expZero = UniFunction(Zero, Exp)
-    expZero.simplify shouldBe One
+    val target = UniFunction(Zero, Exp)
+    target.simplify shouldBe One
   }
 
   it should "simplify reciprocal of root" in {
-    val recPhi = UniFunction(Root.phi, Reciprocal)
-    recPhi.simplify should not be recPhi // Should be simplified
+    val target = UniFunction(Root.phi, Reciprocal)
+    target.simplify should not be target // Should be simplified
   }
 
   it should "simplify negation of root" in {
-    val negPhi = UniFunction(Root.phi, Negate)
-    negPhi.simplify should not be negPhi // Should be simplified
+    val target = UniFunction(Root.phi, Negate)
+    target.simplify should not be target // Should be simplified
   }
 
   it should "handle reciprocal of ln as log_e" in {
-    val recLn = UniFunction(UniFunction(Two, Ln), Reciprocal)
-    val simplified = recLn.simplify
-    simplified shouldBe a[BiFunction]
+    val target = UniFunction(UniFunction(Two, Ln), Reciprocal)
+    target.simplify shouldBe a[BiFunction]
   }
 
   // ============================================================================
@@ -190,40 +186,40 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   behavior of "BiFunction - Basic Properties"
 
   it should "not be atomic" in {
-    val bi = BiFunction(One, Two, Sum)
-    bi.isAtomic shouldBe false
+    val target = BiFunction(One, Two, Sum)
+    target.isAtomic shouldBe false
   }
 
   it should "have correct depth" in {
-    val bi1 = BiFunction(One, Two, Sum)
-    bi1.depth shouldBe 2 // 1 + max(depth(One), depth(Two))
+    val target1 = BiFunction(One, Two, Sum)
+    target1.depth shouldBe 2 // 1 + max(depth(One), depth(Two))
 
-    val nested = BiFunction(UniFunction(One, Negate), Two, Product)
-    nested.depth shouldBe 3 // 1 + max(2, 1)
+    val target2 = BiFunction(UniFunction(One, Negate), Two, Product)
+    target2.depth shouldBe 3 // 1 + max(2, 1)
   }
 
   it should "be exact when both operands are exact" in {
-    val exact = BiFunction(One, Two, Sum)
-    exact.isExact shouldBe true
+    val target = BiFunction(One, Two, Sum)
+    target.isExact shouldBe true
   }
 
   it should "not be exact when either operand is fuzzy" in {
-    val fuzzy1 = BiFunction(Literal(Real(3.14, Some(AbsoluteFuzz(0.01, Box)))), Two, Sum)
-    fuzzy1.isExact shouldBe false
+    val target1 = BiFunction(pi, Two, Sum)
+    target1.isExact shouldBe false
 
-    val fuzzy2 = BiFunction(One, Literal(Real(3.14, Some(AbsoluteFuzz(0.01, Box)))), Sum)
-    fuzzy2.isExact shouldBe false
+    val target2 = BiFunction(One, pi, Sum)
+    target2.isExact shouldBe false
   }
 
   it should "provide terms correctly" in {
-    val bi = BiFunction(One, Two, Sum)
-    bi.terms shouldBe Seq(One, Two)
+    val target = BiFunction(One, Two, Sum)
+    target.terms shouldBe Seq(One, Two)
   }
 
   it should "render correctly" in {
-    val bi = BiFunction(Pi, E, Sum)
-    bi.renderAsExpression should include("𝛑")
-    bi.renderAsExpression should include("e")
+    val target = BiFunction(Pi, E, Sum)
+    target.renderAsExpression should include("𝛑")
+    target.renderAsExpression should include("e")
   }
 
   // ============================================================================
@@ -233,22 +229,23 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   behavior of "BiFunction - Evaluation (Sum)"
 
   it should "evaluate sum correctly" in {
-    val sum = BiFunction(One, Two, Sum)
-    sum.evaluate(pureNumberContext) shouldBe Some(WholeNumber(3))
+    val target = BiFunction(One, Two, Sum)
+    target.evaluate(pureNumberContext) shouldBe Some(WholeNumber(3))
   }
 
   it should "evaluate sum with zero" in {
-    val sumZero = BiFunction(Two, Zero, Sum)
-    sumZero.evaluate(pureNumberContext) shouldBe Some(WholeNumber.two)
+    val target = BiFunction(Two, Zero, Sum)
+    target.evaluate(pureNumberContext) shouldBe Some(WholeNumber.two)
   }
 
   it should "evaluate negative sum" in {
-    val negSum = BiFunction(MinusOne, One, Sum)
-    negSum.evaluate(pureNumberContext) shouldBe Some(WholeNumber.zero)
+    val target = BiFunction(MinusOne, One, Sum)
+    target.evaluate(pureNumberContext) shouldBe Some(WholeNumber.zero)
   }
 
   // ============================================================================
   // BiFunction Tests - Evaluation (Product)
+  // TODO replace variable names below here with target
   // ============================================================================
 
   behavior of "BiFunction - Evaluation (Product)"
@@ -327,8 +324,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   it should "evaluate constant sum completely" in {
     val sum = BiFunction(Two, Two, Sum)
-    val simplified = sum.simplify
-    simplified shouldBe Literal(WholeNumber(4))
+    sum.simplify shouldBe Literal(4)
   }
 
   // ============================================================================
@@ -359,14 +355,12 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   it should "simplify x * (-1) to -x" in {
     val prodNeg = BiFunction(Pi, MinusOne, Product)
-    val simplified = prodNeg.simplify
-    simplified shouldBe Literal(Angle.negPi)
+    prodNeg.simplify shouldBe Literal(Angle.negPi)
   }
 
   it should "simplify -x to -x" in {
     val prodNeg = UniFunction(Pi, Negate)
-    val simplified = prodNeg.simplify
-    simplified shouldBe Literal(Angle.negPi)
+    prodNeg.simplify shouldBe Literal(Angle.negPi)
   }
 
   it should "simplify (-1) * x to -x" in {
@@ -390,8 +384,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   it should "evaluate constant product completely" in {
     val prod = BiFunction(Two, Two, Product)
-    val simplified = prod.simplify
-    simplified shouldBe Literal(WholeNumber(4))
+    prod.simplify shouldBe Literal(4)
   }
 
   it should "combine powers of same base" in {
@@ -444,8 +437,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   it should "evaluate constant power completely" in {
     val power = BiFunction(Two, Two plus One, Power)
-    val simplified = power.simplify
-    simplified shouldBe Literal(WholeNumber(8))
+    power.simplify shouldBe Literal(8)
   }
 
   it should "simplify φ^2 using golden ratio identity" in {
@@ -458,21 +450,18 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   it should "simplify e^(iπ) to -1 (Euler's identity)" in {
     val eulerExp = BiFunction(E, BiFunction(ConstI, Pi, Product), Power)
-    val simplified = eulerExp.simplify
-    simplified shouldBe MinusOne
+    eulerExp.simplify shouldBe MinusOne
   }
 
   it should "simplify e^(πi) to -1 (Euler's identity, reversed)" in {
     val eulerExp = BiFunction(E, BiFunction(Pi, ConstI, Product), Power)
-    val simplified = eulerExp.simplify
-    simplified shouldBe MinusOne
+    eulerExp.simplify shouldBe MinusOne
   }
 
   it should "simplify x^(log_x(y)) to y" in {
     val logExpr = BiFunction(E, Pi, Log)
     val powerExpr = BiFunction(E, logExpr, Power)
-    val simplified = powerExpr.simplify
-    simplified shouldBe Pi
+    powerExpr.simplify shouldBe Pi
   }
 
   // ============================================================================
@@ -546,6 +535,17 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Aggregate - Basic Properties"
 
+  it should "render correctly" in {
+    val target = Aggregate.total(One, 1)
+    target.toString shouldBe "Aggregate{+,1,1}"
+    target.render shouldBe "2"
+  }
+
+  it should "test simplifyOperands" in {
+    val target = Aggregate.total(Two * MinusOne, Two + One, MinusOne * 5, WholeNumber.two)
+    target.operandsMatcher(target) shouldBe Expression.em.Match(Aggregate.total(-2, 3, -5, 2))
+  }
+
   it should "not be atomic" in {
     val agg = Aggregate.total(One, Two, Two plus One)
     agg.isAtomic shouldBe false
@@ -567,7 +567,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "not be exact when any operand is fuzzy" in {
-    val fuzzy = Aggregate.total(One, Two, Literal(Real(3.14, Some(AbsoluteFuzz(0.01, Box)))))
+    val fuzzy = Aggregate.total(One, Two, pi)
     fuzzy.isExact shouldBe false
   }
 
@@ -682,23 +682,20 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   it should "combine constant terms in sum" in {
     val sum = Aggregate.total(One, Two, Two)
-    val simplified = sum.simplify
     // Should combine to 5
-    simplified shouldBe Literal(WholeNumber(5))
+    sum.simplify shouldBe Literal(5)
   }
 
   it should "combine constant terms in product" in {
     val prod = Aggregate.product(Two, Two, Two)
-    val simplified = prod.simplify
     // Should combine to 8
-    simplified shouldBe Literal(WholeNumber(8))
+    prod.simplify shouldBe Literal(8)
   }
 
   it should "preserve symbolic terms in sum" in {
     val sum = Aggregate.total(Pi, EulerMascheroni, E)
-    val simplified = sum.simplify
     // Should remain as aggregate or simplified aggregate
-    simplified shouldBe an[Aggregate]
+    sum.simplify shouldBe an[Aggregate]
   }
 
   // ============================================================================
@@ -736,30 +733,27 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
     // (1 + 2) * 3
     val inner = BiFunction(One, Two, Sum)
     val outer = BiFunction(inner, Two plus One, Product)
-    val simplified = outer.simplify
-    simplified shouldBe Literal(WholeNumber(9))
+    outer.simplify shouldBe Literal(9)
   }
 
   it should "simplify ((x^2)^3) correctly for constants" in {
     val inner = BiFunction(Two, Two, Power)
     val outer = BiFunction(inner, Two plus One, Power)
-    val simplified = outer.simplify
     // Should be 2^6 = 64
-    simplified shouldBe Literal(WholeNumber(64))
+    outer.simplify shouldBe Literal(64)
   }
 
   it should "simplify nested powers for transcendentals" in {
     val x = Root.phi
     val inner = BiFunction(x, Two, Power)
     val outer = BiFunction(inner, Two, Power)
-    val simplified = outer.simplify
     // Should be phi^4 (symbolic)
-    simplified shouldBe a[BiFunction]
+    outer.simplify shouldBe a[BiFunction]
   }
 
   it should "handle mixed exact and fuzzy operations" in {
-    val fuzzy = Literal(Real(2.0, Some(AbsoluteFuzz(0.1, Box))))
-    val expr = BiFunction(fuzzy, Two, Product)
+    val fuzzy = Real(2.0, Some(AbsoluteFuzz(0.1, Box)))
+    val expr: BiFunction = BiFunction(fuzzy, Two, Product)
     expr.isExact shouldBe false
     expr.evaluate(pureNumberContext) should be(empty)
     expr.materialize shouldBe Real(4.0, Some(RelativeFuzz(0.1, Box))) // CONSIDER this looks wrong. It should be AbsoluteFuzz(0.1, Box)
@@ -776,21 +770,20 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
     // ln(exp(x)) = x
     val inner2 = UniFunction(EulerMascheroni, Exp)
     val outer2 = UniFunction(inner2, Ln)
-    val simplified2 = outer2.simplify
-    simplified2.materialize shouldBe Eager(Constants.gamma)
+    outer2.simplify.materialize shouldBe Eager(Constants.gamma)
   }
 
   behavior of "Square root simplification consistency"
 
   it should "simplify bare √3 to consistent form" in {
-    val root3a = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val root3a = BiFunction(3, RationalNumber(1, 2), Power)
     val simplified = root3a.simplify
     println(s"Bare √3 simplified to: $simplified (${simplified.getClass.getSimpleName})")
     // Just observe what it becomes
   }
 
   it should "simplify √3 inside negation to consistent form" in {
-    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val root3 = BiFunction(3, RationalNumber(1, 2), Power)
     val negated = UniFunction(root3, Negate)
     val simplified = negated.simplify
     println(s"Negated √3 simplified to: $simplified (${simplified.getClass.getSimpleName})")
@@ -804,8 +797,8 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "ensure both representations are equivalent" in {
-    val root3a = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power).simplify
-    val root3b = UniFunction(BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power), Negate).simplify
+    val root3a = BiFunction(3, RationalNumber(1, 2), Power).simplify
+    val root3b = UniFunction(BiFunction(3, RationalNumber(1, 2), Power), Negate).simplify
 
     // Extract inner from negation if needed
     val innerB = root3b match {
@@ -821,7 +814,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "show what simplifyByEvaluation returns for each" in {
-    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val root3 = BiFunction(3, RationalNumber(1, 2), Power)
 
     val bareEval: em.MatchResult[Expression] = Expression.simplifyByEvaluation(root3) // Call the matcher
     println(s"Bare simplifyByEvaluation result: $bareEval")
@@ -835,7 +828,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "test simplifyByEvaluation directly on both forms" in {
-    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val root3 = BiFunction(3, RationalNumber(1, 2), Power)
     val negated = UniFunction(root3, Negate)
 
     val bareResult = Expression.simplifyByEvaluation(root3)
@@ -848,12 +841,9 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "verify the aggregate expansion creates consistent forms" in {
-    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
-    val one = Literal(1)
-    val minusOne = Literal(-1)
-
-    val sum1 = BiFunction(root3, one, Sum) // √3 + 1
-    val sum2 = BiFunction(root3, minusOne, Sum) // √3 - 1
+    val root3 = BiFunction(3, RationalNumber(1, 2), Power)
+    val sum1 = BiFunction(root3, 1, Sum) // √3 + 1
+    val sum2 = BiFunction(root3, -1, Sum) // √3 - 1
     val product = BiFunction(sum1, sum2, Product) // (√3+1)(√3-1)
 
     println(s"Product before simplify: $product")
@@ -872,7 +862,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "trace the full simplification pipeline for bare √3" in {
-    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val root3 = BiFunction(3, RationalNumber(1, 2), Power)
 
     println(s"Starting with: $root3")
 
@@ -898,7 +888,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "trace the full simplification pipeline for nested √3" in {
-    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val root3 = BiFunction(3, RationalNumber(1, 2), Power)
     val negated = UniFunction(root3, Negate)
 
     println(s"Starting with: $negated")

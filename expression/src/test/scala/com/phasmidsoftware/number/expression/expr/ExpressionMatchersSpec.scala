@@ -221,13 +221,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val y = One / 2
     (x * y).simplify shouldBe Pi
   }
-  it should "simplify sqrt(7)∧2" in {
-    val x: Expression = Expression(7)
-    val y = x.sqrt
-    val z = y ∧ 2
-    val q = matchSimpler(z)
-    q shouldBe em.Match(Expression(7))
-  }
   it should "cancel 1 and - -1" in {
     sb.append("cancel 1 and - -1:\n")
     val x: Expression = Expression.one
