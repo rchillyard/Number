@@ -15,7 +15,7 @@ import org.scalatest.matchers.should.Matchers
   * Note: Tests use symbolic constants (Pi, E, sqrt, phi) rather than simple integers
   * to avoid eager evaluation that would hide whether patterns are matching.
   */
-class ExpressionEdgeCasesSpec3 extends AnyFlatSpec with Matchers {
+class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
 
   behavior of "BiFunction structural simplifications"
 

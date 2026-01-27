@@ -10,7 +10,7 @@ Analyzed 7 test files totaling **~4,500 lines** of test code with **3,500+ tests
 4. **AggregateSpec.scala** (54 lines) - Aggregate-specific tests
 5. **CompositeExpressionSpec.scala** (81 lines) - Mostly empty stubs
 6. **CompositeExpressionSpec.scala** (915 lines) - Historical test file
-7. **ExpressionEdgeCasesSpec3.scala** (254 lines) - Recently added for TESTME cases
+7. **ExpressionEdgeCasesSpec.scala** (254 lines) - Recently added for TESTME cases
 
 ## Key Findings
 
@@ -42,7 +42,7 @@ it should "identitiesMatcher" in { }
 - Likely superseded by ExpressionSpec and ExpressionMatchersSpec
 - Needs detailed review to identify unique tests worth keeping
 
-**ExpressionEdgeCasesSpec3.scala** - Recent Addition
+**ExpressionEdgeCasesSpec.scala** - Recent Addition
 - 254 lines testing TESTME cases
 - Should be KEPT - these are new tests we just added
 - Could be renamed to something more descriptive like `ExpressionEdgeCasesSpec`
@@ -85,7 +85,7 @@ it should "identitiesMatcher" in { }
 - **REVIEW:** Aggregate tests in ExpressionSpec - likely redundant
 
 #### Category D: Edge Cases
-**Files:** ExpressionEdgeCasesSpec3.scala (new)
+**Files:** ExpressionEdgeCasesSpec.scala (new)
 **Status:** Unique tests for previously untested patterns
 
 **Recommendation:**
@@ -100,7 +100,7 @@ it should "identitiesMatcher" in { }
     - Delete all empty stubs
     - **Savings:** ~70 lines, ~10 empty tests
 
-2. **RENAME ExpressionEdgeCasesSpec3.scala** → **ExpressionEdgeCasesSpec.scala**
+2. **RENAME ExpressionEdgeCasesSpec.scala** → **ExpressionEdgeCasesSpec.scala**
     - More descriptive name
     - Clarifies purpose (edge cases, TESTME patterns)
 

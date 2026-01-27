@@ -58,14 +58,12 @@
         <option value="com.phasmidsoftware.number.expression.parse.RationalParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.ShuntingYardParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.SignificantSpaceParsersSpec" />
-        <option value="com.phasmidsoftware.number.expression.expr.AggregateSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.AtomicExpressionSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.CompositeExpressionSpec" />
-        <option value="com.phasmidsoftware.number.expression.expr.CompositeExpressionSpec" />
-        <option value="com.phasmidsoftware.number.expression.expr.ExpressionEdgeCasesSpec3" />
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsIntegrationSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EmptySpec" />
+        <option value="com.phasmidsoftware.number.expression.expr.ExpressionEdgeCasesSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionEqSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionMatchersSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionSpec" />

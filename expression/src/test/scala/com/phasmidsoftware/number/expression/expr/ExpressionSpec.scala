@@ -45,16 +45,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   // TODO #Issue 149 this has to do with imaginary numbers
   it should "evaluate i * 2" in {
-//    val x: Expression = ConstI * 2
-//    val result: Option[Valuable] = x.evaluateAsIs
-//    result.isDefined shouldBe true
-//    val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
-//    result.get shouldBe expected
+    //    val x: Expression = ConstI * 2
+    //    val result: Option[Valuable] = x.evaluateAsIs
+    //    result.isDefined shouldBe true
+    //    val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
+    //    result.get shouldBe expected
     pending
   }
 
   behavior of "parse"
-//  private val syp: ShuntingYardParser.type = ShuntingYardParser
+  //  private val syp: ShuntingYardParser.type = ShuntingYardParser
   //  it should "parse 1" in {
   //    syp.parseInfix("1") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
   //    syp.parseInfix("(1)") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
@@ -195,8 +195,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #150
   it should "evaluate sqrt 36" in {
-//    val x: Expression = Expression(36).sqrt
-//    x.materialize shouldEqual ±(6)
+    //    val x: Expression = Expression(36).sqrt
+    //    x.materialize shouldEqual ±(6)
     pending
   }
   // TODO Issue #140
@@ -280,10 +280,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "isExact"
   // TODO Issue #140
-  it should "be true for any constant Valuable" in {
-    Eager.one.isExact shouldBe true
-    Eager.pi.isExact shouldBe true
-  }
+  // Note: Atomic constant exactness is tested in AtomicExpressionSpec
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
     (One :+ Eager.two).isExact shouldBe true
     (Pi :+ Eager.pi).isExact shouldBe true
@@ -302,12 +299,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "depth"
-  it should "be 1 for any atomic expression" in {
-    Expression(1).depth shouldBe 1
-    Expression.one.depth shouldBe 1
-    Expression(1).depth shouldBe 1
-    pi.depth shouldBe 1
-  }
+  // Note: Atomic expression depth is tested in AtomicExpressionSpec
   it should "be 2 for any UniFunction expression" in {
     expr.UniFunction(1, Negate).depth shouldBe 2
     expr.UniFunction(1, Cosine).depth shouldBe 2
@@ -322,16 +314,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "Euler"
   // TODO Issue #151
   it should "prove Euler's identity 1" in {
-//    val iPi = ComplexCartesian(0, numerical.Number.pi)
-//    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-//    euler.materialize shouldBe Eager.minusOne
+    //    val iPi = ComplexCartesian(0, numerical.Number.pi)
+    //    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+    //    euler.materialize shouldBe Eager.minusOne
     pending
   }
   // TODO Issue #151
   it should "prove Euler's identity 2" in {
-//    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
-//    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-//    euler.materialize shouldBe Eager.minusOne
+    //    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
+    //    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+    //    euler.materialize shouldBe Eager.minusOne
     pending
   }
 
