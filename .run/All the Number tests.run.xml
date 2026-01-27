@@ -38,7 +38,7 @@
         <option value="com.phasmidsoftware.number.cats.laws.RationalAlgebraicInstancesLawSpec" />
         <option value="com.phasmidsoftware.number.cats.laws.RealAlgebraicInstancesLawSpec" />
         <option value="com.phasmidsoftware.number.top.FoucaultSpec" />
-        <option value="com.phasmidsoftware.number.top.FunctionalSpec"/>
+        <option value="com.phasmidsoftware.number.top.FunctionalSpec" />
         <option value="com.phasmidsoftware.number.top.PhysicalConstantsSpec" />
         <option value="com.phasmidsoftware.number.top.QuantityLaTeXSpec" />
         <option value="com.phasmidsoftware.number.top.QuantityParserSpec" />
@@ -62,6 +62,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.AtomicExpressionSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.CompositeExpressionSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.CompositeExpressionSpec2" />
+        <option value="com.phasmidsoftware.number.expression.expr.CompositeExpressionSpec3" />
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsIntegrationSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EmptySpec" />

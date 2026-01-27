@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.core.{AnyContext, CanPower, Context, Q, RestrictedContext}
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, QuadraticSolution, RationalNumber, Structure, WholeNumber}
@@ -15,6 +15,7 @@ import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real}
 import com.phasmidsoftware.number.expression.algebraic
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, given_LatexRenderer_Expression, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
@@ -349,7 +350,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     *         if all relevant fields are equal; otherwise, false
     */
   override def equals(other: Any): Boolean = other match {
-    case that: expression.expr.UniFunction =>
+    case that: UniFunction =>
       that.canEqual(this) &&
         x == that.x &&
         f == that.f
@@ -372,7 +373,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends express
     * @return true if the given object is an instance of AbstractRoot, false otherwise
     */
   def canEqual(other: Any): Boolean =
-    other.isInstanceOf[expression.expr.UniFunction]
+    other.isInstanceOf[UniFunction]
 
   override def toString: String = f.toString + "(" + x + ")"
 }
@@ -396,12 +397,12 @@ object UniFunction {
     *
     * @return a new UniFunction initialized with the components derived from the given MonadicDuple.
     */
-  def apply(md: MonadicDuple): expression.expr.UniFunction = {
+  def apply(md: MonadicDuple): UniFunction = {
     val tuple = (md.l, md.r)
-    new expression.expr.UniFunction(tuple._2, tuple._1)
+    new UniFunction(tuple._2, tuple._1)
   }
 
-  implicit def convertFromMonadicDuple(md: MonadicDuple): expression.expr.UniFunction = apply(md)
+  implicit def convertFromMonadicDuple(md: MonadicDuple): UniFunction = apply(md)
 
   import com.phasmidsoftware.number.algebra.util.LatexRenderer
 
@@ -500,17 +501,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         matchBiFunctionIdentitiesPower(a, b)
       case BiFunction(a, b, Log) =>
         matchBiFunctionIdentitiesLog(a, b)
-      case BiFunction(q1@QuadraticRoot(e1, b1), q2@QuadraticRoot(e2, b2), f) if e1 == e2 =>
-        // TODO asInstanceOf unrelated type
-        val quadratic: Quadratic = e1.asInstanceOf[Quadratic] // TESTME
-        f match {
-          case Sum if b1 != b2 =>
-            em.Match(quadratic.conjugateSum)
-          case Product if b1 != b2 =>
-            em.Match(quadratic.conjugateProduct)
-          case _ =>
-            em.Miss[Expression, Expression](s"BiFunction: matchRoot: QuadraticRoots and $f", BiFunction(q1, q2, f)) // TESTME
-        }
+      case BiFunction(a, b, Atan) =>
+        matchBiFunctionIdentitiesAtan(a, b)
       case BiFunction(r: Root, x, f) =>
         matchRoot(r, x, f) // TESTME
       case BiFunction(x, r: Root, f) if f.commutes =>
@@ -524,7 +516,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         modifyAlgebraicQuadratic(a, x, f) // TESTME
       case BiFunction(x, Literal(a: QuadraticSolution, _), f) if f.commutes =>
         modifyAlgebraicQuadratic(a, x, f) // TESTME
-      // TODO Handle tha Atan cases
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: identitiesMatcher: no trivial simplifications", this)
     }
@@ -558,15 +549,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case BiFunction(BiFunction(a, b, Product), p, Power) =>
       em.Match(BiFunction(a ∧ p, b ∧ p, Product))
     case BiFunction(BiFunction(a, b, Power), p, Power) =>
-      em.Match(BiFunction(a, b * p, Power)) // TESTME
+      em.Match(BiFunction(a, b * p, Power))
     // NOTE these first two cases are kind of strange! CONSIDER removing them.
     case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
       // NOTE: duplicate code
       val xSq = Expression.simplifyExact(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power)) // x²
-      em.Match(expression.expr.UniFunction(xSq, Negate))
+      em.Match(UniFunction(xSq, Negate))
     case BiFunction(UniFunction(a, Negate), b, Product) if a == b => // TESTME
       val xSq = Expression.simplifyExact(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
-      em.Match(expression.expr.UniFunction(xSq, Negate))
+      em.Match(UniFunction(xSq, Negate))
     // CONSIDER carefully reinstating this. But for now, it adds failed tests!
     //    case BiFunction(a, b, Product) =>
     //      matchProduct
@@ -753,6 +744,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     (a, b) match {
       case (a, b) if a.plus(b) == Zero =>
         em.Match(Zero)
+      case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1), q2@QuadraticRoot(e2, b2)) if quadratic == e2 && b1 != b2  =>
+        em.Match(quadratic.conjugateSum)
       case (l: Literal, q: QuadraticRoot) =>
         matchLiteral(l, q, Sum) // TESTME
       case _ =>
@@ -777,9 +770,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (One, b) =>
         em.Match(b)
       case (a, MinusOne) =>
-        em.Match(expression.expr.UniFunction(a, Negate))
+        em.Match(UniFunction(a, Negate))
       case (MinusOne, b) =>
-        em.Match(expression.expr.UniFunction(b, Negate))
+        em.Match(UniFunction(b, Negate))
+      case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1), q2@QuadraticRoot(e2, b2)) if quadratic == e2 && b1 != b2 =>
+        em.Match(quadratic.conjugateProduct)
       // CONSIDER the following case should be copied for Sum (not just Product)
       case (a, b) if !a.isExact && !b.isExact => // if both a and b are inexact, we might as well combine them here
         em.matchIfSuccess(a.materialize.multiply(b.materialize).map(Literal(_)))((a, b))
@@ -800,7 +795,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (_, Zero) =>
         em.Match(One)
       case (_, MinusOne) =>
-        em.Match(expression.expr.UniFunction(a, Reciprocal))
+        em.Match(UniFunction(a, Reciprocal))
       case (_, Infinity) =>
         em.Match(Infinity)
       case (E, ValueExpression(v: eager.Number, _)) =>
@@ -825,8 +820,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         }
       case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch), Literal(w: WholeNumber, _)) =>
         em.Match(BiFunction(r + q, w - 1, Power))
-      case (BiFunction(x, y, Power), z) =>
-        em.Match(BiFunction(x, y :* z, Power)) // TESTME
       // CONSIDER generalizing this later but beware the general case breaks a lot of tests.
       case (Two, Literal(RationalNumber(r, _), _)) if r == Rational.half =>
         em.Match(Root.squareRoot(Rational(2), 0))
@@ -835,8 +828,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       //        em.Match(Root.squareRoot(x.toRational,0)) // NOTE we arbitrarily choose the positive branch here.
       case (E, BiFunction(ConstI, Pi, Product)) | (E, BiFunction(Pi, ConstI, Product)) =>
         em.Match(MinusOne)
-      case (E, Literal(ComplexCartesian(Number.zero, Number.pi), _)) =>
-        em.Match(MinusOne) // TESTME NOTE Euler's identity
+//      case (E, Literal(ComplexCartesian(numerical.Number.zero, numerical.Number.pi))) =>
+//        em.Match(MinusOne) // TESTME NOTE Euler's identity
       case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
         em.Match(MinusOne) // NOTE Also Euler's identity
       case (x, BiFunction(y, z, Log)) if x == z =>
@@ -862,9 +855,40 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (a, b) if a == b =>
         em.Match(One)
       case (a, E) =>
-        em.Match(expression.expr.UniFunction(a, Ln))
+        em.Match(UniFunction(a, Ln))
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionLog: no trivial simplifications for Log", this)
+    }
+
+  /**
+    * Matches two expressions and attempts to simplify arctangent operations.
+    *
+    * The Atan function computes angles based on the relationship between two parameters.
+    * This method handles common special cases where the angle can be determined exactly.
+    *
+    * Special cases:
+    * - atan(x>0, 0) = 0 (positive x-axis)
+    * - atan(x<0, 0) = π (negative x-axis)
+    * - atan(1, 1) = π/4 (45 degrees)
+    * - atan(0, 1) = π/2 (90 degrees, positive y-axis)
+    *
+    * @param a the first parameter of the arctangent function
+    * @param b the second parameter of the arctangent function
+    * @return a MatchResult containing the simplified angle expression if a pattern matches,
+    *         otherwise a Miss indicating no simplification was found
+    */
+  private def matchBiFunctionIdentitiesAtan(a: Expression, b: Expression): em.MatchResult[Expression] =
+    (a, b) match {
+      case (x, Zero) if x.signum > 0 =>
+        em.Match(Literal(Angle.zero)) // atan(x>0, 0) = 0
+      case (x, Zero) if x.signum < 0 =>
+        em.Match(Literal(Angle.pi)) // atan(x<0, 0) = π
+      case (One, One) =>
+        em.Match(Literal(Angle.piBy4)) // atan(1, 1) = π/4
+      case (Zero, One) =>
+        em.Match(Literal(Angle.piBy2)) // atan(0, 1) = π/2
+      case _ =>
+        em.Miss[Expression, Expression]("BiFunction: matchBiFunctionIdentitiesAtan: no trivial simplifications for Atan", this)
     }
 
   /**
