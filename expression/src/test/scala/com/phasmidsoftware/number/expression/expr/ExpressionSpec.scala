@@ -527,4 +527,30 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     half.materialize shouldBe RationalNumber.half
 
   }
+
+  behavior of "simplifyExact"
+  it should "simplifyExact 1" in {
+    val x1 = Eager.one
+    val x2 = Eager.pi
+    val e = BiFunction(Literal(x1), Literal(x2), Sum)
+    e.simplifyExact(e).successful shouldBe false
+  }
+  // NOTE Test case for Issue #142
+  it should "simplifyExact 2" in {
+    Expression("sin(𝛑) * -1") match {
+      case expression: CompositeExpression =>
+        val simplified = expression.simplifyExact(expression)
+        simplified.successful shouldBe true
+        simplified.get shouldBe Literal(WholeNumber(0), Some("0")) // NOTE this should be Zero, not Literal(WholeNumber(0))
+      case x =>
+        fail(s"expected CompositeExpression, got $x")
+    }
+  }
+  it should "simplifyExact 3" in {
+    val e: CompositeExpression = ((Expression(3) :+ 5) * (7 - 2)).asInstanceOf[CompositeExpression]
+    val m = e.simplifyExact(e)
+    m.successful shouldBe true
+    val expected = Expression(40)
+    m.get should matchPattern { case `expected` => }
+  }
 }
