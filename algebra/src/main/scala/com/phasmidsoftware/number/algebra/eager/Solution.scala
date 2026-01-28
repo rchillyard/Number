@@ -234,8 +234,6 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
       val modulus: Number = complex.modulus
       Scalar.createScalar(modulus.nominalValue, modulus.factor, modulus.fuzz).approximation(force)
     }
-
-
 }
 
 /**
@@ -291,6 +289,10 @@ trait Solution extends Eager with Negatable[Solution] {
   def scale(r: Rational): Solution
 }
 
+/**
+  * Object containing functionality related to `Solution`, including mathematical computations
+  * and rendering solutions as LaTeX.
+  */
 object Solution {
 
   /**
