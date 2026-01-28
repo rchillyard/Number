@@ -49,20 +49,22 @@ Valuable (root trait)
 
 ### Examples
 
-**QuadraticSolution**: x = base ± √offset
+**QuadraticSolution**: x = base ± √offset (real) or x = base ± i√|offset| (complex)
 ```scala
 case class QuadraticSolution(
   base: Monotone,      // The rational part: -b/2a
-  offset: Monotone,    // The radical part: Δ/4a²
-  branch: Branch,      // Which root: Plus or Minus
-  conjugate: Boolean   // Real vs complex conjugate
+  offset: Monotone,    // The radical part: |Δ|/4a²
+  coefficient: Int,    // Which root: +1 or -1 (the ± sign)
+  imaginary: Boolean   // false for real solutions, true for complex
 ) extends Solution
 ```
 
 For the quadratic equation ax² + bx + c = 0:
 - `base` = -b/2a (the rational part)
-- `offset` = (b² - 4ac)/4a² (what's under the square root)
-- Two solutions differ only by the `branch` (± sign)
+- `offset` = |b² - 4ac|/4a² (absolute value of discriminant / 4a²)
+- `coefficient` = +1 or -1 (which of the two roots)
+- `imaginary` = true when discriminant < 0 (complex roots)
+- Two solutions differ by the `coefficient` (±1)
 
 **LinearSolution**: x = value
 ```scala
@@ -73,9 +75,17 @@ case class LinearSolution(value: Monotone) extends Solution
 
 Consider: x = 3 + √2
 - The `3` is rational (base)
-- The `√2` is irrational (offset)
+- The `√2` is irrational (offset with coefficient = +1)
 - They cannot be combined into a single `Monotone`
 - But we know the exact algebraic structure
+
+For complex solutions: x = 1 + i√2
+- The `1` is the real part (base)
+- The `√2` is what's under the imaginary radical (offset with imaginary = true)
+- `coefficient` = +1 gives 1 + i√2, coefficient = -1 gives 1 - i√2
+- These are complex conjugate pairs
+
+The key insight: **algebraic structure is preserved** - we know it's "base ± [i]√offset" even though we can't simplify it to a single number.
 
 ### Future Extensions
 
@@ -104,49 +114,281 @@ For polynomials of degree ≥ 5, the Abel-Ruffini theorem tells us there's no ge
 
 ### Purpose
 
-`Complex` represents **any** complex number, whether it comes from an algebraic solution, a transcendental function, or direct construction. Unlike `Solution`, `Complex` doesn't preserve algebraic structure—it's just a + bi.
+`Complex` represents **any** complex number, whether it comes from an algebraic solution, a transcendental function, or direct construction. Complex numbers extend the real numbers by including the imaginary unit i (where i² = -1).
 
-### Representation
+### Current Design (Wrapper Pattern)
+
+Currently, `Complex` in the algebra module wraps `numerical.Complex` from the core module:
 
 ```scala
-sealed trait Complex extends Eager
+// In algebra.eager
+case class Complex(
+  complex: numerical.Complex  // Wraps core.numerical.Complex
+)(val maybeName: Option[String] = None) extends Solution
+```
+
+This wrapper:
+- Adapts the core module's Complex to the algebra module's Solution interface
+- Delegates all operations to the underlying `numerical.Complex`
+- Adds `Solution` trait methods like `conjugate`, `scale`, `toMonotone`
+
+### Proposed Design (Native Types)
+
+**Goal**: Eliminate the wrapper and use native algebra types directly.
+
+#### Option 1: Move Complex to Algebra Module (Recommended)
+
+Move the Complex implementation entirely to `algebra.eager`:
+
+```scala
+// algebra/eager/Complex.scala
+sealed trait Complex extends Solution {
+  def real: Number
+  def imaginary: Number
+  def modulus: Number
+  def argument: Number
+  def conjugate: Complex
+  def rotate: Complex  // Multiply by i
+  
+  def isReal: Boolean = imaginary.isZero
+  def isImaginary: Boolean = real.isZero
+  def isComplex: Boolean = !isReal
+  
+  // Solution interface
+  def toMonotone: Option[Monotone] = 
+    if (isReal) Some(Scalar(real)) else None
+  
+  def +(other: Solution): Solution
+  def scale(r: Rational): Solution
+  def negate: Solution
+}
 
 case class ComplexCartesian(
   real: Number,
   imaginary: Number
-)(val maybeName: Option[String] = None) extends Complex
+)(val maybeName: Option[String] = None) extends Complex {
+  
+  def modulus: Number = 
+    (real.power(2) + imaginary.power(2)).sqrt
+  
+  def argument: Number = 
+    Number.atan2(imaginary, real)
+  
+  def conjugate: Complex = 
+    copy(imaginary = imaginary.negate)(None)
+  
+  def rotate: Complex = 
+    ComplexCartesian(-imaginary, real)()  // (a+bi)·i = -b+ai
+  
+  // Conversion to polar
+  def toPolar: ComplexPolar = 
+    ComplexPolar(modulus, Angle(argument))()
+}
 
 case class ComplexPolar(
   radius: Number,
   angle: Angle,
   branch: Int = 0
-)(val maybeName: Option[String] = None) extends Complex
+)(val maybeName: Option[String] = None) extends Complex {
+  
+  def real: Number = radius * angle.cos
+  def imaginary: Number = radius * angle.sin
+  
+  def modulus: Number = radius
+  def argument: Number = angle.toNumber
+  
+  def conjugate: Complex = 
+    copy(angle = angle.negate)(None)
+  
+  def rotate: Complex = 
+    copy(angle = angle + Angle.rightAngle)()
+  
+  // Conversion to cartesian
+  def toCartesian: ComplexCartesian = 
+    ComplexCartesian(real, imaginary)()
+}
 ```
 
-### Relationship to Solution
+**Migration path**:
+```scala
+// core.numerical.Complex becomes a type alias
+package com.phasmidsoftware.number.core.numerical
+type Complex = com.phasmidsoftware.number.algebra.eager.Complex
+type ComplexCartesian = com.phasmidsoftware.number.algebra.eager.ComplexCartesian
+type ComplexPolar = com.phasmidsoftware.number.algebra.eager.ComplexPolar
+```
 
-- **Solution → Complex**: Solutions can materialize to Complex when evaluated numerically
-- **Complex ⊄ Solution**: Not all Complex numbers come from algebraic solutions
-- **Complex is more general**: Includes transcendental values like e^(iπ), sin(1) + i·cos(1)
+#### Option 2: Make numerical.Complex Extend Solution
+
+If you can't move Complex due to module dependencies, make `numerical.Complex` extend algebra traits:
+
+```scala
+// core/numerical/Complex.scala
+sealed trait Complex extends algebra.eager.Solution {
+  // All the Complex methods...
+}
+```
+
+**Note**: This creates a reverse dependency (core → algebra) which may violate your module structure goals.
+
+### Relationship to QuadraticSolution
+
+When a quadratic has complex roots (discriminant < 0), the `QuadraticSolution` can materialize to `Complex`:
+
+```scala
+// For x² + 1 = 0:
+val solution: QuadraticSolution = QuadraticSolution(
+  base = Scalar(0),       // Real part is 0
+  offset = Scalar(1),     // |Δ|/4a² = 1
+  coefficient = 1,        // The + root
+  imaginary = true        // Complex solution
+)
+
+// Materialize to Complex:
+val asComplex: Complex = solution.materialize
+// → ComplexCartesian(0, 1) = i
+
+// The conjugate:
+val conjugateSolution = solution.conjugate  // coefficient = -1
+val conjugateComplex = conjugateSolution.materialize
+// → ComplexCartesian(0, -1) = -i
+```
+
+### Integration with QuadraticSolution
+
+```scala
+case class QuadraticSolution(..., imaginary: Boolean) extends Algebraic {
+  
+  def materialize: Eager = {
+    val radical = offset.sqrt  // √|offset|
+    val term = radical.scale(coefficient)  // ±√|offset|
+    
+    if (imaginary) {
+      // Complex result: base ± i√offset
+      ComplexCartesian(base, term)()
+    } else {
+      // Real result: base ± √offset
+      (base + term).normalize
+    }
+  }
+  
+  def toComplex: Complex = {
+    if (imaginary) {
+      ComplexCartesian(base, offset.sqrt.scale(coefficient))()
+    } else {
+      ComplexCartesian(materialize.asInstanceOf[Monotone], Number.zero)()
+    }
+  }
+}
 
 ### Examples
 
 ```scala
-// From algebraic solution
+// From algebraic solution with complex roots
 val quadratic: QuadraticSolution = QuadraticSolution(
   base = Scalar(1),
-  offset = Scalar(-1),  // √(-1) = i
-  branch = Plus,
-  conjugate = false
-)
-val asComplex: Complex = quadratic.materialize  // Complex(1, 1) = 1 + i
+  offset = Scalar(1),
+  coefficient = 1,
+  imaginary = true        // Complex solution
+)  // Represents: 1 + i
+
+val asComplex: Complex = quadratic.materialize
+// → ComplexCartesian(1, 1) = 1 + i
+
+val conjugate: QuadraticSolution = quadratic.conjugate  // coefficient = -1
+val conjugateComplex: Complex = conjugate.materialize
+// → ComplexCartesian(1, -1) = 1 - i
 
 // Direct complex construction
-val eulerIdentity: Complex = ComplexPolar(1, Angle.pi, 0)  // e^(iπ) = -1
+val eulerIdentity: Complex = ComplexPolar(Number.one, Angle.pi, 0)  // e^(iπ) = -1
 
 // From expression evaluation
 val transcendental: Expression = Exp(Multiply(I, Pi))
 val evaluated: Complex = transcendental.materialize.asInstanceOf[Complex]
+```
+
+## Complex vs QuadraticSolution: When to Use Each
+
+### QuadraticSolution (Algebraic Structure Preserved)
+
+Use `QuadraticSolution` when:
+- ✅ You're solving a quadratic equation
+- ✅ You need to preserve the exact algebraic form: base ± √offset or base ± i√offset
+- ✅ You want to perform algebraic operations that respect the structure
+- ✅ You need the conjugate (just flip coefficient)
+
+```scala
+// Solving x² - 2 = 0, solutions are ±√2
+val plus: QuadraticSolution = QuadraticSolution(
+  base = Scalar(0),
+  offset = Scalar(2),
+  coefficient = 1,
+  imaginary = false
+)  // Represents: +√2 (exactly)
+
+val minus = plus.conjugate  // Represents: -√2 (exactly)
+
+// Algebraic operations preserve exactness
+val doubled = plus.scale(Rational(2))  // 2√2 (still exact)
+```
+
+### Complex (Numerical/General Form)
+
+Use `Complex` when:
+- ✅ You need a general complex number (not necessarily from quadratic)
+- ✅ You're doing transcendental computations (e^(iθ), sin + i·cos)
+- ✅ You want Cartesian (a + bi) or Polar (r·e^(iθ)) form
+- ✅ Algebraic structure is not important
+
+```scala
+// General complex number
+val z: Complex = ComplexCartesian(3, 4)()  // 3 + 4i
+
+// From transcendental
+val euler: Complex = ComplexPolar(1, Angle(theta))()  // e^(iθ)
+
+// Numerical operations
+val magnitude = z.modulus  // 5
+val angle = z.argument     // atan2(4, 3)
+```
+
+### Conversion Between Them
+
+```scala
+// QuadraticSolution → Complex (materialize)
+val quad: QuadraticSolution = QuadraticSolution(
+  Scalar(2), Scalar(3), 1, imaginary = true
+)  // 2 + i√3
+
+val complex: Complex = quad.toComplex
+// → ComplexCartesian(2, √3)
+
+// Complex → QuadraticSolution (rare, only for specific forms)
+// Not generally possible - Complex loses algebraic structure
+```
+
+### Real-World Example: Solving Quadratics
+
+```scala
+// Solve: x² + 2x + 5 = 0
+// Discriminant: 4 - 20 = -16 < 0 (complex roots)
+// x = (-2 ± √(-16))/2 = -1 ± 2i
+
+val solution1: QuadraticSolution = QuadraticSolution(
+  base = Scalar(-1),
+  offset = Scalar(4),    // |Δ|/4a² = 16/4 = 4
+  coefficient = 1,
+  imaginary = true
+)  // -1 + 2i (exact algebraic form)
+
+val solution2 = solution1.conjugate  // -1 - 2i (exact)
+
+// For numerical work, materialize to Complex:
+val z1: Complex = solution1.materialize  // ComplexCartesian(-1, 2)
+val z2: Complex = solution2.materialize  // ComplexCartesian(-1, -2)
+
+// Verify: both should satisfy the original equation
+// (z1)² + 2(z1) + 5 = 0 ✓
 ```
 
 ## Expression: Symbolic Representation
@@ -244,9 +486,11 @@ Examples: BesselJ(2, x), sin(π/7), log(log(3)), algebraic expressions
 ```
 Expression (symbolic)
     │
-    ├─→ materialize() → Solution (if algebraic with known structure)
+    ├─→ solve/simplify → QuadraticSolution (if quadratic with known structure)
     │                       │
-    │                       └─→ materialize() → Complex (if needed)
+    │                       ├─→ toComplex() → Complex (if imaginary = true)
+    │                       │
+    │                       └─→ materialize() → Monotone (if imaginary = false)
     │
     └─→ materialize() → Complex (if transcendental/special function)
                             │
@@ -256,19 +500,25 @@ Expression (symbolic)
 ### Examples
 
 ```scala
-// Quadratic expression → Solution → Complex
-val expr: Expression = Quadratic(a=1, b=2, c=2)  // x² + 2x + 2 = 0
-val soln: Solution = expr.solve(0)  // QuadraticSolution(-1, √(-1), Plus)
-val complex: Complex = soln.materialize  // Complex(-1, 1) = -1 + i
+// Quadratic with real roots → Monotone
+val realExpr: Expression = Quadratic(a=1, b=-3, c=2)  // x² - 3x + 2 = 0
+val realSoln: QuadraticSolution = realExpr.solve(0)
+// QuadraticSolution(1.5, 0.25, 1, imaginary=false)
+val realValue: Monotone = realSoln.materialize  // 2.0
 
-// Special function → Complex directly
+// Quadratic with complex roots → Complex
+val complexExpr: Expression = Quadratic(a=1, b=0, c=1)  // x² + 1 = 0
+val complexSoln: QuadraticSolution = complexExpr.solve(0)
+// QuadraticSolution(0, 1, 1, imaginary=true)
+val complexValue: Complex = complexSoln.toComplex  // ComplexCartesian(0, 1) = i
+
+// Special function → Complex
 val bessel: Expression = BesselJ(Number(0), Number(1))
-val value: Complex = bessel.materialize  // ≈ 0.7652 (real, but returns Complex)
+val besselValue: Complex = bessel.materialize  // ≈ 0.7652 (real, but returns Complex)
 
-// Real solution → Scalar
-val simple: Expression = Quadratic(a=1, b=-3, c=2)  // x² - 3x + 2 = 0
-val realSoln: Solution = simple.solve(0)  // QuadraticSolution(1.5, 0.25, Plus)
-val scalar: Scalar = realSoln.materialize  // 2.0 (real number)
+// Transcendental → Complex
+val euler: Expression = Exp(Multiply(I, Pi))
+val eulerValue: Complex = euler.materialize  // ComplexPolar(1, π) = -1
 ```
 
 ## Extensibility
@@ -352,30 +602,288 @@ When simplifying expressions, if the result is an algebraic solution with known 
 ```scala
 def simplify(expr: Expression): Valuable = expr match {
   case Quadratic(a, b, c) if canSolveExactly(a, b, c) =>
-    QuadraticSolution(...)  // Promote to Solution
+    val discriminant = b*b - 4*a*c
+    val base = -b / (2*a)
+    val offset = discriminant.abs / (4*a*a)
+    val coefficient = 1  // Plus root by default
+    val imaginary = discriminant < 0
+    
+    QuadraticSolution(base, offset, coefficient, imaginary)
+    
   case other =>
     other.normalize  // Stay as Expression
 }
 ```
 
-### From Solution to Complex
+### From QuadraticSolution to Complex
 
-Solutions materialize to `Complex` when:
-- The discriminant is negative (imaginary roots)
-- User explicitly requests numerical value
-- Passing through APIs that expect Complex
+Solutions materialize to `Complex` when they have imaginary roots:
 
 ```scala
-val solution: QuadraticSolution = ...
-val asComplex: Complex = solution.materialize
+val solution: QuadraticSolution = QuadraticSolution(
+  base = Scalar(2),
+  offset = Scalar(3),
+  coefficient = 1,
+  imaginary = true
+)  // Represents: 2 + i√3
 
-// Or check first:
-if (solution.isReal) {
-  val real: Scalar = solution.materialize.asInstanceOf[Scalar]
+// Convert to Complex for numerical work
+val asComplex: Complex = solution.toComplex
+// → ComplexCartesian(2, √3)
+
+// Or check before converting:
+if (solution.imaginary) {
+  val complex: Complex = solution.toComplex
+  // Work with complex number
 } else {
-  val complex: Complex = solution.materialize.asInstanceOf[Complex]
+  val real: Monotone = solution.materialize.asInstanceOf[Monotone]
+  // Work with real number
 }
 ```
+
+### Wrapper Elimination Strategy
+
+To eliminate the `Complex` wrapper:
+
+1. **Phase 1**: Create native `ComplexCartesian` and `ComplexPolar` in algebra module
+2. **Phase 2**: Update all `QuadraticSolution.materialize` to return new types
+3. **Phase 3**: Replace `Complex(numerical.Complex)` wrapper with direct types
+4. **Phase 4**: Add type aliases in core.numerical for backward compatibility
+5. **Phase 5**: Migrate core module code to use algebra types
+
+```scala
+// Before (wrapper):
+case class Complex(complex: numerical.Complex) extends Solution
+
+// After (native):
+sealed trait Complex extends Solution
+case class ComplexCartesian(real: Number, imaginary: Number) extends Complex
+case class ComplexPolar(radius: Number, angle: Angle) extends Complex
+```
+
+## Eliminating the Complex Wrapper
+
+### Current Problem
+
+The algebra module currently has a wrapper around `core.numerical.Complex`:
+
+```scala
+// algebra/eager/Solution.scala (current)
+case class Complex(
+  complex: numerical.Complex  // Wraps core type
+)(val maybeName: Option[String] = None) extends Solution {
+  // All methods delegate to wrapped complex...
+  def modulus: Number = complex.modulus
+  def argument: Number = complex.argument
+  // etc.
+}
+```
+
+This creates:
+- **Indirection overhead**: Every operation goes through wrapper
+- **Type confusion**: Two "Complex" types in different modules
+- **Architectural misalignment**: Algebra should own its own types
+
+### Solution: Native Complex in Algebra Module
+
+**Step 1: Define Native Types**
+
+```scala
+// algebra/eager/Complex.scala
+sealed trait Complex extends Solution {
+  def real: Number
+  def imaginary: Number
+  def modulus: Number
+  def argument: Number
+  def conjugate: Complex
+  def rotate: Complex
+  
+  // Solution interface
+  def toMonotone: Option[Monotone] = 
+    if (imaginary.isZero) Some(Scalar(real)) else None
+  
+  def +(other: Solution): Solution = other match {
+    case c: Complex => 
+      ComplexCartesian(
+        real + c.real,
+        imaginary + c.imaginary
+      )()
+    case _ => throw AlgebraException(s"Complex.+: unsupported $other")
+  }
+  
+  def scale(r: Rational): Solution = 
+    ComplexCartesian(
+      real.scale(r),
+      imaginary.scale(r)
+    )()
+  
+  def negate: Solution = 
+    ComplexCartesian(
+      real.negate,
+      imaginary.negate
+    )()
+  
+  def isZero: Boolean = real.isZero && imaginary.isZero
+  def signum: Int = if (isZero) 0 else 1
+  def isExact: Boolean = real.isExact && imaginary.isExact
+  def normalize: Complex = this
+  
+  def render: String = maybeName.getOrElse {
+    (real.isZero, imaginary.isZero) match {
+      case (true, true) => "0"
+      case (true, false) => 
+        if (imaginary.isUnity) "i"
+        else if (imaginary == Number.negOne) "-i"
+        else s"${imaginary.render}i"
+      case (false, true) => real.render
+      case (false, false) => 
+        val sign = if (imaginary.signum < 0) "-" else "+"
+        s"${real.render} $sign ${imaginary.abs.render}i"
+    }
+  }
+}
+
+case class ComplexCartesian(
+  real: Number,
+  imaginary: Number
+)(val maybeName: Option[String] = None) extends Complex {
+  
+  lazy val modulus: Number = 
+    (real.power(2) + imaginary.power(2)).sqrt
+  
+  lazy val argument: Number = 
+    Number.atan2(imaginary, real)
+  
+  def conjugate: Complex = 
+    copy(imaginary = imaginary.negate)(None)
+  
+  def rotate: Complex = 
+    ComplexCartesian(-imaginary, real)()
+  
+  def toPolar: ComplexPolar = 
+    ComplexPolar(modulus, Angle(argument))()
+}
+
+case class ComplexPolar(
+  radius: Number,
+  angle: Angle,
+  branch: Int = 0
+)(val maybeName: Option[String] = None) extends Complex {
+  
+  lazy val real: Number = radius * angle.cos
+  lazy val imaginary: Number = radius * angle.sin
+  
+  def modulus: Number = radius
+  def argument: Number = angle.toNumber
+  
+  def conjugate: Complex = 
+    copy(angle = angle.negate)(None)
+  
+  def rotate: Complex = 
+    copy(angle = angle + Angle.rightAngle)()
+  
+  def toCartesian: ComplexCartesian = 
+    ComplexCartesian(real, imaginary)()
+}
+```
+
+**Step 2: Update QuadraticSolution Integration**
+
+```scala
+case class QuadraticSolution(
+  base: Monotone,
+  offset: Monotone,
+  coefficient: Int,
+  imaginary: Boolean
+)(val maybeName: Option[String] = None) extends Algebraic {
+  
+  def toComplex: Complex = {
+    val radical = offset.sqrt
+    val term = radical.scale(coefficient)
+    
+    if (imaginary) {
+      ComplexCartesian(
+        base.toNumber,
+        term.toNumber
+      )()
+    } else {
+      ComplexCartesian(
+        (base + term).toNumber,
+        Number.zero
+      )()
+    }
+  }
+  
+  def materialize: Eager = {
+    if (imaginary) {
+      toComplex
+    } else {
+      val radical = offset.sqrt
+      (base + radical.scale(coefficient)).normalize
+    }
+  }
+}
+```
+
+**Step 3: Provide Backward Compatibility**
+
+```scala
+// core/numerical/Complex.scala
+// Add type aliases for backward compatibility
+package com.phasmidsoftware.number.core.numerical
+
+type Complex = com.phasmidsoftware.number.algebra.eager.Complex
+type ComplexCartesian = com.phasmidsoftware.number.algebra.eager.ComplexCartesian  
+type ComplexPolar = com.phasmidsoftware.number.algebra.eager.ComplexPolar
+
+// Factory methods for smooth transition
+object Complex {
+  def apply(real: Number, imaginary: Number): Complex = 
+    com.phasmidsoftware.number.algebra.eager.ComplexCartesian(real, imaginary)()
+  
+  def polar(radius: Number, angle: Number): Complex = 
+    com.phasmidsoftware.number.algebra.eager.ComplexPolar(
+      radius, 
+      Angle(angle)
+    )()
+}
+```
+
+**Step 4: Migration Checklist**
+
+- [ ] Create `algebra/eager/Complex.scala` with native types
+- [ ] Update `QuadraticSolution` to use native Complex
+- [ ] Update all tests to use algebra.eager.Complex
+- [ ] Add type aliases in core.numerical for compatibility
+- [ ] Migrate core module code to use type aliases
+- [ ] Remove old Complex wrapper from Solution.scala
+- [ ] Update documentation and examples
+
+### Benefits of Native Complex
+
+1. **Performance**: No wrapper indirection
+2. **Type clarity**: Single Complex type, clear ownership
+3. **Architectural alignment**: Algebra owns its types
+4. **Extensibility**: Easy to add operations to Complex
+5. **Integration**: Natural integration with QuadraticSolution
+
+### Alternative: Keep Core Separate
+
+If core module must remain independent:
+
+```scala
+// Keep numerical.Complex in core
+// But make algebra types the primary ones
+// Use converters:
+
+implicit def numericalToAlgebra(c: numerical.Complex): algebra.eager.Complex = 
+  algebra.eager.ComplexCartesian(c.real, c.imag)()
+
+implicit def algebraToNumerical(c: algebra.eager.Complex): numerical.Complex = 
+  numerical.ComplexCartesian(c.real, c.imaginary)
+```
+
+But this still creates friction - better to migrate fully.
 
 ## Future Considerations
 
@@ -419,6 +927,22 @@ Future integration with systems like SymPy or Mathematica for:
 
 ---
 
-*Document Version: 1.0*  
+*Document Version: 2.0*  
 *Last Updated: 2025-01-28*  
 *Library Version: 1.6.2*
+
+## Changelog
+
+**Version 2.0** (2025-01-28):
+- Corrected QuadraticSolution structure: `imaginary: Boolean` instead of `conjugate: Boolean`
+- Added comprehensive section on eliminating Complex wrapper
+- Clarified Complex vs QuadraticSolution usage patterns
+- Added native Complex implementation design
+- Updated all examples with correct parameter names
+- Added materialization flow diagrams
+- Expanded migration strategy
+
+**Version 1.0** (2025-01-28):
+- Initial architecture document
+- Defined Solution, Expression, and Complex separation
+- Established design boundaries and extensibility patterns
