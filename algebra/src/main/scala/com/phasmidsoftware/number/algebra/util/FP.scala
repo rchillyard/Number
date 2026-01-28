@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.algebra.util
 
 import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
+import org.slf4j.LoggerFactory
 
 import java.net.URL
 import scala.Option.when
@@ -19,6 +20,8 @@ import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
   * TODO move this into the core module.
   */
 object FP {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   /**
     * Executes the provided computation if the given condition is true; otherwise, returns a Failure.
@@ -391,7 +394,7 @@ object FP {
     * @return An `Option` containing the value if the `Try` is a Success, or `None` if the `Try` is a `Failure`.
     */
   def toOption[X](xy: Try[X]): Option[X] =
-    toOptionWithLog(t => System.err.println(s"FP.toOption: $t"))(xy)
+    toOptionWithLog(t => logger.info(s"FP.toOption: $t"))(xy)
 
   def toOptionWithLog[X](log: Throwable => Unit)(xy: Try[X]): Option[X] = xy match {
     case Success(x) => Some(x)

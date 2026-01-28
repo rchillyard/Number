@@ -2,15 +2,16 @@ package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.misc.Benchmark.Repetitions
 import com.phasmidsoftware.number.core.misc.Variance.rootSumSquares
+
+import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent._
 
 object Pi extends App {
 
   import scala.util.Random
 
   def getPoints(n: Int)(implicit r: Random): LazyList[(Double, Double)] = {
-    def getCoordinate: Double = (r.nextDouble() - 0.5) * 2
+    lazy val getCoordinate: Double = (r.nextDouble() - 0.5) * 2
 
     def radius(t: (Double, Double)): Double =
       rootSumSquares(t._1, t._2)

@@ -23,7 +23,7 @@ abstract class LazyNumber[X: Fractional](x: => X, f: X => X) extends Valuable[X]
   //  println(s"""LazyNumber: $x, f: $f; f(x)=${get}""")
   val z: Fractional[X] = implicitly[Fractional[X]]
 
-  def get: X = f(x)
+  lazy val get: X = f(x)
 
   // XXX Could we use CanBuildFrom/Builder here?
   def construct(x: => X, f: X => X): LazyNumber[X]

@@ -109,7 +109,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return A new instance of Number in pure number representation, performing the necessary conversion
     *         and scaling if required.
     */
-  def toPureNumber: Number = (factor, fuzz) match {
+  lazy val toPureNumber: Number = (factor, fuzz) match {
     case (PureNumber, _) =>
       this
     case (f, z) =>
@@ -127,7 +127,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return an Some(Double) which is the closest possible nominalValue to the nominal nominalValue,
     *         otherwise None if this is invalid.
     */
-  def toNominalDouble: Option[Double] = maybeNominalDouble
+  lazy val toNominalDouble: Option[Double] = maybeNominalDouble
 
   /**
     * An optional Double that corresponds to the value of this Number (but ignoring the factor).
@@ -378,7 +378,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * @return the result of squaring this number
     */
-  def square: Number = this `doMultiply` this
+  lazy val square: Number = this `doMultiply` this
 
   /**
     * Raise this Number to the power p.
@@ -402,7 +402,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
     */
-  def invert: Field =
+  lazy val invert: Field =
     Real(getInverse)
 
   /**
@@ -412,14 +412,14 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
     */
-  def getInverse: Number =
+  lazy val getInverse: Number =
     Number.inverse(convertToNumber(normalize))
 
   /**
     * Yields the square root of this Number.
     * If possible, the result will be exact.
     */
-  def sqrt: Number
+  lazy val sqrt: Number
 
   /**
     * Method to determine the sine of this Number.
@@ -427,7 +427,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * @return the sine of this.
     */
-  def sin: Number
+  lazy val sin: Number
 
   /**
     * Method to determine the cosine of this Number.
@@ -435,7 +435,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * @return the cosine.
     */
-  def cos: Number
+  lazy val cos: Number
 
   /**
     * Method to determine the tangent of this Number.
@@ -443,7 +443,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * @return the tangent
     */
-  def tan: Number =
+  lazy val tan: Number =
     (nominalValue, factor) match { // CONSIDER modulating first.
       case (Left(Right(r)), Radian) =>
         r match {
@@ -519,7 +519,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     *
     * @return Complex(this) as appropriate.
     */
-  def asComplex: Complex = if (isImaginary)
+  lazy val asComplex: Complex = if (isImaginary)
     ComplexCartesian.fromImaginary(this)
   else if (isZero)
     ComplexCartesian(Number.zero)

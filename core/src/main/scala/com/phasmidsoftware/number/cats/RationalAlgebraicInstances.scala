@@ -10,8 +10,8 @@ trait RationalAlgebraicInstances {
     type TruncatedDivisionCRing[A] = TruncatedDivision.forCommutativeRing[A]
 
     implicit val rationalTruncatedDivisionCRing: TruncatedDivisionCRing[Rational] = new TruncatedDivisionCRing[Rational] {
-        def zero: Rational = Rational.zero
-        def one: Rational = Rational.one
+        lazy val zero: Rational = Rational.zero
+        lazy val one: Rational = Rational.one
         def plus(x: Rational, y: Rational): Rational = x + y
         def times(x: Rational, y: Rational): Rational = x * y
         def negate(x: Rational): Rational = -x
@@ -44,8 +44,8 @@ trait RationalAlgebraicInstances {
 
     // Provide CommutativeRing[Rational]
     implicit val rationalCommutativeRing: CommutativeRing[Rational] = new CommutativeRing[Rational] {
-        def zero: Rational = Rational.zero
-        def one: Rational = Rational.one
+        lazy val zero: Rational = Rational.zero
+        lazy val one: Rational = Rational.one
         def plus(x: Rational, y: Rational): Rational = x + y
         def times(x: Rational, y: Rational): Rational = x * y
         def negate(x: Rational): Rational = -x

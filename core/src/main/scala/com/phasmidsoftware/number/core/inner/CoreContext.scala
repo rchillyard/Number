@@ -104,7 +104,7 @@ case class RestrictedContext(context: Factor) extends CoreContext {
       false
   }
 
-  override def toString: String = s"RestrictedContext($context)"
+  override lazy val toString: String = s"RestrictedContext($context)"
 }
 
 /**
@@ -123,7 +123,7 @@ case object AnyContext extends CoreContext {
     */
   def factorQualifies(f: Factor): Boolean = true
 
-  override def toString: String = "AnyContext"
+  override lazy val toString: String = "AnyContext"
 
 }
 
@@ -146,7 +146,7 @@ case object ImpossibleContext extends CoreContext {
     */
   def factorQualifies(f: Factor): Boolean = false
 
-  override def toString: String = "ImpossibleContext"
+  override lazy val toString: String = "ImpossibleContext"
 
 }
 

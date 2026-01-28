@@ -46,7 +46,7 @@ trait Approximate {
     * @return the approximate value as a `Double`.
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if no approximation can be obtained.
     */
-  def toDouble: Double = {
+  lazy val toDouble: Double = {
     // NOTE: it is possible for this to recurse infinitely if approximation(true) returns `Some(this)`.
     FP.recover(approximation(true).map(_.toDouble))(AlgebraException("Approximate.toDouble: logic error"))
   }

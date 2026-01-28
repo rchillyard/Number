@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.misc.Fuzzy.parser
 import org.apache.commons.math3.distribution.*
+
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.*
@@ -148,9 +149,9 @@ abstract class FuzzyBase(nominal: Double, delta: Double, distribution: AbstractR
   type PairFunction = (Double, Double) => Double
 
   // Other methods appropriate to Fuzzy
-  def fuzz: Double = delta
+  lazy val fuzz: Double = delta
 
-  def getRealDistribution: RealDistribution = distribution
+  lazy val getRealDistribution: RealDistribution = distribution
 
   def prob(y: Double, delta: Double): Try[Double] = Try(distribution.probability(y - math.abs(delta), y + math.abs(delta)))
 
@@ -165,9 +166,9 @@ abstract class FuzzyBase(nominal: Double, delta: Double, distribution: AbstractR
     */
   def combine(o: Fuzzy, f: PairFunction, df_dx: PairFunction, df_dy: PairFunction): Fuzzy
 
-  def negate: Fuzzy = map(Negative)
+  lazy val negate: Fuzzy = map(Negative)
 
-  def get: Double = nominal
+  lazy val get: Double = nominal
 
   def map(f: DiFunc[Double]): Fuzzy = newFuzzy(f.f(nominal), math.abs(f.df_dx(0)(nominal) * delta))
 

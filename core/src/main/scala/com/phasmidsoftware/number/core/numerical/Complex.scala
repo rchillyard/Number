@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian
 import com.phasmidsoftware.number.core.parse.ComplexParser
+
 import scala.util.*
 
 /**
@@ -20,7 +21,7 @@ trait Complex extends Multivariate {
   /**
     * @return true.
     */
-  def isComplex: Boolean = true
+  lazy val isComplex: Boolean = true
 
   /**
     * Method to determine the modulus of this Complex number.
@@ -84,7 +85,7 @@ trait Complex extends Multivariate {
     */
   def numberProduct(n: Number): Complex
 
-  def asCartesian: ComplexCartesian = this match {
+  lazy val asCartesian: ComplexCartesian = this match {
     case complex: ComplexCartesian => complex
     case complex: ComplexPolar => convertToCartesian(complex).asInstanceOf[ComplexCartesian]
   }

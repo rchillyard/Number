@@ -106,10 +106,10 @@ trait Expression extends Lazy with Approximate {
     @tailrec
     def inner(x: Expression): Expression = matchSimpler(x) match {
       case em.Miss(msg, e: Expression) =>
-        //        println(s"simplification of $x terminated by: $msg")
+        Expression.logger(s"simplification of $x terminated by: $msg")
         e
       case em.Match(e: Expression) =>
-        //        println(s"simplification of $x: $e")
+        Expression.logger(s"simplification of $x: $e")
         inner(e)
       case m =>
         throw ExpressionException(s"simplify.inner($x): logic error on $m")

@@ -17,7 +17,7 @@ import com.phasmidsoftware.number.core.numerical.{ComplexPolar, ExactNumber}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.expr
-import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, pi}
+import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em}
 import com.phasmidsoftware.number.expression.expr.Root.phi
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
