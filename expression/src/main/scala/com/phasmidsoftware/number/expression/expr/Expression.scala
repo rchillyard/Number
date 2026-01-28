@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import cats.Show
-import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.matchers.{LogLevel, LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.*
@@ -240,8 +240,9 @@ object ExpressionHelper {
   */
 object Expression {
 
-  // NOTE this is where we turn logging on (by using LogDebug or LogInfo).
-  implicit val logger: MatchLogger = MatchLogger(LogOff, classOf[Expression])
+  // NOTE The LogLevel is configured in application.conf.
+  lazy val matchLogLevel: LogLevel = ExpressionConfig.matchLogLevel
+  implicit val logger: MatchLogger = MatchLogger(matchLogLevel, classOf[Expression])
   implicit val em: ExpressionMatchers = new ExpressionMatchers {}
 
   //  trait LoggableExpression extends Loggable[Expression] {
