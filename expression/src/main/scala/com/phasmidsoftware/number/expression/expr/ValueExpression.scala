@@ -466,7 +466,7 @@ sealed abstract class NamedConstant(x: Eager, name: String) extends ValueExpress
   * @param x    the `Valuable` instance representing the value of the scalar constant.
   * @param name the name associated with the scalar constant.
   */
-sealed abstract class ScalarConstant(x: Eager, name: String) extends NamedConstant(x, name)
+sealed abstract class ScalarConstant(x: Eager, val name: String) extends NamedConstant(x, name)
 
 /**
   * Represents the mathematical constant zero.

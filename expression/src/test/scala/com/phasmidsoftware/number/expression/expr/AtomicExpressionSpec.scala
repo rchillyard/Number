@@ -7,7 +7,6 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.core.RestrictedContext
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
-import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import com.phasmidsoftware.number.expression.algebraic.{LinearEquation, QuadraticEquation}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -26,6 +25,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDrivenPropertyChecks {
 
   private val pureNumberContext = RestrictedContext(PureNumber)
+  private val pi = Real("3.14*")
 
   // ============================================================================
   // Noop Tests (Special case - not table-driven)
@@ -92,12 +92,12 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   behavior of "Literal"
 
   it should "be atomic" in {
-    val lit = Literal(WholeNumber.one)
+    val lit = Literal(1)
     lit.isAtomic shouldBe true
   }
 
   it should "have depth 1" in {
-    val lit = Literal(WholeNumber.one)
+    val lit = Literal(1)
     lit.depth shouldBe 1
   }
 
@@ -108,11 +108,11 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   }
 
   it should "support optional name" in {
-    val lit1 = Literal(WholeNumber.one, Some("unity"))
+    val lit1 = Literal(1, Some("unity"))
     lit1.maybeName shouldBe Some("unity")
     lit1.render shouldBe "unity"
 
-    val lit2 = Literal(WholeNumber.one, None)
+    val lit2 = Literal(1, None)
     lit2.maybeName shouldBe None
   }
 
@@ -123,41 +123,41 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   }
 
   it should "detect zero correctly" in {
-    Literal(WholeNumber.zero).isZero shouldBe true
-    Literal(WholeNumber.one).isZero shouldBe false
+    Literal(0).isZero shouldBe true
+    Literal(1).isZero shouldBe false
   }
 
   it should "compute signum correctly" in {
-    Literal(WholeNumber(5)).signum shouldBe 1
-    Literal(WholeNumber(-5)).signum shouldBe -1
-    Literal(WholeNumber.zero).signum shouldBe 0
+    Literal(5).signum shouldBe 1
+    Literal(-5).signum shouldBe -1
+    Literal(0).signum shouldBe 0
   }
 
   it should "support exact values" in {
-    val lit = Literal(WholeNumber(42))
+    val lit = Literal(42)
     lit.isExact shouldBe true
     lit.maybeDouble shouldBe Some(42.0)
   }
 
   it should "support fuzzy values" in {
-    val fuzzy = Real(3.14, Some(AbsoluteFuzz(0.01, Box)))
+    val fuzzy = pi
     val lit = Literal(fuzzy)
     lit.isExact shouldBe false
     lit.maybeDouble shouldBe None
   }
 
   it should "compare using Cats Eq" in {
-    val lit1 = Literal(WholeNumber(42))
-    val lit2 = Literal(WholeNumber(42))
-    val lit3 = Literal(WholeNumber(43))
+    val lit1 = Literal(42)
+    val lit2 = Literal(42)
+    val lit3 = Literal(43)
 
     lit1 shouldBe lit2
     lit1 should not be lit3
   }
 
   it should "have consistent hashCode" in {
-    val lit1 = Literal(WholeNumber(42))
-    val lit2 = Literal(WholeNumber(42))
+    val lit1 = Literal(42)
+    val lit2 = Literal(42)
     lit1.hashCode shouldBe lit2.hashCode
   }
 
@@ -169,11 +169,11 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
     * Table of atomic constants with their expected properties.
     * Each row represents one constant with all its testable properties.
     */
-  val atomicConstants = Table(
+  private val atomicConstants = Table(
     ("name",     "constant", "render", "signum", "isZero", "value"),
     ("Zero",     Zero,       "0",      0,        true,     WholeNumber.zero),
     ("One",      One,        "1",      1,        false,    WholeNumber.one),
-    ("MinusOne", MinusOne,   "-1",     -1,       false,    -WholeNumber.one),
+    ("MinusOne", MinusOne,   "-1",    -1,        false,    WholeNumber.minusOne),
     ("Two",      Two,        "2",      1,        false,    WholeNumber.two),
     ("Half",     Half,       "½",      1,        false,    RationalNumber.half),
     ("Pi",       Pi,         "𝛑",      1,        false,    Angle.pi),
@@ -325,7 +325,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   }
 
   it should "have proper name" in {
-    PiTranscendental.name shouldBe "\uD835\uDED1"
+    Pi.name shouldBe "\uD835\uDED1"
   }
 
   it should "have Pi as expression" in {
@@ -333,16 +333,16 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   }
 
   it should "be exact" in {
-    PiTranscendental.isExact shouldBe true
+    Pi.isExact shouldBe true
   }
 
   it should "evaluate to pi value" in {
-    PiTranscendental.evaluate(pureNumberContext) shouldBe None
+    Pi.evaluate(pureNumberContext) shouldBe None
   }
 
   it should "support function application" in {
     val sinPi: AbstractTranscendental = PiTranscendental.function(Sine).asInstanceOf[AbstractTranscendental]
-    sinPi should not be null
+    Option(sinPi) shouldBe defined
     sinPi.name should include("sin")
   }
 
@@ -415,12 +415,11 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   it should "evaluate correctly" in {
     val result = phiRoot.evaluate(pureNumberContext)
     result shouldBe defined
-    result.get should not be null
   }
 
   it should "materialize correctly" in {
     val result = phiRoot.materialize
-    result should not be null
+    result shouldBe a[QuadraticSolution]
   }
 
   it should "simplify to itself" in {
