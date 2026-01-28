@@ -4,9 +4,11 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import cats.Show
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager
+import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
@@ -54,7 +56,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return true if evaluateAsIs is defined.
     */
-  def isEager: Boolean = evaluateAsIs.isDefined
+  lazy val isEager: Boolean = evaluateAsIs.isDefined
 
   /**
     * Multiplies this `Expression` with another `Lazy` instance.
@@ -67,7 +69,7 @@ trait Expression extends Lazy with Approximate {
     */
   def multiply(other: Lazy): Lazy = other match {
     case x: Expression =>
-      expression.expr.BiFunction(this, x, Product).simplify
+      BiFunction(this, x, Product).simplify
     case _ =>
       throw ExpressionException(s"multiply: logic error on $other")
   }
@@ -104,10 +106,10 @@ trait Expression extends Lazy with Approximate {
     @tailrec
     def inner(x: Expression): Expression = matchSimpler(x) match {
       case em.Miss(msg, e: Expression) =>
-//        println(s"simplification of $x terminated by: $msg")
+        //        println(s"simplification of $x terminated by: $msg")
         e
       case em.Match(e: Expression) =>
-//        println(s"simplification of $x: $e")
+        //        println(s"simplification of $x: $e")
         inner(e)
       case m =>
         throw ExpressionException(s"simplify.inner($x): logic error on $m")
@@ -127,14 +129,29 @@ trait Expression extends Lazy with Approximate {
     * and then tries an approximation if necessary. Ultimately, it ensures the resulting
     * materialized object is an instance of `Eager`.
     *
+    * The Eager result will be normalized if appropriate.
+    *
     * @return an `Eager` representation of this `Expression` achieved through evaluation and/or approximation.
     */
-  def materialize: Eager = {
-    val simplified = simplify
-    val asIs = simplified.evaluateAsIs
-    val maybeValuable = asIs orElse simplified.approximation(true)
+  lazy val materialize: Eager = {
+    val asIs = simplify.evaluateAsIs
+    val maybeValuable = asIs.map(normalizeIfAppropriate) orElse approximation
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
+
+  /**
+    * A lazily evaluated optional approximation of this `Expression`.
+    *
+    * This field holds the result of simplifying the `Expression`
+    * with the `approximation` flag set to `true`. If the approximation
+    * is possible, it will store the approximated `Real` value; otherwise,
+    * it will remain `None`.
+    *
+    * This approximation is computed based on the context of
+    * the `simplify` method, which determines how the expression
+    * should be approximated.
+    */
+  lazy val approximation: Option[eager.Real] = simplify.approximation(true)
 
   /**
     * Method to determine if the materialized value of this `Expression` is defined and corresponds to a `Number`.
@@ -143,7 +160,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
     */
-  def asCoreNumber: Option[numerical.Number] =
+  lazy val asCoreNumber: Option[numerical.Number] =
     if isExact then
       evaluateAsIs match {
         case Some(x: numerical.Number) => Some(x)
@@ -161,6 +178,22 @@ trait Expression extends Lazy with Approximate {
     * @return the depth (an atomic expression has a depth of 1).
     */
   def depth: Int
+
+  /**
+    * Normalizes the given `Eager` instance if it is not of type `Angle`.
+    * If the input is already an instance of `Angle`, it is returned as is.
+    * For other types of `Eager`, the `normalize` method is invoked to
+    * obtain the normalized result.
+    * The reason we don't normalize Angles is that we don't want to turn 2𝛑 into zero.
+    *
+    * @param e the `Eager` instance to potentially normalize
+    * @return the input instance if it is of type `Angle`, otherwise the normalized version of the input
+    */
+  private def normalizeIfAppropriate(e: Eager) = e match {
+    case x: Angle => x
+    case x =>
+      x.normalize
+  }
 
   // NOTE This can be useful for debugging: it allows you to see the value of this Expression.
   // However, it can also cause a stack overflow so use it sparingly!
@@ -221,6 +254,15 @@ object Expression {
   import cats.Eq
   import cats.syntax.eq.*
 
+  /**
+    * Provides a given instance of the `Show` type class for the `Expression` type.
+    * This enables rendering of an `Expression` instance to a `String` representation
+    * using the `render` method of the `Expression`.
+    *
+    * @return A `Show` instance for the `Expression` type.
+    */
+  given Show[Expression] = Show.show(_.materialize.render)
+
   // TODO see ExpressionEq class which does handle all cases. But neither seems to be used in practice.
   given Eq[Expression] = (x: Expression, y: Expression) => (x, y) match {
     // Both are atomic - use default equality
@@ -237,6 +279,7 @@ object Expression {
     // Different types - not equal
     case _ => false
   }
+
   /**
     * Implicit class to allow various operations to be performed on an Expression.
     *
@@ -251,7 +294,7 @@ object Expression {
       * @return an Expression which is the lazy product of x and y.
       */
     infix def plus(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Sum)
+      BiFunction(x, y, Sum)
 
     /**
       * Method to add this Expression and another Expression, resulting in an Expression.
@@ -260,6 +303,7 @@ object Expression {
       * @return the sum of this and y.
       */
     def +(y: Expression): Expression = plus(y)
+
     /**
       * Method to lazily append the given expression to this expression using addition.
       *
@@ -276,7 +320,7 @@ object Expression {
       * @return an Expression which is the lazy product of x and y.
       */
     def -(y: Expression): Expression =
-      expression.expr.BiFunction(x, -y, Sum)
+      BiFunction(x, -y, Sum)
 
     /**
       * Method to lazily change the sign of this expression.
@@ -284,7 +328,7 @@ object Expression {
       * @return an Expression which is this negated.
       */
     def unary_- : Expression =
-      expression.expr.UniFunction(x, Negate)
+      UniFunction(x, Negate)
 
     /**
       * Method to lazily multiply this expression by another expression.
@@ -293,7 +337,7 @@ object Expression {
       * @return an Expression representing the lazy product of this expression and the given expression.
       */
     infix def times(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Product)
+      BiFunction(x, y, Product)
 
     /**
       * Method to lazily multiply x by y.
@@ -302,7 +346,7 @@ object Expression {
       * @return an Expression which is the lazy product of x and y.
       */
     def *(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Product)
+      BiFunction(x, y, Product)
 
     /**
       * Method to lazily perform an operation on x and y.
@@ -321,7 +365,7 @@ object Expression {
       * @return an Expression representing the reciprocal of x.
       */
     def reciprocal: Expression =
-      expression.expr.UniFunction(x, Reciprocal)
+      UniFunction(x, Reciprocal)
 
     /**
       * Method to lazily divide x by y.
@@ -340,7 +384,7 @@ object Expression {
       * @return an Expression representing x to the power of y.
       */
     def ∧(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Power)
+      BiFunction(x, y, Power)
 
     /**
       * Method to lazily get the square root of x.
@@ -351,11 +395,10 @@ object Expression {
       case z: AtomicExpression =>
         z.evaluateAsIs flatMap (_.asCoreNumber) match {
           case Some(q) =>
-            println("Expression.sqrt: this is where we used to do a short-cut for numbers")
             // XXX this was the old code: Literal(q.sqrt)
             x ∧ Eager.half
           case _ =>
-            x ∧ Eager.half // TESTME
+            x ∧ Eager.half
         }
       case _ =>
         x ∧ Eager.half // TESTME
@@ -367,7 +410,7 @@ object Expression {
       * @return an Expression representing the sin(x).
       */
     def sin: Expression =
-      expression.expr.UniFunction(x, Sine)
+      UniFunction(x, Sine)
 
     /**
       * Method to lazily get the cosine of x.
@@ -375,7 +418,7 @@ object Expression {
       * @return an Expression representing the cos(x).
       */
     def cos: Expression =
-      expression.expr.UniFunction(x, Cosine)
+      UniFunction(x, Cosine)
 
     /**
       * Method to lazily get the tangent of x.
@@ -393,7 +436,7 @@ object Expression {
       * @return an Expression representing the log of x.
       */
     def ln: Expression =
-      expression.expr.UniFunction(x, Ln)
+      UniFunction(x, Ln)
 
     /**
       * Method to lazily get the value of `e` raised to the power of x.
@@ -401,7 +444,7 @@ object Expression {
       * @return an Expression representing `e` raised to the power of x.
       */
     def exp: Expression =
-      expression.expr.UniFunction(x, Exp)
+      UniFunction(x, Exp)
 
     /**
       * Method to lazily get the value of `atan2(x, y)`, i.e., if the result is `z`, then `tan(z) = y/x`.
@@ -409,7 +452,7 @@ object Expression {
       * @return an Expression representing `atan2(x, y)`.
       */
     def atan(y: Expression): Expression =
-      expression.expr.BiFunction(x, y, Atan)
+      BiFunction(x, y, Atan)
 
     /**
       * Computes the logarithm of a given expression to the specified base.
@@ -418,7 +461,7 @@ object Expression {
       * @return an Expression representing the logarithm of this expression to the base `b`.
       */
     def log(b: Expression): Expression =
-      expression.expr.BiFunction(x, b, Log)
+      BiFunction(x, b, Log)
 
     /**
       * Eagerly compare this expression with y.
@@ -469,7 +512,7 @@ object Expression {
     */
   def apply(x: Eager): Expression = x match {
     case Eager.zero =>
-      Zero // TESTME (applies to all except default case)
+      Zero
     case Eager.one =>
       One
     case Eager.minusOne =>
@@ -480,6 +523,8 @@ object Expression {
       Pi
     case Eager.e =>
       E
+    case Eager.infinity =>
+      Infinity
     case _ =>
       Literal(x)
   }
@@ -497,11 +542,11 @@ object Expression {
     case -1 =>
       minusOne
     case 0 =>
-      zero // TESTME
+      zero
     case 1 =>
       one
     case 2 =>
-      two // TESTME
+      two
     case _ =>
       ValueExpression(x)
   }
@@ -611,8 +656,8 @@ object Expression {
       em.eitherOr(simplifyComponents,
         em.eitherOr(simplifyStructural,
           em.eitherOr(simplifyIdentities,
-            em.eitherOr(simplifyExact, // TODO combine these last two as simplifyEager
-              simplifyConstant))))(x)
+            em.eitherOr(simplifyExact,
+              simplifyByEvaluation))))(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x")) // TESTME
   }
@@ -643,12 +688,23 @@ object Expression {
     * @return an `em.AutoMatcher[Expression]` that matches and simplifies exact cases for composite expressions
     *         or signals when simplification is not applicable to non-composite expressions.
     */
-  def simplifyExact: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyExact") {
-    case c: CompositeExpression =>
-      c.simplifyExact(c)
-    case x =>
-      em.Miss("simplifyExact: not a Composite expression type", x) // TESTME
-  }
+  def simplifyExact: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("simplifyExact") {
+      // Special cases that need exact evaluation
+      case UniFunction(Two, Ln) =>
+        em.Match(L2) `flatMap` matchSimpler
+
+      case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
+        if n == 2 && theta.isZero =>
+        em.Match(Literal(r.power(2)))
+
+      // Delegate to composite types for their specific exact simplifications
+      case c: CompositeExpression =>
+        c.simplifyExact(c)
+
+      case x =>
+        em.Miss("simplifyExact: cannot simplify exactly", x)
+    }
 
   /**
     * Attempts to simplify trivial cases within a `CompositeExpression`.
@@ -659,30 +715,39 @@ object Expression {
     */
   def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyIdentities") {
     case c: CompositeExpression =>
-      c.simplifyTrivial(c)
+      c.simplifyIdentities(c)
     case x =>
-      em.Miss("simplifyIdentities: not a Composite expression type", x) // TESTME
+      em.Miss("simplifyIdentities: not a Composite expression type", x)
   }
 
   /**
-    * Attempts to simplify an `Expression` by focusing on constant folding within composite expressions.
-    * For composite expressions, this method applies constant-specific simplification logic.
-    * It does not handle other types of simplifications or unsupported expression types.
+    * Attempts to simplify an expression by evaluating it if possible.
+    * If the expression is a composite expression and can be evaluated,
+    * the method returns a simplified version of the evaluated result.
+    * If the expression cannot be evaluated or is already an atomic expression,
+    * the simplification operation is skipped.
+    * This is the last resort for simplification, and is typically used when no other simplification is possible.
     *
-    * @return an `em.AutoMatcher[Expression]` that matches and simplifies composite expressions
-    *         where constants can be evaluated or reduced, returning the simplified `Expression`.
+    * @return An instance of `em.AutoMatcher[Expression]` that performs
+    *         matching and optionally simplifies an expression by evaluating it.
     */
-  def simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
-    case UniFunction(Two, Ln) =>
-      em.Match(L2) `flatMap` matchSimpler
-    case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
-      if n == 2 && theta.isZero =>
-      em.Match(Literal(r.power(2)))
-    case c: CompositeExpression =>
-      c.simplifyConstant(c)
-    case x =>
-      em.Miss("simplifyConstant: not a Composite expression type", x)
-  }
+  def simplifyByEvaluation: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("simplifyByEvaluation") {
+      case BiFunction(ValueExpression(x: eager.Number, _), ValueExpression(q: Q, _), Power) if q.toRational.invert.isWhole =>
+        val root = q.toRational.invert.toInt
+        em.Match(Literal(InversePower(root, x))) `flatMap` matchSimpler
+      //      case BiFunction(ValueExpression(q: Q, _), ValueExpression(RationalNumber.half, _), Power) =>
+      //        em.Match(Root.squareRoot(q.toRational, 0)) // NOTE we arbitrarily choose the positive root
+      case c: CompositeExpression =>
+        c.evaluateAsIs match {
+          case Some(f) =>
+            em.MatchCheck(Expression(f))(c).map(_.simplify)
+          case _ =>
+            em.Miss("simplifyByEvaluation: cannot evaluate", c)
+        }
+      case a: AtomicExpression =>
+        em.Miss("simplifyByEvaluation: atomic expression already simplified", a)
+    }
 
   /**
     * Determines whether the provided expression `z` is an identity element

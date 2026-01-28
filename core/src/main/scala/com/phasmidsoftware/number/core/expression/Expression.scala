@@ -336,7 +336,7 @@ object Expression {
     */
   def apply(x: Field): Expression = x match {
     case Constants.zero =>
-      Zero // TESTME (applies to all except default case)
+      Zero
     case Constants.one =>
       One
     case Constants.minusOne =>
@@ -428,11 +428,11 @@ object Expression {
     case -1 =>
       minusOne
     case 0 =>
-      zero // TESTME
+      zero
     case 1 =>
       one
     case 2 =>
-      two // TESTME
+      two
     case _ =>
       Literal(x)
   }

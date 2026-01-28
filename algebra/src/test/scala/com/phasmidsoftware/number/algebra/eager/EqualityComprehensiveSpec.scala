@@ -134,7 +134,7 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
     import com.phasmidsoftware.number.core.numerical.Fuzziness
 
     val exact = Real(5.0, None)
-    val fuzzy = Real(5.0000000001, Some(Fuzziness.doublePrecision))
+    val fuzzy = Real(5.0000000000000001, Some(Fuzziness.doublePrecision))
 
     (exact ~== fuzzy) shouldBe true
   }
@@ -178,7 +178,7 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
     import com.phasmidsoftware.number.core.numerical.Fuzziness
 
     val whole = WholeNumber(5)
-    val fuzzy = Real(5.0000000001, Some(Fuzziness.doublePrecision))
+    val fuzzy = Real(5.0000000000000001, Some(Fuzziness.doublePrecision))
 
     (whole ~== fuzzy) shouldBe true
   }
@@ -187,7 +187,7 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
     import com.phasmidsoftware.number.core.numerical.Fuzziness
 
     val rational = RationalNumber(1, 2)
-    val fuzzy = Real(0.5000000001, Some(Fuzziness.doublePrecision))
+    val fuzzy = Real(0.50000000000000001, Some(Fuzziness.doublePrecision))
 
     (rational ~== fuzzy) shouldBe true
   }

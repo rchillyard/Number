@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.inner.Rational
+
 import scala.util.Try
 
 trait ValuableNumber {

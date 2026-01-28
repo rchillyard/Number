@@ -342,8 +342,6 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
     val real1: Eager = Real(2.0, 0.1)
     val real2 = Real(3.0, 0.1)
     val result = real1 + real2
-    println(s"result = ${result.render}")
-
     result.category shouldBe "Structure"  // or "Expression" depending on implementation
   }
 }

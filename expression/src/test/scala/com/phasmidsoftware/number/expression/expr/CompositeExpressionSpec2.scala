@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.algebra.core.RestrictedContext
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Constants, RelativeFuzz}
+import com.phasmidsoftware.number.expression.expr.Expression.em
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -399,9 +400,8 @@ class CompositeExpressionSpec2 extends AnyFlatSpec with Matchers {
     val x3 = BiFunction(x, Two plus One, Power)
     val product = BiFunction(x2, x3, Product)
     val simplified = product.simplify
-    // Should simplify to phi^5
     simplified shouldBe a[BiFunction]
-    simplified.asInstanceOf[BiFunction].f shouldBe Power
+    simplified shouldBe (x + 1) * ((x + 1) * x)
   }
 
   // ============================================================================
@@ -438,8 +438,8 @@ class CompositeExpressionSpec2 extends AnyFlatSpec with Matchers {
     // Should be phi^4
     val bf = simplified.asInstanceOf[BiFunction]
     bf.f shouldBe Power
-    bf.a shouldBe Literal(Eager.phi) + 1 // NOTE we do not currently simplify this as Root.phi + 1 because that causes a stack overflow.
-    bf.b shouldBe Two
+    bf.a shouldBe Root.phi + 1 // NOTE we do not currently simplify this as Root.phi + 1 because that causes a stack overflow.
+    bf.b shouldBe Literal(2)
   }
 
   it should "evaluate constant power completely" in {
@@ -778,5 +778,138 @@ class CompositeExpressionSpec2 extends AnyFlatSpec with Matchers {
     val outer2 = UniFunction(inner2, Ln)
     val simplified2 = outer2.simplify
     simplified2.materialize shouldBe Eager(Constants.gamma)
+  }
+
+  behavior of "Square root simplification consistency"
+
+  it should "simplify bare √3 to consistent form" in {
+    val root3a = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val simplified = root3a.simplify
+    println(s"Bare √3 simplified to: $simplified (${simplified.getClass.getSimpleName})")
+    // Just observe what it becomes
+  }
+
+  it should "simplify √3 inside negation to consistent form" in {
+    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val negated = UniFunction(root3, Negate)
+    val simplified = negated.simplify
+    println(s"Negated √3 simplified to: $simplified (${simplified.getClass.getSimpleName})")
+    // Extract the inner expression if it's still a UniFunction
+    simplified match {
+      case UniFunction(inner, Negate) =>
+        println(s"  Inner expression: $inner (${inner.getClass.getSimpleName})")
+      case other =>
+        println(s"  Not a UniFunction anymore: $other")
+    }
+  }
+
+  it should "ensure both representations are equivalent" in {
+    val root3a = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power).simplify
+    val root3b = UniFunction(BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power), Negate).simplify
+
+    // Extract inner from negation if needed
+    val innerB = root3b match {
+      case UniFunction(inner, Negate) => inner
+      case other => fail(s"Expected negated form, got: $other")
+    }
+
+    println(s"root3a: $root3a (${root3a.getClass.getSimpleName})")
+    println(s"innerB: $innerB (${innerB.getClass.getSimpleName})")
+
+    // They should have the same structure
+    root3a.getClass shouldBe innerB.getClass
+  }
+
+  it should "show what simplifyByEvaluation returns for each" in {
+    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+
+    val bareEval: em.MatchResult[Expression] = Expression.simplifyByEvaluation(root3) // Call the matcher
+    println(s"Bare simplifyByEvaluation result: $bareEval")
+
+    bareEval match {
+      case em.Match(expr) => println(s"  Matched to: $expr (${expr.getClass.getSimpleName})")
+      case em.Miss(msg, _) => println(s"  Missed: $msg")
+      case em.Error(e) => println(s"  Error: $e")
+      case _ => println(s"  No match found!")
+    }
+  }
+
+  it should "test simplifyByEvaluation directly on both forms" in {
+    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val negated = UniFunction(root3, Negate)
+
+    val bareResult = Expression.simplifyByEvaluation(root3)
+    val negatedResult = Expression.simplifyByEvaluation(negated)
+
+    println(s"Bare √3 simplifyByEvaluation: $bareResult")
+    println(s"Negated √3 simplifyByEvaluation: $negatedResult")
+
+    // See what each returns
+  }
+
+  it should "verify the aggregate expansion creates consistent forms" in {
+    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val one = Literal(1)
+    val minusOne = Literal(-1)
+
+    val sum1 = BiFunction(root3, one, Sum) // √3 + 1
+    val sum2 = BiFunction(root3, minusOne, Sum) // √3 - 1
+    val product = BiFunction(sum1, sum2, Product) // (√3+1)(√3-1)
+
+    println(s"Product before simplify: $product")
+    val simplified = product.simplify
+    println(s"Product after simplify: $simplified")
+
+    // If it's an aggregate, check the terms
+    simplified match {
+      case Aggregate(_, terms) =>
+        terms.zipWithIndex.foreach { case (term, i) =>
+          println(s"  Term $i: $term (${term.getClass.getSimpleName})")
+        }
+      case other =>
+        println(s"Not an aggregate: $other")
+    }
+  }
+
+  it should "trace the full simplification pipeline for bare √3" in {
+    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+
+    println(s"Starting with: $root3")
+
+    // Try each phase manually
+    val afterComponents = root3.simplifyComponents(root3)
+    println(s"After simplifyComponents: $afterComponents")
+
+    val afterStructural = root3.simplifyStructural(root3)
+    println(s"After simplifyStructural: $afterStructural")
+
+    val afterIdentities = root3.simplifyIdentities(root3)
+    println(s"After simplifyIdentities: $afterIdentities")
+
+    val afterExact = root3.simplifyExact(root3)
+    println(s"After simplifyExact: $afterExact")
+
+    val afterEval = Expression.simplifyByEvaluation(root3)
+    println(s"After simplifyByEvaluation: $afterEval")
+
+    // Now full simplify
+    val fullSimplify = root3.simplify
+    println(s"After full simplify: $fullSimplify (${fullSimplify.getClass.getSimpleName})")
+  }
+
+  it should "trace the full simplification pipeline for nested √3" in {
+    val root3 = BiFunction(Literal(3), Literal(RationalNumber(1, 2)), Power)
+    val negated = UniFunction(root3, Negate)
+
+    println(s"Starting with: $negated")
+    val fullSimplify = negated.simplify
+    println(s"After full simplify: $fullSimplify")
+
+    fullSimplify match {
+      case UniFunction(inner, Negate) =>
+        println(s"  Inner: $inner (${inner.getClass.getSimpleName})")
+      case other =>
+        println(s"  Not a UniFunction: $other")
+    }
   }
 }

@@ -1,9 +1,9 @@
 /**
-  * This worksheet illustrates the use of Log-factor numbers..
+  * This worksheet illustrates the use of core Log-factor numbers..
   */
 
 import com.phasmidsoftware.number.core.inner.{Euler, NatLog}
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Number}
+import com.phasmidsoftware.number.core.numerical.{Constants, ExactNumber, Number}
 
 // One way to express e
 ExactNumber(1, NatLog)

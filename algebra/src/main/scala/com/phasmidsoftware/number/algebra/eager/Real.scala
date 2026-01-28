@@ -482,24 +482,13 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Real, b: Real) =>
-      // TODO this is Claude's code. It works but we shouldn't need to separate non-fuzzy from fuzzy values.
-      // If both are fuzzy, check if they overlap within their combined uncertainty
-      (a.fuzz, b.fuzz) match {
-        case (Some(_), Some(_)) =>
-          // Both fuzzy - compute difference and check if probably zero
-          val diff = realIsRing.minus(a, b)
-          Eager.eagerToField(diff) match {
-            case numerical.Real(x) =>
-              Success(x.isProbablyZero(p))
-            case _ =>
-              Success(false)
-          }
-        case (None, None) =>
-          // Both exact - use exact equality
-          Success(a.value == b.value)
+      // Compute difference and check if probably zero
+      val diff = realIsRing.minus(a, b)
+      Eager.eagerToField(diff) match {
+        case numerical.Real(x) =>
+          Success(x.isProbablyZero(p))
         case _ =>
-          // One fuzzy, one exact - be more lenient
-          Success(Math.abs(a.value - b.value) < 1e-9)
+          Success(false)
       }
     case _ =>
       super.fuzzyEqv(p)(that)

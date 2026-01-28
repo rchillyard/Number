@@ -44,6 +44,16 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   require(!number.isZero, s"InversePower: number must be non-zero, but was $number")
 
   /**
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
+    *
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  override def maybeDouble: Option[Double] =
+    Some(nominalValue)
+
+  /**
     * This yields the scale function for this Functional.
     *
     * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
@@ -412,6 +422,14 @@ object InversePower {
     InversePower(n, WholeNumber(x))
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  /**
+    * Provides a `Show` instance for the `InversePower` type, enabling the conversion
+    * of an `InversePower` instance into a human-readable `String` representation.
+    *
+    * @return A `Show` instance for the `InversePower` type.
+    */
+  given Show[InversePower] = Show.show(_.render)
 
   /**
     * A given instance of `DyadicOperator` for the `InversePower` type. 

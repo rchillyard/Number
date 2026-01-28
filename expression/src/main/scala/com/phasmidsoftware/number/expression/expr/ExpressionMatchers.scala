@@ -9,17 +9,16 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
 import com.phasmidsoftware.number.algebra.eager.{Angle, Monotone, Number}
 import com.phasmidsoftware.number.core.inner.PureNumber
-import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Field
 import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
-import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction, matchSimpler}
+import com.phasmidsoftware.number.expression.expr.Expression.{em, isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
 import com.phasmidsoftware.number.expression.matchers.MatchersExtras
 import com.phasmidsoftware.number.{core, expression}
 
 import scala.language.implicitConversions
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 /**
   * Matchers whose input is generally an Expression.
@@ -96,29 +95,29 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def matchComplementaryExpressions: Matcher[DyadicTriple, Expression] = Matcher("matchComplementaryExpressions") {
     case Sum ~ x ~ UniFunction(y, Negate) if x == y =>
-      Match(Zero) // TESTME
+      Match(Zero)
     case Sum ~ UniFunction(x, Negate) ~ y if x == y =>
-      Match(Zero) // TESTME
+      Match(Zero)
     case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if x == y =>
-      Match(w) // TESTME
+      Match(w)
     case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == z =>
-      Match(y) // TESTME
+      Match(y)
     case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if w == y =>
-      Match(x) // TESTME
+      Match(x)
     case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == y =>
-      Match(z) // TESTME
+      Match(z)
     case Product ~ x ~ UniFunction(y, Reciprocal) if x == y =>
       Match(One)
     case Product ~ UniFunction(x, Reciprocal) ~ y if x == y =>
-      Match(One) // TESTME
+      Match(One)
     case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if x == y =>
-      Match(w) // TESTME
+      Match(w)
     case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w =>
-      Match(z) // TESTME
+      Match(z)
     case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if w == y =>
-      Match(x) // TESTME
+      Match(x)
     case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z =>
-      Match(w) // TESTME
+      Match(w)
     case Power ~ BiFunction(w, x, Power) ~ z if x :* z == One =>
       Match(w)
     case f ~ x ~ y =>
@@ -143,6 +142,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * Determines whether the factors of the given expressions match
     * according to the specified binary function.
     * NOTE there's another factorsMatch method in Expression
+    * NOTE this method appears to be used only by ExpressionMatchersSpec
     *
     * @param f The binary function that determines the operation type (e.g., Sum, Product, Power).
     * @param x The first expression to compare.
@@ -180,11 +180,14 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return an ExpressionMatcher[Field].
     */
   def value: ExpressionMatcher[Valuable] = {
-    case Literal(v, _) => Match(v) // TESTME
-    case ValueExpression(v, _) => Match(v)
-    //    case x@core.Number(_, _) => Match(Real(x)) // TESTME
-    case x: ValueExpression => matchIfDefined(x.evaluateAsIs)(x)
-    case x => Miss("value", x)
+    case Literal(v, _) =>
+      Match(v)
+    case ValueExpression(v, _) =>
+      Match(v)
+    case x: ValueExpression =>
+      matchIfDefined(x.evaluateAsIs)(x)
+    case x =>
+      Miss("value", x)
   }
 
   /**
@@ -211,9 +214,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         transform it into an Aggregate if conditions are satisfied. If the input
     *         does not meet the required conditions, it returns a Miss.
     */
-  def matchBiFunctionAsAggregate: Matcher[BiFunction, expression.expr.Aggregate] = Matcher[BiFunction, expression.expr.Aggregate]("matchBiFunctionAsAggregate")(
-    biFunction =>
-      matchOptionFunc2(asAggregate)(biFunction))
+  def matchBiFunctionAsAggregate: Matcher[BiFunction, Expression] =
+    Matcher[BiFunction, Expression]("matchBiFunctionAsAggregate")(
+      biFunction =>
+        matchOptionFunc2(asAggregate)(biFunction))
 
   /**
     * Simplifies a `Aggregate` expression by combining its terms in a more compact form.
@@ -221,7 +225,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * - If the `Aggregate` is empty, it produces the appropriate identity.
     * - If the `Aggregate` contains a single element, it simplifies that element.
     * - If all elements in the `Aggregate` can be interpreted as numbers, it combines them iteratively
-    * and simplifies the resulting expression.
+    *   and simplifies the resulting expression.
     * - If the `Aggregate` cannot be simplified further, the original structure is retained.
     *
     * NOTE: Need to fix #87
@@ -230,9 +234,9 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return A `ExpressionTransformer` that matches and simplifies `Aggregate` expressions efficiently.
     * @note Throws java.util.NoSuchElementException due to invocation of get on Option (very unlikely).
     */
-  def simplifyAggregate: Matcher[expression.expr.Aggregate, Expression] = Matcher[expression.expr.Aggregate, Expression]("simplifyAggregate") {
+  def simplifyAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("simplifyAggregate") {
     case Aggregate(Sum, Nil) =>
-      Match(Zero) // TESTME
+      Match(Zero)
     case Aggregate(Product, Nil) =>
       Match(One) // TESTME
     case Aggregate(Power, Nil) =>
@@ -261,24 +265,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         if no reduction takes place.
     */
   def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("complementaryTermsEliminatorAggregate") {
-    case a@Aggregate(f, xs) =>
-      val invertFunction: Double => Double = f match {
-        case Sum =>
-          x => Math.abs(x)
-        case Product =>
-          x => if x < 1 then 1 / x else x
-        case _ =>
-          throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
-      }
-      val sortFunction: Expression => Double =
-        x => invertFunction(x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN)
-
-      // NOTE this ordering is really only appropriate when f is Sum.
-      // TODO find a better way to find complementary elements.
-      Try(xs.sortBy(sortFunction)) match {
-        case Success(sorted) =>
-          val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-          matchOrMiss(f, list)(a)
+    a =>
+      a.eliminateComplementaryTerms(isComplementary) match {
+        case Success(list) =>
+          matchOrMiss(a.function, list)(a)
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
@@ -313,7 +303,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         are successfully combined, or `Miss` if no literals are found or they cannot
     *         be combined.
     */
-  def literalsCombiner: Matcher[Aggregate, Expression] = Matcher[expression.expr.Aggregate, Expression]("literalsCombiner") {
+  def literalsCombiner: Matcher[Expression, Expression] = Matcher[Expression, Expression]("literalsCombiner") {
     case g@Aggregate(f, xs) =>
       // XXX first, we partition `xs` according to which terms can be exactly combined because they are all pure numbers (the "literals").
       // The other terms may also be literal constants but not evaluatable in the `PureNumber` context.
@@ -336,6 +326,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
               Miss(s"literalsCombiner: cannot combine literals", Aggregate(f, others))
           }
       }
+    case a: AtomicExpression =>
+      Match(a)
+    case e =>
+      Miss(s"literalsCombiner: unexpected partition result: $e", e)
   }
 
   /**
@@ -346,16 +340,16 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *
     * @return A `Matcher[BiFunction, Expression]` where:
     *         - If the terms of the `BiFunction` are complementary and have an identity, it
-    *           returns a `Match` containing the identity as a `Literal`.
+    *         returns a `Match` containing the identity as a `Literal`.
     *         - If the terms are complementary but lack an identity, it returns a `Miss`
-    *           with a corresponding message and the original `BiFunction`.
+    *         with a corresponding message and the original `BiFunction`.
     *         - If the terms are not complementary, it returns a `Miss` with a message
-    *           indicating this and the input term.
+    *         indicating this and the input term.
     */
-  def complementaryTermsEliminatorBiFunction: Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
-    case BiFunction(a, b, f) if isComplementary(f, a, b) && a.maybeFactor(AnyContext).contains(Angle) =>
+  def complementaryTermsEliminatorBiFunction(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean): Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
+    case BiFunction(a, b, f) if complementaryPredicate(f, a, b) && a.maybeFactor(AnyContext).contains(Angle) =>
       Match(Literal(Angle.zero))
-    case BiFunction(a, b, f) if isComplementary(f, a, b) =>
+    case BiFunction(a, b, f) if complementaryPredicate(f, a, b) =>
       f.maybeIdentityL match {
         case Some(field) =>
           Match(Literal(field))
@@ -378,10 +372,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def complementaryMonadic(f: ExpressionMonoFunction, g: ExpressionMonoFunction): Boolean = (f, g) match {
     case (Exp, Ln) => true
-    case (Ln, Exp) => true // TESTME
+    case (Ln, Exp) => true
     case (Negate, Negate) => true
     case (Reciprocal, Reciprocal) => true
-    case _ => false // TESTME
+    case _ => false
   }
 
   /**
@@ -424,7 +418,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @param y the second expression to be checked
     * @return true if the bi-function is complementary for the given expressions, false otherwise
     */
-  private def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
+  def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
     val identityCheck: Expression => Boolean = isIdentityFunction(f)
     (matchComplementaryExpressions(f ~ x ~ y) & filter(identityCheck)).successful
   }
@@ -438,6 +432,24 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   * These methods are here so that they're not part of the `ExpressionMatchers` API.
   */
 object ExpressionMatchers {
+
+  /**
+    * Simplifies a sequence of `Expression` instances by applying a grouping function
+    * and a matching strategy to produce a simplified result.
+    *
+    * @param xs      The sequence of `Expression` instances to simplify.
+    * @param grouper A function that groups and transforms a sequence of `Expression`
+    *                instances into a single `Expression`.
+    * @return A `MatchResult[Expression]` containing the result of the simplification process.
+    */
+  def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] = {
+    // Fully simplify each component
+    if (xs.map(_.simplify) == xs)
+      em.Miss("components unchanged", grouper(xs))
+    else
+      em.Match(grouper(xs.map(_.simplify)))
+  }
+
   /**
     * Evaluates whether two `Expression` instances, when combined using the provided
     * `ExpressionBiFunction`, yield the appropriate identity value (although, in practice, we shortcut that logic a little).
@@ -449,6 +461,7 @@ object ExpressionMatchers {
     *
     * @param f The binary function (`ExpressionBiFunction`) applied to evaluate the relationship
     *          between the two `Expression` instances.
+    *
     * @param x The first `Expression` operand used in the evaluation.
     * @param y The second `Expression` operand used in the evaluation.
     * @return An `Option[Expression]` containing the complementary result if the specified
@@ -465,4 +478,8 @@ object ExpressionMatchers {
       case x =>
         None
     }
+
+  def getApproximateDouble(x: Expression): Double =
+    x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN
+
 }

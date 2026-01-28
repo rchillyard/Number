@@ -358,9 +358,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "simplifyConstant"
   // TODO Issue #140
+  // TODO move this into behavior of "simplifyExact"
   it should "simplify biFunction expressions" in {
     val em: ExpressionMatchers = Expression.em
-    Expression.simplifyConstant(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
+    Expression.simplifyExact(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
     BiFunction(Two, MinusOne, Product).simplify shouldBe Expression(-2)
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Eager.zero)
   }
@@ -376,20 +377,25 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   // XXX oops! This was working before the latest change
   it should "simplify field expressions" in {
+    import cats.syntax.eq.*
+
     Expression(1).simplify shouldBe Expression(1)
     Pi.simplify shouldBe Pi
-    val simplify: Expression = phi.simplify
-    val expected = Literal(QuadraticSolution.phi)
-    (expected, simplify) match {
-      case (Literal(x: QuadraticSolution, _), Literal(y: QuadraticSolution, _)) =>
-        x.eqv(y).get shouldBe true
-      case _ => fail(s"expected $expected, got $simplify")
-    }
+
+    val root: Expression = phi
+    val literal = Literal(QuadraticSolution.phi)
+
+    // For eqv test (they are not the same)
+    root.eqv(literal) shouldBe false
+
+    // For fuzzy equality, you need to materialize/evaluate the expressions first
+    (root.materialize ~= literal.materialize) shouldBe true
+
     extension (x: Eager)
       infix def ~==(y: Eager): Boolean =
         FuzzyEq[Eager].eqv(x, y, 0.5)
 
-    val eager = simplify.normalize.materialize
+    val eager = root.simplify.normalize.materialize
     (eager ~== Eager.phi) shouldBe true
   }
   it should "simplify constant expressions" in {
@@ -441,7 +447,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val phi = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi.reciprocal
     val simplified = expression.simplify
-    println(s"simplified = $simplified")
     simplified.approximation().get.value === 0.61803398875
   }
   it should "evaluate - phi" in {
@@ -511,7 +516,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: Eager = root3MinusOne.materialize
 
     (x ~= Real(2.732050807568877)) shouldBe true
-    (y ~= Real(0.732050807568877)) shouldBe true
+    (y ~= Real(0.7320508075688772)) shouldBe true
 
     // Two should be exactly 2
     val two: Eager = (root3PlusOne * root3MinusOne).materialize

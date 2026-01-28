@@ -209,7 +209,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   /**
     * Method to determine if this Field is actually a real (or imaginary) Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
-    * TESTME (partial)
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
@@ -443,7 +442,6 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
 
   /**
     * Method to determine if this Complex is imaginary-valued (i.e. the point lies on the imaginary axis).
-    * TESTME
     *
     * @return true if the real part is zero (argument is a multiple of pi/2).
     */
@@ -486,7 +484,6 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
 
   /**
     * Add two Cartesian Complex numbers.
-    * TESTME ?
     *
     * @param complex the addend.
     * @return the sum.
@@ -673,7 +670,6 @@ object ComplexCartesian {
 
   /**
     * Method to create a real-valued ComplexCartesian.
-    * TESTME
     *
     * @param x the real value.
     * @return a ComplexCartesian with values x and 0.

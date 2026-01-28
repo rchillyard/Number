@@ -216,7 +216,11 @@ case class PowerUnit[D <: Dimension](
     *       exact rational number representation.
     */
   def toSI: ExactNumber =
-    FP.recover(base.toSI.pow(RationalNumber(power)))(DimensionsException("PowerUnit.toSI: cannot convert to RationalNumber:"))
+    base.toSI.pow(RationalNumber(power)) match {
+      case Some(e: ExactNumber) => e
+      case Some(x) => throw DimensionsException("PowerUnit.toSI: cannot convert to ExactNumber")
+      case None => throw DimensionsException("PowerUnit.toSI: cannot evaluate toSI")
+    }
 
   override def compositeSymbol: String =
     s"(${base.compositeSymbol})^$power"

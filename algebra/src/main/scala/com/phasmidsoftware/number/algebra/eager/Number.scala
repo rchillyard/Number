@@ -305,7 +305,7 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
   * Subtypes of ExactNumber include WholeNumber and RationalNumber.
   * Although some instances of Real are exact, the type in general cannot be assumed to represent an exact value.
   */
-trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] with CanPower[ExactNumber] {
+trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] with CanPower[Eager] {
 
   /**
     * Converts this ExactNumber into a RationalNumber representation.

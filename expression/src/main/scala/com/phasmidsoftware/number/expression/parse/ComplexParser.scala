@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.numerical.Complex
 import com.phasmidsoftware.number.expression.expr.ExpressionException
+
 import scala.util.Try
 
 /**

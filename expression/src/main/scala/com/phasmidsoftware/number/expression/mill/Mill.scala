@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.expression.mill
 
 import com.phasmidsoftware.number.expression.parse.{MillParser, ShuntingYardParser}
+
 import scala.util.Try
 
 /**
@@ -142,7 +143,6 @@ case class Stack(stack: List[Item]) extends Mill {
     *         if x is Monadic, then we evaluate this Mill and apply x to it;
     *         if x is an expression, then we return it, wrapped in Some, along with this;
     *         otherwise, we throw an exception.
-    *
     * @note Throws MillException x is not supported.
     */
   private def evaluate1(x: Item): (Option[Expression], Mill) =
@@ -169,7 +169,6 @@ case class Stack(stack: List[Item]) extends Mill {
     * @param f the monadic operator to apply to this Mill.
     * @return a tuple of optional expression and a Mill which is the same as this Mill but with the top
     *         item replaced by the f(top).
-    *
     * @note Throws MillException this Mill is empty.
     */
   private def evaluateMonadic(f: Monadic): (Option[Expression], Mill) = evaluateInternal match {
@@ -189,7 +188,6 @@ case class Stack(stack: List[Item]) extends Mill {
     * @param f the dyadic operator to apply to this Mill.
     * @return a tuple of optional expression and a Mill which is the same as this Mill but with the top two items
     *         replaced by the f(top, next).
-    *
     * @note Throws MillException malformed stack.
     */
   private def evaluateDyadic(f: Dyadic): (Option[Expression], Mill) = {
@@ -227,7 +225,6 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return this Mill is evaluated and, assuming a valid result, calculateDyadic is invoked on f, x, and the resulting expression
     *         is pushed to this and the resulting Mill is (recursively) evaluated;
     *         if the result of evaluating this is not valid, we throw an exception.
-    *
     * @note Throws MillException this did not evaluate to an expression.
     */
   private def evaluate2(f: Dyadic, x: Expression): (Option[Expression], Mill) =

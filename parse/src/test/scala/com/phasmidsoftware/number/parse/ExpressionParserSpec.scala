@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.parse
 
 import com.phasmidsoftware.number.algebra.eager.{NatLog, WholeNumber}
+import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -75,8 +76,8 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
     puremath"""\sin(\pi * -1)""" shouldBe UniFunction(BiFunction(Pi, UniFunction(One, Negate), Product), Sine)
   }
   it should "lazymath functions" in {
-    lazymath"""\sqrt{2}""" shouldBe BiFunction(Two, Half, Power)
-    lazymath"√2" shouldBe BiFunction(Two, Half, Power)
+    lazymath"""\sqrt{2}""" shouldBe QuadraticRoot(QuadraticEquation(0, -2), 0)
+    lazymath"√2" shouldBe QuadraticRoot(QuadraticEquation(0, -2), 0)
     lazymath"""\sin(\pi)""" shouldBe Zero
     lazymath"""\cos(\pi)""" shouldBe MinusOne
     lazymath"""\tan(\pi)""" shouldBe Zero

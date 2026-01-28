@@ -452,7 +452,7 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     */
   private def atan(x: Double): Try[Double] = Try {
     math.atan2(x, sign) / math.Pi
-  } // CONSIDER use scale // TESTME
+  } // CONSIDER use scale
 
   /**
     * Computes the arctangent of a specified Rational value, returning a result based on certain predefined cases.

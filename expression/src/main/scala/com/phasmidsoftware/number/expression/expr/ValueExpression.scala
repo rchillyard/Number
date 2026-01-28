@@ -75,7 +75,6 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing a `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
@@ -93,7 +92,6 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *
     * @param context the context in which the Valuable is evaluated. It defines the
     *                qualification rules for determining whether the Valuable is valid.
-    *
     * @return `Some(Valuable)` if the Valuable qualifies within the given context, otherwise `None`.
     */
   def evaluate(context: Context): Option[Eager] =
@@ -134,7 +132,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse value.render // TESTME
+  def render: String = maybeName getOrElse value.render
 
   /**
     * Generate a String for debugging purposes.
@@ -307,7 +305,6 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
@@ -320,7 +317,6 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines the behavior
     *          of the evaluation and how the current value will be transformed into a potential result.
-    *
     * @return an `Option` containing the resulting `Eager` if the function and value evaluation succeed,
     *         or `None` if the evaluation is not applicable or fails.
     */
@@ -483,7 +479,6 @@ case object Zero extends ScalarConstant(WholeNumber.zero, "0") {
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
@@ -521,15 +516,14 @@ case object Half extends ScalarConstant(RationalNumber.half, "\u00BD") {
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
   def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Negate =>
-      Literal.someLiteral(-RationalNumber.half) // TESTME
+      Literal.someLiteral(-RationalNumber.half)
     case Reciprocal =>
-      Some(Two) // TESTME
+      Some(Two)
     case _ =>
       None // TESTME
   }
@@ -548,7 +542,6 @@ case object One extends ScalarConstant(WholeNumber.one, "1") {
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
@@ -582,7 +575,6 @@ case object MinusOne extends ScalarConstant(-WholeNumber.one, "-1") {
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
@@ -590,9 +582,9 @@ case object MinusOne extends ScalarConstant(-WholeNumber.one, "-1") {
     case Negate =>
       Some(One)
     case Reciprocal =>
-      Some(this) // TESTME
+      Some(this)
     case _ =>
-      None // TESTME
+      None
   }
 }
 
@@ -609,7 +601,6 @@ case object Two extends ScalarConstant(WholeNumber.two, "2") {
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
@@ -633,7 +624,6 @@ case object Pi extends ScalarConstant(Angle.pi, "𝛑") {
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
@@ -658,7 +648,6 @@ case object E extends NamedConstant(NatLog.e, "e") {
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
@@ -674,14 +663,13 @@ case object E extends NamedConstant(NatLog.e, "e") {
   * The constant i (viz., the square root of 2)
   * Yes, this is an exact number.
   */
-case object ConstI extends NamedConstant(Eager(Constants.i), "i") { // TESTME
+case object ConstI extends NamedConstant(Eager(Constants.i), "i") {
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
@@ -706,11 +694,10 @@ case object Infinity extends NamedConstant(Eager(Rational.infinity), "∞") {
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
     *          evaluation will transform the current `ValueExpression` into a potential result.
-    *
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match { // TESTME
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Reciprocal =>
       Some(Zero)
     case Exp =>

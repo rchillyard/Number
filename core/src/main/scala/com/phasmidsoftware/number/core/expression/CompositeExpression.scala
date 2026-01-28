@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Constants, Field, Number, Real}
+
 import java.util.Objects
 import scala.language.implicitConversions
 import scala.util.Try
@@ -141,14 +142,13 @@ object CompositeExpression {
   /**
     * Creates a `Aggregate` instance from the given sequence of `Field` inputs.
     * Each `Field` is converted to a `Literal` expression and combined into a `Aggregate`.
-    * TESTME
     *
     * @param f  the `ExpressionBiFunction` to be used to combine all the given elements.
     * @param xs The sequence of `Field` instances used to create the `Aggregate`.
     * @return An `Aggregate` instance containing the converted `Literal` expressions.
     */
   def create(f: ExpressionBiFunction, xs: Field*): Expression =
-    apply(f, xs map (x => Literal(x, None))) // TESTME
+    apply(f, xs map (x => Literal(x, None)))
 }
 
 /**
@@ -354,12 +354,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         val eo: Option[Expression] = so map (Algebraic(_))
         em.matchIfDefined(eo)(b)
 
-
-      // NOTE I'm confused by own logic here. I don't know why we need this.
       case BiFunction(x, y, f) =>
         val matcher: em.Matcher[Seq[Expression], BiFunction] =
           em.sequence(matchSimpler) & em.lift { xs => val Seq(newX, newY) = xs; BiFunction(newX, newY, f) }
-        // NOTE this is almost always a Miss.
         matcher.apply(List[Expression](x, y))
     }
 
@@ -557,7 +554,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
       }
     case _ =>
-      em.Miss[Expression, Expression](s"BiFunction: matchLiteral: ", BiFunction(l, x, f)) // TESTME
+      em.Miss[Expression, Expression](s"BiFunction: matchLiteral: ", BiFunction(l, x, f))
   }
 
   /**
@@ -738,7 +735,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
               case (Some(x), Power) =>
                 em.Match(r.power(x))
               case _ =>
-              em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Rational)", this) // TESTME
+                em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Rational)", this)
             }
           case Some(y: Algebraic_Quadratic) if f.commutes =>
             modifyAlgebraicQuadratic(y, x, f)
@@ -780,7 +777,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
             em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Real)", this) // TESTME
         }
       case _ =>
-        em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Atomic)", this) // TESTME
+        em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Atomic)", this)
     }
 }
 
@@ -987,7 +984,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
       case Some((f, Some(qq))) =>
         Some(f) -> qq
       case _ =>
-        None -> context // TESTME
+        None -> context
     }
 }
 

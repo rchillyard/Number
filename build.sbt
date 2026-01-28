@@ -1,6 +1,6 @@
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.5.6"
+ThisBuild / version := "1.5.7"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -9,10 +9,11 @@ val scalaParserCombinatorsVersion = "2.4.0"
 val nScalaTimeVersion = "2.32.0"
 val apacheCommonsVersion = "3.6.1"
 val flogVersion = "1.0.11"
+val logbackClassicVersion = "1.5.25"
 
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-  "ch.qos.logback" % "logback-classic" % "1.5.23" % "runtime"
+  "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
 )
 
 // ============================================================================
@@ -95,7 +96,7 @@ lazy val core = (project in file("core"))
         "org.typelevel" %% "cats-laws" % catsVersion % "test",
         "org.typelevel" %% "algebra-laws" % catsVersion % "test",
         "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-        "ch.qos.logback" % "logback-classic" % "1.5.23" % "runtime"
+        "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
       )
     )
     .settings(scala3TestSettings)

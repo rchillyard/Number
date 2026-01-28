@@ -235,7 +235,7 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse value.render // TESTME
+  def render: String = maybeName getOrElse value.render
 
   /**
     * Generate a String for debugging purposes.
@@ -617,7 +617,7 @@ case object MinusOne extends ScalarConstant(Constants.minusOne, "-1") {
     case Reciprocal =>
       Some(this) // TESTME
     case _ =>
-      None // TESTME
+      None
   }
 }
 
@@ -696,7 +696,7 @@ case object ConstE extends NamedConstant(Constants.e, "e") {
   * The constant i (viz., the square root of 2)
   * Yes, this is an exact number.
   */
-case object ConstI extends NamedConstant(Constants.i, "i") { // TESTME
+case object ConstI extends NamedConstant(Constants.i, "i") {
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
     * and attempts to produce an atomic result.
@@ -730,7 +730,7 @@ case object Infinity extends NamedConstant(Rational.infinity, "∞") {
     * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match { // TESTME
+  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
     case Reciprocal =>
       Some(Zero)
     case Exp =>

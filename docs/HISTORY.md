@@ -2,6 +2,7 @@
 
 ## Versions
 
+* Version 1.5.7: Cleanup and bug fixes.
 * Version 1.5.6: Cleanup and enhancement of the fuzzy utilities in the core module. 
 * Version 1.5.5: Cleanup and bug fixes.
 * Version 1.5.4: Composition of Quantities

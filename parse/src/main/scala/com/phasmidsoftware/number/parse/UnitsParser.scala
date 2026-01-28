@@ -61,7 +61,6 @@ object UnitsParser {
         case (num, None) => num
         case (num, Some(den)) => num / den
       }
-      println(s"DEBUG unitsParser: parsed=$parsed, result=$result")
       result
     }
   }
@@ -134,7 +133,6 @@ object UnitsParser {
         case (u, Some(exp)) =>
           throw UnitsParserException(s"Unsupported exponent: $exp")
       }
-      println(s"DEBUG unitPowerParser: parsed=$parsed, result=$result")
       result
     }
   }
@@ -174,7 +172,6 @@ object UnitsParser {
       val result = parsed match {
         case (first, rest) => rest.foldLeft(first)(_ * _)
       }
-      println(s"DEBUG unitProductParser: parsed=$parsed, result=$result")
       result
     }
   }

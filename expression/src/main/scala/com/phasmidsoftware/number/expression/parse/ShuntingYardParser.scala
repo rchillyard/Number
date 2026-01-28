@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.expression.mill.*
+
 import scala.annotation.tailrec
 import scala.util.Try
 
@@ -35,6 +36,7 @@ object ShuntingYardParser extends BaseMillParser {
     * @param values    a list of values and operators. The former are added directly to values.
     *                  However, operators are only added indirectly, after a closing parenthesis
     *                  (or the end of the string) is reached.
+    *
     * @param operators a stack of operators which is temporarily placed here until switch is called.
     */
   case class ShuntingYard(values: Seq[Item], operators: Seq[Item]) {
@@ -55,7 +57,7 @@ object ShuntingYardParser extends BaseMillParser {
             this :+ operator
           case Right(number) =>
             this :+ number
-      }
+        }
       case InfixToken(None, x) =>
         if (x)
           this :+ openParenthesis // open parenthesis
