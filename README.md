@@ -930,7 +930,7 @@ Expressions are simplified (essentially, normalization) before being materialize
 The simplification mechanism is based on the _ExpressionMatchers_ package and is described
 in the following document:
 
-- **[Expression Simplification Pipeline](docs/SimplificationPipeline.md)** - Detailed guide to the multi-phase simplification system
+- **[Expression Simplification Pipeline](docs/testing/SimplificationPipeline.md)** - Detailed guide to the multi-phase simplification system
 
 In the following, by "exact," we mean a quantity that is exact (like $\pi$ or $√2$),
 even though it might not be possible to represent it exactly using
