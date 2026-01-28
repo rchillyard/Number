@@ -91,7 +91,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     f(Eager.one) shouldBe Eager.one
     f(Eager.half) should ===(Eager.two)
     f(Eager.two) shouldBe Eager.half
-    //    f(Eager.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
+    //    f(Eager.e) shouldBe Real(ExactNumber(-1, NaturalExponential)) TODO fix this later
   }
   it should "work for Exp" in {
     val f: ExpressionMonoFunction = Exp
@@ -285,16 +285,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     (One :+ Eager.two).isExact shouldBe true
     (Pi :+ Eager.pi).isExact shouldBe true
   }
-  it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
+  it should "be false for any product of exact Numbers and a NaturalExponential factor (except for one)" in {
     (Expression(2) * Eager.e).materialize.isExact shouldBe false
     (Expression(1) * Eager.e).materialize.isExact shouldBe true
     (Expression(2) * Eager.one).materialize.isExact shouldBe true
   }
-  it should "be true for product of one exact Numbers and a NatLog factor" in {
+  it should "be true for product of one exact Numbers and a NaturalExponential factor" in {
     val expression = Expression(1) * Eager.e
     expression.isExact shouldBe true
   }
-  it should "be true for product of zero exact Numbers and a NatLog factor" in {
+  it should "be true for product of zero exact Numbers and a NaturalExponential factor" in {
     (Expression(0) * Eager.e).isExact shouldBe true
   }
 

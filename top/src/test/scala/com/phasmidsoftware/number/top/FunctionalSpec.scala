@@ -1,8 +1,7 @@
 package com.phasmidsoftware.number.top
 
 import cats.implicits.toShow
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, WholeNumber}
-import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NaturalExponential, WholeNumber}
 import com.phasmidsoftware.number.expression.expr.*
 import com.phasmidsoftware.number.parse.ExpressionParser.puremath
 import org.scalatest.flatspec.AnyFlatSpec
@@ -25,7 +24,7 @@ class FunctionalSpec extends AnyFlatSpec with should.Matchers {
     e shouldBe a[NamedConstant]
 
     // Other ways to express e
-    Eager.e shouldBe NatLog(WholeNumber(1))
+    Eager.e shouldBe NaturalExponential(WholeNumber(1))
     val e1 = puremath"\e"
     e1.toDouble shouldBe 2.718281828459045
 

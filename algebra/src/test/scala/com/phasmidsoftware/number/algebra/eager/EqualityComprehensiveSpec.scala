@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.algebra.eager
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.core.FuzzyEq
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, LinearSolution, Nat, NatLog, NatZero, QuadraticSolution, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, LinearSolution, Nat, NaturalExponential, NatZero, QuadraticSolution, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -102,11 +102,11 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
     QuadraticSolution.phi === QuadraticSolution.phi shouldBe true
   }
 
-  // NatLog tests
+  // NaturalExponential tests
   it should "compare NatLogs with ===" in {
-    NatLog(WholeNumber.one) === NatLog(WholeNumber.one) shouldBe true
-    NatLog.e === NatLog(WholeNumber.one) shouldBe true
-    NatLog(WholeNumber.zero) === NatLog(WholeNumber.one) shouldBe false
+    NaturalExponential(WholeNumber.one) === NaturalExponential(WholeNumber.one) shouldBe true
+    NaturalExponential.e === NaturalExponential(WholeNumber.one) shouldBe true
+    NaturalExponential(WholeNumber.zero) === NaturalExponential(WholeNumber.one) shouldBe false
   }
 
   // InversePower tests
@@ -375,9 +375,9 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle e correctly" in {
-    NatLog.e should ===(NatLog(WholeNumber.one))
-    (NatLog.e ~== NatLog(WholeNumber.one)) shouldBe true
-    (NatLog.e ~== Real(math.E)) shouldBe true
+    NaturalExponential.e should ===(NaturalExponential(WholeNumber.one))
+    (NaturalExponential.e ~== NaturalExponential(WholeNumber.one)) shouldBe true
+    (NaturalExponential.e ~== Real(math.E)) shouldBe true
   }
 
   it should "handle golden ratio (phi) correctly" in {

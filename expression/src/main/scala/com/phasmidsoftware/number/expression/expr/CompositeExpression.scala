@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.core.{AnyContext, CanPower, Context, Q, RestrictedContext}
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, QuadraticSolution, RationalNumber, Structure, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
@@ -755,7 +755,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (_, Infinity) =>
         em.Match(Infinity)
       case (E, ValueExpression(v: eager.Number, _)) =>
-        em.Match(Literal(NatLog(v)))
+        em.Match(Literal(NaturalExponential(v)))
       case (x, BiFunction(y, z, Log)) if x == y =>
         em.Match(z)
       // TODO CHECK if this is correct: we should be checking more generally

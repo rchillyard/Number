@@ -62,11 +62,11 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
     r.toLatex shouldBe "\\frac{2518256647200000}{1397}"
   }
 
-  behavior of "Logarithm LatexRenderer"
+  behavior of "Exponential LatexRenderer"
 
   it should "render logarithmic numbers" in {
     Eager.e.toLatex shouldBe """\mathrm{e}"""
-    BinaryLog(5).toLatex shouldBe "2^5"
+    BinaryExponential(5).toLatex shouldBe "2^5"
   }
 
   behavior of "InversePower LatexRenderer"

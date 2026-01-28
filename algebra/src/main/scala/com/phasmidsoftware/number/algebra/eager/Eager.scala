@@ -182,11 +182,28 @@ trait Eager extends Valuable with Approximate with DyadicOps {
   def divide(y: Eager): Try[Eager] =
     summon[DyadicOperator[Eager]].op[Eager, Eager](divideEagers)(this, y)
 
+  /**
+    * Attempts to add two Eager instances, returning the result wrapped in a Try.
+    * The addition is performed based on the concrete types of the input arguments.
+    *
+    * @param x The first Eager instance to be added.
+    * @param y The second Eager instance to be added.
+    * @return A Try[Eager] containing the result of the addition if successful, 
+    *         or a Failure if the addition cannot be performed.
+    */
   private def addEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
     case (a: Monotone, b: Monotone) => a.add(b)
     case (a: Solution, b: Solution) => Success(a + b)
     case _ => Failure(AlgebraException(s"Cannot add $x and $y"))
 
+  /**
+    * Attempts to multiply two Eager values and returns the result wrapped in a Try.
+    *
+    * @param x the first Eager value to be multiplied
+    * @param y the second Eager value to be multiplied
+    * @return a Try containing the resulting Eager if the multiplication is valid, 
+    *         or a Failure with an AlgebraException if the multiplication cannot be performed
+    */
   private def multiplyEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
     case (a: Monotone, b: Monotone) =>
       a.multiply(b)
@@ -197,12 +214,33 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     case _ =>
       Failure(AlgebraException(s"Cannot multiply $x and $y"))
 
+  /**
+    * Subtracts the `Eager` instance `y` from the `Eager` instance `x`.
+    * This method supports the subtraction operation only for instances of subtype `Monotone`.
+    * If either `x` or `y` is not of type `Monotone`, the method returns a failure containing an `AlgebraException`.
+    *
+    * @param x the minuend, an instance of `Eager`
+    * @param y the subtrahend, an instance of `Eager` to subtract from `x`
+    * @return a `Try[Eager]` containing the result of the subtraction if both `x` and `y` are of type `Monotone`,
+    *         or a failure with an `AlgebraException` if the operation is not supported for the provided inputs
+    */
   private def subtractEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
     case (a: Monotone, b: Monotone) =>
       a.subtract(b)
     case _ =>
       Failure(AlgebraException(s"Cannot subtract $y from $x"))
 
+  /**
+    * Divides two `Eager` instances and returns the result as a `Try[Eager]`.
+    * The division is only supported for instances of the subtype `Monotone`. 
+    * If the provided `Eager` instances cannot be divided (e.g., if one or both are not `Monotone`), 
+    * the method returns a failure containing an `AlgebraException`.
+    *
+    * @param x the first `Eager` instance, representing the dividend
+    * @param y the second `Eager` instance, representing the divisor
+    * @return a `Try[Eager]` containing the result of the division if successful, or a failure with an `AlgebraException`
+    *         if the operation is not supported for the provided inputs
+    */
   private def divideEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
     case (a: Monotone, b: Monotone) =>
       a.divide(b)
@@ -216,21 +254,147 @@ trait Eager extends Valuable with Approximate with DyadicOps {
   * strings, long integers, or specific types of mathematical fields.
   */
 object Eager {
+  /**
+    * A lazily initialized constant representing the number zero, encapsulated in an `Eager` object.
+    * This value is pre-defined and serves as the canonical representation of zero within the `Eager` type.
+    *
+    * Delegates its value to `Number.zero`, a predefined numerical constant.
+    */
   lazy val zero: Eager = Number.zero
+  /**
+    * A lazily initialized constant value `one` within the `Eager` class.
+    * This value corresponds to the numerical representation of one.
+    *
+    * @return an `Eager` instance representing the value `1`.
+    */
   lazy val one: Eager = Number.one
+  /**
+    * A lazily initialized constant -1 as a lazily evaluated `Eager` instance.
+    *
+    * This value is initialized by accessing a pre-defined `minusOne` instance from 
+    * the `Number` class and is shared across all uses of the containing class.
+    *
+    * The value is immutable and can be used wherever an `Eager` representation of 
+    * the constant -1 is required.
+    */
   lazy val minusOne: Eager = Number.minusOne
+  /**
+    * A lazily initialized constant value of 2 within the `Eager` type system.
+    *
+    * This value is instantiated as a `Scalar(2)`, which is a specific subtype of `Eager`.
+    * It signifies the literal value `2` and can be used in computations or comparisons
+    * involving `Eager` instances.
+    */
   lazy val two: Eager = Scalar(2)
+  /**
+    * A lazily initialized constant one-half, wrapped as a `RationalNumber` instance
+    * constructed from `Rational.half`.
+    *
+    * This value is of type `Eager` and is calculated lazily, meaning it is
+    * initialized only when accessed. The `half` constant provides a convenient
+    * representation of the fractional value 1/2 in the `Eager` context.
+    */
   lazy val half: Eager = RationalNumber(Rational.half)
+  /**
+    * A lazily initialized constant value of `10` within the `Eager` context.
+    *
+    * This value is encapsulated as an instance of the `Scalar` type in the `Eager` framework.
+    * The `ten` lazy value is pre-computed and serves as a reusable numeric constant
+    * within operations or evaluations involving the `Eager` type.
+    *
+    * The lazy evaluation ensures that the value is computed only when accessed,
+    * thus optimizing performance and memory usage in contexts where `ten` is unused.
+    */
   lazy val ten: Eager = Scalar(10)
+  /**
+    * A lazily initialized constant π (pi) as an `Eager` instance.
+    *
+    * This value is precomputed and corresponds to the mathematical 
+    * constant π, providing precise representation through the `Eager` type.
+    */
   lazy val pi: Eager = Angle.pi
+  /**
+    * A lazily initialized constant π/2 (pi divided by 2),
+    * expressed as an instance of `Eager`. This value corresponds to half of the
+    * constant π, which is commonly used in trigonometry and other mathematical
+    * computations involving angles.
+    */
   lazy val piBy2: Eager = Angle.piBy2
+  /**
+    * A lazily initialized constant π/4 (pi divided by 4) as an instance of the `Eager` type.
+    *
+    * This value is predefined and corresponds to a quarter of π,
+    * commonly used in trigonometric calculations and other mathematical contexts.
+    *
+    * It is lazily initialized using the `Angle.piBy4` definition
+    * and provides an efficient representation of this angle.
+    *
+    * @return A constant `Eager` representation of π/4.
+    */
   lazy val piBy4: Eager = Angle.piBy4
-  lazy val e: Eager = NatLog.e
+  /**
+    * A lazily initialized constant `e` in an `Eager` representation.
+    *
+    * The value of `e` is imported from the `NaturalExponential` object,
+    * which defines the mathematical constant `e` (approximately 2.71828...) to arbitrary precision.
+    *
+    * As a lazy value, the computation or retrieval of `e` is deferred until it is accessed for the first time.
+    */
+  lazy val e: Eager = NaturalExponential.e
+  /**
+    * A lazily initialized constant for infinity: an `Eager` instance that encapsulates
+    * a `RationalNumber` with an infinite value.
+    *
+    * This property is provided as a convenient representation of positive infinity
+    * in the context of `Eager` computations. It utilizes the `Rational.infinity`
+    * to initialize the encapsulated value.
+    */
   lazy val infinity: Eager = RationalNumber(Rational.infinity)
+  /**
+    * Represents the mathematical concept of negative infinity as an `Eager` instance.
+    *
+    * This value is constructed using the `Rational.negInfinity`, which signifies negative
+    * infinity in the rational number system, wrapped within the `RationalNumber` representation.
+    *
+    * It can be used in computations where negative infinity needs to be explicitly modeled.
+    */
   lazy val negInfinity: Eager = RationalNumber(Rational.negInfinity)
+  /**
+    * Represents the square root of 2 (√2) as an instance of `Eager`.
+    *
+    * `root2` is lazily initialized as an `InversePower` instance with a numerator of 2
+    * and a denominator of 2. It includes an optional descriptive label "√2".
+    *
+    * The `Eager` type supports numerical representations and operations,
+    * enabling mathematical expressions and computations involving this constant.
+    */
   lazy val root2: Eager = new InversePower(2, 2)(Some("√2"))
+  /**
+    * Represents the square root of 3 as a lazy initialization of an `Eager` type.
+    *
+    * Internally implemented as an `InversePower` instance with base 2 and exponent 3,
+    * providing an efficient representation of √3. Optionally tagged with a string
+    * descriptor `"√3"` for identification.
+    */
   lazy val root3: Eager = new InversePower(2, 3)(Some("√3"))
+  /**
+    * Represents the golden ratio, commonly denoted as φ (phi), in the `Eager` context.
+    *
+    * The golden ratio is a mathematical constant approximately equal to 1.6180339887, 
+    * and is defined as the positive solution to the quadratic equation x^2 - x - 1 = 0.
+    *
+    * This lazy value retrieves its definition from the `QuadraticSolution.phi`.
+    */
   lazy val phi: Eager = QuadraticSolution.phi
+  /**
+    * A lazily initialized constant of type `Eager` representing one of the roots of the quadratic equation.
+    * The value is initialized based on the definition provided by `QuadraticSolution.psi`.
+    *
+    * This property is part of the `Eager` class, which represents mathematical expressions and constants.
+    *
+    * The lazy initialization ensures that the computation is deferred until the first access,
+    * optimizing resource usage and preventing unnecessary calculations during object instantiation.
+    */
   lazy val psi: Eager = QuadraticSolution.psi
 
   /**

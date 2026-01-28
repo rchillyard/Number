@@ -10,7 +10,7 @@ import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.eager.Logarithm.LogarithmIsCommutativeMonoid
+import com.phasmidsoftware.number.algebra.eager.Exponential.ExponentialIsCommutativeMonoid
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
@@ -21,35 +21,38 @@ import scala.reflect.ClassTag
 import scala.util.Try
 
 /**
-  * Represents an abstract logarithmic structure.
+  * Represents an abstract exponential number.
   *
-  * For example, for a `Monotone` whose value is `e` (2.718...), the value
-  * of `number` is log(e) = 1.
+  * For example, for an `Exponential` object whose effective value is `e` (2.718...),
+  * then the member: `number` should be 1, that's to say ln(e).
   *
-  * The `Logarithm` class defines properties and operations related to logarithmic
-  * values. This class serves as a base class for implementing logarithmic computations,
-  * adhering to specific mathematical principles such as addition, scaling, and rendering.
-  * CONSIDER renaming this as Exp
+  * The `Exponential` class defines properties and operations related to values
+  * that are represented internally as logarithmic values.
   *
-  * @constructor Creates a new instance of `Logarithm` with the specified value.
-  * @param number the numerical value representing the logarithm
+  * There are subtypes: NaturalExponential and BinaryExponential.
+  * We probably don't need DecimalExponential because we have BigDecimal as an alternative.
+  *
+  * @constructor Creates a new instance of `Exponential` with the specified value.
+  * @param number the numerical value defined as the logarithm of this.
   */
-abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Logarithm, Logarithm] with Ordered[Logarithm] {
+abstract class Exponential(val number: Number) extends Transformed with CanAdd[Exponential, Exponential] {
 
   /**
-    * Returns the base of this logarithm.
+    * Returns the base of the exponentiation, viz. `e` for NaturalExponential and `2` for BinaryExponential
+    * In general, this value will not be exact (particularly in the case of NaturalExponential).
     *
     * @return the base of type `Number`
     */
   def base: Number
 
   /**
-    * Computes a logarithmic instance based on the input number.
+    * Computes an Exponential instance based on the input number.
+    * CONSIDER promoting this into `Transformed`.
     *
     * @param x the number to transform, of type `Number`
-    * @return a new `Logarithm` instance representing the transformed value
+    * @return a new `Exponential` instance representing the transformed value
     */
-  def unit(x: Number): Logarithm
+  def unit(x: Number): Exponential
 
   /**
     * This yields the scale function for this Functional.
@@ -57,6 +60,20 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
     */
   val scaleFunction: Double => Double = x => math.pow(base.toDouble, x)
+  
+  /**
+    * Represents the derivative function associated with this `Functional` instance.
+    * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
+    * For a Monotone, the derivative should be positive, however, it is possible
+    * that it is not positive for certain types of `Functional`.
+    *
+    * The `derivativeFunction` provides a mathematical operation that computes the derivative
+    * with respect to a given input value. It is typically used to evaluate rates of change
+    * or sensitivity in the context of numerical transformations.
+    *
+    * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
+    */
+  val derivativeFunction: Double => Double = x => math.log(base.toDouble) * scaleFunction(x)   
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -75,21 +92,6 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     case x: Number =>
       unit(x)
   }
-
-  /**
-    * Compares this `Logarithm` instance with another `Logarithm` instance.
-    *
-    * This method compares the `value` values of the current `Logarithm` instance
-    * and the specified `Logarithm` instance using their natural order.
-    *
-    * @param that the `Logarithm` instance to compare with the current instance
-    * @return an integer value:
-    *         - a negative value if this `Logarithm` is less than `that`
-    *         - zero if this `Logarithm` is equal to `that`
-    *         - a positive value if this `Logarithm` is greater than `that`
-    */
-  def compare(that: Logarithm): Int =
-    number.compare(that.number)
 
   /**
     * Converts the current number to a representation of the specified type `T`, if possible.
@@ -124,7 +126,7 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the value is not a Number.
     */
-  def signum: Int = FP.recover(number.compareExact(WholeNumber.zero))(AlgebraException(s"Logarithm.signum: logic error: $this"))
+  def signum: Int = FP.recover(number.compareExact(WholeNumber.zero))(AlgebraException(s"Exponential.signum: logic error: $this"))
 
   /**
     * Method to determine if this Structure object is exact.
@@ -145,28 +147,28 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
 //    FP.whenever(isExact)(convert(Real.zero) map (_.value))
 
   /**
-    * Computes the additive inverse of the current `Logarithm` instance.
+    * Computes the additive inverse of the current `Exponential` instance.
     *
-    * This method negates the current Logarithm, returning a new `Logarithm` instance
-    * with the opposite value, relative to `Logarithm.zero`.
+    * This method negates the current Exponential, returning a new `Exponential` instance
+    * with the opposite value, relative to `Exponential.zero`.
     *
-    * @return a new `Logarithm` instance representing the additive inverse of the current Logarithm.
+    * @return a new `Exponential` instance representing the additive inverse of the current Exponential.
     */
-  def unary_- : Logarithm =
-    throw new UnsupportedOperationException("Logarithm.unary_-")
+  def unary_- : Exponential =
+    throw new UnsupportedOperationException("Exponential.unary_-")
 
   /**
-    * Adds the specified `Logarithm` to the current `Logarithm` instance.
+    * Adds the specified `Exponential` to the current `Exponential` instance.
     *
-    * This method combines the current Logarithm with the provided Logarithm
-    * by adding their respective values, returning a new `Logarithm` instance
+    * This method combines the current Exponential with the provided Exponential
+    * by adding their respective values, returning a new `Exponential` instance
     * representing the sum.
     *
-    * @param a the `Logarithm` to be added to the current `Logarithm`
-    * @return a new `Logarithm` representing the sum of the current `Logarithm` and the specified `Logarithm`
+    * @param a the `Exponential` to be added to the current `Exponential`
+    * @return a new `Exponential` representing the sum of the current `Exponential` and the specified `Exponential`
     */
-  def +(a: Logarithm): Logarithm =
-    LogarithmIsCommutativeMonoid.combine(this, a)
+  def +(a: Exponential): Exponential =
+    ExponentialIsCommutativeMonoid.combine(this, a)
 
   /**
     * Renders the base of this logarithm as a string representation for presentation,
@@ -194,16 +196,16 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
   def approximation: Option[Real] = convert(Real.zero)
 
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
-    case (a: NatLog, b: NatLog) =>
-      a.x.eqv(b.x)
+    case (a: NaturalExponential, b: NaturalExponential) =>
+      a.exponent.eqv(b.exponent)
     case _ =>
       super.eqv(that)
   }
 
   /**
-    * Compares the current `Logarithm` instance with another `Eager` instance using a fuzzy equivalence strategy.
+    * Compares the current `Exponential` instance with another `Eager` instance using a fuzzy equivalence strategy.
     * This method considers two values to be "fuzzy equivalent" if their difference falls within a specified precision margin.
-    * The method handles cases where the `Eager` instance belongs to different subtypes such as `NatLog` or `Structure`,
+    * The method handles cases where the `Eager` instance belongs to different subtypes such as `NaturalExponential` or `Structure`,
     * applying transformations and delegating to subtype-specific implementations as needed.
     *
     * @param p    the precision margin within which the two instances are considered equal, of type `Double`
@@ -211,10 +213,10 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
     * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equivalent
     */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
-    case (a: NatLog, b: NatLog) =>
-      a.x.fuzzyEqv(p)(b.x)
-    case (a: NatLog, b: Structure) =>
-      // Transform NatLog to Real and compare
+    case (a: NaturalExponential, b: NaturalExponential) =>
+      a.exponent.fuzzyEqv(p)(b.exponent)
+    case (a: NaturalExponential, b: Structure) =>
+      // Transform NaturalExponential to Real and compare
       for {
         aReal <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"Cannot transform $a to Real"))
         result <- aReal.fuzzyEqv(p)(b)
@@ -225,22 +227,22 @@ abstract class Logarithm(val number: Number) extends Transformed with CanAdd[Log
 }
 
 /**
-  * A case class representing a Logarithm. This class implements the `Additive` and `Radians` traits,
+  * A case class representing a Exponential. This class implements the `Additive` and `Radians` traits,
   * allowing operations such as addition, subtraction, and various type conversions.
   *
-  * Logarithm does not support ordering or comparison.
+  * Exponential does not support ordering or comparison.
   *
   * An example of the use of this class is as in this definition of Euler's number:
   * {{{
-  *   val e: Eager = NatLog(WholeNumber.one)
+  *   val e: Eager = NaturalExponential(WholeNumber.one)
   * }}}
   *
-  * @param x the value of the Logarithm of this instance.
+  * @param x the value of the Exponential of this instance.
   */
-case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logarithm(x) {
+case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = None) extends Exponential(exponent) {
 
   /**
-    * Returns the base of this logarithm, viz. `e`.
+    * Returns the base of this exponential, viz. `e`.
     *
     * @return the base of type `Number`
     */
@@ -254,7 +256,7 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     * results in the same element. For any element `value`, `value + zero` and `zero + value` should
     * equal `value`.
     */
-  lazy val zero: Logarithm = NatLog(WholeNumber.zero)(Some("1"))
+  lazy val zero: Exponential = NaturalExponential(WholeNumber.zero)(Some("1"))
 
   /**
     * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
@@ -268,7 +270,7 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     val c = implicitly[ClassTag[T]]
     if (c.runtimeClass == classOf[Real]) {
       val result: Real =
-        x match {
+        exponent match {
           case WholeNumber.one | RationalNumber(Rational.one, _) =>
             Real(math.E)
           case RationalNumber(Rational.infinity, _) =>
@@ -276,7 +278,7 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
           case Real(value, fuzz) =>
             Real(math.log(value), fuzz) // TODO check this.
           case _ =>
-            throw AlgebraException(s"NatLog.transformation: $x not supported")
+            throw AlgebraException(s"NaturalExponential.transformation: $exponent not supported")
         }
       Some(result.asInstanceOf[T])
     }
@@ -291,36 +293,36 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     * @return a `Monotone` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
-  def negate: Monotone = throw AlgebraException(s"NatLog.negate: not supported")
+  def negate: Monotone = throw AlgebraException(s"NaturalExponential.negate: not supported")
 
   /**
-    * Compares the current `Logarithm` instance with another `Number` to determine their exact order.
+    * Compares the current `Exponential` instance with another `Number` to determine their exact order.
     *
-    * If the provided `Number` is a `Logarithm`, this method compares their underlying radian values.
-    * If the provided `Number` is not a `Logarithm`, the comparison cannot be performed, and `None` is returned.
+    * If the provided `Number` is a `Exponential`, this method compares their underlying radian values.
+    * If the provided `Number` is not a `Exponential`, the comparison cannot be performed, and `None` is returned.
     *
-    * @param that the `Number` instance to compare with the current `Logarithm` instance
-    * @return an `Option[Int]`, where `Some(-1)` indicates that the current `Logarithm` is less than the provided `Logarithm`,
-    *         `Some(0)` indicates that both Logarithms are equal, `Some(1)` indicates that the current `Logarithm` is greater,
+    * @param that the `Number` instance to compare with the current `Exponential` instance
+    * @return an `Option[Int]`, where `Some(-1)` indicates that the current `Exponential` is less than the provided `Exponential`,
+    *         `Some(0)` indicates that both Logarithms are equal, `Some(1)` indicates that the current `Exponential` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
   def compareExact(that: Number): Option[Int] = that match {
-    case NatLog(r) =>
-      Some(x.compare(r))
+    case NaturalExponential(r) =>
+      Some(exponent.compare(r))
     case _ =>
       None
   }
 
   /**
-    * Constructs a natural logarithm (`NatLog`) from the given `Number`.
+    * Constructs a natural logarithm (`NaturalExponential`) from the given `Number`.
     *
-    * This method creates a `Logarithm` instance by interpreting
+    * This method creates a `Exponential` instance by interpreting
     * the input `Number` as the argument for the natural logarithm representation.
     *
-    * @param x the `Number` value to be used in generating the `Logarithm`
-    * @return a `Logarithm` instance representing the natural logarithm of the input `Number`
+    * @param x the `Number` value to be used in generating the `Exponential`
+    * @return a `Exponential` instance representing the natural logarithm of the input `Number`
     */
-  def unit(x: Number): Logarithm = NatLog(x)
+  def unit(x: Number): Exponential = NaturalExponential(x)
 
   /**
     * Retrieves an optional fuzziness value associated with this instance.
@@ -331,7 +333,7 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]] =
-    Eager(Eager.eagerToField(x).exp) match {
+    Eager(Eager.eagerToField(exponent).exp) match {
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>
@@ -339,14 +341,14 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     }
 
   /**
-    * Renders this `Logarithm` instance as a string representation of value in terms of π.
+    * Renders this `Exponential` instance as a string representation of value in terms of π.
     *
     * The method formats the radius equivalent to π, omitting the numeric coefficient if it is 1.
     *
-    * @return a string representation of the `Logarithm` in terms of π
+    * @return a string representation of the `Exponential` in terms of π
     */
   def render: String = maybeName getOrElse {
-    val numberStr = x.render
+    val numberStr = exponent.render
     "e" + (if (numberStr == "1") "" else s"^$numberStr")
   }
 
@@ -364,7 +366,7 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     *
     * @return the instance of type `T` that acts as the identity element for multiplication
     */
-  def one: Logarithm = NatLog(WholeNumber.zero)(Some("1"))
+  def one: Exponential = NaturalExponential(WholeNumber.zero)(Some("1"))
 
   /**
     * Scales the current instance of type `T` by the specified `Double` value.
@@ -381,24 +383,24 @@ case class NatLog(x: Number)(val maybeName: Option[String] = None) extends Logar
     None // TODO implement me as appropriate
 
 //  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
-//    case (a: NatLog, b: Structure) =>
+//    case (a: NaturalExponential, b: Structure) =>
 //      for {
-//        z <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"NatLog.fuzzyEqv: logic transformation error $this $that"))
-//        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
+//        z <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"NaturalExponential.fuzzyEqv: logic transformation error $this $that"))
+//        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
 //        w <- z.fuzzyEqv(p)(z)
 //      } yield w
 //    case (a: Real, b: Structure) =>
 //      for {
-//        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
+//        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
 //        w <- a.fuzzyEqv(p)(a)
 //      } yield w
 //
 //    case (a, b) =>
-//      Failure(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
+//      Failure(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
 //  }
 }
 
-case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Logarithm(x) {
+case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = None) extends Exponential(exponent) {
 
   /**
     * Returns the base of this logarithm, viz. `e`.
@@ -415,7 +417,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     * results in the same element. For any element `value`, `value + zero` and `zero + value` should
     * equal `value`.
     */
-  lazy val zero: Logarithm = NatLog(WholeNumber.zero)
+  lazy val zero: Exponential = NaturalExponential(WholeNumber.zero)
 
   /**
     * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
@@ -429,15 +431,15 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     val c = implicitly[ClassTag[T]]
     if (c.runtimeClass == classOf[Real]) {
       val result: Real =
-        x match {
+        exponent match {
           case WholeNumber.one | RationalNumber(Rational.one, _) =>
-            FP.recover(base.convert(Real.zero))(AlgebraException(": BinaryLog.transformation: base.convert(Real.zero) failed"))
+            FP.recover(base.convert(Real.zero))(AlgebraException(": BinaryExponential.transformation: base.convert(Real.zero) failed"))
           case RationalNumber(Rational.infinity, _) =>
             Real.∞
           case Real(value, fuzz) =>
             Real(math.log(value), fuzz)
           case _ =>
-            throw AlgebraException(s"BinaryLog.transformation: $x not supported")
+            throw AlgebraException(s"BinaryExponential.transformation: $exponent not supported")
         }
       Some(result.asInstanceOf[T])
     }
@@ -452,36 +454,36 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     *
     * @return a `Monotone` representing the negation of this instance
     */
-  def negate: Monotone = throw AlgebraException(s"BinaryLog.negate: not supported")
+  def negate: Monotone = throw AlgebraException(s"BinaryExponential.negate: not supported")
 
   /**
-    * Compares the current `Logarithm` instance with another `Number` to determine their exact order.
+    * Compares the current `Exponential` instance with another `Number` to determine their exact order.
     *
-    * If the provided `Number` is a `Logarithm`, this method compares their underlying radian values.
-    * If the provided `Number` is not a `Logarithm`, the comparison cannot be performed, and `None` is returned.
+    * If the provided `Number` is a `Exponential`, this method compares their underlying radian values.
+    * If the provided `Number` is not a `Exponential`, the comparison cannot be performed, and `None` is returned.
     *
-    * @param that the `Number` instance to compare with the current `Logarithm` instance
-    * @return an `Option[Int]`, where `Some(-1)` indicates that the current `Logarithm` is less than the provided `Logarithm`,
-    *         `Some(0)` indicates that both Logarithms are equal, `Some(1)` indicates that the current `Logarithm` is greater,
+    * @param that the `Number` instance to compare with the current `Exponential` instance
+    * @return an `Option[Int]`, where `Some(-1)` indicates that the current `Exponential` is less than the provided `Exponential`,
+    *         `Some(0)` indicates that both Logarithms are equal, `Some(1)` indicates that the current `Exponential` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
   def compareExact(that: Number): Option[Int] = that match {
-    case BinaryLog(r) =>
-      Some(x.compare(r))
+    case BinaryExponential(r) =>
+      Some(exponent.compare(r))
     case _ =>
       None
   }
 
   /**
-    * Constructs a natural logarithm (`NatLog`) from the given `Number`.
+    * Constructs a natural logarithm (`NaturalExponential`) from the given `Number`.
     *
-    * This method creates a `Logarithm` instance by interpreting
+    * This method creates a `Exponential` instance by interpreting
     * the input `Number` as the argument for the natural logarithm representation.
     *
-    * @param x the `Number` value to be used in generating the `Logarithm`
-    * @return a `Logarithm` instance representing the natural logarithm of the input `Number`
+    * @param x the `Number` value to be used in generating the `Exponential`
+    * @return a `Exponential` instance representing the natural logarithm of the input `Number`
     */
-  def unit(x: Number): Logarithm = BinaryLog(x)
+  def unit(x: Number): Exponential = BinaryExponential(x)
 
   /**
     * Retrieves an optional fuzziness value associated with this instance.
@@ -492,7 +494,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]] =
-    Eager(Eager.eagerToField(x).exp) match { // FIXME we need 2^x
+    Eager(Eager.eagerToField(exponent).exp) match { // FIXME we need 2^x
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>
@@ -500,14 +502,14 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     }
 
   /**
-    * Renders this `Logarithm` instance as a string representation of value in terms of π.
+    * Renders this `Exponential` instance as a string representation of value in terms of π.
     *
     * The method formats the radius equivalent to π, omitting the numeric coefficient if it is 1.
     *
-    * @return a string representation of the `Logarithm` in terms of π
+    * @return a string representation of the `Exponential` in terms of π
     */
   def render: String = maybeName getOrElse {
-    val numberStr = x.render
+    val numberStr = exponent.render
     "2" + (if (numberStr == "1") "" else s"^$numberStr")
   }
 
@@ -525,7 +527,7 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     *
     * @return the instance of type `T` that acts as the identity element for multiplication
     */
-  def one: Logarithm = NatLog(WholeNumber.zero)
+  def one: Exponential = NaturalExponential(WholeNumber.zero)
 
   /**
     * Scales the current instance of type `T` by the specified `Double` value.
@@ -542,33 +544,33 @@ case class BinaryLog(x: Number)(val maybeName: Option[String] = None) extends Lo
     None // TODO implement me as appropriate
 
   //  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
-  //    case (a: NatLog, b: Structure) =>
+  //    case (a: NaturalExponential, b: Structure) =>
   //      for {
-  //        z <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"NatLog.fuzzyEqv: logic transformation error $this $that"))
-  //        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
+  //        z <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"NaturalExponential.fuzzyEqv: logic transformation error $this $that"))
+  //        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
   //        w <- z.fuzzyEqv(p)(z)
   //      } yield w
   //    case (a: Real, b: Structure) =>
   //      for {
-  //        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
+  //        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
   //        w <- a.fuzzyEqv(p)(a)
   //      } yield w
   //
   //    case (a, b) =>
-  //      Failure(AlgebraException(s"NatLog.fuzzyEqv: logic conversion error $this $that"))
+  //      Failure(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
   //  }
 
 }
 
-object BinaryLog {
-  def apply(x: Number): Logarithm = new BinaryLog(x)()
+object BinaryExponential {
+  def apply(x: Number): Exponential = new BinaryExponential(x)()
 }
 /**
-  * The `Logarithm` companion object contains utility methods, predefined constants, and
+  * The `Exponential` companion object contains utility methods, predefined constants, and
   * typeclass instances for working with Logarithms. Logarithms are represented using
   * rational numbers and comply with the algebraic structure of a commutative group.
   */
-object Logarithm {
+object Exponential {
 
   import org.slf4j.{Logger, LoggerFactory}
 
@@ -576,117 +578,117 @@ object Logarithm {
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  given DyadicOperator[Logarithm] = new DyadicOperator[Logarithm] {
-    def op[B <: Logarithm, Z](f: (Logarithm, B) => Try[Z])(x: Logarithm, y: B): Try[Z] = (x, y) match {
-      case (a: NatLog, b: NatLog) =>
-        implicitly[DyadicOperator[NatLog]].op(f)(a, b)
+  given DyadicOperator[Exponential] = new DyadicOperator[Exponential] {
+    def op[B <: Exponential, Z](f: (Exponential, B) => Try[Z])(x: Exponential, y: B): Try[Z] = (x, y) match {
+      case (a: NaturalExponential, b: NaturalExponential) =>
+        implicitly[DyadicOperator[NaturalExponential]].op(f)(a, b)
       case (a, b) =>
         f(a, b)
     }
   }
 
-  given Eq[Logarithm] = Eq.instance {
+  given Eq[Exponential] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Logarithm]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
+      summon[DyadicOperator[Exponential]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
-  given FuzzyEq[Logarithm] = FuzzyEq.instance {
+  given FuzzyEq[Exponential] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
   /**
-    * Provides an implicit `Show` instance for the `Logarithm` class, enabling conversion
-    * of a `Logarithm` instance to a string representation using its `render` method.
+    * Provides an implicit `Show` instance for the `Exponential` class, enabling conversion
+    * of a `Exponential` instance to a string representation using its `render` method.
     *
-    * This allows the `Logarithm` class to integrate seamlessly with libraries or frameworks
+    * This allows the `Exponential` class to integrate seamlessly with libraries or frameworks
     * requiring a `Show` typeclass instance for displaying or logging purposes.
     */
-  implicit val showLogarithm: Show[Logarithm] = Show.show(_.render)
+  implicit val showLogarithm: Show[Exponential] = Show.show(_.render)
 
-  // In Logarithm companion object
-  implicit val latexRenderer: LatexRenderer[Logarithm] = LatexRenderer.instance {
-    case log: NatLog => s"\\mathrm{e}${log.renderNumber}"
+  // In Exponential companion object
+  implicit val latexRenderer: LatexRenderer[Exponential] = LatexRenderer.instance {
+    case log: NaturalExponential => s"\\mathrm{e}${log.renderNumber}"
     case log => s"${log.base.render}${log.renderNumber}"
   }
 
   /**
-    * Provides an implicit implementation of a commutative group for the `Logarithm` type, supporting
+    * Provides an implicit implementation of a commutative group for the `Exponential` type, supporting
     * group operations such as identity, combination, and inversion.
     *
-    * This allows `Logarithm` objects to adhere to the algebraic structure of a commutative group, where
+    * This allows `Exponential` objects to adhere to the algebraic structure of a commutative group, where
     * the `combine` operation is associative and commutative, an identity element exists, and
     * each element has an additive inverse.
     */
-  implicit object LogarithmIsCommutativeMonoid extends CommutativeMonoid[Logarithm] {
+  implicit object ExponentialIsCommutativeMonoid extends CommutativeMonoid[Exponential] {
     /**
-      * Provides the identity element for the `Logarithm` group, representing a Logarithm of zero value.
+      * Provides the identity element for the `Exponential` group, representing a Exponential of zero value.
       *
-      * @return a `Logarithm` instance with zero value, acting as the identity element in the group structure.
+      * @return a `Exponential` instance with zero value, acting as the identity element in the group structure.
       */
-    lazy val empty: Logarithm = NatLog(WholeNumber.zero)
+    lazy val empty: Exponential = NaturalExponential(WholeNumber.zero)
 
     /**
-      * Combines two `Logarithm` instances by adding their respective value.
+      * Combines two `Exponential` instances by adding their respective value.
       * NOTE that this is the equivalent of multiplying the corresponding (exponential) values.
       * This method is associative and commutative, meaning that the order of the arguments does not matter.
       * The identity element is the zero value, which is the neutral element for the addition operation.
       *
-      * @param x the first `Logarithm` to combine
-      * @param y the second `Logarithm` to combine
-      * @return a new `Logarithm` representing the sum of the value of the two provided `Logarithm` instances
+      * @param x the first `Exponential` to combine
+      * @param y the second `Exponential` to combine
+      * @return a new `Exponential` representing the sum of the value of the two provided `Exponential` instances
       * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input types are not compatible.
       */
-    def combine(x: Logarithm, y: Logarithm): Logarithm = (x, y) match {
+    def combine(x: Exponential, y: Exponential): Exponential = (x, y) match {
       case (a, b) if a.getClass == b.getClass =>
         a + b
       case _ =>
-        throw AlgebraException(s"Logarithm.combine: $x, $y")
+        throw AlgebraException(s"Exponential.combine: $x, $y")
     }
   }
 }
 
 /**
-  * Companion object for the `NatLog` class, providing predefined constants and utility methods.
+  * Companion object for the `NaturalExponential` class, providing predefined constants and utility methods.
   *
   * The object contains common values associated with natural logarithmic operations
-  * and other relevant constants that can be used with `Logarithm` instances.
+  * and other relevant constants that can be used with `Exponential` instances.
   */
-object NatLog {
+object NaturalExponential {
 
-  def apply(x: Number): NatLog = new NatLog(x)()
+  def apply(x: Number): NaturalExponential = new NaturalExponential(x)()
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  given DyadicOperator[NatLog] = new DyadicOperator[NatLog] {
-    def op[B <: NatLog, Z](f: (NatLog, B) => Try[Z])(x: NatLog, y: B): Try[Z] = f(x, y)
+  given DyadicOperator[NaturalExponential] = new DyadicOperator[NaturalExponential] {
+    def op[B <: NaturalExponential, Z](f: (NaturalExponential, B) => Try[Z])(x: NaturalExponential, y: B): Try[Z] = f(x, y)
   }
 
-  given Eq[NatLog] = Eq.instance {
+  given Eq[NaturalExponential] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[NatLog]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
+      summon[DyadicOperator[NaturalExponential]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
-  given FuzzyEq[NatLog] = FuzzyEq.instance {
+  given FuzzyEq[NaturalExponential] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
-  given Show[NatLog] = Show.show(_.render)
+  given Show[NaturalExponential] = Show.show(_.render)
 
   /**
-    * Represents the zero value of the `Logarithm` class.
+    * Represents the zero value of the `Exponential` class.
     *
-    * This is a predefined constant that corresponds to a `Logarithm` of zero value.
+    * This is a predefined constant that corresponds to a `Exponential` of zero value.
     * It is used as the additive identity in operations involving Logarithms.
     */
-  val one: Logarithm = NatLog(WholeNumber.zero)(Some("1"))
+  val one: Exponential = NaturalExponential(WholeNumber.zero)(Some("1"))
 
   /**
-    * Represents the natural logarithmic base `e` as a `Logarithm` instance.
+    * Represents the natural logarithmic base `e` as a `Exponential` instance.
     *
     * The value corresponds to the natural logarithm of one in terms of base `e`,
     * often used as a mathematical constant in logarithmic and exponential calculations.
     */
-  val e: Logarithm = NatLog(WholeNumber.one)(Some("e"))
+  val e: Exponential = NaturalExponential(WholeNumber.one)(Some("e"))
 }

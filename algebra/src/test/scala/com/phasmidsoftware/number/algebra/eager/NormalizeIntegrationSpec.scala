@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
-import com.phasmidsoftware.number.algebra.eager.{InversePower, NatLog, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{InversePower, NaturalExponential, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -122,14 +122,14 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
 
   behavior of "normalize with logarithm operations"
 
-  it should "reduce NatLog(0) in expressions" in {
+  it should "reduce NaturalExponential(0) in expressions" in {
     // e^0 = 1
-    NatLog(WholeNumber.zero).normalize shouldBe WholeNumber.one
+    NaturalExponential(WholeNumber.zero).normalize shouldBe WholeNumber.one
   }
 
-//  it should "reduce Logarithm(base, 0) in expressions" in {
+//  it should "reduce Exponential(base, 0) in expressions" in {
 //    // 10^0 = 1
-//    Logarithm(WholeNumber(10), WholeNumber.zero).normalize shouldBe WholeNumber.one
+//    Exponential(WholeNumber(10), WholeNumber.zero).normalize shouldBe WholeNumber.one
 //  }
 
   behavior of "normalize in nested operations"
@@ -139,11 +139,11 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
     InversePower(1, RationalNumber(rational)).normalize shouldBe WholeNumber(2)
   }
 
-  it should "normalize NatLog with normalized argument" in {
-    // NatLog(RationalNumber(0, 1))
-    // -> NatLog(WholeNumber(0))
+  it should "normalize NaturalExponential with normalized argument" in {
+    // NaturalExponential(RationalNumber(0, 1))
+    // -> NaturalExponential(WholeNumber(0))
     // -> WholeNumber(1)
-    val nested = NatLog(RationalNumber(Rational(0, 1)))
+    val nested = NaturalExponential(RationalNumber(Rational(0, 1)))
     nested.normalize shouldBe WholeNumber.one
   }
 

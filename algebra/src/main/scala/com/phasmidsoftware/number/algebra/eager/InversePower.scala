@@ -38,7 +38,7 @@ import scala.util.{Success, Try}
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Scalable[InversePower] with CanPower[Number] with Ordered[InversePower] {
+case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Scalable[InversePower] with CanPower[Number] {
 
   require(n > 0, s"InversePower: n must be positive, but was $n")
   require(!number.isZero, s"InversePower: number must be non-zero, but was $number")
@@ -59,6 +59,20 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
     */
   val scaleFunction: Double => Double = math.pow(_, 1.0 / n)
+
+  /**
+    * Represents the derivative function associated with this `Functional` instance.
+    * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
+    * For a Monotone, the derivative should be positive, however, it is possible
+    * that it is not positive for certain types of `Functional`.
+    *
+    * The `derivativeFunction` provides a mathematical operation that computes the derivative
+    * with respect to a given input value. It is typically used to evaluate rates of change
+    * or sensitivity in the context of numerical transformations.
+    *
+    * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
+    */
+  val derivativeFunction: Double => Double = x => scaleFunction(x) / n / x
 
   /**
     * Computes the result of raising an instance of type `T` to the power
@@ -492,7 +506,7 @@ object InversePower {
     }
   }
 
-//  private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Logarithm, e: B): Try[Z] =
+//  private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Exponential, e: B): Try[Z] =
 //    FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 
   /**

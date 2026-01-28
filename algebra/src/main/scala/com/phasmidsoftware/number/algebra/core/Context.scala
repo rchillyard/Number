@@ -11,8 +11,6 @@ import com.phasmidsoftware.number.core.inner.*
 /**
   * Represents a trait for specifying in which evaluation-contexts a particular expression may be evaluated.
   *
-  * TODO rename this as `Context`
-  *
   * The `Context` trait provides an abstraction for determining whether a particular
   * factor or field qualifies within the scope of a specific context. It supports
   * logical operations (`or`, `and`, `not`) to compose complex contexts from simpler ones.
@@ -181,9 +179,9 @@ object Context {
     * A combined `Context` that represents any type of logarithmic base.
     *
     * This context is composed of three restricted contexts:
-    * - Natural Logarithm (NatLog)
-    * - Base 2 Logarithm (Log2)
-    * - Base 10 Logarithm (Log10)
+    * - Natural Exponential (inner.NatLog)
+    * - Binary Exponential (inner.Log2)
+    * - Base 10 Exponential (inner.Log10)
     *
     * A value qualifies for this context if it qualifies for any of the three individual
     * restricted logarithmic contexts.

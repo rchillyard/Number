@@ -8,7 +8,6 @@ import com.phasmidsoftware.number.algebra.core.RestrictedContext
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Constants, RelativeFuzz}
-import com.phasmidsoftware.number.expression.expr.Expression.em
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

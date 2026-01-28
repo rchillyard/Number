@@ -6,8 +6,8 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.RestrictedContext
 import com.phasmidsoftware.number.algebra.eager.*
-import com.phasmidsoftware.number.core.inner.{NatLog, PureNumber, Rational}
-import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Constants}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import com.phasmidsoftware.number.expression.algebraic.{LinearEquation, QuadraticEquation}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.algebra.core
 
 import cats.implicits.toShow
-import com.phasmidsoftware.number.algebra.eager.{Angle, InversePower, NatLog, Real}
+import com.phasmidsoftware.number.algebra.eager.{Angle, InversePower, NaturalExponential, Real}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Gaussian, RelativeFuzz}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -9,7 +9,7 @@ import org.scalatest.matchers.should.Matchers
 /**
   * The `MaybeFuzzySpec` class contains a suite of unit tests for validating the behavior
   * of extension methods applied to mathematical concepts with potential fuzziness, such as `Real`, `Angle`,
-  * `InversePower`, and `NatLog`. These methods facilitate rendering and representation adjustments
+  * `InversePower`, and `NaturalExponential`. These methods facilitate rendering and representation adjustments
   * for both exact and fuzzy values under various configurations.
   *
   * TODO these tests document the current behavior of these methods and types but this isn't
@@ -32,7 +32,7 @@ import org.scalatest.matchers.should.Matchers
   * - `Real`: Validates rendering formats for exact, absolute, and relative fuzzy values.
   * - `Angle`: Tests the rendering of angles in radians with fuzziness incorporated.
   * - `InversePower`: Ensures proper handling of fuzzy square roots and similar expressions.
-  * - `NatLog`: Validates fuzzy natural logarithmic expressions.
+  * - `NaturalExponential`: Validates fuzzy natural logarithmic expressions.
   *
   * Additional focus is given to correct formatting and precision in the rendered outputs
   * for all supported types and fuzziness configurations.
@@ -144,36 +144,36 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
     ip.asPercentage should include("5.0%") // Percentage form
   }
 
-  behavior of "MaybeFuzzy extension methods for NatLog"
+  behavior of "MaybeFuzzy extension methods for NaturalExponential"
 
-  it should "render exact NatLog with asAbsolute" in {
-    val nl = NatLog(Real(1.0, Some(AbsoluteFuzz(0.01, Gaussian))))
+  it should "render exact NaturalExponential with asAbsolute" in {
+    val nl = NaturalExponential(Real(1.0, Some(AbsoluteFuzz(0.01, Gaussian))))
     nl.show shouldBe "e^1.00(1)"
     // This creates a fuzzy input, so output will be fuzzy
     nl.asAbsolute shouldBe "2.71(1)"
   }
 
-  it should "render fuzzy NatLog with absolute fuzz using asAbsolute" in {
-    val nl = NatLog(Real(1.0, Some(AbsoluteFuzz(0.01, Gaussian))))
+  it should "render fuzzy NaturalExponential with absolute fuzz using asAbsolute" in {
+    val nl = NaturalExponential(Real(1.0, Some(AbsoluteFuzz(0.01, Gaussian))))
     nl.show shouldBe "e^1.00(1)"
     nl.asAbsolute shouldBe "2.71(1)"
   }
 
-  it should "render fuzzy NatLog with relative fuzz using asAbsolute" in {
-    val nl = NatLog(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
+  it should "render fuzzy NaturalExponential with relative fuzz using asAbsolute" in {
+    val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
     nl.show shouldBe "e^1.0±3.0%"
     val result = nl.asAbsolute
     result shouldBe "2.718(82)"
   }
 
-  it should "render fuzzy NatLog with asRelative" in {
-    val nl = NatLog(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
+  it should "render fuzzy NaturalExponential with asRelative" in {
+    val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
     nl.show shouldBe "e^1.0±3.0%"
     nl.asRelative shouldBe "2.718281828459045 ± 3.0%"
   }
 
-  it should "render fuzzy NatLog with asPercentage" in {
-    val nl = NatLog(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
+  it should "render fuzzy NaturalExponential with asPercentage" in {
+    val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
     nl.show shouldBe "e^1.0±3.0%"
     nl.asPercentage should include("±")
     nl.asPercentage should include("3.0%") // Percentage form

@@ -176,11 +176,11 @@ Angles normalize to the range [-1, 1) where a full circle = 2.
 
 **Important**: `Angle` has no `Order` instance because circular ordering is meaningless. It only supports `Eq` for equality testing.
 
-#### Logarithm 
+#### Exponential 
 
-Transformed values, including `Logarithm`, store a value which is then rendered as a pure number via a transforming function.
+Transformed values, including `Exponential`, store a value which is then rendered as a pure number via a transforming function.
 However, this makes the terminology slightly confusing.
-For example, the value stored in a `Logarithm` _is_ the logarithm.
+For example, the value stored in a `Exponential` _is_ the logarithm.
 Thus,
 
 ```scala

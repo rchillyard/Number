@@ -5,8 +5,7 @@
 package com.phasmidsoftware.number.algebra.core
 
 import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Monotone, Nat, NatLog, Number, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Monotone, Nat, NaturalExponential, Number, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.AlgebraException
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber}
@@ -241,7 +240,7 @@ object Valuable {
       Some(rationalToField(q.toRational, PureNumber))
     case a@Angle(radians, _) =>
       Some(numerical.Real(numberToField(radians).x.make(inner.Radian)))
-    case l@NatLog(x) =>
+    case l@NaturalExponential(x) =>
       Some(numerical.Real(numberToField(x).x.make(inner.NatLog)))
     case InversePower(n, x) =>
       Some(numberToField(x).power(ExactNumber(Value.fromRational(Rational(n).invert), PureNumber)))
