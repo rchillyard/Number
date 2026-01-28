@@ -1209,3 +1209,8 @@ This module includes:
 See the worksheets for hands-on examples of the library in action.
 
 For version history and migration notes, see the [HISTORY](docs/HISTORY.md).
+
+## Testing
+See [Testing Conventions](docs/testing/TESTING_CONVENTIONS.md) for comprehensive testing guidelines.
+
+Quick reference: [Testing Quick Reference](docs/testing/TESTING_QUICK_REFERENCE.md)
