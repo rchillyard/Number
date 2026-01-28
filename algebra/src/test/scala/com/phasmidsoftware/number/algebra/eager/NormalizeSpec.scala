@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
-import com.phasmidsoftware.number.algebra.eager.{Angle, BinaryLog, InversePower, Logarithm, NatLog, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, BinaryExponential, InversePower, Exponential, NaturalExponential, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -114,44 +114,44 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
     ip.normalize shouldBe WholeNumber(3)
   }
 
-  behavior of "NatLog.normalize"
+  behavior of "NaturalExponential.normalize"
 
-  it should "reduce NatLog(0) to WholeNumber(1)" in {
+  it should "reduce NaturalExponential(0) to WholeNumber(1)" in {
     // e^0 = 1
-    val nl = NatLog(WholeNumber.zero)
+    val nl = NaturalExponential(WholeNumber.zero)
     nl.normalize shouldBe WholeNumber.one
   }
 
   it should "normalize the number parameter" in {
-    val nl = NatLog(RationalNumber(Rational(2, 2)))
+    val nl = NaturalExponential(RationalNumber(Rational(2, 2)))
     val result = nl.normalize
-    result shouldBe a[NatLog]
-    result.asInstanceOf[NatLog].number shouldBe WholeNumber(1)
+    result shouldBe a[NaturalExponential]
+    result.asInstanceOf[NaturalExponential].number shouldBe WholeNumber(1)
   }
 
   it should "return same instance if number doesn't normalize" in {
-    val nl = NatLog(WholeNumber(5))
+    val nl = NaturalExponential(WholeNumber(5))
     val result = nl.normalize
     result should be theSameInstanceAs nl
   }
 
-  behavior of "Logarithm.normalize"
+  behavior of "Exponential.normalize"
 
-  it should "reduce Logarithm(base, 0) to WholeNumber(1)" in {
+  it should "reduce Exponential(base, 0) to WholeNumber(1)" in {
     // base^0 = 1 for any base
-    val log = NatLog(WholeNumber.zero)
+    val log = NaturalExponential(WholeNumber.zero)
     log.normalize shouldBe WholeNumber.one
   }
 
   it should "normalize the number parameter" in {
-    val log = BinaryLog(RationalNumber(Rational(4, 2)))
+    val log = BinaryExponential(RationalNumber(Rational(4, 2)))
     val result = log.normalize
-    result shouldBe a[Logarithm]
-    result.asInstanceOf[Logarithm].number shouldBe WholeNumber(2)
+    result shouldBe a[Exponential]
+    result.asInstanceOf[Exponential].number shouldBe WholeNumber(2)
   }
 
   it should "return same instance if number doesn't normalize" in {
-    val log = NatLog(WholeNumber(3))
+    val log = NaturalExponential(WholeNumber(3))
     val result = log.normalize
     result should be theSameInstanceAs log
   }

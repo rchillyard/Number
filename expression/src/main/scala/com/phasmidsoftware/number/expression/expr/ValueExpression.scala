@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import cats.implicits.catsSyntaxEq
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NatLog, Number, RationalNumber, Real, Scalar, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NaturalExponential, Number, RationalNumber, Real, Scalar, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
@@ -466,7 +466,7 @@ sealed abstract class NamedConstant(x: Eager, name: String) extends ValueExpress
   * @param x    the `Valuable` instance representing the value of the scalar constant.
   * @param name the name associated with the scalar constant.
   */
-sealed abstract class ScalarConstant(x: Eager, name: String) extends NamedConstant(x, name)
+sealed abstract class ScalarConstant(x: Eager, val name: String) extends NamedConstant(x, name)
 
 /**
   * Represents the mathematical constant zero.
@@ -641,7 +641,7 @@ case object Pi extends ScalarConstant(Angle.pi, "𝛑") {
   * The constant e.
   * Yes, this is an exact number.
   */
-case object E extends NamedConstant(NatLog.e, "e") {
+case object E extends NamedConstant(NaturalExponential.e, "e") {
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.

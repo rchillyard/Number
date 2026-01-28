@@ -110,7 +110,7 @@ All wrapper methods normalize results and cast to RationalNumber.
 - Extends `CanMultiplyAndDivide[Monotone]` but full arithmetic not needed
 - Primarily used for root operations which don't naturally add/subtract
 
-### Logarithm.scala
+### Exponential.scala
 
 - Already has `+` operator
 - Extends `CanAdd[Logarithm, Logarithm]`

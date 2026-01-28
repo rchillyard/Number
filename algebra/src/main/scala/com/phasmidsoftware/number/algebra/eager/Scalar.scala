@@ -287,7 +287,7 @@ object Scalar {
       case inner.Radian =>
         Angle(number)
       case inner.NatLog =>
-        NatLog(number)
+        NaturalExponential(number)
       case inner.InversePower(r) =>
         r.maybeInt match {
           case Some(n) =>

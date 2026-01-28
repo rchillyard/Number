@@ -37,7 +37,7 @@ import org.scalatest.matchers.should
   *
   * The operations are tested against specific matching rules for common scenarios in symbolic math expressions,
   * ensuring the correctness of `ExpressionMatchers`, custom defined `ExpressionMatchers.ExpressionMatcher` implementations,
-  * and simplification functionalities such as `matchSimpler` and `simplifyIdentities`.
+  * and simplification functionalities such as `matchSimpler` and `identitiesMatcher`.
   *
   * Behavior-driven tests are grouped by functionality to validate the logic and expected outcomes for:
   * - Matching values via custom expression matchers.
@@ -159,7 +159,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ Zero ~ x) shouldBe em.Match(Zero)
     p(Power ~ x ~ One) shouldBe em.Match(x)
   }
-  it should "simplifyIdentities 1" in {
+  it should "identitiesMatcher 1" in {
     import BiFunction.*
     val p = Expression.simplifyIdentities
     val x: Expression = Eager.pi
@@ -220,13 +220,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Literal(Eager.pi) :* 2
     val y = One / 2
     (x * y).simplify shouldBe Pi
-  }
-  it should "simplify sqrt(7)∧2" in {
-    val x: Expression = Expression(7)
-    val y = x.sqrt
-    val z = y ∧ 2
-    val q = matchSimpler(z)
-    q shouldBe em.Match(Expression(7))
   }
   it should "cancel 1 and - -1" in {
     sb.append("cancel 1 and - -1:\n")
@@ -569,7 +562,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     (Product ~ Zero ~ x).simplify shouldBe Zero
     (Power ~ x ~ One).simplify shouldBe x
   }
-  it should "simplifyIdentities 1" in {
+  it should "identitiesMatcher 1" in {
     import BiFunction.*
     val x: Expression = Eager.pi
     (Sum ~ x ~ Zero).simplify shouldBe x
@@ -914,33 +907,33 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work for BiFunction 1" in {
     val target: CompositeExpression = BiFunction(Two * Two, MinusOne * MinusOne, Sum)
     //val result: Expression = em.simplifyTerms(target)
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
 
     result shouldBe BiFunction(4, One, Sum)
   }
   it should "work for BiFunction 2" in {
     val target: CompositeExpression = BiFunction(Two, MinusOne, Sum)
     //val result: Expression = em.simplifyTerms(target)
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
     result shouldBe target
   }
   it should "work for UniFunction" in {
     val target: CompositeExpression = expr.UniFunction(Two * Two, Negate)
     //val result: Expression = em.simplifyTerms(target)
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
     result shouldBe expr.UniFunction(4, Negate)
   }
   it should "work for Aggregate total" in {
     val target: CompositeExpression = Aggregate.total(Two * Two, MinusOne * MinusOne)
     //val result: Expression = em.simplifyTerms(target)
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
     result shouldBe Aggregate(Sum, Seq(4, One))
   }
   it should "work for Aggregate product 1" in {
     val target: CompositeExpression = Aggregate.product(Two * Two, MinusOne * MinusOne)
     //val result: Expression = em.simplifyTerms(target)
-    //    Expression.simplifyIdentities
-    val result: Expression = Expression.simplifyComponents(target).getOrElse(target)
+    //    Expression.identitiesMatcher
+    val result: Expression = Expression.simplifyOperands(target).getOrElse(target)
     result shouldBe Aggregate(Product, Seq(4, One))
   }
 

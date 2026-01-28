@@ -176,11 +176,11 @@ Angles normalize to the range [-1, 1) where a full circle = 2.
 
 **Important**: `Angle` has no `Order` instance because circular ordering is meaningless. It only supports `Eq` for equality testing.
 
-#### Logarithm 
+#### Exponential 
 
-Transformed values, including `Logarithm`, store a value which is then rendered as a pure number via a transforming function.
+Transformed values, including `Exponential`, store a value which is then rendered as a pure number via a transforming function.
 However, this makes the terminology slightly confusing.
-For example, the value stored in a `Logarithm` _is_ the logarithm.
+For example, the value stored in a `Exponential` _is_ the logarithm.
 Thus,
 
 ```scala
@@ -926,6 +926,12 @@ For example, the convergents for $\pi$ include with the familiar 22/7, 355/113, 
 
 ### Expressions
 The lazy mechanism (see above) is based on _Expressions_.
+Expressions are simplified (essentially, normalization) before being materialized.
+The simplification mechanism is based on the _ExpressionMatchers_ package and is described
+in the following document:
+
+- **[Expression Simplification Pipeline](docs/testing/SimplificationPipeline.md)** - Detailed guide to the multi-phase simplification system
+
 In the following, by "exact," we mean a quantity that is exact (like $\pi$ or $√2$),
 even though it might not be possible to represent it exactly using
 base-10 (or base-2) notation.
@@ -1203,3 +1209,8 @@ This module includes:
 See the worksheets for hands-on examples of the library in action.
 
 For version history and migration notes, see the [HISTORY](docs/HISTORY.md).
+
+## Testing
+See [Testing Conventions](docs/testing/TESTING_CONVENTIONS.md) for comprehensive testing guidelines.
+
+Quick reference: [Testing Quick Reference](docs/testing/TESTING_QUICK_REFERENCE.md)

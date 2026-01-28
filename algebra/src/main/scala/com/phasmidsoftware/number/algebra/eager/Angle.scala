@@ -164,6 +164,20 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   def asDouble: Double = scaleFactor * number.toDouble
 
   /**
+    * Represents the derivative function associated with this `Functional` instance.
+    * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
+    * For a Monotone, the derivative should be positive, however, it is possible
+    * that it is not positive for certain types of `Functional`.
+    *
+    * The `derivativeFunction` provides a mathematical operation that computes the derivative
+    * with respect to a given input value. It is typically used to evaluate rates of change
+    * or sensitivity in the context of numerical transformations.
+    *
+    * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
+    */
+  val derivativeFunction: Double => Double = _ => scaleFactor
+
+  /**
     * Determines if the `number` value can be interpreted as an instance of `Q`.
     * If `number` matches the type `Q`, it returns an `Option` containing the value of `Q`.
     * Otherwise, it returns `None`.

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.algebra.eager.{NatLog, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{NaturalExponential, WholeNumber}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.*
 import org.scalatest.flatspec.AnyFlatSpec
@@ -66,7 +66,7 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
   it should "lazymath e" in {
     lazymath"""\e""" shouldBe E
     lazymath"""\mathrm{e}""" shouldBe E
-    lazymath"""\e^2""" shouldBe Literal(NatLog(WholeNumber(2)), Some("e^2"))
+    lazymath"""\e^2""" shouldBe Literal(NaturalExponential(WholeNumber(2)), Some("e^2"))
   }
   it should "puremath functions" in {
     puremath"""\sin(\pi)""" shouldBe UniFunction(Pi, Sine)

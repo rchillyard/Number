@@ -642,8 +642,8 @@ object Expression {
     * Matches and simplifies expressions based on their type.
     * For `AtomicExpression` instances, it applies `simplifyAtomic` specific to the atomic expression.
     * For `CompositeExpression`, it uses a compound matcher that attempts simplifications
-    * in the following order: `simplifyComponents`, `simplifyIdentities`,
-    * `simplifyConstant`, and `simplifyStructural`.
+    * in the following order: `simplifyOperands`, `identitiesMatcher`,
+    * `simplifyConstant`, and `structuralMatcher`.
     * For unsupported expression types, it returns an error message.
     *
     * @return an `ExpressionTransformer` that matches and applies the appropriate
@@ -653,7 +653,7 @@ object Expression {
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
     case x: CompositeExpression =>
-      em.eitherOr(simplifyComponents,
+      em.eitherOr(simplifyOperands,
         em.eitherOr(simplifyStructural,
           em.eitherOr(simplifyIdentities,
             em.eitherOr(simplifyExact,
@@ -663,20 +663,19 @@ object Expression {
   }
 
   /**
-    * Attempts to simplify components of a composite expression by bottom-up recursive traversal and combination where appropriate.
-    * For `CompositeExpression`, it invokes the `simplifyComponents` method applicable
-    * to the specific composite expression. For non-composite expressions, it registers a miss indicating the type is not applicable.
+    * Phase 1: Simplify all operands before applying transformations.
     *
-    * @return an `em.AutoMatcher[Expression]` for matching and simplifying components of composite expressions or
-    *         signaling when simplification is not applicable to the given expression type.
+    * Recursively calls .simplify() on each operand of composite expressions,
+    * ensuring bottom-up simplification where nested expressions are fully
+    * simplified before outer operations are applied.
+    *
+    * @see docs/SimplificationPipeline.md for complete pipeline documentation
     */
-  def simplifyComponents: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyComponents") {
-    case a: AtomicExpression =>
-      a.simplifyAtomic(a) // CONSIDER eliminating this case
+  def simplifyOperands: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyOperands") {
     case c: CompositeExpression =>
-      c.simplifyComponents(c)
+      c.operandsMatcher(c)
     case x =>
-      em.Miss("simplifyComponents: not a Composite expression type", x) // TESTME
+      em.Miss("simplifyOperands: not a Composite expression type", x) // TESTME
   }
 
   /**
@@ -713,11 +712,11 @@ object Expression {
     *
     * @return an instance of `em.AutoMatcher[Expression]` that identifies and simplifies trivial cases in composite expressions.
     */
-  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyIdentities") {
+  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("identitiesMatcher") {
     case c: CompositeExpression =>
-      c.simplifyIdentities(c)
+      c.identitiesMatcher(c)
     case x =>
-      em.Miss("simplifyIdentities: not a Composite expression type", x)
+      em.Miss("identitiesMatcher: not a Composite expression type", x)
   }
 
   /**
@@ -762,17 +761,17 @@ object Expression {
 
   /**
     * Attempts to simplify `CompositeExpression` instances by applying pattern-based rewrites that change expression structure.
-    * This matcher targets expressions of type `CompositeExpression` and invokes the `simplifyStructural` method
+    * This matcher targets expressions of type `CompositeExpression` and invokes the `structuralMatcher` method
     * to generate a simplified form of the expression based on its internal structure.
     *
     * @return an `AutoMatcher` for `Expression` that matches and simplifies composite expressions,
     *         or returns the input expression unchanged if no simplifications are applicable.
     */
-  private def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyStructural") {
+  private def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("structuralMatcher") {
     case c: CompositeExpression =>
-      c.simplifyStructural(c)
+      c.structuralMatcher(c)
     case x =>
-      em.Miss("simplifyStructural: not a Composite expression type", x)
+      em.Miss("structuralMatcher: not a Composite expression type", x)
   }
 
   /**

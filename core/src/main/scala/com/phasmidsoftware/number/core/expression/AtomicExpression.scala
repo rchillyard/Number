@@ -16,9 +16,10 @@ import com.phasmidsoftware.number.core.numerical.{Complex, Constants, ExactNumbe
 import java.util.Objects
 
 /**
-  * An Expression that is based on one simple constant value.
+  * An Expression that is based on one (usually simple) constant value.
+  * Such expressions tend to be considered "exact" such as 𝛑, e, etc.
+  * However, there are exceptions (𝛾, ...)
   */
-
 /** sealed */
 sealed trait AtomicExpression extends Expression {
   /**
@@ -27,7 +28,7 @@ sealed trait AtomicExpression extends Expression {
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean =
+  lazy val isExact: Boolean =
     evaluateAsIs.exists(_.isExact)
 
   /**
@@ -35,7 +36,7 @@ sealed trait AtomicExpression extends Expression {
     *
     * @return true, as this expression is atomic and cannot be further simplified.
     */
-  def isAtomic: Boolean = true
+  lazy val isAtomic: Boolean = true
 
   /**
     * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
@@ -47,7 +48,7 @@ sealed trait AtomicExpression extends Expression {
   /**
     * @return 1.
     */
-  def depth: Int = 1
+  lazy val depth: Int = 1
 
   /**
     * Attempts to simplify an atomic expression, for example,
@@ -918,7 +919,14 @@ case object LgE extends AbstractTranscendental("log2e", Two.ln.reciprocal.simpli
   *
   * The Euler-Mascheroni constant is a transcendental entity commonly used in number theory and analysis.
   */
-case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma)
+case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma) {
+  /**
+    * Method to determine if this NumberLike object is exact.
+    *
+    * @return false
+    */
+  override lazy val isExact: Boolean = false
+}
 
 /**
   * The `Root` trait represents a mathematical root derived from a specific equation.

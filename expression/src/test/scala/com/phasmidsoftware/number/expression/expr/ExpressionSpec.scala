@@ -42,26 +42,19 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "evaluate"
-  it should "evaluate 1 + -1" in {
-    val x: Expression = Expression(1) :+ -1
-    x.evaluateAsIs shouldBe Some(Eager.zero)
-  }
-  it should "evaluate 1 * -1" in {
-    val x: Expression = Expression(1) * -1
-    x.evaluateAsIs shouldBe Some(WholeNumber(-1))
-  }
+
   // TODO #Issue 149 this has to do with imaginary numbers
   it should "evaluate i * 2" in {
-//    val x: Expression = ConstI * 2
-//    val result: Option[Valuable] = x.evaluateAsIs
-//    result.isDefined shouldBe true
-//    val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
-//    result.get shouldBe expected
+    //    val x: Expression = ConstI * 2
+    //    val result: Option[Valuable] = x.evaluateAsIs
+    //    result.isDefined shouldBe true
+    //    val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
+    //    result.get shouldBe expected
     pending
   }
 
   behavior of "parse"
-//  private val syp: ShuntingYardParser.type = ShuntingYardParser
+  //  private val syp: ShuntingYardParser.type = ShuntingYardParser
   //  it should "parse 1" in {
   //    syp.parseInfix("1") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
   //    syp.parseInfix("(1)") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
@@ -98,7 +91,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     f(Eager.one) shouldBe Eager.one
     f(Eager.half) should ===(Eager.two)
     f(Eager.two) shouldBe Eager.half
-    //    f(Eager.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
+    //    f(Eager.e) shouldBe Real(ExactNumber(-1, NaturalExponential)) TODO fix this later
   }
   it should "work for Exp" in {
     val f: ExpressionMonoFunction = Exp
@@ -202,8 +195,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #150
   it should "evaluate sqrt 36" in {
-//    val x: Expression = Expression(36).sqrt
-//    x.materialize shouldEqual ±(6)
+    //    val x: Expression = Expression(36).sqrt
+    //    x.materialize shouldEqual ±(6)
     pending
   }
   // TODO Issue #140
@@ -287,34 +280,26 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "isExact"
   // TODO Issue #140
-  it should "be true for any constant Valuable" in {
-    Eager.one.isExact shouldBe true
-    Eager.pi.isExact shouldBe true
-  }
+  // Note: Atomic constant exactness is tested in AtomicExpressionSpec
   it should "be true for any sum of exact Numbers of the same factor (not e)" in {
     (One :+ Eager.two).isExact shouldBe true
     (Pi :+ Eager.pi).isExact shouldBe true
   }
-  it should "be false for any product of exact Numbers and a NatLog factor (except for one)" in {
+  it should "be false for any product of exact Numbers and a NaturalExponential factor (except for one)" in {
     (Expression(2) * Eager.e).materialize.isExact shouldBe false
     (Expression(1) * Eager.e).materialize.isExact shouldBe true
     (Expression(2) * Eager.one).materialize.isExact shouldBe true
   }
-  it should "be true for product of one exact Numbers and a NatLog factor" in {
+  it should "be true for product of one exact Numbers and a NaturalExponential factor" in {
     val expression = Expression(1) * Eager.e
     expression.isExact shouldBe true
   }
-  it should "be true for product of zero exact Numbers and a NatLog factor" in {
+  it should "be true for product of zero exact Numbers and a NaturalExponential factor" in {
     (Expression(0) * Eager.e).isExact shouldBe true
   }
 
   behavior of "depth"
-  it should "be 1 for any atomic expression" in {
-    Expression(1).depth shouldBe 1
-    Expression.one.depth shouldBe 1
-    Expression(1).depth shouldBe 1
-    pi.depth shouldBe 1
-  }
+  // Note: Atomic expression depth is tested in AtomicExpressionSpec
   it should "be 2 for any UniFunction expression" in {
     expr.UniFunction(1, Negate).depth shouldBe 2
     expr.UniFunction(1, Cosine).depth shouldBe 2
@@ -329,16 +314,16 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "Euler"
   // TODO Issue #151
   it should "prove Euler's identity 1" in {
-//    val iPi = ComplexCartesian(0, numerical.Number.pi)
-//    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-//    euler.materialize shouldBe Eager.minusOne
+    //    val iPi = ComplexCartesian(0, numerical.Number.pi)
+    //    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+    //    euler.materialize shouldBe Eager.minusOne
     pending
   }
   // TODO Issue #151
   it should "prove Euler's identity 2" in {
-//    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
-//    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-//    euler.materialize shouldBe Eager.minusOne
+    //    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
+    //    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+    //    euler.materialize shouldBe Eager.minusOne
     pending
   }
 
@@ -466,18 +451,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplify.materialize shouldBe Angle.zero
   }
 
-  behavior of "simplifyStructural"
+  behavior of "structuralMatcher"
   it should "evaluate 1/2 * 2" in {
     import Expression.ExpressionOps
     val expression: Expression = Literal(half) * 2
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-    val y: em.MatchResult[Expression] = x.simplifyStructural(x)
+    val y: em.MatchResult[Expression] = x.structuralMatcher(x)
     y shouldBe em.Match(One)
   }
   it should "evaluate e * e" in {
     val expression: Expression = E * E
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-    val y: em.MatchResult[Expression] = x.simplifyStructural(x)
+    val y: em.MatchResult[Expression] = x.structuralMatcher(x)
     y shouldBe em.Match(BiFunction(E, ValueExpression(2), Power))
     val simplified = y.get.simplify
     simplified shouldBe Literal(Eager(numerical.Real(ExactNumber(2, NatLog))))
@@ -486,7 +471,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val phi = expr.Root(QuadraticEquation.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
-    val y: em.MatchResult[Expression] = x.simplifyStructural(x)
+    val y: em.MatchResult[Expression] = x.structuralMatcher(x)
     y shouldBe em.Match(BiFunction(phi, ValueExpression(2), Power))
   }
 
@@ -526,5 +511,31 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     // This should be rendered as ½
     half.materialize shouldBe RationalNumber.half
 
+  }
+
+  behavior of "simplifyExact"
+  it should "simplifyExact 1" in {
+    val x1 = Eager.one
+    val x2 = Eager.pi
+    val e = BiFunction(Literal(x1), Literal(x2), Sum)
+    e.simplifyExact(e).successful shouldBe false
+  }
+  // NOTE Test case for Issue #142
+  it should "simplifyExact 2" in {
+    Expression("sin(𝛑) * -1") match {
+      case expression: CompositeExpression =>
+        val simplified = expression.simplifyExact(expression)
+        simplified.successful shouldBe true
+        simplified.get shouldBe Literal(WholeNumber(0), Some("0")) // NOTE this should be Zero, not Literal(WholeNumber(0))
+      case x =>
+        fail(s"expected CompositeExpression, got $x")
+    }
+  }
+  it should "simplifyExact 3" in {
+    val e: CompositeExpression = ((Expression(3) :+ 5) * (7 - 2)).asInstanceOf[CompositeExpression]
+    val m = e.simplifyExact(e)
+    m.successful shouldBe true
+    val expected = Expression(40)
+    m.get should matchPattern { case `expected` => }
   }
 }

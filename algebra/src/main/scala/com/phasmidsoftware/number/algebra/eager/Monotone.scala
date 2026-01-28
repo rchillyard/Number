@@ -141,14 +141,14 @@ trait Exact extends WithFuzziness {
 }
 
 /**
-  * The `Functional` trait serves as an abstraction for entities that wrap `Number`, such as `Angle`, `NatLog`, etc.
+  * The `Functional` trait serves as an abstraction for entities that wrap `Number`, such as `Angle`, `NaturalExponential`, etc.
   * These are the types that can potentially have fuzz.
   *
   * Classes or traits that extend `Functional` encapsulate a `Number` instance, providing a consistent interface
   * to access and work with numerical values. It is particularly useful in scenarios where mathematical operations
   * or transformations are required on numbers.
   */
-trait Functional extends Monotone with MaybeFuzzy {
+trait Functional extends Monotone with MaybeFuzzy with Ordered[Functional] {
 
   /**
     * Retrieves the value associated with this `Functional` instance.
@@ -169,6 +169,20 @@ trait Functional extends Monotone with MaybeFuzzy {
   val scaleFunction: Double => Double
 
   /**
+    * Represents the derivative function associated with this `Functional` instance.
+    * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
+    * For a Monotone, the derivative should be positive, however, it is possible
+    * that it is not positive for certain types of `Functional`.
+    *
+    * The `derivativeFunction` provides a mathematical operation that computes the derivative
+    * with respect to a given input value. It is typically used to evaluate rates of change
+    * or sensitivity in the context of numerical transformations.
+    *
+    * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
+    */
+  val derivativeFunction: Double => Double
+  
+  /**
     * Retrieves an optional fuzziness value for a given number.
     *
     * @return An Option containing the fuzziness representation of the number, or None if not available.
@@ -184,6 +198,24 @@ trait Functional extends Monotone with MaybeFuzzy {
     * @return The nominal value as a `Double`.
     */
   def nominalValue: Double = scaleFunction(number.toDouble)
+
+  /**
+    * Compares this `Exponential` instance with another `Exponential` instance.
+    *
+    * This method compares the `number` values of the current `Exponential` instance
+    * and the specified `Exponential` instance using their natural order.
+    *
+    * CONSIDER this should promoted into `Transformed`.
+    *
+    * @param that the `Exponential` instance to compare with the current instance
+    * @return an integer value:
+    *         - a negative value if this `Exponential` is less than `that`
+    *         - zero if this `Exponential` is equal to `that`
+    *         - a positive value if this `Exponential` is greater than `that`
+    */
+  def compare(that: Functional): Int =
+    number.compare(that.number) * derivativeFunction(number.toDouble).sign.toInt
+
 }
 
 /**
@@ -356,7 +388,7 @@ object Functional {
   // In Functional companion object
   implicit val latexRenderer: LatexRenderer[Functional] = LatexRenderer.instance {
     case ip: InversePower => ip.toLatex
-    case log: Logarithm => log.toLatex  // You'll need to implement this
+    case log: Exponential => log.toLatex  // You'll need to implement this
     case f => f.render  // Or throw exception
   }
 
@@ -382,15 +414,15 @@ object Transformed {
 
   given DyadicOperator[Transformed] = new DyadicOperator[Transformed] {
     def op[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(x: Transformed, y: B): Try[Z] = (x, y) match {
-      case (a: Logarithm, b: Logarithm) =>
-        implicitly[DyadicOperator[Logarithm]].op(f)(a, b)
+      case (a: Exponential, b: Exponential) =>
+        implicitly[DyadicOperator[Exponential]].op(f)(a, b)
       case (a: InversePower, b: InversePower) =>
         implicitly[DyadicOperator[InversePower]].op(f)(a, b)
 
       // Cross-type operations:
-      case (a: Logarithm, b: InversePower) =>
+      case (a: Exponential, b: InversePower) =>
         tryConvertAndCompareTransformed(f)(a, b.asInstanceOf[B])
-      case (a: InversePower, b: Logarithm) =>
+      case (a: InversePower, b: Exponential) =>
         tryConvertAndCompareTransformed(f)(a, b.asInstanceOf[B])
       case (a, b) =>
         f(a, b)

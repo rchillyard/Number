@@ -262,10 +262,10 @@ object RationalNumber {
   def parse(w: String): Option[RationalNumber] = {
     val regex = """([\d/]+)(%)?""".r
     w match {
-      case regex(num, null) =>
-        Some(RationalNumber(Rational(num)))
-      case regex(num, s) =>
+      case regex(num, s) if Option(s).isDefined =>
         Some(percentage(Rational(num)))
+      case regex(num, _) =>
+        Some(RationalNumber(Rational(num)))
       case _ =>
         None
     }
@@ -416,10 +416,10 @@ object RationalNumber {
     */
   implicit val rationalLatexRenderer: LatexRenderer[Rational] = LatexRenderer.instance { r =>
     r.renderExact match {
-      case Rational.repeatingDecimals(x, null) =>
-        x
-      case Rational.repeatingDecimals(x, repeating) =>
+      case Rational.repeatingDecimals(x, repeating) if repeating.nonEmpty =>
         s"$x\\overline{$repeating}"
+      case Rational.repeatingDecimals(x, _) =>
+        x // TESTME this never happens, it seems.
       case Rational.rationalForm(_, _) if r.isExactDouble =>
         r.toDouble.toString // XXX It's very doubtful that this case will match
       case Rational.rationalForm(n, d) =>

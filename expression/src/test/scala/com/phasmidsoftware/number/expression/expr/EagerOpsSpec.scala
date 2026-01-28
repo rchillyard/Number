@@ -242,10 +242,10 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
     result shouldBe WholeNumber(8)
   }
 
-  it should "work with NatLog" in {
-    // NatLog(0) + WholeNumber(2)
+  it should "work with NaturalExponential" in {
+    // NaturalExponential(0) + WholeNumber(2)
     // = WholeNumber(1) + WholeNumber(2) = WholeNumber(3)
-    val nl = NatLog(WholeNumber.zero)
+    val nl = NaturalExponential(WholeNumber.zero)
     val result = nl + 2
 
     result shouldBe WholeNumber(3)

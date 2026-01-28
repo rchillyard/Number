@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.algebra.eager
 
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Functional, NatLog, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Functional, NaturalExponential, RationalNumber, Real, WholeNumber}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -44,8 +44,8 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
     x.~=(y) shouldBe true
   }
   it should "~= Functional/Functional" in {
-    val x: Functional = NatLog(1)
-    val y: Functional = NatLog(1)
+    val x: Functional = NaturalExponential(1)
+    val y: Functional = NaturalExponential(1)
     x == y shouldBe true
     x.~=(y) shouldBe true
   }
@@ -75,7 +75,7 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "~= Real/Functional (2)" in {
     val x: Eager = Real(math.E)
-    val y: Eager = NatLog(1)
+    val y: Eager = NaturalExponential(1)
     x == y shouldBe false
     x.~=(y) shouldBe true
   }
@@ -130,8 +130,8 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
   //    x.~=(y) shouldBe true
   //  }
   //  it should "~= Functional/Functional" in {
-  //    val x: Functional = NatLog(1)
-  //    val y: Functional = NatLog(1)
+  //    val x: Functional = NaturalExponential(1)
+  //    val y: Functional = NaturalExponential(1)
   //    x == y shouldBe true
   //    x.~=(y) shouldBe true
   //  }
@@ -161,7 +161,7 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
   //  }
   //  it should "~= Real/Functional (2)" in {
   //    val x: Eager = Real(math.E)
-  //    val y: Eager = NatLog(1)
+  //    val y: Eager = NaturalExponential(1)
   //    x == y shouldBe false
   //    x.~=(y) shouldBe true
   //  }

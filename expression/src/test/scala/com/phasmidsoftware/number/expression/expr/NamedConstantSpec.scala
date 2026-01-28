@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NaturalExponential}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -22,7 +22,7 @@ class NamedConstantSpec extends AnyFlatSpec with should.Matchers {
   it should "create e" in {
     val e = E
     e.maybeName shouldBe Some("e")
-    e.value shouldBe NatLog(1)
+    e.value shouldBe NaturalExponential(1)
   }
 
   it should "normalize to Real" in {

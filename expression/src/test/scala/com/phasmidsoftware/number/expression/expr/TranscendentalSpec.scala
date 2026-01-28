@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.eager.{Angle, NatLog, Real}
+import com.phasmidsoftware.number.algebra.eager.{Angle, NaturalExponential, Real}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -20,8 +20,8 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
 
   it should "normalize ETranscendental to Real" in {
     val normalized = ETranscendental.normalize
-    normalized shouldBe a[NatLog]
-    normalized.asInstanceOf[NatLog].toDouble shouldBe Math.E +- 1e-10
+    normalized shouldBe a[NaturalExponential]
+    normalized.asInstanceOf[NaturalExponential].toDouble shouldBe Math.E +- 1e-10
   }
 
   it should "normalize L2 to Real" in {
@@ -52,8 +52,8 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
 
   it should "materialize ETranscendental to Real" in {
     val materialized = ETranscendental.materialize
-    materialized shouldBe a[NatLog]
-    materialized.asInstanceOf[NatLog].toDouble shouldBe Math.E +- 1e-10
+    materialized shouldBe a[NaturalExponential]
+    materialized.asInstanceOf[NaturalExponential].toDouble shouldBe Math.E +- 1e-10
   }
 
   it should "materialize 𝛾 to Real" in {

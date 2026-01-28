@@ -3,7 +3,7 @@
   */
 
 import cats.implicits.toShow
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NaturalExponential, WholeNumber}
 import com.phasmidsoftware.number.expression.expr.{E, Pi, Root}
 import com.phasmidsoftware.number.parse.ExpressionParser.puremath
 
@@ -11,12 +11,12 @@ import com.phasmidsoftware.number.parse.ExpressionParser.puremath
 E
 
 // Other ways to express e
-NatLog(1)
+NaturalExponential(1)
 val e1 = puremath"\e"
 e1.toDouble
 
 // What about e^2?
-NatLog(2)
+NaturalExponential(2)
 val e2 = puremath"\e^2"
 e2.toDouble
 

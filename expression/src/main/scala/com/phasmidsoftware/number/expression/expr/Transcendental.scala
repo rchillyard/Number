@@ -65,6 +65,21 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
   def maybeDouble: Option[Double] = expression.maybeDouble
 
   /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = expression.isZero
+
+  /**
+    * Determines the sign of the Monotone value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = expression.signum
+
+  /**
     * Attempts to simplify an atomic expression, for example,
     * we replace `Literal(Eager.pi)` with `Pi`.
     *

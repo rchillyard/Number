@@ -8,8 +8,8 @@ import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number.algebra.eager
+import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, NatZero, NaturalExponential, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
-import com.phasmidsoftware.number.algebra.eager.{Eager, NatLog, *}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Real, *}
