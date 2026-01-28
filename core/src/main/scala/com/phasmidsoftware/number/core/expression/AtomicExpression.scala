@@ -116,7 +116,7 @@ object AtomicExpression {
   */
 case object Noop extends AtomicExpression {
 
-  def value: Field =
+  lazy val value: Field =
     throw new UnsupportedOperationException("Noop.value")
 
   /**
@@ -142,7 +142,7 @@ case object Noop extends AtomicExpression {
     *
     * @return a String
     */
-  def render: String = "Noop"
+  lazy val render: String = "Noop"
 
   /**
     * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
@@ -236,14 +236,14 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse value.render
+  lazy val render: String = maybeName getOrElse value.render
 
   /**
     * Generate a String for debugging purposes.
     *
     * @return a String representation of this Literal.
     */
-  override def toString: String =
+  override lazy val toString: String =
     maybeName getOrElse value.toString
 
   /**

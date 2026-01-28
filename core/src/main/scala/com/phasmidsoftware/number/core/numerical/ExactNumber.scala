@@ -24,7 +24,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = true
+  lazy val isExact: Boolean = true
 
   /**
     * Determines if this ExactNumber is equivalent to another Numerical object (x).
@@ -71,14 +71,14 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   /**
     * @return true if this Number is equal to zero.
     */
-  def isZero: Boolean = GeneralNumber.isZero(this)
+  lazy val isZero: Boolean = GeneralNumber.isZero(this)
 
   /**
     * Method to make some trivial simplifications of this ExactNumber.
     *
     * @return either this Number or a simplified Number.
     */
-  def simplify: Number = (factor, nominalValue) match {
+  lazy val simplify: Number = (factor, nominalValue) match {
     case (Logarithmic(_), Right(0)) =>
       Number.one
     case (Logarithmic(_), Left(Right(Rational.negInfinity))) =>
@@ -209,7 +209,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  def signum: Int =
+  lazy val signum: Int =
     Number.signum(this)
 
   /**
@@ -238,7 +238,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return the String representation of this ExactNumber.
     */
-  def render: String = factor match {
+  lazy val render: String = factor match {
     case SquareRoot =>
       val sb = new StringBuilder()
       sb.append(SquareRoot.render(nominalValue))
@@ -252,7 +252,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return a String
     */
-  override def toString: String = modulate match {
+  override lazy val toString: String = modulate match {
     case Number.pi =>
       Radian.toString
     case ExactNumber(Right(-1), Radian) =>

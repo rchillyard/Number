@@ -6,6 +6,27 @@ import com.phasmidsoftware.number.dimensions.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+/**
+  * A specification class for testing the functionality of the `UnitsParser` component.
+  * TODO what are all these println statements?
+  *
+  * This class verifies the ability of `UnitsParser` to accurately parse and interpret various unit formats,
+  * including simple units, derived units, composite units, and units using different notations.
+  *
+  * The tests are structured using the behavior-driven development (BDD) style provided by `AnyFlatSpec`.
+  * The common behaviors and edge cases of `UnitsParser` are described and validated to ensure that it behaves
+  * as expected for both valid inputs (e.g., "m", "kg", "m³") and invalid inputs (e.g., "xyz", "m//s").
+  *
+  * Key functionality covered includes:
+  * - Parsing base units like "m" (meter), "s" (second), and "kg" (kilogram).
+  * - Supporting unit prefixes, such as "km" (kilometer) and "cm" (centimeter).
+  * - Handling derived units like "N" (Newton) and "J" (Joule).
+  * - Parsing units with superscripts, such as "m²" for square meters and "m³" for cubic meters.
+  * - Recognizing alternative notations, e.g., caret notation ("m^2", "m^3") for powers and slash notation ("m/s").
+  * - Handling product ("kg·m", "kg*m") and quotient units ("m/s", "m/s²").
+  * - Validating specialized units like velocity ("km/h") and gravitational constant units.
+  * - Failing gracefully on unrecognized or invalid input.
+  */
 class UnitsParserSpec extends AnyFlatSpec with Matchers {
 
   behavior of "UnitsParser"

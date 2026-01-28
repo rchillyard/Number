@@ -26,7 +26,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return a Complex.
     */
-  def asComplex: Complex = this
+  lazy val asComplex: Complex = this
 
   /**
     * Method to compare this BaseComplex with that Field.
@@ -82,7 +82,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return true if the modulus of this complex number is unity (1), otherwise false.
     */
-  def isUnity: Boolean =
+  lazy val isUnity: Boolean =
     modulus.doSubtract(Number.one).isZero
 
   /**
@@ -212,7 +212,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  def asNumber: Option[Number] =
+  lazy val asNumber: Option[Number] =
     this match {
       case ComplexCartesian(x, y) if y.isProbablyZero() =>
         Some(x)
@@ -234,7 +234,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return the conjugate of this Complex.
     */
-  def conjugate: Complex =
+  lazy val conjugate: Complex =
     make(real, imag.makeNegative)
 
   /**
@@ -253,7 +253,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return the sine of this complex number as an instance of `Field`.
     */
-  def sin: Field = ??? // TODO implement me
+  lazy val sin: Field = ??? // TODO implement me
 
   /**
     * Computes the cosine of this field element, interpreted in the context of a complex number.
@@ -262,14 +262,14 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return a `Field` representing the cosine of this field element.
     */
-  def cos: Field = ??? // TODO implement me
+  lazy val cos: Field = ??? // TODO implement me
 
   /**
     * Computes the tangent of this complex number.
     *
     * @return The tangent of this complex number as a `Field`.
     */
-  def tan: Field = ??? // TODO implement me
+  lazy val tan: Field = ??? // TODO implement me
 
   /**
     * Computes the arc tangent of the given real number `y` in the context of this `Field`.
@@ -293,7 +293,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return the exponential of this Field as a new Field instance.
     */
-  def exp: Field = ??? // TODO implement me
+  lazy val exp: Field = ??? // TODO implement me
 
   /**
     * Method to render the imaginary value as a String.
@@ -419,7 +419,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean =
+  lazy val isExact: Boolean =
     x.isExact && y.isExact
 
   /**
@@ -429,7 +429,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return the modulus of this Complex.
     */
-  def modulus: Number =
+  lazy val modulus: Number =
     if (isReal) real else if (isImaginary) imag else convertToPolar(this).asInstanceOf[BaseComplex].real
 
   /**
@@ -437,7 +437,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return true is y is zero.
     */
-  def isReal: Boolean =
+  lazy val isReal: Boolean =
     y.isZero
 
   /**
@@ -445,20 +445,20 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return true if the real part is zero (argument is a multiple of pi/2).
     */
-  def isImaginary: Boolean =
+  lazy val isImaginary: Boolean =
     x.isZero
 
   /**
     * Change the sign of this Number.
     */
-  def unary_- : Field =
+  lazy val unary_- : Field =
     make(Number.negate(real), Number.negate(imag))
 
   /**
     *
     * @return a Number (in radians).
     */
-  def argument: Number =
+  lazy val argument: Number =
     convertToPolar(this).argument
 
   /**
@@ -467,7 +467,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return the value of this * i.
     */
-  def rotate: BaseComplex =
+  lazy val rotate: BaseComplex =
     ComplexCartesian(imag.makeNegative, real)
 
   /**
@@ -503,7 +503,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return true if the magnitude of this Field is zero.
     */
-  def isZero: Boolean =
+  lazy val isZero: Boolean =
     x.isProbablyZero() && y.isProbablyZero()
 
   /**
@@ -512,7 +512,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return true if the real part or the imaginary part is infinite; false otherwise.
     */
-  def isInfinite: Boolean =
+  lazy val isInfinite: Boolean =
     x.isInfinite || y.isInfinite
 
   /**
@@ -522,14 +522,14 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  def ln: Field = throw ComplexException("not implemented: ComplexCartesian.ln")
+  lazy val ln: Field = throw ComplexException("not implemented: ComplexCartesian.ln")
 
   /**
     * TESTME
     *
     * @return a Field which is in canonical form.
     */
-  def normalize: Field =
+  lazy val normalize: Field =
     ComplexCartesian(convertToNumber(x.normalize), convertToNumber(y.normalize)) match {
       case ComplexCartesian(real, imag) if imag.isZero =>
         Real(real)
@@ -543,7 +543,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return a String representing the value of this expression.
     */
-  def render: String =
+  lazy val render: String =
     if (isReal)
       x.render
     else if (isImaginary)
@@ -576,7 +576,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return a `ComplexCartesian` instance representing the square of the original complex number.
     */
-  def square: ComplexCartesian =
+  lazy val square: ComplexCartesian =
     ComplexCartesian(x.doPower(Number.two) `doSubtract` y.doPower(Number.two), x `doMultiply` y `doMultiply` Number.two)
 
   /**
@@ -584,7 +584,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return the result of invoking power(-1).
     */
-  def invert: Complex =
+  lazy val invert: Complex =
     conjugate.asInstanceOf[ComplexCartesian] `scale` modulusSquared.getInverse
 
   /**
@@ -593,7 +593,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return the squared modulus of the complex number.
     */
-  def modulusSquared: Number =
+  lazy val modulusSquared: Number =
     imag.doPower(two) `doAdd` real.doPower(two)
 
   /**
@@ -638,7 +638,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
     */
-  def signum: Int =
+  lazy val signum: Int =
     x.signum
 
   /**
@@ -650,7 +650,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return a Numerical instance that is the absolute value of this complex number.
     */
-  def abs: Numerical = ComplexCartesian(x.abs, y.abs)
+  lazy val abs: Numerical = ComplexCartesian(x.abs, y.abs)
 }
 
 /**
@@ -709,21 +709,21 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean =
+  lazy val isExact: Boolean =
     r.isExact && theta.isExact
 
   require(theta.factor == Radian, "polar theta is not in radians")
 
   //  require(!r.isZero, "polar radius is zero")
   if (r.isZero)
-    println(s"Warning: Polar r is zero: $this") // TODO make this a requirement
+    System.err.println(s"Warning: Polar r is zero: $this") // TODO make this a requirement
 
   /**
     * Method to determine if this Complex is imaginary-valued (i.e., the point lies on the imaginary axis).
     *
     * @return true if the real part is zero (argument is a multiple of pi/2).
     */
-  def isImaginary: Boolean =
+  lazy val isImaginary: Boolean =
     rotate.isReal
 
   /**
@@ -731,7 +731,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the value of this * i.
     */
-  def rotate: ComplexPolar =
+  lazy val rotate: ComplexPolar =
     rotate(Number.piBy2)
 
   /**
@@ -739,20 +739,20 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the modulus of this Complex.
     */
-  def modulus: Number = r
+  lazy val modulus: Number = r
 
   /**
     *
     * @return a Number (in radians).
     */
-  def argument: Number = theta
+  lazy val argument: Number = theta
 
   /**
     * Computes the square of the modulus (magnitude) of this ComplexPolar instance.
     *
     * @return the squared modulus as a Number.
     */
-  def modulusSquared: Number = r `power` two
+  lazy val modulusSquared: Number = r `power` two
 
   /**
     * Computes the square of this ComplexPolar instance by doubling its argument (angle).
@@ -760,7 +760,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return a new Field representing the squared value of the ComplexPolar instance.
     */
-  def square: Field = copy(r = r `power` 2, theta = theta `doMultiple` 2)
+  lazy val square: Field = copy(r = r `power` 2, theta = theta `doMultiple` 2)
 
   /**
     * Yields the inverse of this Complex.
@@ -768,7 +768,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the result of invoking power(-1).
     */
-  def invert: Field =
+  lazy val invert: Field =
     ComplexPolar(real.getInverse, imag.makeNegative)
 
   /**
@@ -792,7 +792,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  def ln: Field =
+  lazy val ln: Field =
     r.ln match {
       case Real(n) =>
         ComplexCartesian(n, theta)

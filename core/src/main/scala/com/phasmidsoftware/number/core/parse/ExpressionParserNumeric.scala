@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.inner.Rational
+
 import scala.util.Try
 
 /**
@@ -20,11 +21,11 @@ abstract class ExpressionParserNumeric[T: Numeric] extends ExpressionParser[T] {
     case x => throw new IllegalArgumentException(s"div method unavailable for ${x.getClass}")
   }
 
-  def one: T = num.one
+  lazy val one: T = num.one
 
-  def zero: T = num.zero
+  lazy val zero: T = num.zero
 
-  def negate: T => T = num.negate
+  lazy val negate: T => T = num.negate
 
   def plus: (T, T) => T = num.plus
 

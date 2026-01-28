@@ -5,8 +5,9 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
-import com.phasmidsoftware.number.core.misc.FP._
+import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Number.one
+
 import scala.language.implicitConversions
 
 /**
@@ -286,5 +287,5 @@ trait Multivariate extends Field {
   /**
     * @return true.
     */
-  def isAlgebraic: Boolean = true
+  lazy val isAlgebraic: Boolean = true
 }

@@ -54,7 +54,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input type is not recognized.
     * @return a new instance of `Angle` representing the normalized value
     */
-  def normalize: Angle = number.normalize match {
+  lazy val normalize: Angle = number.normalize match {
     case WholeNumber(1) =>
       Angle.pi // Special named instance of Angle
     case WholeNumber(-1) =>
@@ -116,7 +116,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = number.isZero
+  lazy val isZero: Boolean = number.isZero
 
   /**
     * Represents the zero value of the `Angle` class.
@@ -132,7 +132,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = compareExact(Angle.zero).get
+  lazy val signum: Int = compareExact(Angle.zero).get
 
   /**
     * Method to determine if this Structure object is exact.
@@ -140,7 +140,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = number.isExact
+  lazy val isExact: Boolean = number.isExact
 
   /**
     * Retrieves an optional fuzziness value associated with this instance.
@@ -150,7 +150,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
-  def fuzz: Option[Fuzziness[Double]] = number.fuzz match {
+  lazy val fuzz: Option[Fuzziness[Double]] = number.fuzz match {
     case Some(fuzz: AbsoluteFuzz[Double]) => fuzz.relative(asDouble)
     case x => x
   }
@@ -161,7 +161,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return the Double value corresponding to the current instance
     */
-  def asDouble: Double = scaleFactor * number.toDouble
+  lazy val asDouble: Double = scaleFactor * number.toDouble
 
   /**
     * Represents the derivative function associated with this `Functional` instance.
@@ -185,7 +185,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return an `Option[Q]` where `Some(Q)` is returned if `number` is of type `Q`,
     *         otherwise `None`.
     */
-  def maybeQ: Option[Q] = number match {
+  lazy val maybeQ: Option[Q] = number match {
     case q: Q => Some(q)
     case _ => None
   }
@@ -197,7 +197,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return a string representation of the `Angle` in terms of π
     */
-  def render: String = maybeName getOrElse {
+  lazy val render: String = maybeName getOrElse {
     val value = normalize.number
     if (degrees)
       value.scale(r180).render + "°" // CONSIDER switching to interpolation
@@ -216,7 +216,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return a new `Angle` instance representing the additive inverse of the current angle.
     */
-  def unary_- : Angle = angleIsCommutativeGroup.negate(this)
+  lazy val unary_- : Angle = angleIsCommutativeGroup.negate(this)
 
   /**
     * Adds the specified `Angle` to the current `Angle` instance.
@@ -303,7 +303,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[Real] = convert(Real.zero)
+  lazy val approximation: Option[Real] = convert(Real.zero)
 
   /**
     * Compares two instances of `Eager` for equality.
@@ -338,7 +338,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return an `Option[Real]` containing the scaled representation of the current instance,
     *         or `None` if the approximation fails.
     */
-  private def toMaybeReal: Option[Real] =
+  private lazy val toMaybeReal: Option[Real] =
     number.approximation(true).map(x => x.scaleByPi)
 }
 

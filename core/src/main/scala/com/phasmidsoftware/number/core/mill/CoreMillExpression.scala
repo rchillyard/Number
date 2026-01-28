@@ -43,28 +43,28 @@ trait CoreMillExpression {
     *
     * @return a new expression representing the negation of the current expression.
     */
-  def negate: CoreMillExpression = MonadicExpression(this, "-")
+  lazy val negate: CoreMillExpression = MonadicExpression(this, "-")
 
   /**
     * Computes the reciprocal of the current expression, representing it as a monadic operation.
     *
     * @return a new Expression where the operation corresponds to the reciprocal (1 / this expression).
     */
-  def reciprocal: CoreMillExpression = MonadicExpression(this, "/")
+  lazy val reciprocal: CoreMillExpression = MonadicExpression(this, "/")
 
   /**
     * Computes the square root of a numeric expression.
     *
     * @return An `Expression` representing the square root operation on the current expression.
     */
-  def sqrt: CoreMillExpression = MonadicExpression(this, "√")
+  lazy val sqrt: CoreMillExpression = MonadicExpression(this, "√")
 
   /**
     * Computes the natural logarithm (ln) of the current mathematical expression.
     *
     * @return a new Expression representing the natural logarithm of this Expression.
     */
-  def ln: CoreMillExpression = MonadicExpression(this, "ln")
+  lazy val ln: CoreMillExpression = MonadicExpression(this, "ln")
 
   /**
     * Calculates the exponential of the current expression (e∧x), where x is the value
@@ -73,14 +73,14 @@ trait CoreMillExpression {
     *
     * @return a new Expression representing the exponential of the current expression.
     */
-  def exp: CoreMillExpression = MonadicExpression(this, "exp")
+  lazy val exp: CoreMillExpression = MonadicExpression(this, "exp")
 
   /**
     * Computes the sine of the current mathematical expression.
     *
     * @return A new Expression representing the sine of the current expression.
     */
-  def sin: CoreMillExpression = MonadicExpression(this, "sin")
+  lazy val sin: CoreMillExpression = MonadicExpression(this, "sin")
 
   /**
     * Computes the cosine of the current expression.
@@ -90,7 +90,7 @@ trait CoreMillExpression {
     *
     * @return a new Expression representing the cosine of the current expression.
     */
-  def cos: CoreMillExpression = MonadicExpression(this, "cos")
+  lazy val cos: CoreMillExpression = MonadicExpression(this, "cos")
 }
 
 /**
@@ -102,9 +102,9 @@ trait CoreMillExpression {
   * @param operator the operator as a `String` connecting the left and right operands.
   */
 case class DyadicExpression(left: CoreMillExpression, right: CoreMillExpression, operator: String) extends CoreMillExpression {
-  override def toString: String = s"($left $operator $right)"
+  override lazy val toString: String = s"($left $operator $right)"
 
-  def value: Number = operator match {
+  lazy val value: Number = operator match {
     case "+" => left.value.doAdd(right.value)
     case "*" => left.value.doMultiply(right.value)
     case "∧" => left.value.doPower(right.value)
@@ -121,9 +121,9 @@ case class DyadicExpression(left: CoreMillExpression, right: CoreMillExpression,
   * @param str        a string representation of the operator.
   */
 case class MonadicExpression(expression: CoreMillExpression, str: String) extends CoreMillExpression {
-  override def toString: String = s"$str($expression)"
+  override lazy val toString: String = s"$str($expression)"
 
-  def value: Number = {
+  lazy val value: Number = {
     val f: Number => Field = str match {
       case "-" => x => -x
       case "/" => x => x.invert
@@ -149,7 +149,7 @@ case class MonadicExpression(expression: CoreMillExpression, str: String) extend
   * @param value The numeric value encapsulated by this terminal expression.
   */
 case class TerminalExpression(value: Number) extends CoreMillExpression {
-  override def toString: String = value.toString
+  override lazy val toString: String = value.toString
 }
 
 /**

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.mill
 
-import com.phasmidsoftware.number.core.numerical._
+import com.phasmidsoftware.number.core.numerical.*
 
 /**
   * Trait to model the behavior of an item that goes into the Mill.
@@ -154,7 +154,7 @@ case class Expr(x: CoreMillExpression) extends CoreMillItem {
     */
   def *(multiplicand: Expr): CoreMillExpression = x.*(multiplicand.x)
 
-  override def toString: String = x.toString
+  override lazy val toString: String = x.toString
 }
 
 /**

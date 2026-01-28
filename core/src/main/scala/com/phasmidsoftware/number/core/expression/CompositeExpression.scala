@@ -26,7 +26,7 @@ sealed trait CompositeExpression extends Expression {
     *
     * @return false as the default value, indicating the expression is not atomic.
     */
-  def isAtomic: Boolean = false
+  lazy val isAtomic: Boolean = false
 
   /**
     * Method to determine if this NumberLike object is exact.
@@ -34,7 +34,7 @@ sealed trait CompositeExpression extends Expression {
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean =
+  lazy val isExact: Boolean =
     evaluateAsIs.exists(_.isExact)
 
   /**

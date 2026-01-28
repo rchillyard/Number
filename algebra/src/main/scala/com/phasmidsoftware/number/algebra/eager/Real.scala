@@ -17,6 +17,7 @@ import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sGamma
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.parse.NumberParser
+import org.slf4j.LoggerFactory
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -174,7 +175,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return the approximate value as a `Double`.
     */
-  override def toDouble: Double = value
+  override lazy val toDouble: Double = value
 
   /**
     * Determines if the current number is equal to zero.
@@ -564,6 +565,10 @@ object Real {
     */
   def apply(x: numerical.Real): Real = apply(x.toDouble, x.asNumber.flatMap(_.fuzz))()
 
+  /**
+    * Constructs a `Real` instance with a specified numeric value and optional fuzziness.
+    *
+    * This method creates a `Real` object using the */
   def apply(x: Double, fuzz: Option[Fuzziness[Double]]): Real = new Real(x, fuzz)()
 
   /**
@@ -577,6 +582,8 @@ object Real {
     val z: Try[numerical.Real] = NumberParser.parseNumber(w).map(x => numerical.Real(x))
     FP.getOrThrow[Real](z.map(x => Real(x)).toOption, AlgebraException(s"Real.apply(String): cannot parse $w"))
   }
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   /**
     * Given instance of `Convertible` for converting a value of type `Real` into another value of type `Real`.
@@ -872,11 +879,11 @@ object Real {
         case Success(numerical.FuzzyNumber(v, PureNumber, fo)) =>
           fromFuzzyPureValue(v, fo)
         case Failure(NonFatal(ex)) =>
-          println(ex.getLocalizedMessage); None
+          logger.warn(ex.getLocalizedMessage); None
         case Failure(ex) =>
           throw ex
         case _ =>
-          println(s"Real: cannot parse String as Real: $str"); None
+          logger.warn(s"Real: cannot parse String as Real: $str"); None
       }
 
     /**

@@ -43,7 +43,7 @@ trait Algebraic extends Multivariate {
     *
     * @return a `Field`, which is either an `Algebraic` (real-valued) or a `Complex`.
     */
-  def solve: Solution =
+  lazy val solve: Solution =
     equation.solve(branch)
 
   /**
@@ -52,14 +52,14 @@ trait Algebraic extends Multivariate {
     *
     * @return true if this is Complex.
     */
-  def isComplex: Boolean = false
+  lazy val isComplex: Boolean = false
 
   /**
     * Returns the value of the solution represented as a `Field` for the specified branch index.
     *
     * @return a `Field` representing the value of the solution for the given branch.
     */
-  def value: Field =
+  lazy val value: Field =
     solve.asField
 
   /**
@@ -75,7 +75,7 @@ trait Algebraic extends Multivariate {
     *
     * @return true if not imaginary.
     */
-  def isReal: Boolean =
+  lazy val isReal: Boolean =
     !isImaginary
 
   /**
@@ -83,7 +83,7 @@ trait Algebraic extends Multivariate {
     *
     * @return true if this is imaginary.
     */
-  def isImaginary: Boolean =
+  lazy val isImaginary: Boolean =
     value.isImaginary
 
   /**
@@ -123,7 +123,7 @@ trait Algebraic extends Multivariate {
     *
     * @return a Numerical object representing the absolute value of this instance.
     */
-  def abs: Numerical = value.abs
+  lazy val abs: Numerical = value.abs
 
   /**
     * Scales the solution by the given rational factor.
@@ -156,7 +156,7 @@ trait Algebraic extends Multivariate {
     *
     * @return a new `Algebraic` instance representing the negation of the current instance.
     */
-  def negate: Algebraic =
+  lazy val negate: Algebraic =
     scale(Rational(-1))
 
   /**
@@ -191,7 +191,7 @@ trait Algebraic extends Multivariate {
     *
     * @return the sine of this Field, as an instance of Field.
     */
-  def sin: Field =
+  lazy val sin: Field =
     value.sin
 
   /**
@@ -199,7 +199,7 @@ trait Algebraic extends Multivariate {
     *
     * @return the cosine of this Field.
     */
-  def cos: Field =
+  lazy val cos: Field =
     value.cos
 
   /**
@@ -207,7 +207,7 @@ trait Algebraic extends Multivariate {
     *
     * @return the tangent of this Field as a new Field.
     */
-  def tan: Field =
+  lazy val tan: Field =
     value.tan
 
   /**
@@ -224,7 +224,7 @@ trait Algebraic extends Multivariate {
     *
     * @return a new Field representing the result of the logarithmic computation.
     */
-  def ln: Field =
+  lazy val ln: Field =
     value.ln
 
   /**
@@ -232,7 +232,7 @@ trait Algebraic extends Multivariate {
     *
     * @return a Field representing the exponential of this instance.
     */
-  def exp: Field =
+  lazy val exp: Field =
     value.exp
 
   /**
@@ -249,7 +249,7 @@ trait Algebraic extends Multivariate {
     *
     * @return true if the magnitude of this Field is infinite.
     */
-  def isInfinite: Boolean = false
+  lazy val isInfinite: Boolean = false
 
   /**
     * Method to determine if this Field has zero magnitude.
@@ -257,7 +257,7 @@ trait Algebraic extends Multivariate {
     *
     * @return true if the magnitude of this Field is zero.
     */
-  def isZero: Boolean =
+  lazy val isZero: Boolean =
     solve.isZero
 
   /**
@@ -266,7 +266,7 @@ trait Algebraic extends Multivariate {
     *
     * @return true if the magnitude of this Field is one.
     */
-  def isUnity: Boolean =
+  lazy val isUnity: Boolean =
     solve.isUnity
 
   /**
@@ -276,13 +276,13 @@ trait Algebraic extends Multivariate {
     *
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
     */
-  def signum: Int =
+  lazy val signum: Int =
     solve.signum
 
   /**
     * Change the sign of this Field.
     */
-  def unary_- : Field =
+  lazy val unary_- : Field =
     -value
 
   /**
@@ -290,7 +290,7 @@ trait Algebraic extends Multivariate {
     * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     */
-  def invert: Field =
+  lazy val invert: Field =
     value.invert
 
   /**
@@ -298,7 +298,7 @@ trait Algebraic extends Multivariate {
     *
     * @return a Field which is in canonical form.
     */
-  def normalize: Field =
+  lazy val normalize: Field =
     value.normalize
 
   /**
@@ -307,7 +307,7 @@ trait Algebraic extends Multivariate {
     *
     * @return a Complex.
     */
-  def asComplex: Complex =
+  lazy val asComplex: Complex =
     value.asComplex // CONSIDER getting this direct from the Solution.
 
   /**
@@ -316,7 +316,7 @@ trait Algebraic extends Multivariate {
     *
     * @return an Option[Real].
     */
-  def asReal: Option[Real] =
+  lazy val asReal: Option[Real] =
     value.asReal
 
   /**
@@ -325,7 +325,7 @@ trait Algebraic extends Multivariate {
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] =
+  lazy val maybeFactor: Option[Factor] =
     solve.maybeFactor
 
   /**
@@ -334,7 +334,7 @@ trait Algebraic extends Multivariate {
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = true
+  lazy val isExact: Boolean = true
 
   /**
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).
@@ -344,15 +344,8 @@ trait Algebraic extends Multivariate {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  def asNumber: Option[Number] =
+  lazy val asNumber: Option[Number] =
     value.asNumber
-
-  /**
-    * Method to render this NumberLike in a presentable manner.
-    *
-    * @return a String
-    */
-  def render: String
 
   /**
     * Compares this `Field` with the specified `Field` for order.
@@ -463,7 +456,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     *
     * @return an integer representing the branch index.
     */
-  def branch: Int = 0
+  lazy val branch: Int = 0
 
   /**
     * An optional name for this solution.
@@ -471,7 +464,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     * @return an `Option[String]` representing the name.
     *         Returns `None` if no name is available.
     */
-  def maybeName: Option[String] =
+  lazy val maybeName: Option[String] =
     Option.when(solve.isExact)(s"${solve.render}")
 
   /**
@@ -487,7 +480,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     *
     * @return An instance of Algebraic representing the square of the input expression.
     */
-  def square: Algebraic = ??? // TODO implement me
+  lazy val square: Algebraic = ??? // TODO implement me
 
   /**
     * Scales the solution by the given rational factor.
@@ -535,7 +528,7 @@ case class Algebraic_Linear(equation: LinearEquation) extends Algebraic {
     *
     * @return a String
     */
-  def render: String =
+  lazy val render: String =
     maybeName getOrElse solve.render
 }
 
@@ -589,7 +582,7 @@ case class LinearEquation(r: Rational) extends Equation {
     *
     * @return the number of branches as an integer.
     */
-  def branches: Int = 1
+  lazy val branches: Int = 1
 
   /**
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.
@@ -629,7 +622,7 @@ case class LinearEquation(r: Rational) extends Equation {
     *
     * @return a new `Equation` instance representing the inverted form of the current equation.
     */
-  def invert: Equation = ??? // TODO implement me
+  lazy val invert: Equation = ??? // TODO implement me
 
   /**
     * Shifts the origin of the given equation by the specified rational value.

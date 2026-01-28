@@ -51,14 +51,14 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return true if this is a valid Number
     */
-  def isValid: Boolean =
+  lazy val isValid: Boolean =
     maybeNominalDouble.isDefined
 
   /**
     *
     * @return true if the value of this GeneralNumber is one.
     */
-  def isUnity: Boolean =
+  lazy val isUnity: Boolean =
     doSubtract(Number.one).isZero
 
   /**
@@ -78,14 +78,14 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return an Option of Rational.
     */
-  def toNominalRational: Option[Rational] = maybeNominalRational
+  lazy val toNominalRational: Option[Rational] = maybeNominalRational
 
   /**
     * Method to get the nominalValue of this Number as an Int.
     *
     * @return an Option of Int. If this Number cannot be converted to an Int, then None will be returned.
     */
-  def toInt: Option[Int] = maybeInt
+  lazy val toInt: Option[Int] = maybeInt
 
   /**
     * Method to get the nominalValue of this Number as an (optional) BigInt.
@@ -93,7 +93,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return an Option of BigInt.
     */
-  def toBigInt: Option[BigInt] = nominalValue match {
+  lazy val toBigInt: Option[BigInt] = nominalValue match {
     case Right(x) =>
       Some(BigInt(x))
     case Left(Right(r)) if r.isWhole =>
@@ -110,7 +110,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return an Option of BigDecimal.
     */
-  def toBigDecimal: Option[BigDecimal] = nominalValue match {
+  lazy val toBigDecimal: Option[BigDecimal] = nominalValue match {
     case Right(x) =>
       Some(BigDecimal(x))
     case Left(Right(r)) =>
@@ -124,7 +124,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   /**
     * @return true if this Number is equal to zero.
     */
-  def isInfinite: Boolean =
+  lazy val isInfinite: Boolean =
     GeneralNumber.isInfinite(this)
 
   /**
@@ -135,7 +135,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return true if this Number is greater than or equal to 0.
     */
-  def isPositive: Boolean =
+  lazy val isPositive: Boolean =
     signum >= 0
 
   /**
@@ -143,7 +143,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return true if exact and rational.
     */
-  def isInteger: Boolean = nominalValue match {
+  lazy val isInteger: Boolean = nominalValue match {
     case Right(_) =>
       true
     case _ =>
@@ -155,7 +155,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return true if exact and rational.
     */
-  def isRational: Boolean = nominalValue match {
+  lazy val isRational: Boolean = nominalValue match {
     case Left(Right(_)) =>
       true
     case _ =>
@@ -168,7 +168,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return true if imaginary.
     */
-  def isImaginary: Boolean = factor match {
+  lazy val isImaginary: Boolean = factor match {
     case SquareRoot if Value.signum(nominalValue) < 0 =>
       true
     case _ =>
@@ -178,7 +178,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   /**
     * Negative of this Number.
     */
-  def makeNegative: Number =
+  lazy val makeNegative: Number =
     negate(this) //doMultiply(Number(-1))
 
   /**
@@ -194,7 +194,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * Yields the square root of this Number.
     * The result will be exact.
     */
-  def sqrt: Number =
+  lazy val sqrt: Number =
     Number.sqrt(this)
 
   /**
@@ -203,7 +203,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return the sine of this.
     */
-  def sin: Number =
+  lazy val sin: Number =
     Number.sin(this)
 
   /**
@@ -212,7 +212,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return the cosine.
     */
-  def cos: Number =
+  lazy val cos: Number =
     Number.negate(negate(scale(Radian)) `doAdd` Number(Rational.half, Radian).makeNegative).sin
 
   /**
@@ -246,7 +246,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return the natural log of this.
     */
-  def ln: Field =
+  lazy val ln: Field =
     Number.log(this)
 
   /**
@@ -255,7 +255,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return the e to the power of this.
     */
-  def exp: Number =
+  lazy val exp: Number =
     Number.exp(this)
 
   /**
@@ -263,7 +263,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return this if its positive, else - this.
     */
-  def abs: Number =
+  lazy val abs: Number =
     negateConditional(signum < 0)
 
   /**
@@ -438,7 +438,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return a new Number with factor of PureNumber but with the same magnitude as this.
     */
-  def normalize: Field = {
+  lazy val normalize: Field = {
     def maybeIntValue: Option[Int] = Value.maybeInt(nominalValue)
 
     val z: Field = factor match {
@@ -474,7 +474,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return this or an equivalent Number.
     */
-  def modulate: Number =
+  lazy val modulate: Number =
     Number.modulate(this)
 
   /**
@@ -486,7 +486,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return a Number with the same magnitude as this.
     */
   //protected
-  def specialize: Number = nominalValue match {
+  lazy val specialize: Number = nominalValue match {
     // XXX Int case
     case Right(_) =>
       this

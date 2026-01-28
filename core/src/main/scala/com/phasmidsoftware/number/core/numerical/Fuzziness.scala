@@ -395,7 +395,7 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     true -> (new String(zPrefix) + "." + Fuzziness.zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix)
   }
 
-  def asPercentage: String = "absolute fuzz cannot be shown as percentage"
+  lazy val asPercentage: String = "absolute fuzz cannot be shown as percentage"
 
   /**
     * Determine the range +- t such that the probability of a random point being within that range is `p`,
