@@ -52,11 +52,11 @@ Valuable (root trait)
 **QuadraticSolution**: x = base ± √offset (real) or x = base ± i√|offset| (complex)
 ```scala
 case class QuadraticSolution(
-  base: Monotone,      // The rational part: -b/2a
-  offset: Monotone,    // The radical part: |Δ|/4a²
-  coefficient: Int,    // Which root: +1 or -1 (the ± sign)
-  imaginary: Boolean   // false for real solutions, true for complex
-) extends Solution
+                              base: Monotone,      // The rational part: -b/2a
+                              offset: Monotone,    // The radical part: |Δ|/4a²
+                              coefficient: Int,    // Which root: +1 or -1 (the ± sign)
+                              imaginary: Boolean   // false for real solutions, true for complex
+                            ) extends Solution
 ```
 
 For the quadratic equation ax² + bx + c = 0:
@@ -92,20 +92,20 @@ The key insight: **algebraic structure is preserved** - we know it's "base ± [i
 **CubicSolution** (if needed):
 ```scala
 case class CubicSolution(
-  base: Monotone,
-  cubeRootTerm: Monotone,
-  cubeRadicand: Monotone,
-  branch: CubicBranch  // 3 possible complex cube roots
-) extends Solution
+                          base: Monotone,
+                          cubeRootTerm: Monotone,
+                          cubeRadicand: Monotone,
+                          branch: CubicBranch  // 3 possible complex cube roots
+                        ) extends Solution
 ```
 
 **AlgebraicRoot** (for degree ≥ 5 or complex cases):
 ```scala
 case class AlgebraicRoot(
-  polynomial: Polynomial,
-  numericalApproximation: Complex,
-  rootIndex: Int  // Which root (1st, 2nd, 3rd...)
-) extends Solution
+                          polynomial: Polynomial,
+                          numericalApproximation: Complex,
+                          rootIndex: Int  // Which root (1st, 2nd, 3rd...)
+                        ) extends Solution
 ```
 
 For polynomials of degree ≥ 5, the Abel-Ruffini theorem tells us there's no general radical formula, so we store the defining polynomial and a numerical approximation.
@@ -116,120 +116,70 @@ For polynomials of degree ≥ 5, the Abel-Ruffini theorem tells us there's no ge
 
 `Complex` represents **any** complex number, whether it comes from an algebraic solution, a transcendental function, or direct construction. Complex numbers extend the real numbers by including the imaginary unit i (where i² = -1).
 
-### Current Design (Wrapper Pattern)
+### Current Design: Wrapper Pattern (Recommended)
 
-Currently, `Complex` in the algebra module wraps `numerical.Complex` from the core module:
+The algebra module wraps `core.numerical.Complex` to integrate it with the `Solution` interface:
 
 ```scala
 // In algebra.eager
 case class Complex(
   complex: numerical.Complex  // Wraps core.numerical.Complex
-)(val maybeName: Option[String] = None) extends Solution
+)(val maybeName: Option[String] = None) extends Solution {
+  
+  // Delegates to wrapped complex with inline for performance
+  @inline def modulus: Number = complex.modulus
+  @inline def argument: Number = complex.argument
+  @inline def real: Number = complex.real
+  @inline def imaginary: Number = complex.imag
+  
+  // Solution interface implementations
+  def conjugate: Solution = copy(complex = complex.conjugate)(None)
+  def toMonotone: Option[Monotone] = 
+    if (complex.isReal) complex.asReal.map(Eager(_).asMonotone) else None
+  def +(other: Solution): Solution = other match {
+    case Complex(c) => Complex(complex + c)
+    case _ => throw AlgebraException(...)
+  }
+  def scale(r: Rational): Solution = Complex(complex.scale(r))
+  def negate: Solution = Complex(complex.negate)
+}
 ```
 
-This wrapper:
-- Adapts the core module's Complex to the algebra module's Solution interface
-- Delegates all operations to the underlying `numerical.Complex`
-- Adds `Solution` trait methods like `conjugate`, `scale`, `toMonotone`
+**Why the wrapper pattern?**
+- **Module dependencies**: `algebra` depends on `core` (for Rational, Factor, Context, etc.)
+- **Circular dependencies forbidden**: Can't have `core` also depend on `algebra`
+- **Core owns fundamentals**: `Complex` is a fundamental numerical type, belongs in core
+- **Minimal overhead**: JVM inlining makes delegation virtually free
+- **Clear separation**: Core defines types, algebra extends them with algebraic interfaces
 
-### Proposed Design (Native Types)
+### Underlying Type: numerical.Complex
 
-**Goal**: Eliminate the wrapper and use native algebra types directly.
-
-#### Option 1: Move Complex to Algebra Module (Recommended)
-
-Move the Complex implementation entirely to `algebra.eager`:
+The wrapped type in `core.numerical` has two representations:
 
 ```scala
-// algebra/eager/Complex.scala
-sealed trait Complex extends Solution {
+// In core.numerical
+sealed trait Complex {
   def real: Number
-  def imaginary: Number
+  def imag: Number
   def modulus: Number
   def argument: Number
   def conjugate: Complex
-  def rotate: Complex  // Multiply by i
-  
-  def isReal: Boolean = imaginary.isZero
-  def isImaginary: Boolean = real.isZero
-  def isComplex: Boolean = !isReal
-  
-  // Solution interface
-  def toMonotone: Option[Monotone] = 
-    if (isReal) Some(Scalar(real)) else None
-  
-  def +(other: Solution): Solution
-  def scale(r: Rational): Solution
-  def negate: Solution
+  // ... other operations
 }
 
-case class ComplexCartesian(
-  real: Number,
-  imaginary: Number
-)(val maybeName: Option[String] = None) extends Complex {
-  
-  def modulus: Number = 
-    (real.power(2) + imaginary.power(2)).sqrt
-  
-  def argument: Number = 
-    Number.atan2(imaginary, real)
-  
-  def conjugate: Complex = 
-    copy(imaginary = imaginary.negate)(None)
-  
-  def rotate: Complex = 
-    ComplexCartesian(-imaginary, real)()  // (a+bi)·i = -b+ai
-  
-  // Conversion to polar
-  def toPolar: ComplexPolar = 
-    ComplexPolar(modulus, Angle(argument))()
-}
-
-case class ComplexPolar(
-  radius: Number,
-  angle: Angle,
-  branch: Int = 0
-)(val maybeName: Option[String] = None) extends Complex {
-  
-  def real: Number = radius * angle.cos
-  def imaginary: Number = radius * angle.sin
-  
-  def modulus: Number = radius
-  def argument: Number = angle.toNumber
-  
-  def conjugate: Complex = 
-    copy(angle = angle.negate)(None)
-  
-  def rotate: Complex = 
-    copy(angle = angle + Angle.rightAngle)()
-  
-  // Conversion to cartesian
-  def toCartesian: ComplexCartesian = 
-    ComplexCartesian(real, imaginary)()
-}
+case class ComplexCartesian(real: Number, imag: Number) extends Complex
+case class ComplexPolar(radius: Number, angle: Number, branch: Int = 0) extends Complex
 ```
 
-**Migration path**:
-```scala
-// core.numerical.Complex becomes a type alias
-package com.phasmidsoftware.number.core.numerical
-type Complex = com.phasmidsoftware.number.algebra.eager.Complex
-type ComplexCartesian = com.phasmidsoftware.number.algebra.eager.ComplexCartesian
-type ComplexPolar = com.phasmidsoftware.number.algebra.eager.ComplexPolar
-```
+### Why Not Eliminate the Wrapper?
 
-#### Option 2: Make numerical.Complex Extend Solution
+Several architectural constraints make the wrapper pattern the best choice:
 
-If you can't move Complex due to module dependencies, make `numerical.Complex` extend algebra traits:
-
-```scala
-// core/numerical/Complex.scala
-sealed trait Complex extends algebra.eager.Solution {
-  // All the Complex methods...
-}
-```
-
-**Note**: This creates a reverse dependency (core → algebra) which may violate your module structure goals.
+1. **No circular dependencies**: Scala/JVM prohibits `algebra ↔ core` mutual dependencies
+2. **Core independence**: Core should remain independent of algebra (it's lower-level)
+3. **Shared types**: Core provides fundamental types (Rational, Complex) used by multiple modules
+4. **Performance**: Modern JVM inlining makes wrapper overhead negligible
+5. **Clarity**: Separation between numerical types (core) and algebraic structures (algebra) is clean
 
 ### Relationship to QuadraticSolution
 
@@ -661,229 +611,122 @@ case class ComplexCartesian(real: Number, imaginary: Number) extends Complex
 case class ComplexPolar(radius: Number, angle: Angle) extends Complex
 ```
 
-## Eliminating the Complex Wrapper
+## Why the Wrapper Pattern is Optimal
 
-### Current Problem
+### Architectural Constraints
 
-The algebra module currently has a wrapper around `core.numerical.Complex`:
+The Number library has a clear module dependency hierarchy:
+
+```
+core (fundamental types: Rational, Factor, Context, Value, Number, Complex)
+  ↑
+algebra (algebraic structures: Solution, Algebraic, extending core types)
+  ↑
+expression (symbolic expressions, lazy evaluation)
+  ↑
+parse (LaTeX parsing, string interpolators)
+  ↑
+top (top-level API, integrations)
+```
+
+**Key principle**: Dependencies flow upward. Lower modules don't depend on higher ones.
+
+### Why Circular Dependencies Are Impossible
+
+Scala/JVM doesn't allow circular module dependencies. If `algebra` depends on `core`, then `core` cannot depend on `algebra`. This is enforced at compile time and is actually a **good architectural constraint** that prevents tangled dependencies.
+
+### Why Complex Belongs in Core
+
+`numerical.Complex` is a **fundamental numerical type**, like `Rational` or `Number`:
+- Used by multiple modules (core, algebra, expression)
+- Represents basic mathematical concept (complex numbers)
+- No dependencies on algebraic structures like `Solution` or `Algebraic`
+- Belongs at the foundation with other numerical primitives
+
+### Why the Wrapper is Minimal Overhead
+
+Modern JVM optimizations make the wrapper virtually free:
 
 ```scala
-// algebra/eager/Solution.scala (current)
-case class Complex(
-  complex: numerical.Complex  // Wraps core type
-)(val maybeName: Option[String] = None) extends Solution {
-  // All methods delegate to wrapped complex...
-  def modulus: Number = complex.modulus
-  def argument: Number = complex.argument
-  // etc.
+case class Complex(complex: numerical.Complex) extends Solution {
+  @inline def modulus: Number = complex.modulus
+  @inline def argument: Number = complex.argument
+  // JIT compiler will inline these calls, eliminating indirection
 }
 ```
 
-This creates:
-- **Indirection overhead**: Every operation goes through wrapper
-- **Type confusion**: Two "Complex" types in different modules
-- **Architectural misalignment**: Algebra should own its own types
+Performance characteristics:
+- **Inlining**: JIT removes method call overhead
+- **Object allocation**: Wrapper object is short-lived, GC handles efficiently
+- **Memory**: Single pointer overhead per instance
+- **Runtime cost**: Negligible in practice
 
-### Solution: Native Complex in Algebra Module
+### Alternative Approaches (and Why They Don't Work)
 
-**Step 1: Define Native Types**
+#### ❌ Option 1: Move Complex to Algebra
+**Problem**: Core module needs Complex for its own operations. Moving it to algebra would require `core → algebra` dependency, creating a cycle.
+
+```
+core → algebra (for Complex)
+algebra → core (for Rational, Factor, etc.)
+❌ Circular dependency - won't compile!
+```
+
+#### ❌ Option 2: Create "Common" Module
+**Problem**: Adds architectural complexity for minimal gain.
+
+```
+common (Rational, Factor, Complex, ...)
+  ↑
+  ├── core
+  └── algebra
+```
+
+This just moves the problem - now you have another module to maintain, and it's unclear what belongs in "common" vs "core".
+
+#### ❌ Option 3: Duplicate Complex
+**Problem**: Two implementations means code duplication, synchronization issues, and confusion.
 
 ```scala
-// algebra/eager/Complex.scala
-sealed trait Complex extends Solution {
-  def real: Number
-  def imaginary: Number
-  def modulus: Number
-  def argument: Number
-  def conjugate: Complex
-  def rotate: Complex
+core.numerical.Complex      // Original
+algebra.eager.Complex       // Duplicate
+// Which one is authoritative? How do they stay in sync?
+```
+
+### The Wrapper Pattern Benefits
+
+✅ **Clean architecture**: Maintains unidirectional dependencies  
+✅ **Type safety**: `algebra.eager.Complex` is a `Solution`, `numerical.Complex` is not  
+✅ **Flexibility**: Algebra can add Solution-specific methods without modifying core  
+✅ **Performance**: JVM inlining eliminates overhead  
+✅ **Clarity**: Clear ownership - core owns numerical types, algebra owns algebraic interfaces
+
+### Making the Wrapper Efficient
+
+To ensure minimal overhead:
+
+```scala
+case class Complex(complex: numerical.Complex) extends Solution {
+  // Use @inline for delegation methods
+  @inline def modulus: Number = complex.modulus
+  @inline def argument: Number = complex.argument
+  @inline def real: Number = complex.real
+  @inline def imaginary: Number = complex.imag
   
-  // Solution interface
-  def toMonotone: Option[Monotone] = 
-    if (imaginary.isZero) Some(Scalar(real)) else None
+  // Minimize object allocations
+  def conjugate: Solution = {
+    // Reuse existing complex conjugate method
+    copy(complex = complex.conjugate)(None)
+  }
   
+  // Delegate algebraic operations to underlying complex
   def +(other: Solution): Solution = other match {
-    case c: Complex => 
-      ComplexCartesian(
-        real + c.real,
-        imaginary + c.imaginary
-      )()
-    case _ => throw AlgebraException(s"Complex.+: unsupported $other")
-  }
-  
-  def scale(r: Rational): Solution = 
-    ComplexCartesian(
-      real.scale(r),
-      imaginary.scale(r)
-    )()
-  
-  def negate: Solution = 
-    ComplexCartesian(
-      real.negate,
-      imaginary.negate
-    )()
-  
-  def isZero: Boolean = real.isZero && imaginary.isZero
-  def signum: Int = if (isZero) 0 else 1
-  def isExact: Boolean = real.isExact && imaginary.isExact
-  def normalize: Complex = this
-  
-  def render: String = maybeName.getOrElse {
-    (real.isZero, imaginary.isZero) match {
-      case (true, true) => "0"
-      case (true, false) => 
-        if (imaginary.isUnity) "i"
-        else if (imaginary == Number.negOne) "-i"
-        else s"${imaginary.render}i"
-      case (false, true) => real.render
-      case (false, false) => 
-        val sign = if (imaginary.signum < 0) "-" else "+"
-        s"${real.render} $sign ${imaginary.abs.render}i"
-    }
+    case Complex(c) => 
+      Complex((complex + c).asInstanceOf[numerical.Complex])()
+    case _ => 
+      throw AlgebraException(s"Complex.+: unsupported $other")
   }
 }
-
-case class ComplexCartesian(
-  real: Number,
-  imaginary: Number
-)(val maybeName: Option[String] = None) extends Complex {
-  
-  lazy val modulus: Number = 
-    (real.power(2) + imaginary.power(2)).sqrt
-  
-  lazy val argument: Number = 
-    Number.atan2(imaginary, real)
-  
-  def conjugate: Complex = 
-    copy(imaginary = imaginary.negate)(None)
-  
-  def rotate: Complex = 
-    ComplexCartesian(-imaginary, real)()
-  
-  def toPolar: ComplexPolar = 
-    ComplexPolar(modulus, Angle(argument))()
-}
-
-case class ComplexPolar(
-  radius: Number,
-  angle: Angle,
-  branch: Int = 0
-)(val maybeName: Option[String] = None) extends Complex {
-  
-  lazy val real: Number = radius * angle.cos
-  lazy val imaginary: Number = radius * angle.sin
-  
-  def modulus: Number = radius
-  def argument: Number = angle.toNumber
-  
-  def conjugate: Complex = 
-    copy(angle = angle.negate)(None)
-  
-  def rotate: Complex = 
-    copy(angle = angle + Angle.rightAngle)()
-  
-  def toCartesian: ComplexCartesian = 
-    ComplexCartesian(real, imaginary)()
-}
-```
-
-**Step 2: Update QuadraticSolution Integration**
-
-```scala
-case class QuadraticSolution(
-  base: Monotone,
-  offset: Monotone,
-  coefficient: Int,
-  imaginary: Boolean
-)(val maybeName: Option[String] = None) extends Algebraic {
-  
-  def toComplex: Complex = {
-    val radical = offset.sqrt
-    val term = radical.scale(coefficient)
-    
-    if (imaginary) {
-      ComplexCartesian(
-        base.toNumber,
-        term.toNumber
-      )()
-    } else {
-      ComplexCartesian(
-        (base + term).toNumber,
-        Number.zero
-      )()
-    }
-  }
-  
-  def materialize: Eager = {
-    if (imaginary) {
-      toComplex
-    } else {
-      val radical = offset.sqrt
-      (base + radical.scale(coefficient)).normalize
-    }
-  }
-}
-```
-
-**Step 3: Provide Backward Compatibility**
-
-```scala
-// core/numerical/Complex.scala
-// Add type aliases for backward compatibility
-package com.phasmidsoftware.number.core.numerical
-
-type Complex = com.phasmidsoftware.number.algebra.eager.Complex
-type ComplexCartesian = com.phasmidsoftware.number.algebra.eager.ComplexCartesian  
-type ComplexPolar = com.phasmidsoftware.number.algebra.eager.ComplexPolar
-
-// Factory methods for smooth transition
-object Complex {
-  def apply(real: Number, imaginary: Number): Complex = 
-    com.phasmidsoftware.number.algebra.eager.ComplexCartesian(real, imaginary)()
-  
-  def polar(radius: Number, angle: Number): Complex = 
-    com.phasmidsoftware.number.algebra.eager.ComplexPolar(
-      radius, 
-      Angle(angle)
-    )()
-}
-```
-
-**Step 4: Migration Checklist**
-
-- [ ] Create `algebra/eager/Complex.scala` with native types
-- [ ] Update `QuadraticSolution` to use native Complex
-- [ ] Update all tests to use algebra.eager.Complex
-- [ ] Add type aliases in core.numerical for compatibility
-- [ ] Migrate core module code to use type aliases
-- [ ] Remove old Complex wrapper from Solution.scala
-- [ ] Update documentation and examples
-
-### Benefits of Native Complex
-
-1. **Performance**: No wrapper indirection
-2. **Type clarity**: Single Complex type, clear ownership
-3. **Architectural alignment**: Algebra owns its types
-4. **Extensibility**: Easy to add operations to Complex
-5. **Integration**: Natural integration with QuadraticSolution
-
-### Alternative: Keep Core Separate
-
-If core module must remain independent:
-
-```scala
-// Keep numerical.Complex in core
-// But make algebra types the primary ones
-// Use converters:
-
-implicit def numericalToAlgebra(c: numerical.Complex): algebra.eager.Complex = 
-  algebra.eager.ComplexCartesian(c.real, c.imag)()
-
-implicit def algebraToNumerical(c: algebra.eager.Complex): numerical.Complex = 
-  numerical.ComplexCartesian(c.real, c.imaginary)
-```
-
-But this still creates friction - better to migrate fully.
 
 ## Future Considerations
 
@@ -927,11 +770,21 @@ Future integration with systems like SymPy or Mathematica for:
 
 ---
 
-*Document Version: 2.0*  
+*Document Version: 3.0*  
 *Last Updated: 2025-01-28*  
 *Library Version: 1.6.2*
 
 ## Changelog
+
+**Version 3.0** (2025-01-28):
+- **Major revision**: Wrapper pattern is now the recommended approach
+- Added architectural analysis of module dependencies
+- Explained why circular dependencies are impossible
+- Documented why Complex belongs in core module
+- Added performance analysis of wrapper overhead (@inline)
+- Removed "eliminating wrapper" as a goal
+- Clarified that wrapper is optimal given constraints
+- Updated all sections to reflect this architectural decision
 
 **Version 2.0** (2025-01-28):
 - Corrected QuadraticSolution structure: `imaginary: Boolean` instead of `conjugate: Boolean`
