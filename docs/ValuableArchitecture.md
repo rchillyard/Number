@@ -40,6 +40,43 @@ Valuable (root trait)
     │   └── LambertW, etc.
     └── CompositExpression
 ```
+## Key Architectural Points
+
+### Expression vs Solution
+
+**Expression** (symbolic, lazy):
+- Has `materialize: Eager` method
+- Root is an Expression
+- Represents unevaluated mathematical expressions
+
+**Solution** (eager, already evaluated):
+- NO `materialize` method - it's already eager!
+- Represents algebraic structure of equation solutions
+- QuadraticSolution, LinearSolution, Complex all extend Solution
+
+### The Root → Solution Relationship
+
+```scala
+// Root is an Expression (symbolic)
+sealed trait Root extends AtomicExpression {
+  def equation: Equation
+  def branch: Int
+  
+  // Computed lazily, but returns eager Solution
+  lazy val solution: Solution = equation.solve(branch)
+}
+
+// Solution is Eager (already evaluated)
+trait Solution extends Eager {
+  def toMonotone: Option[Monotone]  // Conversion
+  def toComplex: Complex             // Conversion (for QuadraticSolution)
+  def conjugate: Solution
+  // NO materialize method!
+}
+```
+
+**Key insight:** When you access `root.solution`, the lazy val is evaluated once and caches the Solution. The Solution itself is already eager - it doesn't need further materialization.
+```
 
 ## Solution: Algebraic Structure
 
@@ -183,7 +220,7 @@ Several architectural constraints make the wrapper pattern the best choice:
 
 ### Relationship to QuadraticSolution
 
-When a quadratic has complex roots (discriminant < 0), the `QuadraticSolution` can materialize to `Complex`:
+When a quadratic has complex roots (discriminant < 0), the `QuadraticSolution` can be converted to `Complex`:
 
 ```scala
 // For x² + 1 = 0:
@@ -194,42 +231,47 @@ val solution: QuadraticSolution = QuadraticSolution(
   imaginary = true        // Complex solution
 )
 
-// Materialize to Complex:
-val asComplex: Complex = solution.materialize
+// Convert to Complex:
+val asComplex: Complex = solution.toComplex
 // → ComplexCartesian(0, 1) = i
 
 // The conjugate:
 val conjugateSolution = solution.conjugate  // coefficient = -1
-val conjugateComplex = conjugateSolution.materialize
+val conjugateComplex = conjugateSolution.toComplex
 // → ComplexCartesian(0, -1) = -i
 ```
 
 ### Integration with QuadraticSolution
 
 ```scala
+// From algebraic solution with complex roots
 case class QuadraticSolution(..., imaginary: Boolean) extends Algebraic {
-  
-  def materialize: Eager = {
-    val radical = offset.sqrt  // √|offset|
-    val term = radical.scale(coefficient)  // ±√|offset|
-    
+
+  // NO materialize method - QuadraticSolution is already Eager!
+
+  def toComplex: Complex = {
+    val radical = offset.sqrt
+    val term = radical.scale(coefficient)
+
     if (imaginary) {
-      // Complex result: base ± i√offset
-      ComplexCartesian(base, term)()
+      // Complex roots: base ± i√offset
+      ComplexCartesian(base.toNumber, term.toNumber)()
     } else {
-      // Real result: base ± √offset
-      (base + term).normalize
+      // Real roots converted to complex: (base ± √offset) + 0i
+      val realPart = base + term
+      ComplexCartesian(realPart.toNumber, Number.zero)()
     }
   }
-  
-  def toComplex: Complex = {
-    if (imaginary) {
-      ComplexCartesian(base, offset.sqrt.scale(coefficient))()
+
+  def toMonotone: Option[Monotone] = {
+    if (!imaginary && (offset.isZero || base.isZero)) {
+      Some((base + offset.sqrt.scale(coefficient)).normalize)
     } else {
-      ComplexCartesian(materialize.asInstanceOf[Monotone], Number.zero)()
+      None
     }
   }
 }
+```
 
 ### Examples
 
@@ -305,7 +347,7 @@ val angle = z.argument     // atan2(4, 3)
 ### Conversion Between Them
 
 ```scala
-// QuadraticSolution → Complex (materialize)
+// QuadraticSolution → Complex (convert via toComplex)
 val quad: QuadraticSolution = QuadraticSolution(
   Scalar(2), Scalar(3), 1, imaginary = true
 )  // 2 + i√3
@@ -333,9 +375,9 @@ val solution1: QuadraticSolution = QuadraticSolution(
 
 val solution2 = solution1.conjugate  // -1 - 2i (exact)
 
-// For numerical work, materialize to Complex:
-val z1: Complex = solution1.materialize  // ComplexCartesian(-1, 2)
-val z2: Complex = solution2.materialize  // ComplexCartesian(-1, -2)
+// For numerical work, convert to Complex:
+val z1: Complex = solution1.toComplex  // ComplexCartesian(-1, 2)
+val z2: Complex = solution2.toComplex  // ComplexCartesian(-1, -2)
 
 // Verify: both should satisfy the original equation
 // (z1)² + 2(z1) + 5 = 0 ✓
@@ -961,44 +1003,58 @@ Use `Expression` when:
 
 Examples: BesselJ(2, x), sin(π/7), log(log(3)), algebraic expressions
 
-## Materialization Flow
-
+## Expression to Solution Flow
 ```
-Expression (symbolic)
+Root (Expression, symbolic)
     │
-    ├─→ solve/simplify → QuadraticSolution (if quadratic with known structure)
-    │                       │
-    │                       ├─→ toComplex() → Complex (if imaginary = true)
-    │                       │
-    │                       └─→ materialize() → Monotone (if imaginary = false)
+    └─→ lazy val solution: Solution (computed on first access)
+            │
+            ├─→ QuadraticSolution(imaginary=false) → real roots
+            │       │
+            │       ├─→ base ± √offset (exact algebraic form)
+            │       └─→ toMonotone: Option[Monotone] (if offset is zero)
+            │
+            ├─→ QuadraticSolution(imaginary=true) → complex roots
+            │       │
+            │       ├─→ base ± i√offset (exact algebraic form)
+            │       └─→ toComplex: Complex (for numerical work)
+            │
+            └─→ LinearSolution → always real
+                    └─→ value: Monotone
+
+Other Expression types
     │
-    └─→ materialize() → Complex (if transcendental/special function)
-                            │
-                            └─→ toDouble() → Double (if real)
+    └─→ materialize: Eager (evaluates to concrete value)
+            │
+            ├─→ Number, Scalar (real values)
+            ├─→ Complex (transcendental/special functions)
+            └─→ Solution (from solving equations)
+
+Note: Only Expression has materialize - Solution is already Eager!
 ```
 
 ### Examples
 
 ```scala
-// Quadratic with real roots → Monotone
-val realExpr: Expression = Quadratic(a=1, b=-3, c=2)  // x² - 3x + 2 = 0
-val realSoln: QuadraticSolution = realExpr.solve(0)
+// Root (Expression) containing real solution
+val realRoot: Root = QuadraticRoot(QuadraticEquation(-3, 2), 0)  // x² - 3x + 2 = 0
+val realSolution: QuadraticSolution = realRoot.solution  // Lazy evaluation
 // QuadraticSolution(1.5, 0.25, 1, imaginary=false)
-val realValue: Monotone = realSoln.materialize  // 2.0
+val realValue: Monotone = realSolution.toMonotone.get  // 2.0
 
-// Quadratic with complex roots → Complex
-val complexExpr: Expression = Quadratic(a=1, b=0, c=1)  // x² + 1 = 0
-val complexSoln: QuadraticSolution = complexExpr.solve(0)
+// Root (Expression) containing complex solution  
+val complexRoot: Root = QuadraticRoot(QuadraticEquation(0, 1), 0)  // x² + 1 = 0
+val complexSolution: QuadraticSolution = complexRoot.solution
 // QuadraticSolution(0, 1, 1, imaginary=true)
-val complexValue: Complex = complexSoln.toComplex  // ComplexCartesian(0, 1) = i
+val complexValue: Complex = complexSolution.toComplex  // ComplexCartesian(0, 1) = i
 
-// Special function → Complex
+// Other Expression types materialize
 val bessel: Expression = BesselJ(Number(0), Number(1))
-val besselValue: Complex = bessel.materialize  // ≈ 0.7652 (real, but returns Complex)
+val besselValue: Eager = bessel.materialize  // Returns Number or Complex
 
-// Transcendental → Complex
+// Transcendental expression
 val euler: Expression = Exp(Multiply(I, Pi))
-val eulerValue: Complex = euler.materialize  // ComplexPolar(1, π) = -1
+val eulerValue: Eager = euler.materialize  // Returns Complex(-1, 0) = -1
 ```
 
 ## Extensibility
@@ -1097,7 +1153,7 @@ def simplify(expr: Expression): Valuable = expr match {
 
 ### From QuadraticSolution to Complex
 
-Solutions materialize to `Complex` when they have imaginary roots:
+Solutions with imaginary roots can be converted to `Complex`:
 
 ```scala
 val solution: QuadraticSolution = QuadraticSolution(
@@ -1116,7 +1172,7 @@ if (solution.imaginary) {
   val complex: Complex = solution.toComplex
   // Work with complex number
 } else {
-  val real: Monotone = solution.materialize.asInstanceOf[Monotone]
+  val real: Option[Monotone] = solution.toMonotone
   // Work with real number
 }
 ```
@@ -1126,7 +1182,7 @@ if (solution.imaginary) {
 To eliminate the `Complex` wrapper:
 
 1. **Phase 1**: Create native `ComplexCartesian` and `ComplexPolar` in algebra module
-2. **Phase 2**: Update all `QuadraticSolution.materialize` to return new types
+2. **Phase 2**: Update all `QuadraticSolution.toComplex` conversions to use new types
 3. **Phase 3**: Replace `Complex(numerical.Complex)` wrapper with direct types
 4. **Phase 4**: Add type aliases in core.numerical for backward compatibility
 5. **Phase 5**: Migrate core module code to use algebra types
@@ -1300,11 +1356,19 @@ Future integration with systems like SymPy or Mathematica for:
 
 ---
 
-*Document Version: 3.0*  
+*Document Version: 3.2*  
 *Last Updated: 2025-01-28*  
 *Library Version: 1.6.2*
 
 ## Changelog
+
+**Version 3.2** (2025-01-28):
+- **Critical fix**: Corrected Expression → Solution flow
+- Removed incorrect `materialize` method from Solution
+- Clarified Root contains `lazy val solution: Solution`
+- Updated all examples to show `toComplex` instead of `materialize`
+- Added section distinguishing Expression (has materialize) from Solution (already eager)
+- Fixed flow diagrams to show actual architecture
 
 **Version 3.1** (2025-01-28):
 - Added comprehensive Polynomial section
