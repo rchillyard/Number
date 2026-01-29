@@ -398,6 +398,536 @@ val log3: Expression = Log(Number(3))
 val sqrtPi: Expression = Power(Pi, Rational(1, 2))
 ```
 
+# Polynomial and Series Architecture Addendum
+
+This content should be inserted into ValueableArchitecture.md after the "Expression: Symbolic Representation" section and before "Design Boundaries".
+
+---
+
+## Polynomial: Function Representation
+
+### Purpose
+
+`Polynomial[X]` represents polynomial functions - mathematical expressions of the form:
+
+```
+p(x) = a₀ + a₁x + a₂x² + ... + aₙxⁿ
+```
+
+Polynomials are **function types** (extending `X => X`), not `Valuable` - they transform inputs to outputs rather than representing values themselves.
+
+### Design
+
+Located in `core.numerical`, polynomials are fundamental mathematical structures:
+
+```scala
+trait Polynomial[X] extends (X => X) {
+  def numeric: Numeric[X]
+  def degree: Int
+  def coefficients: Seq[X]
+  
+  // Evaluation
+  def apply(x: X): X
+  
+  // Calculus
+  def derivative: Polynomial[X]
+  def derivativeN(n: Int): Polynomial[X]
+  def nthDerivative(n: Int, x: X): X
+  
+  // Construction
+  def unit(degree: Int, coefficients: Seq[X])(implicit xn: Numeric[X]): Polynomial[X]
+}
+
+// Concrete implementations
+case class NumberPolynomial(
+  degree: Int,
+  coefficients: Seq[Number]
+)(implicit ev: Numeric[Number]) extends Polynomial[Number]
+
+case class RationalPolynomial(
+  degree: Int,
+  coefficients: Seq[Rational]
+)(implicit ev: Numeric[Rational]) extends Polynomial[Rational]
+```
+
+### Key Operations
+
+**Evaluation**: Efficient computation using implicit Numeric operations
+```scala
+val p = NumberPolynomial(2, 3, 1)  // 1·x² + 3·x + 2
+val result = p(Number(5))  // 42
+```
+
+**Differentiation**: Automatic derivative computation
+```scala
+val p = NumberPolynomial(0, 0, 1, 1)  // x³ + x²
+val dp = p.derivative  // 3x² + 2x
+val d2p = p.derivativeN(2)  // 6x + 2
+val value = p.nthDerivative(2, Number(1))  // 8
+```
+
+**Factory methods**:
+```scala
+// Variable number of coefficients
+NumberPolynomial(1, 2, 3)  // 3x² + 2x + 1
+RationalPolynomial(Rational(1,2), Rational(3,4))  // (3/4)x + (1/2)
+```
+
+### Relationship to Solution: AlgebraicRoot
+
+For polynomials of degree ≥ 5, the Abel-Ruffini theorem tells us there's no general radical formula. We use `AlgebraicRoot`:
+
+```scala
+case class AlgebraicRoot(
+  polynomial: Polynomial[Number],
+  numericalApproximation: Complex,
+  rootIndex: Int  // Which root (1st, 2nd, 3rd...)
+) extends Solution {
+  
+  def toMonotone: Option[Monotone] = None  // Can't simplify to closed form
+  
+  def conjugate: Solution = 
+    // Find conjugate root of the same polynomial
+    AlgebraicRoot(polynomial, numericalApproximation.conjugate, conjugateIndex)
+  
+  // Verify this is actually a root
+  def verify(tolerance: Double): Boolean = 
+    polynomial(numericalApproximation.toNumber).abs < tolerance
+  
+  def scale(r: Rational): Solution = {
+    // Scaling a root: if p(α) = 0, then p(α/r)·rⁿ = 0
+    val scaledApprox = numericalApproximation.scale(r)
+    AlgebraicRoot(polynomial, scaledApprox, rootIndex)
+  }
+}
+```
+
+**Example**: Solving quintic equations
+```scala
+// x⁵ - x - 1 = 0 (no radical formula exists by Abel-Ruffini theorem)
+val quintic = NumberPolynomial(-1, -1, 0, 0, 0, 1)
+
+// Find numerical root using Newton's method or similar
+val numericalRoot: Complex = findRootNumerically(quintic)  // ≈ 1.1673...
+
+// Represent as AlgebraicRoot
+val solution: AlgebraicRoot = AlgebraicRoot(
+  quintic,
+  numericalRoot,
+  rootIndex = 1
+)
+
+// This is a Solution with exact algebraic definition
+solution.isExact  // true - defined exactly by polynomial
+solution.toMonotone  // None - can't express in radicals
+solution.verify(1e-10)  // true - it's actually a root
+
+// Can still do algebraic operations
+val doubled = solution.scale(Rational(2))  // 2α where α is the root
+```
+
+### Why Polynomial is Not Valuable
+
+Polynomials are **functions**, not **values**:
+- `Polynomial[X]` is `X => X` (function type)
+- `Valuable` represents mathematical values
+- A polynomial evaluated at a point produces a value: `p(3)` → `Number`
+
+However, polynomials are **used by** Valuable types:
+- `AlgebraicRoot` stores a `Polynomial` to define which number it represents
+- `TaylorSeries` uses polynomial approximations
+- Expression simplification uses polynomial algebra
+
+**Relationship diagram**:
+```
+Polynomial[X] (function)
+    ↓ apply(x)
+X (value - could be Number, Rational, etc.)
+    ↓ wrap
+Valuable (Number, Scalar, etc.)
+
+But also:
+Polynomial[X] (stored in AlgebraicRoot)
+    → defines which algebraic number
+    → AlgebraicRoot extends Solution extends Valuable
+```
+
+## Series: Infinite and Finite Sequences
+
+### Purpose
+
+`Series[X]` represents mathematical series - sums of sequences of terms:
+
+```
+S = a₀ + a₁ + a₂ + ... + aₙ [+ ...]
+```
+
+Series are **evaluated values** that can become Eager values when their sum is computed.
+
+### Design
+
+Located in `core.numerical`:
+
+```scala
+trait Series[X] {
+  def terms: Seq[X]  // May be List or LazyList
+  def nTerms: Option[Int]  // Some(n) for finite, None for infinite
+  def term(n: Int): Option[X]
+  
+  // Evaluation methods
+  def evaluate(maybeN: Option[Int]): Option[X]
+  def evaluateToTolerance(epsilon: Double): Try[X]
+  def convergenceRate: Double
+  
+  def render(n: Int): String
+}
+
+// Finite series - exact sums
+case class FiniteSeries[X: Numeric](terms: Seq[X]) extends AbstractSeries[X] {
+  def nTerms: Option[Int] = Some(terms.length)
+  val convergenceRate: Double = 1.0
+}
+
+// Infinite series - lazy evaluation with convergence
+case class InfiniteSeries[X: Numeric](
+  terms: LazyList[X],
+  convergenceRate: Double
+) extends AbstractInfiniteSeries[X] {
+  def nTerms: Option[Int] = None
+}
+```
+
+### Key Features
+
+**1. Lazy evaluation**: Infinite series compute terms on demand
+```scala
+// Geometric series: 1 + 1/2 + 1/4 + 1/8 + ...
+val geometric: InfiniteSeries[Number] = InfiniteSeries(
+  LazyList.iterate(Number.one)(x => x / 2),
+  convergenceRate = 2.0
+)
+
+val sum = geometric.evaluateToTolerance(0.001)  // Success(~2.0)
+```
+
+**2. Convergence tracking**: Series maintain convergence rate for error bounds
+```scala
+// Error bounds = tolerance / convergenceRate
+val result: Try[Fuzz[Double]] = series.evaluateToTolerance(epsilon)
+// Result includes uncertainty: ±(epsilon / convergenceRate)
+```
+
+**3. Finite series**: Exact sums with known number of terms
+```scala
+val finite = FiniteSeries(Seq(
+  Number(1), Number(2), Number(3), Number(4), Number(5)
+))
+val sum = finite.evaluate(None)  // Some(15)
+```
+
+**4. Partial evaluation**: Sum first n terms
+```scala
+val infinite = InfiniteSeries(terms, convergence = 1.5)
+val partial = infinite.evaluate(Some(10))  // Sum of first 10 terms
+val full = infinite.evaluateToTolerance(0.01)  // Sum until convergence
+```
+
+### Series as Eager Values
+
+Once evaluated, a series becomes a concrete value:
+
+```scala
+val series: InfiniteSeries[Number] = InfiniteSeries(terms, 2.0)
+
+// Evaluation produces Number (which is Eager)
+val value: Try[Number] = series.evaluateToTolerance(0.001)
+value match {
+  case Success(n) => 
+    // n is a Number with fuzziness tracking error
+    val eager: Eager = Scalar(n)
+  case Failure(e) => 
+    // Series didn't converge
+}
+```
+
+**Integration with Valuable hierarchy**:
+```
+Series[X] (has evaluation methods)
+    ↓ evaluateToTolerance
+Try[X] (where X is often Number)
+    ↓ Success(number)
+Number → Scalar → Structure → Eager → Valuable
+```
+
+## PowerSeries: Symbolic Series Generators
+
+### Purpose
+
+`PowerSeries[X, Y]` is a **function** that generates `Series[Y]` when given input `X`:
+
+```scala
+trait PowerSeries[X, Y] extends (X => Series[Y]) {
+  def apply(x: X): Series[Y]
+}
+```
+
+PowerSeries are **symbolic/lazy** - they don't evaluate until you give them an input value.
+
+### Types of PowerSeries
+
+**1. LazyPowerSeries**: Infinite coefficients, lazy evaluation
+```scala
+abstract class LazyPowerSeries[X: Numeric, Y: Numeric](
+  coefficients: LazyList[Y]
+)(f: X => Y) extends PowerSeries[X, Y] {
+  
+  def apply(x: X): Series[Y] = {
+    val powers: LazyList[X] = LazyList.iterate(one)(z => z * x)
+    val terms: LazyList[Y] = (powers zip coefficients).map {
+      case (p, c) => c * f(p)
+    }
+    InfiniteSeries(terms, convergence)
+  }
+}
+```
+
+**2. FinitePowerSeries**: Polynomials as power series
+```scala
+case class FinitePowerSeries[X: Numeric, Y: Numeric](
+  coefficients: Seq[Y]
+)(f: X => Y) extends PowerSeries[X, Y] {
+  
+  def apply(x: X): Series[Y] = {
+    val powers: LazyList[X] = LazyList.iterate(one)(z => z * x)
+    val terms: Seq[Y] = (powers zip coefficients).map {
+      case (p, c) => c * f(p)
+    }.toList
+    FiniteSeries(terms)
+  }
+}
+```
+
+**3. TaylorSeries**: Function approximation around a point
+```scala
+case class TaylorSeries(
+  point: Number,
+  startFunction: SeriesFunction,
+  derivative: SeriesFunction => SeriesFunction,
+  convergence: Double
+) extends PowerSeries[Number, Number] {
+  
+  // Generate coefficients from derivatives at point
+  lazy val functions: LazyList[SeriesFunction] =
+    LazyList.iterate(startFunction)(derivative)
+  
+  lazy val coefficients: LazyList[Number] = 
+    functions.map(f => f(point))
+  
+  lazy val terms: LazyList[Number] = 
+    coefficients.zipWithIndex.map {
+      case (c, i) => c / Factorial(i)
+    }
+  
+  def apply(x: Number): Series[Number] = {
+    val xs = LazyList.iterate(Number.one)(_ * x)
+    val seriesTerms = (terms zip xs).map { case (a, b) => a * b }
+    InfiniteSeries(seriesTerms, convergence)
+  }
+}
+```
+
+### TaylorSeries Example: Sine Function
+
+```scala
+// Create Taylor series for sin(x) around x = 0
+val sineSeries: TaylorSeries = TaylorSeries.createSine(Number.zero)
+
+// Evaluate at x = π/6
+val series: Series[Number] = sineSeries(Number.pi / 6)
+
+// Get approximate value
+val approx: Number = series.evaluateToTolerance(0.001).get  // ≈ 0.5
+
+// Or evaluate first n terms
+val partial: Number = series.evaluate(Some(5)).get
+```
+
+**How it works**:
+```
+TaylorSeries(sin, point=0)
+    → coefficients: [sin(0), cos(0), -sin(0), -cos(0), ...]
+                  = [0, 1, 0, -1, 0, 1, ...]
+    → divided by factorials: [0, 1, 0, -1/6, 0, 1/120, ...]
+    
+apply(π/6):
+    → powers of π/6: [1, π/6, (π/6)², (π/6)³, ...]
+    → multiply: [0, π/6, 0, -(π/6)³/6, 0, (π/6)⁵/120, ...]
+    → sum: π/6 - (π/6)³/6 + (π/6)⁵/120 - ... ≈ 0.5
+```
+
+### Use Cases for PowerSeries
+
+**1. Function Approximation**
+
+Approximate smooth functions using Taylor series:
+```scala
+val sineSeries = TaylorSeries.createSine(Number.zero)
+val cosineSeries = TaylorSeries.createCosine(Number.zero)
+
+// Evaluate at any point
+val sin30 = sineSeries(Number.pi / 6).evaluateToTolerance(0.001)
+```
+
+**2. Special Functions in Expressions**
+
+Special functions use series for evaluation:
+```scala
+case class BesselJ(order: Expression, argument: Expression) 
+  extends ExpressionMonoFunction {
+  
+  override def materialize: Eager = {
+    val n = order.materialize.toDouble
+    val x = argument.materialize.toNumber
+    
+    // Create power series for Bessel function
+    val series = createBesselSeries(n, x)
+    
+    // Evaluate to get Number
+    val value: Number = series.evaluateToTolerance(0.001).get
+    Scalar(value)
+  }
+  
+  private def createBesselSeries(n: Double, x: Number): InfiniteSeries[Number] = {
+    // Bessel series: J_n(x) = Σ ((-1)^k / (k! Γ(n+k+1))) (x/2)^(n+2k)
+    val terms: LazyList[Number] = LazyList.from(0).map { k =>
+      val sign = if (k % 2 == 0) 1 else -1
+      val coeff = sign / (factorial(k) * gamma(n + k + 1))
+      coeff * math.pow(x.toDouble / 2, n + 2*k)
+    }
+    InfiniteSeries(terms, convergenceRate = 2.0)
+  }
+}
+```
+
+**3. Symbolic Computation**
+
+Series expansions remain symbolic until needed:
+```scala
+// Expression that represents a Taylor expansion
+case class SeriesExpansion(
+  function: Expression,
+  point: Expression,
+  order: Int
+) extends Expression {
+  
+  def materialize: Eager = {
+    // Generate symbolic TaylorSeries
+    val taylorSeries = generateTaylorSeries(function, point)
+    
+    // Evaluate at the expansion point
+    val series: Series[Number] = taylorSeries(point.materialize.toNumber)
+    
+    // Sum terms up to specified order
+    val sum: Number = series.evaluate(Some(order))
+      .getOrElse(throw AlgebraException("Series expansion failed"))
+    
+    Scalar(sum)
+  }
+}
+```
+
+### Series in the Type Hierarchy
+
+PowerSeries and Series occupy different positions:
+
+```
+PowerSeries[X, Y] (function: X → Series[Y])
+    ↓ apply(x)
+Series[Y] (lazy sequence with evaluation rules)
+    ↓ evaluateToTolerance
+Y (concrete value - typically Number)
+    ↓ wrap
+Scalar → Structure → Eager → Valuable
+```
+
+**Flow example**:
+1. `TaylorSeries(sin, 0)` is a `PowerSeries[Number, Number]`
+2. `sineSeries(π/6)` generates `InfiniteSeries[Number]`
+3. `series.evaluateToTolerance(0.001)` computes sum → `Try[Number]`
+4. `Success(number)` where `number: Number` with fuzziness
+5. Wrap in `Scalar(number)` → `Eager` → `Valuable`
+
+## Polynomial, Series, and PowerSeries Summary
+
+| Type | Category | Purpose | Produces | Location |
+|------|----------|---------|----------|----------|
+| `Polynomial[X]` | Function | Evaluate polynomial at x | X | `core.numerical` |
+| `PowerSeries[X,Y]` | Function Generator | Generate Series[Y] from x | Series[Y] | `core.numerical` |
+| `Series[X]` | Lazy Sequence | Sum of terms | X (when evaluated) | `core.numerical` |
+| `TaylorSeries` | PowerSeries | Approximate functions | Series[Number] | `core.numerical` |
+| `AlgebraicRoot` | Solution | Root of polynomial | Eager value | `algebra.eager` |
+
+### Key Relationships
+
+**Polynomial → AlgebraicRoot**:
+```scala
+val quintic: Polynomial[Number] = NumberPolynomial(-1, -1, 0, 0, 0, 1)
+val root: AlgebraicRoot = AlgebraicRoot(quintic, approximation, 1)
+// Polynomial defines the algebraic number
+```
+
+**PowerSeries → Series → Number**:
+```scala
+val taylor: TaylorSeries = TaylorSeries.createSine(0)
+val series: Series[Number] = taylor(x)
+val value: Number = series.evaluateToTolerance(0.001).get
+// Pipeline from symbolic to concrete
+```
+
+**Series → Eager**:
+```scala
+val series: InfiniteSeries[Number] = InfiniteSeries(terms, convergence)
+val number: Number = series.evaluateToTolerance(epsilon).get
+val scalar: Scalar = Scalar(number)  // Now it's Eager
+```
+
+**Expression → PowerSeries → Series**:
+```scala
+// Special functions can use series internally
+case class Erf(argument: Expression) extends ExpressionMonoFunction {
+  def materialize: Eager = {
+    val x = argument.materialize.toNumber
+    val series = createErfSeries(x)  // InfiniteSeries
+    val value = series.evaluateToTolerance(0.001).get
+    Scalar(value)
+  }
+}
+```
+
+### When to Use Each
+
+**Use Polynomial when**:
+- ✅ You need to evaluate p(x) for various x
+- ✅ You need derivatives of a function
+- ✅ You're defining an algebraic number (AlgebraicRoot)
+- ✅ You have explicit coefficients
+
+**Use Series when**:
+- ✅ You have a sequence of terms to sum
+- ✅ You need lazy evaluation (infinite series)
+- ✅ You're working with convergent sequences
+- ✅ You need error bounds on sums
+
+**Use PowerSeries when**:
+- ✅ You need to generate different series for different x values
+- ✅ You're approximating a function (TaylorSeries)
+- ✅ You want symbolic series that evaluate on demand
+- ✅ You need series expansion of special functions
+
+---
+
+*This completes the Polynomial and Series addendum. Insert this content before the "Design Boundaries" section in the main ValueableArchitecture.md document.*
+
 ## Design Boundaries
 
 ### When to Use Solution
@@ -775,6 +1305,14 @@ Future integration with systems like SymPy or Mathematica for:
 *Library Version: 1.6.2*
 
 ## Changelog
+
+**Version 3.1** (2025-01-28):
+- Added comprehensive Polynomial section
+- Added comprehensive Series and PowerSeries sections
+- Documented AlgebraicRoot for degree ≥ 5 polynomials
+- Explained integration with TaylorSeries
+- Added decision matrices for when to use each type
+- Updated type hierarchy diagram to include Series/PowerSeries
 
 **Version 3.0** (2025-01-28):
 - **Major revision**: Wrapper pattern is now the recommended approach
