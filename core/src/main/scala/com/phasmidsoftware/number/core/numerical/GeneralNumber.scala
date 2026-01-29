@@ -615,7 +615,8 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     *
     * @return Some(x) if nominalValue can be converted properly to a Double, otherwise None.
     */
-  def maybeNominalDouble: Option[Double] = Value.maybeDouble(nominalValue)
+  def maybeNominalDouble: Option[Double] =
+    Value.maybeDouble(nominalValue)
 
   /**
     * Method to return this ExactNumber as a Real.
