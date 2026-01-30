@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.expression.algebraic
 
 import com.phasmidsoftware.number.core.algebraic.Quadratic
-import com.phasmidsoftware.number.core.expression.{Expression, MinusOne}
+import com.phasmidsoftware.number.core.expression.{MinusOne}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
