@@ -1,3 +1,5 @@
+import MermaidDiagramGenerator.autoImport.generateMermaidDiagrams
+
 ThisBuild / organization := "com.phasmidsoftware"
 
 ThisBuild / version := "1.6.2"
@@ -158,6 +160,9 @@ lazy val dimensions = (project in file("dimensions"))
 // ============================================================================
 
 Test / parallelExecution := false
+
+// Only enable the task in the root project
+generateMermaidDiagrams / aggregate := false
 
 // ============================================================================
 // USAGE NOTES
