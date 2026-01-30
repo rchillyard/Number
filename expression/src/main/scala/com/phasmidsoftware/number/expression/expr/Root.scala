@@ -82,6 +82,14 @@ sealed trait Root extends AtomicExpression with Branched[Root] with Zeroable {
 
   /**
     * Computes the square of the current `Expression`.
+    * This method raises the current `Root` to the power of 2, which is equivalent to squaring it.
+    *
+    * @return an `Expression` representing the square of the current `Root`.
+    */
+  def square: Expression = power(Rational.half)
+
+  /**
+    * Computes the square of the current `Expression`.
     * If the current equation is quadratic, it computes the result of the operation: this * -p + q.
     * If the current equation is linear, it computes the result of the operation: this * -r.
     * Otherwise, it returns the square of this expression by performing this * this.

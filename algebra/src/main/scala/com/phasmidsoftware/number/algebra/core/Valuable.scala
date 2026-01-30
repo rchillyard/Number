@@ -82,7 +82,7 @@ trait Valuable extends Renderable with Numeric with Zeroable with Exactitude wit
     * @return the current instance as a `Monotone`
     * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Monotone`
     */
-  def asMonotone: Monotone = this match
+  lazy val asMonotone: Monotone = this match
     case m: Monotone => m
     case _ => throw AlgebraException(s"asMonotone: expected Monotone value but got $this")
 
@@ -93,7 +93,7 @@ trait Valuable extends Renderable with Numeric with Zeroable with Exactitude wit
     *
     * @return an `Option` containing the instance as a `Number` if applicable, or `None` if not.
     */
-  def asNumber: Option[Number] = this match
+  lazy val asNumber: Option[Number] = this match
     case n: Number => Some(n)
     case _ => None
 }
@@ -123,7 +123,7 @@ trait Lazy extends Valuable {
     *
     * @return the simplest `Valuable` representation of this value after normalization
     */
-  def normalize: Valuable = {
+  lazy val normalize: Valuable = {
     val simplified = simplify
     if (simplified.isExact)
       simplified.materialize.normalize

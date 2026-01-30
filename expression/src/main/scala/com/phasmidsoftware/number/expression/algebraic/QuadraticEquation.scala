@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
-import com.phasmidsoftware.number.algebra.core.Valuable
+import com.phasmidsoftware.number.algebra.core.{Q, Valuable}
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.convRationalRationalNumber
 import com.phasmidsoftware.number.algebra.util.FP
@@ -387,21 +387,20 @@ object QuadraticEquation {
     */
   def solveAsComplex(branch: Int, branches: Int, realCoefficient: Rational, imagCoefficient: Monotone, equation: QuadraticEquation): ComplexCartesian = {
     val realPart = Valuable.valuableToMaybeField(RationalNumber(realCoefficient)).flatMap(x => x.asNumber)
+    val coefficient = Solution.quadraticOffsetCoefficient(branch, branches)
     imagCoefficient match {
       case scalar: Scalar =>
-        val x = scalar.scale(Solution.quadraticOffsetCoefficient(branch, branches))
-        val imaginaryPart = Valuable.valuableToMaybeField(x).flatMap(x => x.asNumber)
+        val imaginaryPart = Valuable.valuableToMaybeField(scalar.scale(coefficient)).flatMap(x => x.asNumber)
         FP.recover(
           for (x <- realPart; y <- imaginaryPart) yield ComplexCartesian(x, y))(
           ExpressionException(s"Quadratic equation has bad complex roots: $equation")
         )
-      case i@InversePower(2, RationalNumber(r, _)) =>
-        val imag: numerical.Number = ExactNumber(Value.fromRational(r), SquareRoot)
+      case i@InversePower(2, q: Q) =>
+        val imag = ExactNumber(Value.fromRational(q.toRational), SquareRoot).doMultiple(coefficient)
         FP.recover(
           for (x <- realPart) yield ComplexCartesian(x, imag))(
           ExpressionException(s"Quadratic equation has bad complex roots: $equation")
         )
-
       case x =>
         throw ExpressionException(s"QuadraticEquation: cannot create complex roots: imaginary coefficient is not a scalar: $x")
     }

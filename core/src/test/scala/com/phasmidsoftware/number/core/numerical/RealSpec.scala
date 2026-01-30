@@ -113,7 +113,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "add 1 to pi" in {
     val x1 = Constants.one
     val x2 = Constants.pi
-    (x1 `add` x2).toString shouldBe "4.1415926535897930(41)"
+    (x1 `add` x2).toString shouldBe "4.14159265358979300(41)"
   }
   it should "add 1 to e" in {
     val x1 = Constants.one

@@ -266,7 +266,7 @@ sealed trait Scalar extends Factor {
     *
     * @return true if the factor is additive; false otherwise.
     */
-  def isAdditive: Boolean = true
+  lazy val isAdditive: Boolean = true
 
   /**
     * Determines if the current factor satisfies certain conditions within the given context.
@@ -373,7 +373,7 @@ sealed trait Logarithmic extends Factor {
     *
     * @return false.
     */
-  def isAdditive: Boolean = false
+  lazy val isAdditive: Boolean = false
 
   /**
     * Determines if the current factor satisfies certain conditions within the given context.
@@ -595,7 +595,7 @@ sealed trait InversePower extends Factor {
     *
     * @return true if the scalar represents an exact value; false otherwise.
     */
-  def isExact: Boolean = false
+  lazy val isExact: Boolean = false
 
   /**
     * Converts the given value into its root representation if applicable.
@@ -892,7 +892,6 @@ abstract class NthRoot(val n: Int) extends InversePower {
       }).orElse(for {
         q <- doComposeValueDyadic(v, Number(z).specialize.nominalValue)(DyadicOperationPower.functions)
         inverseV <- Value.inverse(v)
-        _ = println(s"convert: $v, $f, $q, $inverseV")
         z <- doComposeValueDyadic(q, inverseV)(DyadicOperationPower.functions)
       } yield z)
     case _ =>

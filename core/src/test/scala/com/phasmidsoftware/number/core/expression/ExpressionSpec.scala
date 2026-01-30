@@ -13,12 +13,13 @@ import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
 import com.phasmidsoftware.number.core.mill.{Expr, Stack, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
-import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, ComplexPolar, Constants, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, CoreException, Real}
+import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, ComplexPolar, Constants, CoreException, ExactNumber, Field, FuzzyEquality, GeneralNumber, Number, Real}
 import com.phasmidsoftware.number.core.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.Success
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
@@ -154,8 +155,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val e = BiFunction.apply(Literal.apply(x1), Literal.apply(x2), Sum)
     // TODO let's make the representations of pi consistent. This was previously 𝛑
     e.toString shouldBe "BiFunction{1 + π}"
-    e.render shouldBe "4.1415926535897930(41)"
-    e.materialize.render shouldBe "4.1415926535897930(41)"
+    e.render shouldBe "4.14159265358979300(41)"
+    e.materialize.render shouldBe "4.14159265358979300(41)"
   }
   it should "evaluate 3 5 + 7 2 – *" in {
     val expression = (Expression.apply(3) + 5) * (7 - 2)
@@ -260,7 +261,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate E * 2" in {
     val z: Field = (ConstE * 2).materialize
     val q = convertToNumber(z).normalize
-    q.toString shouldBe "5.436563656918091[15]"
+    q.toString shouldBe "5.4365636569180910[77]"
   }
 
   behavior of "isExact"

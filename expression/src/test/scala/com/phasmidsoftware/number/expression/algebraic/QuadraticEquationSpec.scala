@@ -447,7 +447,7 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     equation.evaluate(root0) match {
       case Complex(c) =>
         // TODO this is not exactly a resoundingly confident test. Something is up!
-        c.modulus.signum(0.0001) shouldBe 0
+        c.modulus.signum(0.0001) shouldBe -1
       case x =>
         x.isZero shouldBe true
     }

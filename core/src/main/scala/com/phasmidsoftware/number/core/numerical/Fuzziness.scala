@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.MonadicOperation
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
-import com.phasmidsoftware.number.core.numerical.Fuzziness.toDecimalPower
+import com.phasmidsoftware.number.core.numerical.Fuzziness.{toDecimalPower, zipStrings}
 import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
 
@@ -392,10 +392,10 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     // CONSIDER changing the padding "0" value to be "5".
     val mask = new String(qPrefix) + "0" * (2 + adjust) + brackets.head + yq + brackets.tail.head
     val (zPrefix, zSuffix) = tv.render(scaledT).toCharArray.span(_ != '.')
-    true -> (new String(zPrefix) + "." + Fuzziness.zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix)
+    true -> (new String(zPrefix) + "." + zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix)
   }
 
-  def asPercentage: String = "absolute fuzz cannot be shown as percentage"
+  lazy val asPercentage: String = "absolute fuzz cannot be shown as percentage"
 
   /**
     * Determine the range +- t such that the probability of a random point being within that range is `p`,
@@ -576,6 +576,17 @@ object Fuzziness {
   private def doNormalize[T: HasValue](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
     fuzz.flatMap(f => doNormalize(t, relative, f))
 
+  /**
+    * Combines two strings by replacing characters from the first string with
+    * corresponding characters from the second string whenever they are non-zero ('0').
+    *
+    * NOTE used by `AbsoluteFuzz.toString`
+    *
+    * @param v the first string to process, with characters to be potentially replaced.
+    * @param t the second string providing replacement characters.
+    * @return a new string where characters from the first string are replaced
+    *         by non-zero characters from the second string at the same positions.
+    */
   def zipStrings(v: String, t: String): String = {
     val cCs = ((LazyList.from(v.toCharArray.toList) :++ LazyList.continually('0')) zip t.toCharArray.toList).toList
     val r: List[Char] = cCs map {
@@ -706,7 +717,9 @@ case object Box extends Shape {
     case 1.0 =>
       0
     case _ =>
-      l / 2
+    // NOTE: This implementation is approximate and only accurate for p ≈ 0.5
+    // In practice, Box distributions are normalized to Gaussian before wiggle is called
+    l / 2 // CONSIDER something like (1 - p) * l
   }
 
   /**

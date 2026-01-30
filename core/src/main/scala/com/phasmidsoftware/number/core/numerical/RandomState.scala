@@ -34,7 +34,7 @@ class RandomState(r: Random) {
     *
     * @return a RandomState seeded by r.nextLong().
     */
-  def next: RandomState = RandomState(r.nextLong())
+  lazy val next: RandomState = RandomState(r.nextLong())
 }
 
 /**

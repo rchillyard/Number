@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.matchers.{MatchLogger, ~}
+import com.phasmidsoftware.matchers.{LogInfo, MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
 import com.phasmidsoftware.number.algebra.eager.{Angle, Monotone, Number}
@@ -48,7 +48,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
 
   def MatchCheck[R](r: R)(o: R): Match[R] =
     if r == o then {
-      System.err.println(s"Match is unchanged: $r")
+      MatchLogger.apply(LogInfo, getClass)(s"Match is unchanged: $r")
       Match(r)
     } else
       Match(r)

@@ -2,7 +2,11 @@
 
 ## Versions
 
-* Version 1.5.7: Cleanup and bug fixes.
+* Version 1.6.2: Use of configuration to control matcher logging.
+* Version 1.6.1: Cosmetics (removal of nulls), also better logging (instead of using println).
+* Version 1.6.0: Major rename: Logarithmic to Exponential. Also, changed def to lazy val where appropriate.
+* Version 1.5.8: Consolidation and organization of the unit tests.
+* Version 1.5.7: Cleanup and Issue 163.
 * Version 1.5.6: Cleanup and enhancement of the fuzzy utilities in the core module. 
 * Version 1.5.5: Cleanup and bug fixes.
 * Version 1.5.4: Composition of Quantities

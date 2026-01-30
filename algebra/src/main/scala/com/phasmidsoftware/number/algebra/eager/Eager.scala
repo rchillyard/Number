@@ -49,7 +49,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *
     * @return the materialized `Eager` instance representing the resolved value
     */
-  def materialize: Eager = this
+  lazy val materialize: Eager = this
 
   /**
     * Retrieves an optional name associated with this instance.

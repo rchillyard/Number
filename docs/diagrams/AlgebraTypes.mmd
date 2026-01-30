@@ -1,0 +1,13 @@
+classDiagram
+  class Numeric
+  Numeric <|-- FuzzyDoubleIsNumeric
+  class FuzzyDoubleIsNumeric
+  Numeric <|-- FuzzyIsNumeric
+  class FuzzyIsNumeric
+  Numeric <|-- RationalIsNumeric
+  class RationalIsNumeric
+  class Renderable
+  Renderable <|-- MaybeFuzzy
+  class MaybeFuzzy
+  Renderable <|-- Quantity
+  class Quantity

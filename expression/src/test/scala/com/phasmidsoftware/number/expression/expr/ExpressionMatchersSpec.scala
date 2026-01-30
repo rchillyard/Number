@@ -8,9 +8,9 @@ import cats.kernel.Eq
 import com.phasmidsoftware.matchers.*
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.Valuable
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational.infinity
-import com.phasmidsoftware.number.core.inner.{MonadicOperationExp, Operations, PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, root3, √}
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
@@ -330,7 +330,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val z: Expression = Expression(3).sqrt
     val x = z :* z.reciprocal * Eager(3)
     val simplified = x.simplify
-    println(s"simplified: $simplified")
     val asIs = simplified.evaluateAsIs
     asIs shouldBe Some(Eager(3))
   }
@@ -430,16 +429,16 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Aggregate = Aggregate(Product, Seq(root3, One, root3.reciprocal))
     val result: em.MatchResult[Expression] = p(x)
     result shouldBe em.Match(One)
-    println(s"simplifyAggregate 4: x=${x.render}; simplified=${x.simplify.render}; result=$result")
+    //    println(s"simplifyAggregate 4: x=${x.render}; simplified=${x.simplify.render}; result=$result")
   }
   it should "simplifyAggregate 5" in {
     val root3: Expression = Expression(3).sqrt
     val x: BiFunction = (root3 :* root3.reciprocal * Eager(3)).asInstanceOf[BiFunction]
     val x1: Expression = asAggregate(x).get
     val x2: Aggregate = Aggregate(Product, Seq(root3, root3.reciprocal, Eager(3)))
-    println(s"x1=$x1\nx2=$x2")
+    //    println(s"x1=$x1\nx2=$x2")
     val simplified = x1.simplify
-    println(s"simplifyAggregate 5:\n  x1=${x1.render};\n  x1 simplified=${x1.simplify.render};\n  x2 simplified=${x2.simplify.render}")
+    //    println(s"simplifyAggregate 5:\n  x1=${x1.render};\n  x1 simplified=${x1.simplify.render};\n  x2 simplified=${x2.simplify.render}")
     val asIs = simplified.evaluateAsIs
     asIs shouldBe Some(Eager(3))
   }
@@ -495,7 +494,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "work for Exp Infinity" in {
     val expression = Expression(infinity)
-    println(s"expression: $expression")
     val x = expr.UniFunction(expression, Exp).simplify
     println(s"exp(∞) simplified to: $x (class: ${x.getClass.getSimpleName})")
     x shouldBe Infinity
@@ -900,7 +898,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y.materialize shouldBe Eager(7)
   }
   it should "evaluate E * 2" in {
-    (Literal(Eager.e) * 2).materialize.toString shouldBe "Real(5.43656365691809,Some(AbsoluteFuzz(5.086985018510689E-14,Box)))"
+    (Literal(Eager.e) * 2).materialize.toString shouldBe "Real(5.43656365691809,Some(AbsoluteFuzz(5.869850185106896E-15,Box)))"
   }
 
   behavior of "simplifyTerms"

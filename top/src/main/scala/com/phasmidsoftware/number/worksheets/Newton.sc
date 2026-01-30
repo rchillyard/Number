@@ -1,7 +1,9 @@
-import com.phasmidsoftware.number.core.Number.piBy2
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager}
 import com.phasmidsoftware.number.core.applications.Approximation
-import com.phasmidsoftware.number.core.expression.Expression
-import com.phasmidsoftware.number.core.{Constants, Number, Real}
+import com.phasmidsoftware.number.expression.expr.{E, ConstI, Pi}
+import com.phasmidsoftware.number.core.numerical.{Number, Real}
+import com.phasmidsoftware.number.expression.expr
+import com.phasmidsoftware.number.expression.expr.Expression
 
 /**
   * This is a demonstration of Newton's method of approximation for his original polynomial:
@@ -37,20 +39,21 @@ val result = Approximation.solve(0.9, inverseSquareRoot, inverseDerivative)(Numb
 
 /**
   * This is a demonstration of how to calculate the length of Foucault's pendulum.
+  * NOTE that we do not use the carat (^) operator here because it is not defined for Expression.
   */
-val g = Expression(Real("9.81*"))
-val t = Expression(Real("16.5*"))
-val expression = g * ((t / Constants.twoPi) ∧ 2)
-val length: Number = expression
+val g = Expression(Eager(Real("9.81*")))
+val t = Expression(Eager(Real("16.5*")))
+val expression = g * ((t / Angle.twoPi) ∧ 2)
+val length: Eager = expression.materialize
+length.render
 
 /**
   * Some trigonometric identities.
   */
-val iPi = Expression(Constants.i) * Constants.pi
-val euler = Expression(Constants.e) ∧ iPi
-val number = euler.asNumber
-println(number)
+val iPi = ConstI * Pi
+val euler: expr.Expression = E ∧ iPi
+val number = euler.render
 
-piBy2.cos
-piBy2.sin
-piBy2.tan
+Expression(Eager.piBy2).cos.render
+Expression(Eager.piBy2).sin.render
+Expression(Eager.piBy2).tan.render

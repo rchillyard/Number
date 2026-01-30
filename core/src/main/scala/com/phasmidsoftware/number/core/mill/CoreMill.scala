@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.mill
 
 import com.phasmidsoftware.number.core.parse.{MillParser, ShuntingYardParser}
+
 import scala.util.Try
 
 /**
@@ -93,7 +94,7 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
   /**
     * @return false.
     */
-  override def isEmpty: Boolean = false
+  override lazy val isEmpty: Boolean = false
 
   /**
     * Method to evaluate this Mill.
@@ -101,7 +102,7 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     * @return an Option[Expression]: Some(x) assuming this Mill is not empty and that there are no irregularities.
     * @note Throws MillException logic error when the Mill is not fully consumed or the optional expression is None.
     */
-  def evaluate: Option[CoreMillExpression] = evaluateInternal match {
+  lazy val evaluate: Option[CoreMillExpression] = evaluateInternal match {
     case (xo, Empty) => xo
     case (_, m) => throw MillException(s"evaluate: logic error: remaining stack is not empty: $m")
   }
@@ -118,7 +119,7 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     * @note Throws MillException this Mill is empty or some other logic error occurred.
     */
-  def evaluateInternal: (Option[CoreMillExpression], CoreMill) = pop match {
+  lazy val evaluateInternal: (Option[CoreMillExpression], CoreMill) = pop match {
     case (Some(Expr(e)), Empty) => (Some(e), Empty)
     case (Some(x), m: Stack) => m.evaluate1(x)
     case (None, _) => throw MillException(s"evaluate: this stack is empty")
@@ -263,7 +264,7 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     }
   }
 
-  override def toString: String = s"""Stack(${stack.mkString(", ")})"""
+  override lazy val toString: String = s"""Stack(${stack.mkString(", ")})"""
 }
 
 /**
@@ -289,12 +290,12 @@ case object Empty extends CoreMill {
     *
     * @return true.
     */
-  override def isEmpty: Boolean = true
+  override lazy val isEmpty: Boolean = true
 
   /**
     * @return None.
     */
-  def evaluate: Option[CoreMillExpression] = None
+  lazy val evaluate: Option[CoreMillExpression] = None
 }
 
 object CoreMill {

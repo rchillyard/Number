@@ -21,7 +21,7 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
   it should "evaluate l2" in {
     L2.evaluateAsIs shouldBe None
     L2.asNumber should matchPattern { case Some(FuzzyNumber(_, _, _)) => }
-    L2.asNumber map (_.render) shouldBe Some("0.6931471805599453±2.0E-13%")
+    L2.asNumber map (_.render) shouldBe Some("0.6931471805599453±1.4E-13%")
   }
   // Test for (fixed) Issue #124
   it should "evaluate lg2e" in {

@@ -95,7 +95,7 @@ case class Set(cards: Seq[Card]) {
     *
     * @return `true` if the cards form a valid `Set`, `false` otherwise.
     */
-  def isSet: Boolean =
+  lazy val isSet: Boolean =
     attributesMatch(shape) && attributesMatch(color) && attributesMatch(number) && attributesMatch(shading)
 
   /**
@@ -112,7 +112,7 @@ case class Set(cards: Seq[Card]) {
     styles == 1 || styles == 3
   }
 
-  override def toString: String = s"{${cards.mkString(", ")}}"
+  override lazy val toString: String = s"{${cards.mkString(", ")}}"
 }
 
 /**
@@ -158,4 +158,4 @@ enum Number(val toInt: Int) extends Attribute:
   *                There are three shadings: solid (1), striped (2), and open (3).
   */
 case class Card(number: Number, shape: Shape, color: Color, shading: Shading):
-  override def toString: String = s"$number:$shape:$color:$shading"
+  override lazy val toString: String = s"$number:$shape:$color:$shading"
