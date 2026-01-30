@@ -516,7 +516,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
               make(r).specialize
             // CONSIDER in following line adding fuzz only if this Number is exact.
             case Some(n) =>
-              FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -n), Box))
+              FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
             case _ =>
               FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
           }

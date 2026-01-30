@@ -23,7 +23,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     phiNormalized.isSame(expected) shouldBe true
     val psiNormalized: Field = psi.normalize
     println(s"psi = $psiNormalized")
-    psiNormalized.isSame(Real(-0.618033)) shouldBe true
+    psiNormalized.isSame(Real(-0.618034)) shouldBe true
   }
   it should "branches" in {
     phi.equation.branches shouldBe 2
@@ -50,7 +50,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     solution shouldBe expected
     println(s"solution = $solution, expected = $expected")
     println(s"solution = ${solution.asField}")
-    target.normalize.isSame(Real(0.618033)) shouldBe true
+    target.normalize.isSame(Real(0.618034)) shouldBe true
   }
   it should "value root 2" in {
     val p: Algebraic = Algebraic_Quadratic(Quadratic.rootTwoEquation, pos = true)

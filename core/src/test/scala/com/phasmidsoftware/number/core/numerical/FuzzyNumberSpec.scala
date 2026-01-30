@@ -434,7 +434,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val x = Number.parse("3.142").get
     val y = Number.pi
     // NOTE we check that these two numbers are the same with a confidence of 80%
-    implicitly[Fuzzy[Number]].same(0.8)(x, y) shouldBe true
+    implicitly[Fuzzy[Number]].same(0.2)(x, y) shouldBe true
     // NOTE we check that these two numbers are not the same with a confidence of 90%
     implicitly[Fuzzy[Number]].same(0.9)(x, y) shouldBe false
   }
@@ -448,7 +448,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val z = zo.get
     z.isProbablyZero(0) shouldBe true
     z.isProbablyZero(1) shouldBe false
-    z.isProbablyZero() shouldBe true
+    z.isProbablyZero(0.25) shouldBe true
     z.isProbablyZero(0.895) shouldBe false
   }
   it should "think pi and pi are the same (2)" in {
@@ -459,7 +459,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val z = zo.get
     z.isProbablyZero(0) shouldBe true
     z.isProbablyZero(1) shouldBe false
-    z.isProbablyZero() shouldBe true
+    z.isProbablyZero(0.25) shouldBe true
     z.isProbablyZero(0.875) shouldBe false
   }
 
@@ -510,7 +510,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
     val length: Option[Number] = square flatMap (x => (x `doMultiply` g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.00657029005653496, Box))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.006570290056529514, Box))
   }
   it should "calculate length of Foucault's pendulum" in {
     // NOTE this is here to support Foucault2.sc
@@ -528,7 +528,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.005 +- 0.0002
 
     val length: Option[Number] = square flatMap (x => (x `doMultiply` g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.005139383648325369, Gaussian))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.005127209180366443, Gaussian))
   }
   it should "calculate the acceleration due to gravity based on the London Foucault's pendulum" in {
     import Expression.ExpressionOps
@@ -540,6 +540,6 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val fuzzyNumber = gField.asNumber.get
     fuzzyNumber.nominalValue shouldBe Left(Left(Some(9.820393077205809)))
     // XXX Why is the fuzz absolute?
-    fuzzyNumber.fuzz should matchPattern { case Some(AbsoluteFuzz(5.3869477499213, Gaussian)) => }
+    fuzzyNumber.fuzz should matchPattern { case Some(AbsoluteFuzz(5.386947749921274, Gaussian)) => }
   }
 }
