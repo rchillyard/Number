@@ -22,6 +22,7 @@ import scala.language.implicitConversions
   * NOTE there are only two subtypes of Expression: AtomicExpression and CompositeExpression
   * We do not use "sealed" because this module would grow much too large.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Expression instead", since = "1.6.2")
 trait Expression extends NumberLike with Approximatable {
 
   /**
