@@ -706,7 +706,9 @@ case object Box extends Shape {
     case 1.0 =>
       0
     case _ =>
-      l / 2
+    // NOTE: This implementation is approximate and only accurate for p ≈ 0.5
+    // In practice, Box distributions are normalized to Gaussian before wiggle is called
+    l / 2 // CONSIDER something like (1 - p) * l
   }
 
   /**
