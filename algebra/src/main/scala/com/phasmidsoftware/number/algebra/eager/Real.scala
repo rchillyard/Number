@@ -38,7 +38,7 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] with CanPower[Number] with MaybeFuzzy {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real] with Scalable[Real] with CanMultiplyAndDivide[Real] with CanPower[Number] with MaybeFuzzy {
   /**
     * Computes the result of raising an instance of type `T` to the power 
     * specified by the given `ExactNumber`.

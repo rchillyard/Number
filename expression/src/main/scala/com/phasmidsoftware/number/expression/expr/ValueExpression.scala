@@ -322,7 +322,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     *         or `None` if the evaluation is not applicable or fails.
     */
   private def doMonoFunction(f: ExpressionMonoFunction): Option[Eager] = (f, value) match {
-    case (Negate, r: CanAddAndSubtract[?, ?]) =>
+    case (Negate, r: CanAddAndSubtract[?]) =>
       Some(-r)
     case (Reciprocal, r: InversePower) =>
       r.pow(WholeNumber.minusOne)
