@@ -48,7 +48,7 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
   def offset: Monotone
 
   /**
-    * This is the coefficient of the offset (square root term) the the solution of a quadratic equation.
+    * This is the coefficient of the offset (square root term) the solution of a quadratic equation.
     *
     * @return the coefficient.
     */
@@ -155,16 +155,16 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
   */
 object Algebraic {
   /**
-    * Creates a `Algebraic` from a given `Rational` value.
+    * Creates an `Algebraic` from a given `Rational` value.
     *
     * @param r the rational value used to construct the solution
-    * @return a `Algebraic` instance constructed from the given rational value
+    * @return an `Algebraic` instance constructed from the given rational value
     */
   def apply(r: Rational): Algebraic =
     LinearSolution(RationalNumber(r))
 
   /**
-    * Constructs a `Algebraic` based on the provided `base` and `offset` monotone values
+    * Constructs an `Algebraic` based on the provided `base` and `offset` monotone values
     * and a specified `coefficient` for the offset. If the `offset` is zero, a `LinearSolution`
     * is returned; otherwise, a `QuadraticSolution` is returned.
     *
@@ -173,7 +173,7 @@ object Algebraic {
     *               is linear or quadratic
     *
     * @param coefficient an integer used in cases where a quadratic solution is required
-    * @return a `Algebraic` instance, which is either a `LinearSolution` or a `QuadraticSolution`
+    * @return an `Algebraic` instance, which is either a `LinearSolution` or a `QuadraticSolution`
     */
   def apply(base: Monotone, offset: Monotone, coefficient: Int): Algebraic =
     if (offset.isZero)
@@ -561,7 +561,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       QuadraticSolution(b.scale(r), o.scale(r), coefficient, imaginary)
     case (b: Scalar, o@InversePower(2, x)) =>
       val number = RationalNumber(r)
-      val br: Int = if (number.signum < 0) (1 - coefficient) else coefficient
+      val br: Int = if (number.signum < 0) 1 - coefficient else coefficient
       val offsetValue: Monotone = if (number.isZero) WholeNumber.zero else InversePower(2, x * number * number)
       val value = QuadraticSolution(b.scale(r), offsetValue, br, imaginary)
       value
@@ -587,7 +587,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     * it delegates the equivalence check to the superclass implementation.
     *
     * @param that the other `Eager` instance to be compared for equivalence
-    * @return a `Try[Boolean]` indicating either the result of the equivalence comparison or an
+    * @return `Try[Boolean]` indicating either the result of the equivalence comparison or an
     *         error if the comparison cannot be performed
     */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
@@ -621,8 +621,6 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       case _ =>
         super.fuzzyEqv(p)(that)
     }
-
-  private def sumBases(m1: Monotone, m2: Monotone): Monotone = ???
 }
 
 /**
@@ -716,9 +714,9 @@ object QuadraticSolution {
       base.toLatex
 
     case q@QuadraticSolution(base, offset, coefficient, false) if base.isZero =>
-      if (coefficient == (1)) {
+      if (coefficient == 1) {
         offset.toLatex
-      } else if (coefficient == (-1)) {
+      } else if (coefficient == -1) {
         s"-${offset.toLatex}"
       } else {
         s"${Rational(coefficient).toLatex} \\cdot ${offset.toLatex}"
@@ -904,7 +902,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     * @param addend the `Rational` value to be added to the current solution
     * @return a new `Algebraic` instance representing the sum of the current solution and the given `addend`
     */
-  def add(addend: Rational): Algebraic = ???
+  def add(addend: Rational): Algebraic = ??? // TODO implement this
 //  {
 //    val po = PureNumber.add(value, fromRational(addend), PureNumber)
 //    po match {

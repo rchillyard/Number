@@ -376,7 +376,7 @@ class FuzzyNumberIsProbablyZeroSpec extends AnyFlatSpec with Matchers with Table
       }
 
       withClue(s"value=$value, fuzz=$fuzzValue: ") {
-        number.isProbablyZero() shouldBe number.isProbablyZero(0.5)
+        number.isProbablyZero() shouldBe number.isProbablyZero()
       }
     }
   }
