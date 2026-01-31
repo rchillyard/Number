@@ -902,16 +902,11 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     * @param addend the `Rational` value to be added to the current solution
     * @return a new `Algebraic` instance representing the sum of the current solution and the given `addend`
     */
-  def add(addend: Rational): Algebraic = ??? // TODO implement this
-//  {
-//    val po = PureNumber.add(value, fromRational(addend), PureNumber)
-//    po match {
-//      case Some((v, PureNumber, None)) =>
-//        LinearSolution(v)
-//      case _ =>
-//        throw new Exception("LinearSolution.add: PureNumber.add failed")
-//    }
-//  }
+  def add(addend: Rational): Algebraic =
+    add(RationalNumber(addend)) match {
+      case Success(a) => a
+      case Failure(e) => throw e
+    }
 
   /**
     * Scales the given rational value using the current value to produce an optional solution.
