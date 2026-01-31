@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.core.{AnyContext, CanPower, Context, Q, RestrictedContext}
+import com.phasmidsoftware.number.algebra.core.{AnyContext, CanPower, Context, Nameable, Q, RestrictedContext}
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
@@ -17,7 +17,7 @@ import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, given_LatexRenderer_Expression, matchSimpler}
-import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
+import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.{complementaryExpressions, componentsSimplifier}
 import com.phasmidsoftware.number.{algebra, core, expression}
 
 import java.util.Objects
@@ -86,18 +86,24 @@ sealed trait CompositeExpression extends Expression {
     * sub-expressions into their precise, simplified forms. This method focuses on exact
     * mathematical simplifications that can be performed without introducing approximations.
     *
+    * TODO try to merge this method with Expression.simplifyByEvaluation.
+    *
     * @return an `em.AutoMatcher[Expression]` that encapsulates the logic for simplifying
     *         exact expressions. The result contains the simplified `Expression` if successful,
     *         or indicates no simplification was possible.
     */
   lazy val simplifyExact: em.AutoMatcher[Expression] =
-    em.Matcher("BiFunction: simplifyExact") {
+    em.Matcher("CompositeExpression: simplifyExact") {
       (expr: Expression) =>
-        expr.evaluateAsIs match {
+        // Don't evaluate if ALL meaningful components are named constants
+        if (CompositeExpression.shouldStaySymbolic(expr))
+          em.Miss[Expression, Expression]("all components named, staying symbolic", this)
+        else
+          expr.evaluateAsIs match {
           case Some(value) =>
             em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
           case None =>
-            em.Miss[Expression, Expression]("BiFunction: simplifyExact: no simplifications", this)
+            em.Miss[Expression, Expression]("CompositeExpression: simplifyExact: no simplifications", this)
         }
     }
 
@@ -202,6 +208,28 @@ object CompositeExpression {
     */
   def create(f: ExpressionBiFunction, xs: Eager*): Expression =
     apply(f, xs map (x => Literal(x, Some(x.render))))
+
+  /**
+    * Determines if all components within a given `Expression` are named.
+    *
+    * This method recursively checks whether each component of the provided `Expression`
+    * either has a name (in the case of a `Nameable` expression) or, if it is a composite
+    * expression (`CompositeExpression`), ensures that all of its terms also have names.
+    *
+    * @param expr The `Expression` to be evaluated. It can be a top-level expression
+    *             or a composite expression containing multiple terms.
+    * @return `true` if all components of the expression are named, otherwise `false`.
+    */
+  def shouldStaySymbolic(expr: Expression): Boolean = expr match {
+    case n: Nameable =>
+      n.keepSymbolic
+    case BiFunction(x: Nameable, y: Nameable, _) =>
+      x.keepSymbolic || y.keepSymbolic
+    case c: CompositeExpression =>
+      c.terms.forall(shouldStaySymbolic)
+    case _ =>
+      false // Anything unnamed breaks the chain
+  }
 }
 
 /**
@@ -491,6 +519,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("BiFunction: identitiesMatcher") {
+      // TODO these identity checks should use the isComplementary method for consistency
       case BiFunction(a, b, f) if matchingIdentity(a, f, left = true).contains(true) =>
         em.Match(b)
       case BiFunction(a, b, f) if matchingIdentity(b, f, left = false).contains(true) =>
@@ -547,6 +576,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case BiFunction(UniFunction(a, Negate), b, Product) if a == b =>
       val xSq = Expression.simplifyExact(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
       em.Match(UniFunction(xSq, Negate))
+    case b@BiFunction(r1: Root, r2: Root, Sum) =>
+      em.matchIfDefined(r1 add r2)(b)
     // TODO: Concern - identity patterns might be missed if aggregation happens before they're caught
     case x@BiFunction(_, _, _) => // NOTE this case is definitely required
       // TODO this frequently results in a Miss which is interpreted as a failure.
@@ -700,7 +731,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     (a, b) match {
       case (a, b) if a.plus(b) == Zero =>
         em.Match(Zero)
-      case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1), q2@QuadraticRoot(e2, b2)) if quadratic == e2 && b1 != b2  =>
+      case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2  =>
         em.Match(quadratic.conjugateSum)
       case (l: Literal, q: QuadraticRoot) =>
         matchLiteral(l, q, Sum)
@@ -729,7 +760,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(UniFunction(a, Negate))
       case (MinusOne, b) =>
         em.Match(UniFunction(b, Negate))
-      case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1), q2@QuadraticRoot(e2, b2)) if quadratic == e2 && b1 != b2 =>
+      case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
         em.Match(quadratic.conjugateProduct)
       // CONSIDER the following case should be copied for Sum (not just Product)
       case (a, b) if !a.isExact && !b.isExact => // if both a and b are inexact, we might as well combine them here
@@ -762,7 +793,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (r@Literal(QuadraticSolution.phi, _), ValueExpression(w: WholeNumber, _)) if w - 1 >= 0 =>
         em.Match(BiFunction(r + 1, w - 1, Power))
       // Match either named constants like Two or Literal whole numbers
-      case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch), exp) if p.negate.isUnity =>
+      case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch, _), exp) if p.negate.isUnity =>
         exp.evaluate(RestrictedContext(PureNumber)) match {
           case Some(rn: Q) =>
             rn.toRational match {
@@ -774,7 +805,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           case _ =>
             em.Miss("phi identity: exponent not suitable", this)
         }
-      case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch), Literal(w: WholeNumber, _)) =>
+      case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch, _), Literal(w: WholeNumber, _)) =>
         em.Match(BiFunction(r + q, w - 1, Power))
       // CONSIDER generalizing this later but beware the general case breaks a lot of tests.
       case (Two, Literal(RationalNumber(r, _), _)) if r == Rational.half =>

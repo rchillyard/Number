@@ -8,8 +8,8 @@ import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, NatZero, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
+import com.phasmidsoftware.number.algebra.eager.{ExactNumber, *}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Real, *}
@@ -751,6 +751,11 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
     case (x: CanAdd[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       import com.phasmidsoftware.number.algebra.eager.Number.NumberIsAdditiveCommutativeMonoid
       Some((x + y).normalize)
+    // TODO need to match the other way, too.
+    case (x: Solution, y: eager.Number) => // CONSIDER having Solution extend CanAdd
+      x.add(y).toOption
+    case (y: eager.Number, x: Solution) =>
+      x.add(y).toOption
     case _ =>
       None
   }

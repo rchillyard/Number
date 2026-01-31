@@ -713,11 +713,11 @@ object Expression {
     *
     * @return an instance of `em.AutoMatcher[Expression]` that identifies and simplifies trivial cases in composite expressions.
     */
-  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("identitiesMatcher") {
+  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression.identitiesMatcher") {
     case c: CompositeExpression =>
       c.identitiesMatcher(c)
     case x =>
-      em.Miss("identitiesMatcher: not a Composite expression type", x)
+      em.Miss("Expression.identitiesMatcher: not a Composite expression type", x)
   }
 
   /**
@@ -732,33 +732,57 @@ object Expression {
     *         matching and optionally simplifies an expression by evaluating it.
     */
   def simplifyByEvaluation: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyByEvaluation") {
+    em.Matcher[Expression, Expression]("Expression.simplifyByEvaluation") {
       case BiFunction(ValueExpression(x: eager.Number, _), ValueExpression(q: Q, _), Power) if q.toRational.invert.isWhole =>
         val root = q.toRational.invert.toInt
         em.Match(Literal(InversePower(root, x))) `flatMap` matchSimpler
       //      case BiFunction(ValueExpression(q: Q, _), ValueExpression(RationalNumber.half, _), Power) =>
       //        em.Match(Root.squareRoot(q.toRational, 0)) // NOTE we arbitrarily choose the positive root
-      case c: CompositeExpression =>
+      case c: CompositeExpression if !CompositeExpression.shouldStaySymbolic(c) =>
         c.evaluateAsIs match {
           case Some(f) =>
             em.MatchCheck(Expression(f))(c).map(_.simplify)
           case _ =>
-            em.Miss("simplifyByEvaluation: cannot evaluate", c)
+            em.Miss("Expression.simplifyByEvaluation: cannot evaluate", c)
         }
       case a: AtomicExpression =>
-        em.Miss("simplifyByEvaluation: atomic expression already simplified", a)
+        em.Miss("Expression.simplifyByEvaluation: atomic expression already simplified", a)
+      case e =>
+        em.Miss("Expression.simplifyByEvaluation: cannot simplify", e)
     }
 
   /**
     * Determines whether the provided expression `z` is an identity element
     * for the given binary function `f`.
     *
+    * TODO move this so that it is an instance method of ExpressionBiFunction.
+    *
     * @param f the binary function for which the identity property is to be checked.
     * @param z the expression to be evaluated as a potential identity element for the function `f`.
     * @return true if the expression `z` is an identity element for the binary function `f`, false otherwise.
     */
   private def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
-    (for (a <- z.evaluateAsIs; b <- f.maybeIdentityL) yield a === b).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true
+    (for {
+      a <- z.evaluateAsIs
+      b <- f.maybeIdentityL
+    } yield equivalent(a, b)).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true
+
+  /**
+    * Compares two `Eager` instances for equivalence based on their types and values.
+    * In particular, this method handles the case where one of the instances is a `Functional` and the other is a `Number`.
+    *
+    * @param a The first instance of `Eager` to compare.
+    * @param b The second instance of `Eager` to compare.
+    * @return A boolean indicating whether the two instances are equivalent.
+    */
+  private def equivalent(a: Eager, b: Eager) = (a, b) match {
+    case (x: Functional, y: eager.Number) =>
+      x.number === y
+    case (y: eager.Number, x: Functional) =>
+      x.number === y
+    case _ =>
+      a === b
+  }
 
   /**
     * Attempts to simplify `CompositeExpression` instances by applying pattern-based rewrites that change expression structure.

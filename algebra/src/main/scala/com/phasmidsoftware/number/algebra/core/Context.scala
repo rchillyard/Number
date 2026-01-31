@@ -32,7 +32,8 @@ trait Context extends CoreContext {
   def valuableQualifies(v: Valuable): Boolean = (this, v) match {
     case (_, nat: Nat) =>
       true
-    case (AnyContext, _) => true
+    case (AnyContext, _) =>
+      true
     case _ =>
       v.maybeFactor(this).exists(factorQualifies)
   }
@@ -107,6 +108,8 @@ case class RestrictedContext(factor: Factor) extends Context {
     */
   def factorQualifies(f: Factor): Boolean = (f, factor) match {
     case (a, b) if a == b =>
+      true
+    case (PureNumber, Composite) => // Special case to allow PureNumber to be evaluated in Composite context.
       true
     case _ =>
       false

@@ -321,9 +321,16 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
     simplified.asInstanceOf[BiFunction].b shouldBe Two
   }
 
-  it should "evaluate constant sum completely" in {
+  it should "evaluate (named) constant sum completely" in {
     val sum = BiFunction(Two, Two, Sum)
+    sum.materialize shouldBe WholeNumber(4)
     sum.simplify shouldBe Literal(4)
+  }
+
+  it should "evaluate (unnamed) constant sum completely" in {
+    val sum = BiFunction(Literal(WholeNumber(2)), Literal(3), Sum)
+    sum.materialize shouldBe WholeNumber(5)
+    sum.simplify shouldBe Literal(5)
   }
 
   // ============================================================================
@@ -354,12 +361,12 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   it should "simplify x * (-1) to -x" in {
     val prodNeg = BiFunction(Pi, MinusOne, Product)
-    prodNeg.simplify shouldBe Literal(Angle.negPi)
+    prodNeg.simplify shouldBe UniFunction(Pi, Negate)
   }
 
   it should "simplify -x to -x" in {
     val prodNeg = UniFunction(Pi, Negate)
-    prodNeg.simplify shouldBe Literal(Angle.negPi)
+    prodNeg.simplify shouldBe UniFunction(Pi, Negate)
   }
 
   it should "simplify (-1) * x to -x" in {
@@ -382,8 +389,8 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "evaluate constant product completely" in {
-    val prod = BiFunction(Two, Two, Product)
-    prod.simplify shouldBe Literal(4)
+    val prod = BiFunction(Two, Literal(WholeNumber(3)), Product)
+    prod.simplify shouldBe Literal(6)
   }
 
   it should "combine powers of same base" in {
@@ -430,7 +437,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
     // Should be phi^4
     val bf = simplified.asInstanceOf[BiFunction]
     bf.f shouldBe Power
-    bf.a shouldBe Root.phi + 1 // NOTE we do not currently simplify this as Root.phi + 1 because that causes a stack overflow.
+    bf.a shouldBe Root.phi + 1
     bf.b shouldBe Literal(2)
   }
 
@@ -538,6 +545,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
     val target = Aggregate.total(One, 1)
     target.toString shouldBe "Aggregate{+,1,1}"
     target.render shouldBe "2"
+    target.materialize.render shouldBe "2"
   }
 
   it should "test simplifyOperands" in {

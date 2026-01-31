@@ -8,7 +8,7 @@ import com.phasmidsoftware.matchers.{LogInfo, MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
 import com.phasmidsoftware.number.algebra.eager.{Angle, Monotone, Number}
-import com.phasmidsoftware.number.core.inner.PureNumber
+import com.phasmidsoftware.number.core.inner.{PureNumber, Radian}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Field
 import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
@@ -95,9 +95,9 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def matchComplementaryExpressions: Matcher[DyadicTriple, Expression] = Matcher("matchComplementaryExpressions") {
     case Sum ~ x ~ UniFunction(y, Negate) if x == y =>
-      Match(Zero)
-    case Sum ~ UniFunction(x, Negate) ~ y if x == y =>
-      Match(Zero)
+      matchAdditiveIdentity(x)
+    case Sum ~ UniFunction(y, Negate) ~ x if x == y =>
+      matchAdditiveIdentity(x)
     case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if x == y =>
       Match(w)
     case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == z =>
@@ -347,7 +347,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         indicating this and the input term.
     */
   def complementaryTermsEliminatorBiFunction(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean): Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
-    case BiFunction(a, b, f) if complementaryPredicate(f, a, b) && a.maybeFactor(AnyContext).contains(Angle) =>
+    case BiFunction(a, b, f) if complementaryPredicate(f, a, b) && a.maybeFactor(AnyContext).contains(Radian) =>
       Match(Literal(Angle.zero))
     case BiFunction(a, b, f) if complementaryPredicate(f, a, b) =>
       f.maybeIdentityL match {
@@ -420,7 +420,23 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
     val identityCheck: Expression => Boolean = isIdentityFunction(f)
-    (matchComplementaryExpressions(f ~ x ~ y) & filter(identityCheck)).successful
+    val value1: MatchResult[Expression] = matchComplementaryExpressions(f ~ x ~ y)
+    val value2: MatchResult[Expression] = value1 & filter(identityCheck)
+    value2.successful
+  }
+
+  /**
+    * Matches an expression to its additive identity based on its components.
+    *
+    * @param x The expression to be evaluated, which may be angular or another type of number.
+    * @return a Match based on angular zero if appropriate, otherwise a Match on Zero.
+    */
+  private def matchAdditiveIdentity(x: Expression) = {
+    val maybeFactor = x.maybeFactor(AnyContext)
+    if (maybeFactor.contains(Radian))
+      Match(Literal(Angle.zero))
+    else
+      Match(Zero)
   }
 }
 
@@ -443,10 +459,11 @@ object ExpressionMatchers {
     * @return A `MatchResult[Expression]` containing the result of the simplification process.
     */
   def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] = {
-    if (xs.map(_.simplify) == xs)
+    val simplifiedExpressions = xs.map(_.simplify)
+    if (simplifiedExpressions == xs)
       em.Miss("components unchanged", grouper(xs))
     else
-      em.Match(grouper(xs.map(_.simplify)))
+      em.Match(grouper(simplifiedExpressions))
   }
 
   /**

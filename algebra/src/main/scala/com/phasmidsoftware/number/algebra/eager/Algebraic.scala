@@ -276,7 +276,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       q.normalize.render
     case QuadraticSolution(base, offset, coefficient, false) =>
       val offStr = if (offset.isZero || coefficient == 0) "" else s"${offset.render}"
-      s"${base.render} ${if (coefficient == 1) "+ " else "- "}$offStr"
+      s"(${base.render} ${if (coefficient == 1) "+ " else "- "}$offStr)"
     case _ =>
       // TODO this is not correct in the cases where coefficient is not 1 or -1
       s"Complex quadratic solution: ${base.render} ${if (coefficient == -1) "- " else "+ "}${offset.render}"

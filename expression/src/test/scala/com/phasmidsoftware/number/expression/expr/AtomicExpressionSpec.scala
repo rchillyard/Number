@@ -385,7 +385,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   behavior of "QuadraticRoot"
 
   private val goldenRatioEq = QuadraticEquation(Rational(-1), Rational(-1))
-  private val phiRoot = QuadraticRoot(goldenRatioEq, 0)
+  private val phiRoot = Root.phi
 
   it should "be atomic" in {
     phiRoot.isAtomic shouldBe true
@@ -408,7 +408,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   }
 
   it should "have negative signum for negative root" in {
-    val negRoot = QuadraticRoot(goldenRatioEq, 1)
+    val negRoot = QuadraticRoot(goldenRatioEq, 1, Some("𝛙"))
     negRoot.signum shouldBe -1
   }
 

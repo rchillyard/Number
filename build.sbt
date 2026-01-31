@@ -2,7 +2,7 @@ import MermaidDiagramGenerator.autoImport.generateMermaidDiagrams
 
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.6.2"
+ThisBuild / version := "1.6.3"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"

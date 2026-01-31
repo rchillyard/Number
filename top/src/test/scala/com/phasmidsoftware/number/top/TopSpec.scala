@@ -14,7 +14,6 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.goldenRatioEquation
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.{Expression, *}
 import org.scalactic.Equality
@@ -147,7 +146,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "use multiply instead of addition" in {
     puremath"\pi+𝛑" shouldBe BiFunction(Pi, Pi, Sum)
-    lazymath"\pi+𝛑" shouldBe Literal(Angle(WholeNumber(0)), Some("0𝛑"))
+    lazymath"\pi+𝛑" shouldBe Pi * Two
     math"\pi+𝛑" shouldBe Angle(2)
   }
   it should "work for Negate" in {
@@ -227,11 +226,11 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"\sin(0)" shouldBe zero
     lazymath"\sin(\pi)" shouldBe Zero
     math"\sin(\pi)" shouldBe zero
-    lazymath"\cos(𝛑/2)" shouldBe Zero
+    lazymath"\cos(𝛑/2)" shouldBe UniFunction(BiFunction(Pi, Rational.half, Product), Cosine)
     math"\cos(𝛑/2)" shouldBe zero
   }
   it should "work for Sine pi/2, etc." in {
-    lazymath"\sin(𝛑/2)" shouldBe One
+    lazymath"\sin(𝛑/2)" shouldBe UniFunction(BiFunction(Pi, Rational.half, Product), Sine)
     math"\sin(𝛑/2)" shouldBe one
     lazymath"\cos(0)" shouldBe One
     math"\cos(0)" shouldBe one
@@ -253,8 +252,8 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"\sqrt{7 ∧ 2}" shouldBe Eager(7)
   }
   it should "simplify phi∧2" in {
-    puremath"\phi ∧ 2" shouldBe BiFunction(QuadraticRoot(goldenRatioEquation, 0), Two, Power)
-    lazymath"\phi ∧ 2" shouldBe BiFunction(QuadraticRoot(goldenRatioEquation, 0), One, Sum)
+    puremath"\phi ∧ 2" shouldBe BiFunction(Root.phi, Two, Power)
+    lazymath"\phi ∧ 2" shouldBe BiFunction(Root.phi, One, Sum)
     math"\phi ∧ 2" === Real("2.618033988749895*")
   }
   it should "cancel 1 + -1" in {
