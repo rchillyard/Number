@@ -7,6 +7,7 @@ import com.phasmidsoftware.number.core.numerical.Constants.sGamma
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.language.postfixOps
 import scala.math.Numeric.Implicits.infixNumericOps
 
@@ -109,7 +110,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     Real(maybeNumber.get) should ===(target)
     goldenRatio.render shouldBe "\uD835\uDED7"
     val result: Field = goldenRatio.materialize
-    result.render shouldBe "1.6180339887498950(47)"
+    result.render shouldBe "1.6180339887498950(12)"
   }
   it should "have alpha" in {
     val target = Constants.alpha

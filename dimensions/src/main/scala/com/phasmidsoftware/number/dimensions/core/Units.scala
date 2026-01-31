@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.dimensions.core
 
 import com.phasmidsoftware.number.algebra.eager.*
-import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.Rational
 
 /**
@@ -218,7 +217,6 @@ case class PowerUnit[D <: Dimension](
   def toSI: ExactNumber =
     base.toSI.pow(RationalNumber(power)) match {
       case Some(e: ExactNumber) => e
-      case Some(x) => throw DimensionsException("PowerUnit.toSI: cannot convert to ExactNumber")
       case None => throw DimensionsException("PowerUnit.toSI: cannot evaluate toSI")
     }
 
@@ -385,6 +383,7 @@ case object Dimensionless extends SIUnit[Dimensionless] {
   def symbol: String = ""
 
   def dimensionWitness: DimensionWitness = DimensionWitness.dimensionless
+
 }
 
 // ============================================================================

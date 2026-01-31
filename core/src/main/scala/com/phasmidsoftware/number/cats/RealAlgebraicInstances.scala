@@ -12,8 +12,8 @@ trait RealAlgebraicInstances {
 
     implicit val realTruncatedDivisionCRing: TruncatedDivisionCRing[Real] = new TruncatedDivisionCRing[Real] {
       // Delegate the basic operations of the loop to realField 
-      def zero: Real = Constants.zero
-      def one: Real = Constants.one
+      lazy val zero: Real = Constants.zero
+      lazy val one: Real = Constants.one
 
       def plus(x: Real, y: Real): Real = createFromRealField(x `add` y)
 
@@ -49,8 +49,8 @@ trait RealAlgebraicInstances {
     
     // Provide CommutativeRing[Real] without depending on Field
     implicit val realCommutativeRing: CommutativeRing[Real] = new CommutativeRing[Real] {
-      def zero: Real = Constants.zero
-      def one: Real = Constants.one
+      lazy val zero: Real = Constants.zero
+      lazy val one: Real = Constants.one
 
       def plus(x: Real, y: Real): Real = createFromRealField(x `add` y)
 
@@ -60,19 +60,19 @@ trait RealAlgebraicInstances {
     }
 
     /**
-    // Cannot pass the field law tests.
-    //TODO: Uncomment this when we have a way to pass the field law tests.
-    
-     implicit val realField: AlgebraField[Real] = new AlgebraField[Real] {
-         def zero: Real = Constants.zero
-         def one: Real = Constants.one
-         def plus(x: Real, y: Real): Real = createFromRealField(x add y)
-         def times(x: Real, y: Real): Real = createFromRealField(x multiply y)
-         def negate(x: Real): Real = createFromRealField(-x)
-         override def fromInt(n: Int): Real = Real(n)
-         def div(x: Real, y: Real): Real = createFromRealField(x divide y)
-         def reciprocal(x: Real, y: Real): Real = createFromRealField(x.invert)
-     }
+      * // Cannot pass the field law tests.
+      * //TODO: Uncomment this when we have a way to pass the field law tests.
+      *
+      * implicit val realField: AlgebraField[Real] = new AlgebraField[Real] {
+      * lazy val zero: Real = Constants.zero
+      * lazy val one: Real = Constants.one
+      * def plus(x: Real, y: Real): Real = createFromRealField(x add y)
+      * def times(x: Real, y: Real): Real = createFromRealField(x multiply y)
+      * def negate(x: Real): Real = createFromRealField(-x)
+      * override def fromInt(n: Int): Real = Real(n)
+      * def div(x: Real, y: Real): Real = createFromRealField(x divide y)
+      * def reciprocal(x: Real, y: Real): Real = createFromRealField(x.invert)
+      * }
     */
 
     

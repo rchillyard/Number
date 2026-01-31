@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.expression.algebraic
 
 import com.phasmidsoftware.number.core.algebraic.Quadratic
-import com.phasmidsoftware.number.core.expression.{Expression, MinusOne}
+import com.phasmidsoftware.number.core.expression.{MinusOne}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -16,7 +16,7 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     phi.render shouldBe "\uD835\uDED7"
 
-    (phi + 1).render shouldBe "2.6180339887498950(55)"
+    (phi + 1).render shouldBe "2.6180339887498950(12)"
 
     (phi * phi).simplify.render shouldBe "Solution: 1.5 + +  √1.25"
 

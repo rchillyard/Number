@@ -13,7 +13,7 @@ Await.result(Future.sequence(Seq.fill(10)(helloWorld)), 20.second)
 import scala.util.Random
 
 def getPoints(n: Int)(implicit r: Random): LazyList[(Double, Double)] = {
-  def getCoordinate: Double = (r.nextDouble() - 0.5) * 2
+  lazy val getCoordinate: Double = (r.nextDouble() - 0.5) * 2
 
   def sqr(x: Double) = x * x
 

@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.{fromRational, maybeRational}
 import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ExactNumber, Field, Number, NumberLike, Real}
+
 import scala.Option.when
 import scala.util.Failure
 
@@ -76,7 +77,7 @@ trait Solution extends NumberLike {
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = true
+  lazy val isExact: Boolean = true
 
   /**
     * Determines whether the solution is a pure number.
@@ -90,7 +91,7 @@ trait Solution extends NumberLike {
     * Method to determine if this NumberLike is actually a real Number (i.e. not complex).
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *
-    * CONSIDER redefining this as Option[Field] or Option[Real].
+    * CONSIDER relazy valining this as Option[Field] or Option[Real].
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
@@ -228,7 +229,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     *
     * @return a String
     */
-  def render: String = this match {
+  lazy val render: String = this match {
     case QuadraticSolution.phi =>
       Algebraic.phi.render
     case QuadraticSolution.psi =>
@@ -239,7 +240,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
       s"Solution: ${Value.valueToString(base, skipOne = false)} + ${if (branch == 1) "- " else "+ "} ${factor.render(offset)}"
   }
 
-  override def toString: String = render
+  override lazy val toString: String = render
 
   /**
     * Computes the conjugate of the current quadratic solution.
@@ -249,7 +250,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     *
     * @return a new QuadraticSolution instance representing the conjugate of the current solution
     */
-  def conjugate: QuadraticSolution =
+  lazy val conjugate: QuadraticSolution =
     copy(branch = 1 - branch)
 
   /**
@@ -263,7 +264,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     * @return a new QuadraticSolution instance that represents the negation and conjugation
     *         of the current quadratic solution
     */
-  def negate: QuadraticSolution =
+  lazy val negate: QuadraticSolution =
     copy(offset = Value.negate(offset)).conjugate
 
   /**
@@ -273,7 +274,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     *
     * @return true if both the `base` and `offset` are zero, otherwise false.
     */
-  def isZero: Boolean =
+  lazy val isZero: Boolean =
     Value.isZero(base) && isPureNumber
 
   /**
@@ -285,7 +286,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     *
     * @return true if the offset of the solution is zero, otherwise false.
     */
-  def isPureNumber: Boolean =
+  lazy val isPureNumber: Boolean =
     Value.isZero(offset)
 
   /**
@@ -296,7 +297,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     *
     * @return true if the solution represents unity, otherwise false.
     */
-  def isUnity: Boolean =
+  lazy val isUnity: Boolean =
     isPureNumber && maybeRational(base).contains(Rational.one)
 
   /**
@@ -309,7 +310,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     *
     * @return +1 if the solution is positive, -1 if negative, or 0 if it is at the origin.
     */
-  def signum: Int =
+  lazy val signum: Int =
     asField.signum
 
   import scala.language.implicitConversions
@@ -339,7 +340,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     *
     * @return a Field representation of the current QuadraticSolution instance
     */
-  def asField: Field =
+  lazy val asField: Field =
     if (Value.isZero(offset))
       ExactNumber(base, PureNumber)
     else {
@@ -490,21 +491,21 @@ case class LinearSolution(value: Value) extends Solution {
     *
     * @return the base value of type Value
     */
-  def base: Value = value
+  lazy val base: Value = value
 
   /**
     * Retrieves the offset value of the solution.
     *
     * @return the offset value of type Value
     */
-  def offset: Value = Value.zero
+  lazy val offset: Value = Value.zero
 
   /**
     * Retrieves the factor associated with the offset.
     *
     * @return the factor of type Factor
     */
-  def factor: Factor = PureNumber
+  lazy val factor: Factor = PureNumber
 
   /**
     * Determines whether the solution is a pure number.
@@ -512,7 +513,7 @@ case class LinearSolution(value: Value) extends Solution {
     *
     * @return true if the solution is a pure number, false otherwise
     */
-  def isPureNumber: Boolean = true
+  lazy val isPureNumber: Boolean = true
 
   /**
     * Determines if the offset is negative.
@@ -520,28 +521,28 @@ case class LinearSolution(value: Value) extends Solution {
     *
     * @return true if the offset is negative, false otherwise
     */
-  def branch: Int = 0
+  lazy val branch: Int = 0
 
   /**
     * Converts the solution to a representation in the Field domain.
     *
     * @return an instance of Field representing the solution.
     */
-  def asField: Field = Real(ExactNumber(value, PureNumber))
+  lazy val asField: Field = Real(ExactNumber(value, PureNumber))
 
   /**
     * Determines whether the solution is zero.
     *
     * @return true if the solution is zero, false otherwise.
     */
-  def isZero: Boolean = Value.isZero(value)
+  lazy val isZero: Boolean = Value.isZero(value)
 
   /**
     * Determines whether the solution represents unity.
     *
     * @return true if the solution represents unity, false otherwise
     */
-  def isUnity: Boolean = Value.isEqual(value, Value.one)
+  lazy val isUnity: Boolean = Value.isEqual(value, Value.one)
 
   /**
     * Determines the sign of the solution.
@@ -549,14 +550,14 @@ case class LinearSolution(value: Value) extends Solution {
     * @return an integer representing the sign of the solution: 0 if the solution is zero,
     *         a positive value if the solution is positive, or a negative value if the solution is negative.
     */
-  def signum: Int = Value.signum(value)
+  lazy val signum: Int = Value.signum(value)
 
   /**
     * Negates the current instance of the solution by inverting its base and offset values.
     *
     * @return a new instance of `QuadraticSolution` representing the negated version of the current solution
     */
-  def negate: Solution = LinearSolution(Value.negate(value))
+  lazy val negate: Solution = LinearSolution(Value.negate(value))
 
   /**
     * Adds the specified solution to the current solution and returns
@@ -613,6 +614,6 @@ case class LinearSolution(value: Value) extends Solution {
     *
     * @return a string representation of the solution
     */
-  def render: String =
+  lazy val render: String =
     maybeRational(value) map (_.toString) getOrElse toString
 }

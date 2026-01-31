@@ -91,7 +91,7 @@ case class FinitePowerSeries[X: Numeric, Y: Numeric](coefficients: Seq[Y])(f: X 
 case class SeriesFunction(f: Number => Number, name: String) extends (Number => Number) {
   def apply(x: Number): Number = f(x)
 
-  override def toString: String = name
+  override lazy val toString: String = name
 }
 
 /**

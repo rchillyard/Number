@@ -99,7 +99,7 @@ trait Polynomial[X] extends (X => X) {
     *
     * @return a string that represents the polynomial, including its degree and coefficients
     */
-  def render: String = {
+  lazy val render: String = {
     val sb = new StringBuilder
     sb.append(s"Polynomial($degree: ${coefficients.mkString(", ")})")
     sb.toString()

@@ -31,7 +31,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     *
     * @return the branch index as an `Int`: 0 if `pos` is true, 1 otherwise.
     */
-  def branch: Int = if (pos) 0 else 1
+  lazy val branch: Int = if (pos) 0 else 1
 
   /**
     * Determines the name associated with the given branch index, if applicable.
@@ -41,7 +41,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     * @return an `Option[String]` containing the name of the branch as a string if
     *         a name can be determined, `None` otherwise.
     */
-  def maybeName: Option[String] =
+  lazy val maybeName: Option[String] =
     if (equation.p == Rational.negOne && equation.q == Rational.negOne)
       branch match {
         case 0 => Some("\uD835\uDED7")
@@ -56,7 +56,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse solve.render
+  lazy val render: String = maybeName getOrElse solve.render
 
   /**
     * Scales the current `Algebraic_Quadratic` instance by a given `Rational` value.
@@ -225,7 +225,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     *
     * @return a new `Algebraic` instance with the squared transformation applied.
     */
-  def square: Algebraic =
+  lazy val square: Algebraic =
     copy(equation = equation.transform((p, q) => 2 * q - p ∧ 2, (_, q) => q ∧ 2))
 
   /**
@@ -270,7 +270,7 @@ case class Algebraic_Quadratic(equation: Quadratic, pos: Boolean) extends Algebr
     Objects.hash(equation, pos)
   }
 
-  override def toString: String = render
+  override lazy val toString: String = render
 //    s"Algebraic_Quadratic($solve, $equation, $pos)"
 
   /**
@@ -337,13 +337,13 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     *
     * @return an `Int` representing the number of branches, which is always 2.
     */
-  def branches: Int = 2
+  lazy val branches: Int = 2
 
   /**
     * Yields the inverse of this Equation. CONSIDER Does this make sense??
     * CONSIDER should we make it an abstract method on Equation?
     */
-  def invert: Quadratic =
+  lazy val invert: Quadratic =
     transform((p, q) => p / q, (_, q) => q.invert)
 
   /**
@@ -353,7 +353,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     *
     * @return a `Rational` value representing the sum of conjugates.
     */
-  def conjugateSum: Rational =
+  lazy val conjugateSum: Rational =
     p.negate
 
   /**
@@ -365,7 +365,7 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     *
     * @return a `Rational` value representing the product of the conjugate roots of the quadratic equation.
     */
-  def conjugateProduct: Rational =
+  lazy val conjugateProduct: Rational =
     q
 
   /**
@@ -389,10 +389,11 @@ case class Quadratic(p: Rational, q: Rational) extends Equation {
     *
     * @return an `Int` representing the discriminant.
     */
-  def discriminant: Rational =
+  lazy val discriminant: Rational =
     p * p - 4 * q
 
-  override def toString: String = s"Quadratic Equation: x∧2 ${Quadratic.termSign(p)}x ${Quadratic.termSign(q)} = 0"
+  override lazy val toString: String =
+    s"Quadratic Equation: x∧2 ${Quadratic.termSign(p)}x ${Quadratic.termSign(q)} = 0"
 
   /**
     * Determines if the given object can be considered equal to this instance.

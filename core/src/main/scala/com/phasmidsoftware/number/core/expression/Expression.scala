@@ -22,6 +22,7 @@ import scala.language.implicitConversions
   * NOTE there are only two subtypes of Expression: AtomicExpression and CompositeExpression
   * We do not use "sealed" because this module would grow much too large.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Expression instead", since = "1.6.2")
 trait Expression extends NumberLike with Approximatable {
 
   /**
@@ -77,7 +78,7 @@ trait Expression extends NumberLike with Approximatable {
     *
     * @return the materialized `Field` representation of the `Expression`.
     */
-  def materialize: Field = {
+  lazy val materialize: Field = {
     val simplified = simplify
     recover(simplified.evaluateAsIs orElse simplified.approximation, ExpressionException(s"materialize: logic error on $this"))
   }
@@ -200,7 +201,7 @@ object Expression {
       *
       * @return an Expression representing the reciprocal of x.
       */
-    def reciprocal: Expression =
+    lazy val reciprocal: Expression =
       UniFunction(x, Reciprocal)
 
     /**
@@ -227,7 +228,7 @@ object Expression {
       *
       * @return an Expression representing the square root of x.
       */
-    def sqrt: Expression = x match {
+    lazy val sqrt: Expression = x match {
       case z: AtomicExpression =>
         z.evaluateAsIs flatMap (_.asNumber) match {
           case Some(q) =>
@@ -244,7 +245,7 @@ object Expression {
       *
       * @return an Expression representing the sin(x).
       */
-    def sin: Expression =
+    lazy val sin: Expression =
       UniFunction(x, Sine)
 
     /**
@@ -252,7 +253,7 @@ object Expression {
       *
       * @return an Expression representing the cos(x).
       */
-    def cos: Expression =
+    lazy val cos: Expression =
       UniFunction(x, Cosine)
 
     /**
@@ -262,7 +263,7 @@ object Expression {
       *
       * @return an Expression representing the tan(x).
       */
-    def tan: Expression =
+    lazy val tan: Expression =
       sin * cos.reciprocal // TESTME
 
     /**
@@ -270,7 +271,7 @@ object Expression {
       *
       * @return an Expression representing the log of x.
       */
-    def ln: Expression =
+    lazy val ln: Expression =
       UniFunction(x, Ln)
 
     /**
@@ -278,7 +279,7 @@ object Expression {
       *
       * @return an Expression representing `e` raised to the power of x.
       */
-    def exp: Expression =
+    lazy val exp: Expression =
       UniFunction(x, Exp)
 
     /**

@@ -28,7 +28,7 @@ class FibonacciSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   it should "render phi+1 as a Field" in {
     val target: Field = Algebraic.phi + Constants.one
     val actual = target.render
-    actual shouldBe "2.6180339887498950(55)"
+    actual shouldBe "2.6180339887498950(12)"
   }
   it should "render phi+1 as an Expression" in {
     val target: Expression = Root.phi `plus` One

@@ -237,6 +237,11 @@ class PhysicalConstantsSpec extends AnyFlatSpec with should.Matchers {
     //    e1.render shouldBe "8.8541878128*E-12"
     val e2 = Quantity("1.25663706212(19)E-6")
     val e3 = e1 * e2
+    // TODO we should ensure that `ProductUnit(Dimensionless,Dimensionless,·)` is actually simplified to `Dimensionless`.
+    //    e3 shouldBe Quantity("1.04308743188E-10")
+    //    println(e3.value.asInstanceOf[ValueExpression].value)
+    // TODO there is far too much precision in the `e3` here. We need to sort that out!
+    //    (e3.value.asInstanceOf[ValueExpression].value ~= Real("1.11E-17")) shouldBe true
     println(e3)
   }
 }
