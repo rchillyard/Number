@@ -63,13 +63,12 @@ object ExpressionEq {
     * This is useful when you want to know if two different expressions represent the same value.
     * Note: This may not be suitable for all use cases as it materializes the expressions.
     */
-  def eqByValue(implicit eagerEq: Eq[Eager]): Eq[Expression] = new Eq[Expression] {
-    def eqv(x: Expression, y: Expression): Boolean = {
+  def eqByValue(implicit eagerEq: Eq[Eager]): Eq[Expression] =
+    (x: Expression, y: Expression) => {
       (x.evaluateAsIs, y.evaluateAsIs) match {
         case (Some(a), Some(b)) => eagerEq.eqv(a, b)
         case (None, None) => x == y // Fall back to structural equality if neither evaluates
         case _ => false
       }
     }
-  }
 }

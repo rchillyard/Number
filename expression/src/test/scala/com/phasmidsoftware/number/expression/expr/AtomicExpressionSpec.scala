@@ -75,7 +75,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
 
   it should "return None for approximation" in {
     val noop = Noop("test")
-    noop.approximation(force = false) shouldBe None
+    noop.approximation() shouldBe None
     noop.approximation(force = true) shouldBe None
   }
 
@@ -226,7 +226,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
     * Table of monadic function behaviors for each constant.
     * Tests that each constant properly supports or rejects monadic operations.
     */
-  val monadicFunctions = Table(
+  private val monadicFunctions = Table(
     ("constant", "function",   "expected"),
     // Zero
     (Zero,       Negate,       Some(Zero)),

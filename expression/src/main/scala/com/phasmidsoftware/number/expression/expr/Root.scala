@@ -637,7 +637,8 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0, None) {
     *         is successful, or `None` if the addition is not valid.
     */
   def add(other: Root): Option[Root] = other match {
-    case l: LinearRoot => ???
+    case l: LinearRoot =>
+      ??? // TODO Implement this properly.
     case _ =>
       None
   }

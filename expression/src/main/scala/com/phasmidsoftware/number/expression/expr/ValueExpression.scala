@@ -206,6 +206,7 @@ object ValueExpression {
 
   /**
     * Creates a Literal instance using an integer value.
+    * NOTE not recursive
     *
     * @param x the integer value to be used for constructing the Literal.
     * @return a Literal instance wrapping the provided integer value as a Real number.

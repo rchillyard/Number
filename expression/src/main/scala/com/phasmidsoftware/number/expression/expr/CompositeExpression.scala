@@ -17,7 +17,7 @@ import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, given_LatexRenderer_Expression, matchSimpler}
-import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.{complementaryExpressions, componentsSimplifier}
+import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
 import com.phasmidsoftware.number.{algebra, core, expression}
 
 import java.util.Objects
@@ -560,7 +560,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(BiFunction(w, x plus z, Power))
       else
         em.Miss("bases not equal", this)
-    case BiFunction(a, Literal(b, _), Sum) if (a.materialize.add(b)).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
+    case BiFunction(a, Literal(b, _), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
       em.Match(Literal(Angle.zero))
     case BiFunction(a, b, Product) if a == b =>
       em.Match(BiFunction(a, Two, Power))

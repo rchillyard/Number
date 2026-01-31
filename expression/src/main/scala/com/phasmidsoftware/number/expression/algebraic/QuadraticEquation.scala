@@ -284,7 +284,8 @@ case class LinearEquation(r: Rational) extends Equation {
     * @return a new `Equation` instance that is the result of applying the specified transformations
     *         to the components of the current equation.
     */
-  def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): Equation = ??? // TODO implement me
+  def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): Equation =
+    ??? // TODO implement me
 
   /**
     * Scales the current instance by the given factor.
