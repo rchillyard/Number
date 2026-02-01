@@ -555,11 +555,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   lazy val structuralMatcher: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: structuralMatcher") {
     case BiFunction(a, b, Sum) if a == b =>
       em.Match(BiFunction(a, Two, Product))
-    case BiFunction(BiFunction(w, x, Power), BiFunction(y, z, Power), Product) =>
-      if (w == y)
-        em.Match(BiFunction(w, x plus z, Power))
-      else
-        em.Miss("bases not equal", this)
+    case BiFunction(BiFunction(w, x, Power), BiFunction(y, z, Power), Product) if w == y =>
+      em.Match(BiFunction(w, x plus z, Power))
     case BiFunction(a, Literal(b, _), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
       em.Match(Literal(Angle.zero))
     case BiFunction(a, b, Product) if a == b =>

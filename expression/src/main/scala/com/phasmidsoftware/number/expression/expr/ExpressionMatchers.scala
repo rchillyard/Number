@@ -54,11 +54,6 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Match(r)
 
   /**
-    * Type alias for a pair of expressions (purpose of this is solely for brevity).
-    */
-  //  private[expression] type Expressions = Expression ~ Expression
-
-  /**
     * Type alias for a dyadic triple (purpose of this is solely for brevity).
     */
   private[number] type DyadicTriple = ExpressionBiFunction ~ Expression ~ Expression
@@ -191,19 +186,6 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   }
 
   /**
-    * Method to define a `Matcher` to match a specific Number.
-    * CONSIDER using `matches`.
-    *
-    * @param x the `Number` to match.
-    * @return a `AutoMatcher[Field]` which matches only on x.
-    */
-  private def matchNumber(x: Valuable): AutoMatcher[Valuable] =
-    Matcher("matchNumber") {
-      case `x` => Match(x) // TESTME
-      case e => Miss("matchNumber", e)
-    }
-
-  /**
     * Matches and transforms nested BiFunction structures into an Aggregate if they meet
     * specific conditions where the nested functions share the same operation.
     * Specifically:
@@ -272,26 +254,6 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
-  }
-
-  /**
-    * A Matcher that processes an `Aggregate` with the `Product` function, identifying specific
-    * expressions containing angles and their reciprocals. If both angles and reciprocal angles
-    * are found, these expressions are restructured and returned as a new `Aggregate` with
-    * modified components. If no appropriate angles or reciprocals are found, or the input is
-    * not a `Product` aggregate, the Matcher will fail.
-    *
-    * @return A `Matcher[Aggregate, Expression]` that matches aggregates with angle and reciprocal
-    *         angle expressions, restructuring them accordingly. Returns a `Miss` otherwise.
-    */
-  private def angleEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("angleEliminatorAggregate") {
-    case a@Aggregate(Product, xs) =>
-      if (Aggregate.hasAngles(xs) && Aggregate.hasReciprocalAngles(xs))
-        Match(Aggregate(Product, Aggregate.getAnglesEtc(xs)))
-      else
-        Miss("angleEliminatorAggregate: no angles", a)
-    case a =>
-      Miss("angleEliminatorAggregate: not a Product Aggregate", a)
   }
 
   /**
@@ -379,6 +341,52 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   }
 
   /**
+    * Determines if the given bi-function is complementary for the specified expressions.
+    *
+    * @param f the bi-function to evaluate
+    * @param x the first expression to be checked
+    * @param y the second expression to be checked
+    * @return true if the bi-function is complementary for the given expressions, false otherwise
+    */
+  def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
+    val identityCheck: Expression => Boolean = isIdentityFunction(f)
+    (matchComplementaryExpressions(f ~ x ~ y) & filter(identityCheck)).successful
+  }
+
+  /**
+    * A Matcher that processes an `Aggregate` with the `Product` function, identifying specific
+    * expressions containing angles and their reciprocals. If both angles and reciprocal angles
+    * are found, these expressions are restructured and returned as a new `Aggregate` with
+    * modified components. If no appropriate angles or reciprocals are found, or the input is
+    * not a `Product` aggregate, the Matcher will fail.
+    *
+    * @return A `Matcher[Aggregate, Expression]` that matches aggregates with angle and reciprocal
+    *         angle expressions, restructuring them accordingly. Returns a `Miss` otherwise.
+    */
+  private def angleEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("angleEliminatorAggregate") {
+    case a@Aggregate(Product, xs) =>
+      if (Aggregate.hasAngles(xs) && Aggregate.hasReciprocalAngles(xs))
+        Match(Aggregate(Product, Aggregate.getAnglesEtc(xs)))
+      else
+        Miss("angleEliminatorAggregate: no angles", a)
+    case a =>
+      Miss("angleEliminatorAggregate: not a Product Aggregate", a)
+  }
+
+  /**
+    * Method to define a `Matcher` to match a specific Number.
+    * CONSIDER using `matches`.
+    *
+    * @param x the `Number` to match.
+    * @return a `AutoMatcher[Field]` which matches only on x.
+    */
+  private def matchNumber(x: Valuable): AutoMatcher[Valuable] =
+    Matcher("matchNumber") {
+      case `x` => Match(x) // TESTME
+      case e => Miss("matchNumber", e)
+    }
+
+  /**
     * Return a `Match` if the size of the list was reduced, otherwise return a `Miss`.
     * If the list is empty, a match on an appropriate identity is returned.
     * If the list is shorter than the original, a `Match` on a new `Aggregate` is returned.
@@ -407,23 +415,6 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       MatchCheck(Aggregate(f, list))(a)
     else
       Miss(s"complementaryTermsEliminatorAggregate: $a", a)
-
-  /**
-    * Determines if the given bi-function is complementary for the specified expressions.
-    *
-    * TODO move this into ExpressionBiFunction.
-    *
-    * @param f the bi-function to evaluate
-    * @param x the first expression to be checked
-    * @param y the second expression to be checked
-    * @return true if the bi-function is complementary for the given expressions, false otherwise
-    */
-  def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
-    val identityCheck: Expression => Boolean = isIdentityFunction(f)
-    val value1: MatchResult[Expression] = matchComplementaryExpressions(f ~ x ~ y)
-    val value2: MatchResult[Expression] = value1 & filter(identityCheck)
-    value2.successful
-  }
 
   /**
     * Matches an expression to its additive identity based on its components.

@@ -300,7 +300,7 @@ sealed abstract class ExpressionBiFunction(
     */
   def evaluateAsIs(x: Expression, y: Expression): Option[Eager] =
     for a <- x.evaluateAsIs; b <- y.evaluateAsIs yield f(a, b)
-
+  
   /**
     * Generate helpful debugging information about this ExpressionMonoFunction.
     *
