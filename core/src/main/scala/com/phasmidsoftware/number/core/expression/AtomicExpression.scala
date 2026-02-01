@@ -323,6 +323,7 @@ object FieldExpression {
   * @param value     the `Field`.
   * @param maybeName an optional name (typically this will be None).
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Literal instead", since = "1.6.2")
 case class Literal(override val value: Field, override val maybeName: Option[String] = None) extends FieldExpression(value, maybeName) {
 
   /**
