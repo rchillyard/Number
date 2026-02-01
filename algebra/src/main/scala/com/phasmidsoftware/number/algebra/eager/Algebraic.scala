@@ -340,7 +340,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     * @return true if the solution represents unity, otherwise false.
     */
   def isUnity: Boolean =
-    isPureNumber && base == Eager.one
+    isPureNumber && base.isUnity
 
   /**
     * Determines the "sign" of the current quadratic solution.
@@ -840,10 +840,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @return true if the solution represents unity, false otherwise
     */
-  def isUnity: Boolean = value match {
-    case x: Unitary => x.isUnity
-    case _ => false
-  }
+  override def isUnity: Boolean = value.isUnity
 
   /**
     * Determines the sign of the solution.

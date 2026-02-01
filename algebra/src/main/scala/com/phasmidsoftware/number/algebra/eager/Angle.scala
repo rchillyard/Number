@@ -93,6 +93,13 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   }
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = false
+
+  /**
     * Converts this Angle to a representation of the specified type `T`, if possible.
     *
     * This method attempts to convert the number to a type `T` that has implicit evidence

@@ -681,6 +681,17 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
     processed.length should be > exprs.length
   }
 
+  behavior of "protection"
+
+  it should "protect 2 * 𝛑 from evaluation" in {
+    val expression = BiFunction(Two, Pi, Product)
+    expression.simplify shouldBe expression
+  }
+  it should "not protect 1 + 2 from evaluation" in {
+    val expression = BiFunction(One, Two, Sum)
+    expression.simplify shouldBe Literal(3)
+  }
+
   // ============================================================================
   // Aggregate Tests - Simplification
   // ============================================================================

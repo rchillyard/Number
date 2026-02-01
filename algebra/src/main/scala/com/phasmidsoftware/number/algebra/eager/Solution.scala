@@ -15,6 +15,7 @@ import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.{algebra, core}
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -94,6 +95,16 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean = complex.isZero
+
+  /**
+    * Determines if the current `Complex` number is both real and of unity magnitude.
+    *
+    * A `Complex` number is considered to have unity magnitude if its modulus equals one.
+    * Additionally, the number must lie on the real axis to satisfy the condition of being real.
+    *
+    * @return true if the `Complex` number is real and has unity magnitude, false otherwise.
+    */
+  def isUnity: Boolean = complex.isReal && complex.isUnity
 
   /**
     * Determines the sign of the Monotone value represented by this instance.

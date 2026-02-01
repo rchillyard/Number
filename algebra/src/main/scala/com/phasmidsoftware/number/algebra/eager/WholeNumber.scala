@@ -229,6 +229,8 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
       super.eqv(that)
   }
 
+  override def toString: String = render
+
   /**
     * Converts the given structure to a `Real` representation.
     * CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here.

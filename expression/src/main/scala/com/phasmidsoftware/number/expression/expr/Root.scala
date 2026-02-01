@@ -173,6 +173,28 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, maybeName: Option
   }
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = solution.isUnity
+
+  /**
+    * Determines if the current number is equal to zero.
+    *
+    * @return true if the number is zero, false otherwise
+    */
+  def isZero: Boolean = solution.isZero
+
+  /**
+    * Determines the sign of the Monotone value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = solution.signum
+
+  /**
     * Represents an optional value for the current `AbstractRoot` instance, resulting from a numerical
     * transformation of its associated solution if the solution is exact.
     *
@@ -372,6 +394,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, maybeName: Option
       throw ExpressionException(s"squareRoot: cannot compute square root of $this")
   }
 
+
   /**
     * Compares this `AbstractRoot` instance with another object for equality.
     * The method checks if the other object is of a compatible type and
@@ -540,25 +563,13 @@ case class QuadraticRoot(equ: Equation, branch: Int, maybeName: Option[String] =
     case _ =>
       s"QuadraticRoot($equ, $branch)"
   }
-
-  /**
-    * Determines if the current number is equal to zero.
-    *
-    * @return true if the number is zero, false otherwise
-    */
-  def isZero: Boolean = solution.isZero
-
-  /**
-    * Determines the sign of the Monotone value represented by this instance.
-    * Returns an integer indicating whether the value is positive, negative, or zero.
-    *
-    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
-    */
-  def signum: Int = solution.signum
 }
 
 /**
   * The `QuadraticRoot` object provides functionality to construct and manipulate roots of quadratic equations.
+  * Basically, this method tries to reverse-engineer a QuadraticSolution into a QuadraticRoot.
+  * We don't currently manage it for all possibilities (understatement!)
+  * TODO complete more cases.
   *
   * This object acts as a factory for creating instances of `QuadraticRoot` using algebraic data,
   * and offers methods for working with quadratic equations and their solutions.
@@ -566,10 +577,14 @@ case class QuadraticRoot(equ: Equation, branch: Int, maybeName: Option[String] =
 object QuadraticRoot {
   def apply(solution: QuadraticSolution): QuadraticRoot = {
     solution match {
+      case QuadraticSolution.phi =>
+        QuadraticRoot(QuadraticEquation.goldenRatioEquation, 0)
+      case QuadraticSolution.psi =>
+        QuadraticRoot(QuadraticEquation.goldenRatioEquation, 1)
       case QuadraticSolution(base: Q, offset: Q, branch, false) =>
         QuadraticRoot(QuadraticEquation(base.toRational * -2, (base.toRational ∧ 2) - offset.toRational), branch, None)
       case _ =>
-        throw ExpressionException(s"apply($solution) is not supported")
+        throw ExpressionException(s"apply($solution) is not yet supported")
     }
   }
 }
@@ -615,7 +630,7 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0, None) {
     *
     * @return an `Option[String]` representing the optional name
     */
-  def maybeName: Option[String] = None
+  val maybeName: Option[String] = None
 
   /**
     * Retrieves the `LinearEquation` associated with this `Root`.
@@ -642,21 +657,6 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0, None) {
     case _ =>
       None
   }
-
-  /**
-    * Determines if the current number is equal to zero.
-    *
-    * @return true if the number is zero, false otherwise
-    */
-  def isZero: Boolean = solution.isZero
-
-  /**
-    * Determines the sign of the Monotone value represented by this instance.
-    * Returns an integer indicating whether the value is positive, negative, or zero.
-    *
-    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
-    */
-  def signum: Int = solution.signum
 }
 
 /**
@@ -681,6 +681,19 @@ object Root {
       QuadraticRoot(q, branch, None)
     case l: LinearEquation =>
       LinearRoot(l)
+  }
+
+  /**
+    * Extractor for Root expressions.
+    * Matches Root(n, x) where n is the root degree and x is the radicand.
+    */
+  def unapply(expr: Expression): Option[(Equation, Int)] = expr match {
+    case QuadraticRoot(q, b, _) =>
+      Some((q, b))
+    case LinearRoot(l) =>
+      Some((l, 0))
+    case _ =>
+      None
   }
 
   /**
@@ -745,5 +758,15 @@ object Root {
     *               0 gives the positive root, 1 gives the negative root.
     * @return a `QuadraticRoot` instance representing the square root computation and branch selection.
     */
-  def squareRoot(r: Rational, branch: Int) = QuadraticRoot(squareRootEquation(r), branch, Some(s"√$r"))
+  def squareRoot(r: Rational, branch: Int): Root = QuadraticRoot(squareRootEquation(r), branch, Some(s"√$r"))
+
+  /**
+    * Computes the square root of a given integer and returns the corresponding `Root`.
+    *
+    * @param r the integer value for which the square root is to be calculated.
+    *          This value is converted to a `Rational` before computing the square root.
+    *
+    * @return a `Root` instance representing the square root of the given integer.
+    */
+  def √(r: Int): Root = squareRoot(Rational(r), 0)
 }

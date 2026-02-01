@@ -55,7 +55,7 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     *
     * @return an `Option[String]` representing the optional name
     */
-  def maybeName: Option[String] = Some(name)
+  val maybeName: Option[String] = Some(name)
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
@@ -86,6 +86,13 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean = expression.isZero
+
+  /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = expression.isUnity
 
   /**
     * Determines the sign of the Monotone value represented by this instance.

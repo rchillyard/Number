@@ -57,11 +57,9 @@ trait Q extends R {
   */
 trait Z extends Q {
   /**
-    * Converts this instance of `Z` to its corresponding int representation--if possible.
+    * Converts this instance into its integer representation.
     *
-    * @return an `Option[Int]` representing this value, providing that it can fit in an `Int`.
-    *         If the value cannot fit in an `Int`, then the `Option` will be `None`.
-    *         If the value can fit in an `Int`, then the `Option` will be `Some(Int)`.
+    * @return the integer value corresponding to this instance
     */
   def toInt: Int
 }

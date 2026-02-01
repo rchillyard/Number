@@ -1,11 +1,11 @@
 /**
-  * This is an example worksheet for the core module.
+  * This is an example worksheet for Number in the core module.
   * NOTE that some of the types are now deprecated for application use -- they're designed for internal use.
   */
 
 import com.phasmidsoftware.number.core.expression.{BiFunction, Literal, Power}
-import com.phasmidsoftware.number.core.inner.{AnyContext, PureNumber, Rational, RestrictedContext}
 import com.phasmidsoftware.number.core.inner.Rational.RationalOps
+import com.phasmidsoftware.number.core.inner.{AnyContext, PureNumber, Rational, RestrictedContext}
 import com.phasmidsoftware.number.core.numerical.Number.√
 import com.phasmidsoftware.number.core.numerical.{Field, Fuzzy, Number, Real}
 

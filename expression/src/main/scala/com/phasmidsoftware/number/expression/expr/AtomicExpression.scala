@@ -121,6 +121,13 @@ case class Noop(w: String) extends AtomicExpression {
   def isZero: Boolean = false
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = false
+
+  /**
     * Determines the sign of the Monotone value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
@@ -168,7 +175,7 @@ case class Noop(w: String) extends AtomicExpression {
     *
     * @return an `Option[String]` representing the optional name
     */
-  def maybeName: Option[String] = Some(w) // CONSIDER returning None here instead
+  val maybeName: Option[String] = Some(w) // CONSIDER returning None here instead
 
   /**
     *

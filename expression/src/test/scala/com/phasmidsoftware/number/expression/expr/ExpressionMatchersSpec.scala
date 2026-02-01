@@ -300,7 +300,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "cancel addition and subtraction of 3" in {
     val x = One :+ 3 - 3
-    matchSimpler(x).get shouldBe One
+    x shouldBe One
+    matchSimpler(x).isEmpty shouldBe true
   }
   it should "cancel addition and subtraction of e" in {
     val y: Expression = One :+ E
@@ -315,7 +316,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = (One :+ E - E) * (Pi / 4)
     val simpler = matchSimpler(x).get
     simpler.materialize.render shouldBe "¼𝛑"
-    simpler shouldBe Literal(Rational.quarter) * Pi
+    simpler shouldBe Literal(Angle(Rational.quarter), Some("¼𝛑"))
   }
 
   behavior of "matchSimpler 2"
@@ -715,7 +716,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work for multi-levels 2" in {
     val x = (One :+ E - E) * (Pi / 4)
     val simpler = x.simplify
-    simpler shouldBe Literal(Rational.quarter) * Pi
+    simpler shouldBe Literal(Angle(Rational.quarter), Some("¼𝛑"))
   }
 
   behavior of "complementaryTermsEliminatorAggregate"
@@ -1237,26 +1238,19 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val k: em.MatchResult[Expression] = em.Match(r.simplify)
     k shouldBe em.Match(Expression(-2))
   }
-  // NOTE biFunctionSimplifier cannot help here--nor should it!
-  //  it should "simplify 1" in {
-  //    val p = em.biFunctionSimplifier
-  //    val x = Expression(3).sqrt
-  //    val z = p(x)
-  //    z shouldBe em.Match(Expression(±(√(3)), Some("√3")))
-  //  }
   it should "simplify 1 :+ 2 - 2" in {
     val p = Expression.matchSimpler
     val x = One plus Two - Two
+    x shouldBe One
     val r = p(x)
-    r should matchPattern { case em.Match(_) => }
-    r.get shouldBe One
+    r should matchPattern { case em.Miss(_, _) => }
   }
   it should "properly simplify 1 :+ 2 - 2 :+ 0" in {
     val p = Expression.matchSimpler
     val x = One plus Two - Two :+ Zero
+    x shouldBe One
     val r = p(x)
-    r should matchPattern { case em.Match(_) => }
-    r.get shouldBe One
+    r should matchPattern { case em.Miss(_, _) => }
   }
 
   // (fixed) Issue #57
@@ -1326,7 +1320,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(Literal(1)).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: WholeNumber(1)\n"
+    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
   }
   it should "work with value on One" in {
     val em = ems
@@ -1334,7 +1328,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(One).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: WholeNumber(1)\n"
+    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
   }
   it should "work with value on Number.one" in {
     val em = ems
@@ -1342,7 +1336,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(One).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: WholeNumber(1)\n"
+    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
   }
   it should "work with value on Real" in {
     val em = ems
@@ -1351,7 +1345,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(Literal(FuzzyNumber(Right(1), PureNumber, None))).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: WholeNumber(1)\n"
+    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
   }
   it should "fail on non-value" in {
     val em = ems

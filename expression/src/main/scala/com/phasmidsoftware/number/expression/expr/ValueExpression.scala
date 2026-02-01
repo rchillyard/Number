@@ -53,6 +53,13 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
   def signum: Int = value.signum
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = value.isUnity
+
+  /**
     * Method to determine if this Structure object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
@@ -367,7 +374,7 @@ object Literal {
     case Rational.two => apply(2)
     case Rational.half => apply(RationalNumber.half, Some("\u00BD"))
     case Rational.negOne => apply(-1)
-    case r => apply(RationalNumber(r))
+    case r => apply(RationalNumber(r).normalize)
   }
 
   /**

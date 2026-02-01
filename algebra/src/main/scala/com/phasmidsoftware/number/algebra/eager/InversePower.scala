@@ -281,9 +281,17 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   /**
     * Determines if the current number is equal to zero.
     *
+    *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = number.isZero
+  def isZero: Boolean = false
+
+  /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = number.isUnity
 
   /**
     * Determines the sign of the scalar value represented by this instance.

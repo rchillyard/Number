@@ -938,6 +938,8 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine the
       Some(if sine then Eager.zero else Eager.one)
     case Angle.piBy2 =>
       Some(if sine then Eager.one else Eager.zero)
+    case Angle.piBy4 =>
+      Some(Eager.rootHalf)
     case Angle.pi =>
       Some(if sine then Eager.zero else Eager.minusOne)
     case Angle.negPi =>
