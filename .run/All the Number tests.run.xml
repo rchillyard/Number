@@ -46,6 +46,7 @@
         <option value="com.phasmidsoftware.number.top.QuantityWorksheetSpec" />
         <option value="com.phasmidsoftware.number.top.TopSpec" />
         <option value="com.phasmidsoftware.number.expression.algebraic.AlgebraicSpec" />
+          <option value="com.phasmidsoftware.number.expression.algebraic.LinearEquationSpec"/>
         <option value="com.phasmidsoftware.number.expression.algebraic.QuadraticEquationSpec" />
         <option value="com.phasmidsoftware.number.expression.mill.ExpressionSpec" />
         <option value="com.phasmidsoftware.number.expression.mill.MillSpec" />

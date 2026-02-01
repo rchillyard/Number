@@ -4,8 +4,9 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
-import com.phasmidsoftware.number.algebra.eager.{Complex, QuadraticSolution}
+import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.expression.expr.ExpressionException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -30,14 +31,14 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
 
   it should "format toString correctly for positive coefficients" in {
     val equation = QuadraticEquation(Rational(3), Rational(2))
-    equation.toString should include("x∧2")
-    equation.toString should include("+ ")
+    equation.render should include("x∧2")
+    equation.render should include("+ ")
   }
 
   it should "format toString correctly for negative coefficients" in {
     val equation = QuadraticEquation(Rational(-3), Rational(-2))
-    equation.toString should include("x∧2")
-    equation.toString should include("- ")
+    equation.render should include("x∧2")
+    equation.render should include("- ")
   }
 
   // =========================
@@ -318,6 +319,43 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
   }
 
   // =========================
+  // Evaluate
+  // =========================
+
+  it should "evaluate real QuadraticSolution to zero for its equation" in {
+    val equation = QuadraticEquation(Rational.zero, Rational.negOne)
+    val sol = equation.solve(0)
+
+    sol match {
+      case qs@com.phasmidsoftware.number.algebra.eager.QuadraticSolution(base, offset, coefficient, imaginary) =>
+        val result = equation.evaluate(qs)
+        result.isZero shouldBe true
+      case _ => fail("Expected QuadraticSolution")
+    }
+  }
+
+  it should "evaluate Complex solution to zero for its equation" in {
+    val equation = QuadraticEquation(Rational.zero, Rational.one)
+    val sol = equation.solve(0)
+
+    sol match {
+      case c: Complex =>
+        val result = equation.evaluate(c)
+        result.isZero shouldBe true
+      case _ => fail("Expected Complex solution")
+    }
+  }
+
+  it should "throw exception when evaluating invalid solution type" in {
+    val eq = QuadraticEquation(Rational.one, Rational.one)
+    val invalidSol = LinearSolution(RationalNumber.one)
+
+    an[ExpressionException] should be thrownBy {
+      eq.evaluate(invalidSol)
+    }
+  }
+
+  // =========================
   // Equality and CanEqual
   // =========================
 
@@ -371,6 +409,17 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     val rootTwoEq = QuadraticEquation.rootTwoEquation
     rootTwoEq.p shouldBe Rational.zero
     rootTwoEq.q shouldBe Rational(-2)
+  }
+
+  it should "provide root three equation" in {
+    val rootThreeEq = QuadraticEquation.rootThreeEquation
+    rootThreeEq.p shouldBe Rational.zero
+    rootThreeEq.q shouldBe Rational(-3)
+  }
+
+  it should "provide phi approximation" in {
+    val phi = QuadraticEquation.phiApprox
+    phi shouldBe a[com.phasmidsoftware.number.algebra.eager.Real]
   }
 
   it should "solve golden ratio equation correctly" in {
@@ -457,5 +506,367 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     val equation = QuadraticEquation(Rational(1000), Rational(100000))
     val root0 = equation.solve(0)
     root0 shouldBe a[QuadraticSolution]
+  }
+}
+
+// =========================
+// LinearEquation Tests
+// =========================
+
+class LinearEquationSpec extends AnyFlatSpec with Matchers {
+
+  behavior of "LinearEquation"
+
+  // =========================
+  // Constructor and Basic Properties
+  // =========================
+
+  it should "create a linear equation with rational coefficient" in {
+    val eq = LinearEquation(Rational.one)
+    eq.r shouldBe Rational.one
+  }
+
+  it should "create linear equation with negative coefficient" in {
+    val eq = LinearEquation(Rational(-5))
+    eq.r shouldBe Rational(-5)
+  }
+
+  it should "create linear equation with fractional coefficient" in {
+    val eq = LinearEquation(Rational(3, 4))
+    eq.r shouldBe Rational(3, 4)
+  }
+
+  // =========================
+  // Branches
+  // =========================
+
+  it should "report 1 branch" in {
+    val eq = LinearEquation(Rational.two)
+    eq.branches shouldBe 1
+  }
+
+  // =========================
+  // Solve
+  // =========================
+
+  it should "solve x + 2 = 0 correctly" in {
+    val eq = LinearEquation(Rational.two)
+    val sol = eq.solve(0)
+
+    sol shouldBe a[LinearSolution]
+    val ls = sol.asInstanceOf[LinearSolution]
+    ls.value shouldBe RationalNumber(-2)
+  }
+
+  it should "solve x + 0 = 0 correctly" in {
+    val eq = LinearEquation(Rational.zero)
+    val sol = eq.solve(0)
+
+    sol shouldBe a[LinearSolution]
+    val ls = sol.asInstanceOf[LinearSolution]
+    ls.value shouldBe RationalNumber.zero
+  }
+
+  it should "solve x - 5 = 0 correctly" in {
+    val eq = LinearEquation(Rational(-5))
+    val sol = eq.solve(0)
+
+    sol shouldBe a[LinearSolution]
+    val ls = sol.asInstanceOf[LinearSolution]
+    ls.value shouldBe RationalNumber(5)
+  }
+
+  it should "solve x + 1/2 = 0 correctly" in {
+    val eq = LinearEquation(Rational(1, 2))
+    val sol = eq.solve(0)
+
+    sol shouldBe a[LinearSolution]
+    val ls = sol.asInstanceOf[LinearSolution]
+    ls.value shouldBe RationalNumber(Rational(-1, 2))
+  }
+
+  it should "throw exception for invalid branch index 1" in {
+    val eq = LinearEquation(Rational.one)
+
+    an[IllegalArgumentException] should be thrownBy {
+      eq.solve(1)
+    }
+  }
+
+  it should "throw exception for invalid branch index -1" in {
+    val eq = LinearEquation(Rational.one)
+
+    an[IllegalArgumentException] should be thrownBy {
+      eq.solve(-1)
+    }
+  }
+
+  // =========================
+  // Branched Method
+  // =========================
+
+  it should "return Literal expression for the single branch" in {
+    val eq = LinearEquation(Rational.three)
+    val expr = eq.branched(0)
+
+    expr shouldBe a[com.phasmidsoftware.number.expression.expr.Literal]
+  }
+
+  // =========================
+  // Evaluate
+  // =========================
+
+  it should "evaluate LinearSolution correctly" in {
+    val eq = LinearEquation(Rational(3))
+    val sol = LinearSolution(RationalNumber(5))
+
+    val result = eq.evaluate(sol)
+    result shouldBe WholeNumber(8) // 5 + 3
+  }
+
+  it should "evaluate LinearSolution with negative values" in {
+    val eq = LinearEquation(Rational(-2))
+    val sol = LinearSolution(RationalNumber(7))
+
+    val result = eq.evaluate(sol)
+    result shouldBe WholeNumber(5) // 7 + (-2)
+  }
+
+  it should "evaluate to zero when solution is correct" in {
+    val eq = LinearEquation(Rational(4))
+    val sol = eq.solve(0).asInstanceOf[LinearSolution]
+
+    val result = eq.evaluate(sol)
+    result.isZero shouldBe true
+  }
+
+  // =========================
+  // Transform
+  // =========================
+
+  it should "transform with custom functions" in {
+    val eq = LinearEquation(Rational(4))
+    val transformed = eq.transform(
+      (p, q) => p + q, // Not used for linear equations
+      (p, q) => q * Rational.two
+    )
+
+    transformed shouldBe LinearEquation(Rational(8)) // 4 * 2
+  }
+
+  it should "transform ignoring fP function" in {
+    val eq = LinearEquation(Rational(3))
+    val transformed = eq.transform(
+      (p, q) => Rational(999), // Should be ignored
+      (p, q) => q + Rational.one
+    )
+
+    transformed shouldBe LinearEquation(Rational(4)) // 3 + 1
+  }
+
+  it should "transform with complex function" in {
+    val eq = LinearEquation(Rational(6))
+    val transformed = eq.transform(
+      (p, q) => p, // Ignored
+      (p, q) => q / Rational(2)
+    )
+
+    transformed shouldBe LinearEquation(Rational(3)) // 6 / 2
+  }
+
+  // =========================
+  // Scale (multiplication)
+  // =========================
+
+  it should "scale equation by positive factor" in {
+    val eq = LinearEquation(Rational(3))
+    val scaled = eq * Rational(4)
+
+    scaled shouldBe LinearEquation(Rational(12))
+  }
+
+  it should "scale equation by negative factor" in {
+    val eq = LinearEquation(Rational(2))
+    val scaled = eq * Rational(-3)
+
+    scaled shouldBe LinearEquation(Rational(-6))
+  }
+
+  it should "scale equation by fractional factor" in {
+    val eq = LinearEquation(Rational(10))
+    val scaled = eq * Rational(1, 5)
+
+    scaled shouldBe LinearEquation(Rational(2))
+  }
+
+  it should "scale by zero (edge case)" in {
+    val eq = LinearEquation(Rational(5))
+    val scaled = eq * Rational.zero
+
+    scaled shouldBe LinearEquation(Rational.zero)
+  }
+
+  // =========================
+  // Invert
+  // =========================
+
+  it should "invert equation correctly" in {
+    val eq = LinearEquation(Rational(4))
+    val inverted = eq.invert
+
+    // For x + r = 0 with solution x = -r
+    // Inverted should have solution 1/x = -1/r
+    // So equation is x - 1/r = 0
+    inverted shouldBe LinearEquation(Rational(-1, 4))
+  }
+
+  it should "invert equation with negative coefficient" in {
+    val eq = LinearEquation(Rational(-2))
+    val inverted = eq.invert
+
+    inverted shouldBe LinearEquation(Rational(1, 2))
+  }
+
+  it should "invert equation with fractional coefficient" in {
+    val eq = LinearEquation(Rational(1, 3))
+    val inverted = eq.invert
+
+    inverted shouldBe LinearEquation(Rational(-3))
+  }
+
+  it should "handle inversion of zero coefficient (degenerate case)" in {
+    val eq = LinearEquation(Rational.zero)
+    eq.invert shouldBe LinearEquation(Rational.negInfinity)
+  }
+
+  // =========================
+  // ShiftOrigin
+  // =========================
+
+  it should "shift origin correctly" in {
+    val eq = LinearEquation(Rational(5))
+    val shifted = eq.shiftOrigin(Rational(2))
+
+    // Original: x + 5 = 0, solution x = -5
+    // After shift by c=2: y + (5-2) = 0, solution y = -3
+    // Check: -3 = -5 + 2 ✓
+    shifted shouldBe LinearEquation(Rational(3))
+  }
+
+  it should "shift origin by negative value" in {
+    val eq = LinearEquation(Rational(3))
+    val shifted = eq.shiftOrigin(Rational(-4))
+
+    // Original: x + 3 = 0, solution x = -3
+    // After shift by c=-4: y + (3-(-4)) = 0 = y + 7 = 0, solution y = -7
+    // Check: -7 = -3 + (-4) ✓
+    shifted shouldBe LinearEquation(Rational(7))
+  }
+
+  it should "shift origin by zero (identity)" in {
+    val eq = LinearEquation(Rational(2))
+    val shifted = eq.shiftOrigin(Rational.zero)
+
+    shifted shouldBe eq // No change
+  }
+
+  it should "shift origin by fractional value" in {
+    val eq = LinearEquation(Rational(5))
+    val shifted = eq.shiftOrigin(Rational(1, 2))
+
+    // y + (5 - 1/2) = 0, y + 9/2 = 0
+    shifted shouldBe LinearEquation(Rational(9, 2))
+  }
+
+  it should "compose shift operations correctly" in {
+    val eq = LinearEquation(Rational(10))
+    val shift1 = eq.shiftOrigin(Rational(3))
+    val shift2 = shift1.shiftOrigin(Rational(2))
+    val directShift = eq.shiftOrigin(Rational(5))
+
+    shift2 shouldBe directShift
+  }
+
+  it should "verify shift preserves solution relationship" in {
+    val eq = LinearEquation(Rational(7))
+    val originalSol = eq.solve(0).asInstanceOf[LinearSolution]
+
+    val c = Rational(3)
+    val shifted = eq.shiftOrigin(c)
+    val shiftedSol = shifted.solve(0).asInstanceOf[LinearSolution]
+
+    // originalSol.value + c should equal shiftedSol.x
+    originalSol.value.add(RationalNumber(c)) shouldBe scala.util.Success(shiftedSol.normalize)
+  }
+
+  // =========================
+  // Equality and CanEqual
+  // =========================
+
+  it should "support canEqual for LinearEquation instances" in {
+    val eq = LinearEquation(Rational(1))
+    eq.canEqual(LinearEquation(Rational(2))) shouldBe true
+  }
+
+  it should "reject canEqual for non-LinearEquation instances" in {
+    val eq = LinearEquation(Rational(1))
+    eq.canEqual("not a linear equation") shouldBe false
+    eq.canEqual(42) shouldBe false
+  }
+
+  it should "be equal to itself" in {
+    val eq = LinearEquation(Rational(3))
+    eq shouldBe eq
+  }
+
+  it should "be equal to another equation with same coefficient" in {
+    val eq1 = LinearEquation(Rational(5))
+    val eq2 = LinearEquation(Rational(5))
+    eq1 shouldBe eq2
+  }
+
+  it should "not be equal to equation with different coefficient" in {
+    val eq1 = LinearEquation(Rational(3))
+    val eq2 = LinearEquation(Rational(5))
+    eq1 should not be eq2
+  }
+
+  // =========================
+  // toString/render
+  // =========================
+
+  it should "render correctly for positive coefficient" in {
+    val eq: LinearEquation = LinearEquation(Rational(3))
+    val rendered = eq.render
+    rendered should include("x")
+    rendered should include("+")
+  }
+
+  it should "render correctly for negative coefficient" in {
+    val eq = LinearEquation(Rational(-4))
+    val rendered = eq.render
+    rendered should include("x")
+    rendered should include("-")
+  }
+
+  // =========================
+  // Edge Cases
+  // =========================
+
+  it should "handle very small coefficient" in {
+    val eq = LinearEquation(Rational(1, 1000))
+    val sol = eq.solve(0)
+
+    sol shouldBe a[LinearSolution]
+    eq.evaluate(sol.asInstanceOf[LinearSolution]).isZero shouldBe true
+  }
+
+  it should "handle very large coefficient" in {
+    val eq = LinearEquation(Rational(1000000))
+    val sol = eq.solve(0)
+
+    sol shouldBe a[LinearSolution]
+    val ls = sol.asInstanceOf[LinearSolution]
+    ls.value shouldBe RationalNumber(Rational(-1000000))
   }
 }

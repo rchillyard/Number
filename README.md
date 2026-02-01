@@ -637,10 +637,9 @@ The hierarchy of _Factor_ is as follows:
     * _Scalar_ (trait: the domain of ordinary numbers)
         * _PureNumber_ (object: the domain of pure numbers)
         * _Radian_ (object: the domain of radians)
-    * _Logarithmic_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
-        * _NatLog_ (object: natural log, i.e., $\log_e$)
-        * _Log2_ (object: $\log_2$)
-        * _Log10_ (object: $\log_{10}$)
+  * _Exponential_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
+      * _NaturalExponential_
+      * _BinaryExponential_
     * _InversePower_ (trait: all the roots)
         * _NthRoot_ (abstract class)
             * _SquareRoot_ (object: the domain of square roots)

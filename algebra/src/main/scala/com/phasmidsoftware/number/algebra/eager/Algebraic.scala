@@ -777,7 +777,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @return the base value of type Value
     */
-  def base: Monotone = value
+  def base: Monotone = normalize.asMonotone
 
   /**
     * Retrieves the offset value of the solution.
