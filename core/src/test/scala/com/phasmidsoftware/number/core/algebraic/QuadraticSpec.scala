@@ -19,10 +19,8 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   it should "normalize" in {
     val expected: Real = phiReal
     val phiNormalized = phi.normalize
-    println(s"phi = $phiNormalized, expected = $expected")
     phiNormalized.isSame(expected) shouldBe true
     val psiNormalized: Field = psi.normalize
-    println(s"psi = $psiNormalized")
     psiNormalized.isSame(Real(-0.618034)) shouldBe true
   }
   it should "branches" in {
@@ -34,7 +32,6 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
   it should "value 1" in {
     val p: Algebraic = phi
-    println(p.render)
     val solution: Solution = p.solve
     solution.base shouldBe Value.fromRational(Rational.half)
     solution.branch shouldBe 0
@@ -48,8 +45,6 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     val expected: Solution = phi.equation.invert.solve(0)
     val solution: Solution = target.solve
     solution shouldBe expected
-    println(s"solution = $solution, expected = $expected")
-    println(s"solution = ${solution.asField}")
     target.normalize.isSame(Real(0.618034)) shouldBe true
   }
   it should "value root 2" in {
@@ -78,7 +73,6 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     phi.abs.asReal shouldBe phi.asReal
     val actual = psi.abs.asNumber.map(x => x.toBigDecimal)
     val expected = psi.asNumber.map(x => x.doMultiple(-1).toBigDecimal)
-    println(s"psi.abs = $actual, expected = $expected")
     actual shouldBe expected
   }
   it should "scale" in {
@@ -120,7 +114,6 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   it should "add phi" in {
     val actual = phi.add(phi)
     val expected = phi.scale(2)
-    println(s"actual = $actual, expected = ${expected.normalize}")
     actual shouldBe expected
   }
   it should "add phi and psi" in {
@@ -130,9 +123,7 @@ class QuadraticSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     }
   }
   it should "add 1" in {
-    println(s"phi = $phi")
     val actual = phi `add` Real(one)
-    println(s"phi add Real(one) = $actual")
     actual.normalize should ===(phiReal + Real(1))
     actual.normalize.isSame(phiReal + Real(1)) shouldBe true
   }

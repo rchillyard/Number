@@ -579,14 +579,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case b@BiFunction(r1: Root, r2: Root, Sum) =>
       em.matchIfDefined(r1 add r2)(b)
     // TODO: Concern - identity patterns might be missed if aggregation happens before they're caught
-    case x@BiFunction(_, _, _) => // NOTE this case is definitely required
-      // TODO this frequently results in a Miss which is interpreted as a failure.
-      //  A Miss in structuralMatcher should be treated as the termination of the simplify process.
-      // NOTE the reason we see this as a Miss so often, is that it is always
-      // the last match to be attempted.
-      ((em.complementaryTermsEliminatorBiFunction(em.isComplementary) |
-        em.matchBiFunctionAsAggregate & em.literalsCombiner) &
-        em.alt(matchSimpler))(x)
+    case x@BiFunction(_, _, _) =>
+      x.genericStructuralSimplification
     case x =>
       em.Miss("structuralMatcher", x) // TESTME
   }
@@ -668,6 +662,23 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case _ =>
       false
   }
+
+  /**
+    * A private lazy evaluation that represents a generic structural simplification process.
+    * Combines various functions and matchers using logical operators to streamline and simplify
+    * structural components within the specified context.
+    *
+    * The simplification process includes:
+    * - Eliminating complementary terms using a bi-function.
+    * - Matching bi-functions as aggregates and combining literals.
+    * - Applying alternative match simplification through `alt(matchSimpler)`.
+    *
+    * Operates within the scope of the current object (`this`) to apply context-specific simplifications.
+    */
+  private lazy val genericStructuralSimplification =
+    ((em.complementaryTermsEliminatorBiFunction(em.isComplementary) |
+      em.matchBiFunctionAsAggregate & em.literalsCombiner) &
+      em.alt(matchSimpler))(this)
 
   /**
     * Determines if the two given operands match `a` and `b`.

@@ -133,7 +133,6 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   it should "c1_2∧1/2" in {
     //    val z: Field = convertToPolar(c1_2)
     val result: Complex = c1_2 `power` half
-    println(math.sqrt(math.sqrt(5)))
     // result should be 1.27201965 + i0.786151378
     result should matchPattern { case ComplexPolar(_, _, _) => }
     result match {
