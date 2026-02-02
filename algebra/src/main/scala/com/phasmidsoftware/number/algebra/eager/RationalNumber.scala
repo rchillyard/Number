@@ -422,6 +422,10 @@ object RationalNumber {
         x // TESTME this never happens, it seems.
       case Rational.rationalForm(_, _) if r.isExactDouble =>
         r.toDouble.toString // XXX It's very doubtful that this case will match
+      case Rational.integerForm(n) =>
+        n
+      case Rational.unicodeForm(_) =>
+        frac(r.n.toString(), r.d.toString())
       case Rational.rationalForm(n, d) =>
         frac(n, d)
       case x =>

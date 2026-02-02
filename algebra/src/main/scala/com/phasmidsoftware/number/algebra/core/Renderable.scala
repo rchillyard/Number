@@ -17,6 +17,7 @@ trait Renderable {
 
   /**
     * Method to render this `Valuable` for presentation to the user.
+    * NOTE to implementors: never ever invoke `this.toString` in your implementation lest you get a StackOverflow.
     *
     * @return a String
     */
