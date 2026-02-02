@@ -283,12 +283,47 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     */
   def add(other: Angle): Try[Angle] = Try(this + other)
 
+  /**
+    * Multiplies the current `Angle` instance by a given `Number`.
+    *
+    * This operation is currently not supported and will always return a failure.
+    *
+    * @param n the `Number` to multiply with the current `Angle`
+    * @return a `Try[Angle]` containing a failure with an `AlgebraException` indicating 
+    *         that the multiply operation is not supported
+    */
   def multiply(n: Number): Try[Angle] = Failure(AlgebraException("Angle.multiply: not supported"))
 
+  /**
+    * Subtracts the specified `Angle` from the current `Angle` instance.
+    *
+    * This method is not implemented and always returns a failure with a corresponding exception message.
+    *
+    * @param other the `Angle` to be subtracted from the current instance
+    * @return a `Try[Angle]` containing a failure with an exception indicating that the operation is not supported
+    */
   def subtract(other: Angle): Try[Angle] = Failure(AlgebraException("Angle.subtract: not supported"))
 
+  /**
+    * Divides the current `Angle` by the specified `Angle`.
+    *
+    * This operation is not supported for `Angle` instances and will always
+    * result in a failure containing an `AlgebraException`.
+    *
+    * @param other the `Angle` by which the current `Angle` is to be divided
+    * @return a `Try[Number]` containing a failure with an `AlgebraException`
+    *         indicating that the division operation is not supported
+    */
   def divide(other: Angle): Try[Number] = Failure(AlgebraException("Angle.divide: not supported"))
 
+  /**
+    * Attempts to divide the current `Angle` by the specified `Number`.
+    *
+    * This operation is not supported and will always return a failure.
+    *
+    * @param n the `Number` by which the current `Angle` is to be divided
+    * @return a `Try[Angle]`, which will always be a `Failure` containing an `AlgebraException`
+    */
   def divide(n: Number): Try[Angle] = Failure(AlgebraException("Angle.divide: not supported"))
 
   /**
@@ -333,6 +368,8 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     case _ =>
       super.eqv(that)
   }
+  
+  override def toString: String = render
 
   /**
     * Converts the current instance to an optional scaled representation as a `Real`.
