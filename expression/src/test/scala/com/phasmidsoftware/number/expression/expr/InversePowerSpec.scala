@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager.{Eager, Real}
 import com.phasmidsoftware.number.core.inner.{Inverse, Rational}
+import com.phasmidsoftware.number.core.inner.Rational.RationalOps
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -10,7 +11,7 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
   behavior of "Number raised to inverse integer powers"
 
   it should "evaluate cube root via 1/3 power" in {
-    val expr = Expression(8) ∧ Rational(3).invert
+    val expr = Expression(8) ∧ 3.invert
     expr.materialize shouldBe Eager(2)
   }
 
@@ -20,23 +21,23 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "evaluate fourth root via 1/4 power" in {
-    val expr = Expression((16)) ∧ Rational(4).invert
+    val expr = Expression((16)) ∧ 4.invert
     val materialized = expr.materialize
     materialized shouldBe Eager(2)
   }
 
   it should "handle fifth root" in {
-    val expr = Expression((32)) ∧ Rational(5).invert
+    val expr = Expression((32)) ∧ 5.invert
     expr.materialize.normalize shouldBe Eager(2)
   }
 
   it should "evaluate 27^(1/3)" in {
-    val expr = Expression((27)) ∧ Rational(3).invert
+    val expr = Expression((27)) ∧ 3.invert
     expr.materialize shouldBe Eager(3)
   }
 
   it should "stay symbolic for non-exact roots" in {
-    val expr = Expression(7) ∧ Rational(3).invert
+    val expr = Expression(7) ∧ 3.invert
     // Should remain symbolic until forced to PureNumber
     expr shouldBe a[Expression]
     // When materialized, should be approximately 1.913
@@ -62,7 +63,7 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle unit fractions for higher roots" in {
-    val expr = Expression(64) ∧ Rational(6).invert
+    val expr = Expression(64) ∧ 6.invert
     expr.materialize shouldBe Eager(2)
   }
 
@@ -113,7 +114,7 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
 
   it should "handle chained root operations" in {
     // (16^(1/4))^(1/2) = 16^(1/8) but also = (16^(1/2))^(1/4) = 4^(1/4)
-    val expr = (Expression(16) ∧ Rational(4).invert) ∧ Rational.half
+    val expr = (Expression(16) ∧ 4.invert) ∧ Rational.half
     // This is the 8th root of 16, which is √2
     val result = expr.materialize
     result match {
@@ -123,17 +124,17 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "work with larger perfect powers" in {
-    val expr = Expression(1024) ∧ Rational(10).invert
+    val expr = Expression(1024) ∧ 10.invert
     expr.materialize shouldBe Eager(2)
   }
 
   it should "handle zero correctly (by throwing an exception)" in {
-    val expr = Expression(0) ∧ Rational(3).invert
+    val expr = Expression(0) ∧ 3.invert
     a[ExpressionException] should be thrownBy (expr.materialize)
   }
 
   it should "handle one correctly" in {
-    val expr = Expression(1) ∧ Rational(100).invert
+    val expr = Expression(1) ∧ 100.invert
     expr.materialize shouldBe Eager(1)
   }
 }
