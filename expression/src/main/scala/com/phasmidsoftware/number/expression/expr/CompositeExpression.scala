@@ -107,11 +107,11 @@ sealed trait CompositeExpression extends Expression {
           em.Miss[Expression, Expression]("all components named, staying symbolic", this)
         else
           expr.evaluateAsIs match {
-          case Some(value) =>
-            em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
-          case None =>
-            em.Miss[Expression, Expression]("CompositeExpression: simplifyExact: no simplifications", this)
-        }
+            case Some(value) =>
+              em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
+            case None =>
+              em.Miss[Expression, Expression]("CompositeExpression: simplifyExact: no simplifications", this)
+          }
     }
 
   /**

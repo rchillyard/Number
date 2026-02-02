@@ -357,7 +357,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify root4 * 2 / 2 part 1" in {
     val x = Expression("√4") :* Eager.two
     val y: Expression = Expression(Eager.two).reciprocal
-    (x :* y).simplify shouldBe Literal(WholeNumber(2))
+    val product = x :* y
+    product.simplify shouldBe Literal(InversePower(2, 4))
+    product.materialize shouldBe Eager.two
   }
   it should "simplify root4 * 2 / 2 part 2" in {
     BiFunction(Literal(4), Half, Power).materialize shouldBe WholeNumber(2)

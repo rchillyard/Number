@@ -20,6 +20,13 @@ This project provides exact and fuzzy numeric computation with lazy evaluation i
 * **Quantities** which are based on (eager or lazy) numeric values together with their respective units.
 * **Cats integration** - leverages typelevel algebra for abstract algebra
 
+## Design Philosophy
+
+For a comprehensive explanation of how Number maintains exact arithmetic and when to use approximate values, see:
+
+📖 **[Exact vs Approximate Arithmetic](docs/EXACT_VS_APPROXIMATE.md)** - Understanding materialization, symbolic
+computation, and the `fuzzy` method
+
 ## Project Structure
 
 Number is organized into multiple modules:
@@ -72,7 +79,8 @@ For more examples, see the `GettingStarted.sc` worksheet in the `top` module.
 #### Sources
 Wikipedia has been my constant reference for basic mathematical relationships.
 I'm also indebted to Claude (by Anthropic) for her excellent advice regarding the restructuring in versions 1.3.2 and beyond.
-**Note**: While "Claude" is typically a male name in the English-speaking world, in France it is also common as a female name. I'm particularly honoring poor Claude-Emma Debussy ("Chouchou") here. 
+**Note**: While "Claude" is typically a male name in the English-speaking world, in France it is also common as a female
+name. I'm particularly honoring poor Claude-Emma Debussy ("Chouchou") here.
 
 However, many of the specific ideas and much of the theory behind this project derives from the following book:
 
@@ -97,7 +105,7 @@ The purpose of the lazy values is that often, composing a value with another val
 exactly.
 In such a case, eager arithmetic would be forced to evaluate the expression as a fuzzy value.
 
-Yet, sometimes, that loss of precision is premature. For example, in the expression 
+Yet, sometimes, that loss of precision is premature. For example, in the expression
 $$(\sqrt{3} + 1)(\sqrt{3}-1)$$
 the value should be exactly 2.
 
@@ -176,7 +184,7 @@ Angles normalize to the range [-1, 1) where a full circle = 2.
 
 **Important**: `Angle` has no `Order` instance because circular ordering is meaningless. It only supports `Eq` for equality testing.
 
-#### Exponential 
+#### Exponential
 
 Transformed values, including `Exponential`, store a value which is then rendered as a pure number via a transforming function.
 However, this makes the terminology slightly confusing.
@@ -1136,7 +1144,8 @@ There are four domains of values, each identified by a domain or factor (see _Fa
 These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
 
 #### Operators
-The most important operators are those defined in _Expression.ExpressionOps_. 
+
+The most important operators are those defined in _Expression.ExpressionOps_.
 That's because you should normally be using the (lazy) expressions mechanism for arithmetic expressions.
 These are the usual operators, except that the power operator is ∧ (not ^ or **).
 

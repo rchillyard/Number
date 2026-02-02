@@ -104,7 +104,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     */
   def evaluate(context: Context): Option[Eager] =
     if (context.valuableQualifies(value))
-      Some(value)
+      Some(value) // NOTE probably not a good idea to invoke normalize here.
     else
       value match {
         case nat: Nat =>

@@ -72,6 +72,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionMatchersSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionSpec" />
           <option value="com.phasmidsoftware.number.expression.expr.ExtractorsSpec"/>
+          <option value="com.phasmidsoftware.number.expression.expr.InversePowerSpec"/>
         <option value="com.phasmidsoftware.number.expression.expr.LiteralSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.NamedConstantSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.QuadraticRootSpec" />
@@ -91,6 +92,7 @@
         <option value="com.phasmidsoftware.number.algebra.eager.InversePowerSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.NatSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.NormalizeIntegrationSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.NormalizeRootSpec"/>
         <option value="com.phasmidsoftware.number.algebra.eager.NormalizeSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.NumberSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.QuadraticSolutionSpec" />

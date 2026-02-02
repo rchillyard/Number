@@ -23,6 +23,10 @@ class NumberUpdatedSpec extends AnyFlatSpec with should.Matchers {
     val oneHalf = (sinePiBy4 * sinePiBy4)
     oneHalf.show shouldBe "½"
   }
+  it should "evaluate root 3" in {
+    val biFunction = BiFunction(3, Rational(1, 2), Power)
+    biFunction.evaluate(AnyContext) shouldBe Some(Eager.root3)
+  }
   it should "work" in {
     val root3 = Root.√(3)
     val two = (root3 + 1) * (root3 - 1)

@@ -160,7 +160,7 @@ class InversePowerSpec extends AnyFlatSpec with should.Matchers {
     // Nested normalization
     InversePower(2, RationalNumber(9, 1)).normalize shouldBe WholeNumber(3)
 
-    // Higher degree roots (should remain as InversePower for now)
-    InversePower(4, 16).normalize shouldBe InversePower(4, WholeNumber(16))
+    // Higher degree roots
+    InversePower(4, 16).normalize shouldBe WholeNumber(2)
   }
 }
