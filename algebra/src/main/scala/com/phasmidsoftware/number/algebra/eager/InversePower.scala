@@ -346,7 +346,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     n match {
       case 2 => s"√$suffix"
       case 3 => s"³√$suffix"
-      case _ => toString
+      case _ => s"${n}th root of $suffix"
     }
   }
 

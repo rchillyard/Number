@@ -289,7 +289,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * This operation is currently not supported and will always return a failure.
     *
     * @param n the `Number` to multiply with the current `Angle`
-    * @return a `Try[Angle]` containing a failure with an `AlgebraException` indicating 
+    * @return a `Try[Angle]` containing a failure with an `AlgebraException` indicating
     *         that the multiply operation is not supported
     */
   def multiply(n: Number): Try[Angle] = Failure(AlgebraException("Angle.multiply: not supported"))
@@ -368,8 +368,6 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     case _ =>
       super.eqv(that)
   }
-  
-  override def toString: String = render
 
   /**
     * Converts the current instance to an optional scaled representation as a `Real`.

@@ -21,4 +21,16 @@ trait Renderable {
     * @return a String
     */
   def render: String
+
+  /**
+    * IMPORTANT NOTE: this method is overridden to provide a more useful toString.
+    * But, if you find yourself in the debugger, being frustrated by the render method,
+    * just comment this implementation out.
+    *
+    * Returns a string representation of the object. This implementation delegates
+    * to the `render` method, which provides the presentation of the object.
+    *
+    * @return the rendered string representation of the object
+    */
+  override def toString: String = render
 }

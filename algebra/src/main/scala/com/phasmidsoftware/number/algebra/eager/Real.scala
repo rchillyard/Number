@@ -42,7 +42,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
   /**
     * Computes the result of raising an instance of type `T` to the power 
     * specified by the given `ExactNumber`.
-    * 
+    *
     * CONSIDER invoking `render` for `toString`
     *
     * This method performs the power operation and returns the result wrapped 

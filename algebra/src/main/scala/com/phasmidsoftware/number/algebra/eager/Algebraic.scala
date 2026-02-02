@@ -282,8 +282,6 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       s"Complex quadratic solution: ${base.render} ${if (coefficient == -1) "- " else "+ "}${offset.render}"
   })
 
-  override def toString: String = render
-
   /**
     * Computes the conjugate of the current quadratic solution.
     *

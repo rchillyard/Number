@@ -901,7 +901,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y.materialize shouldBe Eager(7)
   }
   it should "evaluate E * 2" in {
-    (Literal(Eager.e) * 2).materialize.toString shouldBe "Real(5.43656365691809,Some(AbsoluteFuzz(5.869850185106896E-15,Box)))"
+    (Literal(Eager.e) * 2).materialize.toString shouldBe "5.4365636569180900[59]"
   }
 
   behavior of "simplifyTerms"

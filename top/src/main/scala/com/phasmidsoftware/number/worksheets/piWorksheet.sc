@@ -10,7 +10,7 @@ import scala.util.Random
 Pi
 // 𝛑 forced to be a Real (fuzzy) value.
 // Note the "*" signifying "Here be dragons," (i.e., you're into the unknown)
-Pi.fuzzy.render
+Pi.fuzzy
 // 𝛑 as an (eager) value
 𝛑
 // 𝛑 parsed from Latex
