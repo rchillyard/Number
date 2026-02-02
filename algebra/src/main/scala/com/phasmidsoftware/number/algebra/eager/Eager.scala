@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
-import com.phasmidsoftware.number.core.numerical.{CoreExceptionWithCause, Field}
+import com.phasmidsoftware.number.core.numerical.{CoreExceptionWithCause, Field, ComplexCartesian}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.{algebraic, inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
@@ -341,6 +341,14 @@ object Eager {
     * As a lazy value, the computation or retrieval of `e` is deferred until it is accessed for the first time.
     */
   lazy val e: Eager = NaturalExponential.e
+
+  lazy val i: Eager = Complex(ComplexCartesian(0, numerical.Number.one))
+
+  /**
+    * Exact value of iPi.
+    */
+  lazy val iPi: Eager = Complex(ComplexCartesian(0, numerical.Number.pi))
+
   /**
     * A lazily initialized constant for infinity: an `Eager` instance that encapsulates
     * a `RationalNumber` with an infinite value.

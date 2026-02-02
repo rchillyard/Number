@@ -7,18 +7,15 @@
 import com.phasmidsoftware.number.algebra.util.LatexRenderer as LatexRendererOps
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.*
-
-val two: Rational = 1 + 1
-two.render// should be Rational 2
-
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.given
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.{LatexRendererOps, nthRoot}
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 
+val two: Rational = 1 + 1 // should be Rational 2
+
 two.toLatex
 
-val three = 2 + Rational.one
-three.render // should be Rational 3
+val three = 2 + Rational.one // should be Rational 3
 three.toLatex
 
 val tenOverThree = 10 :/ 3

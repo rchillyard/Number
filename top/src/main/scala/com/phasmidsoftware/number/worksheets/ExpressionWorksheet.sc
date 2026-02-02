@@ -8,10 +8,10 @@ import com.phasmidsoftware.number.expression.expr.Expression.fromString
 import com.phasmidsoftware.number.expression.expr.{Expression, One, ∅}
 
 val six = ∅ + 1 + 2 + 3
-six.materialize.render
+six.materialize
 
 val fortyTwo = ∅ * 6 * 7
-fortyTwo.materialize.render
+fortyTwo.materialize
 
 val root3 = Expression(3).sqrt
 val root3PlusOne: Expression = root3 + Expression.one
@@ -25,4 +25,4 @@ val two: Expression = root3PlusOne * root3MinusOne
 
 val half: Expression = One / 2
 // This should be rendered as ½
-half.render
+half.materialize

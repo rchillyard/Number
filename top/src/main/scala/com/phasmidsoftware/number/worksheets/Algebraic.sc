@@ -12,20 +12,20 @@ import com.phasmidsoftware.number.expression.expr.Root
 val phi = Root.phi
 val psi = Root.psi
 
-Root.phi.render
+Root.phi
 
 val phiPlus1 = phi + 1
 
 val phiSquared = (phi * phi).simplify
 
 // an approximation to phi
-val phiApprox = phi.approximation
+val phiApprox = phi.fuzzy
 
 // psi, the conjugate of Phi
-val conjugate = psi.render
+val conjugate = psi
 
 // an approximation to psi
-val psiSolution = psi.approximation
+val psiSolution = psi.fuzzy
 
 // the sum of phi and psi should be 1
 val sum = phi add psi
@@ -37,16 +37,16 @@ val product = phi * psi
 val goldenRationEquation = phi.equation
 
 // The value of the product should be -r from the equation
-val productString = product.render
+val productString = product.materialize
 
-val phiSquareApprox = phiSquared.approximation
+val phiSquareApprox = phiSquared.fuzzy
 
 // We define the Algebraic for the golden ratio from two numbers
 val myPhi: Solution = QuadraticEquation.goldenRatioEquation.solve(0)
-myPhi.render
+myPhi
 myPhi match {
   case q: QuadraticSolution =>
-    q.render
+    q
   case _ =>
     "not a QuadraticSolution"
 }
