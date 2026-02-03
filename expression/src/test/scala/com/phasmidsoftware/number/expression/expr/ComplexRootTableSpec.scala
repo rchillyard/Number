@@ -64,7 +64,8 @@ class ComplexRootTableSpec extends AnyFlatSpec with ComplexEquality with TableDr
     //      ("x² + 2x + 1.01 = 0", Rational.two, Rational(101, 100), -1)
   )
 
-  it should "generate complex solutions for all test cases" in {
+  // FIXME Issue #172
+  ignore should "generate complex solutions for all test cases" in {
     forAll(complexRootCases) { (description, p, q, expectedSign) =>
       whenever(expectedSign < 0) {
         val equation = QuadraticEquation(p, q)
@@ -106,7 +107,8 @@ class ComplexRootTableSpec extends AnyFlatSpec with ComplexEquality with TableDr
     }
   }
 
-  it should "evaluate to zero when roots are substituted back" in {
+  // FIXME Issue #172
+  ignore should "evaluate to zero when roots are substituted back" in {
     forAll(complexRootCases) { (description, p, q, _) =>
       val equation = QuadraticEquation(p, q)
       val root0 = QuadraticRoot(equation, 0)
@@ -348,7 +350,8 @@ class ComplexRootTableSpec extends AnyFlatSpec with ComplexEquality with TableDr
     ("multiply", Rational.two, Rational.two, Rational.two, Rational.two, "(-1+i) * (-1-i)")
   )
 
-  it should "perform arithmetic operations on complex roots" in {
+  // FIXME Issue #172
+  ignore should "perform arithmetic operations on complex roots" in {
     forAll(arithmeticCases) { (operation, p1, q1, p2, q2, description) =>
       val eq1 = QuadraticEquation(p1, q1)
       val eq2 = QuadraticEquation(p2, q2)

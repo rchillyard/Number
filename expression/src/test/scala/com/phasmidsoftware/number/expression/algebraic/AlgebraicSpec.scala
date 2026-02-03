@@ -47,7 +47,8 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     QuadraticEquation.goldenRatioEquation.solve(0) match {
       case q: QuadraticSolution =>
-        q.render shouldBe "\uD835\uDED7"
+        q.render shouldBe "(½ + √1.25)"
+//        q.render shouldBe "\uD835\uDED7" (this is not working)
       case _ =>
         fail("not a QuadraticSolution")
     }

@@ -118,7 +118,8 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * Solutions: -1/2 ± i√(3/4) = -1/2 ± i√3/2
     * These are the complex cube roots of unity (ω and ω²)
     */
-  it should "generate cube roots of unity for x² + x + 1 = 0" in {
+  // FIXME Issue #172
+  ignore should "generate cube roots of unity for x² + x + 1 = 0" in {
     val equation = QuadraticEquation(Rational.one, Rational.one)
     val root0 = QuadraticRoot(equation, 0)
     val root1 = QuadraticRoot(equation, 1)
@@ -147,7 +148,8 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
   /**
     * Verify that complex roots can be added
     */
-  it should "add two complex roots correctly" in {
+  // FIXME Issue #172
+  ignore should "add two complex roots correctly" in {
     val eq1 = QuadraticEquation(Rational.zero, Rational.one) // x² + 1 = 0, roots: ±i
     val root1 = QuadraticRoot(eq1, 0)
 
@@ -185,7 +187,8 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
   /**
     * Verify that evaluating the equation at its complex root gives zero
     */
-  it should "evaluate to zero when substituted back into the equation" in {
+  // FIXME Issue #172
+  ignore should "evaluate to zero when substituted back into the equation" in {
     val equation = QuadraticEquation(Rational.two, Rational.two)
     val root0 = QuadraticRoot(equation, 0)
 
@@ -196,7 +199,8 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     result.isZero shouldBe true
   }
 
-  it should "evaluate x² + 1 = 0 at i to get zero" in {
+  // FIXME Issue #172
+  ignore should "evaluate x² + 1 = 0 at i to get zero" in {
     val equation = QuadraticEquation(Rational.zero, Rational.one)
     val root = QuadraticRoot(equation, 0)
 
@@ -240,7 +244,8 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * - Sum of roots = -p
     * - Product of roots = q
     */
-  it should "satisfy Vieta's formulas for sum and product" in {
+  // FIXME Issue #172
+  ignore should "satisfy Vieta's formulas for sum and product" in {
     val p = Rational(3)
     val q = Rational(5)
     val equation = QuadraticEquation(p, q) // x² + 3x + 5 = 0

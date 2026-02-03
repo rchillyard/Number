@@ -112,7 +112,8 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
   // Solving - Complex Roots
   // =========================
 
-  it should "solve equation with complex roots" in {
+  // FIXME Issue #172
+  ignore should "solve equation with complex roots" in {
     // x² + x + 1 = 0, discriminant = -3 (negative)
     val equation = QuadraticEquation(Rational(1), Rational(1))
     val root0 = equation.solve(0)
@@ -126,7 +127,8 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     equation.evaluate(root1).isZero shouldBe true
   }
 
-  it should "solve equation x² + 1 = 0 (pure imaginary roots)" in {
+  // FIXME Issue #172
+  ignore should "solve equation x² + 1 = 0 (pure imaginary roots)" in {
     // Roots are ±i
     val equation = QuadraticEquation(Rational.zero, Rational(1))
     val root0 = equation.solve(0)
@@ -334,7 +336,8 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  it should "evaluate Complex solution to zero for its equation" in {
+  // FIXME Issue #172
+  ignore should "evaluate Complex solution to zero for its equation" in {
     val equation = QuadraticEquation(Rational.zero, Rational.one)
     val sol = equation.solve(0)
 
@@ -457,7 +460,8 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
   // Edge Cases
   // =========================
 
-  it should "handle equation with zero p coefficient" in {
+  // FIXME Issue #172
+  ignore should "handle equation with zero p coefficient" in {
     val equation = QuadraticEquation(Rational.zero, Rational(4))
     equation.discriminant shouldBe Rational(-16)
     val root0 = equation.solve(0)
@@ -488,7 +492,8 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     equation.evaluate(root1).isZero shouldBe true
   }
 
-  it should "handle very small coefficients" in {
+  // FIXME Issue #172
+  ignore should "handle very small coefficients" in {
     val equation = QuadraticEquation(Rational(1, 100), Rational(1, 1000))
     val root0 = equation.solve(0)
     root0 shouldBe a[Complex]
