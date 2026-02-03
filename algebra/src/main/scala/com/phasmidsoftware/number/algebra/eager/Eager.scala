@@ -11,7 +11,6 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
-import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.{CoreExceptionWithCause, Field, ComplexCartesian}
 import com.phasmidsoftware.number.core.parse.NumberParser
@@ -465,11 +464,6 @@ object Eager {
         Scalar(n)
       case c: numerical.Complex =>
         Complex(c)()
-      case a@Algebraic_Quadratic(_, com.phasmidsoftware.number.core.algebraic.Quadratic(p, q), pos) =>
-        val q: algebraic.Solution = a.solve
-        val m1: Monotone = convertToMonotone(q.base, PureNumber)
-        val m2: Monotone = convertToMonotone(q.offset, q.factor)
-        QuadraticSolution(m1, m2, q.branch, false)
       case _ =>
         throw AlgebraException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }

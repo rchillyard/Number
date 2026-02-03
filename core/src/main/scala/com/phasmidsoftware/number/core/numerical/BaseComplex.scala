@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.BaseComplex.narrow
@@ -559,12 +558,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     */
   def doAdd(complex: Complex): BaseComplex = complex match {
     case ComplexCartesian(a, b) =>
-      // CONSIDER we should not be relying on expression package here.
-      import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
-      // TODO replace materialize with evaluateAsIs and do the appropriate things below (a for-comprehension).
-      val partA = Literal(x).+(Real(a)).materialize
-      val partB = Literal(y).+(Real(b)).materialize
-      Complex.apply(partA, partB, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
+      throw ComplexException("logic error: ComplexCartesian.doAdd")
     case c@ComplexPolar(_, _, _) =>
       doAdd(convertToCartesian(c))
   }

@@ -4,14 +4,11 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{inverse, negate}
-// TODO eliminate references to expression package
-import com.phasmidsoftware.number.core.expression.{Expression, ExpressionException}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
 
@@ -286,8 +283,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
         Real(doAdd(n))
       case c@BaseComplex(_, _) => // TESTME
         c.add(this.asComplex)
-      case s: Algebraic =>
-        s `add` Real(this)
       case _ =>
         throw CoreException(s"logic error: add not supported for this addend: $x")
     }
@@ -334,8 +329,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
       doMultiply(n).normalize
     case (_, c@BaseComplex(_, _)) =>
       c.multiply(this.asComplex)
-    case (_, s: Algebraic) =>
-      s `multiply` Real(this)
     case _ =>
       throw CoreException("logic error: multiply not supported for non-Number multiplicands")
   }
@@ -913,23 +906,6 @@ object Number {
       */
     def ∧(y: Rational): Number = x ∧ y // TESTME
   }
-
-  /**
-    * Implicit converter from Expression to Number.
-    * CONSIDER we should try to move this implicit converter into Expression...
-    * but be warned--it's not easy!
-    *
-    * @param x the Expression to be converted.
-    * @return the equivalent exact Number.
-    */
-  //noinspection Annotator
-  implicit def convertExpression(x: Expression): Number =
-    x.materialize match {
-      case Real(n) =>
-        n
-      case _ =>
-        throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
-    }
 
   /**
     * Implicit converter from Int to Number.

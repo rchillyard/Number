@@ -1,7 +1,5 @@
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
-import com.phasmidsoftware.number.core.expression.{Expression, Literal, Root}
 import com.phasmidsoftware.number.core.inner.{Log2, Rational}
 import com.phasmidsoftware.number.core.numerical.Constants.sGamma
 import org.scalactic.Equality

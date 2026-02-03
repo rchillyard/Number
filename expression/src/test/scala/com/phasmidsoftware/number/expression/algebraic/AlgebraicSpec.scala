@@ -9,7 +9,6 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
   import com.phasmidsoftware.number.algebra.eager.Eager.half
   import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
-  import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
   import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
   import com.phasmidsoftware.number.expression.expr.Root
 

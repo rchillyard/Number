@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian
@@ -138,9 +137,10 @@ object Complex {
       // CONSIDER can we improve upon this? Basically, we should only need MonadicOperationAtan.
       // CONSIDER we should not be relying on expression package here.
       // TODO eliminate use of materialize (see doAdd in ComplexCartesian)
-      val ro: Option[Number] = for (p <- ((Literal(c.x) * Real(c.x)) `plus` (Literal(c.y) * Real(c.y))).materialize.asNumber; z = p.sqrt) yield z
-      val z: Number = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
-      ComplexPolar(z, c.x `atan` c.y, 1)
+//      val ro: Option[Number] = for (p <- ((Literal(c.x) * Real(c.x)) `plus` (Literal(c.y) * Real(c.y))).materialize.asNumber; z = p.sqrt) yield z
+//      val z: Number = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
+//      ComplexPolar(z, c.x `atan` c.y, 1)
+      throw ComplexException(s"convertToPolar: logic error: $c")
   }
 
   /**

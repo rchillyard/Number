@@ -7,8 +7,6 @@ package com.phasmidsoftware.number.cats
 import cats.Show
 import cats.implicits.catsSyntaxEq
 import cats.kernel.{Eq, Order, PartialOrder}
-import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{Box, Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, Gaussian, GeneralNumber, Number, Real}
 
@@ -22,18 +20,6 @@ import scala.annotation.tailrec
   *   import com.phasmidsoftware.number.instances.catsKernel._
   */
 trait CatsKernelInstances {
-
-  // Expression
-  implicit val expressionEq: Eq[Expression] = Eq.instance {
-    (x, y) => x == y || x.simplify == y.simplify || x.evaluateAsIs === y.evaluateAsIs
-  }
-  implicit val expressionOrder: PartialOrder[Expression] =
-    (x: Expression, y: Expression) =>
-      if (x == y || x.simplify == y.simplify || x.evaluateAsIs === y.evaluateAsIs)
-        0.0
-      else
-        (for (xx <- x.approximation; yy <- y.approximation) yield fieldPartialOrder.partialCompare(xx, yy)).getOrElse(Double.NaN)
-  implicit val expressionShow: Show[Expression] = Show.show(_.render)
 
   // Rational
   implicit val rationalEq: Eq[Rational] = Eq.instance((x, y) => x.compare(y) == 0)
@@ -228,56 +214,42 @@ trait CatsKernelInstances {
   implicit val fieldEq: Eq[Field] = Eq.instance {
     case (Real(x), Real(y)) => x === y
     case (a: Complex, b: Complex) => a === b
-    // Algebraic bridges: compare by resolved value type
-    case (a: Algebraic, b: Algebraic) =>
-      val (va, vb) = (a.value, b.value)
-      (va.asReal, vb.asReal) match {
-        case (Some(ra), Some(rb)) => ra === rb
-        case _ => va.asComplex === vb.asComplex
-      }
-    case (a: Algebraic, b: Real) => a.value.asReal.exists(ra => ra === b)
-    case (a: Real, b: Algebraic) => b.value.asReal.exists(rb => a === rb)
-    case (a: Algebraic, b: Complex) => a.value.asComplex === b
-    case (a: Complex, b: Algebraic) => a === b.value.asComplex
     case _ => false
   }
-
-  implicit val fieldPartialOrder: PartialOrder[Field] = new PartialOrder[Field] {
-    @tailrec
-    def partialCompare(a: Field, b: Field): Double =
-      // Cannot use a === b in PartialOrder because of StackOverflowError
-      if (fieldEq.eqv(a, b) || a == b) 0.0
-      else (a, b) match {
-        case (Real(x), Real(y)) => numberPartialOrder.partialCompare(x, y)
-        case (_: Complex, _: Complex) => Double.NaN
-        case (aa: Algebraic, bb: Algebraic) => algebraicPartialOrder.partialCompare(aa, bb)
-        case (aa: Algebraic, other) => partialCompare(aa.value, other)
-        case (other, bb: Algebraic) => partialCompare(other, bb.value)
-        case _ => Double.NaN
-      }
-  }
-
-  // Algebraic: equality by comparing resolved Real/Complex explicitly; partial order via Field
-  implicit val algebraicEq: Eq[Algebraic] = Eq.instance { (a, b) =>
-    (a eq b) || {
-      val (va, vb) = (a.value, b.value)
-      (va.asReal, vb.asReal) match {
-        case (Some(ra), Some(rb)) => ra === rb
-        case _ => va.asComplex === vb.asComplex
-      }
-    }
-  }
-
-  implicit val algebraicPartialOrder: PartialOrder[Algebraic] = new PartialOrder[Algebraic] {
-    def partialCompare(a: Algebraic, b: Algebraic): Double =
-      fieldPartialOrder.partialCompare(a.value, b.value)
-
-    // Cannot use a === b in PartialOrder because of StackOverflowError
-    override def eqv(a: Algebraic, b: Algebraic): Boolean = algebraicEq.eqv(a, b)
-  }
-
-  implicit val algebraicShow: Show[Algebraic] = Show.show(_.render)
-
+//
+//  implicit val fieldPartialOrder: PartialOrder[Field] = new PartialOrder[Field] {
+//    @tailrec
+//    def partialCompare(a: Field, b: Field): Double =
+//      // Cannot use a === b in PartialOrder because of StackOverflowError
+//      if (fieldEq.eqv(a, b) || a == b) 0.0
+//      else (a, b) match {
+//        case (Real(x), Real(y)) => numberPartialOrder.partialCompare(x, y)
+//        case (_: Complex, _: Complex) => Double.NaN
+//        case _ => Double.NaN
+//      }
+//  }
+//
+//  // Algebraic: equality by comparing resolved Real/Complex explicitly; partial order via Field
+//  implicit val algebraicEq: Eq[Algebraic] = Eq.instance { (a, b) =>
+//    (a eq b) || {
+//      val (va, vb) = (a.value, b.value)
+//      (va.asReal, vb.asReal) match {
+//        case (Some(ra), Some(rb)) => ra === rb
+//        case _ => va.asComplex === vb.asComplex
+//      }
+//    }
+//  }
+//
+//  implicit val algebraicPartialOrder: PartialOrder[Algebraic] = new PartialOrder[Algebraic] {
+//    def partialCompare(a: Algebraic, b: Algebraic): Double =
+//      fieldPartialOrder.partialCompare(a.value, b.value)
+//
+//    // Cannot use a === b in PartialOrder because of StackOverflowError
+//    override def eqv(a: Algebraic, b: Algebraic): Boolean = algebraicEq.eqv(a, b)
+//  }
+//
+//  implicit val algebraicShow: Show[Algebraic] = Show.show(_.render)
+//
 }
 
 object CatsKernel extends CatsKernelInstances

@@ -230,10 +230,6 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
     * @return a String
     */
   lazy val render: String = this match {
-    case QuadraticSolution.phi =>
-      Algebraic.phi.render
-    case QuadraticSolution.psi =>
-      Algebraic.psi.render
     case q@QuadraticSolution(base, offset, factor, branch) if Value.isZero(offset) || Value.isZero(base) =>
       q.asField.render
     case QuadraticSolution(base, offset, factor, branch) =>
@@ -475,6 +471,10 @@ object QuadraticSolution {
     * @see Value.fromRational
     */
   val psi = QuadraticSolution(Value.fromRational(Rational.half), Value.fromRational(Rational(5, 4)), SquareRoot, 1)
+  
+  val root2 = QuadraticSolution(Value.zero, Value.fromInt(2), SquareRoot, 0)
+  
+  val root2Neg = QuadraticSolution(Value.zero, Value.fromInt(2), SquareRoot, 1)
 }
 
 /**

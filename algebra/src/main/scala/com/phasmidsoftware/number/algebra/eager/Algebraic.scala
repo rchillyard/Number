@@ -268,10 +268,6 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     * @return a String
     */
   def render: String = maybeName getOrElse (this match {
-    case QuadraticSolution.phi =>
-      core.algebraic.Algebraic.phi.render
-    case QuadraticSolution.psi =>
-      core.algebraic.Algebraic.psi.render
     case q@QuadraticSolution(base, offset, coefficient, false) if offset.isZero || base.isZero =>
       q.normalize.render
     case QuadraticSolution(base, offset, coefficient, false) =>

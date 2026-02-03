@@ -4,8 +4,6 @@
 
 package com.phasmidsoftware.number.core.parse
 
-import com.phasmidsoftware.number.core.expression.Expression
-import com.phasmidsoftware.number.core.expression.Expression.convertMillExpressionToExpression
 import com.phasmidsoftware.number.core.mill.CoreMill
 import com.phasmidsoftware.number.core.numerical.{Constants, Number}
 import com.phasmidsoftware.number.core.parse.ShuntingYardParser

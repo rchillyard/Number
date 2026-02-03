@@ -1,7 +1,5 @@
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression.Expression
-import com.phasmidsoftware.number.core.expression.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.numerical.Complex.{ComplexHelper, convertToCartesian, convertToPolar}

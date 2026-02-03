@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
+import com.phasmidsoftware.number.core.algebraic.{Solution}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
 import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.numerical.Number.{NumberIsFractional, NumberIsOrdering}
@@ -86,7 +86,7 @@ case class Real(x: Number) extends Field {
     case Real(y) => (x `doSubtract` y).isZero
     case c: Complex => c.isSame(this)
     case n: Number => isSame(Real(n))
-    case s: Algebraic => s.isSame(this)
+    case _ => throw CoreException(s"Real.isSame: cannot compare Real with $f")
   }
 
   /**
@@ -416,8 +416,6 @@ object Real {
       apply(r)
     case x: Number =>
       apply(x)
-    case x: Algebraic =>
-      apply(x.solve)
     case solution: Solution =>
       apply(solution.asField)
     case _ =>

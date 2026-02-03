@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
 
 /**
@@ -159,11 +158,6 @@ object Constants {
   lazy val root2s: Field = ComplexPolar(Number.root2, Number.zeroR, 2)
 
   import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
-
-  /**
-    * [[https://en.wikipedia.org/wiki/Golden_ratio]]
-    */
-  lazy val phi: NumberLike = Algebraic.phi
 
   /**
     * [[https://en.wikipedia.org/wiki/Euler–Mascheroni_constant]].

@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.numerical.Constants.sG
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{createFuzz, monadicFuzziness}

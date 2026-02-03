@@ -2,8 +2,6 @@ package com.phasmidsoftware.number.cats.laws
 
 import cats.kernel.laws.discipline.{EqTests, OrderTests, PartialOrderTests}
 import com.phasmidsoftware.number.cats.CatsKernel.*
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, LinearEquation, Quadratic}
-import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, Fuzziness, FuzzyNumber, Gaussian, GeneralNumber, Number, Real, RelativeFuzz}
 import org.scalacheck.{Arbitrary, Cogen, Gen}
@@ -181,51 +179,6 @@ class CatsKernelLawSpec
       case AbsoluteFuzz(m, s) => (0, if (s == Box) 0 else 1, java.lang.Double.doubleToRawLongBits(m))
       case RelativeFuzz(m, s) => (1, if (s == Box) 0 else 1, java.lang.Double.doubleToRawLongBits(m))
     }
-
-  // Lightweight generators for Expression
-
-  import Expression.*
-
-  implicit val arbitraryExpression: Arbitrary[Expression] = Arbitrary {
-    val genConst: Gen[Expression] = Gen.oneOf(zero, one, two, pi, e, minusOne)
-    val genLiteral: Gen[Expression] = arbitraryNumber.arbitrary.map(n => Expression(Real(n)))
-    val genBin: Gen[Expression] = for {
-      a <- genLiteral
-      b <- genLiteral
-      op <- Gen.oneOf(0, 1)
-    } yield if (op == 0) a + b else a * b
-    Gen.frequency(
-      6 -> genLiteral,
-      2 -> genConst,
-      2 -> genBin
-    )
-  }
-
-  implicit val cogenExpression: Cogen[Expression] =
-    Cogen[Option[Field]].contramap(_.evaluateAsIs)
-
-  // Lightweight generators for Algebraic
-  implicit val arbitraryAlgebraic: Arbitrary[Algebraic] = Arbitrary {
-    val genConst: Gen[Algebraic] = Gen.oneOf(Algebraic.one, Algebraic.zero, Algebraic.half, Algebraic.phi, Algebraic.psi)
-    val genLinear: Gen[Algebraic] = for {
-      n <- Arbitrary.arbitrary[Long].map(BigInt(_))
-      d <- Gen.chooseNum[Long](1L, 1000000000L).map(BigInt(_))
-    } yield Algebraic(LinearEquation(Rational(n, d)), 0)
-    val genQuadratic: Gen[Algebraic] = for {
-      p <- arbitraryRational.arbitrary
-      q <- arbitraryRational.arbitrary
-      branch <- Gen.oneOf(0, 1)
-    } yield Algebraic(Quadratic(p, q), branch)
-    Gen.frequency(
-      4 -> genConst,
-      4 -> genLinear,
-      2 -> genQuadratic
-    )
-  }
-
-  implicit val cogenAlgebraic: Cogen[Algebraic] =
-    cogenField.contramap(_.value)
-
 
   // Law checks
   checkAll("Fuzziness[Double]", EqTests[Fuzziness[Double]].eqv)

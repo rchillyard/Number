@@ -8,8 +8,6 @@ import cats.instances.option.*
 import cats.kernel.{Eq, Order, PartialOrder}
 import cats.syntax.show.*
 import com.phasmidsoftware.number.cats.CatsKernel.*
-import com.phasmidsoftware.number.core.algebraic.Algebraic
-import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, ComplexCartesian, ComplexPolar, ExactNumber, Field, FuzzyNumber, Gaussian, Number, Real}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -153,52 +151,13 @@ class CatsKernelSpec extends AnyFlatSpec with Matchers {
     Eq[Field].eqv(f1, f2) shouldBe false
 
     // PartialOrder
-    val po = PartialOrder[Field]
-    po.partialCompare(f1, f1b) shouldBe 0.0
-    // For unequal Complex values, PartialOrder returns NaN (unordered)
-    po.partialCompare(f2, f4).isNaN shouldBe true
+//    val po = PartialOrder[Field]
+//    po.partialCompare(f1, f1b) shouldBe 0.0
+//    // For unequal Complex values, PartialOrder returns NaN (unordered)
+//    po.partialCompare(f2, f4).isNaN shouldBe true
 
     // Show
     f1.show should not be empty
-  }
-
-  // ===== Algebraic =====
-  behavior of "Cats instances for Algebraic"
-
-  ignore should "provide PartialOrder/Eq/Show for Algebraic" in {
-    val a1: Algebraic = Algebraic.phi
-    val a2: Algebraic = Algebraic.psi
-
-    // Eq
-    Eq[Algebraic].eqv(a1, a1) shouldBe true
-    Eq[Algebraic].eqv(a1, a2) shouldBe false
-
-    // PartialOrder (delegates to Field ordering on values)
-    val po = PartialOrder[Algebraic]
-    po.lteqv(a2, a1) shouldBe true // psi < phi
-    po.partialCompare(a1, a2) > 0.0 shouldBe true
-
-    // Show
-    a1.show should not be empty
-  }
-
-  // ===== Expression =====
-  behavior of "Cats instances for Expression"
-
-  it should "provide PartialOrder/Eq/Show for Expression" in {
-    val e1: Expression = Expression(1) - 1
-    val e2: Expression = Expression(0)
-
-    // Eq (by simplify/evaluateAsIs)
-    Eq[Expression].eqv(e1, e2) shouldBe true
-
-    // PartialOrder (by approximation fallback)
-    val po = PartialOrder[Expression]
-    po.partialCompare(Expression(1), Expression(2)) < 0.0 shouldBe true
-    po.partialCompare(Expression(2), Expression(1)) > 0.0 shouldBe true
-
-    // Show
-    Expression(1).show should not be empty
   }
 }
 

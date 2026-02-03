@@ -1,7 +1,5 @@
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
-import com.phasmidsoftware.number.core.expression.{Expression, Literal}
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational, SquareRoot}
 import com.phasmidsoftware.number.core.numerical.ComplexPolar.±

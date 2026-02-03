@@ -5,8 +5,6 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
-import com.phasmidsoftware.number.core.expression.*
-import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number.core.expression.Root.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{AnyContext, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi
