@@ -46,7 +46,7 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
   it should "add WholeNumber and RationalNumber" in {
     // 2 + 1/2 = 5/2
     val two = WholeNumber(2)
-    val half = (Rational(1, 2))
+    val half = Rational(1, 2)
     val result = two + half
 
     result shouldBe a[RationalNumber]
@@ -398,7 +398,7 @@ class EagerOpsIntegrationSpec extends AnyFlatSpec with Matchers {
     val values: Seq[Eager] = Seq(
       WholeNumber(5),
       RationalNumber(4, 2),  // Will normalize to WholeNumber(2)
-      (Rational(3, 4))
+      Rational(3, 4)
     )
 
     values.foreach { v =>

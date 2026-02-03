@@ -5,11 +5,14 @@
 import com.phasmidsoftware.number.algebra.eager.Eager.half
 import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
 import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
-import com.phasmidsoftware.number.core.expression.Root.{phi, psi}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
+import com.phasmidsoftware.number.expression.expr.Root
 
 // phi, the Golden Ratio
-phi.render
+val phi = Root.phi
+val psi = Root.psi
+
+Root.phi.render
 
 val phiPlus1 = phi + 1
 

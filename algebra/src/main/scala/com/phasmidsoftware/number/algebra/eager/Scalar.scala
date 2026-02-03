@@ -361,6 +361,13 @@ case object NoScalar extends Scalar with Exact {
   def isZero: Boolean = false
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = false
+
+  /**
     * Determines the sign of the scalar value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *

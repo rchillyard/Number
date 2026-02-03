@@ -5,10 +5,10 @@
 package com.phasmidsoftware.number.expression.expr
 
 import cats.Show
-import com.phasmidsoftware.matchers.{LogLevel, LogOff, MatchLogger}
+import com.phasmidsoftware.matchers.{LogLevel, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.*
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Functional, InversePower, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
@@ -17,7 +17,7 @@ import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.core.numerical.Number.convertInt
 import com.phasmidsoftware.number.expression.expr.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
-import com.phasmidsoftware.number.expression.expr.{BiFunction, CompositeExpression, UniFunction}
+import com.phasmidsoftware.number.expression.expr.{BiFunction, CompositeExpression, IsUnity, IsZero, Literal, One, Sum, UniFunction, Zero}
 import com.phasmidsoftware.number.expression.mill
 import com.phasmidsoftware.number.expression.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.{core, expression}
@@ -294,8 +294,18 @@ object Expression {
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
       */
-    infix def plus(y: Expression): Expression =
-      BiFunction(x, y, Sum)
+    infix def plus(y: Expression): Expression = (x, y) match {
+      case (IsZero(_), _) =>
+        y
+      case (_, IsZero(_)) =>
+        x
+      case (IsUnity(_), _) =>
+        BiFunction(y, One, Sum)
+      case (_, IsUnity(_)) =>
+        BiFunction(x, One, Sum)
+      case _ =>
+        BiFunction(x, y, Sum)
+    }
 
     /**
       * Method to add this Expression and another Expression, resulting in an Expression.
@@ -321,15 +331,19 @@ object Expression {
       * @return an Expression which is the lazy product of x and y.
       */
     def -(y: Expression): Expression =
-      BiFunction(x, -y, Sum)
+      plus(-y)
 
     /**
       * Method to lazily change the sign of this expression.
       *
       * @return an Expression which is this negated.
       */
-    def unary_- : Expression =
-      UniFunction(x, Negate)
+    def unary_- : Expression = x match {
+      case IsZero(_) =>
+        x
+      case _ =>
+        UniFunction(x, Negate)
+    }
 
     /**
       * Method to lazily multiply this expression by another expression.
@@ -337,8 +351,14 @@ object Expression {
       * @param y another Expression to be multiplied with this expression.
       * @return an Expression representing the lazy product of this expression and the given expression.
       */
-    infix def times(y: Expression): Expression =
-      BiFunction(x, y, Product)
+    infix def times(y: Expression): Expression = y match {
+      case IsZero(_) =>
+        Zero
+      case IsUnity(_) =>
+        x
+      case _ =>
+        BiFunction(x, y, Product)
+    }
 
     /**
       * Method to lazily multiply x by y.
@@ -347,7 +367,7 @@ object Expression {
       * @return an Expression which is the lazy product of x and y.
       */
     def *(y: Expression): Expression =
-      BiFunction(x, y, Product)
+      times(y)
 
     /**
       * Method to lazily perform an operation on x and y.
@@ -365,8 +385,12 @@ object Expression {
       *
       * @return an Expression representing the reciprocal of x.
       */
-    def reciprocal: Expression =
-      UniFunction(x, Reciprocal)
+    def reciprocal: Expression = x match {
+      case IsUnity(_) =>
+        x
+      case _ =>
+        UniFunction(x, Reciprocal)
+    }
 
     /**
       * Method to lazily divide x by y.
@@ -384,8 +408,14 @@ object Expression {
       * @param y the power to which x should be raised (an Expression).
       * @return an Expression representing x to the power of y.
       */
-    def ∧(y: Expression): Expression =
-      BiFunction(x, y, Power)
+    def ∧(y: Expression): Expression = y match {
+      case IsZero(_) =>
+        One
+      case IsUnity(_) =>
+        x
+      case _ =>
+        BiFunction(x, y, Power)
+    }
 
     /**
       * Method to lazily get the square root of x.
@@ -713,11 +743,11 @@ object Expression {
     *
     * @return an instance of `em.AutoMatcher[Expression]` that identifies and simplifies trivial cases in composite expressions.
     */
-  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("identitiesMatcher") {
+  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression.identitiesMatcher") {
     case c: CompositeExpression =>
       c.identitiesMatcher(c)
     case x =>
-      em.Miss("identitiesMatcher: not a Composite expression type", x)
+      em.Miss("Expression.identitiesMatcher: not a Composite expression type", x)
   }
 
   /**
@@ -732,33 +762,57 @@ object Expression {
     *         matching and optionally simplifies an expression by evaluating it.
     */
   def simplifyByEvaluation: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyByEvaluation") {
+    em.Matcher[Expression, Expression]("Expression.simplifyByEvaluation") {
       case BiFunction(ValueExpression(x: eager.Number, _), ValueExpression(q: Q, _), Power) if q.toRational.invert.isWhole =>
         val root = q.toRational.invert.toInt
         em.Match(Literal(InversePower(root, x))) `flatMap` matchSimpler
       //      case BiFunction(ValueExpression(q: Q, _), ValueExpression(RationalNumber.half, _), Power) =>
       //        em.Match(Root.squareRoot(q.toRational, 0)) // NOTE we arbitrarily choose the positive root
-      case c: CompositeExpression =>
+      case c: CompositeExpression if !CompositeExpression.shouldStaySymbolic(c) =>
         c.evaluateAsIs match {
           case Some(f) =>
             em.MatchCheck(Expression(f))(c).map(_.simplify)
           case _ =>
-            em.Miss("simplifyByEvaluation: cannot evaluate", c)
+            em.Miss("Expression.simplifyByEvaluation: cannot evaluate", c)
         }
       case a: AtomicExpression =>
-        em.Miss("simplifyByEvaluation: atomic expression already simplified", a)
+        em.Miss("Expression.simplifyByEvaluation: atomic expression already simplified", a)
+      case e =>
+        em.Miss("Expression.simplifyByEvaluation: cannot simplify", e)
     }
 
   /**
     * Determines whether the provided expression `z` is an identity element
     * for the given binary function `f`.
     *
+    * TODO move this so that it is an instance method of ExpressionBiFunction.
+    *
     * @param f the binary function for which the identity property is to be checked.
     * @param z the expression to be evaluated as a potential identity element for the function `f`.
     * @return true if the expression `z` is an identity element for the binary function `f`, false otherwise.
     */
   private def isIdentity(f: ExpressionBiFunction)(z: Expression): Boolean =
-    (for (a <- z.evaluateAsIs; b <- f.maybeIdentityL) yield a === b).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true
+    (for {
+      a <- z.evaluateAsIs
+      b <- f.maybeIdentityL
+    } yield equivalent(a, b)).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true
+
+  /**
+    * Compares two `Eager` instances for equivalence based on their types and values.
+    * In particular, this method handles the case where one of the instances is a `Functional` and the other is a `Number`.
+    *
+    * @param a The first instance of `Eager` to compare.
+    * @param b The second instance of `Eager` to compare.
+    * @return A boolean indicating whether the two instances are equivalent.
+    */
+  private def equivalent(a: Eager, b: Eager) = (a, b) match {
+    case (x: Functional, y: eager.Number) =>
+      x.number === y
+    case (y: eager.Number, x: Functional) =>
+      x.number === y
+    case _ =>
+      a === b
+  }
 
   /**
     * Attempts to simplify `CompositeExpression` instances by applying pattern-based rewrites that change expression structure.
@@ -793,6 +847,7 @@ object Expression {
     case other => other.render
   }
 }
+
 
 /**
   * A custom exception that represents errors related to expressions.

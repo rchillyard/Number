@@ -20,6 +20,7 @@ import scala.util.Try
   * with simplification.
   *
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.CompositeExpression instead", since = "1.6.2")
 sealed trait CompositeExpression extends Expression {
   /**
     * Indicates whether this expression is atomic.
@@ -157,6 +158,7 @@ object CompositeExpression {
   * @param x the expression being operated on.
   * @param f the function to be applied to x.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.UniFunction instead", since = "1.6.2")
 case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends CompositeExpression {
 
   /**
@@ -335,6 +337,7 @@ object UniFunction {
   * @param b the second expression being operated on.
   * @param f the function to be applied to a and b.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.BiFunction instead", since = "1.6.2")
 case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends CompositeExpression {
 
   /**
@@ -810,6 +813,7 @@ object BiFunction {
   * @constructor Constructs an Aggregate instance with a sequence of expressions.
   * @param xs A non-empty sequence of expressions to be totaled.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Aggregate instead", since = "1.6.2")
 case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extends CompositeExpression {
 
   /**

@@ -156,7 +156,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "render" in {
     val x1 = Eager.one
     val x2 = Eager.pi
-    val e = BiFunction(Literal(x1), Literal(x2), Sum)
+    val e = BiFunction(Literal(1), Pi, Sum)
     e.toString shouldBe """(1 + 𝛑)"""
     e.render shouldBe "(1 + 𝛑)"
     e.materialize.render shouldBe "4.14159265358979300(91)"
@@ -412,9 +412,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "aggregate 2" in {
     val target = (One * Pi * Two * MinusOne).simplify
-    // CONSIDER is this correct? It doesn't seem right.
-    val expected = Literal(Angle(WholeNumber(-2)), Some("0𝛑"))
-    target shouldBe expected
+    target shouldBe Literal(-2) * Pi
   }
   it should "evaluate e * e" in {
     val expression: Expression = E * E

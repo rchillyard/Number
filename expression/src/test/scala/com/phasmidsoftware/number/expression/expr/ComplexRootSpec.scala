@@ -27,8 +27,8 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     */
   it should "generate ±i for x² + 1 = 0" in {
     val equation = QuadraticEquation(Rational.zero, Rational.one)
-    val root0 = QuadraticRoot(equation, 0)
-    val root1 = QuadraticRoot(equation, 1)
+    val root0 = QuadraticRoot(equation, 0, None)
+    val root1 = QuadraticRoot(equation, 1, None)
 
     // Both solutions should be Complex
     root0.solution shouldBe a[Complex]
@@ -52,7 +52,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     */
   it should "generate -1 ± i for x² + 2x + 2 = 0" in {
     val equation = QuadraticEquation(Rational.two, Rational.two)
-    val root0 = QuadraticRoot(equation, 0)
+    val root0 = QuadraticRoot(equation, 0, None)
     val root1 = QuadraticRoot(equation, 1)
 
     root0.solution shouldBe a[Complex]

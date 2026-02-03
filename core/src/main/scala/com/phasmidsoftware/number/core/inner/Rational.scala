@@ -1856,6 +1856,27 @@ object Rational {
 }
 
 /**
+  * Provides functionality to determine if a given `Rational` represents the inverse of an integer.
+  * This object serves as an extractor for such instances of `Rational`.
+  */
+object Inverse {
+  /**
+    * Extractor method for identifying whether the given `Rational` object represents an inverse
+    * of an integer, and if so, extracting that integer.
+    *
+    * @param x The `Rational` instance to be deconstructed and analyzed.
+    * @return An `Option` containing the integer if the `Rational` instance represents an inverse of an
+    *         integer and the denominator is a valid integer; otherwise, `None`.
+    */
+  def unapply(x: Rational): Option[Int] = x match {
+    case Rational(Rational.bigOne, d) if d.isValidInt =>
+      Some(d.toInt)
+    case _ =>
+      None
+  }
+}
+
+/**
   * Exception class for Rationals.
   *
   * @param s the cause as a String.

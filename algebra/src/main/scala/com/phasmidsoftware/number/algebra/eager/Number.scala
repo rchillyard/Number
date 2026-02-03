@@ -61,7 +61,7 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     * @throws com.phasmidsoftware.number.algebra.util.AlgebraException if the division is unsupported for the provided `other` type
     */
   def /(other: Number): Number = other match {
-    case c: CanMultiplyAndDivide[Number] =>
+    case c: CanMultiplyAndDivide[Number] @unchecked =>
       (this * c.reciprocal).normalize
     case e: ExactNumber =>
       (this * e.toRationalNumber.reciprocal).normalize

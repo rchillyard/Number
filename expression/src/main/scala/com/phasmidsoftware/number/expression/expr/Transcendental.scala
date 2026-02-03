@@ -42,6 +42,22 @@ sealed trait Transcendental extends AtomicExpression {
 sealed abstract class AbstractTranscendental(val name: String, val expression: Expression) extends Transcendental {
 
   /**
+    * This ensures that all `Transcendental` instances are protected from evaluation during simplification.
+    * Such transcendentals as the Euler-Mascheroni constant are kept as is during simplification.
+    */
+  override val protectedName: Boolean = true
+
+  /**
+    * Retrieves an optional name associated with the implementing class.
+    *
+    * The method returns an `Option` wrapping a `String`. If a name is available, it will be 
+    * contained within the `Option` as `Some(name)`. If no name is present, the method will return `None`.
+    *
+    * @return an `Option[String]` representing the optional name
+    */
+  val maybeName: Option[String] = Some(name)
+
+  /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
     * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
@@ -70,6 +86,13 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean = expression.isZero
+
+  /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = expression.isUnity
 
   /**
     * Determines the sign of the Monotone value represented by this instance.

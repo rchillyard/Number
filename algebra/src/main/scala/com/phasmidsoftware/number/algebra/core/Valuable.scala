@@ -25,7 +25,7 @@ import scala.util.Try
   * NOTE: this trait has the same name as the `Valuable` typeclass in the `com.phasmidsoftware.number` package,
   * but it is not the same thing.
   */
-trait Valuable extends Renderable with Numeric with Zeroable with Exactitude with Normalizable[Valuable] with TypeSafe {
+trait Valuable extends Renderable with Numeric with Zeroable with Unitary with Exactitude with Normalizable[Valuable] with TypeSafe {
 
   /**
     * Converts the current `Lazy` instance into an `Eager` instance by forcing

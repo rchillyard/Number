@@ -92,14 +92,12 @@ trait CanNegate[T <: Structure] extends Can[T] {
   * A trait that extends `CanAdd` and provides additional functionality for types
   * supporting both addition and subtraction operations. It introduces the ability
   * to negate instances of type `T` and override the unary negation operator.
-  * TODO we no longer need the U type parameter.
   *
   * Type Parameters:
   * - `T`: A type extending `Structure` that supports addition, subtraction, and negation operations
   *   with an implicit `AdditiveCommutativeGroup[T]` evidence.
-  * - `U`: A type extending `Structure` that is compatible with `T` in additive operations.
   */
-trait CanAddAndSubtract[T <: Structure : ClassTag, U <: Structure] extends CanAdd[T, U] with CanNegate[T] {
+trait CanAddAndSubtract[T <: Structure : ClassTag] extends CanAdd[T, T] with CanNegate[T] {
 
   /**
     * Subtracts the given instance of type `T` from the current instance.

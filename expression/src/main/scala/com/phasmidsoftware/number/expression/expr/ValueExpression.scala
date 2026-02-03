@@ -34,7 +34,8 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor(context: Context): Option[Factor] = value.maybeFactor(context)
+  def maybeFactor(context: Context): Option[Factor] =
+    value.maybeFactor(context)
 
   /**
     * Determines if the current number is equal to zero.
@@ -50,6 +51,13 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
   def signum: Int = value.signum
+
+  /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = value.isUnity
 
   /**
     * Method to determine if this Structure object is exact.
@@ -96,7 +104,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     */
   def evaluate(context: Context): Option[Eager] =
     if (context.valuableQualifies(value))
-      Some(value)
+      Some(value) // NOTE probably not a good idea to invoke normalize here.
     else
       value match {
         case nat: Nat =>
@@ -141,7 +149,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     * @return a String representation of this Literal.
     */
   override def toString: String =
-    val string = "$[{x.toString}]"
+    lazy val string = s"[${value.toString}]"
     s"${maybeName getOrElse string}"
 
   /**
@@ -205,6 +213,7 @@ object ValueExpression {
 
   /**
     * Creates a Literal instance using an integer value.
+    * NOTE not recursive
     *
     * @param x the integer value to be used for constructing the Literal.
     * @return a Literal instance wrapping the provided integer value as a Real number.
@@ -321,7 +330,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     *         or `None` if the evaluation is not applicable or fails.
     */
   private def doMonoFunction(f: ExpressionMonoFunction): Option[Eager] = (f, value) match {
-    case (Negate, r: CanAddAndSubtract[?, ?]) =>
+    case (Negate, r: CanAddAndSubtract[?]) =>
       Some(-r)
     case (Reciprocal, r: InversePower) =>
       r.pow(WholeNumber.minusOne)
@@ -346,30 +355,12 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
 object Literal {
 
   /**
-    * Converts the given integer value into a `Literal` object with a `WholeNumber` representation.
+    * Converts the given integer value into a `Literal` object with a `WholeNumber` representation AND a name.
     *
     * @param x the integer value to be converted
     * @return a `Literal` containing the `WholeNumber` representation of the input integer
     */
-  def apply(x: Int): Literal = Literal(WholeNumber(x))
-
-  /**
-    * Creates a `Literal` instance from an `Eager` value.
-    *
-    * @param x the `Eager` value to be wrapped within the `Literal`.
-    * @return a new `Literal` instance containing the provided `Eager` value and its rendered representation as an optional name.
-    */
-  def apply(x: Eager): Literal = Literal(x, Some(x.render))
-
-  /**
-    * Extracts a Valuable value from a Literal instance.
-    * CONSIDER this may never be invoked.
-    *
-    * @param arg the Literal instance to extract the Valuable from.
-    * @return an Option containing the extracted Valuable, or None if extraction is not possible.
-    */
-  def unapply(arg: Literal): Option[(Eager, Option[String])] =
-    Some(arg.value, arg.maybeName)
+  def apply(x: Int): Literal = Literal(WholeNumber(x), Some(x.toString))
 
   /**
     * Creates a Literal instance from a Rational value.
@@ -377,8 +368,14 @@ object Literal {
     * @param x the Rational value to be wrapped in a Literal
     * @return a Literal instance containing the given Rational value encapsulated in a Real
     */
-  def apply(x: Rational): Expression =
-    apply(RationalNumber(x))
+  def apply(x: Rational): Expression = x match {
+    case Rational.zero => apply(0)
+    case Rational.one => apply(1)
+    case Rational.two => apply(2)
+    case Rational.half => apply(RationalNumber.half, Some("\u00BD"))
+    case Rational.negOne => apply(-1)
+    case r => apply(RationalNumber(r).normalize)
+  }
 
   /**
     * Creates a new Literal instance wrapping the given Double value.
@@ -387,7 +384,7 @@ object Literal {
     * @return a Literal instance containing the provided Double value as a Real.
     */
   def apply(x: Double): Literal =
-    Literal(Real(x))
+    Literal(Real(x)) // TESTME
 
   /**
     * Creates a Literal instance from a given number.
@@ -415,12 +412,23 @@ object Literal {
   }
 
   /**
-    * Creates a `Literal` instance wrapping the provided `Valuable` object.
+    * Creates a `Literal` instance wrapping the provided `Valuable` object and associates it with a name.
     *
     * @param x the `Valuable` instance to be wrapped within an optional `Literal`.
     * @return an `Option[Literal]` containing the created `Literal` if successful, or `None` otherwise.
     */
   def someLiteral(x: Eager): Option[Literal] = Some(Literal(x, Some(x.render)))
+
+  /**
+    * Extracts a Valuable value from a Literal instance.
+    * CONSIDER this may never be invoked.
+    *
+    * @param arg the Literal instance to extract the Valuable from.
+    * @return an Option containing the extracted Valuable, or None if extraction is not possible.
+    */
+  def unapply(arg: Literal): Option[(Eager, Option[String])] =
+    Some(arg.value, arg.maybeName)
+
 }
 
 /**
@@ -618,6 +626,9 @@ case object Two extends ScalarConstant(WholeNumber.two, "2") {
   * Pi represents the mathematical constant π (pi) exactly.
   */
 case object Pi extends ScalarConstant(Angle.pi, "𝛑") {
+
+  override val protectedName: Boolean = true
+
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
@@ -642,6 +653,9 @@ case object Pi extends ScalarConstant(Angle.pi, "𝛑") {
   * Yes, this is an exact number.
   */
 case object E extends NamedConstant(NaturalExponential.e, "e") {
+
+  override val protectedName: Boolean = true
+
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
@@ -664,6 +678,9 @@ case object E extends NamedConstant(NaturalExponential.e, "e") {
   * Yes, this is an exact number.
   */
 case object ConstI extends NamedConstant(Eager(Constants.i), "i") {
+
+  override val protectedName: Boolean = true
+
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
@@ -688,6 +705,9 @@ case object ConstI extends NamedConstant(Eager(Constants.i), "i") {
   * operations specific to infinity.
   */
 case object Infinity extends NamedConstant(Eager(Rational.infinity), "∞") {
+
+  override val protectedName: Boolean = true
+
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.

@@ -294,7 +294,7 @@ object Eager {
     * initialized only when accessed. The `half` constant provides a convenient
     * representation of the fractional value 1/2 in the `Eager` context.
     */
-  lazy val half: Eager = RationalNumber(Rational.half)
+  lazy val half: Number = RationalNumber(Rational.half)
   /**
     * A lazily initialized constant value of `10` within the `Eager` context.
     *
@@ -369,6 +369,18 @@ object Eager {
     * enabling mathematical expressions and computations involving this constant.
     */
   lazy val root2: Eager = new InversePower(2, 2)(Some("√2"))
+  /**
+    * Represents the square root of 1/2, lazily initialized.
+    *
+    * This value is an instance of `Eager`, constructed using the `InversePower`
+    * class with a base of 2 and an exponent of `Eager.half`. It models the 
+    * mathematical constant √½ and is labeled with its LaTeX representation for 
+    * display purposes.
+    *
+    * The creation of this value demonstrates the use of lazy initialization
+    * to defer computation until it is first accessed.
+    */
+  lazy val rootHalf: Eager = new InversePower(2, Eager.half)(Some("√½"))
   /**
     * Represents the square root of 3 as a lazy initialization of an `Eager` type.
     *

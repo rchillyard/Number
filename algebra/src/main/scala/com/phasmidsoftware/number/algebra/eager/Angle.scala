@@ -93,6 +93,13 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   }
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = false
+
+  /**
     * Converts this Angle to a representation of the specified type `T`, if possible.
     *
     * This method attempts to convert the number to a type `T` that has implicit evidence
@@ -471,11 +478,16 @@ object Angle {
     *
     * @group Typeclass Instances
     * @see Convertible
-    * @param witness a template `Angle` object, which is unused in this conversion
-    * @param u       the source `Angle` object that is to be returned as is
-    * @return the source `Angle` object `u`, effectively performing an identity conversion
     */
   given Convertible[Angle, Angle] with
+    /**
+      * Converts one `Angle` instance to another. This method performs an identity operation
+      * where the provided source `Angle` object is returned without modification.
+      *
+      * @param witness a template `Angle` instance, provided to align with the conversion structure, but not used in the method logic
+      * @param u       the input `Angle` instance that needs to be "converted"
+      * @return the same `Angle` instance as the input parameter `u`
+      */
     def convert(witness: Angle, u: Angle): Angle = u
 
   /**
@@ -485,12 +497,16 @@ object Angle {
     * using a `Real` value. The conversion relies on the `asDouble` method of the `Real` type
     * to extract its numeric representation before constructing the `Angle`.
     *
-    * @param witness a value of type `Angle` provided as a witness or template, although not
-    *                directly used in this implementation for the conversion process
-    * @param u       the input `Real` value to be converted into an `Angle` instance
-    * @return an `Angle` instance created from the numeric representation of the `Real` value
     */
   given Convertible[Angle, Real] with
+    /**
+      * Converts a `Real` value into an `Angle` instance.
+      *
+      * @param witness a value of type `Angle` provided as a reference or template, though not
+      *                actively utilized in the conversion process
+      * @param u       the `Real` value to be converted into an `Angle`
+      * @return a new `Angle` instance created from the numeric representation of the provided `Real` value
+      */
     def convert(witness: Angle, u: Real): Angle = Angle(Rational.convertDouble(u.asDouble)) // FIXME need the inverse operation
 
   /**

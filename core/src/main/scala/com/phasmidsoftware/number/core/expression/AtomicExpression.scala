@@ -21,6 +21,7 @@ import java.util.Objects
   * However, there are exceptions (𝛾, ...)
   */
 /** sealed */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.AtomicExpression instead", since = "1.6.2")
 sealed trait AtomicExpression extends Expression {
   /**
     * Method to determine if this NumberLike object is exact.
@@ -114,6 +115,7 @@ object AtomicExpression {
   * It cannot be evaluated, simplified, or associated with any specific factor. It is a concrete implementation
   * of the `AtomicExpression` trait.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Noop instead", since = "1.6.2")
 case object Noop extends AtomicExpression {
 
   lazy val value: Field =
@@ -173,6 +175,7 @@ case object Noop extends AtomicExpression {
   * @param value     the `Field` associated with the expression
   * @param maybeName an optional name for the field expression
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.ValueExpression instead", since = "1.6.2")
 sealed abstract class FieldExpression(val value: Field, val maybeName: Option[String] = None) extends AtomicExpression {
 
   /**
@@ -320,6 +323,7 @@ object FieldExpression {
   * @param value     the `Field`.
   * @param maybeName an optional name (typically this will be None).
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Literal instead", since = "1.6.2")
 case class Literal(override val value: Field, override val maybeName: Option[String] = None) extends FieldExpression(value, maybeName) {
 
   /**
@@ -749,6 +753,7 @@ case object Infinity extends NamedConstant(Rational.infinity, "∞") {
   * This trait extends the characteristics of `AtomicExpression` by enabling the
   * application of a transformation or computation defined as an `ExpressionMonoFunction`.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Transcendental instead", since = "1.6.2")
 trait Transcendental extends AtomicExpression {
 
   /**
@@ -868,6 +873,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
   * This object provides an exact representation of π and inherits capabilities
   * for evaluation, materialization, and comparison from its abstract superclass.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Pi instead", since = "1.6.2")
 case object Pi extends AbstractTranscendental("\uDED1", ConstPi)
 
 /**
@@ -885,6 +891,7 @@ case object Pi extends AbstractTranscendental("\uDED1", ConstPi)
   * and comparison capabilities. It also ensures consistency in rendering and context-based
   * operations.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.E instead", since = "1.6.2")
 case object E extends AbstractTranscendental("\uD835\uDF00", ConstE)
 
 /**
@@ -898,6 +905,7 @@ case object E extends AbstractTranscendental("\uD835\uDF00", ConstE)
   * The `L2` object is defined as a named transcendental entity and can be used
   * in operations or expressions involving transcendental numbers.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.L2 instead", since = "1.6.2")
 case object L2 extends AbstractTranscendental("ln(2)", Two.ln)
 
 /**
@@ -911,6 +919,7 @@ case object L2 extends AbstractTranscendental("ln(2)", Two.ln)
   * The `L2` object is defined as a named transcendental entity and can be used
   * in operations or expressions involving transcendental numbers.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.LgE instead", since = "1.6.2")
 case object LgE extends AbstractTranscendental("log2e", Two.ln.reciprocal.simplify)
 
 /**
@@ -919,6 +928,7 @@ case object LgE extends AbstractTranscendental("log2e", Two.ln.reciprocal.simpli
   *
   * The Euler-Mascheroni constant is a transcendental entity commonly used in number theory and analysis.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.EulerMascheroni instead", since = "1.6.2")
 case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma) {
   /**
     * Method to determine if this NumberLike object is exact.
@@ -935,6 +945,7 @@ case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma) {
   * Each root is uniquely identified by its underlying equation and a branch index
   * that represents a specific solution when multiple solutions are possible.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Root instead", since = "1.6.2")
 trait Root extends AtomicExpression {
   /**
     * Retrieves the `Equation` associated with this `Root`.
@@ -1029,6 +1040,7 @@ trait Root extends AtomicExpression {
   * @param branch the branch index indicating the solution branch of the equation. This value should be within
   *               the valid range of branches supported by the equation, typically `0` or `1` for quadratic equations.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.QuadraticRoot instead", since = "1.6.2")
 case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, branch) {
   /**
     * Constructs a `Root` for a given quadratic equation and its specific solution branch.
@@ -1110,6 +1122,7 @@ object QuadraticRoot {
   * @param equ the `Equation` instance associated with this root.
   *            Assumes the equation is linear (degree 1).
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.LinearRoot instead", since = "1.6.2")
 case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
   /**
     * @return 0.
@@ -1167,6 +1180,7 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0) {
   * @param equ    the mathematical equation whose solution is represented by this root
   * @param branch the branch index used to solve the equation
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.AbstractRoot instead", since = "1.6.2")
 abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
 
   /**

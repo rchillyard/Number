@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Nat.natIsSemiring
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+
 import scala.annotation.tailrec
 import scala.util.{Success, Try}
 
@@ -191,6 +192,13 @@ case object NatZero extends Nat {
   def isZero: Boolean = true
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = false
+
+  /**
     * Determines the sign of the Monotone value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
@@ -214,6 +222,16 @@ case class Succ(pred: Nat) extends Nat {
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean = false
+
+  /**
+    * Determines if the current number is equal to one.
+    *
+    * This method establishes whether the numerical value of the current instance
+    * represents the first natural number (unity) based on its predecessor.
+    *
+    * @return true if the current number is one, false otherwise
+    */
+  override def isUnity: Boolean = pred.isZero
 
   /**
     * Determines the sign of the Monotone value represented by this instance.

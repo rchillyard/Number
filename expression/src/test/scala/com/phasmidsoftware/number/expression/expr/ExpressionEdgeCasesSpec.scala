@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Number, QuadraticSolution}
+import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, QuadraticSolution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar}
@@ -62,7 +62,7 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
     val result = sum.simplify
 
     // Conjugate sum should simplify to -b/a = 1
-    result shouldBe One
+    result.materialize shouldBe Eager.one
   }
 
   it should "simplify conjugate product of quadratic roots" in {

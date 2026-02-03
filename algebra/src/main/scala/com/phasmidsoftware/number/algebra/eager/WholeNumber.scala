@@ -13,6 +13,7 @@ import com.phasmidsoftware.number.algebra.eager.WholeNumber.WholeNumberIsCommuta
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
+
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.{Success, Try}
@@ -25,7 +26,7 @@ import scala.util.{Success, Try}
   *
   * @param x a BigInt value representing the whole number
   */
-case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends ExactNumber with Z with CanAddAndSubtract[WholeNumber, WholeNumber] with CanMultiply[WholeNumber, WholeNumber] {
+case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends ExactNumber with Z with CanAddAndSubtract[WholeNumber] with CanMultiply[WholeNumber, WholeNumber] {
   /**
     * Normalizes the current object and returns a standardized or canonical form of it.
     *
@@ -227,6 +228,8 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     case _ =>
       super.eqv(that)
   }
+
+  override def toString: String = render
 
   /**
     * Converts the given structure to a `Real` representation.

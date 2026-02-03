@@ -110,6 +110,7 @@ object ExpressionMonoFunction {
   *                       If `None`, then the function is commutative and the only identity
   *                       required is given by `identityL`.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.ExpressionBiFunction instead", since = "1.6.2")
 sealed abstract class ExpressionBiFunction(
                                               val name: String,
                                               val f: (Field, Field) => Field,
@@ -289,6 +290,7 @@ object ExpressionBiFunction {
   * - This operation is not commutative.
   * - May yield inexact results if the inputs are not exact.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Atan instead", since = "1.6.2")
 case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, None) {
   /**
     * Identifies and retrieves a restricted evaluation context suitable for left-hand operations.
@@ -360,6 +362,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
   * This class supports restricted evaluation contexts and provides mechanisms
   * for exact computation or fallback to default behavior when exact evaluation is not possible.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Log instead", since = "1.6.2")
 case object Log extends ExpressionBiFunction("log", Real.log, false, None, None) {
   /**
     * Identifies and retrieves a restricted evaluation context suitable for left-hand operations.
@@ -582,6 +585,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", x => x.invert) {
   * This object extends `ExpressionBiFunction` by defining its operation as addition (`add`)
   * with the corresponding symbol "+" and is flagged as not always exact (`isExact = false`).
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Sum instead", since = "1.6.2")
 case object Sum extends ExpressionBiFunction("+", (x, y) => x `add` y, isExact = false, Some(Constants.zero), maybeIdentityR = None) {
   /**
     * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
@@ -627,6 +631,7 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x `add` y, isExact =
   * - The operation is marked as exact, ensuring the result is always precise when the inputs are exact.
   * - It inherits the commutative property from `ExpressionBiFunction`, as multiplication is commutative.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Product instead", since = "1.6.2")
 case object Product extends ExpressionBiFunction("*", (x, y) => x `multiply` y, isExact = true, Some(Constants.one), maybeIdentityR = None) {
   /**
     * Evaluates two `Field` instances under certain trivial conditions and determines the result.
@@ -711,6 +716,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x `multiply` y, 
   * Extends `ExpressionBiFunction` where the specific function is implemented
   * using the `power` method from the `Field` class.
   */
+@deprecated("Use com.phasmidsoftware.number.expression.expr.Power instead", since = "1.6.2")
 case object Power extends ExpressionBiFunction("∧", (x, y) => x.power(y), isExact = false, None, Some(Constants.one)) {
   /**
     * Evaluates two `Field` instances and determines a trivial result based on predefined conditions.

@@ -240,7 +240,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @param n another Number.
     * @return the product of this and n.
     */
-  def doMultiply(n: Number): Number
+  infix def doMultiply(n: Number): Number
 
   /**
     * Perform an exact scalar multiplication of this `Number` by the scale factor `x`.
@@ -269,7 +269,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @param n another Number.
     * @return this quotient of this and n, i.e., this/n.
     */
-  def doDivide(n: Number): Number
+  infix def doDivide(n: Number): Number
 
 
   /**

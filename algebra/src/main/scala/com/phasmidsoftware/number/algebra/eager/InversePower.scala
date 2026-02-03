@@ -16,7 +16,7 @@ import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRende
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
+import com.phasmidsoftware.number.core.numerical.{Fuzziness, Prime, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.reflect.ClassTag
@@ -108,8 +108,13 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
       }
     case _ =>
       number.normalize match {
-        case normalized: Number if normalized == number =>
-          this
+        case z: Z =>
+          // In InversePower.normalize or similar
+          val (extracted, remaining) = InversePower.normalizeRoot(z.toInt, n)
+          if (remaining == 1)
+            WholeNumber(extracted) // Fully simplified
+          else
+            InversePower(n, number)
         case x: Number =>
           InversePower(n, x)
       }
@@ -122,7 +127,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return a transformation that maps a `Monotone` object to a `Scalar` result
     */
-  def transformation[T: ClassTag]: Option[T] = ???
+  def transformation[T: ClassTag]: Option[T] = ??? // TODO Implement this
 
   /**
     * Returns a new instance of `Monotone` that is the negation of the current instance.
@@ -281,9 +286,17 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   /**
     * Determines if the current number is equal to zero.
     *
+    *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = number.isZero
+  def isZero: Boolean = false
+
+  /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = number.isUnity
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -424,6 +437,47 @@ object InversePower {
     */
   def apply(n: Int, x: Int): InversePower =
     InversePower(n, WholeNumber(x))
+
+  /**
+    * Normalizes a given radicand with respect to a specified root degree.
+    * The method calculates the product of factors that can be extracted outside
+    * of the root and the product of factors that remain inside the root.
+    *
+    * @param radicand   The radicand value to normalize. It must be a positive integer.
+    * @param rootDegree The root degree (e.g., square root, cube root) to consider.
+    *                   It must be a positive integer greater than zero.
+    *
+    * @return A tuple where the first element represents the extracted product (outside the root)
+    *         and the second element represents the remaining product (inside the root).
+    *
+    * @throws AlgebraException If any prime factor of the radicand is out of range for an Int.
+    */
+  def normalizeRoot(radicand: Int, rootDegree: Int): (Int, Int) = {
+    val factors: Seq[Option[Int]] = Prime.primeFactors(radicand).map(_.toIntOption)
+    val xs: Seq[Int] = for {
+      prime <- Prime.primeFactors(radicand)
+      x <- prime.toIntOption
+    } yield x
+
+    if (xs.length != factors.length) throw AlgebraException("at least one prime factor is out of range for Int")
+
+    // Group by prime value and count occurrences
+    val factorCounts: Map[Int, Int] = xs.groupBy(x => x).view.mapValues(_.size).toMap
+
+    // For each prime, extract what can come out of the root
+    var extractedProduct = 1
+    var remainingProduct = 1
+
+    factorCounts.foreach { case (prime, count) =>
+      val extracted = count / rootDegree // How many come out
+      val remaining = count % rootDegree // How many stay inside
+
+      extractedProduct *= Math.pow(prime, extracted).toInt
+      remainingProduct *= Math.pow(prime, remaining).toInt
+    }
+
+    (extractedProduct, remainingProduct)
+  }
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
 

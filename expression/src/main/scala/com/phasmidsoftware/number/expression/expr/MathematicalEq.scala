@@ -31,9 +31,8 @@ object MathematicalEq {
   /**
     * Create a MathematicalEq instance from a function.
     */
-  def instance[A](f: (A, A) => Boolean): MathematicalEq[A] = new MathematicalEq[A] {
-    def eqv(x: A, y: A): Boolean = f(x, y)
-  }
+  def instance[A](f: (A, A) => Boolean): MathematicalEq[A] =
+    (x: A, y: A) => f(x, y)
 
   /**
     * MathematicalEq for Expression: simplify both sides then use structural Eq.

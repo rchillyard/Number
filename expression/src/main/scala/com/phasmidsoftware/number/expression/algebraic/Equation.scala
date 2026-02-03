@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
-import com.phasmidsoftware.number.algebra.core.{Branched, Scalable}
+import com.phasmidsoftware.number.algebra.core.{Branched, Renderable, Scalable}
 import com.phasmidsoftware.number.algebra.eager.{Eager, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.Expression
@@ -15,7 +15,7 @@ import com.phasmidsoftware.number.expression.expr.Expression
   * This type of equation is typically of the form `P(x) = 0` where `P(x)` is a monic polynomial in `x` and where the
   * coefficients `Pi` (i.e., the `i`th coefficient of `P`) are `Rational` numbers.
   */
-trait Equation extends Branched[Expression] with Scalable[Equation] {
+trait Equation extends Branched[Expression] with Scalable[Equation] with Renderable {
 
   /**
     * Attempts to find a solution for a mathematical equation corresponding to the given branch.

@@ -21,7 +21,7 @@ import scala.language.implicitConversions
   */
 
 /** sealed */
-trait AtomicExpression extends Expression {
+trait AtomicExpression extends Expression with Nameable {
 
   /**
     * Indicates whether the expression is atomic.
@@ -121,6 +121,13 @@ case class Noop(w: String) extends AtomicExpression {
   def isZero: Boolean = false
 
   /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = false
+
+  /**
     * Determines the sign of the Monotone value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
@@ -159,6 +166,16 @@ case class Noop(w: String) extends AtomicExpression {
     * @return Some(x) where x is a Double if this is exact, else None.
     */
   def maybeDouble: Option[Double] = None
+
+  /**
+    * Retrieves an optional name associated with the implementing class.
+    *
+    * The method returns an `Option` wrapping a `String`. If a name is available, it will be 
+    * contained within the `Option` as `Some(name)`. If no name is present, the method will return `None`.
+    *
+    * @return an `Option[String]` representing the optional name
+    */
+  val maybeName: Option[String] = Some(w) // CONSIDER returning None here instead
 
   /**
     *

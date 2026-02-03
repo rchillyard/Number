@@ -75,7 +75,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
 
   it should "return None for approximation" in {
     val noop = Noop("test")
-    noop.approximation(force = false) shouldBe None
+    noop.approximation() shouldBe None
     noop.approximation(force = true) shouldBe None
   }
 
@@ -226,7 +226,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
     * Table of monadic function behaviors for each constant.
     * Tests that each constant properly supports or rejects monadic operations.
     */
-  val monadicFunctions = Table(
+  private val monadicFunctions = Table(
     ("constant", "function",   "expected"),
     // Zero
     (Zero,       Negate,       Some(Zero)),
@@ -385,7 +385,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   behavior of "QuadraticRoot"
 
   private val goldenRatioEq = QuadraticEquation(Rational(-1), Rational(-1))
-  private val phiRoot = QuadraticRoot(goldenRatioEq, 0)
+  private val phiRoot = Root.phi
 
   it should "be atomic" in {
     phiRoot.isAtomic shouldBe true
@@ -408,7 +408,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   }
 
   it should "have negative signum for negative root" in {
-    val negRoot = QuadraticRoot(goldenRatioEq, 1)
+    val negRoot = QuadraticRoot(goldenRatioEq, 1, Some("𝛙"))
     negRoot.signum shouldBe -1
   }
 
