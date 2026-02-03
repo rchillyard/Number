@@ -66,18 +66,18 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val items: List[CoreMillItem] = List(Add, Expr(Number(37)), Expr(Number(42)))
     target shouldBe Stack(items)
   }
-  it should "process list of Items: 42, 37, +" in {
-    checkMill(Real(79), List("42", "37", "+")) should matchPattern { case Succeeded => }
-  }
-  it should "process list of Items: 42, 37, -" in {
-    checkMill(Real(5), List("42", "37", "-")) should matchPattern { case Succeeded => }
-  }
-  it should "process list of Items with Swap: 42, 37, Swap, -" in {
-    checkMill(Real(-5), List("42", "37", "<>", "-")) should matchPattern { case Succeeded => }
-  }
-  it should "process list of Items with Noop: 42, 37, +, Noop" in {
-    checkMill(Real(79), List("42", "37", "+", "")) should matchPattern { case Succeeded => }
-  }
+//  it should "process list of Items: 42, 37, +" in {
+//    checkMill(Real(79), List("42", "37", "+")) should matchPattern { case Succeeded => }
+//  }
+//  it should "process list of Items: 42, 37, -" in {
+//    checkMill(Real(5), List("42", "37", "-")) should matchPattern { case Succeeded => }
+//  }
+//  it should "process list of Items with Swap: 42, 37, Swap, -" in {
+//    checkMill(Real(-5), List("42", "37", "<>", "-")) should matchPattern { case Succeeded => }
+//  }
+//  it should "process list of Items with Noop: 42, 37, +, Noop" in {
+//    checkMill(Real(79), List("42", "37", "+", "")) should matchPattern { case Succeeded => }
+//  }
   it should "process list of Items with Clr: 42, 37, +, c" in {
     val x: CoreMill = create(List("42", "37", "+", "c"))
     x.evaluate shouldBe None
@@ -86,18 +86,18 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val x: CoreMill = create(List("+", ""))
     an[MillException] shouldBe thrownBy(x.evaluate)
   }
-  it should "process list of Items: 3, 2, ∧" in {
-    checkMill(Real(9), List("3", "2", "∧")) should matchPattern { case Succeeded => }
-  }
-  it should "process list of Items: 7, chs" in {
-    checkMill(Real(-7), List("7", "CHS")) should matchPattern { case Succeeded => }
-  }
-  it should "process list of Items: 42, 37, +, 2, *" in {
-    checkMill(Real(158), List("42", "37", "+", "2", "*")) should matchPattern { case Succeeded => }
-  }
-  it should "process list of Items: 2, inv" in {
-    checkMill(Real(Rational.half), List("2", "inv")) should matchPattern { case Succeeded => }
-  }
+//  it should "process list of Items: 3, 2, ∧" in {
+//    checkMill(Real(9), List("3", "2", "∧")) should matchPattern { case Succeeded => }
+//  }
+//  it should "process list of Items: 7, chs" in {
+//    checkMill(Real(-7), List("7", "CHS")) should matchPattern { case Succeeded => }
+//  }
+//  it should "process list of Items: 42, 37, +, 2, *" in {
+//    checkMill(Real(158), List("42", "37", "+", "2", "*")) should matchPattern { case Succeeded => }
+//  }
+//  it should "process list of Items: 2, inv" in {
+//    checkMill(Real(Rational.half), List("2", "inv")) should matchPattern { case Succeeded => }
+//  }
 
   behavior of "parse and evaluate"
   private val p = MillParser

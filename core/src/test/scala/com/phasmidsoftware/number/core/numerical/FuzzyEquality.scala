@@ -28,8 +28,6 @@ trait FuzzyEquality {
   implicit object NumberLikeEquality extends Equality[NumberLike] {
 
     def areEqual(a: NumberLike, b: Any): Boolean = a match {
-      case e: Expression =>
-        FieldEquality.areEqual(e.materialize, b)
       case s: Solution =>
         FieldEquality.areEqual(s.asField, b)
       case r: Rational =>
@@ -60,8 +58,6 @@ trait FuzzyEquality {
   implicit object FieldEquality extends Equality[Field] {
 
     def areEqual(a: Field, b: Any): Boolean = a match {
-      case algebraic: Algebraic =>
-        NumberLikeEquality.areEqual(algebraic.solve, b)
       case complex: Complex => b match {
         case n: Numerical =>
           complex.isSame(n)
@@ -88,8 +84,6 @@ trait FuzzyEquality {
     def areEqual(a: Real, b: Any): Boolean = b match {
       case Real(y) =>
         a.x.isSame(y)
-      case alg: Algebraic =>
-        NumberLikeEquality.areEqual(alg.solve, b)
       case _ =>
         NumberEquality.areEqual(a.x, b)
     }
@@ -106,8 +100,6 @@ trait FuzzyEquality {
     def areEqual(a: Number, b: Any): Boolean = b match {
       case n: Number =>
         a.isSame(n)
-      case n: Expression =>
-        a.compare(n) == 0
       case x: Int =>
         a.isSame(Number(x))
       case x: Rational =>

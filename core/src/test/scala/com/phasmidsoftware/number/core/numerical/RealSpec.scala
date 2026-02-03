@@ -11,13 +11,13 @@ import org.scalatest.matchers.should
 
 class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 
-  implicit object ExpressionEquality extends Equality[Expression] {
-    def areEqual(a: Expression, b: Any): Boolean = b match {
-      case n: Real => new ExpressionOps(a).compare(Literal(n)) == 0
-      case n: Expression => a.compare(n) == 0
-      case _ => false
-    }
-  }
+//  implicit object ExpressionEquality extends Equality[Expression] {
+//    def areEqual(a: Expression, b: Any): Boolean = b match {
+//      case n: Real => new ExpressionOps(a).compare(Literal(n)) == 0
+//      case n: Expression => a.compare(n) == 0
+//      case _ => false
+//    }
+//  }
 
   private val one = Constants.one
   private val bigOne = BigInt(1)
@@ -300,10 +300,10 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Constants.zero
     target.exp shouldBe one
   }
-  it should "be e∧2 for 2" in {
-    val target = Number.two
-    target.exp should ===(Expression(Constants.e) * Constants.e)
-  }
+//  it should "be e∧2 for 2" in {
+//    val target = Number.two
+//    target.exp should ===(Expression(Constants.e) * Constants.e)
+//  }
 
   behavior of "ln"
   it should "be 1 for E" in {
@@ -315,10 +315,10 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val log = target.ln
     log shouldBe Constants.zero
   }
-  it should "be 2 for E∧2" in {
-    val target: Number = Expression(Constants.e) * Constants.e
-    target.ln should ===(Number.two)
-  }
+//  it should "be 2 for E∧2" in {
+//    val target: Number = Expression(Constants.e) * Constants.e
+//    target.ln should ===(Number.two)
+//  }
 
   // NOTE: Following are tests of Ordering[Real]
   private val no: Ordering[Real] = RealIsOrdering

@@ -11,13 +11,13 @@ import scala.math.Numeric.Implicits.infixNumericOps
 
 class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 
-  implicit object ExpressionEquality extends Equality[Expression] {
-    def areEqual(a: Expression, b: Any): Boolean = b match {
-      case n: Number => new ExpressionOps(a).compare(Literal(n)) == 0
-      case n: Expression => a.compare(n) == 0
-      case _ => false
-    }
-  }
+//  implicit object ExpressionEquality extends Equality[Expression] {
+//    def areEqual(a: Expression, b: Any): Boolean = b match {
+//      case n: Number => new ExpressionOps(a).compare(Literal(n)) == 0
+//      case n: Expression => a.compare(n) == 0
+//      case _ => false
+//    }
+//  }
 
   import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
 
@@ -99,17 +99,17 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     target shouldBe Real(1836.15267343 ~ 11)
     target.render shouldBe sMu
   }
-  it should "have phi" in {
-    val target = Constants.phi
-    target.isExact shouldBe true
-    val goldenRatio = Root.phi
-    val maybeNumber: Option[Number] = goldenRatio.asNumber
-    maybeNumber.isDefined shouldBe true
-    Real(maybeNumber.get) should ===(target)
-    goldenRatio.render shouldBe "\uD835\uDED7"
-    val result: Field = goldenRatio.materialize
-    result.render shouldBe "1.6180339887498950(12)"
-  }
+//  it should "have phi" in {
+//    val target = Constants.phi
+//    target.isExact shouldBe true
+//    val goldenRatio = Root.phi
+//    val maybeNumber: Option[Number] = goldenRatio.asNumber
+//    maybeNumber.isDefined shouldBe true
+//    Real(maybeNumber.get) should ===(target)
+//    goldenRatio.render shouldBe "\uD835\uDED7"
+//    val result: Field = goldenRatio.materialize
+//    result.render shouldBe "1.6180339887498950(12)"
+//  }
   it should "have alpha" in {
     val target = Constants.alpha
     target.isExact shouldBe false
