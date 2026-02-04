@@ -4,13 +4,13 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.core.{AnyContext, CanPower, Context, Nameable, Q, RestrictedContext}
+import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.misc.Bumperator
+import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Number}
 import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
@@ -820,6 +820,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(a.reciprocal)
       case (_, Infinity) =>
         em.Match(Infinity)
+      case (E, ValueExpression(Complex(c), _)) if c.isImaginary && c.modulus == numerical.Number.pi =>
+        em.Match(MinusOne)
       case (E, ValueExpression(v: eager.Number, _)) =>
         em.Match(Literal(NaturalExponential(v)))
       case (x, BiFunction(y, z, Log)) if x == y =>

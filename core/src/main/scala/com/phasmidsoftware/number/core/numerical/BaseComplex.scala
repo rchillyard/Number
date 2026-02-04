@@ -558,7 +558,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     */
   def doAdd(complex: Complex): BaseComplex = complex match {
     case ComplexCartesian(a, b) =>
-      throw ComplexException("logic error: ComplexCartesian.doAdd")
+      ComplexCartesian(x `doAdd` a, y `doAdd` b)
     case c@ComplexPolar(_, _, _) =>
       doAdd(convertToCartesian(c))
   }
@@ -935,7 +935,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return true if the angle theta is a multiple of pi.
     */
   def isReal: Boolean =
-    theta.isZero || theta.doDivide(Number.pi).isInteger
+    theta.factor == Radian && Value.maybeInt(theta.nominalValue).isDefined
 
   /**
     * Determine the "sign" of this field.

@@ -147,7 +147,7 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
     result should not be power
   }
 
-  ignore should "handle Euler's identity with complex cartesian" in {
+  it should "handle Euler's identity with complex cartesian" in {
     // Line 839: case (E, Literal(ComplexCartesian(Number.zero, Number.pi), _))
     val complexNum = ComplexCartesian(numerical.Number.zero, numerical.Number.pi) // 0 + πi
     val power = BiFunction(E, Literal(Complex(complexNum)), Power) // e^(πi)
@@ -156,9 +156,11 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
     // Euler's identity: e^(πi) = -1
     result shouldBe MinusOne
   }
-  ignore should "handle Euler's identity with complex polar" in {
+  it should "handle Euler's identity with complex polar" in {
     // Line 839: case (E, Literal(ComplexCartesian(Number.zero, Number.pi), _))
-    val complexNum = ComplexPolar(numerical.Number.pi, numerical.Number.piBy2) // 0 + πi
+    val complexNum: numerical.Complex = ComplexPolar(numerical.Number.pi, numerical.Number.piBy2) // 0 + πi
+    val magnitude = complexNum.modulus
+    println(s"complexNum = $complexNum; magnitude = $magnitude; argument = ${complexNum.argument}; isImaginary = ${complexNum.isImaginary}")
     val power = BiFunction(E, Literal(Complex(complexNum)), Power) // e^(πi)
     val result = power.simplify
 

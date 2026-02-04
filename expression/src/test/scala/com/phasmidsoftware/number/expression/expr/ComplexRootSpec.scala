@@ -119,7 +119,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * These are the complex cube roots of unity (ω and ω²)
     */
   // FIXME Issue #172
-  ignore should "generate cube roots of unity for x² + x + 1 = 0" in {
+  it should "generate cube roots of unity for x² + x + 1 = 0" in {
     val equation = QuadraticEquation(Rational.one, Rational.one)
     val root0 = QuadraticRoot(equation, 0)
     val root1 = QuadraticRoot(equation, 1)
@@ -149,7 +149,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * Verify that complex roots can be added
     */
   // FIXME Issue #172
-  ignore should "add two complex roots correctly" in {
+  it should "add two complex roots correctly" in {
     val eq1 = QuadraticEquation(Rational.zero, Rational.one) // x² + 1 = 0, roots: ±i
     val root1 = QuadraticRoot(eq1, 0)
 
@@ -188,7 +188,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * Verify that evaluating the equation at its complex root gives zero
     */
   // FIXME Issue #172
-  ignore should "evaluate to zero when substituted back into the equation" in {
+  it should "evaluate to zero when substituted back into the equation" in {
     val equation = QuadraticEquation(Rational.two, Rational.two)
     val root0 = QuadraticRoot(equation, 0)
 
@@ -200,7 +200,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
   }
 
   // FIXME Issue #172
-  ignore should "evaluate x² + 1 = 0 at i to get zero" in {
+  it should "evaluate x² + 1 = 0 at i to get zero" in {
     val equation = QuadraticEquation(Rational.zero, Rational.one)
     val root = QuadraticRoot(equation, 0)
 
@@ -245,7 +245,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * - Product of roots = q
     */
   // FIXME Issue #172
-  ignore should "satisfy Vieta's formulas for sum and product" in {
+  it should "satisfy Vieta's formulas for sum and product" in {
     val p = Rational(3)
     val q = Rational(5)
     val equation = QuadraticEquation(p, q) // x² + 3x + 5 = 0

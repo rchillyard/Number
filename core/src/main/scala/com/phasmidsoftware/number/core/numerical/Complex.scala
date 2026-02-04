@@ -134,13 +134,8 @@ object Complex {
     case ComplexCartesian(x, Number.zero) =>
       ComplexPolar(x.abs, if (x.signum > 0) Number.zeroR else Number.pi)
     case _ =>
-      // CONSIDER can we improve upon this? Basically, we should only need MonadicOperationAtan.
-      // CONSIDER we should not be relying on expression package here.
-      // TODO eliminate use of materialize (see doAdd in ComplexCartesian)
-//      val ro: Option[Number] = for (p <- ((Literal(c.x) * Real(c.x)) `plus` (Literal(c.y) * Real(c.y))).materialize.asNumber; z = p.sqrt) yield z
-//      val z: Number = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
-//      ComplexPolar(z, c.x `atan` c.y, 1)
-      throw ComplexException(s"convertToPolar: logic error: $c")
+      val magnitude = (c.x.power(Number.two) doAdd c.y.power(Number.two)).sqrt
+      ComplexPolar(magnitude, c.x `atan` c.y, 1)
   }
 
   /**
