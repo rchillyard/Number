@@ -1,11 +1,12 @@
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.Constants.sG
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{createFuzz, monadicFuzziness}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Left, Try}
 
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
@@ -218,7 +219,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "Box.wiggle"
-  ignore should "be likely for 5.0040" in {
+  it should "be likely for 5.0040" in {
     val xy: Option[Number] = for {
       a <- Number.parse("1.251").toOption
       b <- Number.parse("4.00*").toOption
@@ -229,9 +230,9 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val z: Option[Fuzziness[Double]] = x.fuzz
     z.isDefined shouldBe true
     val q: Fuzziness[Double] = z.get
-    q should matchPattern { case AbsoluteFuzz(_, _) => }
+    q should matchPattern { case RelativeFuzz(_, _) => }
     q.shape should matchPattern { case Box => }
-    q.style shouldBe false
+    q.style shouldBe true
     val h: Option[Fuzziness[Double]] = q.normalize(x.toNominalDouble.getOrElse(Double.NaN), relative = true)
     val r = h.get.asInstanceOf[RelativeFuzz[Double]].tolerance
     r shouldBe 0.0016496802557953638 +- 0.0000000001

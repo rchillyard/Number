@@ -72,11 +72,11 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     p1_pi_2.asNumber shouldBe Some(Number.i)
     ComplexCartesian(0, Number.two).asNumber shouldBe Some(Number(-4, SquareRoot))
   }
-  ignore should "add1" in {
+  it should "add1" in {
     val c3 = c1_2 `add` c2_0
     c3 should matchPattern { case ComplexCartesian(ExactNumber(Right(3), PureNumber), ExactNumber(Right(2), PureNumber)) => }
   }
-  ignore should "add2" in {
+  it should "add2" in {
     val c3 = p1_pi `add` c2_0
     c3 shouldBe ComplexCartesian(Number.one, Number.zero)
   }
@@ -128,7 +128,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
   // TODO fix me. This arose when working with Factor.raise
-  ignore should "c1_2∧1/2" in {
+  it should "c1_2∧1/2" in {
     //    val z: Field = convertToPolar(c1_2)
     val result: Complex = c1_2 `power` half
     // result should be 1.27201965 + i0.786151378
@@ -141,7 +141,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     }
     (result * result).compare(c1_2) shouldBe 0
   }
-  ignore should "c2_0∧1/2" in {
+  it should "c2_0∧1/2" in {
     val result: Field = c2_0 `power` half
     result should matchPattern { case ComplexPolar(_, _, 2) => }
     val squaredResult = result * result
@@ -172,7 +172,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val cubeRootOfTwo = c2_0.power(Number(Rational(3).invert))
     cubeRootOfTwo shouldBe ComplexPolar(Number(2, CubeRoot), Number.zeroR, 3)
   }
-  ignore should "e^i𝛑" in {
+  it should "e^i𝛑" in {
     val z = Constants.e.power(Constants.iPi)
     z shouldBe Constants.minusOne
   }
@@ -186,7 +186,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     c2_0.argument.isZero shouldBe true
     p1_pi.argument shouldBe Number.pi
   }
-  ignore should "conjugate (1)" in {
+  it should "conjugate (1)" in {
     c2_0.conjugate shouldBe c2_0
     c1_2.conjugate shouldBe ComplexCartesian(1, -2)
     (p1_pi_2.conjugate `doAdd` p1_pi_2).modulus shouldBe Number.zero
@@ -198,14 +198,14 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val z = c1_2.invert
     z shouldBe ComplexCartesian(r"1/5", r"-2/5")
   }
-  ignore should "numberProduct" in {
+  it should "numberProduct" in {
     ComplexCartesian(1, 1).numberProduct(Number.two) shouldBe ComplexCartesian(2, 2)
     Number.i.asComplex.numberProduct(Number.two) shouldBe ComplexCartesian(0, 2)
     val actual = Number.i.asComplex.numberProduct(Number.two).numberProduct(Number.half)
     actual.isSame(Constants.i) shouldBe true
     Number.i.asComplex.numberProduct(Number.i) shouldBe ComplexCartesian(-1, 0)
   }
-  ignore should "convertToPolar" in {
+  it should "convertToPolar" in {
     val expected: Complex = ComplexPolar(√(5), Number(0.35241638234956674, Radian))
     val actual: ComplexPolar = convertToPolar(c1_2).asInstanceOf[ComplexPolar]
     convertToCartesian(actual).compare(c1_2) shouldBe 0
@@ -285,7 +285,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val target = Constants.iPi
     target.render shouldBe "i\uD835\uDED1"
   }
-  ignore should "work for zero" in {
+  it should "work for zero" in {
     p1_pi.add(Constants.one).render shouldBe "0"
   }
   it should "work for root 2 in c2_0∧1/2" in {
@@ -311,10 +311,10 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     ComplexCartesian(1, 0).numberProduct(Number.two) shouldBe c2_0
     ComplexCartesian(0, -2).numberProduct(Number.i) shouldBe c2_0
   }
-  ignore should "work when i is scaled by two (prefix)" in {
+  it should "work when i is scaled by two (prefix)" in {
     (Number.two `multiply` Constants.i).isSame(ComplexCartesian(0, 2)) shouldBe true
   }
-  ignore should "work when i is scaled by two (postfix)" in {
+  it should "work when i is scaled by two (postfix)" in {
     (Number.i.asComplex `multiply` Constants.two).isSame(ComplexCartesian(0, 2)) shouldBe true
   }
 
@@ -370,7 +370,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "worksheet"
-  ignore should "work" in {
+  it should "work" in {
 
     import com.phasmidsoftware.number.core.numerical.Complex.ComplexHelper
     import com.phasmidsoftware.number.core.numerical.Number.√

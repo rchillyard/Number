@@ -5,7 +5,6 @@ import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.numerical.Constants.sBoltzmann
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{NumberIsOrdering, inverse, negate, one, root2, zeroR}
-import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.tagobjects.Slow
@@ -1445,11 +1444,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Number.root2 `multiply` Constants.root2 shouldBe Constants.two
     Number.two `multiply` Constants.two shouldBe Real(4)
   }
-  ignore should "work for complex numbers" in {
+  it should "work for complex numbers" in {
     (Number.two `multiply` ComplexCartesian(2, 3)).isSame(ComplexCartesian(4, 6)) shouldBe true
     ComplexCartesian(2, 3) `multiply` Constants.two shouldBe ComplexCartesian(4, 6)
   }
-  ignore should "work for i" in {
+  it should "work for i" in {
     (Number.two `multiply` Constants.i).isSame(ComplexCartesian(0, 2)) shouldBe true
     (ComplexCartesian(2, 3) `multiply` Constants.i).isSame(ComplexCartesian(-3, 2)) shouldBe true
   }
