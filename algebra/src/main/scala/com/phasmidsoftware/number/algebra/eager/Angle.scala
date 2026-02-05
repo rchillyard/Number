@@ -74,6 +74,23 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   }
 
   /**
+    * Compares the current `Functional` instance with another `Functional` instance.
+    *
+    * The comparison is based on the numeric value contained within each `Functional` object
+    * and the sign of the derivative function at the numeric value.
+    *
+    * TODO check this as it won't work with all other Functional types.
+    *
+    * @param that the `Functional` instance to compare with the current instance
+    * @return an `Int` where:
+    *         - A negative value indicates that the current instance is less than `that`
+    *         - Zero indicates that both instances are equal
+    *         - A positive value indicates that the current instance is greater than `that`
+    */
+  def compare(that: Functional): Int =
+    number.compare(that.number) * derivativeFunction(number.toDouble).sign.toInt
+
+  /**
     * Compares the current `Angle` instance with another `Number` to determine their exact order.
     *
     * If the provided `Number` is an `Angle`, this method compares their underlying radian values.

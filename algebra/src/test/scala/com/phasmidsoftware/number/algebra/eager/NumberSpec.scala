@@ -77,13 +77,16 @@ class NumberSpec extends AnyFlatSpec with Matchers {
 
   it should "isExact" in {
     Real(0.0).isExact shouldBe false
+    Real("0").isExact shouldBe true
     Real.zero.isExact shouldBe true
     Angle.zero.isExact shouldBe true
+    Real("0.001").isExact shouldBe false
   }
 
   // Edge cases and special values
   it should "handle zero correctly" in {
-    Real(0.0).isZero shouldBe true
+    val real = Real("0")
+    real.isZero shouldBe true
     Real.zero.isZero shouldBe true
     Angle.zero.isZero shouldBe true
   }

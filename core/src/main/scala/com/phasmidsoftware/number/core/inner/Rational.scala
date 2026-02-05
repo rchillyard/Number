@@ -1897,6 +1897,24 @@ object Inverse {
 }
 
 /**
+  * An object providing an extractor method for converting a Rational number into
+  * a pair of integers representing its numerator and denominator.
+  *
+  * The `IntRational` object simplifies working with Rational numbers when you
+  * need to decompose them into integers for further processing or pattern matching.
+  */
+object IntRational {
+  /**
+    * Extracts the numerator and denominator of a Rational number as a pair of integers.
+    *
+    * @param x the Rational number to be decomposed
+    * @return an Option containing a tuple of two integers (numerator, denominator)
+    *         if the decomposition is successful; None otherwise
+    */
+  def unapply(x: Rational): Option[(Int, Int)] = toInts(x)
+}
+
+/**
   * Exception class for Rationals.
   *
   * @param s the cause as a String.

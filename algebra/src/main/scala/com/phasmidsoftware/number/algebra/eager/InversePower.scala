@@ -11,6 +11,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.{LatexRendererOps, nthRoot}
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.*
@@ -23,10 +24,7 @@ import scala.reflect.ClassTag
 import scala.util.{Success, Try}
 
 /**
-  * Represents a mathematical Root object, parameterized with an integral root degree and a base number.
-  *
-  * The `Root` class extends `Monotone`, `MultiplicativeWithPower[Root]`, and `Ordered[Root]`,
-  * providing mathematical operations for roots and ensuring ordering functionality.
+  * Represents an eager mathematical root, parameterized with an integral root degree and a base number.
   *
   * TODO this may be only a temporary class because we can model all roots (and more) as solutions to Algebraic equations.
   *
@@ -34,6 +32,8 @@ import scala.util.{Success, Try}
   * 
   * TODO there are problems with multiplication (class cast exception, for example).
   * Therefore, we should remove the `CanMultiplyAndDivide` mixin.
+  *
+  * NOTE do not invoke the constructor directory: all construction should go via the apply method(s) which will normalize as appropriate.
   *
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
@@ -107,18 +107,39 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
           (rootValue orElse recipRootValue) getOrElse defaultValue
       }
     case _ =>
-      number.normalize match {
-        case z: Z =>
-          // In InversePower.normalize or similar
-          val (extracted, remaining) = InversePower.normalizeRoot(z.toInt, n)
-          if (remaining == 1)
-            WholeNumber(extracted) // Fully simplified
-          else
-            InversePower(n, number)
-        case x: Number =>
-          InversePower(n, x)
+      doNormalize match {
+        case Left(value) => value
+        case Right(value) => value
       }
   }
+
+  private lazy val simplified: InversePower = doNormalize match {
+    case Left(number) =>
+      number
+    case Right(number) =>
+      // NOTE this is the best we can do in this situation
+      new InversePower(1, number)()
+  }
+
+  private lazy val doNormalize: Either[InversePower, Number] =
+    number.normalize match {
+      case IsInteger(z) =>
+        val (extracted, remaining) = InversePower.normalizeIntegralRoot(z, n)
+        if (remaining == 1)
+          Right(WholeNumber(extracted))
+        else
+          Left(InversePower(n, WholeNumber(remaining)))
+      case r@IntRational(num, den) =>
+        val (numExtracted, numRemaining) = InversePower.normalizeIntegralRoot(num, n)
+        val (denExtracted, denRemaining) = InversePower.normalizeIntegralRoot(den, n)
+
+        if (numRemaining == 1 && denRemaining == 1)
+          Right(RationalNumber(numExtracted, denExtracted))
+        else
+          Left(InversePower(n, r)) // Also: use IntRational, not `r`
+      case x: Number =>
+        Left(InversePower(n, x))
+    }
 
   /**
     * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
@@ -140,23 +161,22 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     throw AlgebraException(s"InversePower.negate: cannot negate $this")
 
   /**
-    * Compares the current `InversePower` instance with another `InversePower` to determine their order.
+    * Compares this `InversePower` instance with another `Functional` instance.
     *
-    * The comparison behavior depends on whether the instances are `exact`:
-    * - If both instances are exact, it attempts an exact comparison using `compareExact`.
-    * - Otherwise, it falls back to comparing the `n` values of the two instances.
-    *
-    * @param that the `InversePower` instance to compare with the current instance
-    * @return an `Int` where:
-    *         - A negative value indicates that the current instance is less than the provided instance.
-    *         - Zero indicates equality between the instances.
-    *         - A positive value indicates that the current instance is greater than the provided instance.
+    * @param that The `Functional` instance to compare against.
+    * @return An integer where:
+    *         - a negative value indicates this instance is less than `that`,
+    *         - zero indicates this instance is equal to `that`,
+    *         - a positive value indicates this instance is greater than `that`.
     */
-  def compare(that: InversePower): Int = (this.isExact, that.isExact) match {
-    case (true, true) =>
-      compareExact(that).getOrElse(0) // TODO fix this
+  def compare(that: Functional): Int = that match {
+    case i@InversePower(m, x) if isExact && i.isExact =>
+      recover(simplified.compareExact(i.simplified))(AlgebraException(s"InversePower.compare: cannot compare $this with InversePower: $that"))
     case _ =>
-      this.n.compare(that.n)
+      recover(for {
+        a <- convert(Real.zero)
+        b <- that.convert(Real.zero)
+      } yield a.compare(b))(AlgebraException(s"InversePower.compare: cannot compare $this and $that"))
   }
 
   /**
@@ -452,7 +472,7 @@ object InversePower {
     *
     * @throws AlgebraException If any prime factor of the radicand is out of range for an Int.
     */
-  def normalizeRoot(radicand: Int, rootDegree: Int): (Int, Int) = {
+  def normalizeIntegralRoot(radicand: Int, rootDegree: Int): (Int, Int) = {
     val factors: Seq[Option[Int]] = Prime.primeFactors(radicand).map(_.toIntOption)
     val xs: Seq[Int] = for {
       prime <- Prime.primeFactors(radicand)

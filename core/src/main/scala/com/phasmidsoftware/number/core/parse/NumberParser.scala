@@ -5,8 +5,9 @@
 package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
-import com.phasmidsoftware.number.core.numerical._
+
 import scala.util.Try
 
 /**
@@ -148,7 +149,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
   // NOTE: maximum length for an exact number.
   //  Any number with a longer fractional part is assumed to be fuzzy.
-  private val DPExact = 2
+  private val DecimalPlacesExact = 2
 
   private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[Number] =
     if (ro.isDefined || fo.isDefined)
@@ -158,7 +159,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
         f <- fo.orElse(Some(PureNumber))) yield {
         val z: Option[Fuzziness[Double]] = r match {
           case n@NumberWithFuzziness(_, _, _) => n.fuzz
-          case n@RealNumber(_, _, Some(f), _) if f.length > DPExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
+          case n@RealNumber(_, _, Some(f), _) if f.length > DecimalPlacesExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
           case _ => None
         }
         Number.apply(v, f, z)
@@ -175,7 +176,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
   private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzziness[Double]] =
     Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
 
-  import Factor._
+  import Factor.*
 
   /**
     * Parses a factor from the input. A factor can represent specific mathematical constants,
