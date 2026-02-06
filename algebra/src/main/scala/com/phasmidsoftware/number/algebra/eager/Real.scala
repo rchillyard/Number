@@ -43,8 +43,6 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * Computes the result of raising an instance of type `T` to the power 
     * specified by the given `ExactNumber`.
     *
-    * CONSIDER invoking `render` for `toString`
-    *
     * This method performs the power operation and returns the result wrapped 
     * in an `Option[T]`. If the operation is invalid or cannot be performed, 
     * `None` is returned.
@@ -542,8 +540,15 @@ object Real {
     * @param value the numeric value to be associated with the `Real`
     * @return a `Real` instance initialized with the specified value and default fuzziness
     */
-  def apply(value: Double): Real =
-    apply(value, Some(Fuzziness.doublePrecision))()
+  def apply(value: Double): Real = {
+    val str = value.toString
+    val fuzz: Option[Fuzziness[Double]] = if (str.contains('.')) {
+      val decimalPlaces = str.split('.')(1).length
+      Fuzziness.createAbsFuzz(math.pow(10, -decimalPlaces) / 2.0)
+    } else
+      Some(Fuzziness.createFuzz(0))
+    new Real(value, fuzz)()
+  }
 
   /**
     * Constructs a `Real` instance using the provided value and absolute fuzziness.
@@ -585,8 +590,13 @@ object Real {
     NumberParser.parseNumber(w).map(x => numerical.Real(x)) match {
       case Success(f: numerical.Field) =>
         Eager(f) match {
-          case r: Real =>
+          case r@Real(_, Some(_)) =>
             r
+          case Real(_, None) =>
+            val bd = BigDecimal(w)
+            val value = bd.toDouble
+            val fuzz = if (isExactlyRepresentable(bd)) None else Some(math.ulp(value))
+            new Real(value, fuzz flatMap (x => Fuzziness.createAbsFuzz(x)))()
           case r: Structure =>
             r.convert(Real.zero) match {
               case Some(value) => value

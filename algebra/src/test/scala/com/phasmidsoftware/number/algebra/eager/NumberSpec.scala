@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
+import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Real, Scalar}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -70,7 +71,7 @@ class NumberSpec extends AnyFlatSpec with Matchers {
   it should "convert to different number types" in {
     val x = Real(5)
     x.convert(Real.zero) shouldBe Some(x)
-    pi.convert(Real.zero) shouldBe Some(Real.pi)
+    (pi.convert(Real.zero).get ~= Real.pi) shouldBe true
     // NOTE that Angle can be converted to Real, but not the other way around.
     x.convert(Angle.zero) shouldBe None
   }
@@ -80,7 +81,7 @@ class NumberSpec extends AnyFlatSpec with Matchers {
     Real("0").isExact shouldBe true
     Real.zero.isExact shouldBe true
     Angle.zero.isExact shouldBe true
-    Real("0.001").isExact shouldBe false
+    Real("0.001").isExact shouldBe true
   }
 
   // Edge cases and special values

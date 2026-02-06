@@ -112,7 +112,7 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
     WholeNumber(42).maybeInt shouldBe Some(42)
   }
   it should "toString" in {
-    WholeNumber(42).toString shouldBe "42"
+    WholeNumber(42).toString shouldBe "WholeNumber(42)"
   }
   it should "zero" in {
     WholeNumber.zero.zero shouldBe zero

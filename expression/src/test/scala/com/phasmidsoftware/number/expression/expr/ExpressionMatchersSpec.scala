@@ -901,7 +901,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y.materialize shouldBe Eager(7)
   }
   it should "evaluate E * 2" in {
-    (Literal(Eager.e) * 2).materialize.toString shouldBe "5.4365636569180900[59]"
+    (Literal(Eager.e) * 2).materialize.render shouldBe "5.436563656918090[6]"
   }
 
   behavior of "simplifyTerms"
@@ -1322,7 +1322,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(Literal(1)).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
+    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: WholeNumber(1)\n"
   }
   it should "work with value on One" in {
     val em = ems
@@ -1330,7 +1330,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(One).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
+    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: WholeNumber(1)\n"
   }
   it should "work with value on Number.one" in {
     val em = ems
@@ -1338,7 +1338,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(One).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
+    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: WholeNumber(1)\n"
   }
   it should "work with value on Real" in {
     val em = ems
@@ -1347,7 +1347,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(Literal(FuzzyNumber(Right(1), PureNumber, None))).successful shouldBe true
-    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
+    sb.toString shouldBe "trying matcher value on 1...\n... value: Match: WholeNumber(1)\n"
   }
   it should "fail on non-value" in {
     val em = ems

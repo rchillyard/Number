@@ -98,7 +98,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.toNominalRational shouldBe Some(ratOne)
   }
 
-  behavior of "toString"
+  behavior of "toString and render"
   it should "yield 1" in {
     val target = Number.create(Right(1))
     target.toString shouldBe "1"
@@ -115,16 +115,17 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     // NOTE that:  math.PI is 3.14159265358979323846
     // In IEEE 754 binary, pi is 400921fb54442d18, which is:
     //                        3.141592653589793
-    target.toString shouldBe "3.1415926535897930[5]"
+    target.toString shouldBe "FuzzyNumber(Left(Left(Some(3.141592653589793))),,Some(AbsoluteFuzz(5.0E-16,Box)))"
+    target.render shouldBe "3.141592653589793*"
   }
   it should "work for E as scalar (rel fuzzy)" in {
     val target = Number.e.scale(PureNumber)
-    val w = target.toString
+    val w = target.render
     w should startWith("2.718281828459045")
     w should endWith("%")
   }
   it should "work for 1 scaled as Radian" in {
-    Number.one.scale(Radian).toString shouldBe "0.3183098861837907*\uD835\uDED1"
+    Number.one.scale(Radian).render shouldBe "0.3183098861837907*\uD835\uDED1"
   }
   it should "work for E∧2" in {
     val target = Number.e `doPower` 2
@@ -158,11 +159,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   behavior of "normalize"
   it should "work for E as scalar (abs fuzzy)" in {
     val target = Number.e.scale(PureNumber).normalize
-    target.toString.substring(0, 17) shouldBe "2.718281828459045"
+    target.render.substring(0, 17) shouldBe "2.718281828459045"
   }
   it should "work for E∧2 as Real" in {
     val target = Number("2\uD835\uDF00").normalize.asInstanceOf[Real]
-    target.x.scale(PureNumber).toString shouldBe "7.3890560989306500(87)"
+    target.x.scale(PureNumber).render shouldBe "7.3890560989306500(87)"
   }
   it should "work for E, SquareRoot" in {
     val target = Number(math.E * math.E)
@@ -234,8 +235,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val xy: Try[Number] = Number.parse("3/2")
     xy.get shouldBe Number.create(Left(Right(Rational(3, 2))))
   }
-  it should "work for 3.1415927" in {
-    val xy: Try[Number] = Number.parse("3.1415927")
+  it should "work for 3.1415927*" in {
+    val xy: Try[Number] = Number.parse("3.1415927*")
     xy.get shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), PureNumber, Some(AbsoluteFuzz(0.00000005, Box)))
   }
   it should "work for BigInt" in {
@@ -274,8 +275,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.isExact shouldBe true
     target.nominalValue shouldBe Left(Right(Rational(bigBigInt)))
   }
-  it should """work for "3.1415927"""" in {
-    val target = Number("3.1415927")
+  it should """work for "3.1415927*"""" in {
+    val target = Number("3.1415927*")
     target.isExact shouldBe false
     target.nominalValue shouldBe Left(Right(Rational(31415927, 10000000)))
   }
@@ -343,13 +344,14 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number(1.234)
     target.isExact shouldBe false
     target.nominalValue shouldBe Left(Left(Some(1.234)))
-    target.toString shouldBe "1.2340[5]"
+    target.toString shouldBe "FuzzyNumber(Left(Left(Some(1.234))),,Some(AbsoluteFuzz(5.0E-4,Box)))"
+    target.render shouldBe "1.234*"
   }
   it should "work for 1.23400" in {
     val target = Number(1.23400)
     target.isExact shouldBe false
     target.nominalValue shouldBe Left(Left(Some(1.234)))
-    target.toString shouldBe "1.2340[5]"
+    target.render shouldBe "1.234*"
   }
   it should "support exact strings" in {
     val target = Number("3.141592700")
@@ -390,7 +392,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     import Number.FuzzOps
     val x = 1836.15267343 ~ 11
     x.isExact shouldBe false
-    x.toString shouldBe "1836.15267343(11)"
+    x.render shouldBe "1836.15267343(11)"
     Real(x) shouldEqual Constants.mu
   }
   it should "get G using FuzzStringOps" in {
@@ -403,14 +405,14 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val fuzzyX = x.asInstanceOf[FuzzyNumber]
     fuzzyX.fuzz shouldBe Some(AbsoluteFuzz(1.5E-15, Gaussian))
     Real(x) shouldEqual Constants.G // "6.67430(15)E-11"
-    x.toString shouldBe "6.67430(15)E-11"
+    x.render shouldBe "6.67430(15)E-11"
   }
   it should "get alpha" in {
     import Number.FuzzOps
     val x = 0.0072973525693 ~ 11
     x.isExact shouldBe false
     x shouldEqual Number(sAlpha)
-    x.toString shouldBe "0.0072973525693(11)"
+    x.render shouldBe "0.0072973525693(11)"
   }
 
   behavior of "specialize"
@@ -737,7 +739,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "add 1 to pi" in {
     val x1 = Number.one
     val x2 = Constants.pi
-    (x1 `add` x2).toString shouldBe "4.14159265358979300(41)"
+    (x1 `add` x2).render shouldBe "4.14159265358979300(41)"
   }
   it should "add 1 to e" in {
     val x1 = Number.one

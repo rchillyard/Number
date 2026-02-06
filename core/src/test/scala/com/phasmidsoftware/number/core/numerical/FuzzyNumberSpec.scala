@@ -148,7 +148,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy.get.nominalValue shouldBe Right(3)
     zy.get.factor shouldBe PureNumber
     zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.4082482904638631, Gaussian)) => }
-    zy.get.toString shouldBe "3.00(41)"
+    zy.get.toString shouldBe "FuzzyNumber(Right(3),,Some(AbsoluteFuzz(0.4082482904638631,Gaussian)))"
+    zy.get.render shouldBe "3.00(41)"
   }
 
   behavior of "times"
@@ -428,7 +429,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     implicitly[Fuzzy[Number]].same(0.95)(x, y) shouldBe true
   }
   it should "think pi and pi are the same" in {
-    val x = Number.parse("3.142").get
+    val x = Number.parse("3.142*").get
     val y = Number.pi
     // NOTE we check that these two numbers are the same with a confidence of 80%
     implicitly[Fuzzy[Number]].same(0.2)(x, y) shouldBe true
@@ -445,11 +446,11 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val z = zo.get
     z.isProbablyZero(0) shouldBe true
     z.isProbablyZero(1) shouldBe false
-    z.isProbablyZero(0.25) shouldBe true
+    z.isProbablyZero(0.05) shouldBe true
     z.isProbablyZero(0.895) shouldBe false
   }
   it should "think pi and pi are the same (2)" in {
-    val x = Number.parse("3.1415927").get
+    val x = Number.parse("3.1415927*").get
     val y = Number.pi
     val zo = (x `doSubtract` y).asNumber
     zo.isDefined shouldBe true

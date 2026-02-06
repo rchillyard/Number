@@ -114,7 +114,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return true if the object represents unity, false otherwise
     */
-  def isUnity: Boolean = false
+  lazy val isUnity: Boolean = false
 
   /**
     * Converts this Angle to a representation of the specified type `T`, if possible.
@@ -399,6 +399,8 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     */
   private lazy val toMaybeReal: Option[Real] =
     number.approximation(true).map(x => x.scaleByPi)
+
+  //  override def toString: String = s"Angle($number,$degrees)($maybeName)"
 }
 
 /**

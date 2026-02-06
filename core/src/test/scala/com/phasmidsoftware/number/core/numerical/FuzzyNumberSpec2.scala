@@ -300,22 +300,21 @@ class FuzzyNumberSpec2 extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy number with Box fuzz" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(100.0)), PureNumber, Some(AbsoluteFuzz[Double](0.5, Box)))
-    val str = fn.toString
+    val str = fn.render
 
-    str should include("[")
-    str should include("]")
+    str should include("*")
   }
 
   it should "render fuzzy number with relative fuzz as percentage" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(100.0)), PureNumber, Some(RelativeFuzz[Double](0.01, Gaussian)))
-    val str = fn.toString
+    val str = fn.render
 
     str should include("%")
   }
 
   it should "handle very small fuzz by showing asterisk" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(100.0)), PureNumber, Some(AbsoluteFuzz[Double](1e-20, Gaussian)))
-    val str = fn.toString
+    val str = fn.render
 
     str should include("*")
   }

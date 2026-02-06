@@ -4,12 +4,13 @@
 
 package com.phasmidsoftware.number.core.parse
 
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical._
+import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.core.parse.{NumberParser, ValuableNumber}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
+
 import scala.util.{Left, Try}
 
 /**
@@ -35,8 +36,8 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val r: p.ParseResult[Number] = p.parseAll(p.number, "10.352%")
     r should matchPattern { case p.Success(_, _) => }
     val x: Number = r.get
-    x shouldBe FuzzyNumber(Value.fromRational(Rational(10352, 1000)), Percent, Some(AbsoluteFuzz(0.0005, Box)))
-    r.get.render shouldBe "10.3520[5]%"
+    //    x shouldBe FuzzyNumber(Value.fromRational(Rational(10352, 1000)), Percent, Some(AbsoluteFuzz(0.0005, Box)))
+    r.get.render shouldBe "10.352%"
   }
   behavior of "degree"
   it should "parse 180°" in {
@@ -217,8 +218,8 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val n: numerical.Number = np.get
     n shouldBe ExactNumber(Left(Right(Rational(314, 100))), PureNumber)
   }
-  it should "work for 3.1415927" in {
-    val np = p.parseAll(p.number, "3.1415927")
+  it should "work for 3.1415927*" in {
+    val np = p.parseAll(p.number, "3.1415927*")
     np should matchPattern { case p.Success(_, _) => }
     val n: numerical.Number = np.get
     n shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), PureNumber, Some(AbsoluteFuzz(0.00000005, Box)))

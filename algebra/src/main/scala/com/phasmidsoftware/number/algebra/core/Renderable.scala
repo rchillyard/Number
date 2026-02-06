@@ -24,7 +24,10 @@ trait Renderable {
   def render: String
 
   /**
-    * IMPORTANT NOTE: this method is overridden to provide a more useful toString.
+    * MORE IMPORTANT NOTE: it really doesn't work to do this. It makes debugging almost useless.
+    * You really do need to avoid having toString invoke render (or show).
+    *
+    * IMPORTANT NOTE: this method is overridden to provide a more human-friendly toString.
     * But, if you find yourself in the debugger, being frustrated by the render method,
     * just comment this implementation out.
     *
@@ -33,5 +36,5 @@ trait Renderable {
     *
     * @return the rendered string representation of the object
     */
-  override def toString: String = render
+  //  override def toString: String = render
 }

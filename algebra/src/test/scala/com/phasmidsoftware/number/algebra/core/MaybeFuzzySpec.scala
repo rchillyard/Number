@@ -43,8 +43,8 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render exact Real with asAbsolute" in {
     val r = Real("3.14159")
-    r.show shouldBe "3.141590[5]"
-    r.asAbsolute shouldBe r.render
+    r.show shouldBe "3.14159*"
+    r.asAbsolute shouldBe "3.14159*"
   }
 
   it should "render fuzzy Real with absolute fuzz using asAbsolute" in {

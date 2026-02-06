@@ -352,16 +352,17 @@ For more complex expression parsing with LaTeX-style syntax, see the **Expressio
 
 ### Core Module Parsing
 
-A String representing a number with two or fewer decimal places is considered exact--a number with more than two decimal places is
+A String representing a number with 14 or fewer decimal places is considered exact--a number with more than 14 decimal
+places is
 considered fuzzy, unless it ends in two zeroes, in which case it is considered exact.
 Here are some examples:
 * Real("1.00"): exact
 * Real("1.0100"): exact
 * Real("1.100"): exact
-* Real("1.010"): fuzzy
+* Real("1.010"): exact
 
-You can always override this behavior by adding "*" or "..." to the end of a number with fewer than two DPs,
-or by adding two 0s to the end of a number with more than two decimal places.
+You can always override this behavior by adding "*" or "..." to the end of a number with fewer than 14 DPs,
+or by adding two 0s to the end of a number with more than 14 decimal places.
 * Real("1.100*")" fuzzy
 
 See _RealWorksheet.sc_
@@ -369,7 +370,7 @@ See _RealWorksheet.sc_
 The rules are a little different if you define a number using a floating-point literal such as _Number(1.23400)_,
 the compiler will treat that as a fuzzy number, even though it ends with two zeroes because the compiler essentially ignores them.
 However, _Real(1.23)_ will be considered exact while _Real(1.234)_ will not.
-It's best always to use a String if you want to override the default behavior.
+It's best always to use a String if you want to be explicit about the fuzziness.
 
 In general, the form of a number to be parsed from a String is:
 

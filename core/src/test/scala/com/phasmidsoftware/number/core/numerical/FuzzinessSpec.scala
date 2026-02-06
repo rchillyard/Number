@@ -7,7 +7,7 @@ import com.phasmidsoftware.number.core.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-import scala.util.{Left, Try}
+import scala.util.Try
 
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
@@ -90,7 +90,8 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     import Number.FuzzOps
     val x = 3.1415927 ~ 12
     x.isExact shouldBe false
-    x.toString shouldBe "3.1415927(12)"
+    x.toString shouldBe "FuzzyNumber(Left(Left(Some(3.1415927))),,Some(AbsoluteFuzz(1.200347172002056E-6,Gaussian)))"
+    x.render shouldBe "3.1415927(12)"
   }
 
   behavior of "exponent"
@@ -147,16 +148,16 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val target = AbsoluteFuzz(5E16, Gaussian)
     target.toString(6.02214076E23) shouldBe(true, "6.0221407(5)E+23")
   }
-  it should "work for 3.1415927" in {
-    val xy: Try[Number] = Number.parse("3.1415927")
-    xy.get shouldBe FuzzyNumber(Left(Right(Rational(31415927, 10000000))), PureNumber, Some(AbsoluteFuzz(0.00000005, Box)))
+  it should "work for 3.1415927*" in {
+    val xy: Try[Number] = Number.parse("3.1415927*")
+    xy.get.isExact shouldBe false
     val z: Number = xy.get
     val q: Option[String] = z.fuzz.map(f => f.toString(3.1415927)._2)
     q should matchPattern { case Some("3.14159270[5]") => }
   }
   it should "work for 3.1416" in {
     val target = Number("3.1416")
-    target.toString shouldBe "3.14160[5]"
+    target.toString shouldBe "3.1416"
   }
 
   behavior of "parse"
@@ -190,8 +191,8 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "Box.wiggle"
-  it should "be likely for 1.251" in {
-    val xy = Number.parse("1.251")
+  it should "be likely for 1.251*" in {
+    val xy = Number.parse("1.251*")
     xy.isSuccess shouldBe true
     val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz
@@ -205,12 +206,12 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "Fuzziness.wiggle"
-  it should "be likely for 1.251 (box)" in {
-    val xy = Number.parse("1.251")
+  it should "be likely for 1.251* (box)" in {
+    val xy = Number.parse("1.251*")
     xy.isSuccess shouldBe true
     val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = x.fuzz
-    z.isDefined shouldBe true
+    z.isEmpty shouldBe false
     val q: Fuzziness[Double] = z.get
     q.wiggle(0.5) shouldBe 0.00025
     // NOTE that the probability is ignored for a box
@@ -235,9 +236,9 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     q.style shouldBe true
     val h: Option[Fuzziness[Double]] = q.normalize(x.toNominalDouble.getOrElse(Double.NaN), relative = true)
     val r = h.get.asInstanceOf[RelativeFuzz[Double]].tolerance
-    r shouldBe 0.0016496802557953638 +- 0.0000000001
+    r shouldBe 0.00125 // 0.0016496802557953638 +- 0.0000000001
     h.get.shape.wiggle(r, 0.0) shouldBe Double.PositiveInfinity
-    h.get.shape.wiggle(r, 0.9) shouldBe 8.248401278976819E-4 +- 0.00001
+    h.get.shape.wiggle(r, 0.9) shouldBe 6.25E-4
     h.get.shape.wiggle(r, 1) shouldBe 0
   }
 

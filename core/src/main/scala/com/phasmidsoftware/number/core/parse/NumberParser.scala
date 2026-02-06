@@ -147,9 +147,9 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
   private val rE = "[eE]".r
 
-  // NOTE: maximum length for an exact number.
+  // NOTE: maximum length for an exact number. (Does this only apply to numbers presented in String form?)
   //  Any number with a longer fractional part is assumed to be fuzzy.
-  private val DecimalPlacesExact = 2
+  private val DecimalPlacesExact = 14
 
   private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[Number] =
     if (ro.isDefined || fo.isDefined)

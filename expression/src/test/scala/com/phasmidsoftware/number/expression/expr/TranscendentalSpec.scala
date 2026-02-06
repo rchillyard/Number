@@ -5,8 +5,8 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NaturalExponential, Real}
-import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Constants, FuzzyNumber}
+import com.phasmidsoftware.number.core.inner.{Rational, Value}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -94,7 +94,7 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
     val rational = Rational("7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000")
     val fuzz = AbsoluteFuzz(5.0E-51, Box)
     val value1 = Value.fromRational(rational)
-    EulerMascheroni.evaluateAsIs.toString shouldBe "Some(0.5772156649015329*)" // matchPattern { case Some(Real(FuzzyNumber(`value1`, PureNumber, Some(`fuzz`)))) => }
+    EulerMascheroni.evaluateAsIs.get.render shouldBe "0.5772156649015329*" // matchPattern { case Some(Real(FuzzyNumber(`value1`, PureNumber, Some(`fuzz`)))) => }
     EulerMascheroni.fuzzy.render shouldBe "0.5772156649015329*"
   }
   it should "expression pi" in {

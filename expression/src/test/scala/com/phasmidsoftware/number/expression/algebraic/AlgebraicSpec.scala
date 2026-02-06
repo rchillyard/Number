@@ -29,7 +29,7 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     phiSquared.render shouldBe "(\uD835\uDED7 + 1)"
 
-    phiSquared.materialize.toString shouldBe "(1.5 + √1.25)"
+    phiSquared.materialize.render shouldBe "(1.5 + √1.25)"
 
     phi.approximation.get.toDouble should ===(1.618033988749895)
 

@@ -184,16 +184,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return a String representation of this FuzzyNumber.
     */
-  lazy val render: String = toString
-
-  /**
-    * Render this FuzzyNumber in String form, including the factor, and the fuzz.
-    *
-    * TODO fuzzy zero (use createFuzzy(0)) renders as "0*" which I think is incorrect.
-    *
-    * @return
-    */
-  override lazy val toString: String = {
+  lazy val render: String = {
     val sb = new mutable.StringBuilder()
     lazy val valueAsString = Value.valueToString(nominalValue, skipOne = false, exact = fuzz.isEmpty)
     val z = fuzz match {
@@ -205,12 +196,16 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
       case None =>
         true -> valueAsString
     }
-    val w = z match {
+    val ww = z match {
       case (true, s) =>
         s
       case (false, s) =>
         valueAsString + "\u00B1" + s
     }
+    // TODO Improve this.
+    //  Currently, this is a hack but other places essentially do this same thing but I'm having a hard time merging the appropriate code.
+    val w = ww.replaceAll("""0\[5]""", "*")
+
     factor match {
       case Logarithmic(_) =>
         sb.append(factor.render(w))
@@ -224,7 +219,6 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     }
     sb.toString
   }
-
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
