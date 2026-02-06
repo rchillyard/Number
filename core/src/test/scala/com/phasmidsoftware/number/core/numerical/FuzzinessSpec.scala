@@ -126,33 +126,33 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Fuzz.toString"
   it should "work for 1/0.5/Box" in {
     val target = AbsoluteFuzz(0.5, Box)
-    target.toString(1) shouldBe(true, "1.0[5]")
+    target.getQualifiedString(1) shouldBe(true, "1.0[5]")
   }
   it should "work for 1/0.005/Box" in {
     val target = AbsoluteFuzz(0.005, Box)
-    target.toString(1) shouldBe(true, "1.000[5]")
+    target.getQualifiedString(1) shouldBe(true, "1.000[5]")
   }
   it should "work for 1/0.5/Gaussian" in {
     val target = AbsoluteFuzz(0.5, Gaussian)
-    target.toString(1) shouldBe(true, "1.0(5)")
+    target.getQualifiedString(1) shouldBe(true, "1.0(5)")
   }
   it should "work for 1/0.005/Gaussian" in {
     val target = AbsoluteFuzz(0.005, Gaussian)
-    target.toString(1) shouldBe(true, "1.000(5)")
+    target.getQualifiedString(1) shouldBe(true, "1.000(5)")
   }
   it should "work for Planck" in {
     val target = AbsoluteFuzz(5E-41, Gaussian)
-    target.toString(6.62607015E-34) shouldBe(true, "6.6260701(5)E-34")
+    target.getQualifiedString(6.62607015E-34) shouldBe(true, "6.6260701(5)E-34")
   }
   it should "work for Avagadro" in {
     val target = AbsoluteFuzz(5E16, Gaussian)
-    target.toString(6.02214076E23) shouldBe(true, "6.0221407(5)E+23")
+    target.getQualifiedString(6.02214076E23) shouldBe(true, "6.0221407(5)E+23")
   }
   it should "work for 3.1415927*" in {
     val xy: Try[Number] = Number.parse("3.1415927*")
     xy.get.isExact shouldBe false
     val z: Number = xy.get
-    val q: Option[String] = z.fuzz.map(f => f.toString(3.1415927)._2)
+    val q: Option[String] = z.fuzz.map(f => f.getQualifiedString(3.1415927)._2)
     q should matchPattern { case Some("3.14159270[5]") => }
   }
   it should "work for 3.1416" in {

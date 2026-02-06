@@ -190,7 +190,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     val z = fuzz match {
       // CONSIDER will the following test work in all cases?
       case Some(f) if f.wiggle(0.5) > 1E-16 =>
-        f.toString(toNominalDouble.getOrElse(0.0))
+        f.getQualifiedString(toNominalDouble.getOrElse(0.0))
       case Some(_) =>
         true -> (valueAsString.replace(Ellipsis, "") + "*")
       case None =>

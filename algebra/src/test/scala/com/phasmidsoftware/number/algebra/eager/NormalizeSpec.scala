@@ -4,10 +4,12 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
-import com.phasmidsoftware.number.algebra.eager.{Angle, BinaryExponential, InversePower, Exponential, NaturalExponential, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, BinaryExponential, Complex, Exponential, InversePower, NaturalExponential, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.ComplexCartesian
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.matchers.should.Matchers.shouldBe
 
 /**
   * Comprehensive test suite for the normalize method across all Valuable types.
@@ -172,20 +174,28 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Complex.normalize"
 
-//  it should "reduce to Real when imaginary part is zero" in {
-//    // This test depends on how your Complex type works
-//    // Adjust based on actual Complex implementation
+  it should "reduce to Real when imaginary part is zero" in {
+    // This test depends on how your Complex type works
+    // Adjust based on actual Complex implementation
+    val complex = Complex(ComplexCartesian(3.14, 0.0))
+    val actual = complex.normalize
+    val expected = Real(3.14, None)
+    expected.render shouldBe "3.14*"
+//    actual shouldBe expected
+    pending
+  }
+
+  it should "reduce further to WholeNumber if possible" in {
+    val complex = Complex(ComplexCartesian(5, 0))
+//    complex.normalize shouldBe WholeNumber(5)
+    pending
+  }
+
+  it should "stay as Complex when imaginary part is non-zero" in {
+    val complex = Complex(ComplexCartesian(3.14, 1.0))
+    complex.normalize shouldBe complex
 //    pending
-//  }
-//
-//  it should "reduce further to WholeNumber if possible" in {
-//    // Complex(5, 0) -> Real(5.0) -> WholeNumber(5)
-//    pending
-//  }
-//
-//  it should "stay as Complex when imaginary part is non-zero" in {
-//    pending
-//  }
+  }
 
 
   behavior of "normalize integration tests"

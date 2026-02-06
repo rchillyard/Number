@@ -44,7 +44,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     // For f(x) = 2x, relativeFuzz function is x*2/(2x) = 1
     val transformed = relativeFuzz.transform[Double, Double](_ => 1.0)(100.0)
 
-    transformed shouldBe a[RelativeFuzz[_]]
+    transformed shouldBe a[RelativeFuzz[?]]
     transformed.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.01 +- 0.0001
   }
 
@@ -53,7 +53,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     // For f(x) = x^2, relativeFuzz function is x*2x/x^2 = 2
     val transformed = relativeFuzz.transform[Double, Double](_ => 2.0)(100.0)
 
-    transformed shouldBe a[RelativeFuzz[_]]
+    transformed shouldBe a[RelativeFuzz[?]]
     transformed.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.02 +- 0.0001
   }
 
@@ -63,7 +63,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
 
     val result = fuzz1.*(fuzz2, independent = true)
 
-    result shouldBe a[RelativeFuzz[_]]
+    result shouldBe a[RelativeFuzz[?]]
     val tolerance = result.asInstanceOf[RelativeFuzz[Double]].tolerance
     // sqrt(0.01² + 0.02² + 0.01×0.02) ≈ 0.02646
     tolerance shouldBe 0.02646 +- 0.0001
@@ -75,7 +75,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
 
     val result = fuzz1.*(fuzz2, independent = false)
 
-    result shouldBe a[RelativeFuzz[_]]
+    result shouldBe a[RelativeFuzz[?]]
     val tolerance = result.asInstanceOf[RelativeFuzz[Double]].tolerance
     // For non-independent: 0.01 + 0.02 = 0.03
     tolerance shouldBe 0.03 +- 0.0001
@@ -87,7 +87,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
 
     val result = fuzz1.*(fuzz2, independent = true)
 
-    result shouldBe a[RelativeFuzz[_]]
+    result shouldBe a[RelativeFuzz[?]]
     val tolerance = result.asInstanceOf[RelativeFuzz[Double]].tolerance
     // For Box: simple addition
     tolerance shouldBe 0.03 +- 0.0001
@@ -109,7 +109,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     val gaussianFuzz = boxFuzz.normalizeShape
 
     gaussianFuzz.shape shouldBe Gaussian
-    gaussianFuzz shouldBe a[RelativeFuzz[_]]
+    gaussianFuzz shouldBe a[RelativeFuzz[?]]
   }
 
   behavior of "AbsoluteFuzz"
@@ -163,7 +163,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     // For f(x) = x + c, derivative is 1, so absolute error unchanged
     val transformed = absoluteFuzz.transform[Double, Double](_ => 1.0)(100.0)
 
-    transformed shouldBe a[AbsoluteFuzz[_]]
+    transformed shouldBe a[AbsoluteFuzz[?]]
     transformed.asInstanceOf[AbsoluteFuzz[Double]].magnitude shouldBe 1.0 +- 0.001
   }
 
@@ -172,7 +172,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     // For f(x) = 5x, derivative is 5, so absolute error scales by 5
     val transformed = absoluteFuzz.transform[Double, Double](_ => 5.0)(100.0)
 
-    transformed shouldBe a[AbsoluteFuzz[_]]
+    transformed shouldBe a[AbsoluteFuzz[?]]
     transformed.asInstanceOf[AbsoluteFuzz[Double]].magnitude shouldBe 5.0 +- 0.001
   }
 
@@ -182,7 +182,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
 
     val result = fuzz1.*(fuzz2, independent = true)
 
-    result shouldBe a[AbsoluteFuzz[_]]
+    result shouldBe a[AbsoluteFuzz[?]]
     val magnitude = result.asInstanceOf[AbsoluteFuzz[Double]].magnitude
     // sqrt(1^2 + 2^2) = sqrt(5) ≈ 2.236
     magnitude shouldBe 2.236 +- 0.001
@@ -193,12 +193,12 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     val gaussianFuzz = boxFuzz.normalizeShape
 
     gaussianFuzz.shape shouldBe Gaussian
-    gaussianFuzz shouldBe a[AbsoluteFuzz[_]]
+    gaussianFuzz shouldBe a[AbsoluteFuzz[?]]
   }
 
   it should "render with embedded nominal value" in {
     val absoluteFuzz = AbsoluteFuzz[Double](0.5, Gaussian)
-    val (embedded, str) = absoluteFuzz.toString(100.0)
+    val (embedded, str) = absoluteFuzz.getQualifiedString(100.0)
 
     embedded shouldBe true
     str shouldBe "1.000(5)E+02"
@@ -219,7 +219,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     val normalized = absoluteFuzz.normalize(100.0, relativeStyle = true)
 
     normalized should be(defined)
-    normalized.get shouldBe a[RelativeFuzz[_]]
+    normalized.get shouldBe a[RelativeFuzz[?]]
     normalized.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.01 +- 0.0001
   }
 
@@ -236,7 +236,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     val normalized = relativeFuzz.normalize(100.0, relative = false)
 
     normalized should be(defined)
-    normalized.get shouldBe a[AbsoluteFuzz[_]]
+    normalized.get shouldBe a[AbsoluteFuzz[?]]
     normalized.get.asInstanceOf[AbsoluteFuzz[Double]].magnitude shouldBe 1.0 +- 0.001
   }
 
@@ -266,7 +266,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     val result = Fuzziness.combine(100.0, 200.0, relative = false, independent = true)((fuzz1, fuzz2))
 
     result should be(defined)
-    result.get shouldBe a[AbsoluteFuzz[_]]
+    result.get shouldBe a[AbsoluteFuzz[?]]
   }
 
   it should "combine two relative fuzzes for multiplication" in {
@@ -276,7 +276,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     val result = Fuzziness.combine(100.0, 200.0, relative = true, independent = true)((fuzz1, fuzz2))
 
     result should be(defined)
-    result.get shouldBe a[RelativeFuzz[_]]
+    result.get shouldBe a[RelativeFuzz[?]]
   }
 
   it should "combine absolute and relative by normalizing both" in {
@@ -328,7 +328,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     val result = Fuzziness.monadicFuzziness(MonadicOperationExp, t, x, inputFuzz)
 
     result should be(defined)
-    result.get shouldBe a[RelativeFuzz[_]]
+    result.get shouldBe a[RelativeFuzz[?]]
     // For exp, relativeFuzz is x => x, so output error ≈ 10 * 0.01 = 0.1
     // Plus operation fuzz
     val tolerance = result.get.asInstanceOf[RelativeFuzz[Double]].tolerance
@@ -364,10 +364,10 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
 
   it should "create fuzz with correct relative precision" in {
     val fuzz0 = Fuzziness.createFuzz(0)
-    fuzz0 shouldBe a[RelativeFuzz[_]]
+    fuzz0 shouldBe a[RelativeFuzz[?]]
 
     val fuzz3 = Fuzziness.createFuzz(3)
-    fuzz3 shouldBe a[RelativeFuzz[_]]
+    fuzz3 shouldBe a[RelativeFuzz[?]]
     val tolerance = fuzz3.asInstanceOf[RelativeFuzz[Double]].tolerance
     // Should be 8x the base precision (1 << 3 = 8)
     tolerance should be > 0.0

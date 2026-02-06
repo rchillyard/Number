@@ -83,7 +83,7 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
   it should "evaluate l2" in {
     L2.evaluateAsIs shouldBe None
     L2.fuzzy should matchPattern { case Real(_, _) => }
-    L2.fuzzy.render shouldBe "0.6931471805599453±1.4E-13%"
+    L2.fuzzy.render shouldBe "0.69314718055994530[94]"
   }
   // Test for (fixed) Issue #124
   it should "evaluate lg2e" in {

@@ -40,19 +40,19 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Fuzz.toString"
   it should "work for 1/0.5/Box" in {
     val target = AbsoluteFuzz(0.5, Box)
-    target.toString(1) shouldBe(true, "1.0[5]")
+    target.getQualifiedString(1) shouldBe(true, "1.0[5]")
   }
   it should "work for 1/0.005/Box" in {
     val target = AbsoluteFuzz(0.005, Box)
-    target.toString(1) shouldBe(true, "1.000[5]")
+    target.getQualifiedString(1) shouldBe(true, "1.000[5]")
   }
   it should "work for 1/0.5/Gaussian" in {
     val target = AbsoluteFuzz(0.5, Gaussian)
-    target.toString(1) shouldBe(true, "1.0(5)")
+    target.getQualifiedString(1) shouldBe(true, "1.0(5)")
   }
   it should "work for 1/0.005/Gaussian" in {
     val target = AbsoluteFuzz(0.005, Gaussian)
-    target.toString(1) shouldBe(true, "1.000(5)")
+    target.getQualifiedString(1) shouldBe(true, "1.000(5)")
   }
 
   behavior of "parse"
@@ -475,7 +475,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val x = xo.get
     val normalized: Field = q.make(Fuzziness.map[Double, Double, Double](1, x, relative = true, op.relativeFuzz, Some(fuzz))).normalize
     val z = normalized.asNumber
-    val (_, w) = z.get.fuzz.get.toString(x)
+    val (_, w) = z.get.fuzz.get.getQualifiedString(x)
     w.substring(0, 17) + w.substring(18, 22) shouldBe "2.718281828459045[27]"
   }
   it should "implement asComparedWith" in {

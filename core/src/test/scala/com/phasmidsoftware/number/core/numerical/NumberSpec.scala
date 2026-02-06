@@ -121,8 +121,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for E as scalar (rel fuzzy)" in {
     val target = Number.e.scale(PureNumber)
     val w = target.render
-    w should startWith("2.718281828459045")
-    w should endWith("%")
+    w should startWith("2.7182818284590455[35]")
   }
   it should "work for 1 scaled as Radian" in {
     Number.one.scale(Radian).render shouldBe "0.3183098861837907*\uD835\uDED1"
@@ -939,13 +938,13 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val x = Number("1.643(1)")
     val pi = Number.sqrt(x `doMultiple` 6)
     pi should matchPattern { case FuzzyNumber(_, _, _) => }
-    pi.render shouldBe "3.1397452125928944±0.0051%"
+    pi.render shouldBe "3.13974(16)"
   }
   it should "power 1/2" in {
     val x = Number("1.643(1)")
     val pi = (x `doMultiple` 6) `power` Number.half
     pi should matchPattern { case FuzzyNumber(_, _, _) => }
-    pi.render shouldBe "3.1397452125928944±0.0051%"
+    pi.render shouldBe "3.13974(16)"
   }
 
   behavior of "sqrt"

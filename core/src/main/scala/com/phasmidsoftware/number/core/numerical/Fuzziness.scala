@@ -20,7 +20,7 @@ import scala.util.Try
   *
   * @tparam T the underlying type of the fuzziness. Usually Double for fuzzy numerics.
   */
-trait Fuzziness[T] {
+sealed trait Fuzziness[T] {
   /**
     * One of two shapes for the probability density function:
     * Gaussian (normal distribution);
@@ -75,13 +75,12 @@ trait Fuzziness[T] {
 
   /**
     * Method to yield a String to render the given T value.
-    *
-    * CONSIDER renaming this method as render.
+    * The result is qualified by a Boolean indicating if the value is embedded in the result.
     *
     * @param t a T value.
-    * @return a tuple of a Boolean (indicating if the value is embedded in the result) and a String which is the textual rendering of t with this Fuzziness applied.
+    * @return a tuple of a Boolean and a String that is the textual rendering of t with this Fuzziness applied.
     */
-  def toString(t: T): (Boolean, String)
+  def getQualifiedString(t: T): (Boolean, String)
 
   /**
     * A variation on toString where we render this Fuzziness as a percentage.
@@ -229,8 +228,13 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * @param t the T value.
     * @return a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def toString(t: T): (Boolean, String) =
-    false -> asPercentage
+  def getQualifiedString(t: T): (Boolean, String) =
+  {
+    lazy val absoluteFuzz = absolute(t)
+    lazy val tuple = false -> asPercentage
+    lazy val maybeAbsTuple = absoluteFuzz.map(_.getQualifiedString(t))
+    (Option.when(tolerance > 0.0001)(tuple) orElse maybeAbsTuple).getOrElse(tuple)
+  }
 
   /**
     * A variation on toString where we render this relative Fuzziness as a percentage.
@@ -367,7 +371,7 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     * @param t a T value.
     * @return a tuple of a Boolean (indicating if the value is embedded in the result) and a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def toString(t: T): (Boolean, String) = {
+  def getQualifiedString(t: T): (Boolean, String) = {
     val eString = tv.render(t) match {
       case AbsoluteFuzz.numberR(e) => e
       case _ => noExponent

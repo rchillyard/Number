@@ -29,6 +29,6 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
   it should "take the natural log of 2" in {
     val x = Constants.two.ln
     x should matchPattern { case Real(FuzzyNumber(Left(Left(Some(0.6931471805599453))), PureNumber, _)) => }
-    x.render shouldBe "0.6931471805599453±1.4E-13%"
+    x.render shouldBe "0.69314718055994530[94]"
   }
 }
