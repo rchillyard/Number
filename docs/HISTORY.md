@@ -2,6 +2,7 @@
 
 ## Versions
 
+* Version 1.6.5: Cleaned up all of the core code that is superseded in algebra, etc.
 * Version 1.6.2: Use of configuration to control matcher logging.
 * Version 1.6.1: Cosmetics (removal of nulls), also better logging (instead of using println).
 * Version 1.6.0: Major rename: Logarithmic to Exponential. Also, changed def to lazy val where appropriate.
