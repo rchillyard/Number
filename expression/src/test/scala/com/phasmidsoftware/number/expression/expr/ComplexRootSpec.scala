@@ -283,15 +283,15 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * Test with large coefficients
     */
   it should "handle equations with large coefficients" in {
-    //    val equation = QuadraticEquation(Rational(100), Rational(10000))
-    //    val root0 = QuadraticRoot(equation, 0)
+    val equation = QuadraticEquation(Rational(100), Rational(10000))
+    val root0 = QuadraticRoot(equation, 0)
 
-    // Should produce complex roots
-    //    root0.solution shouldBe a[Complex]
+    //     Should produce complex roots
+    root0.solution shouldBe a[Complex]
 
-    //    val result = equation.evaluate(root0.solution)
-    //    result.isZero shouldBe true
-    pending
+    val result = equation.evaluate(root0.solution)
+    result.isZero shouldBe true
+    //    pending
   }
 
   /**

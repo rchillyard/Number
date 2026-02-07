@@ -121,8 +121,10 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * * @return the product.
     */
   def multiply(x: Field): Field = x match {
-    case Real(n) => numberProduct(n)
-    case c@BaseComplex(_, _) => product(c)
+    case Real(n) =>
+      numberProduct(n)
+    case c@BaseComplex(_, _) =>
+      product(c)
   }
 
   /**
@@ -563,6 +565,10 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
       doAdd(convertToCartesian(c))
   }
 
+  private lazy val realPart: Number = x.square `doSubtract` y.square
+
+  private lazy val imagPart: Number = x `doMultiply` (y `doMultiply` Number.two)
+
   /**
     * Computes the square of a complex number represented in Cartesian form.
     * The result is a new `ComplexCartesian` value obtained by applying the formula:
@@ -570,8 +576,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return a `ComplexCartesian` instance representing the square of the original complex number.
     */
-  lazy val square: ComplexCartesian =
-    ComplexCartesian(x.doPower(Number.two) `doSubtract` y.doPower(Number.two), x `doMultiply` y `doMultiply` Number.two)
+  lazy val square: ComplexCartesian = ComplexCartesian(realPart, imagPart)
 
   /**
     * Yields the inverse of this Complex.

@@ -396,27 +396,14 @@ case object MonadicOperationSin extends MonadicOperation {
   *
   * @param sign an Int which will distinguish between results in the four quadrants.
   */
-case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
+case class MonadicOperationAtan(xSign: Int, ySign: Int) extends MonadicOperation {
 
-  /**
-    * A collection of monadic functions related to arctangent calculations.
-    * This val consolidates specific implementations or handlers:
-    * - A failure handler for invalid integer-based atan calls.
-    * - A rational arctangent function.
-    * - A double arctangent function.
-    */
   val functions: MonadicFunctions =
-    (fail("atan cannot be Int"), atanRat, atan)
+    (fail("atan cannot be Int"), atanRat, atanDouble)
 
-  /**
-    * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
-    */
   val relativeFuzz: Double => Double =
-    x => x / (1 + math.pow(x, 2)) / math.atan2(x, sign)
+    fuzzRatio => fuzzRatio / (1 + math.pow(fuzzRatio, 2))
 
-  /**
-    * Relative precision, as used by Fuzziness.createFuzz.
-    */
   val fuzz: Int = 4
 
   /**
@@ -426,53 +413,47 @@ case class MonadicOperationAtan(sign: Int) extends MonadicOperation {
     * @param flip A Boolean value that determines whether the angle should be flipped (negated).
     * @return A Try[Rational] containing the modulated angle value, or a failure if the input computation fails.
     */
-  def modulateAngle(ry: Try[Rational], flip: Boolean): Try[Rational] =
-    ry map (r => if (flip) r.negate else r) map (r => if (sign < 0) Rational.one + r else r)
+  def modulateAngle(ry: Try[Rational], flip: Boolean): Try[Rational] = {
+    ry.map { r =>
+      val negated = if (flip) r.negate else r
+      // Add π if in quadrant II or III (x < 0)
+      if (xSign < 0) Rational.one + negated else negated
+    }
+  }
 
-  /**
-    * Defines a private function that computes the arctangent of a given Rational number
-    * and adjusts the result based on the angle's quadrant.
-    *
-    * The process involves:
-    *   1. Computing the absolute value of the input Rational and calculating its arctangent.
-    *      2. Modulating the resulting angle to consider directionality (positive or negative)
-    *      depending on the quadrant.
-    *
-    * @return A Try[Rational] containing the modulated arctangent of the input, or a Failure
-    *         if the computation cannot be performed.
-    */
-  private lazy val atanRat: Rational => Try[Rational] =
-    r => modulateAngle(doAtan(r.abs), r.signum < 0)
+  // For exact rational cases - handle special values, then adjust quadrant
+  private lazy val atanRat: Rational => Try[Rational] = {
+    case Rational.zero => Success(quadrantAdjust(Rational.zero))
+    case Rational.one => Success(quadrantAdjust(Rational(1, 4)))
+    case Rational.infinity => Success(quadrantAdjust(Rational.half))
+    case _ => Failure(OperationsException("atan cannot be Rational"))
+  }
 
-  /**
-    * Computes the arctangent of a specified number, incorporating a directional sign for quadrant distinction.
-    *
-    * @param x A Double value for which the arctangent will be computed.
-    * @return A Try[Double] containing the result of the calculation, or a failure if an exception occurs.
-    */
-  private def atan(x: Double): Try[Double] = Try {
-    math.atan2(x, sign) / math.Pi
-  } // CONSIDER use scale
+  // For numeric approximation - atan of the ratio, then adjust quadrant
+  private def atanDouble(ratioVal: Double): Try[Double] = Try {
+    val baseAngle = math.atan(ratioVal) // atan of ratio y/x
+    val adjusted = quadrantAdjustDouble(baseAngle)
+    adjusted / math.Pi
+  }
 
-  /**
-    * Computes the arctangent of a specified Rational value, returning a result based on certain predefined cases.
-    *
-    * @param r A Rational value for which the arctangent will be computed. Cases include:
-    *          - Rational.infinity: Returns Success(Rational.half)
-    *          - Rational.zero: Returns Success(Rational.zero)
-    *          - Rational.one: Returns Success(Rational.one / 4)
-    *          - Otherwise: Returns a Failure indicating that the operation cannot be performed on the given Rational
-    * @return A Try[Rational] containing the computed result or a failure with a descriptive message.
-    */
-  private def doAtan(r: Rational) = r match {
-    case Rational.infinity =>
-      Success(Rational.half)
-    case Rational.zero =>
-      Success(Rational.zero)
-    case Rational.one =>
-      Success(Rational.one / 4)
-    case _ =>
-      Failure(OperationsException("atan cannot be Rational"))
+  // Adjust angle based on quadrant (for Rational)
+  private def quadrantAdjust(baseAngle: Rational): Rational = {
+    (xSign, ySign) match {
+      case (xs, _) if xs > 0 => baseAngle // Quadrants I or IV
+      case (xs, ys) if xs < 0 && ys >= 0 => Rational.one + baseAngle // Quadrant II (add π)
+      case (xs, ys) if xs < 0 && ys < 0 => baseAngle - Rational.one // Quadrant III (subtract π)
+      case _ => baseAngle // x == 0 cases
+    }
+  }
+
+  // Adjust angle based on quadrant (for Double)
+  private def quadrantAdjustDouble(baseAngleRad: Double): Double = {
+    (xSign, ySign) match {
+      case (xs, _) if xs > 0 => baseAngleRad // Quadrants I or IV
+      case (xs, ys) if xs < 0 && ys >= 0 => baseAngleRad + math.Pi // Quadrant II
+      case (xs, ys) if xs < 0 && ys < 0 => baseAngleRad - math.Pi // Quadrant III
+      case _ => baseAngleRad // x == 0 cases
+    }
   }
 }
 

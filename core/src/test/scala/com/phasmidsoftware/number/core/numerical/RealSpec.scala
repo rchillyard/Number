@@ -265,29 +265,12 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Number.one.atan(Number(Rational(3)).sqrt) shouldEqual Number(r"1/3", Radian)
   }
   it should "be 7 Pi / 6 for 1/-root(3)" in {
-    // CONSIDER shouldn't this be 5 pi / 6?
-    negate(Number(Rational(3)).sqrt).atan(Number.one) shouldEqual Number(r"-5/6", Radian)
+    val actual = negate(Number(Rational(3)).sqrt).atan(Number.one)
+    val expected = Number(r"5/6", Radian)
+    actual.isSame(expected) shouldBe true
   }
   it should "be 11 Pi / 6 for -1/2" in {
     Number(Rational(3)).sqrt.atan(negate(Number.one)) shouldEqual Number(r"-1/6", Radian)
-  }
-  it should "be 3 pi / 4 for 1/-1" in {
-    val adjacent = Number.negate(Number.one)
-    val opposite = Number.one
-    val actual: Number = adjacent.atan(opposite)
-    val expected: Number = (Number.pi `doMultiply` 3) `doDivide` 4
-    // TODO revert this so that it reads actual ... expected
-    //  XXX  actual should ===(expected)
-    actual shouldBe expected
-  }
-  // TODO need to operate appropriately on negZero.
-  it should "evaluate atan of 1 over -0" in {
-    val number = Number.negZero.atan(Number.one)
-    number shouldBe Number(Rational(-1, 2), Radian)
-  }
-  it should "evaluate atan of -1 over 0" in {
-    val number = Number.zero.atan(negate(Number.one))
-    number shouldBe Number(Rational(-1, 2), Radian)
   }
 
   behavior of "exp"

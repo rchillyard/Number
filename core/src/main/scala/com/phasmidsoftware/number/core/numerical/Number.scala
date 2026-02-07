@@ -1491,7 +1491,7 @@ object Number {
     * @return the arctangent of the angle, in radians
     */
   def atan(x: Number, y: Number): Number =
-    doAtan(y `doDivide` x, x.signum)
+    doAtan(x, y)
 
   /**
     * Yield the natural log of x.
@@ -1581,28 +1581,162 @@ object Number {
     * @return A `Number` representing the computed arctangent in radians. If the input number's factor is not supported or valid, the method may throw an exception.
     */
   @tailrec
-  private def doAtan(number: Number, sign: Int): Number = number.factor match {
-    case PureNumber =>
-      prepareWithSpecialize(number.transformMonadic(Radian)(MonadicOperationAtan(sign))).modulate
-    case SquareRoot =>
-      val ry = number.toNominalRational map (_.abs) match {
-        case Some(Rational(Rational.bigThree, Rational.bigOne)) => //
-          Success(Rational(1, 3))
-        case Some(Rational(Rational.bigOne, Rational.bigThree)) =>
-          Success(Rational(1, 6))
-        case None =>
-          Failure(CoreException("input to atan is not rational"))
-        case _ =>
-          Failure(CoreException("rational is not matched"))
-      }
-      (for (flip <- number.toNominalRational map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
-        case Some(r) =>
-          Number(r, Radian)
-        case None =>
-          doAtan(number.scale(PureNumber), sign)
-      }
-    case _ =>
-      throw CoreException("number.factor is not matched")
+  private def doAtan(x: Number, y: Number): Number = {
+    val ratio = y doDivide x
+    val xSign = x.signum
+    val ySign = y.signum
+
+    ratio.factor match {
+      case PureNumber =>
+        prepareWithSpecialize(ratio.transformMonadic(Radian)(MonadicOperationAtan(xSign, ySign))).modulate
+
+      case SquareRoot =>
+        val ry = ratio.toNominalRational map (_.abs) match {
+          case Some(Rational(Rational.bigThree, Rational.bigOne)) =>
+            Success(Rational(1, 3)) // √3 → π/3
+          case Some(Rational(Rational.bigOne, Rational.bigThree)) =>
+            Success(Rational(1, 6)) // 1/√3 → π/6
+          case None =>
+            Failure(CoreException("input to atan is not rational"))
+          case _ =>
+            Failure(CoreException("rational is not matched"))
+        }
+
+        (for {
+          flip <- ratio.toNominalRational.map(_.signum < 0)
+          z <- MonadicOperationAtan(xSign, ySign).modulateAngle(ry, flip).toOption
+        } yield z) match {
+          case Some(r) =>
+            Number(r, Radian)
+          case None =>
+            doAtan(ratio.scale(PureNumber), Number.one)
+        }
+
+      case _ =>
+        throw CoreException(s"atan: factor not matched: ${ratio.factor}")
+    }
+  }
+
+  //  private def atanSquareRoot(ratio: Number, x: Number, y: Number): Number = {
+  //    val ry = ratio.toNominalRational map (_.abs) match {
+  //      case Some(Rational(Rational.bigThree, Rational.bigOne)) =>
+  //        Success(Rational(1, 3)) // √3 → π/3
+  //      case Some(Rational(Rational.bigOne, Rational.bigThree)) =>
+  //        Success(Rational(1, 6)) // 1/√3 → π/6
+  //      case None =>
+  //        Failure(CoreException("input to atan is not rational"))
+  //      case _ =>
+  //        Failure(CoreException("rational is not matched"))
+  //    }
+  //
+  //    (for {
+  //      flip <- ratio.toNominalRational.map(_.signum < 0)
+  //      z <- MonadicOperationAtan(x, y).modulateAngle(ry, flip).toOption
+  //    } yield z) match {
+  //      case Some(r) =>
+  //        Number(r, Radian)
+  //      case None =>
+  //        doAtan(ratio.scale(PureNumber), Number.one)
+  //    }
+  //  }
+
+  //  private def doAtan(x: Number, y: Number): Number = {
+  //    // Try exact cases first
+  //    atanExact(x, y).getOrElse {
+  //      // Fall back to numeric approximation
+  //      atanNumeric(x, y)
+  //    }
+  //  }
+
+  /**
+    * Handles exact symbolic cases for atan2(y, x).
+    * Returns Some(angle) for known exact values, None otherwise.
+    */
+  private def atanExact(x: Number, y: Number): Option[Number] = {
+    (x, y) match {
+      // Points on axes
+      case (Number.one, Number.zero) =>
+        Some(Number(0, Radian)) // 0
+      case (Number.negOne, Number.zero) =>
+        Some(Number(1, Radian)) // π
+      case (Number.zero, Number.one) =>
+        Some(Number(Rational(1, 2), Radian)) // π/2
+      case (Number.zero, Number.negOne) =>
+        Some(Number(Rational(-1, 2), Radian)) // -π/2
+
+      // 45° cases
+      case (Number.one, Number.one) =>
+        Some(Number(Rational(1, 4), Radian)) // π/4
+      case (Number.negOne, Number.one) =>
+        Some(Number(Rational(3, 4), Radian)) // 3π/4
+      case (Number.one, Number.negOne) =>
+        Some(Number(Rational(-1, 4), Radian)) // -π/4
+      case (Number.negOne, Number.negOne) =>
+        Some(Number(Rational(-3, 4), Radian)) // -3π/4
+
+      // √3 cases (30° and 60°)
+      case (Number.one, y2) if isRoot3(y2) =>
+        Some(Number(Rational(1, 3), Radian)) // π/3
+      case (y2, Number.one) if isRoot3(y2) =>
+        Some(Number(Rational(1, 6), Radian)) // π/6
+      case (Number.negOne, y2) if isRoot3(y2) =>
+        Some(Number(Rational(2, 3), Radian)) // 2π/3
+      case (y2, Number.negOne) if isRoot3(y2) =>
+        Some(Number(Rational(-1, 6), Radian)) // -π/6
+      case (x2, Number.one) if isNegRoot3(x2) =>
+        Some(Number(Rational(5, 6), Radian)) // 5π/6 (or -7π/6)
+      case (x2, Number.one) if isNegRoot3(x2) =>
+        Some(Number(Rational(5, 6), Radian)) // 5π/6 for (-√3, 1)
+      case (x2, Number.negOne) if isRoot3(x2) =>
+        Some(Number(Rational(-1, 6), Radian)) // -π/6 (or 11π/6)
+
+      // √3 cases - check BEFORE computing ratio
+      case (Number.one, y2) if isRoot3(y2) =>
+        Some(Number(Rational(1, 3), Radian)) // π/3 for (1, √3)
+      case (Number.one, y2) if isNegRoot3(y2) =>
+        Some(Number(Rational(-1, 3), Radian)) // -π/3 for (1, -√3)
+      case (x2, Number.one) if isNegRoot3(x2) =>
+        Some(Number(Rational(5, 6), Radian)) // 5π/6 for (-√3, 1)
+      case (x2, Number.one) if isRoot3(x2) =>
+        Some(Number(Rational(1, 6), Radian)) // π/6 for (√3, 1)
+      case (Number.negOne, y2) if isRoot3(y2) =>
+        Some(Number(Rational(2, 3), Radian)) // 2π/3 for (-1, √3)
+      case (x2, Number.negOne) if isRoot3(x2) =>
+        Some(Number(Rational(-1, 6), Radian)) // -π/6 for (√3, -1)
+
+      case _ => None
+    }
+  }
+
+  /**
+    * Handles numeric approximation using standard library atan2.
+    * Works for any fuzzy or non-exact numbers.
+    */
+  private def atanNumeric(x: Number, y: Number): Number = {
+    (x.maybeNominalDouble, y.maybeNominalDouble) match {
+      case (Some(xVal), Some(yVal)) =>
+        val angleRad = math.atan2(yVal, xVal) // Standard atan2(y, x)
+        val angleInPi = angleRad / math.Pi
+        Number(angleInPi, Radian)
+      case _ =>
+        throw CoreException(s"Cannot compute atan for non-numeric values: x=$x, y=$y")
+    }
+  }
+
+  /**
+    * Check if a number equals √3
+    */
+  def isRoot3(n: Number): Boolean = n match {
+    case ExactNumber(Right(3), SquareRoot) => true
+    case _ => false
+  }
+
+  /**
+    * Check if a number equals -√3
+    */
+  def isNegRoot3(n: Number): Boolean = n match {
+    case ExactNumber(Right(-3), SquareRoot) => true
+    case _ => n.signum < 0 && isRoot3(negate(n))
   }
 
   /**

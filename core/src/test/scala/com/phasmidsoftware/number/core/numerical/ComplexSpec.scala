@@ -388,4 +388,14 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     // The following will be represented as "±√5", that's to say +- square root(5).
     √(5).asComplex.render shouldBe "±√5"
   }
+
+  it should "evaluate an equation" in {
+    val p = Rational(100)
+    val q = Rational(10000)
+    val c = ComplexCartesian(Number(-50), Number(7500).sqrt)
+    val pTimesC = p * c
+    println(pTimesC)
+    val evaluation = c * c + pTimesC + q
+    evaluation.isZero shouldBe true
+  }
 }

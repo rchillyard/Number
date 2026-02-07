@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.expression.algebraic
 
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.ComplexCartesian
 import com.phasmidsoftware.number.expression.expr.ExpressionException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -500,8 +501,7 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
 
     equation.evaluate(root0) match {
       case Complex(c) =>
-        // TODO this is not exactly a resoundingly confident test. Something is up!
-        c.modulus.signum(0.0001) shouldBe -1
+        c.isSame(ComplexCartesian(0, 0)) shouldBe true
       case x =>
         x.isZero shouldBe true
     }
